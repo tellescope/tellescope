@@ -1,0 +1,18 @@
+{
+  "extends": "../../tsconfig.settings.json",
+  "compilerOptions": {
+    "outDir": "lib/esm",
+    "rootDir": "src",
+  },
+  "exclude": ["node_modules", "lib", "tests"],
+  "include": ["src"],
+  "references": [
+    { "path": "../components" },
+    { "path": "../../sdk" },
+    { "path": "../../utilities" },
+    { "path": "../../types-client" },
+    { "path": "../../types-models" },
+    { "path": "../../types-utilities" },
+    { "path": "../../constants" },
+  ]
+}

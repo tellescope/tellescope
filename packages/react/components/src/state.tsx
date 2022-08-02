@@ -39,6 +39,7 @@ import {
   ManagedContentRecord,
   PostComment,
   PostLike,
+  FormField,
 } from "@tellescope/types-client"
 
 import {
@@ -216,6 +217,7 @@ const filesSlice = createSliceForList<File, 'files'>('files')
 const notesSlice = createSliceForList<Note, 'notes'>('notes')
 const templatesSlice = createSliceForList<Template, 'templates'>('templates')
 const formsSlice = createSliceForList<Form, 'forms'>('forms')
+const formsFieldsSlice = createSliceForList<FormField, 'form_fields'>('form_fields')
 const formResponsesSlice = createSliceForList<FormResponse, 'form_response'>('form_response')
 const journeysSlice = createSliceForList<Journey, 'journeys'>('journeys')
 const usersSlice = createSliceForList<User, 'users'>('users')
@@ -246,6 +248,7 @@ export const sharedConfig = {
     notes: notesSlice.reducer,
     templates: templatesSlice.reducer,
     forms: formsSlice.reducer,
+    form_fields: formsFieldsSlice.reducer,
     form_responses: formResponsesSlice.reducer,
     journeys: journeysSlice.reducer,
     users: usersSlice.reducer,
@@ -342,7 +345,7 @@ export interface ListUpdateMethods <T, ADD> extends LoadMoreFunctions {
   modifyLocalElements: (filter: (e: T) => boolean, modifier: (e: T) => T) => void,
   removeElement: (id: string) => Promise<void>,
   removeLocalElements: (ids: string[]) => void,
-  reload: () => void;
+  reload: (loadOptions?: Pick<HookOptions<T>, 'loadFilter'>) => void;
   filtered: (filter: (value: T) => boolean) => LoadedData<T[]>;
 }
 export type ListStateReturnType <T extends { id: string | number }, ADD=Partial<T>> = [LoadedData<T[]>, ListUpdateMethods<T, ADD>]
@@ -371,8 +374,6 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
   if (options?.refetchInMS !== undefined && options.refetchInMS < 5000) {
     throw new Error("refetchInMS must be greater than 5000")
   }
-
-  const loadFilter = options?.loadFilter
 
   const dispatch = useTellescopeDispatch()
   const { didFetch, setFetched } = useContext(FetchContext)
@@ -500,7 +501,9 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     return state
   }, [state])
 
-  const load = useCallback((force: boolean) => {
+  const load = useCallback((force: boolean, loadOptions?: HookOptions<T>) => {
+    const loadFilter = loadOptions?.loadFilter ?? options?.loadFilter
+
     if (!loadQuery) return
     if (options?.dontFetch) return
     const fetchKey = loadFilter ? JSON.stringify(loadFilter) + modelName : modelName
@@ -519,9 +522,9 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
         }
       }
     )
-  }, [setFetched, didFetch, modelName, loadFilter, loadQuery, options?.dontFetch])
+  }, [setFetched, didFetch, modelName, options, loadQuery, options?.dontFetch])
 
-  const reload = useCallback(() => load(true), [load])
+  const reload: ListUpdateMethods <T, ADD>['reload'] = useCallback(options => load(true, options), [load])
 
   useEffect(() => {
     load(false)
@@ -935,6 +938,21 @@ export const useForms = (options={} as HookOptions<Form>) => {
       addSome: session.api.forms.createSome,
       deleteOne: session.api.forms.deleteOne,
       updateOne: session.api.forms.updateOne,
+    }, 
+    {...options}
+  )
+}
+export const useFormFields = (options={} as HookOptions<FormField>) => {
+  const session = useResolvedSession()
+  return useListStateHook(
+    'form_fields', useTypedSelector(s => s.form_fields), session, formsFieldsSlice, 
+    { 
+      loadQuery: session.api.form_fields.getSome,
+      findOne: session.api.form_fields.getOne,
+      addOne: session.api.form_fields.createOne,
+      addSome: session.api.form_fields.createSome,
+      deleteOne: session.api.form_fields.deleteOne,
+      updateOne: session.api.form_fields.updateOne,
     }, 
     {...options}
   )

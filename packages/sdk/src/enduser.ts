@@ -26,6 +26,7 @@ type EnduserAccessibleModels = (
   | "chat_rooms" 
   | 'chats' 
   | 'files' 
+  | 'form_fields'
   | 'tickets' 
   | 'calendar_events' 
   | 'engagement_events'
@@ -92,6 +93,11 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
       Promise<extractFields<CustomActions['post_likes']['unlike_post']['returns']>>
     ),
   },
+  organizations: {
+    get_theme: (args: extractFields<PublicActions['organizations']['get_theme']['parameters']>) => (
+      Promise<extractFields<PublicActions['organizations']['get_theme']['returns']>>
+    ),
+  },
 }
 
 
@@ -103,6 +109,7 @@ const loadDefaultQueries = (s: EnduserSession): { [K in EnduserAccessibleModels]
   engagement_events: defaultQueries(s, 'engagement_events'),
   files: defaultQueries(s, 'files'),
   tickets: defaultQueries(s, 'tickets'),
+  form_fields: defaultQueries(s, 'form_fields'),
   form_responses: defaultQueries(s, 'form_responses'),
   enduser_observations: defaultQueries(s, 'enduser_observations'),
   forum_posts: defaultQueries(s, 'forum_posts'),
@@ -137,6 +144,10 @@ export class EnduserSession extends Session {
     this.api.meetings = { 
       attendee_info: a => this._GET('/v1/attendee-info', a),
       my_meetings: () => this._GET('/v1/my-meetings')
+    }
+
+    this.api.organizations = {
+      get_theme: a => this._GET(`/v1/${schema.organizations.publicActions.get_theme.path}`, a)
     }
 
     this.api.form_responses.prepare_form_response = args => this._POST(`/v1${schema.form_responses.customActions.prepare_form_response.path}`, args)

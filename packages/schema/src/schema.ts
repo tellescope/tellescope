@@ -28,6 +28,8 @@ import {
   MessageTemplateType,
   FormResponseValue,
   MeetingInfo,
+  PreviousFormField,
+  OrganizationTheme,
 } from "@tellescope/types-models"
 
 import {
@@ -45,7 +47,6 @@ import {
   emailValidator,
   fieldsValidator,
   journeysValidator,
-  journeyStateValidator,
   journeyStatesValidator,
   phoneValidator,
   nameValidator,
@@ -58,7 +59,6 @@ import {
   stringValidator,
   stringValidator100,
   listOfStringsValidator,
-  //listOfMongoIdValidator,
   emailEncodingValidator,
   numberToDateValidator,
   SMSMessageValidator,
@@ -81,7 +81,6 @@ import {
   WebhookSubscriptionValidator,
   attendeeValidator,
   meetingDisplayInfoValidator,
-  listOfFormFieldsValidator,
   intakePhoneValidator,
   formResponsesValidator,
   stringValidator25000,
@@ -103,6 +102,10 @@ import {
   FHIRObservationStatusCodeValidator,
   FHIRObservationValueValidator,
   userIdentityValidator,
+  formFieldTypeValidator,
+  previousFormFieldsValidator,
+  numberValidator,
+  organizationThemeValidator,
 } from "@tellescope/validation"
 
 import {
@@ -266,6 +269,14 @@ const sideEffects = {
     name: "handleTicketClosed",
     description: "Handles automated actions based on a closed ticket",
   },
+  incrementFieldCount: {
+    name: "incrementFieldCount",
+    description: "Increments numFields in a form when a new field is created",
+  },
+  decrementFieldCount: {
+    name: "decrementFieldCount",
+    description: "Decrements numFields in a form when a field is deleted",
+  },
 }
 export type SideEffectNames = keyof typeof sideEffects
 
@@ -301,7 +312,7 @@ export type CustomActions = {
   },
   form_responses: {
     prepare_form_response: CustomAction<{ formId: string, enduserId: string, automationStepId?: string }, { accessCode: string, url: string }>,
-    submit_form_response: CustomAction<{ accessCode: string, responses: FormResponseValue, automationStepId?: string  }, { formResponse: FormResponse }>,
+    submit_form_response: CustomAction<{ accessCode: string, responses: FormResponseValue[], automationStepId?: string  }, { formResponse: FormResponse }>,
   },
   journeys: {
     update_state: CustomAction<{ updates: Partial<JourneyState>, id: string, name: string }, { updated: Journey }>,
@@ -362,6 +373,9 @@ export type PublicActions = {
     request_password_reset: CustomAction<{ email: string }, { }>,
     reset_password: CustomAction<{ resetToken: string, newPassword: string }, { }>,
   },
+  organizations: {
+    get_theme: CustomAction<{ businessId: string }, { theme: OrganizationTheme }>,
+  }
 }
 
 export type SchemaV1 = Schema & { 
@@ -1717,11 +1731,10 @@ export const schema: SchemaV1 = build_schema({
         required: true,
         examples: ["Text"],
       },
-      fields: { 
-        validator: listOfFormFieldsValidator, 
-        required: true, // ensures still defined after updates
-        initializer: () => [],
-        examples: [[]],
+      numFields: { 
+        validator: nonNegNumberValidator,
+        initializer: () => 0,
+        examples: [0],
       },
       customGreeting: { validator: stringValidator5000 },
       customSignature: { validator: stringValidator5000 },
@@ -1731,45 +1744,61 @@ export const schema: SchemaV1 = build_schema({
       thanksMessage: { validator: stringValidator5000 },
     }
   },
+  form_fields: {
+    info: {
+      sideEffects: {
+        create: [sideEffects.incrementFieldCount],
+        delete: [sideEffects.decrementFieldCount],
+      }
+    },
+    constraints: {
+      unique: [], 
+      relationship: [],
+      access: [{ type: 'dependency', foreignModel: 'forms', foreignField: '_id', accessField: 'formId' }]
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: { read: {}, readMany: {} },
+    fields: {
+      ...BuiltInFields, 
+      formId: {
+        validator: mongoIdStringValidator,
+        required: true,
+        dependencies: [
+          {
+            dependsOn: ['forms'],
+            dependencyField: '_id',
+            relationship: 'foreignKey',
+            onDependencyDelete: 'delete',
+          },
+        ],
+        examples: [PLACEHOLDER_ID],
+      }, 
+      title: {
+        validator: stringValidator250,
+        required: true,
+        examples: ["Text"],
+      }, 
+      type: {
+        validator: formFieldTypeValidator,
+        examples: ['number'],
+      },
+      previousFields: {  // can't be required - nextField may not exist yet on creation
+        validator: previousFormFieldsValidator,
+        examples: [[{ type: 'root', info: { } } as PreviousFormField]]
+      },
+      options: { validator: objectAnyFieldsAnyValuesValidator }, // todo: more restriction
+      description: { validator: stringValidator250 }, 
+      intakeField: { validator: stringValidator }, // todo: ensure built-ins are ignored
+      isOptional: { validator: booleanValidator },
+    }
+  },
   form_responses: {
     info: {},
     constraints: {
       unique: [], 
       relationship: [],
     },
-    defaultActions: DEFAULT_OPERATIONS,
-    customActions: { 
-      prepare_form_response: {
-        op: "custom", access: 'create', method: "post",
-        path: '/prepare-form-response',
-        name: 'Prepare Form Response',
-        description: "Generates an access code that allows an enduser to submit a form response.",
-        parameters: { 
-          formId: { validator: mongoIdStringValidator, required: true },
-          enduserId: { validator: mongoIdStringValidator, required: true },
-          automationStepId: { validator: mongoIdStringValidator },
-        },
-        returns: {
-          accessCode: { validator: stringValidator250, required: true },
-          url: { validator: stringValidator250, required: true },
-        },
-      },
-      submit_form_response: {
-        op: "custom", access: 'update', method: "patch",
-        name: 'Submit Form Response',
-        path: '/submit-form-response',
-        description: "With an accessCode, stores responses to a form.",
-        parameters: { 
-          accessCode: { validator: stringValidator250, required: true },
-          responses: { validator: formResponsesValidator, required: true },
-          automationStepId: { validator: mongoIdStringValidator },
-        },
-        returns: {
-          formResponse: 'form response' as any,
-        },
-      }
-    },
-    enduserActions: { prepare_form_response: {}, submit_form_response: {} },
     fields: {
       ...BuiltInFields, 
       formId: {
@@ -1804,7 +1833,40 @@ export const schema: SchemaV1 = build_schema({
       submittedAt: { validator: dateValidator },
       formTitle: { validator: stringValidator250 },  
       responses: { validator: formResponsesValidator },
-    }
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: { 
+      prepare_form_response: {
+        op: "custom", access: 'create', method: "post",
+        path: '/prepare-form-response',
+        name: 'Prepare Form Response',
+        description: "Generates an access code that allows an enduser to submit a form response.",
+        parameters: { 
+          formId: { validator: mongoIdStringValidator, required: true },
+          enduserId: { validator: mongoIdStringValidator, required: true },
+          automationStepId: { validator: mongoIdStringValidator },
+        },
+        returns: {
+          accessCode: { validator: stringValidator250, required: true },
+          url: { validator: stringValidator250, required: true },
+        },
+      },
+      submit_form_response: {
+        op: "custom", access: 'update', method: "patch",
+        name: 'Submit Form Response',
+        path: '/submit-form-response',
+        description: "With an accessCode, stores responses to a form.",
+        parameters: { 
+          accessCode: { validator: stringValidator250, required: true },
+          responses: { validator: formResponsesValidator, required: true },
+          automationStepId: { validator: mongoIdStringValidator },
+        },
+        returns: {
+          formResponse: 'form response' as any,
+        },
+      }
+    },
+    enduserActions: { prepare_form_response: {}, submit_form_response: {} },
   },
   webhooks: {
     info: {
@@ -2070,7 +2132,7 @@ export const schema: SchemaV1 = build_schema({
   automated_actions: {
     info: {},
     constraints: {
-      unique: ['enduserId'], 
+      unique: [], 
       relationship: [],
       access: []
     },
@@ -2546,6 +2608,45 @@ export const schema: SchemaV1 = build_schema({
       },
     },
   },
+  organizations: {
+    info: {},
+    constraints: {
+      unique: ['name'], 
+      relationship: [],
+    },
+    defaultActions: { },
+    customActions: { },
+    enduserActions: { },
+    publicActions: {
+      get_theme: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Get Organization Theme',
+        path: '/organization-theme', // follows default format
+        description: "Gets theme information for an organization",
+        parameters: { 
+          businessId: { validator: mongoIdStringValidator },
+        },
+        returns: { 
+          theme: { validator: organizationThemeValidator, required: true },
+        } 
+      },
+    },
+    fields: {
+      ...BuiltInFields, 
+      name: {
+        validator: stringValidator100,
+        required: true,
+        examples: ["Template Name"],
+      },
+      subscriptionExpiresAt: { validator: dateValidator },
+      subscriptionPeriod: { validator: numberValidator },
+      logoVersion: { validator: numberValidator },
+      roles: { validator: listOfStringsValidator },
+      skills: { validator: listOfStringsValidator },
+      themeColor: { validator: stringValidator100 },
+    },
+  },
+
 })
 
 // export type SchemaType = typeof schema

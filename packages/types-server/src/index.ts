@@ -33,6 +33,7 @@ export type User = ServerModelForName['users']
 export type Meeting = ServerModelForName['meetings']
 export type Note = ServerModelForName['notes']
 export type Form = ServerModelForName['forms']
+export type FormField = ServerModelForName['form_fields']
 export type FormResponse = ServerModelForName['form_responses']
 export type CalendarEvent = ServerModelForName['calendar_events']
 export type AutomationStep = ServerModelForName['automation_steps']
@@ -47,7 +48,7 @@ export type ForumPost = ServerModelForName['forum_posts']
 export type PostComment = ServerModelForName['post_comments']
 export type PostLike = ServerModelForName['post_likes']
 
-export type Organization = ToServerModel<BaseOrganization>
+export type Organization = ServerModelForName['organizations']
 
 export type DatabaseModel = ServerModelForName[keyof ModelForName]
 export type DatabaseRecord = ToServerModel<RecordInfo>

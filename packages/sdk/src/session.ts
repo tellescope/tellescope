@@ -10,6 +10,7 @@ import {
   ClientModelForName,
 } from "@tellescope/types-client"
 import { Indexable } from "@tellescope/utilities"
+import { OrganizationTheme } from "@tellescope/types-models"
 
 export const DEFAULT_HOST = 'https://api.tellescope.com'
 

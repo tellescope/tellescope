@@ -95,6 +95,7 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   meetings: defaultQueries(s, 'meetings'),
   notes: defaultQueries(s, 'notes'),
   forms: defaultQueries(s, 'forms'),
+  form_fields: defaultQueries(s, 'form_fields'),
   form_responses: defaultQueries(s, 'form_responses'),
   calendar_events: defaultQueries(s, 'calendar_events'),
   automation_steps: defaultQueries(s, 'automation_steps'),
@@ -109,6 +110,7 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   managed_content_records: defaultQueries(s, 'managed_content_records'),
   post_comments: defaultQueries(s, 'post_comments'),
   post_likes: defaultQueries(s, 'post_likes'),
+  organizations: defaultQueries(s, 'organizations'),
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
@@ -181,6 +183,11 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
       Promise<extractFields<CustomActions['post_likes']['unlike_post']['returns']>>
     ),
   },
+  organizations: {
+    get_theme: (args: extractFields<PublicActions['organizations']['get_theme']['parameters']>) => (
+      Promise<extractFields<PublicActions['organizations']['get_theme']['returns']>>
+    ),
+  },
 }
 
 export class Session extends SessionManager {
@@ -231,6 +238,8 @@ export class Session extends SessionManager {
 
     queries.post_likes.create = args => this._POST(`/v1${schema.post_likes.customActions.create.path}`, args)
     queries.post_likes.unlike_post = args => this._POST(`/v1${schema.post_likes.customActions.unlike_post.path}`, args)
+    
+    queries.organizations.get_theme = a => this._GET(`/v1/${schema.organizations.publicActions.get_theme.path}`, a)
 
     this.api = queries
   }

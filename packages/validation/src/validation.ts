@@ -86,6 +86,24 @@ import {
   CreateTicketAssignmentStrategy,
   CreateTicketAssignmentStrategyType,
   TicketCompletedEventInfo,
+  FormResponse,
+  FormResponseValueAnswer,
+  PreviousFormField,
+  PreviousFormFieldAfterInfo,
+  PreviousFormFieldAfter,
+  PreviousFormFieldType,
+  PreviousFormFieldRoot,
+  FormResponseAnswerEmail,
+  FormResponseAnswerFile,
+  FormResponseAnswerMultipleChoice,
+  FormResponseAnswerNumber,
+  FormResponseAnswerPhone,
+  FormResponseAnswerString,
+  FormResponseAnswerSignature,
+  FormResponseAnswerFileValue,
+  FormResponseAnswerMultipleChoiceValue,
+  FormResponseAnswerSignatureValue,
+  OrganizationTheme,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -340,7 +358,7 @@ export const objectValidator = <T extends object>(i: InputValidation<Required<T>
 )
 export const listOfObjectsValidator = <T extends object>(i: InputValidation<Required<T>>, objectOptions={ emptyOk: true }): EscapeBuilder<T[]>  => (o={}) => build_validator(
   (object: any) => {
-    const emptyOk = !!objectOptions.emptyOk
+    const emptyOk = !!objectOptions.emptyOk || o.emptyListOk
     const validated = {} as T
 
     if (!is_object(object)) {
@@ -371,7 +389,7 @@ export const listOfObjectsValidator = <T extends object>(i: InputValidation<Requ
     }
 
     return validated
-  }, { ...o, isObject: true, listOf: true }
+  }, { ...o, isObject: true, listOf: true, emptyListOk: !!objectOptions.emptyOk || o.emptyListOk }
 )
 
 export const objectAnyFieldsValidator = <T>(valueValidator?: EscapeFunction<T>): EscapeBuilder<Indexable<T>> => (o={}) => build_validator(
@@ -390,7 +408,10 @@ export const objectAnyFieldsValidator = <T>(valueValidator?: EscapeFunction<T>):
       } else if (object[field] === null) {
         validated[field] = null
       } else {
-        throw new Error(`Field ${field} is not a string or number`)
+        if (valueValidator) {
+          throw new Error(`Field ${field} is not a string or number`)
+        }
+        validated[field] = object[field]
       }
     }
 
@@ -700,7 +721,20 @@ const DEFAULT_ENDUSER_FIELDS = [
 //     REQUIRED: ['choices', 'radio'],
 //   }
 // }
-export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType]: (value?: FormResponseValue, options?: any, isOptional?: boolean) => any } = {
+
+const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
+  email: '',
+  file: '',
+  multiple_choice: '',
+  number: '',
+  phone: '',
+  signature: '',
+  string: '',
+}
+export const FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES) as FormFieldType[]
+export const formFieldTypeValidator = exactMatchValidator<FormFieldType>(FORM_FIELD_TYPES)
+
+export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType]: (value?: FormResponseValueAnswer[keyof FormResponseValueAnswer], options?: any, isOptional?: boolean) => any } = {
   'string': stringValidator({ maxLength: 5000, emptyStringOk: true, errorMessage: "Response must not exceed 5000 characters" }),
   'number': numberValidator({ errorMessage: "Response must be a number" }),
   'email': emailValidator(),
@@ -709,19 +743,25 @@ export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType]: (value?: For
   'userEmail': emailValidator(), 
   'phone': phoneValidator(),
   'phoneNumber': phoneValidator(), // backwards compatibility with old field name for phone
-  'file': (fileInfo: FileResponse | undefined, _, isOptional) => {
+
+  // fileInfo: FileResponse
+  'file': (fileInfo: any, _, isOptional) => {
     if (isOptional && (!fileInfo || object_is_empty(fileInfo))) { 
       return { type: 'file', secureName: null }
     }
     return fileResponseValidator()(fileInfo)
   },
-  'signature': (sigInfo: SignatureResponse | undefined, _, isOptional) => {
+  // sigInfo: SignatureResponse
+  
+  'signature': (sigInfo: any, _, isOptional) => {
     if (isOptional && (!sigInfo || object_is_empty(sigInfo)))  {
       return { type: 'signature', signed: null }
     }
     return signatureResponseValidator()(sigInfo)
   },
-  'multiple_choice': (choiceInfo: { indexes: [], otherText?: string }, fieldOptions: MultipleChoiceOptions, isOptional) => {
+
+  // choiceInfo: { indexes: [], otherText?: string }  
+  'multiple_choice': (choiceInfo: any, fieldOptions: MultipleChoiceOptions, isOptional) => {
     if (isOptional && !choiceInfo) return []
 
     const { indexes, otherText } = choiceInfo
@@ -960,10 +1000,49 @@ const isFormField = (f: JSONType, fieldOptions={ forUpdate: false }) => {
   return field
 }
 
-export const formResponsesValidator = (options={}) => build_validator(
-  responses => responses, // naively allow all types, to be validated by endpoint, 
-  { ...options, isOptional: true, listOf: true } // isOptional allows for optional fields, but should validate required vs missing in endpoint
-)
+export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: FormResponseValueAnswer & { type: K } } >({
+  email: objectValidator<FormResponseAnswerEmail>({
+    type: exactMatchValidator(['email'])(),
+    value: emailValidator(),
+  })(),
+  number: objectValidator<FormResponseAnswerNumber>({
+    type: exactMatchValidator(['number'])(),
+    value: numberValidator(), 
+  })(),
+  phone: objectValidator<FormResponseAnswerPhone>({
+    type: exactMatchValidator(['phone'])(),
+    value: phoneValidator(),
+  })(),
+  string: objectValidator<FormResponseAnswerString>({
+    type: exactMatchValidator(['string'])(),
+    value: stringValidator5000(),
+  })(),
+  file: objectValidator<FormResponseAnswerFile>({
+    type: exactMatchValidator(['file'])(),
+    value: objectValidator<FormResponseAnswerFileValue>({
+      name: stringValidator5000(),
+      secureName: stringValidator250(),
+    }, { emptyOk: false })(), 
+  })(),
+  multiple_choice: objectValidator<FormResponseAnswerMultipleChoice>({
+    type: exactMatchValidator(['multiple_choice'])(),
+    value: listOfStringsValidator(),
+  })(),
+  signature: objectValidator<FormResponseAnswerSignature>({
+    type: exactMatchValidator(['signature'])(),
+    value: objectValidator<FormResponseAnswerSignatureValue>({
+      fullName: stringValidator250(),
+      signed: booleanValidator(),
+    }, { emptyOk: false })(), 
+  })(),
+})
+
+export const formResponseValidator = objectValidator<FormResponseValue>({
+  fieldId: mongoIdStringRequired,
+  fieldTitle: stringValidator5000(),
+  answer: formResponseAnswerValidator(),
+})
+export const formResponsesValidator = listValidator(formResponseValidator())
 
 export const intakePhoneValidator = exactMatchValidator<'optional' | 'required'>(['optional', 'required'])
 
@@ -1174,7 +1253,7 @@ const delayValidation = {
   delayInMS: nonNegNumberValidator(), // use 0 when no delay
   delay: nonNegNumberValidator(), // for UI only
   unit: UnitOfTimeValidator(), // for UI only
-  cancelConditions: cancelConditionsValidator({ isOptional: true, emptyListOk: true })
+  cancelConditions: cancelConditionsValidator({ isOptional: true, emptyListOk: true, })
 }
 
 export const calendarEventReminderValidator = objectValidator<CalendarEventReminder>({
@@ -1318,4 +1397,22 @@ export const FHIRObservationStatusCodeValidator = exactMatchValidator<Observatio
 export const FHIRObservationValueValidator = objectValidator<ObservationValue>({
   unit: stringValidator(),
   value: numberValidator(),
+})
+
+export const previousFormFieldValidator = orValidator<{ [K in PreviousFormFieldType]: PreviousFormField & { type: K } } >({
+  root: objectValidator<PreviousFormFieldRoot>({
+    type: exactMatchValidator(['root'])(),
+    info: objectValidator<{}>({}, { emptyOk: true })(),
+  })(),
+  "after": objectValidator<PreviousFormFieldAfter>({
+    type: exactMatchValidator(['after'])(),
+    info: objectValidator<PreviousFormFieldAfterInfo>({ fieldId: mongoIdStringRequired }, { emptyOk: false })(),
+  })(),
+})
+export const previousFormFieldsValidator = listValidator(previousFormFieldValidator())
+
+export const organizationThemeValidator = objectValidator<OrganizationTheme>({
+  logoURL: stringValidator250({ isOptional: true }),
+  themeColor: stringValidator250({ isOptional: true }),
+  name: stringValidator250(),
 })

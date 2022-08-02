@@ -81,6 +81,11 @@ export type UserIdentity = {
   id: string,
 }
 
+export type TreeNode<T> = {
+  value: T,
+  children: TreeNode<T>[]
+}
+
 export const assertUnreachable = (x: never): never => {
   throw new Error("Reached invalid code - conditional logic is likely not exhaustive");
 }

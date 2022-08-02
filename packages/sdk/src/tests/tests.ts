@@ -10,6 +10,7 @@ import {
 } from "@tellescope/types-client"
 import { 
   AutomationAction,
+  FormResponseValue,
   ModelName,
 } from "@tellescope/types-models"
 
@@ -1432,7 +1433,12 @@ const formEventTests = async () => {
   const journey = await sdk.api.journeys.createOne({ title: 'test journey '})
   const form = await sdk.api.forms.createOne({
     title: 'test form',
-    fields: [{ title: 'question', type: 'string' }],
+  })
+  const field = await sdk.api.form_fields.createOne({
+    formId: form.id,
+    title: 'question', 
+    type: 'string',
+    previousFields: [{ type: 'root', info: {} }]
   })
 
   const triggerStep = await sdk.api.automation_steps.createOne({
@@ -1460,8 +1466,19 @@ const formEventTests = async () => {
   const { accessCode: acNoStep } = await sdk.api.form_responses.prepare_form_response({ formId: form.id, enduserId: enduser.id })
   const { accessCode: acStep } = await sdk.api.form_responses.prepare_form_response({ formId: form.id, enduserId: enduser.id })
 
-  await sdk.api.form_responses.submit_form_response({ accessCode: acNoStep, responses: ['answer'] })
-  await sdk.api.form_responses.submit_form_response({ accessCode: acStep, automationStepId: triggerStep.id, responses: ['answer'] })
+  const testResponse: FormResponseValue = {
+    answer: {
+      type: 'string',
+      value: 'answer'
+    },
+    fieldId: field.id,
+    fieldTitle: field.title,
+  }
+
+  const { formResponse } = await sdk.api.form_responses.submit_form_response({ accessCode: acNoStep, responses: [testResponse] })
+  assert(objects_equivalent(formResponse.responses, [testResponse]), 'bad form resonse returned', 'form response returned correctly')
+
+  await sdk.api.form_responses.submit_form_response({ accessCode: acStep, automationStepId: triggerStep.id, responses: [testResponse] })
   await wait(undefined, 250) // allow background creation with generous pause
 
   await async_test(
@@ -1606,10 +1623,81 @@ const ticketEventTests = async () => {
   ])
 }
 
+const removeFromJourneyTests = async () => {
+  log_header("Remove from Journey")
+
+  const journey = await sdk.api.journeys.createOne({ title: 'test journey'})
+  const journey2 = await sdk.api.journeys.createOne({ title: 'other journey'})
+
+  const enduser = await sdk.api.endusers.createOne({ email: 'test@tellescope.com' })
+  const enduser2 = await sdk.api.endusers.createOne({ email: 'test2@tellescope.com' })
+  await sdk.api.endusers.updateOne(enduser.id, { journeys: { [journey.id]: 'Added', [journey2.id]: 'Added2' }})
+
+  const step = await (
+    sdk.api.automation_steps.createOne({
+      journeyId: journey.id,
+      event: { type: 'onJourneyStart', info: { } },
+      action: { type: 'setEnduserStatus', info: { status: 'Root' }, },
+    })
+  )
+  const step2 = await (
+    sdk.api.automation_steps.createOne({
+      journeyId: journey2.id,
+      event: { type: 'onJourneyStart', info: { } },
+      action: { type: 'setEnduserStatus', info: { status: 'Root' }, },
+    })
+  )
+
+  const createAction = (journeyId: string, step: { id: string }, enduserId?: string) => (
+    sdk.api.automated_actions.createOne({
+      journeyId,
+      automationStepId: step.id,
+      cancelConditions: [],
+      enduserId: enduserId ?? enduser.id,
+      processAfter: Date.now() + 1000000, // add delay to make sure it doesn't happen
+      status: 'active',
+      event: { type: 'onJourneyStart', info: { } },
+      action: { type: 'setEnduserStatus', info: { status: 'Test Status' }, },
+    })
+  )
+
+  const numberOfActions = 4
+  for (let i = 0; i < numberOfActions; i++) {
+    await createAction(journey.id, step); 
+    await createAction(journey2.id, step2); 
+    await createAction(journey.id, step, enduser2.id); 
+  }
+
+  // remove from journey, should set all statuses to cancelled
+  await sdk.api.endusers.updateOne(enduser.id, { journeys: { } }, { replaceObjectFields: true })
+  await wait(undefined, 250)
+
+  await async_test(
+    `Automated actions for handle ticket created`,
+    () => sdk.api.automated_actions.getSome(),
+    { onResult: (actions => (
+        // enduser removed from multiple journeys
+        actions.filter(a => a.status === 'cancelled').length === numberOfActions * 2
+
+         // other enduser is unaffected
+     && actions.filter(a => a.status === 'active').length === numberOfActions
+    ))}
+  )  
+
+
+  await Promise.all([ 
+    sdk.api.journeys.deleteOne(journey.id),
+    sdk.api.journeys.deleteOne(journey2.id),
+    sdk.api.endusers.deleteOne(enduser.id),
+    sdk.api.endusers.deleteOne(enduser2.id),
+  ])
+}
+
 const automation_events_tests = async () => {
   log_header("Automation Events")
   await formEventTests()
   await ticketEventTests()
+  await removeFromJourneyTests() 
 
 }
 
@@ -1622,21 +1710,60 @@ const form_response_tests = async () => {
   const enduser = await sdk.api.endusers.createOne({ email: "formresponse@tellescope.com" })
   const form = await sdk.api.forms.createOne({
     title: 'test form',
-    fields: [{
-      title: stringTitle,
-      description: 'Enter a string',
-      type: 'string',
-      isOptional: false,
-      intakeField: stringIntakeField
-    }]
   })
+  assert(form.numFields === 0, 'numFields bad init', 'num fields on init')
+
+  const field = await sdk.api.form_fields.createOne({
+    formId: form.id,
+    title: stringTitle,
+    description: 'Enter a string',
+    type: 'string',
+    isOptional: false,
+    intakeField: stringIntakeField,
+    previousFields: [{ type: 'root', info: {} }]
+  })
+  const field2 = await sdk.api.form_fields.createOne({
+    formId: form.id,
+    title: stringTitle,
+    description: 'Enter a string',
+    type: 'string',
+    isOptional: false,
+    intakeField: stringIntakeField,
+    previousFields: [{ type: 'root', info: {} }]
+  })
+  await wait(undefined, 250)
+
+  await async_test(
+    `numFields incremented on new field`,
+    () => sdk.api.forms.getOne(form.id),
+    { onResult: f => f.numFields === 2},
+  )  
+
+  await sdk.api.form_fields.deleteOne(field2.id)
+  await wait(undefined, 250)
+  await async_test(
+    `numFields decremented after delete`,
+    () => sdk.api.forms.getOne(form.id),
+    { onResult: f => f.numFields === 1},
+  )  
+
+
   // await sdk.api.automation_steps.createOne({
   //   event: { type: "formResponse", info: { formId: form.id } },
   //   action: { type: 'sendWebhook', info: { message: 'test' } },
   // })
 
   const { accessCode } = await sdk.api.form_responses.prepare_form_response({ formId: form.id, enduserId: enduser.id })
-  await sdk.api.form_responses.submit_form_response({ accessCode, responses: [stringResponse]  })
+  await sdk.api.form_responses.submit_form_response({ accessCode, responses: [
+    {
+      fieldTitle: 'doesnot matter',
+      fieldId: field.id,
+      answer: {
+        type: 'string',
+        value: stringResponse,
+      },
+    }
+  ]})
 
   // const [triggeredAutomation] = await sdk.api.automated_actions.getSome()
   const enduserWithUpdate = await sdk.api.endusers.getOne(enduser.id)
@@ -1645,7 +1772,7 @@ const form_response_tests = async () => {
   // assert(triggeredAutomation?.event?.type === 'formResponse', 'no form response event', 'form response event triggered')
   assert(enduserWithUpdate?.fields?.[stringIntakeField] === stringResponse, 'no enduser update', 'enduser updated')
   assert(
-    recordedResponse?.responses?.length === 1 && recordedResponse.responses[0]?.[stringTitle] === stringResponse, 
+    recordedResponse?.responses?.length === 1 && recordedResponse.responses[0]?.answer.value === stringResponse, 
     'response not recorded', 
     'response recorded'
   )
@@ -2118,6 +2245,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   meetings: meetings_tests,
   notes: NO_TEST,
   forms: NO_TEST,
+  form_fields: NO_TEST,
   form_responses: form_response_tests,
   calendar_events: calendar_events_tests,
   webhooks: NO_TEST, // tested separately,
@@ -2133,6 +2261,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   managed_content_records: NO_TEST,
   post_comments: NO_TEST,
   post_likes: NO_TEST,
+  organizations: NO_TEST,
 };
 
 (async () => {
@@ -2155,9 +2284,13 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
     await enduser_session_tests()
     await role_based_access_tests()
     await enduser_redaction_tests()
-  } catch(err) {
+  } catch(err: any) {
     console.error("Failed during custom test")
-    console.error(err)
+    if (err.message && err.info) {
+      console.error(err.message, JSON.stringify(err.info, null, 2))
+    } else {
+      console.error(err)
+    }
     process.exit(1)
   }
 

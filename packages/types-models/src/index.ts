@@ -57,17 +57,25 @@ export type OrganizationLimits = {
   [K in OrganizationLimit]?: number;
 }
 
-export interface OrganizationInfo {
-  creator: string;
-  name: string;
+export interface Organization_readonly extends ClientRecord {
   subscriptionExpiresAt: Date;
   subscriptionPeriod: number;
+} 
+export interface Organization_required {}
+export interface Organization_updatesDisabled {
+  name: string;
+}
+export interface Organization extends Organization_readonly, Organization_required, Organization_updatesDisabled {
   roles?: string[];
   skills?: string[];
   logoVersion?: number; // missing if no logo set
   themeColor?: string;
 }
-export interface Organization extends OrganizationInfo, OrganizationLimits {}
+export type OrganizationTheme = {
+  name: string,
+  logoURL?: string,
+  themeColor?: string
+}
 
 
 // Standard database models
@@ -414,7 +422,9 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
   fields?: Indexable<string | CustomField>,
 }
 
-export type FormFieldType = 'string' | 'number' | 'email' | 'phone' | "multiple_choice" | "file" | "signature"
+export type FormFieldLiteralType = 'string' | 'number' | 'email' | 'phone'
+export type FormFieldComplexType = "multiple_choice" | "file" | "signature"
+export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
 export interface MultipleChoiceOptions {
   choices: string[];
   radio?: boolean; // absent indicates not radio
@@ -422,18 +432,40 @@ export interface MultipleChoiceOptions {
 }
 
 export type FormFieldOptions = MultipleChoiceOptions
-export interface FormField {
+
+export type PreviousFormFieldType = 'root' | 'after'
+export type PreviousFormFieldBuilder <T extends PreviousFormFieldType, V> = { type: T, info: V }
+
+export type PreviousFormFieldAfterInfo = { fieldId: string }
+export type PreviousFormFieldAfter = PreviousFormFieldBuilder<'after', PreviousFormFieldAfterInfo>
+export type PreviousFormFieldRoot = PreviousFormFieldBuilder<'root', {}>
+export type PreviousFormField = (
+    PreviousFormFieldRoot
+  | PreviousFormFieldAfter
+)
+
+
+export interface FormField_readonly extends ClientRecord {}
+export interface FormField_required {
+  formId: string,
+  title: string,
+  type: FormFieldType,
+  previousFields: PreviousFormField[], // previous will always be known on create, rather than next 
+}
+export interface FormField_updatesDisabled {}
+export interface FormField extends FormField_readonly, FormField_required, FormField_updatesDisabled {
   isOptional  ?: boolean,
-  title        : string,
-  type         : FormFieldType,
   description ?: string,
   options     ?: FormFieldOptions | {},
   intakeField ?: string | null,
 }
-export interface Form_readonly extends ClientRecord {}
+
+export interface Form_readonly extends ClientRecord {
+  numFields: number,
+}
 export interface Form_required {
   title: string,
-  fields: FormField[], 
+  // fields: FormField[], 
 }
 export interface Form_updatesDisabled {}
 export interface Form extends Form_readonly, Form_required, Form_updatesDisabled {
@@ -445,7 +477,56 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   thanksMessage?: string,
 }
 
-export type FormResponseValue = any
+export type FormResponseValueAnswerBuilder <TYPE extends FormFieldType, VALUE extends number | object | string> = {
+  type: TYPE,
+  value: VALUE,
+}
+
+export type FormResponseAnswerEmail = FormResponseValueAnswerBuilder<'email', string>
+export type FormResponseAnswerNumber = FormResponseValueAnswerBuilder<'number', number>
+export type FormResponseAnswerPhone = FormResponseValueAnswerBuilder<'phone', string>
+export type FormResponseAnswerString = FormResponseValueAnswerBuilder<'string', string>
+
+export type FormResponseAnswerSignatureValue = {
+  fullName: string,
+  signed: boolean,
+}
+export type FormResponseAnswerSignature = FormResponseValueAnswerBuilder<'signature', FormResponseAnswerSignatureValue>
+
+export type FormResponseAnswerMultipleChoiceValue = string[]
+export type FormResponseAnswerMultipleChoice = FormResponseValueAnswerBuilder<'multiple_choice', FormResponseAnswerMultipleChoiceValue>
+
+export type FormResponseAnswerFileValue = {
+  secureName: string,
+  name: string,
+}
+export type FormResponseAnswerFile = FormResponseValueAnswerBuilder<'file', FormResponseAnswerFileValue>
+
+export type FormResponseValueAnswer = (
+     FormResponseAnswerEmail
+  |  FormResponseAnswerNumber
+  |  FormResponseAnswerPhone
+  |  FormResponseAnswerString
+  |  FormResponseAnswerSignature
+  |  FormResponseAnswerMultipleChoice
+  |  FormResponseAnswerFile
+)
+
+export type FormResponseValue = {
+  fieldId: string,
+  fieldTitle: string,
+  answer: FormResponseValueAnswer,
+}
+
+export type AnswerForType = {
+  'email': FormResponseAnswerEmail['value'],
+  'number': FormResponseAnswerNumber['value'],
+  'phone': FormResponseAnswerPhone['value'],
+  'string': FormResponseAnswerString['value'],
+  'signature': FormResponseAnswerSignature['value'],
+  'multiple_choice': FormResponseAnswerMultipleChoice['value'],
+  'file': FormResponseAnswerFile['value'],
+}
 
 export interface FormResponse_readonly extends ClientRecord {}
 export interface FormResponse_required {
@@ -832,6 +913,7 @@ export type ModelForName_required = {
   meetings: Meeting_required;
   notes: Note_required;
   forms: Form_required,
+  form_fields: FormField_required;
   form_responses: FormResponse_required,
   calendar_events: CalendarEvent_required,
   automation_steps: AutomationStep_required,
@@ -847,6 +929,7 @@ export type ModelForName_required = {
   forum_posts: ForumPost_required;
   post_likes: PostLike_required;
   post_comments: PostComment_required;
+  organizations: Organization_required;
 }
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
@@ -867,6 +950,7 @@ export interface ModelForName_readonly {
   meetings: Meeting_readonly;
   notes: Note_readonly;
   forms: Form_readonly;
+  form_fields: FormField_readonly;
   form_responses: FormResponse_readonly;
   calendar_events: CalendarEvent_readonly,
   automation_steps: AutomationStep_readonly,
@@ -882,6 +966,7 @@ export interface ModelForName_readonly {
   forum_posts: ForumPost_readonly;
   post_likes: PostLike_readonly;
   post_comments: PostComment_readonly;
+  organizations: Organization_readonly;
 }
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
@@ -902,6 +987,7 @@ export interface ModelForName_updatesDisabled {
   meetings: Meeting_updatesDisabled;
   notes: Note_updatesDisabled;
   forms: Form_updatesDisabled;
+  form_fields: FormField_updatesDisabled;
   form_responses: FormResponse_updatesDisabled;
   calendar_events: CalendarEvent_updatesDisabled,
   automation_steps: AutomationStep_updatesDisabled,
@@ -917,6 +1003,7 @@ export interface ModelForName_updatesDisabled {
   forum_posts: ForumPost_updatesDisabled;
   post_likes: PostLike_updatesDisabled;
   post_comments: PostComment_updatesDisabled;
+  organizations: Organization_updatesDisabled;
 }
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
@@ -937,6 +1024,7 @@ export interface ModelForName extends ModelForName_required, ModelForName_readon
   meetings: Meeting;
   notes: Note;
   forms: Form;
+  form_fields: FormField;
   form_responses: FormResponse;
   calendar_events: CalendarEvent,
   automation_steps: AutomationStep,
@@ -952,6 +1040,7 @@ export interface ModelForName extends ModelForName_required, ModelForName_readon
   forum_posts: ForumPost;
   post_likes: PostLike;
   post_comments: PostComment;
+  organizations: Organization;
 }
 export type ModelName = keyof ModelForName
 export type Model = ModelForName[keyof ModelForName]
@@ -983,6 +1072,7 @@ export const modelNameChecker: { [K in ModelName] : true } = {
   meetings: true, 
   notes: true, 
   forms: true,
+  form_fields: true,
   form_responses: true,
   calendar_events: true,
   automation_steps: true,
@@ -997,6 +1087,7 @@ export const modelNameChecker: { [K in ModelName] : true } = {
   forum_posts: true,
   post_likes: true,
   post_comments: true,
+  organizations: true,
 }
 
 export const isModelName = (s: string): s is ModelName => modelNameChecker[s as ModelName]
