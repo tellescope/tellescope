@@ -82,7 +82,7 @@ export type OrganizationTheme = {
 export interface RecordInfo {
   businessId: string;
   updatedAt: Date;
-  creator: string;
+  creator: string; // can technically be null in some cases (e.g. enduser creates self), todo: allow as part of type
 }
 
 export interface ClientRecord extends RecordInfo { id: string }
@@ -92,6 +92,7 @@ export interface Session {
   businessId: string,
   iat: number,
   exp: number,
+  allowedPaths?: string[],
 }
   
 export type SessionType = "user" | "enduser"
@@ -534,6 +535,7 @@ export interface FormResponse_required {
   enduserId: string,
   formTitle: string,
   responses: FormResponseValue[],
+  publicSubmit?: boolean,
   submittedBy?: string,
   submittedAt?: Date,
   accessCode?: string,

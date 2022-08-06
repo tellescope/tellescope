@@ -690,7 +690,7 @@ type FileResponse = { type: 'file', name: string, secureName: string }
 export const fileResponseValidator = objectValidator<FileResponse>({
   type: exactMatchValidator(['file'])(),
   name: stringValidator({ shouldTruncate: true, maxLength: 250 }),
-  secureName: safeBase64Validator(),
+  secureName: stringValidator250(),
 })
 
 type SignatureResponse = { type: 'signature', signed: string | null, fullName: string }

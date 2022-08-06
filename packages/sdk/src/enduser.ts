@@ -76,6 +76,9 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
     prepare_form_response: (args: extractFields<CustomActions['form_responses']['prepare_form_response']['parameters']>) => (
       Promise<extractFields<CustomActions['form_responses']['prepare_form_response']['returns']>>
     ),
+    session_for_public_form: (args: extractFields<PublicActions['form_responses']['session_for_public_form']['parameters']>) => (
+      Promise<extractFields<PublicActions['form_responses']['session_for_public_form']['returns']>>
+    ),
   },
   meetings: {
     attendee_info: (args: { id: string }) => Promise<{ attendee: Attendee, others: UserIdentity[] }>,
@@ -150,8 +153,9 @@ export class EnduserSession extends Session {
       get_theme: a => this._GET(`/v1/${schema.organizations.publicActions.get_theme.path}`, a)
     }
 
-    this.api.form_responses.prepare_form_response = args => this._POST(`/v1${schema.form_responses.customActions.prepare_form_response.path}`, args)
-    this.api.form_responses.submit_form_response  = args => this._PATCH(`/v1${schema.form_responses.customActions.submit_form_response.path}`, args)
+    this.api.form_responses.prepare_form_response   = args => this._POST(`/v1${schema.form_responses.customActions.prepare_form_response.path}`, args)
+    this.api.form_responses.session_for_public_form = args => this._POST(`/v1${schema.form_responses.publicActions.session_for_public_form.path}`, args)
+    this.api.form_responses.submit_form_response    = args => this._PATCH(`/v1${schema.form_responses.customActions.submit_form_response.path}`, args)
 
     // files have defaultQueries
     this.api.files.prepare_file_upload = a => this._POST(`/v1/prepare-file-upload`, a)

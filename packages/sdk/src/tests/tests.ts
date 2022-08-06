@@ -1009,12 +1009,28 @@ const chat_room_tests = async () => {
 }
 
 const chat_tests = async() => {
+  log_header("Chat")
+
   const sdk2 = new Session({ host })
   await sdk2.authenticate(nonAdminEmail, nonAdminPassword) // non-admin has access restrictions we want to test 
+
+  const enduser = await sdk.api.endusers.createOne({ email })
+  await sdk.api.endusers.set_password({ id: enduser.id, password }).catch(console.error)
+  await enduserSDK.authenticate(email, password).catch(console.error)
 
   const room  = await sdk.api.chat_rooms.createOne({ type: 'internal', userIds: [userId] })
   const chat  = await sdk.api.chats.createOne({ roomId: room.id, message: "Hello!" })
   const chat2 = await sdk.api.chats.createOne({ roomId: room.id, message: "Hello..." })
+
+  const enduserRoom = await sdk.api.chat_rooms.createOne({ type: 'internal', userIds: [userId], enduserIds: [enduser.id] })
+  await sdk.api.chats.createOne({ roomId: enduserRoom.id, message: 'enduser'})
+  await enduserSDK.api.chats.createOne({ roomId: enduserRoom.id, message: 'enduser'})
+
+  await async_test(
+    `get-chats for enduser`, 
+    () => enduserSDK.api.chats.getSome({ filter: { roomId: enduserRoom.id } }), 
+    { onResult: c => c?.length === 2 }
+  )
 
   // await async_test(
   //   `get-chat (without filter)`, 
@@ -1111,6 +1127,11 @@ const chat_tests = async() => {
     () => sdk.api.chats.getOne(chat2Null.id), 
     { onResult: c => c.replyId === null }
   )
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(enduser.id),
+    sdk.api.chat_rooms.deleteOne(enduserRoom.id),
+  ])
 }
 
 const enduserAccessTests = async () => {
@@ -2227,6 +2248,87 @@ const enduser_redaction_tests = async () => {
   ])
 }
 
+const public_form_tests = async () => {
+  log_header("Public Form")
+
+  const journey = await sdk.api.journeys.createOne({ title: 'test journey '})
+  const nonPublicForm = await sdk.api.forms.createOne({
+    title: 'test form',
+    intakePhone: 'optional',
+  })
+  const form = await sdk.api.forms.createOne({
+    title: 'test form',
+    allowPublicURL: true,
+    intakePhone: 'optional',
+  })
+  const submitInfo = {
+    businessId: form.businessId,
+    email: 'publicformtest@tellescope.com',
+    formId: form.id,
+    fname: 'sebastian',
+    lname: 'coates',
+  }
+  const submitInfoNonPublic = { ...submitInfo, formId: nonPublicForm.id }
+
+  await async_test(
+    'non-public form blocked',
+    () => enduserSDK.api.form_responses. session_for_public_form(submitInfoNonPublic),
+    handleAnyError,
+  )
+  await async_test(
+    'no questions form blocked',
+    () => enduserSDK.api.form_responses. session_for_public_form(submitInfo),
+    handleAnyError,
+  )
+
+  const field = await sdk.api.form_fields.createOne({
+    formId: form.id,
+    title: 'question', 
+    type: 'string',
+    previousFields: [{ type: 'root', info: {} }]
+  })
+  const testResponse: FormResponseValue = {
+    answer: {
+      type: 'string',
+      value: 'answer'
+    },
+    fieldId: field.id,
+    fieldTitle: field.title,
+  }
+
+  // upserts enduser
+  const responseInfo = await enduserSDK.api.form_responses. session_for_public_form(submitInfo)
+
+  // verify enduser is actually upserted
+  const enduser = await sdk.api.endusers.getOne({ email: 'publicformtest@tellescope.com'})
+
+  // test case for existing enduser
+  await enduserSDK.api.form_responses. session_for_public_form(submitInfo)
+
+  enduserSDK.setAuthToken(responseInfo.authToken)
+  await enduserSDK.refresh_session() // should be allowed
+
+  // assert((enduserSDK.userInfo as any).allowedPaths.length === 3, 'allowed paths not preserved', 'allowed paths preserved after refresh')
+
+  await async_test(
+    'enduser cannot use non-allowed path',
+    () => enduserSDK.api.endusers.updateOne(enduserSDK.userInfo.id, { fields: { testFiedl: 'testValue' } }),
+    handleAnyError,
+  )
+
+  await async_test(
+    'enduser can submit public form',
+    () => enduserSDK.api.form_responses.submit_form_response({ accessCode: responseInfo.accessCode, responses: [testResponse] }),
+    passOnAnyResult,
+  )
+
+  await Promise.all([
+    sdk.api.forms.deleteOne(form.id),
+    sdk.api.journeys.deleteOne(journey.id),
+    sdk.api.endusers.deleteOne(enduser.id),
+  ])
+}
+
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
   chats: chat_tests,
@@ -2274,6 +2376,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
     ]) 
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await public_form_tests()
     await search_tests()
     await badInputTests()
     await filterTests()

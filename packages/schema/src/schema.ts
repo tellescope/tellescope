@@ -375,7 +375,17 @@ export type PublicActions = {
   },
   organizations: {
     get_theme: CustomAction<{ businessId: string }, { theme: OrganizationTheme }>,
-  }
+  },
+  form_responses: {
+    session_for_public_form: CustomAction<{ 
+      fname?: string, 
+      lname?: string, 
+      email: string, 
+      phone?: string, 
+      formId: string, 
+      businessId: string 
+    }, { accessCode: string, authToken: string, url: string, path: string }>,
+  },
 }
 
 export type SchemaV1 = Schema & { 
@@ -701,7 +711,7 @@ export const schema: SchemaV1 = build_schema({
             validator: mongoIdStringValidator,
           },
           key: {
-            validator: stringValidator, // validate urlsafebase64 instead
+            validator: stringValidator, 
           }
         }
       }
@@ -1449,7 +1459,7 @@ export const schema: SchemaV1 = build_schema({
         readonly: true,
       },
     },
-    enduserActions: { prepare_file_upload: {}, file_download_URL: {} },
+    enduserActions: { prepare_file_upload: {}, file_download_URL: {}, read: {}, readMany: {} },
     customActions: {
       prepare_file_upload: {
         op: "custom", access: 'create', method: "post",
@@ -1827,6 +1837,7 @@ export const schema: SchemaV1 = build_schema({
         validator: nonNegNumberValidator,
         updatesDisabled: true,
       },
+      publicSubmit: { validator: booleanValidator },
       submittedBy: { validator: stringValidator250 },
       accessCode: { validator: stringValidator250 },
       userEmail: { validator: emailValidator },
@@ -1865,6 +1876,28 @@ export const schema: SchemaV1 = build_schema({
           formResponse: 'form response' as any,
         },
       }
+    },
+    publicActions: {
+      session_for_public_form: {
+        op: "custom", access: 'create', method: "post",
+        path: '/session-for-public-form',
+        name: 'Generate Session for Public Form',
+        description: "Generates a session for filling out a public form.",
+        parameters: { 
+          email: { validator: emailValidator, required: true },
+          formId: { validator: mongoIdStringValidator, required: true },
+          businessId: { validator: mongoIdStringValidator, required: true },
+          phone: { validator: phoneValidator },
+          fname: { validator: nameValidator },
+          lname: { validator: nameValidator },
+        },
+        returns: {
+          accessCode: { validator: stringValidator250, required: true },
+          authToken: { validator: stringValidator250, required: true },
+          url: { validator: stringValidator250, required: true },
+          path: { validator: stringValidator250, required: true },
+        },
+      },
     },
     enduserActions: { prepare_form_response: {}, submit_form_response: {} },
   },

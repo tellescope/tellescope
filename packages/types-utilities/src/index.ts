@@ -49,6 +49,10 @@ export type Operation = CRUD | 'createMany' | 'readMany'
 export interface FileBlob extends Blob {
   name: string;
 }
+export const isFileBlob = (f: any): f is FileBlob => 
+  typeof f === 'object' && typeof f.name === 'string' && typeof f.size === 'number' &&
+  typeof f.type === 'string'
+
 export interface FileDetails {
   name: string;
   size: number;
