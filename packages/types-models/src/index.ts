@@ -64,6 +64,7 @@ export interface Organization_readonly extends ClientRecord {
 export interface Organization_required {}
 export interface Organization_updatesDisabled {
   name: string;
+  subdomain: string;
 }
 export interface Organization extends Organization_readonly, Organization_required, Organization_updatesDisabled {
   roles?: string[];
@@ -73,6 +74,8 @@ export interface Organization extends Organization_readonly, Organization_requir
 }
 export type OrganizationTheme = {
   name: string,
+  businessId: string,
+  subdomain: string,
   logoURL?: string,
   themeColor?: string
 }

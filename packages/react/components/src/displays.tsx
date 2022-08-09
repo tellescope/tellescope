@@ -1,5 +1,14 @@
 import React, { useEffect, useRef, useState } from "react"
 
+import { user_display_name } from "@tellescope/utilities"
+
+import {
+  useEndusers,
+  useUserDisplayInfo,
+  Typography, 
+  value_is_loaded,
+} from "./index"
+
 import { Avatar, AvatarProps, Styled } from "./mui"
 import { useResolvedSession } from "./authentication"
 import { Image, ImageDimensions } from "./layout"
@@ -64,4 +73,59 @@ export const DisplayPicture = ({ user, onError, ...avatarProps } : DisplayPictur
   return (
     <Avatar {...avatarProps} src={loadedImage} />
   )
+}
+
+export const elapsed_time_display_string = (date: Date) => {
+  const elapsedSeconds = (Date.now() - date.getTime()) / 1000
+
+  if (elapsedSeconds < 60) return `${Math.ceil(elapsedSeconds)} seconds ago`
+  if (elapsedSeconds < 60 * 60) {
+    return `${Math.floor(elapsedSeconds / (60))} minutes ago`
+  }
+  if (elapsedSeconds < 60 * 60 * 24) {
+    return `${Math.floor(elapsedSeconds / (60 * 60))} hours ago`
+  }
+  
+  return `${Math.floor(elapsedSeconds / (60 * 60 * 24))} days ago`
+}
+
+export const useEnduserForId = (enduserId: string) => {
+  const [, { findById }] = useEndusers({ dontFetch: true }) // don't fetch all endusers, findById will still hit API for individual
+  return findById(enduserId)
+} 
+export const useUserForId = (userId: string) => {
+  const [displayInfo] = useUserDisplayInfo()
+  return value_is_loaded(displayInfo) ? displayInfo.value.find(u => u.id === userId) : undefined
+} 
+
+export const DisplayPictureForEnduser = ({ id, ...props } : Omit<DisplayPictureProps, 'user'> & { id: string } ) => {
+  const enduser = useEnduserForId(id)
+
+  return <DisplayPicture user={enduser} {...props} />
+}
+export const DisplayPictureForUser = ({ id, ...props } : Omit<DisplayPictureProps, 'user'> & { id: string } ) => {
+  const user = useUserForId(id)
+
+  return <DisplayPicture user={user} {...props} />
+}
+export const ResolveDisplayPicture = ({ type, ...props } : Omit<DisplayPictureProps, 'user'> & { id: string, type: 'user' | 'enduser' }) => {
+  if (type === 'enduser') return <DisplayPictureForEnduser {...props} />
+  return <DisplayPictureForUser {...props} />
+}
+
+export const DisplayNameForEnduser = ({ id, ...props } : Styled & { id: string } ) => {
+  const enduser = useEnduserForId(id)
+
+  if (!enduser) return null
+  return <Typography {...props}>{user_display_name(enduser)}</Typography>
+}
+export const DisplayNameForUser = ({ id, ...props } : Styled & { id: string } ) => {
+  const user = useUserForId(id)
+
+  if (!user) return null
+  return <Typography {...props}>{user_display_name(user)}</Typography>
+}
+export const ResolveDisplayName = ({ type, ...props } : Styled & { id: string, type: 'user' | 'enduser' }) => {
+  if (type === 'enduser') return <DisplayNameForEnduser {...props} />
+  return <DisplayNameForUser {...props} />
 }

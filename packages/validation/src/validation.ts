@@ -1415,4 +1415,6 @@ export const organizationThemeValidator = objectValidator<OrganizationTheme>({
   logoURL: stringValidator250({ isOptional: true }),
   themeColor: stringValidator250({ isOptional: true }),
   name: stringValidator250(),
+  subdomain: stringValidator250(),
+  businessId: mongoIdRequired,
 })

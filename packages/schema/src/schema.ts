@@ -2671,6 +2671,11 @@ export const schema: SchemaV1 = build_schema({
         required: true,
         examples: ["Template Name"],
       },
+      subdomain: {
+        validator: stringValidator100,
+        required: true,
+        examples: ["subdomain"],
+      },
       subscriptionExpiresAt: { validator: dateValidator },
       subscriptionPeriod: { validator: numberValidator },
       logoVersion: { validator: numberValidator },
