@@ -629,8 +629,8 @@ export const useChatRoomDisplayInfo = (roomId: string, options={} as HookOptions
   ) as [LoadedData<{ [index: string]: UserDisplayInfo }>]
 }
 
-export const useCalendarEvents = (type: SessionType, options={} as HookOptions<CalendarEvent>) => {
-  const session = useResolvedSession(type)
+export const useCalendarEvents = (options={} as HookOptions<CalendarEvent>) => {
+  const session = useResolvedSession()
 
   return useListStateHook('calendar_events', useTypedSelector(s => s.calendar_events), session, calendarEventsSlice,
     { 

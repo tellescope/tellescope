@@ -104,6 +104,7 @@ import {
   FormResponseAnswerMultipleChoiceValue,
   FormResponseAnswerSignatureValue,
   OrganizationTheme,
+  SendFormChannel,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -312,7 +313,11 @@ export const filterCommandsValidator: EscapeBuilder<FilterType> = (o={}) => buil
     
     if (value._exists && typeof value._exists === 'boolean' ) return { _exists: value._exists }
     
-    throw new Error(`Unknown filter value ${JSON.stringify(value)}`)
+    if (Object.keys(value).find(k => k.startsWith('$'))) { // ignore any $ injections
+      throw new Error(`Unknown filter value ${JSON.stringify(value)}`)
+    }
+
+    return value
   }, { ...o, isObject: true, listOf: false }
 )
 
@@ -1311,6 +1316,13 @@ export const automationConditionValidator = orValidator<{ [K in AutomationCondit
 })
 export const listOfAutomationConditionsValidator = listValidatorEmptyOk(automationConditionValidator())
 
+const _SEND_FORM_CHANNELS: { [K in SendFormChannel]: any } = {
+  Email: '',
+  SMS: '',
+}
+export const SEND_FORM_CHANNELS = Object.keys(_SEND_FORM_CHANNELS) as SendFormChannel[]
+export const sendFormChannelValidator = exactMatchValidator<SendFormChannel>(SEND_FORM_CHANNELS)
+
 export const automationActionValidator = orValidator<{ [K in AutomationActionType]: AutomationAction & { type: K } } >({
   setEnduserStatus: objectValidator<SetEnduserStatusAutomationAction>({
     type: exactMatchValidator(['setEnduserStatus'])(),
@@ -1326,7 +1338,11 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
   })(),
   sendForm: objectValidator<SendFormAutomationAction>({
     type: exactMatchValidator(['sendForm'])(),
-    info: objectValidator<AutomationForFormRequest>({ senderId: mongoIdStringValidator(), formId: mongoIdStringValidator() }, { emptyOk: false })(),
+    info: objectValidator<AutomationForFormRequest>({ 
+      senderId: mongoIdStringValidator(), 
+      formId: mongoIdStringValidator(),
+      channel: sendFormChannelValidator({ isOptional: true }),
+    }, { emptyOk: false })(),
   })(),
   createTicket: objectValidator<CreateTicketAutomationAction>({
     type: exactMatchValidator(['createTicket'])(),

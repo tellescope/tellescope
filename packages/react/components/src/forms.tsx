@@ -203,12 +203,13 @@ export interface SubmitButtonOptions {
 
 interface FormikSubmitButtonProps extends SubmitButtonOptions, Styled {
   formik: { isValid: boolean, dirty: boolean, isSubmitting: boolean },
+  disabled?: boolean,
   onClick?: () => void, // to handle submit in environment where html form type handleSubmit is not supported
   disabledIfUnchanged?: boolean,
 }
-export const FormikSubmitButton = ({ formik, disabledIfUnchanged=true, onClick, submitText, submittingText, style, ...props }: FormikSubmitButtonProps) => (
+export const FormikSubmitButton = ({ formik, disabledIfUnchanged=true, disabled, onClick, submitText, submittingText, style, ...props }: FormikSubmitButtonProps) => (
   <SubmitButton onClick={onClick} submitText={submitText} submittingText={submittingText}
-    disabled={!formik.isValid || (disabledIfUnchanged && !formik.dirty)} style={style}
+    disabled={disabled || !formik.isValid || (disabledIfUnchanged && !formik.dirty)} style={style}
     submitting={formik.isSubmitting}
     {...props}
   />

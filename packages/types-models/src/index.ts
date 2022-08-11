@@ -622,6 +622,8 @@ interface AutomationEventBuilder <T extends AutomationEventType, V extends objec
   info: V,
 }
 
+export type SendFormChannel = "Email" | "SMS"
+
 export interface AutomationForJourney { journeyId: string }
 export interface WithJourneyId { journeyId: string }
 export interface AutomationForJourneyState { state: string }
@@ -633,7 +635,7 @@ export interface WithFormId { formId: string }
 export interface WithAutomationStepId { automationStepId: string }
 export interface AutomationForTemplate { templateId: string }
 export interface AutomationForSender { senderId: string }
-export interface AutomationForFormRequest extends AutomationForForm, AutomationForSender {}
+export interface AutomationForFormRequest extends AutomationForForm, AutomationForSender { channel?: SendFormChannel }
 export interface AutomationForMessage extends AutomationForTemplate, AutomationForSender {}
 export interface AutomationForWebhook { message: string }
 export interface AutomationForNotification extends AutomationForTemplate { destination: string }
