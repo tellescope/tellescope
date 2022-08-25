@@ -154,8 +154,15 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     add_attendees_to_meeting: (args: { id: string, attendees: UserIdentity[] }) => Promise<void>, 
     my_meetings: () => Promise<Meeting[]>,
     attendee_info: (args: { id: string }) => Promise<{ attendee: Attendee, others: UserIdentity[] }>,
-    send_invite: (args: extractFields<CustomActions['meetings']['send_invite']['parameters']>) => 
-                    Promise<extractFields<CustomActions['meetings']['send_invite']['returns']>>,
+    send_invite: (args: extractFields<CustomActions['meetings']['send_invite']['parameters']>) => (
+      Promise<extractFields<CustomActions['meetings']['send_invite']['returns']>>
+    ),
+    start_meeting_for_event: (args?: extractFields<CustomActions['meetings']['start_meeting_for_event']['parameters']>) => (
+      Promise<extractFields<CustomActions['meetings']['start_meeting_for_event']['returns']>>
+    ),
+    join_meeting_for_event: (args?: extractFields<CustomActions['meetings']['join_meeting_for_event']['parameters']>) => (
+      Promise<extractFields<CustomActions['meetings']['join_meeting_for_event']['returns']>>
+    ),
   },
   chat_rooms: {
     join_room: (args: { id: string }) => Promise<{ room: ChatRoom }>,
@@ -228,6 +235,8 @@ export class Session extends SessionManager {
     queries.meetings.attendee_info = a => this._GET('/v1/attendee-info', a)
     queries.meetings.my_meetings = () => this._GET('/v1/my-meetings')
     queries.meetings.send_invite = a => this._POST(`/v1${schema.meetings.customActions.send_invite.path}`, a)
+    queries.meetings.start_meeting_for_event = a => this._POST(`/v1${schema.meetings.customActions.start_meeting_for_event.path}`, a)
+    queries.meetings.join_meeting_for_event = a => this._POST(`/v1${schema.meetings.customActions.join_meeting_for_event.path}`, a)
 
     queries.webhooks.configure = a => this._POST('/v1/configure-webhooks', a)
     queries.webhooks.update = a => this._PATCH('/v1/update-webhooks', a)

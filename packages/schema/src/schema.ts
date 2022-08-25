@@ -344,6 +344,8 @@ export type CustomActions = {
     add_attendees_to_meeting: CustomAction<{ id: string, attendees: UserIdentity[] }, { }>, 
     my_meetings: CustomAction<{}, { id: string, updatedAt: string, status: MeetingStatus }[]>
     attendee_info: CustomAction<{ id: string }, { attendee: Attendee, others: UserIdentity[] }>,
+    start_meeting_for_event: CustomAction<{ calendarEventId: string }, { meeting: { Meeting: MeetingInfo }, host: Attendee }>, 
+    join_meeting_for_event: CustomAction<{ calendarEventId: string }, { meeting: { Meeting: MeetingInfo } }>, 
   },
   webhooks: {
     configure: CustomAction<{ url: string, secret: string, subscriptions?: WebhookSubscriptionsType }, { }>,
@@ -358,7 +360,7 @@ export type CustomActions = {
   post_likes: { 
     create: CustomAction<{ postId: string, forumId: string }, { }>,
     unlike_post: CustomAction<{ postId: string, forumId: string }, { }>,
-  }
+  },
 } 
 
 export type PublicActions = {
@@ -900,8 +902,9 @@ export const schema: SchemaV1 = build_schema({
             if (method === 'update') return
 
             const e = deps[enduserId ?? ''] as Enduser
+            if (!e) return // not in cache, permit by default, likely during an update
             if (!e?.email) return "Missing email"
-            if (!e?.emailConsent) return "Missing email consent"
+            // if (!e?.emailConsent) return "Missing email consent"
           }
         }
       ],
@@ -1026,7 +1029,7 @@ export const schema: SchemaV1 = build_schema({
             const e = deps[enduserId ?? ''] as Enduser
             if (!e) return // not in cache, permit by default, likely during an update
             if (!e.phone) return "Missing phone"
-            if (!e.phoneConsent) return "Missing phone consent"
+            // if (!e.phoneConsent) return "Missing phone consent"
           }
         }
       ],
@@ -1161,7 +1164,7 @@ export const schema: SchemaV1 = build_schema({
         validator: dateValidator,
       },
       tags: {
-        validator: listOfStringsValidator,
+        validator: listOfStringsValidatorEmptyOk,
       },
       infoForUser: { // todo: access-permissions allow updates for self only (when non-admin)
         validator: chatRoomUserInfoValidator,
@@ -1283,6 +1286,7 @@ export const schema: SchemaV1 = build_schema({
       }],
     },
     defaultActions: { read: {}, readMany: {}, update: { description: "Users can only be updated by self or an organization admin"} },
+    enduserActions: { display_info: {}, read: {}, readMany: {} },
     customActions: {
       display_info: {
         op: "custom", access: 'read', method: "get",
@@ -1329,23 +1333,26 @@ export const schema: SchemaV1 = build_schema({
         returns: { },
       }, 
     },
-    enduserActions: { display_info: {} },
     fields: {
       ...BuiltInFields, 
       email: {
         validator: emailValidator,
         required: true,
-        examples: ['test@tellescope.com']
+        examples: ['test@tellescope.com'],
+        redactions: ['enduser'],
       },
       phone: {
         validator: phoneValidator,
+        redactions: ['enduser'],
       },
       fields: {
         validator: fieldsValidator,
+        redactions: ['enduser'],
       },
       username: {
         validator: subdomainValidator,
         readonly: true, // able to set once, then not change (for now, due to email configuration)
+        redactions: ['enduser'],
       },
       fname: {
         validator: nameValidator,
@@ -1367,6 +1374,7 @@ export const schema: SchemaV1 = build_schema({
       roles: {
         validator: listOfStringsValidator,
         updatesDisabled: true, // implement with separate endpoint with tight restrictions
+        redactions: ['enduser'],
       },
       skills: {
         validator: listOfStringsValidator,
@@ -1374,9 +1382,11 @@ export const schema: SchemaV1 = build_schema({
       hashedPassword: {
         validator: stringValidator,
         readonly: true, // update via separate password reset function
+        redactions: ['enduser'],
       },
       notificationPreferences: {
         validator: notificationPreferencesValidator,
+        redactions: ['enduser'],
       },
       avatar: {
         validator: stringValidator100,
@@ -1664,9 +1674,37 @@ export const schema: SchemaV1 = build_schema({
         description: "Gets meetings for the current user.",
         parameters: {},
         returns: { validator: meetingsListValidator, required: true },
-      }
+      },
+      start_meeting_for_event: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Start Scheduled Meeting',
+        path: '/start-meeting-for-event',
+        description: "Generates an video meeting room",
+        parameters: { 
+          calendarEventId: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: { 
+          id: { validator: mongoIdStringValidator, required: true },
+          meeting: { validator: meetingInfoValidator, required: true },
+          host: { validator: attendeeValidator, required: true },
+        },
+      },
+      join_meeting_for_event: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Join Scheduled Meeting',
+        path: '/join-meeting-for-event',
+        description: "Generates an video meeting room",
+        parameters: { 
+          calendarEventId: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: { 
+          id: { validator: mongoIdStringValidator, required: true },
+          meeting: { validator: meetingInfoValidator, required: true },
+          attendee: { validator: attendeeValidator, required: true },
+        },
+      },
     },
-    enduserActions: { my_meetings: {} },
+    enduserActions: { my_meetings: {}, join_meeting_for_event: {} },
     fields: {
       ...BuiltInFields, 
       // all fields are updatable by custom endpoints only
@@ -1899,7 +1937,7 @@ export const schema: SchemaV1 = build_schema({
         },
       },
     },
-    enduserActions: { prepare_form_response: {}, submit_form_response: {} },
+    enduserActions: { prepare_form_response: {}, submit_form_response: {}, read: {}, readMany: {} },
   },
   webhooks: {
     info: {
@@ -2029,7 +2067,23 @@ export const schema: SchemaV1 = build_schema({
       ]
     },
     defaultActions: DEFAULT_OPERATIONS,
-    customActions: {},
+    customActions: {
+      start_meeting: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Start Meeting',
+        path: '/start-meeting-for-event',
+        description: "Generates an video meeting room",
+        parameters: { 
+          attendees: { validator: listOfUserIndentitiesValidator },
+          publicRead: { validator: booleanValidator },
+        },
+        returns: { 
+          id: { validator: mongoIdStringValidator, required: true },
+          meeting: { validator: meetingInfoValidator, required: true },
+          host: { validator: attendeeValidator, required: true },
+        },
+      },
+    },
     enduserActions: { read: {}, readMany: {} },
     fields: {
       ...BuiltInFields, 
@@ -2049,6 +2103,7 @@ export const schema: SchemaV1 = build_schema({
         required: true,
       },
       description: { validator: stringValidator5000 },
+      meetingId: { validator: mongoIdStringValidator, readonly: true },
       chatRoomId: { 
         validator: mongoIdStringValidator,
         dependencies: [{
@@ -2067,6 +2122,7 @@ export const schema: SchemaV1 = build_schema({
         initializer: () => [],
       },
       publicRead: { validator: booleanValidator }, 
+      enableVideoCall: { validator: booleanValidator }, 
       displayImage: { validator: stringValidator }, 
       fields: { validator: fieldsValidator }, 
     }
@@ -2409,9 +2465,10 @@ export const schema: SchemaV1 = build_schema({
         validator: stringValidator25000,
         examples: ["This is the template message......"],
       },
+      publicRead: { validator: booleanValidator },
       mode: { validator: messageTemplateModeValidator, },
       files: { validator: listOfStringsValidator },
-      tags: { validator: listOfStringsValidator },
+      tags: { validator: listOfStringsValidatorEmptyOk },
     }
   },
   forums: {
@@ -2472,6 +2529,11 @@ export const schema: SchemaV1 = build_schema({
       numLikes: { 
         validator: nonNegNumberValidator,
         initializer: () => 0,
+      },
+      title: {
+        validator: stringValidator5000,
+        required: true,
+        examples: ["This is the template message......"],
       },
       textContent: {
         validator: stringValidator25000,
@@ -2574,6 +2636,7 @@ export const schema: SchemaV1 = build_schema({
       access: [{ type: 'dependency', foreignModel: 'forums', foreignField: '_id', accessField: 'forumId' }]
     },
     defaultActions: { read: {}, readMany: {}, delete: {} }, // create is custom
+    enduserActions: { create: {}, unlike_post: {}, readMany: {} },
     customActions: { 
       create: {
         op: "custom", access: 'create', method: "post",
@@ -2598,7 +2661,6 @@ export const schema: SchemaV1 = build_schema({
         returns: { } //authToken: { validator: stringValidator5000 } },
       },
     },
-    enduserActions: { create: {}, unlike_post: {} },
     fields: {
       ...BuiltInFields, 
       // creator: {

@@ -462,7 +462,7 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     }
 
     return value
-  }, [addLocalElement, state, setFetched, didFetch])
+  }, [addLocalElement, findOne, state, setFetched, didFetch])
 
   // make consistent with search function in Webapp search.tsx
   const searchLocalElements: ListUpdateMethods<T, ADD>['searchLocalElements'] = useCallback(query => {
@@ -510,10 +510,11 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     if (didFetch(fetchKey, force, options?.refetchInMS)) return
     setFetched(fetchKey, true)
 
-    toLoadedData(() => loadQuery({ filter: loadFilter, limit: DEFAULT_FETCH_LIMIT })).then(
+    const limit = options?.limit || DEFAULT_FETCH_LIMIT
+    toLoadedData(() => loadQuery({ filter: loadFilter, limit  })).then(
       es => {
         if (es.status === LoadingStatus.Loaded) {
-          if (es.value.length < DEFAULT_FETCH_LIMIT) {
+          if (es.value.length < limit) {
             setFetched('id' + modelName + DONE_LOADING_TOKEN, true) 
           }
           dispatch(slice.actions.addSome({ value: es.value, options: { replaceIfMatch: true } }))
@@ -602,6 +603,7 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
 }
 
 export type HookOptions<T> = {
+  limit?: number,
   loadFilter?: Partial<T>,
   refetchInMS?: number,
   dontFetch?: boolean,
@@ -868,7 +870,7 @@ export const useJourneys = (options={} as HookOptions<Journey>) => {
   )
 }
 export const useUsers = (options={} as HookOptions<User>) => {
-  const session = useSession()
+  const session = useResolvedSession()
   return useListStateHook(
     'users', useTypedSelector(s => s.users), session, usersSlice, 
     { 
@@ -976,6 +978,7 @@ export const useFormResponses = (options={} as HookOptions<FormResponse>) => {
   ) 
 }
 
+/** @deprecated */
 export const useUserDisplayInfo = (options={} as HookOptions<UserDisplayInfo>) => {
   const session = useEnduserSession()  
   const state = useTypedSelector(s => s.users_display)
@@ -1068,9 +1071,9 @@ export const usePostComments = (options={} as HookOptions<PostComment>) => {
 export const usePostLikes = (options={} as HookOptions<PostLike>) => {
   const session = useResolvedSession()
   return useListStateHook(
-    'post_likes', useTypedSelector(s => s.post_comments), session, postLikesSlice, 
+    'post_likes', useTypedSelector(s => s.post_likes), session, postLikesSlice, 
     { 
-      loadQuery: session.type === 'user' ? session.api.post_likes.getSome : undefined,
+      loadQuery: session.api.post_likes.getSome,
       findOne: session.api.post_likes.getOne,
       addOne: session.api.post_likes.createOne,
       addSome: session.api.post_likes.createSome,

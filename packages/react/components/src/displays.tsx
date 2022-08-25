@@ -7,6 +7,7 @@ import {
   useUserDisplayInfo,
   Typography, 
   value_is_loaded,
+  useUsers,
 } from "./index"
 
 import { Avatar, AvatarProps, Styled } from "./mui"
@@ -90,13 +91,19 @@ export const elapsed_time_display_string = (date: Date) => {
 }
 
 export const useEnduserForId = (enduserId: string) => {
-  const [, { findById }] = useEndusers({ dontFetch: true }) // don't fetch all endusers, findById will still hit API for individual
+  const [, { findById }] = useEndusers() 
   return findById(enduserId)
 } 
 export const useUserForId = (userId: string) => {
-  const [displayInfo] = useUserDisplayInfo()
-  return value_is_loaded(displayInfo) ? displayInfo.value.find(u => u.id === userId) : undefined
+  const [usersLoading] = useUsers()
+  return value_is_loaded(usersLoading) ? usersLoading.value.find(u => u.id === userId) : undefined
 } 
+
+export const DisplayPictureForSelf = () => {
+  const user = useResolvedSession().userInfo
+
+  return <DisplayPicture user={user} />
+}
 
 export const DisplayPictureForEnduser = ({ id, ...props } : Omit<DisplayPictureProps, 'user'> & { id: string } ) => {
   const enduser = useEnduserForId(id)
@@ -128,4 +135,13 @@ export const DisplayNameForUser = ({ id, ...props } : Styled & { id: string } ) 
 export const ResolveDisplayName = ({ type, ...props } : Styled & { id: string, type: 'user' | 'enduser' }) => {
   if (type === 'enduser') return <DisplayNameForEnduser {...props} />
   return <DisplayNameForUser {...props} />
+}
+
+export const useDisplayInfoForSenderId = (id: string) => {
+  const session = useResolvedSession()
+  const [, { findById: findUser }] = useUsers()
+  const [, { findById: findEnduser }] = useEndusers()
+
+  if (session.userInfo.id === id) return session.userInfo
+  return findUser(id) ?? findEnduser(id)
 }

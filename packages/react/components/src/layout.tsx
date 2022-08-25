@@ -1,4 +1,5 @@
-import React, { CSSProperties, useState } from "react";
+import { Grid, Typography } from "@mui/material";
+import React, { CSSProperties, useRef, useState } from "react";
 import { ViewStyle } from "react-native"
 
 import {
@@ -226,5 +227,64 @@ export const List = <T extends Item, P={}>({ items, hoveredColor, notHoveredColo
       )}
     </Flex>
     </div>
+  )
+}
+
+export type TitleComponentType = React.JSXElementConstructor<{ title?: string, titleStyle?: React.CSSProperties}>
+export const ScrollingList = <T extends { id: string | number }>({
+  title,
+  maxHeight,
+  titleStyle,
+  items,
+  emptyText,
+  doneLoading,
+  loadMore,
+  Item,
+  TitleComponent,
+} : {
+  items: T[],
+  Item: React.JSXElementConstructor<{ item: T }>
+  title?: string,
+  emptyText?: string,
+  maxHeight?: React.CSSProperties['maxHeight'],
+  titleStyle?: React.CSSProperties,
+  doneLoading?: () => boolean,
+  loadMore?: () => Promise<void>,
+  TitleComponent?: TitleComponentType,
+}) => {
+  const fetchRef = useRef(0)
+  const titleStyleWithDefaults = { fontSize: 20, fontWeight: 'bold', marginBottom: 3, ...titleStyle }
+ 
+  return (
+    <Grid container direction="column">
+      {TitleComponent
+        ? <TitleComponent title={title} titleStyle={titleStyleWithDefaults} />
+        : (
+          <Typography style={titleStyleWithDefaults}>
+            {title}
+          </Typography>
+        )
+      }
+
+      <Grid container direction="column" flexWrap={'nowrap'} style={{ maxHeight, overflowY: 'auto' }}
+        onScroll={e => {
+          if (doneLoading?.() || !loadMore) return
+
+          const atBottom = e.currentTarget.scrollHeight - e.currentTarget.scrollTop <= e.currentTarget.clientHeight + 5;
+          if (!atBottom) return
+
+          if (fetchRef.current === e.currentTarget.scrollHeight) return
+          fetchRef.current = e.currentTarget.scrollHeight
+
+          loadMore().catch(console.error)
+        }}
+      >
+        {items.length === 0 && <Typography>{emptyText}</Typography>}
+
+        {items.map(item => (
+          <Item key={item.id} item={item} />
+        ))}
+      </Grid>
+    </Grid>
   )
 }

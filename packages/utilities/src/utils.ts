@@ -213,3 +213,70 @@ export const throwFunction = (s: string) => { throw s }
 export const wait = (f?: Promise<void>, ms=1000) => new Promise<void>((resolve, reject) => {
   setTimeout(() => f ? f.then(resolve).catch(reject) : resolve(), ms)
 })
+
+export const sorted_records = <T extends { createdAt: string | Date, updatedAt: string | Date }>(
+  records: T[],
+  options?: { direction: 'oldFirst' | 'newFirst', dateField: 'createdAt' | 'updatedAt' }
+) => {
+  return [...records].sort((_r1, _r2) => {
+    const r1 = options?.direction === 'oldFirst' ? _r2 : _r1
+    const r2 = options?.direction === 'oldFirst' ? _r2 : _r1
+
+    return (
+        new Date(r1[options?.dateField ?? 'createdAt']).getTime() 
+      - new Date(r2[options?.dateField ?? 'createdAt']).getTime() 
+    )
+  })
+}
+
+export const MONTHS = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec'
+]
+export const get_time_values = (date: Date) => {
+  const dayOfMonth = date.getDate()
+  const month = MONTHS[date.getMonth()]
+  const hours = date.getHours()
+  const minutesRaw = date.getMinutes()
+  const minutes = minutesRaw >= 10 ? minutesRaw : `0${minutesRaw}`
+  const year = date.getFullYear()
+
+  const amPm = hours <= 12 ? 'am' : 'pm' as const
+  const hoursAmPm = amPm === 'am' ? hours : hours - 12
+  return { dayOfMonth, month, hours, hoursAmPm, amPm, minutes, year }
+}
+
+export const formatted_date = (date: Date): string => {
+  const { dayOfMonth, month, year, hoursAmPm, amPm, minutes  } = get_time_values(date)
+  return `${month} ${dayOfMonth} ${year}, ${hoursAmPm}:${minutes}${amPm}`
+}
+
+export const yyyy_mm_dd = (date: Date): string => {
+  const { dayOfMonth, month, year } = get_time_values(date)
+  return `${year}-${month}-${dayOfMonth}`
+}
+
+export const remove_script_tags = (s: string) => s.replaceAll(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
+
+export const query_string_for_object = (query: Indexable) => {
+  let queryString = ''
+
+  if (query && !object_is_empty(query)) {
+    queryString = '?'
+    for (const key in query) {
+      queryString += `${key}=${query[key]}&`
+    } 
+  }
+
+  return queryString
+}

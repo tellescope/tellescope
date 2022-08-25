@@ -1,4 +1,4 @@
-import React, { CSSProperties } from "react"
+import React, { CSSProperties, useState } from "react"
 import { ViewStyle } from "react-native"
 import { GestureResponderEvent } from "react-native"
 
@@ -6,6 +6,7 @@ import MuiBadge from "@mui/material/Badge"
 import MuiAvatar from "@mui/material/Avatar"
 import MuiCard from "@mui/material/Card"
 import MuiPaper from "@mui/material/Paper"
+import { PaperProps as MuiPaperProps } from "@mui/material/Paper"
 import MuiTextField from "@mui/material/TextField"
 import MuiButton from "@mui/material/Button"
 import MuiTypography from "@mui/material/Typography"
@@ -30,6 +31,18 @@ import CallEndIconMui from '@mui/icons-material/CallEnd';
 import AccountIconMui from '@mui/icons-material/Person';
 import { Flex } from "./layout"
 import { defaultModalStyle } from "./controls"
+
+import {
+  Link as RouterLink, 
+} from "react-router-dom"
+import {
+  Link as MuiLink
+} from "@mui/material"
+import { PropsWithChildren } from "react"
+
+export const Link = <T extends string>({ to, ...props }: PropsWithChildren<{ to: T }>) => {
+  return <MuiLink to={to} {...props} component={RouterLink} />
+}
 
 const Icon = ({ Component, size=DEFAULT_ICON_SIZE, style, ...props } : IconBuilderProps) => (
   <Component style={{ fontSize: size, ...style }}/>
@@ -117,6 +130,19 @@ export const Paper = ({ children, style, flex, onClick, onPress, ...props } : Pa
     {children}
   </MuiPaper>
 )
+
+export const HoverPaper = ({ children, sx, ...props } : PaperProps & { sx: MuiPaperProps['sx'] }) => {
+  const [elevation, setElevation] = useState(2)
+
+  return (
+    <MuiPaper sx={sx} {...props} 
+      onMouseLeave={() => setElevation(2)}
+      onMouseEnter={() => setElevation(5)}
+    >
+      {children}
+    </MuiPaper>
+  )
+}
 
 export interface IconProps extends Styled {
   size?: number,
@@ -270,7 +296,7 @@ export const Avatar = ({ size, style, ...props }: AvatarProps) => (
   <MuiAvatar style={size ? { height: size, width: size, ...style } : style} {...props}/>
 )
 
-interface ModalProps extends Styled {
+export interface ModalProps extends Styled {
   children: React.ReactNode,
   open: boolean,
   setOpen: (b: boolean) => void,

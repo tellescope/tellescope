@@ -402,7 +402,9 @@ export type MeetingInfo = {
   ExternalMeetingId: string,
   MediaPlacement: object,
 }
-export interface Meeting_readonly extends ClientRecord {}
+export interface Meeting_readonly extends ClientRecord {
+  calendarEventId?: string,
+}
 export interface Meeting_required {}
 export interface Meeting_updatesDisabled {}
 export interface Meeting extends Meeting_readonly, Meeting_required, Meeting_updatesDisabled {
@@ -578,7 +580,9 @@ export type CalendarEventReminder = {
   remindAt: number,
   didRemind?: boolean,
 }
-export interface CalendarEvent_readonly extends ClientRecord {}
+export interface CalendarEvent_readonly extends ClientRecord { 
+  meetingId?: string 
+}
 export interface CalendarEvent_required {
   title: string,
   startTimeInMS: number,
@@ -587,6 +591,7 @@ export interface CalendarEvent_required {
 export interface CalendarEvent_updatesDisabled {}
 export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_required, CalendarEvent_updatesDisabled {
   attendees: UserIdentity[],
+  enableVideoCall?: boolean,
   publicRead?: boolean,
   chatRoomId?: string,
   description?: string,
@@ -805,6 +810,7 @@ export interface ManagedContentRecord_required {
 export interface ManagedContentRecord_updatesDisabled {}
 export interface ManagedContentRecord extends ManagedContentRecord_readonly, ManagedContentRecord_required, ManagedContentRecord_updatesDisabled {
   // type?: ManagedContentRecordType,
+  publicRead?: boolean,
   slug?: string,
   description?: string,
   tags?: string[],
@@ -830,6 +836,7 @@ export interface ForumPost_readonly extends ClientRecord {
 }
 export interface ForumPost_required {
   forumId: string,
+  title: string,
   textContent: string,
   htmlContent: string,
   editorState?: string

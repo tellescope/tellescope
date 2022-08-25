@@ -18,7 +18,7 @@ import {
 import {
   Flex,
 } from "./layout"
-import { Session, EnduserSession } from '@tellescope/sdk';
+import { useResolvedSession, ModalProps } from './index';
 
 export interface WithOffset {
   offsetX?: number,
@@ -42,7 +42,7 @@ export interface LabeledIconButtonProps extends WithOffset {
   enterDelay?: number,
   enterNextDelay?: number,
 }
-export const DEFAULT_ICON_BUTTON_SIZE = 30
+export const DEFAULT_ICON_BUTTON_SIZE = 25
 export const LabeledIconButton = ({ 
   Icon=() => null, 
   label, 
@@ -77,7 +77,7 @@ export const LabeledIconButton = ({
       }}
       onClick={onClick} id={id} disabled={disabled}  
     >
-      <Icon size={size}/>
+      <Icon style={{ fontSize: size }} />
     </IconButton>
   )
 
@@ -156,17 +156,17 @@ export const AsyncButton = <T,>({ text, loadingText=text, variant, ...props }: A
 }
 
 interface DownloadButton {
-  session: Session | EnduserSession,
   secureName: string,
   onDownload: (downloadURL: string) => void;
   onError?: (error: string) => void;
 }
 
-export const DownloadFileIconButton = ({ session, secureName, onDownload, onError }: DownloadButton) => {
+export const DownloadFileIconButton = ({ secureName, onDownload, onError }: DownloadButton) => {
+  const session = useResolvedSession()
   const [downloadURL, setDownloadURL] = useState('')
 
   return (
-    <AsyncIconButton Icon={DownloadIcon} label="download" ariaLabel='download icon'
+    <AsyncIconButton Icon={DownloadIcon} label="Download File" ariaLabel='download icon'
       action={async () => {
         if (downloadURL) {
           onDownload(downloadURL) 
@@ -208,16 +208,23 @@ export const defaultModalStyle: React.CSSProperties = {
   overflowY: 'auto',
 }
 
-export const IconModal = ({ open, setOpen, children, disabled, onClick, style=defaultModalStyle, ...props }: ReturnType<typeof useModalIconButton> & Styled & { children: React.ReactNode }) => (
-  <>
-  <Modal open={open} setOpen={setOpen} style={style}>
-    {children} 
-  </Modal>
-  <LabeledIconButton disabled={disabled || open} {...props}
-    onClick={e => {
-      setOpen(o => !o)
-      onClick?.(e)
-    }}
-  />
-  </>
-)
+export const IconModal = ({ 
+  open, setOpen, children, disabled, onClick, style, ModalComponent, ...props 
+}: ReturnType<typeof useModalIconButton> & Styled & { ModalComponent?: React.JSXElementConstructor<ModalProps>, children: React.ReactNode }) => {
+  const defaultStyle = ModalComponent ? undefined : defaultModalStyle
+  const ModalResolved = ModalComponent ?? Modal
+
+  return (
+    <>
+    <ModalResolved open={open} setOpen={setOpen} style={style ?? defaultStyle}>
+      {children} 
+    </ModalResolved>
+    <LabeledIconButton disabled={disabled || open} {...props}
+      onClick={e => {
+        setOpen(o => !o)
+        onClick?.(e)
+      }}
+    />
+    </>
+  )
+}

@@ -437,7 +437,7 @@ export const Table = <T extends Item>({
           />
         )
       } />
-      {paginated && FooterComponent && 
+      {paginated && FooterComponent && items.length > 0 && // avoid displaying footer / unnecessary border when no items
         <FooterComponent doneLoading={doneLoading} loadMore={loadMore} {...paginationProps } {...pageOptions} horizontalPadding={horizontalPadding}/>
       }
     </Flex>

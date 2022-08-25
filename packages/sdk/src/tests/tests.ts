@@ -822,16 +822,16 @@ const email_tests = async (queries=sdk.api.emails) => {
     () => queries.createOne({ ...testEmail, enduserId: meNoEmail.id, logOnly: false }), // constraint ignored when logOnly is true
     { shouldError: true, onError: e => e.message === "Missing email" }
   )
-  await async_test(
-    `send-email - missing consent`, 
-    () => queries.createOne({ ...testEmail, enduserId: meNoConsent.id, logOnly: false }), // constraint ignored when logOnly is true
-    { shouldError: true, onError: e => e.message === "Missing email consent" }
-  )
-  await async_test(
-    `send-email - missing consent (multiple)`, 
-    () => queries.createSome([{ ...testEmail, enduserId: meNoConsent.id, logOnly: false }, { ...testEmail, enduserId: meNoConsent.id, logOnly: false }]), // constraint ignored when logOnly is true
-    { shouldError: true, onError: e => e.message === "Missing email consent" }
-  )
+  // await async_test(
+  //   `send-email - missing consent`, 
+  //   () => queries.createOne({ ...testEmail, enduserId: meNoConsent.id, logOnly: false }), // constraint ignored when logOnly is true
+  //   { shouldError: true, onError: e => e.message === "Missing email consent" }
+  // )
+  // await async_test(
+  //   `send-email - missing consent (multiple)`, 
+  //   () => queries.createSome([{ ...testEmail, enduserId: meNoConsent.id, logOnly: false }, { ...testEmail, enduserId: meNoConsent.id, logOnly: false }]), // constraint ignored when logOnly is true
+  //   { shouldError: true, onError: e => e.message === "Missing email consent" }
+  // )
 
 
   await async_test(
@@ -868,16 +868,16 @@ const sms_tests = async (queries=sdk.api.sms_messages) => {
     () => queries.createOne({ ...testSMS, enduserId: meNoPhone.id, logOnly: false }), // constraint ignored when logOnly is true
     { shouldError: true, onError: e => e.message === "Missing phone" }
   )
-  await async_test(
-    `send-sms - missing phone consent`, 
-    () => queries.createOne({ ...testSMS, enduserId: meNoConsent.id, logOnly: false }), // constraint ignored when logOnly is true
-    { shouldError: true, onError: e => e.message === "Missing phone consent" }
-  )
-  await async_test(
-    `send-sms - missing phone (multiple)`, 
-    () => queries.createSome([{ ...testSMS, enduserId: meNoPhone.id, logOnly: false }, { ...testSMS, enduserId: meNoPhone.id, logOnly: false }]),
-    { shouldError: true, onError: e => e.message === "Missing phone" }
-  )
+  // await async_test(
+  //   `send-sms - missing phone consent`, 
+  //   () => queries.createOne({ ...testSMS, enduserId: meNoConsent.id, logOnly: false }), // constraint ignored when logOnly is true
+  //   { shouldError: true, onError: e => e.message === "Missing phone consent" }
+  // )
+  // await async_test(
+  //   `send-sms - missing phone (multiple)`, 
+  //   () => queries.createSome([{ ...testSMS, enduserId: meNoPhone.id, logOnly: false }, { ...testSMS, enduserId: meNoPhone.id, logOnly: false }]),
+  //   { shouldError: true, onError: e => e.message === "Missing phone" }
+  // )
 
   await async_test(
     `send-sms`, 
@@ -916,11 +916,11 @@ const chat_room_tests = async () => {
     () => sdk2.api.chat_rooms.getOne(room.id), 
     { shouldError: true, onError: e => e.message === "Could not find a record for the given id" }
   )
-  await async_test(
-    `user_display_info for room (not a user)`, 
-    () => sdk2.api.chat_rooms.display_info({ id: room.id }), 
-    { shouldError: true, onError: e => e.message === "Could not find a record for the given id" }
-  )
+  // await async_test(
+  //   `user_display_info for room (not a user)`, 
+  //   () => sdk2.api.chat_rooms.display_info({ id: room.id }), 
+  //   { shouldError: true, onError: e => e.message === "Could not find a record for the given id" }
+  // )
 
   await sdk.api.chats.createOne({ roomId: room.id, message: 'test message', attachments: [{ type: 'file', secureName: 'testsecurename'}] })
   let roomWithMessage = await sdk.api.chat_rooms.getOne(room.id)
@@ -1225,7 +1225,7 @@ const enduserAccessTests = async () => {
   await async_test(
     `enduser can't update other enduser`,
     () => enduserSDK.api.endusers.updateOne(enduser2.id, { fname: "Shouldn't Work"}), 
-    { shouldError: true, onError: e => e.message === "Could not find a record for the given id" }
+    { shouldError: true, onError: e => e.message === "Endusers may only update their own profile" }
   )
 
   const ticketAccessible = await sdk.api.tickets.createOne({ enduserId: enduser.id, title: "Accessible ticket" })
@@ -2091,16 +2091,16 @@ const community_tests = async () => {
   )  
   await async_test(`enduser access privateForum error`, () => enduserSDK.api.forums.getOne(privateForum.id), handleAnyError)  
 
-  const enduserPost = await enduserSDK.api.forum_posts.createOne({ forumId: forum.id, htmlContent: 'enduser', textContent: 'enduser' })
+  const enduserPost = await enduserSDK.api.forum_posts.createOne({ title: 'title', forumId: forum.id, htmlContent: 'enduser', textContent: 'enduser' })
   assert(!!enduserPost, 'enduser post failed', 'enduser post successful')
-  const userPost = await sdk.api.forum_posts.createOne({ forumId: forum.id, htmlContent: 'user', textContent: 'user' })
+  const userPost = await sdk.api.forum_posts.createOne({ title: 'title', forumId: forum.id, htmlContent: 'user', textContent: 'user' })
   assert(!!userPost, 'user post failed', 'user post successful')
 
   assert(enduserPost.numComments === 0 && enduserPost.numLikes === 0, 'counts not initialized', 'counts initialized at 0')
 
   await async_test(
     `enduser post private errors`, 
-    () => enduserSDK.api.forum_posts.createOne({ forumId: privateForum.id, htmlContent: 'enduser', textContent: 'enduser' }), 
+    () => enduserSDK.api.forum_posts.createOne({ title: 'title', forumId: privateForum.id, htmlContent: 'enduser', textContent: 'enduser' }), 
     handleAnyError
   )  
 
@@ -2158,7 +2158,7 @@ const community_tests = async () => {
   )  
 
 
-  const userSelfPost = await sdk.api.forum_posts.createOne({ forumId: privateForum.id, htmlContent: 'user', textContent: 'user' })
+  const userSelfPost = await sdk.api.forum_posts.createOne({ title: 'title', forumId: privateForum.id, htmlContent: 'user', textContent: 'user' })
   assert(!!userSelfPost, 'user private post failed', 'user private post successful')
 
   const userSelfPostComment = await sdk.api.post_comments.createOne({ forumId: privateForum.id, postId: userSelfPost.id, htmlContent: 'user', textContent: 'user' })
@@ -2329,6 +2329,40 @@ const public_form_tests = async () => {
   ])
 }
 
+export const managed_content_records_tests = async () => {
+  log_header("Managed Content Records")
+
+  await enduserSDK.register({ email: 'content@tellescope.com', password: "testenduserpassword" })
+  await enduserSDK.authenticate('content@tellescope.com', "testenduserpassword")
+
+  const record = await sdk.api.managed_content_records.createOne({
+    title: "title", htmlContent: '<br />', textContent: 'content',
+    publicRead: true,
+  })
+  const record2 = await sdk.api.managed_content_records.createOne({
+    title: "title 2", htmlContent: '<br />', textContent: 'content',
+    publicRead: false,
+  })
+
+
+  await async_test(
+    'enduser can access content by default (1)',
+    () => enduserSDK.api.managed_content_records.getOne(record.id),
+    passOnAnyResult,
+  )
+  await async_test(
+    'enduser can access content by default (many)',
+    () => enduserSDK.api.managed_content_records.getSome(),
+    { onResult: rs => rs.length === 1 },
+  )
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(enduserSDK.userInfo.id),
+    sdk.api.managed_content_records.deleteOne(record.id),
+    sdk.api.managed_content_records.deleteOne(record2.id),
+  ])
+}
+
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
   chats: chat_tests,
@@ -2360,7 +2394,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   enduser_observations: NO_TEST,
   forum_posts: NO_TEST,
   forums: community_tests,
-  managed_content_records: NO_TEST,
+  managed_content_records: managed_content_records_tests,
   post_comments: NO_TEST,
   post_likes: NO_TEST,
   organizations: NO_TEST,

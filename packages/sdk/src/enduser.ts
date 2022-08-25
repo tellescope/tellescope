@@ -22,6 +22,7 @@ export interface EnduserSessionOptions extends SessionOptions { enduser?: Enduse
 
 type EnduserAccessibleModels = (
     'endusers' 
+  | 'users'
   | 'form_responses' 
   | "chat_rooms" 
   | 'chats' 
@@ -83,6 +84,9 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
   meetings: {
     attendee_info: (args: { id: string }) => Promise<{ attendee: Attendee, others: UserIdentity[] }>,
     my_meetings: () => Promise<Meeting[]>,
+    join_meeting_for_event: (args?: extractFields<CustomActions['meetings']['join_meeting_for_event']['parameters']>) => (
+      Promise<extractFields<CustomActions['meetings']['join_meeting_for_event']['returns']>>
+    ),
   },
   chat_rooms: {
     display_info: (args: extractFields<CustomActions['chat_rooms']['display_info']['parameters']>) => 
@@ -120,6 +124,7 @@ const loadDefaultQueries = (s: EnduserSession): { [K in EnduserAccessibleModels]
   managed_content_records: defaultQueries(s, 'managed_content_records'),
   post_comments: defaultQueries(s, 'post_comments'),
   post_likes: defaultQueries(s, 'post_likes'),
+  users: defaultQueries(s, 'users'),
 })
 
 
@@ -141,12 +146,12 @@ export class EnduserSession extends Session {
     this.api.endusers.logout = () => this._POST('/v1/logout-enduser')
     this.api.endusers.current_session_info = () => this._GET(`/v1${schema.endusers.customActions.current_session_info.path}`)
 
-    this.api.users = { 
-      display_info: () => this._GET<{}, UserDisplayInfo[] >(`/v1/user-display-info`),
-    }
+    this.api.users.display_info = () => this._GET<{}, UserDisplayInfo[] >(`/v1/user-display-info`),
     this.api.meetings = { 
       attendee_info: a => this._GET('/v1/attendee-info', a),
-      my_meetings: () => this._GET('/v1/my-meetings')
+      my_meetings: () => this._GET('/v1/my-meetings'),
+      join_meeting_for_event: a => this._POST(`/v1${schema.meetings.customActions.join_meeting_for_event.path}`, a),
+      
     }
 
     this.api.organizations = {
