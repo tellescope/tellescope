@@ -4,7 +4,7 @@ import { ChangeHandler, FormFieldNode } from "./types"
 import { FormField, FormResponse } from "@tellescope/types-client"
 import { FileBlob, Indexable } from "@tellescope/types-utilities"
 import { FormResponseAnswerFileValue, FormResponseValue, FormResponseValueAnswer, OrganizationTheme } from "@tellescope/types-models"
-import { useFileUpload, useFormFields, useResolvedSession, value_is_loaded } from "../index"
+import { useFileUpload, useFormFields, useFormResponses, useResolvedSession, value_is_loaded } from "../index"
 
 import isEmail from "validator/lib/isEmail"
 import isMobilePhone from "validator/lib/isMobilePhone"
@@ -112,6 +112,7 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
 
   const session = useResolvedSession()
   const { handleUpload } = useFileUpload({ enduserId: session.type === 'enduser' ? session.userInfo.id : enduserId })
+  const [, { updateLocalElement: updateLocalFormResponse }] = useFormResponses({ dontFetch: true })
 
   const [activeField, setActiveField] = useState(root)  
   const [submittingStatus, setSubmittingStatus] = useState<SubmitStatus>(undefined)
@@ -240,6 +241,8 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
         responses,
         automationStepId,
       })
+
+      updateLocalFormResponse(formResponse.id, formResponse)
       onSuccess?.(formResponse)
     } catch(err: any) {
       setSubmitErrorMessage(err?.message ?? 'Failed to upload file')

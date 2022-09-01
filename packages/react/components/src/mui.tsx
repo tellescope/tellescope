@@ -39,9 +39,10 @@ import {
   Link as MuiLink
 } from "@mui/material"
 import { PropsWithChildren } from "react"
+import { Indexable, query_string_for_object } from "@tellescope/utilities"
 
-export const Link = <T extends string>({ to, ...props }: PropsWithChildren<{ to: T }>) => {
-  return <MuiLink to={to} {...props} component={RouterLink} />
+export const Link = <T extends string>({ to, query, ...props }: PropsWithChildren<{ to: T, query?: Indexable }>) => {
+  return <MuiLink to={`${to}/${query ? query_string_for_object(query) : ''}`} {...props} component={RouterLink} />
 }
 
 const Icon = ({ Component, size=DEFAULT_ICON_SIZE, style, ...props } : IconBuilderProps) => (
@@ -173,7 +174,7 @@ export interface BottomNavigationProps <T extends { [index: string]: any }>{
     Component: React.JSXElementConstructor<any>//{ route?: any; jumpTo?: (key: T) => void; }>,
   }[]
 }
-export const BottomNavigation = <T,>(p: BottomNavigationProps<T>) => {
+export const BottomNavigation = <T extends { [index: string]: any }>(p: BottomNavigationProps<T>) => {
   throw new Error("Unimplemented") // todo: implement me
 }
 

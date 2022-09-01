@@ -15,7 +15,7 @@ interface ConditionalWrap_T <P extends {}>{
   wrapperProps: P,
   children: React.ReactNode
 }
-export const ConditionalWrap = <P,>({ condition, Wrapper, wrapperProps, children } : ConditionalWrap_T<P>) => {
+export const ConditionalWrap = <P extends { [index: string]: any }>({ condition, Wrapper, wrapperProps, children } : ConditionalWrap_T<P>) => {
   if (condition) return <Wrapper {...wrapperProps}>{children}</Wrapper>
   return <>{children}</>
 }
@@ -33,6 +33,18 @@ export interface ImageProps extends ImageDimensions {
   alt?: string,
 }
 export const Image = ({ src, alt, ...props }: ImageProps) => <img src={src} alt={alt} style={props} />
+
+export interface VideoProps extends Styled {
+  src: string,
+  dimensions?: ImageDimensions,
+  onBuffer?: () => void,
+  onError?: (e: any) => void, 
+}
+export const Video = ({ style, dimensions, ...props } : VideoProps) => (
+  <video {...props} controls style={{
+    ...style, ...dimensions
+  }} />
+)
 
 // type FlexByBreakpoint = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
 

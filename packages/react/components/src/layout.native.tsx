@@ -12,6 +12,7 @@ import {
   FormProps,
   Item,
   ImageProps,
+  VideoProps,
   List_T,
   resolve_direction_for_props,
   compute_flex_direction_with_props,
@@ -26,6 +27,8 @@ import {
   convert_CSS_to_RNStyles
 } from "./mui.native"
 
+import NativeVideo from 'react-native-video';
+
 export const IN_REACT_WEB = false
 
 export const Image = ({ src, alt, height, width,  ...props } : ImageProps) => (
@@ -35,6 +38,24 @@ export const Image = ({ src, alt, height, width,  ...props } : ImageProps) => (
     resizeMode="contain"
     style={props}
     // {...props} 
+  />
+)
+
+export const Video = ({ style, src, dimensions, ...props } : VideoProps) => (
+  <NativeVideo source={{ uri: src }}   // Can be a URL or a local file.
+    controls paused
+    ref={(ref: any) => {
+      if (this) {
+        // @ts-ignore
+        this.player = ref
+      }
+    }}                                      // Store reference
+    // onBuffer={this.onBuffer}                // Callback when remote video is buffering
+    // onError={this.videoError}               // Callback when video cannot be loaded
+    {...props}
+    style={convert_CSS_to_RNStyles(
+      { ...style, ...dimensions }
+    )} 
   />
 )
 

@@ -189,6 +189,7 @@ export const build_validator: BuildValidator_T = (escapeFunction, options={} as 
 
   return (fieldValue: JSONType) => {
     if (isOptional && fieldValue === undefined) return undefined
+    if (isOptional && fieldValue === null && !nullOk) return undefined
     if (nullOk && fieldValue === null) return null
     if ((emptyStringOk || isOptional) && fieldValue === '') return ''
     if (!emptyStringOk && fieldValue === '') throw `Expecting non-empty string but got ${fieldValue}`
@@ -1171,7 +1172,7 @@ export const userIdentityValidator = objectValidator<{
 export const listOfUserIndentitiesValidator = listValidator(userIdentityValidator())
 
 export const chatAttachmentValidator = objectValidator<ChatAttachment>({ 
-  type: exactMatchValidator<ChatAttachmentType>(['image', 'file'])(),
+  type: exactMatchValidator<ChatAttachmentType>(['image', 'video', 'file'])(),
   secureName: stringValidator250(),
 }) 
 export const listOfChatAttachmentsValidator = listValidator(chatAttachmentValidator())

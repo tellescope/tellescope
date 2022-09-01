@@ -1,4 +1,5 @@
 export * from "./video"
+export * from "./hooks"
 export * from "./controls"
 export {
   CurrentCallContext,

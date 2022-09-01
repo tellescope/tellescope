@@ -37,6 +37,7 @@ type EnduserAccessibleModels = (
   | "managed_content_records"
   | "post_comments"
   | "post_likes"
+  | 'meetings'
 )
 
 export const defaultQueries = <N extends keyof ClientModelForName>(
@@ -80,6 +81,9 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
     session_for_public_form: (args: extractFields<PublicActions['form_responses']['session_for_public_form']['parameters']>) => (
       Promise<extractFields<PublicActions['form_responses']['session_for_public_form']['returns']>>
     ),
+    info_for_access_code: (args: extractFields<CustomActions['form_responses']['info_for_access_code']['parameters']>) => (
+      Promise<extractFields<CustomActions['form_responses']['info_for_access_code']['returns']>>
+    ),
   },
   meetings: {
     attendee_info: (args: { id: string }) => Promise<{ attendee: Attendee, others: UserIdentity[] }>,
@@ -89,8 +93,12 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
     ),
   },
   chat_rooms: {
-    display_info: (args: extractFields<CustomActions['chat_rooms']['display_info']['parameters']>) => 
-                    Promise<extractFields<CustomActions['chat_rooms']['display_info']['returns']>>,
+    display_info: (args: extractFields<CustomActions['chat_rooms']['display_info']['parameters']>) => (
+      Promise<extractFields<CustomActions['chat_rooms']['display_info']['returns']>>
+    ),
+    mark_read: (args: extractFields<CustomActions['chat_rooms']['mark_read']['parameters']>) => (
+      Promise<extractFields<CustomActions['chat_rooms']['mark_read']['returns']>>
+    ),
   },
   post_likes: {
     create: (args: extractFields<CustomActions['post_likes']['create']['parameters']>) => (
@@ -125,6 +133,7 @@ const loadDefaultQueries = (s: EnduserSession): { [K in EnduserAccessibleModels]
   post_comments: defaultQueries(s, 'post_comments'),
   post_likes: defaultQueries(s, 'post_likes'),
   users: defaultQueries(s, 'users'),
+  meetings: defaultQueries(s, 'meetings'),
 })
 
 
@@ -141,18 +150,18 @@ export class EnduserSession extends Session {
     this.businessId = o?.businessId
 
     this.api = loadDefaultQueries(this) as EnduserQueries 
+
     this.api.chat_rooms.display_info = a => this._GET(`/v1${schema.chat_rooms.customActions.display_info.path}`, a)
+    this.api.chat_rooms.mark_read = a => this._POST(`/v1${schema.chat_rooms.customActions.mark_read.path}`, a)
 
     this.api.endusers.logout = () => this._POST('/v1/logout-enduser')
     this.api.endusers.current_session_info = () => this._GET(`/v1${schema.endusers.customActions.current_session_info.path}`)
 
     this.api.users.display_info = () => this._GET<{}, UserDisplayInfo[] >(`/v1/user-display-info`),
-    this.api.meetings = { 
-      attendee_info: a => this._GET('/v1/attendee-info', a),
-      my_meetings: () => this._GET('/v1/my-meetings'),
-      join_meeting_for_event: a => this._POST(`/v1${schema.meetings.customActions.join_meeting_for_event.path}`, a),
-      
-    }
+    
+    this.api.meetings.attendee_info = a => this._GET('/v1/attendee-info', a)
+    this.api.meetings.my_meetings = () => this._GET('/v1/my-meetings')
+    this.api.meetings.join_meeting_for_event = a => this._POST(`/v1${schema.meetings.customActions.join_meeting_for_event.path}`, a)
 
     this.api.organizations = {
       get_theme: a => this._GET(`/v1/${schema.organizations.publicActions.get_theme.path}`, a)
@@ -161,6 +170,7 @@ export class EnduserSession extends Session {
     this.api.form_responses.prepare_form_response   = args => this._POST(`/v1${schema.form_responses.customActions.prepare_form_response.path}`, args)
     this.api.form_responses.session_for_public_form = args => this._POST(`/v1${schema.form_responses.publicActions.session_for_public_form.path}`, args)
     this.api.form_responses.submit_form_response    = args => this._PATCH(`/v1${schema.form_responses.customActions.submit_form_response.path}`, args)
+    this.api.form_responses.info_for_access_code    = args => this._GET(`/v1${schema.form_responses.customActions.info_for_access_code.path}`, args)
 
     // files have defaultQueries
     this.api.files.prepare_file_upload = a => this._POST(`/v1/prepare-file-upload`, a)

@@ -318,7 +318,7 @@ export interface ChatRoom extends ChatRoom_readonly, ChatRoom_required, ChatRoom
   }
 }
 
-export type ChatAttachmentType = 'image' | 'file'
+export type ChatAttachmentType = 'image' | 'video' | 'file'  
 export type ChatAttachment = {
   type: ChatAttachmentType,
   secureName: string,
@@ -582,6 +582,7 @@ export type CalendarEventReminder = {
 }
 export interface CalendarEvent_readonly extends ClientRecord { 
   meetingId?: string 
+  meetingStatus?: MeetingStatus,
 }
 export interface CalendarEvent_required {
   title: string,

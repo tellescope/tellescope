@@ -53,6 +53,7 @@ import {
   EnduserSession,
 } from '@tellescope/sdk'
 import { value_is_loaded } from './loading'
+import { objects_equivalent } from '@tellescope/utilities'
 
 const RESET_CACHE_TYPE = "cache/reset" as const
 export const resetStateAction = createAction(RESET_CACHE_TYPE)
@@ -337,7 +338,7 @@ export interface ListUpdateMethods <T, ADD> extends LoadMoreFunctions {
   replaceLocalElement: (id: string, e: T) => T,
   createElement: (e: ADD, o?: AddOptions) => Promise<T>,
   createElements: (e: ADD[], o?: AddOptions) => Promise<T[]>,
-  findById: (id: string | number) => T | undefined | null,
+  findById: (id: string | number, options?: { reload?: boolean }) => T | undefined | null,
   searchLocalElements: (query: string) => T[],
   updateElement: (id: string, e: Partial<T>, o?: CustomUpdateOptions) => Promise<T>,
   updateLocalElement: (id: string, e: Partial<T>) => void,
@@ -439,22 +440,33 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     removeLocalElement(id)
   }, [removeLocalElement, deleteOne])
 
-  const findById = useCallback((id: string | number) => {
+  const findById: ListUpdateMethods<T, ADD>['findById'] = useCallback((id, options) => {
     if (!id) return undefined
 
     if (didFetch('recordNotFound' + id)) { // return null if record not found for id
       return null
     }
 
-    const value = (state.status === LoadingStatus.Loaded)
-                ? state.value.find(v => v.id.toString() === id.toString())
-                : undefined
+    const value = (
+      state.status === LoadingStatus.Loaded
+        ? state.value.find(v => v.id.toString() === id.toString())
+        : undefined
+    )
 
-    if (value === undefined && !didFetch('findById' + id)) {
+    // prevent frequent refetches 
+    if (value && options?.reload && didFetch('findById' + id, true)) return value
+
+    if (options?.reload || (value === undefined && !didFetch('findById' + id))) {
       setFetched('findById' + id, true) // prevent multiple API calls
 
       findOne?.(id.toString())
-      .then(addLocalElement)
+      .then(found => {
+        // prevent unnecessary re-renders by calling addLocalElement, when the exact value already exists
+        const existingUnchanged = value_is_loaded(state) && state.value.find(v => v.id === id && objects_equivalent(v, found))
+        if (existingUnchanged) return
+
+        addLocalElement(found, { replaceIfMatch: true })
+      })
       .catch(e => {
         setFetched('recordNotFound' + id, true) // mark record not found for id
         console.error(e) 
@@ -588,9 +600,10 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
       }
     )
   }, [state, modelName, loadQuery])
+
   const doneLoading = useCallback((key="id") => (
     didFetch(key + modelName + DONE_LOADING_TOKEN)
-  ), [state])
+  ), [didFetch, modelName])
   
   return [
     state,
@@ -827,7 +840,7 @@ export const useTickets = (options={} as HookOptions<Ticket>) => {
   )
 }
 export const useMeetings = (options={} as HookOptions<Meeting>) => {
-  const session = useSession()
+  const session = useResolvedSession()
   return useListStateHook(
     'meetings', useTypedSelector(s => s.meetings), session, meetingsSlice, 
     { 

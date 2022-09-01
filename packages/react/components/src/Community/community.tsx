@@ -198,10 +198,20 @@ export const PostView = ({
               </Grid>
             )}
             Item={({ item: comment }) => (
-              <Paper elevation={2} sx={{ padding: 1, py: 2, marginBottom: 1, maxWidth: POST_MAX_WIDTH }}>
+              <Paper elevation={3} sx={{ padding: 1, py: 2, marginBottom: 1, maxWidth: POST_MAX_WIDTH }}>
               <Grid container direction="column" wrap="nowrap">
-                <Grid item wrap="nowrap">
-                  <Typography style={{ fontSize: 13, wordWrap: 'break-word' }}>
+                <Grid container alignItems="center" wrap="nowrap">
+                  <ResolveDisplayPicture {...post.postedBy} size={25} />
+
+                  <Grid container direction="column" justifyContent="center" style={{ marginLeft: 8 }}>
+                    <ResolveDisplayName {...post.postedBy} style={{ fontSize: 12 }} />
+                    <Typography sx={{ fontSize: 11, opacity: .75 }}>
+                      {elapsed_time_display_string(new Date(comment.createdAt))}
+                    </Typography>
+                  </Grid>
+                </Grid>
+                <Grid item wrap="nowrap" style={{ marginTop: 4 }}>
+                  <Typography style={{ fontSize: 14, wordWrap: 'break-word' }}>
                     {comment.textContent}
                   </Typography>
                 </Grid>

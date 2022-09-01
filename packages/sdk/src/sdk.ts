@@ -145,6 +145,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     prepare_form_response: (args: extractFields<CustomActions['form_responses']['prepare_form_response']['parameters']>) => (
       Promise<extractFields<CustomActions['form_responses']['prepare_form_response']['returns']>>
     ),
+    info_for_access_code: (args: extractFields<CustomActions['form_responses']['info_for_access_code']['parameters']>) => (
+      Promise<extractFields<CustomActions['form_responses']['info_for_access_code']['returns']>>
+    ),
   },
   meetings: {
     start_meeting: (args?: extractFields<CustomActions['meetings']['start_meeting']['parameters']>) => (
@@ -166,6 +169,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
   },
   chat_rooms: {
     join_room: (args: { id: string }) => Promise<{ room: ChatRoom }>,
+    mark_read: (args: extractFields<CustomActions['chat_rooms']['mark_read']['parameters']>) => (
+      Promise<extractFields<CustomActions['chat_rooms']['mark_read']['returns']>>
+    ),
     display_info: (args: extractFields<CustomActions['chat_rooms']['display_info']['parameters']>) => 
                     Promise<extractFields<CustomActions['chat_rooms']['display_info']['returns']>>,
   },
@@ -223,11 +229,14 @@ export class Session extends SessionManager {
 
     queries.form_responses.prepare_form_response = (args) => this._POST(`/v1${schema.form_responses.customActions.prepare_form_response.path}`, args)
     queries.form_responses.submit_form_response = (args) => this._PATCH(`/v1${schema.form_responses.customActions.submit_form_response.path}`, args)
+    queries.form_responses.info_for_access_code = (args) => this._GET(`/v1${schema.form_responses.customActions.info_for_access_code.path}`, args)
 
     queries.files.prepare_file_upload = (args) => this._POST(`/v1/prepare-file-upload`, args)
     queries.files.file_download_URL = a => this._GET('/v1/file-download-URL', a)
+
     queries.chat_rooms.join_room = a => this._POST('/v1/join-chat-room', a)
     queries.chat_rooms.display_info = a => this._GET(`/v1${schema.chat_rooms.customActions.display_info.path}`, a)
+    queries.chat_rooms.mark_read = a => this._POST(`/v1${schema.chat_rooms.customActions.mark_read.path}`, a)
 
     queries.meetings.start_meeting = a => this._POST('/v1/start-meeting', a)
     queries.meetings.end_meeting = a => this._POST('/v1/end-meeting', a)

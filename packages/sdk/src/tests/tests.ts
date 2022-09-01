@@ -492,6 +492,7 @@ const run_generated_tests = async <N extends ModelName>({ queries, model, name, 
         if (!d?.id) return false
 
         for (const k in instance) {
+          // @ts-ignore
           if (!objects_equivalent(instance[k], d[k as keyof typeof d])) return false
         }
         return true
@@ -506,6 +507,7 @@ const run_generated_tests = async <N extends ModelName>({ queries, model, name, 
         if (!d?.id) return false
 
         for (const k in instance) {
+          // @ts-ignore
           if (!objects_equivalent(instance[k], d[k as keyof typeof d])) return false
         }
         return true
@@ -1065,9 +1067,7 @@ const chat_tests = async() => {
   //   { shouldError: true, onError: e => e.message === 'You do not have permission to access this resource' }
   // )
   await async_test(
-    `delete-chat not allowed`, 
-    () => sdk2.api.chats.deleteOne(chat.id), 
-    { shouldError: true, onError: e => e.message === 'Inaccessible' }
+    `delete-chat not allowed`, () => sdk2.api.chats.deleteOne(chat.id), handleAnyError
   )
 
   // currently disabled endpoint altogether
@@ -1380,6 +1380,8 @@ const calendar_events_tests = async () => {
   const publicEvent = await sdk.api.calendar_events.createOne({ 
     title: "Event", durationInMinutes: 30, startTimeInMS: Date.now(), publicRead: true,
   })
+
+
 
   await async_test(
     `user can access own event`,
@@ -2410,6 +2412,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
     ]) 
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await role_based_access_tests()
     await public_form_tests()
     await search_tests()
     await badInputTests()
@@ -2419,7 +2422,6 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
     await enduserAccessTests()
     await generateEnduserAuthTests()
     await enduser_session_tests()
-    await role_based_access_tests()
     await enduser_redaction_tests()
   } catch(err: any) {
     console.error("Failed during custom test")

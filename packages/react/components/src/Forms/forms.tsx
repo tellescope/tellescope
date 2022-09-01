@@ -61,7 +61,7 @@ export const TellescopeForm = (props : TellescopeFormProps & Styled) => (
   </WithOrganizationTheme>
 )
 
-export const TellescopeFormWithContext: typeof TellescopeForm = ({
+const TellescopeFormWithContext: typeof TellescopeForm = ({
   activeField, 
   currentFileValue,
   customInputs, 

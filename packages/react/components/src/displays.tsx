@@ -12,11 +12,11 @@ import {
 
 import { Avatar, AvatarProps, Styled } from "./mui"
 import { useResolvedSession } from "./authentication"
-import { Image, ImageDimensions } from "./layout"
+import { Image, ImageDimensions, Video } from "./layout"
 import { APIErrorHandler } from "@tellescope/types-utilities"
 
 // supports actual secureName as well as URL values
-const useSecureImage = ({ 
+const useFileForSecureName = ({ 
   secureName, 
   onError,
   cacheKey=secureName 
@@ -47,7 +47,7 @@ const useSecureImage = ({
 
 
 export const SecureImage = ({ secureName, placeholder, ...props } : { placeholder?: React.ReactElement, secureName: string, alt?: string } & ImageDimensions) => {
-const loadedImage = useSecureImage({ secureName })
+  const loadedImage = useFileForSecureName({ secureName })
 
   // if user doesn't have picture, or it's still loading
   if (loadedImage === '') return placeholder ?? null
@@ -57,13 +57,24 @@ const loadedImage = useSecureImage({ secureName })
   )
 }
 
+export const SecureVideo = ({ secureName, placeholder, ...props } : { placeholder?: React.ReactElement, secureName: string, alt?: string } & ImageDimensions) => {
+  const loadedVideo = useFileForSecureName({ secureName })
+
+  // if user doesn't have picture, or it's still loading
+  if (loadedVideo === '') return placeholder ?? null
+
+  return (
+    <Video src={loadedVideo} dimensions={props} />
+  )
+}
+
 export interface DisplayPictureProps extends AvatarProps {
   user?: { id: string, avatar?: string } | null;
   onError?: APIErrorHandler;
   alt?: string,
 }
 export const DisplayPicture = ({ user, onError, ...avatarProps } : DisplayPictureProps & Styled) => {
-  const loadedImage = useSecureImage({ 
+  const loadedImage = useFileForSecureName({ 
     secureName: user?.avatar ?? '',
     cacheKey: (user?.id ?? '') + (user?.avatar ?? ''),
   })

@@ -1,16 +1,13 @@
-import React, { useState, CSSProperties, useEffect } from "react"
+import React, { useState, CSSProperties, useEffect, useRef } from "react"
 
 import {
-  AsyncIconButton,
   DisplayPicture,
   IN_REACT_WEB,
   List,
   Flex,
   Badge,
-  SendIcon,
   Styled,
   Typography,
-  TextField,
   LoadingLinear,
   value_is_loaded,
   useSession,
@@ -22,6 +19,7 @@ import {
   ChatRoomDisplayInfo,
   SecureImage,
   ImageDimensions,
+  SecureVideo,
 } from "@tellescope/react-components"
 
 import {
@@ -52,6 +50,7 @@ import {
   Session,
   EnduserSession,
 } from "@tellescope/sdk"
+import { SendMessage } from "./components"
 
 export {
   user_display_name, // for convenience
@@ -184,12 +183,23 @@ export const Message = ({
 export const MessageAttachments = ({ message, chatUserId, imageDimensions } : { message: ChatMessage, chatUserId: string, imageDimensions?: ImageDimensions }) => {
   if (!message.attachments) return null
   if (message.attachments.length === 0) return null
-
+  
   return (
     <Flex column alignSelf={message.senderId === chatUserId ? "flex-end" : "flex-start"}>
       {message.attachments.filter(a => a.type === 'image').map(a=> (
-        <Flex key={a.secureName} style={{ margin: 10 }}>
-          <SecureImage key={a.secureName} secureName={a.secureName} alt="image attachment" {...imageDimensions} />
+        <Flex key={a.secureName} style={{ 
+          marginRight: message.senderId === chatUserId ? 0 : 10, 
+          marginLeft: message.senderId === chatUserId ? 10 : 0, 
+          justifyContent: message.senderId === chatUserId ? "flex-end" : "flex-start",
+        }}>
+          <SecureImage secureName={a.secureName} alt="image attachment" {...imageDimensions} />
+        </Flex>
+      ))}
+      {message.attachments.filter(a => a.type === 'video').map(a=> (
+        <Flex key={a.secureName} style={{ 
+          justifyContent: message.senderId === chatUserId ? "flex-end" : "flex-start",
+        }}>
+          <SecureVideo secureName={a.secureName} {...imageDimensions} />
         </Flex>
       ))}
     </Flex>
@@ -202,6 +212,7 @@ interface Messages_T extends MessageStyles {
   chatUserId: string,
   headerProps?: MessagesHeaderProps,
   imageDimensions?: ImageDimensions,
+  markRead?: boolean,
 }
 export const MessagesWithHeader = ({ 
   resolveSenderName,
@@ -212,7 +223,7 @@ export const MessagesWithHeader = ({
   style,
   imageDimensions,
   ...messageStyles 
-}: Messages_T & Styled & { Header?: React.JSXElementConstructor<MessagesHeaderProps> }) => (
+}: Omit<Messages_T, 'markRead'> & Styled & { Header?: React.JSXElementConstructor<MessagesHeaderProps> }) => (
   <LoadingLinear data={messages} render={messages => (
     <Flex column flex={1} style={{ ...style, overflowY: 'scroll' }}>
       {Header && <Header {...headerProps}/>}
@@ -232,14 +243,37 @@ export const Messages = ({
   headerProps,
   style,
   imageDimensions,
+  markRead,
   ...messageStyles 
-}: Messages_T & Styled) => (
-  <LoadingLinear data={messages} render={messages => (
-    <List reverse items={messages} style={style} render={(message) => (
-      <Message message={message} imageDimensions={imageDimensions} {...messageStyles} />
-    )}/>    
-  )}/>
-)
+}: Messages_T & Styled) => {
+  const session = useResolvedSession()
+  const [, { updateLocalElement: updateRoom }] = useChatRooms()
+  const markReadRef = useRef(false)
+  
+  useEffect(() => {
+    if (!markRead) return
+    if (!value_is_loaded(messages)) return
+    if (messages.value.length === 0) return
+
+    if (markReadRef.current) return
+    markReadRef.current = true
+
+    session.api.chat_rooms.mark_read({ id: messages.value[0].roomId })
+    .then(({ updated }) => {
+      updateRoom(updated.id, updated)
+    })
+    .catch(console.error)
+  }, [session, markRead, messages, markReadRef, updateRoom])
+
+
+  return (
+    <LoadingLinear data={messages} render={messages => (
+      <List reverse items={messages} style={style} render={(message) => (
+        <Message message={message} imageDimensions={imageDimensions} {...messageStyles} />
+      )}/>    
+    )}/>
+  )
+}
 
 const defaultSidebarStyle: CSSProperties  = {
   borderRadius: 5,
@@ -350,84 +384,6 @@ export const EndusersConversations = ({ enduserId, ...p } : SidebarInfo & { endu
 
 // deprecated while Conversations relies on useResolvedSession
 export const UsersConversations = ({ userId, ...p } : SidebarInfo & { userId: string }) => <Conversations {...p} rooms={useChatRooms()[0]}/>
-
-interface SendMessage_T {
-  roomId: string,
-  onNewMessage?: (m: ChatMessage) => void;
-  placeholderText?: string;
-  Icon?: React.ElementType<any>;
-  style?: CSSProperties;
-
-  // web only
-  sendOnEnterPress?: boolean,
-  multiline?: boolean,
-  maxRows?: number,
-}
-export const SendMessage = ({ 
-  roomId, 
-  Icon=SendIcon, 
-  onNewMessage, 
-  placeholderText="Enter a message", 
-  style={},
-  sendOnEnterPress,
-  multiline,
-  maxRows,
-}: SendMessage_T) => {
-  const [message, setMessage] = useState('')
-  const [sending, setSending] = useState(false)
-
-  const [disabled, setDisabled] = useState(false)
-  const [chatFocused, setChatFocused] = React.useState(false)
-  
-  const [, { createElement: createMessage }] = useChats(roomId)
-
-  useEffect(() => {
-    if (!chatFocused) return
-    if (!sendOnEnterPress) return
-    if (typeof window === 'undefined') return
-
-    const handleSend = (e: any) => {
-      if (e.key !== 'Enter') return
-      setDisabled(true)
-
-      createMessage({ message, roomId })
-      .then(m => {
-        setMessage('')
-        onNewMessage?.(m)
-      })
-      .catch(console.error)
-      .finally(() => setDisabled(false))
-    }    
-
-    window.addEventListener('keypress', handleSend)
-    return () => { window.removeEventListener('keypress', handleSend) }
-  }, [sendOnEnterPress, chatFocused, message, roomId])
-
-  return (
-    <Flex row flex={1} alignContent="center" style={style}>
-      <Flex column flex={1}>
-        <TextField variant="outlined" value={message} onChange={setMessage} disabled={sending}
-          aria-label="Enter a message" 
-          multiline={multiline} maxRows={maxRows}
-          placeholder={placeholderText} 
-          onFocus={() => setChatFocused(true)}
-          onBlur={() => setChatFocused(false)}
-        />
-      </Flex>
-      <Flex column alignSelf="center">
-        <AsyncIconButton label="send" Icon={Icon} 
-          disabled={message === '' || disabled}  
-          action={() => createMessage({ message, roomId })}
-          onSuccess={m => {
-            setMessage('')
-            onNewMessage?.(m)
-          }}
-          onChange={setSending}
-        />
-      </Flex>
-    </Flex> 
-  )
-}
 
 const defaultSplitChatStyle: CSSProperties = {}
 interface SplitChat_T {

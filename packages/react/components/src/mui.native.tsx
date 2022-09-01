@@ -96,7 +96,7 @@ export const Paper = ({ style, flex, children, elevation, onClick, onPress, ...p
   </MuiPaper>
 )
 
-export const BottomNavigation = <T,>({ initialPageIndex, routes } : BottomNavigationProps<T>) => {
+export const BottomNavigation = <T extends { [index: string]: any }>({ initialPageIndex, routes } : BottomNavigationProps<T>) => {
   const [index, setIndex] = React.useState(initialPageIndex ?? 0);
   const routing = {} as { [K in keyof T]: React.ComponentType<any>}
   for (const r of routes) {

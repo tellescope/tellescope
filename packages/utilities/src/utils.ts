@@ -43,7 +43,7 @@ export const url_safe_path = (p='' as string | string) => p.replace(/_/g, '-')
 
 export const to_object_id = (s='') => new ObjectId(s)
 
-export const objects_equivalent = (o1?: Indexable, o2?: Indexable) => {
+export const objects_equivalent = (o1?: any, o2?: any) => {
   if (o1 === null || o2 === null) return o1 === o2 // null is base case for typeof === object
   if (typeof o1 !== "object" || typeof o2 !== 'object') return o1 === o2 // base case  
 
@@ -216,15 +216,15 @@ export const wait = (f?: Promise<void>, ms=1000) => new Promise<void>((resolve, 
 
 export const sorted_records = <T extends { createdAt: string | Date, updatedAt: string | Date }>(
   records: T[],
-  options?: { direction: 'oldFirst' | 'newFirst', dateField: 'createdAt' | 'updatedAt' }
+  options?: { direction?: 'oldFirst' | 'newFirst', key?: (keyof T) & string }
 ) => {
   return [...records].sort((_r1, _r2) => {
     const r1 = options?.direction === 'oldFirst' ? _r2 : _r1
-    const r2 = options?.direction === 'oldFirst' ? _r2 : _r1
+    const r2 = options?.direction === 'oldFirst' ? _r1 : _r2
 
     return (
-        new Date(r1[options?.dateField ?? 'createdAt']).getTime() 
-      - new Date(r2[options?.dateField ?? 'createdAt']).getTime() 
+        new Date(r1[options?.key ?? 'createdAt'] as string).getTime() 
+      - new Date(r2[options?.key ?? 'createdAt'] as string).getTime() 
     )
   })
 }

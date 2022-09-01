@@ -37,6 +37,9 @@ import {
   Enduser,
   Journey,
   FormResponse,
+  FormField,
+  Form,
+  Meeting,
 } from "@tellescope/types-client"
 
 import {
@@ -313,6 +316,11 @@ export type CustomActions = {
   form_responses: {
     prepare_form_response: CustomAction<{ formId: string, enduserId: string, automationStepId?: string }, { accessCode: string, url: string }>,
     submit_form_response: CustomAction<{ accessCode: string, responses: FormResponseValue[], automationStepId?: string  }, { formResponse: FormResponse }>,
+    info_for_access_code: CustomAction<{ accessCode: string }, {
+      form: Form, 
+      fields: FormField[], 
+      response: FormResponse, 
+    }>,
   },
   journeys: {
     update_state: CustomAction<{ updates: Partial<JourneyState>, id: string, name: string }, { updated: Journey }>,
@@ -336,6 +344,7 @@ export type CustomActions = {
   chat_rooms: {
     join_room: CustomAction<{ id: string }, { room: ChatRoom }>,
     display_info: CustomAction<{ id: string }, { id: string, display_info: { [index: string]: UserDisplayInfo } }>,
+    mark_read: CustomAction<{ id: string }, { updated: ChatRoom }>,
   },
   meetings: {
     start_meeting: CustomAction<{ attendees?: UserIdentity[], publicRead?: boolean }, { id: string, meeting: { Meeting: MeetingInfo }, host: Attendee }>, 
@@ -344,8 +353,9 @@ export type CustomActions = {
     add_attendees_to_meeting: CustomAction<{ id: string, attendees: UserIdentity[] }, { }>, 
     my_meetings: CustomAction<{}, { id: string, updatedAt: string, status: MeetingStatus }[]>
     attendee_info: CustomAction<{ id: string }, { attendee: Attendee, others: UserIdentity[] }>,
-    start_meeting_for_event: CustomAction<{ calendarEventId: string }, { meeting: { Meeting: MeetingInfo }, host: Attendee }>, 
+    start_meeting_for_event: CustomAction<{ calendarEventId: string }, { id: string, meeting: { Meeting: MeetingInfo }, host: Attendee }>, 
     join_meeting_for_event: CustomAction<{ calendarEventId: string }, { meeting: { Meeting: MeetingInfo } }>, 
+    read: CustomAction<{ id: string }, Meeting>,
   },
   webhooks: {
     configure: CustomAction<{ url: string, secret: string, subscriptions?: WebhookSubscriptionsType }, { }>,
@@ -1171,7 +1181,7 @@ export const schema: SchemaV1 = build_schema({
       }
     },
     defaultActions: DEFAULT_OPERATIONS,
-    enduserActions: { create: {}, read: {}, readMany: {}, display_info: {} },
+    enduserActions: { create: {}, read: {}, readMany: {}, display_info: {}, mark_read: {} },
     customActions: {
       join_room: {
         op: "custom", access: 'update', method: "post",
@@ -1181,6 +1191,16 @@ export const schema: SchemaV1 = build_schema({
         parameters: { id: { validator: mongoIdStringValidator, required: true } },
         returns: { 
           room: { validator:  'Room' }, 
+        } as any // add room eventually, when validator defined
+      },
+      mark_read: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Mark Read',
+        path: '/mark-chat-room-read',
+        description: "Marks the conversation read by the authenticated user",
+        parameters: { id: { validator: mongoIdStringValidator, required: true } },
+        returns: { 
+          updated: { validator:  'Room' }, 
         } as any // add room eventually, when validator defined
       },
       display_info: {
@@ -1601,6 +1621,9 @@ export const schema: SchemaV1 = build_schema({
     constraints: {
       unique: [], 
       relationship: [],
+      access: [
+        { type: 'filter', field: 'attendees.id' }, 
+      ]
     },
     defaultActions: { 
       readMany: {
@@ -1608,7 +1631,16 @@ export const schema: SchemaV1 = build_schema({
         adminOnly: true,
       }
     },
+    enduserActions: { my_meetings: {}, join_meeting_for_event: {}, read: {} },
     customActions: {
+      read: {
+        op: "read", access: 'read', method: "get",
+        description: "Get a meeting",
+        parameters: { 
+          id: { validator: mongoIdStringValidator },
+        },
+        returns: 'meeting' as any,
+      },
       start_meeting: {
         op: "custom", access: 'create', method: "post",
         name: 'Start Meeting',
@@ -1704,7 +1736,6 @@ export const schema: SchemaV1 = build_schema({
         },
       },
     },
-    enduserActions: { my_meetings: {}, join_meeting_for_event: {} },
     fields: {
       ...BuiltInFields, 
       // all fields are updatable by custom endpoints only
@@ -1884,6 +1915,7 @@ export const schema: SchemaV1 = build_schema({
       responses: { validator: formResponsesValidator },
     },
     defaultActions: DEFAULT_OPERATIONS,
+    enduserActions: { prepare_form_response: {}, info_for_access_code: {}, submit_form_response: {}, read: {}, readMany: {} },
     customActions: { 
       prepare_form_response: {
         op: "custom", access: 'create', method: "post",
@@ -1913,7 +1945,21 @@ export const schema: SchemaV1 = build_schema({
         returns: {
           formResponse: 'form response' as any,
         },
-      }
+      },
+      info_for_access_code: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Info for Access Code',
+        path: '/form-info-for-access-code',
+        description: "With an accessCode, retrieves the relevant info for submitting a form",
+        parameters: { 
+          accessCode: { validator: stringValidator250, required: true },
+        },
+        returns: {
+          form: 'form' as any,
+          fields: 'form fields' as any,
+          response: 'form response' as any,
+        },
+      },
     },
     publicActions: {
       session_for_public_form: {
@@ -1937,7 +1983,6 @@ export const schema: SchemaV1 = build_schema({
         },
       },
     },
-    enduserActions: { prepare_form_response: {}, submit_form_response: {}, read: {}, readMany: {} },
   },
   webhooks: {
     info: {
@@ -2104,6 +2149,7 @@ export const schema: SchemaV1 = build_schema({
       },
       description: { validator: stringValidator5000 },
       meetingId: { validator: mongoIdStringValidator, readonly: true },
+      meetingStatus: { validator: meetingStatusValidator },
       chatRoomId: { 
         validator: mongoIdStringValidator,
         dependencies: [{
