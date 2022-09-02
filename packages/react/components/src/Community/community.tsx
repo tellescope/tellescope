@@ -19,6 +19,7 @@ import {
   ResolveDisplayPicture,
   elapsed_time_display_string,
   ResolveDisplayName,
+  useResolvedSession,
 } from "../index"
 import { Divider, Grid, IconButton, LinearProgress, Paper, TextField, Typography } from "@mui/material"
 import {
@@ -201,10 +202,10 @@ export const PostView = ({
               <Paper elevation={3} sx={{ padding: 1, py: 2, marginBottom: 1, maxWidth: POST_MAX_WIDTH }}>
               <Grid container direction="column" wrap="nowrap">
                 <Grid container alignItems="center" wrap="nowrap">
-                  <ResolveDisplayPicture {...post.postedBy} size={25} />
+                  <ResolveDisplayPicture {...comment.postedBy} size={25} />
 
                   <Grid container direction="column" justifyContent="center" style={{ marginLeft: 8 }}>
-                    <ResolveDisplayName {...post.postedBy} style={{ fontSize: 12 }} />
+                    <ResolveDisplayName {...comment.postedBy} style={{ fontSize: 12 }} />
                     <Typography sx={{ fontSize: 11, opacity: .75 }}>
                       {elapsed_time_display_string(new Date(comment.createdAt))}
                     </Typography>
