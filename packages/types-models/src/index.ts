@@ -71,6 +71,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   skills?: string[];
   logoVersion?: number; // missing if no logo set
   themeColor?: string;
+  customPortalURL?: string,
 }
 export type OrganizationTheme = {
   name: string,
@@ -801,16 +802,18 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
   notes?: string,
 }
 
-// export type ManagedContentRecordType = 'post'
+export type ManagedContentRecordType = 'Article' | 'PDF' | 'Video'
 export interface ManagedContentRecord_readonly extends ClientRecord {}
 export interface ManagedContentRecord_required {
   title: string,
   textContent: string,
   htmlContent: string,
 }
-export interface ManagedContentRecord_updatesDisabled {}
+export interface ManagedContentRecord_updatesDisabled {
+  type?: ManagedContentRecordType,
+}
 export interface ManagedContentRecord extends ManagedContentRecord_readonly, ManagedContentRecord_required, ManagedContentRecord_updatesDisabled {
-  // type?: ManagedContentRecordType,
+  headerPhoto?: string,
   publicRead?: boolean,
   slug?: string,
   description?: string,
@@ -818,6 +821,7 @@ export interface ManagedContentRecord extends ManagedContentRecord_readonly, Man
   files?: string[],
   editorState?: string
   mode?: MessageTemplateMode,
+  attachments?: ChatAttachment[]
 }
 
 export interface Forum_readonly extends ClientRecord {}

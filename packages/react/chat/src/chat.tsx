@@ -113,6 +113,10 @@ interface MessageStyles {
   receivedMessageTextStyle?: CSSProperties,
   sentMessageStyle?: CSSProperties,
   sentMessageTextStyle?: CSSProperties,
+  sentBgColor?: string,
+  sentTextColor?: string,
+  receivedBgColor?: string,
+  receivedTextColor?: string,
 }
 
 interface MessageProps extends MessageStyles {
@@ -123,6 +127,10 @@ interface MessageProps extends MessageStyles {
 export const Message = ({ 
   message, 
   iconSize=30,
+  sentBgColor,
+  sentTextColor,
+  receivedBgColor,
+  receivedTextColor,
   sentMessageStyle=defaultSentStyle,
   receivedMessageStyle=defaultReceivedStyle, 
   sentMessageTextStyle=defaultSentTextStyle,
@@ -142,6 +150,22 @@ export const Message = ({
 
   if (!message.message) {
     textBGStyle.backgroundColor = undefined
+  } else {
+    if (message.senderId === chatUserId) {
+      if (sentBgColor) {
+        textBGStyle.backgroundColor = sentBgColor;
+      }
+      if (sentTextColor) {
+        textBGStyle.color = sentTextColor;
+      }
+    } else {
+      if (receivedBgColor) {
+        textBGStyle.backgroundColor = receivedBgColor;
+      }
+      if (receivedTextColor) {
+        textBGStyle.color = receivedTextColor;
+      }
+    }
   }
 
   const attachments = (
@@ -205,6 +229,8 @@ export const MessageAttachments = ({ message, chatUserId, imageDimensions } : { 
     </Flex>
   )
 }
+
+export type MessageTheme = { theme?: string }
 
 interface Messages_T extends MessageStyles {
   resolveSenderName?: (room: ChatRoom) => React.ReactNode; 

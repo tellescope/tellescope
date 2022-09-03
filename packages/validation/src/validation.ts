@@ -105,6 +105,7 @@ import {
   FormResponseAnswerSignatureValue,
   OrganizationTheme,
   SendFormChannel,
+  ManagedContentRecordType,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -1435,3 +1436,34 @@ export const organizationThemeValidator = objectValidator<OrganizationTheme>({
   subdomain: stringValidator250(),
   businessId: mongoIdRequired,
 })
+
+const _MANAGED_CONTENT_RECORD_TYPES: { [K in ManagedContentRecordType]: any } = {
+  Article: '',
+  PDF: '',
+  Video: '',
+}
+export const MANAGED_CONTENT_RECORD_TYPES = Object.keys(_MANAGED_CONTENT_RECORD_TYPES) as ManagedContentRecordType[]
+export const managedContentRecordTypeValidator = exactMatchValidator<ManagedContentRecordType>(MANAGED_CONTENT_RECORD_TYPES)
+
+export const passwordValidator: EscapeBuilder<string> = (o) =>  build_validator((password) => {
+  if (typeof password !== 'string') {
+    throw new Error("Password must be a string")
+  }
+  if (password.length < 8) {
+    throw new Error("Password must be at least 8 characters long")
+  }
+
+  if (
+      (password.match(/[a-z]/g)?.length ?? 0) < 1 // 1 lowercase
+  || (
+    (password.match(/[A-Z]/g)?.length ?? 0) < 1 // 1 uppercase
+    && (password.match(/[0-9]/g)?.length ?? 0) < 1 // 1 number
+    && (password.match(/[^a-zA-Z0-9]/g)?.length ?? 0) < 1 // 1 special character
+  )
+  ) {
+  console.error('bad password regex')
+    throw new Error('Password must included 1 uppercase letter, 1 number, or 1 symbol') 
+  }
+
+  return password 
+}, { ...o, listOf: false, emptyStringOk: false, })

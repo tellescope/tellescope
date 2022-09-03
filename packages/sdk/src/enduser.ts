@@ -236,6 +236,18 @@ export class EnduserSession extends Session {
     )
   )
 
+  request_password_reset = async (args: extractFields<PublicActions['endusers']['request_password_reset']['parameters']>) => (
+    this.POST<typeof args & { businessId: string }, Promise<extractFields<PublicActions['endusers']['request_password_reset']['returns']>>>(
+      `/v1${schema.endusers.publicActions.request_password_reset.path}`, { ...args, businessId: this.businessId }
+    )
+  )
+  
+  reset_password = async (args: extractFields<PublicActions['endusers']['reset_password']['parameters']>) => (
+    this.POST<typeof args & { businessId: string }, Promise<extractFields<PublicActions['endusers']['reset_password']['returns']>>>(
+      `/v1${schema.endusers.publicActions.reset_password.path}`, { ...args, businessId: this.businessId }
+    )
+  )
+
   refresh_session = async () => {
     const { enduser, authToken } = await this.POST<{}, { enduser: Enduser } & { authToken: string }>('/v1/refresh-enduser-session')
     return this.handle_new_session({ authToken, enduser })

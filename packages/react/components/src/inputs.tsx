@@ -40,8 +40,9 @@ export {
 interface DropzoneContentProps extends Styled {
   isDragActive: boolean,
   file?: FileDetails,
+  label?: string
 }
-export const DefaultDropzoneContent = ({ isDragActive, file, style } : DropzoneContentProps & Styled) => (
+export const DefaultDropzoneContent = ({ isDragActive, label, file, style } : DropzoneContentProps & Styled) => (
   <Flex flex={1} style={{ 
     ...style,  
     ...isDragActive ? { border: '1px dashed gray' } : {}
@@ -49,7 +50,7 @@ export const DefaultDropzoneContent = ({ isDragActive, file, style } : DropzoneC
     <Typography style={{ cursor: 'pointer' }}>
     {   isDragActive ? "Drop to select file"
       : file         ? `${file.name} selected!`
-                      : "Select a File"}
+                     : label ?? "Select a File"}
     </Typography> 
   </Flex>
 )
@@ -57,10 +58,12 @@ export const DefaultDropzoneContent = ({ isDragActive, file, style } : DropzoneC
 export interface FileSelector extends Styled {
   file: FileBlob | undefined,
   onChange: (f: FileBlob | undefined) => void;
+  accept?: string,
+  label?: string,
   dropzoneStyle?: React.CSSProperties;
   DropzoneComponent?: React.JSXElementConstructor<DropzoneContentProps>
 }
-export const FileDropzone = ({ file, style, dropzoneStyle, onChange, DropzoneComponent=DefaultDropzoneContent } : FileSelector) => {
+export const FileDropzone = ({ accept, file, label, style, dropzoneStyle, onChange, DropzoneComponent=DefaultDropzoneContent } : FileSelector) => {
   const onDrop = useCallback(acceptedFiles => { 
     const newFile = acceptedFiles.pop()
     onChange(newFile)
@@ -70,8 +73,10 @@ export const FileDropzone = ({ file, style, dropzoneStyle, onChange, DropzoneCom
 
   return (
     <div {...getRootProps()} style={style}>
-      <input {...getInputProps({ multiple: false })} />
-      <DropzoneComponent isDragActive={isDragActive} file={file} style={dropzoneStyle}/>
+      <input {...getInputProps({ multiple: false, accept })} />
+      <DropzoneComponent label={label}
+        isDragActive={isDragActive} file={file} style={dropzoneStyle}
+      />
     </div>
   )
 }
