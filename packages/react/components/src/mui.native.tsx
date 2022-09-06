@@ -204,7 +204,12 @@ export const LinearProgress = ({ style, ...props }: LinearProgressProps) => (
 // nop 
 export const Tooltip = ({ children, ...props }: TooltipProps) => children
 
-export const Avatar = ({ size, style, src }: AvatarProps) => (
-  src ? <MuiAvatar.Image size={size} style={convert_CSS_to_RNStyles(style)} source={{ uri: src }}/>
+export const Avatar = ({ size, style, letters, src }: AvatarProps) => (
+  letters ? (
+    <MuiAvatar.Text size={size} style={convert_CSS_to_RNStyles(style)} label={letters} />
+  ) : (
+    src 
+      ? <MuiAvatar.Image size={size} style={convert_CSS_to_RNStyles(style)} source={{ uri: src }}/>
       : <AccountIcon size={size}/>
+  )
 )

@@ -20,6 +20,9 @@ import {
   SecureImage,
   ImageDimensions,
   SecureVideo,
+  useUsers,
+  useEndusers,
+  useUserAndEnduserDisplayInfo,
 } from "@tellescope/react-components"
 
 import {
@@ -141,8 +144,8 @@ export const Message = ({
   const session = useResolvedSession()
   const chatUserId = session.userInfo.id
 
-  const [displayInfo] = useChatRoomDisplayInfo(message.roomId)
-  const displayInfoLookup = value_is_loaded(displayInfo) ? displayInfo.value : {} as ChatRoomDisplayInfo
+  const [usersLoading] = useUsers()
+  const [endusersLoading] = useEndusers()
 
   // deep copy so that the override of background color doesn't affect other messages
   const textBGStyle = { ...message.senderId === chatUserId ? sentMessageStyle : receivedMessageStyle }
@@ -190,7 +193,11 @@ export const Message = ({
   const displayPicture = (
     <DisplayPicture 
       style={{ maxWidth: '10%' }}
-      user={displayInfoLookup[message.senderId ?? ''] ?? { id: message.senderId, avatar: '' }}
+      user={
+         (session.userInfo.id === message.senderId ? session.userInfo : undefined)
+      || (value_is_loaded(usersLoading) ? usersLoading.value.find(u => u.id === message.senderId) : undefined)
+      || (value_is_loaded(endusersLoading) ? endusersLoading.value.find(e => e.id === message.senderId) : undefined) 
+      }
       size={iconSize}
     />
   )
@@ -474,5 +481,25 @@ export const UserActiveBadge = ({ user, style, size, activeThresholdMS, inactive
  
   return (
     <Badge color={defaultColorForStatus[status]} size={size} style={style}/>
+  )
+}
+
+export const AttendeesList = ({ roomId, style, attendeeStyle } : { roomId: string, attendeeStyle?: React.CSSProperties } & Styled) => {
+const [, { findById: findRoom } ] = useChatRooms({ dontFetch: true })
+  const displayInfo = useUserAndEnduserDisplayInfo() 
+
+  const room = findRoom(roomId)
+  if (!room) return null
+  
+  if (!(room.enduserIds?.length || room.userIds?.length )) throw new Error("This room has no users or endusers")
+
+  return (
+    <Flex flex={1} column style={style}>
+    {[...room.userIds ?? [], ...room.enduserIds ?? []].map(id => (
+      <Typography style={{ fontSize: 18, narginBottom: 10, ...attendeeStyle }}>
+        {user_display_name(displayInfo[id])}
+      </Typography>
+    ))}
+    </Flex>
   )
 }

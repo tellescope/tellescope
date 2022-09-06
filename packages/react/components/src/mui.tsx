@@ -293,12 +293,17 @@ export const Tooltip = ({ label, placement, arrow=true, open, style, children, e
 }
 
 export interface AvatarProps extends Styled {
+  letters?: string,
   src?: string,
   size?: number,
   alt?: string,
 }
-export const Avatar = ({ size, style, ...props }: AvatarProps) => (
-  <MuiAvatar style={size ? { height: size, width: size, ...style } : style} {...props}/>
+export const Avatar = ({ size, letters, style, src, ...props }: AvatarProps) => (
+  letters ? (
+    <MuiAvatar style={size ? { height: size, width: size, ...style } : style} {...props}>{letters}</MuiAvatar>
+  ) : (
+    <MuiAvatar src={src} style={size ? { height: size, width: size, ...style } : style} {...props}/>
+  )
 )
 
 export interface ModalProps extends Styled {

@@ -645,6 +645,42 @@ export const useChatRoomDisplayInfo = (roomId: string, options={} as HookOptions
   ) as [LoadedData<{ [index: string]: UserDisplayInfo }>]
 }
 
+export const useUserAndEnduserDisplayInfo = () => {
+  const [usersLoading] = useUsers()
+  const [endusersLoading] = useEndusers()
+  const displayInfo = {} as Indexable<UserDisplayInfo>
+
+  if (value_is_loaded(usersLoading)) {
+    for (const u of usersLoading.value) {
+      displayInfo[u.id] = {
+        id: u.id,
+        avatar: u.avatar,
+        fname: u.fname,
+        lname: u.lname,
+        createdAt: u.createdAt,
+        lastActive: new Date(u.lastActive || 0),
+        lastLogout: new Date(u.lastLogout || 0),
+      }
+    }
+  }
+
+  if (value_is_loaded(endusersLoading)) {
+    for (const u of endusersLoading.value) {
+      displayInfo[u.id] = {
+        id: u.id,
+        avatar: u.avatar,
+        fname: u.fname,
+        lname: u.lname,
+        createdAt: u.createdAt,
+        lastActive: new Date(u.lastActive || 0),
+        lastLogout: new Date(u.lastLogout || 0),
+      }
+    }
+  }
+
+  return displayInfo
+}
+
 export const useCalendarEvents = (options={} as HookOptions<CalendarEvent>) => {
   const session = useResolvedSession()
 

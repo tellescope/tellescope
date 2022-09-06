@@ -216,7 +216,7 @@ export const ListItem = <T extends Item, P={}>({ item, index, render, onClick, r
 }
 
 export interface List_T <T extends Item, P={}> extends ListOptions<T, P>, WithHoverColors {
-  items: T[],
+  items: T[] ,
   emptyComponent?: React.ReactElement,
   header?: React.ReactNode,
   rowStyle?: React.CSSProperties,

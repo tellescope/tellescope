@@ -69,7 +69,7 @@ export const SecureVideo = ({ secureName, placeholder, ...props } : { placeholde
 }
 
 export interface DisplayPictureProps extends AvatarProps {
-  user?: { id: string, avatar?: string } | null;
+  user?: { id: string, fname?: string, lname?: string, avatar?: string } | null;
   onError?: APIErrorHandler;
   alt?: string,
 }
@@ -80,7 +80,15 @@ export const DisplayPicture = ({ user, onError, ...avatarProps } : DisplayPictur
   })
 
   // if user doesn't have picture, or it's still loading
-  if (loadedImage === '') return <Avatar {...avatarProps}/>
+  if (loadedImage === '') {
+    const letters = `${user?.fname ? user.fname[0] : ''}${user?.lname ? user.lname[0] : ''}`
+    return (
+      <Avatar 
+        letters={letters} 
+        {...avatarProps}
+      />
+    )
+  }
 
   return (
     <Avatar {...avatarProps} src={loadedImage} />
