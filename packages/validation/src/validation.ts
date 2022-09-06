@@ -106,6 +106,9 @@ import {
   OrganizationTheme,
   SendFormChannel,
   ManagedContentRecordType,
+  FlowchartUI,
+  PreviousFormFieldEquals,
+  PreviousFormFieldEqualsInfo,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -1426,8 +1429,15 @@ export const previousFormFieldValidator = orValidator<{ [K in PreviousFormFieldT
     type: exactMatchValidator(['after'])(),
     info: objectValidator<PreviousFormFieldAfterInfo>({ fieldId: mongoIdStringRequired }, { emptyOk: false })(),
   })(),
+  "previousEquals": objectValidator<PreviousFormFieldEquals>({
+    type: exactMatchValidator(['previousEquals'])(),
+    info: objectValidator<PreviousFormFieldEqualsInfo>({ 
+      fieldId: mongoIdStringRequired,
+      equals: stringValidator250(),
+    }, { emptyOk: false })(),
+  })(),
 })
-export const previousFormFieldsValidator = listValidator(previousFormFieldValidator())
+export const previousFormFieldsValidator = listValidatorEmptyOk(previousFormFieldValidator())
 
 export const organizationThemeValidator = objectValidator<OrganizationTheme>({
   logoURL: stringValidator250({ isOptional: true }),
@@ -1467,3 +1477,8 @@ export const passwordValidator: EscapeBuilder<string> = (o) =>  build_validator(
 
   return password 
 }, { ...o, listOf: false, emptyStringOk: false, })
+
+export const flowchartUIValidator = objectValidator<FlowchartUI>({
+  x: numberValidator(),
+  y: numberValidator(),
+}, { emptyOk: true })

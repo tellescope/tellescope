@@ -3,11 +3,128 @@ import { Session } from "@tellescope/sdk"
 import { ChangeHandler, FormFieldNode } from "./types"
 import { FormField, FormResponse } from "@tellescope/types-client"
 import { FileBlob, Indexable } from "@tellescope/types-utilities"
-import { FormResponseAnswerFileValue, FormResponseValue, FormResponseValueAnswer, OrganizationTheme } from "@tellescope/types-models"
+import { FormResponseAnswerFileValue, FormResponseValue, FormResponseValueAnswer, OrganizationTheme, PreviousFormFieldType } from "@tellescope/types-models"
 import { useFileUpload, useFormFields, useFormResponses, useResolvedSession, value_is_loaded } from "../index"
 
 import isEmail from "validator/lib/isEmail"
 import isMobilePhone from "validator/lib/isMobilePhone"
+
+export const useFlattenedTree = (root?: FormFieldNode) => {
+  const flat: FormField[] = []
+
+  const processing = [root]
+  while (processing.length) {
+    const node = processing.pop()
+    if (!node) break;
+
+    flat.push(node.value)
+
+    for (const child of node.children ?? []) {
+      // continue DFS with unprocessed children
+      if (flat.find(e => e.id === child.value.id)) continue
+      processing.push(child)
+    }
+  }
+
+  return flat
+}
+
+export const useNodeInTree = (root: FormFieldNode, nodeId: string) => {
+  const processed: string[] = [root.value.id]
+  const processing = [root]
+
+  while (processing.length) {
+    const node = processing.pop()
+    if (!node) break;
+
+    if (node.value.id === nodeId) return node
+
+    for (const child of node.children ?? []) {
+      // continue DFS with unprocessed children
+      if (processed.includes(child.value.id)) continue
+      processing.push(child)
+      processed.push(child.value.id)
+    }
+  }
+
+  return undefined
+}
+
+type BasicEdge = {
+  source: string,
+  target: string,
+}
+
+export const loopDetected = (edges: (BasicEdge & { id: string })[], startId: string): boolean => {
+  const startEdge = edges.find(e => e.source === startId)
+  const processed = [startEdge?.id ?? '']
+  const processing = [startEdge]
+
+  while (processing.length) {
+    const edge = processing.pop()
+    if (!edge) break;
+
+    if (edge.target === startId) return true
+
+    for (const adjacentEdge of edges.filter(e => e.source === edge.target)) {
+      // continue DFS with unprocessed children
+      if (processed.includes(adjacentEdge.id)) continue
+      processing.push(adjacentEdge)
+      processed.push(adjacentEdge.id)
+    }
+  }
+
+  return false
+}
+
+export const useGraphForFormFields = (fields: FormField[]) => {
+  const edges = [] as {
+    id: string,
+    source: string,
+    target: string,
+    type: PreviousFormFieldType,
+    label?: string
+  }[]
+
+  for (const field of fields) {
+    // if (field.previousFields.find(p => p.type === 'root')) {
+    //   edges.push({
+    //     source: 'start',
+    //     target: field.id,
+    //     type: 'root',
+    //     label: "Start"
+    //   })
+    // }
+
+    for (const parent of field.previousFields ?? []) {
+      if ((parent.info as any).fieldId) {
+        edges.push({
+          source: (parent.info as any).fieldId,
+          target: field.id, 
+          type: parent.type,
+          id: `${(parent.info as any).fieldId}-${field.id}`,
+          label: parent.type === 'previousEquals' ? parent.info.equals : '',
+        })
+      }
+    }
+  }
+
+  // const start = ({
+  //   id: 'start',
+  //   type: 'start',
+  //   position: {
+  //     x: 0, y: 0,
+  //   },
+  // })
+
+  return { 
+    nodes: [
+      // start as any as FormField, 
+      ...fields
+    ], 
+    edges 
+  }
+}
 
 export const useTreeForFormFields = (_fields: FormField[]) => {
   // ensure all fields actually belong to the same form
@@ -28,7 +145,7 @@ export const useTreeForFormFields = (_fields: FormField[]) => {
       if (childId === parentId) continue
       const child = nodesForId[childId]
 
-      if ((child.value.previousFields).find(p => p.type === 'after' && p.info.fieldId === parentId)) {
+      if ((child.value.previousFields).find(p => (p.info as any)?.fieldId === parentId)) {
         parent.children.push(child)
       }
     }
@@ -70,12 +187,16 @@ interface UseTellescopeFormOptions {
   fields: FormField[],
 }
 
-const OrganizationThemeContext = createContext(null as any as { theme: OrganizationTheme, setTheme: (theme: OrganizationTheme) => void })
-export const WithOrganizationTheme = ({ children } : { children: React.ReactNode }) => {
+const OrganizationThemeContext = createContext(null as any as { 
+  theme: OrganizationTheme, 
+  setTheme: (theme: OrganizationTheme) => void,
+  businessId?: string,
+})
+export const WithOrganizationTheme = ({ businessId, children } : { children: React.ReactNode, businessId?: string }) => {
   const [theme, setTheme] = useState({} as OrganizationTheme)
 
   return (
-    <OrganizationThemeContext.Provider value={{ theme, setTheme }}>
+    <OrganizationThemeContext.Provider value={{ businessId, theme, setTheme }}>
       {children}
     </OrganizationThemeContext.Provider>
   )
@@ -95,7 +216,7 @@ export const useOrganizationTheme = () => {
   useEffect(() => {
     if (theme.name) return // indicates already loaded
 
-    session.api.organizations.get_theme({ businessId: session.userInfo.businessId })
+    session.api.organizations.get_theme({ businessId: context?.businessId ?? session.userInfo.businessId })
     .then(({ theme } ) => {
       setTheme(theme)
       context?.setTheme(theme)
@@ -119,13 +240,14 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
   const [submitErrorMessage, setSubmitErrorMessage] = useState('')
   const prevFieldStackRef = useRef<typeof root[]>([])
 
-  const [responses, setResponses] = useState<(FormResponseValue & { touched: boolean })[]>(fields.map(f => ({
+  const [responses, setResponses] = useState<(FormResponseValue & { touched: boolean, includeInSubmit: boolean })[]>(fields.map(f => ({
     fieldId: f.id,
     fieldTitle: f.title,
-    touched: false,
+    touched: false, 
+    includeInSubmit: false,
     answer: { 
       type: f.type,
-      value: '' as any,
+      value: '' as any, // null flag that the response was not filled out
     }
   })))
   const [selectedFiles, setSelectedFiles] = useState<{ fieldId: string, fieldTitle: string, blob?: FileBlob }[]>(fields.map(f => ({
@@ -140,6 +262,26 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
   const currentFileValue = (
     selectedFiles.find(f => f.fieldId === activeField.value.id)!
   )
+
+  const updateInclusion = useCallback((includeInSubmit: boolean) => {
+    setResponses(rs => {
+      const current = rs.find(r => r.fieldId === currentValue.fieldId)
+      if (!current) return rs
+
+      return ([
+        ...rs.filter(r => r.fieldId !== current.fieldId), 
+        {
+          ...current,
+          includeInSubmit,
+        }
+      ])
+    })
+  }, [currentValue])
+
+  useEffect(() => {
+    if (currentValue.includeInSubmit) return
+    updateInclusion(true)
+  }, [updateInclusion, currentValue])
 
   const validateCurrentValue = useCallback(() => {
     if (activeField.value.isOptional && !(currentValue.answer.value || currentFileValue.blob)) {
@@ -238,7 +380,7 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
             session as any as Session).api.form_responses.prepare_form_response({ formId, enduserId })
           ).accessCode
         ),
-        responses,
+        responses: responses.filter(r => r.includeInSubmit),
         automationStepId,
       })
 
@@ -272,7 +414,19 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
       else if (activeField.children.length === 1) {
         newField = activeField.children[0]
       } else {
-        throw new Error("Support for multiple children is inimplemented")
+        newField = (
+          activeField.children.find(c => c.value.previousFields.find(p => 
+             p.type === 'previousEquals' 
+          && p.info.fieldId === currentValue.fieldId
+          && p.info.equals === currentValue.answer.value
+        ))
+        ) || (
+          activeField
+          .children.find(c => (c.value.previousFields.find(p => 
+             p.type === 'after' 
+          && p.info.fieldId === activeField.value.id
+          )))!
+        )
       }
 
       if (newField !== activeField) {
@@ -281,7 +435,7 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
       
       return newField
     })
-  }, [prevFieldStackRef, isNextDisabled])
+  }, [prevFieldStackRef, currentValue, isNextDisabled])
 
   const isPreviousDisabled = useCallback(() => (
     prevFieldStackRef.current.length === 0
@@ -290,11 +444,13 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
   const goToPreviousField = useCallback(() => {
     if (isPreviousDisabled()) return
 
+    updateInclusion(false)
+
     const previous = prevFieldStackRef.current.pop()
-    if (previous) {
+    if (previous) { 
       setActiveField(previous)
     }
-  }, [isPreviousDisabled, prevFieldStackRef])
+  }, [isPreviousDisabled, updateInclusion, prevFieldStackRef])
 
   const onFieldChange: ChangeHandler<any> = useCallback((value: FormResponseValueAnswer['value'], touched=true) => {
     setResponses(rs => rs.map(r => r.fieldId !== activeField.value.id ? r : ({

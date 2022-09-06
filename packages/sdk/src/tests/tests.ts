@@ -301,6 +301,60 @@ const updatesTests = async () => {
   await sdk.api.endusers.deleteOne(enduser.id)
 }
 
+const generate_user_auth_tests = async () => {
+  log_header("Generated User/Enduser authToken")
+
+  // test authenticating user, rest of tests should pass as normal now
+  const info = await sdk.api.users.generate_auth_token({ id: sdk.userInfo.id })
+  sdk.authToken = info.authToken; 
+  sdk.userInfo  = info.user as any;
+
+  const externalId = '1029f9v9sjd0as'
+  const e = await sdk.api.endusers.createOne({ email: 'generated@tellescope.com', phone: '+15555555555', externalId })
+
+  const { authToken, enduser } = await sdk.api.users.generate_auth_token({ id: e.id })
+  if (!enduser) throw new Error("Didn't get enduser when generate_auth_token called")
+  assert(!!authToken && !!enduser, 'invalid returned values', 'Generate authToken and get enduser')
+  let { isAuthenticated } = await sdk.api.endusers.is_authenticated({ id: enduser.id, authToken })
+  assert(isAuthenticated, 'invalid authToken generated for enduser', 'Generate authToken for enduser is valid')
+  assert(
+    (await sdk.api.endusers.is_authenticated({ authToken })).isAuthenticated,
+    'id omitted results in failed authentication',
+    'id optional for is_authenticated'
+  )
+  let withDurationResult = await sdk.api.endusers.generate_auth_token({ id: e.id, durationInSeconds: 1000 })
+  assert(!!withDurationResult, 'no result for id with duration', 'id with duration')
+
+  const { authToken: authTokenUID, enduser: enduser2 } = await sdk.api.endusers.generate_auth_token({ externalId })
+  assert(!!authTokenUID && !!enduser2, 'invalid returned values eid', 'Generate authToken and get enduser eid')
+  assert((
+    await sdk.api.endusers.is_authenticated({ id: enduser2.id, authToken: authTokenUID })).isAuthenticated, 
+    'invalid authToken generated for enduser', 'Generate authToken for enduser is valid'
+  )
+  withDurationResult = await sdk.api.endusers.generate_auth_token({ externalId, durationInSeconds: 1000  })
+  assert(!!withDurationResult, 'no result for externalId with duration', 'externalId with duration')
+
+  await async_test(
+    `auth by externalId`, () => sdk.api.endusers.generate_auth_token({ externalId: e.externalId }), passOnVoid,
+  ) 
+  await async_test(
+    `auth by email`, () => sdk.api.endusers.generate_auth_token({ email: e.email }), passOnVoid,
+  ) 
+  await async_test(
+    `auth by phone`, () => sdk.api.endusers.generate_auth_token({ phone: e.phone }), passOnVoid,
+  ) 
+  await async_test(
+    `auth by nothing throws error`, () => sdk.api.endusers.generate_auth_token({ phone: undefined }), 
+    { shouldError: true, onError: e => e.message === "One of id, externalId, email, or phone is required" },
+  ) 
+  await async_test(
+    `auth by bad field throws error`, () => sdk.api.endusers.generate_auth_token({ email: "notavalidemail@tellescope.com" }), 
+    { shouldError: true, onError: e => e.message === "Could not find a corresponding enduser" },
+  ) 
+
+  await sdk.api.endusers.deleteOne(enduser.id)
+}
+
 const generateEnduserAuthTests = async () => {
   log_header("Generated Enduser authToken")
   const externalId = '1029f9v9sjd0as'
@@ -432,7 +486,10 @@ const validateReturnType = <N extends ModelName, T=ClientModelForName[N]>(fs: Mo
 
 let defaultEnduser = undefined as Enduser | undefined
 const run_generated_tests = async <N extends ModelName>({ queries, model, name, returns } : GeneratedTest<N>) => {
-  if (name === 'post_likes') return // all custom
+  if (
+    name === 'post_likes' 
+  || name === 'users'
+  ) return // all custom
   if (!defaultEnduser) defaultEnduser = await sdk.api.endusers.createOne({ email: 'default@tellescope.com', phone: "5555555555"  })
 
   const { instance, updates, filter } = instanceForModel(model) 
@@ -2412,7 +2469,9 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
     ]) 
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await generate_user_auth_tests()
     await role_based_access_tests()
+    await generateEnduserAuthTests()
     await public_form_tests()
     await search_tests()
     await badInputTests()
@@ -2420,7 +2479,6 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
     await updatesTests()
     await threadKeyTests()
     await enduserAccessTests()
-    await generateEnduserAuthTests()
     await enduser_session_tests()
     await enduser_redaction_tests()
   } catch(err: any) {

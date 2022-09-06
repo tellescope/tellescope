@@ -5,16 +5,15 @@ import { ChangeHandler, FormInputs } from "./types"
 import { EmailInput, FileInput, MultipleChoiceInput, NumberInput, PhoneInput, SignatureInput, StringInput } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse } from "@tellescope/types-client"
-import { OrganizationTheme } from "@tellescope/types-models"
 
-export const TellescopeFormContainer = (props : { children: React.ReactNode, dontAddContext?: boolean } & Styled) => {
+export const TellescopeFormContainer = ({ businessId, ...props } : { children: React.ReactNode, businessId?: string, dontAddContext?: boolean } & Styled) => {
   // if context already is provided, no need to duplicate
   if (props.dontAddContext) return (
     <TellescopeFormContainerWithTheme {...props} />
   )
 
   return (
-    <WithOrganizationTheme>
+    <WithOrganizationTheme businessId={businessId}>
       <TellescopeFormContainerWithTheme {...props} />
     </WithOrganizationTheme>
   )

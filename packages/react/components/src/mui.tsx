@@ -132,13 +132,17 @@ export const Paper = ({ children, style, flex, onClick, onPress, ...props } : Pa
   </MuiPaper>
 )
 
-export const HoverPaper = ({ children, sx, ...props } : PaperProps & { sx: MuiPaperProps['sx'] }) => {
+export const HoverPaper = ({ children, sx, ...props } : PaperProps & { sx?: MuiPaperProps['sx'] }) => {
   const [elevation, setElevation] = useState(2)
 
   return (
-    <MuiPaper sx={sx} {...props} 
+    <MuiPaper elevation={elevation} sx={{
+      cursor: 'pointer',
+      ...sx,
+    }} 
       onMouseLeave={() => setElevation(2)}
       onMouseEnter={() => setElevation(5)}
+      {...props} 
     >
       {children}
     </MuiPaper>
@@ -301,9 +305,10 @@ export interface ModalProps extends Styled {
   children: React.ReactNode,
   open: boolean,
   setOpen: (b: boolean) => void,
+  onClick?: () => void,
 }
-export const Modal = ({ children, open, setOpen, style=defaultModalStyle }: ModalProps) => (
-  <MuiModal open={open} onClose={() => setOpen(false)}>
+export const Modal = ({ children, onClick, open, setOpen, style=defaultModalStyle }: ModalProps) => (
+  <MuiModal open={open} onClick={onClick} onClose={() => setOpen(false)}>
     <Flex flex={1} style={style}>
       {children}
     </Flex>

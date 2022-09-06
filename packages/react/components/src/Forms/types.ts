@@ -1,4 +1,5 @@
-import { AnswerForType, FormField } from "@tellescope/types-models";
+import { AnswerForType } from "@tellescope/types-models";
+import { FormField } from "@tellescope/types-client";
 import { FileBlob, TreeNode } from "@tellescope/types-utilities";
 import { JSXElementConstructor } from "react";
 

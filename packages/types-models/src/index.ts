@@ -40,6 +40,11 @@ export type FilterKey = '_exists'
 export const FilterKeys = ['_exists'] as const
 export type ReadFilter<T> = { [K in keyof T]?: T[K] | FilterType }
 
+export type FlowchartUI = {
+  x: number,
+  y: number,
+}
+
 export type OrganizationLimit = 'endusersLimit'
   | 'smsLimit'
   | 'emailsLimit'
@@ -173,6 +178,8 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   assignedTo? : string[];
   avatar?: string,
   unread?: boolean,
+  termsSigned?: Date,
+  termsVersion?: string,
 }
 
 export interface EnduserStatusUpdate_readonly extends ClientRecord {} 
@@ -440,15 +447,18 @@ export interface MultipleChoiceOptions {
 
 export type FormFieldOptions = MultipleChoiceOptions
 
-export type PreviousFormFieldType = 'root' | 'after'
+export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals'
 export type PreviousFormFieldBuilder <T extends PreviousFormFieldType, V> = { type: T, info: V }
 
 export type PreviousFormFieldAfterInfo = { fieldId: string }
+export type PreviousFormFieldEqualsInfo = { fieldId: string, equals: string }
 export type PreviousFormFieldAfter = PreviousFormFieldBuilder<'after', PreviousFormFieldAfterInfo>
+export type PreviousFormFieldEquals = PreviousFormFieldBuilder<'previousEquals', PreviousFormFieldEqualsInfo>
 export type PreviousFormFieldRoot = PreviousFormFieldBuilder<'root', {}>
 export type PreviousFormField = (
     PreviousFormFieldRoot
   | PreviousFormFieldAfter
+  | PreviousFormFieldEquals
 )
 
 
@@ -465,6 +475,7 @@ export interface FormField extends FormField_readonly, FormField_required, FormF
   description ?: string,
   options     ?: FormFieldOptions | {},
   intakeField ?: string | null,
+  flowchartUI?: FlowchartUI,
 }
 
 export interface Form_readonly extends ClientRecord {
@@ -754,6 +765,7 @@ export interface AutomationStep_required {
 export interface AutomationStep_updatesDisabled {}
 export interface AutomationStep extends AutomationStep_readonly, AutomationStep_required, AutomationStep_updatesDisabled {
   journeyId: string,
+  flowchartUI?: FlowchartUI,
 }
 
 export type RelatedRecord = { type: string, id: string }

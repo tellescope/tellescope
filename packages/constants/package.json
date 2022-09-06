@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/constants",
-  "version": "1.3.2",
+  "version": "1.3.3",
   "description": "Constants used across server and client",
   "main": "./lib/cjs/constants.js",
   "module": "./lib/esm/constants.js",
@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/tellescope-os/tellescope#readme",
   "dependencies": {
-    "@tellescope/types-models": "^1.3.2",
+    "@tellescope/types-models": "^1.3.3",
     "@tellescope/types-utilities": "^1.2.2"
   },
   "devDependencies": {

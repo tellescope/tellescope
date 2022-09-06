@@ -9,7 +9,6 @@ import {
   LoadingStatus,
   LoadedData,
   UNLOADED,
-  SessionType,
   CustomUpdateOptions,
 } from "@tellescope/types-utilities"
 
@@ -332,6 +331,8 @@ export interface LoadMoreFunctions {
 const DEFAULT_FETCH_LIMIT = 250
 const DONE_LOADING_TOKEN = 'doneLoading'
 
+export type UpdateElement <T,> = (id: string, e: Partial<T>, o?: CustomUpdateOptions) => Promise<T>
+
 export interface ListUpdateMethods <T, ADD> extends LoadMoreFunctions {
   addLocalElement: (e: T, o?: AddOptions) => T,
   addLocalElements: (e: T[], o?: AddOptions) => T[],
@@ -340,7 +341,7 @@ export interface ListUpdateMethods <T, ADD> extends LoadMoreFunctions {
   createElements: (e: ADD[], o?: AddOptions) => Promise<T[]>,
   findById: (id: string | number, options?: { reload?: boolean }) => T | undefined | null,
   searchLocalElements: (query: string) => T[],
-  updateElement: (id: string, e: Partial<T>, o?: CustomUpdateOptions) => Promise<T>,
+  updateElement: UpdateElement<T>,
   updateLocalElement: (id: string, e: Partial<T>) => void,
   updateLocalElements: (updates: { [id: string]: Partial<T> }) => void,
   modifyLocalElements: (filter: (e: T) => boolean, modifier: (e: T) => T) => void,
@@ -662,8 +663,8 @@ export const useCalendarEvents = (options={} as HookOptions<CalendarEvent>) => {
   )
 }
 
-export const useEngagementEvents = (type: SessionType, options={} as HookOptions<EngagementEvent>) => {
-  const session = useResolvedSession(type)
+export const useEngagementEvents = (options={} as HookOptions<EngagementEvent>) => {
+  const session = useResolvedSession()
 
   return useListStateHook('engagement_events', useTypedSelector(s => s.engagement_events), session, engagementEventsSlice,
     { 

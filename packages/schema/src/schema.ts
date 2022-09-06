@@ -4,6 +4,7 @@ import {
   DatabaseRecord,
   ObjectId,
   ModelName,
+  User,
 } from "@tellescope/types-server"
 import {
   ErrorInfo,
@@ -111,6 +112,7 @@ import {
   organizationThemeValidator,
   managedContentRecordTypeValidator,
   passwordValidator,
+  flowchartUIValidator,
 } from "@tellescope/validation"
 
 import {
@@ -342,6 +344,11 @@ export type CustomActions = {
   users: {
     display_info: CustomAction<{ }, { fname: string, lname: string, id: string }[]>,
     refresh_session: CustomAction<{}, { user: UserSession, authToken: string }>,
+    generate_auth_token: CustomAction<{ id?: string, phone?: string, email?: string, externalId?: string, durationInSeconds?: number }, { 
+      authToken: string, 
+      enduser?: Enduser,
+      user?: User,
+    }>,
   },
   chat_rooms: {
     join_room: CustomAction<{ id: string }, { room: ChatRoom }>,
@@ -381,7 +388,10 @@ export type PublicActions = {
       { id?: string, email?: string, phone?: string, password: string, durationInSeconds: number }, 
       { authToken: string }
     >,
-    register: CustomAction<{ emailConsent?: boolean, fname?: string, lname?: string, email: string, password: string }, {  }>,
+    register: CustomAction<{ 
+      emailConsent?: boolean, fname?: string, lname?: string, email: string, password: string,
+      termsVersion?: string, termsSigned?: Date,
+    }, {  }>,
     request_password_reset: CustomAction<{ email: string, businessId: string }, { }>,
     reset_password: CustomAction<{ resetToken: string, newPassword: string, businessId: string }, { }>,
   },
@@ -537,9 +547,9 @@ export const schema: SchemaV1 = build_schema({
       lastActive: { 
         validator: dateValidator,
       },
-      lastLogout: { 
-        validator: dateValidator,
-      },
+      lastLogout: { validator: dateValidator },
+      termsSigned: { validator: dateValidator },
+      termsVersion: { validator: stringValidator100 },
       lastCommunication: { 
         redactions: ['enduser'],
         validator: dateValidator,
@@ -656,11 +666,13 @@ export const schema: SchemaV1 = build_schema({
         path: '/register-as-enduser',
         description: "Allows and enduser to register directly with an email and password",
         parameters: { 
+          email: { validator: emailValidator, required: true }, 
+          password: { validator: stringValidator100, required: true },
           fname: { validator: nameValidator },
           lname: { validator: nameValidator },
           emailConsent: { validator: booleanValidator },
-          email: { validator: emailValidator, required: true }, 
-          password: { validator: stringValidator100, required: true },
+          termsSigned: { validator: dateValidator },
+          termsVersion: { validator: stringValidator100 },
         },
         returns: { } //authToken: { validator: stringValidator5000 } },
       },
@@ -1331,9 +1343,30 @@ export const schema: SchemaV1 = build_schema({
         }
       }],
     },
-    defaultActions: { read: {}, readMany: {}, update: { description: "Users can only be updated by self or an organization admin"} },
+    defaultActions: { 
+      create: { adminOnly: true },
+      read: {}, readMany: {}, update: { description: "Users can only be updated by self or an organization admin"} 
+    },
     enduserActions: { display_info: {}, read: {}, readMany: {} },
     customActions: {
+      generate_auth_token: {
+        op: "custom", access: 'create', method: "get",
+        name: 'Generate authToken (Admin Only)',
+        path: '/generate-auth-token',
+        description: "Generates an authToken for a user or enduser. Useful for integrating a 3rd-party authentication process.",
+        parameters: { 
+          id: { validator: mongoIdStringValidator }, 
+          externalId: { validator: stringValidator250 },
+          email: { validator: emailValidator }, 
+          phone: { validator: phoneValidator },
+          durationInSeconds: { validator: nonNegNumberValidator },
+        },
+        returns: { 
+          authToken: { validator: stringValidator100, required: true },
+          enduser: { validator: 'enduser' as any, required: false },
+          user: { validator: 'user' as any, required: false },
+        },
+      },
       display_info: {
         op: "custom", access: 'read', method: "get",
         name: 'User Display Info',
@@ -1892,6 +1925,7 @@ export const schema: SchemaV1 = build_schema({
         validator: previousFormFieldsValidator,
         examples: [[{ type: 'root', info: { } } as PreviousFormField]]
       },
+      flowchartUI: { validator: flowchartUIValidator },
       options: { validator: objectAnyFieldsAnyValuesValidator }, // todo: more restriction
       description: { validator: stringValidator250 }, 
       intakeField: { validator: stringValidator }, // todo: ensure built-ins are ignored
@@ -2287,7 +2321,8 @@ export const schema: SchemaV1 = build_schema({
           }, 
         }]
       },
-      conditions: { validator: listOfAutomationConditionsValidator }
+      conditions: { validator: listOfAutomationConditionsValidator },
+      flowchartUI: { validator: flowchartUIValidator },
     }
   },
   automated_actions: {

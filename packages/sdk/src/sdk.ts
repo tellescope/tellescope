@@ -132,6 +132,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
                           Promise<extractFields<PublicActions['users']['request_password_reset']['returns']>>,
     reset_password: (args: extractFields<PublicActions['users']['reset_password']['parameters']>) => 
                           Promise<extractFields<PublicActions['users']['reset_password']['returns']>>,
+    generate_auth_token: (args?: extractFields<CustomActions['users']['generate_auth_token']['parameters']>) => (
+      Promise<extractFields<CustomActions['users']['generate_auth_token']['returns']>>
+    ),
   },
   files: {
     prepare_file_upload: (args: FileDetails) => Promise<{ presignedUpload: S3PresignedPost, file: File }>,
@@ -223,7 +226,7 @@ export class Session extends SessionManager {
     queries.endusers.generate_auth_token = args => this._GET(`/v1/generate-enduser-auth-token`, args)
 
     queries.users.display_names = () => this._GET<{}, { fname: string, lname: string, id: string }[]>(`/v1/user-display-names`)
-    
+    queries.users.generate_auth_token = args => this._GET(`/v1/${schema.users.customActions.generate_auth_token.path}`, args) 
     queries.users.request_password_reset = (args) => this._POST(`/v1${schema.users.publicActions.request_password_reset.path}`, args)
     queries.users.reset_password = (args) => this._POST(`/v1${schema.users.publicActions.reset_password.path}`, args)
 
