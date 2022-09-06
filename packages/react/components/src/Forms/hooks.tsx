@@ -418,7 +418,10 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
           activeField.children.find(c => c.value.previousFields.find(p => 
              p.type === 'previousEquals' 
           && p.info.fieldId === currentValue.fieldId
-          && p.info.equals === currentValue.answer.value
+          && (
+            (currentValue.answer.type === 'multiple_choice' && currentValue.answer.value.includes(p.info.equals))
+          || p.info.equals === currentValue.answer.value
+          )
         ))
         ) || (
           activeField
