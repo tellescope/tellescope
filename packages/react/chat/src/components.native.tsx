@@ -192,6 +192,8 @@ export interface CreateGroupChatProps {
   roomTitle?: string,
 }
 export const CreateGroupChat = ({
+  excludeEndusers,
+  excludeUsers,
   onGoBack, 
   onSuccess, 
   onError=console.error,
@@ -239,7 +241,7 @@ export const CreateGroupChat = ({
         />
       </Flex>
 
-      <List items={[...users, ...endusers]} render={user => (
+      <List items={[...excludeUsers ? [] : users, ... excludeEndusers ? [] : endusers]} render={user => (
         <Paper flex elevation={5} style={{
           marginBottom: 2,
         }}>
