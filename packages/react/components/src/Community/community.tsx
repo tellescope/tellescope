@@ -90,9 +90,11 @@ export const CreateComment = ({ forumId, postId, onSuccess } : { onSuccess?: (po
 
   const [textContent, setTextContent] = useState('')
   const [error, setError] = useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   const handleSubmit = useCallback(async () => {
     setError('')
+    setSubmitting(true)
     try {
       const comment = await createComment({ textContent, forumId, postId, htmlContent: '' })
       setTextContent('')
@@ -104,6 +106,8 @@ export const CreateComment = ({ forumId, postId, onSuccess } : { onSuccess?: (po
       onSuccess?.(comment)
     } catch(err: any) {
       setError(err?.message ?? err.toString())
+    } finally {
+      setSubmitting(false)
     }
   }, [textContent, forumId, postId, post, updateLocalPost, onSuccess, createComment])
 
@@ -124,7 +128,7 @@ export const CreateComment = ({ forumId, postId, onSuccess } : { onSuccess?: (po
           <Typography color="error" style={formFieldStyle}>{error}</Typography>
         </Grid>
 
-        <SubmitButton submitText="Post" submittingText="Post" 
+        <SubmitButton submitText="Post" submittingText="Post"  submitting={submitting}
           style={{ ...formFieldStyle, width: 110 }} 
           disabled={!(textContent)}
         />

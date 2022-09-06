@@ -216,16 +216,22 @@ export const wait = (f?: Promise<void>, ms=1000) => new Promise<void>((resolve, 
 
 export const sorted_records = <T extends { createdAt: string | Date, updatedAt: string | Date }>(
   records: T[],
-  options?: { direction?: 'oldFirst' | 'newFirst', key?: (keyof T) & string }
+  options?: { direction?: 'oldFirst' | 'newFirst', key?: (keyof T) & string, 
+    reverseIfEqual?: boolean // assumes list of documents that are already in sorted order (new to old)
+  }
 ) => {
   return [...records].sort((_r1, _r2) => {
     const r1 = options?.direction === 'oldFirst' ? _r2 : _r1
     const r2 = options?.direction === 'oldFirst' ? _r1 : _r2
 
-    return (
+    const result = (
         new Date(r1[options?.key ?? 'createdAt'] as string).getTime() 
       - new Date(r2[options?.key ?? 'createdAt'] as string).getTime() 
     )
+
+    if (options?.reverseIfEqual && result === 0) return -1
+
+    return result
   })
 }
 
