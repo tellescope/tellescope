@@ -18,12 +18,14 @@ import {
   LoadingData,
   useChatRooms,
   APIError,
-  LoadingButton, 
+  LoadingButton,
+  useResolvedSession, 
 } from "@tellescope/react-components"
 import { useState } from 'react';
 import { ChatRoom } from '@tellescope/types-client';
 import { render } from 'react-dom';
 import { user_display_name } from '@tellescope/utilities';
+import { CreateChatRoomProps } from './components';
 
 const CHAT_ICON_SIZE = 35
 const SendImageOrVideo = ({ 
@@ -183,22 +185,16 @@ export const SendMessage = ({
   )
 }
 
-export interface CreateGroupChatProps {
-  excludeEndusers?: boolean,
-  excludeUsers?: boolean,
-  onGoBack?: () => void,
-  onSuccess?: (c: ChatRoom) => void,
-  onError?: (e: APIError) => void,
-  roomTitle?: string,
-}
-export const CreateGroupChat = ({
+export const CreateChatRoom = ({
   excludeEndusers,
   excludeUsers,
   onGoBack, 
   onSuccess, 
   onError=console.error,
-  roomTitle="Group Chat"
-}: CreateGroupChatProps) => {
+  roomTitle="Group Chat",
+  radio,
+}: CreateChatRoomProps) => {
+  const session = useResolvedSession()
   const [, { createElement: createRoom }] = useChatRooms()
   const [endusersLoading] = useEndusers()
   const [usersLoading] = useUsers()
@@ -227,9 +223,15 @@ export const CreateGroupChat = ({
             const userIds = selected.filter(s => users.find(u => u.id === s))
             const enduserIds = selected.filter(s => endusers.find(u => u.id === s))
 
+            if (session.type === 'enduser') {
+              enduserIds.push(session.userInfo.id)
+            } else {
+              userIds.push(session.userInfo.id)
+            }
+
             createRoom({
-              enduserIds, 
-              userIds,
+              enduserIds: enduserIds.length ? enduserIds : undefined, 
+              userIds: userIds.length ? userIds : undefined, 
               title: roomTitle,
             })
             .then(r => {
@@ -241,32 +243,37 @@ export const CreateGroupChat = ({
         />
       </Flex>
 
-      <List items={[...excludeUsers ? [] : users, ... excludeEndusers ? [] : endusers]} render={user => (
-        <Paper flex elevation={5} style={{
-          marginBottom: 2,
-        }}>
-        <Flex flex={1} alignItems="center" justifyContent="space-between" 
-          onClick={() => setSelected(ss => (
-            ss.includes(user.id) 
-              ? ss.filter(s => s !== user.id)
-              : [user.id, ...ss]
-          ))}
-          style={{
-            paddingLeft: 5, paddingRight: 5,
-          }}
-        >
-          <RadioButton value={user.id}
-            status={selected.includes(user.id) ? 'checked' : 'unchecked'}
-          />
-
-          <Typography style={{ 
-            fontWeight: selected.includes(user.id) ? 'bold' : undefined,
+      <List items={[...excludeUsers ? [] : users, ... excludeEndusers ? [] : endusers].filter(u => u.id !== session.userInfo.id)} 
+        render={user => (
+          <Paper flex elevation={5} style={{
+            marginBottom: 2,
           }}>
-            {user_display_name(user)}
-          </Typography>
-        </Flex>
-        </Paper>
-      )} />
+          <Flex flex={1} alignItems="center" justifyContent="space-between" 
+            onClick={() => setSelected(ss => (
+              ss.includes(user.id) 
+                ? radio 
+                  ? []
+                  : ss.filter(s => s !== user.id)
+                :radio 
+                  ? [user.id]
+                  : [user.id, ...ss]
+            ))}
+            style={{
+              paddingLeft: 5, paddingRight: 5,
+            }}
+          >
+            <RadioButton value={user.id}
+              status={selected.includes(user.id) ? 'checked' : 'unchecked'}
+            />
+
+            <Typography style={{ 
+              fontWeight: selected.includes(user.id) ? 'bold' : undefined,
+            }}>
+              {user_display_name(user)}
+            </Typography>
+          </Flex>
+          </Paper>
+        )} />
     </Flex>
     )} />
   )

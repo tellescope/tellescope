@@ -19,9 +19,8 @@ import {
   ResolveDisplayPicture,
   elapsed_time_display_string,
   ResolveDisplayName,
-  useResolvedSession,
 } from "../index"
-import { Divider, Grid, IconButton, LinearProgress, Paper, TextField, Typography } from "@mui/material"
+import { Divider, Grid, LinearProgress, Paper, TextField, Typography } from "@mui/material"
 import {
   usePostLiking,
 } from "./hooks"
@@ -82,7 +81,7 @@ export const CreatePost = ({ forumId, onSuccess } : { onSuccess?: (post: ForumPo
 }
 
 
-export const CreateComment = ({ forumId, postId, onSuccess } : { onSuccess?: (post: PostComment) => void } & WithForumId & WithPostId) => {
+export const CreateComment = ({ forumId, postId, onSuccess } : { onSuccess?: (comment: PostComment) => void } & WithForumId & WithPostId) => {
   const [, { createElement: createComment }] = usePostComments({ dontFetch: true })
   const [, { findById: findPost, updateLocalElement: updateLocalPost }] = useForumPosts({ dontFetch: true })
 
@@ -247,9 +246,9 @@ export const PostPreview = ({
       }
     }}>
       <Grid item onClick={() => onClick?.(post)} sx={{
-        cursor: 'pointer',
+        cursor: onClick ? 'pointer' : undefined,
         '&:hover': {
-          textDecoration: 'underline',
+          textDecoration: onClick ? 'underline' : undefined,
         }
       }}>
         <Grid container wrap="nowrap">
@@ -292,9 +291,9 @@ export const PostPreview = ({
 
         <Grid container alignItems="center" onClick={() => onClick?.(post)} sx={{
           width: '64px',
-          cursor: 'pointer',
+          cursor: onClick ? 'pointer' : undefined,
           '&:hover': {
-            textDecoration: 'underline',
+            textDecoration: onClick ? 'underline' : undefined,
           }
         }}>
           <ChatBubbleOutlineIcon style={{ fontSize: 20, marginRight: 5 }} />

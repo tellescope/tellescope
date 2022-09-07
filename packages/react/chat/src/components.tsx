@@ -1,12 +1,16 @@
 import React, { CSSProperties, useEffect, useState } from "react"
-import { ChatMessage } from "@tellescope/types-client";
+import { ChatMessage, ChatRoom } from "@tellescope/types-client";
 
 import {
+  APIError,
   AsyncIconButton,
   Flex,
   SendIcon,
   TextField,
+  useChatRooms,
   useChats,
+  useEndusers,
+  useUsers,
 } from "@tellescope/react-components"
 
 interface SendMessage_T {
@@ -85,4 +89,95 @@ export const SendMessage = ({
       </Flex>
     </Flex> 
   )
+}
+
+export interface CreateChatRoomProps {
+  excludeEndusers?: boolean,
+  excludeUsers?: boolean,
+  onGoBack?: () => void,
+  onSuccess?: (c: ChatRoom) => void,
+  onError?: (e: APIError) => void,
+  roomTitle?: string,
+  radio?: boolean,
+}
+export const CreateChatRoom: React.JSXElementConstructor<CreateChatRoomProps> = ({
+  excludeEndusers,
+  excludeUsers,
+  onGoBack, 
+  onSuccess, 
+  onError=console.error,
+  roomTitle="Group Chat",
+}) => {
+  return null
+  // const [, { createElement: createRoom }] = useChatRooms()
+  // const [endusersLoading] = useEndusers()
+  // const [usersLoading] = useUsers()
+
+  // const [selected, setSelected] = useState<string[]>([])
+
+  // return (
+  //   <LoadingData data={{ endusers: endusersLoading, users: usersLoading }} render={({ users, endusers }) => (
+  //   <Flex flex={1} column>
+  //     <Flex alignItems="center" justifyContent={"space-between"} style={{
+  //       marginBottom: 10,
+  //     }}>
+  //       {onGoBack &&  
+  //         <Button onClick={onGoBack}>
+  //           Back
+  //         </Button>
+  //       }
+  //       <Typography style={{ fontSize: 20, textAlign: 'center' }}>
+  //         Select Members
+  //       </Typography>
+
+  //       <LoadingButton submitText='Create' submittingText='Create' 
+  //         disabled={selected.length === 0}
+  //         style={{ display: 'flex', marginRight: 5 }}
+  //         onClick={() => {
+  //           const userIds = selected.filter(s => users.find(u => u.id === s))
+  //           const enduserIds = selected.filter(s => endusers.find(u => u.id === s))
+
+  //           createRoom({
+  //             enduserIds, 
+  //             userIds,
+  //             title: roomTitle,
+  //           })
+  //           .then(r => {
+  //             setSelected([])
+  //             onSuccess?.(r)
+  //           })
+  //           .catch(onError)
+  //         }}
+  //       />
+  //     </Flex>
+
+  //     <List items={[...excludeUsers ? [] : users, ... excludeEndusers ? [] : endusers]} render={user => (
+  //       <Paper flex elevation={5} style={{
+  //         marginBottom: 2,
+  //       }}>
+  //       <Flex flex={1} alignItems="center" justifyContent="space-between" 
+  //         onClick={() => setSelected(ss => (
+  //           ss.includes(user.id) 
+  //             ? ss.filter(s => s !== user.id)
+  //             : [user.id, ...ss]
+  //         ))}
+  //         style={{
+  //           paddingLeft: 5, paddingRight: 5,
+  //         }}
+  //       >
+  //         <RadioButton value={user.id}
+  //           status={selected.includes(user.id) ? 'checked' : 'unchecked'}
+  //         />
+
+  //         <Typography style={{ 
+  //           fontWeight: selected.includes(user.id) ? 'bold' : undefined,
+  //         }}>
+  //           {user_display_name(user)}
+  //         </Typography>
+  //       </Flex>
+  //       </Paper>
+  //     )} />
+  //   </Flex>
+  //   )} />
+  // )
 }
