@@ -40,3 +40,5 @@ export const ENDUSER_SESSION_TYPE = 'enduser'
 export const SECONDS_IN_ONE_YEAR = 31560000
 
 export const UNSEARCHABLE_FIELDS = ['_id', 'id', 'creator', 'createdAt', 'updatedAt', 'businessId', 'externalId', 'enduserId']
+
+export const GOOGLE_INTEGRATIONS_TITLE = "Google"

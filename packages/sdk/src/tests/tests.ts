@@ -489,6 +489,7 @@ const run_generated_tests = async <N extends ModelName>({ queries, model, name, 
   if (
     name === 'post_likes' 
   || name === 'users'
+  || name === 'integrations'
   ) return // all custom
   if (!defaultEnduser) defaultEnduser = await sdk.api.endusers.createOne({ email: 'default@tellescope.com', phone: "5555555555"  })
 
@@ -1367,6 +1368,10 @@ const users_tests = async () => {
   log_header("Users Tests")
   const randomFieldValue = crypto.randomBytes(32).toString('hex').toUpperCase() // uppercase so name parsing doesn't cause case change
   const randomFieldNumber = Math.random()
+
+  const created = await sdk.api.users.createOne({ email: 'created@tellescope.com', verifiedEmail: true })
+  assert(created.verifiedEmail, 'user not created with verified email', 'user created, with verifiedEmail')
+  await sdk.api.users.deleteOne(created.id)
 
   /* Update user tests */
   await async_test(
@@ -2457,6 +2462,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   post_comments: NO_TEST,
   post_likes: NO_TEST,
   organizations: NO_TEST,
+  integrations: NO_TEST,
 };
 
 (async () => {

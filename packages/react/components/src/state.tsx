@@ -39,6 +39,7 @@ import {
   PostComment,
   PostLike,
   FormField,
+  Integration,
 } from "@tellescope/types-client"
 
 import {
@@ -223,6 +224,7 @@ const journeysSlice = createSliceForList<Journey, 'journeys'>('journeys')
 const usersSlice = createSliceForList<User, 'users'>('users')
 const automationStepsSlice = createSliceForList<AutomationStep, 'automations_steps'>('automations_steps')
 const usersDisplaySlice = createSliceForList<UserDisplayInfo, 'users'>('users')
+const integrationsSlice = createSliceForList<Integration, 'integrations'>('integrations')
 
 const enduserObservationsSlice = createSliceForList<EnduserObservation, 'enduser_observations'>('enduser_observations')
 const forumsSlice = createSliceForList<Forum, 'forums'>('forums')
@@ -260,6 +262,7 @@ export const sharedConfig = {
     managed_content_records: managedContentRecoredsSlice.reducer,
     post_comments: postCommentsSlice.reducer,
     post_likes: postLikesSlice.reducer,
+    integrations: integrationsSlice.reducer,
   },
 }
 
@@ -1129,6 +1132,22 @@ export const usePostLikes = (options={} as HookOptions<PostLike>) => {
       addSome: session.api.post_likes.createSome,
       deleteOne: session.api.post_likes.deleteOne,
       updateOne: session.api.post_likes.updateOne,
+    }, 
+    {...options}
+  )
+}
+
+export const useIntegrations = (options={} as HookOptions<Integration>) => {
+  const session = useResolvedSession()
+  return useListStateHook(
+    'integrations', useTypedSelector(s => s.integrations), session, integrationsSlice, 
+    { 
+      loadQuery: session.api.integrations.getSome,
+      findOne: session.api.integrations.getOne,
+      addOne: session.api.integrations.createOne,
+      addSome: session.api.integrations.createSome,
+      deleteOne: session.api.integrations.deleteOne,
+      updateOne: session.api.integrations.updateOne,
     }, 
     {...options}
   )

@@ -133,7 +133,9 @@ export interface User_readonly extends ClientRecord {
 export interface User_required {  
   email: string;
 }
-export interface User_updatesDisabled {}
+export interface User_updatesDisabled { 
+  verifiedEmail: boolean,
+}
 export interface User extends User_required, User_readonly, User_updatesDisabled {
   phone?: string;
   fname?: string;
@@ -142,6 +144,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   roles?: string[];
   avatar?: string,
   fields?: CustomFields;
+  acknowledgedIntegrations?: boolean,
   notificationPreferences?: {
     [index: string]: NotificationPreference,
   }
@@ -493,6 +496,29 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   allowPublicURL?: boolean,
   intakePhone?: 'required' | 'optional',
   thanksMessage?: string,
+}
+
+
+export type OAuth2AuthenticationFields = {
+  code: string
+}
+export type IntegrationAuthentication = (
+  {
+    type: 'oauth2',
+    info: OAuth2AuthenticationFields,
+  }
+)
+
+export interface Integration_readonly extends ClientRecord {
+
+}
+export interface Integration_required {
+
+}
+export interface Integration_updatesDisabled {}
+export interface Integration extends Integration_readonly, Integration_required, Integration_updatesDisabled {
+  title: string,
+  authentication: IntegrationAuthentication,
 }
 
 export type FormResponseValueAnswerBuilder <TYPE extends FormFieldType, VALUE extends number | object | string> = {
@@ -961,6 +987,7 @@ export type ModelForName_required = {
   post_likes: PostLike_required;
   post_comments: PostComment_required;
   organizations: Organization_required;
+  integrations: Organization_required;
 }
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
@@ -998,6 +1025,7 @@ export interface ModelForName_readonly {
   post_likes: PostLike_readonly;
   post_comments: PostComment_readonly;
   organizations: Organization_readonly;
+  integrations: Integration_readonly;
 }
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
@@ -1035,6 +1063,7 @@ export interface ModelForName_updatesDisabled {
   post_likes: PostLike_updatesDisabled;
   post_comments: PostComment_updatesDisabled;
   organizations: Organization_updatesDisabled;
+  integrations: Integration_updatesDisabled;
 }
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
@@ -1072,6 +1101,7 @@ export interface ModelForName extends ModelForName_required, ModelForName_readon
   post_likes: PostLike;
   post_comments: PostComment;
   organizations: Organization;
+  integrations: Integration;
 }
 export type ModelName = keyof ModelForName
 export type Model = ModelForName[keyof ModelForName]
@@ -1119,6 +1149,7 @@ export const modelNameChecker: { [K in ModelName] : true } = {
   post_likes: true,
   post_comments: true,
   organizations: true,
+  integrations: true,
 }
 
 export const isModelName = (s: string): s is ModelName => modelNameChecker[s as ModelName]

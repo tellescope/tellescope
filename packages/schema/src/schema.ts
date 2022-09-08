@@ -41,6 +41,7 @@ import {
   FormField,
   Form,
   Meeting,
+  Integration,
 } from "@tellescope/types-client"
 
 import {
@@ -113,6 +114,8 @@ import {
   managedContentRecordTypeValidator,
   passwordValidator,
   flowchartUIValidator,
+  integrationAuthenticationsValidator,
+  listOfMongoIdStringValidatorEmptyOk,
 } from "@tellescope/validation"
 
 import {
@@ -380,6 +383,10 @@ export type CustomActions = {
     create: CustomAction<{ postId: string, forumId: string }, { }>,
     unlike_post: CustomAction<{ postId: string, forumId: string }, { }>,
   },
+  integrations: {
+    generate_google_auth_url: CustomAction<{ }, { authUrl: string, state: string, }>, 
+    confirm_google_integration: CustomAction<{ code: string }, { integration: Integration }>, 
+  }
 } 
 
 export type PublicActions = {
@@ -765,6 +772,60 @@ export const schema: SchemaV1 = build_schema({
           }
         }
       }
+    }
+  },
+  integrations: {
+    info: {},
+    constraints: { unique: [], relationship: [], access: [{ type: CREATOR_ONLY_ACCESS }] },
+    defaultActions: DEFAULT_OPERATIONS,
+    fields: {
+      ...BuiltInFields,
+      title: {
+        validator: stringValidator100,
+        required: true,
+        examples: ["Integration Title"]
+      },
+      authentication: {
+        validator: integrationAuthenticationsValidator,
+        required: true,
+        examples: [
+          {
+            type: 'oauth2',
+            info: { }
+          }
+        ]
+      },
+    },
+    customActions: {
+      generate_google_auth_url: {
+        op: 'custom', access: 'create', method: 'post',
+        path: '/generate-google-auth-url',
+        name: 'Generates a link to create a Google integration with Tellescope',
+        description: "",
+        parameters: {},
+        returns: { 
+          authUrl: {
+            validator: stringValidator, 
+            required: true
+          },
+          state: {
+            validator: stringValidator, 
+            required: true
+          },
+        }
+      },
+      confirm_google_integration: {
+        op: 'custom', access: 'create', method: 'post',
+        path: '/confirm-google-integration',
+        name: 'Stores OAuth tokens for managing a Google integration',
+        description: "",
+        parameters: {
+          code: { validator: stringValidator, required: true }
+        },
+        returns: {
+          integration: 'integration' as any,  
+        }
+      },
     }
   },
   engagement_events: {
@@ -1186,13 +1247,13 @@ export const schema: SchemaV1 = build_schema({
         validator: stringValidator250,
       },
       userIds: {
-        validator: listOfMongoIdStringValidator,
+        validator: listOfMongoIdStringValidatorEmptyOk,
         examples: [[PLACEHOLDER_ID]], 
         // required: true, // no longer required
         // add pull dependency for user deletion?
       },
       enduserIds: {
-        validator: listOfMongoIdStringValidator,
+        validator: listOfMongoIdStringValidatorEmptyOk,
         // add pull dependency for enduser deletion?
       },
       recentMessage: {
@@ -1344,7 +1405,7 @@ export const schema: SchemaV1 = build_schema({
       }],
     },
     defaultActions: { 
-      create: { adminOnly: true },
+      create: { adminOnly: true }, delete: { adminOnly: true },
       read: {}, readMany: {}, update: { description: "Users can only be updated by self or an organization admin"} 
     },
     enduserActions: { display_info: {}, read: {}, readMany: {} },
@@ -1455,8 +1516,13 @@ export const schema: SchemaV1 = build_schema({
         updatesDisabled: true, // implement with separate endpoint with tight restrictions
         redactions: ['enduser'],
       },
+      acknowledgedIntegrations: { validator: booleanValidator, },
       skills: {
         validator: listOfStringsValidator,
+      },
+      verifiedEmail: {
+        updatesDisabled: true, // allow it to be set on creation by admin via API to streamline SSO support
+        validator: booleanValidator,
       },
       hashedPassword: {
         validator: stringValidator,

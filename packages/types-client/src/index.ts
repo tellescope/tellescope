@@ -40,6 +40,7 @@ export type User = ClientModelForName['users']
 export type UserLog = ClientModelForName['user_logs']
 export type UserNotification = ClientModelForName['user_notifications']
 export type Organization = ClientModelForName['organizations']
+export type Integration = ClientModelForName['integrations']
 
 export type Forum = ClientModelForName['forums']
 export type ForumPost = ClientModelForName['forum_posts']

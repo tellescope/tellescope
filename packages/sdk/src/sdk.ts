@@ -111,6 +111,7 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   post_comments: defaultQueries(s, 'post_comments'),
   post_likes: defaultQueries(s, 'post_likes'),
   organizations: defaultQueries(s, 'organizations'),
+  integrations: defaultQueries(s, 'integrations'),
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
@@ -204,6 +205,15 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
       Promise<extractFields<PublicActions['organizations']['get_theme']['returns']>>
     ),
   },
+  integrations: {
+    generate_google_auth_url: (args: extractFields<CustomActions['integrations']['generate_google_auth_url']['parameters']>) => (
+      Promise<extractFields<CustomActions['integrations']['generate_google_auth_url']['returns']>>
+    ),
+    confirm_google_integration: (args: extractFields<CustomActions['integrations']['confirm_google_integration']['parameters']>) => (
+      Promise<extractFields<CustomActions['integrations']['confirm_google_integration']['returns']>>
+    ),
+
+  },
 }
 
 export class Session extends SessionManager {
@@ -261,6 +271,9 @@ export class Session extends SessionManager {
     queries.post_likes.unlike_post = args => this._POST(`/v1${schema.post_likes.customActions.unlike_post.path}`, args)
     
     queries.organizations.get_theme = a => this._GET(`/v1/${schema.organizations.publicActions.get_theme.path}`, a)
+
+    queries.integrations.generate_google_auth_url = a => this._POST(`/v1/${schema.integrations.customActions.generate_google_auth_url.path}`, a)
+    queries.integrations.confirm_google_integration = a => this._POST(`/v1/${schema.integrations.customActions.confirm_google_integration.path}`, a)
 
     this.api = queries
   }

@@ -109,6 +109,8 @@ import {
   FlowchartUI,
   PreviousFormFieldEquals,
   PreviousFormFieldEqualsInfo,
+  IntegrationAuthentication,
+  OAuth2AuthenticationFields,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -512,6 +514,7 @@ export const mongoIdStringRequired = mongoIdStringValidator()
 export const mongoIdStringOptional = mongoIdStringValidator({ isOptional: true })
 export const listOfMongoIdValidator = listValidator(mongoIdValidator())
 export const listOfMongoIdStringValidator = listValidator(mongoIdStringValidator())
+export const listOfMongoIdStringValidatorEmptyOk = listValidatorEmptyOk(mongoIdStringValidator())
 
 export const first_letter_capitalized = (s='') => s.charAt(0).toUpperCase() + s.slice(1)
 export const escape_name = (namestring: string) => namestring.replace(/[^a-zA-Z0-9-_ /.]/, '').substring(0, 100)
@@ -1482,3 +1485,10 @@ export const flowchartUIValidator = objectValidator<FlowchartUI>({
   x: numberValidator(),
   y: numberValidator(),
 }, { emptyOk: true })
+
+export const integrationAuthenticationsValidator = objectValidator<IntegrationAuthentication>({
+  type: exactMatchValidator(['oauth2'])(),
+  info: objectValidator<OAuth2AuthenticationFields>({
+    code: stringValidator(),
+  })(),
+})

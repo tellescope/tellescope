@@ -38,6 +38,7 @@ type EnduserAccessibleModels = (
   | "post_comments"
   | "post_likes"
   | 'meetings'
+  | 'integrations' // may want OAuth2 support in future
 )
 
 export const defaultQueries = <N extends keyof ClientModelForName>(
@@ -134,6 +135,7 @@ const loadDefaultQueries = (s: EnduserSession): { [K in EnduserAccessibleModels]
   post_likes: defaultQueries(s, 'post_likes'),
   users: defaultQueries(s, 'users'),
   meetings: defaultQueries(s, 'meetings'),
+  integrations: defaultQueries(s, 'integrations'),
 })
 
 

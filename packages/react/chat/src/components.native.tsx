@@ -230,8 +230,8 @@ export const CreateChatRoom = ({
             }
 
             createRoom({
-              enduserIds: enduserIds.length ? enduserIds : undefined, 
-              userIds: userIds.length ? userIds : undefined, 
+              enduserIds, 
+              userIds, 
               title: roomTitle,
             })
             .then(r => {

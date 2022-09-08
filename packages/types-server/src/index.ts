@@ -42,6 +42,7 @@ export type SequenceAutomation = ServerModelForName['sequence_automations']
 export type UserLog = ServerModelForName['user_logs']
 export type UserNotification = ServerModelForName['user_notifications']
 export type WebHook = ServerModelForName['webhooks']
+export type Integration = ServerModelForName['integrations']
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']
