@@ -384,8 +384,7 @@ export type CustomActions = {
     unlike_post: CustomAction<{ postId: string, forumId: string }, { }>,
   },
   integrations: {
-    generate_google_auth_url: CustomAction<{ }, { authUrl: string, state: string, }>, 
-    confirm_google_integration: CustomAction<{ code: string }, { integration: Integration }>, 
+    generate_google_auth_url: CustomAction<{ }, { authUrl: string, }>, 
   }
 } 
 
@@ -808,22 +807,6 @@ export const schema: SchemaV1 = build_schema({
             validator: stringValidator, 
             required: true
           },
-          state: {
-            validator: stringValidator, 
-            required: true
-          },
-        }
-      },
-      confirm_google_integration: {
-        op: 'custom', access: 'create', method: 'post',
-        path: '/confirm-google-integration',
-        name: 'Stores OAuth tokens for managing a Google integration',
-        description: "",
-        parameters: {
-          code: { validator: stringValidator, required: true }
-        },
-        returns: {
-          integration: 'integration' as any,  
         }
       },
     }

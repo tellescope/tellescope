@@ -226,7 +226,7 @@ export const build_validator: BuildValidator_T = (escapeFunction, options={} as 
       fieldValue = fieldValue.toLowerCase()
     }
 
-    let values = listOf ? fieldValue as JSONType[] : [fieldValue]
+    let values = listOf && Array.isArray(fieldValue) ? fieldValue.filter(a => !!a) : [fieldValue]
     let escapedValues = []
 
     if (values.length > 1000) throw new Error("Arrays should not contain more than 1000 elements")
@@ -1489,6 +1489,11 @@ export const flowchartUIValidator = objectValidator<FlowchartUI>({
 export const integrationAuthenticationsValidator = objectValidator<IntegrationAuthentication>({
   type: exactMatchValidator(['oauth2'])(),
   info: objectValidator<OAuth2AuthenticationFields>({
-    code: stringValidator(),
+    access_token: stringValidator250(),
+    refresh_token: stringValidator250(),
+    scope: stringValidator5000(),
+    expiry_date: nonNegNumberValidator(),
+    token_type: exactMatchValidator<'Bearer'>(['Bearer'])(),
+    state: stringValidator250({ isOptional: true }),
   })(),
 })

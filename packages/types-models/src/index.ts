@@ -500,7 +500,12 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
 
 
 export type OAuth2AuthenticationFields = {
-  code: string
+  access_token: string,
+  refresh_token: string,
+  scope: string,
+  token_type: 'Bearer',
+  expiry_date: number,
+  state?: string,
 }
 export type IntegrationAuthentication = (
   {
@@ -621,6 +626,7 @@ export type CalendarEventReminder = {
 export interface CalendarEvent_readonly extends ClientRecord { 
   meetingId?: string 
   meetingStatus?: MeetingStatus,
+  references?: RelatedRecord[]
 }
 export interface CalendarEvent_required {
   title: string,
