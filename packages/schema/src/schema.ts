@@ -1095,6 +1095,8 @@ export const schema: SchemaV1 = build_schema({
       readBy: {
         validator: idStringToDateValidator,
       },
+      templateId: { validator: mongoIdStringValidator },
+      automationStepId: { validator: mongoIdStringValidator },
     }, 
     customActions: {},
   },
@@ -1191,6 +1193,8 @@ export const schema: SchemaV1 = build_schema({
       readBy: {
         validator: idStringToDateValidator,
       },
+      templateId: { validator: mongoIdStringValidator },
+      automationStepId: { validator: mongoIdStringValidator },
     }, 
     customActions: {},
   },
@@ -1369,7 +1373,9 @@ export const schema: SchemaV1 = build_schema({
       },
       attachments: {
         validator: listOfChatAttachmentsValidator,
-      }
+      },
+      templateId: { validator: mongoIdStringValidator },
+      automationStepId: { validator: mongoIdStringValidator },
     },
   },
   users: {
@@ -1499,7 +1505,7 @@ export const schema: SchemaV1 = build_schema({
         updatesDisabled: true, // implement with separate endpoint with tight restrictions
         redactions: ['enduser'],
       },
-      acknowledgedIntegrations: { validator: booleanValidator, },
+      acknowledgedIntegrations: { validator: dateValidator },
       skills: {
         validator: listOfStringsValidator,
       },

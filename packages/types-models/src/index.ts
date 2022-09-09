@@ -144,7 +144,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   roles?: string[];
   avatar?: string,
   fields?: CustomFields;
-  acknowledgedIntegrations?: boolean,
+  acknowledgedIntegrations?: Date,
   notificationPreferences?: {
     [index: string]: NotificationPreference,
   }
@@ -250,6 +250,11 @@ export interface Task extends Task_required, Task_readonly, Task_updatesDisabled
   subscriberRoles?: string[];
 }
 
+export interface TextCommunication {
+  automationStepId?: string, 
+  templateId?: string,
+}
+
 export type EmailEncoding = '' | 'base64'
 
 export interface Email_readonly extends ClientRecord {
@@ -274,7 +279,7 @@ export interface Email_updatesDisabled {
   logOnly?: boolean,
   userId: string; // not actually required on create
 }
-export interface Email extends Email_required, Email_readonly, Email_updatesDisabled {
+export interface Email extends Email_required, Email_readonly, Email_updatesDisabled, TextCommunication {
   replyTo?: string | null;  
   readBy?: { [index: string] : Date };
   // sentAt: string, // only outgoing
@@ -294,7 +299,7 @@ export interface SMSMessage_updatesDisabled {
   newThread: boolean, 
   logOnly?: boolean,
 }
-export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SMSMessage_updatesDisabled {
+export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SMSMessage_updatesDisabled, TextCommunication {
   userId?: string, // defaults to self, but should allow future options to send as other user
   readBy?: { [index: string] : Date };
   // usingPublicNumber?: boolean, // flagged on outgoing messages from public number
@@ -347,7 +352,7 @@ export interface ChatMessage_updatesDisabled {
   roomId: string; 
   replyId?: string | null; // to support threaded replies to a specific root message
 }
-export interface ChatMessage extends ChatMessage_readonly, ChatMessage_required, ChatMessage_updatesDisabled {
+export interface ChatMessage extends ChatMessage_readonly, ChatMessage_required, ChatMessage_updatesDisabled, TextCommunication {
   html?: string,
   readBy?: { [index: string] : Date };
   attachments?: ChatAttachment[]
