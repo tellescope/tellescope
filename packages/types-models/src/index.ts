@@ -582,7 +582,9 @@ export type AnswerForType = {
   'file': FormResponseAnswerFile['value'],
 }
 
-export interface FormResponse_readonly extends ClientRecord {}
+export interface FormResponse_readonly extends ClientRecord {
+  openedAt?: Date,
+}
 export interface FormResponse_required {
   formId: string,
   enduserId: string,

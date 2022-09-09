@@ -95,20 +95,14 @@ const SendImageOrVideo = ({
         <Button disabled={menuDisabled} variant="contained" onPress={() => handleImageSelect('library')}
           style={{ marginBottom: 20 }}
         >
-          <View style={{ flexDirection: 'row', alignItems: 'center', minHeight: 40 }}>
-            <Typography style={{ fontSize: 18, marginRight: 10, color: 'white' }}>
-              Upload
-            </Typography>
-            <Avatar.Icon icon="image" color="white" size={CHAT_ICON_SIZE} />
-          </View>
+          <Typography style={{ fontSize: 18, color: 'white', padding: 10 }}>
+            Upload Photo or Video
+          </Typography>
         </Button>
         <Button disabled={menuDisabled} variant="contained" onPress={() => handleImageSelect('camera')}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', minHeight: 40 }}>
-            <Typography style={{ fontSize: 18, marginRight: 10, color: 'white' }}>
-              Take Photo
-            </Typography>
-            <Avatar.Icon icon="camera" color="white" size={CHAT_ICON_SIZE} />
-          </View>
+          <Typography style={{ fontSize: 18, color: 'white', padding: 10 }}>
+            Take Photo
+          </Typography>
         </Button>
         <Button variant='outlined' onPress={() => setMenuOpen(false)} style={{ marginTop: 25 }}>
           Cancel

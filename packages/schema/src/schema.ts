@@ -2021,6 +2021,10 @@ export const schema: SchemaV1 = build_schema({
         validator: nonNegNumberValidator,
         updatesDisabled: true,
       },
+      openedAt: {
+        validator: dateValidator,
+        readOnly: true,
+      },
       publicSubmit: { validator: booleanValidator },
       submittedBy: { validator: stringValidator250 },
       accessCode: { validator: stringValidator250 },
