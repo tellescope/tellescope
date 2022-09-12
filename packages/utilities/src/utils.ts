@@ -286,3 +286,35 @@ export const query_string_for_object = (query: Indexable) => {
 
   return queryString
 }
+
+export const PROD_API_URL = 'https://api.tellescope.com' 
+export const STAGING_API_URL = 'https://staging-api.tellescope.com' 
+export const TEST_API_URL = "http://localhost:8080"
+
+export const getApiURL = () => (
+  window.location.origin.includes('staging') 
+    ? STAGING_API_URL
+    : window.location.origin.includes('tellescope.com') 
+        ? PROD_API_URL
+        : TEST_API_URL
+)
+export const getGoogleClientId = () => {
+  const api = getApiURL()
+  return (
+    api === PROD_API_URL 
+      ? "526353775713-puib79782ac254evqj2fs0sb7acsij65.apps.googleusercontent.com"
+  : api === STAGING_API_URL 
+      ? '826276796073-6rcrqp4duqatbhn8k71saopenqc2fb0i.apps.googleusercontent.com'
+      : '842986734352-2c73i6iq2aoau3dj1jvqtmufn2j9g0dm.apps.googleusercontent.com'
+  )
+}
+export const getGoogleClientAPIKey = () => {
+  const api = getApiURL()
+  return (
+    api === PROD_API_URL 
+      ? 'AIzaSyCYCWiLkYifffepu5L-p1x4yUExf5aWpuA'
+  : api === STAGING_API_URL 
+      ? "AIzaSyDUCT6r5qQx8yniMuP-Y9Ni08THoLQtG6M" 
+      : "AIzaSyBW9D0mg3ISvNQcSB0Z_PwHNuD0OhFdMKg"
+  )
+}

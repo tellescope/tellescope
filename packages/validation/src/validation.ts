@@ -1013,40 +1013,41 @@ const isFormField = (f: JSONType, fieldOptions={ forUpdate: false }) => {
   return field
 }
 
+// validate optional vs not at endpoint-level
 export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: FormResponseValueAnswer & { type: K } } >({
   email: objectValidator<FormResponseAnswerEmail>({
     type: exactMatchValidator(['email'])(),
-    value: emailValidator(),
+    value: emailValidator({ isOptional: true, emptyStringOk: true }),
   })(),
   number: objectValidator<FormResponseAnswerNumber>({
     type: exactMatchValidator(['number'])(),
-    value: numberValidator(), 
+    value: numberValidator({ isOptional: true, emptyStringOk: true }), 
   })(),
   phone: objectValidator<FormResponseAnswerPhone>({
     type: exactMatchValidator(['phone'])(),
-    value: phoneValidator(),
+    value: phoneValidator({ isOptional: true, emptyStringOk: true }),
   })(),
   string: objectValidator<FormResponseAnswerString>({
     type: exactMatchValidator(['string'])(),
-    value: stringValidator5000(),
+    value: stringValidator5000({ isOptional: true, emptyStringOk: true }),
   })(),
   file: objectValidator<FormResponseAnswerFile>({
     type: exactMatchValidator(['file'])(),
     value: objectValidator<FormResponseAnswerFileValue>({
       name: stringValidator5000(),
       secureName: stringValidator250(),
-    }, { emptyOk: false })(), 
+    }, { emptyOk: false })({ isOptional: true }), 
   })(),
   multiple_choice: objectValidator<FormResponseAnswerMultipleChoice>({
     type: exactMatchValidator(['multiple_choice'])(),
-    value: listOfStringsValidator(),
+    value: listOfStringsValidator({ isOptional: true, emptyListOk: true }),
   })(),
   signature: objectValidator<FormResponseAnswerSignature>({
     type: exactMatchValidator(['signature'])(),
     value: objectValidator<FormResponseAnswerSignatureValue>({
       fullName: stringValidator250(),
       signed: booleanValidator(),
-    }, { emptyOk: false })(), 
+    }, { emptyOk: false })({ isOptional: true }), 
   })(),
 })
 
@@ -1486,6 +1487,8 @@ export const flowchartUIValidator = objectValidator<FlowchartUI>({
   y: numberValidator(),
 }, { emptyOk: true })
 
+
+
 export const integrationAuthenticationsValidator = objectValidator<IntegrationAuthentication>({
   type: exactMatchValidator(['oauth2'])(),
   info: objectValidator<OAuth2AuthenticationFields>({
@@ -1495,5 +1498,6 @@ export const integrationAuthenticationsValidator = objectValidator<IntegrationAu
     expiry_date: nonNegNumberValidator(),
     token_type: exactMatchValidator<'Bearer'>(['Bearer'])(),
     state: stringValidator250({ isOptional: true }),
+    email: emailValidator({ isOptional: true }),
   })(),
 })

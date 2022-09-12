@@ -72,27 +72,31 @@ export const FormResponseView = ({ enduser, onClose, response } : FormResponse_T
               <Typography style={{ fontWeight: 'bold' }}>
                 {q}
               </Typography>
-              <Typography component="div">
-                {a.type === 'multiple_choice'
-                  ? <ul style={{ margin: 0 }}>
-                      {a.value.map((t, i) => 
-                        <li key={i}>{t}</li>
-                      )}
-                    </ul>
-                : a.type === 'file'
-                  ? a.value.secureName 
+              {a.value 
+                ? (
+                <Typography component="div">
+                  {a.type === 'multiple_choice'
+                    ? <ul style={{ margin: 0 }}>
+                        {a.value.map((t, i) => 
+                          <li key={i}>{t}</li>
+                        )}
+                      </ul>
+                  : a.type === 'file'
+                    ? a.value.secureName 
+                      ? <Typography>
+                          <em>{a.value.name || 'Attachment'}</em>
+                          <DownloadFileIconButton secureName={a.value.secureName} onDownload={url => window.open(url, '_blank')} />
+                        </Typography>
+                      : null // null when optional and omitted
+                  : a.type === 'signature'
                     ? <Typography>
-                        <em>{a.value.name || 'Attachment'}</em>
-                        <DownloadFileIconButton secureName={a.value.secureName} onDownload={url => window.open(url, '_blank')} />
+                        {a.value.signed ? <span>Signed as <em>{a.value.fullName}</em></span> : 'Unsigned'}
                       </Typography>
-                    : null // null when optional and omitted
-                : a.type === 'signature'
-                  ? <Typography>
-                      {a.value.signed ? <span>Signed as <em>{a.value.fullName}</em></span> : 'Unsigned'}
-                    </Typography>
-                  : a.value
-                }
-              </Typography>
+                    : a.value
+                  }
+                </Typography>
+              ) : <Typography>No value provided</Typography>
+              }
               </Grid>
             )
           })}

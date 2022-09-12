@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, createContext } from 'react'
+import React, { useCallback, useContext, useEffect, createContext, useRef, useState } from 'react'
 
 import { TypedUseSelectorHook, createDispatchHook, createSelectorHook, ReactReduxContextValue, Provider } from 'react-redux'
 import { createSlice, configureStore,  createAction, Action, EnhancedStore, PayloadAction, Slice } from '@reduxjs/toolkit'
@@ -53,7 +53,8 @@ import {
   EnduserSession,
 } from '@tellescope/sdk'
 import { value_is_loaded } from './loading'
-import { objects_equivalent } from '@tellescope/utilities'
+import { getGoogleClientAPIKey, getGoogleClientId, objects_equivalent } from '@tellescope/utilities'
+import { GOOGLE_INTEGRATIONS_TITLE } from '@tellescope/constants'
 
 const RESET_CACHE_TYPE = "cache/reset" as const
 export const resetStateAction = createAction(RESET_CACHE_TYPE)
@@ -203,6 +204,17 @@ export const createSliceForList = <T extends { id: string | number }, N extends 
 
 export type ChatRoomDisplayInfo = { id: string } & { [index: string]: UserDisplayInfo }
 
+export type GCalEvent = {
+  id: string,
+  summary: string,
+  start: {
+    dateTime: string,
+  },
+  end: {
+    dateTime: string,
+  },
+}
+
 const chatRoomsSlice = createSliceForList<ChatRoom, 'chat_rooms'>('chat_rooms')
 const calendarEventsSlice = createSliceForList<CalendarEvent, 'calendar_events'>('calendar_events')
 const chatsSlice = createSliceForList<ChatMessage, 'chats'>('chats')
@@ -225,6 +237,7 @@ const usersSlice = createSliceForList<User, 'users'>('users')
 const automationStepsSlice = createSliceForList<AutomationStep, 'automations_steps'>('automations_steps')
 const usersDisplaySlice = createSliceForList<UserDisplayInfo, 'users'>('users')
 const integrationsSlice = createSliceForList<Integration, 'integrations'>('integrations')
+const gcalEventsSlice = createSliceForList<GCalEvent, 'gcalEvents'>('gcalEvents')
 
 const enduserObservationsSlice = createSliceForList<EnduserObservation, 'enduser_observations'>('enduser_observations')
 const forumsSlice = createSliceForList<Forum, 'forums'>('forums')
@@ -263,6 +276,7 @@ export const sharedConfig = {
     post_comments: postCommentsSlice.reducer,
     post_likes: postLikesSlice.reducer,
     integrations: integrationsSlice.reducer,
+    gcal_events: gcalEventsSlice.reducer,
   },
 }
 
@@ -1151,4 +1165,78 @@ export const useIntegrations = (options={} as HookOptions<Integration>) => {
     }, 
     {...options}
   )
+}
+
+export const useGCalIntegration = (options={} as HookOptions<GCalEvent>) => {
+  const session = useSession()
+  const [integrationsLoading] = useIntegrations()
+
+  const loadedRef = useRef<Indexable<number>>({ })
+  const [authenticated, setAuthenticated] = useState(false)
+
+
+  const googleIntegration = (
+    value_is_loaded(integrationsLoading)
+      ? integrationsLoading.value.find(v => v.title === GOOGLE_INTEGRATIONS_TITLE)
+      : undefined
+  )
+
+  useEffect(() => {
+    const gapi = (window as any).gapi    
+    if (!(googleIntegration && gapi)) return
+
+    gapi.client.init({
+      apiKey: getGoogleClientAPIKey(), 
+      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'], 
+    })
+    .then(() => {
+      if (googleIntegration.authentication.info.expiry_date > Date.now()) {
+        gapi.client.setToken(googleIntegration.authentication.info)
+        setAuthenticated(true)
+      }
+      else {
+        session.api.integrations.refresh_oauth2_session({ title: GOOGLE_INTEGRATIONS_TITLE })
+        .then(r => {
+          gapi.client.setToken(r)
+          setAuthenticated(true)
+        })
+        .catch(console.error)
+      }
+    })
+  }, [googleIntegration])
+
+  const [gcalEventsLoading, { addLocalElements }] = useListStateHook(
+    'gcal', useTypedSelector(s => s.gcal_events), session, gcalEventsSlice, 
+    { }, 
+    {...options}
+  )
+
+  const loadEvents = useCallback((options?: {
+    start?: Date,
+    limit?: number,
+  }) => {
+    const gapi = (window as any).gapi    
+    if (!(gapi && authenticated)) return
+    
+    const key = JSON.stringify(options ?? {})
+    if (loadedRef.current[key]) return
+    loadedRef.current[key] = Date.now()
+
+    gapi.client.calendar.events.list({
+      'calendarId': 'primary',
+      'timeMin': (options?.start ?? new Date()).toISOString(),
+      'showDeleted': false,
+      'singleEvents': true,
+      'maxResults': options?.limit || 50,
+      'orderBy': 'startTime',
+    })
+    .then((r: any) => {
+      if (!r?.result?.items) return
+
+      addLocalElements(r.result.items)
+    })
+    .catch(console.error)
+  }, [authenticated, addLocalElements])
+
+  return [gcalEventsLoading, { loadEvents }] as const
 }

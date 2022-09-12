@@ -31,6 +31,7 @@ import {
   MeetingInfo,
   PreviousFormField,
   OrganizationTheme,
+  OAuth2AuthenticationFields,
 } from "@tellescope/types-models"
 
 import {
@@ -385,6 +386,7 @@ export type CustomActions = {
   },
   integrations: {
     generate_google_auth_url: CustomAction<{ }, { authUrl: string, }>, 
+    refresh_oauth2_session: CustomAction<{ title: string }, { access_token: string, expiry_date: number }>, 
   }
 } 
 
@@ -808,6 +810,17 @@ export const schema: SchemaV1 = build_schema({
             required: true
           },
         }
+      },
+      refresh_oauth2_session: {
+        op: 'custom', access: 'create', method: 'post',
+        path: '/refresh-oauth2-session',
+        name: 'Uses a refresh_token to refresh a session and return the result',
+        description: "",
+        parameters: { title: { validator: stringValidator100, required: true }},
+        returns: { 
+          access_token: { validator: stringValidator100, required: true },
+          expiry_date: { validator: numberValidator, required: true },
+        },
       },
     }
   },

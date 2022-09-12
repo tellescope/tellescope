@@ -247,7 +247,9 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
     includeInSubmit: false,
     answer: { 
       type: f.type,
-      value: '' as any, // null flag that the response was not filled out
+      value: f.type === 'file' || f.type === 'signature' || f.type === 'multiple_choice'
+        ? undefined  
+          : '' as any, // null flag that the response was not filled out
     }
   })))
   const [selectedFiles, setSelectedFiles] = useState<{ fieldId: string, fieldTitle: string, blob?: FileBlob }[]>(fields.map(f => ({
@@ -284,7 +286,7 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
   }, [updateInclusion, currentValue])
 
   const validateCurrentValue = useCallback(() => {
-    if (activeField.value.isOptional && !(currentValue.answer.value || currentFileValue.blob)) {
+    if (activeField.value.isOptional) {
       return null 
     }
     // remaining are required, non-empty
@@ -419,7 +421,7 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
              p.type === 'previousEquals' 
           && p.info.fieldId === currentValue.fieldId
           && (
-            (currentValue.answer.type === 'multiple_choice' && currentValue.answer.value.includes(p.info.equals))
+            (currentValue.answer.type === 'multiple_choice' && currentValue.answer.value?.includes(p.info.equals))
           || p.info.equals === currentValue.answer.value
           )
         ))

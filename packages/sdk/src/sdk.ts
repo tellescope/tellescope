@@ -209,6 +209,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     generate_google_auth_url: (args: extractFields<CustomActions['integrations']['generate_google_auth_url']['parameters']>) => (
       Promise<extractFields<CustomActions['integrations']['generate_google_auth_url']['returns']>>
     ),
+    refresh_oauth2_session: (args: extractFields<CustomActions['integrations']['refresh_oauth2_session']['parameters']>) => (
+      Promise<extractFields<CustomActions['integrations']['refresh_oauth2_session']['returns']>>
+    ),
   },
 }
 
@@ -269,6 +272,7 @@ export class Session extends SessionManager {
     queries.organizations.get_theme = a => this._GET(`/v1/${schema.organizations.publicActions.get_theme.path}`, a)
 
     queries.integrations.generate_google_auth_url = a => this._POST(`/v1/${schema.integrations.customActions.generate_google_auth_url.path}`, a)
+    queries.integrations.refresh_oauth2_session = a => this._POST(`/v1/${schema.integrations.customActions.refresh_oauth2_session.path}`, a)
 
     this.api = queries
   }

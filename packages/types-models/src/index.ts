@@ -511,6 +511,7 @@ export type OAuth2AuthenticationFields = {
   token_type: 'Bearer',
   expiry_date: number,
   state?: string,
+  email?: string,
 }
 export type IntegrationAuthentication = (
   {
@@ -533,7 +534,7 @@ export interface Integration extends Integration_readonly, Integration_required,
 
 export type FormResponseValueAnswerBuilder <TYPE extends FormFieldType, VALUE extends number | object | string> = {
   type: TYPE,
-  value: VALUE,
+  value?: VALUE,
 }
 
 export type FormResponseAnswerEmail = FormResponseValueAnswerBuilder<'email', string>
