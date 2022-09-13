@@ -1,10 +1,162 @@
-import React, { useCallback, useEffect, useRef, useState } from "react"
-import { Checkbox, Grid, TextField, TextFieldProps, Typography } from "@mui/material"
+import React, { forwardRef, useCallback, useEffect, useRef, useState } from "react"
+import { Box, Checkbox, Grid, TextField, TextFieldProps, Typography } from "@mui/material"
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { objects_equivalent } from "@tellescope/utilities"
 import { MultipleChoiceOptions } from "@tellescope/types-models/src"
+import Slider from '@mui/material/Slider';
+
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+// import "./css/datepicker.css"
+import { Indexable } from "@tellescope/types-utilities"
+import { Styled } from ".."
+import { FormField } from "@tellescope/types-client"
+import { css } from '@emotion/css'
+import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+
+export const RatingInput = ({ field, value, onChange }: FormInputProps<'rating'>) => {
+  const from = field?.options?.from || 1
+  const to   = field?.options?.to   || 10
+
+  const marks = []
+  for (let i=from; i<=to; i++) {
+    marks.push({ value: i, label: i })
+  }
+
+  const initRef = useRef(false)
+  useEffect(() => {
+    if (initRef.current) return
+    initRef.current = true
+
+    onChange(Math.ceil((to - from) / 2))
+  }, [onChange])
+
+  console.log(value)
+
+  return (
+    <Slider min={from} max={to} step={1} marks={marks}
+      valueLabelDisplay="on"
+      value={value ?? Math.ceil((to - from) / 2)} onChange={(e, v) => onChange(v as number)}
+    />
+  )
+}
+
+// a little function to help us with reordering the result
+const reorder = (list: any[], startIndex: number, endIndex: number) => {
+  const result = Array.from(list);
+  const [removed] = result.splice(startIndex, 1);
+  result.splice(endIndex, 0, removed);
+
+  return result;
+};
+
+const grid = 8;
+
+const getItemStyle = (isDragging: boolean, draggableStyle?: React.CSSProperties): React.CSSProperties => ({
+  // some basic styles to make the items look a bit nicer
+  userSelect: "none",
+  padding: `${grid * 2}px`,
+  margin: `0 0 ${grid}px 0`,
+
+  // change background colour if dragging
+  backgroundColor: isDragging ? "#ffffff88" : undefined,
+  border: '1px solid',
+  borderColor: "primary.main",
+  borderRadius: 5,
+
+  // styles we need to apply on draggables
+  ...draggableStyle
+});
+
+const getListStyle = (isDraggingOver: boolean) => ({
+  // background: isDraggingOver ? "#ffffff44" : undefined,
+  // padding: `${grid}px`,
+  // width: '250px'
+});
+export const RankingInput = ({ value, onChange }: FormInputProps<'ranking'>) => {
+  return (
+    <Grid container direction='column'>
+    {/* <Typography>Most</Typography> */}
+
+    <DragDropContext onDragEnd={result => {
+      if (!value) return
+      if (!result.destination) {
+        return;
+      }
+  
+      onChange(reorder(
+        value,
+        result.source.index,
+        result.destination.index
+      )) 
+    }}>
+      <Droppable droppableId="droppable">
+        {(provided, snapshot) => (
+          <Box
+            {...provided.droppableProps}
+            ref={provided.innerRef}
+            sx={getListStyle(snapshot.isDraggingOver)}
+          >
+            {(value ?? []).map((item, index) => (
+              <Draggable key={item} draggableId={item} index={index}>
+                {(provided, snapshot) => (
+                  <Grid container alignItems="center" justifyContent="space-between"
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+                    sx={getItemStyle(
+                      snapshot.isDragging,
+                      provided.draggableProps.style
+                    )}
+                  >
+                    {item}
+                    <DragIndicatorIcon color="primary" />
+                  </Grid>
+                )}
+              </Draggable>
+            ))}
+            {provided.placeholder}
+          </Box>
+        )}
+      </Droppable>
+    </DragDropContext>
+
+    <Typography color="primary" style={{ marginTop: 3 }}>
+      Drag and drop to re-order the above options
+    </Typography>
+
+    {/* <Typography>Least</Typography> */}
+    </Grid>
+  )
+}
+
+const CustomDateInput = forwardRef((props: TextFieldProps, ref) => <TextField fullWidth inputRef={ref} {...props} />)
+export const DateInput = ({ 
+  field, value, onChange, placement='top', ...props 
+} : {
+  field: FormField,
+  placement?: 'top' | 'right' | 'bottom' | 'left'
+} & FormInputProps<'date'> & Styled) => {
+  const inputRef = useRef(null);
+
+  return (
+    <DatePicker // wrap in item to prevent movement on focused
+      selected={value}
+      onChange={(d: Date) => onChange?.(d)}
+      showTimeSelect
+      required={!field.isOptional}
+      dateFormat="Pp"
+      autoComplete="off"
+      timeIntervals={15} // 30 is default
+      popperPlacement={placement}
+      customInput={<CustomDateInput inputRef={inputRef} {...props} />}
+      className={css`width: 100%;`}
+    />
+  )
+}
 
 export const AutoFocusTextField = (props: TextFieldProps) => {
   const ref = useRef(null as HTMLElement | null)

@@ -249,7 +249,9 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
       type: f.type,
       value: f.type === 'file' || f.type === 'signature' || f.type === 'multiple_choice'
         ? undefined  
-          : '' as any, // null flag that the response was not filled out
+          : f.type === 'ranking'
+            ? f.options?.choices
+            : '' as any, // null flag that the response was not filled out
     }
   })))
   const [selectedFiles, setSelectedFiles] = useState<{ fieldId: string, fieldTitle: string, blob?: FileBlob }[]>(fields.map(f => ({
@@ -322,6 +324,12 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
       if (typeof currentValue.answer.value !== 'number') {
         return "Please enter a number"
       }
+    } else if (currentValue.answer.type === 'rating') {
+      if ((activeField.value?.options?.from && currentValue.answer.value < activeField.value.options.from)
+          || activeField.value?.options?.to && currentValue.answer.value > activeField.value.options.to
+        ) {
+          return `Please enter a number between ${activeField.value?.options?.from} and ${activeField.value?.options?.to}`
+        }
     } else if (currentValue.answer.type === 'signature') {
       if (!currentValue.answer.value.fullName) {
         return "Please enter your full name"

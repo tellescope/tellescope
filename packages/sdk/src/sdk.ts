@@ -213,6 +213,11 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
       Promise<extractFields<CustomActions['integrations']['refresh_oauth2_session']['returns']>>
     ),
   },
+  emails: {
+    sync_integrations: (args: extractFields<CustomActions['emails']['sync_integrations']['parameters']>) => (
+      Promise<extractFields<CustomActions['emails']['sync_integrations']['returns']>>
+    ),
+  },
 }
 
 export class Session extends SessionManager {
@@ -273,6 +278,8 @@ export class Session extends SessionManager {
 
     queries.integrations.generate_google_auth_url = a => this._POST(`/v1/${schema.integrations.customActions.generate_google_auth_url.path}`, a)
     queries.integrations.refresh_oauth2_session = a => this._POST(`/v1/${schema.integrations.customActions.refresh_oauth2_session.path}`, a)
+    
+    queries.emails.sync_integrations = a => this._POST(`/v1/${schema.emails.customActions.sync_integrations.path}`, a)
 
     this.api = queries
   }

@@ -43,6 +43,7 @@ import {
   Form,
   Meeting,
   Integration,
+  Email,
 } from "@tellescope/types-client"
 
 import {
@@ -117,6 +118,7 @@ import {
   flowchartUIValidator,
   integrationAuthenticationsValidator,
   listOfMongoIdStringValidatorEmptyOk,
+  formFieldOptionsValidator,
 } from "@tellescope/validation"
 
 import {
@@ -387,6 +389,9 @@ export type CustomActions = {
   integrations: {
     generate_google_auth_url: CustomAction<{ }, { authUrl: string, }>, 
     refresh_oauth2_session: CustomAction<{ title: string }, { access_token: string, expiry_date: number }>, 
+  },
+  emails: {
+    sync_integrations: CustomAction<{ enduserEmail: string }, { newEmails: Email[] }>, 
   }
 } 
 
@@ -1111,7 +1116,18 @@ export const schema: SchemaV1 = build_schema({
       templateId: { validator: mongoIdStringValidator },
       automationStepId: { validator: mongoIdStringValidator },
     }, 
-    customActions: {},
+    customActions: {
+      sync_integrations: {
+        op: "custom", access: 'read', method: "post",
+        name: 'Attendee display info',
+        path: '/sync-email-integrations',
+        description: "Syncs email with external integrations (like Gmail) and returns any newly created messages",
+        parameters: { enduserEmail: { validator: emailValidator, required: true } },
+        returns: { 
+          newEmails: { validator: 'emails' as any, required: true },
+        } 
+      },
+    },
   },
   sms_messages: {
     info: {
@@ -1495,6 +1511,9 @@ export const schema: SchemaV1 = build_schema({
         validator: subdomainValidator,
         readonly: true, // able to set once, then not change (for now, due to email configuration)
         redactions: ['enduser'],
+      },
+      externalId: {
+        validator: stringValidator250,
       },
       fname: {
         validator: nameValidator,
@@ -1994,7 +2013,7 @@ export const schema: SchemaV1 = build_schema({
         examples: [[{ type: 'root', info: { } } as PreviousFormField]]
       },
       flowchartUI: { validator: flowchartUIValidator },
-      options: { validator: objectAnyFieldsAnyValuesValidator }, // todo: more restriction
+      options: { validator: formFieldOptionsValidator },
       description: { validator: stringValidator250 }, 
       intakeField: { validator: stringValidator }, // todo: ensure built-ins are ignored
       isOptional: { validator: booleanValidator },

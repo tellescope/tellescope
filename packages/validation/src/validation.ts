@@ -111,6 +111,10 @@ import {
   PreviousFormFieldEqualsInfo,
   IntegrationAuthentication,
   OAuth2AuthenticationFields,
+  FormResponseAnswerRating,
+  FormResponseAnswerDate,
+  FormResponseAnswerRanking,
+  FormFieldOptions,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -743,6 +747,9 @@ const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
   phone: '',
   signature: '',
   string: '',
+  ranking: '',
+  rating: '',
+  date: '',
 }
 export const FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES) as FormFieldType[]
 export const formFieldTypeValidator = exactMatchValidator<FormFieldType>(FORM_FIELD_TYPES)
@@ -1023,6 +1030,10 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
     type: exactMatchValidator(['number'])(),
     value: numberValidator({ isOptional: true, emptyStringOk: true }), 
   })(),
+  rating: objectValidator<FormResponseAnswerRating>({
+    type: exactMatchValidator(['rating'])(),
+    value: numberValidator({ isOptional: true, emptyStringOk: true }), 
+  })(),
   phone: objectValidator<FormResponseAnswerPhone>({
     type: exactMatchValidator(['phone'])(),
     value: phoneValidator({ isOptional: true, emptyStringOk: true }),
@@ -1030,6 +1041,10 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
   string: objectValidator<FormResponseAnswerString>({
     type: exactMatchValidator(['string'])(),
     value: stringValidator5000({ isOptional: true, emptyStringOk: true }),
+  })(),
+  date: objectValidator<FormResponseAnswerDate>({
+    type: exactMatchValidator(['date'])(),
+    value: dateValidator({ isOptional: true, emptyStringOk: true }),
   })(),
   file: objectValidator<FormResponseAnswerFile>({
     type: exactMatchValidator(['file'])(),
@@ -1040,6 +1055,10 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
   })(),
   multiple_choice: objectValidator<FormResponseAnswerMultipleChoice>({
     type: exactMatchValidator(['multiple_choice'])(),
+    value: listOfStringsValidator({ isOptional: true, emptyListOk: true }),
+  })(),
+  ranking: objectValidator<FormResponseAnswerRanking>({
+    type: exactMatchValidator(['ranking'])(),
     value: listOfStringsValidator({ isOptional: true, emptyListOk: true }),
   })(),
   signature: objectValidator<FormResponseAnswerSignature>({
@@ -1500,4 +1519,13 @@ export const integrationAuthenticationsValidator = objectValidator<IntegrationAu
     state: stringValidator250({ isOptional: true }),
     email: emailValidator({ isOptional: true }),
   })(),
+})
+
+
+export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
+  choices: listOfStringsValidator({ isOptional: true }),
+  from: numberValidator({ isOptional: true }),
+  to: numberValidator({ isOptional: true }),
+  other: stringValidator250({ isOptional: true }),
+  radio: booleanValidator({ isOptional: true }),
 })

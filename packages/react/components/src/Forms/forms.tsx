@@ -2,7 +2,7 @@ import React, { useCallback, useEffect } from "react"
 import { Button, Flex, LoadingButton, Paper, Styled, Typography } from "../index"
 import { useOrganizationTheme, useTellescopeForm, WithOrganizationTheme } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
-import { EmailInput, FileInput, MultipleChoiceInput, NumberInput, PhoneInput, SignatureInput, StringInput } from "./inputs"
+import { DateInput, EmailInput, FileInput, MultipleChoiceInput, NumberInput, PhoneInput, RankingInput, RatingInput, SignatureInput, StringInput } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse } from "@tellescope/types-client"
 
@@ -91,9 +91,12 @@ const TellescopeFormWithContext: typeof TellescopeForm = ({
   const Email = customInputs?.['email'] ?? EmailInput
   const Number = customInputs?.['number'] ?? NumberInput
   const Phone = customInputs?.['phone'] ?? PhoneInput 
+  const Date = customInputs?.['date'] ?? DateInput 
   const Signature = customInputs?.['signature'] ?? SignatureInput 
   const MultipleChoice = customInputs?.['multiple_choice'] ?? MultipleChoiceInput 
   const File = customInputs?.['file'] ?? FileInput 
+  const Ranking = customInputs?.['ranking'] ?? RankingInput
+  const Rating = customInputs?.['rating'] ?? RatingInput
 
   const handleSubmit = useCallback(async () => {
     if (isPreview) {
@@ -136,26 +139,36 @@ const TellescopeFormWithContext: typeof TellescopeForm = ({
               </Typography>
 
               { 
-                activeField.value.type === 'string' ? (
+                // file is a unique case
+                activeField.value.type === 'file' ? (
+                  <File field={activeField.value} value={currentFileValue.blob as any} onChange={onAddFile as any} />
+                )
+                : activeField.value.type === 'string' ? (
                   <String field={activeField.value} value={currentValue.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} />
                 )
                 : activeField.value.type === 'email' ? (
-                  <Email field={activeField.value}  value={currentValue.answer.value as string} onChange={onFieldChange as ChangeHandler<'email'>} />
+                  <Email field={activeField.value} value={currentValue.answer.value as string} onChange={onFieldChange as ChangeHandler<'email'>} />
                 )
                 : activeField.value.type === 'number' ? (
-                  <Number field={activeField.value}  value={currentValue.answer.value as number} onChange={onFieldChange as ChangeHandler<'number'>} />
+                  <Number field={activeField.value} value={currentValue.answer.value as number} onChange={onFieldChange as ChangeHandler<'number'>} />
                 )
                 : activeField.value.type === 'phone' ? (
-                  <Phone field={activeField.value}  value={currentValue.answer.value as string} onChange={onFieldChange as ChangeHandler<'phone'>} />
+                  <Phone field={activeField.value} value={currentValue.answer.value as string} onChange={onFieldChange as ChangeHandler<'phone'>} />
+                )
+                : activeField.value.type === 'date' ? (
+                  <Date field={activeField.value} value={currentValue.answer.value as Date} onChange={onFieldChange as ChangeHandler<'date'>} />
                 )
                 : activeField.value.type === 'signature' ? (
-                  <Signature field={activeField.value}  value={currentValue.answer.value as any} onChange={onFieldChange as ChangeHandler<'signature'>} />
+                  <Signature field={activeField.value} value={currentValue.answer.value as any} onChange={onFieldChange as ChangeHandler<'signature'>} />
                 )
                 : activeField.value.type === 'multiple_choice' ? (
-                  <MultipleChoice field={activeField.value}  value={currentValue.answer.value as any} onChange={onFieldChange as ChangeHandler<'multiple_choice'>} />
+                  <MultipleChoice field={activeField.value} value={currentValue.answer.value as any} onChange={onFieldChange as ChangeHandler<'multiple_choice'>} />
                 )
-                : activeField.value.type === 'file' ? (
-                  <File field={activeField.value}  value={currentFileValue.blob as any} onChange={onAddFile as any} />
+                : activeField.value.type === 'rating' ? (
+                  <Rating field={activeField.value} value={currentValue.answer.value as any} onChange={onFieldChange as ChangeHandler<'rating'>} />
+                )
+                : activeField.value.type === 'ranking' ? (
+                  <Ranking field={activeField.value} value={currentValue.answer.value as any} onChange={onFieldChange as ChangeHandler<'ranking'>} />
                 )
                 : null
               }   

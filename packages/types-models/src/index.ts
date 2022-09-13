@@ -137,6 +137,7 @@ export interface User_updatesDisabled {
   verifiedEmail: boolean,
 }
 export interface User extends User_required, User_readonly, User_updatesDisabled {
+  externalId?: string,
   phone?: string;
   fname?: string;
   lname?: string;
@@ -277,10 +278,12 @@ export interface Email_updatesDisabled {
   messageId?: string;
   inbound?: boolean;
   logOnly?: boolean,
+  timestamp?: Date,
   userId: string; // not actually required on create
 }
 export interface Email extends Email_required, Email_readonly, Email_updatesDisabled, TextCommunication {
   replyTo?: string | null;  
+  via?: string,
   readBy?: { [index: string] : Date };
   // sentAt: string, // only outgoing
 }
@@ -444,16 +447,18 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
   fields?: Indexable<string | CustomField>,
 }
 
-export type FormFieldLiteralType = 'string' | 'number' | 'email' | 'phone'
-export type FormFieldComplexType = "multiple_choice" | "file" | "signature"
+export type FormFieldLiteralType = 'string' | 'number' | 'email' | 'phone' | 'date' | 'rating'
+export type FormFieldComplexType = "multiple_choice" | "file" | "signature" | 'ranking'
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
-export interface MultipleChoiceOptions {
+
+export type FormFieldOptions = {
   choices: string[];
+  from?: number,
+  to?: number,
   radio?: boolean; // absent indicates not radio
   other?: boolean; // include an 'other' option
 }
-
-export type FormFieldOptions = MultipleChoiceOptions
+export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals'
 export type PreviousFormFieldBuilder <T extends PreviousFormFieldType, V> = { type: T, info: V }
@@ -481,7 +486,7 @@ export interface FormField_updatesDisabled {}
 export interface FormField extends FormField_readonly, FormField_required, FormField_updatesDisabled {
   isOptional  ?: boolean,
   description ?: string,
-  options     ?: FormFieldOptions | {},
+  options     ?: FormFieldOptions,
   intakeField ?: string | null,
   flowchartUI?: FlowchartUI,
 }
@@ -521,7 +526,8 @@ export type IntegrationAuthentication = (
 )
 
 export interface Integration_readonly extends ClientRecord {
-
+  lastSync?: number,
+  lastSyncId?: string,
 }
 export interface Integration_required {
 
@@ -541,6 +547,8 @@ export type FormResponseAnswerEmail = FormResponseValueAnswerBuilder<'email', st
 export type FormResponseAnswerNumber = FormResponseValueAnswerBuilder<'number', number>
 export type FormResponseAnswerPhone = FormResponseValueAnswerBuilder<'phone', string>
 export type FormResponseAnswerString = FormResponseValueAnswerBuilder<'string', string>
+export type FormResponseAnswerDate = FormResponseValueAnswerBuilder<'date', Date>
+export type FormResponseAnswerRating = FormResponseValueAnswerBuilder<'rating', number>
 
 export type FormResponseAnswerSignatureValue = {
   fullName: string,
@@ -550,6 +558,7 @@ export type FormResponseAnswerSignature = FormResponseValueAnswerBuilder<'signat
 
 export type FormResponseAnswerMultipleChoiceValue = string[]
 export type FormResponseAnswerMultipleChoice = FormResponseValueAnswerBuilder<'multiple_choice', FormResponseAnswerMultipleChoiceValue>
+export type FormResponseAnswerRanking = FormResponseValueAnswerBuilder<'ranking', FormResponseAnswerMultipleChoiceValue>
 
 export type FormResponseAnswerFileValue = {
   secureName: string,
@@ -558,13 +567,16 @@ export type FormResponseAnswerFileValue = {
 export type FormResponseAnswerFile = FormResponseValueAnswerBuilder<'file', FormResponseAnswerFileValue>
 
 export type FormResponseValueAnswer = (
-     FormResponseAnswerEmail
-  |  FormResponseAnswerNumber
-  |  FormResponseAnswerPhone
-  |  FormResponseAnswerString
-  |  FormResponseAnswerSignature
-  |  FormResponseAnswerMultipleChoice
-  |  FormResponseAnswerFile
+    FormResponseAnswerEmail
+  | FormResponseAnswerNumber
+  | FormResponseAnswerPhone
+  | FormResponseAnswerString
+  | FormResponseAnswerSignature
+  | FormResponseAnswerMultipleChoice
+  | FormResponseAnswerFile
+  | FormResponseAnswerDate
+  | FormResponseAnswerRating
+  | FormResponseAnswerRanking
 )
 
 export type FormResponseValue = {
@@ -581,6 +593,9 @@ export type AnswerForType = {
   'signature': FormResponseAnswerSignature['value'],
   'multiple_choice': FormResponseAnswerMultipleChoice['value'],
   'file': FormResponseAnswerFile['value'],
+  'date': FormResponseAnswerDate['value'],
+  'rating': FormResponseAnswerRating['value'],
+  'ranking': FormResponseAnswerRanking['value'],
 }
 
 export interface FormResponse_readonly extends ClientRecord {
