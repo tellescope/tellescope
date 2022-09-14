@@ -75,7 +75,7 @@ export interface AccessToken extends InternalBusinessRecord {
 }
 
 export interface DelayedEvent extends InternalBusinessRecord {
-  type: 'sessionTimeout',
+  type: 'sessionTimeout' | 'sync',
   triggerAt: number,
   fields: object,
 }

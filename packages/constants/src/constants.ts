@@ -42,3 +42,5 @@ export const SECONDS_IN_ONE_YEAR = 31560000
 export const UNSEARCHABLE_FIELDS = ['_id', 'id', 'creator', 'createdAt', 'updatedAt', 'businessId', 'externalId', 'enduserId']
 
 export const GOOGLE_INTEGRATIONS_TITLE = "Google"
+
+export const EMAIL_SYNC_FREQUENCY_IN_MS = 1000 * 60 * 60 // 1hr

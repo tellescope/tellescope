@@ -115,6 +115,13 @@ import {
   FormResponseAnswerDate,
   FormResponseAnswerRanking,
   FormFieldOptions,
+  BlockType,
+  Block,
+  BlockContentH1,
+  BlockContentHTML,
+  BlockContentImage,
+  BlockContentYoutube,
+  BlockContentH2,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -323,6 +330,10 @@ export const filterCommandsValidator: EscapeBuilder<FilterType> = (o={}) => buil
     if (!is_object(value)) { throw new Error("Expecting object value for FilterType") }
     
     if (value._exists && typeof value._exists === 'boolean' ) return { _exists: value._exists }
+    if (value._gt && typeof value._gt === 'number' ) return { _gt: value._gt }
+    if (value._gte && typeof value._gte === 'number' ) return { _gte: value._gte }
+    if (value._lt && typeof value._lt === 'number' ) return { _lt: value._lt }
+    if (value._lte && typeof value._gt === 'number' ) return { _gt: value._gt }
     
     if (Object.keys(value).find(k => k.startsWith('$'))) { // ignore any $ injections
       throw new Error(`Unknown filter value ${JSON.stringify(value)}`)
@@ -1202,7 +1213,7 @@ export const chatAttachmentValidator = objectValidator<ChatAttachment>({
   type: exactMatchValidator<ChatAttachmentType>(['image', 'video', 'file'])(),
   secureName: stringValidator250(),
 }) 
-export const listOfChatAttachmentsValidator = listValidator(chatAttachmentValidator())
+export const listOfChatAttachmentsValidator = listValidatorEmptyOk(chatAttachmentValidator())
 
 export const meetingsListValidator = listValidator(objectValidator<{
   id: string,
@@ -1411,6 +1422,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
 export const relatedRecordValidator = objectValidator<RelatedRecord>({
   type: stringValidator100(),
   id: mongoIdStringValidator(),
+  creator: mongoIdStringOptional,
 })
 export const listOfRelatedRecordsValidator = listValidatorEmptyOk(relatedRecordValidator())
 
@@ -1529,3 +1541,53 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   other: stringValidator250({ isOptional: true }),
   radio: booleanValidator({ isOptional: true }),
 })
+
+export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
+  h1: objectValidator<BlockContentH1>({
+    type: exactMatchValidator(['h1'])(),
+    info: objectValidator<BlockContentH1['info']>({
+      text: stringValidator5000({ emptyStringOk: true }),
+    })(),
+  })(),
+  h2: objectValidator<BlockContentH2>({
+    type: exactMatchValidator(['h2'])(),
+    info: objectValidator<BlockContentH1['info']>({
+      text: stringValidator5000({ emptyStringOk: true }),
+    })(),
+  })(),
+  html: objectValidator<BlockContentHTML>({
+    type: exactMatchValidator(['html'])(),
+    info: objectValidator<BlockContentHTML['info']>({
+      html: stringValidator25000({ emptyStringOk: true }),
+    })(),
+  })(),
+  image: objectValidator<BlockContentImage>({
+    type: exactMatchValidator(['image'])(),
+    info: objectValidator<BlockContentImage['info']>({
+      link: stringValidator5000({ emptyStringOk: true }),
+      height: nonNegNumberValidator({ isOptional: true }),
+      width: nonNegNumberValidator({ isOptional: true }),
+    })(),
+  })(),
+  youtube: objectValidator<BlockContentYoutube>({
+    type: exactMatchValidator(['youtube'])(),
+    info: objectValidator<BlockContentYoutube['info']>({
+      link: stringValidator5000({ emptyStringOk: true }),
+      height: nonNegNumberValidator({ isOptional: true }),
+      width: nonNegNumberValidator({ isOptional: true }),
+    })(),
+  })(),
+})
+
+const _BLOCK_TYPES: { [K in BlockType]: any } = {
+  h1: '',
+  h2: '',
+  html: '',
+  image: '',
+  youtube: '',
+}
+export const BLOCK_TYPES = Object.keys(_BLOCK_TYPES) as BlockType[]
+export const blockTypeValidator = exactMatchValidator<BlockType>(BLOCK_TYPES)
+export const is_block_type = (type: any): type is BlockType => BLOCK_TYPES.includes(type)
+
+export const blocksValidator = listValidatorEmptyOk(blockValidator())

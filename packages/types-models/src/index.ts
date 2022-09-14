@@ -34,11 +34,12 @@ export type AccessPermissions = {
   [K in AccessResources]: AccessForResource
 }
 
-export type ExistsFilter = { _exists: boolean } 
-export type FilterType = ExistsFilter
-export type FilterKey = '_exists'
-export const FilterKeys = ['_exists'] as const
-export type ReadFilter<T> = { [K in keyof T]?: T[K] | FilterType }
+export type Filters = { _exists: boolean, _gt: number, _gte: number, _lt: number, _lte: number } 
+export type ExistsFilter = { _exists: boolean }
+export type FilterType = Filters
+export type FilterKey = keyof Filters
+export const FilterKeys = ['_exists', '_gt', '_gte', '_lt', '_lte'] as const
+export type ReadFilter<T> = { [K in keyof T]?: T[K] | Partial<FilterType> }
 
 export type FlowchartUI = {
   x: number,
@@ -65,6 +66,7 @@ export type OrganizationLimits = {
 export interface Organization_readonly extends ClientRecord {
   subscriptionExpiresAt: Date;
   subscriptionPeriod: number;
+  lastSync?: number;
 } 
 export interface Organization_required {}
 export interface Organization_updatesDisabled {
@@ -823,7 +825,7 @@ export interface AutomationStep extends AutomationStep_readonly, AutomationStep_
   flowchartUI?: FlowchartUI,
 }
 
-export type RelatedRecord = { type: string, id: string }
+export type RelatedRecord = { type: string, id: string, creator?: string }
 export interface UserNotification_readonly extends ClientRecord {}
 export interface UserNotification_required {
   userId: string,
@@ -869,6 +871,32 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
   notes?: string,
 }
 
+export type BlockType = 'h1' | 'h2' | 'html' | 'image' | 'youtube'
+export type ContentBlockBuilder <BLOCK extends BlockType, INFO extends object> = {
+  type: BLOCK,
+  info: INFO,
+}
+
+export type BlockContentText = { text: string }
+export type BlockContentMedia = {
+  link: string,
+  height?: number,
+  width?: number,
+}
+export type BlockContentH1 = ContentBlockBuilder<'h1', BlockContentText>
+export type BlockContentH2 = ContentBlockBuilder<'h2', BlockContentText>
+export type BlockContentHTML = ContentBlockBuilder<'html', { html: string }>
+export type BlockContentImage = ContentBlockBuilder<'image', BlockContentMedia>
+export type BlockContentYoutube = ContentBlockBuilder<'youtube', BlockContentMedia>
+
+export type Block = (
+    BlockContentYoutube
+  | BlockContentImage
+  | BlockContentHTML
+  | BlockContentH1
+  | BlockContentH2
+)
+
 export type ManagedContentRecordType = 'Article' | 'PDF' | 'Video'
 export interface ManagedContentRecord_readonly extends ClientRecord {}
 export interface ManagedContentRecord_required {
@@ -884,6 +912,7 @@ export interface ManagedContentRecord extends ManagedContentRecord_readonly, Man
   publicRead?: boolean,
   slug?: string,
   description?: string,
+  blocks?: Block[],
   tags?: string[],
   files?: string[],
   editorState?: string

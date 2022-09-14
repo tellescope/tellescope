@@ -138,9 +138,12 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
   },
   files: {
-    prepare_file_upload: (args: FileDetails) => Promise<{ presignedUpload: S3PresignedPost, file: File }>,
-    file_download_URL: (args: extractFields<CustomActions['files']['file_download_URL']['parameters']>) => 
-                          Promise<extractFields<CustomActions['files']['file_download_URL']['returns']>>,
+    prepare_file_upload: (args: extractFields<CustomActions['files']['prepare_file_upload']['parameters']>) => (
+      Promise<extractFields<CustomActions['files']['prepare_file_upload']['returns']>>
+    ),
+    file_download_URL: (args: extractFields<CustomActions['files']['file_download_URL']['parameters']>) => (
+      Promise<extractFields<CustomActions['files']['file_download_URL']['returns']>>
+    ),
   },
   form_responses: {
     submit_form_response: (args: extractFields<CustomActions['form_responses']['submit_form_response']['parameters']>) => (
@@ -337,10 +340,10 @@ export class Session extends SessionManager {
     await this.POST('/logout-api').catch(console.error)
   }
 
-  prepare_and_upload_file = async (details: FileDetails, file: Blob | Buffer | ReactNativeFile) => {
-    const { name, size, type, enduserId } = details
-    const { presignedUpload, file: createdFile } = await this.api.files.prepare_file_upload({ name, size, type, enduserId })
-    await this.UPLOAD(presignedUpload, file)
+  prepare_and_upload_file = async (details: FileDetails & { publicRead?: boolean }, file: Blob | Buffer | ReactNativeFile) => {
+    const { name, size, type, enduserId, publicRead } = details
+    const { presignedUpload, file: createdFile } = await this.api.files.prepare_file_upload({ name, size, type, enduserId, publicRead })
+    await this.UPLOAD(presignedUpload as any, file)
     return createdFile
   }
 

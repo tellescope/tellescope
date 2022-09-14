@@ -1333,7 +1333,12 @@ const files_tests = async () => {
   const { presignedUpload, file } = await sdk.api.files.prepare_file_upload({ 
     name: 'Test File', size: buff.byteLength, type: 'text/plain' 
   })
-  await sdk.UPLOAD(presignedUpload, buff)
+  
+  await sdk.UPLOAD(
+    // @ts-ignore
+    presignedUpload, 
+    buff
+  )
 
   const { downloadURL } = await sdk.api.files.file_download_URL({ secureName: file.secureName })
   const downloaded: string = await sdk.DOWNLOAD(downloadURL)

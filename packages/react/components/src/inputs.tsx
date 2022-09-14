@@ -93,9 +93,10 @@ export const useFileDropzone = ({ DropzoneComponent=DefaultDropzoneContent, styl
 type FileUploadHandler = (details: FileDetails, file: Blob | Buffer | ReactNativeFile, options?: {}) => Promise<FileClientType>
 interface UseFileUploaderOptions {
   enduserId?: string
+  publicRead?: boolean,
 }
 export const useFileUpload = (o={} as UseFileUploaderOptions) => {
-  const { enduserId } = o
+  const { enduserId, publicRead } = o
   const session = useResolvedSession()
 
   const [uploading, setUploading] = useState(false)
@@ -103,7 +104,7 @@ export const useFileUpload = (o={} as UseFileUploaderOptions) => {
   const handleUpload: FileUploadHandler = useCallback(async (details, file) => {
     setUploading(true)
     try {
-      const createdFile = await session.prepare_and_upload_file({ ...details, enduserId }, file) 
+      const createdFile = await session.prepare_and_upload_file({ ...details, enduserId, publicRead }, file) 
       return createdFile
     } catch(err) {
       throw err

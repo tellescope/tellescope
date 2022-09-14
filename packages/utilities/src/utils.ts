@@ -318,3 +318,13 @@ export const getGoogleClientAPIKey = () => {
       : "AIzaSyBW9D0mg3ISvNQcSB0Z_PwHNuD0OhFdMKg"
   )
 }
+
+const PUBLIC_ASSET_BUCKET = "tellescope-public-files"
+export const getPublicFileURL = ({ businessId, name } : { businessId: string, name: string }) => {
+  const api = getApiURL()
+  const ENV_PREFIX = api === PROD_API_URL ? "prod"
+                   : api === STAGING_API_URL ? "staging"
+                   : "test"
+
+  return `https://${PUBLIC_ASSET_BUCKET}.s3.amazonaws.com/${ENV_PREFIX}/${businessId}/${name}`
+}

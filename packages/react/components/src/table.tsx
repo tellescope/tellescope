@@ -212,8 +212,8 @@ export const usePagination = <T,>({ items, pageSize=DEFAULT_PAGE_SIZE, initialPa
   }
 }
 
-export interface TableFooterProps extends Styled, HorizontalPadded, Partial<LoadMoreFunctions>, ReturnType<typeof usePagination> {}
-export const TableFooter = ({ horizontalPadding, style, previousDisabled, nextDisabled, selectedPage, numPages, goToNext, goToPrevious } : TableFooterProps) => {
+export interface TableFooterProps <T> extends Styled, HorizontalPadded, Partial<LoadMoreFunctions<T>>, ReturnType<typeof usePagination> {}
+export const TableFooter = <T,>({ horizontalPadding, style, previousDisabled, nextDisabled, selectedPage, numPages, goToNext, goToPrevious } : TableFooterProps<T>) => {
   return (
     <Flex flex={1} alignItems="center"
       style={{ 
@@ -252,7 +252,7 @@ const resolve_middle_page_numbers = (selectedPage: number, numPages: number): [u
 }
 
 const FOOTER_BUTTON_SIZE = 30
-export const TableFooterNumbered = ({ horizontalPadding, loadMore, doneLoading, style, previousDisabled, nextDisabled, selectedPage, numPages, goToNext, goToPrevious, goToPage } : TableFooterProps) => {
+export const TableFooterNumbered = <T,>({ horizontalPadding, loadMore, doneLoading, style, previousDisabled, nextDisabled, selectedPage, numPages, goToNext, goToPrevious, goToPage } : TableFooterProps<T>) => {
   const [middleLeft, middle, middleRight] = resolve_middle_page_numbers(selectedPage, numPages)
 
   const buttonProps = { 
@@ -346,12 +346,12 @@ export type WithRows <T extends Item> = {
   hoveredColor?: TableRowProps<T>['hoveredColor']; 
   RowComponent?: JSXElementConstructor<TableRowProps<T>>;
 } 
-export type WithFooter = {
+export type WithFooter <T> = {
   paginated?: boolean;
-  FooterComponent?: JSXElementConstructor<TableFooterProps>;
+  FooterComponent?: JSXElementConstructor<TableFooterProps<T>>;
 }
-export interface TableProps<T extends Item> extends WithTitle, WithHeader<T>, WithFooter, WithRows<T>, 
-  HorizontalPadded, Elevated, ItemClickable<T>, Partial<LoadMoreFunctions>
+export interface TableProps<T extends Item> extends WithTitle, WithHeader<T>, WithFooter<T>, WithRows<T>, 
+  HorizontalPadded, Elevated, ItemClickable<T>, Partial<LoadMoreFunctions<T>>
 {
   items: T[],
   titleActionsComponent?: React.ReactNode,

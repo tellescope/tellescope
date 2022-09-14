@@ -55,6 +55,7 @@ import {
 import { value_is_loaded } from './loading'
 import { getGoogleClientAPIKey, getGoogleClientId, objects_equivalent } from '@tellescope/utilities'
 import { GOOGLE_INTEGRATIONS_TITLE } from '@tellescope/constants'
+import { Filters, ReadFilter } from '@tellescope/types-models'
 
 const RESET_CACHE_TYPE = "cache/reset" as const
 export const resetStateAction = createAction(RESET_CACHE_TYPE)
@@ -335,13 +336,14 @@ export type AddOptions = {
   replaceIfMatch?: boolean,
 }
 
-interface LoadMoreOptions {
+interface LoadMoreOptions <T> {
   key?: string,
   limit?: number,
+  filter?: ReadFilter<T> | undefined
 }
 
-export interface LoadMoreFunctions {
-  loadMore: (options?: LoadMoreOptions) => Promise<void>;
+export interface LoadMoreFunctions<T> {
+  loadMore: (options?: LoadMoreOptions<T>) => Promise<void>;
   doneLoading: (id?: string) => boolean,
 }
 
@@ -350,7 +352,7 @@ const DONE_LOADING_TOKEN = 'doneLoading'
 
 export type UpdateElement <T,> = (id: string, e: Partial<T>, o?: CustomUpdateOptions) => Promise<T>
 
-export interface ListUpdateMethods <T, ADD> extends LoadMoreFunctions {
+export interface ListUpdateMethods <T, ADD> extends LoadMoreFunctions<T> {
   addLocalElement: (e: T, o?: AddOptions) => T,
   addLocalElements: (e: T[], o?: AddOptions) => T[],
   replaceLocalElement: (id: string, e: T) => T,
@@ -587,7 +589,7 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     }
   }, [session, didFetch, options])
 
-  const loadMore = useCallback(async (options?: LoadMoreOptions) => {
+  const loadMore = useCallback(async (options?: LoadMoreOptions<T>) => {
     if (!loadQuery) return
     if (!value_is_loaded(state)) {
       console.warn("loadMore called before state is loaded. This is a no op")
@@ -606,7 +608,11 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     }
 
     const limit = options?.limit ?? DEFAULT_FETCH_LIMIT
-    return toLoadedData(() => loadQuery({ lastId: oldestRecord.id.toString(), limit })).then(
+    return toLoadedData(() => loadQuery({ 
+      lastId: !options?.filter ? oldestRecord.id.toString() : undefined,  // don't provide a lastId when there's a filter, filter could include that on its own
+      limit, 
+      filter: options?.filter,
+    })).then(
       es => {
         if (es.status === LoadingStatus.Loaded) {
           if (es.value.length < limit) {
@@ -614,7 +620,9 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
           }
 
           dispatch(slice.actions.addSome({ value: es.value, options: { replaceIfMatch: true, addTo: 'end' } }))
-        } 
+        } else if (es.status === LoadingStatus.Error) {
+          console.error('error loading more', es.value)
+        }
       }
     )
   }, [state, modelName, loadQuery])
@@ -1238,5 +1246,5 @@ export const useGCalIntegration = (options={} as HookOptions<GCalEvent>) => {
     .catch(console.error)
   }, [authenticated, addLocalElements])
 
-  return [gcalEventsLoading, { loadEvents }] as const
+  return [gcalEventsLoading, { authenticated, loadEvents }] as const
 }

@@ -44,6 +44,7 @@ import {
   Meeting,
   Integration,
   Email,
+  File,
 } from "@tellescope/types-client"
 
 import {
@@ -119,6 +120,7 @@ import {
   integrationAuthenticationsValidator,
   listOfMongoIdStringValidatorEmptyOk,
   formFieldOptionsValidator,
+  blocksValidator,
 } from "@tellescope/validation"
 
 import {
@@ -320,7 +322,7 @@ export type CustomActions = {
     create: CustomAction<{}, { id: string, key: string}>,
   },
   files: {
-    prepare_file_upload: CustomAction<{ name: string, size: number, type: string, enduserId?: string }, { presignedUpload: object, file: File }>,
+    prepare_file_upload: CustomAction<{ name: string, size: number, type: string, enduserId?: string, publicRead?: boolean }, { presignedUpload: object, file: File }>,
     file_download_URL: CustomAction<{ secureName: string }, { downloadURL: string }>,
   },
   form_responses: {
@@ -1655,6 +1657,7 @@ export const schema: SchemaV1 = build_schema({
            validator: fileTypeValidator,
             required: true
           },
+          publicRead: { validator: booleanValidator },
           enduserId: { 
             validator: mongoIdStringValidator ,
             dependencies: [{
@@ -2670,10 +2673,11 @@ export const schema: SchemaV1 = build_schema({
       attachments: {
         validator: listOfChatAttachmentsValidator,
       },
+      blocks: { validator: blocksValidator },
       headerPhoto: { validator: stringValidator250 },
       publicRead: { validator: booleanValidator },
       mode: { validator: messageTemplateModeValidator, },
-      files: { validator: listOfStringsValidator },
+      files: { validator: listOfStringsValidatorEmptyOk },
       tags: { validator: listOfStringsValidatorEmptyOk },
     }
   },
