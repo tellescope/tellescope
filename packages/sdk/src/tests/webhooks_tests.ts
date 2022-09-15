@@ -111,7 +111,12 @@ const check_next_webhook = async (evaluate: (hook: WebhookCall) => boolean, name
 
 const chats_tests = async (isSubscribed: boolean) => {
   log_header(`Chats Tests, isSubscribed=${isSubscribed}`)
-  const room = await sdk.api.chat_rooms.createOne({ userIds: [sdk.userInfo.id] })
+
+  const enduser = await sdk.api.endusers.createOne({ email: 'chatwebhooktest@tellescope.com' })
+  const room = await sdk.api.chat_rooms.createOne({ 
+    userIds: [sdk.userInfo.id, nonAdminSdk.userInfo.id], 
+    enduserIds: [enduser.id] 
+  })
 
   const chat = await sdk.api.chats.createOne({ roomId: room.id, message: "Hello hello hi hello" })
   await check_next_webhook(
@@ -122,15 +127,22 @@ const chats_tests = async (isSubscribed: boolean) => {
         objects_equivalent(record, chat) && 
         relatedRecords[record.roomId] !== undefined &&
         relatedRecords[record.senderId as string] !== undefined &&
+        relatedRecords[nonAdminSdk.userInfo.id] !== undefined &&
+        relatedRecords[enduser.id] !== undefined &&
         relatedRecords[record.roomId]?.id  === room.id &&
-        relatedRecords[record.senderId as string]?.id === room.userIds?.[0]
+        relatedRecords[record.senderId as string]?.id === room.userIds?.[0] &&
+        relatedRecords[nonAdminSdk.userInfo.id]?.id  === room.userIds?.[1] &&
+        relatedRecords[enduser.id]?.id === room.enduserIds?.[0]
       )
     },
     'Create chat error', 'Create chat webhook', isSubscribed
   )
 
   // cleanup
-  await sdk.api.chat_rooms.deleteOne(room.id) // also cleans up messages
+  await Promise.all([
+    sdk.api.chat_rooms.deleteOne(room.id),
+    sdk.api.endusers.deleteOne(enduser.id)
+  ])
 
   // when chatroom support added for webhooks, check deletion here
   // await check_next_webhook(a => objects_equivalent(a.records, [chat_room]), 'Delete chat room error', 'Delete chat room webhook', isSubscribed)
@@ -329,8 +341,8 @@ const calendar_event_reminders_tests = async (isSubscribed: boolean) => {
 }
 
 const tests: { [K in WebhookSupportedModel  | 'calendarEventReminders']: (isSubscribed: boolean) => Promise<void> } = {
-  calendarEventReminders: calendar_event_reminders_tests, 
   chats: chats_tests,
+  calendarEventReminders: calendar_event_reminders_tests, 
   meetings: meetings_tests,
 }
 

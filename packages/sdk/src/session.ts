@@ -7,7 +7,7 @@ import {
   S3PresignedPost,
 } from "@tellescope/types-utilities"
 import { 
-  ClientModelForName,
+  ClientModelForName, User,
 } from "@tellescope/types-client"
 import { Indexable } from "@tellescope/utilities"
 import { OrganizationTheme } from "@tellescope/types-models"
@@ -18,6 +18,7 @@ export interface SessionOptions {
   apiKey?: string;
   authToken?: string;
   servicesSecret?: string,
+  user?: User,
   businessId?: string,
   host?: string;
   cacheKey?: string;
@@ -92,7 +93,7 @@ export class Session {
     // keep ?? over || to allow '' argument to avoid access_cache
     this.authToken = o.authToken ?? access_cache(o.cacheKey) ?? '';
 
-    this.userInfo = JSON.parse(access_cache(o.cacheKey + 'userInfo') || '{}');
+    this.userInfo = o?.user ?? JSON.parse(access_cache(o.cacheKey + 'userInfo') || '{}');
     if (this.authToken) { 
       set_cache(this.cacheKey, this.authToken)
       this.authenticate_socket()
