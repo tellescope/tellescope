@@ -5,7 +5,6 @@ import {
   useFileUpload,
   Flex,
   Typography,
-  useEnduserSession,
   AsyncIconButton,
   SendIcon,
   LabeledIconButton,
@@ -35,7 +34,7 @@ const SendImageOrVideo = ({
   disabled?: boolean, 
   onUpload: (file: { secureName: string }, assetType: 'image' | 'video') => void,
 }) => {
-  const session = useEnduserSession()
+  const session = useResolvedSession()
   const [menuOpen, setMenuOpen] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
   const { handleUpload, uploading } = useFileUpload({ enduserId: session.userInfo.id })

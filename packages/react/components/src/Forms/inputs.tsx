@@ -34,8 +34,6 @@ export const RatingInput = ({ field, value, onChange }: FormInputProps<'rating'>
     onChange(Math.ceil((to - from) / 2))
   }, [onChange])
 
-  console.log(value)
-
   return (
     <Slider min={from} max={to} step={1} marks={marks}
       valueLabelDisplay="on"
