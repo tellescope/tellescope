@@ -1182,6 +1182,7 @@ export const useGCalIntegration = (options={} as HookOptions<GCalEvent>) => {
   const loadedRef = useRef<Indexable<number>>({ })
   const [authenticated, setAuthenticated] = useState(false)
 
+  console.log(integrationsLoading.value)
 
   const googleIntegration = (
     value_is_loaded(integrationsLoading)

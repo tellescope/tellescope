@@ -8,8 +8,8 @@ import { MultipleChoiceOptions } from "@tellescope/types-models/src"
 import Slider from '@mui/material/Slider';
 
 import DatePicker from "react-datepicker";
-import "react-datepicker/dist/react-datepicker.css";
-// import "./css/datepicker.css"
+// import "react-datepicker/dist/react-datepicker.css";
+import { datepickerCSS } from "./css/react-datepicker" // avoids build issue with RN
 import { Indexable } from "@tellescope/types-utilities"
 import { Styled } from ".."
 import { FormField } from "@tellescope/types-client"
@@ -153,7 +153,8 @@ export const DateInput = ({
       timeIntervals={15} // 30 is default
       popperPlacement={placement}
       customInput={<CustomDateInput inputRef={inputRef} {...props} />}
-      className={css`width: 100%;`}
+      // className={css`width: 100%;`}
+      className={css`${datepickerCSS}`}
     />
   )
 }
