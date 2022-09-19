@@ -40,6 +40,7 @@ import {
   PostLike,
   FormField,
   Integration,
+  Organization,
 } from "@tellescope/types-client"
 
 import {
@@ -205,15 +206,13 @@ export const createSliceForList = <T extends { id: string | number }, N extends 
 
 export type ChatRoomDisplayInfo = { id: string } & { [index: string]: UserDisplayInfo }
 
+export type GCalEventTime = { dateTime: string, date: never } | { dateTime: never, date: string /* YYYY-MM-DD */  }
+
 export type GCalEvent = {
   id: string,
   summary: string,
-  start: {
-    dateTime: string,
-  },
-  end: {
-    dateTime: string,
-  },
+  start: GCalEventTime,
+  end: GCalEventTime,
 }
 
 const chatRoomsSlice = createSliceForList<ChatRoom, 'chat_rooms'>('chat_rooms')
@@ -246,6 +245,7 @@ const forumPostsSlice = createSliceForList<ForumPost, 'forum_posts'>('forum_post
 const managedContentRecoredsSlice = createSliceForList<ManagedContentRecord, 'managed_content_records'>('managed_content_records')
 const postCommentsSlice = createSliceForList<PostComment, 'post_comments'>('post_comments')
 const postLikesSlice = createSliceForList<PostLike, 'post_likes'>('post_likes')
+const organizationsSlice = createSliceForList<Organization, 'organizations'>('organizations')
 
 export const sharedConfig = {
   reducer: { 
@@ -278,6 +278,7 @@ export const sharedConfig = {
     post_likes: postLikesSlice.reducer,
     integrations: integrationsSlice.reducer,
     gcal_events: gcalEventsSlice.reducer,
+    organizations: organizationsSlice.reducer,
   },
 }
 
@@ -1158,6 +1159,45 @@ export const usePostLikes = (options={} as HookOptions<PostLike>) => {
     {...options}
   )
 }
+export const useOrganizations = (options={} as HookOptions<Organization>) => {
+  const session = useSession()
+  return useListStateHook(
+    'organizations', useTypedSelector(s => s.organizations), session, organizationsSlice, 
+    { 
+      // loadQuery: session.api.organizations.getSome,
+      findOne: session.api.organizations.getOne,
+      // addOne: session.api.organizations.createOne,
+      // addSome: session.api.organizations.createSome,
+      // deleteOne: session.api.organizations.deleteOne,
+      updateOne: session.api.organizations.updateOne,
+    }, 
+    {...options}
+  )
+}
+export const useOrganization = () => {
+  const session = useSession()
+  const [organizationsLoading, { updateElement, findById }] = useOrganizations()
+
+  useEffect(() => {
+    findById(session.userInfo.businessId)
+  }, [findById, session])
+
+  const updateOrganization = useCallback((u: Partial<Organization>) => (
+    updateElement(session.userInfo.businessId, u) 
+  ), [updateElement, session])
+
+  return [
+    {
+      status: organizationsLoading.status,
+      value: (
+        value_is_loaded(organizationsLoading)
+          ? organizationsLoading.value.find(o => o.id === session.userInfo.businessId)!
+          : organizationsLoading.value
+      )
+    } as LoadedData<Organization>,
+    { updateOrganization }
+  ] as const
+}
 
 export const useIntegrations = (options={} as HookOptions<Integration>) => {
   const session = useResolvedSession()
@@ -1181,8 +1221,6 @@ export const useGCalIntegration = (options={} as HookOptions<GCalEvent>) => {
 
   const loadedRef = useRef<Indexable<number>>({ })
   const [authenticated, setAuthenticated] = useState(false)
-
-  console.log(integrationsLoading.value)
 
   const googleIntegration = (
     value_is_loaded(integrationsLoading)

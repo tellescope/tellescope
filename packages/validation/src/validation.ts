@@ -1480,6 +1480,8 @@ export const organizationThemeValidator = objectValidator<OrganizationTheme>({
   name: stringValidator250(),
   subdomain: stringValidator250(),
   businessId: mongoIdRequired,
+  faviconURL: stringValidator250(),
+  customPortalURL: stringValidator250(),
 })
 
 const _MANAGED_CONTENT_RECORD_TYPES: { [K in ManagedContentRecordType]: any } = {

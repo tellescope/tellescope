@@ -320,11 +320,20 @@ export const getGoogleClientAPIKey = () => {
 }
 
 const PUBLIC_ASSET_BUCKET = "tellescope-public-files"
-export const getPublicFileURL = ({ businessId, name } : { businessId: string, name: string }) => {
+export const getPublicFileURL = ({ businessId, name, version } : { businessId: string, name: string, version?: number }) => {
   const api = getApiURL()
   const ENV_PREFIX = api === PROD_API_URL ? "prod"
                    : api === STAGING_API_URL ? "staging"
                    : "test"
 
-  return `https://${PUBLIC_ASSET_BUCKET}.s3.amazonaws.com/${ENV_PREFIX}/${businessId}/${name}`
+  return `https://${PUBLIC_ASSET_BUCKET}.s3.amazonaws.com/${ENV_PREFIX}/${businessId}/${name}?version=${version ?? 0}`
+}
+
+export const getDefaultPortalURL = ({ subdomain } : { subdomain: string }) => {
+  const api = getApiURL()
+
+  if (api === TEST_API_URL) return `localhost:3030`
+  return (
+    `https://${subdomain}.${api === PROD_API_URL ? 'portal' : 'staging-portal'}.tellescope.com`
+  )
 }

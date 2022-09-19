@@ -322,7 +322,16 @@ export type CustomActions = {
     create: CustomAction<{}, { id: string, key: string}>,
   },
   files: {
-    prepare_file_upload: CustomAction<{ name: string, size: number, type: string, enduserId?: string, publicRead?: boolean }, { presignedUpload: object, file: File }>,
+    prepare_file_upload: CustomAction<{ 
+      name: string, 
+      size: number, 
+      type: string, 
+      enduserId?: string, 
+      publicRead?: boolean,
+      publicName?: string,
+    }, 
+      { presignedUpload: object, file: File }
+    >,
     file_download_URL: CustomAction<{ secureName: string }, { downloadURL: string }>,
   },
   form_responses: {
@@ -1658,6 +1667,7 @@ export const schema: SchemaV1 = build_schema({
             required: true
           },
           publicRead: { validator: booleanValidator },
+          publicName: { validator: stringValidator250 },
           enduserId: { 
             validator: mongoIdStringValidator ,
             dependencies: [{
@@ -2919,7 +2929,7 @@ export const schema: SchemaV1 = build_schema({
       unique: ['name'], 
       relationship: [],
     },
-    defaultActions: { },
+    defaultActions: { read: { }, update: { adminOnly: true } },
     customActions: { },
     enduserActions: { },
     publicActions: {
@@ -2951,6 +2961,7 @@ export const schema: SchemaV1 = build_schema({
       subscriptionExpiresAt: { validator: dateValidator },
       subscriptionPeriod: { validator: numberValidator },
       logoVersion: { validator: numberValidator },
+      faviconVersion: { validator: numberValidator },
       roles: { validator: listOfStringsValidator },
       skills: { validator: listOfStringsValidator },
       themeColor: { validator: stringValidator100 },

@@ -94,9 +94,10 @@ type FileUploadHandler = (details: FileDetails, file: Blob | Buffer | ReactNativ
 interface UseFileUploaderOptions {
   enduserId?: string
   publicRead?: boolean,
+  publicName?: string,
 }
 export const useFileUpload = (o={} as UseFileUploaderOptions) => {
-  const { enduserId, publicRead } = o
+  const { enduserId, publicRead, publicName } = o
   const session = useResolvedSession()
 
   const [uploading, setUploading] = useState(false)
@@ -104,7 +105,7 @@ export const useFileUpload = (o={} as UseFileUploaderOptions) => {
   const handleUpload: FileUploadHandler = useCallback(async (details, file) => {
     setUploading(true)
     try {
-      const createdFile = await session.prepare_and_upload_file({ ...details, enduserId, publicRead }, file) 
+      const createdFile = await session.prepare_and_upload_file({ ...details, publicName, enduserId, publicRead }, file) 
       return createdFile
     } catch(err) {
       throw err

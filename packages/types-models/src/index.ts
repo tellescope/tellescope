@@ -77,6 +77,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   roles?: string[];
   skills?: string[];
   logoVersion?: number; // missing if no logo set
+  faviconVersion?: number;
   themeColor?: string;
   customPortalURL?: string,
 }
@@ -84,8 +85,10 @@ export type OrganizationTheme = {
   name: string,
   businessId: string,
   subdomain: string,
-  logoURL?: string,
   themeColor?: string
+  logoURL?: string,
+  customPortalURL?: string,
+  faviconURL?: string,
 }
 
 
