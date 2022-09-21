@@ -19,6 +19,7 @@ import {
   Flex,
 } from "./layout"
 import { useResolvedSession, ModalProps } from './index';
+import { Box } from '@mui/material';
 
 export interface WithOffset {
   offsetX?: number,

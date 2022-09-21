@@ -1,4 +1,5 @@
 export interface Indexable<T=any> { [index: string] : T }
+export type Filter<T> = (v : T) => boolean
 export enum LoadingStatus {
   Unloaded = 0,
   Fetching,

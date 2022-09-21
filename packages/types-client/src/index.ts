@@ -13,6 +13,7 @@ export type ClientModelForName_updatesDisabled = ToClientModels<models.ModelForN
 export type ClientModelForName = ToClientModels<models.ModelForName>
 
 export type CalendarEvent = ClientModelForName['calendar_events']
+export type CalendarEventRSVP = ClientModelForName['calendar_event_RSVPs']
 export type Enduser = ClientModelForName['endusers']
 export type EnduserObservation = ClientModelForName['enduser_observations']
 export type EnduserStatusUpdate = ClientModelForName['enduser_status_updates']

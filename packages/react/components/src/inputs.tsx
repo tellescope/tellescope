@@ -1,14 +1,19 @@
-import React, { useCallback, useContext, useState } from "react"
+import React, { useCallback, useContext, useEffect, useState } from "react"
 import { useDropzone } from 'react-dropzone'
 
 import {
+  APIError,
   FileBlob,
   FileDetails,
+  Filter,
+  Indexable,
   ReactNativeFile,
 } from "@tellescope/types-utilities"
 
 import {
+  Enduser,
   File as FileClientType,
+  ManagedContentRecord,
 } from "@tellescope/types-client"
 
 import { 
@@ -16,7 +21,7 @@ import {
 } from "@tellescope/sdk"
 
 import {
-  Flex,
+  Flex, Form,
 } from "./layout"
 import {
   Styled,
@@ -31,7 +36,11 @@ import {
   EnduserSessionContext,
   SessionContext,
 } from "./authentication"
-import { LoadingButton } from "."
+import { Button, IconModal, LabeledIconButtonProps, LoadingButton, Modal, SubmitButton, useEndusers, useFiles, useManagedContentRecords, useModalIconButton } from "."
+import { Grid, InputAdornment, TextField, TextFieldProps } from "@mui/material"
+import DeleteIcon from '@mui/icons-material/Delete';
+import SearchIcon from '@mui/icons-material/Search';
+import { UNSEARCHABLE_FIELDS } from "@tellescope/constants"
 
 export {
   FileBlob,
@@ -99,13 +108,15 @@ interface UseFileUploaderOptions {
 export const useFileUpload = (o={} as UseFileUploaderOptions) => {
   const { enduserId, publicRead, publicName } = o
   const session = useResolvedSession()
+  const [, { addLocalElement }] = useFiles({ dontFetch: true })
 
   const [uploading, setUploading] = useState(false)
 
   const handleUpload: FileUploadHandler = useCallback(async (details, file) => {
     setUploading(true)
     try {
-      const createdFile = await session.prepare_and_upload_file({ ...details, publicName, enduserId, publicRead }, file) 
+      const createdFile = await session.prepare_and_upload_file({ ...details, publicName, enduserId, publicRead }, file);
+      addLocalElement(createdFile)
       return createdFile
     } catch(err) {
       throw err
@@ -199,5 +210,278 @@ export const FileUploader = ({
         disabled={file === undefined} submitting={uploading} 
       />
     </Flex>
+  )
+}
+
+interface ConfirmationScreenProps <T>{
+  action: () => Promise<T>;
+  onCancel: () => void;
+  onSuccess?: (result: T) => void;
+  title?: string;
+  description?: React.ReactNode;
+  typeToConfirm?: string; 
+  confirmText?: string;
+  loadingText?: string
+}
+const ConfirmationScreen = <T,>({ 
+  action, onCancel, onSuccess, typeToConfirm='', 
+  title="Confirmation", description='',
+  confirmText='Confirm', loadingText="Loading" 
+} : ConfirmationScreenProps<T>) => {
+  const [text, setText] = useState('')
+
+  const [submitting, setSubmitting] = useState(false)
+  const [errMessage, setErrMessage] = useState('')
+
+  const handleConfirm = () => {
+    setSubmitting(true)
+    setErrMessage('')
+
+    action()
+    .then(onSuccess)
+    .catch((err: APIError) => {
+      setErrMessage(err?.message ?? err?.toString())
+    })
+    .finally(() => {
+      setSubmitting(false)
+    })
+  }
+
+  return (
+    <Modal open={true} setOpen={o => !o && onCancel()}>
+    <Form onSubmit={handleConfirm} style={{ width: '100%' }}>
+
+    <Grid container>
+      <Grid item xs={12}>
+        <Typography style={{ fontSize: 25, marginBottom: 5 }}>
+          {title}
+        </Typography>
+      </Grid>
+
+      {description &&
+        <Grid item xs={12} sx={{ minHeight: 'min(40vh, 100px)' }}>
+          <Typography style={{ fontSize: 18 }} color="primary">
+            {description}
+          </Typography>
+        </Grid>
+      }
+
+      {typeToConfirm &&
+        <Grid item xs={12} sx={{ mx: '8px' }}>
+          <TextField variant="outlined" type="text" fullWidth
+             name="Confirmation" label={`Type "${typeToConfirm}" to confirm`} placeholder={typeToConfirm}
+             value={text} onChange={e => setText(e.target.value.substring(0, 250))}
+           />
+        </Grid>
+      }
+
+      <Grid item xs={8}>
+        <Button color="primary" variant='outlined' onClick={onCancel}>
+          Cancel
+        </Button>
+      </Grid>
+      <Grid item xs={4}>
+        <SubmitButton
+          submitting={submitting} disabled={typeToConfirm !== text} 
+          submitText={confirmText}
+          submittingText={loadingText}
+        />
+      </Grid>
+
+      <Grid item xs={12} sx={{ my: '8px', width: '100%' }}>
+        <Typography color="error">{errMessage}</Typography>
+      </Grid>
+    </Grid>
+
+    </Form>
+    </Modal>
+  )
+}
+
+interface DeleteWithConfirmationIconProps extends Omit<ConfirmationScreenProps<any>, 'onCancel' | 'confirmText' | 'loadingText'> {
+  modelName: string,
+  color?: LabeledIconButtonProps['color'],
+  iconProps?: Omit<LabeledIconButtonProps, 'Icon' | 'label'>,
+}
+export const DeleteWithConfimrationIcon = ({ modelName, color, iconProps, onSuccess,  ...props } : DeleteWithConfirmationIconProps) => {
+  const modalProps = useModalIconButton({ 
+    Icon: DeleteIcon, label: `Delete ${modelName}`, id: `delete-${modelName}-icon`,
+    color, ...iconProps,
+  })
+
+  const defaultOnSuccess = () => {
+    modalProps.setOpen(false)
+  }
+
+  return (
+    <IconModal {...modalProps}>
+      <ConfirmationScreen {...props}
+        onSuccess={onSuccess ?? defaultOnSuccess}
+        onCancel={() => modalProps.setOpen(false)}  
+        confirmText="Delete" loadingText="Deleting..."
+      />
+    </IconModal>
+  )
+}
+/* FILTER / SEARCH */
+export const filter_setter_for_key = <T,>(key: string, setFilters: React.Dispatch<React.SetStateAction<Filters<T>>>) => (
+  f: Filter<T>
+) => setFilters(fs => ({ ...fs, [key]: { filter: f, data: fs?.[key]?.data } }))
+
+export const apply_filters = <T,>(fs: Filters<T>, data: T[]) => (
+  data.filter(d => {
+    for (const f of Object.values(fs)) {
+      if (!f?.filter) continue
+      if (f.filter(d) === false) return false
+    }
+    return true
+  })
+)
+
+export const useFilters = <T,>() => {
+  const [filters, setFilters] = React.useState({} as Filters<T>)
+
+  const applyFilters = useCallback((data: T[]) => apply_filters(filters, data), [filters])
+
+  return { 
+    filters, 
+    setFilters,
+    applyFilters,
+    activeFilterCount: Object.values(filters).filter(f => !!f.filter).length
+  }
+}
+
+export const record_matches_for_query = <T,>(records: T[], query: string) => {
+  const matches = [] as T[]
+
+  for (const record of records) {
+    for (const field in record) {
+      const value = record[field]
+      if (typeof value !== 'string') continue
+      if (UNSEARCHABLE_FIELDS.includes(field)) continue
+
+      if (value.toUpperCase().includes(query.toUpperCase())) {
+        matches.push(record)
+        break; 
+      }
+    }
+  }
+
+  return matches
+}
+
+export const filter_for_query = <T,>(query: string): FilterWithData<T> => ({
+  filter: (record: T) => {
+    for (const field in record) {
+      const value = record[field]
+      if (typeof value !== 'string') continue
+      if (UNSEARCHABLE_FIELDS.includes(field)) continue
+
+      if (value.toUpperCase().includes(query.toUpperCase())) {
+        return true
+      }
+    }
+
+    return false
+  },
+  data: { query },
+})
+
+export type FilterWithData<T> = {
+  filter: null | ((f: T) => boolean),
+  data?: Indexable,
+}
+export interface Filters<T> {
+  [index: string]: FilterWithData<T>
+}
+
+export interface FilterComponentWithDefaultKey<T> {
+  filters: Filters<T>,
+  setFilters: React.Dispatch<React.SetStateAction<Filters<T>>>,
+}
+// can include a version with an optional key, but make sure to use it in all cases when it's possibly passed as a prop (don't just use a string literal as default)
+export interface FilterComponent<T> extends FilterComponentWithDefaultKey<T> {
+  filterKey: string,
+}
+
+interface SearchAPIProps <T> {
+  searchAPI?: (args: { search: { query: string } }) => Promise<T[]>,
+  onLoad?: (results: T[]) => void,
+}
+export const useSearchAPI = <T,>({ query, onLoad, searchAPI } : { query: string } & SearchAPIProps<T>) => {
+  useEffect(() => {
+    // don't search empty strings
+    if (!query?.trim()) return
+    if (!searchAPI) return
+
+    // unbounce  
+    const t = setTimeout(() => {
+      searchAPI({ search: { query: query.trim() }})
+      .then(results => {
+        if (results.length === 0) { return }
+
+        onLoad?.(results)
+      })
+      .catch(console.error)
+    }, 100)
+
+    return () => { clearTimeout(t) }
+  }, [query, searchAPI, onLoad])
+
+  return
+}
+
+export const SearchTextInput = (props : TextFieldProps) => (
+  <TextField size="small" placeholder="Search..." 
+    InputProps={{
+      startAdornment: (
+        <InputAdornment position="start">
+          <SearchIcon />
+        </InputAdornment>
+      ),
+    }}
+    {...props}
+  />
+)
+
+interface GenericSearchProps <T> extends FilterComponent<T> {
+  placeholder?: string,
+  label?: string,
+  style?: React.CSSProperties,
+  size?: TextFieldProps['size'],
+}
+interface ModelSearchProps<T> extends GenericSearchProps<T>, SearchAPIProps<T> {}
+export const ModelSearchInput = <T,>({ filterKey, setFilters, searchAPI, onLoad, ...props } : ModelSearchProps<T>) => {
+  const [query, setQuery] = useState('')
+
+  useSearchAPI({ query, searchAPI, onLoad })
+
+  useEffect(() => {
+    setFilters(fs => ({ ...fs, [filterKey]: filter_for_query(query) })) 
+  }, [query, filterKey, setFilters])
+
+  return <SearchTextInput {...props} value={query} onChange={e => setQuery(e.target.value)} />
+}
+
+
+export const EnduserSearch = (props: Omit<GenericSearchProps<Enduser>, 'filterKey'>) => {
+  const session = useResolvedSession()
+  const [, { addLocalElements }] = useEndusers()
+  return (
+    <ModelSearchInput {...props} filterKey="endusers"
+      searchAPI={session.api.endusers.getSome}
+      onLoad={addLocalElements}
+    />
+  )
+}
+
+export const ContentSearch = (props: Omit<GenericSearchProps<ManagedContentRecord>, 'filterKey'>) => {
+  const session = useResolvedSession()
+  const [, { addLocalElements }] = useManagedContentRecords()
+  return (
+    <ModelSearchInput {...props} filterKey="managed_content_records"
+      searchAPI={session.api.managed_content_records.getSome}
+      onLoad={addLocalElements}
+    />
   )
 }

@@ -36,6 +36,8 @@ import {
   Link as RouterLink, 
 } from "react-router-dom"
 import {
+  Box,
+  Grid,
   Link as MuiLink
 } from "@mui/material"
 import { PropsWithChildren } from "react"
@@ -311,11 +313,12 @@ export interface ModalProps extends Styled {
   open: boolean,
   setOpen: (b: boolean) => void,
   onClick?: () => void,
+  ref?: any,
 }
 export const Modal = ({ children, onClick, open, setOpen, style=defaultModalStyle }: ModalProps) => (
   <MuiModal open={open} onClick={onClick} onClose={() => setOpen(false)}>
-    <Flex flex={1} style={style}>
-      {children}
-    </Flex>
+  <Grid container style={style}>
+    {children}
+  </Grid>
   </MuiModal>
 )

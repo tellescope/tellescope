@@ -112,6 +112,7 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   post_likes: defaultQueries(s, 'post_likes'),
   organizations: defaultQueries(s, 'organizations'),
   integrations: defaultQueries(s, 'integrations'),
+  calendar_event_RSVPs: defaultQueries(s, 'calendar_event_RSVPs'),
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {

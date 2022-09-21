@@ -41,6 +41,7 @@ import {
   FormField,
   Integration,
   Organization,
+  CalendarEventRSVP,
 } from "@tellescope/types-client"
 
 import {
@@ -247,6 +248,8 @@ const postCommentsSlice = createSliceForList<PostComment, 'post_comments'>('post
 const postLikesSlice = createSliceForList<PostLike, 'post_likes'>('post_likes')
 const organizationsSlice = createSliceForList<Organization, 'organizations'>('organizations')
 
+const calendarEventRSVPsSlice = createSliceForList<CalendarEventRSVP, 'calendar_event_rsvps'>('calendar_event_rsvps')
+
 export const sharedConfig = {
   reducer: { 
     chat_rooms: chatRoomsSlice.reducer,
@@ -279,6 +282,7 @@ export const sharedConfig = {
     integrations: integrationsSlice.reducer,
     gcal_events: gcalEventsSlice.reducer,
     organizations: organizationsSlice.reducer,
+    calendar_event_RSVPs: calendarEventRSVPsSlice.reducer,
   },
 }
 
@@ -1155,6 +1159,21 @@ export const usePostLikes = (options={} as HookOptions<PostLike>) => {
       addSome: session.api.post_likes.createSome,
       deleteOne: session.api.post_likes.deleteOne,
       updateOne: session.api.post_likes.updateOne,
+    }, 
+    {...options}
+  )
+}
+export const useCalendarEventRSVPs = (options={} as HookOptions<CalendarEventRSVP>) => {
+  const session = useResolvedSession()
+  return useListStateHook(
+    'calendar_event_RSVPs', useTypedSelector(s => s.calendar_event_RSVPs), session, calendarEventRSVPsSlice, 
+    { 
+      loadQuery: session.api.calendar_event_RSVPs.getSome,
+      findOne: session.api.calendar_event_RSVPs.getOne,
+      addOne: session.api.calendar_event_RSVPs.createOne,
+      addSome: session.api.calendar_event_RSVPs.createSome,
+      deleteOne: session.api.calendar_event_RSVPs.deleteOne,
+      updateOne: session.api.calendar_event_RSVPs.updateOne,
     }, 
     {...options}
   )

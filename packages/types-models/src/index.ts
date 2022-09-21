@@ -384,6 +384,7 @@ export interface MessageTemplate extends MessageTemplate_readonly, MessageTempla
 
 export interface File_readonly extends ClientRecord {
   secureName: string,
+  publicRead?: boolean, // set on prepare_file_upload and cannot be changed without messing up assumptions in access
 }
 export interface File_required {
   name: string;
@@ -623,19 +624,6 @@ export interface FormResponse_updatesDisabled {
 }
 export interface FormResponse extends FormResponse_readonly, FormResponse_required, FormResponse_updatesDisabled {}
 
-export const WEBHOOK_MODELS = {
-  'chats': '',
-  'meetings': '',
-}
-export type WebhookSupportedModel = keyof typeof WEBHOOK_MODELS
-export type CUDSubscription = {
-  [K in CUD]?: boolean
-}
-export type WebhookSubscriptionsType = { [K in WebhookSupportedModel]?: CUDSubscription }
-export const is_webhook_supported_model = (m: ModelName): m is WebhookSupportedModel => (
-  WEBHOOK_MODELS[m as keyof typeof WEBHOOK_MODELS] !== undefined
-)
-
 export interface WebHook_readonly extends ClientRecord {}
 export interface WebHook_required {}
 export interface WebHook_updatesDisabled {}
@@ -671,18 +659,37 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   fields?: Indexable<string | CustomField>,
   reminders?: CalendarEventReminder[],
   displayImage?: string,
+  numRSVPs?: number,
+  image?: string,
+}
+
+export interface CalendarEventRSVP_readonly extends ClientRecord {}
+export interface CalendarEventRSVP_required {
+  eventId: string,
+}
+export interface CalendarEventRSVP_updatesDisabled {}
+export interface CalendarEventRSVP extends CalendarEventRSVP_readonly, CalendarEventRSVP_required, CalendarEventRSVP_updatesDisabled {
+  displayName: string,
+  avatar?: string,
+  status?: string,
 }
 
 export type WebhookRecord = {
   id: string,
   [index: string]: any,
 }
+
+export type WebhookUpdates = {
+  recordBeforeUpdate: WebhookRecord, 
+  update: Partial<WebhookRecord>,
+}[]
 export interface WebhookCall {  
   model: WebhookSupportedModel,
   message: string,
   type: CUD,
   event?: CalendarEvent & { id: string },
   records: WebhookRecord[],
+  updates?: WebhookUpdates,
   relatedRecords: { [index: string]: WebhookRecord },
   timestamp: string,
   integrity: string,
@@ -1034,6 +1041,7 @@ export type ModelForName_required = {
   form_fields: FormField_required;
   form_responses: FormResponse_required,
   calendar_events: CalendarEvent_required,
+  calendar_event_RSVPs: CalendarEventRSVP_required,
   automation_steps: AutomationStep_required,
   automated_actions: AutomatedAction_required,
   sequence_automations: SequenceAutomation_required,
@@ -1072,6 +1080,7 @@ export interface ModelForName_readonly {
   form_fields: FormField_readonly;
   form_responses: FormResponse_readonly;
   calendar_events: CalendarEvent_readonly,
+  calendar_event_RSVPs: CalendarEventRSVP_readonly,
   automation_steps: AutomationStep_readonly,
   automated_actions: AutomatedAction_readonly,
   sequence_automations: SequenceAutomation_readonly,
@@ -1110,6 +1119,7 @@ export interface ModelForName_updatesDisabled {
   form_fields: FormField_updatesDisabled;
   form_responses: FormResponse_updatesDisabled;
   calendar_events: CalendarEvent_updatesDisabled,
+  calendar_event_RSVPs: CalendarEventRSVP_updatesDisabled,
   automation_steps: AutomationStep_updatesDisabled,
   automated_actions: AutomatedAction_updatesDisabled, 
   sequence_automations: SequenceAutomation_updatesDisabled,
@@ -1148,6 +1158,7 @@ export interface ModelForName extends ModelForName_required, ModelForName_readon
   form_fields: FormField;
   form_responses: FormResponse;
   calendar_events: CalendarEvent,
+  calendar_event_RSVPs: CalendarEventRSVP,
   automation_steps: AutomationStep,
   automated_actions: AutomatedAction,
   sequence_automations: SequenceAutomation,
@@ -1197,6 +1208,7 @@ export const modelNameChecker: { [K in ModelName] : true } = {
   form_fields: true,
   form_responses: true,
   calendar_events: true,
+  calendar_event_RSVPs: true,
   automation_steps: true,
   automated_actions: true,
   sequence_automations: true,
@@ -1212,5 +1224,21 @@ export const modelNameChecker: { [K in ModelName] : true } = {
   organizations: true,
   integrations: true,
 }
+
+
+const WEBHOOK_MODELS: Partial<typeof modelNameChecker> = { ...modelNameChecker,  }
+delete WEBHOOK_MODELS['api_keys']
+delete WEBHOOK_MODELS['integrations']
+
+export { WEBHOOK_MODELS }
+
+export type WebhookSupportedModel = keyof typeof WEBHOOK_MODELS
+export type CUDSubscription = {
+  [K in CUD]?: boolean
+}
+export type WebhookSubscriptionsType = { [K in WebhookSupportedModel]?: CUDSubscription }
+export const is_webhook_supported_model = (m: ModelName): m is WebhookSupportedModel => (
+  WEBHOOK_MODELS[m] !== undefined
+)
 
 export const isModelName = (s: string): s is ModelName => modelNameChecker[s as ModelName]

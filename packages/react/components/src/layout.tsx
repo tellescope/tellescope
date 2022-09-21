@@ -253,6 +253,7 @@ export const ScrollingList = <T extends { id: string | number }>({
   loadMore,
   Item,
   TitleComponent,
+  titleActionsComponent,
 } : {
   items: T[],
   Item: React.JSXElementConstructor<{ item: T }>
@@ -263,6 +264,7 @@ export const ScrollingList = <T extends { id: string | number }>({
   doneLoading?: () => boolean,
   loadMore?: () => Promise<void>,
   TitleComponent?: TitleComponentType,
+  titleActionsComponent?: React.ReactNode,
 }) => {
   const fetchRef = useRef(0)
   const titleStyleWithDefaults = { fontSize: 20, fontWeight: 'bold', marginBottom: 3, ...titleStyle }
@@ -272,9 +274,13 @@ export const ScrollingList = <T extends { id: string | number }>({
       {TitleComponent
         ? <TitleComponent title={title} titleStyle={titleStyleWithDefaults} />
         : (
-          <Typography style={titleStyleWithDefaults}>
-            {title}
-          </Typography>
+          <Grid container alignItems="center" justifyContent="space-between">
+            <Typography style={titleStyleWithDefaults}>
+              {title}
+            </Typography>
+            
+            {titleActionsComponent}
+          </Grid>
         )
       }
 

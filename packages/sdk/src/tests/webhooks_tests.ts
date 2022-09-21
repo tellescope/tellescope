@@ -202,6 +202,42 @@ const meetings_tests = async (isSubscribed: boolean) => {
   await sdk.api.endusers.deleteOne(enduser.id)
 }
 
+const endusers_tests = async (isSubscribed: boolean) => {
+  log_header(`Endusers Tests, isSubscribed=${isSubscribed}`)
+
+  if (isSubscribed) {
+    await sdk.api.webhooks.update({ subscriptionUpdates: { 
+      ...emptySubscription, 
+      chats: { create: true }, 
+      meetings: { create: true, update: true, delete: false },
+      endusers: { create: false, update: true, delete: false },
+    }})
+  }
+
+  const enduser = await sdk.api.endusers.createOne({ email: 'deleteme@tellescope.com' })
+  const update = { assignedTo: [sdk.userInfo.id] }
+  await sdk.api.endusers.updateOne(enduser.id, update)
+
+  await check_next_webhook(
+    a => (
+         objects_equivalent(a.updates?.[0]?.recordBeforeUpdate, enduser)
+      && objects_equivalent(a.updates?.[0]?.update, update)
+    ),
+    'Enduser update error', 'Update enduser webhook', isSubscribed
+  ) 
+
+  // cleanup
+  if (isSubscribed) {
+    await sdk.api.webhooks.update({ subscriptionUpdates: { 
+      ...emptySubscription, 
+      chats: { create: true }, 
+      meetings: { create: true, update: true, delete: false },
+    }})
+  }
+
+  await sdk.api.endusers.deleteOne(enduser.id)
+}
+
 const AUTOMATION_POLLING_DELAY_MS = 3000 - CHECK_WEBHOOK_DELAY_MS
 const test_automation_webhooks = async () => {
   log_header("Automation Events")
@@ -232,7 +268,9 @@ const test_automation_webhooks = async () => {
   await wait(undefined, AUTOMATION_POLLING_DELAY_MS)
   
   await check_next_webhook(
-    ({ message }) => message === testMessage,
+    ({ message }) => {
+      return message === testMessage
+    },
     'Automation webhook received', 
     'Automation webhook error', 
     true
@@ -340,7 +378,8 @@ const calendar_event_reminders_tests = async (isSubscribed: boolean) => {
   await sdk.api.calendar_events.deleteOne(calendarEvent.id)
 }
 
-const tests: { [K in WebhookSupportedModel  | 'calendarEventReminders']: (isSubscribed: boolean) => Promise<void> } = {
+const tests: { [K in WebhookSupportedModel  | 'calendarEventReminders']?: (isSubscribed: boolean) => Promise<void> } = {
+  endusers: endusers_tests,
   chats: chats_tests,
   calendarEventReminders: calendar_event_reminders_tests, 
   meetings: meetings_tests,
@@ -404,10 +443,18 @@ const run_tests = async () => {
     { onResult: r => r.url === webhookURL && objects_equivalent(r.subscriptions, fullSubscription) }
   )
 
+  // reset to only poartial / testing fields
+  // todo: subscribe in individual tests to avoid issues in ordering of tests / subscriptions
+  await sdk.api.webhooks.update({ subscriptionUpdates: { 
+    ...emptySubscription, 
+    chats: { create: true }, 
+    meetings: { create: true, update: true, delete: false } } 
+  })
+
   log_header("Webhooks Tests with Subscriptions")
   await test_automation_webhooks()
   for (const t in tests) {
-    await tests[t as keyof typeof tests](true)
+    await tests[t as keyof typeof tests]?.(true)
   }
   const finalLength = handledEvents.length
 
@@ -423,8 +470,9 @@ const run_tests = async () => {
       continue // don't require subscription / can't unsubscribe
     }
 
-    await tests[t as keyof typeof tests](false)
+    await tests[t as keyof typeof tests]?.(false)
   }
+
   assert(finalLength === handledEvents.length, 'length changed after subscriptions', 'No webhooks posted when no subscription')
 
 }

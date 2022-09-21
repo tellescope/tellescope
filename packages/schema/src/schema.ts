@@ -31,7 +31,6 @@ import {
   MeetingInfo,
   PreviousFormField,
   OrganizationTheme,
-  OAuth2AuthenticationFields,
 } from "@tellescope/types-models"
 
 import {
@@ -42,7 +41,6 @@ import {
   FormField,
   Form,
   Meeting,
-  Integration,
   Email,
   File,
 } from "@tellescope/types-client"
@@ -144,9 +142,11 @@ export type AccessConstraint <T> = { type: 'creatorOnly' }
   | DependencyAccessConstraint<T>
 
 export type UniqueArrayConstraint <T> = { array: keyof T, itemKey?: string }
+export type AndConstraint <T> = (keyof T)[]
+export type UniqueConstraint<T> = (keyof T & string | AndConstraint<T> | UniqueArrayConstraint<T>)
 
 export type Constraint <T> = {
-  unique: (keyof T & string | UniqueArrayConstraint<T>)[];
+  unique: UniqueConstraint<T>[];
   globalUnique?: (keyof T)[];
   relationship: (RelationshipConstraint<Partial<T>>)[];
   access?: AccessConstraint<T>[];
@@ -200,6 +200,7 @@ type ActionInfo = {
   notes?: string[],
   warnings?: string[],
   adminOnly?: boolean,
+  creatorOnly?: boolean,
 }
 
 export type CustomAction <P=any, R=any> = {
@@ -403,7 +404,7 @@ export type CustomActions = {
   },
   emails: {
     sync_integrations: CustomAction<{ enduserEmail: string }, { newEmails: Email[] }>, 
-  }
+  },
 } 
 
 export type PublicActions = {
@@ -1623,7 +1624,7 @@ export const schema: SchemaV1 = build_schema({
   files: {
     info: {},
     constraints: { unique: [], relationship: [] },
-    defaultActions: { read: {}, readMany: {}, update: {} },
+    defaultActions: { read: {}, readMany: {}, update: {}, delete: {} },
     fields: {
       ...BuiltInFields, 
       name: {
@@ -1646,7 +1647,7 @@ export const schema: SchemaV1 = build_schema({
         readonly: true,
       },
     },
-    enduserActions: { prepare_file_upload: {}, file_download_URL: {}, read: {}, readMany: {} },
+    enduserActions: { prepare_file_upload: {}, file_download_URL: {}, read: {}, readMany: {}, delete: {} },
     customActions: {
       prepare_file_upload: {
         op: "custom", access: 'create', method: "post",
@@ -2335,6 +2336,43 @@ export const schema: SchemaV1 = build_schema({
       enableVideoCall: { validator: booleanValidator }, 
       displayImage: { validator: stringValidator }, 
       fields: { validator: fieldsValidator }, 
+      numRSVPs: { validator: nonNegNumberValidator },
+      image: { validator: stringValidator5000 },
+    }
+  },
+  calendar_event_RSVPs: {
+    info: {},
+    constraints: {
+      unique: [
+        ['eventId', 'creator'], // one per eventId-creator combo
+      ], 
+      relationship: [],
+    },
+    customActions: {},
+    defaultActions: { ...DEFAULT_OPERATIONS, update: { creatorOnly: true }, delete: { creatorOnly: true } },
+    enduserActions: { create: {}, read: {}, readMany: {}, update: { }, delete: { } },
+    fields: {
+      ...BuiltInFields, 
+      eventId: { 
+        validator: mongoIdStringValidator,
+        required: true,
+        examples: [PLACEHOLDER_ID],
+        dependencies: [{
+          dependsOn: ['calendar_events'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+      displayName: { 
+        validator: stringValidator,
+        initializer: (_, s) => s.fname ?? '',
+      },
+      avatar: { 
+        validator: stringValidator,
+        initializer: (_, s) => s.avatar,
+      },
+      status: { validator: stringValidator },
     }
   },
   sequence_automations: {
@@ -2724,7 +2762,7 @@ export const schema: SchemaV1 = build_schema({
     },
     defaultActions: DEFAULT_OPERATIONS,
     customActions: { },
-    enduserActions: { create: {}, read: {}, readMany: {} },
+    enduserActions: { create: {}, read: {}, readMany: {}, update: { creatorOnly: true }, delete: { creatorOnly: true } },
     fields: {
       ...BuiltInFields, 
       forumId: {

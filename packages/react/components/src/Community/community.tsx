@@ -19,6 +19,8 @@ import {
   ResolveDisplayPicture,
   elapsed_time_display_string,
   ResolveDisplayName,
+  useResolvedSession,
+  DeleteWithConfimrationIcon,
 } from "../index"
 import { Divider, Grid, LinearProgress, Paper, TextField, Typography } from "@mui/material"
 import {
@@ -144,12 +146,16 @@ export const PostView = ({
   maxHeightPost,
   maxHeightComments,
   redirectLink,
+  onDelete,
 } : { 
   redirectLink?: string,
   maxHeightComments: React.CSSProperties['maxHeight'] 
   maxHeightPost: React.CSSProperties['maxHeight'] 
+  onDelete: () => void,
 } & WithPostId & WithForumId) => {
-  const [, { findById: findPost }] = useForumPosts({ loadFilter: { forumId }})
+  const session = useResolvedSession()
+
+  const [, { findById: findPost, removeElement: deletePost }] = useForumPosts({ loadFilter: { forumId }})
   const [, { filtered, doneLoading, loadMore }] = usePostComments({ loadFilter: { forumId, postId }})
   const post = findPost(postId)
 
@@ -170,9 +176,21 @@ export const PostView = ({
         overflowY: 'auto',
         maxWidth: POST_MAX_WIDTH
       }}>
-        <Typography style={{ fontSize: 20, fontWeight: 600 }}>
-          {post.title}
-        </Typography>
+        <Grid container alignItems="center" justifyContent="space-between">
+          <Typography style={{ fontSize: 20, fontWeight: 600 }}>
+            {post.title}
+          </Typography>
+
+          {(session.type === 'user' || post.creator === session.userInfo.id) && 
+            <>
+              <DeleteWithConfimrationIcon modelName="Post"
+                title="Delete Post" 
+                description="Do you wish to permanently delete this post?"
+                action={() => deletePost(post.id).then(onDelete).catch(console.error)}
+              />
+            </>
+          }
+        </Grid>
 
         <Divider flexItem sx={{ mb: 1 }} />
 
@@ -238,6 +256,13 @@ export const PostPreview = ({
 }) => {
   const { status, toggleLike } = usePostLiking({ postId: post.id, forumId: post.forumId })
 
+  const underlineTextSX = {
+    cursor: onClick ? 'pointer' : undefined,
+    '&:hover': {
+      textDecoration: onClick ? 'underline' : undefined,
+    }
+  }
+
   return (
     <Grid container direction="column" sx={{ 
       p: {
@@ -245,12 +270,7 @@ export const PostPreview = ({
         md: 3,
       }
     }}>
-      <Grid item onClick={() => onClick?.(post)} sx={{
-        cursor: onClick ? 'pointer' : undefined,
-        '&:hover': {
-          textDecoration: onClick ? 'underline' : undefined,
-        }
-      }}>
+      <Grid item onClick={() => onClick?.(post)}>
         <Grid container wrap="nowrap">
           <ResolveDisplayPicture {...post.postedBy} />
 
@@ -267,7 +287,7 @@ export const PostPreview = ({
           </Grid>
         </Grid>
 
-        <Grid item sx={{ my: 1 }}>
+        <Grid item sx={{ my: 1, ...underlineTextSX }}>
           <Typography style={{ fontWeight: 'bold', fontSize: 18 }}>
             {post.title}
           </Typography>

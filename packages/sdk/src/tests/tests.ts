@@ -1333,10 +1333,21 @@ const files_tests = async () => {
   const { presignedUpload, file } = await sdk.api.files.prepare_file_upload({ 
     name: 'Test File', size: buff.byteLength, type: 'text/plain' 
   })
+
+  const { presignedUpload: presigned2, file: publicFile } = await sdk.api.files.prepare_file_upload({ 
+    name: 'Test File', size: buff.byteLength, type: 'text/plain',
+    publicRead: true,
+    publicName: 'public',
+  })
   
   await sdk.UPLOAD(
     // @ts-ignore
     presignedUpload, 
+    buff
+  )
+  await sdk.UPLOAD(
+    // @ts-ignore
+    presigned2, 
     buff
   )
 
@@ -1351,7 +1362,11 @@ const files_tests = async () => {
   const { downloadURL: urlForEnduser } = await enduserSDK.api.files.file_download_URL({ secureName: file.secureName })
   assert(downloadURL === urlForEnduser, 'failed to get download url for enduser', 'download url for enduser')
 
-  await sdk.api.endusers.deleteOne(enduser.id)
+  await Promise.all([
+    sdk.api.endusers.deleteOne(enduser.id),
+    sdk.api.files.deleteOne(file.id),
+    sdk.api.files.deleteOne(publicFile.id),
+  ])
 }
 
 const enduser_session_tests = async () => {
@@ -2432,13 +2447,99 @@ export const managed_content_records_tests = async () => {
   ])
 }
 
+export const calendar_event_RSVPs_tests = async () => {
+  log_header("Calendar Event RSVPs")
+
+  await enduserSDK.register({ email: 'rsvps@tellescope.com', password: "testenduserpassword" })
+  await enduserSDK.authenticate('rsvps@tellescope.com', "testenduserpassword")
+
+  const event = await sdk.api.calendar_events.createOne({
+    title: "RSVP Event",
+    startTimeInMS: Date.now(), 
+    durationInMinutes: 60,
+  })
+  const event2 = await sdk.api.calendar_events.createOne({
+    title: "RSVP Event 2",
+    startTimeInMS: Date.now(), 
+    durationInMinutes: 60,
+  })
+
+  const userRSVP = await sdk.api.calendar_event_RSVPs.createOne({ eventId: event.id })
+  assert(userRSVP.displayName === sdk.userInfo.fname ?? '', 'display name init bad', 'display name init')
+  
+  await sdk.api.calendar_event_RSVPs.createOne({ eventId: event2.id }) // can create second event for non-match
+
+  const enduserRSVP = await enduserSDK.api.calendar_event_RSVPs.createOne({ eventId: event.id })
+
+  await async_test(
+    'user cannot create duplicate RSVP',
+    () => sdk.api.calendar_event_RSVPs.createOne({ eventId: event.id }),
+    { shouldError: true, onError: e => e.message === UniquenessViolationMessage},
+  )
+  await async_test(
+    'enduser cannot create duplicate RSVP',
+    () => enduserSDK.api.calendar_event_RSVPs.createOne({ eventId: event.id }),
+    { shouldError: true, onError: e => e.message === UniquenessViolationMessage},
+  )
+
+  await async_test(
+    'enduser cannot delete user RSVP',
+    () => enduserSDK.api.calendar_event_RSVPs.deleteOne(userRSVP.id),
+    handleAnyError,
+  )
+  await async_test(
+    'user cannot delete enduser RSVP',
+    () => sdk.api.calendar_event_RSVPs.deleteOne(enduserRSVP.id),
+    handleAnyError,
+  )
+
+  await async_test(
+    'enduser cannot update user RSVP',
+    () => enduserSDK.api.calendar_event_RSVPs.updateOne(userRSVP.id, { status: 'Maybe' }),
+    handleAnyError,
+  )
+  await async_test(
+    'user cannot update enduser RSVP',
+    () => sdk.api.calendar_event_RSVPs.updateOne(enduserRSVP.id, { status: 'Maybe' }),
+    handleAnyError,
+  )
+
+  await async_test(
+    'RSVPs incremented',
+    () => sdk.api.calendar_events.getOne(event.id),
+    { onResult: c => c.numRSVPs === 2},
+  )
+  await async_test(
+    'enduser can delete own RSVP',
+    () => enduserSDK.api.calendar_event_RSVPs.deleteOne(enduserRSVP.id),
+    passOnAnyResult,
+  )
+  await async_test(
+    'user can delete own RSVP',
+    () => sdk.api.calendar_event_RSVPs.deleteOne(userRSVP.id),
+    passOnAnyResult,
+  )
+  await async_test(
+    'RSVPs decremented',
+    () => sdk.api.calendar_events.getOne(event.id),
+    { onResult: c => c.numRSVPs === 0 },
+  )
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(enduserSDK.userInfo.id),
+    sdk.api.calendar_events.deleteOne(event.id),
+    sdk.api.calendar_events.deleteOne(event2.id),
+  ])
+}
+
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
+  journeys: journey_tests,
+  calendar_event_RSVPs: calendar_event_RSVPs_tests,
   chats: chat_tests,
   endusers: enduser_tests,
   api_keys: api_key_tests,
   engagement_events: engagement_tests,
-  journeys: journey_tests,
   tasks: tasks_tests,
   emails: email_tests,
   sms_messages: sms_tests,
