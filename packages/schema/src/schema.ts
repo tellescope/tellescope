@@ -400,6 +400,7 @@ export type CustomActions = {
   },
   integrations: {
     generate_google_auth_url: CustomAction<{ }, { authUrl: string, }>, 
+    disconnect_google_integration: CustomAction<{}, {}>,
     refresh_oauth2_session: CustomAction<{ title: string }, { access_token: string, expiry_date: number }>, 
   },
   emails: {
@@ -827,6 +828,14 @@ export const schema: SchemaV1 = build_schema({
             required: true
           },
         }
+      },
+      disconnect_google_integration: {
+        op: 'custom', access: 'delete', method: 'post',
+        path: '/disconnect-google-integration',
+        name: 'Disconnects an integration with Google',
+        description: "",
+        parameters: {},
+        returns: {}
       },
       refresh_oauth2_session: {
         op: 'custom', access: 'create', method: 'post',
