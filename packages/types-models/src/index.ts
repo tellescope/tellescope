@@ -663,7 +663,9 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   image?: string,
 }
 
-export interface CalendarEventRSVP_readonly extends ClientRecord {}
+export interface CalendarEventRSVP_readonly extends ClientRecord {
+  creatorType: SessionType;
+}
 export interface CalendarEventRSVP_required {
   eventId: string,
 }

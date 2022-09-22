@@ -1,6 +1,42 @@
+import { CalendarEvent } from "@tellescope/types-client"
 import { useCallback } from "react"
-import { useForumPosts, usePostLikes, useResolvedSession, value_is_loaded } from "../index"
+import { useCalendarEvents, useCalendarEventRSVPs, useForumPosts, usePostLikes, useResolvedSession, value_is_loaded } from "../index"
 import { PostLikeStatus, WithForumId, WithPostId } from "./types"
+
+
+export const useRSVPActions = (event: CalendarEvent) => {
+  const session = useResolvedSession()
+
+  const [, { updateLocalElement: updateCalendarEvent }] = useCalendarEvents({ dontFetch: true })
+  useCalendarEventRSVPs() // load rsvps, likely including recent ones for this event
+  const [, { createElement: createRSVP, removeElement: deleteRSVP, filtered }] = useCalendarEventRSVPs({ loadFilter: { creator: session.userInfo.id } }) // ensure own RSVPs are loaded
+  const eventRSVPsLoading = filtered(e => e.eventId === event.id)
+
+  const rsvps = value_is_loaded(eventRSVPsLoading) ? eventRSVPsLoading.value : []
+
+  const selfRSVP = rsvps.find(r => r.creator === session.userInfo.id)
+
+  const addRsvp = useCallback(() => (
+    createRSVP({ eventId: event.id }) 
+    .then(() => updateCalendarEvent(event.id, { numRSVPs: (event.numRSVPs ?? 0) + 1 }))
+    .catch(console.error)
+  ), [event, createRSVP, updateCalendarEvent])
+
+  const removeRsvp = useCallback(() => {
+    if (!selfRSVP) return new Promise<void>((r) => r())
+
+    return deleteRSVP(selfRSVP.id) 
+    .then(() => updateCalendarEvent(event.id, { numRSVPs: (event.numRSVPs ?? 0) - 1 }))
+    .catch(console.error)
+  }, [event, selfRSVP, deleteRSVP, updateCalendarEvent])
+
+  return {
+    rsvps,
+    selfRSVP,
+    addRsvp,
+    removeRsvp,
+  }
+}
 
 export const usePostLiking = ({ forumId, postId } : WithForumId & WithPostId) => {
   const session = useResolvedSession()

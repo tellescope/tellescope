@@ -119,6 +119,7 @@ import {
   listOfMongoIdStringValidatorEmptyOk,
   formFieldOptionsValidator,
   blocksValidator,
+  sessionTypeValidator,
 } from "@tellescope/validation"
 
 import {
@@ -2379,9 +2380,14 @@ export const schema: SchemaV1 = build_schema({
       },
       avatar: { 
         validator: stringValidator,
-        initializer: (_, s) => s.avatar,
+        initializer: (_, s) => s.avatar ?? '',
       },
       status: { validator: stringValidator },
+      creatorType: { 
+        readonly: true,
+        validator: sessionTypeValidator, 
+        initializer: (_, s) => s.type,
+      }
     }
   },
   sequence_automations: {

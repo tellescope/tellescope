@@ -36,7 +36,7 @@ import {
   EnduserSessionContext,
   SessionContext,
 } from "./authentication"
-import { Button, IconModal, LabeledIconButtonProps, LoadingButton, Modal, SubmitButton, useEndusers, useFiles, useManagedContentRecords, useModalIconButton } from "."
+import { Button, IconModal, LabeledIconButtonProps, LoadingButton, Modal, SecureImage, SubmitButton, useEndusers, useFiles, useManagedContentRecords, useModalIconButton } from "."
 import { Grid, InputAdornment, TextField, TextFieldProps } from "@mui/material"
 import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
@@ -483,5 +483,109 @@ export const ContentSearch = (props: Omit<GenericSearchProps<ManagedContentRecor
       searchAPI={session.api.managed_content_records.getSome}
       onLoad={addLocalElements}
     />
+  )
+}
+
+
+export const ImageOrDropzone = ({ 
+  style, 
+  maxHeight, width, 
+  existing, onUpload, uploadInModal,
+  dropzoneText="Select a Photo"
+} : { 
+  existing?: string,
+  dropzoneText?: string,
+  onUpload: (secureName: string) => void,
+  maxHeight?: number,
+  width?: number,
+  uploadInModal?: boolean,
+} & Styled) => {
+  const [selectedFile, setSelectedFile] = useState<FileBlob | undefined>(undefined)
+  const [open, setOpen] = useState(false)
+  const [error, setError] = useState('')
+  
+  const { handleUpload, uploading } = useFileUpload()
+
+  const upload = (
+    <Grid container direction="column">
+      <FileDropzone file={selectedFile} onChange={setSelectedFile}
+        label={dropzoneText}
+        accept={".png,.jpg,.jpeg,.gif"}
+        dropzoneStyle={{
+          cursor: 'pointer',
+          border: '1px solid black',
+          borderRadius: 5,
+          height: maxHeight,
+          // width: 400,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      />
+
+      {selectedFile && 
+        <LoadingButton submitText="Upload" submittingText="Uploading..." 
+          disabled={!selectedFile}
+          submitting={uploading} onClick={async () => {
+            if (!selectedFile) return
+            setError('')
+
+            if (!(
+              selectedFile.type.includes('png')
+            || selectedFile.type.includes('jpg')
+            || selectedFile.type.includes('jpeg')
+            || selectedFile.type.includes('gif')
+            )) {
+              return setError("Please attach an image file")  
+            }
+
+            try {
+              const { secureName } = await handleUpload({
+                name: selectedFile.name,
+                type: selectedFile.type,
+                size: selectedFile.size,
+              }, selectedFile)
+
+              onUpload(secureName)
+
+              setOpen(false)
+              setSelectedFile(undefined)
+            } catch(err: any) {
+              setError(err?.message ?? err?.toString())
+            }
+          }}
+        />
+      }
+
+      <Typography color="error">{error}</Typography>
+    </Grid>
+  )
+
+  return (
+    <>
+    {!(uploadInModal || open)
+      ? 
+        existing
+          ? (
+            <Grid container alignItems="center" justifyContent="center" style={style} onClick={() => setOpen(true)} sx={{ 
+              cursor: 'pointer',
+            }}>
+              <SecureImage secureName={existing} maxHeight={maxHeight} width={width} />
+            </Grid>
+          ) 
+          : upload 
+      : null
+    }
+
+    {uploadInModal 
+      ? ( 
+        <Modal open={open} setOpen={setOpen}>
+          {upload}
+        </Modal>
+      )
+      : open 
+        ? upload
+        : null
+    }
+    </>
   )
 }

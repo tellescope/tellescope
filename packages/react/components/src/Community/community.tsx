@@ -32,23 +32,28 @@ import LikeIcon from "@mui/icons-material/ThumbUp"
 
 import AddCircleIcon from "@mui/icons-material/AddCircle"
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
+import EditIcon from '@mui/icons-material/Edit';
 
 const formFieldStyle: React.CSSProperties = { 
   width: '100%',
   marginBottom: 8,
 }
 
-export const CreatePost = ({ forumId, onSuccess } : { onSuccess?: (post: ForumPost) => void } & WithForumId) => {
-  const [, { createElement: createPost }] = useForumPosts({ dontFetch: true })
+export const PostEditor = ({ existingPost, forumId, onSuccess } : { existingPost?: ForumPost, onSuccess?: (post: ForumPost) => void } & WithForumId) => {
+  const [, { createElement: createPost, updateElement: updatePost }] = useForumPosts({ dontFetch: true })
 
-  const [title, setTitle] = useState('')
-  const [textContent, setTextContent] = useState('')
+  const [title, setTitle] = useState(existingPost?.title ?? '')
+  const [textContent, setTextContent] = useState(existingPost?.textContent ?? '')
   const [error, setError] = useState('')
 
   const handleSubmit = useCallback(async () => {
     setError('')
     try {
-      const post = await createPost({ title, textContent, forumId, htmlContent: '' })
+      const post = await (
+        existingPost 
+          ? updatePost(existingPost.id, { title, textContent })
+          : createPost({ title, textContent, forumId, htmlContent: '' })
+      )
       onSuccess?.(post)
       setTitle('')
       setTextContent('')
@@ -72,7 +77,10 @@ export const CreatePost = ({ forumId, onSuccess } : { onSuccess?: (post: ForumPo
       /> 
 
       <SubmitButton submitText="Add Post" submittingText="Posting..." 
-        disabled={!(title && textContent)}
+        disabled={ 
+          !(title && textContent)
+          || (existingPost && title === existingPost.title && textContent === existingPost.textContent)
+        }
         style={{ width: '100%', ...formFieldStyle}} 
       />
 
@@ -155,6 +163,8 @@ export const PostView = ({
 } & WithPostId & WithForumId) => {
   const session = useResolvedSession()
 
+  const editPostProps = useModalIconButton({ Icon: EditIcon, label: "Edit Post" })
+
   const [, { findById: findPost, removeElement: deletePost }] = useForumPosts({ loadFilter: { forumId }})
   const [, { filtered, doneLoading, loadMore }] = usePostComments({ loadFilter: { forumId, postId }})
   const post = findPost(postId)
@@ -182,13 +192,20 @@ export const PostView = ({
           </Typography>
 
           {(session.type === 'user' || post.creator === session.userInfo.id) && 
-            <>
+            <Grid item>
+            <Grid container alignItems="center">
+              <IconModal {...editPostProps}>
+                <PostEditor existingPost={post} forumId={post.forumId}
+                  onSuccess={() => editPostProps.setOpen(false)} 
+                />
+              </IconModal>
               <DeleteWithConfimrationIcon modelName="Post"
                 title="Delete Post" 
                 description="Do you wish to permanently delete this post?"
                 action={() => deletePost(post.id).then(onDelete).catch(console.error)}
               />
-            </>
+            </Grid>
+            </Grid>
           }
         </Grid>
 
@@ -356,7 +373,7 @@ export const ForumView = ({
         </Typography>
   
         <IconModal {...addPostProps}> 
-          <CreatePost forumId={forumId} onSuccess={() => addPostProps.setOpen(false)} />
+          <PostEditor forumId={forumId} onSuccess={() => addPostProps.setOpen(false)} />
         </IconModal>
       </Grid>
     )
