@@ -122,6 +122,7 @@ import {
   BlockContentImage,
   BlockContentYoutube,
   BlockContentH2,
+  PortalSettings,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -1474,14 +1475,19 @@ export const previousFormFieldValidator = orValidator<{ [K in PreviousFormFieldT
 })
 export const previousFormFieldsValidator = listValidatorEmptyOk(previousFormFieldValidator())
 
+export const portalSettingsValidator = objectValidator<PortalSettings>({
+
+})
+
 export const organizationThemeValidator = objectValidator<OrganizationTheme>({
-  logoURL: stringValidator250({ isOptional: true }),
-  themeColor: stringValidator250({ isOptional: true }),
+  logoURL: stringValidator250({ isOptional: true }), // these don't really need to be optional
+  themeColor: stringValidator250({ isOptional: true }), // these don't really need to be optional
   name: stringValidator250(),
   subdomain: stringValidator250(),
   businessId: mongoIdRequired,
   faviconURL: stringValidator250(),
   customPortalURL: stringValidator250(),
+  portalSettings: portalSettingsValidator(),
 })
 
 const _MANAGED_CONTENT_RECORD_TYPES: { [K in ManagedContentRecordType]: any } = {

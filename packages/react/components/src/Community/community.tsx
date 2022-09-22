@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from "react"
-import { Forum, ForumPost, PostComment } from "@tellescope/types-client"
+import { CalendarEventRSVP, Forum, ForumPost, PostComment } from "@tellescope/types-client"
 import { 
   HoverPaper, 
   LoadingLinear, 
@@ -21,6 +21,7 @@ import {
   ResolveDisplayName,
   useResolvedSession,
   DeleteWithConfimrationIcon,
+  DisplayPicture,
 } from "../index"
 import { Divider, Grid, LinearProgress, Paper, TextField, Typography } from "@mui/material"
 import {
@@ -34,6 +35,16 @@ import AddCircleIcon from "@mui/icons-material/AddCircle"
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import EditIcon from '@mui/icons-material/Edit';
 
+export const RSVPAvatar = ({ rsvp } : { rsvp: CalendarEventRSVP }) => (
+  <DisplayPicture size={20}
+    letters={rsvp.avatar ? undefined : rsvp.displayName[0]}  
+    user={{
+      id: rsvp.creator,
+      avatar: rsvp.avatar,
+    }} 
+  />
+)
+ 
 const formFieldStyle: React.CSSProperties = { 
   width: '100%',
   marginBottom: 8,

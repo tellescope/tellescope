@@ -46,10 +46,25 @@ export const useJoinMeeting = () => {
   const joinMeeting = useCallback(async (meeting: Meeting) => {
     setMeeting(meeting.meetingInfo.Meeting)
     setIsHost(meeting.creator === session.userInfo.id)
+
+    let attendeeInfo = meeting.attendees.find(a => a.id === session.userInfo.id)?.info
+    if (!attendeeInfo) {
+      const calendarEventId = meeting.calendarEventId
+      if (calendarEventId) {
+        const result = await session.api.meetings.join_meeting_for_event({ calendarEventId })
+
+        attendeeInfo = result.attendee.info
+      }
+
+      if (!attendeeInfo) {
+        console.error("Could not find attendee info for joining meeting and failed to join")
+        return
+      }      
+    }
     
     await meetingManager.join({ 
       meetingInfo: meeting.meetingInfo, 
-      attendeeInfo: meeting.attendees.find(a => a.id === session.userInfo.id)!.info
+      attendeeInfo,
     }); // Use the join API to create a meeting session
     await meetingManager.start(); // At this point you can let users setup their devices, or start the session immediately
 

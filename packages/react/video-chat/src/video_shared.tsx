@@ -18,6 +18,7 @@ export interface CallContext {
   localTileId: number | null,
   isHost: boolean, setIsHost: (b: boolean) => void;
   videoTiles: (number)[],
+  // leaveMeeting: () => void,
 }
 
 export const CurrentCallContext = React.createContext({} as CallContext)

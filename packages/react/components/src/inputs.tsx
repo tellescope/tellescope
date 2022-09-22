@@ -14,6 +14,7 @@ import {
   Enduser,
   File as FileClientType,
   ManagedContentRecord,
+  User,
 } from "@tellescope/types-client"
 
 import { 
@@ -36,7 +37,7 @@ import {
   EnduserSessionContext,
   SessionContext,
 } from "./authentication"
-import { Button, IconModal, LabeledIconButtonProps, LoadingButton, Modal, SecureImage, SubmitButton, useEndusers, useFiles, useManagedContentRecords, useModalIconButton } from "."
+import { Button, IconModal, LabeledIconButtonProps, LoadingButton, Modal, SecureImage, SubmitButton, useEndusers, useFiles, useManagedContentRecords, useModalIconButton, useUsers } from "."
 import { Grid, InputAdornment, TextField, TextFieldProps } from "@mui/material"
 import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
@@ -446,6 +447,7 @@ export const SearchTextInput = (props : TextFieldProps) => (
 
 interface GenericSearchProps <T> extends FilterComponent<T> {
   placeholder?: string,
+  fullWidth?: boolean,
   label?: string,
   style?: React.CSSProperties,
   size?: TextFieldProps['size'],
@@ -471,6 +473,41 @@ export const EnduserSearch = (props: Omit<GenericSearchProps<Enduser>, 'filterKe
     <ModelSearchInput {...props} filterKey="endusers"
       searchAPI={session.api.endusers.getSome}
       onLoad={addLocalElements}
+    />
+  )
+}
+
+export const UserSearch = (props: Omit<GenericSearchProps<User>, 'filterKey'>) => {
+  const session = useResolvedSession()
+  const [, { addLocalElements }] = useUsers()
+  return (
+    <ModelSearchInput {...props} filterKey="users"
+      searchAPI={session.api.users.getSome}
+      onLoad={addLocalElements}
+    />
+  )
+}
+
+export const EnduserOrUserSearch = (props: Omit<GenericSearchProps<Enduser | User>, 'filterKey'>) => {
+  const session = useResolvedSession()
+  const [, { addLocalElements: addLocalEndusers }] = useEndusers()
+  const [, { addLocalElements: addLocalUsers }] = useUsers()
+
+  const searchAPI: SearchAPIProps<Enduser | User>['searchAPI'] = async (args) => {
+    const [endusers, users] = await Promise.all([
+      session.api.endusers.getSome(args),
+      session.api.users.getSome(args),
+    ])
+
+    if (endusers.length > 0) addLocalEndusers(endusers)
+    if (users.length > 0)    addLocalUsers(users)
+
+    return [...endusers, ...users]
+  }
+
+  return (
+    <ModelSearchInput {...props} filterKey="endusers-or-users"
+      searchAPI={searchAPI}
     />
   )
 }

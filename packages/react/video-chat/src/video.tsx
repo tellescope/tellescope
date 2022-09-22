@@ -26,7 +26,7 @@ import {
   // VideoTile,
   // PreviewVideo,
   RemoteVideo,
-  useAttendeeAudioStatus,
+  // useAttendeeAudioStatus,
   LocalVideo,
   useLocalVideo,
   useMeetingManager,
@@ -176,8 +176,8 @@ export const useJoinVideoCall = (props?: JoinVideoCallProps): JoinVideoCallRetur
 
       // Stop the meeting session (audio and video)
       meetingManager.audioVideo && meetingManager.audioVideo.stop() 
-
     }
+    setMeeting(undefined)
   }
 
   useEffect(() => {

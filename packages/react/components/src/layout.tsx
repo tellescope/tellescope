@@ -242,10 +242,11 @@ export const List = <T extends Item, P={}>({ items, hoveredColor, notHoveredColo
   )
 }
 
-export type TitleComponentType = React.JSXElementConstructor<{ title?: string, titleStyle?: React.CSSProperties}>
+export type TitleComponentType = React.JSXElementConstructor<{ title?: React.ReactNode, titleStyle?: React.CSSProperties}>
 export const ScrollingList = <T extends { id: string | number }>({
   title,
   maxHeight,
+  minHeight,
   titleStyle,
   items,
   emptyText,
@@ -257,9 +258,10 @@ export const ScrollingList = <T extends { id: string | number }>({
 } : {
   items: T[],
   Item: React.JSXElementConstructor<{ item: T }>
-  title?: string,
+  title?: React.ReactNode,
   emptyText?: string,
   maxHeight?: React.CSSProperties['maxHeight'],
+  minHeight?: React.CSSProperties['minHeight'],
   titleStyle?: React.CSSProperties,
   doneLoading?: () => boolean,
   loadMore?: () => Promise<void>,
@@ -284,7 +286,7 @@ export const ScrollingList = <T extends { id: string | number }>({
         )
       }
 
-      <Grid container direction="column" flexWrap={'nowrap'} style={{ maxHeight, overflowY: 'auto' }}
+      <Grid container direction="column" flexWrap={'nowrap'} style={{ minHeight, maxHeight, overflowY: 'auto' }}
         onScroll={e => {
           if (doneLoading?.() || !loadMore) return
 

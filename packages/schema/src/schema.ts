@@ -120,6 +120,7 @@ import {
   formFieldOptionsValidator,
   blocksValidator,
   sessionTypeValidator,
+  portalSettingsValidator,
 } from "@tellescope/validation"
 
 import {
@@ -382,7 +383,7 @@ export type CustomActions = {
     my_meetings: CustomAction<{}, { id: string, updatedAt: string, status: MeetingStatus }[]>
     attendee_info: CustomAction<{ id: string }, { attendee: Attendee, others: UserIdentity[] }>,
     start_meeting_for_event: CustomAction<{ calendarEventId: string }, { id: string, meeting: { Meeting: MeetingInfo }, host: Attendee }>, 
-    join_meeting_for_event: CustomAction<{ calendarEventId: string }, { meeting: { Meeting: MeetingInfo } }>, 
+    join_meeting_for_event: CustomAction<{ calendarEventId: string }, { id: string, meeting: { Meeting: MeetingInfo }, attendee: Attendee }>, 
     read: CustomAction<{ id: string }, Meeting>,
   },
   webhooks: {
@@ -3019,6 +3020,7 @@ export const schema: SchemaV1 = build_schema({
       skills: { validator: listOfStringsValidator },
       themeColor: { validator: stringValidator100 },
       customPortalURL: { validator: stringValidator250 },
+      portalSettings: { validator: portalSettingsValidator },
     },
   },
 

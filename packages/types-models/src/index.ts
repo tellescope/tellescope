@@ -63,6 +63,10 @@ export type OrganizationLimits = {
   [K in OrganizationLimit]?: number;
 }
 
+export type PortalSettings = {
+  
+}
+
 export interface Organization_readonly extends ClientRecord {
   subscriptionExpiresAt: Date;
   subscriptionPeriod: number;
@@ -80,6 +84,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   faviconVersion?: number;
   themeColor?: string;
   customPortalURL?: string,
+  portalSettings?: PortalSettings,
 }
 export type OrganizationTheme = {
   name: string,
@@ -89,6 +94,7 @@ export type OrganizationTheme = {
   logoURL?: string,
   customPortalURL?: string,
   faviconURL?: string,
+  portalSettings?: PortalSettings,
 }
 
 
