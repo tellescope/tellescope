@@ -34,14 +34,17 @@ import { Session as SessionManager, SessionOptions } from "./session"
 export * from "./public"
 export * from "./enduser"
 
-export type LoadFunction<T> = (o?: { 
-    lastId?: string, 
-    limit?: number, 
-    sort?: SortOption, 
-    threadKey?: string, 
-    filter?: ReadFilter<T>,
-    search?: SearchOptions,
-  }) => Promise<T[]>
+export interface LoadFunctionArguments <T> {
+  lastId?: string, 
+  limit?: number, 
+  sort?: SortOption, 
+  threadKey?: string, 
+  filter?: ReadFilter<T>,
+  search?: SearchOptions,
+  ids?: string[],
+}
+
+export type LoadFunction<T> = (o?: LoadFunctionArguments<T>) => Promise<T[]>
 
 export interface APIQuery<
   N extends keyof ClientModelForName, 

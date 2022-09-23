@@ -121,6 +121,8 @@ import {
   blocksValidator,
   sessionTypeValidator,
   portalSettingsValidator,
+  emailValidatorEmptyOkay,
+  phoneValidatorEmptyOkay,
 } from "@tellescope/validation"
 
 import {
@@ -499,7 +501,7 @@ export const schema: SchemaV1 = build_schema({
         examples: ['addfed3e-ddea-415b-b52b-df820c944dbb'],
       },
       email: { 
-        validator: emailValidator,
+        validator: emailValidatorEmptyOkay,
         examples: ['test@tellescope.com'],
         redactions: ['enduser'],
       },
@@ -510,7 +512,7 @@ export const schema: SchemaV1 = build_schema({
         redactions: ['enduser'],
       },
       phone: { 
-        validator: phoneValidator,
+        validator: phoneValidatorEmptyOkay,
         examples: ['+14155555555'],
         redactions: ['enduser'],
       },

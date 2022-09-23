@@ -34,11 +34,11 @@ export type AccessPermissions = {
   [K in AccessResources]: AccessForResource
 }
 
-export type Filters = { _exists: boolean, _gt: number, _gte: number, _lt: number, _lte: number } 
+export type Filters = { _exists: boolean, _gt: number, _gte: number, _lt: number, _lte: number, _all: any[] } 
 export type ExistsFilter = { _exists: boolean }
 export type FilterType = Filters
 export type FilterKey = keyof Filters
-export const FilterKeys = ['_exists', '_gt', '_gte', '_lt', '_lte'] as const
+export const FilterKeys = ['_exists', '_gt', '_gte', '_lt', '_lte', '_all'] as const
 export type ReadFilter<T> = { [K in keyof T]?: T[K] | Partial<FilterType> }
 
 export type FlowchartUI = {

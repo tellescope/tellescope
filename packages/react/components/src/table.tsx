@@ -2,6 +2,7 @@ import React, { useCallback, useState, CSSProperties, JSXElementConstructor, use
 
 import {
   Button,
+  Checkbox,
   Elevated,  
   Styled,
   Paper,
@@ -58,6 +59,11 @@ export const TableTitle = ({ title, actionsComponent, style, textStyle={}, horiz
 
 const defaultWidthForFields = (n: number) => n <= 0 ? '100%' : `${Math.floor(100/n)}%`
 
+const checkboxStyle: React.CSSProperties = {
+  position: 'relative',
+  right: '10px',
+}
+
 type Indices = { index: number, indexOfPage: number }
 type Renderer <T> = (value: T, indices: Indices) => React.ReactElement | string | number
 export type TableField <T> = {
@@ -70,18 +76,23 @@ export type TableField <T> = {
   style?: CSSProperties,
   flex?: boolean,
 }
-export interface TableHeaderProps<T extends Item> extends Styled, HorizontalPadded {
+export interface TableHeaderProps<T extends Item> extends Styled, HorizontalPadded, SelectionPropsOptional {
   fields: TableField<T>[],
   textStyle?: CSSProperties,
   fontSize?: CSSProperties['fontSize']
 }
-export const TableHeader = <T extends Item>({ fields, style, textStyle, horizontalPadding, fontSize=15 } : TableHeaderProps<T>) => (
+export const TableHeader = <T extends Item>({ fields, selectable, allSelected, setAllSelected, style, textStyle, horizontalPadding, fontSize=15 } : TableHeaderProps<T>) => (
   <Flex flex={1} alignItems="center" justifyContent="space-between" style={{ 
     paddingLeft: horizontalPadding, paddingRight: horizontalPadding,
     minHeight: ROW_HEIGHT,
     backgroundColor: DARK_GRAY,
     ...style 
   }}>
+    {selectable && 
+      <Flex style={checkboxStyle}>
+        <Checkbox checked={allSelected} onChange={setAllSelected} />
+      </Flex>
+    }
     {fields.map(({ key, label, textAlign, width, hidden, style }) => hidden ? null : (
       <Flex key={key} flex={width !== undefined ? 0 : 1} style={{ 
         alignItems: 'center',
@@ -116,7 +127,7 @@ const get_display_value = <T,>(item: T, key: string, indices: Indices, render?: 
 
   throw new Error(`Missing renderer in renderFields for key ${key}. The given value is not a valid React Element and does not have a toString() method.`)
 }
-export interface TableRowProps<T extends Item> extends Styled, HorizontalPadded, ItemClickable<T> {
+export interface TableRowProps<T extends Item> extends Styled, HorizontalPadded, ItemClickable<T>, SelectionPropsOptional {
   item: T,
   indices: Indices,
   fields: TableHeaderProps<T>['fields']
@@ -126,7 +137,19 @@ export interface TableRowProps<T extends Item> extends Styled, HorizontalPadded,
   fontSize?: CSSProperties['fontSize']
   textStyle?: CSSProperties,
 }
-export const TableRow = <T extends Item>({ item, indices, fields, onClick, onPress, hover, hoveredColor, notHoveredColor, horizontalPadding, style, textStyle, fontSize=14 } : TableRowProps<T>) => (
+export const TableRow = <T extends Item>({ 
+  item, indices, fields, onClick, onPress, hover, 
+  hoveredColor, 
+  notHoveredColor, 
+  horizontalPadding, 
+  style,
+  textStyle, 
+  selectable,
+  allSelected,
+  selected,
+  setSelected,
+  fontSize=14, 
+} : TableRowProps<T>) => (
   <WithHover hoveredColor={hoveredColor ?? GRAY} notHoveredColor={notHoveredColor} disabled={!hover} flex>
     <Flex flex={1} alignItems="center" justifyContent="space-between" 
       onClick={() => (onClick ?? onPress)?.(item)}
@@ -137,6 +160,20 @@ export const TableRow = <T extends Item>({ item, indices, fields, onClick, onPre
         backgroundColor: undefined, // leave in parent component
       }}
     >
+      {selectable && setSelected &&
+        <Flex style={checkboxStyle}>
+        <Checkbox disabled={allSelected} 
+          checked={allSelected || selected?.includes(item.id.toString())}
+          onChange={() => {
+            setSelected(
+              selected?.includes(item.id.toString())
+                ? selected.filter(s => s !== item.id.toString())
+                : [...(selected ?? []), item.id.toString()]
+            )
+          }}
+        />
+        </Flex>
+      }
       {fields.map(({ key, width, textAlign='left', render, hidden, flex, style }) => hidden ? null : (
         <Flex flex={width !== undefined ? 0 : 1} key={key} style={{ 
           alignItems: 'center',
@@ -332,6 +369,15 @@ export const TableFooterNumbered = <T,>({ horizontalPadding, loadMore, doneLoadi
   )
 }
 
+export interface SelectionProps {
+  selectable: boolean,
+  selected: string[],
+  setSelected: (s: string[]) => void,
+  allSelected: boolean,
+  setAllSelected: (b: boolean) => void,
+}
+export type SelectionPropsOptional = Partial<SelectionProps>
+
 const BORDER_STYLE = `1px solid ${GRAY}`
 export type WithTitle = {
   title?: string; 
@@ -351,7 +397,7 @@ export type WithFooter <T> = {
   FooterComponent?: JSXElementConstructor<TableFooterProps<T>>;
 }
 export interface TableProps<T extends Item> extends WithTitle, WithHeader<T>, WithFooter<T>, WithRows<T>, 
-  HorizontalPadded, Elevated, ItemClickable<T>, Partial<LoadMoreFunctions<T>>
+  HorizontalPadded, Elevated, ItemClickable<T>, Partial<LoadMoreFunctions<T>>, SelectionPropsOptional
 {
   items: T[],
   titleActionsComponent?: React.ReactNode,
@@ -392,6 +438,12 @@ export const Table = <T extends Item>({
   RowComponent=TableRow,
   footerStyle='numbered',
   FooterComponent=footerStyle === 'numbered' ? TableFooterNumbered : TableFooter, 
+
+  selectable,
+  selected,
+  setSelected,
+  allSelected,
+  setAllSelected,
 }: TableProps<T> & Styled) => {
   const paginated = pageOptions.paginated !== false // default to true
   const { ...paginationProps } = usePagination({ items, ...pageOptions, })
@@ -401,7 +453,9 @@ export const Table = <T extends Item>({
     <Flex column flex={1}>
       {title && TitleComponent && <TitleComponent title={title} actionsComponent={titleActionsComponent} horizontalPadding={horizontalPadding}/>}
       {fields && HeaderComponent && fields.length > 0 && items.length > 0 && 
-        <HeaderComponent fields={fields} horizontalPadding={horizontalPadding} fontSize={headerFontSize}/>
+        <HeaderComponent selectable={selectable} allSelected={allSelected} setAllSelected={setAllSelected}
+          fields={fields} horizontalPadding={horizontalPadding} fontSize={headerFontSize}
+        />
       }
       <List items={paginationProps.mapSelectedItems(i => i)} 
         renderProps={{ horizontalPadding }}
@@ -415,6 +469,7 @@ export const Table = <T extends Item>({
         }
         render={(item, { index }) => ( // index within this list, e.g. a single page
           <RowComponent 
+            selectable={selectable} selected={selected} setSelected={setSelected} allSelected={allSelected}
             key={item.id} item={item} 
             indices={{ 
               // selectedPage indexed by zero

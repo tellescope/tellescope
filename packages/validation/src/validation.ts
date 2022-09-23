@@ -334,7 +334,8 @@ export const filterCommandsValidator: EscapeBuilder<FilterType> = (o={}) => buil
     if (value._gt && typeof value._gt === 'number' ) return { _gt: value._gt }
     if (value._gte && typeof value._gte === 'number' ) return { _gte: value._gte }
     if (value._lt && typeof value._lt === 'number' ) return { _lt: value._lt }
-    if (value._lte && typeof value._gt === 'number' ) return { _gt: value._gt }
+    if (value._lte && typeof value._gt === 'number' ) return { _lte: value._lte }
+    if (value._all && Array.isArray(value._all)) return { _all: value._all }
     
     if (Object.keys(value).find(k => k.startsWith('$'))) { // ignore any $ injections
       throw new Error(`Unknown filter value ${JSON.stringify(value)}`)
@@ -343,6 +344,40 @@ export const filterCommandsValidator: EscapeBuilder<FilterType> = (o={}) => buil
     return value
   }, { ...o, isObject: true, listOf: false }
 )
+
+export const convertCommand = (key: string, value: any) => {
+  if (key === '_exists') {
+    return { $exists: value }
+  } else if (key === '_lt') {
+    return { $lt: value }
+  } else if (key === '_lte') {
+    return { $lte: value }
+  } else if (key === '_gt') {
+    return { $gt: value }
+  } else if (key === '_gte') {
+    return { $gte: value }
+  } else if (key === '_all') {
+    return { $all: value }
+  }
+
+  return null
+}
+
+export const convertCommands = (operators: Indexable<any>) => {
+  const filterOperators = {} as Indexable
+
+  for (const field in operators) {
+    const value = operators[field] as FilterType
+    const key = Object.keys(value)[0]
+
+    const converted = convertCommand(key, value[key as keyof typeof value])
+    if (converted) {
+      filterOperators[field] = converted
+    }
+  }
+
+  return filterOperators
+}
 
 interface ObjectOptions {
   emptyOk?: boolean,
@@ -559,6 +594,16 @@ export const emailValidator: EscapeBuilder<string> = (options={}) => build_valid
   { ...options, maxLength: 250, listOf: false }
 )
 
+export const emailValidatorEmptyOkay: EscapeBuilder<string> = (options={}) => build_validator(
+  (email) => {
+    if (typeof email !== 'string') throw new Error('Expecting string value')
+    if (!isEmail(email)) { throw new Error(options.errorMessage || "Invalid email") }
+
+    return email.toLowerCase()
+  }, 
+  { ...options, maxLength: 250, emptyStringOk: true, listOf: false }
+)
+
 
 export const numberValidatorBuilder: ComplexEscapeBuilder<{ lower: number, upper: number }, number> = r => (options={}) => {
   options.isNumber = true
@@ -649,6 +694,26 @@ export const phoneValidator: EscapeBuilder<string> = (options={}) => build_valid
     return escaped
   }, 
   { ...options, maxLength: 25, listOf: false }
+)
+
+export const phoneValidatorEmptyOkay: EscapeBuilder<string> = (options={}) => build_validator(
+  phone => {
+    if (typeof phone !== "string") throw new Error(`Expecting phone to be string but got ${phone}`)
+
+    let escaped = escape_phone_number(phone) 
+    if (escaped.length < 10) throw new Error(`Phone number must be at least 10 digits`)
+
+    escaped = escaped.startsWith('+') ? escaped
+            : escaped.length === 10   ? '+1' + escaped // assume US country code for now
+                                      : "+"  + escaped // assume country code provided, but missing leading +
+
+    if (!isMobilePhone(escaped, 'any', { strictMode: true })) {
+      throw `Invalid phone number`
+    }
+
+    return escaped
+  }, 
+  { ...options, maxLength: 25, listOf: false, emptyStringOk: true }
 )
 
 export const fileTypeValidator: EscapeBuilder<string> = (options={}) => build_validator(

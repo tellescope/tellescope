@@ -1,4 +1,4 @@
-import React, { useCallback, useContext, useEffect, useState } from "react"
+import React, { useCallback, useContext, useEffect, useMemo, useState } from "react"
 import { useDropzone } from 'react-dropzone'
 
 import {
@@ -18,6 +18,7 @@ import {
 } from "@tellescope/types-client"
 
 import { 
+  LoadFunction,
   Session, 
 } from "@tellescope/sdk"
 
@@ -42,6 +43,10 @@ import { Grid, InputAdornment, TextField, TextFieldProps } from "@mui/material"
 import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
 import { UNSEARCHABLE_FIELDS } from "@tellescope/constants"
+import {
+  LoadFunctionArguments,
+} from "@tellescope/sdk"
+import { objects_equivalent } from "@tellescope/utilities"
 
 export {
   FileBlob,
@@ -327,7 +332,7 @@ export const DeleteWithConfimrationIcon = ({ modelName, color, iconProps, onSucc
 /* FILTER / SEARCH */
 export const filter_setter_for_key = <T,>(key: string, setFilters: React.Dispatch<React.SetStateAction<Filters<T>>>) => (
   f: Filter<T>
-) => setFilters(fs => ({ ...fs, [key]: { filter: f, data: fs?.[key]?.data } }))
+) => setFilters(fs => ({ ...fs, [key]: { ...fs?.[key], filter: f } }))
 
 export const apply_filters = <T,>(fs: Filters<T>, data: T[]) => (
   data.filter(d => {
@@ -339,13 +344,53 @@ export const apply_filters = <T,>(fs: Filters<T>, data: T[]) => (
   })
 )
 
-export const useFilters = <T,>() => {
+export const useFilters = <T,>(args?: { onFilterChange: () => void }) => {
+  const { onFilterChange } = args ?? {}
   const [filters, setFilters] = React.useState({} as Filters<T>)
+
+  const prevFilterRef = React.useRef(filters)
+  useEffect(() => {
+    if (!onFilterChange) return
+    if (objects_equivalent(prevFilterRef.current, filters)) return
+
+    prevFilterRef.current = filters
+    onFilterChange()
+  }, [filters, onFilterChange])
 
   const applyFilters = useCallback((data: T[]) => apply_filters(filters, data), [filters])
 
+  const compoundApiFilter = useMemo(() => {
+    let toReturn: LoadFunctionArguments<T> | null = (
+      Object.values(filters).map(f => f.apiFilter).filter(a => !!a).length === 0
+        ? null
+        : {}
+    )
+
+    if (toReturn) {
+      for (const f of Object.values(filters)) {
+        if (!f.apiFilter) continue
+
+        toReturn = { 
+          ...toReturn,
+          filter: {
+            ...toReturn?.filter, 
+            ...f.apiFilter.filter,
+          },
+        }
+
+        // add search when included, defaulting to most recent (tho, there should only be one)
+        if (f.apiFilter?.search?.query) {
+          toReturn.search = f.apiFilter.search
+        }
+      }
+    }
+
+    return toReturn
+  }, [filters])
+
   return { 
     filters, 
+    compoundApiFilter,
     setFilters,
     applyFilters,
     activeFilterCount: Object.values(filters).filter(f => !!f.filter).length
@@ -385,11 +430,61 @@ export const filter_for_query = <T,>(query: string): FilterWithData<T> => ({
 
     return false
   },
-  data: { query },
+  apiFilter: { search: { query } },
 })
+
+export const performBulkAction = async <T extends { id: string }, R> ({ 
+  allSelected,
+  apiFilter, 
+  selected, 
+  processBatch, 
+  fetchBatch,
+  batchSize=250, 
+} : BulkActionProps<T> & {
+  batchSize?: number,
+  fetchBatch: LoadFunction<T>,
+  processBatch: (matches: T[]) => Promise<R>,
+}) => {
+  if (!(selected || allSelected || apiFilter)) throw new Error("One of allSelected, apiFilter, or selected is required")
+  if (batchSize <= 0) throw new Error("batchSize must be at least 1")
+  const args: LoadFunctionArguments<T> = (
+    allSelected 
+      ? (apiFilter ?? {})
+      : { ids: selected }
+  )
+
+  args.limit = batchSize
+  const results = []
+  while (true) {
+    const matches = await fetchBatch(args)
+    if (matches.length === 0) break
+
+    results.push(await processBatch(matches))
+
+    if (matches.length < batchSize) {
+      break
+    }
+
+    args.lastId = matches[matches.length - 1].id
+  }
+
+  // clean up in case same object is reused for future queries
+  delete args.lastId
+
+  return results
+}
+
+export interface BulkActionProps <T>{
+  allSelected?: boolean,
+  selected?: string[],
+  apiFilter?: LoadFunctionArguments<T> | null,
+  onSuccess?: () => void,
+  onError?: (message: string) => void,
+}
 
 export type FilterWithData<T> = {
   filter: null | ((f: T) => boolean),
+  apiFilter: LoadFunctionArguments<T> | null,
   data?: Indexable,
 }
 export interface Filters<T> {
@@ -459,7 +554,11 @@ export const ModelSearchInput = <T,>({ filterKey, setFilters, searchAPI, onLoad,
   useSearchAPI({ query, searchAPI, onLoad })
 
   useEffect(() => {
-    setFilters(fs => ({ ...fs, [filterKey]: filter_for_query(query) })) 
+    setFilters(fs => (
+      fs[filterKey]?.apiFilter?.search?.query === query
+        ? fs
+        : { ...fs, [filterKey]: filter_for_query(query) }
+    )) 
   }, [query, filterKey, setFilters])
 
   return <SearchTextInput {...props} value={query} onChange={e => setQuery(e.target.value)} />
