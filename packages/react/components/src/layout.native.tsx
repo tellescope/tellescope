@@ -31,7 +31,7 @@ import NativeVideo from 'react-native-video';
 
 export const IN_REACT_WEB = false
 
-export const Image = ({ src, alt, height, width,  ...props } : ImageProps) => (
+export const Image = ({ src, alt, ...props } : ImageProps) => (
   <ImageNative 
     accessibilityLabel={alt} 
     source={{ uri: src }} 

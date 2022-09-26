@@ -235,6 +235,21 @@ export const sorted_records = <T extends { createdAt: string | Date, updatedAt: 
   })
 }
 
+export const MONTHS_FULL = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December'
+]
+
 export const MONTHS = [
   'Jan',
   'Feb',

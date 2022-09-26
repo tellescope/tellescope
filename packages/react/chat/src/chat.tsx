@@ -222,6 +222,7 @@ export const MessageAttachments = ({ message, chatUserId, imageDimensions } : { 
           marginRight: message.senderId === chatUserId ? 0 : 10, 
           marginLeft: message.senderId === chatUserId ? 10 : 0, 
           justifyContent: message.senderId === chatUserId ? "flex-end" : "flex-start",
+          ...imageDimensions,
         }}>
           <SecureImage secureName={a.secureName} alt="image attachment" {...imageDimensions} />
         </Flex>
@@ -229,6 +230,7 @@ export const MessageAttachments = ({ message, chatUserId, imageDimensions } : { 
       {message.attachments.filter(a => a.type === 'video').map(a=> (
         <Flex key={a.secureName} style={{ 
           justifyContent: message.senderId === chatUserId ? "flex-end" : "flex-start",
+          ...imageDimensions,
         }}>
           <SecureVideo secureName={a.secureName} {...imageDimensions} />
         </Flex>

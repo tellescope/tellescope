@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/utilities",
-  "version": "1.3.24",
+  "version": "1.3.25",
   "description": "Shared JS code for common actions across API and browser",
   "main": "./lib/cjs/utils.js",
   "module": "./lib/esm/utils.js",
