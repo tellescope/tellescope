@@ -1,20 +1,17 @@
-import React, { useCallback, useState, useEffect } from "react"
+import React, { useCallback, useContext, useState, useEffect } from "react"
 
 import {
   useResolvedSession,
   useSession,
   Styled,
-  UserAndEnduserSelectorProps,
-  useMeetings,
-  UserAndEnduserSelector,
 } from "@tellescope/react-components"
 
 import {
-  APIError,
   UserIdentity,
 } from "@tellescope/types-utilities"
 import {
   AttendeeInfo,
+  Meeting,
   MeetingInfo,
 } from '@tellescope/types-models'
 
@@ -43,7 +40,8 @@ import {
   // useContentShareControls, // screen sharing
 } from 'amazon-chime-sdk-component-library-react';
 import {
-  CurrentCallContext,
+  CurrentCallContext, 
+  VideoCallNativeProps,
 } from "./index"
 import {
   AttendeeDisplayInfo,
@@ -54,7 +52,103 @@ import {
   JoinVideoCallProps,
 } from "./video_shared"
 import { ConsoleLogger, DefaultDeviceController, Logger, LogLevel } from "amazon-chime-sdk-js";
-import { Enduser, Meeting, User } from "@tellescope/types-client";
+
+import { useCalendarEvents } from "@tellescope/react-components"
+import { useCurrentCallContext } from "./index"
+import { CalendarEvent } from "@tellescope/types-client";
+
+export const useMeetingForCalendarEvent = (event: CalendarEvent) => {
+  const { meeting } = useCurrentCallContext()
+  const { startAndJoinMeeting } = useStartAndJoinMeetingForCalendarEvent(event.id)
+  const { joinMeeting } = useJoinMeeting()
+
+  return {
+    startAndJoinMeeting,
+    joinMeeting,
+    meeting,
+    meetingStatus: (
+      !event.enableVideoCall 
+        ? 'disabled'
+    : !(event.meetingId)
+        ? 'waiting-room'
+    : !!meeting
+        ? 'joined'
+        : 'loading'
+
+    )
+  }
+} 
+
+export const useStartAndJoinMeetingForCalendarEvent = (calendarEventId: string) => {
+  const session = useSession()
+  const [, { updateLocalElement: updateLocalEvent }] = useCalendarEvents()
+
+  const meetingManager = useMeetingManager();
+
+  const { setMeeting, setIsHost } = useContext(CurrentCallContext)
+  if (!(!!setMeeting && setIsHost)) {
+    throw new Error("Missing CurrentCallContext")
+  }
+
+  const startAndJoinMeeting = useCallback(async () => {
+    const { meeting, host, id } = await session.api.meetings.start_meeting_for_event({ calendarEventId })
+
+    updateLocalEvent(calendarEventId, { meetingId: id } )
+
+    setMeeting(meeting as any)
+
+    await meetingManager.join({ meetingInfo: meeting, attendeeInfo: host.info }); // Use the join API to create a meeting session
+    await meetingManager.start(); // At this point you can let users setup their devices, or start the session immediately
+
+    setMeeting(meeting.Meeting)
+    setIsHost(true)
+  }, [session, calendarEventId, updateLocalEvent, meetingManager, setMeeting, setIsHost])
+
+  return {
+    startAndJoinMeeting,
+  }
+}
+
+export const useJoinMeeting = () => {
+  const session = useResolvedSession()
+  const meetingManager = useMeetingManager();
+
+  const { setMeeting, setIsHost } = useContext(CurrentCallContext)
+  if (!(!!setMeeting && setIsHost)) {
+    throw new Error("Missing CurrentCallContext")
+  }
+
+  const joinMeeting = useCallback(async (meeting: Meeting) => {
+    setMeeting(meeting.meetingInfo.Meeting)
+    setIsHost(meeting.creator === session.userInfo.id)
+
+    let attendeeInfo = meeting.attendees.find(a => a.id === session.userInfo.id)?.info
+    if (!attendeeInfo) {
+      const calendarEventId = meeting.calendarEventId
+      if (calendarEventId) {
+        const result = await session.api.meetings.join_meeting_for_event({ calendarEventId })
+
+        attendeeInfo = result.attendee.info
+      }
+
+      if (!attendeeInfo) {
+        console.error("Could not find attendee info for joining meeting and failed to join")
+        return
+      }      
+    }
+    
+    await meetingManager.join({ 
+      meetingInfo: meeting.meetingInfo, 
+      attendeeInfo,
+    }); // Use the join API to create a meeting session
+    await meetingManager.start(); // At this point you can let users setup their devices, or start the session immediately
+
+  }, [setMeeting, meetingManager, setMeeting, setIsHost])
+
+  return {
+    joinMeeting,
+  }
+}
 
 const WithContext = ({ children } : { children: React.ReactNode }) => {
   const [meeting, setMeeting] = useState(undefined as MeetingInfo | undefined)
@@ -155,7 +249,7 @@ export const useJoinVideoCall = (props?: JoinVideoCallProps): JoinVideoCallRetur
   const status = useMeetingStatus()
 
   // meetingInfo may be meetingId as string
-  const joinMeeting = async (meetingInfo: string | { Meeting: MeetingInfo }, attendeeInfo: { Attendee: AttendeeInfo }) => {
+  const joinMeeting = async (meetingInfo: string | { Meeting: MeetingInfo }, attendeeInfo?: { Attendee: AttendeeInfo }) => {
     if (typeof meetingInfo == 'string') {
       const meetings = await session.api.meetings.my_meetings()
       const meeting = meetings.find(m => m.id === meetingInfo)
@@ -271,35 +365,7 @@ export const LocalPreview = ({ style=defaultPreviewStyle }: Styled) => {
 }
 export { VideoTileGrid }
 
-export interface CreateMeetingProps extends Omit<UserAndEnduserSelectorProps, 'onSelect'> {
-  onSuccess?: ({ id } : { id: string }) => void,
-  onError?: (e: APIError) => void,
-  roomTitle?: string,
-}
-export const CreateMeeting = ({ 
-  roomTitle: defaultRoomTitle = "Group Chat", 
-  onSuccess, onError, 
-  ...props 
-} : CreateMeetingProps) => {
-  const session = useSession()
-
-  const handleCreateRoom = useCallback(({ users, endusers }: { users: User[], endusers: Enduser[] }) => {
-    const userIds = users.map(u => u.id)
-    const enduserIds = endusers.map(e => e.id)
-
-    session.api.meetings.start_meeting({
-      attendees: ([
-        ...userIds.map(id => ({ type: 'user', id } as UserIdentity)),
-        ...enduserIds.map(id => ({ type: 'enduser', id } as UserIdentity)),
-      ])
-    })
-    .then(r => {
-      onSuccess?.(r)
-    })
-    .catch(onError)
-  }, [session, onSuccess, onError])
-  
-  return (
-    <UserAndEnduserSelector {...props} onSelect={handleCreateRoom} />
-  )
-}
+// unimplemented for web
+export const VideoCallNative: React.JSXElementConstructor<VideoCallNativeProps> = () => (
+  null
+)

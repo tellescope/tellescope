@@ -158,7 +158,7 @@ export const ScrollingList = <T extends { id: string | number }>({
       {items.length === 0
         ? items.length === 0 && <Typography>{emptyText}</Typography>
         : <FlatList data={items} keyExtractor={item => item.id.toString()}
-            renderItem={({ item }) => <Item item={item} />}
+            renderItem={({ item, index }) => <Item item={item} index={index} />}
             onEndReached={() => {
               if (doneLoading?.() || !loadMore) return
               

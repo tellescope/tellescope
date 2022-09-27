@@ -245,7 +245,7 @@ export const List = <T extends Item, P={}>({ items, hoveredColor, notHoveredColo
 export type TitleComponentType = React.JSXElementConstructor<{ title?: React.ReactNode, titleStyle?: React.CSSProperties}>
 export interface ScrollingListProps <T extends { id: string | number }> extends Styled {
   items: T[],
-  Item: React.JSXElementConstructor<{ item: T }>
+  Item: React.JSXElementConstructor<{ item: T, index: number }>
   title?: React.ReactNode,
   emptyText?: string,
   maxHeight?: React.CSSProperties['maxHeight'],
@@ -308,8 +308,8 @@ export const ScrollingList = <T extends { id: string | number }>({
       >
         {items.length === 0 && <Typography>{emptyText}</Typography>}
 
-        {items.map(item => (
-          <Item key={item.id} item={item} />
+        {items.map((item, index) => (
+          <Item key={item.id} item={item} index={index} />
         ))}
       </Grid>
     </Grid>

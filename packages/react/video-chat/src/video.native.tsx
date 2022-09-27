@@ -19,6 +19,7 @@ import {
   useResolvedSession, 
   useSession,
   Flex,
+  useCalendarEvents,
 } from "@tellescope/react-components"
 import { 
   Button, 
@@ -32,6 +33,7 @@ import {
   VideoProps,
   AttendeeDisplayInfo,
   VideoViewProps,
+  VideoCallNativeProps,
 } from "./video_shared"
 import {
   CurrentCallContext,
@@ -39,7 +41,10 @@ import {
   getSDKEventEmitter,
   MobileSDKEvent,
   NativeFunction,
+  ControlBar,
 } from "./index.native"
+import { borderColor, borderRadius } from "@mui/system"
+// import RNSwitchAudioOutput from 'react-native-switch-audio-output';
 
 interface TileState {
   isLocal: boolean,
@@ -236,20 +241,52 @@ export const useStartVideoCall = (): StartVideoCallReturnType => {
   }
 }
 
+export const useStartAndJoinMeetingForCalendarEvent = (calendarEventId: string) => {
+  const session = useSession()
+  const [, { updateLocalElement: updateLocalEvent }] = useCalendarEvents()
+
+  const { setMeeting, setIsHost } = useContext(CurrentCallContext)
+  if (!(!!setMeeting && setIsHost)) {
+    throw new Error("Missing CurrentCallContext")
+  }
+
+  const startAndJoinMeeting = useCallback(async () => {
+    const { meeting, host, id } = await session.api.meetings.start_meeting_for_event({ calendarEventId })
+
+    updateLocalEvent(calendarEventId, { meetingId: id } )
+
+    NativeFunction.startMeeting(meeting.Meeting, host.info)
+
+    setMeeting(meeting.Meeting)
+    setIsHost(true)
+  }, [session, setMeeting, setIsHost, updateLocalEvent])
+
+  return {
+    startAndJoinMeeting,
+  }
+}
+
 export const useJoinVideoCall = (): JoinVideoCallReturnType => {
   const session = useResolvedSession()
-  const { meeting, setMeeting, videoIsEnabled, toggleVideo } = React.useContext(CurrentCallContext)
+  const { meeting, setIsHost, setMeeting, videoIsEnabled, toggleVideo } = React.useContext(CurrentCallContext)
 
-  const joinMeeting = async (meetingInfo: string | { Meeting: MeetingInfo }, attendeeInfo: { Attendee: AttendeeInfo }) => {
+  const joinMeeting = async (meetingInfo: string | { Meeting: MeetingInfo }, attendeeInfo?: { Attendee: AttendeeInfo }) => {
     if (typeof meetingInfo == 'string') {
       const meetings = await session.api.meetings.my_meetings()
       const meeting = meetings.find(m => m.id === meetingInfo)
       meetingInfo = meeting?.meetingInfo as { Meeting: MeetingInfo }
       attendeeInfo = { Attendee: meeting?.attendees.find?.(a => a.id === session.userInfo.id)?.info as AttendeeInfo}
+
+      if (attendeeInfo.Attendee.ExternalUserId === meeting?.creator) {
+        setIsHost(true)
+      }
     }
+
     if (!meetingInfo || typeof meetingInfo === 'string' || !attendeeInfo) return
 
-    NativeFunction.startMeeting(meetingInfo.Meeting ?? meetingInfo, attendeeInfo)
+    NativeFunction.startMeeting(meetingInfo.Meeting ?? meetingInfo, attendeeInfo.Attendee ?? attendeeInfo)
+
+    setMeeting(meetingInfo.Meeting)
   }
 
   const leaveMeeting = () => setMeeting(undefined)
@@ -371,5 +408,67 @@ const styles = StyleSheet.create({
 });
 
 export const LocalPreview = () => {
-  throw new Error("Unimplemented")
+  // console.error("LocalPreview unimplemented for Native")
+  return null
+}
+
+const get_video_styles = (count: number): React.CSSProperties => {
+  return ({
+    borderWidth: '1px',
+    borderColor: '#888888',
+    borderRadius: 5,
+    padding: 5,
+    width: count === 1 ? '100%' : '50%',
+    maxHeight: (
+      count <= 4
+        ? '50%'
+    : count <= 8
+        ? '25%'
+        : '20%'
+    ),
+    backgroundColor: '#bbbbbb'
+  })
+}
+export const VideoCallNative: React.JSXElementConstructor<VideoCallNativeProps> = ({
+  ...props
+}) => {
+  const remoteViews = useRemoteViews()
+  // RNSwitchAudioOutput.selectAudioOutput(RNSwitchAudioOutput.AUDIO_SPEAKER)
+  const selfView = (
+    <SelfView 
+      // style={{ 
+      //   position: 'absolute', 
+      //   zIndex: '100', 
+      //   borderRadius: 100, 
+      //   width: 130, 
+      //   height: 130, 
+      //   bottom: 120, 
+      //   right: 25 
+      // }} 
+    />
+  )
+
+  const style = get_video_styles(remoteViews.length + 1)
+  
+  return (
+    <Flex column flex={1} style={{ }}>
+      <Flex flex={1} style={{ marginBottom: 75 }}>
+
+        {remoteViews.map((view, i) => (
+          <Flex key={i} alignItems="center" justifyContent="center" style={style}>
+            {view}
+          </Flex>
+        ))}
+
+        <Flex alignItems="center" justifyContent="center" style={style}>
+          {selfView}
+        </Flex>
+
+      </Flex>
+
+      <ControlBar {...props}
+        style={{ position: 'absolute', bottom: 20, width: '100%' }}
+      />
+    </Flex>
+  )
 }

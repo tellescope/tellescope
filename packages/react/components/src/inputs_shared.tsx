@@ -292,6 +292,7 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
   maxHeight='50vh',
   searchBarPlacement="top"
 }) => {
+  const session = useResolvedSession()
   const [endusersLoading, { loadMore: loadMoreEndusers, doneLoading: doneLoadingEndusers }] = useEndusers()
   const [usersLoading, { loadMore: loadMoreUsers, doneLoading: doneLoadingUsers }] = useUsers()
 
@@ -320,10 +321,16 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
   ), [excludeUsers, excludeEndusers, filterProps, searchbarFullWidth])
 
   const handleSelect = useCallback((users: User[], endusers: Enduser[]) => {
-    onSelect?.({ 
-      users: users.filter(u => selected.includes(u.id)), 
-      endusers: endusers.filter(e => selected.includes(e.id)),
-    })
+    const usersSelected = users.filter(u => selected.includes(u.id))
+    const endusersSelected = endusers.filter(e => selected.includes(e.id))
+    
+    if (session.type === 'enduser' && !endusersSelected.find(e => e.id === session.userInfo.id)) {
+      endusersSelected.push(session.userInfo as any)
+    } else if (session.type === 'user' && !usersSelected.find(e => e.id === session.userInfo.id)) {
+      usersSelected.push(session.userInfo as any)
+    }
+
+    onSelect?.({ users: usersSelected, endusers: endusersSelected })
   }, [onSelect, selected])
   
   return (

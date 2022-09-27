@@ -1,10 +1,6 @@
 export * from "./video"
-export * from "./hooks"
 export * from "./controls"
-export {
-  CurrentCallContext,
-  useCurrentCallContext, 
-} from "./video_shared"
+export * from "./video_shared"
 export {
   RNVideoRenderView,
 } from "./native/RNVideoRenderView"
