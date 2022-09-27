@@ -27,3 +27,34 @@ export const useLoadedState = <T, D={}>(fetch?: (d: Partial<D>) => Promise<T | v
 
   return [data, setData] as [LoadedData<T>, React.SetStateAction<LoadedData<T>>]
 }
+
+export interface SearchAPIProps <T> {
+  searchAPI?: (args: { search: { query: string } }) => Promise<T[]>,
+  onLoad?: (results: T[]) => void,
+}
+export const useSearchAPI = <T,>({ query, onLoad, searchAPI } : { query: string } & SearchAPIProps<T>) => {
+  const searchedRef = useRef('')
+
+  useEffect(() => {
+    const trimmed = query?.trim()
+
+    // don't search empty strings
+    if (!trimmed) return
+    if (!searchAPI) return
+    if (searchedRef.current === trimmed) return
+    searchedRef.current = trimmed
+
+    // unbounce  
+    const t = setTimeout(() => {
+      searchAPI({ search: { query: trimmed }})
+      .then(results => {
+        if (results.length === 0) { return }
+
+        onLoad?.(results)
+      })
+      .catch(console.error)
+    }, 100)
+
+    return () => { clearTimeout(t) }
+  }, [query, searchAPI, onLoad, searchedRef])
+}

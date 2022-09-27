@@ -1,4 +1,4 @@
-import React from "react";
+import React, { } from "react";
 import { 
   Image as ImageNative, 
   View, 
@@ -17,11 +17,13 @@ import {
   resolve_direction_for_props,
   compute_flex_direction_with_props,
   WithHoverProps,
+  ScrollingListProps,
 } from "./layout.js"
 
 import {
   ClickableNative,
   NativeStyled,
+  Typography,
 } from "./mui"
 import {
   convert_CSS_to_RNStyles
@@ -113,3 +115,60 @@ export const List = <T extends Item>({ items, emptyComponent, render, onClick, o
 
 // nop since hover not relevant for native mobile views
 export const WithHover = ({ children } : WithHoverProps) => <>{children}</>
+
+export const ScrollingList = <T extends { id: string | number }>({
+  title,
+  maxHeight,
+  minHeight,
+  titleStyle,
+  items,
+  emptyText,
+  doneLoading,
+  loadMore,
+  Item,
+  TitleComponent,
+  titleActionsComponent,
+  style,
+} : ScrollingListProps<T>) => {
+  const titleStyleWithDefaults = { fontSize: 20, fontWeight: 'bold', marginBottom: 3, ...titleStyle }
+ 
+  return (
+    <Flex flex={1} column style={style}>
+      {TitleComponent
+        ? <TitleComponent title={title} titleStyle={titleStyleWithDefaults} />
+        : (
+          <Flex alignItems="center" justifyContent="space-between">
+            <Flex>
+              {typeof title === 'string'
+                ? (
+                  <Typography style={titleStyleWithDefaults}>
+                    {title}
+                  </Typography>
+                )
+                : title   
+              } 
+            </Flex>
+            
+            <Flex>
+              {titleActionsComponent}
+            </Flex>
+          </Flex>
+        )
+      }
+      {items.length === 0
+        ? items.length === 0 && <Typography>{emptyText}</Typography>
+        : <FlatList data={items} keyExtractor={item => item.id.toString()}
+            renderItem={({ item }) => <Item item={item} />}
+            onEndReached={() => {
+              if (doneLoading?.() || !loadMore) return
+              
+              loadMore().catch(console.error)
+            }}
+
+            // includes conversion of vh and vw
+            style={convert_CSS_to_RNStyles({ minHeight, maxHeight })} 
+          />
+      }
+    </Flex>
+  )
+}

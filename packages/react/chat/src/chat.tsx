@@ -1,4 +1,4 @@
-import React, { useState, CSSProperties, useEffect, useRef } from "react"
+import React, { useState, CSSProperties, useEffect, useRef, useCallback } from "react"
 
 import {
   DisplayPicture,
@@ -23,12 +23,17 @@ import {
   useUsers,
   useEndusers,
   useUserAndEnduserDisplayInfo,
+  UserAndEnduserSelectorProps,
+  UserAndEnduserSelector,
+  TextField,
 } from "@tellescope/react-components"
 
 import {
   ChatRoom,
   ChatMessage,
   UserDisplayInfo,
+  User,
+  Enduser,
 } from "@tellescope/types-client"
 import {
   UserActivityStatus,
@@ -36,6 +41,7 @@ import {
 } from "@tellescope/types-models"
 
 import {
+  APIError,
   LoadedData, 
   SessionType,
 } from "@tellescope/types-utilities"
@@ -503,5 +509,50 @@ const [, { findById: findRoom } ] = useChatRooms({ dontFetch: true })
       </Typography>
     ))}
     </Flex>
+  )
+}
+
+export interface CreateChatRoomProps extends Omit<UserAndEnduserSelectorProps, 'onSelect'> {
+  onSuccess?: (c: ChatRoom) => void,
+  onError?: (e: APIError) => void,
+  roomTitle?: string,
+}
+export const CreateChatRoom = ({ 
+  roomTitle: defaultRoomTitle = "Group Chat", 
+  onSuccess, onError, 
+  ...props 
+} : CreateChatRoomProps) => {
+  const [, { createElement: createRoom }] = useChatRooms({ dontFetch: true })
+  const [roomTitle, setRoomTitle] = useState(defaultRoomTitle ?? '')
+
+  const handleCreateRoom = useCallback(({ users, endusers }: { users: User[], endusers: Enduser[] }) => {
+    const userIds = users.map(u => u.id)
+    const enduserIds = endusers.map(e => e.id)
+
+    createRoom({
+      enduserIds, 
+      userIds,
+      title: roomTitle,
+    })
+    .then(r => {
+      onSuccess?.(r)
+    })
+    .catch(onError)
+  }, [createRoom, roomTitle, onSuccess, onError])
+  
+  return (
+    <UserAndEnduserSelector {...props} onSelect={handleCreateRoom} 
+      titleInput={
+        <TextField autoFocus value={roomTitle} onChange={t => setRoomTitle(t)} 
+          style={{ 
+            width: props.searchBarPlacement !== 'top'
+              ? '100%'
+              : undefined
+          }}
+          label="Title" placeholder="Enter conversation title..." 
+          size="small"
+        />
+      }
+    />
   )
 }

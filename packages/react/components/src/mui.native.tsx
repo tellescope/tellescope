@@ -13,6 +13,7 @@ import {
   ProgressBar as MuiLinearProgress,
   // TouchableRipple,
   useTheme,
+  Checkbox as CheckboxMui,
 } from 'react-native-paper';
 import transform, { StyleTuple } from 'css-to-react-native';
 
@@ -31,9 +32,9 @@ import {
   TextFieldProps,
   TooltipProps,
   TypographyProps,
+  CheckboxProps,
 } from "./mui.js"
 import { DEFAULT_ICON_SIZE } from "./constants"
-import { Flex } from './layout.js';
 
 export const convert_CSS_to_RNStyles = (style?: React.CSSProperties | ViewStyle): ViewStyle | undefined => {
   if (!style) return style as ViewStyle | undefined
@@ -43,9 +44,11 @@ export const convert_CSS_to_RNStyles = (style?: React.CSSProperties | ViewStyle)
     const styling = style[k as keyof typeof style]
     if (!styling) continue
     
-    const smoothed = (typeof styling === 'number') && k !== 'opacity'
-                   ? `${styling}px` // allow for plain number => pixel
-                   : styling.toString()
+    const smoothed = (
+      (typeof styling === 'number') && k !== 'opacity'
+        ? `${styling}px` // allow for plain number => pixel
+        : styling.toString().replace('vh', '%').replace('vw', '%')
+    )
     input.push([k, smoothed])
   }
 
@@ -95,6 +98,7 @@ export const Paper = ({ style, flex, children, elevation, onClick, onPress, ...p
     }
   </MuiPaper>
 )
+export const HoverPaper = Paper // no support for 'hover' on mobile
 
 export const BottomNavigation = <T extends { [index: string]: any }>({ initialPageIndex, routes } : BottomNavigationProps<T>) => {
   const [index, setIndex] = React.useState(initialPageIndex ?? 0);
@@ -212,4 +216,8 @@ export const Avatar = ({ size, style, letters, src }: AvatarProps) => (
       ? <MuiAvatar.Image size={size} style={convert_CSS_to_RNStyles(style)} source={{ uri: src }}/>
       : <AccountIcon size={size}/>
   )
+)
+
+export const Checkbox = ({ checked, ...props } : CheckboxProps) => (
+  <CheckboxMui status={checked ? 'checked' : 'unchecked'} />
 )

@@ -243,6 +243,19 @@ export const List = <T extends Item, P={}>({ items, hoveredColor, notHoveredColo
 }
 
 export type TitleComponentType = React.JSXElementConstructor<{ title?: React.ReactNode, titleStyle?: React.CSSProperties}>
+export interface ScrollingListProps <T extends { id: string | number }> extends Styled {
+  items: T[],
+  Item: React.JSXElementConstructor<{ item: T }>
+  title?: React.ReactNode,
+  emptyText?: string,
+  maxHeight?: React.CSSProperties['maxHeight'],
+  minHeight?: React.CSSProperties['minHeight'],
+  titleStyle?: React.CSSProperties,
+  doneLoading?: () => boolean,
+  loadMore?: () => Promise<void>,
+  TitleComponent?: TitleComponentType,
+  titleActionsComponent?: React.ReactNode,
+}
 export const ScrollingList = <T extends { id: string | number }>({
   title,
   maxHeight,
@@ -255,31 +268,25 @@ export const ScrollingList = <T extends { id: string | number }>({
   Item,
   TitleComponent,
   titleActionsComponent,
-} : {
-  items: T[],
-  Item: React.JSXElementConstructor<{ item: T }>
-  title?: React.ReactNode,
-  emptyText?: string,
-  maxHeight?: React.CSSProperties['maxHeight'],
-  minHeight?: React.CSSProperties['minHeight'],
-  titleStyle?: React.CSSProperties,
-  doneLoading?: () => boolean,
-  loadMore?: () => Promise<void>,
-  TitleComponent?: TitleComponentType,
-  titleActionsComponent?: React.ReactNode,
-}) => {
+  style,
+} : ScrollingListProps<T>) => {
   const fetchRef = useRef(0)
   const titleStyleWithDefaults = { fontSize: 20, fontWeight: 'bold', marginBottom: 3, ...titleStyle }
  
   return (
-    <Grid container direction="column">
+    <Grid container direction="column" style={style}>
       {TitleComponent
         ? <TitleComponent title={title} titleStyle={titleStyleWithDefaults} />
         : (
           <Grid container alignItems="center" justifyContent="space-between">
-            <Typography style={titleStyleWithDefaults}>
-              {title}
-            </Typography>
+            {typeof title === 'string'
+              ? (
+                <Typography style={titleStyleWithDefaults}>
+                  {title}
+                </Typography>
+              )
+              : title   
+            } 
             
             {titleActionsComponent}
           </Grid>

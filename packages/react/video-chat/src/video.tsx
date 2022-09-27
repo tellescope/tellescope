@@ -1,12 +1,16 @@
-import React, { useCallback, useState, CSSProperties, Children, useEffect } from "react"
+import React, { useCallback, useState, useEffect } from "react"
 
 import {
   useResolvedSession,
   useSession,
   Styled,
+  UserAndEnduserSelectorProps,
+  useMeetings,
+  UserAndEnduserSelector,
 } from "@tellescope/react-components"
 
 import {
+  APIError,
   UserIdentity,
 } from "@tellescope/types-utilities"
 import {
@@ -50,6 +54,7 @@ import {
   JoinVideoCallProps,
 } from "./video_shared"
 import { ConsoleLogger, DefaultDeviceController, Logger, LogLevel } from "amazon-chime-sdk-js";
+import { Enduser, Meeting, User } from "@tellescope/types-client";
 
 const WithContext = ({ children } : { children: React.ReactNode }) => {
   const [meeting, setMeeting] = useState(undefined as MeetingInfo | undefined)
@@ -265,3 +270,36 @@ export const LocalPreview = ({ style=defaultPreviewStyle }: Styled) => {
   return <video id={PREVIEW_ELEMENT_ID} style={style}/>
 }
 export { VideoTileGrid }
+
+export interface CreateMeetingProps extends Omit<UserAndEnduserSelectorProps, 'onSelect'> {
+  onSuccess?: ({ id } : { id: string }) => void,
+  onError?: (e: APIError) => void,
+  roomTitle?: string,
+}
+export const CreateMeeting = ({ 
+  roomTitle: defaultRoomTitle = "Group Chat", 
+  onSuccess, onError, 
+  ...props 
+} : CreateMeetingProps) => {
+  const session = useSession()
+
+  const handleCreateRoom = useCallback(({ users, endusers }: { users: User[], endusers: Enduser[] }) => {
+    const userIds = users.map(u => u.id)
+    const enduserIds = endusers.map(e => e.id)
+
+    session.api.meetings.start_meeting({
+      attendees: ([
+        ...userIds.map(id => ({ type: 'user', id } as UserIdentity)),
+        ...enduserIds.map(id => ({ type: 'enduser', id } as UserIdentity)),
+      ])
+    })
+    .then(r => {
+      onSuccess?.(r)
+    })
+    .catch(onError)
+  }, [session, onSuccess, onError])
+  
+  return (
+    <UserAndEnduserSelector {...props} onSelect={handleCreateRoom} />
+  )
+}

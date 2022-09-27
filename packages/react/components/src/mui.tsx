@@ -36,6 +36,7 @@ import {
   Link as RouterLink, 
 } from "react-router-dom"
 import {
+  FormControlLabel,
   Grid,
   Link as MuiLink
 } from "@mui/material"
@@ -195,11 +196,15 @@ export type TextFieldProps = {
   size?: 'small',
   onFocus?: (e: any) => void,
   onBlur?: (e: any) => void,
-
+  
   // web only
   autoComplete?: AutoComplete
   multiline?: boolean,
   maxRows?: number,
+  autoFocus?: boolean,
+  InputProps?: any,
+  fullWidth?: boolean,
+  name?: string,
 
   // mixed
   variant?: 'filled' | 'outlined' | 'flat',
@@ -328,8 +333,15 @@ export interface CheckboxProps extends Styled {
   onChange?: (b: boolean) => void,
   label?: string,
 }
-export const Checkbox = ({ onChange, ...props } : CheckboxProps) => (
-  <MuiCheckbox {...props} 
-    onChange={() => onChange?.(!props.checked)} 
-  />
-)
+export const Checkbox = ({ onChange, label, ...props } : CheckboxProps) => {
+  const checkbox = (
+    <MuiCheckbox {...props} 
+      onChange={() => onChange?.(!props.checked)} 
+    />
+  )
+  if (!label) return checkbox
+
+  return (
+    <FormControlLabel control={checkbox} label={label} />
+  )
+}

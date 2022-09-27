@@ -38,8 +38,8 @@ import {
   EnduserSessionContext,
   SessionContext,
 } from "./authentication"
-import { Button, IconModal, LabeledIconButtonProps, LoadingButton, Modal, SecureImage, SubmitButton, useEndusers, useFiles, useManagedContentRecords, useModalIconButton, useUsers } from "."
-import { Grid, InputAdornment, TextField, TextFieldProps } from "@mui/material"
+import { Button, IconModal, TextField, TextFieldProps, LabeledIconButtonProps, LoadingButton, Modal, SecureImage, SubmitButton, useFiles, useModalIconButton,  } from "."
+import { Grid, InputAdornment } from "@mui/material"
 import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
 import { UNSEARCHABLE_FIELDS } from "@tellescope/constants"
@@ -276,7 +276,7 @@ const ConfirmationScreen = <T,>({
         <Grid item xs={12} sx={{ mx: '8px' }}>
           <TextField variant="outlined" type="text" fullWidth
              name="Confirmation" label={`Type "${typeToConfirm}" to confirm`} placeholder={typeToConfirm}
-             value={text} onChange={e => setText(e.target.value.substring(0, 250))}
+             value={text} onChange={value => setText(value.substring(0, 250))}
            />
         </Grid>
       }
@@ -329,206 +329,10 @@ export const DeleteWithConfimrationIcon = ({ modelName, color, iconProps, onSucc
     </IconModal>
   )
 }
-/* FILTER / SEARCH */
-export const filter_setter_for_key = <T,>(key: string, setFilters: React.Dispatch<React.SetStateAction<Filters<T>>>) => (
-  f: Filter<T>
-) => setFilters(fs => ({ ...fs, [key]: { ...fs?.[key], filter: f } }))
 
-export const apply_filters = <T,>(fs: Filters<T>, data: T[]) => (
-  data.filter(d => {
-    for (const f of Object.values(fs)) {
-      if (!f?.filter) continue
-      if (f.filter(d) === false) return false
-    }
-    return true
-  })
-)
-
-export const useFilters = <T,>(args?: { onFilterChange: () => void }) => {
-  const { onFilterChange } = args ?? {}
-  const [filters, setFilters] = React.useState({} as Filters<T>)
-
-  const prevFilterRef = React.useRef(filters)
-  useEffect(() => {
-    if (!onFilterChange) return
-    if (objects_equivalent(prevFilterRef.current, filters)) return
-
-    prevFilterRef.current = filters
-    onFilterChange()
-  }, [filters, onFilterChange])
-
-  const applyFilters = useCallback((data: T[]) => apply_filters(filters, data), [filters])
-
-  const compoundApiFilter = useMemo(() => {
-    let toReturn: LoadFunctionArguments<T> | null = (
-      Object.values(filters).map(f => f.apiFilter).filter(a => !!a).length === 0
-        ? null
-        : {}
-    )
-
-    if (toReturn) {
-      for (const f of Object.values(filters)) {
-        if (!f.apiFilter) continue
-
-        toReturn = { 
-          ...toReturn,
-          filter: {
-            ...toReturn?.filter, 
-            ...f.apiFilter.filter,
-          },
-        }
-
-        // add search when included, defaulting to most recent (tho, there should only be one)
-        if (f.apiFilter?.search?.query) {
-          toReturn.search = f.apiFilter.search
-        }
-      }
-    }
-
-    return toReturn
-  }, [filters])
-
-  return { 
-    filters, 
-    compoundApiFilter,
-    setFilters,
-    applyFilters,
-    activeFilterCount: Object.values(filters).filter(f => !!f.filter).length
-  }
-}
-
-export const record_matches_for_query = <T,>(records: T[], query: string) => {
-  const matches = [] as T[]
-
-  for (const record of records) {
-    for (const field in record) {
-      const value = record[field]
-      if (typeof value !== 'string') continue
-      if (UNSEARCHABLE_FIELDS.includes(field)) continue
-
-      if (value.toUpperCase().includes(query.toUpperCase())) {
-        matches.push(record)
-        break; 
-      }
-    }
-  }
-
-  return matches
-}
-
-export const filter_for_query = <T,>(query: string): FilterWithData<T> => ({
-  filter: (record: T) => {
-    for (const field in record) {
-      const value = record[field]
-      if (typeof value !== 'string') continue
-      if (UNSEARCHABLE_FIELDS.includes(field)) continue
-
-      if (value.toUpperCase().includes(query.toUpperCase())) {
-        return true
-      }
-    }
-
-    return false
-  },
-  apiFilter: { search: { query } },
-})
-
-export const performBulkAction = async <T extends { id: string }, R> ({ 
-  allSelected,
-  apiFilter, 
-  selected, 
-  processBatch, 
-  fetchBatch,
-  batchSize=250, 
-} : BulkActionProps<T> & {
-  batchSize?: number,
-  fetchBatch: LoadFunction<T>,
-  processBatch: (matches: T[]) => Promise<R>,
-}) => {
-  if (!(selected || allSelected || apiFilter)) throw new Error("One of allSelected, apiFilter, or selected is required")
-  if (batchSize <= 0) throw new Error("batchSize must be at least 1")
-  const args: LoadFunctionArguments<T> = (
-    allSelected 
-      ? (apiFilter ?? {})
-      : { ids: selected }
-  )
-
-  args.limit = batchSize
-  const results = []
-  while (true) {
-    const matches = await fetchBatch(args)
-    if (matches.length === 0) break
-
-    results.push(await processBatch(matches))
-
-    if (matches.length < batchSize) {
-      break
-    }
-
-    args.lastId = matches[matches.length - 1].id
-  }
-
-  // clean up in case same object is reused for future queries
-  delete args.lastId
-
-  return results
-}
-
-export interface BulkActionProps <T>{
-  allSelected?: boolean,
-  selected?: string[],
-  apiFilter?: LoadFunctionArguments<T> | null,
-  onSuccess?: () => void,
-  onError?: (message: string) => void,
-}
-
-export type FilterWithData<T> = {
-  filter: null | ((f: T) => boolean),
-  apiFilter: LoadFunctionArguments<T> | null,
-  data?: Indexable,
-}
-export interface Filters<T> {
-  [index: string]: FilterWithData<T>
-}
-
-export interface FilterComponentWithDefaultKey<T> {
-  filters: Filters<T>,
-  setFilters: React.Dispatch<React.SetStateAction<Filters<T>>>,
-}
-// can include a version with an optional key, but make sure to use it in all cases when it's possibly passed as a prop (don't just use a string literal as default)
-export interface FilterComponent<T> extends FilterComponentWithDefaultKey<T> {
-  filterKey: string,
-}
-
-interface SearchAPIProps <T> {
-  searchAPI?: (args: { search: { query: string } }) => Promise<T[]>,
-  onLoad?: (results: T[]) => void,
-}
-export const useSearchAPI = <T,>({ query, onLoad, searchAPI } : { query: string } & SearchAPIProps<T>) => {
-  useEffect(() => {
-    // don't search empty strings
-    if (!query?.trim()) return
-    if (!searchAPI) return
-
-    // unbounce  
-    const t = setTimeout(() => {
-      searchAPI({ search: { query: query.trim() }})
-      .then(results => {
-        if (results.length === 0) { return }
-
-        onLoad?.(results)
-      })
-      .catch(console.error)
-    }, 100)
-
-    return () => { clearTimeout(t) }
-  }, [query, searchAPI, onLoad])
-
-  return
-}
-
-export const SearchTextInput = (props : TextFieldProps) => (
+export const SearchTextInput = ({ onChange, ...props } : TextFieldProps) => (
   <TextField size="small" placeholder="Search..." 
+    onChange={s => onChange?.(s)}
     InputProps={{
       startAdornment: (
         <InputAdornment position="start">
@@ -539,89 +343,6 @@ export const SearchTextInput = (props : TextFieldProps) => (
     {...props}
   />
 )
-
-interface GenericSearchProps <T> extends FilterComponent<T> {
-  placeholder?: string,
-  fullWidth?: boolean,
-  label?: string,
-  style?: React.CSSProperties,
-  size?: TextFieldProps['size'],
-}
-interface ModelSearchProps<T> extends GenericSearchProps<T>, SearchAPIProps<T> {}
-export const ModelSearchInput = <T,>({ filterKey, setFilters, searchAPI, onLoad, ...props } : ModelSearchProps<T>) => {
-  const [query, setQuery] = useState('')
-
-  useSearchAPI({ query, searchAPI, onLoad })
-
-  useEffect(() => {
-    setFilters(fs => (
-      fs[filterKey]?.apiFilter?.search?.query === query
-        ? fs
-        : { ...fs, [filterKey]: filter_for_query(query) }
-    )) 
-  }, [query, filterKey, setFilters])
-
-  return <SearchTextInput {...props} value={query} onChange={e => setQuery(e.target.value)} />
-}
-
-
-export const EnduserSearch = (props: Omit<GenericSearchProps<Enduser>, 'filterKey'>) => {
-  const session = useResolvedSession()
-  const [, { addLocalElements }] = useEndusers()
-  return (
-    <ModelSearchInput {...props} filterKey="endusers"
-      searchAPI={session.api.endusers.getSome}
-      onLoad={addLocalElements}
-    />
-  )
-}
-
-export const UserSearch = (props: Omit<GenericSearchProps<User>, 'filterKey'>) => {
-  const session = useResolvedSession()
-  const [, { addLocalElements }] = useUsers()
-  return (
-    <ModelSearchInput {...props} filterKey="users"
-      searchAPI={session.api.users.getSome}
-      onLoad={addLocalElements}
-    />
-  )
-}
-
-export const EnduserOrUserSearch = (props: Omit<GenericSearchProps<Enduser | User>, 'filterKey'>) => {
-  const session = useResolvedSession()
-  const [, { addLocalElements: addLocalEndusers }] = useEndusers()
-  const [, { addLocalElements: addLocalUsers }] = useUsers()
-
-  const searchAPI: SearchAPIProps<Enduser | User>['searchAPI'] = async (args) => {
-    const [endusers, users] = await Promise.all([
-      session.api.endusers.getSome(args),
-      session.api.users.getSome(args),
-    ])
-
-    if (endusers.length > 0) addLocalEndusers(endusers)
-    if (users.length > 0)    addLocalUsers(users)
-
-    return [...endusers, ...users]
-  }
-
-  return (
-    <ModelSearchInput {...props} filterKey="endusers-or-users"
-      searchAPI={searchAPI}
-    />
-  )
-}
-
-export const ContentSearch = (props: Omit<GenericSearchProps<ManagedContentRecord>, 'filterKey'>) => {
-  const session = useResolvedSession()
-  const [, { addLocalElements }] = useManagedContentRecords()
-  return (
-    <ModelSearchInput {...props} filterKey="managed_content_records"
-      searchAPI={session.api.managed_content_records.getSome}
-      onLoad={addLocalElements}
-    />
-  )
-}
-
 
 export const ImageOrDropzone = ({ 
   style, 

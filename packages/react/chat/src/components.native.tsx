@@ -1,6 +1,6 @@
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
-import { Modal, View, TextInput } from "react-native"
-import { Avatar, RadioButton } from 'react-native-paper'
+import { Modal, TextInput } from "react-native"
+import { Avatar } from 'react-native-paper'
 import {
   useFileUpload,
   Flex,
@@ -11,20 +11,9 @@ import {
   Button,
   Paper,
   useChats,
-  useUsers,
-  useEndusers,
-  List,
-  LoadingData,
-  useChatRooms,
-  APIError,
-  LoadingButton,
   useResolvedSession, 
 } from "@tellescope/react-components"
 import { useState } from 'react';
-import { ChatRoom } from '@tellescope/types-client';
-import { render } from 'react-dom';
-import { user_display_name } from '@tellescope/utilities';
-import { CreateChatRoomProps } from './components';
 
 const CHAT_ICON_SIZE = 35
 const SendImageOrVideo = ({ 
@@ -179,99 +168,5 @@ export const SendMessage = ({
          </Flex>
       </Flex>
     </Flex> 
-  )
-}
-
-export const CreateChatRoom = ({
-  excludeEndusers,
-  excludeUsers,
-  onGoBack, 
-  onSuccess, 
-  onError=console.error,
-  roomTitle="Group Chat",
-  radio,
-}: CreateChatRoomProps) => {
-  const session = useResolvedSession()
-  const [, { createElement: createRoom }] = useChatRooms()
-  const [endusersLoading] = useEndusers()
-  const [usersLoading] = useUsers()
-
-  const [selected, setSelected] = useState<string[]>([])
-
-  return (
-    <LoadingData data={{ endusers: endusersLoading, users: usersLoading }} render={({ users, endusers }) => (
-    <Flex flex={1} column>
-      <Flex alignItems="center" justifyContent={"space-between"} style={{
-        marginBottom: 10,
-      }}>
-        {onGoBack &&  
-          <Button onClick={onGoBack}>
-            Back
-          </Button>
-        }
-        <Typography style={{ fontSize: 20, textAlign: 'center' }}>
-          Select Members
-        </Typography>
-
-        <LoadingButton submitText='Create' submittingText='Create' 
-          disabled={selected.length === 0}
-          style={{ display: 'flex', marginRight: 5 }}
-          onClick={() => {
-            const userIds = selected.filter(s => users.find(u => u.id === s))
-            const enduserIds = selected.filter(s => endusers.find(u => u.id === s))
-
-            if (session.type === 'enduser') {
-              enduserIds.push(session.userInfo.id)
-            } else {
-              userIds.push(session.userInfo.id)
-            }
-
-            createRoom({
-              enduserIds, 
-              userIds, 
-              title: roomTitle,
-            })
-            .then(r => {
-              setSelected([])
-              onSuccess?.(r)
-            })
-            .catch(onError)
-          }}
-        />
-      </Flex>
-
-      <List items={[...excludeUsers ? [] : users, ... excludeEndusers ? [] : endusers].filter(u => u.id !== session.userInfo.id)} 
-        render={user => (
-          <Paper flex elevation={5} style={{
-            marginBottom: 2,
-          }}>
-          <Flex flex={1} alignItems="center" justifyContent="space-between" 
-            onClick={() => setSelected(ss => (
-              ss.includes(user.id) 
-                ? radio 
-                  ? []
-                  : ss.filter(s => s !== user.id)
-                :radio 
-                  ? [user.id]
-                  : [user.id, ...ss]
-            ))}
-            style={{
-              paddingLeft: 5, paddingRight: 5,
-            }}
-          >
-            <RadioButton value={user.id}
-              status={selected.includes(user.id) ? 'checked' : 'unchecked'}
-            />
-
-            <Typography style={{ 
-              fontWeight: selected.includes(user.id) ? 'bold' : undefined,
-            }}>
-              {user_display_name(user)}
-            </Typography>
-          </Flex>
-          </Paper>
-        )} />
-    </Flex>
-    )} />
   )
 }
