@@ -7,7 +7,7 @@
  */
 
 import React, { useCallback, useContext, useEffect, useState } from "react"
-import { View, StyleSheet } from "react-native"
+import { StyleSheet } from "react-native"
 import {
   AttendeeInfo,
   MeetingInfo,
@@ -20,10 +20,9 @@ import {
   useSession,
   Flex,
   useCalendarEvents,
+  useMeetings,
 } from "@tellescope/react-components"
 import { 
-  Button, 
-  Typography, 
   convert_CSS_to_RNStyles, // requires mui.native
 } from "@tellescope/react-components/lib/esm/mui.native"
 
@@ -43,8 +42,6 @@ import {
   NativeFunction,
   ControlBar,
 } from "./index.native"
-import { borderColor, borderRadius } from "@mui/system"
-import { ConstructionOutlined } from "@mui/icons-material"
 // import RNSwitchAudioOutput from 'react-native-switch-audio-output';
 
 interface TileState {
@@ -147,6 +144,9 @@ export const WithVideo = ({ children } : VideoProps) => {
       setVideoIsEnabled(v => tileState.isLocal ? false : v)
     });
 
+    // clean up any old meetings when the context is loaded
+    NativeFunction.stopMeeting()
+
     return () => {
       startSubscription.remove();
       endSubscription.remove();
@@ -202,6 +202,8 @@ export const useStartVideoCall = (): StartVideoCallReturnType => {
   const session = useSession()
   const { meeting, setMeeting, setIsHost, videoIsEnabled, toggleVideo } = React.useContext(CurrentCallContext)
 
+  const [, { updateLocalElement: updateLocalMeeting }] = useMeetings({ dontFetch: true })
+
   const [starting, setStarting] = useState(false)
   const [ending, setEnding] = useState(false)
 
@@ -234,10 +236,15 @@ export const useStartVideoCall = (): StartVideoCallReturnType => {
 
     try {
       await session.api.meetings.end_meeting({ id: meeting.ExternalMeetingId })
+
+      updateLocalMeeting(meeting.ExternalMeetingId, { 
+        status: 'ended',
+        // @ts-ignore
+        endedAt: new Date().toString(), 
+      })
     } catch(err) { console.error(err) }
 
-    setEnding(false)
-    setMeeting(undefined)
+    NativeFunction.stopMeeting()
   }
 
   return { 
@@ -306,58 +313,12 @@ export const useJoinVideoCall = (): JoinVideoCallReturnType => {
     setIsHost(isHost)
   }
 
-  const leaveMeeting = () => setMeeting(undefined)
+  const leaveMeeting = () => {
+    NativeFunction.stopMeeting()
+    // setMeeting(undefined)
+  }
 
   return { meeting, videoIsEnabled, toggleVideo, joinMeeting, leaveMeeting }
-}
-export const VideoTileGrid = () => {
-  const { 
-    // attendees, 
-    videoTiles, 
-    toggleVideo,
-  } = useContext(CurrentCallContext)
-
-  return (
-    <Flex column justifyContent="space-between" alignItems="center">
-      <Flex style={styles.videoContainer}>
-        {
-          videoTiles.length > 0 ? videoTiles.map(tileId => 
-            <RNVideoRenderView style={styles.video} key={tileId} tileId={tileId} />
-          ) : <Typography style={styles.subtitle}>No one is sharing video at this moment</Typography>
-        }
-      </Flex>
-
-      {/* 
-      {
-        !!shareScreenId &&    
-        <React.Fragment>
-          <Typography style={styles.title}>Screen Share</Typography>
-          <View style={styles.videoContainer}>
-            <RNVideoRenderView style={styles.screenShare} key={shareScreenId} tileId={shareScreenId} />
-          </View>
-        </React.Fragment>
-      } 
-      */}
-
-      <Flex justifyContent="space-between" style={{ height: '5%' }}>
-        {/* <MuteButton muted={currentMuted} onPress={() => NativeFunction.setMute(!currentMuted) }/>          */}
-        {/* <CameraButton disabled={selfVideoEnabled} onPress={() =>  NativeFunction.setCameraOn(!videoIsEnabled)}/> */}
-        <Button onPress={toggleVideo}>
-          Toggle Video
-        </Button>
-        {/* <HangOffButton onPress={() => NativeFunction.stopMeeting()} /> */}
-        <Button onPress={() => NativeFunction.stopMeeting()}> Leave Meeting </Button>
-      </Flex>
-
-      {/* <FlatList
-        style={styles.attendeeList}
-        data={attendees}
-        renderItem={({ item }) => <AttendeeItem attendeeName={attendeeNameMap[item] ? attendeeNameMap[item] : item} muted={this.state.mutedAttendee.includes(item)}/>}
-        keyExtractor={(item) => item}
-      /> */}
-
-    </Flex>
-  );
 }
 
 const styles = StyleSheet.create({
@@ -483,9 +444,7 @@ export const VideoCallNative: React.JSXElementConstructor<VideoCallNativeProps> 
 
       </Flex>
 
-      <ControlBar {...props}
-        style={{ position: 'absolute', bottom: 20, width: '100%' }}
-      />
+      <ControlBar {...props} style={{ position: 'absolute', bottom: 20, width: '100%' }} />
     </Flex>
   )
 }
