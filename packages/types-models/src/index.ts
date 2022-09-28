@@ -889,7 +889,7 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
   notes?: string,
 }
 
-export type BlockType = 'h1' | 'h2' | 'html' | 'image' | 'youtube'
+export type BlockType = 'h1' | 'h2' | 'html' | 'image' | 'youtube' | 'pdf'
 export type ContentBlockBuilder <BLOCK extends BlockType, INFO extends object> = {
   type: BLOCK,
   info: INFO,
@@ -898,6 +898,7 @@ export type ContentBlockBuilder <BLOCK extends BlockType, INFO extends object> =
 export type BlockContentText = { text: string }
 export type BlockContentMedia = {
   link: string,
+  name?: string,
   height?: number,
   width?: number,
 }
@@ -905,10 +906,12 @@ export type BlockContentH1 = ContentBlockBuilder<'h1', BlockContentText>
 export type BlockContentH2 = ContentBlockBuilder<'h2', BlockContentText>
 export type BlockContentHTML = ContentBlockBuilder<'html', { html: string }>
 export type BlockContentImage = ContentBlockBuilder<'image', BlockContentMedia>
+export type BlockContentPDF = ContentBlockBuilder<'pdf', BlockContentMedia>
 export type BlockContentYoutube = ContentBlockBuilder<'youtube', BlockContentMedia>
 
 export type Block = (
     BlockContentYoutube
+  | BlockContentPDF
   | BlockContentImage
   | BlockContentHTML
   | BlockContentH1

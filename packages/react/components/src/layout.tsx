@@ -21,12 +21,12 @@ export const ConditionalWrap = <P extends { [index: string]: any }>({ condition,
 }
 
 export interface ImageDimensions {
-  height?: number,
-  width?: number,
-  minHeight?: number,
-  minWidth?: number,
-  maxHeight?: number,
-  maxWidth?: number,
+  height?: React.CSSProperties['height'],
+  width?: React.CSSProperties['height'],
+  minHeight?: React.CSSProperties['height'],
+  minWidth?: React.CSSProperties['height'],
+  maxHeight?: React.CSSProperties['height'],
+  maxWidth?: React.CSSProperties['height'],
 }
 export interface ImageProps extends ImageDimensions {
   src: string,

@@ -123,6 +123,7 @@ import {
   BlockContentYoutube,
   BlockContentH2,
   PortalSettings,
+  BlockContentPDF,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -1638,6 +1639,16 @@ export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K 
     type: exactMatchValidator(['image'])(),
     info: objectValidator<BlockContentImage['info']>({
       link: stringValidator5000({ emptyStringOk: true }),
+      name: stringValidator250({ isOptional: true, emptyStringOk: true }),
+      height: nonNegNumberValidator({ isOptional: true }),
+      width: nonNegNumberValidator({ isOptional: true }),
+    })(),
+  })(),
+  pdf: objectValidator<BlockContentPDF>({
+    type: exactMatchValidator(['pdf'])(),
+    info: objectValidator<BlockContentPDF['info']>({
+      link: stringValidator5000({ emptyStringOk: true }),
+      name: stringValidator250({ isOptional: true, emptyStringOk: true }),
       height: nonNegNumberValidator({ isOptional: true }),
       width: nonNegNumberValidator({ isOptional: true }),
     })(),
@@ -1646,6 +1657,7 @@ export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K 
     type: exactMatchValidator(['youtube'])(),
     info: objectValidator<BlockContentYoutube['info']>({
       link: stringValidator5000({ emptyStringOk: true }),
+      name: stringValidator250({ isOptional: true, emptyStringOk: true }),
       height: nonNegNumberValidator({ isOptional: true }),
       width: nonNegNumberValidator({ isOptional: true }),
     })(),
@@ -1657,6 +1669,7 @@ const _BLOCK_TYPES: { [K in BlockType]: any } = {
   h2: '',
   html: '',
   image: '',
+  pdf: '',
   youtube: '',
 }
 export const BLOCK_TYPES = Object.keys(_BLOCK_TYPES) as BlockType[]

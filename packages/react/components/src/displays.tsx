@@ -16,7 +16,7 @@ import { Image, ImageDimensions, Video } from "./layout"
 import { APIErrorHandler } from "@tellescope/types-utilities"
 
 // supports actual secureName as well as URL values
-const useFileForSecureName = ({ 
+export const useFileForSecureName = ({ 
   secureName, 
   onError,
   cacheKey=secureName 
