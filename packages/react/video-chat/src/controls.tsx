@@ -73,7 +73,6 @@ export const LeaveMeeting = ({ onLeave, size=DEFAULT_BUTTON_SIZE } : LeaveMeetin
 interface ControlbarProps {
   spacing?: number,
   size?: number,
-
 }
 export const ControlBar = ({ onLeave, style, spacing=15, size } : ControlbarProps & LeaveMeetingProps & Styled) => {
   const { isHost } = React.useContext(CurrentCallContext)

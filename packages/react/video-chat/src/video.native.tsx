@@ -444,7 +444,7 @@ export const VideoCallNative: React.JSXElementConstructor<VideoCallNativeProps> 
 
       </Flex>
 
-      <ControlBar {...props} style={{ position: 'absolute', bottom: 20, width: '100%' }} />
+      <ControlBar {...props} size={50} spacing={20} style={{ position: 'absolute', bottom: 20, width: '100%' }} />
     </Flex>
   )
 }

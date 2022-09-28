@@ -78,7 +78,10 @@ export const LabeledIconButton = ({
       }}
       onClick={onClick} id={id} disabled={disabled}  
     >
-      <Icon style={{ fontSize: size }} />
+      <Icon 
+        size={size} // useful for native
+        style={{ fontSize: size }}  // useful for web
+      />
     </IconButton>
   )
 
