@@ -44,6 +44,7 @@ import {
   ControlBar,
 } from "./index.native"
 import { borderColor, borderRadius } from "@mui/system"
+import { ConstructionOutlined } from "@mui/icons-material"
 // import RNSwitchAudioOutput from 'react-native-switch-audio-output';
 
 interface TileState {
@@ -64,6 +65,17 @@ export const WithVideo = ({ children } : VideoProps) => {
   const [localTileId, setLocalTileId] = useState(null as number | null)
   const [screenShareTile, setScreenShareTile] = useState(null as number | null)
   const [attendees, setAttendees] = useState ([] as AttendeeDisplayInfo[])
+
+  const resetState = () => {
+    setMeeting(undefined)
+    setIsHost(false)
+    setMuted(false)
+    setVideoIsEnabled(false)
+    setVideoTiles([])
+    setLocalTileId(null)
+    setScreenShareTile(null)
+    setAttendees([])
+  }
 
   const toggleVideo = async () => {
     NativeFunction.setCameraOn(!videoIsEnabled)
@@ -86,8 +98,7 @@ export const WithVideo = ({ children } : VideoProps) => {
 
     // called when user clicks Leave Meeting or meeting is ended by host
     const endSubscription = emitter.addListener(MobileSDKEvent.OnMeetingEnd, a => {
-      setInMeeting(false)
-      setIsLoading(false)
+      resetState()
     });
 
     const joinSubscription = emitter.addListener(MobileSDKEvent.OnAttendeesJoin, (added: { attendeeId: string, externalUserId: string }) => {
@@ -104,7 +115,7 @@ export const WithVideo = ({ children } : VideoProps) => {
     });
 
     const errorSubscription = emitter.addListener(MobileSDKEvent.OnError, (message) => {
-      console.error("SDK Error", message);
+      console.error("SDK Error in errorSubscription", message);
     });
 
     const muteSubscription = emitter.addListener(MobileSDKEvent.OnAttendeesMute, attendeeId => {
@@ -198,7 +209,7 @@ export const useStartVideoCall = (): StartVideoCallReturnType => {
     setStarting(true)
     try {
       const { id, meeting, host } = await session.api.meetings.start_meeting({ attendees: initialAttendees })
-      NativeFunction.startMeeting(meeting.Meeting, host.info)
+      await NativeFunction.startMeeting(meeting.Meeting, host.info)
 
       setMeeting(meeting.Meeting)
       setIsHost(true)
@@ -255,7 +266,7 @@ export const useStartAndJoinMeetingForCalendarEvent = (calendarEventId: string) 
 
     updateLocalEvent(calendarEventId, { meetingId: id } )
 
-    NativeFunction.startMeeting(meeting.Meeting, host.info)
+    await NativeFunction.startMeeting(meeting.Meeting, host.info)
 
     setMeeting(meeting.Meeting)
     setIsHost(true)
@@ -271,6 +282,7 @@ export const useJoinVideoCall = (): JoinVideoCallReturnType => {
   const { meeting, setIsHost, setMeeting, videoIsEnabled, toggleVideo } = React.useContext(CurrentCallContext)
 
   const joinMeeting = async (meetingInfo: string | { Meeting: MeetingInfo }, attendeeInfo?: { Attendee: AttendeeInfo }) => {
+    let isHost = false
     if (typeof meetingInfo == 'string') {
       const meetings = await session.api.meetings.my_meetings()
       const meeting = meetings.find(m => m.id === meetingInfo)
@@ -278,15 +290,20 @@ export const useJoinVideoCall = (): JoinVideoCallReturnType => {
       attendeeInfo = { Attendee: meeting?.attendees.find?.(a => a.id === session.userInfo.id)?.info as AttendeeInfo}
 
       if (attendeeInfo.Attendee.ExternalUserId === meeting?.creator) {
-        setIsHost(true)
+        isHost = true
       }
     }
 
     if (!meetingInfo || typeof meetingInfo === 'string' || !attendeeInfo) return
 
-    NativeFunction.startMeeting(meetingInfo.Meeting ?? meetingInfo, attendeeInfo.Attendee ?? attendeeInfo)
+    try {
+      await NativeFunction.startMeeting(meetingInfo.Meeting ?? meetingInfo, attendeeInfo.Attendee ?? attendeeInfo)
+    } catch(err) {
+      await NativeFunction.startMeeting(meetingInfo.Meeting ?? meetingInfo, attendeeInfo.Attendee ?? attendeeInfo)
+    }
 
-    setMeeting(meetingInfo.Meeting)
+    setMeeting(meetingInfo.Meeting ?? meetingInfo)
+    setIsHost(isHost)
   }
 
   const leaveMeeting = () => setMeeting(undefined)
