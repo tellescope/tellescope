@@ -120,12 +120,14 @@ export type WaitingRoomProps = {
   calendarEvent: CalendarEvent,
   onGoBack?: () => void,
 }
-export const WaitingRoom = ({ calendarEvent, onGoBack } : WaitingRoomProps) => {
+interface WaitingRoomResolvedProps extends WaitingRoomProps {
+  join: (meetingInfo: { Meeting: MeetingInfo } | string, attendeeInfo?: { Attendee: AttendeeInfo }) => Promise<void>,
+  start?: () => void,
+}
+const WaitingRoomShared = ({ calendarEvent, join, start, onGoBack }: WaitingRoomResolvedProps) => {
   const session = useResolvedSession()
   const [, { findById: findEvent }] = useCalendarEvents()
   const [, { findById: findMeeting }] = useMeetings()
-  const { startAndJoinMeeting } = useStartAndJoinMeetingForCalendarEvent(calendarEvent.id)
-  const { joinMeeting } = useJoinVideoCall()
 
   const tsMeeting = findMeeting(calendarEvent?.meetingId ?? '')
 
@@ -157,12 +159,13 @@ export const WaitingRoom = ({ calendarEvent, onGoBack } : WaitingRoomProps) => {
       <LoadingButton variant="contained" 
         disabled={
            (!meetingIsStarted && !isHost)
+        || (!meetingIsStarted && !start)
         || (meetingIsStarted && !tsMeeting)
         }
         onClick={
           meetingIsStarted 
-            ? () => joinMeeting(tsMeeting.id) 
-            : startAndJoinMeeting
+            ? () => join(tsMeeting.id) 
+            : start
         } 
         submitText={
           meetingIsStarted ? "Join Meeting" : "Start Meeting" 
@@ -188,6 +191,26 @@ export const WaitingRoom = ({ calendarEvent, onGoBack } : WaitingRoomProps) => {
       }   
     </Flex>
   )
+}
+
+// Only users can start meeting, avoid using useStartAndJoin... hook as enduser
+const WaitingRoomUser = (props : WaitingRoomProps) => {
+  const { startAndJoinMeeting } = useStartAndJoinMeetingForCalendarEvent(props.calendarEvent.id)
+  const { joinMeeting } = useJoinVideoCall()
+
+  return <WaitingRoomShared {...props} start={startAndJoinMeeting} join={joinMeeting} />
+}
+
+const WaitingRoomEnduser = (props : WaitingRoomProps) => {
+  const { joinMeeting } = useJoinVideoCall()
+  return <WaitingRoomShared {...props} join={joinMeeting} />
+}
+
+export const WaitingRoom = (props: WaitingRoomProps) => {
+  const session = useResolvedSession()
+  const Component = session.type === 'user' ? WaitingRoomUser : WaitingRoomEnduser
+
+  return <Component {...props} />
 }
 
 export interface VideoCallNativeProps {
