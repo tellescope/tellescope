@@ -12,10 +12,10 @@ export const PDFBlockUI = ({ info }: PDFBlockUIProps) => {
 
   if (!loadedImage) return null 
   return (
-    <HoverPaper style={{ padding: 15 }}>
-    <Grid container alignItems="center" justifyContent="center" 
+    <HoverPaper style={{ padding: 15, width: '100%' }} 
       onClick={() => window.open(loadedImage, "_blank")}
     >
+    <Grid container alignItems="center" justifyContent="center" >
       <Typography>
         {info.name ?? 'View PDF'} 
       </Typography>
