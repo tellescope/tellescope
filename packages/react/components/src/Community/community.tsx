@@ -22,6 +22,7 @@ import {
   useResolvedSession,
   DeleteWithConfimrationIcon,
   DisplayPicture,
+  Styled,
 } from "../index"
 import { Divider, Grid, LinearProgress, Paper, TextField, Typography } from "@mui/material"
 import {
@@ -35,8 +36,8 @@ import AddCircleIcon from "@mui/icons-material/AddCircle"
 import ChatBubbleOutlineIcon from '@mui/icons-material/ChatBubbleOutline';
 import EditIcon from '@mui/icons-material/Edit';
 
-export const RSVPAvatar = ({ rsvp } : { rsvp: CalendarEventRSVP }) => (
-  <DisplayPicture size={20}
+export const RSVPAvatar = ({ rsvp, size=20, style } : { rsvp: CalendarEventRSVP, size?: number } & Styled) => (
+  <DisplayPicture size={size} style={style}
     letters={rsvp.avatar ? undefined : rsvp.displayName[0]}  
     user={{
       id: rsvp.creator,
