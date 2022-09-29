@@ -23,7 +23,6 @@ import {
   Flex,
   Typography,
   LoadingButton,
-  useSession,
   useResolvedSession,
   Button,
 } from "@tellescope/react-components"
@@ -122,7 +121,7 @@ export type WaitingRoomProps = {
   onGoBack?: () => void,
 }
 export const WaitingRoom = ({ calendarEvent, onGoBack } : WaitingRoomProps) => {
-  const session = useSession()
+  const session = useResolvedSession()
   const [, { findById: findEvent }] = useCalendarEvents()
   const [, { findById: findMeeting }] = useMeetings()
   const { startAndJoinMeeting } = useStartAndJoinMeetingForCalendarEvent(calendarEvent.id)

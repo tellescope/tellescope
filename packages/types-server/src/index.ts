@@ -49,6 +49,7 @@ export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']
 export type PostComment = ServerModelForName['post_comments']
 export type PostLike = ServerModelForName['post_likes']
+export type CommentLike = ServerModelForName['comment_likes']
 
 export type Organization = ServerModelForName['organizations']
 

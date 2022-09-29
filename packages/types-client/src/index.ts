@@ -47,6 +47,7 @@ export type Forum = ClientModelForName['forums']
 export type ForumPost = ClientModelForName['forum_posts']
 export type PostComment = ClientModelForName['post_comments']
 export type PostLike = ClientModelForName['post_likes']
+export type CommentLike = ClientModelForName['comment_likes']
 
 export interface UserDisplayInfo extends models.UserActivityInfo { 
   id: string,

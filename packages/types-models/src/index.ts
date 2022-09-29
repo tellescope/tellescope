@@ -978,7 +978,10 @@ export interface PostLike_required {
 export interface PostLike_updatesDisabled {}
 export interface PostLike extends PostLike_readonly, PostLike_required, PostLike_updatesDisabled {}
 
-export interface PostComment_readonly extends ClientRecord {}
+export interface PostComment_readonly extends ClientRecord {
+  numLikes?: number,
+  numReplies?: number,
+}
 export interface PostComment_required {
   forumId: string,
   postId: string,
@@ -989,9 +992,19 @@ export interface PostComment_required {
 export interface PostComment_updatesDisabled {}
 export interface PostComment extends PostComment_readonly, PostComment_required, PostComment_updatesDisabled {
   postedBy: UserIdentity,
+  threadId?: string,
   replyTo?: string,
   attachments?: string[],
 }
+
+export interface CommentLike_readonly extends ClientRecord {}
+export interface CommentLike_required {
+  forumId: string,
+  postId: string,
+  commentId: string,
+}
+export interface CommentLike_updatesDisabled {}
+export interface CommentLike extends CommentLike_readonly, CommentLike_required, CommentLike_updatesDisabled {}
 
 export type AutomatedActionStatus = 'active' | 'finished' | 'cancelled' | 'error'
 export interface AutomatedAction_readonly extends ClientRecord {}
@@ -1065,6 +1078,7 @@ export type ModelForName_required = {
   forums: Forum_required;
   forum_posts: ForumPost_required;
   post_likes: PostLike_required;
+  comment_likes: CommentLike_required;
   post_comments: PostComment_required;
   organizations: Organization_required;
   integrations: Organization_required;
@@ -1104,6 +1118,7 @@ export interface ModelForName_readonly {
   forums: Forum_readonly;
   forum_posts: ForumPost_readonly;
   post_likes: PostLike_readonly;
+  comment_likes: CommentLike_readonly;
   post_comments: PostComment_readonly;
   organizations: Organization_readonly;
   integrations: Integration_readonly;
@@ -1143,6 +1158,7 @@ export interface ModelForName_updatesDisabled {
   forums: Forum_updatesDisabled;
   forum_posts: ForumPost_updatesDisabled;
   post_likes: PostLike_updatesDisabled;
+  comment_likes: CommentLike_updatesDisabled;
   post_comments: PostComment_updatesDisabled;
   organizations: Organization_updatesDisabled;
   integrations: Integration_updatesDisabled;
@@ -1182,6 +1198,7 @@ export interface ModelForName extends ModelForName_required, ModelForName_readon
   forums: Forum;
   forum_posts: ForumPost;
   post_likes: PostLike;
+  comment_likes: CommentLike;
   post_comments: PostComment;
   organizations: Organization;
   integrations: Integration;
@@ -1231,6 +1248,7 @@ export const modelNameChecker: { [K in ModelName] : true } = {
   forums: true,
   forum_posts: true,
   post_likes: true,
+  comment_likes: true,
   post_comments: true,
   organizations: true,
   integrations: true,

@@ -37,6 +37,7 @@ type EnduserAccessibleModels = (
   | "managed_content_records"
   | "post_comments"
   | "post_likes"
+  | "comment_likes"
   | 'meetings'
   | "calendar_event_RSVPs"
   | 'integrations' // may want OAuth2 support in future
@@ -134,6 +135,7 @@ const loadDefaultQueries = (s: EnduserSession): { [K in EnduserAccessibleModels]
   managed_content_records: defaultQueries(s, 'managed_content_records'),
   post_comments: defaultQueries(s, 'post_comments'),
   post_likes: defaultQueries(s, 'post_likes'),
+  comment_likes: defaultQueries(s, 'comment_likes'),
   users: defaultQueries(s, 'users'),
   meetings: defaultQueries(s, 'meetings'),
   integrations: defaultQueries(s, 'integrations'),

@@ -42,6 +42,7 @@ import {
   Integration,
   Organization,
   CalendarEventRSVP,
+  CommentLike,
 } from "@tellescope/types-client"
 
 import {
@@ -55,9 +56,9 @@ import {
   EnduserSession,
 } from '@tellescope/sdk'
 import { value_is_loaded } from './loading'
-import { getGoogleClientAPIKey, getGoogleClientId, objects_equivalent } from '@tellescope/utilities'
+import { getGoogleClientAPIKey, objects_equivalent } from '@tellescope/utilities'
 import { GOOGLE_INTEGRATIONS_TITLE } from '@tellescope/constants'
-import { Filters, ReadFilter } from '@tellescope/types-models'
+import { ReadFilter } from '@tellescope/types-models'
 
 const RESET_CACHE_TYPE = "cache/reset" as const
 export const resetStateAction = createAction(RESET_CACHE_TYPE)
@@ -246,6 +247,7 @@ const forumPostsSlice = createSliceForList<ForumPost, 'forum_posts'>('forum_post
 const managedContentRecoredsSlice = createSliceForList<ManagedContentRecord, 'managed_content_records'>('managed_content_records')
 const postCommentsSlice = createSliceForList<PostComment, 'post_comments'>('post_comments')
 const postLikesSlice = createSliceForList<PostLike, 'post_likes'>('post_likes')
+const commentLikesSlice = createSliceForList<PostLike, 'comment_likes'>('comment_likes')
 const organizationsSlice = createSliceForList<Organization, 'organizations'>('organizations')
 
 const calendarEventRSVPsSlice = createSliceForList<CalendarEventRSVP, 'calendar_event_rsvps'>('calendar_event_rsvps')
@@ -279,6 +281,7 @@ export const sharedConfig = {
     managed_content_records: managedContentRecoredsSlice.reducer,
     post_comments: postCommentsSlice.reducer,
     post_likes: postLikesSlice.reducer,
+    comment_likes: commentLikesSlice.reducer,
     integrations: integrationsSlice.reducer,
     gcal_events: gcalEventsSlice.reducer,
     organizations: organizationsSlice.reducer,
@@ -1163,6 +1166,22 @@ export const usePostLikes = (options={} as HookOptions<PostLike>) => {
     {...options}
   )
 }
+export const useCommentLikes = (options={} as HookOptions<CommentLike>) => {
+  const session = useResolvedSession()
+  return useListStateHook(
+    'comment_likes', useTypedSelector(s => s.comment_likes), session, commentLikesSlice, 
+    { 
+      loadQuery: session.api.comment_likes.getSome,
+      findOne: session.api.comment_likes.getOne,
+      addOne: session.api.comment_likes.createOne,
+      addSome: session.api.comment_likes.createSome,
+      deleteOne: session.api.comment_likes.deleteOne,
+      updateOne: session.api.comment_likes.updateOne,
+    }, 
+    {...options}
+  )
+}
+
 export const useCalendarEventRSVPs = (options={} as HookOptions<CalendarEventRSVP>) => {
   const session = useResolvedSession()
   return useListStateHook(

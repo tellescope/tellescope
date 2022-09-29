@@ -57,8 +57,6 @@ export const ArticleViewer = ({
     }
   }
 
-  console.log('rootWidth', rootWidth)
- 
   return (
     <Grid container direction="column" justifyContent="center" ref={rootRef}
       style={style} spacing={spacing}

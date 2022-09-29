@@ -113,6 +113,7 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   managed_content_records: defaultQueries(s, 'managed_content_records'),
   post_comments: defaultQueries(s, 'post_comments'),
   post_likes: defaultQueries(s, 'post_likes'),
+  comment_likes: defaultQueries(s, 'comment_likes'),
   organizations: defaultQueries(s, 'organizations'),
   integrations: defaultQueries(s, 'integrations'),
   calendar_event_RSVPs: defaultQueries(s, 'calendar_event_RSVPs'),

@@ -2841,7 +2841,7 @@ export const schema: SchemaV1 = build_schema({
     },
     defaultActions: DEFAULT_OPERATIONS,
     customActions: { },
-    enduserActions: { create: {}, read: {}, readMany: {} }, // IF ADDING DELETE, make sure it's restricted on publicAccess to just the enduser
+    enduserActions: { create: {}, read: {}, readMany: {}, delete: { creatorOnly: true } },
     fields: {
       ...BuiltInFields, 
       forumId: {
@@ -2866,6 +2866,17 @@ export const schema: SchemaV1 = build_schema({
           onDependencyDelete: 'delete',
         }]
       },
+      threadId: {
+        validator: mongoIdStringValidator,
+        examples: [PLACEHOLDER_ID],
+        initializer: s => s.replyTo ?? '',
+        dependencies: [{
+          dependsOn: ['post_comments'], 
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'nop',
+        }]
+      },
       replyTo: {
         validator: mongoIdStringValidator,
         examples: [PLACEHOLDER_ID],
@@ -2880,14 +2891,6 @@ export const schema: SchemaV1 = build_schema({
         validator: userIdentityValidator,
         initializer: (_, s) => ({ type: s.type, id: s.id }),
       },
-      // numComments: { 
-      //   validator: nonNegNumberValidator,
-      //   initializer: () => 0,
-      // },
-      // numLikes: { 
-      //   validator: nonNegNumberValidator,
-      //   initializer: () => 0,
-      // },
       attachments: { validator: listOfStringsValidator },
       textContent: {
         validator: stringValidator25000,
@@ -2902,6 +2905,8 @@ export const schema: SchemaV1 = build_schema({
         validator: stringValidator25000,
         examples: ["This is the template message......"],
       },
+      numLikes: { validator: nonNegNumberValidator, readonly: true },
+      numReplies: { validator: nonNegNumberValidator, readonly: true },
     },
   },
   post_likes: {
@@ -2978,6 +2983,55 @@ export const schema: SchemaV1 = build_schema({
         }]
       },
     },
+  },
+  comment_likes: {
+    info: {},
+    constraints: {
+      unique: [
+        ['commentId', 'creator'], // one per eventId-creator combo
+      ], 
+      relationship: [],
+      access: [{ type: 'dependency', foreignModel: 'forums', foreignField: '_id', accessField: 'forumId' }]
+    },
+    customActions: {},
+    defaultActions: { create: {}, read: {}, readMany: {}, delete: { creatorOnly: true } },
+    enduserActions: { create: {}, read: {}, readMany: {}, delete: { } },
+    fields: {
+      ...BuiltInFields, 
+      forumId: {
+        validator: mongoIdStringValidator,
+        required: true,
+        examples: [PLACEHOLDER_ID],
+        dependencies: [{
+          dependsOn: ['forums'], 
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+      postId: {
+        validator: mongoIdStringValidator,
+        required: true,
+        examples: [PLACEHOLDER_ID],
+        dependencies: [{
+          dependsOn: ['forum_posts'], 
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+      commentId: {
+        validator: mongoIdStringValidator,
+        required: true,
+        examples: [PLACEHOLDER_ID],
+        dependencies: [{
+          dependsOn: ['post_comments'], 
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+    }
   },
   organizations: {
     info: {},

@@ -2532,8 +2532,75 @@ export const calendar_event_RSVPs_tests = async () => {
   ])
 }
 
+const post_comments_tests = async () => {
+  log_header("Post Comments")
+
+  await enduserSDK.register({ email: 'rsvps@tellescope.com', password: "testenduserpassword" })
+  await enduserSDK.authenticate('rsvps@tellescope.com', "testenduserpassword")
+
+  const forumId = (await sdk.api.forums.createOne({ title: "RSVP Event", publicRead: true })).id
+  const postId = (await sdk.api.forum_posts.createOne({ forumId, title: 'Post', htmlContent: '', textContent: '',  })).id
+
+  const userComment = await sdk.api.post_comments.createOne({ 
+    forumId, postId, htmlContent: '', textContent: '',
+  })
+  const enduserCommentInReply = await enduserSDK.api.post_comments.createOne({ 
+    forumId, postId, htmlContent: '', textContent: '',
+    threadId: userComment.id, replyTo: userComment.id,
+  })
+  await async_test(
+    'num replies incremented',
+    () => sdk.api.post_comments.getOne({ id: postId, forumId }),
+    { onResult: c => c.numReplies === 1 },
+  )
+
+  const userLike = await sdk.api.comment_likes.createOne({ 
+    forumId, postId, commentId: userComment.id,
+  })
+  const enduserLike = await enduserSDK.api.comment_likes.createOne({ 
+    forumId, postId, commentId: userComment.id,
+  })
+  await async_test(
+    'num likes incremented',
+    () => sdk.api.post_comments.getOne({ id: postId, forumId }),
+    { onResult: c => c.numLikes === 2 },
+  )
+
+  await async_test(
+    'user cannot create duplicate comment like',
+    () => sdk.api.comment_likes.createOne({ forumId, postId, commentId: userComment.id }),
+    { shouldError: true, onError: e => e.message === UniquenessViolationMessage},
+  )
+  await async_test(
+    'enduser cannot create duplicate comment like',
+    () => enduserSDK.api.comment_likes.createOne({ forumId, postId, commentId: userComment.id }),
+    { shouldError: true, onError: e => e.message === UniquenessViolationMessage},
+  )
+
+  await enduserSDK.api.post_comments.deleteOne(enduserCommentInReply.id)
+  await async_test(
+    'num comments decrementted',
+    () => sdk.api.post_comments.getOne({ id: postId, forumId }),
+    { onResult: c => c.numReplies === 0 },
+  )
+
+  await sdk.api.comment_likes.deleteOne(userLike.id)
+  await enduserSDK.api.comment_likes.deleteOne(enduserLike.id)
+  await async_test(
+    'num likes decremented',
+    () => sdk.api.post_comments.getOne({ id: postId, forumId }),
+    { onResult: c => c.numLikes === 0 },
+  )
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(enduserSDK.userInfo.id),
+    sdk.api.forums.deleteOne(forumId)
+  ])
+}
+
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
+  post_comments: post_comments_tests,
   journeys: journey_tests,
   calendar_event_RSVPs: calendar_event_RSVPs_tests,
   chats: chat_tests,
@@ -2565,8 +2632,8 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   forum_posts: NO_TEST,
   forums: community_tests,
   managed_content_records: managed_content_records_tests,
-  post_comments: NO_TEST,
   post_likes: NO_TEST,
+  comment_likes: NO_TEST,
   organizations: NO_TEST,
   integrations: NO_TEST,
 };
