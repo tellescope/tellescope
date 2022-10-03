@@ -28,7 +28,7 @@ import { Divider, Grid, LinearProgress, Paper, TextField, Typography } from "@mu
 import {
   usePostLiking,
 } from "./hooks"
-import { truncate_string } from "@tellescope/utilities"
+import { remove_script_tags, truncate_string, user_is_admin } from "@tellescope/utilities"
 
 import LikeIcon from "@mui/icons-material/ThumbUp"
 
@@ -45,6 +45,17 @@ export const RSVPAvatar = ({ rsvp, size=20, style } : { rsvp: CalendarEventRSVP,
     }} 
   />
 )
+
+export const ResolvedContent = ({ textContent, htmlContent, style } : { textContent: string, htmlContent: string } & Styled) => {
+  if (htmlContent) {
+    return (
+      <div style={style} dangerouslySetInnerHTML={{
+        __html: remove_script_tags(htmlContent),
+      }} />
+    )
+  }
+  return <Typography>{textContent}</Typography>
+}
  
 const formFieldStyle: React.CSSProperties = { 
   width: '100%',
@@ -223,9 +234,7 @@ export const PostView = ({
 
         <Divider flexItem sx={{ mb: 1 }} />
 
-        <Typography>
-          {post.textContent}
-        </Typography>
+        <ResolvedContent {...post} />
 
         <Divider flexItem sx={{ my: 1 }} />
       </Grid>
@@ -262,9 +271,7 @@ export const PostView = ({
                   </Grid>
                 </Grid>
                 <Grid item wrap="nowrap" style={{ marginTop: 4 }}>
-                  <Typography style={{ fontSize: 14, wordWrap: 'break-word' }}>
-                    {comment.textContent}
-                  </Typography>
+                  <ResolvedContent {...comment} style={{ fontSize: 14, wordWrap: 'break-word' }} />
                 </Grid>
               </Grid>
               </Paper>
@@ -321,8 +328,8 @@ export const PostPreview = ({
             {post.title}
           </Typography>
 
-          <Typography style={{ fontSize: 15 }}>
-            {truncate_string(post.textContent, { length: 200, showEllipsis: true })}
+          <Typography noWrap>
+            <ResolvedContent style={{ fontSize: 15, maxHeight: 100 }} {...post} textContent={truncate_string(post.textContent, { length: 200, showEllipsis: true })} />
           </Typography>
         </Grid>
       </Grid>
@@ -360,13 +367,16 @@ export const ForumView = ({
   redirectLink,
   TitleComponent,
   onClickPost,
+  onDelete,
 } : {
   TitleComponent?: TitleComponentType,
   maxHeight?: React.CSSProperties['maxHeight']
   redirectLink?: string,
   onClickPost?: (p: ForumPost) => void 
+  onDelete?: () => void,
 } & WithForumId) => {
-  const [, { findById: findForum  }] = useForums()
+  const session = useResolvedSession()
+  const [, { findById: findForum, removeElement: deleteForum }] = useForums()
   const [, { filtered, doneLoading, loadMore }] = useForumPosts({ loadFilter: { forumId }})
   const postsLoading = filtered(p => p.forumId === forumId)
 
@@ -387,6 +397,16 @@ export const ForumView = ({
         <IconModal {...addPostProps}> 
           <PostEditor forumId={forumId} onSuccess={() => addPostProps.setOpen(false)} />
         </IconModal>
+        {/* @ts-ignore */}
+        {user_is_admin({ ...session.userInfo, type: session.type }) &&
+          <DeleteWithConfimrationIcon modelName="forum"
+            title="Delete Forum"
+            description="This will delete all of the posts, comments, etc. within the forum and cannot be reversed"
+            action={() => deleteForum(forumId)}
+            typeToConfirm={forum?.title}
+            onSuccess={onDelete}
+          /> 
+        }
       </Grid>
     )
   }

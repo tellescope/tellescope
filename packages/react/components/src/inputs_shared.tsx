@@ -5,8 +5,8 @@ import { LoadFunction, LoadFunctionArguments } from "@tellescope/sdk"
 import { UNSEARCHABLE_FIELDS } from "@tellescope/constants"
 import { SearchAPIProps, useSearchAPI } from "./hooks"
 import { TextFieldProps } from "./mui"
-import { Enduser, ManagedContentRecord, User } from "@tellescope/types-client"
-import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, ScrollingList, SearchTextInput, TextField, Typography, useEndusers, useManagedContentRecords, useResolvedSession, useUsers } from "."
+import { Enduser, Forum, ManagedContentRecord, User } from "@tellescope/types-client"
+import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, ScrollingList, SearchTextInput, TextField, Typography, useEndusers, useForums, useManagedContentRecords, useResolvedSession, useUsers } from "."
 
 /* FILTER / SEARCH */
 export const filter_setter_for_key = <T,>(key: string, setFilters: React.Dispatch<React.SetStateAction<Filters<T>>>) => (
@@ -215,6 +215,17 @@ export const EnduserSearch = (props: Omit<GenericSearchProps<Enduser>, 'filterKe
   return (
     <ModelSearchInput {...props} filterKey="endusers"
       searchAPI={session.api.endusers.getSome}
+      onLoad={addLocalElements}
+    />
+  )
+}
+
+export const ForumSearch = (props: Omit<GenericSearchProps<Forum>, 'filterKey'>) => {
+  const session = useResolvedSession()
+  const [, { addLocalElements }] = useForums()
+  return (
+    <ModelSearchInput {...props} filterKey="forums"
+      searchAPI={session.api.forums.getSome}
       onLoad={addLocalElements}
     />
   )
