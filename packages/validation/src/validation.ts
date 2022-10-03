@@ -506,6 +506,9 @@ export const stringValidator100: EscapeBuilder<string> = (o={}) => build_validat
 export const stringValidator250: EscapeBuilder<string> = (o={}) => build_validator(
   escapeString(o), { ...o, maxLength: 250, listOf: false  } 
 )
+export const stringValidator1000: EscapeBuilder<string> = (o={}) => build_validator(
+  escapeString(o), { ...o, maxLength: 1000, listOf: false  } 
+)
 export const stringValidator5000: EscapeBuilder<string> = (o={}) => build_validator(
   escapeString(o), { ...o, maxLength: 5000, listOf: false  } 
 )

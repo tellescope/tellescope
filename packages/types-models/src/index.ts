@@ -953,8 +953,6 @@ export interface Forum extends Forum_readonly, Forum_required, Forum_updatesDisa
 }
 
 export interface ForumPost_readonly extends ClientRecord {
-  numLikes: number,
-  numComments: number,
 }
 export interface ForumPost_required {
   forumId: string,
@@ -963,7 +961,10 @@ export interface ForumPost_required {
   htmlContent: string,
   editorState?: string
 }
-export interface ForumPost_updatesDisabled {}
+export interface ForumPost_updatesDisabled { // allow setting on create
+  numLikes: number,
+  numComments: number,
+}
 export interface ForumPost extends ForumPost_readonly, ForumPost_required, ForumPost_updatesDisabled {
   postedBy: UserIdentity,
   slug?: string,
@@ -979,8 +980,6 @@ export interface PostLike_updatesDisabled {}
 export interface PostLike extends PostLike_readonly, PostLike_required, PostLike_updatesDisabled {}
 
 export interface PostComment_readonly extends ClientRecord {
-  numLikes?: number,
-  numReplies?: number,
 }
 export interface PostComment_required {
   forumId: string,
@@ -989,7 +988,10 @@ export interface PostComment_required {
   htmlContent: string,
   editorState?: string
 }
-export interface PostComment_updatesDisabled {}
+export interface PostComment_updatesDisabled { // allow setting on create
+  numLikes?: number,
+  numReplies?: number,
+}
 export interface PostComment extends PostComment_readonly, PostComment_required, PostComment_updatesDisabled {
   postedBy: UserIdentity,
   threadId?: string,

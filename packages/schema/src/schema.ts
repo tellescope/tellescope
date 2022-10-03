@@ -123,6 +123,7 @@ import {
   portalSettingsValidator,
   emailValidatorEmptyOkay,
   phoneValidatorEmptyOkay,
+  stringValidator1000,
 } from "@tellescope/validation"
 
 import {
@@ -585,7 +586,7 @@ export const schema: SchemaV1 = build_schema({
         validator: dateValidator,
       },
       avatar: {
-        validator: stringValidator100,
+        validator: stringValidator1000,
         dependencies: [
           {
             dependsOn: ['files'],
@@ -1580,7 +1581,7 @@ export const schema: SchemaV1 = build_schema({
         redactions: ['enduser'],
       },
       avatar: {
-        validator: stringValidator100,
+        validator: stringValidator1000,
         dependencies: [
           {
             dependsOn: ['files'],
@@ -1681,7 +1682,7 @@ export const schema: SchemaV1 = build_schema({
             required: true
           },
           publicRead: { validator: booleanValidator },
-          publicName: { validator: stringValidator250 },
+          publicName: { validator: stringValidator5000 },
           enduserId: { 
             validator: mongoIdStringValidator ,
             dependencies: [{
@@ -2382,7 +2383,7 @@ export const schema: SchemaV1 = build_schema({
         initializer: (_, s) => s.fname ?? '',
       },
       avatar: { 
-        validator: stringValidator,
+        validator: stringValidator1000,
         initializer: (_, s) => s.avatar ?? '',
       },
       status: { validator: stringValidator },
@@ -2801,9 +2802,11 @@ export const schema: SchemaV1 = build_schema({
       numComments: { 
         validator: nonNegNumberValidator,
         initializer: () => 0,
+        updatesDisabled: true,
       },
       numLikes: { 
         validator: nonNegNumberValidator,
+        updatesDisabled: true,
         initializer: () => 0,
       },
       title: {
@@ -2905,8 +2908,8 @@ export const schema: SchemaV1 = build_schema({
         validator: stringValidator25000,
         examples: ["This is the template message......"],
       },
-      numLikes: { validator: nonNegNumberValidator, readonly: true },
-      numReplies: { validator: nonNegNumberValidator, readonly: true },
+      numLikes: { validator: nonNegNumberValidator, updatesDisabled: true },
+      numReplies: { validator: nonNegNumberValidator, updatesDisabled: true },
     },
   },
   post_likes: {
