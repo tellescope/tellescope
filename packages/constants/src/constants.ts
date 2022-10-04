@@ -44,3 +44,5 @@ export const UNSEARCHABLE_FIELDS = ['_id', 'id', 'creator', 'createdAt', 'update
 export const GOOGLE_INTEGRATIONS_TITLE = "Google"
 
 export const EMAIL_SYNC_FREQUENCY_IN_MS = 1000 * 60 * 60 // 1hr
+
+export const UNIQUENESS_VIOLATION = 'Uniqueness Violation'

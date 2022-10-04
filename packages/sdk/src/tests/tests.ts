@@ -2636,6 +2636,8 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   comment_likes: NO_TEST,
   organizations: NO_TEST,
   integrations: NO_TEST,
+  databases: NO_TEST,
+  database_records: NO_TEST,
 };
 
 (async () => {

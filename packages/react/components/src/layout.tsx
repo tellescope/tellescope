@@ -96,6 +96,7 @@ export interface WithHoverProps extends WithHoverColors {
 export const WithHover = ({ hoveredColor, notHoveredColor, flex, disabled, children, style={} } : WithHoverProps) => {
   const [hovered, setHovered] = useState(false)
 
+  if (disabled) return <>{children}</>
   return (
     <span onMouseEnter={() => setHovered(true)} onMouseLeave={() => setHovered(false)} 
       style={{ 
@@ -136,7 +137,6 @@ export const Flex = (props: Flex_Web) => {
     <span style={style} onClick={props.onClick ?? props.onPress}>
       {children}
     </span>
-
   )
 
   return (
@@ -247,18 +247,22 @@ export interface ScrollingListProps <T extends { id: string | number }> extends 
   items: T[],
   Item: React.JSXElementConstructor<{ item: T, index: number }>
   title?: React.ReactNode,
-  emptyText?: string,
+  header?: React.ReactNode,
+  emptyText?: React.ReactNode,
   maxHeight?: React.CSSProperties['maxHeight'],
+  maxWidth?: React.CSSProperties['maxWidth'],
   minHeight?: React.CSSProperties['minHeight'],
   titleStyle?: React.CSSProperties,
   doneLoading?: () => boolean,
   loadMore?: () => Promise<void>,
   TitleComponent?: TitleComponentType,
   titleActionsComponent?: React.ReactNode,
+  noWrap?: boolean,
 }
 export const ScrollingList = <T extends { id: string | number }>({
   title,
   maxHeight,
+  maxWidth,
   minHeight,
   titleStyle,
   items,
@@ -269,12 +273,14 @@ export const ScrollingList = <T extends { id: string | number }>({
   TitleComponent,
   titleActionsComponent,
   style,
+  noWrap,
+  header,
 } : ScrollingListProps<T>) => {
   const fetchRef = useRef(0)
   const titleStyleWithDefaults = { fontSize: 20, fontWeight: 'bold', marginBottom: 3, ...titleStyle }
  
   return (
-    <Grid container direction="column" style={style}>
+    <Grid container direction="column" style={style} wrap={noWrap ? 'nowrap' : undefined}>
       {TitleComponent
         ? <TitleComponent title={title} titleStyle={titleStyleWithDefaults} />
         : (
@@ -293,7 +299,7 @@ export const ScrollingList = <T extends { id: string | number }>({
         )
       }
 
-      <Grid container direction="column" flexWrap={'nowrap'} style={{ minHeight, maxHeight, overflowY: 'auto' }}
+      <Grid container direction="column" flexWrap={'nowrap'} style={{ minHeight, maxHeight, maxWidth, overflow: 'auto' }}
         onScroll={e => {
           if (doneLoading?.() || !loadMore) return
 
@@ -306,11 +312,20 @@ export const ScrollingList = <T extends { id: string | number }>({
           loadMore().catch(console.error)
         }}
       >
-        {items.length === 0 && <Typography>{emptyText}</Typography>}
+        <Grid container direction="column">
+          {header}
 
-        {items.map((item, index) => (
-          <Item key={item.id} item={item} index={index} />
-        ))}
+          {items.length === 0 
+            ? typeof emptyText === 'string'
+              ? <Typography>{emptyText}</Typography>
+              : emptyText
+            : null
+          }
+
+          {items.map((item, index) => (
+            <Item key={item.id} item={item} index={index} />
+          ))}
+        </Grid>
       </Grid>
     </Grid>
   )

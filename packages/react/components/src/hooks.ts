@@ -42,10 +42,11 @@ export const useSearchAPI = <T,>({ query, onLoad, searchAPI } : { query: string 
     if (!trimmed) return
     if (!searchAPI) return
     if (searchedRef.current === trimmed) return
-    searchedRef.current = trimmed
 
     // unbounce  
     const t = setTimeout(() => {
+      searchedRef.current = trimmed // only update on successful trigger of search
+
       searchAPI({ search: { query: trimmed }})
       .then(results => {
         if (results.length === 0) { return }
@@ -53,7 +54,7 @@ export const useSearchAPI = <T,>({ query, onLoad, searchAPI } : { query: string 
         onLoad?.(results)
       })
       .catch(console.error)
-    }, 100)
+    }, 150)
 
     return () => { clearTimeout(t) }
   }, [query, searchAPI, onLoad, searchedRef])

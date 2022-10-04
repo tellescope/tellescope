@@ -541,13 +541,57 @@ export interface Integration_readonly extends ClientRecord {
   lastSync?: number,
   lastSyncId?: string,
 }
-export interface Integration_required {
-
-}
+export interface Integration_required {}
 export interface Integration_updatesDisabled {}
 export interface Integration extends Integration_readonly, Integration_required, Integration_updatesDisabled {
   title: string,
   authentication: IntegrationAuthentication,
+}
+
+export type BuildDatabaseRecordField <K extends string, V> = { type: K, value: V }
+export type DatabaseRecordFieldsInfo = {
+  string: BuildDatabaseRecordField<'string', string>
+  'string-long': BuildDatabaseRecordField<'string-long', string>,
+  'number': BuildDatabaseRecordField<'number', number>,
+}
+export type DatabaseRecordFieldType = keyof DatabaseRecordFieldsInfo
+
+export type DatabaseRecordValues = {
+  [K in DatabaseRecordFieldType] : {
+    type: K,
+    value: DatabaseRecordFieldsInfo[K]['value'],
+  }
+}
+export type DatabaseRecordValue = DatabaseRecordValues[DatabaseRecordFieldType]
+
+export type DatabaseRecordFields = {
+  [K in DatabaseRecordFieldType] : {
+    type: K,
+    label: string,
+  }
+}
+export type DatabaseRecordField = DatabaseRecordFields[DatabaseRecordFieldType]
+
+export interface Database_readonly extends ClientRecord {
+  numRecords: number,
+}
+export interface Database_required {
+  title: string,
+  fields: DatabaseRecordField[],
+}
+export interface Database_updatesDisabled {}
+export interface Database extends Database_readonly, Database_required, Database_updatesDisabled {
+
+}
+
+export interface DatabaseRecord_readonly extends ClientRecord {}
+export interface DatabaseRecord_required {
+  databaseId: string,
+  values: DatabaseRecordValue[],
+}
+export interface DatabaseRecord_updatesDisabled {}
+export interface DatabaseRecord extends DatabaseRecord_readonly, DatabaseRecord_required, DatabaseRecord_updatesDisabled {
+  
 }
 
 export type FormResponseValueAnswerBuilder <TYPE extends FormFieldType, VALUE extends number | object | string> = {
@@ -1084,6 +1128,8 @@ export type ModelForName_required = {
   post_comments: PostComment_required;
   organizations: Organization_required;
   integrations: Organization_required;
+  databases: Database_required;
+  database_records: DatabaseRecord_required;
 }
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
@@ -1124,6 +1170,8 @@ export interface ModelForName_readonly {
   post_comments: PostComment_readonly;
   organizations: Organization_readonly;
   integrations: Integration_readonly;
+  databases: Database_readonly;
+  database_records: DatabaseRecord_readonly;
 }
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
@@ -1164,6 +1212,8 @@ export interface ModelForName_updatesDisabled {
   post_comments: PostComment_updatesDisabled;
   organizations: Organization_updatesDisabled;
   integrations: Integration_updatesDisabled;
+  databases: Database_updatesDisabled;
+  database_records: DatabaseRecord_updatesDisabled;
 }
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
@@ -1204,6 +1254,8 @@ export interface ModelForName extends ModelForName_required, ModelForName_readon
   post_comments: PostComment;
   organizations: Organization;
   integrations: Integration;
+  databases: Database;
+  database_records: DatabaseRecord;
 }
 export type ModelName = keyof ModelForName
 export type Model = ModelForName[keyof ModelForName]
@@ -1254,6 +1306,8 @@ export const modelNameChecker: { [K in ModelName] : true } = {
   post_comments: true,
   organizations: true,
   integrations: true,
+  databases: true,
+  database_records: true,
 }
 
 

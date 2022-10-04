@@ -43,6 +43,8 @@ import {
   Organization,
   CalendarEventRSVP,
   CommentLike,
+  DatabaseRecord,
+  Database,
 } from "@tellescope/types-client"
 
 import {
@@ -240,6 +242,8 @@ const automationStepsSlice = createSliceForList<AutomationStep, 'automations_ste
 const usersDisplaySlice = createSliceForList<UserDisplayInfo, 'users'>('users')
 const integrationsSlice = createSliceForList<Integration, 'integrations'>('integrations')
 const gcalEventsSlice = createSliceForList<GCalEvent, 'gcalEvents'>('gcalEvents')
+const databasesSlice = createSliceForList<Database, 'databases'>('databases')
+const databaseRecordsSlice = createSliceForList<DatabaseRecord, 'database_records'>('database_records')
 
 const enduserObservationsSlice = createSliceForList<EnduserObservation, 'enduser_observations'>('enduser_observations')
 const forumsSlice = createSliceForList<Forum, 'forums'>('forums')
@@ -286,6 +290,8 @@ export const sharedConfig = {
     gcal_events: gcalEventsSlice.reducer,
     organizations: organizationsSlice.reducer,
     calendar_event_RSVPs: calendarEventRSVPsSlice.reducer,
+    databases: databasesSlice.reducer,
+    database_records: databaseRecordsSlice.reducer,
   },
 }
 
@@ -1252,6 +1258,42 @@ export const useIntegrations = (options={} as HookOptions<Integration>) => {
     {...options}
   )
 }
+
+export const useDatabases = (options={} as HookOptions<Database>) => {
+  const session = useSession()
+  return useListStateHook(
+    'databases', useTypedSelector(s => s.databases), session, databasesSlice, 
+    { 
+      loadQuery: session.api.databases.getSome,
+      findOne: session.api.databases.getOne,
+      addOne: session.api.databases.createOne,
+      addSome: session.api.databases.createSome,
+      deleteOne: session.api.databases.deleteOne,
+      updateOne: session.api.databases.updateOne,
+    }, 
+    {...options}
+  )
+}
+export const useDatabaseRecords = (options={} as HookOptions<DatabaseRecord>) => {
+  const session = useSession()
+  return useListStateHook(
+    'database_records', useTypedSelector(s => s.database_records), session, databaseRecordsSlice, 
+    { 
+      loadQuery: (
+        options.loadFilter?.databaseId 
+          ? session.api.database_records.getSome 
+          : undefined
+      ),
+      findOne: session.api.database_records.getOne,
+      addOne: session.api.database_records.createOne,
+      addSome: session.api.database_records.createSome,
+      deleteOne: session.api.database_records.deleteOne,
+      updateOne: session.api.database_records.updateOne,
+    }, 
+    {...options}
+  )
+}
+
 
 export const useGCalIntegration = (options={} as HookOptions<GCalEvent>) => {
   const session = useSession()

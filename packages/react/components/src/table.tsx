@@ -19,6 +19,7 @@ import {
   Item,
   ItemClickable,
   List,
+  ScrollingList,
   WithHover,
 } from "./layout"
 import { LoadMoreFunctions } from "./state"
@@ -31,7 +32,7 @@ const DARKER_GRAY = "#52575C"
 const ROW_HEIGHT = 45
 export interface HorizontalPadded { horizontalPadding?: number }
 export interface TableTitleProps extends Styled, HorizontalPadded {
-  title: string,
+  title: React.ReactNode,
   textStyle?: CSSProperties,
   actionsComponent?: React.ReactNode,
 }
@@ -40,17 +41,22 @@ export const TableTitle = ({ title, actionsComponent, style, textStyle={}, horiz
     paddingLeft: horizontalPadding, paddingRight: horizontalPadding, 
     backgroundColor: LIGHT_GRAY,
     minHeight: 50,
-    ...style,
     paddingTop: 0,
+    ...style,
   }}> 
-    <Typography component="h3" style={{ 
-      fontWeight: 600, 
-      fontSize: 18, 
-      marginRight: horizontalPadding,
-      ...textStyle 
-    }}>
-      {title}
-    </Typography>
+    {typeof title === 'string'
+      ? (
+        <Typography component="h3" style={{ 
+          fontWeight: 600, 
+          fontSize: 18, 
+          marginRight: horizontalPadding,
+          ...textStyle 
+        }}>
+          {title}
+        </Typography>
+      )
+      : <Flex>{title}</Flex>
+    }
     <Flex flex={1} alignItems="center" justifyContent={"flex-end"}>
       {actionsComponent}
     </Flex>
@@ -67,7 +73,7 @@ const checkboxStyle: React.CSSProperties = {
 type Indices = { index: number, indexOfPage: number }
 type Renderer <T> = (value: T, indices: Indices) => React.ReactElement | string | number
 export type TableField <T> = {
-  key: string,
+  key: string | number,
   label: string,
   hidden?: boolean,
   render?: Renderer<T>,
@@ -82,7 +88,7 @@ export interface TableHeaderProps<T extends Item> extends Styled, HorizontalPadd
   fontSize?: CSSProperties['fontSize']
 }
 export const TableHeader = <T extends Item>({ fields, selectable, allSelected, setAllSelected, style, textStyle, horizontalPadding, fontSize=15 } : TableHeaderProps<T>) => (
-  <Flex flex={1} alignItems="center" justifyContent="space-between" style={{ 
+  <Flex alignItems="center" justifyContent="space-between" style={{ 
     paddingLeft: horizontalPadding, paddingRight: horizontalPadding,
     minHeight: ROW_HEIGHT,
     backgroundColor: DARK_GRAY,
@@ -115,7 +121,7 @@ export const TableHeader = <T extends Item>({ fields, selectable, allSelected, s
 
 const ROW_DIVIDER_STYLE = `1px solid ${DARK_GRAY}` 
 
-const get_display_value = <T,>(item: T, key: string, indices: Indices, render?: Renderer<T>) => {
+const get_display_value = <T,>(item: T, key: string | number, indices: Indices, render?: Renderer<T>) => {
   if (render) { return render(item, indices) }
 
   const value = item[key as keyof T]
@@ -175,17 +181,17 @@ export const TableRow = <T extends Item>({
         </Flex>
       }
       {fields.map(({ key, width, textAlign='left', render, hidden, flex, style }) => hidden ? null : (
-        <Flex flex={width !== undefined ? 0 : 1} key={key} style={{ 
+        <Flex key={key} flex={width !== undefined ? 0 : 1} style={{ 
           alignItems: 'center',
           justifyContent: textAlign === 'right' ? 'flex-end' : 'flex-start',
           ...style,
         }}>
-          <Typography style={{ 
-            textAlign, 
-            width, 
-            display: flex ? 'flex' : undefined,
-            flex: flex ? 1 : undefined,
-            color: DARKER_GRAY, fontSize, 
+          <Typography component="div" style={{ 
+            textAlign, fontSize,
+            width: width ?? defaultWidthForFields(fields.length), 
+            // display: flex ? 'flex' : undefined,
+            // flex: flex ? 1 : undefined,
+            color: DARKER_GRAY,
             ...textStyle
           }}>
             {get_display_value(item, key, indices, render)}
@@ -380,7 +386,7 @@ export type SelectionPropsOptional = Partial<SelectionProps>
 
 const BORDER_STYLE = `1px solid ${GRAY}`
 export type WithTitle = {
-  title?: string; 
+  title?: React.ReactNode; 
   TitleComponent?: JSXElementConstructor<TableTitleProps>;
 } 
 export type WithHeader<T extends Item> = {
@@ -400,6 +406,7 @@ export interface TableProps<T extends Item> extends WithTitle, WithHeader<T>, Wi
   HorizontalPadded, Elevated, ItemClickable<T>, Partial<LoadMoreFunctions<T>>, SelectionPropsOptional
 {
   items: T[],
+  titleStyle?: React.CSSProperties,
   titleActionsComponent?: React.ReactNode,
   noPaper?: boolean,
   emptyText?: string,
@@ -411,6 +418,9 @@ export interface TableProps<T extends Item> extends WithTitle, WithHeader<T>, Wi
   rowFontSize?: CSSProperties['fontSize'],
   footerStyle?: 'numbered' | 'prev-next',
   hover?: boolean,
+  maxRowsHeight?: React.CSSProperties['maxHeight'],
+  maxWidth?: React.CSSProperties['maxWidth'],
+  noWrap?: boolean,
 }
 export const Table = <T extends Item>({
   items,
@@ -429,6 +439,7 @@ export const Table = <T extends Item>({
   doneLoading,
 
   title,
+  titleStyle,
   titleActionsComponent,
   TitleComponent=TableTitle,
   fields,
@@ -444,22 +455,42 @@ export const Table = <T extends Item>({
   setSelected,
   allSelected,
   setAllSelected,
+
+  noWrap,
+  maxWidth,
+  maxRowsHeight,
 }: TableProps<T> & Styled) => {
   const paginated = pageOptions.paginated !== false // default to true
   const { ...paginationProps } = usePagination({ items, ...pageOptions, })
   RowComponent = RowComponent ?? TableRow // don't allow to be undefined 
 
   const table = (
-    <Flex column flex={1}>
-      {title && TitleComponent && <TitleComponent title={title} actionsComponent={titleActionsComponent} horizontalPadding={horizontalPadding}/>}
-      {fields && HeaderComponent && fields.length > 0 && items.length > 0 && 
-        <HeaderComponent selectable={selectable} allSelected={allSelected} setAllSelected={setAllSelected}
-          fields={fields} horizontalPadding={horizontalPadding} fontSize={headerFontSize}
+    <Flex column>
+      {title && TitleComponent && (
+        <TitleComponent title={title} actionsComponent={titleActionsComponent} 
+          horizontalPadding={noPaper ? 0 : horizontalPadding}
+          style={{ maxWidth, ...titleStyle }} 
         />
-      }
-      <List items={paginationProps.mapSelectedItems(i => i)} 
-        renderProps={{ horizontalPadding }}
-        emptyComponent={emptyComponent ?? (
+      )} 
+      <ScrollingList items={paginationProps.mapSelectedItems(i => i)} 
+        noWrap={noWrap}
+        maxHeight={maxRowsHeight} maxWidth={maxWidth}
+
+        header={fields && HeaderComponent && fields.length > 0 && items.length > 0 && 
+          <HeaderComponent selectable={selectable} allSelected={allSelected} setAllSelected={setAllSelected}
+            fields={fields} horizontalPadding={horizontalPadding} fontSize={headerFontSize}
+            style={{
+              flexWrap: noWrap ? 'nowrap' : undefined,
+            }}
+          />
+        }
+
+        // handle load when scroll to bottom, when table not paginated
+        doneLoading={!pageOptions.paginated ? doneLoading : undefined} 
+        loadMore={!pageOptions.paginated ? loadMore : undefined}
+
+        // renderProps={{ horizontalPadding }}
+        emptyText={emptyComponent ?? (
           emptyText 
             ? <Typography style={{ padding: horizontalPadding }}>
                 {emptyText}
@@ -467,8 +498,8 @@ export const Table = <T extends Item>({
             : undefined
           )
         }
-        render={(item, { index }) => ( // index within this list, e.g. a single page
-          <RowComponent 
+        Item={({ item, index }) => ( // index within this list, e.g. a single page
+          <RowComponent
             selectable={selectable} selected={selected} setSelected={setSelected} allSelected={allSelected}
             key={item.id} item={item} 
             indices={{ 
@@ -482,8 +513,9 @@ export const Table = <T extends Item>({
             fontSize={rowFontSize} 
             horizontalPadding={horizontalPadding}
             style={{
+              flexWrap: noWrap ? 'nowrap' : undefined,
               borderBottom: (
-                index < items.length - 1 && 
+                (index < items.length - 1 || !paginated) && 
                 (pageOptions.pageSize === undefined || index < pageOptions.pageSize - 1)) 
                   ? BORDER_STYLE 
                   : undefined,
@@ -492,9 +524,10 @@ export const Table = <T extends Item>({
           />
         )
       } />
-      {paginated && FooterComponent && items.length > 0 && // avoid displaying footer / unnecessary border when no items
-        <FooterComponent doneLoading={doneLoading} loadMore={loadMore} {...paginationProps } {...pageOptions} horizontalPadding={horizontalPadding}/>
-      }
+
+    {paginated && FooterComponent && items.length > 0 && // avoid displaying footer / unnecessary border when no items
+      <FooterComponent doneLoading={doneLoading} loadMore={loadMore} {...paginationProps } {...pageOptions} horizontalPadding={horizontalPadding}/>
+    }
     </Flex>
   )
 

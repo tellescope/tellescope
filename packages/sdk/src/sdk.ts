@@ -117,6 +117,8 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   organizations: defaultQueries(s, 'organizations'),
   integrations: defaultQueries(s, 'integrations'),
   calendar_event_RSVPs: defaultQueries(s, 'calendar_event_RSVPs'),
+  databases: defaultQueries(s, 'databases'),
+  database_records: defaultQueries(s, 'database_records'),
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {

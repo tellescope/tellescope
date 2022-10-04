@@ -124,6 +124,8 @@ import {
   emailValidatorEmptyOkay,
   phoneValidatorEmptyOkay,
   stringValidator1000,
+  databaseFieldsValidator,
+  databaseRecordValuesValidator,
 } from "@tellescope/validation"
 
 import {
@@ -3082,7 +3084,61 @@ export const schema: SchemaV1 = build_schema({
       portalSettings: { validator: portalSettingsValidator },
     },
   },
-
+  databases: {
+    info: {},
+    constraints: {
+      unique: ['title'], 
+      relationship: [],
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: { },
+    enduserActions: { },
+    fields: {
+      ...BuiltInFields, 
+      title: {
+        validator: stringValidator100,
+        required: true,
+        examples: ["Template Name"],
+      },
+      fields: {
+        required: true,
+        validator: databaseFieldsValidator,
+      },
+      numRecords: {
+        validator: nonNegNumberValidator,
+        initializer: () => 0,
+      },
+    },
+  },
+  database_records: {
+    info: {},
+    constraints: {
+      unique: [], 
+      relationship: [],
+      access: [{ type: 'dependency', foreignModel: 'databases', foreignField: '_id', accessField: 'databaseId' }]
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: { },
+    enduserActions: { },
+    fields: {
+      ...BuiltInFields, 
+      databaseId: {
+        validator: mongoIdStringValidator,
+        required: true,
+        examples: [PLACEHOLDER_ID],
+        dependencies: [{
+          dependsOn: ['databases'], 
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      }, 
+      values: {
+        required: true,
+        validator: databaseRecordValuesValidator,
+      },
+    },
+  }, 
 })
 
 // export type SchemaType = typeof schema

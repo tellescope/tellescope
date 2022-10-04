@@ -5,8 +5,8 @@ import { LoadFunction, LoadFunctionArguments } from "@tellescope/sdk"
 import { UNSEARCHABLE_FIELDS } from "@tellescope/constants"
 import { SearchAPIProps, useSearchAPI } from "./hooks"
 import { TextFieldProps } from "./mui"
-import { Enduser, Forum, ManagedContentRecord, User } from "@tellescope/types-client"
-import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, ScrollingList, SearchTextInput, TextField, Typography, useEndusers, useForums, useManagedContentRecords, useResolvedSession, useUsers } from "."
+import { Database, DatabaseRecord, Enduser, Forum, ManagedContentRecord, User } from "@tellescope/types-client"
+import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, ScrollingList, SearchTextInput, TextField, Typography, useDatabaseRecords, useDatabases, useEndusers, useForums, useManagedContentRecords, useResolvedSession, useSession, useUsers } from "."
 
 /* FILTER / SEARCH */
 export const filter_setter_for_key = <T,>(key: string, setFilters: React.Dispatch<React.SetStateAction<Filters<T>>>) => (
@@ -95,22 +95,40 @@ export const record_matches_for_query = <T,>(records: T[], query: string) => {
   return matches
 }
 
-export const filter_for_query = <T,>(query: string): FilterWithData<T> => ({
-  filter: (record: T) => {
+export const filter_for_query = <T,>(query: string): FilterWithData<T> => {
+  const baseFilter = (record: Indexable): boolean => {
     for (const field in record) {
-      const value = record[field]
-      if (typeof value !== 'string') continue
+      const value = record[field as keyof typeof record]
+      
       if (UNSEARCHABLE_FIELDS.includes(field)) continue
-
+      
+      // ensure not-null
+      if (value && typeof value === 'object') {
+        // recursve on nested object values
+        if (Object.values(value).find(
+          a => {
+            if (typeof a === 'string') return a.toUpperCase().includes(query.toUpperCase())
+            if (typeof a === 'object') return baseFilter(a as Indexable)
+            return false
+          }
+        )) {
+          return true
+        }
+      }       
+      if (typeof value !== 'string') continue
       if (value.toUpperCase().includes(query.toUpperCase())) {
         return true
       }
     }
 
     return false
-  },
-  apiFilter: { search: { query } },
-})
+  }
+
+  return ({
+    filter: (record: T) => baseFilter(record as Indexable),
+    apiFilter: { search: { query } },
+  })
+}
 
 export const performBulkAction = async <T extends { id: string }, R> ({ 
   allSelected,
@@ -189,8 +207,10 @@ interface GenericSearchProps <T> extends FilterComponent<T> {
 interface ModelSearchProps<T> extends GenericSearchProps<T>, SearchAPIProps<T> {}
 export const ModelSearchInput = <T,>({ 
   filterKey, setFilters, searchAPI, onLoad, 
+  
   // @ts-ignore remove from props if provided by mistake
   activeFilterCount, 
+
   ...props 
 } : ModelSearchProps<T>) => {
   const [query, setQuery] = useState('')
@@ -198,11 +218,15 @@ export const ModelSearchInput = <T,>({
   useSearchAPI({ query, searchAPI, onLoad })
 
   useEffect(() => {
-    setFilters(fs => (
-      fs[filterKey]?.apiFilter?.search?.query === query
-        ? fs
-        : { ...fs, [filterKey]: filter_for_query(query) }
-    )) 
+    const t = setTimeout(() => {
+      setFilters(fs => (
+        fs[filterKey]?.apiFilter?.search?.query === query
+          ? fs
+          : { ...fs, [filterKey]: filter_for_query(query) }
+      )) 
+    }, 50)
+
+    return () => { clearTimeout(t) } 
   }, [query, filterKey, setFilters])
 
   return <SearchTextInput {...props} value={query} onChange={(s: string) => setQuery(s)} />
@@ -272,6 +296,32 @@ export const ContentSearch = (props: Omit<GenericSearchProps<ManagedContentRecor
   return (
     <ModelSearchInput {...props} filterKey="managed_content_records"
       searchAPI={session.api.managed_content_records.getSome}
+      onLoad={addLocalElements}
+    />
+  )
+}
+
+export const DatabaseSearch = (props: Omit<GenericSearchProps<Database>, 'filterKey'>) => {
+  const session = useSession()
+  const [, { addLocalElements }] = useDatabases()
+  return (
+    <ModelSearchInput {...props} filterKey="databases"
+      searchAPI={session.api.databases.getSome}
+      onLoad={addLocalElements}
+    />
+  )
+}
+export const DatabaseRecordSearch = ({ databaseId, ...props }: Omit<GenericSearchProps<DatabaseRecord> & { databaseId: string }, 'filterKey'>) => {
+  const session = useSession()
+  const [, { addLocalElements }] = useDatabaseRecords()
+
+  const searchAPI: SearchAPIProps<DatabaseRecord>['searchAPI'] = useCallback(query => (
+    session.api.database_records.getSome({ filter: { databaseId }, ...query })
+  ), [session, databaseId])
+
+  return (
+    <ModelSearchInput {...props} filterKey="database_records"
+      searchAPI={searchAPI}
       onLoad={addLocalElements}
     />
   )

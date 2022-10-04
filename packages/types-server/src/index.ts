@@ -44,6 +44,8 @@ export type UserLog = ServerModelForName['user_logs']
 export type UserNotification = ServerModelForName['user_notifications']
 export type WebHook = ServerModelForName['webhooks']
 export type Integration = ServerModelForName['integrations']
+export type Database = ServerModelForName['databases']
+export type DatabaseRecord = ServerModelForName['database_records']
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']
@@ -54,7 +56,7 @@ export type CommentLike = ServerModelForName['comment_likes']
 export type Organization = ServerModelForName['organizations']
 
 export type DatabaseModel = ServerModelForName[keyof ModelForName]
-export type DatabaseRecord = ToServerModel<RecordInfo>
+export type InternalDatabaseRecord = ToServerModel<RecordInfo>
 export { ModelName } from "@tellescope/types-models"
 
 export type ClientType <T> = Omit<T, '_id'> & { id: string }

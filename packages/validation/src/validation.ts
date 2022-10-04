@@ -124,8 +124,13 @@ import {
   BlockContentH2,
   PortalSettings,
   BlockContentPDF,
+  DatabaseRecordFieldType,
+  DatabaseRecordFields,
+  DatabaseRecordValues,
+  DatabaseRecordField,
 } from "@tellescope/types-models"
 import {
+  DatabaseRecord,
   UserDisplayInfo,
 } from "@tellescope/types-client"
 
@@ -1680,3 +1685,53 @@ export const blockTypeValidator = exactMatchValidator<BlockType>(BLOCK_TYPES)
 export const is_block_type = (type: any): type is BlockType => BLOCK_TYPES.includes(type)
 
 export const blocksValidator = listValidatorEmptyOk(blockValidator())
+
+
+const _DATABASE_RECORD_FIELD_TYPES: { [K in DatabaseRecordFieldType]: any } = {
+  "string-long": '',
+  number: '',
+  string: '',
+}
+export const DATABASE_RECORD_FIELD_TYPES = Object.keys(_DATABASE_RECORD_FIELD_TYPES) as DatabaseRecordFieldType[]
+export const databaseRecordFieldTypeValidator = exactMatchValidator<DatabaseRecordFieldType>(DATABASE_RECORD_FIELD_TYPES)
+export const is_database_record_field_type = (type: any): type is DatabaseRecordFieldType => DATABASE_RECORD_FIELD_TYPES.includes(type)
+
+// structure in this way to support potential differences in the future, like options which apply to only specific types
+// export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldType]: DatabaseRecordFields[K] } >({
+//   string: objectValidator<DatabaseRecordFields['string']>({
+//     type: exactMatchValidator(['string'])(),
+//     label: stringValidator250(),
+//   })(), 
+//   'string-long': objectValidator<DatabaseRecordFields['string-long']>({
+//     type: exactMatchValidator(['string-long'])(),
+//     label: stringValidator250(),
+//   })(), 
+//   'number': objectValidator<DatabaseRecordFields['number']>({
+//     type: exactMatchValidator(['number'])(),
+//     label: stringValidator250(),
+//   })(), 
+// })
+
+// structure as above instead if need unique label or additional config based on type
+export const databaseFieldValidator = objectValidator<DatabaseRecordField>({
+  type: databaseRecordFieldTypeValidator(),
+  label: stringValidator250(),
+})
+export const databaseFieldsValidator = listValidator(databaseFieldValidator())
+
+
+export const databaseRecordValueValidator = orValidator<{ [K in DatabaseRecordFieldType]: DatabaseRecordValues[K] } >({
+  string: objectValidator<DatabaseRecordValues['string']>({
+    type: exactMatchValidator(['string'])(),
+    value: stringValidator1000(),
+  })(), 
+  'string-long': objectValidator<DatabaseRecordValues['string-long']>({
+    type: exactMatchValidator(['string-long'])(),
+    value: stringValidator5000(),
+  })(), 
+  'number': objectValidator<DatabaseRecordValues['number']>({
+    type: exactMatchValidator(['number'])(),
+    value: numberValidator(),
+  })(), 
+})
+export const databaseRecordValuesValidator = listValidator(databaseRecordValueValidator())
