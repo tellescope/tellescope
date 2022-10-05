@@ -490,7 +490,9 @@ const run_generated_tests = async <N extends ModelName>({ queries, model, name, 
     name === 'post_likes' 
   || name === 'users'
   || name === 'integrations'
-  ) return // all custom
+  || name === 'databases'
+  || name === 'database_records'
+  ) return 
   if (!defaultEnduser) defaultEnduser = await sdk.api.endusers.createOne({ email: 'default@tellescope.com', phone: "5555555555"  })
 
   const { instance, updates, filter } = instanceForModel(model) 
@@ -2598,8 +2600,58 @@ const post_comments_tests = async () => {
   ])
 }
 
+export const databases_tests = async () => {
+  log_header("Databases")
+  
+  const database = (await sdk.api.databases.createOne({ 
+    title: "__Test__Database", 
+    fields: [{ type: 'string', label: "String"}],
+    // organizationRead: true,
+  }))
+  const databaseNoRead = (await sdk.api.databases.createOne({ 
+    title: "__Test__Database No Read", 
+    fields: [{ type: 'string', label: "String"}],
+    // organizationRead: false,
+  }))
+
+  const databaseRecord = await sdk.api.database_records.createOne({ 
+    databaseId: database.id, 
+    values: [{ type: 'string', value: ' value' }],
+  })
+  await async_test(
+    'numRecords incremented',
+    () => sdk.api.databases.getOne(database.id),
+    { onResult: c => c.numRecords === 1 },
+  )    
+
+  await async_test(
+    'Non admin can access correctly',
+    () => sdkNonAdmin.api.databases.getOne(database.id),
+    passOnAnyResult,
+  )
+  // await async_test(
+  //   'Non admin cannot access correctly',
+  //   () => sdkNonAdmin.api.databases.getOne(databaseNoRead.id),
+  //   handleAnyError,
+  // )
+
+  // cleanup and test cache
+  await sdk.api.database_records.deleteOne(databaseRecord.id)
+  await async_test(
+    'numRecords decremented',
+    () => sdk.api.databases.getOne(database.id),
+    { onResult: c => c.numRecords === 0 },
+  )
+  await Promise.all([
+    sdk.api.databases.deleteOne(database.id),
+    sdk.api.databases.deleteOne(databaseNoRead.id),
+  ])
+}
+
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
+  databases: databases_tests,
+  database_records: NO_TEST,
   post_comments: post_comments_tests,
   journeys: journey_tests,
   calendar_event_RSVPs: calendar_event_RSVPs_tests,
@@ -2636,8 +2688,6 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   comment_likes: NO_TEST,
   organizations: NO_TEST,
   integrations: NO_TEST,
-  databases: NO_TEST,
-  database_records: NO_TEST,
 };
 
 (async () => {

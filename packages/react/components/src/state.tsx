@@ -210,14 +210,14 @@ export const createSliceForList = <T extends { id: string | number }, N extends 
 
 export type ChatRoomDisplayInfo = { id: string } & { [index: string]: UserDisplayInfo }
 
-export type GCalEventTime = { dateTime: string, date: never } | { dateTime: never, date: string /* YYYY-MM-DD */  }
+// export type GCalEventTime = { dateTime: string, date: never } | { dateTime: never, date: string /* YYYY-MM-DD */  }
 
-export type GCalEvent = {
-  id: string,
-  summary: string,
-  start: GCalEventTime,
-  end: GCalEventTime,
-}
+// export type GCalEvent = {
+//   id: string,
+//   summary: string,
+//   start: GCalEventTime,
+//   end: GCalEventTime,
+// }
 
 const chatRoomsSlice = createSliceForList<ChatRoom, 'chat_rooms'>('chat_rooms')
 const calendarEventsSlice = createSliceForList<CalendarEvent, 'calendar_events'>('calendar_events')
@@ -241,7 +241,6 @@ const usersSlice = createSliceForList<User, 'users'>('users')
 const automationStepsSlice = createSliceForList<AutomationStep, 'automations_steps'>('automations_steps')
 const usersDisplaySlice = createSliceForList<UserDisplayInfo, 'users'>('users')
 const integrationsSlice = createSliceForList<Integration, 'integrations'>('integrations')
-const gcalEventsSlice = createSliceForList<GCalEvent, 'gcalEvents'>('gcalEvents')
 const databasesSlice = createSliceForList<Database, 'databases'>('databases')
 const databaseRecordsSlice = createSliceForList<DatabaseRecord, 'database_records'>('database_records')
 
@@ -287,7 +286,6 @@ export const sharedConfig = {
     post_likes: postLikesSlice.reducer,
     comment_likes: commentLikesSlice.reducer,
     integrations: integrationsSlice.reducer,
-    gcal_events: gcalEventsSlice.reducer,
     organizations: organizationsSlice.reducer,
     calendar_event_RSVPs: calendarEventRSVPsSlice.reducer,
     databases: databasesSlice.reducer,
@@ -605,17 +603,17 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
 
   const loadMore = useCallback(async (options?: LoadMoreOptions<T>) => {
     if (!loadQuery) return
-    if (!value_is_loaded(state)) {
-      console.warn("loadMore called before state is loaded. This is a no op")
-      return
-    }
+    // if (!value_is_loaded(state)) {
+    //   // console.warn("loadMore called before state is loaded. This is a no op", modelName)
+      // return
+    // }
 
     // todo: support for updatedAt as well, and more?
     const key = options?.key ?? 'id' 
     if (key !== 'id') console.warn("Unrecognized key provided")
 
-    let oldestRecord = state.value[0]
-    for (const record of state.value) {
+    let oldestRecord = value_is_loaded(state) ? state.value[0] : undefined
+    for (const record of value_is_loaded(state) ? state.value : []) {
       if (new Date((record as any).createdAt ?? 0).getTime() < new Date((oldestRecord as any).createdAt).getTime()) {
         oldestRecord = record
       }
@@ -623,7 +621,7 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
 
     const limit = options?.limit ?? DEFAULT_FETCH_LIMIT
     return toLoadedData(() => loadQuery({ 
-      lastId: !options?.filter ? oldestRecord.id.toString() : undefined,  // don't provide a lastId when there's a filter, filter could include that on its own
+      lastId: !options?.filter ? oldestRecord?.id?.toString() : undefined,  // don't provide a lastId when there's a filter, filter could include that on its own
       limit, 
       filter: options?.filter,
     })).then(
@@ -1294,76 +1292,111 @@ export const useDatabaseRecords = (options={} as HookOptions<DatabaseRecord>) =>
   )
 }
 
+// gapi reference
+// export const useIntegratedCalendarEvents = (options={} as HookOptions<GCalEvent>) => {
+//   const session = useSession()
+//   const [integrationsLoading] = useIntegrations()
 
-export const useGCalIntegration = (options={} as HookOptions<GCalEvent>) => {
-  const session = useSession()
-  const [integrationsLoading] = useIntegrations()
+//   const loadedRef = useRef<Indexable<number>>({ })
+//   const [authenticated, setAuthenticated] = useState(false)
 
-  const loadedRef = useRef<Indexable<number>>({ })
-  const [authenticated, setAuthenticated] = useState(false)
+//   const googleIntegration = (
+//     value_is_loaded(integrationsLoading)
+//       ? integrationsLoading.value.find(v => v.title === GOOGLE_INTEGRATIONS_TITLE)
+//       : undefined
+//   )
 
-  const googleIntegration = (
-    value_is_loaded(integrationsLoading)
-      ? integrationsLoading.value.find(v => v.title === GOOGLE_INTEGRATIONS_TITLE)
-      : undefined
-  )
+//   useEffect(() => {
+//     const gapi = (window as any).gapi    
+//     if (!(googleIntegration && gapi)) return
 
-  useEffect(() => {
-    const gapi = (window as any).gapi    
-    if (!(googleIntegration && gapi)) return
+//     gapi.client.init({
+//       apiKey: getGoogleClientAPIKey(), 
+//       discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'], 
+//     })
+//     .then(() => {
+//       if (googleIntegration.authentication.info.expiry_date > Date.now()) {
+//         gapi.client.setToken(googleIntegration.authentication.info)
+//         setAuthenticated(true)
+//       }
+//       else {
+//         session.api.integrations.refresh_oauth2_session({ title: GOOGLE_INTEGRATIONS_TITLE })
+//         .then(r => {
+//           gapi.client.setToken(r)
+//           setAuthenticated(true)
+//         })
+//         .catch(console.error)
+//       }
+//     })
+//   }, [googleIntegration])
 
-    gapi.client.init({
-      apiKey: getGoogleClientAPIKey(), 
-      discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest'], 
-    })
-    .then(() => {
-      if (googleIntegration.authentication.info.expiry_date > Date.now()) {
-        gapi.client.setToken(googleIntegration.authentication.info)
-        setAuthenticated(true)
-      }
-      else {
-        session.api.integrations.refresh_oauth2_session({ title: GOOGLE_INTEGRATIONS_TITLE })
-        .then(r => {
-          gapi.client.setToken(r)
-          setAuthenticated(true)
-        })
-        .catch(console.error)
-      }
-    })
-  }, [googleIntegration])
+//   const [gcalEventsLoading, { addLocalElements }] = useListStateHook(
+//     'gcal', useTypedSelector(s => s.gcal_events), session, externalEventsSlice, 
+//     { }, 
+//     {...options}
+//   )
 
-  const [gcalEventsLoading, { addLocalElements }] = useListStateHook(
-    'gcal', useTypedSelector(s => s.gcal_events), session, gcalEventsSlice, 
-    { }, 
-    {...options}
-  )
-
-  const loadEvents = useCallback((options?: {
-    start?: Date,
-    limit?: number,
-  }) => {
-    const gapi = (window as any).gapi    
-    if (!(gapi && authenticated)) return
+//   const loadEvents = useCallback((options?: {
+//     start?: Date,
+//     limit?: number,
+//   }) => {
+//     const gapi = (window as any).gapi    
+//     if (!(gapi && authenticated)) return
     
+//     const key = JSON.stringify(options ?? {})
+//     if (loadedRef.current[key]) return
+//     loadedRef.current[key] = Date.now()
+
+//     gapi.client.calendar.events.list({
+//       'calendarId': 'primary',
+//       'timeMin': (options?.start ?? new Date()).toISOString(),
+//       'showDeleted': false,
+//       'singleEvents': true,
+//       'maxResults': options?.limit || 50,
+//       'orderBy': 'startTime',
+//     })
+//     .then((r: any) => {
+//       if (!r?.result?.items) return
+
+//       addLocalElements(r.result.items)
+//     })
+//     .catch(console.error)
+//   }, [authenticated, addLocalElements])
+
+//   return [gcalEventsLoading, { authenticated, loadEvents }] as const
+// }
+
+// includes internal and integrated events
+interface LoadEventOptions {
+  userId?: string,
+  from?: Date,
+  limit?: number
+}
+export const useCalendarEventsForUser = (options={} as HookOptions<CalendarEvent> & LoadEventOptions) => {
+  const session = useSession()
+  const loadedRef = useRef<Indexable<number>>({ })
+
+  const fetchEvents = React.useCallback(async (calledOptions?: LoadEventOptions) => {
+    return (await 
+      session.api.calendar_events.get_external_events_for_user({
+        userId: calledOptions?.userId ?? options?.userId ?? session.userInfo.id,
+        limit: calledOptions?.limit ?? options?.limit,
+        from: calledOptions?.from ?? options?.from ?? new Date(),
+      })
+    ).events.filter(e => e.title !== '[Tellescope Event Placeholder]')
+  }, [options, session])
+
+  const [eventsLoading, { addLocalElements, filtered }] = useCalendarEvents()
+
+  const loadEvents = useCallback((options?: LoadEventOptions) => {
     const key = JSON.stringify(options ?? {})
     if (loadedRef.current[key]) return
     loadedRef.current[key] = Date.now()
 
-    gapi.client.calendar.events.list({
-      'calendarId': 'primary',
-      'timeMin': (options?.start ?? new Date()).toISOString(),
-      'showDeleted': false,
-      'singleEvents': true,
-      'maxResults': options?.limit || 50,
-      'orderBy': 'startTime',
-    })
-    .then((r: any) => {
-      if (!r?.result?.items) return
-
-      addLocalElements(r.result.items)
-    })
+    fetchEvents(options)
+    .then(addLocalElements)
     .catch(console.error)
-  }, [authenticated, addLocalElements])
+  }, [session, loadedRef, fetchEvents, addLocalElements])
 
-  return [gcalEventsLoading, { authenticated, loadEvents }] as const
+  return [eventsLoading, { loadEvents, filtered }] as const
 }

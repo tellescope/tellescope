@@ -231,6 +231,11 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
       Promise<extractFields<CustomActions['emails']['sync_integrations']['returns']>>
     ),
   },
+  calendar_events: {
+    get_external_events_for_user: (args: extractFields<CustomActions['calendar_events']['get_external_events_for_user']['parameters']>) => (
+      Promise<extractFields<CustomActions['calendar_events']['get_external_events_for_user']['returns']>>
+    ),
+  },
 }
 
 export class Session extends SessionManager {
@@ -294,6 +299,8 @@ export class Session extends SessionManager {
     queries.integrations.refresh_oauth2_session = a => this._POST(`/v1/${schema.integrations.customActions.refresh_oauth2_session.path}`, a)
     
     queries.emails.sync_integrations = a => this._POST(`/v1/${schema.emails.customActions.sync_integrations.path}`, a)
+    
+    queries.calendar_events.get_external_events_for_user = a => this._GET(`/v1/${schema.calendar_events.customActions.get_external_events_for_user.path}`, a)
 
     this.api = queries
   }

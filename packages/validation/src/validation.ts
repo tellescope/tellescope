@@ -128,6 +128,7 @@ import {
   DatabaseRecordFields,
   DatabaseRecordValues,
   DatabaseRecordField,
+  OrganizationAccess,
 } from "@tellescope/types-models"
 import {
   DatabaseRecord,
@@ -1735,3 +1736,10 @@ export const databaseRecordValueValidator = orValidator<{ [K in DatabaseRecordFi
   })(), 
 })
 export const databaseRecordValuesValidator = listValidator(databaseRecordValueValidator())
+
+export const organizationAccessValidator = objectValidator<OrganizationAccess>({
+  create: booleanValidator({ isOptional: true }),
+  update: booleanValidator({ isOptional: true }),
+  read: booleanValidator({ isOptional: true }),
+  delete: booleanValidator({ isOptional: true }),
+})

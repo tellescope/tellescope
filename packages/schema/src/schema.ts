@@ -43,6 +43,7 @@ import {
   Meeting,
   Email,
   File,
+  CalendarEvent,
 } from "@tellescope/types-client"
 
 import {
@@ -412,6 +413,9 @@ export type CustomActions = {
   },
   emails: {
     sync_integrations: CustomAction<{ enduserEmail: string }, { newEmails: Email[] }>, 
+  },
+  calendar_events: {
+    get_external_events_for_user: CustomAction<{ userId: string, from: Date, limit?: number }, { events: CalendarEvent[] }>, 
   },
 } 
 
@@ -2294,19 +2298,18 @@ export const schema: SchemaV1 = build_schema({
     },
     defaultActions: DEFAULT_OPERATIONS,
     customActions: {
-      start_meeting: {
-        op: "custom", access: 'create', method: "post",
-        name: 'Start Meeting',
-        path: '/start-meeting-for-event',
-        description: "Generates an video meeting room",
+      get_external_events_for_user: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Get External Events for User',
+        path: '/external-events-for-user',
+        description: "Gets events from external calendars, formatted as a Tellescope event",
         parameters: { 
-          attendees: { validator: listOfUserIndentitiesValidator },
-          publicRead: { validator: booleanValidator },
+          userId: { validator: mongoIdStringValidator, required: true },
+          from: { validator: dateValidator, required: true },
+          limit: { validator: nonNegNumberValidator },
         },
         returns: { 
-          id: { validator: mongoIdStringValidator, required: true },
-          meeting: { validator: meetingInfoValidator, required: true },
-          host: { validator: attendeeValidator, required: true },
+          events: { validator: 'calendar_events' as any }
         },
       },
     },
@@ -3105,9 +3108,11 @@ export const schema: SchemaV1 = build_schema({
         validator: databaseFieldsValidator,
       },
       numRecords: {
+        readonly: true,
         validator: nonNegNumberValidator,
         initializer: () => 0,
       },
+      // organizationRead: { validator: booleanValidator },
     },
   },
   database_records: {

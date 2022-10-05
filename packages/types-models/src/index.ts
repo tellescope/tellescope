@@ -572,6 +572,13 @@ export type DatabaseRecordFields = {
 }
 export type DatabaseRecordField = DatabaseRecordFields[DatabaseRecordFieldType]
 
+export type OrganizationAccess = {
+  create: boolean,
+  read: boolean,
+  update: boolean,
+  delete: boolean,
+}
+
 export interface Database_readonly extends ClientRecord {
   numRecords: number,
 }
@@ -581,7 +588,7 @@ export interface Database_required {
 }
 export interface Database_updatesDisabled {}
 export interface Database extends Database_readonly, Database_required, Database_updatesDisabled {
-
+  // organizationRead?: boolean,
 }
 
 export interface DatabaseRecord_readonly extends ClientRecord {}
@@ -711,6 +718,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   displayImage?: string,
   numRSVPs?: number,
   image?: string,
+  source?: string,
 }
 
 export interface CalendarEventRSVP_readonly extends ClientRecord {
