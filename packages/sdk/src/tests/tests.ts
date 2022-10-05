@@ -2650,6 +2650,7 @@ export const databases_tests = async () => {
 
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
+  calendar_event_templates: NO_TEST,
   databases: databases_tests,
   database_records: NO_TEST,
   post_comments: post_comments_tests,

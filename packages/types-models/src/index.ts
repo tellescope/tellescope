@@ -690,12 +690,18 @@ export interface WebHook extends WebHook_readonly, WebHook_required, WebHook_upd
   subscriptions: WebhookSubscriptionsType
 }
 
-export type CalendarEventReminderType = "webhook"
-export type CalendarEventReminder = {
-  type: CalendarEventReminderType,
-  remindAt: number,
-  didRemind?: boolean,
+export type CalendarEventReminderNotificationInfo = { 
+  templateId?: string,
 }
+type BuildCalendarEventReminderInfo <T, I> = { type: T, info: I, msBeforeStartTime: number, didRemind?: boolean }
+export type CalendarEventReminderInfoForType = {
+  "webhook": BuildCalendarEventReminderInfo<'webhook', {}>,
+  "user-notification": BuildCalendarEventReminderInfo<'user-notification', CalendarEventReminderNotificationInfo>,
+  "enduser-notification": BuildCalendarEventReminderInfo<'enduser-notification', CalendarEventReminderNotificationInfo>,
+}
+export type CalendarEventReminderType = keyof CalendarEventReminderInfoForType
+export type CalendarEventReminder = CalendarEventReminderInfoForType[CalendarEventReminderType]
+
 export interface CalendarEvent_readonly extends ClientRecord { 
   meetingId?: string 
   meetingStatus?: MeetingStatus,
@@ -710,15 +716,29 @@ export interface CalendarEvent_updatesDisabled {}
 export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_required, CalendarEvent_updatesDisabled {
   attendees: UserIdentity[],
   enableVideoCall?: boolean,
+  type?: string,
   publicRead?: boolean,
   chatRoomId?: string,
   description?: string,
   fields?: Indexable<string | CustomField>,
   reminders?: CalendarEventReminder[],
-  displayImage?: string,
-  numRSVPs?: number,
   image?: string,
+  numRSVPs?: number,
   source?: string,
+}
+
+export interface CalendarEventTemplate_readonly extends ClientRecord { }
+export interface CalendarEventTemplate_required {}
+export interface CalendarEventTemplate_updatesDisabled {}
+export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, CalendarEventTemplate_required, CalendarEventTemplate_updatesDisabled {
+  title: string,
+  durationInMinutes: number,
+  type?: string,
+  enableVideoCall?: boolean,
+  publicRead?: boolean,
+  description?: string,
+  reminders?: CalendarEventReminder[],
+  image?: string,
 }
 
 export interface CalendarEventRSVP_readonly extends ClientRecord {
@@ -1119,6 +1139,7 @@ export type ModelForName_required = {
   form_fields: FormField_required;
   form_responses: FormResponse_required,
   calendar_events: CalendarEvent_required,
+  calendar_event_templates: CalendarEventTemplate_required,
   calendar_event_RSVPs: CalendarEventRSVP_required,
   automation_steps: AutomationStep_required,
   automated_actions: AutomatedAction_required,
@@ -1161,6 +1182,7 @@ export interface ModelForName_readonly {
   form_fields: FormField_readonly;
   form_responses: FormResponse_readonly;
   calendar_events: CalendarEvent_readonly,
+  calendar_event_templates: CalendarEventTemplate_readonly,
   calendar_event_RSVPs: CalendarEventRSVP_readonly,
   automation_steps: AutomationStep_readonly,
   automated_actions: AutomatedAction_readonly,
@@ -1203,6 +1225,7 @@ export interface ModelForName_updatesDisabled {
   form_fields: FormField_updatesDisabled;
   form_responses: FormResponse_updatesDisabled;
   calendar_events: CalendarEvent_updatesDisabled,
+  calendar_event_templates: CalendarEventTemplate_updatesDisabled,
   calendar_event_RSVPs: CalendarEventRSVP_updatesDisabled,
   automation_steps: AutomationStep_updatesDisabled,
   automated_actions: AutomatedAction_updatesDisabled, 
@@ -1245,6 +1268,7 @@ export interface ModelForName extends ModelForName_required, ModelForName_readon
   form_fields: FormField;
   form_responses: FormResponse;
   calendar_events: CalendarEvent,
+  calendar_event_templates: CalendarEventTemplate,
   calendar_event_RSVPs: CalendarEventRSVP,
   automation_steps: AutomationStep,
   automated_actions: AutomatedAction,
@@ -1298,6 +1322,7 @@ export const modelNameChecker: { [K in ModelName] : true } = {
   form_fields: true,
   form_responses: true,
   calendar_events: true,
+  calendar_event_templates: true,
   calendar_event_RSVPs: true,
   automation_steps: true,
   automated_actions: true,

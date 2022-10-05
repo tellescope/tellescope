@@ -45,6 +45,7 @@ import {
   CommentLike,
   DatabaseRecord,
   Database,
+  CalendarEventTemplate,
 } from "@tellescope/types-client"
 
 import {
@@ -221,6 +222,7 @@ export type ChatRoomDisplayInfo = { id: string } & { [index: string]: UserDispla
 
 const chatRoomsSlice = createSliceForList<ChatRoom, 'chat_rooms'>('chat_rooms')
 const calendarEventsSlice = createSliceForList<CalendarEvent, 'calendar_events'>('calendar_events')
+const calendarEventTemplatesSlice = createSliceForList<CalendarEventTemplate, 'calendar_event_templates'>('calendar_event_templates')
 const chatsSlice = createSliceForList<ChatMessage, 'chats'>('chats')
 const chatRoomDisplayInfoslice = createSliceForList<ChatRoomDisplayInfo, 'chat-room-display-info'>('chat-room-display-info')
 const engagementEventsSlice = createSliceForList<EngagementEvent, 'engagement_events'>('engagement_events')
@@ -261,6 +263,7 @@ export const sharedConfig = {
     chats: chatsSlice.reducer,
     chatRoomDisplayInfo: chatRoomDisplayInfoslice.reducer,
     calendar_events: calendarEventsSlice.reducer,
+    calendar_event_templates: calendarEventTemplatesSlice.reducer,
     engagement_events: engagementEventsSlice.reducer,
     emails: emailsSlice.reducer,
     sms_messages: smsMessagesSlice.reducer,
@@ -1252,6 +1255,22 @@ export const useIntegrations = (options={} as HookOptions<Integration>) => {
       addSome: session.api.integrations.createSome,
       deleteOne: session.api.integrations.deleteOne,
       updateOne: session.api.integrations.updateOne,
+    }, 
+    {...options}
+  )
+}
+
+export const useCalendarEventTemplates = (options={} as HookOptions<CalendarEventTemplate>) => {
+  const session = useSession()
+  return useListStateHook(
+    'calendar_event_templates', useTypedSelector(s => s.calendar_event_templates), session, calendarEventTemplatesSlice, 
+    { 
+      loadQuery: session.api.calendar_event_templates.getSome,
+      findOne: session.api.calendar_event_templates.getOne,
+      addOne: session.api.calendar_event_templates.createOne,
+      addSome: session.api.calendar_event_templates.createSome,
+      deleteOne: session.api.calendar_event_templates.deleteOne,
+      updateOne: session.api.calendar_event_templates.updateOne,
     }, 
     {...options}
   )

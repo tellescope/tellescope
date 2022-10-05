@@ -5,8 +5,8 @@ import { LoadFunction, LoadFunctionArguments } from "@tellescope/sdk"
 import { UNSEARCHABLE_FIELDS } from "@tellescope/constants"
 import { SearchAPIProps, useSearchAPI } from "./hooks"
 import { TextFieldProps } from "./mui"
-import { Database, DatabaseRecord, Enduser, Forum, ManagedContentRecord, User } from "@tellescope/types-client"
-import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, ScrollingList, SearchTextInput, TextField, Typography, useDatabaseRecords, useDatabases, useEndusers, useForums, useManagedContentRecords, useResolvedSession, useSession, useUsers } from "."
+import { CalendarEventTemplate, Database, DatabaseRecord, Enduser, Forum, ManagedContentRecord, User } from "@tellescope/types-client"
+import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, ScrollingList, SearchTextInput, TextField, Typography, useCalendarEventTemplates, useDatabaseRecords, useDatabases, useEndusers, useForums, useManagedContentRecords, useResolvedSession, useSession, useUsers } from "."
 
 /* FILTER / SEARCH */
 export const filter_setter_for_key = <T,>(key: string, setFilters: React.Dispatch<React.SetStateAction<Filters<T>>>) => (
@@ -296,6 +296,17 @@ export const ContentSearch = (props: Omit<GenericSearchProps<ManagedContentRecor
   return (
     <ModelSearchInput {...props} filterKey="managed_content_records"
       searchAPI={session.api.managed_content_records.getSome}
+      onLoad={addLocalElements}
+    />
+  )
+}
+
+export const CalendarEventTemplatesSearch = (props: Omit<GenericSearchProps<CalendarEventTemplate>, 'filterKey'>) => {
+  const session = useSession()
+  const [, { addLocalElements }] = useCalendarEventTemplates()
+  return (
+    <ModelSearchInput {...props} filterKey="calendar_event_templates"
+      searchAPI={session.api.calendar_event_templates.getSome}
       onLoad={addLocalElements}
     />
   )

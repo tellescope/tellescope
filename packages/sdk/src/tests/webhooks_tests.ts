@@ -286,22 +286,25 @@ let CALENDAR_EVENT_WEBHOOK_COUNT = 0 //
 const calendar_event_reminders_tests = async (isSubscribed: boolean) => {
   log_header(`Calendar Event Reminders, isSubscribed=${isSubscribed}`)
 
-  const firstRemindAt = Date.now()
-  const secondRemindAt = Date.now() + AUTOMATION_POLLING_DELAY_MS * 2
-  const thirdRemindAt = Date.now() + AUTOMATION_POLLING_DELAY_MS * 4
+  const firstRemindAt = 0
+  const secondRemindAt = AUTOMATION_POLLING_DELAY_MS * 2
+  const thirdRemindAt = AUTOMATION_POLLING_DELAY_MS * 4
   const sampleCalendarEventReminders: CalendarEvent['reminders'] = [
     {
-      remindAt: firstRemindAt,
+      msBeforeStartTime: firstRemindAt,
       type: 'webhook',
+      info: {},
     },
     {
-      remindAt: thirdRemindAt, // include before secondRemindAt as test that order doesn't matter
+      msBeforeStartTime: thirdRemindAt, // include before secondRemindAt as test that order doesn't matter
       type: 'webhook',
+      info: {},
     },
     {
       didRemind: false, // test to ensure order of fields doesn't matter in automations query
-      remindAt: secondRemindAt,
+      msBeforeStartTime: secondRemindAt,
       type: 'webhook',
+      info: {},
     }
   ]
   const calendarEvent = await sdk.api.calendar_events.createOne({
@@ -317,7 +320,7 @@ const calendar_event_reminders_tests = async (isSubscribed: boolean) => {
   await check_next_webhook(
     ({ event }) => (
       event?.id === calendarEvent.id && 
-      !!event?.reminders?.find(r => r.remindAt === firstRemindAt )
+      !!event?.reminders?.find(r => r.msBeforeStartTime === firstRemindAt )
     ),
     'Calendar event successful webhook error', 
     'First calendar event reminder received', 
@@ -336,8 +339,8 @@ const calendar_event_reminders_tests = async (isSubscribed: boolean) => {
   await check_next_webhook(
     ({ event }) => (
       event?.id === calendarEvent.id && 
-      !!event?.reminders?.find(r => r.remindAt === secondRemindAt ) &&
-      !!event?.reminders?.find(r => r.remindAt === firstRemindAt && r.didRemind === true )
+      !!event?.reminders?.find(r => r.msBeforeStartTime === secondRemindAt ) &&
+      !!event?.reminders?.find(r => r.msBeforeStartTime === firstRemindAt && r.didRemind === true )
     ),
     'Calendar event successful webhook error', 
     'First calendar event reminder received', 
@@ -356,9 +359,9 @@ const calendar_event_reminders_tests = async (isSubscribed: boolean) => {
   await check_next_webhook(
     ({ event }) => (
       event?.id === calendarEvent.id && 
-      !!event?.reminders?.find(r => r.remindAt === thirdRemindAt ) &&
-      !!event?.reminders?.find(r => r.remindAt === secondRemindAt && r.didRemind === true ) &&
-      !!event?.reminders?.find(r => r.remindAt === firstRemindAt && r.didRemind === true )
+      !!event?.reminders?.find(r => r.msBeforeStartTime === thirdRemindAt ) &&
+      !!event?.reminders?.find(r => r.msBeforeStartTime === secondRemindAt && r.didRemind === true ) &&
+      !!event?.reminders?.find(r => r.msBeforeStartTime === firstRemindAt && r.didRemind === true )
     ),
     'Calendar event successful webhook error', 
     'First calendar event reminder received', 

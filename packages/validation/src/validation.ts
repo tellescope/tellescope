@@ -129,6 +129,8 @@ import {
   DatabaseRecordValues,
   DatabaseRecordField,
   OrganizationAccess,
+  CalendarEventReminderInfoForType,
+  CalendarEventReminderNotificationInfo,
 } from "@tellescope/types-models"
 import {
   DatabaseRecord,
@@ -1376,13 +1378,34 @@ const delayValidation = {
   cancelConditions: cancelConditionsValidator({ isOptional: true, emptyListOk: true, })
 }
 
-export const calendarEventReminderValidator = objectValidator<CalendarEventReminder>({
-  type: exactMatchValidator<CalendarEventReminderType>(['webhook'])(), // built-in calendar-specific reminder
-  // action: use this field for general pupose automation event actions
-  remindAt: nonNegNumberValidator(),
+const sharedReminderValidators = {
+  msBeforeStartTime: nonNegNumberValidator(),
   didRemind: booleanValidator({ isOptional: true }),
-})()
-export const listOfCalendarEventRemindersValidator = listValidator(calendarEventReminderValidator)
+}
+
+export const calendarEventReminderValidator = orValidator<{ [K in CalendarEventReminderType]: CalendarEventReminderInfoForType[K] } >({
+  webhook: objectValidator<CalendarEventReminderInfoForType['webhook']>({
+    info: objectValidator<{}>({}, { emptyOk: true })({ isOptional: true }),
+    type: exactMatchValidator<'webhook'>(['webhook'])(), 
+    ...sharedReminderValidators, 
+  })(),
+  "enduser-notification": objectValidator<CalendarEventReminderInfoForType['enduser-notification']>({
+    info: objectValidator<CalendarEventReminderNotificationInfo>({
+      templateId: mongoIdOptional,
+    }, { emptyOk: true })(),
+    type: exactMatchValidator<'enduser-notification'>(['enduser-notification'])(), 
+    ...sharedReminderValidators, 
+  })(),
+  "user-notification": objectValidator<CalendarEventReminderInfoForType['user-notification']>({
+    info: objectValidator<CalendarEventReminderNotificationInfo>({
+      templateId: mongoIdOptional,
+    }, { emptyOk: true })(),
+    type: exactMatchValidator<'user-notification'>(['user-notification'])(), 
+    ...sharedReminderValidators, 
+  })(),
+})
+
+export const listOfCalendarEventRemindersValidator = listValidatorEmptyOk(calendarEventReminderValidator())
 
 export const automationEventValidator = orValidator<{ [K in AutomationEventType]: AutomationEvent & { type: K } } >({
   enterState: objectValidator<EnterStateAutomationEvent>({

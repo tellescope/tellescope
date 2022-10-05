@@ -2331,6 +2331,7 @@ export const schema: SchemaV1 = build_schema({
         examples: [100],
         required: true,
       },
+      type: { validator: stringValidator100 },
       description: { validator: stringValidator5000 },
       meetingId: { validator: mongoIdStringValidator, readonly: true },
       meetingStatus: { validator: meetingStatusValidator },
@@ -2353,9 +2354,41 @@ export const schema: SchemaV1 = build_schema({
       },
       publicRead: { validator: booleanValidator }, 
       enableVideoCall: { validator: booleanValidator }, 
-      displayImage: { validator: stringValidator }, 
       fields: { validator: fieldsValidator }, 
       numRSVPs: { validator: nonNegNumberValidator },
+      image: { validator: stringValidator5000 },
+    }
+  },
+  calendar_event_templates: {
+    info: {},
+    constraints: {
+      unique: ['title'], 
+      relationship: [],
+      access: []
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      title: {
+        validator: stringValidator250,
+        required: true,
+        examples: ["Text"],
+      }, 
+      durationInMinutes: { 
+        validator: nonNegNumberValidator,
+        examples: [100],
+        required: true,
+      },
+      type: { validator: stringValidator100 },
+      description: { validator: stringValidator5000 },
+      reminders: {
+        validator: listOfCalendarEventRemindersValidator,
+        initializer: () => [],
+      },
+      publicRead: { validator: booleanValidator }, 
+      enableVideoCall: { validator: booleanValidator }, 
       image: { validator: stringValidator5000 },
     }
   },

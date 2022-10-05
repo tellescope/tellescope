@@ -101,6 +101,8 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   form_fields: defaultQueries(s, 'form_fields'),
   form_responses: defaultQueries(s, 'form_responses'),
   calendar_events: defaultQueries(s, 'calendar_events'),
+  calendar_event_templates: defaultQueries(s, 'calendar_event_templates'),
+  calendar_event_RSVPs: defaultQueries(s, 'calendar_event_RSVPs'),
   automation_steps: defaultQueries(s, 'automation_steps'),
   sequence_automations: defaultQueries(s, 'sequence_automations'),
   automated_actions: defaultQueries(s, 'automated_actions'),
@@ -116,7 +118,6 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   comment_likes: defaultQueries(s, 'comment_likes'),
   organizations: defaultQueries(s, 'organizations'),
   integrations: defaultQueries(s, 'integrations'),
-  calendar_event_RSVPs: defaultQueries(s, 'calendar_event_RSVPs'),
   databases: defaultQueries(s, 'databases'),
   database_records: defaultQueries(s, 'database_records'),
 })
