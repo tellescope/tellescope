@@ -2352,6 +2352,15 @@ export const schema: SchemaV1 = build_schema({
         validator: listOfCalendarEventRemindersValidator,
         initializer: () => [],
       },
+      templateId: { 
+        validator: mongoIdStringValidator,
+        dependencies: [{
+          dependsOn: ['calendar_event_templates'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      }, 
       publicRead: { validator: booleanValidator }, 
       enableVideoCall: { validator: booleanValidator }, 
       fields: { validator: fieldsValidator }, 

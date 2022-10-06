@@ -725,6 +725,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   image?: string,
   numRSVPs?: number,
   source?: string,
+  templateId?: string,
 }
 
 export interface CalendarEventTemplate_readonly extends ClientRecord { }
