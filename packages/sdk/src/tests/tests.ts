@@ -1550,7 +1550,7 @@ const formEventTests = async () => {
 
   const triggerStep = await sdk.api.automation_steps.createOne({
     journeyId: journey.id,
-    event: { type: 'onJourneyStart', info: { } },
+    events: [{ type: 'onJourneyStart', info: { } }],
     // in practice, this would send a form, so that the next step(s) could handle the response
     // but we don't want to send emails in testing, and can still attach this Id to a form response to test a trigger
     action: {
@@ -1560,10 +1560,10 @@ const formEventTests = async () => {
   })
   await sdk.api.automation_steps.createOne({
     journeyId: journey.id,
-    event: { 
+    events: [{ 
       type: 'formResponse', 
       info: { automationStepId: triggerStep.id } 
-    },
+    }],
     action: {
       type: 'setEnduserStatus',
       info: { status: 'placeholder' },
@@ -1614,7 +1614,7 @@ const ticketEventTests = async () => {
 
   const root = await sdk.api.automation_steps.createOne({
     journeyId: journey.id,
-    event: { type: 'onJourneyStart', info: { } },
+    events: [{ type: 'onJourneyStart', info: { } }],
     action: {
       type: 'createTicket', 
       info: { 
@@ -1630,7 +1630,7 @@ const ticketEventTests = async () => {
   })
   const nullRoot = await sdk.api.automation_steps.createOne({
     journeyId: nullJourney.id,
-    event: { type: 'onJourneyStart', info: { } },
+    events: [{ type: 'onJourneyStart', info: { } }],
     action: {
       type: 'createTicket', 
       info: { 
@@ -1648,7 +1648,7 @@ const ticketEventTests = async () => {
   const createStep = (journeyId: string, automationStepId: string, closedForReason?: string ) => (
     sdk.api.automation_steps.createOne({
       journeyId,
-      event: { type: 'ticketCompleted', info: { automationStepId, closedForReason, } },
+      events: [{ type: 'ticketCompleted', info: { automationStepId, closedForReason, } }],
       action: { type: 'setEnduserStatus', info: { status: closedForReason ?? 'Null' }, },
     })
   )
@@ -1664,7 +1664,7 @@ const ticketEventTests = async () => {
 
   await sdk.api.endusers.updateOne(enduser.id, { journeys: { [journey.id]: 'Added' }})
   await sdk.api.endusers.updateOne(enduserWithTeam.id, { journeys: { [nullJourney.id]: 'Added (Null)' }})
-  await wait(undefined, 2000) // wait for tickets to be automatically created
+  await wait(undefined, 2200) // wait for tickets to be automatically created
 
   await async_test(
     `Tickets automatically created`,
@@ -1734,6 +1734,70 @@ const removeFromJourneyTests = async () => {
   log_header("Remove from Journey")
 
   const journey = await sdk.api.journeys.createOne({ title: 'test journey'})
+  const enduser = await sdk.api.endusers.createOne({ email: 'test@tellescope.com' })
+
+  const TEST_DELAY = 1000
+
+  const step = await (
+    sdk.api.automation_steps.createOne({
+      journeyId: journey.id,
+      events: [{ type: 'onJourneyStart', info: { } }],
+      action: { type: 'setEnduserStatus', info: { status: 'Root' }, },
+    })
+  )
+  await (
+    sdk.api.automation_steps.createOne({
+      journeyId: journey.id,
+      events: [{ type: 'afterAction', info: { 
+        automationStepId: step.id,
+        delay: TEST_DELAY / 1000,
+        delayInMS: TEST_DELAY,
+        unit: 'Seconds',
+      } }],
+      action: { type: 'setEnduserStatus', info: { status: 'Delayed Step' }, },
+    })
+  )
+  // test empty events step doesn't get triggered or cause errors
+  await (
+    sdk.api.automation_steps.createOne({
+      journeyId: journey.id,
+      events: [],
+      action: { type: 'setEnduserStatus', info: { status: 'INVARIANT_VIOLATION' }, },
+    })
+  )
+
+  // add to journey to trigger initial action
+  await sdk.api.endusers.updateOne(enduser.id, { journeys: { [journey.id]: 'New' } }, { replaceObjectFields: true })
+  await wait(undefined, 250)
+  await async_test(
+    `Root action triggered (only root)`,
+    () => sdk.api.automated_actions.getSome({ filter: { enduserId: enduser.id }}),
+    { onResult: es => es.length === 1 }
+  )  
+  await wait(undefined, 500)
+  await async_test(
+    `Next step not trigged early`,
+    () => sdk.api.endusers.getOne(enduser.id),
+    { onResult: e => e.journeys?.[journey.id] !== 'Delayed Step' }
+  )  
+
+  await wait(undefined, 2 * TEST_DELAY) // wait long enough for automation to process and delay to pass
+  await async_test(
+    `Sequenced action triggered`,
+    () => sdk.api.endusers.getOne(enduser.id),
+    { onResult: e => e.journeys?.[journey.id] === 'Delayed Step' }
+  )  
+
+  await Promise.all([ 
+    sdk.api.journeys.deleteOne(journey.id),
+    sdk.api.endusers.deleteOne(enduser.id),
+  ])
+}
+
+const sequenceTests = async () => {
+  log_header("Automation Sequencing")
+
+  const journey = await sdk.api.journeys.createOne({ title: 'test journey'})
   const journey2 = await sdk.api.journeys.createOne({ title: 'other journey'})
 
   const enduser = await sdk.api.endusers.createOne({ email: 'test@tellescope.com' })
@@ -1743,14 +1807,14 @@ const removeFromJourneyTests = async () => {
   const step = await (
     sdk.api.automation_steps.createOne({
       journeyId: journey.id,
-      event: { type: 'onJourneyStart', info: { } },
+      events: [{ type: 'onJourneyStart', info: { } }],
       action: { type: 'setEnduserStatus', info: { status: 'Root' }, },
     })
   )
   const step2 = await (
     sdk.api.automation_steps.createOne({
       journeyId: journey2.id,
-      event: { type: 'onJourneyStart', info: { } },
+      events: [{ type: 'onJourneyStart', info: { } }],
       action: { type: 'setEnduserStatus', info: { status: 'Root' }, },
     })
   )
@@ -1759,7 +1823,6 @@ const removeFromJourneyTests = async () => {
     sdk.api.automated_actions.createOne({
       journeyId,
       automationStepId: step.id,
-      cancelConditions: [],
       enduserId: enduserId ?? enduser.id,
       processAfter: Date.now() + 1000000, // add delay to make sure it doesn't happen
       status: 'active',
@@ -1800,8 +1863,128 @@ const removeFromJourneyTests = async () => {
   ])
 }
 
+export const cancelConditionsTests = async () => {
+  log_header("Cancel Condition Tests")
+
+  const enduser = await sdk.api.endusers.createOne({ email: 'deletemeee@tellescope.com' })
+  const journey = await sdk.api.journeys.createOne({ title: 'test journey '})
+  const form = await sdk.api.forms.createOne({ title: 'test form' })
+  const field = await sdk.api.form_fields.createOne({
+    formId: form.id, title: 'question', type: 'string', 
+    previousFields: [{ type: 'root', info: {} }]
+  })
+
+  // this action won't be fired, because patient isn't added to journey as part of tests
+  const triggerStep = await sdk.api.automation_steps.createOne({
+    journeyId: journey.id,
+    events: [{ type: 'onJourneyStart', info: { } }],
+    // in practice, this would send a form, so that the next step(s) could handle the response
+    // but we don't want to send emails in testing, and can still attach this Id to a form response to test a trigger
+    action: {
+      type: 'setEnduserStatus', 
+      info: { status: 'start' },
+    },
+  })
+
+  const unsub = await sdk.api.automation_steps.createOne({
+    journeyId: journey.id,
+    events: [{ 
+      type: 'formUnsubmitted', 
+      info: { 
+        automationStepId: triggerStep.id,
+        delayInMS: 25, // should trigger 
+        delay: 0, unit: 'Seconds', // don't matter
+        cancelConditions: [{ type: 'formResponse', info: { automationStepId: triggerStep.id }}]
+      } 
+    }],
+    action: {
+      type: 'setEnduserStatus',
+      info: { status: 'triggered' },
+    },
+  })
+  
+  await sdk.api.automation_steps.createOne({
+    journeyId: journey.id,
+    events: [{ 
+      type: 'afterAction', 
+      info: { 
+        automationStepId: unsub.id,
+        delayInMS: 1000000,  // ensure it doesn't trigger
+        delay: 0, unit: 'Seconds', // don't matter
+        cancelConditions: [{ type: 'formResponse', info: { automationStepId: triggerStep.id }}]
+      } 
+    }],
+    action: {
+      type: 'setEnduserStatus',
+      info: { status: 'violation 1' },
+    },
+  })
+
+  // a second followup to the unsub event (to create example of two actions with same cancel condition)
+  await sdk.api.automation_steps.createOne({
+    journeyId: journey.id,
+    events: [{ 
+      type: 'afterAction', 
+      info: { 
+        automationStepId: unsub.id,
+        delayInMS: 1000000,  // ensure it doesn't trigger
+        delay: 0, unit: 'Seconds', // don't matter
+        cancelConditions: [{ type: 'formResponse', info: { automationStepId: triggerStep.id }}]
+      } 
+    }],
+    action: {
+      type: 'setEnduserStatus',
+      info: { status: 'violation 2' },
+    },
+  })
+
+  const { accessCode } = await sdk.api.form_responses.prepare_form_response({ 
+    formId: form.id, 
+    automationStepId: triggerStep.id, // must be included for trigger to happen
+    enduserId: enduser.id 
+  })
+
+  // allow formUnsubmitted to trigger
+  await wait(undefined, 2000) // allow background creation with generous pause
+
+  await async_test(
+    `formUnsubmitted event with short delay is triggered`,
+    () => sdk.api.endusers.getOne(enduser.id),
+    { onResult: e => e?.journeys?.[journey.id] === 'triggered' }
+  )  
+
+  // trigger cancel conditions
+  await sdk.api.form_responses.submit_form_response({ accessCode, automationStepId: triggerStep.id, responses: [{
+    answer: {
+      type: 'string',
+      value: 'answer'
+    },
+    fieldId: field.id,
+    fieldTitle: field.title,
+  }] })
+
+  await wait(undefined, 2000) // allow background creation with generous pause
+
+  await async_test(
+    `Cancel conditions work for followup`,
+    () => sdk.api.automated_actions.getSome(),
+    { onResult: as => as.length === 3 
+        && as.find(a => a.automationStepId === unsub.id)?.status === 'finished' 
+        && as.filter(a => a.status === 'cancelled').length === 2
+    }
+  )  
+
+  await Promise.all([
+    sdk.api.forms.deleteOne(form.id),
+    sdk.api.journeys.deleteOne(journey.id),
+    sdk.api.endusers.deleteOne(enduser.id)
+  ])
+}
+
 const automation_events_tests = async () => {
   log_header("Automation Events")
+  await cancelConditionsTests()
+  await sequenceTests()
   await formEventTests()
   await ticketEventTests()
   await removeFromJourneyTests() 
@@ -2650,6 +2833,7 @@ export const databases_tests = async () => {
 
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
+  automation_steps: automation_events_tests,
   calendar_event_templates: NO_TEST,
   databases: databases_tests,
   database_records: NO_TEST,
@@ -2675,7 +2859,6 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   form_responses: form_response_tests,
   calendar_events: calendar_events_tests,
   webhooks: NO_TEST, // tested separately,
-  automation_steps: automation_events_tests,
   sequence_automations: NO_TEST,
   automated_actions: NO_TEST,
   enduser_status_updates: status_update_tests,

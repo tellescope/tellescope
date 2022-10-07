@@ -254,7 +254,7 @@ const test_automation_webhooks = async () => {
   }
   await sdk.api.automation_steps.createOne({
     journeyId: journey.id,
-    event: { type: "onJourneyStart", info: {} },
+    events: [{ type: "onJourneyStart", info: {} }],
     action: testAction,
   })
 
@@ -286,9 +286,9 @@ let CALENDAR_EVENT_WEBHOOK_COUNT = 0 //
 const calendar_event_reminders_tests = async (isSubscribed: boolean) => {
   log_header(`Calendar Event Reminders, isSubscribed=${isSubscribed}`)
 
-  const firstRemindAt = 0
+  const firstRemindAt = AUTOMATION_POLLING_DELAY_MS * 4
   const secondRemindAt = AUTOMATION_POLLING_DELAY_MS * 2
-  const thirdRemindAt = AUTOMATION_POLLING_DELAY_MS * 4
+  const thirdRemindAt = AUTOMATION_POLLING_DELAY_MS * 0
   const sampleCalendarEventReminders: CalendarEvent['reminders'] = [
     {
       msBeforeStartTime: firstRemindAt,
@@ -309,7 +309,7 @@ const calendar_event_reminders_tests = async (isSubscribed: boolean) => {
   ]
   const calendarEvent = await sdk.api.calendar_events.createOne({
     durationInMinutes: 10,
-    startTimeInMS: Date.now(),
+    startTimeInMS: Date.now() + firstRemindAt,
     title: "Test Notifications",
     reminders: sampleCalendarEventReminders,
   })

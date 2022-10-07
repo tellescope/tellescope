@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react"
 import { Session } from "@tellescope/sdk"
 import { ChangeHandler, FormFieldNode } from "./types"
-import { FormField, FormResponse } from "@tellescope/types-client"
+import { AutomationStep, FormField, FormResponse } from "@tellescope/types-client"
 import { FileBlob, Indexable } from "@tellescope/types-utilities"
 import { FormResponseAnswerFileValue, FormResponseValue, FormResponseValueAnswer, OrganizationTheme, PreviousFormFieldType } from "@tellescope/types-models"
 import { useFileUpload, useFormFields, useFormResponses, useResolvedSession, value_is_loaded } from "../index"
@@ -87,15 +87,6 @@ export const useGraphForFormFields = (fields: FormField[]) => {
   }[]
 
   for (const field of fields) {
-    // if (field.previousFields.find(p => p.type === 'root')) {
-    //   edges.push({
-    //     source: 'start',
-    //     target: field.id,
-    //     type: 'root',
-    //     label: "Start"
-    //   })
-    // }
-
     for (const parent of field.previousFields ?? []) {
       if ((parent.info as any).fieldId) {
         edges.push({
@@ -109,19 +100,8 @@ export const useGraphForFormFields = (fields: FormField[]) => {
     }
   }
 
-  // const start = ({
-  //   id: 'start',
-  //   type: 'start',
-  //   position: {
-  //     x: 0, y: 0,
-  //   },
-  // })
-
   return { 
-    nodes: [
-      // start as any as FormField, 
-      ...fields
-    ], 
+    nodes: [...fields],
     edges 
   }
 }

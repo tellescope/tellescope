@@ -776,8 +776,8 @@ export interface WebhookCall {
   integrity: string,
 }
 
-export type AutomationEventType = "enterState" | "leaveState" // deprecated
-  | 'onJourneyStart'
+export type AutomationEventType = 
+    'onJourneyStart'
   | 'afterAction'
   | "formResponse"
   | "formUnsubmitted"
@@ -804,10 +804,7 @@ export interface AutomationForSender { senderId: string }
 export interface AutomationForFormRequest extends AutomationForForm, AutomationForSender { channel?: SendFormChannel }
 export interface AutomationForMessage extends AutomationForTemplate, AutomationForSender {}
 export interface AutomationForWebhook { message: string }
-export interface AutomationForNotification extends AutomationForTemplate { destination: string }
 
-export type EnterStateAutomationEvent = AutomationEventBuilder<'enterState', AutomationForJourneyAndState>
-export type LeaveStateAutomationEvent = AutomationEventBuilder<'leaveState', AutomationForJourneyAndState> 
 export type FormResponseAutomationEvent = AutomationEventBuilder<'formResponse', {
   automationStepId: string, 
 }> 
@@ -833,17 +830,14 @@ export type FormUnsubmittedEvent = AutomationEventBuilder<'formUnsubmitted', For
 export type OnJourneyStartAutomationEvent = AutomationEventBuilder<'onJourneyStart', {}> 
 export type TicketCompletedAutomationEvent = AutomationEventBuilder<'ticketCompleted', TicketCompletedEventInfo>
 
-export type AutomationEvent = EnterStateAutomationEvent // deprecated
-  | LeaveStateAutomationEvent // depreacted
-  | FormResponseAutomationEvent
+export type AutomationEvent = 
+  FormResponseAutomationEvent
   | AfterActionAutomationEvent
   | OnJourneyStartAutomationEvent
   | FormUnsubmittedEvent
   | TicketCompletedAutomationEvent
 
 export type AutomationEventForType = {
-  "enterState": EnterStateAutomationEvent // depreacted 
-  "leaveState": LeaveStateAutomationEvent // deprecated
   'onJourneyStart': OnJourneyStartAutomationEvent
   'afterAction': AfterActionAutomationEvent 
   "formResponse":  FormResponseAutomationEvent
@@ -870,15 +864,11 @@ export type CreateTicketActionInfo = {
   closeReasons?: string[],
 }
 
-export type SendNotificationAutomationAction = AutomationActionBuilder<'sendNotification', AutomationForNotification>
 export type SendEmailAutomationAction = AutomationActionBuilder<'sendEmail', AutomationForMessage>
 export type SendSMSAutomationAction = AutomationActionBuilder<'sendSMS', AutomationForMessage>
 export type SendFormAutomationAction = AutomationActionBuilder<'sendForm', AutomationForFormRequest>
 export type SetEnduserStatusAutomationAction = AutomationActionBuilder<'setEnduserStatus', SetEnduserStatusInfo>
-export type UpdateStateForJourneyAutomationAction = AutomationActionBuilder<'updateStateForJourney', AutomationForJourneyAndState>
 export type CreateTicketAutomationAction = AutomationActionBuilder<'createTicket', CreateTicketActionInfo>
-export type AddToSequenceAutomationAction = AutomationActionBuilder<'addToSequence', AutomationForAutomation> // depreacted
-export type RemoveFromSequenceAutomationAction = AutomationActionBuilder<'removeFromSequence', AutomationForAutomation> // deprecated
 export type SendWebhookAutomationAction = AutomationActionBuilder<'sendWebhook', AutomationForWebhook>
 
 export type AutomationConditionType = 'atJourneyState' // deprecated
@@ -890,14 +880,10 @@ export type AtJourneyStateAutomationCondition = AutomationConditionBuilder<'atJo
 export type AutomationCondition = AtJourneyStateAutomationCondition
 
 export type AutomationActionForType = {
-  "sendNotification" : SendNotificationAutomationAction,
   "sendEmail" : SendEmailAutomationAction,
   "sendSMS": SendSMSAutomationAction,
   "sendForm": SendFormAutomationAction,
-  "updateStateForJourney": UpdateStateForJourneyAutomationAction,
   "createTicket": CreateTicketAutomationAction,
-  'addToSequence': AddToSequenceAutomationAction, // deprecated
-  'removeFromSequence': RemoveFromSequenceAutomationAction, // deprecated
   'sendWebhook': SendWebhookAutomationAction
   'setEnduserStatus': SetEnduserStatusAutomationAction
 }
@@ -906,7 +892,7 @@ export type AutomationAction = AutomationActionForType[AutomationActionType]
 
 export interface AutomationStep_readonly extends ClientRecord {}
 export interface AutomationStep_required {
-  event: AutomationEvent
+  events: AutomationEvent[],
   conditions?: AutomationCondition[],
   action: AutomationAction,
 }
@@ -1090,7 +1076,7 @@ export interface AutomatedAction_required {
   event: AutomationEvent,
   action: AutomationAction,
   status: AutomatedActionStatus,
-  cancelConditions: CancelCondition[]
+  // cancelConditions: CancelCondition[] // already included as part of the event
   processAfter: number,
   errorMessage?: string,
 }

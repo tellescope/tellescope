@@ -127,6 +127,7 @@ import {
   stringValidator1000,
   databaseFieldsValidator,
   databaseRecordValuesValidator,
+  automationEventsValidator,
 } from "@tellescope/validation"
 
 import {
@@ -2466,24 +2467,6 @@ export const schema: SchemaV1 = build_schema({
       unique: [], 
       relationship: [
         {
-          explanation: 'updateStateForJourney cannot have the same info as enterState or leaveState events',
-          evaluate: ({ action, event }) => {
-          if (action?.type === 'updateStateForJourney')
-            if (event?.type === 'enterState' && 
-              action.info?.journeyId === event.info.journeyId &&
-              action.info?.state === event.info.state
-            ) {
-              return "updateStateForJourney cannot have the same journey and state as the enterState event"
-            } 
-            else if (event?.type === 'leaveState' && 
-              action.info?.journeyId === event.info.journeyId &&
-              action.info?.state === event.info.state
-            ) {
-              return "updateStateForJourney cannot have the same journey and state as the leaveState event"
-            }
-          } 
-        },
-        {
           explanation: 'Event, action, and conditions cannot all be shared by an existing event automation (no duplicates)',
           evaluate: () => {} // implemented in routing.ts
         },
@@ -2499,7 +2482,6 @@ export const schema: SchemaV1 = build_schema({
         validator: mongoIdStringValidator,
         examples: [PLACEHOLDER_ID],
         required: true,
-        initializer: ({ event }) => (event?.info as any)?.journeyId,
         dependencies: [{
           dependsOn: ['journeys'],
           dependencyField: '_id',
@@ -2507,15 +2489,17 @@ export const schema: SchemaV1 = build_schema({
           onDependencyDelete: 'delete',
         }]
       },
-      event: { 
-        validator: automationEventValidator,
-        examples: [{
-          type: "enterState",
-          info: { 
-            journeyId: PLACEHOLDER_ID,
-            state: 'state',
-          }, 
-        }],
+      events: { 
+        validator: automationEventsValidator,
+        examples: [
+          // [],
+          [
+            {
+              type: "onJourneyStart",
+              info: {}, 
+            }
+          ], 
+        ],
         required: true,
       },
       action: { 
@@ -2584,11 +2568,8 @@ export const schema: SchemaV1 = build_schema({
       event: { 
         validator: automationEventValidator,
         examples: [{
-          type: "enterState",
-          info: { 
-            journeyId: PLACEHOLDER_ID,
-            state: 'state',
-          }, 
+          type: "onJourneyStart",
+          info: {}, 
         }],
         required: true,
       },
