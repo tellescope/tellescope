@@ -1768,7 +1768,7 @@ const removeFromJourneyTests = async () => {
 
   // add to journey to trigger initial action
   await sdk.api.endusers.updateOne(enduser.id, { journeys: { [journey.id]: 'New' } }, { replaceObjectFields: true })
-  await wait(undefined, 250)
+  await wait(undefined, 500)
   await async_test(
     `Root action triggered (only root)`,
     () => sdk.api.automated_actions.getSome({ filter: { enduserId: enduser.id }}),
@@ -1781,7 +1781,7 @@ const removeFromJourneyTests = async () => {
     { onResult: e => e.journeys?.[journey.id] !== 'Delayed Step' }
   )  
 
-  await wait(undefined, 2 * TEST_DELAY) // wait long enough for automation to process and delay to pass
+  await wait(undefined, 3 * TEST_DELAY) // wait long enough for automation to process and delay to pass
   await async_test(
     `Sequenced action triggered`,
     () => sdk.api.endusers.getOne(enduser.id),
@@ -1892,7 +1892,7 @@ export const cancelConditionsTests = async () => {
       type: 'formUnsubmitted', 
       info: { 
         automationStepId: triggerStep.id,
-        delayInMS: 25, // should trigger 
+        delayInMS: 0, // should trigger 
         delay: 0, unit: 'Seconds', // don't matter
         cancelConditions: [{ type: 'formResponse', info: { automationStepId: triggerStep.id }}]
       } 
@@ -1900,6 +1900,23 @@ export const cancelConditionsTests = async () => {
     action: {
       type: 'setEnduserStatus',
       info: { status: 'triggered' },
+    },
+  })
+
+  const fastFollowup = await sdk.api.automation_steps.createOne({
+    journeyId: journey.id,
+    events: [{ 
+      type: 'afterAction', 
+      info: { 
+        automationStepId: unsub.id,
+        delayInMS: 0,  // ensure it triggers right after unsub
+        delay: 0, unit: 'Seconds', // don't matter
+        cancelConditions: [{ type: 'formResponse', info: { automationStepId: triggerStep.id }}]
+      } 
+    }],
+    action: {
+      type: 'setEnduserStatus',
+      info: { status: 'triggered again' },
     },
   })
   
@@ -1945,12 +1962,20 @@ export const cancelConditionsTests = async () => {
   })
 
   // allow formUnsubmitted to trigger
-  await wait(undefined, 2000) // allow background creation with generous pause
+  // await wait(undefined, 1500) // allow background creation with generous pause
 
+  // await async_test(
+  //   `formUnsubmitted event with short delay is triggered`,
+  //   () => sdk.api.endusers.getOne(enduser.id),
+  //   { onResult: e => e?.journeys?.[journey.id] === 'triggered' }
+  // )  
+
+  // allow fast followup to trigger
+  await wait(undefined, 4000) // allow background creation with generous pause
   await async_test(
     `formUnsubmitted event with short delay is triggered`,
     () => sdk.api.endusers.getOne(enduser.id),
-    { onResult: e => e?.journeys?.[journey.id] === 'triggered' }
+    { onResult: e => e?.journeys?.[journey.id] === 'triggered again' }
   )  
 
   // trigger cancel conditions
@@ -1963,13 +1988,14 @@ export const cancelConditionsTests = async () => {
     fieldTitle: field.title,
   }] })
 
-  await wait(undefined, 2000) // allow background creation with generous pause
+  await wait(undefined, 1500) // allow background creation with generous pause
 
   await async_test(
     `Cancel conditions work for followup`,
     () => sdk.api.automated_actions.getSome(),
-    { onResult: as => as.length === 3 
+    { onResult: as => as.length === 4 
         && as.find(a => a.automationStepId === unsub.id)?.status === 'finished' 
+        && as.find(a => a.automationStepId === fastFollowup.id)?.status === 'finished' 
         && as.filter(a => a.status === 'cancelled').length === 2
     }
   )  
