@@ -367,6 +367,7 @@ export type CustomActions = {
     generate_auth_token: CustomAction<{ id?: string, phone?: string, email?: string, externalId?: string, durationInSeconds?: number }, { authToken: string, enduser: Enduser }>,
     logout: CustomAction<{ }, { }>,
     current_session_info: CustomAction<{ }, { enduser: Enduser }>,
+    add_to_journey: CustomAction<{ enduserIds: string[], journeyId: string }, { }>, 
   },
   users: {
     display_info: CustomAction<{ }, { fname: string, lname: string, id: string }[]>,
@@ -501,6 +502,7 @@ export const schema: SchemaV1 = build_schema({
     enduserActions: { 
       read: {}, readMany: {},
       logout: {}, refresh_session: {}, update: {}, current_session_info: {},  
+      add_to_journey: {},
     },
     fields: {
       ...BuiltInFields,   
@@ -608,6 +610,17 @@ export const schema: SchemaV1 = build_schema({
       // },
     }, 
     customActions: {
+      add_to_journey: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Add to journey',
+        path: '/add-endusers-to-journey',
+        description: "Adds (or restarts) endusers in a journey",
+        parameters: { 
+          enduserIds: { validator: listOfMongoIdStringValidator, required: true },
+          journeyId: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: { } 
+      },
       set_password: {
         op: "custom", access: 'update', method: "post",
         name: 'Set enduser password',

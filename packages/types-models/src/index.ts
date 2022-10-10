@@ -696,6 +696,7 @@ export type CalendarEventReminderNotificationInfo = {
 type BuildCalendarEventReminderInfo <T, I> = { type: T, info: I, msBeforeStartTime: number, didRemind?: boolean }
 export type CalendarEventReminderInfoForType = {
   "webhook": BuildCalendarEventReminderInfo<'webhook', {}>,
+  "add-to-journey": BuildCalendarEventReminderInfo<'add-to-journey', { journeyId: string }>,
   "user-notification": BuildCalendarEventReminderInfo<'user-notification', CalendarEventReminderNotificationInfo>,
   "enduser-notification": BuildCalendarEventReminderInfo<'enduser-notification', CalendarEventReminderNotificationInfo>,
 }

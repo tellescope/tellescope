@@ -1356,6 +1356,13 @@ export const calendarEventReminderValidator = orValidator<{ [K in CalendarEventR
     type: exactMatchValidator<'webhook'>(['webhook'])(), 
     ...sharedReminderValidators, 
   })(),
+  'add-to-journey': objectValidator<CalendarEventReminderInfoForType['add-to-journey']>({
+    info: objectValidator<CalendarEventReminderInfoForType['add-to-journey']['info']>({
+      journeyId: mongoIdRequired,
+    })(),
+    type: exactMatchValidator<'add-to-journey'>(['add-to-journey'])(), 
+    ...sharedReminderValidators, 
+  })(),
   "enduser-notification": objectValidator<CalendarEventReminderInfoForType['enduser-notification']>({
     info: objectValidator<CalendarEventReminderNotificationInfo>({
       templateId: mongoIdOptional,

@@ -65,6 +65,9 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
   endusers: {
     logout: () => Promise<void>;
     current_session_info: () => Promise<extractFields<CustomActions['endusers']['current_session_info']['returns']>>,
+    add_to_journey: (args: extractFields<CustomActions['endusers']['add_to_journey']['parameters']>) => (
+      Promise<extractFields<CustomActions['endusers']['add_to_journey']['returns']>>
+    ),
   },
   users: {
     display_info: () => Promise<UserDisplayInfo[]>
@@ -162,6 +165,7 @@ export class EnduserSession extends Session {
 
     this.api.endusers.logout = () => this._POST('/v1/logout-enduser')
     this.api.endusers.current_session_info = () => this._GET(`/v1${schema.endusers.customActions.current_session_info.path}`)
+    this.api.endusers.add_to_journey = a => this._POST(`/v1${schema.endusers.customActions.add_to_journey.path}`, a)
 
     this.api.users.display_info = () => this._GET<{}, UserDisplayInfo[] >(`/v1/user-display-info`),
     

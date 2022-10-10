@@ -132,8 +132,12 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
   endusers: {
     set_password: (args: { id: string, password: string }) => Promise<void>,
     is_authenticated: (args: { id?: string, authToken: string }) => Promise<{ isAuthenticated: boolean, enduser: Enduser }>
-    generate_auth_token: (args: extractFields<CustomActions['endusers']['generate_auth_token']['parameters']>) => 
-                            Promise<extractFields<CustomActions['endusers']['generate_auth_token']['returns']>>,
+    generate_auth_token: (args: extractFields<CustomActions['endusers']['generate_auth_token']['parameters']>) => (
+      Promise<extractFields<CustomActions['endusers']['generate_auth_token']['returns']>>
+    ),
+    add_to_journey: (args: extractFields<CustomActions['endusers']['add_to_journey']['parameters']>) => (
+      Promise<extractFields<CustomActions['endusers']['add_to_journey']['returns']>>
+    ),
   },
   users: {
     display_names: () => Promise<{ fname: string, lname: string, id: string }[]>,
@@ -255,6 +259,7 @@ export class Session extends SessionManager {
     queries.journeys.delete_states = ({ id, states }) => this._DELETE(`/v1/journey/${id}/states`, { states })
 
     queries.endusers.set_password = ({id, password}) => this._POST(`/v1/set-enduser-password`, { id, password })
+    queries.endusers.add_to_journey = a => this._POST(`/v1${schema.endusers.customActions.add_to_journey.path}`, a)
     queries.endusers.is_authenticated = ({id, authToken}) => this._GET(`/v1/enduser-is-authenticated`, { id, authToken })
     queries.endusers.generate_auth_token = args => this._GET(`/v1/generate-enduser-auth-token`, args)
 

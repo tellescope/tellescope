@@ -2007,14 +2007,62 @@ export const cancelConditionsTests = async () => {
   ])
 }
 
+const addToJourneyTests = async () => {
+  log_header("Add / Re-add to Journey")
+
+  const journey = await sdk.api.journeys.createOne({ title: 'test journey' })
+  const enduser = await sdk.api.endusers.createOne({ email: 'test@tellescope.com' })
+
+  const root = await (
+    sdk.api.automation_steps.createOne({
+      journeyId: journey.id,
+      events: [{ type: 'onJourneyStart', info: { } }],
+      action: { type: 'setEnduserStatus', info: { status: 'Root' }, },
+    })
+  )
+  const follow = await (
+    sdk.api.automation_steps.createOne({
+      journeyId: journey.id,
+      events: [{ type: 'afterAction', info: { 
+        automationStepId: root.id,
+        delay: 100000,
+        delayInMS: 100000, // big number, so shouldn't trigger
+        unit: 'Seconds',
+      } }],
+      action: { type: 'setEnduserStatus', info: { status: 'Delayed Step' }, },
+    })
+  )
+
+  // add to journey and re-add
+  await sdk.api.endusers.add_to_journey({ enduserIds: [enduser.id], journeyId: journey.id })
+  await wait(undefined, 2250) // allow onJourneyStart step to trigger
+  await sdk.api.endusers.add_to_journey({ enduserIds: [enduser.id], journeyId: journey.id })
+  await wait(undefined, 2250) // allow onJourneyStart step to trigger
+
+  await async_test(
+    `Enduser correctly added and re-added`,
+    () => sdk.api.automated_actions.getSome(),
+    { onResult: es => es.length === 4
+      && es.filter(e => e.status === 'cancelled' && e.automationStepId === follow.id).length === 1 // one afterAction is cancelled
+      && es.filter(e => e.status === 'active' && e.automationStepId === follow.id).length === 1 // one afterAction is still active
+      && es.filter(e => e.status === 'finished' && e.automationStepId === root.id).length === 2 // two initial onJourneyStart
+    }
+  )  
+
+  await Promise.all([ 
+    sdk.api.journeys.deleteOne(journey.id),
+    sdk.api.endusers.deleteOne(enduser.id),
+  ])
+}
+
 const automation_events_tests = async () => {
   log_header("Automation Events")
+  await addToJourneyTests()
   await cancelConditionsTests()
   await sequenceTests()
   await formEventTests()
   await ticketEventTests()
   await removeFromJourneyTests() 
-
 }
 
 const form_response_tests = async () => {
