@@ -33,6 +33,7 @@ export interface WithAnySession {
 interface SessionContext_T {
   session: UserSession,
   logout: () => Promise<void>,
+  refresh: () => Promise<void>,
   // setSession: React.Dispatch<React.SetStateAction<Session>>
   updateUserInfo: (updates: Parameters<Session['api']['users']['updateOne']>[1]) => Promise<void>,
   updateLocalSessionInfo: (u: Partial<User>, authToken?: string) => void
@@ -40,6 +41,7 @@ interface SessionContext_T {
 export const SessionContext = createContext({} as SessionContext_T)
 export const WithSession = (p : { children: React.ReactNode, sessionOptions?: UserSessionOptions }) => {
   const [session, setSession] = useState(() => new Session(p.sessionOptions))
+  const lastRefreshRef = useRef(Date.now())
 
   const logout = () => {
     setSession(s => new Session(p.sessionOptions))
@@ -53,6 +55,21 @@ export const WithSession = (p : { children: React.ReactNode, sessionOptions?: Us
     userInfo: { ...s.userInfo, ...u }
   }))
 
+  const refresh = async () => {
+    await session.refresh_session()
+    .then(() => updateLocalSessionInfo(session.userInfo, session.authToken))
+  }
+
+  useEffect(() => {
+    if (!session.authToken) return
+    if (lastRefreshRef.current > Date.now() - 10000) return
+    lastRefreshRef.current = Date.now()
+
+    session.refresh_session()
+    .then(() => updateLocalSessionInfo(session.userInfo, session.authToken))
+    .catch(console.error)
+  }, [session, updateLocalSessionInfo])
+
 
   const updateUserInfo: SessionContext_T['updateUserInfo'] = async updates => {
     await session.api.users.updateOne(session.userInfo.id, updates)
@@ -63,6 +80,7 @@ export const WithSession = (p : { children: React.ReactNode, sessionOptions?: Us
   return (
     <SessionContext.Provider value={{ 
       session, //setSession,
+      refresh,
       logout,
       updateUserInfo,
       updateLocalSessionInfo,
@@ -76,6 +94,7 @@ export const useSessionContext = () => useContext(SessionContext)
 interface EnduserSessionContext_T {
   enduserSession: EnduserSession,
   logout: () => Promise<void>,
+  refresh: () => Promise<void>,
   // setEnduserSession: React.Dispatch<React.SetStateAction<EnduserSession>>
   updateUserInfo: (updates: Parameters<EnduserSession['api']['endusers']['updateOne']>[1]) => Promise<void>,
   updateLocalSessionInfo: (u: Partial<Enduser>, authToken?: string) => void
@@ -99,6 +118,11 @@ export const WithEnduserSession = (p : { children: React.ReactNode, sessionOptio
     }))
   }
 
+  const refresh = async () => {
+    await enduserSession.refresh_session()
+    .then(() => updateLocalSessionInfo(enduserSession.userInfo, enduserSession.authToken))
+  }
+
   const updateUserInfo: EnduserSessionContext_T['updateUserInfo'] = async updates => {
     await enduserSession.api.endusers.updateOne(enduserSession.userInfo.id, updates)
     const { enduser, authToken } = await enduserSession.refresh_session()
@@ -108,6 +132,7 @@ export const WithEnduserSession = (p : { children: React.ReactNode, sessionOptio
   return (
     <EnduserSessionContext.Provider value={{ 
       enduserSession, 
+      refresh,
       logout,
       updateUserInfo,
       updateLocalSessionInfo,

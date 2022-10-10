@@ -25,6 +25,7 @@ export interface SessionOptions {
   expirationInSeconds?: number,
   enableSocketLogging?: boolean,
   handleUnauthenticated?: () => Promise<void>;
+  autoRefreshInMS?: number,
 }
 
 export const wait = (f?: Promise<void>, ms=1000) => new Promise<void>((resolve, reject) => {
