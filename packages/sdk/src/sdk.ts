@@ -38,6 +38,7 @@ export interface LoadFunctionArguments <T> {
   lastId?: string, 
   limit?: number, 
   sort?: SortOption, 
+  from?: Date | number,
   threadKey?: string, 
   filter?: ReadFilter<T>,
   search?: SearchOptions,

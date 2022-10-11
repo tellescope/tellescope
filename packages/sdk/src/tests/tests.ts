@@ -2905,6 +2905,30 @@ export const databases_tests = async () => {
   ])
 }
 
+export const filter_by_date_tests = async () => {
+  log_header("Filter by Dates")
+
+  const enduser1 = await sdk.api.endusers.createOne({ email: 'deleteme@tellescope.com' })
+  await wait(undefined, 2000) // ensure meaningful delay in createdAt timestamp
+
+  const now = new Date()
+  const enduser2 = await sdk.api.endusers.createOne({ email: 'deleteme2@tellescope.com' })
+
+  await async_test(
+    'Filtered',
+    () => sdk.api.endusers.getSome({ from: now }),
+    { onResult: es => (
+         es.length === 1 
+      && es[0].email === enduser2.email
+    )},
+  )  
+
+  return await Promise.all([
+    sdk.api.endusers.deleteOne(enduser1.id),
+    sdk.api.endusers.deleteOne(enduser2.id),
+  ])
+}
+
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
   automation_steps: automation_events_tests,
@@ -2970,6 +2994,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
     await enduserAccessTests()
     await enduser_session_tests()
     await enduser_redaction_tests()
+    await filter_by_date_tests()
   } catch(err: any) {
     console.error("Failed during custom test")
     if (err.message && err.info) {
