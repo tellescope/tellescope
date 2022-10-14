@@ -17,6 +17,7 @@ import {
   Form,
   SUPPORTS_FORMS,
 } from "./layout"
+import { OnApiError, useHandleError } from "./errors";
 
 
 export interface HasValidator { validator: Yup.AnySchema }
@@ -218,33 +219,33 @@ export const FormikSubmitButton = ({ formik, disabledIfUnchanged=true, disabled,
 interface LoadingButtonProps extends SubmitButtonOptions {
   disabled?: boolean,
   submitting?: boolean,
-  onClick?: (() => void) | (() => Promise<any>),
+  throwOnError?: boolean,
+  onError?: OnApiError,
+  onClick?: ((...args: any[]) => void) | (() => Promise<any>),
 }
-export const LoadingButton = ({ disabled, variant="contained", submitting, onClick, submitText="Submit", submittingText="Submitting", type, style={ marginTop: 5, width: '100%' } }: LoadingButtonProps & Styled & { type?: 'submit'}) => {
-  const [handlingClick, setHandlingClick] = React.useState(false)
+export const LoadingButton = ({ disabled, throwOnError, variant="contained", onError, submitting, onClick, submitText="Submit", submittingText="Submitting", type, style={ marginTop: 5, width: '100%' } }: LoadingButtonProps & Styled & { type?: 'submit'}) => {
+  const { errorDisplay, handleAPIError, loading } = useHandleError({ onError })
   
   return (
-    <Button color="primary" variant={variant} type={type} onClick={async () => {
+    <>
+    <Button color="primary" variant={variant} type={type} onClick={() => handleAPIError(async () => {
       if (!onClick) return
-      try {
-        setHandlingClick(true)
-        await onClick()
-      } finally {
-        setHandlingClick(false)
-      }
-    }}
+      await onClick()
+    })}
       style={style}
-      disabled={handlingClick || submitting || disabled}
+      disabled={loading || submitting || disabled}
     >
       <Typography component="span">{submitting ? submittingText : submitText}</Typography>
-      {(submitting || handlingClick) && <CircularProgress size={11} style={{ marginLeft: 5, marginBottom: 1 }}/>}
+      {(submitting || loading) && <CircularProgress size={11} style={{ marginLeft: 5, marginBottom: 1 }}/>}
     </Button>
+    {!(onError || throwOnError) && errorDisplay}
+    </>
   )
 }
 
 // onClick conditionally disabled, should be child of Form in browser to ensure handleSubmit is used correctly
 export const SubmitButton = ({ onClick, ...props }: LoadingButtonProps & Styled) => (
-  <LoadingButton { ...props } type="submit" onClick={SUPPORTS_FORMS ? undefined : onClick}/>
+  <LoadingButton throwOnError { ...props } type="submit" onClick={SUPPORTS_FORMS ? undefined : onClick}/>
 )
 
 interface FormBuilder_T <T> extends SubmitButtonOptions, Styled {

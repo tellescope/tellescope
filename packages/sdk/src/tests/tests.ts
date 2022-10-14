@@ -2915,13 +2915,13 @@ export const filter_by_date_tests = async () => {
   const enduser2 = await sdk.api.endusers.createOne({ email: 'deleteme2@tellescope.com' })
 
   await async_test(
-    'Filtered',
+    'Filtered by from',
     () => sdk.api.endusers.getSome({ from: now }),
     { onResult: es => (
          es.length === 1 
       && es[0].email === enduser2.email
     )},
-  )  
+  )
 
   return await Promise.all([
     sdk.api.endusers.deleteOne(enduser1.id),
@@ -2931,7 +2931,10 @@ export const filter_by_date_tests = async () => {
 
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
+  enduser_tasks: NO_TEST,
+  care_plans: NO_TEST,
   automation_steps: automation_events_tests,
+  portal_customizations: NO_TEST,
   calendar_event_templates: NO_TEST,
   databases: databases_tests,
   database_records: NO_TEST,
@@ -2957,7 +2960,6 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   form_responses: form_response_tests,
   calendar_events: calendar_events_tests,
   webhooks: NO_TEST, // tested separately,
-  sequence_automations: NO_TEST,
   automated_actions: NO_TEST,
   enduser_status_updates: status_update_tests,
   user_logs: NO_TEST,
@@ -2982,6 +2984,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
     ]) 
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await filter_by_date_tests()
     await generate_user_auth_tests()
     await role_based_access_tests()
     await generateEnduserAuthTests()
@@ -2994,7 +2997,6 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
     await enduserAccessTests()
     await enduser_session_tests()
     await enduser_redaction_tests()
-    await filter_by_date_tests()
   } catch(err: any) {
     console.error("Failed during custom test")
     if (err.message && err.info) {

@@ -46,7 +46,7 @@ export const useFileForSecureName = ({
 }
 
 
-export const SecureImage = ({ secureName, placeholder, ...props } : { placeholder?: React.ReactElement, secureName: string, alt?: string } & ImageDimensions) => {
+export const SecureImage = ({ secureName, placeholder, ...props } : { placeholder?: React.ReactElement, secureName: string, alt?: string } & ImageDimensions & Styled) => {
   const loadedImage = useFileForSecureName({ secureName })
 
   // if user doesn't have picture, or it's still loading

@@ -82,6 +82,7 @@ export const defaultQueries = <N extends keyof ClientModelForName>(
 }
 
 const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : APIQuery<K> } => ({
+  portal_customizations: defaultQueries(s, 'portal_customizations'),
   endusers: defaultQueries(s, 'endusers'),
   enduser_status_updates: defaultQueries(s, 'enduser_status_updates'),
   engagement_events: defaultQueries(s, 'engagement_events'),
@@ -105,7 +106,6 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   calendar_event_templates: defaultQueries(s, 'calendar_event_templates'),
   calendar_event_RSVPs: defaultQueries(s, 'calendar_event_RSVPs'),
   automation_steps: defaultQueries(s, 'automation_steps'),
-  sequence_automations: defaultQueries(s, 'sequence_automations'),
   automated_actions: defaultQueries(s, 'automated_actions'),
   webhooks: defaultQueries(s, 'webhooks'),
   user_logs: defaultQueries(s, 'user_logs'),
@@ -121,6 +121,8 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   integrations: defaultQueries(s, 'integrations'),
   databases: defaultQueries(s, 'databases'),
   database_records: defaultQueries(s, 'database_records'),
+  care_plans: defaultQueries(s, 'care_plans'),
+  enduser_tasks: defaultQueries(s, 'enduser_tasks'),
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {

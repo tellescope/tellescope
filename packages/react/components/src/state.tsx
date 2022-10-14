@@ -46,6 +46,9 @@ import {
   DatabaseRecord,
   Database,
   CalendarEventTemplate,
+  PortalCustomization,
+  CarePlan,
+  EnduserTask,
 } from "@tellescope/types-client"
 
 import {
@@ -245,6 +248,9 @@ const usersDisplaySlice = createSliceForList<UserDisplayInfo, 'users'>('users')
 const integrationsSlice = createSliceForList<Integration, 'integrations'>('integrations')
 const databasesSlice = createSliceForList<Database, 'databases'>('databases')
 const databaseRecordsSlice = createSliceForList<DatabaseRecord, 'database_records'>('database_records')
+const portalCustomizationsSlice = createSliceForList<PortalCustomization, 'portal_customizations'>('portal_customizations')
+const carePlansSlice = createSliceForList<CarePlan, 'care_plans'>('care_plans')
+const enduserTasksSlice = createSliceForList<EnduserTask, 'enduser_tasks'>('enduser_tasks')
 
 const enduserObservationsSlice = createSliceForList<EnduserObservation, 'enduser_observations'>('enduser_observations')
 const forumsSlice = createSliceForList<Forum, 'forums'>('forums')
@@ -293,6 +299,9 @@ export const sharedConfig = {
     calendar_event_RSVPs: calendarEventRSVPsSlice.reducer,
     databases: databasesSlice.reducer,
     database_records: databaseRecordsSlice.reducer,
+    portal_customizations: portalCustomizationsSlice.reducer,
+    enduser_tasks: enduserTasksSlice.reducer,
+    care_plans: carePlansSlice.reducer,
   },
 }
 
@@ -1255,6 +1264,54 @@ export const useIntegrations = (options={} as HookOptions<Integration>) => {
       addSome: session.api.integrations.createSome,
       deleteOne: session.api.integrations.deleteOne,
       updateOne: session.api.integrations.updateOne,
+    }, 
+    {...options}
+  )
+}
+
+export const usePortalCustomizations = (options={} as HookOptions<PortalCustomization>) => {
+  const session = useResolvedSession()
+  return useListStateHook(
+    'portal_customizations', useTypedSelector(s => s.portal_customizations), session, portalCustomizationsSlice, 
+    { 
+      loadQuery: session.api.portal_customizations.getSome,
+      findOne: session.api.portal_customizations.getOne,
+      addOne: session.api.portal_customizations.createOne,
+      addSome: session.api.portal_customizations.createSome,
+      deleteOne: session.api.portal_customizations.deleteOne,
+      updateOne: session.api.portal_customizations.updateOne,
+    }, 
+    {...options}
+  )
+}
+
+export const useCarePlans = (options={} as HookOptions<CarePlan>) => {
+  const session = useResolvedSession()
+  return useListStateHook(
+    'care_plans', useTypedSelector(s => s.care_plans), session, carePlansSlice, 
+    { 
+      loadQuery: session.api.care_plans.getSome,
+      findOne: session.api.care_plans.getOne,
+      addOne: session.api.care_plans.createOne,
+      addSome: session.api.care_plans.createSome,
+      deleteOne: session.api.care_plans.deleteOne,
+      updateOne: session.api.care_plans.updateOne,
+    }, 
+    {...options}
+  )
+}
+
+export const useEnduserTasks = (options={} as HookOptions<EnduserTask>) => {
+  const session = useResolvedSession()
+  return useListStateHook(
+    'enduser_tasks', useTypedSelector(s => s.enduser_tasks), session, enduserTasksSlice, 
+    { 
+      loadQuery: session.api.enduser_tasks.getSome,
+      findOne: session.api.enduser_tasks.getOne,
+      addOne: session.api.enduser_tasks.createOne,
+      addSome: session.api.enduser_tasks.createSome,
+      deleteOne: session.api.enduser_tasks.deleteOne,
+      updateOne: session.api.enduser_tasks.updateOne,
     }, 
     {...options}
   )

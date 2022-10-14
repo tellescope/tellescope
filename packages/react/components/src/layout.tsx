@@ -28,11 +28,11 @@ export interface ImageDimensions {
   maxHeight?: React.CSSProperties['height'],
   maxWidth?: React.CSSProperties['height'],
 }
-export interface ImageProps extends ImageDimensions {
+export interface ImageProps extends ImageDimensions, Styled {
   src: string,
   alt?: string,
 }
-export const Image = ({ src, alt, ...props }: ImageProps) => <img src={src} alt={alt} style={props} />
+export const Image = ({ src, alt, style, ...props }: ImageProps) => <img src={src} alt={alt} style={{ ...props, ...style }} />
 
 export interface VideoProps extends Styled {
   src: string,

@@ -152,6 +152,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   phone?: string;
   fname?: string;
   lname?: string;
+  suffixes?: string[],
   accountType?: AccountType;
   roles?: string[];
   avatar?: string,
@@ -703,6 +704,16 @@ export type CalendarEventReminderInfoForType = {
 export type CalendarEventReminderType = keyof CalendarEventReminderInfoForType
 export type CalendarEventReminder = CalendarEventReminderInfoForType[CalendarEventReminderType]
 
+export type EnduserTaskForEvent = {
+  id: string,
+  enduserId: string,
+}
+export type EnduserFormResponseForEvent = {
+  formId: string,
+  enduserId: string,
+  accessCode: string,
+}
+
 export interface CalendarEvent_readonly extends ClientRecord { 
   meetingId?: string 
   meetingStatus?: MeetingStatus,
@@ -727,6 +738,10 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   numRSVPs?: number,
   source?: string,
   templateId?: string,
+  carePlanId?: string,
+  enduserTasks?: EnduserTaskForEvent[],
+  enduserFormResponses?: EnduserFormResponseForEvent[],
+  sharedContentIds?: string[],
 }
 
 export interface CalendarEventTemplate_readonly extends ClientRecord { }
@@ -996,9 +1011,40 @@ export interface ManagedContentRecord extends ManagedContentRecord_readonly, Man
   blocks?: Block[],
   tags?: string[],
   files?: string[],
+  category?: string,
   editorState?: string
   mode?: MessageTemplateMode,
   attachments?: ChatAttachment[]
+}
+
+export type PortalPage = "Home" | "Care Plan" | "Documents" | "Education" | "Community"
+
+type BuildPortalBlockInfo <T, I> = { type: T, info: I }
+
+export type CareTeamMemberPortalCustomizationInfo = {
+  title: string, 
+  role?: string, // for matching to care team role for a specific team member
+}
+export type PortalBlockForType = {
+  careTeam: BuildPortalBlockInfo<'careTeam', { 
+    title: string,
+    // members: CareTeamMemberPortalCustomizationInfo[],
+  }>,
+  carePlan: BuildPortalBlockInfo<'carePlan', {}>,
+  education: BuildPortalBlockInfo<'education', {}>,
+}
+export type PortalBlockType = keyof PortalBlockForType
+export type PortalBlock = PortalBlockForType[PortalBlockType]
+
+export interface PortalCustomization_readonly extends ClientRecord { }
+export interface PortalCustomization_required {
+  page: PortalPage,
+}
+export interface PortalCustomization_updatesDisabled {}
+export interface PortalCustomization extends PortalCustomization_readonly, PortalCustomization_required, PortalCustomization_updatesDisabled {
+  blocks: PortalBlock[],
+  title?: string,
+  disabled?: boolean,
 }
 
 export interface Forum_readonly extends ClientRecord {}
@@ -1086,17 +1132,6 @@ export interface AutomatedAction extends AutomatedAction_readonly, AutomatedActi
 
 }
 
-// type SequencedAutomationEvent = "noDelay" | "delay"
-
-export interface SequenceAutomation_readonly extends ClientRecord {}
-export interface SequenceAutomation_required {
-  title: string,
-}
-export interface SequenceAutomation_updatesDisabled {}
-export interface SequenceAutomation extends SequenceAutomation_readonly, SequenceAutomation_required, SequenceAutomation_updatesDisabled {
-
-}
-
 export interface UserLog_readonly extends ClientRecord {
   userId: string,
   resource: string,
@@ -1106,6 +1141,29 @@ export interface UserLog_readonly extends ClientRecord {
 export interface UserLog_required {}
 export interface UserLog_updatesDisabled {}
 export interface UserLog extends UserLog_readonly, UserLog_required, UserLog_updatesDisabled {}
+
+export interface EnduserTask_readonly extends ClientRecord {}
+export interface EnduserTask_required {
+  title: string,
+}
+export interface EnduserTask_updatesDisabled {}
+export interface EnduserTask extends EnduserTask_readonly, EnduserTask_required, EnduserTask_updatesDisabled {
+  enduserId: string,
+  description?: string
+  completedAt?: Date;
+}
+
+
+export interface CarePlan_readonly extends ClientRecord {}
+export interface CarePlan_required {
+  title: string,
+}
+export interface CarePlan_updatesDisabled {}
+export interface CarePlan extends CarePlan_readonly, CarePlan_required, CarePlan_updatesDisabled {
+  enduserId: string,
+  description?: string
+  eventIds?: string[],
+}
 
 export type ModelForName_required = {
   endusers: Enduser_required;
@@ -1131,7 +1189,6 @@ export type ModelForName_required = {
   calendar_event_RSVPs: CalendarEventRSVP_required,
   automation_steps: AutomationStep_required,
   automated_actions: AutomatedAction_required,
-  sequence_automations: SequenceAutomation_required,
   webhooks: WebHook_required;
   user_logs: UserLog_required;
   user_notifications: UserNotification_required;
@@ -1147,6 +1204,9 @@ export type ModelForName_required = {
   integrations: Organization_required;
   databases: Database_required;
   database_records: DatabaseRecord_required;
+  portal_customizations: PortalCustomization_required;
+  enduser_tasks: EnduserTask_required;
+  care_plans: CarePlan_required;
 }
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
@@ -1174,7 +1234,6 @@ export interface ModelForName_readonly {
   calendar_event_RSVPs: CalendarEventRSVP_readonly,
   automation_steps: AutomationStep_readonly,
   automated_actions: AutomatedAction_readonly,
-  sequence_automations: SequenceAutomation_readonly,
   webhooks: WebHook_readonly;
   user_logs: UserLog_readonly;
   user_notifications: UserNotification_readonly;
@@ -1190,6 +1249,9 @@ export interface ModelForName_readonly {
   integrations: Integration_readonly;
   databases: Database_readonly;
   database_records: DatabaseRecord_readonly;
+  portal_customizations: PortalCustomization_readonly;
+  enduser_tasks: EnduserTask_readonly;
+  care_plans: CarePlan_readonly;
 }
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
@@ -1217,7 +1279,6 @@ export interface ModelForName_updatesDisabled {
   calendar_event_RSVPs: CalendarEventRSVP_updatesDisabled,
   automation_steps: AutomationStep_updatesDisabled,
   automated_actions: AutomatedAction_updatesDisabled, 
-  sequence_automations: SequenceAutomation_updatesDisabled,
   webhooks: WebHook_updatesDisabled;
   user_logs: UserLog_updatesDisabled;
   user_notifications: UserNotification_updatesDisabled;
@@ -1233,6 +1294,9 @@ export interface ModelForName_updatesDisabled {
   integrations: Integration_updatesDisabled;
   databases: Database_updatesDisabled;
   database_records: DatabaseRecord_updatesDisabled;
+  portal_customizations: PortalCustomization_updatesDisabled;
+  enduser_tasks: EnduserTask_updatesDisabled;
+  care_plans: CarePlan_updatesDisabled;
 }
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
@@ -1260,7 +1324,6 @@ export interface ModelForName extends ModelForName_required, ModelForName_readon
   calendar_event_RSVPs: CalendarEventRSVP,
   automation_steps: AutomationStep,
   automated_actions: AutomatedAction,
-  sequence_automations: SequenceAutomation,
   webhooks: WebHook;
   user_logs: UserLog;
   user_notifications: UserNotification;
@@ -1276,6 +1339,9 @@ export interface ModelForName extends ModelForName_required, ModelForName_readon
   integrations: Integration;
   databases: Database;
   database_records: DatabaseRecord;
+  portal_customizations: PortalCustomization;
+  enduser_tasks: EnduserTask;
+  care_plans: CarePlan;
 }
 export type ModelName = keyof ModelForName
 export type Model = ModelForName[keyof ModelForName]
@@ -1314,7 +1380,6 @@ export const modelNameChecker: { [K in ModelName] : true } = {
   calendar_event_RSVPs: true,
   automation_steps: true,
   automated_actions: true,
-  sequence_automations: true,
   webhooks: true, 
   user_logs: true,
   user_notifications: true,
@@ -1329,6 +1394,9 @@ export const modelNameChecker: { [K in ModelName] : true } = {
   integrations: true,
   databases: true,
   database_records: true,
+  portal_customizations: true,
+  care_plans: true,
+  enduser_tasks: true,
 }
 
 

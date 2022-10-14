@@ -117,6 +117,12 @@ import {
   OrganizationAccess,
   CalendarEventReminderInfoForType,
   CalendarEventReminderNotificationInfo,
+  PortalPage,
+  PortalBlockType,
+  PortalBlockForType,
+  CareTeamMemberPortalCustomizationInfo,
+  EnduserTaskForEvent,
+  EnduserFormResponseForEvent,
 } from "@tellescope/types-models"
 import {
   DatabaseRecord,
@@ -1731,3 +1737,60 @@ export const organizationAccessValidator = objectValidator<OrganizationAccess>({
   read: booleanValidator({ isOptional: true }),
   delete: booleanValidator({ isOptional: true }),
 })
+
+const _PORTAL_PAGES: { [K in PortalPage]: any } = {
+  "Care Plan": true,
+  Documents: true,
+  Education: true,
+  Home: true,
+  Community: true,
+}
+export const PORTAL_PAGES = Object.keys(_PORTAL_PAGES) as PortalPage[]
+export const portalPageValidator = exactMatchValidator<PortalPage>(PORTAL_PAGES)
+
+
+export const portalBlockValidator = orValidator<{ [K in PortalBlockType]: PortalBlockForType[K] } >({
+  carePlan: objectValidator<PortalBlockForType['carePlan']>({
+    type: exactMatchValidator(['carePlan'])(),
+    info: objectValidator<PortalBlockForType['carePlan']['info']>({}, { emptyOk: true })()
+  })(), 
+  education: objectValidator<PortalBlockForType['education']>({
+    type: exactMatchValidator(['education'])(),
+    info: objectValidator<PortalBlockForType['education']['info']>({}, { emptyOk: true })()
+  })(), 
+  careTeam: objectValidator<PortalBlockForType['careTeam']>({
+    type: exactMatchValidator(['careTeam'])(),
+    info: objectValidator<PortalBlockForType['careTeam']['info']>({
+      title: stringValidator(),
+      // members: listValidatorEmptyOk(
+      //   objectValidator<CareTeamMemberPortalCustomizationInfo>({
+      //     title: stringValidator(),
+      //     role: stringValidator({ isOptional: true }),
+      //   })()
+      // )()
+    })()
+  })(), 
+})
+export const portalBlocksValidator = listValidatorEmptyOk(portalBlockValidator())
+
+const _PORTAL_BLOCK_TYPES: { [K in PortalBlockType]: any } = {
+  carePlan: '',
+  careTeam: '',
+  education: '',
+}
+export const PORTAL_BLOCK_TYPES = Object.keys(_PORTAL_BLOCK_TYPES) as PortalBlockType[]
+export const portalTypeValidator = exactMatchValidator<PortalBlockType>(PORTAL_BLOCK_TYPES)
+
+
+export const enduserTaskForEventValidator = objectValidator<EnduserTaskForEvent>({
+  id: mongoIdStringRequired,
+  enduserId: mongoIdStringRequired,
+})
+export const enduserTasksForEventValidator = listValidatorEmptyOk(enduserTaskForEventValidator())
+
+export const enduserFormResponseForEventValidator = objectValidator<EnduserFormResponseForEvent>({
+  enduserId: mongoIdStringRequired,
+  formId: mongoIdStringRequired,
+  accessCode: stringValidator1000(),
+})
+export const enduserFormResponsesForEventValidator = listValidatorEmptyOk(enduserFormResponseForEventValidator())

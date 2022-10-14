@@ -39,7 +39,10 @@ type EnduserAccessibleModels = (
   | "post_likes"
   | "comment_likes"
   | 'meetings'
+  | 'portal_customizations'
   | "calendar_event_RSVPs"
+  | "care_plans"
+  | "enduser_tasks"
   | 'integrations' // may want OAuth2 support in future
 )
 
@@ -143,6 +146,9 @@ const loadDefaultQueries = (s: EnduserSession): { [K in EnduserAccessibleModels]
   meetings: defaultQueries(s, 'meetings'),
   integrations: defaultQueries(s, 'integrations'),
   calendar_event_RSVPs: defaultQueries(s, 'calendar_event_RSVPs'),
+  portal_customizations: defaultQueries(s, 'portal_customizations'),
+  care_plans: defaultQueries(s, 'care_plans'),
+  enduser_tasks: defaultQueries(s, 'enduser_tasks'),
 })
 
 

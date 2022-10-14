@@ -38,7 +38,8 @@ import {
 import {
   FormControlLabel,
   Grid,
-  Link as MuiLink
+  Link as MuiLink,
+  SxProps
 } from "@mui/material"
 import { PropsWithChildren } from "react"
 import { Indexable, query_string_for_object } from "@tellescope/utilities"
@@ -205,6 +206,7 @@ export type TextFieldProps = {
   InputProps?: any,
   fullWidth?: boolean,
   name?: string,
+  sx?: SxProps,
 
   // mixed
   variant?: 'filled' | 'outlined' | 'flat',

@@ -128,6 +128,10 @@ import {
   databaseFieldsValidator,
   databaseRecordValuesValidator,
   automationEventsValidator,
+  portalPageValidator,
+  portalBlocksValidator,
+  enduserFormResponsesForEventValidator,
+  enduserTasksForEventValidator,
 } from "@tellescope/validation"
 
 import {
@@ -137,6 +141,7 @@ import {
   ENDUSER_SESSION_TYPE,
   USER_SESSION_TYPE,
 } from "@tellescope/constants"
+import { response } from "express"
 
 export type RelationshipConstraint<T> = {
   explanation: string; // human readable, for documentation purposes
@@ -345,7 +350,9 @@ export type CustomActions = {
     file_download_URL: CustomAction<{ secureName: string }, { downloadURL: string }>,
   },
   form_responses: {
-    prepare_form_response: CustomAction<{ formId: string, enduserId: string, automationStepId?: string }, { accessCode: string, url: string }>,
+    prepare_form_response: CustomAction<{ formId: string, enduserId: string, automationStepId?: string, expireAt?: Date }, 
+      { accessCode: string, url: string, response: FormResponse,  }>
+    ,
     submit_form_response: CustomAction<{ accessCode: string, responses: FormResponseValue[], automationStepId?: string  }, { formResponse: FormResponse }>,
     info_for_access_code: CustomAction<{ accessCode: string }, {
       form: Form, 
@@ -1469,7 +1476,7 @@ export const schema: SchemaV1 = build_schema({
       }],
     },
     defaultActions: { 
-      create: { adminOnly: true }, delete: { adminOnly: true },
+      create: { adminOnly: true }, createMany: { adminOnly: true }, delete: { adminOnly: true },
       read: {}, readMany: {}, update: { description: "Users can only be updated by self or an organization admin"} 
     },
     enduserActions: { display_info: {}, read: {}, readMany: {} },
@@ -1567,6 +1574,7 @@ export const schema: SchemaV1 = build_schema({
       lname: {
         validator: nameValidator,
       },
+      suffixes: { validator: listOfStringsValidatorEmptyOk },
       organization: {
         validator: mongoIdStringValidator,
         updatesDisabled: true,
@@ -2125,10 +2133,12 @@ export const schema: SchemaV1 = build_schema({
           formId: { validator: mongoIdStringValidator, required: true },
           enduserId: { validator: mongoIdStringValidator, required: true },
           automationStepId: { validator: mongoIdStringValidator },
+          expireAt: { validator: dateValidator },
         },
         returns: {
           accessCode: { validator: stringValidator250, required: true },
           url: { validator: stringValidator250, required: true },
+          response: { validator: 'form_response' as any, required: true }
         },
       },
       submit_form_response: {
@@ -2358,6 +2368,15 @@ export const schema: SchemaV1 = build_schema({
           onDependencyDelete: 'setNull',
         }]
       },
+      carePlanId: { 
+        validator: mongoIdStringValidator,
+        dependencies: [{
+          dependsOn: ['care_plans'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'setNull',
+        }]
+      },
       attendees: { 
         validator: listOfUserIndentitiesValidator,
         initializer: () => [],
@@ -2380,6 +2399,9 @@ export const schema: SchemaV1 = build_schema({
       fields: { validator: fieldsValidator }, 
       numRSVPs: { validator: nonNegNumberValidator },
       image: { validator: stringValidator5000 },
+      sharedContentIds: { validator: listOfMongoIdStringValidatorEmptyOk },
+      enduserFormResponses: { validator: enduserFormResponsesForEventValidator },
+      enduserTasks: { validator: enduserTasksForEventValidator },
     }
   },
   calendar_event_templates: {
@@ -2455,25 +2477,6 @@ export const schema: SchemaV1 = build_schema({
       }
     }
   },
-  sequence_automations: {
-    info: {},
-    constraints: {
-      unique: [], 
-      relationship: [],
-      access: []
-    },
-    defaultActions: DEFAULT_OPERATIONS,
-    customActions: { },
-    enduserActions: { },
-    fields: {
-      ...BuiltInFields, 
-      title: {
-        validator: stringValidator250,
-        required: true,
-        examples: ['Automation Title']
-      }
-    }
-  }, 
   automation_steps: {
     info: {},
     constraints: {
@@ -2756,6 +2759,9 @@ export const schema: SchemaV1 = build_schema({
         validator: stringValidator100,
         required: true,
         examples: ["Template Name"],
+      },
+      category: {
+        validator: stringValidator100,
       },
       description: {
         validator: stringValidator5000,
@@ -3178,6 +3184,121 @@ export const schema: SchemaV1 = build_schema({
         required: true,
         validator: databaseRecordValuesValidator,
       },
+    },
+  }, 
+  portal_customizations: {
+    info: {},
+    constraints: {
+      unique: [
+        'page' // prevents duplicate customizations for the same page (may need to combine with a version number / draft status later to allow drafting)
+      ], 
+      relationship: [
+        {
+          explanation: 'One of email or phone is required',
+          evaluate: ({ page, disabled  }) => {
+            if (page === 'Home' && disabled)
+              return 'Home page cannot be disabled'
+            } 
+        },
+      ],
+      access: []
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: { },
+    enduserActions: { readMany: {} },
+    fields: {
+      ...BuiltInFields, 
+      title: {
+        validator: stringValidator1000,
+        examples: ['Example Title']
+      },
+      page: {
+        validator: portalPageValidator,
+        required: true,
+        examples: ['Home']
+      },
+      blocks: {
+        required: true,
+        examples: [[]],
+        validator: portalBlocksValidator,
+      },
+      disabled: { validator: booleanValidator },
+    },
+  }, 
+  enduser_tasks: {
+    info: {},
+    constraints: {
+      unique: [
+        ['enduserId', 'title']
+      ], 
+      relationship: [],
+      access: []
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: { },
+    enduserActions: { update: {}, read: {}, readMany: {} },
+    fields: {
+      ...BuiltInFields, 
+      title: {
+        validator: stringValidator1000,
+        required: true,
+        examples: ['Example Title']
+      },
+      enduserId: { 
+        validator: mongoIdStringValidator,
+        examples: [PLACEHOLDER_ID],
+        required: true,
+        dependencies: [{
+          dependsOn: ['endusers'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+      completedAt: {
+        validator: dateValidator,
+      },
+      description: {
+        validator: stringValidator1000,
+      },
+    },
+  },
+  care_plans: {
+    info: {},
+    constraints: {
+      unique: [
+        ['enduserId', 'title']
+      ], 
+      relationship: [],
+      access: []
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: { },
+    enduserActions: { read: {}, readMany: {} },
+    fields: {
+      ...BuiltInFields, 
+      title: {
+        validator: stringValidator1000,
+        required: true,
+        examples: ['Example Title']
+      },
+      enduserId: { 
+        validator: mongoIdStringValidator,
+        examples: [PLACEHOLDER_ID],
+        required: true,
+        dependencies: [{
+          dependsOn: ['endusers'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+      description: {
+        validator: stringValidator1000,
+      },
+      eventIds: {
+        validator: listOfMongoIdStringValidatorEmptyOk,
+      }
     },
   }, 
 })

@@ -7,6 +7,7 @@ import { SearchAPIProps, useSearchAPI } from "./hooks"
 import { TextFieldProps } from "./mui"
 import { CalendarEventTemplate, Database, DatabaseRecord, Enduser, Forum, ManagedContentRecord, User } from "@tellescope/types-client"
 import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, ScrollingList, SearchTextInput, TextField, Typography, useCalendarEventTemplates, useDatabaseRecords, useDatabases, useEndusers, useForums, useManagedContentRecords, useResolvedSession, useSession, useUsers } from "."
+import { SxProps } from "@mui/material"
 
 /* FILTER / SEARCH */
 export const filter_setter_for_key = <T,>(key: string, setFilters: React.Dispatch<React.SetStateAction<Filters<T>>>) => (
@@ -203,11 +204,12 @@ interface GenericSearchProps <T> extends FilterComponent<T> {
   label?: string,
   style?: React.CSSProperties,
   size?: TextFieldProps['size'],
+  sx?: SxProps,
 }
 interface ModelSearchProps<T> extends GenericSearchProps<T>, SearchAPIProps<T> {}
 export const ModelSearchInput = <T,>({ 
   filterKey, setFilters, searchAPI, onLoad, 
-  
+
   // @ts-ignore remove from props if provided by mistake
   activeFilterCount, 
 

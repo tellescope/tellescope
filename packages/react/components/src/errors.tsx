@@ -1,4 +1,7 @@
-import React from "react"
+import React, { useCallback, useState } from "react"
+import { Typography } from '.'
+import { APIError } from '@tellescope/types-utilities'
+import { UNIQUENESS_VIOLATION } from '@tellescope/constants'
 
 export class ErrorBoundary extends React.Component<{}, { hasError: boolean }> {
   constructor(props: {}) {
@@ -24,5 +27,47 @@ export class ErrorBoundary extends React.Component<{}, { hasError: boolean }> {
     }
 
     return this.props.children; 
+  }
+}
+
+export const stringForError = (err: any) => (err as APIError)?.message ?? err?.toString() ?? 'An unexpected error occurred'
+
+export type ErrorOptions = { uniquenessError?: string }
+export type OnApiError = (args: { message: string, component: React.ReactNode }) => void
+export const useHandleError = (props?: { onError?: OnApiError, throwOnError?: boolean } & ErrorOptions) => {
+  const { uniquenessError } = props ?? {}
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  const handleAPIError = useCallback(async (handler: (...args: any[]) => Promise<any>) => {
+    try {
+      setError('')
+      setLoading(true)
+      await handler()
+    } catch(err: any) {
+      const errorMessage = stringForError(err)
+      setError(
+        errorMessage === UNIQUENESS_VIOLATION && uniquenessError
+          ? uniquenessError 
+          : errorMessage
+      )
+
+      if (props?.throwOnError) throw err
+    } finally {
+      setLoading(false)
+    }
+  }, [uniquenessError])
+
+  const errorDisplay = (
+    error 
+      ? <Typography style={{ marginTop: 3 }} color="error">{error}</Typography>
+      : null
+  )
+
+  return {
+    handleAPIError,
+    error,
+    loading,
+    errorDisplay
   }
 }
