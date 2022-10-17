@@ -31,6 +31,7 @@ import {
   MeetingInfo,
   PreviousFormField,
   OrganizationTheme,
+  AvailabilityBlock,
 } from "@tellescope/types-models"
 
 import {
@@ -132,6 +133,11 @@ import {
   portalBlocksValidator,
   enduserFormResponsesForEventValidator,
   enduserTasksForEventValidator,
+  stateCredentialsValidator,
+  stateValidator,
+  availabilityBlocksValidator,
+  weeklyAvailabilitiesValidator,
+  timezoneValidator,
 } from "@tellescope/validation"
 
 import {
@@ -424,7 +430,17 @@ export type CustomActions = {
     sync_integrations: CustomAction<{ enduserEmail: string }, { newEmails: Email[] }>, 
   },
   calendar_events: {
-    get_external_events_for_user: CustomAction<{ userId: string, from: Date, limit?: number }, { events: CalendarEvent[] }>, 
+    get_events_for_user: CustomAction<{ userId: string, from: Date, to?: Date, limit?: number }, { events: CalendarEvent[] }>, 
+    get_appointment_availability: CustomAction<{ 
+      from: Date, calendarEventTemplateId: string, to?: Date, restrictedByState?: boolean, limit?: number,
+    }, { 
+      availabilityBlocks: AvailabilityBlock[],
+    }>,
+    book_appointment: CustomAction<{ 
+      userId: string, startTime: Date, calendarEventTemplateId: string,
+    }, { 
+      createdEvent: CalendarEvent,
+    }>,
   },
 } 
 
@@ -612,6 +628,7 @@ export const schema: SchemaV1 = build_schema({
           },
         ]
       },
+      state: { validator: stateValidator },
       // recentMessagePreview: { 
       //   validator: stringValidator,
       // },
@@ -1619,6 +1636,11 @@ export const schema: SchemaV1 = build_schema({
           },
         ]
       },
+      credentialedStates: {
+        validator: stateCredentialsValidator,
+      },
+      timezone: { validator: timezoneValidator },
+      weeklyAvailabilities: { validator: weeklyAvailabilitiesValidator },
     }
   },
   templates: {
@@ -2322,22 +2344,53 @@ export const schema: SchemaV1 = build_schema({
     },
     defaultActions: DEFAULT_OPERATIONS,
     customActions: {
-      get_external_events_for_user: {
+      get_events_for_user: {
         op: "custom", access: 'read', method: "get",
-        name: 'Get External Events for User',
-        path: '/external-events-for-user',
-        description: "Gets events from external calendars, formatted as a Tellescope event",
+        name: 'Get Events for User (Including Integrations)',
+        path: '/events-for-user',
+        description: "Combines internal and external events, formatted as a Tellescope events",
         parameters: { 
           userId: { validator: mongoIdStringValidator, required: true },
           from: { validator: dateValidator, required: true },
+          to: { validator: dateValidator },
           limit: { validator: nonNegNumberValidator },
         },
         returns: { 
           events: { validator: 'calendar_events' as any }
         },
       },
+      get_appointment_availability: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Get Appointment Availability for a Calendar Event Type',
+        path: '/calendar-availability',
+        description: "Gets availability blocks for different users based on their internal and external calendars",
+        parameters: {  
+          calendarEventTemplateId: { validator: mongoIdStringValidator, required: true },
+          from: { validator: dateValidator, required: true },
+          restrictedByState: { validator: booleanValidator },
+          to: { validator: dateValidator },
+          limit: { validator: nonNegNumberValidator },
+        },
+        returns: { 
+          availabilityBlocks: { validator: availabilityBlocksValidator }
+        },
+      },
+      book_appointment: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Book Appointment',
+        path: '/book-appointment',
+        description: "Books an appointment with a given user if available",
+        parameters: {  
+          calendarEventTemplateId: { validator: mongoIdStringValidator, required: true }, 
+          userId: { validator: mongoIdStringValidator, required: true },
+          startTime: { validator: dateValidator, required: true },
+        },
+        returns: { 
+          createdEvent: { validator: 'calenar_event' as any },
+        },
+      },
     },
-    enduserActions: { read: {}, readMany: {} },
+    enduserActions: { read: {}, readMany: {}, get_appointment_availability: {}, book_appointment: {} },
     fields: {
       ...BuiltInFields, 
       title: {
@@ -2391,7 +2444,7 @@ export const schema: SchemaV1 = build_schema({
           dependsOn: ['calendar_event_templates'],
           dependencyField: '_id',
           relationship: 'foreignKey',
-          onDependencyDelete: 'delete',
+          onDependencyDelete: 'nop',
         }]
       }, 
       publicRead: { validator: booleanValidator }, 
@@ -2402,6 +2455,8 @@ export const schema: SchemaV1 = build_schema({
       sharedContentIds: { validator: listOfMongoIdStringValidatorEmptyOk },
       enduserFormResponses: { validator: enduserFormResponsesForEventValidator },
       enduserTasks: { validator: enduserTasksForEventValidator },
+      location: { validator: stringValidator1000 },
+      phone: { validator: stringValidator100 }, // leave more generous than phone validator in favor of lower friction
     }
   },
   calendar_event_templates: {
@@ -3223,6 +3278,7 @@ export const schema: SchemaV1 = build_schema({
         validator: portalBlocksValidator,
       },
       disabled: { validator: booleanValidator },
+      mobileBottomNavigationPosition: { validator: nonNegNumberValidator },
     },
   }, 
   enduser_tasks: {
@@ -3255,12 +3311,8 @@ export const schema: SchemaV1 = build_schema({
           onDependencyDelete: 'delete',
         }]
       },
-      completedAt: {
-        validator: dateValidator,
-      },
-      description: {
-        validator: stringValidator1000,
-      },
+      completedAt: { validator: dateValidator },
+      description: { validator: stringValidator1000 },
     },
   },
   care_plans: {

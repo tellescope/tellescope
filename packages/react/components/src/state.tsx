@@ -1454,7 +1454,7 @@ export const useCalendarEventsForUser = (options={} as HookOptions<CalendarEvent
 
   const fetchEvents = React.useCallback(async (calledOptions?: LoadEventOptions) => {
     return (await 
-      session.api.calendar_events.get_external_events_for_user({
+      session.api.calendar_events.get_events_for_user({
         userId: calledOptions?.userId ?? options?.userId ?? session.userInfo.id,
         limit: calledOptions?.limit ?? options?.limit,
         from: calledOptions?.from ?? options?.from ?? new Date(),

@@ -88,7 +88,7 @@ export interface TableHeaderProps<T extends Item> extends Styled, HorizontalPadd
   fontSize?: CSSProperties['fontSize']
 }
 export const TableHeader = <T extends Item>({ fields, selectable, allSelected, setAllSelected, style, textStyle, horizontalPadding, fontSize=15 } : TableHeaderProps<T>) => (
-  <Flex alignItems="center" justifyContent="space-between" style={{ 
+  <Flex alignItems="center" style={{ 
     paddingLeft: horizontalPadding, paddingRight: horizontalPadding,
     minHeight: ROW_HEIGHT,
     backgroundColor: DARK_GRAY,
@@ -96,9 +96,10 @@ export const TableHeader = <T extends Item>({ fields, selectable, allSelected, s
   }}>
     {selectable && 
       <Flex style={checkboxStyle}>
-        <Checkbox checked={allSelected} onChange={setAllSelected} />
+        <Checkbox  checked={allSelected} onChange={setAllSelected} />
       </Flex>
     }
+    <Flex flex={1} justifyContent="space-between" wrap="nowrap">
     {fields.map(({ key, label, textAlign, width, hidden, style }) => hidden ? null : (
       <Flex key={key} flex={width !== undefined ? 0 : 1} style={{ 
         alignItems: 'center',
@@ -116,6 +117,7 @@ export const TableHeader = <T extends Item>({ fields, selectable, allSelected, s
         </Typography>
       </Flex>
     ))}
+    </Flex>
   </Flex>
 )
 
@@ -157,7 +159,7 @@ export const TableRow = <T extends Item>({
   fontSize=14, 
 } : TableRowProps<T>) => (
   <WithHover hoveredColor={hoveredColor ?? GRAY} notHoveredColor={notHoveredColor} disabled={!hover} flex>
-    <Flex flex={1} alignItems="center" justifyContent="space-between" 
+    <Flex flex={1} alignItems="center"
       onClick={() => (onClick ?? onPress)?.(item)}
       style={{ 
         paddingLeft: horizontalPadding, paddingRight: horizontalPadding, 
@@ -180,6 +182,7 @@ export const TableRow = <T extends Item>({
         />
         </Flex>
       }
+      <Flex flex={1} justifyContent="space-between" wrap="nowrap">
       {fields.map(({ key, width, textAlign='left', render, hidden, flex, style }) => hidden ? null : (
         <Flex key={key} flex={width !== undefined ? 0 : 1} style={{ 
           alignItems: 'center',
@@ -198,6 +201,7 @@ export const TableRow = <T extends Item>({
           </Typography>
         </Flex>
       ))}
+      </Flex>
     </Flex>
   </WithHover>
 )

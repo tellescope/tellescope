@@ -1,5 +1,5 @@
 import { ObjectId } from "bson"
-import { Enduser, User, UserActivityInfo, UserActivityStatus } from "@tellescope/types-models"
+import { CalendarEvent, Enduser, User, UserActivityInfo, UserActivityStatus } from "@tellescope/types-models"
 import { ADMIN_ROLE } from "@tellescope/constants"
 export type Indexable<T=any> = { [index: string]: T }
 
@@ -264,16 +264,16 @@ export const MONTHS = [
   'Nov',
   'Dec'
 ]
-export const get_time_values = (date: Date) => {
+export const get_time_values = (date: Date, options?: { fullMonth: boolean }) => {
   const dayOfMonth = date.getDate()
-  const month = MONTHS[date.getMonth()]
+  const month = (options?.fullMonth ? MONTHS_FULL : MONTHS)[date.getMonth()]
   const hours = date.getHours()
   const minutesRaw = date.getMinutes()
   const minutes = minutesRaw >= 10 ? minutesRaw : `0${minutesRaw}`
   const year = date.getFullYear()
 
-  const amPm = hours <= 12 ? 'am' : 'pm' as const
-  const hoursAmPm = amPm === 'am' ? hours : hours - 12
+  const amPm = hours < 12 ? 'am' : 'pm' as const
+  const hoursAmPm = hours <= 12 ? hours : hours - 12
   return { dayOfMonth, month, hours, hoursAmPm, amPm, minutes, year }
 }
 
@@ -285,6 +285,20 @@ export const formatted_date = (date: Date): string => {
 export const yyyy_mm_dd = (date: Date): string => {
   const { dayOfMonth, month, year } = get_time_values(date)
   return `${year}-${month}-${dayOfMonth}`
+}
+
+export const fullMonth_day_year = (date: Date): string => {
+  const { dayOfMonth, month, year } = get_time_values(date, { fullMonth: true })
+  return `${month} ${dayOfMonth}, ${year}`
+}
+
+export const time_for_calendar_event = (event: CalendarEvent): string => {
+  const start = new Date(event.startTimeInMS)
+  const end = new Date(event.startTimeInMS + event.durationInMinutes * 60 * 1000)
+  const { hoursAmPm, minutes, amPm } = get_time_values(start)
+  const { hoursAmPm: hoursEnd, minutes: minutesEnd, amPm: amPmEnd } = get_time_values(end)
+
+  return `${hoursAmPm}:${minutes}${amPm === amPmEnd ? '' : amPm}-${hoursEnd}:${minutesEnd}${amPmEnd}`
 }
 
 export const remove_script_tags = (s: string) => s.replaceAll(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')

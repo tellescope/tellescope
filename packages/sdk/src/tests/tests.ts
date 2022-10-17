@@ -7,6 +7,7 @@ import {
   ClientModelForName,
   ClientModelForName_required,
   UserDisplayInfo,
+  CalendarEvent,
 } from "@tellescope/types-client"
 import { 
   AutomationAction,
@@ -2929,6 +2930,136 @@ export const filter_by_date_tests = async () => {
   ])
 }
 
+export const self_serve_appointment_booking_tests = async () => {
+  log_header("Self Serve Appointment Booking")
+
+  const e1 = await sdk.api.endusers.createOne({ email: 'ny@tellescope.com', state: 'NY' }) 
+  const e2 = await sdk.api.endusers.createOne({ email: 'ca@tellescope.com', state: 'CA' })
+  await sdk.api.endusers.set_password({ id: e1.id, password })
+  await sdk.api.endusers.set_password({ id: e2.id, password })
+  
+  const event15min = await sdk.api.calendar_event_templates.createOne({ 
+    title: 'test 2', durationInMinutes: 15,
+  })
+  const event30min = await sdk.api.calendar_event_templates.createOne({ 
+    title: 'test 1', durationInMinutes: 30,
+  })
+
+  await sdk.api.users.updateOne(sdk.userInfo.id, { 
+    weeklyAvailabilities: [
+      { 
+        dayOfWeekStartingSundayIndexedByZero: 0,
+        startTimeInMinutes: 60 * 12, // noon,
+        endTimeInMinutes: 60 * 13, // 1pm,
+      },
+    ],
+    credentialedStates: [{ state: 'NY' }, { state: "CA" }],
+    timezone: 'America/New_York',
+  }, {
+    replaceObjectFields: true,
+  })
+
+  await sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { 
+    weeklyAvailabilities: [
+      { 
+        dayOfWeekStartingSundayIndexedByZero: 0,
+        startTimeInMinutes: 60 * 12, // noon,
+        endTimeInMinutes: 60 * 13, // 1pm,
+      },
+    ],
+    credentialedStates: [{ state: "CA" }],
+    timezone: 'America/Los_Angeles',
+  }, {
+    replaceObjectFields: true,
+  })
+
+  // NY Enduser Tests
+  await enduserSDK.authenticate('ny@tellescope.com', password).catch(console.error) 
+  await async_test(
+    '30 minute slots for state restriction',
+    () => enduserSDK.api.calendar_events.get_appointment_availability({
+      calendarEventTemplateId: event30min.id,
+      from: new Date(),
+      restrictedByState: true,
+    }),
+    { onResult: r => r.availabilityBlocks.length === 2 }, // 1 providers with 1 hour availability for 30 minute meetings
+  )
+  await async_test(
+    '30 minute slots for no state restrictions',
+    () => enduserSDK.api.calendar_events.get_appointment_availability({
+      calendarEventTemplateId: event30min.id,
+      from: new Date(),
+      restrictedByState: false,
+    }),
+    { onResult: r => r.availabilityBlocks.length === 4 }, // 2 providers with 1 hour availability for 30 minute meetings
+  )
+
+  const nySlots = await enduserSDK.api.calendar_events.get_appointment_availability({
+    calendarEventTemplateId: event30min.id,
+    from: new Date(),
+    restrictedByState: true,
+  })
+  const bookedAppointment = (await enduserSDK.api.calendar_events.book_appointment({
+    calendarEventTemplateId: event30min.id,
+    startTime: new Date(nySlots.availabilityBlocks[0].startTimeInMS),
+    userId: nySlots.availabilityBlocks[0].userId, 
+  })).createdEvent
+  await async_test(
+    'double-booking prevented',
+    () => enduserSDK.api.calendar_events.book_appointment({
+      calendarEventTemplateId: event30min.id,
+      startTime: new Date(nySlots.availabilityBlocks[0].startTimeInMS),
+      userId: nySlots.availabilityBlocks[0].userId, 
+    }),
+    handleAnyError
+  )
+  await async_test(
+    '30 minute slots for state restriction with 1 overlapping conflict',
+    () => enduserSDK.api.calendar_events.get_appointment_availability({
+      calendarEventTemplateId: event30min.id,
+      from: new Date(),
+      restrictedByState: true,
+    }),
+    {  onResult: r => 
+        r.availabilityBlocks.length === 1 
+    &&  r.availabilityBlocks[0].startTimeInMS === nySlots.availabilityBlocks[1].startTimeInMS // the first slot of nySlots is booked
+    }, 
+  )
+
+  const conflict = await sdk.api.calendar_events.createOne({ 
+    title: 'conflict', 
+    startTimeInMS: nySlots.availabilityBlocks[1].startTimeInMS,
+    durationInMinutes: nySlots.availabilityBlocks[1].durationInMinutes,
+  })
+  await async_test(
+    '30 minute slots for state restriction with 2 overlapping conflict',
+    () => enduserSDK.api.calendar_events.get_appointment_availability({
+      calendarEventTemplateId: event30min.id,
+      from: new Date(),
+      restrictedByState: true,
+    }),
+    {  onResult: r => r.availabilityBlocks.length === 0 }, 
+  )
+  await async_test(
+    'booking against conflict prevented',
+    () => enduserSDK.api.calendar_events.book_appointment({
+      calendarEventTemplateId: event30min.id,
+      startTime: new Date(nySlots.availabilityBlocks[1].startTimeInMS),
+      userId: nySlots.availabilityBlocks[1].userId, 
+    }),
+    handleAnyError
+  )
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(e1.id),
+    sdk.api.endusers.deleteOne(e2.id),
+    sdk.api.calendar_event_templates.deleteOne(event30min.id),
+    sdk.api.calendar_event_templates.deleteOne(event15min.id),
+    sdk.api.calendar_events.deleteOne(bookedAppointment.id),
+    sdk.api.calendar_events.deleteOne(conflict.id),
+  ])
+}
+
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
   enduser_tasks: NO_TEST,
@@ -2984,6 +3115,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
     ]) 
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await self_serve_appointment_booking_tests()
     await filter_by_date_tests()
     await generate_user_auth_tests()
     await role_based_access_tests()

@@ -123,6 +123,11 @@ import {
   CareTeamMemberPortalCustomizationInfo,
   EnduserTaskForEvent,
   EnduserFormResponseForEvent,
+  StateCredentialInfo,
+  AvailabilityBlock,
+  WeeklyAvailability,
+  Timezone,
+  TIMEZONES,
 } from "@tellescope/types-models"
 import {
   DatabaseRecord,
@@ -534,7 +539,10 @@ export const listOfObjectAnyFieldsAnyValuesValidator = listValidator(objectAnyFi
 
 export const booleanValidator: EscapeBuilder<boolean> = (options={}) => build_validator(
   boolean => {
-    if (boolean !== true && boolean !== false) {
+    if (boolean === 'true') return true
+    if (boolean === 'false') return false
+
+    if (typeof boolean !== 'boolean') {
       throw new Error(options.errorMessage || "Invalid boolean")
     }
     return boolean
@@ -1744,6 +1752,7 @@ const _PORTAL_PAGES: { [K in PortalPage]: any } = {
   Education: true,
   Home: true,
   Community: true,
+  Communications: true,
 }
 export const PORTAL_PAGES = Object.keys(_PORTAL_PAGES) as PortalPage[]
 export const portalPageValidator = exactMatchValidator<PortalPage>(PORTAL_PAGES)
@@ -1770,6 +1779,12 @@ export const portalBlockValidator = orValidator<{ [K in PortalBlockType]: Portal
       // )()
     })()
   })(), 
+  text: objectValidator<PortalBlockForType['text']>({
+    type: exactMatchValidator(['text'])(),
+    info: objectValidator<PortalBlockForType['text']['info']>({
+      text: stringValidator5000(),
+    })()
+  })(), 
 })
 export const portalBlocksValidator = listValidatorEmptyOk(portalBlockValidator())
 
@@ -1777,6 +1792,7 @@ const _PORTAL_BLOCK_TYPES: { [K in PortalBlockType]: any } = {
   carePlan: '',
   careTeam: '',
   education: '',
+  text: '',
 }
 export const PORTAL_BLOCK_TYPES = Object.keys(_PORTAL_BLOCK_TYPES) as PortalBlockType[]
 export const portalTypeValidator = exactMatchValidator<PortalBlockType>(PORTAL_BLOCK_TYPES)
@@ -1794,3 +1810,86 @@ export const enduserFormResponseForEventValidator = objectValidator<EnduserFormR
   accessCode: stringValidator1000(),
 })
 export const enduserFormResponsesForEventValidator = listValidatorEmptyOk(enduserFormResponseForEventValidator())
+
+export const VALID_STATES: string[] = [
+  "AK", 
+  "AL", 
+  "AR", 
+  "AS", 
+  "AZ", 
+  "CA", 
+  "CO", 
+  "CT", 
+  "DC", 
+  "DE", 
+  "FL", 
+  "GA", 
+  "GU", 
+  "HI", 
+  "IA", 
+  "ID", 
+  "IL", 
+  "IN", 
+  "KS", 
+  "KY", 
+  "LA", 
+  "MA", 
+  "MD", 
+  "ME", 
+  "MI", 
+  "MN", 
+  "MO", 
+  "MP", 
+  "MS", 
+  "MT", 
+  "NC", 
+  "ND", 
+  "NE", 
+  "NH", 
+  "NJ", 
+  "NM", 
+  "NV", 
+  "NY", 
+  "OH", 
+  "OK", 
+  "OR", 
+  "PA", 
+  "PR", 
+  "RI", 
+  "SC", 
+  "SD", 
+  "TN", 
+  "TX", 
+  "UM", 
+  "UT", 
+  "VA", 
+  "VI", 
+  "VT", 
+  "WA", 
+  "WI", 
+  "WV",
+  "WY",
+]
+export const stateValidator = exactMatchValidator(VALID_STATES)
+
+export const stateCredentialValidator = objectValidator<StateCredentialInfo>({
+  expiresAt: dateValidator({ isOptional: true }),
+  state: stateValidator(),
+})
+export const stateCredentialsValidator = listValidatorEmptyOk(stateCredentialValidator())
+
+export const availabilityBlockValidator = objectValidator<AvailabilityBlock>({
+  durationInMinutes: nonNegNumberValidator(),
+  startTimeInMS: nonNegNumberValidator(),
+  userId: mongoIdStringRequired,
+})
+export const availabilityBlocksValidator = listValidatorEmptyOk(availabilityBlockValidator())
+
+export const weeklyAvailabilityValidator = objectValidator<WeeklyAvailability>({
+  dayOfWeekStartingSundayIndexedByZero: nonNegNumberValidator(),
+  endTimeInMinutes: nonNegNumberValidator(),
+  startTimeInMinutes: nonNegNumberValidator(),
+})
+export const weeklyAvailabilitiesValidator = listValidatorEmptyOk(weeklyAvailabilityValidator())
+
+export const timezoneValidator = exactMatchValidator<Timezone>(Object.keys(TIMEZONES) as Timezone[])

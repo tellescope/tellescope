@@ -240,9 +240,12 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
   },
   calendar_events: {
-    get_external_events_for_user: (args: extractFields<CustomActions['calendar_events']['get_external_events_for_user']['parameters']>) => (
-      Promise<extractFields<CustomActions['calendar_events']['get_external_events_for_user']['returns']>>
+    get_events_for_user: (args: extractFields<CustomActions['calendar_events']['get_events_for_user']['parameters']>) => (
+      Promise<extractFields<CustomActions['calendar_events']['get_events_for_user']['returns']>>
     ),
+    // get_appointment_availability: (args: extractFields<CustomActions['calendar_events']['get_appointment_availability']['parameters']>) => (
+    //   Promise<extractFields<CustomActions['calendar_events']['get_appointment_availability']['returns']>>
+    // ),
   },
 }
 
@@ -309,7 +312,7 @@ export class Session extends SessionManager {
     
     queries.emails.sync_integrations = a => this._POST(`/v1/${schema.emails.customActions.sync_integrations.path}`, a)
     
-    queries.calendar_events.get_external_events_for_user = a => this._GET(`/v1/${schema.calendar_events.customActions.get_external_events_for_user.path}`, a)
+    queries.calendar_events.get_events_for_user = a => this._GET(`/v1/${schema.calendar_events.customActions.get_events_for_user.path}`, a)
 
     this.api = queries
   }

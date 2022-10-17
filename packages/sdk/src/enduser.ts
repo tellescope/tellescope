@@ -122,6 +122,14 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
       Promise<extractFields<PublicActions['organizations']['get_theme']['returns']>>
     ),
   },
+  calendar_events: {
+    get_appointment_availability: (args: extractFields<CustomActions['calendar_events']['get_appointment_availability']['parameters']>) => (
+      Promise<extractFields<CustomActions['calendar_events']['get_appointment_availability']['returns']>>
+    ),
+    book_appointment: (args: extractFields<CustomActions['calendar_events']['book_appointment']['parameters']>) => (
+      Promise<extractFields<CustomActions['calendar_events']['book_appointment']['returns']>>
+    ),
+  }
 }
 
 
@@ -165,6 +173,9 @@ export class EnduserSession extends Session {
     this.businessId = o?.businessId
 
     this.api = loadDefaultQueries(this) as EnduserQueries 
+
+    this.api.calendar_events.get_appointment_availability = a => this._GET(`/v1${schema.calendar_events.customActions.get_appointment_availability.path}`, a)
+    this.api.calendar_events.book_appointment = a => this._POST(`/v1${schema.calendar_events.customActions.book_appointment.path}`, a)
 
     this.api.chat_rooms.display_info = a => this._GET(`/v1${schema.chat_rooms.customActions.display_info.path}`, a)
     this.api.chat_rooms.mark_read = a => this._POST(`/v1${schema.chat_rooms.customActions.mark_read.path}`, a)

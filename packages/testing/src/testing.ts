@@ -103,14 +103,14 @@ export const async_test = async <T, E=APIError>(
         ? { r: FAILED, m: `${name} passed with result ${JSON.stringify(r)} but was expecting error ${expectedResult}` }
         : onResult(r)
           ? { r: PASSED, m: `${name}`, runTime: Date.now() - startTime, benchmark }
-          : { r: FAILED, m: `${name} failed with the wrong result. Expected ${expectedResult} but got ${JSON.stringify(r)}` }
+          : { r: FAILED, m: `${name} failed with the wrong result. Expected ${expectedResult} but got ${JSON.stringify(r, null, 2)}` }
     ))
     .catch((e: E) => log_and_return(
       !shouldError 
         ? { r: FAILED, m: `${name} failed with error ${JSON.stringify(e)} while expecting ${expectedResult}` }
         : onError(e)
           ? { r: PASSED, m: `${name}`, runTime: Date.now() - startTime, benchmark  }
-          : { r: FAILED, m: `${name} failed with the wrong error. Expected ${expectedResult} but got ${JSON.stringify(e)}`}
+          : { r: FAILED, m: `${name} failed with the wrong error. Expected ${expectedResult} but got ${JSON.stringify(e, null, 2)}`}
     ))
   )
 }
