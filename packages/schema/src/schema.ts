@@ -48,7 +48,7 @@ import {
 } from "@tellescope/types-client"
 
 import {
-  EscapeBuilder,
+  ValidatorDefinition,
 
   booleanValidator,
   dateValidator,
@@ -60,7 +60,7 @@ import {
   nameValidator,
   nonNegNumberValidator,
   mongoIdValidator,
-  mongoIdStringValidator,
+  mongoIdStringRequired as mongoIdStringValidator,
   listOfMongoIdStringValidator,
   preferenceValidator,
   objectAnyFieldsAnyValuesValidator,
@@ -100,7 +100,6 @@ import {
   listOfCalendarEventRemindersValidator,
   messageTemplateModeValidator,
   listOfAutomationConditionsValidator,
-  journeyStateUpdateValidator,
   chatRoomUserInfoValidator,
   CUDStringValidator,
   listOfRelatedRecordsValidator,
@@ -124,7 +123,7 @@ import {
   sessionTypeValidator,
   portalSettingsValidator,
   emailValidatorEmptyOkay,
-  phoneValidatorEmptyOkay,
+  phoneValidatorOptional,
   stringValidator1000,
   databaseFieldsValidator,
   databaseRecordValuesValidator,
@@ -149,9 +148,18 @@ import {
 } from "@tellescope/constants"
 import { response } from "express"
 
+export type RelationshipConstraintOptions<T> = {
+  updates?: Partial<T>
+}
 export type RelationshipConstraint<T> = {
   explanation: string; // human readable, for documentation purposes
-  evaluate: (v: T, dependencies: Indexable<Partial<DatabaseModel>>, session: UserSession | EnduserSession, method: 'create' | 'update') => string | void;
+  evaluate: (
+    v: T, 
+    dependencies: Indexable<Partial<DatabaseModel>>, 
+    session: UserSession | EnduserSession, 
+    method: 'create' | 'update',
+    options: RelationshipConstraintOptions<T>,
+  ) => string | void;
 }
 
 export type DependencyAccessConstraint <T> = { type: 'dependency', foreignModel: ModelName, foreignField: string, accessField: keyof T  }
@@ -176,7 +184,7 @@ export type Initializer <T, R> = (a: T, s: UserSession | EnduserSession) => R
 
 export type EndpointOptions = {
   // parameters used for endpoint that aren't stored in the model
-  parameters?: { [index: string]: EscapeBuilder<any> }, 
+  parameters?: { [index: string]: ValidatorDefinition<any> }, 
 }
 
 export type DependencyDeletionAction = 'delete' | 'unset' | 'setNull' | 'nop'
@@ -199,7 +207,7 @@ export type RedactionReason = (
 )
 
 export type ModelFieldInfo <T, R> = {
-  validator: EscapeBuilder<R>,
+  validator: ValidatorDefinition<R>,
   readonly?:  boolean,
   required?:  boolean,
   updatesDisabled?: boolean,
@@ -367,7 +375,7 @@ export type CustomActions = {
     }>,
   },
   journeys: {
-    update_state: CustomAction<{ updates: Partial<JourneyState>, id: string, name: string }, { updated: Journey }>,
+    // update_state: CustomAction<{ updates: Partial<JourneyState>, id: string, name: string }, { updated: Journey }>,
     delete_states: CustomAction<{ id: string, states: string[] }, { updated: Journey }>,
   },
   endusers: {
@@ -491,6 +499,7 @@ export const build_schema = <T extends Schema>(schema: T) => schema
 export const schema: SchemaV1 = build_schema({
   endusers: {
     info: {
+      description: "Used to represent patients or other endusers. See Users for managing your team member's accounts.",
       sideEffects: {
         create: [sideEffects.handleJourneyStateChange],
         update: [sideEffects.handleJourneyStateChange],
@@ -545,7 +554,7 @@ export const schema: SchemaV1 = build_schema({
         redactions: ['enduser'],
       },
       phone: { 
-        validator: phoneValidatorEmptyOkay,
+        validator: phoneValidatorOptional,
         examples: ['+14155555555'],
         redactions: ['enduser'],
       },
@@ -983,20 +992,20 @@ export const schema: SchemaV1 = build_schema({
       },
     },
     customActions: {
-      update_state: {
-        op: 'custom', access: 'update', method: "patch",
-        name: 'Update State',
-        path: '/journey/:id/state/:name',
-        description: "Updates a state in a journey. Endusers and automations are updated automatically.",
-        parameters: { 
-          id: { validator: mongoIdStringValidator },
-          name: { validator: stringValidator100 },
-          updates: { validator: journeyStateUpdateValidator, required: true },
-        },
-        returns: { 
-          updated: { validator: 'journey' as any }
-        },
-      },
+      // update_state: {
+      //   op: 'custom', access: 'update', method: "patch",
+      //   name: 'Update State',
+      //   path: '/journey/:id/state/:name',
+      //   description: "Updates a state in a journey. Endusers and automations are updated automatically.",
+      //   parameters: { 
+      //     id: { validator: mongoIdStringValidator },
+      //     name: { validator: stringValidator100 },
+      //     updates: { validator: journeyStateUpdateValidator, required: true },
+      //   },
+      //   returns: { 
+      //     updated: { validator: 'journey' as any }
+      //   },
+      // },
       delete_states: {
         op: 'custom', access: 'update', method: "delete",
         name: 'Delete States',
@@ -1478,19 +1487,32 @@ export const schema: SchemaV1 = build_schema({
     },
   },
   users: {
-    info: {},
+    info: {
+      description: "Used to represent your team member accounts. See Endusers for representing patients and other types of stakeholders.",
+    },
     constraints: { 
       unique: ['username'],
       globalUnique: ['email', 'phone'],
-      relationship: [{
-        explanation: "Only admin users can update others' profiles",
-        evaluate: ({ _id }, _, session) => {
-          if (_id && _id.toString() === session.id) return
-          if ((session as UserSession)?.roles?.includes('Admin')) return
+      relationship: [
+        {
+          explanation: "Only admin users can update others' profiles",
+          evaluate: ({ _id }, _, session) => {
+            if (_id && _id.toString() === session.id) return
+            if ((session as UserSession)?.roles?.includes('Admin')) return
 
-          return "Only admin users can update others' profiles"
+            return "Only admin users can update others' profiles"
+          }
+        }, {
+          explanation: "Only admin users can update user roles",
+          evaluate: ({ roles }, _, session, method, { updates }) => {
+            if ((session as UserSession)?.roles?.includes('Admin')) return // admin can do this
+            if (method === 'create') return // create already admin restricted
+            if (!updates?.roles) return // roles not provided
+
+            return "Only admin users can update others' profiles"
+          }
         }
-      }],
+      ],
     },
     defaultActions: { 
       create: { adminOnly: true }, createMany: { adminOnly: true }, delete: { adminOnly: true },
@@ -1605,12 +1627,11 @@ export const schema: SchemaV1 = build_schema({
       },
       roles: {
         validator: listOfStringsValidator,
-        updatesDisabled: true, // implement with separate endpoint with tight restrictions
         redactions: ['enduser'],
       },
       acknowledgedIntegrations: { validator: dateValidator },
       skills: {
-        validator: listOfStringsValidator,
+        validator: listOfStringsValidatorEmptyOk,
       },
       verifiedEmail: {
         updatesDisabled: true, // allow it to be set on creation by admin via API to streamline SSO support
@@ -1703,7 +1724,7 @@ export const schema: SchemaV1 = build_schema({
         validator: fileTypeValidator,
         required: true
       },
-      enduserId: {
+      enduserId: { // deleted as side effect of enduser delete
         validator: mongoIdStringValidator,
       },
       secureName: {
@@ -2372,7 +2393,7 @@ export const schema: SchemaV1 = build_schema({
           limit: { validator: nonNegNumberValidator },
         },
         returns: { 
-          availabilityBlocks: { validator: availabilityBlocksValidator }
+          availabilityBlocks: { validator: availabilityBlocksValidator, required: true }
         },
       },
       book_appointment: {
@@ -3177,7 +3198,7 @@ export const schema: SchemaV1 = build_schema({
       subscriptionPeriod: { validator: numberValidator },
       logoVersion: { validator: numberValidator },
       faviconVersion: { validator: numberValidator },
-      roles: { validator: listOfStringsValidator },
+      roles: { validator: listOfStringsValidatorEmptyOk },
       skills: { validator: listOfStringsValidator },
       themeColor: { validator: stringValidator100 },
       customPortalURL: { validator: stringValidator250 },

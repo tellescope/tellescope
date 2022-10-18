@@ -223,6 +223,7 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
   const [responses, setResponses] = useState<(FormResponseValue & { touched: boolean, includeInSubmit: boolean })[]>(fields.map(f => ({
     fieldId: f.id,
     fieldTitle: f.title,
+    fieldDescription: f.description,
     touched: false, 
     includeInSubmit: false,
     answer: { 

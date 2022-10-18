@@ -661,6 +661,7 @@ export type FormResponseValueAnswer = (
 export type FormResponseValue = {
   fieldId: string,
   fieldTitle: string,
+  fieldDescription?: string,
   answer: FormResponseValueAnswer,
 }
 

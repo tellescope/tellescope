@@ -30,7 +30,7 @@ export const FormResponseView = ({ enduser, onClose, response } : FormResponse_T
               fontSize: 20,
               fontWeight: 'bold',
             }}> 
-              Responses for {response.formTitle}
+              {response.formTitle}
             </Typography>
 
             {onClose 
@@ -63,6 +63,8 @@ export const FormResponseView = ({ enduser, onClose, response } : FormResponse_T
           {response.responses.map((r, i) => {
             const q = r.fieldTitle
             const a = r.answer
+            const description = r.fieldDescription
+            
             return (
               <Grid item xs={12} key={i} style={{
                 paddingTop: 8,
@@ -72,6 +74,11 @@ export const FormResponseView = ({ enduser, onClose, response } : FormResponse_T
               <Typography style={{ fontWeight: 'bold' }}>
                 {q}
               </Typography>
+              {description &&
+                <Typography style={{  }}>
+                  {description}
+                </Typography>
+              } 
               {a.value 
                 ? (
                 <Typography component="div">

@@ -127,8 +127,9 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
   journeys: {
-    update_state: (args: extractFields<CustomActions['journeys']['update_state']['parameters']>) => 
-                          Promise<extractFields<CustomActions['journeys']['update_state']['returns']>>,
+    // removed
+    // update_state: (args: extractFields<CustomActions['journeys']['update_state']['parameters']>) => 
+    //                       Promise<extractFields<CustomActions['journeys']['update_state']['returns']>>,
     delete_states: (args: extractFields<CustomActions['journeys']['delete_states']['parameters']>) => 
                           Promise<extractFields<CustomActions['journeys']['delete_states']['returns']>>,
   },
@@ -261,7 +262,8 @@ export class Session extends SessionManager {
     const queries = loadDefaultQueries(this) as Queries
 
 
-    queries.journeys.update_state = ({id, name, updates}) => this._PATCH(`/v1/journey/${id}/state/${name}`, { updates })
+    // removed
+    // queries.journeys.update_state = ({id, name, updates}) => this._PATCH(`/v1/journey/${id}/state/${name}`, { updates })
     queries.journeys.delete_states = ({ id, states }) => this._DELETE(`/v1/journey/${id}/states`, { states })
 
     queries.endusers.set_password = ({id, password}) => this._POST(`/v1/set-enduser-password`, { id, password })

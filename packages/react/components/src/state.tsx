@@ -1236,8 +1236,8 @@ export const useOrganization = () => {
     findById(session.userInfo.businessId)
   }, [findById, session])
 
-  const updateOrganization = useCallback((u: Partial<Organization>) => (
-    updateElement(session.userInfo.businessId, u) 
+  const updateOrganization = useCallback((u: Partial<Organization>, o?: Parameters<typeof updateElement>[2]) => (
+    updateElement(session.userInfo.businessId, u, o) 
   ), [updateElement, session])
 
   return [

@@ -17,7 +17,7 @@ export const usePageWidth = () => {
 }
 
 export const correct_youtube_link_for_embed = (link: string) => {
-  return link.replace('/watch?v=', '/embed/')
+  return link.replace('/watch?v=', '/embed/').split('&')[0]
 }
 
 export const ArticleViewer = ({ 

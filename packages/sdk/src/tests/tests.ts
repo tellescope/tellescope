@@ -21,10 +21,11 @@ import {
 } from "@tellescope/types-utilities"
 
 import {
-  fieldsToValidation,
-  mongoIdValidator,
+  fieldsToValidationOld,
 
   InputValidation,
+  InputValidationOld,
+  mongoIdStringRequired,
 } from "@tellescope/validation"
 
 import { Session, APIQuery, EnduserSession } from "../sdk"
@@ -470,9 +471,9 @@ const verify_missing_defaults = async <N extends ModelName>({ queries, model, na
 // }
 // const isMongoId = validator_to_boolean(mongoIdValidator())
 
-type DefaultValidation = InputValidation<{ _default: boolean, id: string }>
+type DefaultValidation = InputValidationOld<{ _default: boolean, id: string }>
 const validateReturnType = <N extends ModelName, T=ClientModelForName[N]>(fs: ModelFields<T> | undefined, r: T, d: DefaultValidation) => {
-  const validation = fieldsToValidation(fs ?? {} as Indexable)
+  const validation = fieldsToValidationOld(fs ?? {} as Indexable)
 
   try {
     for (const f in r) {
@@ -508,7 +509,7 @@ const run_generated_tests = async <N extends ModelName>({ queries, model, name, 
 
   // only validate id for general objects, for now
   const defaultValidation: DefaultValidation = { 
-    id: mongoIdValidator(), _default: (x: any) => x
+    id: mongoIdStringRequired.validate(), _default: x => x,
   }
                    
 
@@ -822,22 +823,23 @@ const journey_tests = async (queries=sdk.api.journeys) => {
     { onResult: j => objects_equivalent(j.states, [{ name: 'First', priority: "N/A" }, { name: 'Added', priority: "N/A" }])}
   )
 
-  await async_test(
-    `journey-updateState`, 
-    () => queries.update_state({ id: journey.id, name: 'Added', updates: { name: 'Updated', priority: 'N/A' }}),
-    passOnVoid,
-  )
-  await wait(undefined, 25) // wait for side effects to update endusers
-  await async_test(
-    `journey-updateState verify propagation to enduser 1`, 
-    () => sdk.api.endusers.getOne(e1.id),
-    { onResult: e => objects_equivalent(e.journeys, { [journey.id]: 'Updated' })},
-  )
-  await async_test(
-    `journey-updateState verify propagation to enduser 2`, 
-    () => sdk.api.endusers.getOne(e2.id),
-    { onResult: e => objects_equivalent(e.journeys, { [journey.id]: 'Updated', [journey2.id]: 'New' })},
-  )
+  // removed
+  // await async_test(
+  //   `journey-updateState`, 
+  //   () => queries.update_state({ id: journey.id, name: 'Added', updates: { name: 'Updated', priority: 'N/A' }}),
+  //   passOnVoid,
+  // )
+  // await wait(undefined, 25) // wait for side effects to update endusers
+  // await async_test(
+  //   `journey-updateState verify propagation to enduser 1`, 
+  //   () => sdk.api.endusers.getOne(e1.id),
+  //   { onResult: e => objects_equivalent(e.journeys, { [journey.id]: 'Updated' })},
+  // )
+  // await async_test(
+  //   `journey-updateState verify propagation to enduser 2`, 
+  //   () => sdk.api.endusers.getOne(e2.id),
+  //   { onResult: e => objects_equivalent(e.journeys, { [journey.id]: 'Updated', [journey2.id]: 'New' })},
+  // )
 
 
   await queries.deleteOne(journey.id)
@@ -1319,6 +1321,7 @@ const enduserAccessTests = async () => {
 }
 
 const files_tests = async () => {
+  log_header("Files")
   const enduser = await sdk.api.endusers.createOne({ email })
   await sdk.api.endusers.set_password({ id: enduser.id, password }).catch(console.error)
   await enduserSDK.authenticate(email, password).catch(console.error)
@@ -1334,11 +1337,16 @@ const files_tests = async () => {
   )
 
   const { presignedUpload, file } = await sdk.api.files.prepare_file_upload({ 
-    name: 'Test File', size: buff.byteLength, type: 'text/plain' 
+    name: 'Test Private', size: buff.byteLength, type: 'text/plain', enduserId: enduser.id, 
   })
 
-  const { presignedUpload: presigned2, file: publicFile } = await sdk.api.files.prepare_file_upload({ 
-    name: 'Test File', size: buff.byteLength, type: 'text/plain',
+  const { presignedUpload: presignedNonEnduser, file: fileNonEnduser } = await sdk.api.files.prepare_file_upload({ 
+    name: 'Test Private (no enduser)', size: buff.byteLength, type: 'text/plain', 
+  })
+
+  const { presignedUpload: presigned2 } = await sdk.api.files.prepare_file_upload({ 
+    name: 'Test Public', size: buff.byteLength, type: 'text/plain',
+    enduserId: enduser.id,
     publicRead: true,
     publicName: 'public',
   })
@@ -1350,8 +1358,19 @@ const files_tests = async () => {
   )
   await sdk.UPLOAD(
     // @ts-ignore
+    presignedNonEnduser, 
+    buff
+  )
+  await sdk.UPLOAD(
+    // @ts-ignore
     presigned2, 
     buff
+  )
+
+  await async_test(
+    `Files associated with enduser on prepare_file_upload`,
+    () => sdkNonAdmin.api.files.getSome({ filter: { enduserId: enduser.id } }),
+    { onResult: fs => fs.length === 2 }
   )
 
   const { downloadURL } = await sdk.api.files.file_download_URL({ secureName: file.secureName })
@@ -1367,8 +1386,23 @@ const files_tests = async () => {
 
   await Promise.all([
     sdk.api.endusers.deleteOne(enduser.id),
-    sdk.api.files.deleteOne(file.id),
-    sdk.api.files.deleteOne(publicFile.id),
+  ])
+
+  await wait(undefined, 1000) // wait for files to be deleted as side effect
+  await async_test(
+    `Files cleaned up as side effect of deleting enduser`,
+    () => sdkNonAdmin.api.files.getSome({ filter: { enduserId: enduser.id } }),
+    { onResult: fs => fs.length === 0 }
+  )
+  await async_test(
+    `Non-enduser file is left`,
+    () => sdkNonAdmin.api.files.getSome(),
+    { onResult: fs => fs.length > 0 }
+  )
+  
+  // cleanup other file
+  await Promise.all([
+    sdk.api.files.deleteOne(fileNonEnduser.id),
   ])
 }
 
@@ -3062,9 +3096,11 @@ export const self_serve_appointment_booking_tests = async () => {
 
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
+  chat_rooms: chat_room_tests,
+  automation_steps: automation_events_tests,
+  files: files_tests,
   enduser_tasks: NO_TEST,
   care_plans: NO_TEST,
-  automation_steps: automation_events_tests,
   portal_customizations: NO_TEST,
   calendar_event_templates: NO_TEST,
   databases: databases_tests,
@@ -3079,10 +3115,8 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   tasks: tasks_tests,
   emails: email_tests,
   sms_messages: sms_tests,
-  chat_rooms: chat_room_tests,
   users: users_tests,
   templates: NO_TEST,
-  files: files_tests,
   tickets: NO_TEST,
   meetings: meetings_tests,
   notes: NO_TEST,
