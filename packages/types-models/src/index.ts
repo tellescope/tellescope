@@ -519,6 +519,7 @@ export interface FormField extends FormField_readonly, FormField_required, FormF
   flowchartUI?: FlowchartUI,
 }
 
+export type FormType = 'note' | 'enduserFacing'
 export interface Form_readonly extends ClientRecord {
   numFields: number,
 }
@@ -534,6 +535,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   allowPublicURL?: boolean,
   intakePhone?: 'required' | 'optional',
   thanksMessage?: string,
+  type?: FormType
 }
 
 

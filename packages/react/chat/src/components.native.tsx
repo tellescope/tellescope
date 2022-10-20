@@ -81,16 +81,14 @@ const SendImageOrVideo = ({
       <Flex flex={1} alignItems="center" justifyContent="center">
       <Paper flex style={{ padding: 25, margin: 10, }} >
         <Button disabled={menuDisabled} variant="contained" onPress={() => handleImageSelect('library')}
-          style={{ marginBottom: 20 }}
+          style={{ marginBottom: 20, fontSize: 18, padding: 10  }}
         >
-          <Typography style={{ fontSize: 18, color: 'white', padding: 10 }}>
-            Upload Photo or Video
-          </Typography>
+          Upload Photo or Video
         </Button>
-        <Button disabled={menuDisabled} variant="contained" onPress={() => handleImageSelect('camera')}>
-          <Typography style={{ fontSize: 18, color: 'white', padding: 10 }}>
-            Take Photo
-          </Typography>
+        <Button disabled={menuDisabled} variant="contained" onPress={() => handleImageSelect('camera')}
+          style={{ fontSize: 18, padding: 10 }}
+        >
+          Take Photo
         </Button>
         <Button variant='outlined' onPress={() => setMenuOpen(false)} style={{ marginTop: 25 }}>
           Cancel

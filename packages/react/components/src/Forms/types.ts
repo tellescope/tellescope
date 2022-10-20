@@ -5,12 +5,13 @@ import { JSXElementConstructor } from "react";
 
 export type FormFieldNode = TreeNode<FormField>
 
-export type ChangeHandler <K extends keyof AnswerForType> = (v: AnswerForType[K], setTouched?: boolean) => void
+export type ChangeHandler <K extends keyof AnswerForType> = (v: AnswerForType[K], fieldId: string, setTouched?: boolean) => void
 
 export interface FormInputProps<K extends keyof AnswerForType> {
   field: FormField,
   value: K extends 'file' ? FileBlob : AnswerForType[K],
   onChange: ChangeHandler<K>,
+  autoFocus?: boolean,
 }
 
 export type FormInputs = { 

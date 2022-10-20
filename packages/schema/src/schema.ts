@@ -137,6 +137,7 @@ import {
   availabilityBlocksValidator,
   weeklyAvailabilitiesValidator,
   timezoneValidator,
+  formTypeValidator,
 } from "@tellescope/validation"
 
 import {
@@ -2066,6 +2067,7 @@ export const schema: SchemaV1 = build_schema({
       allowPublicURL: { validator: booleanValidator },
       intakePhone: { validator: intakePhoneValidator },
       thanksMessage: { validator: stringValidator5000 },
+      type: { validator: formTypeValidator },
     }
   },
   form_fields: {

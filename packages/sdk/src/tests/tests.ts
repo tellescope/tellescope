@@ -1388,7 +1388,7 @@ const files_tests = async () => {
     sdk.api.endusers.deleteOne(enduser.id),
   ])
 
-  await wait(undefined, 1000) // wait for files to be deleted as side effect
+  await wait(undefined, 1250) // wait for files to be deleted as side effect
   await async_test(
     `Files cleaned up as side effect of deleting enduser`,
     () => sdkNonAdmin.api.files.getSome({ filter: { enduserId: enduser.id } }),
@@ -2982,7 +2982,7 @@ export const self_serve_appointment_booking_tests = async () => {
   await sdk.api.users.updateOne(sdk.userInfo.id, { 
     weeklyAvailabilities: [
       { 
-        dayOfWeekStartingSundayIndexedByZero: 0,
+        dayOfWeekStartingSundayIndexedByZero: 0, // sunday
         startTimeInMinutes: 60 * 12, // noon,
         endTimeInMinutes: 60 * 13, // 1pm,
       },
@@ -2996,7 +2996,7 @@ export const self_serve_appointment_booking_tests = async () => {
   await sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { 
     weeklyAvailabilities: [
       { 
-        dayOfWeekStartingSundayIndexedByZero: 0,
+        dayOfWeekStartingSundayIndexedByZero: 0, // sunday
         startTimeInMinutes: 60 * 12, // noon,
         endTimeInMinutes: 60 * 13, // 1pm,
       },
@@ -3025,7 +3025,21 @@ export const self_serve_appointment_booking_tests = async () => {
       from: new Date(),
       restrictedByState: false,
     }),
-    { onResult: r => r.availabilityBlocks.length === 4 }, // 2 providers with 1 hour availability for 30 minute meetings
+    { onResult: r => {
+      if (r.availabilityBlocks.length !== 4) return false // 2 providers with 1 hour availability for 30 minute meetings
+
+      const user1block1_ET = r.availabilityBlocks.find(b => b.userId === sdk.userInfo.id)
+      const user2block1_PT = r.availabilityBlocks.find(b => b.userId === sdkNonAdmin.userInfo.id)
+
+      if (!(user1block1_ET && user2block1_PT)) return false // should be slots for both users
+
+      if (user2block1_PT.startTimeInMS - user1block1_ET.startTimeInMS !== 1000 * 60 * 60 * 3) {
+        console.log(user1block1_ET.startTimeInMS, user2block1_PT.startTimeInMS, user1block1_ET.startTimeInMS - user2block1_PT.startTimeInMS)
+        return false // difference should be three hours, since same availability in different timezones
+      }
+
+      return true
+    }},
   )
 
   const nySlots = await enduserSDK.api.calendar_events.get_appointment_availability({

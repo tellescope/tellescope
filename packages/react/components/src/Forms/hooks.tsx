@@ -135,6 +135,21 @@ export const useTreeForFormFields = (_fields: FormField[]) => {
   return nodesForId[fields.find(s => s.previousFields.find(p => p.type === 'root'))?.id ?? '']
 }
 
+export const useListForFormFields = (fields: FormField[]) => {
+  const list: FormField[] = []
+
+  let root = useTreeForFormFields(fields)
+
+  while (root) {
+    if (list.find(f => f.id === root.value.id)) throw new Error("Not a tree")
+
+    list.push(root.value)
+    root = root.children[0]
+  }
+
+  return list
+}
+
 // load and build a tree of questions for a form
 // only useful for clients who have broad access to forms and form resonses (e.g. users)
 export const useLoadTreeForFormFields = (formId: string): FormFieldNode | undefined => {
@@ -207,6 +222,8 @@ export const useOrganizationTheme = () => {
   return context?.theme ?? theme
 }
 
+type Response = FormResponseValue & { touched: boolean, includeInSubmit: boolean }
+type FileResponse = { fieldId: string, fieldTitle: string, blob?: FileBlob }
 export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fields }: UseTellescopeFormOptions) => {
   const root = useTreeForFormFields(fields)
   const formId = root.value.formId
@@ -220,7 +237,7 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
   const [submitErrorMessage, setSubmitErrorMessage] = useState('')
   const prevFieldStackRef = useRef<typeof root[]>([])
 
-  const [responses, setResponses] = useState<(FormResponseValue & { touched: boolean, includeInSubmit: boolean })[]>(fields.map(f => ({
+  const [responses, setResponses] = useState<(Response)[]>(fields.map(f => ({
     fieldId: f.id,
     fieldTitle: f.title,
     fieldDescription: f.description,
@@ -235,7 +252,7 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
             : '' as any, // null flag that the response was not filled out
     }
   })))
-  const [selectedFiles, setSelectedFiles] = useState<{ fieldId: string, fieldTitle: string, blob?: FileBlob }[]>(fields.map(f => ({
+  const [selectedFiles, setSelectedFiles] = useState<FileResponse[]>(fields.map(f => ({
     fieldId: f.id,
     fieldTitle: f.title,
     blob: undefined,
@@ -268,64 +285,73 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
     updateInclusion(true)
   }, [updateInclusion, currentValue])
 
-  const validateCurrentValue = useCallback(() => {
-    if (activeField.value.isOptional) {
+  const validateField = useCallback((field=activeField.value as FormField) => {
+    const value = responses.find(r => r.fieldId === field.id)!
+    const file = selectedFiles.find(r => r.fieldId === field.id)!
+    if (field.isOptional) {
       return null 
     }
     // remaining are required, non-empty
 
-    if (activeField.value.type === 'file') {
-      if (!currentFileValue.blob) {
+    if (field.type === 'file') {
+      if (!file.blob) {
         return "A file is required"
       }
       return null // no need to check against other stuff
     }
     // remaining can refer to currentValue, not currentFileValue
 
-    if (!currentValue.answer.value) {
+    if (!value.answer.value) {
       return "A response is required"
     }
     // remaining values exist and need to be validated by type
 
     // string type is validated by being non-empty, file is already validated
-    if (currentValue.answer.type === 'email') {
-      if (!isEmail(currentValue.answer.value)) {
+    if (value.answer.type === 'email') {
+      if (!isEmail(value.answer.value)) {
         return "Enter a valid email"
       }
     } 
-    else if (currentValue.answer.type === 'phone') {
-      if (!isMobilePhone(currentValue.answer.value)) {
+    else if (value.answer.type === 'phone') {
+      if (!isMobilePhone(value.answer.value)) {
         return "Enter a valid phone number"
       }
-    } else if (currentValue.answer.type === 'multiple_choice') {
-      if (currentValue.answer.value.length === 0) {
+    } else if (value.answer.type === 'multiple_choice') {
+      if (value.answer.value.length === 0) {
         return "A value must be checked"
       }
-    } else if (currentValue.answer.type === 'number') {
-      if (typeof currentValue.answer.value !== 'number') {
+    } else if (value.answer.type === 'number') {
+      if (typeof value.answer.value !== 'number') {
         return "Please enter a number"
       }
-    } else if (currentValue.answer.type === 'rating') {
-      if ((activeField.value?.options?.from && currentValue.answer.value < activeField.value.options.from)
-          || activeField.value?.options?.to && currentValue.answer.value > activeField.value.options.to
+    } else if (value.answer.type === 'rating') {
+      if ((field?.options?.from && value.answer.value < field.options.from)
+          || field?.options?.to && value.answer.value > field.options.to
         ) {
-          return `Please enter a number between ${activeField.value?.options?.from} and ${activeField.value?.options?.to}`
+          return `Please enter a number between ${field?.options?.from} and ${field?.options?.to}`
         }
-    } else if (currentValue.answer.type === 'signature') {
-      if (!currentValue.answer.value.fullName) {
+    } else if (value.answer.type === 'signature') {
+      if (!value.answer.value.fullName) {
         return "Please enter your full name"
       }
-      if (!currentValue.answer.value.signed) {
+      if (!value.answer.value.signed) {
         return "Please accept the terms of this signature"
       }
     } 
 
     return null
-  }, [activeField, currentValue, currentFileValue])
+  }, [responses, selectedFiles, currentValue, activeField])
+
+  const validateResponses = useCallback(() => {
+    for (const f of fields) {
+      const errorMessage = validateField(f)
+      if (errorMessage) return errorMessage
+    }
+  }, [validateField, responses])
 
   const showSubmit = activeField.children.length === 0
-  const submitDisabled = submittingStatus !== undefined || !!validateCurrentValue()
-  const submit = useCallback(async (onSuccess?: (r: FormResponse) => void) => {
+  const submitDisabled = submittingStatus !== undefined || !!validateResponses()
+  const submit = useCallback(async (options?: { onSuccess?: (r: FormResponse) => void, includeAll?: boolean }) => {
     if (submitDisabled) return 
 
     setSubmitErrorMessage('')
@@ -371,12 +397,12 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
             session as any as Session).api.form_responses.prepare_form_response({ formId, enduserId })
           ).accessCode
         ),
-        responses: responses.filter(r => r.includeInSubmit),
+        responses: responses.filter(r => options?.includeAll ?? r.includeInSubmit),
         automationStepId,
       })
 
       updateLocalFormResponse(formResponse.id, formResponse)
-      onSuccess?.(formResponse)
+      options?.onSuccess?.(formResponse)
     } catch(err: any) {
       setSubmitErrorMessage(err?.message ?? 'Failed to upload file')
     } finally {
@@ -389,12 +415,12 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
       return true
     }
 
-    if (validateCurrentValue()) {
+    if (validateField(activeField.value)) {
       return true
     }
 
     return false
-  }, [activeField, validateCurrentValue])
+  }, [activeField, validateField])
 
   const goToNextField = useCallback(() => {
     if (isNextDisabled()) return
@@ -446,8 +472,8 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
     }
   }, [isPreviousDisabled, updateInclusion, prevFieldStackRef])
 
-  const onFieldChange: ChangeHandler<any> = useCallback((value: FormResponseValueAnswer['value'], touched=true) => {
-    setResponses(rs => rs.map(r => r.fieldId !== activeField.value.id ? r : ({
+  const onFieldChange: ChangeHandler<any> = useCallback((value: FormResponseValueAnswer['value'], fieldId: string, touched=true) => {
+    setResponses(rs => rs.map(r => r.fieldId !== fieldId ? r : ({
       ...r,
       touched,
       answer: {
@@ -455,19 +481,22 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
         value: value as any,
       },
     })))
-  }, [activeField])
+  }, [fields])
 
-  const onAddFile = useCallback((blob?: FileBlob) => {
-    setSelectedFiles(fs => fs.map(f => f.fieldId !== activeField.value.id ? f : ({
+  const onAddFile = useCallback((blob?: FileBlob, fieldId=activeField.value.id) => {
+    setSelectedFiles(fs => fs.map(f => f.fieldId !== fieldId ? f : ({
       ...f,
       blob,
     })))
-  }, [activeField])
+  }, [activeField, fields])
 
   return {
     activeField,
     currentValue,
     currentFileValue,
+    fields,
+    responses,
+    selectedFiles,
     onFieldChange,
     onAddFile,
     isNextDisabled,
@@ -479,6 +508,6 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
     submitDisabled,
     submitErrorMessage,
     submittingStatus,
-    validateCurrentValue,
+    validateField,
   }
 }

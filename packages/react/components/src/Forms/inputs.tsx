@@ -31,13 +31,13 @@ export const RatingInput = ({ field, value, onChange }: FormInputProps<'rating'>
     if (initRef.current) return
     initRef.current = true
 
-    onChange(Math.ceil((to - from) / 2))
+    onChange(Math.ceil((to - from) / 2), field.id)
   }, [onChange])
 
   return (
     <Slider min={from} max={to} step={1} marks={marks}
       valueLabelDisplay="on"
-      value={value ?? Math.ceil((to - from) / 2)} onChange={(e, v) => onChange(v as number)}
+      value={value ?? Math.ceil((to - from) / 2)} onChange={(e, v) => onChange(v as number, field.id)}
     />
   )
 }
@@ -74,7 +74,7 @@ const getListStyle = (isDraggingOver: boolean) => ({
   // padding: `${grid}px`,
   // width: '250px'
 });
-export const RankingInput = ({ value, onChange }: FormInputProps<'ranking'>) => {
+export const RankingInput = ({ field, value, onChange }: FormInputProps<'ranking'>) => {
   return (
     <Grid container direction='column'>
     {/* <Typography>Most</Typography> */}
@@ -89,7 +89,7 @@ export const RankingInput = ({ value, onChange }: FormInputProps<'ranking'>) => 
         value,
         result.source.index,
         result.destination.index
-      )) 
+      ), field.id) 
     }}>
       <Droppable droppableId="droppable">
         {(provided, snapshot) => (
@@ -143,7 +143,7 @@ export const DateInput = ({
   return (
     <DatePicker // wrap in item to prevent movement on focused
       selected={value}
-      onChange={(d: Date) => onChange?.(d)}
+      onChange={(d: Date) => onChange?.(d, field.id)}
       showTimeSelect
       required={!field.isOptional}
       dateFormat="Pp"
@@ -157,35 +157,27 @@ export const DateInput = ({
   )
 }
 
-export const AutoFocusTextField = (props: TextFieldProps) => {
-  const ref = useRef(null as HTMLElement | null)
-
-  useEffect(() => {
-    ref.current?.focus()
-  }, [ref])
-
-  return (
-    <TextField {...props} inputRef={ref} />
-  )
-}
-
-export const StringInput = ({ field, value, onChange }: FormInputProps<'string'>) => (
-  <AutoFocusTextField required={!field.isOptional} fullWidth value={value} placeholder="Answer here..." onChange={e => onChange(e.target.value)} />
+export const AutoFocusTextField = (props: TextFieldProps) => (
+  <TextField {...props} />
 )
 
-export const PhoneInput = ({ field, value, onChange }: FormInputProps<'phone'>) => (
-  <AutoFocusTextField required={!field.isOptional} fullWidth placeholder="Enter phone..." value={value} onChange={e => onChange(e.target.value)} />
+export const StringInput = ({ field, value, onChange, autoFocus=true }: FormInputProps<'string'>) => (
+  <AutoFocusTextField required={!field.isOptional} autoFocus={autoFocus} fullWidth value={value} placeholder="Answer here..." onChange={e => onChange(e.target.value, field.id)} />
 )
 
-export const EmailInput = ({ field, value, onChange }: FormInputProps<'email'>) => (
-  <AutoFocusTextField required={!field.isOptional} fullWidth placeholder="Enter email..." type="email" value={value} onChange={e => onChange(e.target.value)} />
+export const PhoneInput = ({ field, value, onChange, autoFocus=true }: FormInputProps<'phone'>) => (
+  <AutoFocusTextField required={!field.isOptional} autoFocus={autoFocus} fullWidth placeholder="Enter phone..." value={value} onChange={e => onChange(e.target.value, field.id)} />
 )
 
-export const NumberInput = ({ field, value, onChange }: FormInputProps<'number'>) => (
-  <AutoFocusTextField required={!field.isOptional} fullWidth placeholder="Enter a number..." type="number" value={value} onChange={e => onChange(parseInt(e.target.value))} />
+export const EmailInput = ({ field, value, onChange, autoFocus=true }: FormInputProps<'email'>) => (
+  <AutoFocusTextField required={!field.isOptional} autoFocus={autoFocus} fullWidth placeholder="Enter email..." type="email" value={value} onChange={e => onChange(e.target.value, field.id)} />
 )
 
-export const SignatureInput = ({ value, onChange }: FormInputProps<'signature'>) => {
+export const NumberInput = ({ field, value, onChange, autoFocus=true }: FormInputProps<'number'>) => (
+  <AutoFocusTextField required={!field.isOptional} autoFocus={autoFocus} fullWidth placeholder="Enter a number..." type="number" value={value} onChange={e => onChange(parseInt(e.target.value), field.id)} />
+)
+
+export const SignatureInput = ({ value, field, autoFocus=true, onChange }: FormInputProps<'signature'>) => {
   const [consented, setConsented] = useState(false)
   const [name, setName] = useState('')
 
@@ -196,7 +188,7 @@ export const SignatureInput = ({ value, onChange }: FormInputProps<'signature'>)
     onChange({
       signed: newConsent && !!name,
       fullName: name,
-    })
+    }, field.id)
   }
 
   const handleNameChange = (newName: string) => {
@@ -204,7 +196,7 @@ export const SignatureInput = ({ value, onChange }: FormInputProps<'signature'>)
     onChange({
       signed: consented && !!newName,
       fullName: newName,
-    })
+    }, field.id)
   }
 
   return (
@@ -224,7 +216,7 @@ export const SignatureInput = ({ value, onChange }: FormInputProps<'signature'>)
       </Grid>
 
       <Grid item xs={12} style={{ marginTop: 12 }}>
-        <TextField disabled={!consented} 
+        <TextField disabled={!consented} autoFocus={autoFocus}
           style={{ width: '100%'}}
           size="small"
           aria-label="Full Name"
@@ -240,9 +232,9 @@ export const SignatureInput = ({ value, onChange }: FormInputProps<'signature'>)
   )
 }
 
-export const FileInput = ({ value, onChange }: FormInputProps<'file'>) => {
+export const FileInput = ({ value, onChange, field }: FormInputProps<'file'>) => {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
-    onDrop: useCallback(acceptedFiles => onChange(acceptedFiles.pop()), [onChange]),
+    onDrop: useCallback(acceptedFiles => onChange(acceptedFiles.pop(), field.id), [onChange]),
   })
 
   return (
@@ -312,7 +304,7 @@ export const MultipleChoiceInput = ({ field, value, onChange }: FormInputProps<'
     } 
 
     onChangeRef.current = values
-    onChange(values, !initializing)
+    onChange(values, field.id, !initializing)
   }, [localValue, field, onChange, onChangeRef])
 
   const handleCheck = (i: number) => {

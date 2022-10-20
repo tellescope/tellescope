@@ -128,6 +128,7 @@ import {
   WeeklyAvailability,
   Timezone,
   TIMEZONES,
+  FormType,
 } from "@tellescope/types-models"
 import {
   DatabaseRecord,
@@ -195,7 +196,7 @@ export type ComplexEscapeBuilder <C,R=any> = (customization: C) => EscapeBuilder
 export type ValidatorDefinition <R=any> = {
   validate: EscapeBuilder<R>,
   getType: () => string | object,
-  getExample: () => string | object,
+  getExample: () => string | number | boolean | object,
 }
 export type ValidatorBuilder <R=any, C={}> = (options: ValidatorOptions & C) => ValidatorDefinition<R>
 
@@ -453,7 +454,7 @@ export const listValidatorOld = <T>(b: EscapeFunction<T>): EscapeBuilder<T[]> =>
 )
 
 const exampleObject = (fields: InputValidation<any>) => {
-  const examples = {} as Indexable<string | object>
+  const examples = {} as Indexable<string | number | boolean | object>
 
   for (const field in fields) {
     examples[field] = fields[field].getExample()
@@ -616,8 +617,8 @@ export const stringValidator100: ValidatorDefinition<string> = {
   validate: (o={}) => build_validator(
     escapeString(o), { ...o, maxLength: 100, listOf: false  } 
   ),
-  getExample: () => 'example string',
-  getType: () => 'string'
+  getExample: () => getExampleString,
+  getType: () => getTypeString
 }
 
 export const stringValidator250: ValidatorDefinition<string> = {
@@ -711,7 +712,7 @@ export const booleanValidatorBuilder: ValidatorBuilder<boolean> = (defaults) => 
     }, 
     { ...defaults, ...options, isBoolean: true, listOf: false }
   ),
-  getExample: () => "false",
+  getExample: () => true,
   getType: () => "boolean",
 })
 export const booleanValidator = booleanValidatorBuilder({ })
@@ -839,7 +840,7 @@ export const numberValidatorBuilder: ValidatorBuilder<number, { lower: number, u
       { ...optionsWithDefaults({ ...higherOptions, ...options }), listOf: false, }
     )
   },
-  getExample: () => `${lower}`, // `a number from ${lower} to ${upper}`,
+  getExample: () => lower, // `a number from ${lower} to ${upper}`,
   getType: getTypeNumber,
 })
 
@@ -918,8 +919,8 @@ export const journeysValidator: ValidatorDefinition<Indexable> = {
     }, 
     { ...options, isObject: true, listOf: false }
   ),
-  getExample: () => `{ ${EXAMPLE_OBJECT_ID}: "status" }`,
-  getType: () => `{ string: string }`,
+  getExample: () => ({ [EXAMPLE_OBJECT_ID]: "status" }),
+  getType: () => ({ string: "string" }),
 }
 
 export const escape_phone_number = (p='') => p.replace(/[^\d+]/g, '')
@@ -2039,6 +2040,13 @@ const _PORTAL_PAGES: { [K in PortalPage]: any } = {
 export const PORTAL_PAGES = Object.keys(_PORTAL_PAGES) as PortalPage[]
 export const portalPageValidator = exactMatchValidator<PortalPage>(PORTAL_PAGES)
 
+const _FORM_TYPES: { [K in FormType]: any } = {
+  note: true,
+  enduserFacing: true,
+}
+export const FORM_TYPES = Object.keys(_FORM_TYPES) as FormType[]
+export const formTypeValidator = exactMatchValidator<FormType>(FORM_TYPES)
+
 
 export const portalBlockValidator = orValidator<{ [K in PortalBlockType]: PortalBlockForType[K] } >({
   carePlan: objectValidator<PortalBlockForType['carePlan']>({
@@ -2175,3 +2183,4 @@ export const weeklyAvailabilityValidator = objectValidator<WeeklyAvailability>({
 export const weeklyAvailabilitiesValidator = listValidatorEmptyOk(weeklyAvailabilityValidator)
 
 export const timezoneValidator = exactMatchValidator<Timezone>(Object.keys(TIMEZONES) as Timezone[])
+
