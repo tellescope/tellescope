@@ -12,6 +12,7 @@ export interface FormInputProps<K extends keyof AnswerForType> {
   value: K extends 'file' ? FileBlob : AnswerForType[K],
   onChange: ChangeHandler<K>,
   autoFocus?: boolean,
+  size?: 'small',
 }
 
 export type FormInputs = { 

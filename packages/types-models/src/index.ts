@@ -475,7 +475,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
   fields?: Indexable<string | CustomField>,
 }
 
-export type FormFieldLiteralType = 'string' | 'number' | 'email' | 'phone' | 'date' | 'rating'
+export type FormFieldLiteralType = 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' | 'rating'
 export type FormFieldComplexType = "multiple_choice" | "file" | "signature" | 'ranking'
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
 
@@ -628,6 +628,7 @@ export type FormResponseAnswerEmail = FormResponseValueAnswerBuilder<'email', st
 export type FormResponseAnswerNumber = FormResponseValueAnswerBuilder<'number', number>
 export type FormResponseAnswerPhone = FormResponseValueAnswerBuilder<'phone', string>
 export type FormResponseAnswerString = FormResponseValueAnswerBuilder<'string', string>
+export type FormResponseAnswerStringLong = FormResponseValueAnswerBuilder<'stringLong', string>
 export type FormResponseAnswerDate = FormResponseValueAnswerBuilder<'date', Date>
 export type FormResponseAnswerRating = FormResponseValueAnswerBuilder<'rating', number>
 
@@ -652,6 +653,7 @@ export type FormResponseValueAnswer = (
   | FormResponseAnswerNumber
   | FormResponseAnswerPhone
   | FormResponseAnswerString
+  | FormResponseAnswerStringLong
   | FormResponseAnswerSignature
   | FormResponseAnswerMultipleChoice
   | FormResponseAnswerFile
@@ -672,6 +674,7 @@ export type AnswerForType = {
   'number': FormResponseAnswerNumber['value'],
   'phone': FormResponseAnswerPhone['value'],
   'string': FormResponseAnswerString['value'],
+  'stringLong': FormResponseAnswerStringLong['value'],
   'signature': FormResponseAnswerSignature['value'],
   'multiple_choice': FormResponseAnswerMultipleChoice['value'],
   'file': FormResponseAnswerFile['value'],
@@ -698,7 +701,9 @@ export interface FormResponse_updatesDisabled {
   submissionExpiresAt?: number,
   automationStepId?: string, 
 }
-export interface FormResponse extends FormResponse_readonly, FormResponse_required, FormResponse_updatesDisabled {}
+export interface FormResponse extends FormResponse_readonly, FormResponse_required, FormResponse_updatesDisabled {
+  draftSavedAt?: Date,
+}
 
 export interface WebHook_readonly extends ClientRecord {}
 export interface WebHook_required {}

@@ -129,6 +129,7 @@ import {
   Timezone,
   TIMEZONES,
   FormType,
+  FormResponseAnswerStringLong,
 } from "@tellescope/types-models"
 import {
   DatabaseRecord,
@@ -1095,6 +1096,7 @@ const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
   phone: '',
   signature: '',
   string: '',
+  stringLong: '',
   ranking: '',
   rating: '',
   date: '',
@@ -1103,7 +1105,8 @@ export const FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES) as FormFieldType[
 export const formFieldTypeValidator = exactMatchValidator<FormFieldType>(FORM_FIELD_TYPES)
 
 export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' | 'phoneNumber']: (value?: FormResponseValueAnswer[keyof FormResponseValueAnswer], options?: any, isOptional?: boolean) => any } = {
-  'string': stringValidator.validate({ maxLength: 5000, emptyStringOk: true, errorMessage: "Response must not exceed 5000 characters" }),
+  'string': stringValidator.validate({ maxLength: 1000, emptyStringOk: true, errorMessage: "Response must not exceed 1000 characters" }),
+  'stringLong': stringValidator.validate({ maxLength: 10000, emptyStringOk: true, errorMessage: "Response must not exceed 10000 characters" }),
   'number': numberValidator.validate({ errorMessage: "Response must be a number" }),
   'email': emailValidator.validate(),
 
@@ -1400,6 +1403,10 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
   }),
   string: objectValidator<FormResponseAnswerString>({
     type: exactMatchValidator(['string']),
+    value: stringValidator5000Optional,
+  }),
+  stringLong: objectValidator<FormResponseAnswerStringLong>({
+    type: exactMatchValidator(['stringLong']),
     value: stringValidator5000Optional,
   }),
   date: objectValidator<FormResponseAnswerDate>({

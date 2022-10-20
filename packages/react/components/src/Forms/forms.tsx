@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect } from "react"
-import { Button, Flex, LoadingButton, Paper, Styled, Typography } from "../index"
+import { Button, Flex, LoadingButton, Paper, Styled, Typography, useFileUpload, useFormResponses, useSession } from "../index"
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
-import { DateInput, EmailInput, FileInput, MultipleChoiceInput, NumberInput, PhoneInput, RankingInput, RatingInput, SignatureInput, StringInput } from "./inputs"
+import { DateInput, EmailInput, FileInput, MultipleChoiceInput, NumberInput, PhoneInput, RankingInput, RatingInput, SignatureInput, StringInput, StringLongInput } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse } from "@tellescope/types-client"
+import { FormResponseAnswerFileValue } from "@tellescope/types-models"
 
 export const TellescopeFormContainer = ({ businessId, ...props } : { children: React.ReactNode, businessId?: string, dontAddContext?: boolean } & Styled) => {
   // if context already is provided, no need to duplicate
@@ -51,6 +52,7 @@ export interface TellescopeFormProps extends ReturnType<typeof useTellescopeForm
   customInputs?: FormInputs
   submitted?: boolean,
   thanksMessage?: string,
+  showSaveDraft?: boolean,
 }
 
 const LOGO_HEIGHT = 40
@@ -89,6 +91,7 @@ const TellescopeFormWithContext: typeof TellescopeForm = ({
   const theme = useOrganizationTheme()
 
   const String = customInputs?.['string'] ?? StringInput
+  const StringLong = customInputs?.['stringLong'] ?? StringLongInput
   const Email = customInputs?.['email'] ?? EmailInput
   const Number = customInputs?.['number'] ?? NumberInput
   const Phone = customInputs?.['phone'] ?? PhoneInput 
@@ -140,12 +143,17 @@ const TellescopeFormWithContext: typeof TellescopeForm = ({
               </Typography>
 
               { 
+                // KEEP THIS CONSISTENT WITH TellescopeSinglePageForm
+
                 // file is a unique case
                 activeField.value.type === 'file' ? (
                   <File field={activeField.value} value={currentFileValue.blob as any} onChange={onAddFile as any} />
                 )
                 : activeField.value.type === 'string' ? (
                   <String field={activeField.value} value={currentValue.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} />
+                )
+                : activeField.value.type === 'stringLong' ? (
+                  <StringLong field={activeField.value} value={currentValue.answer.value as string} onChange={onFieldChange as ChangeHandler<'string' | 'stringLong'>} />
                 )
                 : activeField.value.type === 'email' ? (
                   <Email field={activeField.value} value={currentValue.answer.value as string} onChange={onFieldChange as ChangeHandler<'email'>} />
@@ -225,6 +233,83 @@ const TellescopeFormWithContext: typeof TellescopeForm = ({
   )
 }
 
+export const SaveDraft = ({ 
+  selectedFiles,
+  enduserId,
+  responses,
+  onSuccess,
+  formResponseId,
+  includedFieldIds,
+  formId,
+  style,
+  disabled,
+} : Styled & Pick<TellescopeFormProps, 'onSuccess' | 'selectedFiles' | 'responses' | 'enduserId'> & { 
+  disabled?: boolean,
+  formResponseId?: string, 
+  formId: string,
+  includedFieldIds: string[]
+}) => {
+  const [, { updateElement: updateFormResponse }] = useFormResponses({ dontFetch: true })
+  const session = useSession()
+  const { handleUpload } = useFileUpload({  })
+  
+  return (
+    <LoadingButton style={style} disabled={disabled} variant='outlined'
+      onClick={async () => {
+        const hasFile = selectedFiles.find(f => !!f.blob) !== undefined
+
+        if (hasFile) {
+          try { // convert FileBlobs to FileResponses
+            for (const blobInfo of selectedFiles) {
+              const { blob, fieldId } = blobInfo
+              if (!blob) continue
+      
+              const result: FormResponseAnswerFileValue = { name: blob.name, secureName: '' }
+              const { secureName } = await handleUpload(
+                {
+                  name: blob.name,
+                  size: blob.size,
+                  type: blob.type,
+                  enduserId,
+                }, 
+                blob
+              )
+
+              const responseIndex = responses.findIndex(f => f.fieldId === fieldId)
+              responses[responseIndex].answer.value = { ...result, secureName, name: result.name ?? '' } 
+            }
+
+          } catch(err: any) {
+          } finally {
+          }
+        }
+
+        try {
+          const response = await updateFormResponse(
+            (
+              formResponseId 
+              ?? (await session.api.form_responses.prepare_form_response({ formId, enduserId })).response.id
+            ),
+            { 
+              draftSavedAt: new Date(),
+              responses: includedFieldIds.map(id => responses.find(r => r.fieldId === id)!)
+            },
+            { replaceObjectFields: true }
+          )
+
+          onSuccess?.(response)
+        } catch(err: any) {
+          // setSubmitErrorMessage(err?.message ?? 'Failed to upload file')
+        } finally {
+          // setSubmittingStatus(undefined)
+        }
+      }}
+      submitText="Save Draft"
+      submittingText="Saving..."
+    />
+  )
+}
+
 export const TellescopeSinglePageForm: typeof TellescopeForm = ({
   customInputs, 
   submitErrorMessage,
@@ -236,6 +321,7 @@ export const TellescopeSinglePageForm: typeof TellescopeForm = ({
   isPreviousDisabled,
   submit,
   showSubmit,
+  showSaveDraft,
   submitDisabled,
   submittingStatus,
   validateField,
@@ -255,6 +341,7 @@ export const TellescopeSinglePageForm: typeof TellescopeForm = ({
   const list = useListForFormFields(fields)
 
   const String = customInputs?.['string'] ?? StringInput
+  const StringLong = customInputs?.['stringLong'] ?? StringLongInput
   const Email = customInputs?.['email'] ?? EmailInput
   const Number = customInputs?.['number'] ?? NumberInput
   const Phone = customInputs?.['phone'] ?? PhoneInput 
@@ -265,11 +352,13 @@ export const TellescopeSinglePageForm: typeof TellescopeForm = ({
   const Ranking = customInputs?.['ranking'] ?? RankingInput
   const Rating = customInputs?.['rating'] ?? RatingInput
 
+  const includedFieldIds = list.map(f => f.id)
+
   const handleSubmit = useCallback(async () => {
     if (isPreview) {
       return onSuccess?.({} as any)
     } 
-    await submit({ onSuccess, includeAll: true /* normally fields are included only when they are visible on an active page */ })
+    await submit({ onSuccess, includedFieldIds, /* ensures all answers are included and in the correct order */ })
   }, [isPreview, onSuccess, submit])
 
   const handleKeyPress = useCallback((e: KeyboardEvent) => {
@@ -285,7 +374,8 @@ export const TellescopeSinglePageForm: typeof TellescopeForm = ({
   }, [handleKeyPress])
 
   return (
-    submitted 
+    <Flex flex={1} column>
+      {submitted 
       ? <Typography style={{ marginTop: 25, alignSelf: 'center' }}>{thanksMessage}</Typography>
       : (
         <>
@@ -297,33 +387,40 @@ export const TellescopeSinglePageForm: typeof TellescopeForm = ({
 
           return (
             <Flex key={activeField.id} style={{ marginBottom: 5 }}>
-              <Typography component="h4" style={{ fontSize: 20 }}>
-                {activeField.title}
-              </Typography>
+              <Flex column flex={1}>
+                <Typography component="h4" style={{ fontSize: 16 }}>
+                  {activeField.title}
+                </Typography>
 
-              <Typography color="primary" style={{ marginBottom: 5 }}>
-                {activeField.description}
-              </Typography>
+                <Typography color="primary" style={{ fontSize: 14, marginBottom: 5 }}>
+                  {activeField.description}
+                </Typography>
+              </Flex>
 
               { 
+                // KEEP THIS CONSISTENT WITH THE TellescopeFormWithContext
+
                 // file is a unique case
                 activeField.type === 'file' ? (
                   <File autoFocus={i === 0} field={activeField} value={file.blob as any} onChange={onAddFile as any} />
                 )
                 : activeField.type === 'string' ? (
-                  <String autoFocus={i === 0} field={activeField} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} />
+                  <String size="small" autoFocus={i === 0} field={activeField} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} />
+                )
+                : activeField.type === 'stringLong' ? (
+                  <StringLong size="small" autoFocus={i === 0} field={activeField} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'stringLong' | 'string'>} />
                 )
                 : activeField.type === 'email' ? (
-                  <Email autoFocus={i === 0} field={activeField} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'email'>} />
+                  <Email size="small" autoFocus={i === 0} field={activeField} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'email'>} />
                 )
                 : activeField.type === 'number' ? (
-                  <Number autoFocus={i === 0} field={activeField} value={value.answer.value as number} onChange={onFieldChange as ChangeHandler<'number'>} />
+                  <Number size="small" autoFocus={i === 0} field={activeField} value={value.answer.value as number} onChange={onFieldChange as ChangeHandler<'number'>} />
                 )
                 : activeField.type === 'phone' ? (
-                  <Phone autoFocus={i === 0} field={activeField} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'phone'>} />
+                  <Phone size="small" autoFocus={i === 0} field={activeField} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'phone'>} />
                 )
                 : activeField.type === 'date' ? (
-                  <Date autoFocus={i === 0} field={activeField} value={value.answer.value as Date} onChange={onFieldChange as ChangeHandler<'date'>} />
+                  <Date size="small" autoFocus={i === 0} field={activeField} value={value.answer.value as Date} onChange={onFieldChange as ChangeHandler<'date'>} />
                 )
                 : activeField.type === 'signature' ? (
                   <Signature autoFocus={i === 0} field={activeField} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'signature'>} />
@@ -354,19 +451,35 @@ export const TellescopeSinglePageForm: typeof TellescopeForm = ({
         })}
         </Flex>
 
-        <LoadingButton onClick={handleSubmit} disabled={submitDisabled}
-          submitText="Submit Response" 
-          submittingText={
-            submittingStatus === 'uploading-files' 
-              ? 'Uploading files...'
-              : "Submitting..."
-          } 
-        />
+        <Flex flex={1} wrap="nowrap">
+          {showSaveDraft && 
+            <SaveDraft 
+              {...props}
+              includedFieldIds={includedFieldIds}
+              style={{ width: 200, marginRight: 5, height: 42 }}
+              formId={fields[0].formId}
+              responses={responses}
+              selectedFiles={selectedFiles}
+              onSuccess={onSuccess}
+            />
+          }
+
+          <LoadingButton onClick={handleSubmit} disabled={submitDisabled}
+            style={{ height: 42, width: '100%' }}
+            submitText="Submit Response" 
+            submittingText={
+              submittingStatus === 'uploading-files' 
+                ? 'Uploading files...'
+                : "Submitting..."
+            } 
+          />
+        </Flex>
 
         <Typography color="error" style={{ alignText: 'center', marginTop: 3 }}>
           {submitErrorMessage}
         </Typography>
         </>
-      )
+      )}
+    </Flex>
   )
 }

@@ -161,20 +161,23 @@ export const AutoFocusTextField = (props: TextFieldProps) => (
   <TextField {...props} />
 )
 
-export const StringInput = ({ field, value, onChange, autoFocus=true }: FormInputProps<'string'>) => (
-  <AutoFocusTextField required={!field.isOptional} autoFocus={autoFocus} fullWidth value={value} placeholder="Answer here..." onChange={e => onChange(e.target.value, field.id)} />
+export const StringInput = ({ field, value, onChange, ...props }: FormInputProps<'string'>) => (
+  <AutoFocusTextField {...props} required={!field.isOptional} fullWidth value={value} placeholder="Answer here..." onChange={e => onChange(e.target.value, field.id)} />
+)
+export const StringLongInput = ({ field, value, onChange, ...props }: FormInputProps<'string'>) => (
+  <AutoFocusTextField {...props} multiline minRows={3} maxRows={8} required={!field.isOptional} fullWidth value={value} placeholder="Answer here..." onChange={e => onChange(e.target.value, field.id)} />
 )
 
-export const PhoneInput = ({ field, value, onChange, autoFocus=true }: FormInputProps<'phone'>) => (
-  <AutoFocusTextField required={!field.isOptional} autoFocus={autoFocus} fullWidth placeholder="Enter phone..." value={value} onChange={e => onChange(e.target.value, field.id)} />
+export const PhoneInput = ({ field, value, onChange, ...props }: FormInputProps<'phone'>) => (
+  <AutoFocusTextField {...props} required={!field.isOptional} fullWidth placeholder="Enter phone..." value={value} onChange={e => onChange(e.target.value, field.id)} />
 )
 
-export const EmailInput = ({ field, value, onChange, autoFocus=true }: FormInputProps<'email'>) => (
-  <AutoFocusTextField required={!field.isOptional} autoFocus={autoFocus} fullWidth placeholder="Enter email..." type="email" value={value} onChange={e => onChange(e.target.value, field.id)} />
+export const EmailInput = ({ field, value, onChange, ...props }: FormInputProps<'email'>) => (
+  <AutoFocusTextField {...props} required={!field.isOptional} fullWidth placeholder="Enter email..." type="email" value={value} onChange={e => onChange(e.target.value, field.id)} />
 )
 
-export const NumberInput = ({ field, value, onChange, autoFocus=true }: FormInputProps<'number'>) => (
-  <AutoFocusTextField required={!field.isOptional} autoFocus={autoFocus} fullWidth placeholder="Enter a number..." type="number" value={value} onChange={e => onChange(parseInt(e.target.value), field.id)} />
+export const NumberInput = ({ field, value, onChange, ...props }: FormInputProps<'number'>) => (
+  <AutoFocusTextField {...props} required={!field.isOptional} fullWidth placeholder="Enter a number..." type="number" value={value} onChange={e => onChange(parseInt(e.target.value), field.id)} />
 )
 
 export const SignatureInput = ({ value, field, autoFocus=true, onChange }: FormInputProps<'signature'>) => {

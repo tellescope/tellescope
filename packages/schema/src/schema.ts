@@ -2165,6 +2165,7 @@ export const schema: SchemaV1 = build_schema({
       submittedAt: { validator: dateValidator },
       formTitle: { validator: stringValidator250 },  
       responses: { validator: formResponsesValidator },
+      draftSavedAt: { validator: dateValidator },
     },
     defaultActions: DEFAULT_OPERATIONS,
     enduserActions: { prepare_form_response: {}, info_for_access_code: {}, submit_form_response: {}, read: {}, readMany: {} },

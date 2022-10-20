@@ -180,6 +180,8 @@ interface UseTellescopeFormOptions {
   accessCode: string,
   automationStepId?: string,
   fields: FormField[],
+  existingResponses?: FormResponse['responses'],
+  formResponseId?: string,
 }
 
 const OrganizationThemeContext = createContext(null as any as { 
@@ -224,7 +226,7 @@ export const useOrganizationTheme = () => {
 
 type Response = FormResponseValue & { touched: boolean, includeInSubmit: boolean }
 type FileResponse = { fieldId: string, fieldTitle: string, blob?: FileBlob }
-export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fields }: UseTellescopeFormOptions) => {
+export const useTellescopeForm = ({ accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields }: UseTellescopeFormOptions) => {
   const root = useTreeForFormFields(fields)
   const formId = root.value.formId
 
@@ -245,11 +247,15 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
     includeInSubmit: false,
     answer: { 
       type: f.type,
-      value: f.type === 'file' || f.type === 'signature' || f.type === 'multiple_choice'
-        ? undefined  
-          : f.type === 'ranking'
-            ? f.options?.choices
-            : '' as any, // null flag that the response was not filled out
+      value: (
+        existingResponses?.find(_f => _f.fieldId === f.id)?.answer?.value ?? (
+          (f.type === 'file' || f.type === 'signature' || f.type === 'multiple_choice')
+            ? undefined  
+              : f.type === 'ranking'
+                ? f.options?.choices
+                : '' as any // null flag that the response was not filled out
+        )
+      ),
     }
   })))
   const [selectedFiles, setSelectedFiles] = useState<FileResponse[]>(fields.map(f => ({
@@ -351,7 +357,7 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
 
   const showSubmit = activeField.children.length === 0
   const submitDisabled = submittingStatus !== undefined || !!validateResponses()
-  const submit = useCallback(async (options?: { onSuccess?: (r: FormResponse) => void, includeAll?: boolean }) => {
+  const submit = useCallback(async (options?: { onSuccess?: (r: FormResponse) => void, includedFieldIds?: string[] }) => {
     if (submitDisabled) return 
 
     setSubmitErrorMessage('')
@@ -397,7 +403,11 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
             session as any as Session).api.form_responses.prepare_form_response({ formId, enduserId })
           ).accessCode
         ),
-        responses: responses.filter(r => options?.includeAll ?? r.includeInSubmit),
+        responses: (
+          options?.includedFieldIds 
+            ? options.includedFieldIds.map(id => responses.find(r => r.fieldId === id)!)
+            : responses.filter(r => r.includeInSubmit)
+        ),
         automationStepId,
       })
 
@@ -491,6 +501,8 @@ export const useTellescopeForm = ({ accessCode, automationStepId, enduserId, fie
   }, [activeField, fields])
 
   return {
+    enduserId,
+    formResponseId,
     activeField,
     currentValue,
     currentFileValue,
