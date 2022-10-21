@@ -601,8 +601,14 @@ export const schema: SchemaV1 = build_schema({
         redactions: ['enduser'],
         validator: listOfStringsValidatorEmptyOk,
       },
+      unredactedTags: {
+        validator: listOfStringsValidatorEmptyOk,
+      },
       fields: {
         redactions: ['enduser'],
+        validator: fieldsValidator,
+      },
+      unredactedFields: {
         validator: fieldsValidator,
       },
       preference: { 

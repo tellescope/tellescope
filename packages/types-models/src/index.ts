@@ -203,7 +203,9 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   dateOfBirth?: Date;
   journeys?: Indexable<string>;
   tags? : string[];
+  unredactedTags? : string[];
   fields? : CustomFields;
+  unredactedFields? : CustomFields;
   preference? : Preference;
   assignedTo? : string[];
   avatar?: string,
