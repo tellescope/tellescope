@@ -1,6 +1,7 @@
 import { Grid, Typography } from "@mui/material";
 import React, { CSSProperties, useRef, useState } from "react";
 import { ViewStyle } from "react-native"
+import { ErrorOptions, useHandleError } from "./errors";
 
 import {
   ClickableWeb,
@@ -146,12 +147,23 @@ export const Flex = (props: Flex_Web) => {
   )
 }
 
-export interface FormProps extends Styled {
+export interface FormProps extends Styled, ErrorOptions {
   onSubmit: () => void;
   children?: React.ReactNode;
 }
-export const Form = ({ onSubmit, children, style }: FormProps) =>  {
-  return <form style={style} onSubmit={e => { e.preventDefault(); onSubmit() }}>{children}</form>
+export const Form = ({ onSubmit, uniquenessError, onError, children, style }: FormProps) =>  {
+  const { errorDisplay, handleAPIError } = useHandleError({ uniquenessError, onError })
+
+  return (
+    <form style={style} onSubmit={e => handleAPIError(async () => { 
+      e.preventDefault(); 
+      await onSubmit(); 
+    })}>
+      {children}
+
+      {errorDisplay && errorDisplay}
+    </form>
+  )
 }
 export const SUPPORTS_FORMS = true
 

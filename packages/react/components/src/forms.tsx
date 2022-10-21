@@ -220,11 +220,12 @@ interface LoadingButtonProps extends SubmitButtonOptions {
   disabled?: boolean,
   submitting?: boolean,
   throwOnError?: boolean,
+  uniquenessError?: string,
   onError?: OnApiError,
   onClick?: ((...args: any[]) => void) | (() => Promise<any>),
 }
-export const LoadingButton = ({ disabled, throwOnError, variant="contained", onError, submitting, onClick, submitText="Submit", submittingText="Submitting", type, style={ marginTop: 5, width: '100%' } }: LoadingButtonProps & Styled & { type?: 'submit'}) => {
-  const { errorDisplay, handleAPIError, loading } = useHandleError({ onError })
+export const LoadingButton = ({ disabled, uniquenessError, throwOnError, variant="contained", onError, submitting, onClick, submitText="Submit", submittingText="Submitting", type, style={ marginTop: 5, width: '100%' } }: LoadingButtonProps & Styled & { type?: 'submit'}) => {
+  const { errorDisplay, handleAPIError, loading } = useHandleError({ onError, uniquenessError })
   
   return (
     <>

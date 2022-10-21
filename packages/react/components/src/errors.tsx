@@ -32,8 +32,8 @@ export class ErrorBoundary extends React.Component<{}, { hasError: boolean }> {
 
 export const stringForError = (err: any) => (err as APIError)?.message ?? err?.toString() ?? 'An unexpected error occurred'
 
-export type ErrorOptions = { uniquenessError?: string }
-export type OnApiError = (args: { message: string, component: React.ReactNode }) => void
+export type ErrorOptions = { uniquenessError?: string, onError?: OnApiError }
+export type OnApiError = (args: { message: string }) => void
 export const useHandleError = (props?: { onError?: OnApiError, throwOnError?: boolean } & ErrorOptions) => {
   const { uniquenessError } = props ?? {}
   const [loading, setLoading] = useState(false)
@@ -52,6 +52,7 @@ export const useHandleError = (props?: { onError?: OnApiError, throwOnError?: bo
           : errorMessage
       )
 
+      props?.onError?.({ message: errorMessage })
       if (props?.throwOnError) throw err
     } finally {
       setLoading(false)
