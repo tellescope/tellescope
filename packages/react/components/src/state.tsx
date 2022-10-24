@@ -49,6 +49,7 @@ import {
   PortalCustomization,
   CarePlan,
   EnduserTask,
+  ManagedContentRecordAssignment,
 } from "@tellescope/types-client"
 
 import {
@@ -62,8 +63,7 @@ import {
   EnduserSession,
 } from '@tellescope/sdk'
 import { value_is_loaded } from './loading'
-import { getGoogleClientAPIKey, objects_equivalent } from '@tellescope/utilities'
-import { GOOGLE_INTEGRATIONS_TITLE } from '@tellescope/constants'
+import { objects_equivalent } from '@tellescope/utilities'
 import { ReadFilter } from '@tellescope/types-models'
 
 const RESET_CACHE_TYPE = "cache/reset" as const
@@ -256,6 +256,7 @@ const enduserObservationsSlice = createSliceForList<EnduserObservation, 'enduser
 const forumsSlice = createSliceForList<Forum, 'forums'>('forums')
 const forumPostsSlice = createSliceForList<ForumPost, 'forum_posts'>('forum_posts')
 const managedContentRecoredsSlice = createSliceForList<ManagedContentRecord, 'managed_content_records'>('managed_content_records')
+const managedContentRecoredAssignmentsSlice = createSliceForList<ManagedContentRecordAssignment, 'managed_content_record_assignments'>('managed_content_record_assignments')
 const postCommentsSlice = createSliceForList<PostComment, 'post_comments'>('post_comments')
 const postLikesSlice = createSliceForList<PostLike, 'post_likes'>('post_likes')
 const commentLikesSlice = createSliceForList<PostLike, 'comment_likes'>('comment_likes')
@@ -291,6 +292,7 @@ export const sharedConfig = {
     forum_posts: forumPostsSlice.reducer,
     forums: forumsSlice.reducer,
     managed_content_records: managedContentRecoredsSlice.reducer,
+    managed_content_record_assignments: managedContentRecoredAssignmentsSlice.reducer,
     post_comments: postCommentsSlice.reducer,
     post_likes: postLikesSlice.reducer,
     comment_likes: commentLikesSlice.reducer,
@@ -667,7 +669,7 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
 
 export type HookOptions<T> = {
   limit?: number,
-  loadFilter?: Partial<T>,
+  loadFilter?: ReadFilter<T>,
   refetchInMS?: number,
   dontFetch?: boolean,
   addTo?: AddOptions['addTo'],
@@ -1120,6 +1122,63 @@ export const useManagedContentRecords = (options={} as HookOptions<ManagedConten
     }, 
     {...options}
   )
+}
+export const useManagedContentRecordAssignments = (options={} as HookOptions<ManagedContentRecordAssignment>) => {
+  const session = useResolvedSession()
+  return useListStateHook(
+    'managed_content_record_assignments', useTypedSelector(s => s.managed_content_record_assignments), session, managedContentRecoredAssignmentsSlice, 
+    { 
+      loadQuery: session.api.managed_content_record_assignments.getSome,
+      findOne: session.api.managed_content_record_assignments.getOne,
+      addOne: session.api.managed_content_record_assignments.createOne,
+      addSome: session.api.managed_content_record_assignments.createSome,
+      deleteOne: session.api.managed_content_record_assignments.deleteOne,
+      updateOne: session.api.managed_content_record_assignments.updateOne,
+    }, 
+    {...options}
+  )
+}
+export const useAssignedManagedContentRecords = () => {
+  const session = useEnduserSession()
+  
+  // todo: combine queries with an or filter when implemented
+  const [, { filtered }] = useManagedContentRecords({ loadFilter: { 
+    assignmentType: 'All',
+  }})
+  useManagedContentRecords({ loadFilter: { 
+    assignmentType: 'Manual',
+  }})
+  useManagedContentRecords({ loadFilter: { 
+    assignmentType: 'By Tags',
+    tags: { _all: session.userInfo.tags ?? [] }
+  }})
+  const [eventsLoading] = useCalendarEvents()
+
+  const [assignmentsLoading] = useManagedContentRecordAssignments()
+
+  if (!value_is_loaded(assignmentsLoading)) return {
+    status: assignmentsLoading.status,
+    value: undefined
+  } as LoadedData<ManagedContentRecord[]>
+
+  const recordsLoading = filtered(r => 
+      r.assignmentType === 'All'
+    || (
+        r.assignmentType === 'By Tags' 
+    &&  r.tags?.length 
+    &&  r.tags.filter(t => session.userInfo.tags?.includes(t)).length === r.tags.length
+    ) 
+    || (
+        r.assignmentType === 'Manual' 
+      && !!assignmentsLoading.value.find(e => e.contentId === r.id)
+    )
+    || (
+       value_is_loaded(eventsLoading)
+    && !!eventsLoading.value.find(e => e.sharedContentIds?.includes(r.id))
+    )
+  )
+
+  return recordsLoading
 }
 
 export const useForums = (options={} as HookOptions<Forum>) => {

@@ -66,7 +66,7 @@ export const WithSession = (p : { children: React.ReactNode, sessionOptions?: Us
     lastRefreshRef.current = Date.now()
 
     session.refresh_session()
-    .then(() => updateLocalSessionInfo(session.userInfo, session.authToken))
+    .then(({ authToken, user }) => updateLocalSessionInfo(user, authToken))
     .catch(console.error)
   }, [session, updateLocalSessionInfo])
 
@@ -119,8 +119,8 @@ export const WithEnduserSession = (p : { children: React.ReactNode, sessionOptio
   }
 
   const refresh = async () => {
-    await enduserSession.refresh_session()
-    .then(() => updateLocalSessionInfo(enduserSession.userInfo, enduserSession.authToken))
+    const { authToken, enduser } = await enduserSession.refresh_session()
+    updateLocalSessionInfo(enduser, authToken)
   }
 
   const updateUserInfo: EnduserSessionContext_T['updateUserInfo'] = async (updates, options) => {

@@ -372,6 +372,12 @@ export type ChatAttachment = {
   secureName: string,
 }
 
+export type GenericAttachment = {
+  type: string,
+  displayName: string,
+  secureName: string,
+}
+
 export interface ChatMessage_readonly extends ClientRecord {
   senderId: string | null;
   linkOpens?: { [index: number]: Date };
@@ -774,7 +780,9 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   enduserFormResponses?: EnduserFormResponseForEvent[],
   sharedContentIds?: string[],
   location?: string,
+  locationNotes?: string,
   phone?: string,
+  attachments?: GenericAttachment[]
 }
 
 export interface CalendarEventTemplate_readonly extends ClientRecord { }
@@ -1027,6 +1035,7 @@ export type Block = (
 )
 
 export type ManagedContentRecordType = 'Article' | 'PDF' | 'Video'
+export type ManagedContentRecordAssignmentType = 'All' | "By Tags" | 'Manual'
 export interface ManagedContentRecord_readonly extends ClientRecord {}
 export interface ManagedContentRecord_required {
   title: string,
@@ -1048,7 +1057,16 @@ export interface ManagedContentRecord extends ManagedContentRecord_readonly, Man
   editorState?: string
   mode?: MessageTemplateMode,
   attachments?: ChatAttachment[]
+  assignmentType?: ManagedContentRecordAssignmentType,
 }
+
+export interface ManagedContentRecordAssignment_readonly extends ClientRecord {}
+export interface ManagedContentRecordAssignment_required {
+  contentId: string,
+  enduserId: string,
+}
+export interface ManagedContentRecordAssignment_updatesDisabled {}
+export interface ManagedContentRecordAssignment extends ManagedContentRecordAssignment_readonly, ManagedContentRecordAssignment_required, ManagedContentRecordAssignment_updatesDisabled {}
 
 export type PortalPage = "Home" | "Care Plan" | "Documents" | "Education" | "Community" | "Communications"
 
@@ -1239,6 +1257,7 @@ export type ModelForName_required = {
   enduser_status_updates: EnduserStatusUpdate_required;
   enduser_observations: EnduserObservation_required;
   managed_content_records: ManagedContentRecord_required;
+  managed_content_record_assignments: ManagedContentRecordAssignment_required;
   forums: Forum_required;
   forum_posts: ForumPost_required;
   post_likes: PostLike_required;
@@ -1284,6 +1303,7 @@ export interface ModelForName_readonly {
   enduser_status_updates: EnduserStatusUpdate_readonly;
   enduser_observations: EnduserObservation_readonly;
   managed_content_records: ManagedContentRecord_readonly;
+  managed_content_record_assignments: ManagedContentRecordAssignment_readonly;
   forums: Forum_readonly;
   forum_posts: ForumPost_readonly;
   post_likes: PostLike_readonly;
@@ -1329,6 +1349,7 @@ export interface ModelForName_updatesDisabled {
   enduser_status_updates: EnduserStatusUpdate_updatesDisabled;
   enduser_observations: EnduserObservation_updatesDisabled;
   managed_content_records: ManagedContentRecord_updatesDisabled;
+  managed_content_record_assignments: ManagedContentRecordAssignment_updatesDisabled;
   forums: Forum_updatesDisabled;
   forum_posts: ForumPost_updatesDisabled;
   post_likes: PostLike_updatesDisabled;
@@ -1374,6 +1395,7 @@ export interface ModelForName extends ModelForName_required, ModelForName_readon
   enduser_status_updates: EnduserStatusUpdate;
   enduser_observations: EnduserObservation;
   managed_content_records: ManagedContentRecord;
+  managed_content_record_assignments: ManagedContentRecordAssignment;
   forums: Forum;
   forum_posts: ForumPost;
   post_likes: PostLike;
@@ -1429,6 +1451,7 @@ export const modelNameChecker: { [K in ModelName] : true } = {
   user_notifications: true,
   enduser_observations: true,
   managed_content_records: true,
+  managed_content_record_assignments: true,
   forums: true,
   forum_posts: true,
   post_likes: true,

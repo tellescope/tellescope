@@ -25,6 +25,7 @@ export type EngagementEvent_required = ServerModelForName_required['engagement_e
 export type File = ServerModelForName['files']
 export type Journey = ServerModelForName['journeys']
 export type ManagedContentRecord = ServerModelForName['managed_content_records']
+export type ManagedContentRecordAssignment = ServerModelForName['managed_content_record_assignments']
 export type MessageTemplate = ServerModelForName['templates']
 export type SMSMessage = ServerModelForName['sms_messages']
 export type Task = ServerModelForName['tasks']

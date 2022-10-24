@@ -138,6 +138,8 @@ import {
   weeklyAvailabilitiesValidator,
   timezoneValidator,
   formTypeValidator,
+  managedContentRecordAssignmentTypeValidator,
+  listOfGenericAttachmentsValidator,
 } from "@tellescope/validation"
 
 import {
@@ -2442,6 +2444,7 @@ export const schema: SchemaV1 = build_schema({
       description: { validator: stringValidator5000 },
       meetingId: { validator: mongoIdStringValidator, readonly: true },
       meetingStatus: { validator: meetingStatusValidator },
+      attachments: { validator: listOfGenericAttachmentsValidator },
       chatRoomId: { 
         validator: mongoIdStringValidator,
         dependencies: [{
@@ -2486,6 +2489,7 @@ export const schema: SchemaV1 = build_schema({
       enduserFormResponses: { validator: enduserFormResponsesForEventValidator },
       enduserTasks: { validator: enduserTasksForEventValidator },
       location: { validator: stringValidator1000 },
+      locationNotes: { validator: stringValidator5000 },
       phone: { validator: stringValidator100 }, // leave more generous than phone validator in favor of lower friction
     }
   },
@@ -2869,6 +2873,7 @@ export const schema: SchemaV1 = build_schema({
         validator: managedContentRecordTypeValidator,
         updatesDisabled: true,
       },
+      assignmentType: { validator: managedContentRecordAssignmentTypeValidator },
       attachments: {
         validator: listOfChatAttachmentsValidator,
       },
@@ -2878,6 +2883,43 @@ export const schema: SchemaV1 = build_schema({
       mode: { validator: messageTemplateModeValidator, },
       files: { validator: listOfStringsValidatorEmptyOk },
       tags: { validator: listOfStringsValidatorEmptyOk },
+    }
+  },
+  managed_content_record_assignments: {
+    info: {},
+    constraints: {
+      unique: [
+        ['contentId', 'enduserId'], 
+      ], 
+      relationship: [],
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: { },
+    enduserActions: { read: {}, readMany: {} },
+    fields: {
+      ...BuiltInFields, 
+      contentId: {
+        validator: mongoIdStringValidator,
+        required: true,
+        examples: [PLACEHOLDER_ID],
+        dependencies: [{
+          dependsOn: ['managed_content_records'], 
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+      enduserId: {
+        validator: mongoIdStringValidator,
+        required: true,
+        examples: [PLACEHOLDER_ID],
+        dependencies: [{
+          dependsOn: ['endusers'], 
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
     }
   },
   forums: {

@@ -237,17 +237,10 @@ const ConfirmationScreen = <T,>({
   const [text, setText] = useState('')
 
   const [submitting, setSubmitting] = useState(false)
-  const [errMessage, setErrMessage] = useState('')
 
   const handleConfirm = () => {
-    setSubmitting(true)
-    setErrMessage('')
-
     action()
     .then(onSuccess)
-    .catch((err: APIError) => {
-      setErrMessage(err?.message ?? err?.toString())
-    })
     .finally(() => {
       setSubmitting(false)
     })
@@ -257,15 +250,13 @@ const ConfirmationScreen = <T,>({
     <Modal open={true} setOpen={o => !o && onCancel()}>
     <Form onSubmit={handleConfirm} style={{ width: '100%' }}>
 
-    <Grid container>
-      <Grid item xs={12}>
-        <Typography style={{ fontSize: 25, marginBottom: 5 }}>
-          {title}
-        </Typography>
-      </Grid>
+    <Grid container direction="column">
+      <Typography style={{ fontSize: 25, marginBottom: 5 }}>
+        {title}
+      </Typography>
 
       {description &&
-        <Grid item xs={12} sx={{ minHeight: 'min(40vh, 100px)' }}>
+        <Grid item sx={{ minHeight: 'min(40vh, 100px)' }}>
           <Typography style={{ fontSize: 18 }} color="primary">
             {description}
           </Typography>
@@ -273,7 +264,7 @@ const ConfirmationScreen = <T,>({
       }
 
       {typeToConfirm &&
-        <Grid item xs={12} sx={{ mx: '8px' }}>
+        <Grid item>
           <TextField variant="outlined" type="text" fullWidth
              name="Confirmation" label={`Type "${typeToConfirm}" to confirm`} placeholder={typeToConfirm}
              value={text} onChange={value => setText(value.substring(0, 250))}
@@ -281,21 +272,20 @@ const ConfirmationScreen = <T,>({
         </Grid>
       }
 
-      <Grid item xs={8}>
-        <Button color="primary" variant='outlined' onClick={onCancel}>
-          Cancel
-        </Button>
-      </Grid>
-      <Grid item xs={4}>
-        <SubmitButton
-          submitting={submitting} disabled={typeToConfirm !== text} 
-          submitText={confirmText}
-          submittingText={loadingText}
-        />
-      </Grid>
+      <Grid container sx={{ mt: 1 }}>
+        <Grid item xs={8}>
+          <Button color="primary" variant='outlined' onClick={onCancel}>
+            Cancel
+          </Button>
+        </Grid>
 
-      <Grid item xs={12} sx={{ my: '8px', width: '100%' }}>
-        <Typography color="error">{errMessage}</Typography>
+        <Grid item xs={4}>
+          <SubmitButton
+            submitting={submitting} disabled={typeToConfirm !== text} 
+            submitText={confirmText}
+            submittingText={loadingText}
+          />
+        </Grid>
       </Grid>
     </Grid>
 

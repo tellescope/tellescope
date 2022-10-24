@@ -35,6 +35,7 @@ type EnduserAccessibleModels = (
   | "forum_posts"
   | "forums"
   | "managed_content_records"
+  | "managed_content_record_assignments"
   | "post_comments"
   | "post_likes"
   | "comment_likes"
@@ -147,6 +148,7 @@ const loadDefaultQueries = (s: EnduserSession): { [K in EnduserAccessibleModels]
   forum_posts: defaultQueries(s, 'forum_posts'),
   forums: defaultQueries(s, 'forums'),
   managed_content_records: defaultQueries(s, 'managed_content_records'),
+  managed_content_record_assignments: defaultQueries(s, 'managed_content_record_assignments'),
   post_comments: defaultQueries(s, 'post_comments'),
   post_likes: defaultQueries(s, 'post_likes'),
   comment_likes: defaultQueries(s, 'comment_likes'),

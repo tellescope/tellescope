@@ -3147,6 +3147,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   forum_posts: NO_TEST,
   forums: community_tests,
   managed_content_records: managed_content_records_tests,
+  managed_content_record_assignments: NO_TEST,
   post_likes: NO_TEST,
   comment_likes: NO_TEST,
   organizations: NO_TEST,

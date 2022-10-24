@@ -130,6 +130,8 @@ import {
   TIMEZONES,
   FormType,
   FormResponseAnswerStringLong,
+  ManagedContentRecordAssignmentType,
+  GenericAttachment,
 } from "@tellescope/types-models"
 import {
   DatabaseRecord,
@@ -1572,6 +1574,13 @@ export const chatAttachmentValidator = objectValidator<ChatAttachment>({
 }) 
 export const listOfChatAttachmentsValidator = listValidatorEmptyOk(chatAttachmentValidator)
 
+export const genericAttachmentValidator = objectValidator<GenericAttachment>({ 
+  displayName: stringValidator1000,
+  type: stringValidator100,
+  secureName: stringValidator250,
+}) 
+export const listOfGenericAttachmentsValidator = listValidatorEmptyOk(genericAttachmentValidator)
+
 export const meetingsListValidator = listValidator(objectValidator<{
   id: string,
   updatedAt: string,
@@ -1858,6 +1867,14 @@ const _MANAGED_CONTENT_RECORD_TYPES: { [K in ManagedContentRecordType]: any } = 
 }
 export const MANAGED_CONTENT_RECORD_TYPES = Object.keys(_MANAGED_CONTENT_RECORD_TYPES) as ManagedContentRecordType[]
 export const managedContentRecordTypeValidator = exactMatchValidator<ManagedContentRecordType>(MANAGED_CONTENT_RECORD_TYPES)
+
+const _MANAGED_CONTENT_RECORD_ASSIGNMENT_TYPES: { [K in ManagedContentRecordAssignmentType]: any } = {
+  'All': '',
+  'By Tags': '',
+  Manual: '',
+}
+export const MANAGED_CONTENT_RECORD_ASSIGNMENT_TYPES = Object.keys(_MANAGED_CONTENT_RECORD_ASSIGNMENT_TYPES) as ManagedContentRecordAssignmentType[]
+export const managedContentRecordAssignmentTypeValidator = exactMatchValidator<ManagedContentRecordAssignmentType>(MANAGED_CONTENT_RECORD_ASSIGNMENT_TYPES)
 
 export const passwordValidator: ValidatorDefinition<string> = {
   getExample: getExampleString,

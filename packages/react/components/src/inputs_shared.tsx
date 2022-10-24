@@ -353,6 +353,7 @@ export interface UserAndEnduserSelectorProps {
   maxHeight?: React.CSSProperties['maxHeight']
   showTitleInput?: boolean,
   searchBarPlacement?: "top" | "bottom", 
+  hiddenIds?: string[]
 }
 export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserSelectorProps> = ({
   titleInput,
@@ -361,6 +362,7 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
   onGoBack, 
   onSelect,
   showTitleInput,
+  hiddenIds,
   title="Select Members",
   minHeight,
   maxHeight='50vh',
@@ -409,7 +411,7 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
   
   return (
     <LoadingData data={{ endusers: endusersLoading, users: usersLoading }} render={({ users, endusers }) => {
-      const itemsUnfiltered = [...excludeUsers ? [] : users, ... excludeEndusers ? [] : endusers]
+      const itemsUnfiltered = [...excludeUsers ? [] : users, ... excludeEndusers ? [] : endusers].filter(i => !hiddenIds?.includes(i.id))
       const items = applyFilters(itemsUnfiltered)
       return (
       <Flex flex={1} column justifyContent="center">
