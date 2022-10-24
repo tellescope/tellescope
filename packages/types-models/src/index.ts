@@ -374,6 +374,7 @@ export type ChatAttachment = {
 
 export type GenericAttachment = {
   type: string,
+  fileId: string,
   displayName: string,
   secureName: string,
 }

@@ -1576,6 +1576,7 @@ export const listOfChatAttachmentsValidator = listValidatorEmptyOk(chatAttachmen
 
 export const genericAttachmentValidator = objectValidator<GenericAttachment>({ 
   displayName: stringValidator1000,
+  fileId: mongoIdStringRequired,
   type: stringValidator100,
   secureName: stringValidator250,
 }) 
