@@ -76,7 +76,6 @@ const TellescopeFormWithContext: typeof TellescopeForm = ({
   isPreviousDisabled,
   submit,
   showSubmit,
-  submitDisabled,
   submittingStatus,
   validateField,
 
@@ -85,6 +84,7 @@ const TellescopeFormWithContext: typeof TellescopeForm = ({
   style,
   onSuccess,
   isPreview,
+  validateCurrentField,
 
   ...props 
 }) => {
@@ -204,7 +204,8 @@ const TellescopeFormWithContext: typeof TellescopeForm = ({
               }
               {showSubmit 
                 ? (
-                  <LoadingButton onClick={handleSubmit} disabled={submitDisabled}
+                  <LoadingButton onClick={handleSubmit} 
+                    disabled={!!validateCurrentField()}
                     submitText="Submit Response" 
                     submittingText={
                       submittingStatus === 'uploading-files' 
@@ -322,9 +323,10 @@ export const TellescopeSinglePageForm: typeof TellescopeForm = ({
   submit,
   showSubmit,
   showSaveDraft,
-  submitDisabled,
   submittingStatus,
   validateField,
+  validateResponsesForFields,
+  
 
   thanksMessage="Your response was successfully recorded",
   submitted,
@@ -464,7 +466,8 @@ export const TellescopeSinglePageForm: typeof TellescopeForm = ({
             />
           }
 
-          <LoadingButton onClick={handleSubmit} disabled={submitDisabled}
+          <LoadingButton onClick={handleSubmit} 
+            disabled={!!validateResponsesForFields(list)}
             style={{ height: 42, width: '100%' }}
             submitText="Submit Response" 
             submittingText={

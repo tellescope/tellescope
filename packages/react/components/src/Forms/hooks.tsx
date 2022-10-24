@@ -348,18 +348,18 @@ export const useTellescopeForm = ({ accessCode, existingResponses, automationSte
     return null
   }, [responses, selectedFiles, currentValue, activeField])
 
-  const validateResponses = useCallback(() => {
-    for (const f of fields) {
+  const validateCurrentField = validateField
+
+  const validateResponsesForFields = useCallback((_fields = fields) => {
+    for (const f of _fields) {
       const errorMessage = validateField(f)
       if (errorMessage) return errorMessage
     }
-  }, [validateField, responses])
+  }, [validateField, fields, responses])
 
   const showSubmit = activeField.children.length === 0
-  const submitDisabled = submittingStatus !== undefined || !!validateResponses()
-  const submit = useCallback(async (options?: { onSuccess?: (r: FormResponse) => void, includedFieldIds?: string[] }) => {
-    if (submitDisabled) return 
 
+  const submit = useCallback(async (options?: { onSuccess?: (r: FormResponse) => void, includedFieldIds?: string[] }) => {
     setSubmitErrorMessage('')
     const hasFile = selectedFiles.find(f => !!f.blob) !== undefined
 
@@ -418,7 +418,7 @@ export const useTellescopeForm = ({ accessCode, existingResponses, automationSte
     } finally {
       setSubmittingStatus(undefined)
     }
-  }, [accessCode, automationStepId, enduserId, responses, selectedFiles, session, handleUpload, submitDisabled])
+  }, [accessCode, automationStepId, enduserId, responses, selectedFiles, session, handleUpload])
 
   const isNextDisabled = useCallback(() => {
     if (activeField.children.length === 0) {
@@ -517,9 +517,11 @@ export const useTellescopeForm = ({ accessCode, existingResponses, automationSte
     goToNextField,
     submit,
     showSubmit,
-    submitDisabled,
+    // submitDisabled,
     submitErrorMessage,
     submittingStatus,
     validateField,
+    validateResponsesForFields,
+    validateCurrentField,
   }
 }
