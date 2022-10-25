@@ -53,7 +53,7 @@ const has_local_storage = () => typeof window !== 'undefined' && !!window.localS
 const set_cache = (key: string, authToken: string) => has_local_storage() && (window.localStorage[key] = authToken)
 const access_cache = (key=DEFAULT_AUTHTOKEN_KEY) => has_local_storage() ? window.localStorage[key] : undefined
 
-export const SOCKET_POLLING_DELAY = 200
+export const SOCKET_POLLING_DELAY = 250
 
 export class Session {
   host: string;
@@ -275,7 +275,12 @@ export class Session {
   }
   authenticate_socket = () => { 
     this.initialize_socket()
-    if (!this.socket) return
+    if (!this.socket) {
+      console.error("failed to initialize_socket")
+      return
+    }
+
+    this.socket.removeAllListeners()
 
     this.socket.on('disconnect', () => { 
       this.socketAuthenticated = false 
@@ -285,25 +290,25 @@ export class Session {
       this.socketAuthenticated = true 
       if (this.enableSocketLogging) { this.socket_log("authenticated") }
     })
-    this.socket.on('joined-rooms', value => {
-      this.socket_log(value)
+    this.socket.on('error', error => {
+      console.error('socket error: ', error)
     })
 
-    this.socket.emit('authenticate', this.authToken)
+    this.socket.emit('authenticate', 'stonks')// this.authToken)
   }
 
   connectSocket = async () => {
     let loopCount = 0
-    await wait(undefined, SOCKET_POLLING_DELAY)
+    // await wait(undefined, SOCKET_POLLING_DELAY)
   
+    this.authenticate_socket()
     while (!(this.socketAuthenticated && this.socketAuthenticated) && ++loopCount < 10) {
-      this.authenticate_socket()
       await wait(undefined, SOCKET_POLLING_DELAY)
     }
     
     if (loopCount === 10) {
-      console.log("Failed to authenticate after 10 attempts")
-      process.exit(1)
+      console.error("Failed to authenticate after 10 attempts")
+      return
     }
   
     if (this.enableSocketLogging) {

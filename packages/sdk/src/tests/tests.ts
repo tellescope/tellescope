@@ -2986,6 +2986,11 @@ export const self_serve_appointment_booking_tests = async () => {
         startTimeInMinutes: 60 * 12, // noon,
         endTimeInMinutes: 60 * 13, // 1pm,
       },
+      { // include as duplicate of above to ensure it doesn't produce extra availability slots 
+        dayOfWeekStartingSundayIndexedByZero: 0, // sunday
+        startTimeInMinutes: 60 * 12, // noon,
+        endTimeInMinutes: 60 * 13, // 1pm,
+      },
     ],
     credentialedStates: [{ state: 'NY' }, { state: "CA" }],
     timezone: 'America/New_York',

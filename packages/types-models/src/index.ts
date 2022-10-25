@@ -85,6 +85,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   themeColor?: string;
   customPortalURL?: string,
   portalSettings?: PortalSettings,
+  enduserDisplayName?: string,
 }
 export type OrganizationTheme = {
   name: string,

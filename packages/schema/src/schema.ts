@@ -3255,6 +3255,7 @@ export const schema: SchemaV1 = build_schema({
       roles: { validator: listOfStringsValidatorEmptyOk },
       skills: { validator: listOfStringsValidator },
       themeColor: { validator: stringValidator100 },
+      enduserDisplayName: { validator: stringValidator100 },
       customPortalURL: { validator: stringValidator250 },
       portalSettings: { validator: portalSettingsValidator },
     },
