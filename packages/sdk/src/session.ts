@@ -293,8 +293,14 @@ export class Session {
     this.socket.on('error', error => {
       console.error('socket error: ', error)
     })
+    this.socket.on('connect_error', error => {
+      console.error('connect_error: ', error)
+      // setTimeout(() => {
+      //   this.socket?.connect()
+      // })
+    })
 
-    this.socket.emit('authenticate', 'stonks')// this.authToken)
+    this.socket.emit('authenticate', this.authToken)
   }
 
   connectSocket = async () => {
