@@ -2481,6 +2481,7 @@ export const schema: SchemaV1 = build_schema({
         }]
       }, 
       publicRead: { validator: booleanValidator }, 
+      wasSelfScheduled: { validator: booleanValidator }, 
       enableVideoCall: { validator: booleanValidator }, 
       fields: { validator: fieldsValidator }, 
       numRSVPs: { validator: nonNegNumberValidator },
@@ -2502,7 +2503,7 @@ export const schema: SchemaV1 = build_schema({
     },
     defaultActions: DEFAULT_OPERATIONS,
     customActions: {},
-    enduserActions: {},
+    enduserActions: { read: {}, readMany: {} },
     fields: {
       ...BuiltInFields, 
       title: {
@@ -2523,6 +2524,8 @@ export const schema: SchemaV1 = build_schema({
       },
       publicRead: { validator: booleanValidator }, 
       enableVideoCall: { validator: booleanValidator }, 
+      enableSelfScheduling: { validator: booleanValidator }, 
+      restrictedByState: { validator: booleanValidator }, 
       image: { validator: stringValidator5000 },
     }
   },

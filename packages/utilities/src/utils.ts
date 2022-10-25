@@ -292,7 +292,7 @@ export const fullMonth_day_year = (date: Date): string => {
   return `${month} ${dayOfMonth}, ${year}`
 }
 
-export const time_for_calendar_event = (event: CalendarEvent): string => {
+export const time_for_calendar_event = (event: Pick<CalendarEvent, 'startTimeInMS' | 'durationInMinutes'>): string => {
   const start = new Date(event.startTimeInMS)
   const end = new Date(event.startTimeInMS + event.durationInMinutes * 60 * 1000)
   const { hoursAmPm, minutes, amPm } = get_time_values(start)

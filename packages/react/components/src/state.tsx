@@ -1377,7 +1377,7 @@ export const useEnduserTasks = (options={} as HookOptions<EnduserTask>) => {
 }
 
 export const useCalendarEventTemplates = (options={} as HookOptions<CalendarEventTemplate>) => {
-  const session = useSession()
+  const session = useResolvedSession()
   return useListStateHook(
     'calendar_event_templates', useTypedSelector(s => s.calendar_event_templates), session, calendarEventTemplatesSlice, 
     { 

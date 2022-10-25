@@ -127,7 +127,7 @@ import {
   AvailabilityBlock,
   WeeklyAvailability,
   Timezone,
-  TIMEZONES,
+  TIMEZONE_MAP,
   FormType,
   FormResponseAnswerStringLong,
   ManagedContentRecordAssignmentType,
@@ -2056,6 +2056,7 @@ export const organizationAccessValidator = objectValidator<OrganizationAccess>({
 
 const _PORTAL_PAGES: { [K in PortalPage]: any } = {
   "Care Plan": true,
+  "Appointment Booking": true,
   Documents: true,
   Education: true,
   Home: true,
@@ -2207,5 +2208,4 @@ export const weeklyAvailabilityValidator = objectValidator<WeeklyAvailability>({
 })
 export const weeklyAvailabilitiesValidator = listValidatorEmptyOk(weeklyAvailabilityValidator)
 
-export const timezoneValidator = exactMatchValidator<Timezone>(Object.keys(TIMEZONES) as Timezone[])
-
+export const timezoneValidator = exactMatchValidator<Timezone>(Object.keys(TIMEZONE_MAP) as Timezone[])

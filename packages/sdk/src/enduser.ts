@@ -30,6 +30,7 @@ type EnduserAccessibleModels = (
   | 'form_fields'
   | 'tickets' 
   | 'calendar_events' 
+  | 'calendar_event_templates' // for self schedulign 
   | 'engagement_events'
   | "enduser_observations"
   | "forum_posts"
@@ -139,6 +140,7 @@ const loadDefaultQueries = (s: EnduserSession): { [K in EnduserAccessibleModels]
   chats: defaultQueries(s, 'chats'),
   endusers: defaultQueries(s, 'endusers'),
   calendar_events: defaultQueries(s, 'calendar_events'),
+  calendar_event_templates: defaultQueries(s, 'calendar_event_templates'), // for self-scheduling
   engagement_events: defaultQueries(s, 'engagement_events'),
   files: defaultQueries(s, 'files'),
   tickets: defaultQueries(s, 'tickets'),

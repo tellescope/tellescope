@@ -784,6 +784,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   locationNotes?: string,
   phone?: string,
   attachments?: GenericAttachment[]
+  wasSelfScheduled?: boolean,
 }
 
 export interface CalendarEventTemplate_readonly extends ClientRecord { }
@@ -794,6 +795,8 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   durationInMinutes: number,
   type?: string,
   enableVideoCall?: boolean,
+  enableSelfScheduling?: boolean,
+  restrictedByState?: boolean,
   publicRead?: boolean,
   description?: string,
   reminders?: CalendarEventReminder[],
@@ -1069,7 +1072,7 @@ export interface ManagedContentRecordAssignment_required {
 export interface ManagedContentRecordAssignment_updatesDisabled {}
 export interface ManagedContentRecordAssignment extends ManagedContentRecordAssignment_readonly, ManagedContentRecordAssignment_required, ManagedContentRecordAssignment_updatesDisabled {}
 
-export type PortalPage = "Home" | "Care Plan" | "Documents" | "Education" | "Community" | "Communications"
+export type PortalPage = "Home" | "Care Plan" | "Documents" | "Education" | "Community" | "Communications" | "Appointment Booking"
 
 type BuildPortalBlockInfo <T, I> = { type: T, info: I }
 
@@ -1108,6 +1111,7 @@ export const DEFAULT_PATIENT_PORTAL_BOTTOM_NAVIGATION_POSITIONS: { [K in PortalP
   Education: 3,
   Community: 4,
   "Care Plan": MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION,
+  "Appointment Booking": MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION,
 }
 
 export interface Forum_readonly extends ClientRecord {}
@@ -1487,7 +1491,7 @@ export const isModelName = (s: string): s is ModelName => modelNameChecker[s as 
 
 
 // https://gist.github.com/aviflax/a4093965be1cd008f172/ 
-export const TIMEZONES = {
+export const TIMEZONE_MAP = {
   "Africa/Abidjan": "+00:00",
   "Africa/Accra": "+00:00",
   "Africa/Addis_Ababa": "+03:00",
@@ -2027,4 +2031,36 @@ export const TIMEZONES = {
   "W-SU": "+03:00",
   "Zulu": "+00:00"
 } as const
-export type Timezone = keyof typeof TIMEZONES
+export type Timezone = keyof typeof TIMEZONE_MAP
+
+export const TIMEZONES = Object.keys(TIMEZONE_MAP) as Timezone[]
+
+export const TIMEZONES_USA: Timezone[] = [
+  "America/Anchorage",
+  "America/Boise",
+  "America/Chicago",
+  "America/Denver",
+  "America/Detroit",
+  "America/Indiana/Indianapolis",
+  "America/Indiana/Knox",
+  "America/Indiana/Marengo",
+  "America/Indiana/Petersburg",
+  "America/Indiana/Tell_City",
+  "America/Indiana/Valparaiso",
+  "America/Indiana/Vevay",
+  "America/Indiana/Vincennes",
+  "America/Indiana/Winamac",
+  "America/Indianapolis",
+  "America/Juneau",
+  "America/Kentucky/Louisville",
+  "America/Kentucky/Monticello",
+  "America/Knox_IN",
+  "America/Los_Angeles",
+  "America/Louisville",
+  "America/New_York",
+  "America/North_Dakota/Beulah",
+  "America/North_Dakota/Center",
+  "America/North_Dakota/New_Salem",
+  "America/Phoenix",
+  "America/Puerto_Rico",
+]
