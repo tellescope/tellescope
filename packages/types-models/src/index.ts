@@ -129,6 +129,7 @@ export interface UserSession extends Session, User, OrganizationLimits { // User
   orgName: string;
   verifiedEmail: boolean;
   wasAutomated: boolean;
+  enduserDisplayName?: string,
 }
 
 export type StateCredentialInfo = {

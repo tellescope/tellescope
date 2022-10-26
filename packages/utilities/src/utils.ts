@@ -7,7 +7,7 @@ export const user_is_admin = (u: User & { type: 'user' } | Enduser & { type: 'en
   u.type === 'enduser' ? false :  !!u?.roles?.includes(ADMIN_ROLE)
 
 export const first_letter_capitalized = (s='') => s.charAt(0).toUpperCase() + s.slice(1)
-export const first_letter_lowercase = (s='') => s.charAt(0).toUpperCase() + s.slice(1)
+export const first_letter_lowercase = (s='') => s.charAt(0).toLowerCase() + s.slice(1)
 
 export const object_is_empty = (o : object) => Object.keys(o).length === 0 && o.constructor === Object
 
