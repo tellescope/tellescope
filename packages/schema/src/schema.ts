@@ -442,6 +442,7 @@ export type CustomActions = {
   },
   calendar_events: {
     get_events_for_user: CustomAction<{ userId: string, from: Date, to?: Date, limit?: number }, { events: CalendarEvent[] }>, 
+    generate_meeting_link: CustomAction<{ eventId: string, enduserId: string }, { link: string }>, 
     get_appointment_availability: CustomAction<{ 
       from: Date, calendarEventTemplateId: string, to?: Date, restrictedByState?: boolean, limit?: number,
     }, { 
@@ -2388,9 +2389,22 @@ export const schema: SchemaV1 = build_schema({
           limit: { validator: nonNegNumberValidator },
         },
         returns: { 
-          events: { validator: 'calendar_events' as any }
+          events: { validator: 'calendar_events' as any, required: true }
         },
       },
+      generate_meeting_link: {
+        op: "custom", access: 'read', method: "post",
+        name: 'Generate Meeting Link',
+        path: '/generate-meeting-link',
+        description: "Generates a link to join a scheduled meeting for an enduser",
+        parameters: { 
+          eventId: { validator: mongoIdStringValidator, required: true },
+          enduserId:  { validator: mongoIdStringValidator, required: true },
+        },
+        returns: { 
+          link: { validator: stringValidator1000, required: true }
+        },
+      }, 
       get_appointment_availability: {
         op: "custom", access: 'read', method: "get",
         name: 'Get Appointment Availability for a Calendar Event Type',
