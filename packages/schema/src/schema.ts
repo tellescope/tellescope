@@ -648,6 +648,7 @@ export const schema: SchemaV1 = build_schema({
         ]
       },
       state: { validator: stateValidator },
+      timezone: { validator: timezoneValidator },
       // recentMessagePreview: { 
       //   validator: stringValidator,
       // },

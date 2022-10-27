@@ -91,7 +91,6 @@ import {
   FormResponseAnswerFileValue,
   FormResponseAnswerSignatureValue,
   OrganizationTheme,
-  SendFormChannel,
   ManagedContentRecordType,
   FlowchartUI,
   PreviousFormFieldEquals,
@@ -132,6 +131,7 @@ import {
   FormResponseAnswerStringLong,
   ManagedContentRecordAssignmentType,
   GenericAttachment,
+  CommunicationsChannel,
 } from "@tellescope/types-models"
 import {
   DatabaseRecord,
@@ -1638,6 +1638,13 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
 
+const _COMMUNICATIONS_CHANNELS: { [K in CommunicationsChannel]: any } = {
+  Email: '',
+  SMS: '',
+}
+export const COMMUNICATIONS_CHANNELS = Object.keys(_COMMUNICATIONS_CHANNELS) as CommunicationsChannel[]
+export const communicationsChannelValidator = exactMatchValidator<CommunicationsChannel>(COMMUNICATIONS_CHANNELS)
+export const communicationsChannelValidatorOptional = exactMatchValidatorOptional<CommunicationsChannel>(COMMUNICATIONS_CHANNELS)
 
 const _MESSAGE_TEMPLATE_MODES: { [K in MessageTemplateMode]: any } = {
   richtext: '',
@@ -1666,7 +1673,8 @@ export const calendarEventReminderValidator = orValidator<{ [K in CalendarEventR
   }),
   "enduser-notification": objectValidator<CalendarEventReminderInfoForType['enduser-notification']>({
     info: objectValidator<CalendarEventReminderNotificationInfo>({
-      templateId: mongoIdStringOptional,
+      templateId: mongoIdStringOptional, 
+      channel: communicationsChannelValidatorOptional,
     }, { emptyOk: true }),
     type: exactMatchValidator<'enduser-notification'>(['enduser-notification']), 
     ...sharedReminderValidators, 
@@ -1674,6 +1682,7 @@ export const calendarEventReminderValidator = orValidator<{ [K in CalendarEventR
   "user-notification": objectValidator<CalendarEventReminderInfoForType['user-notification']>({
     info: objectValidator<CalendarEventReminderNotificationInfo>({
       templateId: mongoIdStringOptional,
+      channel: communicationsChannelValidatorOptional,
     }, { emptyOk: true }),
     type: exactMatchValidator<'user-notification'>(['user-notification']), 
     ...sharedReminderValidators, 
@@ -1742,14 +1751,6 @@ export const automationConditionValidator = orValidator<{ [K in AutomationCondit
 })
 export const listOfAutomationConditionsValidator = listValidatorEmptyOk(automationConditionValidator)
 
-const _SEND_FORM_CHANNELS: { [K in SendFormChannel]: any } = {
-  Email: '',
-  SMS: '',
-}
-export const SEND_FORM_CHANNELS = Object.keys(_SEND_FORM_CHANNELS) as SendFormChannel[]
-export const sendFormChannelValidator = exactMatchValidator<SendFormChannel>(SEND_FORM_CHANNELS)
-export const sendFormChannelValidatorOptional = exactMatchValidatorOptional<SendFormChannel>(SEND_FORM_CHANNELS)
-
 export const automationActionValidator = orValidator<{ [K in AutomationActionType]: AutomationAction & { type: K } } >({
   setEnduserStatus: objectValidator<SetEnduserStatusAutomationAction>({
     type: exactMatchValidator(['setEnduserStatus']),
@@ -1768,7 +1769,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     info: objectValidator<AutomationForFormRequest>({ 
       senderId: mongoIdStringRequired, 
       formId: mongoIdStringRequired,
-      channel: sendFormChannelValidatorOptional,
+      channel: communicationsChannelValidatorOptional,
     }, { emptyOk: false }),
   }),
   createTicket: objectValidator<CreateTicketAutomationAction>({

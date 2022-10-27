@@ -215,6 +215,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   termsSigned?: Date,
   termsVersion?: string,
   state?: string,
+  timezone?: Timezone,
 }
 
 export interface EnduserStatusUpdate_readonly extends ClientRecord {} 
@@ -733,6 +734,7 @@ export type AvailabilityBlock = {
 
 export type CalendarEventReminderNotificationInfo = { 
   templateId?: string,
+  channel?: 'Email' | 'SMS',
 }
 type BuildCalendarEventReminderInfo <T, I> = { type: T, info: I, msBeforeStartTime: number, didRemind?: boolean }
 export type CalendarEventReminderInfoForType = {
@@ -851,7 +853,7 @@ interface AutomationEventBuilder <T extends AutomationEventType, V extends objec
   info: V,
 }
 
-export type SendFormChannel = "Email" | "SMS"
+export type CommunicationsChannel = "Email" | "SMS"
 
 export interface AutomationForJourney { journeyId: string }
 export interface WithJourneyId { journeyId: string }
@@ -864,7 +866,7 @@ export interface WithFormId { formId: string }
 export interface WithAutomationStepId { automationStepId: string }
 export interface AutomationForTemplate { templateId: string }
 export interface AutomationForSender { senderId: string }
-export interface AutomationForFormRequest extends AutomationForForm, AutomationForSender { channel?: SendFormChannel }
+export interface AutomationForFormRequest extends AutomationForForm, AutomationForSender { channel?: CommunicationsChannel }
 export interface AutomationForMessage extends AutomationForTemplate, AutomationForSender {}
 export interface AutomationForWebhook { message: string }
 

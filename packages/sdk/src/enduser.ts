@@ -244,12 +244,7 @@ export class EnduserSession extends Session {
     this.sessionStart = Date.now()
     this.setAuthToken(authToken)
     this.setUserInfo(enduser)
-
-    this.socket = io(`${this.host}/${enduser.businessId}`, { transports: ['websocket'] }); // supporting polling requires sticky session at load balancer
-    this.socket.on('disconnect', () => { this.socketAuthenticated = false })
-    this.socket.on('authenticated', () => { this.socketAuthenticated = true })
-
-    this.socket.emit('authenticate', authToken)
+    this.authenticate_socket()
 
     return { authToken, enduser }
   }

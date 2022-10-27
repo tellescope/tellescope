@@ -97,7 +97,9 @@ export class Session {
     this.userInfo = o?.user ?? JSON.parse(access_cache(o.cacheKey + 'userInfo') || '{}');
     if (this.authToken) { 
       set_cache(this.cacheKey, this.authToken)
-      this.authenticate_socket()
+      if ((this.businessId || this.userInfo.businessId)) {
+        this.authenticate_socket()
+      }
     }
     this.config = { 
       headers: {
@@ -265,13 +267,13 @@ export class Session {
     console.log(`${this.type} ${this.userInfo.id} got socket message: ${message}`)
   }
   initialize_socket = () => {
-    if (!this.userInfo?.businessId) {
+    if (!(this.userInfo?.businessId || this.businessId)) {
       if (this.enableSocketLogging) {
         console.warn("Attempting to initialize_socket without businessId set")
       }
       return 
     }
-    this.socket = io(`${this.host}/${this.userInfo.businessId}`, { transports: ['websocket'] }); // supporting polling requires sticky session at load balancer
+    this.socket = io(`${this.host}/${this.userInfo.businessId || this.businessId}`, { transports: ['websocket'] }); // supporting polling requires sticky session at load balancer
   }
   authenticate_socket = () => { 
     this.initialize_socket()
@@ -304,11 +306,13 @@ export class Session {
   }
 
   connectSocket = async () => {
+    if (this.socketAuthenticated) return
+
     let loopCount = 0
     // await wait(undefined, SOCKET_POLLING_DELAY)
   
     this.authenticate_socket()
-    while (!(this.socketAuthenticated && this.socketAuthenticated) && ++loopCount < 10) {
+    while (!(this.socketAuthenticated) && ++loopCount < 10) {
       await wait(undefined, SOCKET_POLLING_DELAY)
     }
     

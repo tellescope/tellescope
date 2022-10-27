@@ -7,10 +7,8 @@ import {
   ClientModelForName,
   ClientModelForName_required,
   UserDisplayInfo,
-  CalendarEvent,
 } from "@tellescope/types-client"
 import { 
-  AutomationAction,
   FormResponseValue,
   ModelName,
 } from "@tellescope/types-models"
@@ -23,7 +21,6 @@ import {
 import {
   fieldsToValidationOld,
 
-  InputValidation,
   InputValidationOld,
   mongoIdStringRequired,
 } from "@tellescope/validation"
@@ -1573,9 +1570,7 @@ const formEventTests = async () => {
 
   const enduser = await sdk.api.endusers.createOne({ email: 'deletemeee@tellescope.com' })
   const journey = await sdk.api.journeys.createOne({ title: 'test journey '})
-  const form = await sdk.api.forms.createOne({
-    title: 'test form',
-  })
+  const form = await sdk.api.forms.createOne({ title: 'test form' })
   const field = await sdk.api.form_fields.createOne({
     formId: form.id,
     title: 'question', 
