@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/sdk",
-  "version": "1.4.18",
+  "version": "1.4.19",
   "description": "Code for interacting with the Tellescope API",
   "main": "./lib/cjs/sdk.js",
   "module": "./lib/esm/sdk.js",

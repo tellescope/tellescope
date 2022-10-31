@@ -1167,6 +1167,7 @@ export const useAssignedManagedContentRecords = () => {
 
   const recordsLoading = filtered(r => 
       r.assignmentType === 'All'
+    || r.enduserId === session.userInfo.id
     || (
         r.assignmentType === 'By Tags' 
     &&  r.tags?.length 
