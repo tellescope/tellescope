@@ -8,25 +8,6 @@ export type AccessType = "All" | "Default" | "Assigned" | null
 export type AccessAction = "create" | "read" | "update" | "delete"
 export type AccessResources = ModelName
   | 'apiKeys'
-  | "automations"
-  | "automationSteps"
-  | "automationUsers"
-  | "enduserNotes"
-  | "engagement"
-  | "files"
-  | "forms"
-  | "formResponses"
-  | "journeys"
-  | "meetings"
-  | "notifications"
-  | "reminders"
-  | "sms"
-  | "teamChat"
-  | "taskTemplates"
-  | "templates"
-  | "organization"
-  | "orgStatistics"
-  | "users"
 export type AccessForResource = {
   [K in AccessAction]: AccessType
 }
@@ -1043,7 +1024,7 @@ export type Block = (
 )
 
 export type ManagedContentRecordType = 'Article' | 'PDF' | 'Video'
-export type ManagedContentRecordAssignmentType = 'All' | "By Tags" | 'Manual'
+export type ManagedContentRecordAssignmentType = 'All' | "By Tags" | 'Manual' | 'Individual'
 export interface ManagedContentRecord_readonly extends ClientRecord {}
 export interface ManagedContentRecord_required {
   title: string,
@@ -1062,7 +1043,8 @@ export interface ManagedContentRecord extends ManagedContentRecord_readonly, Man
   tags?: string[],
   files?: string[],
   category?: string,
-  editorState?: string
+  editorState?: string,
+  enduserId?: string,
   mode?: MessageTemplateMode,
   attachments?: ChatAttachment[]
   assignmentType?: ManagedContentRecordAssignmentType,
@@ -1224,7 +1206,6 @@ export interface EnduserTask extends EnduserTask_readonly, EnduserTask_required,
   completedAt?: Date;
 }
 
-
 export interface CarePlan_readonly extends ClientRecord {}
 export interface CarePlan_required {
   title: string,
@@ -1235,6 +1216,14 @@ export interface CarePlan extends CarePlan_readonly, CarePlan_required, CarePlan
   description?: string
   eventIds?: string[],
 }
+
+export interface RoleBasedAccessPermission_readonly extends ClientRecord {}
+export interface RoleBasedAccessPermission_required {
+  role: string,
+  permissions: Partial<AccessPermissions>,
+}
+export interface RoleBasedAccessPermission_updatesDisabled {}
+export interface RoleBasedAccessPermission extends RoleBasedAccessPermission_readonly, RoleBasedAccessPermission_required, RoleBasedAccessPermission_updatesDisabled {}
 
 export type ModelForName_required = {
   endusers: Enduser_required;
@@ -1279,6 +1268,7 @@ export type ModelForName_required = {
   portal_customizations: PortalCustomization_required;
   enduser_tasks: EnduserTask_required;
   care_plans: CarePlan_required;
+  role_based_access_permissions: RoleBasedAccessPermission_required;
 }
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
@@ -1325,6 +1315,7 @@ export interface ModelForName_readonly {
   portal_customizations: PortalCustomization_readonly;
   enduser_tasks: EnduserTask_readonly;
   care_plans: CarePlan_readonly;
+  role_based_access_permissions: RoleBasedAccessPermission_readonly;
 }
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
@@ -1371,6 +1362,7 @@ export interface ModelForName_updatesDisabled {
   portal_customizations: PortalCustomization_updatesDisabled;
   enduser_tasks: EnduserTask_updatesDisabled;
   care_plans: CarePlan_updatesDisabled;
+  role_based_access_permissions: RoleBasedAccessPermission_updatesDisabled;
 }
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
@@ -1417,6 +1409,7 @@ export interface ModelForName extends ModelForName_required, ModelForName_readon
   portal_customizations: PortalCustomization;
   enduser_tasks: EnduserTask;
   care_plans: CarePlan;
+  role_based_access_permissions: RoleBasedAccessPermission;
 }
 export type ModelName = keyof ModelForName
 export type Model = ModelForName[keyof ModelForName]
@@ -1473,6 +1466,7 @@ export const modelNameChecker: { [K in ModelName] : true } = {
   portal_customizations: true,
   care_plans: true,
   enduser_tasks: true,
+  role_based_access_permissions: true,
 }
 
 

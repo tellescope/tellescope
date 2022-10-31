@@ -20,7 +20,6 @@ import {
 
   EnduserSession,
   ChatRoom,
-  JourneyState,
   UserSession,
   MeetingStatus,
   WebhookSubscriptionsType,
@@ -140,6 +139,7 @@ import {
   formTypeValidator,
   managedContentRecordAssignmentTypeValidator,
   listOfGenericAttachmentsValidator,
+  accessPermissionsValidator,
 } from "@tellescope/validation"
 
 import {
@@ -2891,6 +2891,16 @@ export const schema: SchemaV1 = build_schema({
         validator: managedContentRecordTypeValidator,
         updatesDisabled: true,
       },
+      enduserId: { 
+        validator: mongoIdStringValidator,
+        examples: [PLACEHOLDER_ID],
+        dependencies: [{
+          dependsOn: ['endusers'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete', // if enduserId exist (should only be for Individual), clean up as dependency of enduser
+        }]
+      },
       assignmentType: { validator: managedContentRecordAssignmentTypeValidator },
       attachments: {
         validator: listOfChatAttachmentsValidator,
@@ -3444,6 +3454,41 @@ export const schema: SchemaV1 = build_schema({
       }
     },
   }, 
+  role_based_access_permissions: {
+    info: {},
+    constraints: {
+      unique: ['role'], 
+      relationship: [],
+    },
+    defaultActions: { 
+      read: {}, readMany: {},
+      create: { adminOnly: true }, createMany: { adminOnly: true }, update: { adminOnly: true }, delete: { adminOnly: true },
+    },
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      role: {
+        validator: stringValidator250,
+        required: true,
+        examples: ["Role"],
+      },
+      permissions: {
+        validator: accessPermissionsValidator,
+        required: true,
+        examples: [
+          { 
+            endusers: {
+              create: null,
+              read: null,
+              delete: null,
+              update: null,
+            }
+          },
+        ]
+      }
+    }
+  },
 })
 
 // export type SchemaType = typeof schema

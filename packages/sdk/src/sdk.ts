@@ -124,6 +124,7 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   database_records: defaultQueries(s, 'database_records'),
   care_plans: defaultQueries(s, 'care_plans'),
   enduser_tasks: defaultQueries(s, 'enduser_tasks'),
+  role_based_access_permissions: defaultQueries(s, 'role_based_access_permissions')
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {

@@ -3108,8 +3108,41 @@ export const self_serve_appointment_booking_tests = async () => {
   ])
 }
 
+export const role_based_access_permissions_tests = async () => {
+  log_header("Role Based Access Permission (Custom Roles)")
+  const noEnduserAccessRole = 'no-enduser-access'
+
+  const rbap = await sdk.api.role_based_access_permissions.createOne({
+    role: noEnduserAccessRole,
+    permissions: {
+      endusers: {
+        create: null,
+        read: null,
+        delete: null,
+        update: null,
+      }
+    }
+  })
+  await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [noEnduserAccessRole] }, { replaceObjectFields: true }),
+  await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword) // to use new role, handle logout on role change
+
+  await async_test(
+    'enduser read access restriction working',
+    () => sdkNonAdmin.api.endusers.getSome(),
+    handleAnyError
+  ) 
+
+  // cleanup
+  await Promise.all([
+    sdk.api.role_based_access_permissions.deleteOne(rbap.id),
+    sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Non-Admin'] }, { replaceObjectFields: true }),
+  ])
+  await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword) // to use new role, handle logout on role change
+}
+
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
+  role_based_access_permissions: role_based_access_permissions_tests,
   chat_rooms: chat_room_tests,
   automation_steps: automation_events_tests,
   files: files_tests,

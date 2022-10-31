@@ -48,6 +48,7 @@ export type DatabaseRecord = ClientModelForName['database_records']
 export type PortalCustomization = ClientModelForName['portal_customizations']
 export type EnduserTask = ClientModelForName['enduser_tasks']
 export type CarePlan = ClientModelForName['care_plans']
+export type RoleBasedAccessPermission = ClientModelForName['role_based_access_permissions']
 
 export type Forum = ClientModelForName['forums']
 export type ForumPost = ClientModelForName['forum_posts']

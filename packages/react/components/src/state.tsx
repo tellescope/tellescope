@@ -50,6 +50,7 @@ import {
   CarePlan,
   EnduserTask,
   ManagedContentRecordAssignment,
+  RoleBasedAccessPermission,
 } from "@tellescope/types-client"
 
 import {
@@ -262,6 +263,8 @@ const postLikesSlice = createSliceForList<PostLike, 'post_likes'>('post_likes')
 const commentLikesSlice = createSliceForList<PostLike, 'comment_likes'>('comment_likes')
 const organizationsSlice = createSliceForList<Organization, 'organizations'>('organizations')
 
+const roleBasedAccessPermissionsSlice = createSliceForList<RoleBasedAccessPermission, 'role_based_access_permissions'>('role_based_access_permissions')
+
 const calendarEventRSVPsSlice = createSliceForList<CalendarEventRSVP, 'calendar_event_rsvps'>('calendar_event_rsvps')
 
 export const sharedConfig = {
@@ -304,6 +307,7 @@ export const sharedConfig = {
     portal_customizations: portalCustomizationsSlice.reducer,
     enduser_tasks: enduserTasksSlice.reducer,
     care_plans: carePlansSlice.reducer,
+    role_based_access_permissions: roleBasedAccessPermissionsSlice.reducer,
   },
 }
 
@@ -1272,6 +1276,24 @@ export const useCalendarEventRSVPs = (options={} as HookOptions<CalendarEventRSV
     {...options}
   )
 }
+
+
+export const useRoleBasedAccessPermission = (options={} as HookOptions<Organization>) => {
+  const session = useSession()
+  return useListStateHook(
+    'role_based_access_permissions', useTypedSelector(s => s.role_based_access_permissions), session, roleBasedAccessPermissionsSlice, 
+    { 
+      loadQuery: session.api.role_based_access_permissions.getSome,
+      findOne: session.api.role_based_access_permissions.getOne,
+      addOne: session.api.role_based_access_permissions.createOne,
+      addSome: session.api.role_based_access_permissions.createSome,
+      deleteOne: session.api.role_based_access_permissions.deleteOne,
+      updateOne: session.api.role_based_access_permissions.updateOne,
+    }, 
+    {...options}
+  )
+}
+
 export const useOrganizations = (options={} as HookOptions<Organization>) => {
   const session = useSession()
   return useListStateHook(

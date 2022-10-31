@@ -132,6 +132,9 @@ import {
   ManagedContentRecordAssignmentType,
   GenericAttachment,
   CommunicationsChannel,
+  AccessPermissions,
+  AccessForResource,
+  AccessType,
 } from "@tellescope/types-models"
 import {
   DatabaseRecord,
@@ -161,6 +164,12 @@ import {
   object_is_empty,
   to_object_id,
 } from "@tellescope/utilities"
+import { 
+  ALL_ACCESS,
+  ASSIGNED_ACCESS,
+  DEFAULT_ACCESS,
+  NO_ACCESS,
+ } from "@tellescope/constants"
 
 export interface ValidatorOptions {
   maxLength?: number;
@@ -877,7 +886,7 @@ export const dateValidatorOptional: ValidatorDefinition<Date> = {
   getType: () => "Date",
 }
 
-export const exactMatchValidator = <T extends string>(matches: T[]): ValidatorDefinition<T> => ({
+export const exactMatchValidator = <T extends string | null>(matches: T[], options?: ValidatorOptions): ValidatorDefinition<T> => ({
   validate: (o={}) => build_validator(
     (match: JSONType) => {
       if (matches.filter(m => m === match).length === 0) {
@@ -885,12 +894,12 @@ export const exactMatchValidator = <T extends string>(matches: T[]): ValidatorDe
       }
       return match
     }, 
-    { ...o, listOf: false }
+    { ...o, nullOk: matches.includes(null as any), listOf: false }
   ),
-  getExample: () => matches[0],
+  getExample: () => matches[0] ?? 'null',
   getType: getTypeString,
 })
-export const exactMatchValidatorOptional = <T extends string>(matches: T[]): ValidatorDefinition<T> => ({
+export const exactMatchValidatorOptional = <T extends string | null>(matches: T[]): ValidatorDefinition<T> => ({
   validate: (o={}) => build_validator(
     (match: JSONType) => {
       if (matches.filter(m => m === match).length === 0) {
@@ -898,12 +907,12 @@ export const exactMatchValidatorOptional = <T extends string>(matches: T[]): Val
       }
       return match
     }, 
-    { ...o, listOf: false, isOptional: true }
+    { ...o, nullOk: matches.includes(null as any), listOf: false, isOptional: true }
   ),
-  getExample: () => matches[0],
+  getExample: () => matches[0] ?? 'null',
   getType: getTypeString,
 })
-export const exactMatchListValidator = <T extends string>(matches: T[]) => listValidator(exactMatchValidator(matches))
+export const exactMatchListValidator = <T extends string | null>(matches: T[]) => listValidator(exactMatchValidator(matches))
 
 export const journeysValidator: ValidatorDefinition<Indexable> = {
   validate: (options={}) => build_validator(
@@ -1874,6 +1883,7 @@ const _MANAGED_CONTENT_RECORD_ASSIGNMENT_TYPES: { [K in ManagedContentRecordAssi
   'All': '',
   'By Tags': '',
   Manual: '',
+  Individual: '',
 }
 export const MANAGED_CONTENT_RECORD_ASSIGNMENT_TYPES = Object.keys(_MANAGED_CONTENT_RECORD_ASSIGNMENT_TYPES) as ManagedContentRecordAssignmentType[]
 export const managedContentRecordAssignmentTypeValidator = exactMatchValidator<ManagedContentRecordAssignmentType>(MANAGED_CONTENT_RECORD_ASSIGNMENT_TYPES)
@@ -2210,3 +2220,64 @@ export const weeklyAvailabilityValidator = objectValidator<WeeklyAvailability>({
 export const weeklyAvailabilitiesValidator = listValidatorEmptyOk(weeklyAvailabilityValidator)
 
 export const timezoneValidator = exactMatchValidator<Timezone>(Object.keys(TIMEZONE_MAP) as Timezone[])
+
+export const accessValidator = exactMatchValidator<AccessType>([
+  ALL_ACCESS, DEFAULT_ACCESS, ASSIGNED_ACCESS, NO_ACCESS,
+])
+
+// for each model name, this should be optional, but when a model name is provided, all CRUD fields should be required
+// if this changes (e.g. CRUD fields are made optional), must merge better in authentication.ts in API
+export const accessPermissionValidator = objectValidator<AccessForResource>({
+  create: accessValidator,
+  delete: accessValidator,
+  read: accessValidator,
+  update: accessValidator,
+}, { isOptional: true })
+export const accessPermissionsValidator = objectValidator<AccessPermissions>({
+  endusers: accessPermissionValidator,
+  enduser_status_updates: accessPermissionValidator,
+  engagement_events: accessPermissionValidator,
+  journeys: accessPermissionValidator,
+  api_keys: accessPermissionValidator,
+  tasks: accessPermissionValidator,
+  emails: accessPermissionValidator,
+  sms_messages: accessPermissionValidator,
+  chat_rooms: accessPermissionValidator,
+  chats: accessPermissionValidator,
+  users: accessPermissionValidator,
+  templates: accessPermissionValidator,
+  files: accessPermissionValidator, 
+  tickets: accessPermissionValidator,
+  meetings: accessPermissionValidator, 
+  notes: accessPermissionValidator, 
+  forms: accessPermissionValidator,
+  form_fields: accessPermissionValidator,
+  form_responses: accessPermissionValidator,
+  calendar_events: accessPermissionValidator,
+  calendar_event_templates: accessPermissionValidator,
+  calendar_event_RSVPs: accessPermissionValidator,
+  automation_steps: accessPermissionValidator,
+  automated_actions: accessPermissionValidator,
+  webhooks: accessPermissionValidator, 
+  user_logs: accessPermissionValidator,
+  user_notifications: accessPermissionValidator,
+  enduser_observations: accessPermissionValidator,
+  managed_content_records: accessPermissionValidator,
+  managed_content_record_assignments: accessPermissionValidator,
+  forums: accessPermissionValidator,
+  forum_posts: accessPermissionValidator,
+  post_likes: accessPermissionValidator,
+  comment_likes: accessPermissionValidator,
+  post_comments: accessPermissionValidator,
+  organizations: accessPermissionValidator,
+  integrations: accessPermissionValidator,
+  databases: accessPermissionValidator,
+  database_records: accessPermissionValidator,
+  portal_customizations: accessPermissionValidator,
+  care_plans: accessPermissionValidator,
+  enduser_tasks: accessPermissionValidator,
+  role_based_access_permissions: accessPermissionValidator,
+
+  // deprecated but for backwards compatibility
+  apiKeys: accessPermissionValidator,
+})

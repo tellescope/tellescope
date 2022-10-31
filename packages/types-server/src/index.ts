@@ -50,6 +50,7 @@ export type DatabaseRecord = ServerModelForName['database_records']
 export type PortalCustomization = ServerModelForName['portal_customizations']
 export type EnduserTask = ServerModelForName['enduser_tasks']
 export type CarePlan = ServerModelForName['care_plans']
+export type RoleBasedAccessPermission = ServerModelForName['role_based_access_permissions']
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']
