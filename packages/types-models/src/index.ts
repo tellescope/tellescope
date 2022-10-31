@@ -10,6 +10,8 @@ export type AccessResources = ModelName
   | 'apiKeys'
 export type AccessForResource = {
   [K in AccessAction]: AccessType
+} & {
+  showInSidebar?: boolean,
 }
 export type AccessPermissions = {
   [K in AccessResources]: AccessForResource
@@ -994,7 +996,7 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
   notes?: string,
 }
 
-export type BlockType = 'h1' | 'h2' | 'html' | 'image' | 'youtube' | 'pdf'
+export type BlockType = 'h1' | 'h2' | 'html' | 'image' | 'youtube' | 'pdf' | 'iframe'
 export type ContentBlockBuilder <BLOCK extends BlockType, INFO extends object> = {
   type: BLOCK,
   info: INFO,
@@ -1013,6 +1015,7 @@ export type BlockContentHTML = ContentBlockBuilder<'html', { html: string }>
 export type BlockContentImage = ContentBlockBuilder<'image', BlockContentMedia>
 export type BlockContentPDF = ContentBlockBuilder<'pdf', BlockContentMedia>
 export type BlockContentYoutube = ContentBlockBuilder<'youtube', BlockContentMedia>
+export type BlockContentIFrame = ContentBlockBuilder<'iframe', BlockContentMedia>
 
 export type Block = (
     BlockContentYoutube
@@ -1021,6 +1024,7 @@ export type Block = (
   | BlockContentHTML
   | BlockContentH1
   | BlockContentH2
+  | BlockContentIFrame
 )
 
 export type ManagedContentRecordType = 'Article' | 'PDF' | 'Video'

@@ -1278,7 +1278,7 @@ export const useCalendarEventRSVPs = (options={} as HookOptions<CalendarEventRSV
 }
 
 
-export const useRoleBasedAccessPermission = (options={} as HookOptions<Organization>) => {
+export const useRoleBasedAccessPermissions = (options={} as HookOptions<Organization>) => {
   const session = useSession()
   return useListStateHook(
     'role_based_access_permissions', useTypedSelector(s => s.role_based_access_permissions), session, roleBasedAccessPermissionsSlice, 

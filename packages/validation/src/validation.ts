@@ -135,6 +135,7 @@ import {
   AccessPermissions,
   AccessForResource,
   AccessType,
+  BlockContentIFrame,
 } from "@tellescope/types-models"
 import {
   DatabaseRecord,
@@ -1992,6 +1993,15 @@ export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K 
       width: numberValidatorOptional,
     }),
   }),
+  iframe: objectValidator<BlockContentIFrame>({
+    type: exactMatchValidator(['iframe']),
+    info: objectValidator<BlockContentIFrame['info']>({
+      link: stringValidator5000EmptyOkay,
+      name: stringValidatorOptional,
+      height: numberValidatorOptional,
+      width: numberValidatorOptional,
+    }),
+  }),
 })
 
 const _BLOCK_TYPES: { [K in BlockType]: any } = {
@@ -2001,6 +2011,7 @@ const _BLOCK_TYPES: { [K in BlockType]: any } = {
   image: '',
   pdf: '',
   youtube: '',
+  iframe: '',
 }
 export const BLOCK_TYPES = Object.keys(_BLOCK_TYPES) as BlockType[]
 export const blockTypeValidator = exactMatchValidator<BlockType>(BLOCK_TYPES)
@@ -2232,6 +2243,7 @@ export const accessPermissionValidator = objectValidator<AccessForResource>({
   delete: accessValidator,
   read: accessValidator,
   update: accessValidator,
+  showInSidebar: booleanValidatorOptional,
 }, { isOptional: true })
 export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   endusers: accessPermissionValidator,

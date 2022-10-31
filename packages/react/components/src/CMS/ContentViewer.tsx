@@ -90,6 +90,14 @@ export const ArticleViewer = ({
               >
               </iframe> 
             )
+          : block.type === 'iframe' ? (
+              <iframe width={rootWidth} 
+                height={rootWidth * (block.info.height ?? 315) / (block.info.width ?? 560)}
+                title={block.info.name ?? `embedded link ${i}`} allowFullScreen
+                src={block.info.link}
+              >
+              </iframe> 
+            )
           : block.type === 'pdf' ? (
               <PDFBlockUI info={block.info} />
             )
