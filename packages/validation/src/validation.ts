@@ -1943,7 +1943,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   choices: listOfStringsValidatorOptionalOrEmptyOk,
   from: numberValidatorOptional,
   to: numberValidatorOptional,
-  other: stringValidatorOptional,
+  other: booleanValidatorOptional,
   radio: booleanValidatorOptional,
 })
 
