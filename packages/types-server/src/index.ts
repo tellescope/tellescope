@@ -104,4 +104,5 @@ export interface ElectronicSignature extends InternalBusinessRecord {
   enduserId: string,
   formResponseId: string,
   responsesHash: string,
+  pdfSecureName?: string,
 }

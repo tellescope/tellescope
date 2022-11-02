@@ -8,9 +8,10 @@ import CloseIcon from '@mui/icons-material/Close';
 interface FormResponse_T {
   enduser?: Enduser,
   onClose?: () => void,
+  hideHeader?: boolean,
   response: FormResponse,
 }
-export const FormResponseView = ({ enduser, onClose, response } : FormResponse_T) => {
+export const FormResponseView = ({ enduser, onClose, hideHeader, response } : FormResponse_T) => {
   const [, { findById: findUser}] = useUsers()
 
   const user = findUser(response.submittedBy ?? '')
@@ -26,12 +27,14 @@ export const FormResponseView = ({ enduser, onClose, response } : FormResponse_T
         : <>
           <Grid item xs={12}>
           <Grid container alignItems="center" justifyContent={'space-between'}>
-            <Typography component="h2" style={{
-              fontSize: 20,
-              fontWeight: 'bold',
-            }}> 
-              {response.formTitle}
-            </Typography>
+            {!hideHeader && 
+              <Typography component="h2" style={{
+                fontSize: 20,
+                fontWeight: 'bold',
+              }}> 
+                {response.formTitle}
+              </Typography>
+            }
 
             {onClose 
               ? <LabeledIconButton Icon={CloseIcon} label="Close" onClick={onClose} />
@@ -39,7 +42,7 @@ export const FormResponseView = ({ enduser, onClose, response } : FormResponse_T
             }
           </Grid>
           </Grid>
-          {(enduser || response.userEmail || response.submittedBy) &&
+          {(enduser || response.userEmail || response.submittedBy) && !hideHeader &&
             <Grid item xs={12}>
               <Typography style={{
                 fontSize: 16,
@@ -99,6 +102,16 @@ export const FormResponseView = ({ enduser, onClose, response } : FormResponse_T
                     ? <Typography>
                         {a.value.signed ? <span>Signed as <em>{a.value.fullName}</em></span> : 'Unsigned'}
                       </Typography>
+                  : a.type === 'stringLong'
+                    ? (
+                      <Grid container direction="column">
+                      {a.value.split('\n').map((line, i) => (
+                        <Typography key={i}>
+                          {line || <br />}    
+                        </Typography>
+                      ))}
+                      </Grid>
+                    )
                     : a.value
                   }
                 </Typography>

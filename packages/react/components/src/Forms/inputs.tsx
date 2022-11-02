@@ -1,21 +1,74 @@
 import React, { forwardRef, useCallback, useEffect, useRef, useState } from "react"
-import { Box, Checkbox, Grid, TextField, TextFieldProps, Typography } from "@mui/material"
+import { Box, Button, Checkbox, Grid, TextField, TextFieldProps, Typography } from "@mui/material"
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { PRIMARY_HEX } from "@tellescope/constants"
-import { objects_equivalent } from "@tellescope/utilities"
+import { getPublicFileURL, objects_equivalent } from "@tellescope/utilities"
 import { MultipleChoiceOptions } from "@tellescope/types-models/src"
 import Slider from '@mui/material/Slider';
 
 import DatePicker from "react-datepicker";
 // import "react-datepicker/dist/react-datepicker.css";
 import { datepickerCSS } from "./css/react-datepicker" // avoids build issue with RN
-import { Indexable } from "@tellescope/types-utilities"
 import { Styled } from ".."
 import { FormField } from "@tellescope/types-client"
 import { css } from '@emotion/css'
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+import { usePdf } from '@mikecousins/react-pdf';
+
+const PdfViewer = ({ url } : { url: string }) => {
+  const [page, setPage] = useState(1);
+  
+  const parentRef = useRef<HTMLDivElement | null>(null);
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const { pdfDocument, pdfPage } = usePdf({
+    file: url,
+    page,
+    canvasRef,
+  });
+
+  const pdfHeight: number | undefined = pdfPage?._pageInfo?.view?.[3]
+  const pdfWidth: number | undefined = pdfPage?._pageInfo?.view?.[2]
+
+  const parentWidth = parentRef.current?.clientWidth
+
+  return (
+    <Grid container direction="column">
+      {!pdfDocument && <span>Loading pdf...</span>}
+
+      <Grid item ref={parentRef} style={{ width: '100%' }}>
+        {pdfDocument && pdfHeight && pdfWidth && parentWidth &&
+          <canvas ref={canvasRef} style={{ 
+            maxWidth: '100%', 
+            maxHeight: parentWidth / pdfWidth * pdfHeight
+          }}  />
+        }
+      </Grid>
+
+      {pdfDocument && pdfHeight && pdfWidth && parentWidth &&
+        <Grid container alignItems="center" justifyContent="space-between">
+          <Button variant="outlined" disabled={page === 1} onClick={() => setPage(page - 1)}>
+            Previous Page
+          </Button>
+          <Button variant="outlined" 
+            disabled={page === pdfDocument.numPages}
+            onClick={() => setPage(page + 1)}
+          >
+            Next Page
+          </Button>
+        </Grid>
+      }
+      <a href={url} target="__blank" rel="noopener noreferrer"
+        style={{ marginTop: 5 }}
+      >
+        View agreement in new tab or download here
+
+      </a>
+    </Grid>
+  );
+}
 
 export const RatingInput = ({ field, value, onChange }: FormInputProps<'rating'>) => {
   const from = field?.options?.from || 1
@@ -181,34 +234,33 @@ export const NumberInput = ({ field, value, onChange, ...props }: FormInputProps
 )
 
 export const SignatureInput = ({ value, field, autoFocus=true, onChange }: FormInputProps<'signature'>) => {
-  const [consented, setConsented] = useState(false)
-  const [name, setName] = useState('')
-
   const handleConsentChange = () => {
-    const newConsent = !consented
+    const newConsent = !value?.signed
 
-    setConsented(newConsent)
     onChange({
-      signed: newConsent && !!name,
-      fullName: name,
+      fullName: value?.fullName ?? '',
+      signed: newConsent,
     }, field.id)
   }
 
   const handleNameChange = (newName: string) => {
-    setName(newName.substring(0, 100))
     onChange({
-      signed: consented && !!newName,
+      signed: value?.signed ?? false,
       fullName: newName,
     }, field.id)
   }
 
   return (
     <Grid container alignItems="center">
+      {field.options?.pdfAttachment &&
+        <PdfViewer url={getPublicFileURL({ businessId: field.businessId, name: field.options.pdfAttachment })} />
+      }
+
       <Grid item xs={12}> 
         <Checkbox
           style={{ margin: 0, marginTop: 5, padding: 0, paddingRight: 3 }}
           color="primary"
-          checked={consented}
+          checked={value?.signed ?? false}
           onClick={() => handleConsentChange()}
           inputProps={{ 'aria-label': 'consent to e-signature checkbox' }}
         />
@@ -219,11 +271,11 @@ export const SignatureInput = ({ value, field, autoFocus=true, onChange }: FormI
       </Grid>
 
       <Grid item xs={12} style={{ marginTop: 12 }}>
-        <TextField disabled={!consented} autoFocus={autoFocus}
+        <TextField disabled={!value?.signed} autoFocus={autoFocus}
           style={{ width: '100%'}}
           size="small"
           aria-label="Full Name"
-          value={name} 
+          value={value?.fullName ?? ''} 
           placeholder="Full Name" variant="outlined" 
           onChange={e => handleNameChange(e.target.value)}
         />
@@ -268,7 +320,7 @@ export const FileInput = ({ value, onChange, field }: FormInputProps<'file'>) =>
 export const MultipleChoiceInput = ({ field, value, onChange }: FormInputProps<'multiple_choice'>) => {
   const { choices, radio, other } = field.options as MultipleChoiceOptions
 
-  const [selected, setSelected] = useState(choices.map(c => false))
+  const [selected, setSelected] = useState((choices ?? []).map(c => false))
   const [otherChecked, setOtherChecked] = useState(false)
   const [otherText, setOtherText] = useState('')
   const [localValue, setLocalValue] = useState<{
@@ -294,9 +346,9 @@ export const MultipleChoiceInput = ({ field, value, onChange }: FormInputProps<'
     // don't mark as touched when initializing
     const initializing = onChangeRef.current === undefined
 
-    const values = []
+    const values: string[] = []
     for (const index of localValue?.indexes ?? []) {
-      values.push((field.options as MultipleChoiceOptions)?.choices?.[index])
+      values.push((field.options as MultipleChoiceOptions)?.choices?.[index] ?? '')
     }
     if (localValue?.otherText) {
       values.push(localValue.otherText)
@@ -349,7 +401,7 @@ export const MultipleChoiceInput = ({ field, value, onChange }: FormInputProps<'
 
   return (
     <Grid container alignItems="center">
-      {choices.map((c, i) => (
+      {(choices ?? []).map((c, i) => (
         <Grid item xs={12} key={i}>
           <Checkbox
             color="primary"

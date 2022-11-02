@@ -1945,6 +1945,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   to: numberValidatorOptional,
   other: booleanValidatorOptional,
   radio: booleanValidatorOptional,
+  pdfAttachment: stringValidator5000Optional,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({

@@ -475,11 +475,12 @@ export type FormFieldComplexType = "multiple_choice" | "file" | "signature" | 'r
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
 
 export type FormFieldOptions = {
-  choices: string[];
+  choices?: string[];
   from?: number,
   to?: number,
   radio?: boolean; // absent indicates not radio
   other?: boolean; // include an 'other' option
+  pdfAttachment?: string,
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
