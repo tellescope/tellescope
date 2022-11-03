@@ -29,6 +29,7 @@ export type FlowchartUI = {
   y: number,
 }
 
+/** @deprecated */
 export type OrganizationLimit = 'endusersLimit'
   | 'smsLimit'
   | 'emailsLimit'
@@ -42,18 +43,23 @@ export type OrganizationLimit = 'endusersLimit'
   | 'templatesLimit'
   | 'apiKeysLimit'
 
-export type OrganizationLimits = {
-  [K in OrganizationLimit]?: number;
-}
+// export type OrganizationLimits = {
+//   [K in OrganizationLimit]?: number;
+// }
 
 export type PortalSettings = {
   
+}
+
+export type OrganizationLimits = {
+    [K in ModelName]?: number
 }
 
 export interface Organization_readonly extends ClientRecord {
   subscriptionExpiresAt: Date;
   subscriptionPeriod: number;
   lastSync?: number;
+  limits?: OrganizationLimits, 
 } 
 export interface Organization_required {}
 export interface Organization_updatesDisabled {
@@ -113,6 +119,7 @@ export interface UserSession extends Session, User, OrganizationLimits { // User
   verifiedEmail: boolean;
   wasAutomated: boolean;
   enduserDisplayName?: string,
+  limits?: OrganizationLimits, 
 }
 
 export type StateCredentialInfo = {
@@ -510,6 +517,7 @@ export interface FormField_updatesDisabled {}
 export interface FormField extends FormField_readonly, FormField_required, FormField_updatesDisabled {
   isOptional  ?: boolean,
   description ?: string,
+  headerText  ?: string,
   options     ?: FormFieldOptions,
   intakeField ?: string | null,
   flowchartUI?: FlowchartUI,

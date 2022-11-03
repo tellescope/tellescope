@@ -140,6 +140,7 @@ import {
   managedContentRecordAssignmentTypeValidator,
   listOfGenericAttachmentsValidator,
   accessPermissionsValidator,
+  organizationLimitsValidator,
 } from "@tellescope/validation"
 
 import {
@@ -2115,6 +2116,7 @@ export const schema: SchemaV1 = build_schema({
         required: true,
         examples: ["Text"],
       }, 
+      headerText: { validator: stringValidator250 },
       type: {
         validator: formFieldTypeValidator,
         examples: ['number'],
@@ -3283,6 +3285,10 @@ export const schema: SchemaV1 = build_schema({
       enduserDisplayName: { validator: stringValidator100 },
       customPortalURL: { validator: stringValidator250 },
       portalSettings: { validator: portalSettingsValidator },
+      limits: { 
+        validator: organizationLimitsValidator,
+        readonly: true, // to be set by Tellescope super admin only
+      },
     },
   },
   databases: {

@@ -4,7 +4,6 @@ import { user_display_name } from "@tellescope/utilities"
 
 import {
   useEndusers,
-  useUserDisplayInfo,
   Typography, 
   value_is_loaded,
   useUsers,

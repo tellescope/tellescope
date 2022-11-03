@@ -239,7 +239,7 @@ export const SignatureInput = ({ value, field, autoFocus=true, onChange }: FormI
 
     onChange({
       fullName: value?.fullName ?? '',
-      signed: newConsent,
+      signed: newConsent && !!value?.fullName,
     }, field.id)
   }
 
@@ -260,7 +260,7 @@ export const SignatureInput = ({ value, field, autoFocus=true, onChange }: FormI
         <Checkbox
           style={{ margin: 0, marginTop: 5, padding: 0, paddingRight: 3 }}
           color="primary"
-          checked={value?.signed ?? false}
+          checked={value?.signed}
           onClick={() => handleConsentChange()}
           inputProps={{ 'aria-label': 'consent to e-signature checkbox' }}
         />
@@ -275,7 +275,7 @@ export const SignatureInput = ({ value, field, autoFocus=true, onChange }: FormI
           style={{ width: '100%'}}
           size="small"
           aria-label="Full Name"
-          value={value?.fullName ?? ''} 
+          value={value?.fullName} 
           placeholder="Full Name" variant="outlined" 
           onChange={e => handleNameChange(e.target.value)}
         />
@@ -320,84 +320,13 @@ export const FileInput = ({ value, onChange, field }: FormInputProps<'file'>) =>
 export const MultipleChoiceInput = ({ field, value, onChange }: FormInputProps<'multiple_choice'>) => {
   const { choices, radio, other } = field.options as MultipleChoiceOptions
 
-  const [selected, setSelected] = useState((choices ?? []).map(c => false))
-  const [otherChecked, setOtherChecked] = useState(false)
-  const [otherText, setOtherText] = useState('')
-  const [localValue, setLocalValue] = useState<{
-    indexes: number[],
-    otherText: string,
-  }>()
+  // current other string
+  const enteringOtherStringRef = React.useRef('') // if typing otherString as prefix of a checkbox value, don't auto-select
+  const otherString = value?.find(v => v === enteringOtherStringRef.current || !(choices ?? []).find(c => c === v)) ?? ''
 
-  const textRef = useRef<HTMLInputElement>(null)
-  const onChangeRef = useRef<typeof value | undefined>(undefined)
-
-  const getIndexes = useCallback((s : boolean[]) => {
-    const indexes = []
-    for (let i=0; i < s.length; i ++) if (s[i]) indexes.push(i)
-
-    return indexes
-  }, [])
-
-  const getOtherText = useCallback((otherChecked: boolean, otherText: string) => 
-    otherChecked ? otherText : '', []
-  )
-
-  useEffect(() => {
-    // don't mark as touched when initializing
-    const initializing = onChangeRef.current === undefined
-
-    const values: string[] = []
-    for (const index of localValue?.indexes ?? []) {
-      values.push((field.options as MultipleChoiceOptions)?.choices?.[index] ?? '')
-    }
-    if (localValue?.otherText) {
-      values.push(localValue.otherText)
-    }
-
-    if (objects_equivalent(values, onChangeRef.current)) {
-      return
-    } 
-
-    onChangeRef.current = values
-    onChange(values, field.id, !initializing)
-  }, [localValue, field, onChange, onChangeRef])
-
-  const handleCheck = (i: number) => {
-    if (radio && other) setOtherChecked(false)
-
-    const updated = radio ? selected.map((s, _i) => _i === i ? !s : false )
-                          : selected.map((s, _i) => _i === i ? !s : s)
-
-    setSelected(updated)
-    setLocalValue({ 
-      indexes: getIndexes(updated),
-      otherText: getOtherText(otherChecked, otherText),
-    })
-  }
-
-  const handleOtherChecked = () => {
-    setOtherChecked(!otherChecked)
-
-    const updated = radio ? selected.map(_ => false) : selected
-    setSelected(updated)
-
-    setLocalValue({ 
-      indexes: getIndexes(updated),
-      otherText: getOtherText(!otherChecked, otherText),
-    }) 
-  }
-
-  const handleOther = (newText: string) => {
-    setOtherText(newText)
-    setLocalValue({ 
-      indexes: getIndexes(selected),
-      otherText: getOtherText(otherChecked, newText),
-    }) 
-  }
-
-  useEffect(() => {
-    if (otherChecked === true && textRef.current) textRef.current.focus()
-  }, [textRef, otherChecked])
+  // useEffect(() => {
+  //   enteringOtherStringRef.current = false
+  // }, [field])
 
   return (
     <Grid container alignItems="center">
@@ -405,8 +334,23 @@ export const MultipleChoiceInput = ({ field, value, onChange }: FormInputProps<'
         <Grid item xs={12} key={i}>
           <Checkbox
             color="primary"
-            checked={selected[i]}
-            onClick={() => handleCheck(i)}
+            checked={!!value?.includes(c) && c !== otherString} // coerce to boolean to keep as controlled input
+            onClick={() => onChange(
+              (
+                value?.includes(c)
+                  ? (
+                    radio 
+                      ? []
+                      : value.filter(v => v !== c)
+                  )
+                  : (
+                    radio
+                      ? [c]
+                      : [...(value ?? []), c]
+                  )
+              ),
+              field.id,
+            )}
             inputProps={{ 'aria-label': 'primary checkbox' }}
           />
           <Typography component="span"> {c} </Typography>
@@ -414,20 +358,34 @@ export const MultipleChoiceInput = ({ field, value, onChange }: FormInputProps<'
       ))}
       {other &&
         <Grid item xs={12}>
-          <Checkbox
-            color="primary"
-            checked={otherChecked}
-            onClick={() => handleOtherChecked()}
-            inputProps={{ 'aria-label': 'primary checkbox' }}
-          />
-          <TextField disabled={!otherChecked} // className={classes.textField}
-            inputRef={textRef}
+          <TextField // className={classes.textField}
+            style={{ marginLeft: 10 }}
             size="small"
             aria-label="Other"
-            value={otherText} 
+            value={otherString} 
             placeholder="Other" variant="outlined" 
-            onClick={() => !otherChecked && handleOtherChecked()} // allow click to enable when disabled
-            onChange={e => handleOther(e.target.value.substring(0, 500))}
+            // onClick={() => !otherChecked && handleOtherChecked()} // allow click to enable when disabled
+            onChange={e => {
+              enteringOtherStringRef.current = e.target.value
+
+              onChange(
+                (
+                  radio 
+                    ? (
+                      e.target.value.trim()
+                        ? [e.target.value]
+                        : []
+                    )
+                    : (
+                      e.target.value.trim()
+                        // remove existing other string (if exists) and append new one
+                        ? [...(value ?? []).filter(v => v !== otherString), e.target.value]
+                        : value?.filter(v => v !== otherString)
+                    )
+                ),
+                field.id,
+              )
+            }}
           />
         </Grid>  
       }
