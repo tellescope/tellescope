@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/react-components",
-  "version": "1.4.22",
+  "version": "1.4.23",
   "description": "",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",

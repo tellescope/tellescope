@@ -311,7 +311,83 @@ export const SaveDraft = ({
   )
 }
 
-export const TellescopeSinglePageForm: typeof TellescopeForm = ({
+export const UpdateResponse = ({ 
+  selectedFiles,
+  enduserId,
+  responses,
+  onSuccess,
+  formResponseId,
+  includedFieldIds,
+  formId,
+  style,
+  disabled,
+} : Styled & Pick<TellescopeFormProps, 'onSuccess' | 'selectedFiles' | 'responses' | 'enduserId'> & { 
+  disabled?: boolean,
+  formResponseId?: string, 
+  formId: string,
+  includedFieldIds: string[]
+}) => {
+  const [, { updateElement: updateFormResponse }] = useFormResponses({ dontFetch: true })
+  const session = useSession()
+  const { handleUpload } = useFileUpload({  })
+  
+  return (
+    <LoadingButton style={style} disabled={disabled} variant='contained'
+      onClick={async () => {
+        const hasFile = selectedFiles.find(f => !!f.blob) !== undefined
+
+        if (hasFile) {
+          try { // convert FileBlobs to FileResponses
+            for (const blobInfo of selectedFiles) {
+              const { blob, fieldId } = blobInfo
+              if (!blob) continue
+      
+              const result: FormResponseAnswerFileValue = { name: blob.name, secureName: '' }
+              const { secureName } = await handleUpload(
+                {
+                  name: blob.name,
+                  size: blob.size,
+                  type: blob.type,
+                  enduserId,
+                }, 
+                blob
+              )
+
+              const responseIndex = responses.findIndex(f => f.fieldId === fieldId)
+              responses[responseIndex].answer.value = { ...result, secureName, name: result.name ?? '' } 
+            }
+
+          } catch(err: any) {
+          } finally {
+          }
+        }
+
+        try {
+          const response = await updateFormResponse(
+            (
+              formResponseId 
+              ?? (await session.api.form_responses.prepare_form_response({ formId, enduserId })).response.id
+            ),
+            { 
+              responses: includedFieldIds.map(id => responses.find(r => r.fieldId === id)!)
+            },
+            { replaceObjectFields: true }
+          )
+
+          onSuccess?.(response)
+        } catch(err: any) {
+          // setSubmitErrorMessage(err?.message ?? 'Failed to upload file')
+        } finally {
+          // setSubmittingStatus(undefined)
+        }
+      }}
+      submitText="Update"
+      submittingText="Saving..."
+    />
+  )
+}
+
+export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFormProps & Styled & { updating?: boolean }> = ({
   customInputs, 
   submitErrorMessage,
   onAddFile,
@@ -324,9 +400,9 @@ export const TellescopeSinglePageForm: typeof TellescopeForm = ({
   showSubmit,
   showSaveDraft,
   submittingStatus,
+  updating,
   validateField,
   validateResponsesForFields,
-  
 
   thanksMessage="Your response was successfully recorded",
   submitted,
@@ -454,28 +530,44 @@ export const TellescopeSinglePageForm: typeof TellescopeForm = ({
         </Flex>
 
         <Flex flex={1} wrap="nowrap">
-          {showSaveDraft && 
-            <SaveDraft 
-              {...props}
-              includedFieldIds={includedFieldIds}
-              style={{ width: 200, marginRight: 5, height: 42 }}
-              formId={fields[0].formId}
-              responses={responses}
-              selectedFiles={selectedFiles}
-              onSuccess={onSuccess}
+          {updating
+            ? (
+              <UpdateResponse 
+                {...props}
+                includedFieldIds={includedFieldIds}
+                // style={{ width: 200, marginRight: 5, height: 42 }}
+                formId={fields[0].formId}
+                responses={responses}
+                selectedFiles={selectedFiles}
+                onSuccess={onSuccess}
             />
-          }
+            ) : (
+              <>
+              {showSaveDraft && 
+                <SaveDraft 
+                  {...props}
+                  includedFieldIds={includedFieldIds}
+                  style={{ width: 200, marginRight: 5, height: 42 }}
+                  formId={fields[0].formId}
+                  responses={responses}
+                  selectedFiles={selectedFiles}
+                  onSuccess={onSuccess}
+                />
+              }
 
-          <LoadingButton onClick={handleSubmit} 
-            disabled={!!validateResponsesForFields(list)}
-            style={{ height: 42, width: '100%' }}
-            submitText="Submit Response" 
-            submittingText={
-              submittingStatus === 'uploading-files' 
-                ? 'Uploading files...'
-                : "Submitting..."
-            } 
-          />
+              <LoadingButton onClick={handleSubmit} 
+                disabled={!!validateResponsesForFields(list)}
+                style={{ height: 42, width: '100%' }}
+                submitText="Submit Response" 
+                submittingText={
+                  submittingStatus === 'uploading-files' 
+                    ? 'Uploading files...'
+                    : "Submitting..."
+                } 
+              />
+              </>
+            )
+          }
         </Flex>
 
         <Typography color="error" style={{ alignText: 'center', marginTop: 3 }}>
