@@ -1446,6 +1446,7 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
     value: objectValidator<FormResponseAnswerSignatureValue>({
       fullName: stringValidator250,
       signed: booleanValidator,
+      pdfAttachment: stringValidatorOptional,
     }, { emptyOk: false, isOptional: true }),
   }),
 })

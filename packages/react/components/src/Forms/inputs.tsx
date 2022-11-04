@@ -238,13 +238,15 @@ export const SignatureInput = ({ value, field, autoFocus=true, onChange }: FormI
     const newConsent = !value?.signed
 
     onChange({
+      pdfAttachment: field.options?.pdfAttachment,
       fullName: value?.fullName ?? '',
-      signed: newConsent && !!value?.fullName,
+      signed: newConsent,
     }, field.id)
   }
 
   const handleNameChange = (newName: string) => {
     onChange({
+      pdfAttachment: field.options?.pdfAttachment,
       signed: value?.signed ?? false,
       fullName: newName,
     }, field.id)
@@ -260,7 +262,7 @@ export const SignatureInput = ({ value, field, autoFocus=true, onChange }: FormI
         <Checkbox
           style={{ margin: 0, marginTop: 5, padding: 0, paddingRight: 3 }}
           color="primary"
-          checked={value?.signed}
+          checked={!!value?.signed} // make sure to coerce to boolean to enforce controlled
           onClick={() => handleConsentChange()}
           inputProps={{ 'aria-label': 'consent to e-signature checkbox' }}
         />

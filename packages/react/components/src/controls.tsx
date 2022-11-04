@@ -160,23 +160,29 @@ export const AsyncButton = <T,>({ text, loadingText=text, variant, ...props }: A
 }
 
 interface DownloadButton {
-  secureName: string,
+  secureName?: string,
+  publicURL?: string,
   onDownload: (downloadURL: string) => void;
   onError?: (error: string) => void;
+  color?: "primary" | "white"
+  Icon?: typeof DownloadIcon
+  label?: string,
 }
 
-export const DownloadFileIconButton = ({ secureName, onDownload, onError }: DownloadButton) => {
+export const DownloadFileIconButton = ({ publicURL, secureName, label="Download File", Icon=DownloadIcon, onDownload, onError, ...props }: DownloadButton) => {
   const session = useResolvedSession()
-  const [downloadURL, setDownloadURL] = useState('')
+  const [downloadURL, setDownloadURL] = useState(publicURL ?? '')
 
   return (
-    <AsyncIconButton Icon={DownloadIcon} label="Download File" ariaLabel='download icon'
+    <AsyncIconButton Icon={Icon} {...props} label={label} ariaLabel='download icon' 
       action={async () => {
         if (downloadURL) {
           onDownload(downloadURL) 
           return
         }
         try {
+          if (!secureName) return
+
           const { downloadURL } = await session.api.files.file_download_URL({ secureName })
           setDownloadURL(downloadURL)
           onDownload(downloadURL)

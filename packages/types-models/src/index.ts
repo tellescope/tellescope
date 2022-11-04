@@ -639,6 +639,7 @@ export type FormResponseAnswerRating = FormResponseValueAnswerBuilder<'rating', 
 export type FormResponseAnswerSignatureValue = {
   fullName: string,
   signed: boolean,
+  pdfAttachment?: string,
 }
 export type FormResponseAnswerSignature = FormResponseValueAnswerBuilder<'signature', FormResponseAnswerSignatureValue>
 
