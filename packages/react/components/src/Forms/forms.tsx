@@ -113,10 +113,11 @@ const TellescopeFormWithContext: typeof TellescopeForm = ({
 
   const handleKeyPress = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Enter') {
+      if (activeField.value.type === 'stringLong') return // 
       if (isNextDisabled()) return
       goToNextField()
     } 
-  }, [isNextDisabled, goToNextField, isPreviousDisabled, goToPreviousField])
+  }, [activeField, isNextDisabled, goToNextField, isPreviousDisabled, goToPreviousField])
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyPress)
@@ -438,18 +439,6 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
     } 
     await submit({ onSuccess, includedFieldIds, /* ensures all answers are included and in the correct order */ })
   }, [isPreview, onSuccess, submit])
-
-  const handleKeyPress = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      if (isNextDisabled()) return
-      goToNextField()
-    } 
-  }, [isNextDisabled, goToNextField, isPreviousDisabled, goToPreviousField])
-
-  useEffect(() => {
-    window.addEventListener('keydown', handleKeyPress)
-    return () => { window.removeEventListener('keydown', handleKeyPress)}
-  }, [handleKeyPress])
 
   return (
     <Flex flex={1} column>
