@@ -96,6 +96,10 @@ export interface RecordInfo {
 }
 
 export interface ClientRecord extends RecordInfo { id: string }
+
+export interface WithAllowedPaths {
+  allowedPaths?: string[],
+}
   
 export interface Session {
   type: "user" | "enduser",

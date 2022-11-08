@@ -3140,56 +3140,6 @@ export const role_based_access_permissions_tests = async () => {
   await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword) // to use new role, handle logout on role change
 }
 
-const example_hep_record = async () => {
-  await sdk.api.managed_content_records.createOne({
-    "title": "Squats For Days (output.title)",
-    "assignmentType": "Individual",
-    "enduserId": "tellescope_enduser_id_here",
-    "htmlContent": "", 
-    "textContent": "",
-    "blocks": [
-      {
-        "type": "h1",
-        "info": { 
-          "text": "Standing stability in partial squat with support from table/chair"
-        }
-      },
-      {
-        "type": "h2",
-        "info": {
-          "text": "Stand in front of a counter and hold onto the countertop.\nWhile maintaining your back straight and your hips above the level of your knees, slowly lower your body into a semi-squat position without leaning forward and keeping your heels in contact with the ground at all times."
-        }
-      },
-      {
-        "type": "html",
-        "info": {
-          "html": "<div>custom content synthesizing weight, repetition, frequency, duration, sets, etc.</div>"
-        },
-      },
-      {
-        "type": "image",
-        "info": {
-          "link": "https://hep.physiotec.ca/image.php?param=ZzZySkRIVXBqN2JTejF5U0cvZWtaSkk5MUdyNDYvRmQ3YkFjMm1CU2NEbm9iOENKNEs1ZXlXTXhWcXZyRWZQOERBNVBYVkpNTXlIOVlBWm5PTkVJaFE9PQ=="
-        }
-      },
-      {
-        "type": "image",
-        "info": {
-          "link": "https://hep.physiotec.ca/image.php?param=ZzZySkRIVXBqN2JTejF5U0cvZWtaSkk5MUdyNDYvRmQ3YkFjMm1CU2NEazBlY1g2TFpaYVZsa0wrT3F3aGdsMGd6dTkyVXFvNVdBOUlVUFZpcmltM0E9PQ=="
-        }
-      },
-      {
-        "type": "iframe",
-        "info": {
-          "link": "videos.sproutvideo.com/embed/a09bdeb3191ae5c428/50796be0534425e7?type=sd",
-          "width": 630,
-          "height": 354
-        }
-      }
-    ]
-  })
-}
-
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
   role_based_access_permissions: role_based_access_permissions_tests,

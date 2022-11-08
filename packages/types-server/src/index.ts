@@ -3,6 +3,8 @@ import {
   ModelForName_required,
   RecordInfo,
   Organization as BaseOrganization,
+  UserSession,
+  EnduserSession,
 } from "@tellescope/types-models"
 
 export type ObjectId = import('mongodb').ObjectId

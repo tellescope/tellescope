@@ -273,7 +273,13 @@ export class Session {
       }
       return 
     }
-    this.socket = io(`${this.host}/${this.userInfo.businessId || this.businessId}`, { transports: ['websocket'] }); // supporting polling requires sticky session at load balancer
+    this.socket = io(
+      `${this.host}/${this.userInfo.businessId || this.businessId}`, 
+      { 
+        auth: { token: this.authToken },
+        transports: ['websocket']  // supporting polling requires sticky session at load balancer
+      }
+    );
   }
   authenticate_socket = () => { 
     this.initialize_socket()
@@ -302,9 +308,11 @@ export class Session {
       // })
     })
 
-    this.socket.emit('authenticate', this.authToken)
+    // no longer necessary
+    // this.socket.emit('authenticate', this.authToken)
   }
 
+  /** @deprecated */
   connectSocket = async () => {
     if (this.socketAuthenticated) return
 
@@ -317,7 +325,7 @@ export class Session {
     }
     
     if (loopCount === 10) {
-      console.error("Failed to authenticate after 10 attempts")
+      console.error(`Failed to authenticate ${this.type} ${this.userInfo.id} after 10 attempts`)
       return
     }
   
