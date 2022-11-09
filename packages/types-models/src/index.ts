@@ -53,9 +53,17 @@ export type PortalSettings = {
 
 export type WithLinkOpenTrackingIds = { linkOpenTrackingIds: string[] }
 
+type BuildCustomEnduserField <T, I> = { type: T, info: I, field: string, required?: boolean }
+export type CustomEnduserFields = {
+  "Select": BuildCustomEnduserField<'Select', { options: string[] }>,
+}
+export type CustomEnduserFieldType = keyof CustomEnduserFields
+export type CustomEnduserField = CustomEnduserFields[CustomEnduserFieldType]
+
 export type OrganizationSettings = {
   endusers: { 
-    disableMultipleChatRooms: boolean,
+    disableMultipleChatRooms?: boolean,
+    customFields?: CustomEnduserField[]
   },
 }
 
@@ -190,6 +198,11 @@ export type CustomField  = string | number | object | {
 }
 export type CustomFields = Indexable<boolean | null | string | CustomField>;
 
+export type GenericQuantityWithUnit = {
+  value: string,
+  unit: string,
+}
+
 export interface Enduser_readonly extends UserActivityInfo, ClientRecord {
   lastCommunication?: Date;
   recentMessagePreview?: string;
@@ -205,7 +218,6 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   phoneConsent? : boolean;
   fname? : string;
   lname? : string;
-  dateOfBirth?: Date;
   journeys?: Indexable<string>;
   tags? : string[];
   unredactedTags? : string[];
@@ -219,6 +231,11 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   termsVersion?: string,
   state?: string,
   timezone?: Timezone,
+  zipCode?: string,
+  dateOfBirth?: string;
+  gender?: string;
+  height?: GenericQuantityWithUnit,
+  weight?: GenericQuantityWithUnit;
 }
 
 export interface EnduserStatusUpdate_readonly extends ClientRecord {} 

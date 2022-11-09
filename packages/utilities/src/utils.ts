@@ -301,7 +301,7 @@ export const time_for_calendar_event = (event: Pick<CalendarEvent, 'startTimeInM
   return `${hoursAmPm}:${minutes}${amPm === amPmEnd ? '' : amPm}-${hoursEnd}:${minutesEnd}${amPmEnd}`
 }
 
-export const remove_script_tags = (s: string) => s.replaceAll(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
+export const remove_script_tags = (s: string) => s.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, '')
 
 export const query_string_for_object = (query: Indexable) => {
   let queryString = ''

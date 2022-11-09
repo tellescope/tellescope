@@ -138,6 +138,9 @@ import {
   BlockContentIFrame,
   OrganizationLimits,
   OrganizationSettings,
+  GenericQuantityWithUnit,
+  CustomEnduserFieldType,
+  CustomEnduserFields,
 } from "@tellescope/types-models"
 import {
   DatabaseRecord,
@@ -2155,6 +2158,11 @@ export const enduserFormResponseForEventValidator = objectValidator<EnduserFormR
 })
 export const enduserFormResponsesForEventValidator = listValidatorEmptyOk(enduserFormResponseForEventValidator)
 
+export const genericUnitWithQuantityValidator = objectValidator<GenericQuantityWithUnit>({
+  value: stringValidator5000EmptyOkay,
+  unit: stringValidator1000,
+})
+
 export const VALID_STATES: string[] = [
   "AK", 
   "AL", 
@@ -2242,9 +2250,28 @@ export const accessValidator = exactMatchValidator<AccessType>([
   ALL_ACCESS, DEFAULT_ACCESS, ASSIGNED_ACCESS, NO_ACCESS,
 ])
 
+const _CUSTOM_ENDUSER_FIELD_TYPES: { [K in CustomEnduserFieldType]: any } = {
+  "Select": true,
+}
+export const CUSTOM_ENDUSER_FIELD_TYPES = Object.keys(_CUSTOM_ENDUSER_FIELD_TYPES) as CustomEnduserFieldType[]
+export const customEnduserFieldTypeValidator = exactMatchValidator<CustomEnduserFieldType>(CUSTOM_ENDUSER_FIELD_TYPES)
+
+export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFieldType]: CustomEnduserFields[K] } >({
+  Select: objectValidator<CustomEnduserFields['Select']>({
+    type: exactMatchValidator(['Select']),
+    info: objectValidator<CustomEnduserFields['Select']['info']>({
+      options: listOfStringsValidator,
+    }),
+    field: stringValidator,
+    required: booleanValidatorOptional,
+  }), 
+})
+export const customEnduserFieldsValidatorOptionalOrEmpty = listValidatorOptionalOrEmptyOk(customEnduserFieldValidator)
+
 export const organizationSettingsValidator = objectValidator<OrganizationSettings>({
   endusers: objectValidator<OrganizationSettings['endusers']>({
     disableMultipleChatRooms: booleanValidatorOptional,
+    customFields: customEnduserFieldsValidatorOptionalOrEmpty,
   }, { isOptional: true })
 })
 

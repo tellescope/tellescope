@@ -18,7 +18,7 @@ export const HTMLMessage = ({ html } : HTMLMessageProps) => {
     <div
       dangerouslySetInnerHTML={{
         __html: remove_script_tags(
-          html.replaceAll('<a', '<a style="color: white;"')
+          html.replace(/<a/g, '<a style="color: white;"')
         ),
       }} 
     />

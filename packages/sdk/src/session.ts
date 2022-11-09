@@ -284,7 +284,7 @@ export class Session {
   authenticate_socket = () => { 
     this.initialize_socket()
     if (!this.socket) {
-      console.error("failed to initialize_socket")
+      console.warn("failed to initialize_socket")
       return
     }
 
@@ -299,10 +299,10 @@ export class Session {
       if (this.enableSocketLogging) { this.socket_log("authenticated") }
     })
     this.socket.on('error', error => {
-      console.error('socket error: ', error)
+      console.warn('socket error: ', error)
     })
     this.socket.on('connect_error', error => {
-      console.error('connect_error: ', error)
+      console.warn('connect_error: ', error)
       // setTimeout(() => {
       //   this.socket?.connect()
       // })

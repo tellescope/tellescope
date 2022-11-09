@@ -145,6 +145,8 @@ import {
   organizationLimitsValidator,
   organizationSettingsValidator,
   communicationsChannelValidator,
+  genericUnitWithQuantityValidator,
+  stringValidator25000EmptyOkay,
 } from "@tellescope/validation"
 
 import {
@@ -595,7 +597,7 @@ export const schema: SchemaV1 = build_schema({
         validator: nameValidator,
       },
       dateOfBirth: { 
-        validator: dateValidator,
+        validator: stringValidator250,
         redactions: ['enduser'],
       },
       journeys: { 
@@ -664,6 +666,10 @@ export const schema: SchemaV1 = build_schema({
       },
       state: { validator: stateValidator },
       timezone: { validator: timezoneValidator },
+      gender: { validator: stringValidator25000EmptyOkay },
+      height: { validator: genericUnitWithQuantityValidator },
+      weight: { validator: genericUnitWithQuantityValidator },
+      zipCode: { validator: stringValidator25000EmptyOkay },
       // recentMessagePreview: { 
       //   validator: stringValidator,
       // },

@@ -1799,13 +1799,13 @@ const removeFromJourneyTests = async () => {
 
   // add to journey to trigger initial action
   await sdk.api.endusers.updateOne(enduser.id, { journeys: { [journey.id]: 'New' } }, { replaceObjectFields: true })
-  await wait(undefined, 500)
+  await wait(undefined, 250)
   await async_test(
     `Root action triggered (only root)`,
     () => sdk.api.automated_actions.getSome({ filter: { enduserId: enduser.id }}),
     { onResult: es => es.length === 1 }
   )  
-  await wait(undefined, 500)
+  await wait(undefined, 250)
   await async_test(
     `Next step not trigged early`,
     () => sdk.api.endusers.getOne(enduser.id),
