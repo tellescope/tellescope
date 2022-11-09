@@ -31,6 +31,8 @@ import {
   PreviousFormField,
   OrganizationTheme,
   AvailabilityBlock,
+  WithLinkOpenTrackingIds,
+  CommunicationsChannel,
 } from "@tellescope/types-models"
 
 import {
@@ -141,6 +143,8 @@ import {
   listOfGenericAttachmentsValidator,
   accessPermissionsValidator,
   organizationLimitsValidator,
+  organizationSettingsValidator,
+  communicationsChannelValidator,
 } from "@tellescope/validation"
 
 import {
@@ -354,6 +358,16 @@ export type CustomActions = {
   api_keys: {
     create: CustomAction<{}, { id: string, key: string}>,
   },
+  templates: {
+    get_templated_message: CustomAction<
+      { 
+        message: string, userId: string, enduserId: string,
+        channel: CommunicationsChannel,
+        html?: string, 
+      }, 
+      { plaintext: string, html: string } & WithLinkOpenTrackingIds
+    >,
+  },
   files: {
     prepare_file_upload: CustomAction<{ 
       name: string, 
@@ -511,7 +525,7 @@ export const schema: SchemaV1 = build_schema({
       }
     },
     constraints: {
-      unique: ['email', 'phone', 'externalId'],
+      unique: ['email', 'externalId'],
       relationship: [
         {
           explanation: 'One of email or phone is required',
@@ -1206,6 +1220,10 @@ export const schema: SchemaV1 = build_schema({
       },
       templateId: { validator: mongoIdStringValidator },
       automationStepId: { validator: mongoIdStringValidator },
+      linkOpenTrackingIds: {
+        validator: listOfStringsValidatorEmptyOk,
+        initializer: () => [],
+      },
     }, 
     customActions: {
       sync_integrations: {
@@ -1315,6 +1333,10 @@ export const schema: SchemaV1 = build_schema({
       },
       templateId: { validator: mongoIdStringValidator },
       automationStepId: { validator: mongoIdStringValidator },
+      linkOpenTrackingIds: {
+        validator: listOfStringsValidatorEmptyOk,
+        initializer: () => [],
+      },
     }, 
     customActions: {},
   },
@@ -1496,6 +1518,10 @@ export const schema: SchemaV1 = build_schema({
       },
       templateId: { validator: mongoIdStringValidator },
       automationStepId: { validator: mongoIdStringValidator },
+      linkOpenTrackingIds: {
+        validator: listOfStringsValidatorEmptyOk,
+        initializer: () => [],
+      },
     },
   },
   users: {
@@ -1683,7 +1709,26 @@ export const schema: SchemaV1 = build_schema({
       relationship: [],
     },
     defaultActions: DEFAULT_OPERATIONS,
-    customActions: {},
+    customActions: {
+    get_templated_message: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Get templated message',
+        path: '/templated-message',
+        description: "Returns a message with template values replaced",
+        parameters: { 
+          message: { validator: stringValidator25000, required: true },
+          userId: { validator: mongoIdStringValidator, required: true },
+          enduserId: { validator: mongoIdStringValidator, required: true },
+          html: { validator: stringValidator25000 },
+          channel: { validator: communicationsChannelValidator },
+        },
+        returns: { 
+          plaintext: { validator: stringValidator25000, required: true },
+          html: { validator: stringValidator25000, required: true },
+          linkOpenTrackingIds: { validator: listOfStringsValidatorEmptyOk, required: true },
+        },
+      },
+    },
     fields: {
       ...BuiltInFields, 
       title: {
@@ -3285,6 +3330,7 @@ export const schema: SchemaV1 = build_schema({
       enduserDisplayName: { validator: stringValidator100 },
       customPortalURL: { validator: stringValidator250 },
       portalSettings: { validator: portalSettingsValidator },
+      settings: { validator: organizationSettingsValidator },
       limits: { 
         validator: organizationLimitsValidator,
         readonly: true, // to be set by Tellescope super admin only
@@ -3356,7 +3402,7 @@ export const schema: SchemaV1 = build_schema({
       ], 
       relationship: [
         {
-          explanation: 'One of email or phone is required',
+          explanation: 'Home page cannot be disabled',
           evaluate: ({ page, disabled  }) => {
             if (page === 'Home' && disabled)
               return 'Home page cannot be disabled'

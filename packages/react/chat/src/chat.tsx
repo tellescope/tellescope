@@ -59,7 +59,7 @@ import {
   Session,
   EnduserSession,
 } from "@tellescope/sdk"
-import { SendMessage } from "./components"
+import { HTMLMessage, SendMessage } from "./components"
 
 export {
   user_display_name, // for convenience
@@ -184,13 +184,19 @@ export const Message = ({
 
   const messageComponent = IN_REACT_WEB ? (
     <Typography component="div" style={{ ...textStyle, ...textBGStyle }}>
-      {message.message}
+      {message.html
+        ? <HTMLMessage html={message.html} />
+        : message.message
+      }
       {attachments}
     </Typography>
   ) : (
     <Flex style={{ ...textBGStyle }}>
       <Typography component="div" style={{ ...textStyle }}>
-        {message.message}
+        {message.html
+          ? <HTMLMessage html={message.html} />
+          : message.message
+        }
         {attachments}
       </Typography>   
     </Flex>
@@ -393,7 +399,6 @@ const ConversationPreview = ({ onClick, selected, room, style, displayInfo, sele
 }
 
 const PreviewWithData = ({ PreviewComponent=ConversationPreview, ...props }: Omit<ConversationPreviewProps, 'displayInfo'> & Pick<SidebarInfo, 'PreviewComponent'>) => {
-  const session = useResolvedSession()
   const [displayInfo] = useChatRoomDisplayInfo(props.room.id)
 
   return (

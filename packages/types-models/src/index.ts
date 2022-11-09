@@ -51,6 +51,14 @@ export type PortalSettings = {
   
 }
 
+export type WithLinkOpenTrackingIds = { linkOpenTrackingIds: string[] }
+
+export type OrganizationSettings = {
+  endusers: { 
+    disableMultipleChatRooms: boolean,
+  },
+}
+
 export type OrganizationLimits = {
     [K in ModelName]?: number
 }
@@ -73,6 +81,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   faviconVersion?: number;
   themeColor?: string;
   customPortalURL?: string,
+  settings?: OrganizationSettings,
   portalSettings?: PortalSettings,
   enduserDisplayName?: string,
 }
@@ -277,7 +286,7 @@ export interface Task extends Task_required, Task_readonly, Task_updatesDisabled
   subscriberRoles?: string[];
 }
 
-export interface TextCommunication {
+export interface TextCommunication extends WithLinkOpenTrackingIds {
   automationStepId?: string, 
   templateId?: string,
 }
@@ -328,7 +337,7 @@ export interface SMSMessage_updatesDisabled {
   newThread: boolean, 
   logOnly?: boolean,
 }
-export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SMSMessage_updatesDisabled, TextCommunication {
+export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SMSMessage_updatesDisabled, TextCommunication, WithLinkOpenTrackingIds {
   userId?: string, // defaults to self, but should allow future options to send as other user
   readBy?: { [index: string] : Date };
   // usingPublicNumber?: boolean, // flagged on outgoing messages from public number
@@ -850,7 +859,7 @@ interface AutomationEventBuilder <T extends AutomationEventType, V extends objec
   info: V,
 }
 
-export type CommunicationsChannel = "Email" | "SMS"
+export type CommunicationsChannel = "Email" | "SMS" | "Chat"
 
 export interface AutomationForJourney { journeyId: string }
 export interface WithJourneyId { journeyId: string }

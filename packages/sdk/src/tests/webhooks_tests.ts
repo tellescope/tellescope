@@ -226,6 +226,12 @@ const endusers_tests = async (isSubscribed: boolean) => {
     'Enduser update error', 'Update enduser webhook', isSubscribed
   ) 
 
+  await sdk.api.endusers.set_password({ id: enduser.id, password: 'initialPassword' })
+  await check_next_webhook(
+    a => (a.records?.[0] as any)?.password === 'initialPassword',
+    'Enduser set password error', 'Set enduser password webhook', isSubscribed
+  ) 
+
   // cleanup
   if (isSubscribed) {
     await sdk.api.webhooks.update({ subscriptionUpdates: { 

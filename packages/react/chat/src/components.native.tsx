@@ -1,5 +1,5 @@
 import { launchImageLibrary, launchCamera } from 'react-native-image-picker';
-import { Modal, TextInput } from "react-native"
+import { Modal, TextInput, useWindowDimensions } from "react-native"
 import { Avatar } from 'react-native-paper'
 import {
   useFileUpload,
@@ -14,6 +14,32 @@ import {
   useResolvedSession, 
 } from "@tellescope/react-components"
 import { useState } from 'react';
+import { HTMLMessageProps } from './components';
+import { remove_script_tags } from '@tellescope/utilities';
+import RenderHtml from 'react-native-render-html';
+
+export const HTMLMessage = ({ html } : HTMLMessageProps) => {
+  const { width } = useWindowDimensions();
+  return (
+    <RenderHtml
+      contentWidth={width}
+      source={{ 
+        html: (
+          remove_script_tags(html) 
+        )
+      }}
+      tagsStyles={{
+        'body': {
+          color: 'white',
+        },
+        'a': {
+          color: 'white',
+          textDecorationColor: 'white', // underline color in the link
+        }
+      }}
+    />
+  );
+}
 
 const CHAT_ICON_SIZE = 35
 const SendImageOrVideo = ({ 

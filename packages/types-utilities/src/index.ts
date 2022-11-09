@@ -40,6 +40,7 @@ export type JSONType = null | number | boolean | string | object | undefined
 
 export interface CustomUpdateOptions {
   replaceObjectFields?: boolean,
+  dontSendWebhook?: boolean,
 }
 
 export type CUD = 'create' | 'update' | 'delete' 

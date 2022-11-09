@@ -616,11 +616,12 @@ const enduser_tests = async (queries=sdk.api.endusers) => {
     () => queries.updateOne(e1.id ?? '', { email: e2.email }), 
     { shouldError: true, onError: () => true }
   )
-  await async_test(
-    `update-enduser phone conflict`, 
-    () => queries.updateOne(e1.id ?? '', { phone: e2.phone }), 
-    { shouldError: true, onError: () => true }
-  )
+  // no longer restricted
+  // await async_test(
+  //   `update-enduser phone conflict`, 
+  //   () => queries.updateOne(e1.id ?? '', { phone: e2.phone }), 
+  //   { shouldError: true, onError: () => true }
+  // )
   await async_test(
     `update-enduser email and phone conflict`, 
     () => queries.updateOne(e1.id ?? '', { email: e2.email, phone: e2.phone }), 

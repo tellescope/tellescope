@@ -137,6 +137,7 @@ import {
   AccessType,
   BlockContentIFrame,
   OrganizationLimits,
+  OrganizationSettings,
 } from "@tellescope/types-models"
 import {
   DatabaseRecord,
@@ -1237,6 +1238,7 @@ export const preferenceValidator = exactMatchValidator<Preference>(['email', 'sm
 
 export const updateOptionsValidator = objectValidator<CustomUpdateOptions>({
   replaceObjectFields: booleanValidatorOptional,
+  dontSendWebhook: booleanValidatorOptional,
 }, { isOptional: true })
 
 export const journeyStatePriorityValidator = exactMatchValidator<JourneyStatePriority>(["Disengaged", "N/A", "Engaged"])
@@ -1653,6 +1655,7 @@ export const automationActionTypeValidator = exactMatchValidator<AutomationActio
 const _COMMUNICATIONS_CHANNELS: { [K in CommunicationsChannel]: any } = {
   Email: '',
   SMS: '',
+  Chat: '',
 }
 export const COMMUNICATIONS_CHANNELS = Object.keys(_COMMUNICATIONS_CHANNELS) as CommunicationsChannel[]
 export const communicationsChannelValidator = exactMatchValidator<CommunicationsChannel>(COMMUNICATIONS_CHANNELS)
@@ -2238,6 +2241,12 @@ export const timezoneValidator = exactMatchValidator<Timezone>(Object.keys(TIMEZ
 export const accessValidator = exactMatchValidator<AccessType>([
   ALL_ACCESS, DEFAULT_ACCESS, ASSIGNED_ACCESS, NO_ACCESS,
 ])
+
+export const organizationSettingsValidator = objectValidator<OrganizationSettings>({
+  endusers: objectValidator<OrganizationSettings['endusers']>({
+    disableMultipleChatRooms: booleanValidatorOptional,
+  }, { isOptional: true })
+})
 
 // for each model name, this should be optional, but when a model name is provided, all CRUD fields should be required
 // if this changes (e.g. CRUD fields are made optional), must merge better in authentication.ts in API

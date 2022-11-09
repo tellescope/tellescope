@@ -7,8 +7,24 @@ import {
   SendIcon,
   useChats,
 } from "@tellescope/react-components"
-import { user_display_name } from "@tellescope/utilities";
+import { remove_script_tags, user_display_name } from "@tellescope/utilities";
 import { Checkbox, TextField, FormControlLabel, Grid } from "@mui/material";
+
+export interface HTMLMessageProps {
+  html: string,
+}
+export const HTMLMessage = ({ html } : HTMLMessageProps) => {
+  return (
+    <div
+      dangerouslySetInnerHTML={{
+        __html: remove_script_tags(
+          html.replaceAll('<a', '<a style="color: white;"')
+        ),
+      }} 
+    />
+
+  )
+}
 
 interface SendMessage_T {
   roomId: string,
