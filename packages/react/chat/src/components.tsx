@@ -13,18 +13,15 @@ import { Checkbox, TextField, FormControlLabel, Grid } from "@mui/material";
 export interface HTMLMessageProps {
   html: string,
 }
-export const HTMLMessage = ({ html } : HTMLMessageProps) => {
-  return (
-    <div
-      dangerouslySetInnerHTML={{
-        __html: remove_script_tags(
-          html.replace(/<a/g, '<a style="color: white;"')
-        ),
-      }} 
-    />
-
-  )
-}
+export const HTMLMessage = ({ html } : HTMLMessageProps) => (
+  <div style={{ padding: 2 }}
+    dangerouslySetInnerHTML={{
+      __html: remove_script_tags(
+        html.replace(/<a/g, '<a style="color: white;"')
+      ),
+    }} 
+  />
+)
 
 interface SendMessage_T {
   roomId: string,

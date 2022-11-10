@@ -191,7 +191,7 @@ export const Message = ({
       {attachments}
     </Typography>
   ) : (
-    <Flex style={{ ...textBGStyle }}>
+    <Flex style={{ ...textBGStyle }} alignItems="center">
       <Typography component="div" style={{ ...textStyle }}>
         {message.html
           ? <HTMLMessage html={message.html} />

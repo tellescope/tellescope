@@ -18,10 +18,19 @@ import { HTMLMessageProps } from './components';
 import { remove_script_tags } from '@tellescope/utilities';
 import RenderHtml from 'react-native-render-html';
 
-export const HTMLMessage = ({ html } : HTMLMessageProps) => {
+export const HTMLMessage = ({ html: htmlUnprocessed } : HTMLMessageProps) => {
+  const html = (
+    htmlUnprocessed.endsWith('<br/>')
+      ? htmlUnprocessed.substring(0, htmlUnprocessed.length - 5)
+      : htmlUnprocessed
+  )
+
   const { width } = useWindowDimensions();
   return (
-    <RenderHtml
+    <RenderHtml 
+      baseStyle={{
+        paddingTop: 4, // causes better fit into both 1-line and multiline chat bubbles
+      }}
       contentWidth={width}
       source={{ 
         html: (
