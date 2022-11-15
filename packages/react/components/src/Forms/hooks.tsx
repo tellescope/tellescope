@@ -188,12 +188,13 @@ const OrganizationThemeContext = createContext(null as any as {
   theme: OrganizationTheme, 
   setTheme: (theme: OrganizationTheme) => void,
   businessId?: string,
+  organizationIds?: string[],
 })
-export const WithOrganizationTheme = ({ businessId, children } : { children: React.ReactNode, businessId?: string }) => {
+export const WithOrganizationTheme = ({ businessId, organizationIds, children } : { children: React.ReactNode, businessId?: string, organizationIds?: string[] }) => {
   const [theme, setTheme] = useState({} as OrganizationTheme)
 
   return (
-    <OrganizationThemeContext.Provider value={{ businessId, theme, setTheme }}>
+    <OrganizationThemeContext.Provider value={{ businessId, organizationIds, theme, setTheme }}>
       {children}
     </OrganizationThemeContext.Provider>
   )
@@ -213,7 +214,10 @@ export const useOrganizationTheme = () => {
   useEffect(() => {
     if (theme.name) return // indicates already loaded
 
-    session.api.organizations.get_theme({ businessId: context?.businessId ?? session.userInfo.businessId })
+    session.api.organizations.get_theme({ 
+      businessId: context?.businessId ?? session.userInfo.businessId,
+      organizationIds: context?.organizationIds ?? session.userInfo.organizationIds,
+    })
     .then(({ theme } ) => {
       setTheme(theme)
       context?.setTheme(theme)

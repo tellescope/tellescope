@@ -23,7 +23,7 @@ export const get_sha256 = (s='') => createHash('sha256').update(s).digest('hex')
 
 const VERBOSE = true
 
-const AWAIT_SOCKET_DURATION = 300 // 25ms was generally passing for Redis, 1000ms should be upper limit of performance
+const AWAIT_SOCKET_DURATION = 500 // 25ms was generally passing for Redis, 1000ms should be upper limit of performance
 
 const host = process.env.TEST_URL || 'http://localhost:8080'
 const [email, password] = [process.env.TEST_EMAIL, process.env.TEST_PASSWORD]
@@ -31,18 +31,26 @@ const [email2, password2] = [process.env.TEST_EMAIL_2, process.env.TEST_PASSWORD
 const [nonAdminEmail, nonAdminPassword] = [process.env.NON_ADMIN_EMAIL, process.env.NON_ADMIN_PASSWORD]
 const businessId = '60398b1131a295e64f084ff6'
 
+const subUserEmail = process.env.SUB_EMAIL
+const otherSubUserEmail = process.env.OTHER_SUB_EMAIL
+const subSubUserEmail = process.env.SUB_SUB_EMAIL
+
 const user1 = new Session({ host, enableSocketLogging: VERBOSE })
 const user2 = new Session({ host, enableSocketLogging: VERBOSE })
 const sdkNonAdmin = new Session({ host })
+const sdkSub = new Session({ host })
+const sdkOtherSub = new Session({ host })
+const sdkSubSub = new Session({ host })
 
 const enduserSDK = new EnduserSession({ host, businessId, enableSocketLogging: VERBOSE })
-if (!(email && password && email2 && password2 && nonAdminEmail && nonAdminPassword)) {
+if (!(email && subUserEmail && otherSubUserEmail && subSubUserEmail && password && email2 && password2 && nonAdminEmail && nonAdminPassword)) {
   console.error("Set TEST_EMAIL and TEST_PASSWORD")
   process.exit(1)
 }
 
 // consistent passing at 150ms AWAIT SOCKET DURATION
 const basic_tests = async () => {
+  log_header("Basic Tests")
   const socket_events: Indexable[] = []
 
   user2.handle_events({
@@ -54,6 +62,7 @@ const basic_tests = async () => {
 
   const e = await user1.api.endusers.createOne({ email: "sockets@tellescope.com" })
   await wait(undefined, AWAIT_SOCKET_DURATION)
+
   assert(objects_equivalent(e, socket_events?.[0]?.[0]), 'inconsistent socket create', 'socket create')
 
   await user1.api.endusers.updateOne(e.id, { fname: 'Gary' })
@@ -67,6 +76,29 @@ const basic_tests = async () => {
   const es = (await user1.api.endusers.createSome([{ email: "sockets@tellescope.com" }, { email: 'sockets2@tellescope.com' }])).created
   await wait(undefined, AWAIT_SOCKET_DURATION)
   assert(objects_equivalent(es, socket_events?.[3]), 'inconsistent socket create many', 'socket create many')
+}
+
+const sub_organization_tests = async () => {
+  log_header("Sub Organization Tests")
+  const root_events: Indexable[] = []
+  const sub_events: Indexable[] = []
+  const other_sub_events: Indexable[] = []
+  const sub_sub_events: Indexable[] = []
+
+  user1.handle_events({ 'created-endusers': es => root_events.push(es) })
+  sdkSub.handle_events({ 'created-endusers': es => sub_events.push(es) })
+  sdkOtherSub.handle_events({ 'created-endusers': es => other_sub_events.push(es) })
+  sdkSubSub.handle_events({ 'created-endusers': es => sub_sub_events.push(es) })
+
+  const e = await sdkSub.api.endusers.createOne({ email: "sockets_other@tellescope.com" })
+  await wait(undefined, AWAIT_SOCKET_DURATION)
+
+  assert(objects_equivalent(e, root_events?.[0]?.[0]), 'access error', 'root gets sub')
+  assert(objects_equivalent(e, sub_events?.[0]?.[0]), 'access error', 'sub gets sub')
+  assert(other_sub_events.length === 0, 'got access incorrectly', 'other sub no access')
+  assert(sub_sub_events.length === 0, 'got access incorrectly', 'sub sub no access')
+
+  await user1.api.endusers.deleteOne(e.id)
 }
 
 const access_tests = async () => {
@@ -140,7 +172,7 @@ const access_tests = async () => {
 
   await user1.api.endusers.set_password({ id: unassignedEnduser.id, password: 'enduserPassword!' })
   await enduserSDK.authenticate(unassignedEnduser.email as string, 'enduserPassword!')
-  await enduserSDK.connectSocket()
+  await wait(undefined, AWAIT_SOCKET_DURATION)
 
   enduserSDK.handle_events({  
     'created-chat_rooms': rs => enduserEvents.push(...rs),
@@ -227,7 +259,6 @@ const access_tests = async () => {
 
   await user1.api.endusers.set_password({ id: assignedEnduser.id, password: 'enduserPassword!' })
   await enduserSDK.authenticate(assignedEnduser.email as string, 'enduserPassword!')
-  await enduserSDK.authenticate_socket()
 
   enduserSDK.handle_events({  
     'created-chats': rs => enduserEvents.push(...rs),
@@ -271,7 +302,7 @@ const enduser_tests = async () => {
   await user1.api.endusers.set_password({ id: enduser.id, password: 'enduserPassword!' })
 
   await enduserSDK.authenticate(enduser.email as string, 'enduserPassword!')
-  await enduserSDK.connectSocket()
+  await wait(undefined, AWAIT_SOCKET_DURATION)
 
   const userEvents = [] as ChatMessage[]
   const enduserEvents = [] as ChatMessage[]
@@ -336,6 +367,7 @@ const deauthentication_tests = async (byTimeout=false) => {
   const enduser = await user1.api.endusers.createOne({ email: "socketenduser@tellescope.com" })
   await user1.api.endusers.set_password({ id: enduser.id, password: 'enduserPassword!' })
   await enduserSDK.authenticate(enduser.email as string, 'enduserPassword!', { durationInSeconds: byTimeout ? TEST_SESSION_DURATION : undefined })
+  await wait(undefined, AWAIT_SOCKET_DURATION)
   
   const room  = await user1.api.chat_rooms.createOne({ 
     type: 'external', 
@@ -409,7 +441,7 @@ const calendar_events = async () => {
   const enduser = await user1.api.endusers.createOne({ email: "socketenduser@tellescope.com" })
   await user1.api.endusers.set_password({ id: enduser.id, password: 'enduserPassword!' })
   await enduserSDK.authenticate(enduser.email as string, 'enduserPassword!')
-  await enduserSDK.connectSocket()
+  await wait(undefined, AWAIT_SOCKET_DURATION)
 
   const userEvents = [] as ChatMessage[]
   const enduserEvents = [] as ChatMessage[]
@@ -437,14 +469,18 @@ const calendar_events = async () => {
   try {
     await user1.authenticate(email, password)
     await user1.reset_db()
-    await user2.authenticate(email2, password2) // generate authToken + socket connection for API keyj
-    await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)
 
-    await user1.connectSocket()
-    await user2.connectSocket()
-    await sdkNonAdmin.connectSocket()
+    await Promise.all([
+      user2.authenticate(email2, password2), // generate authToken + socket connection for API keyj
+      sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword),
+      sdkSub.authenticate(subUserEmail, password),
+      sdkOtherSub.authenticate(otherSubUserEmail, password),
+      sdkSubSub.authenticate(subSubUserEmail, password),
+    ])
+    await wait(undefined, AWAIT_SOCKET_DURATION) // wait for socket connections
 
     await basic_tests()
+    await sub_organization_tests()
     await access_tests()
     await calendar_events()
     await enduser_tests()

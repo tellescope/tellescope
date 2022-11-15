@@ -134,7 +134,6 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
   }
 }
 
-
 const loadDefaultQueries = (s: EnduserSession): { [K in EnduserAccessibleModels] : APIQuery<K> } => ({
   chat_rooms: defaultQueries(s, 'chat_rooms'),
   chats: defaultQueries(s, 'chats'),
@@ -173,7 +172,7 @@ export class EnduserSession extends Session {
   constructor(o: EnduserSessionOptions) {
     super({ ...o, cacheKey: o?.cacheKey || "tellescope_enduser", type: 'enduser' })
     if (o?.enduser) this.userInfo = o.enduser
-    
+
     this.businessId = o?.businessId
 
     this.api = loadDefaultQueries(this) as EnduserQueries 
@@ -251,26 +250,30 @@ export class EnduserSession extends Session {
 
   authenticate = async (email: string, password: string, o?: { durationInSeconds?: number }) => this.handle_new_session(
     await this.POST<
-      { email: string, password: string, businessId: string, durationInSeconds?: number }, 
+      { email: string, password: string, businessId?: string, organizationIds?: string[], durationInSeconds?: number }, 
       { authToken: string, enduser: Enduser }
-    >('/v1/login-enduser', { email, password, businessId: this.businessId, ...o })
+    >('/v1/login-enduser', { email, password, businessId: this.businessId, organizationIds: this.organizationIds, ...o })
   )
 
-  register = async (args: extractFields<PublicActions['endusers']['register']['parameters']>) => (
-    this.POST<typeof args & { businessId: string }, Promise<extractFields<PublicActions['endusers']['register']['returns']>>>(
-      `/v1${schema.endusers.publicActions.register.path}`, { ...args, businessId: this.businessId }
+  register = async (args: Omit<extractFields<PublicActions['endusers']['register']['parameters']>, 'businessId'> & { businessId?: string }) => (
+    this.POST<typeof args, Promise<extractFields<PublicActions['endusers']['register']['returns']>>>(
+      `/v1${schema.endusers.publicActions.register.path}`, { ...args, businessId: this.businessId, organizationIds: this.organizationIds, }
     )
   )
 
   request_password_reset = async (args: extractFields<PublicActions['endusers']['request_password_reset']['parameters']>) => (
     this.POST<typeof args & { businessId: string }, Promise<extractFields<PublicActions['endusers']['request_password_reset']['returns']>>>(
-      `/v1${schema.endusers.publicActions.request_password_reset.path}`, { ...args, businessId: this.businessId }
+      `/v1${schema.endusers.publicActions.request_password_reset.path}`, { ...args, businessId: this.businessId, 
+        organizationIds: this.organizationIds, 
+      }
     )
   )
   
   reset_password = async (args: extractFields<PublicActions['endusers']['reset_password']['parameters']>) => (
     this.POST<typeof args & { businessId: string }, Promise<extractFields<PublicActions['endusers']['reset_password']['returns']>>>(
-      `/v1${schema.endusers.publicActions.reset_password.path}`, { ...args, businessId: this.businessId }
+      `/v1${schema.endusers.publicActions.reset_password.path}`, { ...args, businessId: this.businessId, 
+        organizationIds: this.organizationIds, 
+      }
     )
   )
 

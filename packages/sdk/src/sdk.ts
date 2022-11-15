@@ -52,7 +52,7 @@ export interface APIQuery<
   T=ClientModelForName[N], 
   Req=ClientModelForName_required[N], 
   CREATE=CreateFields<N>, 
-  UPDATE=Omit<Partial<T>, keyof (ClientModelForName_readonly[N] & ClientModelForName_updatesDisabled[N])>,
+  UPDATE=Omit<Partial<T>, keyof (ClientModelForName_readonly[N] & ClientModelForName_updatesDisabled[N])> & { organizationIds?: string[] },
 > 
 {
   createOne: (t: CREATE) => Promise<T>;
@@ -225,6 +225,12 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     get_theme: (args: extractFields<PublicActions['organizations']['get_theme']['parameters']>) => (
       Promise<extractFields<PublicActions['organizations']['get_theme']['returns']>>
     ),
+    create_suborganization: (args: extractFields<CustomActions['organizations']['create_suborganization']['parameters']>) => (
+      Promise<extractFields<CustomActions['organizations']['create_suborganization']['returns']>>
+    ),
+    invite_user: (args: extractFields<CustomActions['organizations']['invite_user']['parameters']>) => (
+      Promise<extractFields<CustomActions['organizations']['invite_user']['returns']>>
+    ),
   },
   integrations: {
     generate_google_auth_url: (args: extractFields<CustomActions['integrations']['generate_google_auth_url']['parameters']>) => (
@@ -276,7 +282,7 @@ export class Session extends SessionManager {
     // queries.journeys.update_state = ({id, name, updates}) => this._PATCH(`/v1/journey/${id}/state/${name}`, { updates })
     queries.journeys.delete_states = ({ id, states }) => this._DELETE(`/v1/journey/${id}/states`, { states })
 
-    queries.endusers.set_password = ({id, password}) => this._POST(`/v1/set-enduser-password`, { id, password })
+    queries.endusers.set_password = args => this._POST(`/v1/set-enduser-password`, args)
     queries.endusers.add_to_journey = a => this._POST(`/v1${schema.endusers.customActions.add_to_journey.path}`, a)
     queries.endusers.is_authenticated = ({id, authToken}) => this._GET(`/v1/enduser-is-authenticated`, { id, authToken })
     queries.endusers.generate_auth_token = args => this._GET(`/v1/generate-enduser-auth-token`, args)
@@ -315,9 +321,12 @@ export class Session extends SessionManager {
 
     queries.post_likes.create = args => this._POST(`/v1${schema.post_likes.customActions.create.path}`, args)
     queries.post_likes.unlike_post = args => this._POST(`/v1${schema.post_likes.customActions.unlike_post.path}`, args)
-    
-    queries.organizations.get_theme = a => this._GET(`/v1/${schema.organizations.publicActions.get_theme.path}`, a)
 
+    queries.organizations.get_theme = a => this._GET(`/v1/${schema.organizations.publicActions.get_theme.path}`, a)
+    queries.organizations.create_suborganization = a => this._POST(`/v1/${schema.organizations.customActions.create_suborganization.path}`, a)
+    queries.organizations.invite_user = a => this._POST(`/v1/${schema.organizations.customActions.invite_user.path}`, a)
+
+    
     queries.integrations.generate_google_auth_url = a => this._POST(`/v1/${schema.integrations.customActions.generate_google_auth_url.path}`, a)
     queries.integrations.disconnect_google_integration = a => this._POST(`/v1/${schema.integrations.customActions.disconnect_google_integration.path}`, a)
     queries.integrations.refresh_oauth2_session = a => this._POST(`/v1/${schema.integrations.customActions.refresh_oauth2_session.path}`, a)

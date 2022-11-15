@@ -152,6 +152,7 @@ export const {
   isDate,
   isEmail,
   isMobilePhone,
+  isSlug,
   isMongoId,
   isMimeType,
   isURL,
@@ -775,6 +776,19 @@ export const mongoIdStringRequired = buildMongoIdStringValidator({ isOptional: f
 export const mongoIdStringOptional = buildMongoIdStringValidator({ isOptional: true })
 export const listOfMongoIdStringValidator = listValidator(mongoIdStringRequired)
 export const listOfMongoIdStringValidatorEmptyOk = listValidatorEmptyOk(mongoIdStringRequired)
+
+export const slugValidator: ValidatorDefinition<string> = {
+  validate: (o={}) => build_validator(
+    s => {
+      if (typeof s !== 'string') throw new Error("Expecting a string")
+      if (!isSlug(s)) throw new Error(`Invalid format for ${s}`)
+      return s
+    }, 
+    { ...optionsWithDefaults(o), maxLength: 10000, listOf: false },
+  ),
+  getType: getTypeString,
+  getExample: () => 'this-is-a-slug',
+}
 
 export const first_letter_capitalized = (s='') => s.charAt(0).toUpperCase() + s.slice(1)
 export const escape_name = (namestring: string) => namestring.replace(/[^a-zA-Z0-9-_ /.]/, '').substring(0, 100)
@@ -1878,6 +1892,7 @@ export const organizationThemeValidator = objectValidator<OrganizationTheme>({
   faviconURL: stringValidator250,
   customPortalURL: stringValidator250,
   portalSettings: portalSettingsValidator,
+  organizationIds: listOfStringsValidatorOptionalOrEmptyOk,
 })
 
 const _MANAGED_CONTENT_RECORD_TYPES: { [K in ManagedContentRecordType]: any } = {

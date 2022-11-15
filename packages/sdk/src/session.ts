@@ -10,7 +10,6 @@ import {
   ClientModelForName, User,
 } from "@tellescope/types-client"
 import { Indexable } from "@tellescope/utilities"
-import { OrganizationTheme } from "@tellescope/types-models"
 
 export const DEFAULT_HOST = 'https://api.tellescope.com'
 
@@ -20,6 +19,7 @@ export interface SessionOptions {
   servicesSecret?: string,
   user?: User,
   businessId?: string,
+  organizationIds?: string[],
   host?: string;
   cacheKey?: string;
   expirationInSeconds?: number,
@@ -62,6 +62,7 @@ export class Session {
   apiKey?: string;
   servicesSecret?: string;
   businessId?: string;
+  organizationIds?: string[];
   userSessionInfo?: { id: string } & Indexable;
   socket?: Socket;
   type?: string
@@ -82,6 +83,7 @@ export class Session {
     this.apiKey = o.apiKey ?? '';
     this.servicesSecret = o.servicesSecret;
     this.businessId = o.businessId;
+    this.organizationIds = o.organizationIds ?? o.user?.organizationIds;
     this.expirationInSeconds = o.expirationInSeconds
     this.socket = undefined as Socket | undefined
     this.socketAuthenticated = false
@@ -119,8 +121,9 @@ export class Session {
     set_cache(this.cacheKey, a)
   }
 
-  setUserInfo = (u: { businessId: string }) => { 
+  setUserInfo = (u: { businessId: string, organizationIds?: string[] }) => { 
     this.userInfo = u; 
+    this.organizationIds = this.organizationIds ?? u.organizationIds
     set_cache(this.cacheKey + 'userInfo', JSON.stringify(u))
   }
   

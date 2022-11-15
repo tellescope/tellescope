@@ -53,6 +53,10 @@ const [email, password] = [process.env.TEST_EMAIL, process.env.TEST_PASSWORD]
 const [email2, password2] = [process.env.TEST_EMAIL_2, process.env.TEST_PASSWORD_2]
 const [nonAdminEmail, nonAdminPassword] = [process.env.NON_ADMIN_EMAIL, process.env.NON_ADMIN_PASSWORD]
 
+const subUserEmail = process.env.SUB_EMAIL
+const otherSubUserEmail = process.env.OTHER_SUB_EMAIL
+const subSubUserEmail = process.env.SUB_SUB_EMAIL
+
 const userId = '60398b0231a295e64f084fd9'
 const businessId = '60398b1131a295e64f084ff6'
 
@@ -76,13 +80,17 @@ const businessId = '60398b1131a295e64f084ff6'
 // }
 
 const sdk = new Session({ host })
+const sdkSub = new Session({ host })
+const sdkOtherSub = new Session({ host })
+const sdkSubSub = new Session({ host })
 const sdkOther = new Session({ host, apiKey: "ba745e25162bb95a795c5fa1af70df188d93c4d3aac9c48b34a5c8c9dd7b80f7" })
 const sdkNonAdmin = new Session({ host })
 const enduserSDK = new EnduserSession({ host, businessId })
+const subEnduserSDK = new EnduserSession({ host, businessId,"organizationIds" : ["636d3c230067fc6b4c92c59c"] })
 const enduserSDKDifferentBusinessId = new EnduserSession({ host, businessId: '80398b1131a295e64f084ff6' })
 // const sdkOtherEmail = "sebass@tellescope.com"
 
-if (!(email && password && email2 && password2 && nonAdminEmail && nonAdminPassword)) {
+if (!(email && subUserEmail && otherSubUserEmail && subSubUserEmail && password && email2 && password2 && nonAdminEmail && nonAdminPassword)) {
   console.error("Set TEST_EMAIL and TEST_PASSWORD")
   process.exit()
 }
@@ -117,6 +125,9 @@ const setup_tests = async () => {
     'same authToken after refresh', 
     'authToken refresh'
   ) 
+
+  // reset nonAdmin role to a default non-admin
+  await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Non-Admin'] }, { replaceObjectFields: true }),
 
   await async_test('reset_db', () => sdk.reset_db(), passOnVoid)
 }
@@ -166,6 +177,103 @@ const multi_tenant_tests = async () => {
 
   await sdk.api.endusers.deleteOne(e1.id)
   await sdkOther.api.endusers.deleteOne(e2.id)
+}
+
+const sub_organization_tests = async() => {
+  log_header("Sub Organizations")
+
+  const rootEnduser = await sdk.api.endusers.createOne({ email: 'root@tellescope.com' })
+  const subEnduser = await sdkSub.api.endusers.createOne({ email: 'sub@tellescope.com' })
+  const subSubEnduser = await sdkSubSub.api.endusers.createOne({ email: 'subsub@tellescope.com' })
+
+  await async_test(`root get root`, () => sdk.api.endusers.getOne(rootEnduser.id), passOnAnyResult)
+  await async_test(`sub get root error`, () => sdkSub.api.endusers.getOne(rootEnduser.id), handleAnyError)
+  await async_test(`other sub get root error`, () => sdkOtherSub.api.endusers.getOne(rootEnduser.id), handleAnyError)
+  await async_test(`subsub get root error`, () => sdkSubSub.api.endusers.getOne(rootEnduser.id), handleAnyError)
+
+  await async_test(`root get sub`, () => sdk.api.endusers.getOne(subEnduser.id), passOnAnyResult)
+  await async_test(`sub get sub`, () => sdkSub.api.endusers.getOne(subEnduser.id), passOnAnyResult)
+  await async_test(`other sub get sub error`, () => sdkOtherSub.api.endusers.getOne(subEnduser.id), handleAnyError)
+  await async_test(`subsub get sub error`, () => sdkSubSub.api.endusers.getOne(subEnduser.id), handleAnyError)
+
+  await async_test(`root get subsub`, () => sdk.api.endusers.getOne(subSubEnduser.id), passOnAnyResult)
+  await async_test(`sub get subsub`, () => sdkSub.api.endusers.getOne(subSubEnduser.id), passOnAnyResult)
+  await async_test(`other sub get sub sub error`, () => sdkOtherSub.api.endusers.getOne(subSubEnduser.id), handleAnyError)
+  await async_test(`subsub get subsub`, () => sdkSubSub.api.endusers.getOne(subSubEnduser.id), passOnAnyResult)
+
+  await sdk.api.endusers.set_password({ id: rootEnduser.id, password })
+  await enduserSDK.authenticate(rootEnduser.email!, password)
+  await async_test(
+    `root enduser create`, 
+    () => enduserSDK.api.engagement_events.createOne({ significance: 1, type: 'test', enduserId: rootEnduser.id }), 
+    { onResult: t => t.businessId === rootEnduser.businessId && !t.organizationIds?.length },
+  )
+
+  await async_test(`enduser cannot update organizationIds`, () => enduserSDK.api.endusers.updateOne(enduserSDK.userInfo.id, { organizationIds: [] }), handleAnyError)
+  await async_test(`users cannot update organizationIds`, () => sdk.api.users.updateOne(sdk.userInfo.id, { organizationIds: [] }), handleAnyError)
+
+
+  await sdk.api.endusers.set_password({ id: subEnduser.id, password })
+  await enduserSDK.authenticate(subEnduser.email!, password)
+  await async_test(
+    `sub enduser create`, 
+    () => enduserSDK.api.engagement_events.createOne({ significance: 1, type: 'test', enduserId: subEnduser.id }), 
+    { onResult: t => t.businessId === rootEnduser.businessId && t.organizationIds?.length === 1 },
+  )
+
+  await sdk.api.endusers.set_password({ id: subSubEnduser.id, password })
+  await enduserSDK.authenticate(subSubEnduser.email!, password)
+  await async_test(
+    `subSub enduser create`, 
+    () => enduserSDK.api.engagement_events.createOne({ significance: 1, type: 'test', enduserId: subSubEnduser.id }), 
+    { onResult: t => t.businessId === rootEnduser.businessId && t.organizationIds?.length === 2},
+  )
+
+  await sdk.api.endusers.updateOne(rootEnduser.id, { organizationIds: subEnduser.organizationIds })
+  await async_test(`root get sub adjusted`, () => sdk.api.endusers.getOne(rootEnduser.id), passOnAnyResult)
+  await async_test(`sub get sub adjusted`, () => sdkSub.api.endusers.getOne(rootEnduser.id), passOnAnyResult)
+  await async_test(`other sub get sub adjusted error`, () => sdkOtherSub.api.endusers.getOne(rootEnduser.id), handleAnyError)
+  await async_test(`subsub get sub adjusted error`, () => sdkSubSub.api.endusers.getOne(rootEnduser.id), handleAnyError)
+
+  await async_test(
+    `push behavior for organization ids (push by default)`, 
+    () => sdk.api.endusers.updateOne(rootEnduser.id, { organizationIds: subEnduser.organizationIds }),
+    // { onResult: e => e.organizationIds?.length === 2 * (subEnduser.organizationIds?.length ?? 0) },
+    handleAnyError // this is not going to pass, because pushing must result in organizationIds that match an existing organization
+  )
+  await async_test(
+    `push behavior for organization ids (replace working)`, 
+    () => sdk.api.endusers.updateOne(rootEnduser.id, { organizationIds: subEnduser.organizationIds }, { replaceObjectFields: true }),
+    { onResult: e => e.organizationIds?.length === subEnduser.organizationIds?.length },
+  )
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(rootEnduser.id),
+    sdk.api.endusers.deleteOne(subEnduser.id),
+    sdk.api.endusers.deleteOne(subSubEnduser.id),
+  ])
+}
+
+const sub_organization_enduser_tests = async() => {
+  log_header("Sub Organizations (Enduser-Facing Tests)")
+
+  await enduserSDK.register({ email: 'root@tellescope.com', password })
+  await subEnduserSDK.register({ email: 'sub@tellescope.com', password })
+  await enduserSDK.authenticate('root@tellescope.com', password)
+  await subEnduserSDK.authenticate('sub@tellescope.com', password)
+
+  assert(!enduserSDK.userInfo.organizationIds?.length, 'bad root organizationIds', 'root auth org ids')
+  assert(subEnduserSDK.userInfo.organizationIds?.length === 1, 'bad sub organizationIds', 'sub auth org ids')
+  
+  await async_test(`root get root`, () => sdk.api.endusers.getOne(enduserSDK.userInfo.id), passOnAnyResult)
+  await async_test(`sub get root error`, () => sdkSub.api.endusers.getOne(enduserSDK.userInfo.id), handleAnyError)
+  await async_test(`root get sub`, () => sdk.api.endusers.getOne(subEnduserSDK.userInfo.id), passOnAnyResult)
+  await async_test(`sub get sub`, () => sdkSub.api.endusers.getOne(subEnduserSDK.userInfo.id), passOnAnyResult)
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(enduserSDK.userInfo.id),
+    sdk.api.endusers.deleteOne(subEnduserSDK.userInfo.id),
+  ])
 }
 
 const threadKeyTests = async () => {
@@ -313,7 +421,7 @@ const generate_user_auth_tests = async () => {
 
   const { authToken, enduser } = await sdk.api.users.generate_auth_token({ id: e.id })
   if (!enduser) throw new Error("Didn't get enduser when generate_auth_token called")
-  assert(!!authToken && !!enduser, 'invalid returned values', 'Generate authToken and get enduser')
+  assert(!!authToken && !!enduser, 'invalid returned values', 'Generate authTokea and get enduser')
   let { isAuthenticated } = await sdk.api.endusers.is_authenticated({ id: enduser.id, authToken })
   assert(isAuthenticated, 'invalid authToken generated for enduser', 'Generate authToken for enduser is valid')
   assert(
@@ -3128,6 +3236,42 @@ export const role_based_access_permissions_tests = async () => {
   await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword) // to use new role, handle logout on role change
 
   await async_test(
+    'non-root admin can read',
+    () => sdkSub.api.role_based_access_permissions.getOne(rbap.id),
+    passOnAnyResult,
+  ) 
+  await async_test(
+    'non-root admin can read many',
+    () => sdkSub.api.role_based_access_permissions.getSome(),
+    { onResult: rs => rs.length > 0 },
+  ) 
+  await async_test(
+    'non-root admin blocked create',
+    () => sdkSub.api.role_based_access_permissions.createOne({
+      role: noEnduserAccessRole,
+      permissions: {
+        endusers: {
+          create: null,
+          read: null,
+          delete: null,
+          update: null,
+        }
+      }
+    }),
+    handleAnyError
+  ) 
+  await async_test(
+    'non-root admin blocked update',
+    () => sdkSub.api.role_based_access_permissions.updateOne(rbap.id, { role: 'updated'}),
+    handleAnyError
+  ) 
+  await async_test(
+    'non-root admin blocked delete',
+    () => sdkSub.api.role_based_access_permissions.deleteOne(rbap.id),
+    handleAnyError
+  ) 
+
+  await async_test(
     'enduser read access restriction working',
     () => sdkNonAdmin.api.endusers.getSome(),
     handleAnyError
@@ -3194,10 +3338,15 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   try {
     await Promise.all([
       sdk.authenticate(email, password),
+      sdkSub.authenticate(subUserEmail, password),
+      sdkOtherSub.authenticate(otherSubUserEmail, password),
+      sdkSubSub.authenticate(subSubUserEmail, password),
       sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword),
     ]) 
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await sub_organization_enduser_tests()
+    await sub_organization_tests()
     await self_serve_appointment_booking_tests()
     await filter_by_date_tests()
     await generate_user_auth_tests()

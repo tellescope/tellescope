@@ -7,14 +7,16 @@ import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue } from "@tellescope/types-models"
 
-export const TellescopeFormContainer = ({ businessId, ...props } : { children: React.ReactNode, businessId?: string, dontAddContext?: boolean } & Styled) => {
+export const TellescopeFormContainer = ({ businessId, organizationIds, ...props } : { 
+  children: React.ReactNode, businessId?: string, organizationIds?: string[], dontAddContext?: boolean,
+} & Styled) => {
   // if context already is provided, no need to duplicate
   if (props.dontAddContext) return (
     <TellescopeFormContainerWithTheme {...props} />
   )
 
   return (
-    <WithOrganizationTheme businessId={businessId}>
+    <WithOrganizationTheme businessId={businessId} organizationIds={organizationIds}>
       <TellescopeFormContainerWithTheme {...props} />
     </WithOrganizationTheme>
   )

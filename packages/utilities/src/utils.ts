@@ -366,3 +366,21 @@ export const getDefaultPortalURL = ({ subdomain } : { subdomain: string }) => {
     `https://${subdomain}.${api === PROD_API_URL ? 'portal' : 'staging-portal'}.tellescope.com`
   )
 }
+
+export const matches_organization = (value: { id: string, businessId: string, organizationIds?: string [] }, orgInfo: { businessId: string, organizationIds?: string [] }) => {
+  // case of organization model itself where businessId isn't necessarily set
+  if (value.id === orgInfo.businessId && !orgInfo?.organizationIds) return true
+
+  // case of using organization as orgInfo
+  if (!orgInfo.businessId && !value.organizationIds?.length) return true
+
+
+  if (value?.businessId !== orgInfo.businessId) return false
+  if ((value?.organizationIds ?? []).length !== (orgInfo.organizationIds ?? []).length) return false
+  
+  // since length is same, we need a 1-way match that all organizationIds in orgInfo are found in value.organizationIds
+  const mismatch = orgInfo.organizationIds?.find(id => !(value?.organizationIds ?? [])?.includes(id))
+  if (mismatch) return false
+
+  return true
+}

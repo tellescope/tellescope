@@ -46,6 +46,8 @@ import {
   Email,
   File,
   CalendarEvent,
+  Organization,
+  User as UserClient,
 } from "@tellescope/types-client"
 
 import {
@@ -147,6 +149,7 @@ import {
   communicationsChannelValidator,
   genericUnitWithQuantityValidator,
   stringValidator25000EmptyOkay,
+  slugValidator,
 } from "@tellescope/validation"
 
 import {
@@ -238,6 +241,7 @@ type ActionInfo = {
   notes?: string[],
   warnings?: string[],
   adminOnly?: boolean,
+  rootAdminOnly?: boolean,
   creatorOnly?: boolean,
 }
 
@@ -344,6 +348,9 @@ const BuiltInFields = {
   businessId: {
     validator: mongoIdStringValidator, 
     readonly: true,
+  },
+  organizationIds: {
+    validator: listOfMongoIdStringValidatorEmptyOk,
   },
   creator: {
     validator: mongoIdStringValidator,
@@ -471,27 +478,32 @@ export type CustomActions = {
       createdEvent: CalendarEvent,
     }>,
   },
+  organizations: {
+    create_suborganization: CustomAction<{ name: string, subdomain: string }, { created: Organization }>, 
+    invite_user: CustomAction<{ email: string, organizationId: string }, { created: UserClient }>
+  },
 } 
 
 export type PublicActions = {
   endusers: {
     login: CustomAction<
-      { id?: string, email?: string, phone?: string, password: string, durationInSeconds: number }, 
+      { id?: string, email?: string, phone?: string, password: string, durationInSeconds: number, businessId: string, organizationIds?: string[] }, 
       { authToken: string }
     >,
     register: CustomAction<{ 
       emailConsent?: boolean, fname?: string, lname?: string, email: string, password: string,
       termsVersion?: string, termsSigned?: Date,
+      businessId: string, organizationIds?: string[],
     }, {  }>,
-    request_password_reset: CustomAction<{ email: string, businessId: string }, { }>,
-    reset_password: CustomAction<{ resetToken: string, newPassword: string, businessId: string }, { }>,
+    request_password_reset: CustomAction<{ email: string, businessId: string, organizationIds?: string[]  }, { }>,
+    reset_password: CustomAction<{ resetToken: string, newPassword: string, businessId: string, organizationIds?: string[] }, { }>,
   },
   users: {
     request_password_reset: CustomAction<{ email: string }, { }>,
     reset_password: CustomAction<{ resetToken: string, newPassword: string }, { }>,
   },
   organizations: {
-    get_theme: CustomAction<{ businessId: string }, { theme: OrganizationTheme }>,
+    get_theme: CustomAction<{ businessId: string, organizationIds?: string[] }, { theme: OrganizationTheme }>,
   },
   form_responses: {
     session_for_public_form: CustomAction<{ 
@@ -500,7 +512,8 @@ export type PublicActions = {
       email: string, 
       phone?: string, 
       formId: string, 
-      businessId: string 
+      businessId: string,
+      // organizationIds?: string[]
     }, { accessCode: string, authToken: string, url: string, path: string }>,
   },
 }
@@ -545,6 +558,15 @@ export const schema: SchemaV1 = build_schema({
             if (session.type === USER_SESSION_TYPE) return
             if (session.id !== _id?.toString()) return "Endusers may only update their own profile"
           } 
+        }, {
+          explanation: "Enduser organizationIds can only be updated by users",
+          evaluate: ({ }, _, session, method, { updates }) => {
+            if (method === 'create') return // create already admin restricted
+            if (session.type === 'user') return
+            if (!updates?.organizationIds) return
+
+            return "Enduser organizationIds can only be updated by users"
+          }
         }
       ],
       access: [ // for non-admins, limit access to endusers the user is assigned to, by default
@@ -768,6 +790,8 @@ export const schema: SchemaV1 = build_schema({
         description: "Generates an authentication token for access to enduser-facing endpoints",
         enduserOnly: true, // implemented as authenticate in enduser sdk only
         parameters: { 
+          businessId: { validator: mongoIdStringValidator, required: true, },
+          organizationIds: { validator: listOfMongoIdStringValidatorEmptyOk },
           id: { validator: mongoIdStringValidator },
           phone: { validator: phoneValidator },
           email: { validator: emailValidator },
@@ -782,6 +806,8 @@ export const schema: SchemaV1 = build_schema({
         path: '/register-as-enduser',
         description: "Allows and enduser to register directly with an email and password",
         parameters: { 
+          businessId: { validator: mongoIdStringValidator, required: true, },
+          organizationIds: { validator: listOfMongoIdStringValidatorEmptyOk },
           email: { validator: emailValidator, required: true }, 
           password: { validator: stringValidator100, required: true },
           fname: { validator: nameValidator },
@@ -799,7 +825,8 @@ export const schema: SchemaV1 = build_schema({
         description: "Sends a password reset email",
         parameters: { 
           email: { validator: emailValidator, required: true },
-          businessId: { validator: mongoIdStringValidator, required: true },
+          businessId: { validator: mongoIdStringValidator, required: true, },
+          organizationIds: { validator: listOfMongoIdStringValidatorEmptyOk },
         },
         returns: { },
       },
@@ -811,7 +838,8 @@ export const schema: SchemaV1 = build_schema({
         parameters: { 
           resetToken: { validator: stringValidator250, required: true },
           newPassword: { validator: passwordValidator, required: true },
-          businessId: { validator: mongoIdStringValidator, required: true },
+          businessId: { validator: mongoIdStringValidator, required: true, },
+          organizationIds: { validator: listOfMongoIdStringValidatorEmptyOk },
         },
         returns: { },
       }, 
@@ -1555,6 +1583,14 @@ export const schema: SchemaV1 = build_schema({
 
             return "Only admin users can update others' profiles"
           }
+        }, {
+          explanation: "User organizationIds are readonly",
+          evaluate: ({ }, _, session, method, { updates }) => {
+            if (method === 'create') return // only concerned with updates
+            if (!updates?.organizationIds) return
+
+            return "User organizationIds are readonly"
+          }
         }
       ],
     },
@@ -1667,7 +1703,8 @@ export const schema: SchemaV1 = build_schema({
         readonly: true,  // able to set once, then not change (for now, due to email configuration)
       },
       accountType: {
-        validator: accountTypeValidator,
+        validator: stringValidator,
+        readonly: true,
       },
       roles: {
         validator: listOfStringsValidator,
@@ -3294,11 +3331,41 @@ export const schema: SchemaV1 = build_schema({
   organizations: {
     info: {},
     constraints: {
-      unique: ['name'], 
+      unique: [], 
+      globalUnique: ['subdomain'], // must be unique across all organizations in tellescope
       relationship: [],
     },
-    defaultActions: { read: { }, update: { adminOnly: true } },
-    customActions: { },
+    defaultActions: { read: { }, readMany: { }, update: { adminOnly: true } },
+    customActions: { 
+      create_suborganization: {
+        op: "custom", access: 'create', method: "post", 
+        adminOnly: true,
+        name: 'Create Sub Organization',
+        path: '/sub-organization', 
+        description: "Creates a sub organization",
+        parameters: { 
+          name: { validator: stringValidator250, required: true },
+          subdomain: { validator: slugValidator, required: true },
+        },
+        returns: { 
+          created: { validator: 'organization' as any, required: true },
+        } 
+      },
+      invite_user: {
+        op: "custom", access: 'create', method: "post", 
+        adminOnly: true,
+        name: 'Invite User',
+        path: '/invite-user-to-organization',
+        description: "Invites a user to register for the given (sub)-organization",
+        parameters: { 
+          email: { validator: emailValidator, required: true },
+          organizationId: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: { 
+          created: { validator: 'user' as any, required: true },
+        } 
+      },
+    },
     enduserActions: { },
     publicActions: {
       get_theme: {
@@ -3308,6 +3375,7 @@ export const schema: SchemaV1 = build_schema({
         description: "Gets theme information for an organization",
         parameters: { 
           businessId: { validator: mongoIdStringValidator },
+          organizationIds: { validator: listOfMongoIdStringValidatorEmptyOk },
         },
         returns: { 
           theme: { validator: organizationThemeValidator, required: true },
@@ -3322,10 +3390,11 @@ export const schema: SchemaV1 = build_schema({
         examples: ["Template Name"],
       },
       subdomain: {
-        validator: stringValidator100,
+        validator: slugValidator,
         required: true,
         examples: ["subdomain"],
       },
+      parentOrganizationId: { validator: mongoIdStringValidator },
       subscriptionExpiresAt: { validator: dateValidator },
       subscriptionPeriod: { validator: numberValidator },
       logoVersion: { validator: numberValidator },
@@ -3520,7 +3589,7 @@ export const schema: SchemaV1 = build_schema({
     },
     defaultActions: { 
       read: {}, readMany: {},
-      create: { adminOnly: true }, createMany: { adminOnly: true }, update: { adminOnly: true }, delete: { adminOnly: true },
+      create: { rootAdminOnly: true }, createMany: { rootAdminOnly: true }, update: { rootAdminOnly: true }, delete: { rootAdminOnly: true },
     },
     customActions: {},
     enduserActions: {},

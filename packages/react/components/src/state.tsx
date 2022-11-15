@@ -64,7 +64,7 @@ import {
   EnduserSession,
 } from '@tellescope/sdk'
 import { value_is_loaded } from './loading'
-import { objects_equivalent } from '@tellescope/utilities'
+import { matches_organization, objects_equivalent } from '@tellescope/utilities'
 import { ReadFilter } from '@tellescope/types-models'
 
 const RESET_CACHE_TYPE = "cache/reset" as const
@@ -1300,7 +1300,7 @@ export const useOrganizations = (options={} as HookOptions<Organization>) => {
   return useListStateHook(
     'organizations', useTypedSelector(s => s.organizations), session, organizationsSlice, 
     { 
-      // loadQuery: session.api.organizations.getSome,
+      loadQuery: session.api.organizations.getSome,
       findOne: session.api.organizations.getOne,
       // addOne: session.api.organizations.createOne,
       // addSome: session.api.organizations.createSome,
@@ -1312,26 +1312,18 @@ export const useOrganizations = (options={} as HookOptions<Organization>) => {
 }
 export const useOrganization = () => {
   const session = useSession()
-  const [organizationsLoading, { updateElement, findById }] = useOrganizations()
-
-  useEffect(() => {
-    findById(session.userInfo.businessId)
-  }, [findById, session])
-
-  const updateOrganization = useCallback((u: Partial<Organization>, o?: Parameters<typeof updateElement>[2]) => (
-    updateElement(session.userInfo.businessId, u, o) 
-  ), [updateElement, session])
+  const [organizationsLoading, actions] = useOrganizations()
 
   return [
     {
       status: organizationsLoading.status,
       value: (
         value_is_loaded(organizationsLoading)
-          ? organizationsLoading.value.find(o => o.id === session.userInfo.businessId)!
-          : organizationsLoading.value
+          ? organizationsLoading.value.find(o => matches_organization(o, session.userInfo)) 
+          : undefined
       )
     } as LoadedData<Organization>,
-    { updateOrganization }
+    actions as ReturnType<typeof useOrganizations>[1],
   ] as const
 }
 

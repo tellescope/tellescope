@@ -92,10 +92,12 @@ export interface Organization extends Organization_readonly, Organization_requir
   settings?: OrganizationSettings,
   portalSettings?: PortalSettings,
   enduserDisplayName?: string,
+  parentOrganizationId?: string,
 }
 export type OrganizationTheme = {
   name: string,
   businessId: string,
+  organizationIds?: string[],
   subdomain: string,
   themeColor?: string
   logoURL?: string,
@@ -110,6 +112,7 @@ export interface RecordInfo {
   businessId: string;
   updatedAt: Date;
   creator: string; // can technically be null in some cases (e.g. enduser creates self), todo: allow as part of type
+  organizationIds?: string[];
 }
 
 export interface ClientRecord extends RecordInfo { id: string }
@@ -157,7 +160,7 @@ export type WeeklyAvailability = {
 export type NotificationPreference = {
   email?: boolean 
 }
-export type AccountType = "Business"// | "joining org"
+export type AccountType = string
 export interface User_readonly extends ClientRecord {
   organization?: string 
   username?: string;
@@ -178,6 +181,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   lname?: string;
   suffixes?: string[],
   accountType?: AccountType;
+  hashedInviteCode?: string,
   roles?: string[];
   avatar?: string,
   fields?: CustomFields;
