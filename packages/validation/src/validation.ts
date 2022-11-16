@@ -654,6 +654,13 @@ export const stringValidator1000: ValidatorDefinition<string> = {
   getExample: getExampleString,
   getType: getTypeString,
 }
+export const stringValidator1000Optional: ValidatorDefinition<string> = {
+  validate: (o={}) => build_validator(
+    escapeString(o), { ...o, maxLength: 1000, listOf: false, isOptional: true  } 
+  ),
+  getExample: getExampleString,
+  getType: getTypeString,
+}
 export const stringValidator5000: ValidatorDefinition<string> = {
   validate: (o={}) => build_validator(
     escapeString(o), { ...o, maxLength: 5000, listOf: false  } 
@@ -1880,12 +1887,23 @@ export const previousFormFieldValidator = orValidator<{ [K in PreviousFormFieldT
 export const previousFormFieldsValidator = listValidatorEmptyOk(previousFormFieldValidator)
 
 export const portalSettingsValidator = objectValidator<PortalSettings>({
-
+  authentication: objectValidator<PortalSettings['authentication']>({
+    landingTitle: stringValidator1000Optional,
+    landingGraphic: stringValidator1000Optional,
+    landingLogo: stringValidator1000Optional,
+    loginDescription: stringValidator1000Optional,
+    loginGraphic: stringValidator1000Optional,
+    loginTitle: stringValidator1000Optional,
+    registerDescription: stringValidator1000Optional,
+    registerGraphic: stringValidator1000Optional,
+    registerTitle: stringValidator1000Optional,
+  }, { isOptional: true })
 })
 
 export const organizationThemeValidator = objectValidator<OrganizationTheme>({
   logoURL: stringValidatorOptional, // these don't really need to be optional
   themeColor: stringValidatorOptional, // these don't really need to be optional
+  themeColorSecondary: stringValidatorOptional, // these don't really need to be optional
   name: stringValidator250,
   subdomain: stringValidator250,
   businessId: mongoIdStringRequired,

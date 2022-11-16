@@ -266,7 +266,8 @@ export const MONTHS = [
 ]
 export const get_time_values = (date: Date, options?: { fullMonth: boolean }) => {
   const dayOfMonth = date.getDate()
-  const month = (options?.fullMonth ? MONTHS_FULL : MONTHS)[date.getMonth()]
+  const monthNumber = date.getMonth()
+  const month = (options?.fullMonth ? MONTHS_FULL : MONTHS)[monthNumber]
   const hours = date.getHours()
   const minutesRaw = date.getMinutes()
   const minutes = minutesRaw >= 10 ? minutesRaw : `0${minutesRaw}`
@@ -274,7 +275,7 @@ export const get_time_values = (date: Date, options?: { fullMonth: boolean }) =>
 
   const amPm = hours < 12 ? 'am' : 'pm' as const
   const hoursAmPm = hours <= 12 ? hours : hours - 12
-  return { dayOfMonth, month, hours, hoursAmPm, amPm, minutes, year }
+  return { dayOfMonth, monthNumber, month, hours, hoursAmPm, amPm, minutes, year,  }
 }
 
 export const formatted_date = (date: Date): string => {
@@ -285,6 +286,10 @@ export const formatted_date = (date: Date): string => {
 export const yyyy_mm_dd = (date: Date): string => {
   const { dayOfMonth, month, year } = get_time_values(date)
   return `${year}-${month}-${dayOfMonth}`
+}
+export const mm_dd_yyyy = (date: Date): string => {
+  const { dayOfMonth, monthNumber, year } = get_time_values(date)
+  return `${monthNumber}/${dayOfMonth}/${year}`
 }
 
 export const fullMonth_day_year = (date: Date): string => {

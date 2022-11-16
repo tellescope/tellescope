@@ -216,3 +216,9 @@ export const ADMIN_PERMISSIONS: AccessPermissions = {
   managed_content_record_assignments: FULL_ACCESS,
   role_based_access_permissions: FULL_ACCESS,
 }
+
+export const PORTAL_DEFAULT_LANDING_TITLE = "Your Portal"
+export const PORTAL_DEFAULT_LOGIN_TITLE = "Welcome back!"
+export const PORTAL_DEFAULT_LOGIN_DESCRIPTION = "Log in to your account."
+export const PORTAL_DEFAULT_REGISTER_TITLE = "Getting Started"
+export const PORTAL_DEFAULT_REGISTER_DESCRIPTION = "Let's create your account."

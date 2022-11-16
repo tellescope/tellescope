@@ -265,6 +265,7 @@ export interface ScrollingListProps <T extends { id: string | number }> extends 
   maxWidth?: React.CSSProperties['maxWidth'],
   minHeight?: React.CSSProperties['minHeight'],
   titleStyle?: React.CSSProperties,
+  itemContainerStyle?: React.CSSProperties,
   doneLoading?: () => boolean,
   loadMore?: () => Promise<void>,
   TitleComponent?: TitleComponentType,
@@ -287,6 +288,7 @@ export const ScrollingList = <T extends { id: string | number }>({
   style,
   noWrap,
   header,
+  itemContainerStyle,
 } : ScrollingListProps<T>) => {
   const fetchRef = useRef(0)
   const titleStyleWithDefaults = { fontSize: 20, fontWeight: 'bold', marginBottom: 3, ...titleStyle }
@@ -311,7 +313,8 @@ export const ScrollingList = <T extends { id: string | number }>({
         )
       }
 
-      <Grid container direction="column" flexWrap={'nowrap'} style={{ minHeight, maxHeight, maxWidth, overflow: 'auto' }}
+      <Grid container direction="column" flexWrap={'nowrap'} 
+        style={{ minHeight, maxHeight, maxWidth, overflow: 'auto' }}
         onScroll={e => {
           if (doneLoading?.() || !loadMore) return
 
@@ -324,7 +327,7 @@ export const ScrollingList = <T extends { id: string | number }>({
           loadMore().catch(console.error)
         }}
       >
-        <Grid container direction="column">
+        <Grid container direction="column" style={itemContainerStyle}>
           {header}
 
           {items.length === 0 

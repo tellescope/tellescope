@@ -48,7 +48,17 @@ export type OrganizationLimit = 'endusersLimit'
 // }
 
 export type PortalSettings = {
-  
+  authentication: {
+    landingTitle?: string,
+    landingLogo?: string,
+    landingGraphic?: string,
+    loginTitle?: string,
+    loginDescription?: string,
+    loginGraphic?: string,
+    registerTitle?: string,
+    registerDescription?: string,
+    registerGraphic?: string,
+  } 
 }
 
 export type WithLinkOpenTrackingIds = { linkOpenTrackingIds: string[] }
@@ -88,6 +98,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   logoVersion?: number; // missing if no logo set
   faviconVersion?: number;
   themeColor?: string;
+  themeColorSecondary?: string
   customPortalURL?: string,
   settings?: OrganizationSettings,
   portalSettings?: PortalSettings,
@@ -100,6 +111,7 @@ export type OrganizationTheme = {
   organizationIds?: string[],
   subdomain: string,
   themeColor?: string
+  themeColorSecondary?: string
   logoURL?: string,
   customPortalURL?: string,
   faviconURL?: string,
@@ -813,6 +825,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   sharedContentIds?: string[],
   location?: string,
   locationNotes?: string,
+  locationURL?: string,
   phone?: string,
   attachments?: GenericAttachment[]
   wasSelfScheduled?: boolean,

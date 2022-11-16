@@ -135,16 +135,21 @@ export const Paper = ({ children, style, flex, onClick, onPress, ...props } : Pa
   </MuiPaper>
 )
 
-export const HoverPaper = ({ children, sx, disabled, ...props } : PaperProps & { disabled?: boolean, sx?: MuiPaperProps['sx'] }) => {
-  const [elevation, setElevation] = useState(2)
+export const HoverPaper = ({ 
+  children, sx, disabled, 
+  baseElevation=2,
+  hoveredElevation=5,
+  ...props 
+} : PaperProps & { baseElevation?: number, hoveredElevation?: number, disabled?: boolean, sx?: MuiPaperProps['sx'] }) => {
+  const [elevation, setElevation] = useState(baseElevation)
 
   return (
-    <MuiPaper elevation={disabled ? 2 : elevation} sx={{
+    <MuiPaper elevation={disabled ? baseElevation : elevation} sx={{
       cursor: !disabled ? 'pointer' : undefined,
       ...sx,
     }} 
-      onMouseLeave={() => setElevation(2)}
-      onMouseEnter={() => setElevation(5)}
+      onMouseLeave={() => setElevation(baseElevation)}
+      onMouseEnter={() => setElevation(hoveredElevation)}
       {...props} 
     >
       {children}

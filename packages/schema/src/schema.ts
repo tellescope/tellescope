@@ -2595,6 +2595,7 @@ export const schema: SchemaV1 = build_schema({
       enduserFormResponses: { validator: enduserFormResponsesForEventValidator },
       enduserTasks: { validator: enduserTasksForEventValidator },
       location: { validator: stringValidator1000 },
+      locationURL: { validator: stringValidator1000 },
       locationNotes: { validator: stringValidator5000 },
       phone: { validator: stringValidator100 }, // leave more generous than phone validator in favor of lower friction
     }
@@ -3402,6 +3403,7 @@ export const schema: SchemaV1 = build_schema({
       roles: { validator: listOfStringsValidatorEmptyOk },
       skills: { validator: listOfStringsValidator },
       themeColor: { validator: stringValidator100 },
+      themeColorSecondary: { validator: stringValidator100 },
       enduserDisplayName: { validator: stringValidator100 },
       customPortalURL: { validator: stringValidator250 },
       portalSettings: { validator: portalSettingsValidator },
