@@ -111,7 +111,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
   endusers: DEFAULT_ONLY_ACCESS, // equivalent to assigned access, but more efficient in this case
   enduser_status_updates: ASSIGNED_AND_DEFAULT_ACCESS,
   engagement_events: ASSIGNED_AND_DEFAULT_ACCESS,
-  files: FULL_ACCESS, 
+  files: ASSIGNED_AND_DEFAULT_ACCESS, 
   forms: READ_ONLY_DEFAULT,
   form_fields: READ_ONLY_DEFAULT,
   form_responses: ASSIGNED_AND_DEFAULT_ACCESS, 

@@ -97,7 +97,7 @@ const TellescopeFormWithContext: typeof TellescopeForm = ({
   const Email = customInputs?.['email'] ?? EmailInput
   const Number = customInputs?.['number'] ?? NumberInput
   const Phone = customInputs?.['phone'] ?? PhoneInput 
-  const Date = customInputs?.['date'] ?? DateInput 
+  const ResolvedDateInput = customInputs?.['date'] ?? DateInput 
   const Signature = customInputs?.['signature'] ?? SignatureInput 
   const MultipleChoice = customInputs?.['multiple_choice'] ?? MultipleChoiceInput 
   const File = customInputs?.['file'] ?? FileInput 
@@ -168,7 +168,7 @@ const TellescopeFormWithContext: typeof TellescopeForm = ({
                   <Phone field={activeField.value} value={currentValue.answer.value as string} onChange={onFieldChange as ChangeHandler<'phone'>} />
                 )
                 : activeField.value.type === 'date' ? (
-                  <Date field={activeField.value} value={currentValue.answer.value as Date} onChange={onFieldChange as ChangeHandler<'date'>} />
+                  <ResolvedDateInput field={activeField.value} value={currentValue.answer.value ? new Date(currentValue.answer.value as string | Date) : undefined} onChange={onFieldChange as ChangeHandler<'date'>} />
                 )
                 : activeField.value.type === 'signature' ? (
                   <Signature field={activeField.value} value={currentValue.answer.value as any} onChange={onFieldChange as ChangeHandler<'signature'>} />
@@ -426,7 +426,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
   const Email = customInputs?.['email'] ?? EmailInput
   const Number = customInputs?.['number'] ?? NumberInput
   const Phone = customInputs?.['phone'] ?? PhoneInput 
-  const Date = customInputs?.['date'] ?? DateInput 
+  const ResolvedDate = customInputs?.['date'] ?? DateInput  // don't name Date or conflicts with global Date constructor
   const Signature = customInputs?.['signature'] ?? SignatureInput 
   const MultipleChoice = customInputs?.['multiple_choice'] ?? MultipleChoiceInput 
   const File = customInputs?.['file'] ?? FileInput 
@@ -464,7 +464,6 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
                 <Typography color="primary" style={{ fontSize: 14, marginBottom: 5 }}>
                   {activeField.description}
                 </Typography>
-              </Flex>
 
               { 
                 // KEEP THIS CONSISTENT WITH THE TellescopeFormWithContext
@@ -489,7 +488,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
                   <Phone size="small" autoFocus={i === 0} field={activeField} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'phone'>} />
                 )
                 : activeField.type === 'date' ? (
-                  <Date size="small" autoFocus={i === 0} field={activeField} value={value.answer.value as Date} onChange={onFieldChange as ChangeHandler<'date'>} />
+                  <ResolvedDate size="small" autoFocus={i === 0} field={activeField} value={value.answer.value ? new Date(value.answer.value as string | Date) : undefined} onChange={onFieldChange as ChangeHandler<'date'>} />
                 )
                 : activeField.type === 'signature' ? (
                   <Signature autoFocus={i === 0} field={activeField} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'signature'>} />
@@ -504,7 +503,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
                   <Ranking autoFocus={i === 0} field={activeField} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'ranking'>} />
                 )
                 : null
-              }   
+              }
               
               {/* height/margin to avoid moving answer field when this appears */}
               <Typography color="error" style={{ marginTop: 3, fontSize: 14 }}> 
@@ -515,6 +514,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
                   : validationMessage
                 }
               </Typography>  
+              </Flex>
             </Flex>
           )
         })}

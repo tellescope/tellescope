@@ -450,9 +450,14 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
             {
               width: '100%',
             }
-            : {}
+            : { }
           }
-          titleActionsComponent={searchBarPlacement === 'top' ? searchbar : undefined}
+          titleActionsComponent={
+            searchBarPlacement === 'top' 
+              ? <Flex flex={1} justifyContent="flex-end" style={{ marginLeft: 'auto' }}>{searchbar}</Flex> 
+              : undefined
+          }
+          itemContainerStyle={{ paddingTop: 4, paddingBottom: 4 }}
           Item={({ item: user }) => (
             <HoverPaper style={{ marginBottom: 4 }}>
             <Flex flex={1} alignItems="center" justifyContent="space-between" 

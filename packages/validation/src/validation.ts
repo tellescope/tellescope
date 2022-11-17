@@ -775,6 +775,15 @@ export const nullValidator: EscapeBuilder<null> = (o={}) => build_validator(
   { ...o, listOf: false }
 ) 
 
+export const stringReadonlyValidator: ValidatorDefinition<string> = {
+  validate: (o={}) => build_validator(
+    s => { throw new Error("This field cannot be updated") }, 
+    { ...o, isOptional: true, emptyStringOk: true, listOf: false }
+  ),
+  getType: getTypeString,
+  getExample: () => "string (readonly)",
+}
+
 export const mongoIdRequired = mongoIdValidator.validate()
 export const mongoIdOptional = mongoIdValidator.validate({ isOptional: true })
 export const listOfMongoIdValidator = listValidator(mongoIdValidator)
@@ -1473,6 +1482,7 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
       fullName: stringValidator250,
       signed: booleanValidator,
       pdfAttachment: stringValidatorOptional,
+      signedPdfSecureName: stringReadonlyValidator, // created/set in backend only
     }, { emptyOk: false, isOptional: true }),
   }),
 })

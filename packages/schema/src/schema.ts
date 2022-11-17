@@ -150,6 +150,7 @@ import {
   genericUnitWithQuantityValidator,
   stringValidator25000EmptyOkay,
   slugValidator,
+  stringValidator5000EmptyOkay,
 } from "@tellescope/validation"
 
 import {
@@ -2216,7 +2217,7 @@ export const schema: SchemaV1 = build_schema({
       flowchartUI: { validator: flowchartUIValidator },
       options: { validator: formFieldOptionsValidator },
       description: { validator: stringValidator250 }, 
-      intakeField: { validator: stringValidator }, // todo: ensure built-ins are ignored
+      intakeField: { validator: stringValidator5000EmptyOkay }, // todo: ensure built-ins are ignored
       isOptional: { validator: booleanValidator },
     }
   },

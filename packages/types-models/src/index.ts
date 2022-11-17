@@ -686,6 +686,7 @@ export type FormResponseAnswerSignatureValue = {
   fullName: string,
   signed: boolean,
   pdfAttachment?: string,
+  signedPdfSecureName?: string,
 }
 export type FormResponseAnswerSignature = FormResponseValueAnswerBuilder<'signature', FormResponseAnswerSignatureValue>
 
