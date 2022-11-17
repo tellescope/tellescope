@@ -457,7 +457,7 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
               ? <Flex flex={1} justifyContent="flex-end" style={{ marginLeft: 'auto' }}>{searchbar}</Flex> 
               : undefined
           }
-          itemContainerStyle={{ paddingTop: 4, paddingBottom: 4 }}
+          itemContainerStyle={{ padding: 4 }}
           Item={({ item: user }) => (
             <HoverPaper style={{ marginBottom: 4 }}>
             <Flex flex={1} alignItems="center" justifyContent="space-between" 

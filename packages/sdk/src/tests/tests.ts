@@ -1475,7 +1475,7 @@ const files_tests = async () => {
 
   await async_test(
     `Files associated with enduser on prepare_file_upload`,
-    () => sdkNonAdmin.api.files.getSome({ filter: { enduserId: enduser.id } }),
+    () => sdk.api.files.getSome({ filter: { enduserId: enduser.id } }),
     { onResult: fs => fs.length === 2 }
   )
 
@@ -1494,15 +1494,15 @@ const files_tests = async () => {
     sdk.api.endusers.deleteOne(enduser.id),
   ])
 
-  await wait(undefined, 1250) // wait for files to be deleted as side effect
+  await wait(undefined, 1500) // wait for files to be deleted as side effect
   await async_test(
     `Files cleaned up as side effect of deleting enduser`,
-    () => sdkNonAdmin.api.files.getSome({ filter: { enduserId: enduser.id } }),
+    () => sdk.api.files.getSome({ filter: { enduserId: enduser.id } }),
     { onResult: fs => fs.length === 0 }
   )
   await async_test(
     `Non-enduser file is left`,
-    () => sdkNonAdmin.api.files.getSome(),
+    () => sdk.api.files.getSome(),
     { onResult: fs => fs.length > 0 }
   )
   
