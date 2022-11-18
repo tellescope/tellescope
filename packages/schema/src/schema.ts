@@ -481,7 +481,7 @@ export type CustomActions = {
   },
   organizations: {
     create_suborganization: CustomAction<{ name: string, subdomain: string }, { created: Organization }>, 
-    invite_user: CustomAction<{ email: string, organizationId: string }, { created: UserClient }>
+    invite_user: CustomAction<{ email: string, fname: string, lname: string, organizationId: string }, { created: UserClient }>
   },
 } 
 
@@ -613,12 +613,8 @@ export const schema: SchemaV1 = build_schema({
         readonly: true,
         redactions: ['enduser'], // todo: add more redactions
       },
-      fname: { 
-        validator: nameValidator,
-      },
-      lname: { 
-        validator: nameValidator,
-      },
+      fname: { validator: nameValidator },
+      lname: { validator: nameValidator },
       dateOfBirth: { 
         validator: stringValidator250,
         redactions: ['enduser'],
@@ -3361,6 +3357,8 @@ export const schema: SchemaV1 = build_schema({
         description: "Invites a user to register for the given (sub)-organization",
         parameters: { 
           email: { validator: emailValidator, required: true },
+          fname: { validator: nameValidator, required: true },
+          lname: { validator: nameValidator, required: true },
           organizationId: { validator: mongoIdStringValidator, required: true },
         },
         returns: { 

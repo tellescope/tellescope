@@ -362,6 +362,8 @@ export class Session extends SessionManager {
   }
  
   handle_new_session = async ({ authToken, ...userInfo }:   UserSession & { authToken: string }) => {
+    this.clearState()
+
     this.sessionStart = Date.now()
     this.setAuthToken(authToken)
     this.setUserInfo(userInfo)

@@ -136,6 +136,8 @@ export class Session {
     this.apiKey = ''
     this.authToken = ''
     this.userInfo = { }
+    this.removeAllSocketListeners()
+    this.socket = undefined
     this.clearCache()
   }
 
@@ -264,7 +266,7 @@ export class Session {
   } 
 
   unsubscribe = (roomIds: string[]) => this.EMIT('leave-rooms', { roomIds })
-  removeAllSocketListeners = (s: string) => this.socket?.removeAllListeners(s)
+  removeAllSocketListeners = () => this.socket?.removeAllListeners()
 
   socket_log = (message: string) => {
     console.log(`${this.type} ${this.userInfo.id} got socket message: ${message}`)
@@ -276,6 +278,8 @@ export class Session {
       }
       return 
     }
+    if (!this.authToken) return
+
     this.socket = io(
       `${this.host}/${this.userInfo.businessId || this.businessId}`, 
       { 

@@ -1221,7 +1221,7 @@ export const fieldsValidator: ValidatorDefinition<Indexable<string | CustomField
           continue
         }
 
-        if (k.length > 32) throw new Error(`key ${k} is greater than 32 characters`)
+        if (k.length > 256) throw new Error(`key ${k} is greater than 256 characters`)
 
         const val = fields[k]
         if (typeof val === 'string') {

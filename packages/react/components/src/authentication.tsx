@@ -48,12 +48,14 @@ export const WithSession = (p : { children: React.ReactNode, sessionOptions?: Us
     return session.logout()
   }
 
-  const updateLocalSessionInfo: SessionContext_T['updateLocalSessionInfo'] = (u, a) => setSession(s => new Session({ 
-    ...s,
-    handleUnauthenticated: s.handleUnauthenticated,
-    host: s.host, apiKey: s.apiKey, authToken: a ?? s.authToken,  // preserve other important info
-    userInfo: { ...s.userInfo, ...u }
-  }))
+  const updateLocalSessionInfo: SessionContext_T['updateLocalSessionInfo'] = (u, a) => {
+    setSession(s => new Session({ 
+      ...s,
+      handleUnauthenticated: s.handleUnauthenticated,
+      host: s.host, apiKey: s.apiKey, authToken: a ?? s.authToken,  // preserve other important info
+      userInfo: { ...s.userInfo, ...u }
+    }))
+  }
 
   const refresh = async () => {
     await session.refresh_session()

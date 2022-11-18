@@ -354,6 +354,16 @@ export const getGoogleClientAPIKey = () => {
 }
 
 const PUBLIC_ASSET_BUCKET = "tellescope-public-files"
+export const getBuiltInPublicFileName = ({ name, organizationIds } : { name: 'logo' | 'favicon', organizationIds?: string[] }) => (
+  `${name}${organizationIds?.[organizationIds.length - 1] ?? ''}`
+)
+export const getOrgnizationLogoURL = ({ organizationIds, id, businessId, logoVersion, ...args } : { id: string, businessId: string, organizationIds?: string[], logoVersion?: number }) => (
+  getPublicFileURL({ ...args, version: logoVersion, businessId: businessId ?? id, name: getBuiltInPublicFileName({ organizationIds, name: 'logo' })})
+)
+export const getOrgnizationFaviconURL = ({ organizationIds, businessId, id, faviconVersion, ...args } : { id: string, businessId: string, organizationIds?: string[], faviconVersion?: number }) => (
+  getPublicFileURL({ ...args, version: faviconVersion, businessId: businessId ?? id, name: getBuiltInPublicFileName({ organizationIds, name: 'favicon' })})
+)
+
 export const getPublicFileURL = ({ businessId, name, version } : { businessId: string, name: string, version?: number }) => {
   const api = getApiURL()
   const ENV_PREFIX = api === PROD_API_URL ? "prod"

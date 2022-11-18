@@ -493,7 +493,7 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
   const findById: ListUpdateMethods<T, ADD>['findById'] = useCallback((id, options) => {
     if (!id) return undefined
 
-    if (didFetch('recordNotFound' + id)) { // return null if record not found for id
+    if (didFetch('recordNotFound' + modelName + id)) { // return null if record not found for id
       return null
     }
 
@@ -504,10 +504,10 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     )
 
     // prevent frequent refetches 
-    if (value && options?.reload && didFetch('findById' + id, true)) return value
+    if (value && options?.reload && didFetch('findById' + modelName + id, true)) return value
 
-    if (options?.reload || (value === undefined && !didFetch('findById' + id))) {
-      setFetched('findById' + id, true) // prevent multiple API calls
+    if (options?.reload || (value === undefined && !didFetch('findById' + modelName + id))) {
+      setFetched('findById' + modelName + id, true) // prevent multiple API calls
 
       findOne?.(id.toString())
       .then(found => {
@@ -518,13 +518,14 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
         addLocalElement(found, { replaceIfMatch: true })
       })
       .catch(e => {
-        setFetched('recordNotFound' + id, true) // mark record not found for id
+        console.log('recordNotFound', modelName, id)
+        setFetched('recordNotFound' + modelName + id, true) // mark record not found for id
         console.error(e) 
       })
     }
 
     return value
-  }, [addLocalElement, findOne, state, setFetched, didFetch])
+  }, [addLocalElement, findOne, state, modelName, setFetched, didFetch])
 
   // make consistent with search function in Webapp search.tsx
   const searchLocalElements: ListUpdateMethods<T, ADD>['searchLocalElements'] = useCallback(query => {

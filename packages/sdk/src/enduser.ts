@@ -240,6 +240,7 @@ export class EnduserSession extends Session {
   }
 
   handle_new_session = async ({ authToken, enduser }: { authToken: string, enduser: Enduser }) => {
+    this.clearState()
     this.sessionStart = Date.now()
     this.setAuthToken(authToken)
     this.setUserInfo(enduser)
