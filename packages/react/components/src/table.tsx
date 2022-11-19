@@ -434,7 +434,7 @@ export const Table = <T extends Item>({
   pageOptions={ paginated: true },
   style={},
   horizontalPadding=20,
-  elevation=3,
+  elevation=5,
   headerFontSize,
   rowFontSize,
   onClick,

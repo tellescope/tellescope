@@ -518,7 +518,6 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
         addLocalElement(found, { replaceIfMatch: true })
       })
       .catch(e => {
-        console.log('recordNotFound', modelName, id)
         setFetched('recordNotFound' + modelName + id, true) // mark record not found for id
         console.error(e) 
       })
