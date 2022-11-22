@@ -159,6 +159,45 @@ export const AsyncButton = <T,>({ text, loadingText=text, variant, ...props }: A
   )
 }
 
+interface ClickToDownloadSecureFile {
+  secureName: string,
+  onDownload: (downloadURL: string) => void;
+  onError?: (error: string) => void;
+}
+export const ClickToDownloadFileComponent = ({ 
+  secureName,
+  onDownload,
+  onError, 
+  children,
+} : ClickToDownloadSecureFile & { children: React.ReactNode }) => {
+  const session = useResolvedSession()
+
+  return (
+    <Flex onClick={async () => {
+      try {
+        // should be cached by API so no need to optimize with client-side state
+        const { downloadURL } = await session.api.files.file_download_URL({ secureName })
+        onDownload(downloadURL)
+      } catch(err: any) {
+        onError?.(err?.message)
+      }
+    }}>
+      {children}
+    </Flex>
+  )
+}
+
+export const useDownloadSecureFile = () => {
+  const session = useResolvedSession()
+  return {
+    downloadFile: async (secureName: string) => {
+      // should be cached by API so no need to optimize with client-side state
+      const { downloadURL } = await session.api.files.file_download_URL({ secureName })
+      return downloadURL
+    }
+  } 
+}
+
 interface DownloadButton {
   secureName?: string,
   publicURL?: string,

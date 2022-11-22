@@ -1807,6 +1807,7 @@ export const schema: SchemaV1 = build_schema({
     info: {},
     constraints: { unique: [], relationship: [] },
     defaultActions: { read: {}, readMany: {}, update: {}, delete: {} },
+    enduserActions: { prepare_file_upload: {}, file_download_URL: {}, read: {}, readMany: {}, delete: {}, update: { } /* allow to hide from client side */ },
     fields: {
       ...BuiltInFields, 
       name: {
@@ -1828,8 +1829,8 @@ export const schema: SchemaV1 = build_schema({
         validator: stringValidator250,
         readonly: true,
       },
+      hideFromEnduserPortal: { validator: booleanValidator },
     },
-    enduserActions: { prepare_file_upload: {}, file_download_URL: {}, read: {}, readMany: {}, delete: {} },
     customActions: {
       prepare_file_upload: {
         op: "custom", access: 'create', method: "post",
@@ -2212,7 +2213,7 @@ export const schema: SchemaV1 = build_schema({
       },
       flowchartUI: { validator: flowchartUIValidator },
       options: { validator: formFieldOptionsValidator },
-      description: { validator: stringValidator250 }, 
+      description: { validator: stringValidator5000EmptyOkay }, 
       intakeField: { validator: stringValidator5000EmptyOkay }, // todo: ensure built-ins are ignored
       isOptional: { validator: booleanValidator },
     }
@@ -2263,9 +2264,13 @@ export const schema: SchemaV1 = build_schema({
       formTitle: { validator: stringValidator250 },  
       responses: { validator: formResponsesValidator },
       draftSavedAt: { validator: dateValidator },
+      hideFromEnduserPortal: { validator: booleanValidator },
     },
     defaultActions: DEFAULT_OPERATIONS,
-    enduserActions: { prepare_form_response: {}, info_for_access_code: {}, submit_form_response: {}, read: {}, readMany: {} },
+    enduserActions: { 
+      prepare_form_response: {}, info_for_access_code: {}, submit_form_response: {}, read: {}, readMany: {},
+      update: { } /* allows for hiding from client portal, storing partial responses while submitting form */ 
+    },
     customActions: { 
       prepare_form_response: {
         op: "custom", access: 'create', method: "post",

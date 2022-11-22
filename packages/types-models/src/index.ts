@@ -1,5 +1,9 @@
 import { CUD, Indexable, UserIdentity } from "@tellescope/types-utilities"
 
+export interface EnduserPortalVisibility {
+  hideFromEnduserPortal?: boolean,
+}
+
 export interface SearchOptions {
   query: string,
 }
@@ -462,7 +466,7 @@ export interface File_required {
   size: number;
 }
 export interface File_updatesDisabled {}
-export interface File extends File_readonly, File_required, File_updatesDisabled {
+export interface File extends File_readonly, File_required, File_updatesDisabled, EnduserPortalVisibility {
   enduserId?: string;
 }
 
@@ -753,7 +757,7 @@ export interface FormResponse_updatesDisabled {
   submissionExpiresAt?: number,
   automationStepId?: string, 
 }
-export interface FormResponse extends FormResponse_readonly, FormResponse_required, FormResponse_updatesDisabled {
+export interface FormResponse extends FormResponse_readonly, FormResponse_required, FormResponse_updatesDisabled, EnduserPortalVisibility {
   draftSavedAt?: Date,
 }
 
