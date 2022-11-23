@@ -73,6 +73,9 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
     add_to_journey: (args: extractFields<CustomActions['endusers']['add_to_journey']['parameters']>) => (
       Promise<extractFields<CustomActions['endusers']['add_to_journey']['returns']>>
     ),
+    set_password: (args: extractFields<CustomActions['endusers']['set_password']['parameters']>) => (
+      Promise<extractFields<CustomActions['endusers']['set_password']['returns']>>
+    ),
   },
   users: {
     display_info: () => Promise<UserDisplayInfo[]>
@@ -164,7 +167,7 @@ const loadDefaultQueries = (s: EnduserSession): { [K in EnduserAccessibleModels]
 
 
 export class EnduserSession extends Session {
-  userInfo!: Enduser; 
+  userInfo!: Enduser & { passwordIsUnset?: boolean }; 
   api: EnduserQueries;
   businessId: string;
   type: SessionType = 'enduser';
@@ -186,6 +189,7 @@ export class EnduserSession extends Session {
     this.api.endusers.logout = () => this._POST('/v1/logout-enduser')
     this.api.endusers.current_session_info = () => this._GET(`/v1${schema.endusers.customActions.current_session_info.path}`)
     this.api.endusers.add_to_journey = a => this._POST(`/v1${schema.endusers.customActions.add_to_journey.path}`, a)
+    this.api.endusers.set_password = a => this._POST(`/v1${schema.endusers.customActions.set_password.path}`, a)
 
     this.api.users.display_info = () => this._GET<{}, UserDisplayInfo[] >(`/v1/user-display-info`),
     
@@ -254,6 +258,17 @@ export class EnduserSession extends Session {
       { email: string, password: string, businessId?: string, organizationIds?: string[], durationInSeconds?: number }, 
       { authToken: string, enduser: Enduser }
     >('/v1/login-enduser', { email, password, businessId: this.businessId, organizationIds: this.organizationIds, ...o })
+  )
+
+  begin_login_flow = async (a: Omit<extractFields<PublicActions['endusers']['begin_login_flow']['parameters']>, 'businessId' | 'organizationIds'>) => (
+    await this.POST<
+      extractFields<PublicActions['endusers']['begin_login_flow']['parameters']>, 
+      extractFields<PublicActions['endusers']['begin_login_flow']['returns']>
+    >(`/v1/${schema.endusers.publicActions.begin_login_flow.path}`, {
+      ...a,
+      businessId: this.businessId,
+      organizationIds: this.organizationIds,
+    })
   )
 
   register = async (args: Omit<extractFields<PublicActions['endusers']['register']['parameters']>, 'businessId'> & { businessId?: string }) => (

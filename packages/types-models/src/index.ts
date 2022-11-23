@@ -148,6 +148,7 @@ export interface Session {
 export type SessionType = "user" | "enduser"
 export interface EnduserSession extends Session, Enduser {
   type: "enduser",
+  passwordIsUnset?: boolean,
 }
 
 export interface UserSession extends Session, User, OrganizationLimits { // User joined with organization, access, and other details
@@ -583,6 +584,7 @@ export interface Form_required {
 }
 export interface Form_updatesDisabled {}
 export interface Form extends Form_readonly, Form_required, Form_updatesDisabled {
+  description?: string,
   customSubject?: string,
   customGreeting?: string,
   customSignature?: string,
@@ -1154,6 +1156,7 @@ export interface PortalCustomization extends PortalCustomization_readonly, Porta
   title?: string,
   disabled?: boolean,
   mobileBottomNavigationPosition?: number,
+  headerImageURL?: string,
 }
 export const MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION = 1000
 export const DEFAULT_PATIENT_PORTAL_BOTTOM_NAVIGATION_POSITIONS: { [K in PortalPage]: number } = {

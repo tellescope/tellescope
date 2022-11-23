@@ -151,6 +151,8 @@ import {
   stringValidator25000EmptyOkay,
   slugValidator,
   stringValidator5000EmptyOkay,
+  loginFlowResultValidator,
+  LoginFlowResult,
 } from "@tellescope/validation"
 
 import {
@@ -498,6 +500,7 @@ export type PublicActions = {
     }, {  }>,
     request_password_reset: CustomAction<{ email: string, businessId: string, organizationIds?: string[]  }, { }>,
     reset_password: CustomAction<{ resetToken: string, newPassword: string, businessId: string, organizationIds?: string[] }, { }>,
+    begin_login_flow: CustomAction<{ email?: string, phone?: string, businessId: string, organizationIds?: string[] }, { result: LoginFlowResult, email?: string }>,
   },
   users: {
     request_password_reset: CustomAction<{ email: string }, { }>,
@@ -578,7 +581,7 @@ export const schema: SchemaV1 = build_schema({
     enduserActions: { 
       read: {}, readMany: {},
       logout: {}, refresh_session: {}, update: {}, current_session_info: {},  
-      add_to_journey: {},
+      add_to_journey: {}, begin_login_flow: {}, set_password: {} /* restricted in handler to prevent updates when password is already set */
     },
     fields: {
       ...BuiltInFields,   
@@ -709,7 +712,7 @@ export const schema: SchemaV1 = build_schema({
         op: "custom", access: 'update', method: "post",
         name: 'Set enduser password',
         path: '/set-enduser-password',
-        description: "Sets (or resets) an enduser's password. Minimum length 8 characters.",
+        description: "Sets (or resets) an enduser's password. Minimum length 8 characters. When called by enduser, can only be used to set initial password.",
         parameters: { 
           id: { validator: mongoIdStringValidator, required: true },
           password: { validator: stringValidator100, required: true },
@@ -780,6 +783,23 @@ export const schema: SchemaV1 = build_schema({
       },
     },
     publicActions: {
+      begin_login_flow: {
+        op: "custom", access: 'read', method: "post",
+        name: 'Begin enduser login flow',
+        path: '/begin-enduser-login-flow',
+        description: "Starts the login process for an enduser, supporting passwordless options",
+        enduserOnly: true, // implemented as authenticate in enduser sdk only
+        parameters: { 
+          businessId: { validator: mongoIdStringValidator, required: true, },
+          organizationIds: { validator: listOfMongoIdStringValidatorEmptyOk },
+          phone: { validator: phoneValidator },
+          email: { validator: emailValidator },
+        },
+        returns: { 
+          result: { validator: loginFlowResultValidator, required: true },
+          email: { validator: emailValidator },
+        },
+      },
       login: {
         op: "custom", access: 'read', method: "post",
         name: 'Login enduser',
@@ -2158,6 +2178,7 @@ export const schema: SchemaV1 = build_schema({
         initializer: () => 0,
         examples: [0],
       },
+      description: { validator: stringValidator5000EmptyOkay },
       customGreeting: { validator: stringValidator5000 },
       customSignature: { validator: stringValidator5000 },
       customSubject: { validator: stringValidator5000 },
@@ -3513,6 +3534,7 @@ export const schema: SchemaV1 = build_schema({
       },
       disabled: { validator: booleanValidator },
       mobileBottomNavigationPosition: { validator: nonNegNumberValidator },
+      headerImageURL: { validator: stringValidator1000 },
     },
   }, 
   enduser_tasks: {

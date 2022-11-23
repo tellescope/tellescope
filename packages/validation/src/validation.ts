@@ -2421,3 +2421,13 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   enduser_tasks: numberValidatorOptional,
   role_based_access_permissions: numberValidatorOptional,
 }, { emptyOk: true })
+
+const _LOGIN_FLOW_RESULTS = {
+  // "continue-set-password": true, // something we may turn on later / as requested
+  "continue-with-password": true,
+  "sent-email": true,
+  "sent-sms": true
+} as const
+export type LoginFlowResult = keyof typeof _LOGIN_FLOW_RESULTS
+export const LOGIN_FLOW_RESULTS = Object.keys(_LOGIN_FLOW_RESULTS) as LoginFlowResult[]
+export const loginFlowResultValidator = exactMatchValidator<LoginFlowResult>(LOGIN_FLOW_RESULTS)

@@ -5,7 +5,7 @@ import { ChangeHandler, FormInputs } from "./types"
 import { DateInput, EmailInput, FileInput, MultipleChoiceInput, NumberInput, PhoneInput, RankingInput, RatingInput, SignatureInput, StringInput, StringLongInput } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse } from "@tellescope/types-client"
-import { FormResponseAnswerFileValue } from "@tellescope/types-models"
+import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
 
 export const TellescopeFormContainer = ({ businessId, organizationIds, ...props } : { 
   children: React.ReactNode, businessId?: string, organizationIds?: string[], dontAddContext?: boolean,
@@ -58,13 +58,13 @@ export interface TellescopeFormProps extends ReturnType<typeof useTellescopeForm
 }
 
 const LOGO_HEIGHT = 40
-export const TellescopeForm = (props : TellescopeFormProps & Styled) => (
+export const TellescopeForm = (props : TellescopeFormProps & Styled & { theme?: OrganizationTheme, inputStyle?: React.CSSProperties }) => (
   <WithOrganizationTheme>
     <TellescopeFormWithContext {...props} /> 
   </WithOrganizationTheme>
 )
 
-const TellescopeFormWithContext: typeof TellescopeForm = ({
+export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
   activeField, 
   currentFileValue,
   customInputs, 
@@ -83,15 +83,14 @@ const TellescopeFormWithContext: typeof TellescopeForm = ({
 
   thanksMessage="Your response was successfully recorded",
   submitted,
-  style,
   onSuccess,
   isPreview,
   validateCurrentField,
+  theme,
 
-  ...props 
+  style,
+  inputStyle,
 }) => {
-  const theme = useOrganizationTheme()
-
   const String = customInputs?.['string'] ?? StringInput
   const StringLong = customInputs?.['stringLong'] ?? StringLongInput
   const Email = customInputs?.['email'] ?? EmailInput
@@ -127,112 +126,125 @@ const TellescopeFormWithContext: typeof TellescopeForm = ({
   }, [handleKeyPress])
 
   return (
-    <TellescopeFormContainer style={style} dontAddContext>
-      {submitted 
-        ? <Typography style={{ marginTop: 25, alignSelf: 'center' }}>{thanksMessage}</Typography>
-        : (
-          <>
-            <Flex flex={1} justifyContent={"center"} column style={{ marginBottom: 25 }}>
-              <Typography component="h4" style={{ fontSize: 20 }}>
-                {activeField.value.title}
-              </Typography>
-
-              <Typography style={{ marginBottom: 5 }} 
-                // @ts-ignore
-                color={theme.themeColor || 'primary'}
-              >
-                
-                {activeField.value.description}
-              </Typography>
-
-              { 
-                // KEEP THIS CONSISTENT WITH TellescopeSinglePageForm
-
-                // file is a unique case
-                activeField.value.type === 'file' ? (
-                  <File field={activeField.value} value={currentFileValue.blob as any} onChange={onAddFile as any} />
-                )
-                : activeField.value.type === 'string' ? (
-                  <String field={activeField.value} value={currentValue.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} />
-                )
-                : activeField.value.type === 'stringLong' ? (
-                  <StringLong field={activeField.value} value={currentValue.answer.value as string} onChange={onFieldChange as ChangeHandler<'string' | 'stringLong'>} />
-                )
-                : activeField.value.type === 'email' ? (
-                  <Email field={activeField.value} value={currentValue.answer.value as string} onChange={onFieldChange as ChangeHandler<'email'>} />
-                )
-                : activeField.value.type === 'number' ? (
-                  <Number field={activeField.value} value={currentValue.answer.value as number} onChange={onFieldChange as ChangeHandler<'number'>} />
-                )
-                : activeField.value.type === 'phone' ? (
-                  <Phone field={activeField.value} value={currentValue.answer.value as string} onChange={onFieldChange as ChangeHandler<'phone'>} />
-                )
-                : activeField.value.type === 'date' ? (
-                  <ResolvedDateInput field={activeField.value} value={currentValue.answer.value ? new Date(currentValue.answer.value as string | Date) : undefined} onChange={onFieldChange as ChangeHandler<'date'>} />
-                )
-                : activeField.value.type === 'signature' ? (
-                  <Signature field={activeField.value} value={currentValue.answer.value as any} onChange={onFieldChange as ChangeHandler<'signature'>} />
-                )
-                : activeField.value.type === 'multiple_choice' ? (
-                  <MultipleChoice field={activeField.value} value={currentValue.answer.value as any} onChange={onFieldChange as ChangeHandler<'multiple_choice'>} />
-                )
-                : activeField.value.type === 'rating' ? (
-                  <Rating field={activeField.value} value={currentValue.answer.value as any} onChange={onFieldChange as ChangeHandler<'rating'>} />
-                )
-                : activeField.value.type === 'ranking' ? (
-                  <Ranking field={activeField.value} value={currentValue.answer.value as any} onChange={onFieldChange as ChangeHandler<'ranking'>} />
-                )
-                : null
-              }   
-
-              {/* height/margin to avoid moving answer field when this appears */}
-              <Typography color="error" style={{ marginTop: 3, height: 10, fontSize: 14, marginBottom: -10 }}> 
-                {(validationMessage === 'A response is required' || validationMessage === 'A value must be checked' || validationMessage === 'A file is required')
-                  ? currentValue.touched 
-                    ? validationMessage
-                    : null 
-                  : validationMessage
-                }
-              </Typography>  
-            </Flex>
-
-            <Flex alignItems={'center'} justifyContent="space-between">
-              {!isPreviousDisabled()
-                ? (
-                  <Button variant="outlined" disabled={isPreviousDisabled()} onClick={goToPreviousField}>
-                    Previous
-                  </Button>
-                )
-                : <Flex />
-              }
-              {showSubmit 
-                ? (
-                  <LoadingButton onClick={handleSubmit} 
-                    disabled={!!validateCurrentField()}
-                    submitText="Submit Response" 
-                    submittingText={
-                      submittingStatus === 'uploading-files' 
-                        ? 'Uploading files...'
-                        : "Submitting..."
-                    } 
-                    style={{ width: 300 }}
-                    // @ts-ignore
-                    color={theme.themeColor ?? PRIMARY_HEX}
-                  />
-                )
-                : (
-                  <Button variant="contained" disabled={isNextDisabled()} onClick={goToNextField} style={{ width: 100 }}>
-                    Next
-                  </Button>
-                )
-              }
-            </Flex>
-
-            <Typography color="error" style={{ alignText: 'center', marginTop: 3 }}>
-              {submitErrorMessage}
+    submitted 
+      ? <Typography style={{ marginTop: 25, alignSelf: 'center' }}>{thanksMessage}</Typography>
+      : (
+        <Flex column flex={1}>
+          <Flex flex={1} justifyContent={"center"} column>
+            <Typography component="h4" style={{ fontSize: 20 }}>
+              {activeField.value.title}
             </Typography>
-          </>
-      )}
+
+            <Typography style={{ marginBottom: 5 }} 
+              // @ts-ignore
+              color={theme.themeColor || 'primary'}
+            >
+              
+              {activeField.value.description}
+            </Typography>
+
+            <Flex style={inputStyle}>
+            { 
+              // KEEP THIS CONSISTENT WITH TellescopeSinglePageForm
+
+              // file is a unique case
+              activeField.value.type === 'file' ? (
+                <File field={activeField.value} value={currentFileValue.blob as any} onChange={onAddFile as any} />
+              )
+              : activeField.value.type === 'string' ? (
+                <String field={activeField.value} value={currentValue.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} />
+              )
+              : activeField.value.type === 'stringLong' ? (
+                <StringLong field={activeField.value} value={currentValue.answer.value as string} onChange={onFieldChange as ChangeHandler<'string' | 'stringLong'>} />
+              )
+              : activeField.value.type === 'email' ? (
+                <Email field={activeField.value} value={currentValue.answer.value as string} onChange={onFieldChange as ChangeHandler<'email'>} />
+              )
+              : activeField.value.type === 'number' ? (
+                <Number field={activeField.value} value={currentValue.answer.value as number} onChange={onFieldChange as ChangeHandler<'number'>} />
+              )
+              : activeField.value.type === 'phone' ? (
+                <Phone field={activeField.value} value={currentValue.answer.value as string} onChange={onFieldChange as ChangeHandler<'phone'>} />
+              )
+              : activeField.value.type === 'date' ? (
+                <ResolvedDateInput field={activeField.value} value={currentValue.answer.value ? new Date(currentValue.answer.value as string | Date) : undefined} onChange={onFieldChange as ChangeHandler<'date'>} />
+              )
+              : activeField.value.type === 'signature' ? (
+                <Signature field={activeField.value} value={currentValue.answer.value as any} onChange={onFieldChange as ChangeHandler<'signature'>} />
+              )
+              : activeField.value.type === 'multiple_choice' ? (
+                <MultipleChoice field={activeField.value} value={currentValue.answer.value as any} onChange={onFieldChange as ChangeHandler<'multiple_choice'>} />
+              )
+              : activeField.value.type === 'rating' ? (
+                <Rating field={activeField.value} value={currentValue.answer.value as any} onChange={onFieldChange as ChangeHandler<'rating'>} />
+              )
+              : activeField.value.type === 'ranking' ? (
+                <Ranking field={activeField.value} value={currentValue.answer.value as any} onChange={onFieldChange as ChangeHandler<'ranking'>} />
+              )
+              : null
+            }   
+            </Flex>
+
+            {/* height/margin to avoid moving answer field when this appears */}
+            <Typography color="error" style={{ marginTop: 3, height: 10, fontSize: 14, marginBottom: -10 }}> 
+              {(validationMessage === 'A response is required' || validationMessage === 'A value must be checked' || validationMessage === 'A file is required')
+                ? currentValue.touched 
+                  ? validationMessage
+                  : null 
+                : validationMessage
+              }
+            </Typography>  
+        </Flex>
+
+        <Flex alignItems={'center'} justifyContent="space-between">
+          {!isPreviousDisabled()
+            ? (
+              <Button variant="outlined" disabled={isPreviousDisabled()} onClick={goToPreviousField}>
+                Previous
+              </Button>
+            )
+            : <Flex />
+          }
+          {showSubmit 
+            ? (
+              <LoadingButton onClick={handleSubmit} 
+                disabled={!!validateCurrentField()}
+                submitText="Submit" 
+                submittingText={
+                  submittingStatus === 'uploading-files' 
+                    ? 'Uploading files...'
+                    : "Submitting..."
+                } 
+                style={{ minWidth: 150, width: '50%', maxWidth: 250 }}
+                // @ts-ignore
+                color={theme.themeColor ?? PRIMARY_HEX}
+              />
+            )
+            : (
+              <Button variant="contained" disabled={isNextDisabled()} onClick={goToNextField} style={{ width: 100 }}>
+                Next
+              </Button>
+            )
+          }
+        </Flex>
+
+        <Typography color="error" style={{ alignText: 'center', marginTop: 3 }}>
+          {submitErrorMessage}
+        </Typography>
+      </Flex>
+    )
+  )
+}
+
+const TellescopeFormWithContext: typeof TellescopeForm = (props) => {
+  const theme = useOrganizationTheme()
+
+  return (
+    <TellescopeFormContainer style={props.style} dontAddContext>
+      {props.submitted 
+        ? <Typography style={{ marginTop: 25, alignSelf: 'center' }}>{props.thanksMessage}</Typography>
+        : (<TellescopeSingleQuestionFlow {...props} theme={theme} />)
+      }
     </TellescopeFormContainer>
   )
 }

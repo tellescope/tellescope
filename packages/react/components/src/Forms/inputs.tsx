@@ -17,7 +17,7 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import { usePdf } from '@mikecousins/react-pdf';
 
-const PdfViewer = ({ url } : { url: string }) => {
+export const PdfViewer = ({ url } : { url: string }) => {
   const [page, setPage] = useState(1);
   
   const parentRef = useRef<HTMLDivElement | null>(null);
@@ -63,8 +63,7 @@ const PdfViewer = ({ url } : { url: string }) => {
       <a href={url} target="__blank" rel="noopener noreferrer"
         style={{ marginTop: 5 }}
       >
-        View agreement in new tab or download here
-
+        View in new tab or download here
       </a>
     </Grid>
   );

@@ -151,10 +151,12 @@ export interface FormProps extends Styled, ErrorOptions {
   onSubmit: () => void;
   children?: React.ReactNode;
 }
+export const WithHTMLFormContext = React.createContext({ loading: false })
 export const Form = ({ onSubmit, uniquenessError, onError, children, style }: FormProps) =>  {
-  const { errorDisplay, handleAPIError } = useHandleError({ uniquenessError, onError })
+  const { errorDisplay, handleAPIError, loading } = useHandleError({ uniquenessError, onError })
 
   return (
+    <WithHTMLFormContext.Provider value={{ loading }}>
     <form style={style} onSubmit={e => handleAPIError(async () => { 
       e.preventDefault(); 
       await onSubmit(); 
@@ -163,6 +165,7 @@ export const Form = ({ onSubmit, uniquenessError, onError, children, style }: Fo
 
       {errorDisplay && errorDisplay}
     </form>
+    </WithHTMLFormContext.Provider>
   )
 }
 export const SUPPORTS_FORMS = true

@@ -1,5 +1,5 @@
 import React from "react"
-import { HoverPaper, useFileForSecureName } from "..";
+import { HoverPaper, useFileForSecureName, PdfViewer } from "..";
 import { PDFBlockUIProps } from "./types";
 import { Grid, Typography } from "@mui/material";
 import { 
@@ -11,6 +11,9 @@ export const PDFBlockUI = ({ info }: PDFBlockUIProps) => {
   const loadedImage = useFileForSecureName({ secureName: info.link })
 
   if (!loadedImage) return null 
+
+  return <PdfViewer url={loadedImage} />
+
   return (
     <HoverPaper style={{ padding: 15, width: '100%' }} 
       onClick={() => window.open(loadedImage, "_blank")}

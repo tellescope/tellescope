@@ -16,6 +16,7 @@ import {
   Flex,
   Form,
   SUPPORTS_FORMS,
+  WithHTMLFormContext,
 } from "./layout"
 import { OnApiError, useHandleError } from "./errors";
 
@@ -227,6 +228,7 @@ interface LoadingButtonProps extends SubmitButtonOptions {
 }
 export const LoadingButton = ({ disabled, uniquenessError, throwOnError, variant="contained", onError, submitting, onClick, submitText="Submit", submittingText="Submitting", type, style={ marginTop: 5, width: '100%' } }: LoadingButtonProps & Styled & { type?: 'submit'}) => {
   const { errorDisplay, handleAPIError, loading } = useHandleError({ onError, uniquenessError })
+  const formLoading = React.useContext(WithHTMLFormContext)?.loading
   
   return (
     <>
@@ -235,7 +237,7 @@ export const LoadingButton = ({ disabled, uniquenessError, throwOnError, variant
       await onClick()
     })}
       style={style}
-      disabled={loading || submitting || disabled}
+      disabled={loading || submitting || disabled || formLoading}
     >
       <Typography component="span">{submitting ? submittingText : submitText}</Typography>
       {(submitting || loading) && <CircularProgress size={11} style={{ marginLeft: 5, marginBottom: 1 }}/>}
