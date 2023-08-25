@@ -33,6 +33,9 @@ import NativeVideo from 'react-native-video';
 
 export const IN_REACT_WEB = false
 
+// need to export for consistency with native
+export const WithHTMLFormContext = React.createContext({ loading: false })
+
 export const Image = ({ src, alt, ...props } : ImageProps) => (
   <ImageNative 
     accessibilityLabel={alt} 

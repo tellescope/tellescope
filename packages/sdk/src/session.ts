@@ -24,7 +24,7 @@ export interface SessionOptions {
   cacheKey?: string;
   expirationInSeconds?: number,
   enableSocketLogging?: boolean,
-  handleUnauthenticated?: () => Promise<void>;
+  handleUnauthenticated?: () => Promise<any>;
   autoRefreshInMS?: number,
 }
 
@@ -42,16 +42,35 @@ const generateAPIKeyHeader = (authToken: string) => `API_KEY ${authToken}`
 const parseError = (err: any) => {
   if (err.response?.status === 413) return "Please try again with less data or a smaller file."
   if (err.response?.status === 500) return "Something went wrong on our end, and our team has been notified. Please try again later."
-  if (err.response) return err.response.data
+  if (err.response && err.response.data) return err.response.data
   if (err.request)  return "No response - please check your Internet connection and try again"
   if (err.message)  return err.message
   return err
 }
 
 const DEFAULT_AUTHTOKEN_KEY = 'tellescope_authToken'
-const has_local_storage = () => typeof window !== 'undefined' && !!window.localStorage
-const set_cache = (key: string, authToken: string) => has_local_storage() && (window.localStorage[key] = authToken)
-const access_cache = (key=DEFAULT_AUTHTOKEN_KEY) => has_local_storage() ? window.localStorage[key] : undefined
+const has_local_storage = () => {
+  try {
+    return (typeof window !== 'undefined' && !!window.localStorage)
+  } catch(err) { // no access due to incognito browser, etc.
+    console.log('error caught in has_local_storage', err)
+    return false
+  }
+}
+const set_cache = (key: string, authToken: string) => {
+  if (!has_local_storage()) return 
+  try {
+    window.localStorage[key] = authToken // browser settings may still deny access, need to catch the error
+  } catch(err) {}
+}
+const access_cache = (key=DEFAULT_AUTHTOKEN_KEY) => {
+  if (!has_local_storage()) return
+  try {
+    return window.localStorage[key] // browser settings may still deny access, need to catch the error
+  } catch(err) {
+    return ''
+  }
+}
 
 export const SOCKET_POLLING_DELAY = 250
 
@@ -73,11 +92,23 @@ export class Session {
   userInfo: { businessId?: string, id?: string };
   sessionStart = Date.now();
   AUTO_REFRESH_MS = 3600000 // 1hr elapsed
+  lastSocketConnection: number;
+  handlers: Record<string, Function>
+  loadedSocketEvents: Record<string, any[]>
 
   config: { headers: { Authorization: string }};
 
   constructor(o={} as SessionOptions & RequestOptions & { type: string }) {
     if (o.servicesSecret && !o.businessId) throw new Error("Services secret provided without businessId")
+
+    if (o.enableSocketLogging) {
+      console.log("socket log: Creating new Session")
+    }
+
+    this.lastSocketConnection = 0;
+
+    this.handlers = {};
+    this.loadedSocketEvents = {};
 
     this.host= o.host ?? DEFAULT_HOST
     this.apiKey = o.apiKey ?? '';
@@ -132,12 +163,14 @@ export class Session {
     set_cache(this.cacheKey + 'userInfo', '')
   }
 
-  clearState = () => {
+  clearState = (keepSocket?: boolean) => {
     this.apiKey = ''
     this.authToken = ''
     this.userInfo = { }
-    this.removeAllSocketListeners()
-    this.socket = undefined
+    if (!keepSocket) {
+      this.removeAllSocketListeners()
+      this.socket = undefined
+    }
     this.clearCache()
   }
 
@@ -157,19 +190,22 @@ export class Session {
   errorHandler = async (_err: any) => {
     const err = parseError(_err)
     if (err === 'Unauthenticated') {
-      this.clearState()
-      await this.handleUnauthenticated?.()
+      const refreshed = await this.handleUnauthenticated?.()
+      if (!refreshed) {
+        this.clearState()
+      }
     }
 
     return err
   }
-  POST = async <A,R=void>(endpoint: string, args?: A, authenticated=true) => {
+  POST = async <A,R=void>(endpoint: string, args?: A, authenticated=true, o?: { withCredentials?: boolean }) => {
     try {
       return (await axios.post(
         this.host + endpoint, 
         { ...args, ...this.getAuthInfo(authenticated) }, 
-        this.config)
-      ).data as R
+        { ...this.config, ...o }
+        )
+        ).data as R
     } catch(err) { throw await this.errorHandler(err) }
   }
 
@@ -262,11 +298,31 @@ export class Session {
   }
 
   handle_events = ( handlers: { [index: string]: (a: any) => void } ) => {
-    for (const handler in handlers) this.ON(handler, handlers[handler])
+    for (const handler in handlers) {
+      // load any data that was pushed to this event while handler was off
+      const loadedData = this.loadedSocketEvents[handler]
+      if (Array.isArray(loadedData) && loadedData.length > 0) {
+        this.loadedSocketEvents[handler] = []
+
+        handlers[handler](loadedData)
+      }
+
+      // set handler on to load data directly for an event
+      this.handlers[handler] = handlers[handler]
+    }
   } 
 
   unsubscribe = (roomIds: string[]) => this.EMIT('leave-rooms', { roomIds })
-  removeAllSocketListeners = () => this.socket?.removeAllListeners()
+  removeAllSocketListeners = () => {
+    if (this.enableSocketLogging) { console.log('removeAllSocketListeners') }
+    this.socket?.removeAllListeners()
+    this.handlers = {}
+  }
+
+  removeListenersForEvent = (event: string) => {
+    this.socket?.removeListener(event)
+    delete this.handlers[event]
+  }
 
   socket_log = (message: string) => {
     console.log(`${this.type} ${this.userInfo.id} got socket message: ${message}`)
@@ -280,8 +336,11 @@ export class Session {
     }
     if (!this.authToken) return
 
+    // if (this.enableSocketLogging) console.log('initializing socket', `${this.host}/${this.userInfo.businessId || this.businessId}`)
+
     this.socket = io(
-      `${this.host}/${this.userInfo.businessId || this.businessId}`, 
+      this.host,
+      // `${this.host}/${this.userInfo.businessId || this.businessId}`,  // no longer needed, causes issues on long-running servers
       { 
         auth: { token: this.authToken },
         transports: ['websocket']  // supporting polling requires sticky session at load balancer
@@ -289,6 +348,11 @@ export class Session {
     );
   }
   authenticate_socket = () => { 
+    if (this.lastSocketConnection + 2500 > Date.now()) return
+    this.lastSocketConnection = Date.now()
+
+    if (this.enableSocketLogging) console.log('authenticating socket')
+
     this.initialize_socket()
     if (!this.socket) {
       console.warn("failed to initialize_socket")
@@ -297,18 +361,40 @@ export class Session {
 
     this.socket.removeAllListeners()
 
+    this.socket.on('ping', () => {
+      if (this.enableSocketLogging) { this.socket_log("pong") }
+    })
+
+    // handle events which are sent when handlers may be off
+    this.socket?.onAny((e, v)=> {
+      if (this.handlers[e] && v) {
+        this.handlers[e](v)
+      } else if (Array.isArray(v)) {
+        if (!this.loadedSocketEvents[e]) {
+          this.loadedSocketEvents[e] = []
+        }
+        this.loadedSocketEvents[e].push(...v)
+      }
+    })
+
+    this.socket.on('connect', () => {
+      if (this.enableSocketLogging) { this.socket_log(`connect, authenticated=${this.socketAuthenticated}`) }
+    })
+
     this.socket.on('disconnect', () => { 
       this.socketAuthenticated = false 
       if (this.enableSocketLogging) { this.socket_log("disconnect") }
     })
     this.socket.on('authenticated', () => { 
       this.socketAuthenticated = true 
-      if (this.enableSocketLogging) { this.socket_log("authenticated") }
+      // if (this.enableSocketLogging) { 
+      this.socket_log("authenticated") 
+      // }
     })
-    this.socket.on('error', error => {
+    this.socket.on('error', (error: any) => {
       console.warn('socket error: ', error)
     })
-    this.socket.on('connect_error', error => {
+    this.socket.on('connect_error', (error: any) => {
       console.warn('connect_error: ', error)
       // setTimeout(() => {
       //   this.socket?.connect()

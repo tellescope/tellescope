@@ -1,5 +1,6 @@
 export interface Indexable<T=any> { [index: string] : T }
 export type Filter<T> = (v : T) => boolean
+export type ScoreFilter<T> = (v : T) => number
 export enum LoadingStatus {
   Unloaded = 0,
   Fetching,
@@ -19,9 +20,9 @@ export type LoadedData<T=any> = typeof UNLOADED
   | LoadedDataSuccess<T>
 
 export type ErrorType = "User" | "Internal"
-export type ErrorCode = 400 | 401 | 402 | 403 | 404 | 405 | 406 | 407 | 408 | 409 | 500
+export type ErrorCode = 400 | 401 | 402 | 403 | 404 | 405 | 406 | 407 | 408 | 409 | 429 | 500
 export const isErrorCode = (c: any): c is ErrorCode => 
-  [400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 500].includes(c)
+  [400, 401, 402, 403, 404, 405, 406, 407, 408, 409, 429, 500].includes(c)
 
 export interface ErrorInfo {
   message: string;
@@ -60,6 +61,7 @@ export interface FileDetails {
   size: number;
   type: string;
   enduserId?: string;
+  source?: string,
 }
 export interface FileBuffer extends Buffer, FileDetails {} 
 export interface ReactNativeFile {

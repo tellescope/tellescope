@@ -16,7 +16,6 @@ import {
   useChatRooms,
   useChats,
   useChatRoomDisplayInfo,
-  ChatRoomDisplayInfo,
   SecureImage,
   ImageDimensions,
   SecureVideo,
@@ -26,6 +25,8 @@ import {
   UserAndEnduserSelectorProps,
   UserAndEnduserSelector,
   TextField,
+  useFileForSecureName,
+  LoadedFile,
 } from "@tellescope/react-components"
 
 import {
@@ -48,6 +49,7 @@ import {
 
 import {
   ActivityOptions,
+  formatted_date,
   user_display_name, user_is_active,
 } from "@tellescope/utilities"
 
@@ -132,6 +134,8 @@ interface MessageProps extends MessageStyles {
   message: ChatMessage,
   iconSize?: number,
   imageDimensions?: ImageDimensions,
+  showDate?: boolean,
+  showName?: boolean,
 }
 export const Message = ({ 
   message, 
@@ -146,6 +150,8 @@ export const Message = ({
   receivedMessageTextStyle=defaultReceivedTextStyle,
   imageDimensions,
   style,
+  showDate,
+  showName,
 }: MessageProps & Styled) => {
   const session = useResolvedSession()
   const chatUserId = session.userInfo.id
@@ -183,43 +189,114 @@ export const Message = ({
   )
 
   const messageComponent = IN_REACT_WEB ? (
-    <Typography component="div" style={{ ...textStyle, ...textBGStyle }}>
-      {message.html
-        ? <HTMLMessage html={message.html} />
-        : message.message
-      }
-      {attachments}
-    </Typography>
-  ) : (
-    <Flex style={{ ...textBGStyle }} alignItems="center">
-      <Typography component="div" style={{ ...textStyle }}>
+    <Flex column flex={1}>
+      <Typography component="div" style={{ 
+        ...textStyle, 
+        ...textBGStyle, 
+        marginBottom: attachments ? '4px' : undefined,
+      }}>
         {message.html
           ? <HTMLMessage html={message.html} />
           : message.message
         }
-        {attachments}
-      </Typography>   
+      </Typography>
+      {attachments}
     </Flex>
+  ) : (
+    <Flex flex={1}>
+      <Flex style={{ ...textBGStyle }} alignItems="center">
+        <Typography style={{ ...textStyle }}>
+          {message.html
+            ? <HTMLMessage html={message.html} />
+            : message.message
+          }
+        </Typography>   
+      </Flex>
+
+      <Flex 
+        justifyContent={message.senderId === chatUserId ? 'flex-end' : 'flex-start'} 
+        style={{ width: '100%' }}
+      >
+        {attachments}
+      </Flex>
+    </Flex>
+  )
+
+  const isSender = session.userInfo.id === message.senderId
+
+  const userOrEnduser = (
+    (isSender ? session.userInfo : undefined)
+    || (value_is_loaded(usersLoading) ? usersLoading.value.find(u => u.id === message.senderId) : undefined)
+    || (value_is_loaded(endusersLoading) ? endusersLoading.value.find(e => e.id === message.senderId) : undefined) 
   )
 
   const displayPicture = (
     <DisplayPicture 
       style={{ maxWidth: '10%' }}
-      user={
-         (session.userInfo.id === message.senderId ? session.userInfo : undefined)
-      || (value_is_loaded(usersLoading) ? usersLoading.value.find(u => u.id === message.senderId) : undefined)
-      || (value_is_loaded(endusersLoading) ? endusersLoading.value.find(e => e.id === message.senderId) : undefined) 
-      }
+      user={userOrEnduser}
       size={iconSize}
     />
   )
 
   return (
-    <Flex style={{ margin: 5, flexWrap: 'nowrap', ...style }}> 
-      {message.senderId !== chatUserId && displayPicture}
-      {messageComponent}
-      {message.senderId === chatUserId && displayPicture}
+    <Flex column>
+      {showDate && (
+        <Flex alignSelf="center"
+          style={
+            IN_REACT_WEB
+              ? {}
+              : {
+                marginTop: 8
+              }
+          }
+        >
+        <Typography>
+          {formatted_date(new Date(message.createdAt))}
+        </Typography>
+        </Flex>
+      )
+      }
+      {showName && (
+        <Typography style={{
+          fontSize: 13, opacity: 0.8,
+          marginRight: isSender ? `${iconSize + 12}px` : 0,
+          marginLeft: isSender ? 'auto' : `${iconSize + 12}px`,
+          marginTop: 0, marginBottom: 0,
+        }}>
+          {userOrEnduser?.displayName || user_display_name(userOrEnduser)}
+        </Typography>
+      )}
+      <Flex style={{ margin: 5, marginTop: showName ? 0 : 5, flexWrap: 'nowrap', ...style }}> 
+        {message.senderId !== chatUserId && displayPicture}
+        {messageComponent}
+        {message.senderId === chatUserId && displayPicture}
+      </Flex>
     </Flex>
+  )
+}
+
+export const SecureLinkText = ({ secureName } : { secureName: string }) => {
+  const [file, setFile] = useState<LoadedFile>() 
+  useFileForSecureName({ secureName, onLoad: setFile })
+
+  if (!file) return  null
+  return (
+    <Typography 
+      style={{
+        cursor: 'pointer',
+        textDecoration: 'underline',
+      }}
+      onClick={() => {
+        if (IN_REACT_WEB) {
+          window.open(file.downloadURL, "_blank")
+        } else {
+          // todo: allow a function prop for handling open without requiring ReactNative in this package
+          // require('react-native').Linking.openURL(file.downloadURL)
+        }
+      }}
+    >
+      {file.name}
+    </Typography>
   )
 }
 
@@ -229,7 +306,16 @@ export const MessageAttachments = ({ message, chatUserId, imageDimensions } : { 
   
   return (
     <Flex column alignSelf={message.senderId === chatUserId ? "flex-end" : "flex-start"}>
-      {message.attachments.filter(a => a.type === 'image').map(a=> (
+      {message.attachments.filter(a => !a.type.startsWith('image') && !a.type.startsWith('video')).map(a=> (
+        <Flex key={a.secureName} style={{ 
+          marginRight: message.senderId === chatUserId ? 0 : 10, 
+          marginLeft: message.senderId === chatUserId ? 10 : 0, 
+          justifyContent: message.senderId === chatUserId ? "flex-end" : "flex-start",
+        }}>
+          <SecureLinkText secureName={a.secureName} />
+        </Flex>
+      ))}
+      {message.attachments.filter(a => a.type.startsWith('image')).map(a=> (
         <Flex key={a.secureName} style={{ 
           marginRight: message.senderId === chatUserId ? 0 : 10, 
           marginLeft: message.senderId === chatUserId ? 10 : 0, 
@@ -239,7 +325,7 @@ export const MessageAttachments = ({ message, chatUserId, imageDimensions } : { 
           <SecureImage secureName={a.secureName} alt="image attachment" {...imageDimensions} />
         </Flex>
       ))}
-      {message.attachments.filter(a => a.type === 'video').map(a=> (
+      {message.attachments.filter(a => a.type.startsWith('video')).map(a=> (
         <Flex key={a.secureName} style={{ 
           justifyContent: message.senderId === chatUserId ? "flex-end" : "flex-start",
           ...imageDimensions,
@@ -253,14 +339,16 @@ export const MessageAttachments = ({ message, chatUserId, imageDimensions } : { 
 
 export type MessageTheme = { theme?: string }
 
-interface Messages_T extends MessageStyles {
+export interface Messages_T extends MessageStyles {
   resolveSenderName?: (room: ChatRoom) => React.ReactNode; 
   messages: LoadedData<ChatMessage[]>,
   chatUserId: string,
   headerProps?: MessagesHeaderProps,
   imageDimensions?: ImageDimensions,
   markRead?: boolean,
+  showNames?: boolean
 }
+/** @deprecated */
 export const MessagesWithHeader = ({ 
   resolveSenderName,
   messages, 
@@ -269,18 +357,33 @@ export const MessagesWithHeader = ({
   headerProps,
   style,
   imageDimensions,
+  showNames,
   ...messageStyles 
 }: Omit<Messages_T, 'markRead'> & Styled & { Header?: React.JSXElementConstructor<MessagesHeaderProps> }) => (
-  <LoadingLinear data={messages} render={messages => (
-    <Flex column flex={1} style={{ ...style, overflowY: 'scroll' }}>
-      {Header && <Header {...headerProps}/>}
-      <List reverse items={messages} render={(message, i) => (
-        <Flex column>
-          <Message message={message} imageDimensions={imageDimensions} {...messageStyles} />
+  <LoadingLinear data={messages} render={messages => {
+      let lastDate = 0
+      return (
+        <Flex column flex={1} style={{ ...style, overflowY: 'scroll' }}>
+          {Header && <Header {...headerProps}/>}
+            <List reverse items={messages} render={(message) => {
+              // show after 10+ minute exchanges 
+              const timestamp = new Date(message.createdAt).getTime()
+              const shouldShowDate = timestamp > (lastDate + 1000 * 60 * 10 )
+              if (shouldShowDate) {
+                lastDate = timestamp
+              }
+
+              return (
+                <Flex column>
+                  <Message showName={showNames} message={message} imageDimensions={imageDimensions} showDate={shouldShowDate} {...messageStyles} />
+                </Flex>
+              )
+            }}
+          />
         </Flex>
-      )}/>    
-    </Flex>
-  )}/>
+      )}
+    }
+    />
 )
 
 export const Messages = ({ 
@@ -291,34 +394,66 @@ export const Messages = ({
   style,
   imageDimensions,
   markRead,
+  showNames,
   ...messageStyles 
 }: Messages_T & Styled) => {
   const session = useResolvedSession()
-  const [, { updateLocalElement: updateRoom }] = useChatRooms()
-  const markReadRef = useRef(false)
+  const [, { findById, updateLocalElement: updateRoom }] = useChatRooms()
+  const markReadRef = useRef('')
   
   useEffect(() => {
     if (!markRead) return
     if (!value_is_loaded(messages)) return
     if (messages.value.length === 0) return
 
-    if (markReadRef.current) return
-    markReadRef.current = true
+
+    // already marked read
+    const room = findById(messages.value[0].roomId)
+    if (room && room.infoForUser?.[session.userInfo.id]?.unreadCount === 0) return
+
+    const fetchKey = new Date(room?.updatedAt ?? 0).toString()
+    if (fetchKey === markReadRef.current) return
+    markReadRef.current = fetchKey
 
     session.api.chat_rooms.mark_read({ id: messages.value[0].roomId })
     .then(({ updated }) => {
       updateRoom(updated.id, updated)
     })
     .catch(console.error)
-  }, [session, markRead, messages, markReadRef, updateRoom])
-
+  }, [session, markRead, findById, messages, updateRoom])
 
   return (
-    <LoadingLinear data={messages} render={messages => (
-      <List reverse items={messages} style={style} render={(message) => (
-        <Message message={message} imageDimensions={imageDimensions} {...messageStyles} />
-      )}/>    
-    )}/>
+    <LoadingLinear data={messages} render={_messages => {
+      const sorted = _messages.sort((m1, m2) => new Date(m1.createdAt).getTime() - new Date(m2.createdAt).getTime())
+      
+      let lastDate = 0
+      let previousSender = ''
+      const showDateForMessage = {} as Record<string, { showDate: boolean, showName: boolean }>
+      for (const message of sorted) {
+        const timestamp = new Date(message.createdAt).getTime()
+        const showDate = timestamp > (lastDate + 1000 * 60 * 10 )
+        if (showDate) {
+          lastDate = timestamp
+        }
+
+        const showName = session.userInfo.id !== message.senderId && previousSender !== message.senderId
+        previousSender = message.senderId || ''
+
+        showDateForMessage[message.id] = { showDate, showName }
+      }
+       
+      return (
+        <List items={sorted} 
+          style={style} render={(message) => (
+            <Message message={message} imageDimensions={imageDimensions} 
+              showDate={showDateForMessage[message.id]?.showDate} 
+              showName={showNames && showDateForMessage[message.id]?.showName}
+              {...messageStyles} 
+            />
+          )}
+        />    
+      )}}
+    />
   )
 }
 
@@ -361,7 +496,6 @@ export const resolve_chat_room_name = (room: ChatRoom, displayInfo: { [index: st
     return user_display_name(displayInfo[room?.enduserIds?.[0] ?? room.creator ?? ''])
   }
   if (userType === 'enduser') {
-    console.log(room.recentSender, room.creator, displayInfo[room.creator])
     return user_display_name(displayInfo[room?.userIds?.[0] ?? room.creator ?? ''])
   }
   return ''
@@ -521,10 +655,12 @@ export interface CreateChatRoomProps extends Omit<UserAndEnduserSelectorProps, '
   onSuccess?: (c: ChatRoom) => void,
   onError?: (e: APIError) => void,
   roomTitle?: string,
+  roomType?: ChatRoom['type'],
 }
 export const CreateChatRoom = ({ 
   roomTitle: defaultRoomTitle = "Group Chat", 
   onSuccess, onError, 
+  roomType,
   ...props 
 } : CreateChatRoomProps) => {
   const [, { createElement: createRoom }] = useChatRooms({ dontFetch: true })
@@ -538,6 +674,7 @@ export const CreateChatRoom = ({
       enduserIds, 
       userIds,
       title: roomTitle,
+      type: roomType,
     })
     .then(r => {
       onSuccess?.(r)

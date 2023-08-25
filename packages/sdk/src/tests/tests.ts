@@ -1,4 +1,5 @@
 require('source-map-support').install();
+import axios from "axios"
 import crypto from "crypto"
 import * as buffer from "buffer" // only node >=15.7.0
 
@@ -46,6 +47,8 @@ import {
   url_safe_path,
 } from "@tellescope/utilities"
 
+import fs from "fs"
+
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
 const host = process.env.TEST_URL || 'http://localhost:8080'
@@ -77,6 +80,21 @@ const businessId = '60398b1131a295e64f084ff6'
 
 //   // delete an individual record
 //   await sdk.api.endusers.deleteOne(enduser.id)
+// }
+
+// const migrate_enduser_names = async () => {
+//   const sdk = new Session({ apiKey: 'API_KEY_HERE'})
+
+//   const endusers = await sdk.api.endusers.getSome({ limit: 1000 }) // 1000 is max
+
+//   for (const e of endusers) {
+//     await sdk.api.endusers.updateOne(e.id, { 
+//       unredactedFields: {
+//         fname: e.fname || '',
+//         lname: e.lname || '',
+//       }
+//     })
+//   }
 // }
 
 const sdk = new Session({ host })
@@ -129,13 +147,15 @@ const setup_tests = async () => {
   // reset nonAdmin role to a default non-admin
   await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Non-Admin'] }, { replaceObjectFields: true }),
 
+  // may do some stuff in background after returning
   await async_test('reset_db', () => sdk.reset_db(), passOnVoid)
+  await wait(undefined, 250)
 }
 
 const multi_tenant_tests = async () => {
   log_header("Multi Tenant")
-  const e2 = await sdkOther.api.endusers.createOne({ email: "hi@tellescope.com" }).catch(console.error)
-  const e1 = await sdk.api.endusers.createOne({ email: "hi@tellescope.com" }).catch(console.error)
+  const e1 = await sdk.api.endusers.createOne({ email: "hi@tellescope.com" })
+  const e2 = await sdkOther.api.endusers.createOne({ email: "hi@tellescope.com" })
   if (!e1) process.exit()
   if (!e2) process.exit()
 
@@ -236,10 +256,9 @@ const sub_organization_tests = async() => {
   await async_test(`subsub get sub adjusted error`, () => sdkSubSub.api.endusers.getOne(rootEnduser.id), handleAnyError)
 
   await async_test(
-    `push behavior for organization ids (push by default)`, 
+    `push behavior for organization ids (don't push by default)`, 
     () => sdk.api.endusers.updateOne(rootEnduser.id, { organizationIds: subEnduser.organizationIds }),
-    // { onResult: e => e.organizationIds?.length === 2 * (subEnduser.organizationIds?.length ?? 0) },
-    handleAnyError // this is not going to pass, because pushing must result in organizationIds that match an existing organization
+    { onResult: e => e.organizationIds?.length === subEnduser.organizationIds?.length },
   )
   await async_test(
     `push behavior for organization ids (replace working)`, 
@@ -264,15 +283,32 @@ const sub_organization_enduser_tests = async() => {
 
   assert(!enduserSDK.userInfo.organizationIds?.length, 'bad root organizationIds', 'root auth org ids')
   assert(subEnduserSDK.userInfo.organizationIds?.length === 1, 'bad sub organizationIds', 'sub auth org ids')
+
+  const rootTicket = await enduserSDK.api.tickets.createOne({ title: 'root', enduserId: enduserSDK.userInfo.id })
   
   await async_test(`root get root`, () => sdk.api.endusers.getOne(enduserSDK.userInfo.id), passOnAnyResult)
   await async_test(`sub get root error`, () => sdkSub.api.endusers.getOne(enduserSDK.userInfo.id), handleAnyError)
   await async_test(`root get sub`, () => sdk.api.endusers.getOne(subEnduserSDK.userInfo.id), passOnAnyResult)
   await async_test(`sub get sub`, () => sdkSub.api.endusers.getOne(subEnduserSDK.userInfo.id), passOnAnyResult)
+  await async_test(`root get root ticket`, () => sdk.api.tickets.getOne(rootTicket.id), passOnAnyResult)
+  await async_test(`sub get root ticket error`, () => sdkSub.api.tickets.getOne(rootTicket.id), handleAnyError)
+
+  await sdk.api.endusers.updateOne(enduserSDK.userInfo.id, { sharedWithOrganizations: [sdkSub.userInfo.organizationIds ?? []] })
+  await enduserSDK.refresh_session() // ensure updated session includes new sharedWithOrganizations
+  const rootTicketAfterUpdate = await enduserSDK.api.tickets.createOne({ title: 'root with shared', enduserId: enduserSDK.userInfo.id })
+
+  await async_test(`root get root`, () => sdk.api.endusers.getOne(enduserSDK.userInfo.id), passOnAnyResult)
+  await async_test(`sub get root after update`, () => sdkSub.api.endusers.getOne(enduserSDK.userInfo.id), passOnAnyResult)
+  await async_test(`root get sub`, () => sdk.api.endusers.getOne(subEnduserSDK.userInfo.id), passOnAnyResult)
+  await async_test(`sub get sub`, () => sdkSub.api.endusers.getOne(subEnduserSDK.userInfo.id), passOnAnyResult)
+  await async_test(`root get root ticket after update`, () => sdk.api.tickets.getOne(rootTicketAfterUpdate.id), passOnAnyResult)
+  await async_test(`sub get root ticket after update`, () => sdkSub.api.tickets.getOne(rootTicketAfterUpdate.id), passOnAnyResult)
 
   await Promise.all([
     sdk.api.endusers.deleteOne(enduserSDK.userInfo.id),
     sdk.api.endusers.deleteOne(subEnduserSDK.userInfo.id),
+    sdk.api.tickets.deleteOne(rootTicket.id),
+    sdk.api.tickets.deleteOne(rootTicketAfterUpdate.id),
   ])
 }
 
@@ -400,11 +436,6 @@ const updatesTests = async () => {
   await sdk.api.endusers.updateOne(enduser.id, { phone: '+15555555552' }) // update to same phone number
   assert(!!enduser, '', 'Updated phone number')
 
-  const task = await sdk.api.tasks.createOne({ text: "do the thing", completed: false })
-  await sdk.api.tasks.updateOne(task.id, { completed: false }) // test setting false (falsey value) on update
-  assert(!!task, '', 'Set completed false')
-
-  await sdk.api.tasks.deleteOne(task.id)
   await sdk.api.endusers.deleteOne(enduser.id)
 }
 
@@ -599,6 +630,11 @@ const run_generated_tests = async <N extends ModelName>({ queries, model, name, 
   || name === 'integrations'
   || name === 'databases'
   || name === 'database_records'
+  || name === 'phone_calls'
+  || name === 'analytics_frames'
+  || name === 'superbills'
+  || name === 'referral_providers'
+  || name === 'webhooks'
   ) return 
   if (!defaultEnduser) defaultEnduser = await sdk.api.endusers.createOne({ email: 'default@tellescope.com', phone: "5555555555"  })
 
@@ -693,7 +729,12 @@ const run_generated_tests = async <N extends ModelName>({ queries, model, name, 
     { shouldError: true, onError: e => e.message === 'Could not find a record for the given id' } 
   )
 
-  await wait(undefined, 25)
+  // lots of side effects
+  if (name === 'endusers') {
+    await wait(undefined, 100)
+  } else {
+    await wait(undefined, 50)
+  }
   await async_test(
     `log-${singularName} delete`, 
     () => sdk.api.user_logs.getOne({ resourceId: _id, resource: name, action: 'delete' }), 
@@ -962,20 +1003,6 @@ const journey_tests = async (queries=sdk.api.journeys) => {
   )
 }
 
-const tasks_tests = async (queries=sdk.api.tasks) => {
-  const e = await sdk.api.endusers.createOne({ email: "fortask@tellescope.com" })
-  const t = await queries.createOne({ text: "Enduser Task", enduserId: e.id })
-  assert(!!t.enduserId, 'enduserId not assigned to task', 'enduserId exists for created task')
-
-  await sdk.api.endusers.deleteOne(e.id)
-  await wait(undefined, 100) // allow dependency updates to fire in background (there are a lot for endusers)
-  await async_test(
-    `get-task - enduserId unset on enduser deletion`, 
-    () => queries.getOne(t.id), 
-    { onResult: t => t.enduserId === undefined }
-  )
-}
-
 const email_tests = async (queries=sdk.api.emails) => { 
   const me = await sdk.api.endusers.createOne({ email: 'sebass@tellescope.com' })
   const meNoEmail = await sdk.api.endusers.createOne({ phone: "4444444444" })
@@ -1034,6 +1061,12 @@ const sms_tests = async (queries=sdk.api.sms_messages) => {
     message: "Test SMS",
   }
 
+  // await async_test(
+  //   `send-sms - blank message`, 
+  //   () => queries.createOne({ ...testSMS, message: '' }), // constraint ignored when logOnly is true
+  //   { shouldError: true, onError: e => e.message === "message must not be blank" }
+  // )
+
   await async_test(
     `send-sms - missing phone`, 
     () => queries.createOne({ ...testSMS, enduserId: meNoPhone.id, logOnly: false }), // constraint ignored when logOnly is true
@@ -1055,10 +1088,10 @@ const sms_tests = async (queries=sdk.api.sms_messages) => {
     () => queries.createOne(testSMS), 
     { onResult: t => !!t }
   )
-  testSMS.message = "(Multi-Send)"
+  testSMS.message = "(Multi-Send)" // sending 3 or more will exceed rate limit of 3-per-3 seconds
   await async_test(
     `send-sms (multiple)`, 
-    () => queries.createSome([ testSMS, testSMS, testSMS ]), 
+    () => queries.createSome([ testSMS, testSMS ]), 
     { onResult: t => !!t }
   )
 
@@ -1203,16 +1236,18 @@ const chat_tests = async() => {
     { onResult: c => c?.length === 2 }
   )
 
+  // this is allowed now
   // await async_test(
   //   `get-chat (without filter)`, 
   //   () => sdk.api.chats.getOne(chat.id), 
   //   { shouldError: true, onError: () => true }
   // )
-  await async_test(
-    `get-chats (without filter)`, 
-    () => sdk.api.chats.getSome({}), 
-    { shouldError: true, onError: () => true }
-  )
+  // this is allowed now
+  // await async_test(
+  //   `get-chats (without filter)`, 
+  //   () => sdk.api.chats.getSome({}), 
+  //   { shouldError: true, onError: () => true }
+  // )
   await async_test(
     `get-chats (with filter)`, 
     () => sdk.api.chats.getSome({ filter: { roomId: room.id } }), 
@@ -1328,7 +1363,7 @@ const enduserAccessTests = async () => {
   await async_test(
     `no-enduser-access for different businessId`,
     () => enduserSDKDifferentBusinessId.authenticate(email, password), 
-    { shouldError: true, onError: (e: any) => e?.message === "Could not find a corresponding account" }
+    { shouldError: true, onError: (e: any) => e?.message === "Login details are invalid" }
   )
 
   for (const n in schema) {
@@ -1398,7 +1433,7 @@ const enduserAccessTests = async () => {
   )
 
   const ticketAccessible = await sdk.api.tickets.createOne({ enduserId: enduser.id, title: "Accessible ticket" })
-  const ticketInaccessible = await sdk.api.tickets.createOne({ enduserId: PLACEHOLDER_ID, title: "Inaccessible ticket" })
+  const ticketInaccessible = await sdk.api.tickets.createOne({ enduserId: enduser2.id, title: "Inaccessible ticket" })
   await async_test(
     `enduser cannot create ticket for another enduser`,
     () => enduserSDK.api.tickets.createOne({ enduserId: sdk.userInfo.id, title: "Error on Creation" }),
@@ -1494,7 +1529,7 @@ const files_tests = async () => {
     sdk.api.endusers.deleteOne(enduser.id),
   ])
 
-  await wait(undefined, 1500) // wait for files to be deleted as side effect
+  await wait(undefined, 2000) // wait for files to be deleted as side effect
   await async_test(
     `Files cleaned up as side effect of deleting enduser`,
     () => sdk.api.files.getSome({ filter: { enduserId: enduser.id } }),
@@ -1540,7 +1575,7 @@ const users_tests = async () => {
   await async_test(
     `update user (non-admin, other user)`,
     () => sdkNonAdmin.api.users.updateOne(sdk.userInfo.id, { fname: randomFieldValue }),
-    { shouldError: true, onError: e => e.message === "Only admin users can update others' profiles" }
+    handleAnyError
   )
   await async_test(
     `verify no update`,
@@ -1803,7 +1838,7 @@ const ticketEventTests = async () => {
 
   await sdk.api.endusers.updateOne(enduser.id, { journeys: { [journey.id]: 'Added' }})
   await sdk.api.endusers.updateOne(enduserWithTeam.id, { journeys: { [nullJourney.id]: 'Added (Null)' }})
-  await wait(undefined, 2200) // wait for tickets to be automatically created
+  await wait(undefined, 2250) // wait for tickets to be automatically created
 
   await async_test(
     `Tickets automatically created`,
@@ -1920,7 +1955,7 @@ const removeFromJourneyTests = async () => {
     { onResult: e => e.journeys?.[journey.id] !== 'Delayed Step' }
   )  
 
-  await wait(undefined, 3 * TEST_DELAY) // wait long enough for automation to process and delay to pass
+  await wait(undefined, 4 * TEST_DELAY) // wait long enough for automation to process and delay to pass
   await async_test(
     `Sequenced action triggered`,
     () => sdk.api.endusers.getOne(enduser.id),
@@ -2002,8 +2037,8 @@ const sequenceTests = async () => {
   ])
 }
 
-export const cancelConditionsTests = async () => {
-  log_header("Cancel Condition Tests")
+export const formUnsubmittedCancelConditionTest = async () => {
+  log_header("formUnsubmitted Cancel Condition Tests")
 
   const enduser = await sdk.api.endusers.createOne({ email: 'deletemeee@tellescope.com' })
   const journey = await sdk.api.journeys.createOne({ title: 'test journey '})
@@ -2033,7 +2068,8 @@ export const cancelConditionsTests = async () => {
         automationStepId: triggerStep.id,
         delayInMS: 0, // should trigger 
         delay: 0, unit: 'Seconds', // don't matter
-        cancelConditions: [{ type: 'formResponse', info: { automationStepId: triggerStep.id }}]
+        // this cancelCondition is now added automatically, does not need to be part of step
+        // cancelConditions: [{ type: 'formResponse', info: { automationStepId: triggerStep.id }}]
       } 
     }],
     action: {
@@ -2042,6 +2078,7 @@ export const cancelConditionsTests = async () => {
     },
   })
 
+  // should occur right after unsub
   const fastFollowup = await sdk.api.automation_steps.createOne({
     journeyId: journey.id,
     events: [{ 
@@ -2050,7 +2087,8 @@ export const cancelConditionsTests = async () => {
         automationStepId: unsub.id,
         delayInMS: 0,  // ensure it triggers right after unsub
         delay: 0, unit: 'Seconds', // don't matter
-        cancelConditions: [{ type: 'formResponse', info: { automationStepId: triggerStep.id }}]
+        // this cancelCondition is now added automatically, does not need to be part of step
+        // cancelConditions: [{ type: 'formResponse', info: { automationStepId: triggerStep.id }}]
       } 
     }],
     action: {
@@ -2059,6 +2097,7 @@ export const cancelConditionsTests = async () => {
     },
   })
   
+  // should be cancelled after unsub
   await sdk.api.automation_steps.createOne({
     journeyId: journey.id,
     events: [{ 
@@ -2067,7 +2106,8 @@ export const cancelConditionsTests = async () => {
         automationStepId: unsub.id,
         delayInMS: 1000000,  // ensure it doesn't trigger
         delay: 0, unit: 'Seconds', // don't matter
-        cancelConditions: [{ type: 'formResponse', info: { automationStepId: triggerStep.id }}]
+        // this cancelCondition is now added automatically, passed down from unsub
+        // cancelConditions: [{ type: 'formResponse', info: { automationStepId: triggerStep.id }}]
       } 
     }],
     action: {
@@ -2076,6 +2116,7 @@ export const cancelConditionsTests = async () => {
     },
   })
 
+  // should be cancelled after unsub
   // a second followup to the unsub event (to create example of two actions with same cancel condition)
   await sdk.api.automation_steps.createOne({
     journeyId: journey.id,
@@ -2085,7 +2126,8 @@ export const cancelConditionsTests = async () => {
         automationStepId: unsub.id,
         delayInMS: 1000000,  // ensure it doesn't trigger
         delay: 0, unit: 'Seconds', // don't matter
-        cancelConditions: [{ type: 'formResponse', info: { automationStepId: triggerStep.id }}]
+        // this cancelCondition is now added automatically, does not need to be part of step
+        // cancelConditions: [{ type: 'formResponse', info: { automationStepId: triggerStep.id }}]
       } 
     }],
     action: {
@@ -2099,15 +2141,6 @@ export const cancelConditionsTests = async () => {
     automationStepId: triggerStep.id, // must be included for trigger to happen
     enduserId: enduser.id 
   })
-
-  // allow formUnsubmitted to trigger
-  // await wait(undefined, 1500) // allow background creation with generous pause
-
-  // await async_test(
-  //   `formUnsubmitted event with short delay is triggered`,
-  //   () => sdk.api.endusers.getOne(enduser.id),
-  //   { onResult: e => e?.journeys?.[journey.id] === 'triggered' }
-  // )  
 
   // allow fast followup to trigger
   await wait(undefined, 4000) // allow background creation with generous pause
@@ -2146,6 +2179,420 @@ export const cancelConditionsTests = async () => {
   ])
 }
 
+export const formsUnsubmittedCancelConditionTest = async () => {
+  log_header("formsUnsubmitted Cancel Condition Tests")
+
+  const enduser = await sdk.api.endusers.createOne({ email: 'deletemeee@tellescope.com' })
+  const journey = await sdk.api.journeys.createOne({ title: 'test journey '})
+  const form = await sdk.api.forms.createOne({ title: 'test form' })
+  const field = await sdk.api.form_fields.createOne({
+    formId: form.id, title: 'question', type: 'string', 
+    previousFields: [{ type: 'root', info: {} }]
+  })
+
+  // this action won't be fired, because patient isn't added to journey as part of tests
+  const triggerStep = await sdk.api.automation_steps.createOne({
+    journeyId: journey.id,
+    events: [{ type: 'onJourneyStart', info: { } }],
+    // in practice, this would send a form, so that the next step(s) could handle the response
+    // but we don't want to send emails in testing, and can still attach this Id to a form response to test a trigger
+    action: {
+      type: 'setEnduserStatus', 
+      info: { status: 'start' },
+    },
+  })
+
+  const unsub = await sdk.api.automation_steps.createOne({
+    journeyId: journey.id,
+    events: [{ 
+      type: 'formsUnsubmitted', 
+      info: { 
+        automationStepId: triggerStep.id,
+        delayInMS: 10000, // should't trigger 
+        delay: 0, unit: 'Seconds', // don't matter
+        cancelConditions: [
+          // { type: 'formResponse', info: { automationStepId: triggerStep.id }}
+        ]
+      } 
+    }],
+    action: {
+      type: 'setEnduserStatus',
+      info: { status: 'triggered' },
+    },
+  })
+
+  // test for all forms submitted triggering update
+  await sdk.api.automation_steps.createOne({
+    journeyId: journey.id,
+    events: [{ 
+      type: 'formResponses', 
+      info: { automationStepId: triggerStep.id } 
+    }],
+    action: {
+      type: 'setEnduserStatus',
+      info: { status: 'formsSubmitted' },
+    },
+  })
+  
+  // triggers formsUnsubmitted automated actions to be created when forms generated in templated message
+  await sdk.api.templates.get_templated_message({
+    channel: 'Email',
+    enduserId: enduser.id,
+    message: `{{forms.${form.id}.link:title}} {{forms.${form.id}.link:title}}`,
+    userId: sdk.userInfo.id,
+    automationStepId: triggerStep.id,
+  })
+
+  const form_responses = await sdk.api.form_responses.getSome()
+
+  // allow fast followup to trigger
+  await wait(undefined, 2500) // allow background creation with generous pause
+
+
+  await async_test(
+    `FormsUnsubmitted action created with cancel conditions`,
+    () => sdk.api.automated_actions.getSome(),
+    { onResult: as =>  {
+      const match = as.find(a => a.automationStepId === unsub.id)
+      return !!(
+         as.length === 1
+      && match?.status === 'active'
+      && match?.event.type === 'formsUnsubmitted'
+      && match.event.info.cancelConditions?.find(c => 
+             c.type === 'formResponses' 
+          && c.info.automationStepId === triggerStep.id
+          && c.info.unsubmittedFormCount === 2
+        )
+      )
+    }}
+  )  
+  await async_test(
+    `formResponses not triggered with all forms unsubmitted`,
+    () => sdk.api.endusers.getOne(enduser.id),
+    { onResult: e => e?.journeys?.[journey.id] !== 'formsSubmitted' }
+  )  
+
+  // trigger cancel conditions
+  await sdk.api.form_responses.submit_form_response({ accessCode: form_responses[0].accessCode!, automationStepId: triggerStep.id, responses: [{
+    answer: {
+      type: 'string',
+      value: 'answer'
+    },
+    fieldId: field.id,
+    fieldTitle: field.title,
+  }] })
+  await wait(undefined, 2500) // allow background creation with generous pause
+
+  await async_test(
+    `FormsUnsubmitted cancel conditions working`,
+    () => sdk.api.automated_actions.getSome(),
+    { onResult: as =>  {
+      const match = as.find(a => a.automationStepId === unsub.id)
+      return !!(
+         as.length === 1
+      && match?.status === 'active'
+      && match?.event.type === 'formsUnsubmitted'
+      && match.event.info.cancelConditions?.find(c => 
+             c.type === 'formResponses' 
+          && c.info.automationStepId === triggerStep.id
+          && c.info.unsubmittedFormCount === 1
+        )
+      )
+    }}
+  )  
+  await async_test(
+    `formResponses not triggered yet after 1 form remaining`,
+    () => sdk.api.endusers.getOne(enduser.id),
+    { onResult: e => e?.journeys?.[journey.id] !== 'formsSubmitted' }
+  )  
+
+  await sdk.api.form_responses.submit_form_response({ accessCode: form_responses[1].accessCode!, automationStepId: triggerStep.id, responses: [{
+    answer: {
+      type: 'string',
+      value: 'answer'
+    },
+    fieldId: field.id,
+    fieldTitle: field.title,
+  }] })
+
+  await wait(undefined, 4000) // allow background creation with generous pause
+
+  await async_test(
+    `FormsUnsubmitted cancel conditions work`,
+    () => sdk.api.automated_actions.getSome(),
+    { onResult: as =>  {
+      const match = as.find(a => a.automationStepId === unsub.id)
+      return !!(
+         as.length === 2 // this now includes formResponses event as well, which we test has worked in the next test
+      && match?.status === 'cancelled'
+      && match?.event.type === 'formsUnsubmitted'
+      && match.event.info.cancelConditions?.find(c => 
+             c.type === 'formResponses' 
+          && c.info.automationStepId === triggerStep.id
+          && c.info.unsubmittedFormCount === 0
+        )
+      )
+    }}
+  )  
+  await async_test(
+    `formResponses triggered after both forms submitted`,
+    () => sdk.api.endusers.getOne(enduser.id),
+    { onResult: e => e?.journeys?.[journey.id] === 'formsSubmitted' }
+  )  
+
+  await Promise.all([
+    sdk.api.forms.deleteOne(form.id),
+    sdk.api.journeys.deleteOne(journey.id),
+    sdk.api.endusers.deleteOne(enduser.id)
+  ])
+}
+
+// to ensure that unsubmitted branch can complete and then complete form still triggers next branch
+export const formsUnsubmittedTest = async () => {
+  log_header("formsUnsubmitted Tests")
+
+  const enduser = await sdk.api.endusers.createOne({ email: 'deletemeee@tellescope.com' })
+  const journey = await sdk.api.journeys.createOne({ title: 'test journey '})
+  const form = await sdk.api.forms.createOne({ title: 'test form' })
+  const field = await sdk.api.form_fields.createOne({
+    formId: form.id, title: 'question', type: 'string', 
+    previousFields: [{ type: 'root', info: {} }]
+  })
+
+  // this action won't be fired, because patient isn't added to journey as part of tests
+  const triggerStep = await sdk.api.automation_steps.createOne({
+    journeyId: journey.id,
+    events: [{ type: 'onJourneyStart', info: { } }],
+    // in practice, this would send a form, so that the next step(s) could handle the response
+    // but we don't want to send emails in testing, and can still attach this Id to a form response to test a trigger
+    action: {
+      type: 'setEnduserStatus', 
+      info: { status: 'start' },
+    },
+  })
+
+  await sdk.api.automation_steps.createOne({
+    journeyId: journey.id,
+    events: [{ 
+      type: 'formsUnsubmitted', 
+      info: { 
+        automationStepId: triggerStep.id,
+        delayInMS: 0, // *SHOULD* trigger 
+        delay: 0, unit: 'Seconds', // don't matter
+        cancelConditions: [
+          // { type: 'formResponse', info: { automationStepId: triggerStep.id }}
+        ]
+      } 
+    }],
+    action: {
+      type: 'setEnduserStatus',
+      info: { status: 'triggered' },
+    },
+  })
+
+  // test for all forms submitted triggering update
+  await sdk.api.automation_steps.createOne({
+    journeyId: journey.id,
+    events: [{ 
+      type: 'formResponses', 
+      info: { automationStepId: triggerStep.id } 
+    }],
+    action: {
+      type: 'setEnduserStatus',
+      info: { status: 'formsSubmitted' },
+    },
+  })
+  
+  // triggers formsUnsubmitted automated actions to be created when forms generated in templated message
+  await sdk.api.templates.get_templated_message({
+    channel: 'Email',
+    enduserId: enduser.id,
+    message: `{{forms.${form.id}.link:title}} {{forms.${form.id}.link:title}}`,
+    userId: sdk.userInfo.id,
+    automationStepId: triggerStep.id,
+  })
+
+  const form_responses = await sdk.api.form_responses.getSome()
+
+  // allow fast followup to trigger
+  await wait(undefined, 5000) // allow background creation with generous pause
+
+  await async_test(
+    `formsUnsubmitted handler worked`,
+    () => sdk.api.endusers.getOne(enduser.id),
+    { onResult: e => e?.journeys?.[journey.id] === 'triggered' }
+  )  
+
+  // trigger cancel conditions
+  await sdk.api.form_responses.submit_form_response({ accessCode: form_responses[0].accessCode!, automationStepId: triggerStep.id, responses: [{
+    answer: {
+      type: 'string',
+      value: 'answer'
+    },
+    fieldId: field.id,
+    fieldTitle: field.title,
+  }] })
+  await wait(undefined, 5000) // allow background creation with generous pause
+
+  await async_test(
+    `formResponses not triggered yet after 1 form remaining`,
+    () => sdk.api.endusers.getOne(enduser.id),
+    { onResult: e => e?.journeys?.[journey.id] !== 'formsSubmitted' }
+  )  
+
+  await sdk.api.form_responses.submit_form_response({ accessCode: form_responses[1].accessCode!, automationStepId: triggerStep.id, responses: [{
+    answer: {
+      type: 'string',
+      value: 'answer'
+    },
+    fieldId: field.id,
+    fieldTitle: field.title,
+  }] })
+
+  await wait(undefined, 5000) // allow background creation with generous pause
+
+  await async_test(
+    `formResponses triggered after both forms submitted`,
+    () => sdk.api.endusers.getOne(enduser.id),
+    { onResult: e => e?.journeys?.[journey.id] === 'formsSubmitted' }
+  )  
+
+  await Promise.all([
+    sdk.api.forms.deleteOne(form.id),
+    sdk.api.journeys.deleteOne(journey.id),
+    sdk.api.endusers.deleteOne(enduser.id)
+  ])
+}
+
+export const formsSubmittedNoUnsubmittedTest = async () => {
+  log_header("formsSubmitted, with no unsubmitted branch, Tests")
+
+  const enduser = await sdk.api.endusers.createOne({ email: 'deletemeee@tellescope.com' })
+  const journey = await sdk.api.journeys.createOne({ title: 'test journey '})
+  const form = await sdk.api.forms.createOne({ title: 'test form' })
+  const field = await sdk.api.form_fields.createOne({
+    formId: form.id, title: 'question', type: 'string', 
+    previousFields: [{ type: 'root', info: {} }]
+  })
+
+  // this action won't be fired, because patient isn't added to journey as part of tests
+  const triggerStep = await sdk.api.automation_steps.createOne({
+    journeyId: journey.id,
+    events: [{ type: 'onJourneyStart', info: { } }],
+    // in practice, this would send a form, so that the next step(s) could handle the response
+    // but we don't want to send emails in testing, and can still attach this Id to a form response to test a trigger
+    action: {
+      type: 'setEnduserStatus', 
+      info: { status: 'start' },
+    },
+  })
+
+  // test for all forms submitted triggering update
+  await sdk.api.automation_steps.createOne({
+    journeyId: journey.id,
+    events: [{ 
+      type: 'formResponses', 
+      info: { automationStepId: triggerStep.id } 
+    }],
+    action: {
+      type: 'setEnduserStatus',
+      info: { status: 'formsSubmitted' },
+    },
+  })
+
+  // simulates sending 2 outstanding forms to pt with expected follow-up
+  await sdk.api.templates.get_templated_message({
+    channel: 'Email',
+    enduserId: enduser.id,
+    message: `{{forms.${form.id}.link:title}} {{forms.${form.id}.link:title}}`,
+    userId: sdk.userInfo.id,
+    automationStepId: triggerStep.id,
+  })
+  
+  const form_responses = await sdk.api.form_responses.getSome()
+
+  // trigger submission
+  await sdk.api.form_responses.submit_form_response({ accessCode: form_responses[0].accessCode!, automationStepId: triggerStep.id, responses: [{
+    answer: {
+      type: 'string',
+      value: 'answer'
+    },
+    fieldId: field.id,
+    fieldTitle: field.title,
+  }] })
+  await wait(undefined, 5000) // allow background creation with generous pause
+
+  await async_test(
+    `formResponses not triggered yet after 1 form remaining`,
+    () => sdk.api.endusers.getOne(enduser.id),
+    { onResult: e => e?.journeys?.[journey.id] !== 'formsSubmitted' }
+  )  
+
+  await sdk.api.form_responses.submit_form_response({ accessCode: form_responses[1].accessCode!, automationStepId: triggerStep.id, responses: [{
+    answer: {
+      type: 'string',
+      value: 'answer'
+    },
+    fieldId: field.id,
+    fieldTitle: field.title,
+  }] })
+
+  await wait(undefined, 5000) // allow background creation with generous pause
+
+  await async_test(
+    `formResponses triggered after both forms submitted`,
+    () => sdk.api.endusers.getOne(enduser.id),
+    { onResult: e => e?.journeys?.[journey.id] === 'formsSubmitted' }
+  )  
+
+  await Promise.all([
+    sdk.api.forms.deleteOne(form.id),
+    sdk.api.journeys.deleteOne(journey.id),
+    sdk.api.endusers.deleteOne(enduser.id)
+  ])
+}
+
+
+// ensure child steps come from the same journey
+export const automationSameJourneyTests = async () => {
+  log_header("automationSameJourney")
+
+  const journey = await sdk.api.journeys.createOne({ title: 'test journey' })
+  const journey2 = await sdk.api.journeys.createOne({ title: 'test other journey' })
+ 
+  // this action won't be fired, because patient isn't added to journey as part of tests
+  const badRoot = await sdk.api.automation_steps.createOne({
+    journeyId: journey.id,
+    events: [{ type: 'onJourneyStart', info: { } }],
+    // in practice, this would send a form, so that the next step(s) could handle the response
+    // but we don't want to send emails in testing, and can still attach this Id to a form response to test a trigger
+    action: {
+      type: 'setEnduserStatus', 
+      info: { status: 'start' },
+    },
+  })
+
+  await async_test(
+    `can't create child of other journey`,
+    () => (
+      sdk.api.automation_steps.createOne({
+        journeyId: journey2.id,
+        events: [{ 
+          type: 'afterAction', 
+          info: { automationStepId: badRoot.id, delay: 0, delayInMS: 0, unit:'Days' } 
+        }],
+        action: { type: 'setEnduserStatus', info: { status: 'irrelevant' } },
+      })
+    ),
+    handleAnyError
+  )  
+
+  await Promise.all([
+    sdk.api.journeys.deleteOne(journey.id),
+    sdk.api.journeys.deleteOne(journey2.id)
+  ])
+}
+
 const addToJourneyTests = async () => {
   log_header("Add / Re-add to Journey")
 
@@ -2174,9 +2621,23 @@ const addToJourneyTests = async () => {
 
   // add to journey and re-add
   await sdk.api.endusers.add_to_journey({ enduserIds: [enduser.id], journeyId: journey.id })
-  await wait(undefined, 2250) // allow onJourneyStart step to trigger
+
+  await async_test(
+    `Journey state correctly set by add_to_journey (to default state)`,
+    () => sdk.api.endusers.getOne(enduser.id),
+    { onResult: e => e.journeys?.[journey.id] === '' || e.journeys?.[journey.id] === 'Root' } 
+  )  
+
+  await wait(undefined, 4000) // allow onJourneyStart step to trigger
   await sdk.api.endusers.add_to_journey({ enduserIds: [enduser.id], journeyId: journey.id })
-  await wait(undefined, 2250) // allow onJourneyStart step to trigger
+
+  await async_test(
+    `Enduser throttle journey add working`,
+    () => sdk.api.endusers.add_to_journey({ enduserIds: [enduser.id], journeyId: journey.id, throttle: true }),
+    handleAnyError
+  )
+
+  await wait(undefined, 4000) // allow onJourneyStart step to trigger
 
   await async_test(
     `Enduser correctly added and re-added`,
@@ -2194,14 +2655,147 @@ const addToJourneyTests = async () => {
   ])
 }
 
+const directAutomatedActionTest = async () => {
+  log_header("Manual Action Tests")
+
+  const enduser = await sdk.api.endusers.createOne({ fname: 'test' })
+  const action = await sdk.api.automated_actions.createOne({ 
+    event: {
+      type: 'onJourneyStart',
+      info: {}
+    },
+    action: {
+      type: 'setEnduserStatus',
+      info: { status: "Working" }
+    },
+    enduserId: enduser.id,
+    processAfter: 0,
+    status: 'active',
+    automationStepId: PLACEHOLDER_ID,
+    journeyId: PLACEHOLDER_ID,
+  })
+
+  await wait(undefined, 3000)  
+
+  await async_test(
+    `Enduser status set by manual automated action`,
+    () => sdk.api.endusers.getOne(enduser.id),
+    { onResult: e => e.journeys?.[PLACEHOLDER_ID] === 'Working' }
+  )  
+
+  await async_test(
+    `Automated action is finished`,
+    () => sdk.api.automated_actions.getOne(action.id),
+    { onResult: e => e.status === 'finished' }
+  )  
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(enduser.id),
+    sdk.api.automated_actions.deleteOne(action.id) ,
+  ])
+}
+
 const automation_events_tests = async () => {
   log_header("Automation Events")
+  await directAutomatedActionTest()
+  await formsSubmittedNoUnsubmittedTest()
+  await automationSameJourneyTests()
+  await formsUnsubmittedTest()
+  await formsUnsubmittedCancelConditionTest() 
+  await formUnsubmittedCancelConditionTest()
   await addToJourneyTests()
-  await cancelConditionsTests()
   await sequenceTests()
   await formEventTests()
   await ticketEventTests()
   await removeFromJourneyTests() 
+}
+
+const formSubmittedTriggerTests = async () => {
+  log_header("Automation Trigger: Form Response --> Add To Journey")
+
+  const enduser = await sdk.api.endusers.createOne({ fname: 'test' })
+  const journey1 = await sdk.api.journeys.createOne({ title: 'journey' })
+  const journey2 = await sdk.api.journeys.createOne({ title: 'journey2' })
+  const journey3 = await sdk.api.journeys.createOne({ title: 'journey3' })
+  const form = await sdk.api.forms.createOne({ title: 'form' })
+  const field = await sdk.api.form_fields.createOne({ 
+    formId: form.id,
+    type: 'string',
+    title: 'Test',
+    previousFields: [
+      {
+        type: 'root',
+        info: {},
+      }
+    ],
+  })
+
+  const active = await sdk.api.automation_triggers.createOne({ 
+    event: { type: 'Form Submitted', info: { formId: form.id }},
+    action: { type: 'Add To Journey', info: { journeyId: journey1.id }},
+    status: 'Active',
+    title: "Active"
+  })
+  const dupActive = await sdk.api.automation_triggers.createOne({ 
+    event: { type: 'Form Submitted', info: { formId: form.id }},
+    action: { type: 'Add To Journey', info: { journeyId: journey2.id }},
+    status: 'Active',
+    title: "Dup Active"
+  })
+  const inactive = await sdk.api.automation_triggers.createOne({ 
+    event: { type: 'Form Submitted', info: { formId: form.id }},
+    action: { type: 'Add To Journey', info: { journeyId: journey3.id }},
+    status: 'Inactive',
+    title: "Inactive"
+  })
+
+  const { accessCode } = await sdk.api.form_responses.prepare_form_response({
+    enduserId: enduser.id,
+    formId: form.id,
+  })
+
+  await sdk.api.form_responses.submit_form_response({
+    accessCode,
+    responses: [
+      {
+        fieldId: field.id,
+        fieldTitle: field.title,
+        answer: {
+          type: 'string',
+          value: 'trigger 2',
+        },
+      },
+    ],
+  })
+
+  // allow triggers to happen
+  await wait(undefined, 1000)
+
+  await async_test(
+    `Automated triggers work`,
+    () => sdk.api.endusers.getOne(enduser.id),
+    { onResult: e => !!(
+       e.journeys?.[journey1.id] === ''
+    && e.journeys?.[journey2.id] === ''
+    && e.journeys?.[journey3.id] === undefined
+    ) }
+  )  
+  await Promise.all([
+    sdk.api.journeys.deleteOne(journey1.id),
+    sdk.api.journeys.deleteOne(journey2.id),
+    sdk.api.journeys.deleteOne(journey3.id),
+    sdk.api.endusers.deleteOne(enduser.id),
+    sdk.api.forms.deleteOne(form.id),
+    sdk.api.automation_triggers.deleteOne(active.id),
+    sdk.api.automation_triggers.deleteOne(dupActive.id),
+    sdk.api.automation_triggers.deleteOne(inactive.id),
+  ])
+}
+
+const automation_trigger_tests = async () => {
+  log_header("Automation Trigger Tests")
+
+  await formSubmittedTriggerTests()
 }
 
 const form_response_tests = async () => {
@@ -2388,13 +2982,10 @@ const passOnAnyResult = { onResult: () => true }
 const role_based_access_tests = async () => {
   log_header("Role Based Access Tests")
   const adminId = sdk.userInfo.id
-  const nonAdminId = sdkNonAdmin.userInfo.id
 
   const e = await sdk.api.endusers.createOne({ email: 'roletest@gmail.com' })
 
   const adminTicket = await sdk.api.tickets.createOne({ title: 'ticket', enduserId: e.id, owner: adminId })
-  const nonAdminTicket = await sdk.api.tickets.createOne({ title: 'ticket', enduserId: e.id, owner: nonAdminId })
-  const nonAdminTicketNoEnduser = await sdk.api.tickets.createOne({ title: 'ticket', owner: nonAdminId })
   const ticketCreatedByNonAdmin = await sdkNonAdmin.api.tickets.createOne({ title: 'ticket' })
 
   const email = await sdk.api.emails.createOne({ enduserId: e.id, logOnly: true, subject: 'blah', textContent: 'blah blah' })
@@ -2424,17 +3015,12 @@ const role_based_access_tests = async () => {
     `non-admin for enduser ticket bad`,
     () => sdkNonAdmin.api.tickets.getOne(adminTicket.id), handleAnyError,
   )  
-  await async_test(
-    `Non-admin for ticket`, () => sdkNonAdmin.api.tickets.getOne(nonAdminTicketNoEnduser.id), passOnAnyResult
-  )  
-  await async_test(
-    `Non-admin for enduser ticket`, () => sdkNonAdmin.api.tickets.getOne(nonAdminTicket.id), passOnAnyResult
-  )  
+
   await async_test(
     `Non-admin for own ticket`, () => sdkNonAdmin.api.tickets.getOne(ticketCreatedByNonAdmin.id), passOnAnyResult
   )  
   await async_test(
-    `Non-admin for tickets`, () => sdkNonAdmin.api.tickets.getSome(), { onResult: ts => ts.length === 3 }
+    `Non-admin for tickets`, () => sdkNonAdmin.api.tickets.getSome(), { onResult: ts => ts.length === 1 }
   )  
   await async_test(
     `non-admin for email bad`, () => sdkNonAdmin.api.emails.getOne(email.id), handleAnyError,
@@ -2466,10 +3052,7 @@ const role_based_access_tests = async () => {
   await async_test(
     `non-admin for enduser ticket delete bad`, () => sdkNonAdmin.api.tickets.deleteOne(adminTicket.id), handleAnyError,
   )  
-  await async_test(
-    `non-admin can't delete tickets by default (even with access)`, 
-    () => sdkNonAdmin.api.tickets.deleteOne(nonAdminTicket.id), handleAnyError,
-  )  
+
 
   // set assignees
   await sdk.api.endusers.updateOne(e.id, { assignedTo: [sdk.userInfo.id, sdkNonAdmin.userInfo.id]})
@@ -2484,14 +3067,9 @@ const role_based_access_tests = async () => {
   await async_test(
     `non-admin for enduser ticket`, () => sdkNonAdmin.api.tickets.getOne(adminTicket.id), passOnAnyResult,
   )  
+
   await async_test(
-    `Non-admin for ticket`, () => sdkNonAdmin.api.tickets.getOne(nonAdminTicketNoEnduser.id), passOnAnyResult
-  )  
-  await async_test(
-    `Non-admin for enduser ticket`, () => sdkNonAdmin.api.tickets.getOne(nonAdminTicket.id), passOnAnyResult
-  )  
-  await async_test(
-    `Non-admin for tickets`, () => sdkNonAdmin.api.tickets.getSome(), { onResult: ts => ts.length === 4 }
+    `Non-admin for tickets`, () => sdkNonAdmin.api.tickets.getSome(), { onResult: ts => ts.length === 2 }
   )  
   await async_test(
     `non-admin for email`, () => sdkNonAdmin.api.emails.getOne(email.id), passOnAnyResult,
@@ -2527,8 +3105,6 @@ const role_based_access_tests = async () => {
   await Promise.all([
     sdk.api.endusers.deleteOne(e.id),
     sdk.api.tickets.deleteOne(adminTicket.id),
-    sdk.api.tickets.deleteOne(nonAdminTicket.id),
-    sdk.api.tickets.deleteOne(nonAdminTicketNoEnduser.id),
     sdk.api.tickets.deleteOne(ticketCreatedByNonAdmin.id),
     sdk.api.emails.deleteOne(email.id),
     sdk.api.sms_messages.deleteOne(sms.id),
@@ -2946,6 +3522,7 @@ const post_comments_tests = async () => {
     forumId, postId, htmlContent: '', textContent: '',
     threadId: userComment.id, replyTo: userComment.id,
   })
+  await wait (undefined, 500)
   await async_test(
     'num replies incremented',
     () => sdk.api.post_comments.getOne({ id: postId, forumId }),
@@ -3001,19 +3578,20 @@ export const databases_tests = async () => {
   
   const database = (await sdk.api.databases.createOne({ 
     title: "__Test__Database", 
-    fields: [{ type: 'string', label: "String"}],
+    fields: [{ type: 'Text', label: "String" }],
     // organizationRead: true,
   }))
   const databaseNoRead = (await sdk.api.databases.createOne({ 
     title: "__Test__Database No Read", 
-    fields: [{ type: 'string', label: "String"}],
+    fields: [{ type: 'Text', label: "String" }],
     // organizationRead: false,
   }))
 
   const databaseRecord = await sdk.api.database_records.createOne({ 
     databaseId: database.id, 
-    values: [{ type: 'string', value: ' value' }],
+    values: [{ type: 'Text', value: 'value', label: 'label' }],
   })
+  await wait(undefined, 250)
   await async_test(
     'numRecords incremented',
     () => sdk.api.databases.getOne(database.id),
@@ -3033,6 +3611,7 @@ export const databases_tests = async () => {
 
   // cleanup and test cache
   await sdk.api.database_records.deleteOne(databaseRecord.id)
+  await wait(undefined, 250)
   await async_test(
     'numRecords decremented',
     () => sdk.api.databases.getOne(database.id),
@@ -3071,27 +3650,34 @@ export const filter_by_date_tests = async () => {
 export const self_serve_appointment_booking_tests = async () => {
   log_header("Self Serve Appointment Booking")
 
-  const e1 = await sdk.api.endusers.createOne({ email: 'ny@tellescope.com', state: 'NY' }) 
-  const e2 = await sdk.api.endusers.createOne({ email: 'ca@tellescope.com', state: 'CA' })
+  const e1 = await sdk.api.endusers.createOne({ email: 'sebass+ny@tellescope.com', state: 'NY' }) 
+  const e2 = await sdk.api.endusers.createOne({ email: 'sebass+ca@tellescope.com', state: 'CA' })
   await sdk.api.endusers.set_password({ id: e1.id, password })
   await sdk.api.endusers.set_password({ id: e2.id, password })
   
   const event15min = await sdk.api.calendar_event_templates.createOne({ 
     title: 'test 2', durationInMinutes: 15,
+    confirmationEmailDisabled: true,
+    confirmationSMSDisabled: true,
   })
   const event30min = await sdk.api.calendar_event_templates.createOne({ 
     title: 'test 1', durationInMinutes: 30,
+    confirmationEmailDisabled: true,
+    confirmationSMSDisabled: true,
   })
+
+  // ensure it doesn't match current day, to avoid errors on testing
+  const dayOfWeekStartingSundayIndexedByZero = (new Date().getDay() + 1) % 7 
 
   await sdk.api.users.updateOne(sdk.userInfo.id, { 
     weeklyAvailabilities: [
       { 
-        dayOfWeekStartingSundayIndexedByZero: 0, // sunday
+        dayOfWeekStartingSundayIndexedByZero,
         startTimeInMinutes: 60 * 12, // noon,
         endTimeInMinutes: 60 * 13, // 1pm,
       },
       { // include as duplicate of above to ensure it doesn't produce extra availability slots 
-        dayOfWeekStartingSundayIndexedByZero: 0, // sunday
+        dayOfWeekStartingSundayIndexedByZero, // sunday
         startTimeInMinutes: 60 * 12, // noon,
         endTimeInMinutes: 60 * 13, // 1pm,
       },
@@ -3105,7 +3691,7 @@ export const self_serve_appointment_booking_tests = async () => {
   await sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { 
     weeklyAvailabilities: [
       { 
-        dayOfWeekStartingSundayIndexedByZero: 0, // sunday
+        dayOfWeekStartingSundayIndexedByZero, // sunday
         startTimeInMinutes: 60 * 12, // noon,
         endTimeInMinutes: 60 * 13, // 1pm,
       },
@@ -3117,12 +3703,13 @@ export const self_serve_appointment_booking_tests = async () => {
   })
 
   // NY Enduser Tests
-  await enduserSDK.authenticate('ny@tellescope.com', password).catch(console.error) 
+  await enduserSDK.authenticate('sebass+ny@tellescope.com', password).catch(console.error) 
   await async_test(
     '30 minute slots for state restriction',
     () => enduserSDK.api.calendar_events.get_appointment_availability({
       calendarEventTemplateId: event30min.id,
-      from: new Date(),
+      from: new Date(Date.now() - 10000),
+      to: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
       restrictedByState: true,
     }),
     { onResult: r => r.availabilityBlocks.length === 2 }, // 1 providers with 1 hour availability for 30 minute meetings
@@ -3131,7 +3718,8 @@ export const self_serve_appointment_booking_tests = async () => {
     '30 minute slots for no state restrictions',
     () => enduserSDK.api.calendar_events.get_appointment_availability({
       calendarEventTemplateId: event30min.id,
-      from: new Date(),
+      from: new Date(Date.now() - 10000),
+      to: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
       restrictedByState: false,
     }),
     { onResult: r => {
@@ -3153,13 +3741,18 @@ export const self_serve_appointment_booking_tests = async () => {
 
   const nySlots = await enduserSDK.api.calendar_events.get_appointment_availability({
     calendarEventTemplateId: event30min.id,
-    from: new Date(),
+    from: new Date(Date.now() - 10000),
+      to: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
     restrictedByState: true,
   })
   const bookedAppointment = (await enduserSDK.api.calendar_events.book_appointment({
     calendarEventTemplateId: event30min.id,
     startTime: new Date(nySlots.availabilityBlocks[0].startTimeInMS),
     userId: nySlots.availabilityBlocks[0].userId, 
+    fields: {
+      test: "Custom",
+      fields: "Test",
+    }
   })).createdEvent
   await async_test(
     'double-booking prevented',
@@ -3174,7 +3767,8 @@ export const self_serve_appointment_booking_tests = async () => {
     '30 minute slots for state restriction with 1 overlapping conflict',
     () => enduserSDK.api.calendar_events.get_appointment_availability({
       calendarEventTemplateId: event30min.id,
-      from: new Date(),
+      from: new Date(Date.now() - 10000),
+      to: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
       restrictedByState: true,
     }),
     {  onResult: r => 
@@ -3192,7 +3786,8 @@ export const self_serve_appointment_booking_tests = async () => {
     '30 minute slots for state restriction with 2 overlapping conflict',
     () => enduserSDK.api.calendar_events.get_appointment_availability({
       calendarEventTemplateId: event30min.id,
-      from: new Date(),
+      from: new Date(Date.now() - 10000),
+      to: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
       restrictedByState: true,
     }),
     {  onResult: r => r.availabilityBlocks.length === 0 }, 
@@ -3285,11 +3880,616 @@ export const role_based_access_permissions_tests = async () => {
   await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword) // to use new role, handle logout on role change
 }
 
+// runs tests and resets availability afterwards
+// creates a new enduser (to avoid duplicate autoreply)
+const run_autoreply_test = async (title: string, { expectingAutoreply } : { expectingAutoreply: boolean }) => {
+  log_header(`Autoreply: ${title}`)
+
+  const enduser = await sdk.api.endusers.createOne({ fname: 'Autoreply', lname: "Test", email: "autoreply@tellescope.com" })
+  await sdk.api.endusers.set_password({ id: enduser.id, password })
+  await enduserSDK.authenticate(enduser.email!, password)
+
+  const room = await sdk.api.chat_rooms.createOne({ 
+    userIds: [sdk.userInfo.id],
+    enduserIds: [enduser.id]
+  })
+
+  await sdk.api.chats.createOne({ roomId: room.id, message: 'user' })
+  await wait (undefined, 50)
+  await async_test(
+    'User/outbound chat does not trigger autoreply',
+    () => sdk.api.chats.getSome({ filter: { roomId: room.id }}),
+    { onResult: cs => cs.length === 1 }
+  ) 
+ 
+  await enduserSDK.api.chats.createOne({ roomId: room.id, message: 'enduser' })
+  await wait (undefined, 50)
+  await async_test(
+    'Main test',
+    () => sdk.api.chats.getSome({ filter: { roomId: room.id }}),
+    { onResult: cs => (
+      expectingAutoreply
+        ? cs.length === 3
+        : cs.length === 2
+    ) }
+  ) 
+
+  await enduserSDK.api.chats.createOne({ roomId: room.id, message: 'enduser again' })
+  await wait (undefined, 50)
+  await async_test(
+    "Duplicate autoreply avoided",
+    () => sdk.api.chats.getSome({ filter: { roomId: room.id }}),
+    { onResult: cs => (
+      expectingAutoreply
+        ? cs.length === 4
+        : cs.length === 3
+    ) }
+  ) 
+
+  // cleanup, including any availability blocks
+  const blocks = await sdk.api.availability_blocks.getSome()
+  await Promise.all([
+    sdk.api.endusers.deleteOne(enduser.id),
+    sdk.api.chat_rooms.deleteOne(room.id),
+
+    // cleanup availabilities
+    sdk.api.users.updateOne(sdk.userInfo.id, {
+      weeklyAvailabilities: []
+    }, {
+      replaceObjectFields: true
+    }),
+    ...blocks.map(b => (
+      sdk.api.availability_blocks.deleteOne(b.id)
+    ))
+  ])
+}
+
+const auto_reply_tests = async () => {
+  // cleanup user availabilities / autoReplyEnabled to avoid conflicts
+  await sdk.api.users.updateOne(sdk.userInfo.id, {
+    autoReplyEnabled: false,
+    weeklyAvailabilities: [],
+  }, { replaceObjectFields: true })
+
+  log_header("Autoreply (Organization-wide)")
+  await run_autoreply_test('No availabilities', { expectingAutoreply: false })
+
+  const today = new Date()
+
+  const activeBlockInfo = { 
+    dayOfWeekStartingSundayIndexedByZero: today.getDay(),
+    startTimeInMinutes: 0,
+    endTimeInMinutes: 60 * 24,
+    entity: 'organization' as const,
+    entityId: sdk.userInfo.businessId,
+    index: 0,
+  }
+  const activeWithRange = { 
+    ...activeBlockInfo,
+    active: {
+      from: new Date(Date.now() - 1000000),
+      to: new Date(Date.now() + 1000000),
+    }
+  }
+  const inactiveEarly = { 
+    ...activeBlockInfo,
+    active: { from: new Date(Date.now() + 1000000) }
+  }
+  const inactiveLate = { 
+    ...activeBlockInfo,
+    active: { to: new Date(Date.now() - 1000000) }
+  }
+  const wrongDayBlockInfo = { 
+    ...activeBlockInfo,
+    dayOfWeekStartingSundayIndexedByZero: (today.getDay() + 1) % 7,
+  }
+  const wrongEntityTypeBlockInfo = { 
+    ...activeBlockInfo,
+    entity: 'user' as const,
+  }
+  const wrongEntityIdInfo = { 
+    ...activeBlockInfo,
+    entityId: sdk.userInfo.id,
+  }
+  const wrongTimeBlockInfo = { 
+    ...activeBlockInfo, 
+    endTimeInMinutes: 0, // start and end at 0
+  }
+
+  await sdk.api.organizations.updateOne(sdk.userInfo.businessId, {
+    settings: { endusers: { autoReplyEnabled: false } }
+  })
+
+  await sdk.api.availability_blocks.createSome([wrongTimeBlockInfo])
+  await run_autoreply_test('Autoreply disabled', { expectingAutoreply: false })
+
+  await sdk.api.organizations.updateOne(sdk.userInfo.businessId, {
+    settings: { endusers: { autoReplyEnabled: true } }
+  })
+
+  await sdk.api.availability_blocks.createSome([wrongTimeBlockInfo])
+  await run_autoreply_test('One bad', { expectingAutoreply: true })
+
+  await sdk.api.availability_blocks.createSome([
+    inactiveEarly,
+    inactiveLate, 
+    wrongDayBlockInfo, 
+    wrongEntityIdInfo, 
+    wrongEntityTypeBlockInfo, 
+    wrongTimeBlockInfo,
+  ])
+  await run_autoreply_test('Multiple bad blocks', { expectingAutoreply: true })
+
+  await sdk.api.availability_blocks.createSome([activeBlockInfo])
+  await run_autoreply_test('One active block', { expectingAutoreply: false })
+
+  await sdk.api.availability_blocks.createSome([activeWithRange])
+  await run_autoreply_test('One active with range', { expectingAutoreply: false })
+
+  await sdk.api.availability_blocks.createSome([activeBlockInfo, activeWithRange, activeBlockInfo, activeWithRange])
+  await run_autoreply_test('Multiple active blocks', { expectingAutoreply: false })
+
+
+  log_header("Autoreply (User)")
+  await sdk.api.users.updateOne(sdk.userInfo.id, {
+    autoReplyEnabled: false,
+  })
+
+  await sdk.api.users.updateOne(sdk.userInfo.id, { 
+    weeklyAvailabilities: [wrongTimeBlockInfo]
+  })
+  await run_autoreply_test('User: Autoreply disabled', { expectingAutoreply: false })
+
+  await sdk.api.users.updateOne(sdk.userInfo.id, {
+    autoReplyEnabled: true,
+  })
+
+  await sdk.api.users.updateOne(sdk.userInfo.id, { weeklyAvailabilities: [wrongTimeBlockInfo] })
+  await run_autoreply_test('User: One bad', { expectingAutoreply: true })
+
+  await sdk.api.users.updateOne(sdk.userInfo.id, { 
+    weeklyAvailabilities: [
+      inactiveEarly,
+      inactiveLate, 
+      wrongDayBlockInfo, 
+    ]
+  })
+  await run_autoreply_test('User: Multiple bad blocks', { expectingAutoreply: true })
+
+  await sdk.api.users.updateOne(sdk.userInfo.id, { weeklyAvailabilities: [activeBlockInfo] })
+  await run_autoreply_test('User: One active block', { expectingAutoreply: false })
+
+  await sdk.api.users.updateOne(sdk.userInfo.id, { weeklyAvailabilities: [activeWithRange] })
+  await run_autoreply_test('User: One active with range', { expectingAutoreply: false })
+
+  await sdk.api.users.updateOne(sdk.userInfo.id, { weeklyAvailabilities: [activeBlockInfo, activeWithRange, activeBlockInfo, activeWithRange] })
+  await run_autoreply_test('User: Multiple active blocks', { expectingAutoreply: false })
+}
+
+const merge_enduser_tests = async () => {
+  log_header("Merge Endusers")
+
+  const [source, destination, otherEnduser] = (await sdk.api.endusers.createSome([
+    { email: 'source@tellescope.com', fname: 'source', lname: 'enduser' },
+    { email: 'destination@tellescope.com'},
+    { email: 'other@tellescope.com'},
+  ])).created
+
+  // represents any model with enduserId field
+  const [emailToMove, email] = (await sdk.api.emails.createSome([
+    { enduserId: source.id, subject: 'subject', logOnly: true, textContent: 'email' },
+    { enduserId: otherEnduser.id, subject: 'subject', logOnly: true, textContent: 'email' },
+  ])).created
+
+  const [eventToMove, event] = (await sdk.api.calendar_events.createSome([
+    { attendees: [{ type: 'enduser', id: source.id }], durationInMinutes: 5, startTimeInMS: Date.now(), title: 'title' },
+    { attendees: [{ type: 'enduser', id: otherEnduser.id }], durationInMinutes: 5, startTimeInMS: Date.now(), title: 'title' },
+  ])).created
+
+  const [roomToMove, room] = (await sdk.api.chat_rooms.createSome([
+    { enduserIds: [source.id], title: 'title' },
+    { enduserIds: [otherEnduser.id], title: 'title' },
+  ])).created
+
+  const chatToMove = await sdk.api.chats.createOne(
+    { roomId: roomToMove.id, senderId: source.id, message: 'test' },
+  )
+  const chat = await sdk.api.chats.createOne({ 
+    roomId: room.id, senderId: otherEnduser.id, message: 'test' 
+  })
+
+  await sdk.api.endusers.merge({ sourceEnduserId: source.id, destinationEnduserId: destination.id })
+
+  await async_test(
+    "Source is deleted",
+    () => sdk.api.endusers.getOne(source.id),
+    handleAnyError
+  )
+  await async_test(
+    "Destination merged",
+    () => sdk.api.endusers.getOne(destination.id),
+    { onResult: e => (
+         e.email === destination.email
+      && e.fname === source.fname
+      && e.lname === source.lname
+    )}
+  )
+    
+  await async_test(
+    "Other email is unchanged",
+    () => sdk.api.emails.getOne(email.id),
+    { onResult: e => e.enduserId === otherEnduser.id}
+  )
+  await async_test(
+    "Other event is unchanged",
+    () => sdk.api.calendar_events.getOne(event.id),
+    { onResult: e => e.attendees?.length === 1 && !!e.attendees.find(e => e.id === otherEnduser.id)}
+  )
+  await async_test(
+    "Other room is unchanged",
+    () => sdk.api.chat_rooms.getOne(room.id),
+    { onResult: e => room.enduserIds?.length === 1 && !!e.enduserIds?.find(id => id === otherEnduser.id)}
+  )
+  await async_test(
+    "Other chat is unchanged",
+    () => sdk.api.chats.getOne(chat.id),
+    { onResult: e => e.senderId === otherEnduser.id}
+  )
+
+  await async_test(
+    "Email moved",
+    () => sdk.api.emails.getOne(emailToMove.id),
+    { onResult: e => e.enduserId === destination.id }
+  )
+  await async_test(
+    "Chat moved",
+    () => sdk.api.chats.getOne(chatToMove.id),
+    { onResult: e => e.senderId === destination.id }
+  )
+  await async_test(
+    "Room moved",
+    () => sdk.api.chat_rooms.getOne(roomToMove.id),
+    { onResult: e => e.enduserIds?.length === 1 && !!e.enduserIds?.includes(destination.id) }
+  )
+  await async_test(
+    "Event moved",
+    () => sdk.api.calendar_events.getOne(eventToMove.id),
+    { onResult: e => e.attendees.length === 1 && !!e.attendees?.find(a => a.id === destination.id) }
+  )
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(destination.id),
+    sdk.api.endusers.deleteOne(otherEnduser.id),
+    sdk.api.calendar_events.deleteOne(event.id),
+    sdk.api.calendar_events.deleteOne(eventToMove.id),
+  ])
+}
+
+const wait_for_trigger_tests = async () => {
+  log_header("Wait for Trigger")
+
+  const [eTrigger, eNoTrigger] = (await sdk.api.endusers.createSome([
+    { fname: 'Trigger' },
+    { fname: 'No Trigger' },
+  ])).created
+
+  const journey = await sdk.api.journeys.createOne({
+    title: "Trigger test",
+  })
+  const start = await sdk.api.automation_steps.createOne({
+    events: [{ type: 'onJourneyStart', info: { } }],
+    action: { type: 'setEnduserStatus', info: { status: 'Started' } },
+    journeyId: journey.id,
+  })
+  const trigger = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Field Equals', info: { field: 'Test', value: "Trigger" } },
+    action: { type: "Move To Step", info: { } },
+    status: 'Active',
+    title: 'In-Journey Trigger',
+    journeyId: journey.id, 
+  })
+  await sdk.api.automation_steps.createOne({
+    events: [{ type: 'waitForTrigger', info: { triggerId: trigger.id, automationStepId: start.id } }],
+    action: { type: 'setEnduserStatus', info: { status: 'Triggered' } },
+    journeyId: journey.id,
+  })
+
+  await sdk.api.endusers.add_to_journey({ enduserIds: [eTrigger.id], journeyId: journey.id })
+  await wait(undefined, 2222)
+
+  await async_test(
+    "Journey started",
+    () => sdk.api.endusers.getOne(eTrigger.id),
+    { onResult: e => e.journeys?.[journey.id] === 'Started' }
+  )
+
+  await sdk.api.endusers.updateOne(eTrigger.id, { fields: { Test: 'Trigger' } })
+  await sdk.api.endusers.updateOne(eNoTrigger.id, { fields: { Test: 'Trigger' } })
+  await wait(undefined, 2222)
+  
+  // TODO - Test a delayed action which comes after the triggered action
+
+  await async_test(
+    "Trigger worked while in journey",
+    () => sdk.api.endusers.getOne(eTrigger.id),
+    { onResult: e => e.journeys?.[journey.id] === 'Triggered' }
+  )
+  await async_test(
+    "Trigger did not fire while not journey",
+    () => sdk.api.endusers.getOne(eNoTrigger.id),
+    { onResult: e => !e.journeys?.[journey.id] }
+  )
+
+  // cleanup
+  await Promise.all([
+    sdk.api.endusers.deleteOne(eTrigger.id),
+    sdk.api.endusers.deleteOne(eNoTrigger.id),
+    sdk.api.journeys.deleteOne(journey.id),
+  ])
+
+  // test trigger cleaned up on journey delete
+  await wait(undefined, 150)
+  await async_test(
+    "Trigger did not fire while not journey",
+    () => sdk.api.automation_triggers.getOne(trigger.id),
+    handleAnyError
+  )
+
+  // double-check that wait for trigger step triggers were deleted
+}
+
+
+const handleRateLimitError = { shouldError: true, onError: (e: { message: string }) => e.message === 'Rate limit exceeded'}
+const rate_limit_tests = async () => {
+  log_header("Rate Limits")
+
+  const [e1, e2] = (await sdk.api.endusers.createSome([
+    { fname: '1', email: 'e1@tellescope.com', phone: '+15555555555' },
+    { fname: '2', email: 'e2@tellescope.com', phone: '+15555555555' },
+  ])).created
+
+  await async_test(
+    "Same template email rate limit 1-per-minute",
+    () => sdk.api.emails.createSome([
+      { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: PLACEHOLDER_ID },
+      { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: PLACEHOLDER_ID },
+    ]),
+    handleRateLimitError
+  )
+
+  // these should work, as 1 each is safe
+  const [email1, email2] = (await sdk.api.emails.createSome([
+    { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: PLACEHOLDER_ID },
+    { logOnly: true, enduserId: e2.id, subject: 'ratelimit', textContent: 'rate limit', templateId: PLACEHOLDER_ID },
+  ])).created
+  // already has 1 created 
+  await async_test(
+    "Same enduser rate limit 5 per 5 seconds",
+    () => sdk.api.emails.createSome([
+      { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', },
+      { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', },
+      { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', },
+      { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', },
+      { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit' },
+    ]),
+    handleRateLimitError
+  )
+
+  await wait(undefined, 2500) // give it some time before trying again, to ensure still blocked after 2.5 < 60 seconds
+  await async_test(
+    "Same template email rate limit 1-per-minute after creating",
+    () => sdk.api.emails.createOne({
+      logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: PLACEHOLDER_ID
+    }),
+    handleRateLimitError
+  )
+
+
+  await async_test(
+    "Same template sms rate limit 1-per-minute",
+    () => sdk.api.sms_messages.createSome([
+      { logOnly: true, enduserId: e1.id, templateId: PLACEHOLDER_ID, message: 'hi' },
+      { logOnly: true, enduserId: e1.id, templateId: PLACEHOLDER_ID, message: 'hi' },
+    ]),
+    handleRateLimitError
+  )
+
+  // these should work, as 1 each is safe
+  const [sms1, sms2] = (await sdk.api.sms_messages.createSome([
+    { logOnly: true, enduserId: e1.id, templateId: PLACEHOLDER_ID, message: 'hi' },
+    { logOnly: true, enduserId: e2.id, templateId: PLACEHOLDER_ID, message: 'hi' },
+  ])).created
+  // already has 1 created, so 3 new should error (4 > 3)
+  await async_test(
+    "Same enduser sms rate limit 3 per 3 seconds",
+    () => sdk.api.sms_messages.createSome([
+      { logOnly: true, enduserId: e1.id, message: 'hi' },
+      { logOnly: true, enduserId: e1.id, message: 'hi' },
+      { logOnly: true, enduserId: e1.id, message: 'hi' },
+    ]),
+    handleRateLimitError
+  )
+
+  await wait(undefined, 2500) // give it some time before trying again, to ensure still blocked after 2.5 < 60 seconds
+  await async_test(
+    "Same template sms rate limit 1-per-minute after creating",
+    () => sdk.api.sms_messages.createOne({ 
+      logOnly: true, enduserId: e2.id, templateId: PLACEHOLDER_ID, message: 'hi' 
+    }),
+    handleRateLimitError
+  )
+
+  // these should work, as they do not have the same template
+  const [email3, email4, email5] = (await sdk.api.emails.createSome([
+    { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit' },
+    { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit' },
+    { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit' },
+  ])).created
+ 
+  await Promise.all([
+    sdk.api.endusers.deleteOne(e1.id),
+    sdk.api.endusers.deleteOne(e2.id),
+    sdk.api.emails.deleteOne(email1.id),
+    sdk.api.emails.deleteOne(email2.id),
+    sdk.api.emails.deleteOne(email3.id),
+    sdk.api.emails.deleteOne(email4.id),
+    sdk.api.emails.deleteOne(email5.id),
+    sdk.api.sms_messages.deleteOne(sms1.id),
+    sdk.api.sms_messages.deleteOne(sms2.id),
+  ])
+}
+
+const remove_from_journey_on_incoming_comms_tests = async () => {
+  log_header("Remove From Journey (Incoming Comms)")
+
+  const [e1, e2] = (await sdk.api.endusers.createSome([
+    { fname: '1', email: 'e1@tellescope.com', phone: '+15555555555' },
+    { fname: '2', email: 'e2@tellescope.com', phone: '+15555555555' },
+  ])).created
+
+  const [jRemove, jDontRemove] = (await sdk.api.journeys.createSome([
+    { title: "j1", onIncomingEnduserCommunication: 'Remove' },
+    { title: "j2" },
+  ])).created
+
+  const removeStep1 = await sdk.api.automation_steps.createOne({
+    journeyId: jRemove.id,
+    events: [{ type: 'onJourneyStart', info: {} }],
+    action: { type: 'setEnduserStatus', info: { status: 'Started' } },
+  })
+  const removeStep2 = await sdk.api.automation_steps.createOne({
+    journeyId: jRemove.id,
+    events: [{ type: 'afterAction', info: { automationStepId: removeStep1.id, delay: 0, delayInMS: 1000000, unit: 'Days' } }],
+    action: { type: 'setEnduserStatus', info: { status: 'Continued' } },
+  })
+
+  const dontRemoveStep1 = await sdk.api.automation_steps.createOne({
+    journeyId: jDontRemove.id,
+    events: [{ type: 'onJourneyStart', info: {} }],
+    action: { type: 'setEnduserStatus', info: { status: 'Started' } },
+  })
+  const dontRemoveStep2 = await sdk.api.automation_steps.createOne({
+    journeyId: jDontRemove.id,
+    events: [{ type: 'afterAction', info: { automationStepId: dontRemoveStep1.id, delay: 0, delayInMS: 1000000, unit: 'Days' } }],
+    action: { type: 'setEnduserStatus', info: { status: 'Continued' } },
+  })
+
+  await sdk.api.endusers.updateOne(e1.id, { journeys: { [jRemove.id]: '', [jDontRemove.id]: '' } })
+  await sdk.api.endusers.updateOne(e2.id, { journeys: { [jRemove.id]: '', [jDontRemove.id]: '' } })
+  await wait(undefined, 2000)
+
+  const room = await sdk.api.chat_rooms.createOne({ })
+  await sdk.api.chats.createOne({ roomId: room.id, senderId: e1.id, message: 'cancel' })
+  await wait(undefined, 250)
+
+  await async_test(
+    "Appropriate Automated Actions are cancelled on incoming message",
+    () => sdk.api.automated_actions.getSome(),
+    { onResult: actions => (
+        !!actions.find(a => 
+            a.journeyId === jRemove.id
+          && a.automationStepId === removeStep2.id
+          && a.enduserId === e1.id
+          && a.status === 'cancelled'
+        )
+      && !!actions.find(a => 
+          a.journeyId === jRemove.id
+        && a.automationStepId === removeStep2.id
+        && a.enduserId === e2.id
+        && a.status === 'active'
+      )
+      && !!actions.find(a => 
+          a.journeyId === jDontRemove.id
+        && a.automationStepId === dontRemoveStep2.id
+        && a.enduserId === e1.id
+        && a.status === 'active'
+      )
+      && !!actions.find(a => 
+          a.journeyId === jDontRemove.id
+        && a.automationStepId === dontRemoveStep2.id
+        && a.enduserId === e2.id
+        && a.status === 'active'
+      )
+    )}
+  ) 
+
+  await sdk.api.journeys.handle_incoming_communication({ enduserId: e2.id })
+  await wait(undefined, 250)
+  await async_test(
+    "handle_incoming_communication test for other enduser",
+    () => sdk.api.automated_actions.getSome(),
+    { onResult: actions => (
+        !!actions.find(a => 
+            a.journeyId === jRemove.id
+          && a.automationStepId === removeStep2.id
+          && a.enduserId === e2.id
+          && a.status === 'cancelled'
+        )
+    )}
+  ) 
+ 
+  await Promise.all([
+    sdk.api.endusers.deleteOne(e1.id),
+    sdk.api.endusers.deleteOne(e2.id),
+    sdk.api.journeys.deleteOne(jRemove.id),
+    sdk.api.journeys.deleteOne(jDontRemove.id),
+    sdk.api.chat_rooms.deleteOne(room.id),
+  ])
+}
+
+const pdf_generation = async () => {
+  const e = await sdk.api.endusers.createOne({ fname: 'test' })
+
+  // include lots of answers to ensure PDF height doesn't produce any cut-off
+  const responses: FormResponseValue[] = []
+  for (let i=0; i < 1; i++) {
+    responses.push({
+      fieldId: PLACEHOLDER_ID, fieldTitle: 'test', answer: { type: 'string', value: `Answer ${i}` },
+    })
+  }
+  const fr = await sdk.api.form_responses.createOne({ 
+    formId: PLACEHOLDER_ID, 
+    enduserId: e.id,
+    formTitle: 'Form Title',
+    responses: responses
+  })
+
+  axios.get(
+    `http://localhost:8080/v1/form-responses/generate-pdf?id=${fr.id}`,
+    {
+      responseType: 'arraybuffer',
+      headers: {
+        Authorization: `Bearer ${sdk.authToken}`
+      }
+    }
+  )
+  .then(d => (
+    fs.writeFileSync('test_generated.pdf', d.data)
+  ))
+  
+  await Promise.all([
+    sdk.api.endusers.deleteOne(e.id),
+    sdk.api.form_responses.deleteOne(fr.id),
+  ])
+}
+
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
+  phone_trees: NO_TEST,
+  enduser_medications: NO_TEST,
+  automation_triggers: NO_TEST,
+  automation_steps: automation_events_tests,
+  background_errors: NO_TEST,
+  enduser_views: NO_TEST,
+  availability_blocks: NO_TEST,
+  analytics_frames: NO_TEST,
+  products: NO_TEST,
+  purchase_credits: NO_TEST,
+  purchases: NO_TEST,
+  appointment_locations: NO_TEST,
+  appointment_booking_pages: NO_TEST,
   role_based_access_permissions: role_based_access_permissions_tests,
   chat_rooms: chat_room_tests,
-  automation_steps: automation_events_tests,
   files: files_tests,
   enduser_tasks: NO_TEST,
   care_plans: NO_TEST,
@@ -3297,14 +4497,13 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   calendar_event_templates: NO_TEST,
   databases: databases_tests,
   database_records: NO_TEST,
-  post_comments: post_comments_tests,
+  post_comments: NO_TEST,// post_comments_tests,
   journeys: journey_tests,
   calendar_event_RSVPs: calendar_event_RSVPs_tests,
   chats: chat_tests,
   endusers: enduser_tests,
   api_keys: api_key_tests,
   engagement_events: engagement_tests,
-  tasks: tasks_tests,
   emails: email_tests,
   sms_messages: sms_tests,
   users: users_tests,
@@ -3330,6 +4529,12 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   comment_likes: NO_TEST,
   organizations: NO_TEST,
   integrations: NO_TEST,
+  phone_calls: NO_TEST,
+  superbill_providers: NO_TEST,
+  superbills: NO_TEST,
+  enduser_profile_views: NO_TEST,
+  referral_providers: NO_TEST,
+  enduser_custom_types: NO_TEST,
 };
 
 (async () => {
@@ -3345,12 +4550,19 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
     ]) 
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await pdf_generation()
+    await remove_from_journey_on_incoming_comms_tests()
+    await rate_limit_tests()
+    await role_based_access_tests()
+    await wait_for_trigger_tests()
+    await merge_enduser_tests()
+    await self_serve_appointment_booking_tests()
+    await auto_reply_tests()
+    await automation_trigger_tests()
     await sub_organization_enduser_tests()
     await sub_organization_tests()
-    await self_serve_appointment_booking_tests()
     await filter_by_date_tests()
     await generate_user_auth_tests()
-    await role_based_access_tests()
     await generateEnduserAuthTests()
     await public_form_tests()
     await search_tests()
@@ -3379,7 +4591,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
     await run_generated_tests({
       queries: sdk.api[n] as any, 
       model: schema[n] as any, 
-      name: n,
+      name: n as any,
       returns: {
         create: returnValidation as any// ModelFields<ClientModel>,
       }

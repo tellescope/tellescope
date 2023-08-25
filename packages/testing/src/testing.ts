@@ -96,6 +96,8 @@ export const async_test = async <T, E=APIError>(
 
   name = with_title_spacing(name)
 
+  // await wait(undefined, 25) // some delay to avoid overloading server
+
   return (
     run_test()
     .then((r: any) => log_and_return(

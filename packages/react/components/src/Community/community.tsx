@@ -114,7 +114,7 @@ export const PostEditor = ({ existingPost, forumId, onSuccess } : { existingPost
 }
 
 
-export const CreateComment = ({ forumId, postId, onSuccess } : { onSuccess?: (comment: PostComment) => void } & WithForumId & WithPostId) => {
+export const CreateComment = ({ forumId, postId, onSuccess, threadId, replyTo } : { threadId?: string, replyTo?: string, onSuccess?: (comment: PostComment) => void } & WithForumId & WithPostId) => {
   const [, { createElement: createComment }] = usePostComments({ dontFetch: true })
   const [, { findById: findPost, updateLocalElement: updateLocalPost }] = useForumPosts({ dontFetch: true })
 
@@ -128,7 +128,7 @@ export const CreateComment = ({ forumId, postId, onSuccess } : { onSuccess?: (co
     setError('')
     setSubmitting(true)
     try {
-      const comment = await createComment({ textContent, forumId, postId, htmlContent: '' })
+      const comment = await createComment({ textContent, forumId, postId, htmlContent: '', threadId, replyTo: replyTo || threadId })
       setTextContent('')
 
       if (post) {

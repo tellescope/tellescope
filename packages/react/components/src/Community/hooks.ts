@@ -1,6 +1,6 @@
 import { CalendarEvent } from "@tellescope/types-client"
 import { useCallback } from "react"
-import { useCalendarEvents, useCalendarEventRSVPs, useForumPosts, usePostLikes, useResolvedSession, value_is_loaded } from "../index"
+import { useCalendarEvents, useCalendarEventRSVPs, useForumPosts, usePostLikes, useResolvedSession, value_is_loaded, usePostComments, useCommentLikes } from "../index"
 import { PostLikeStatus, WithForumId, WithPostId } from "./types"
 
 
@@ -35,6 +35,72 @@ export const useRSVPActions = (event: CalendarEvent) => {
     selfRSVP,
     addRsvp,
     removeRsvp,
+  }
+}
+
+export const useCommentLiking = ({ forumId, postId, commentId } : WithForumId & WithPostId & { commentId: string }) => {
+  const session = useResolvedSession()
+  const [, { updateLocalElement: updateLocalComment, findById: findComment }] = usePostComments({ dontFetch: true })
+  const [likesLoading, { 
+    createElement: createLike, 
+    removeElement: deleteLike,
+    addLocalElement: addLocalLike, 
+  } ] = useCommentLikes({ loadFilter: { forumId }})
+
+  const comment = findComment(commentId)
+  const existingLike = (
+    value_is_loaded(likesLoading) 
+      ? likesLoading.value.find(l => l.creator === session.userInfo.id && l.commentId === commentId) 
+      : null
+  )
+
+  const status: PostLikeStatus = (
+    existingLike !== null
+      ? existingLike
+          ? 'liked'
+          : 'unliked'
+      : 'loading'
+  )
+
+  const likeComment = useCallback(() => {
+    if (status === 'loading' || status === 'liked') return
+
+    createLike({ forumId, commentId, postId })
+    .then(() =>  {
+      if (!comment) return
+      updateLocalComment(comment.id, { numLikes: (comment.numLikes ?? 0) + 1 })
+    })
+    .catch((err: any) => {
+      if (err.message === 'This post has already been liked') {
+        // @ts-ignore // add a placeholder for the local like which should switch display to liked
+        addLocalLike({ creator: session.userInfo.id, forumId, postId })
+      }
+    })
+  }, [status, addLocalLike, session, forumId, postId, createLike, comment, updateLocalComment])
+
+  const unlikeComment = useCallback(() => {
+    if (status === 'loading' || status === 'unliked' || !existingLike) return
+    
+    deleteLike(existingLike.id)
+    .then(() =>  {
+      if (!comment) return
+      updateLocalComment(comment.id, { numLikes: (comment.numLikes ?? 1) - 1})
+    })
+    .catch(console.error)
+  }, [session, status, existingLike, forumId, comment, updateLocalComment])
+
+  const toggleLike = useCallback(() => {
+    if (status === 'loading') return
+    if (status === 'liked') return unlikeComment()
+
+    return likeComment()
+  }, [likeComment, unlikeComment, status])
+
+  return {
+    status,
+    toggleLike,
+    likeComment,
+    unlikeComment,
   }
 }
 

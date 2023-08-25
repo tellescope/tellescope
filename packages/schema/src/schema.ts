@@ -14,6 +14,7 @@ import {
   CRUD,
   HTTPMethod,
   UserIdentity,
+  SessionType,
 } from "@tellescope/types-utilities"
 import {
   WEBHOOK_MODELS,
@@ -30,12 +31,26 @@ import {
   MeetingInfo,
   PreviousFormField,
   OrganizationTheme,
-  AvailabilityBlock,
   WithLinkOpenTrackingIds,
   CommunicationsChannel,
+  AppointmentTerm,
+  JourneyContext,
+  AnalyticsQuery,
+  AnalyticsQueryResult,
+  DateRange,
+  BaseAvailabilityBlock,
+  IndexUpdate,
+  Timezone,
+  UserCallRoutingBehavior,
+  ExternalChatGPTMessage,
+  EnduserRelationship,
+  StripeCheckoutInfo,
+  StripeCountryCode,
+  JourneyStatistics,
 } from "@tellescope/types-models"
 
 import {
+  AppointmentBookingPage as AppointmentBookingPageClient,
   UserDisplayInfo,
   Enduser,
   Journey,
@@ -48,6 +63,12 @@ import {
   CalendarEvent,
   Organization,
   User as UserClient,
+  AppointmentLocation,
+  CalendarEventTemplate,
+  Product,
+  ManagedContentRecord,
+  EnduserMedication,
+  DatabaseRecord as DatabaseRecordClient,
 } from "@tellescope/types-client"
 
 import {
@@ -76,7 +97,6 @@ import {
   chatRoomTypeValidator,
   idStringToDateValidator,
   subdomainValidator,
-  accountTypeValidator,
   messageTemplateTypeValidator,
   stringValidator250,
   stringValidator5000,
@@ -137,7 +157,6 @@ import {
   enduserTasksForEventValidator,
   stateCredentialsValidator,
   stateValidator,
-  availabilityBlocksValidator,
   weeklyAvailabilitiesValidator,
   timezoneValidator,
   formTypeValidator,
@@ -153,6 +172,70 @@ import {
   stringValidator5000EmptyOkay,
   loginFlowResultValidator,
   LoginFlowResult,
+  sharedWithOrganizationIdsValidator,
+  stringValidator1000Optional,
+  tellescopeGenderValidator,
+  appointmentTermsValidator,
+  paymentProcessorValidator,
+  purchaseCreditValueValidator,
+  costValidator,
+  integrationTitleValidator,
+  IntegrationsTitleType,
+  journeyContextValidator,
+  stringValidator100000EmptyOkay,
+  analyticsQueryValidator,
+  dateRangeValidator,
+  calendarEventPortalSettingsValidator,
+  dateOptionalOrEmptyStringValidator,
+  baseAvailabilityBlocksValidator,
+  availabilityEntitiesValidator,
+  indexUpdatesValidator,
+  dateRangeOptionalValidator,
+  booleanValidatorOptional,
+  automationTriggerActionValidator,
+  automationTriggerEventValidator,
+  automatioNTriggerStatusValidator,
+  exactMatchValidator,
+  listOfMongoIdStringValidatorOptionalOrEmptyOk,
+  listOfStringsValidatorOptionalOrEmptyOk,
+  stringValidatorOptionalEmptyOkay,
+  analyticsQueryResultsValidator,
+  stringValidatorOptional,
+  addressValidator,
+  superbillPatientInfoValidator,
+  superbillProviderInfoValidator,
+  superbillLineItemsValidator,
+  billingCodeValidatorOptional,
+  analyticsFrameTypeValidator,
+  videoIntegrationTypesValidator,
+  scheduledJourneysValidator,
+  formScoringValidator,
+  embeddingTypeValidator,
+  listValidator,
+  userCallRoutingBehaviorValidator,
+  userUIRestrictionsValidator,
+  externalChatGPTMessagesValidator,
+  enduserProfileViewBlocksValidator,
+  intakeDateOfBirthValidator,
+  objectValidator,
+  mongoIdStringRequired,
+  objectAnyFieldsValidator,
+  insurancesValidator,
+  phoneTreeNodesValidator,
+  phoneTreeEnduserConditionValidator,
+  orValidator,
+  optionalAnyObjectValidator,
+  listValidatorOptionalOrEmptyOk,
+  formCustomizationValidator,
+  buildInFieldsValidator,
+  customEnduserFieldsValidatorOptionalOrEmpty,
+  ticketActionsValidator,
+  addressOptionalValidator,
+  formResponseValidator,
+  numberValidatorOptional,
+  languageValidator,
+  relatedRecordValidator,
+  mongoIdStringOptional,
 } from "@tellescope/validation"
 
 import {
@@ -162,10 +245,10 @@ import {
   ENDUSER_SESSION_TYPE,
   USER_SESSION_TYPE,
 } from "@tellescope/constants"
-import { response } from "express"
 
 export type RelationshipConstraintOptions<T> = {
   updates?: Partial<T>
+  original?: T,
 }
 export type RelationshipConstraint<T> = {
   explanation: string; // human readable, for documentation purposes
@@ -354,6 +437,17 @@ const BuiltInFields = {
   },
   organizationIds: {
     validator: listOfMongoIdStringValidatorEmptyOk,
+    dependencies: [
+      {
+        dependsOn: ['organizations' as ModelName],
+        dependencyField: 'organizationIds',
+        relationship: 'foreignKey' as const,
+        onDependencyDelete: 'delete' as const,
+      },
+    ]
+  },
+  sharedWithOrganizations: {
+    validator: sharedWithOrganizationIdsValidator,
   },
   creator: {
     validator: mongoIdStringValidator,
@@ -366,7 +460,19 @@ const BuiltInFields = {
 }
 export type BuiltInFields_T = typeof BuiltInFields 
 
+export type AutoreplyInfo = {
+  channel: CommunicationsChannel | "Phone",
+  // messageId: string,
+  enduserId: string,
+  threadId?: string,
+  userId?: string,
+}
+
 export type CustomActions = {
+  availability_blocks: {
+    update_order: CustomAction<{ indexUpdates: IndexUpdate[] }, { }>,
+    handle_autoreply: CustomAction<AutoreplyInfo, { }>,
+  },
   api_keys: {
     create: CustomAction<{}, { id: string, key: string}>,
   },
@@ -376,9 +482,15 @@ export type CustomActions = {
         message: string, userId: string, enduserId: string,
         channel: CommunicationsChannel,
         html?: string, 
+        subject?: string,
+        automationStepId?: string,
+        journeyContext?: JourneyContext,
       }, 
-      { plaintext: string, html: string } & WithLinkOpenTrackingIds
+      { plaintext: string, subject: string, html: string } & WithLinkOpenTrackingIds
     >,
+    get_suggested_reply: CustomAction<{ messages: ExternalChatGPTMessage[] }, { completion: string }>, 
+    create_embedding: CustomAction<{ templateId: string }, { }>, 
+    embedding_search: CustomAction<{ content: string }, { templateIds: string[] }>, 
   },
   files: {
     prepare_file_upload: CustomAction<{ 
@@ -388,25 +500,50 @@ export type CustomActions = {
       enduserId?: string, 
       publicRead?: boolean,
       publicName?: string,
+      source?: string,
     }, 
       { presignedUpload: object, file: File }
     >,
-    file_download_URL: CustomAction<{ secureName: string }, { downloadURL: string }>,
+    file_download_URL: CustomAction<{ secureName: string }, { downloadURL: string, name: string }>,
+  },
+  form_fields: {
+    load_choices_from_database: CustomAction<{ fieldId: string, lastId?: string, limit?: number, }, { choices: DatabaseRecordClient[] }>,
   },
   form_responses: {
-    prepare_form_response: CustomAction<{ formId: string, enduserId: string, automationStepId?: string, expireAt?: Date }, 
+    prepare_form_response: CustomAction<
+      { 
+        formId: string, enduserId: string, automationStepId?: string, expireAt?: Date, sharedVia?: CommunicationsChannel 
+        isInternalNote?: boolean, title?: string,
+      }, 
       { accessCode: string, url: string, response: FormResponse,  }>
     ,
-    submit_form_response: CustomAction<{ accessCode: string, responses: FormResponseValue[], automationStepId?: string  }, { formResponse: FormResponse }>,
+    submit_form_response: CustomAction<
+      { 
+        accessCode: string, responses: FormResponseValue[], 
+        automationStepId?: string, customerId?: string, productIds?: string[],
+      }, 
+      { formResponse: FormResponse }
+    >,
+    save_field_response: CustomAction<{ accessCode: string, response: FormResponseValue }, { }>,
     info_for_access_code: CustomAction<{ accessCode: string }, {
       form: Form, 
       fields: FormField[], 
       response: FormResponse, 
     }>,
+    stripe_details: CustomAction<
+      { fieldId: string }, 
+      { customerId: string, clientSecret: string, publishableKey: string, stripeAccount: string, businessName: string }
+    >,
+    generate_pdf: CustomAction<
+      { id: string }, 
+      {  }
+    >,
   },
   journeys: {
     // update_state: CustomAction<{ updates: Partial<JourneyState>, id: string, name: string }, { updated: Journey }>,
     delete_states: CustomAction<{ id: string, states: string[] }, { updated: Journey }>,
+    handle_incoming_communication: CustomAction<{ enduserId: string, channel?: string, messageId?: string, }, { }>,
+    get_journey_statistics: CustomAction<{ journeyId: string }, { statistics: JourneyStatistics }>,
   },
   endusers: {
     set_password: CustomAction<{ id: string, password: string }, { }>,
@@ -418,7 +555,10 @@ export type CustomActions = {
     generate_auth_token: CustomAction<{ id?: string, phone?: string, email?: string, externalId?: string, durationInSeconds?: number }, { authToken: string, enduser: Enduser }>,
     logout: CustomAction<{ }, { }>,
     current_session_info: CustomAction<{ }, { enduser: Enduser }>,
-    add_to_journey: CustomAction<{ enduserIds: string[], journeyId: string }, { }>, 
+    add_to_journey: CustomAction<{ enduserIds: string[], journeyId: string, automationStepId?: string, journeyContext?: JourneyContext, throttle?: boolean }, { }>, 
+    remove_from_journey: CustomAction<{ enduserIds: string[], journeyId: string }, { }>, 
+    merge: CustomAction<{ sourceEnduserId: string, destinationEnduserId: string, }, { }>, 
+    push: CustomAction<{ enduserId: string }, { }>,
   },
   users: {
     display_info: CustomAction<{ }, { fname: string, lname: string, id: string }[]>,
@@ -428,6 +568,12 @@ export type CustomActions = {
       enduser?: Enduser,
       user?: User,
     }>,
+    send_invitation_to_existing: CustomAction<{ userId: string }, { }>,
+    invite_user: CustomAction<
+      { email: string, fname: string, lname: string, internalDisplayName?: string, organizationId: string, role?: string, tags?: string[] }, 
+      { created: UserClient }
+    >
+    configure_inbox: CustomAction<{ username: string, fname: string, lname: string }, { user: User, authToken: string }>,
   },
   chat_rooms: {
     join_room: CustomAction<{ id: string }, { room: ChatRoom }>,
@@ -453,6 +599,7 @@ export type CustomActions = {
     send_calendar_event_reminder_webhook: CustomAction<{ id: string }, { }>,
   },
   user_notifications: {
+    bulk_update: CustomAction<{ action: string }, { }>,
     send_user_email_notification: CustomAction<{ userId: string, message: string, subject?: string }, { }>,
   },
   post_likes: { 
@@ -462,29 +609,101 @@ export type CustomActions = {
   integrations: {
     generate_google_auth_url: CustomAction<{ }, { authUrl: string, }>, 
     disconnect_google_integration: CustomAction<{}, {}>,
+    generate_oauth2_auth_url: CustomAction<{ integration: IntegrationsTitleType }, { authUrl: string, }>, 
+    add_api_key_integration: CustomAction<{ API_KEY: string, integration: string }, { }>, 
+    remove_api_key_integration: CustomAction<{ integration: string }, { }>, 
+    disconnect_oauth2_integration: CustomAction<{ integration: IntegrationsTitleType }, {}>,
     refresh_oauth2_session: CustomAction<{ title: string }, { access_token: string, expiry_date: number }>, 
+    connect_stripe: CustomAction<{ accountId?: string, countryCode?: StripeCountryCode }, { accountId: string, accountLinkUrl: string }>, 
+    sync_ehr: CustomAction<{ }, { }>,
+    daily_sync: CustomAction<{ }, { }>,
+    connect_photon: CustomAction<{ 
+      organizationId: string, 
+      clientId: string, 
+      clientSecret: string,
+      environment?: string
+    }, { updatedOrganization: Organization }>, 
+    disconnect_photon: CustomAction<{  }, { }>, 
+    connect_elation: CustomAction<{ 
+      clientId: string, 
+      clientSecret: string,
+      environment?: string
+    }, {  }>, 
+    disconnect_elation: CustomAction<{  }, { }>, 
   },
   emails: {
-    sync_integrations: CustomAction<{ enduserEmail: string }, { newEmails: Email[] }>, 
+    sync_integrations: CustomAction<{ enduserEmail: string, allUsers?: boolean }, { newEmails: Email[] }>,
+    deliver_via_outlook: CustomAction<{ message: string, senderId: string, cc?: string[], replyId?: string }, { 
+      id: string, 
+      conversationId: string,
+      timestamp: string,
+    }>, 
   },
   calendar_events: {
     get_events_for_user: CustomAction<{ userId: string, from: Date, to?: Date, limit?: number }, { events: CalendarEvent[] }>, 
     generate_meeting_link: CustomAction<{ eventId: string, enduserId: string }, { link: string }>, 
     get_appointment_availability: CustomAction<{ 
-      from: Date, calendarEventTemplateId: string, to?: Date, restrictedByState?: boolean, limit?: number,
+      from: Date, calendarEventTemplateId: string, to?: Date, restrictedByState?: boolean, limit?: number, locationId?: string,
+      businessId?: string, // for accessing while unauthenticated
+      userId?: string, 
+      userIds?: string[],
     }, { 
-      availabilityBlocks: AvailabilityBlock[],
+      availabilityBlocks: BaseAvailabilityBlock[],
     }>,
     book_appointment: CustomAction<{ 
-      userId: string, startTime: Date, calendarEventTemplateId: string,
+      userId: string, startTime: Date, calendarEventTemplateId: string, 
+      token?: string,
+      locationId?: string,
+      bookingPageId?: string,
+      rescheduledCalendarEventId?: string,
+      agreedToTerms?: AppointmentTerm[],
+      timezone?: Timezone,
+      fields?: Record<any, any>
+      customerId?: string,
     }, { 
       createdEvent: CalendarEvent,
     }>,
+    stripe_details: CustomAction<{ }, { stripe?: StripeCheckoutInfo }>,
+    generate_zoom_meeting: CustomAction<{ calendarEventId: string, userId: string }, { updatedEvent: CalendarEvent }>, 
+    change_zoom_host: CustomAction<{ calendarEventId: string, userId: string }, { updatedEvent: CalendarEvent }>, 
+    download_ics_file: CustomAction<{ calendarEventId: string, attendeeId?: string, attendeeType?: SessionType }, { }>,
   },
   organizations: {
+    create_and_join: CustomAction<{ name: string, subdomain: string }, { authToken: string, user: User, organization: Organization }>, 
     create_suborganization: CustomAction<{ name: string, subdomain: string }, { created: Organization }>, 
-    invite_user: CustomAction<{ email: string, fname: string, lname: string, organizationId: string }, { created: UserClient }>
   },
+  phone_calls: {
+    authenticate_calling: CustomAction<{ os?: "ios" | "android", type?: UserCallRoutingBehavior }, { accessToken: string, identity: string }>, 
+  },
+  analytics_frames: {
+    get_result_for_query: CustomAction<{ 
+      query: AnalyticsQuery,
+      createdRange?: DateRange,
+      updatedRange?: DateRange,
+    }, AnalyticsQueryResult>, 
+  },
+  managed_content_records: {
+    generate_embedding: CustomAction<{ id: string }, { updated: ManagedContentRecord }>, 
+    search: CustomAction<{ query: string, type?: "enduser" | "internal" }, { record: ManagedContentRecord, matches: ManagedContentRecord[], response: string }>, 
+  },
+  automation_triggers: {
+    trigger_events: CustomAction<{ triggers: { enduserId: string, automationTriggerId: string }[] }, { }>, 
+  },
+  tickets: {
+    update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
+  },
+  appointment_booking_pages: {
+    generate_access_token: CustomAction<{ expiresAt: Date, bookingPageId?: string }, { token: string }>,
+  },
+  sms_messages: {
+    send_message_to_number: CustomAction<{ message: string, to: string }, { enduser: Enduser }>,
+  },
+  products: {
+    prepare_stripe_checkout: CustomAction<
+      { productIds: string[] }, 
+      { customerId: string, clientSecret: string, publishableKey: string, stripeAccount: string, businessName: string }
+    >,
+  }
 } 
 
 export type PublicActions = {
@@ -501,24 +720,72 @@ export type PublicActions = {
     request_password_reset: CustomAction<{ email: string, businessId: string, organizationIds?: string[]  }, { }>,
     reset_password: CustomAction<{ resetToken: string, newPassword: string, businessId: string, organizationIds?: string[] }, { }>,
     begin_login_flow: CustomAction<{ email?: string, phone?: string, businessId: string, organizationIds?: string[] }, { result: LoginFlowResult, email?: string }>,
+    unsubscribe: CustomAction<{ enduserId: string, unsubscribeFrom: string[] }, { }>,
   },
   users: {
+    login: CustomAction<{ email: string, password: string, expirationInSeconds?: number }, { user: User, authToken: string }>,
+    login_with_google: CustomAction<{ jwt: string }, { user: User, authToken: string }>,
+    register: CustomAction<{ email: string, password: string, termsVersion: string, inviteCode?: string }, { }>,
     request_password_reset: CustomAction<{ email: string }, { }>,
     reset_password: CustomAction<{ resetToken: string, newPassword: string }, { }>,
+    submit_email_verification: CustomAction<{ email: string, code: string }, { authToken: string, user: User }>,
   },
   organizations: {
     get_theme: CustomAction<{ businessId: string, organizationIds?: string[] }, { theme: OrganizationTheme }>,
+  },
+  forms: {
+    public_form_details: CustomAction<{ formId: string }, { form: Form }>,
   },
   form_responses: {
     session_for_public_form: CustomAction<{ 
       fname?: string, 
       lname?: string, 
-      email: string, 
+      email?: string, 
       phone?: string, 
+      dateOfBirth?: string,
       formId: string, 
       businessId: string,
+      publicIdentifier?: string,
+      state?: string,
       // organizationIds?: string[]
     }, { accessCode: string, authToken: string, url: string, path: string }>,
+  },
+  calendar_events: {
+    session_for_public_appointment_booking: CustomAction<{ 
+      fname?: string, 
+      lname?: string, 
+      dateOfBirth?: string,
+      email: string, 
+      phone?: string, 
+      state?: string,
+      calendarEventTemplateId: string, 
+      businessId: string,
+      organizationIds?: string[]
+    }, { 
+      authToken: string,
+      stripe?: StripeCheckoutInfo,
+    }>,
+    details_for_appointment_booking_page: CustomAction<
+      { 
+        appointmentBookingPageId: string, 
+        businessId: string,
+        userId?: string,
+      }, 
+      { 
+        appointmentBookingPage: AppointmentBookingPageClient,
+        locations: AppointmentLocation[],
+        calendarEventTemplates: CalendarEventTemplate[],
+        products: Product[],
+        userDisplayName?: string,
+        userAvatar?: string,
+      }
+    >,
+  },
+  sms_messages: {
+    leave_message: CustomAction<{ businessId: string, fname: string, lname: string, phone: string, message: string }, { }>,
+  },
+  appointment_booking_pages: {
+    validate_access_token: CustomAction<{ token: string, bookingPageId?: string }, { isValid: boolean }>,
   },
 }
 
@@ -546,16 +813,16 @@ export const schema: SchemaV1 = build_schema({
     constraints: {
       unique: ['email', 'externalId'],
       relationship: [
-        {
-          explanation: 'One of email or phone is required',
-          evaluate: ({ email, phone }, s, _, method) => {
-            // while endusers can be created by Worker without email or phone number, relax this restriction on updates
-            if (method === 'update') return
+        // {
+        //   explanation: 'One of email or phone is required',
+        //   evaluate: ({ email, phone }, s, _, method) => {
+        //     // while endusers can be created by Worker without email or phone number, relax this restriction on updates
+        //     if (method === 'update') return
 
-            if (!(email || phone))
-              return 'One of email or phone is required'
-            } 
-        },
+        //     if (!(email || phone))
+        //       return 'One of email or phone is required'
+        //     } 
+        // },
         {
           explanation: 'Endusers can only access and modify their own profile',
           evaluate: ({ _id }, _, session) => {
@@ -581,7 +848,8 @@ export const schema: SchemaV1 = build_schema({
     enduserActions: { 
       read: {}, readMany: {},
       logout: {}, refresh_session: {}, update: {}, current_session_info: {},  
-      add_to_journey: {}, begin_login_flow: {}, set_password: {} /* restricted in handler to prevent updates when password is already set */
+      add_to_journey: {}, remove_from_journey: {}, begin_login_flow: {}, set_password: {}, /* restricted in handler to prevent updates when password is already set */
+      unsubscribe: {},
     },
     fields: {
       ...BuiltInFields,   
@@ -594,6 +862,7 @@ export const schema: SchemaV1 = build_schema({
         examples: ['test@tellescope.com'],
         redactions: ['enduser'],
       },
+      alternateEmails: { validator: listValidatorOptionalOrEmptyOk(emailValidator) },
       emailConsent: { 
         validator: booleanValidator,
         examples: BOOLEAN_EXAMPLES,
@@ -601,6 +870,11 @@ export const schema: SchemaV1 = build_schema({
         redactions: ['enduser'],
       },
       phone: { 
+        validator: phoneValidatorOptional,
+        examples: ['+14155555555'],
+        redactions: ['enduser'],
+      },
+      landline: { 
         validator: phoneValidatorOptional,
         examples: ['+14155555555'],
         redactions: ['enduser'],
@@ -616,8 +890,15 @@ export const schema: SchemaV1 = build_schema({
         readonly: true,
         redactions: ['enduser'], // todo: add more redactions
       },
-      fname: { validator: nameValidator },
-      lname: { validator: nameValidator },
+      fname: { 
+        validator: nameValidator,
+        redactions: ['enduser'],
+      },
+      mname: { validator: nameValidator, redactions: ['enduser'], },
+      lname: { 
+        validator: nameValidator,
+        redactions: ['enduser'],
+      },
       dateOfBirth: { 
         validator: stringValidator250,
         redactions: ['enduser'],
@@ -639,6 +920,7 @@ export const schema: SchemaV1 = build_schema({
           },
         ]
       },
+      scheduledJourneys: { validator: scheduledJourneysValidator },
       tags: { 
         redactions: ['enduser'],
         validator: listOfStringsValidatorEmptyOk,
@@ -686,12 +968,31 @@ export const schema: SchemaV1 = build_schema({
           },
         ]
       },
-      state: { validator: stateValidator },
-      timezone: { validator: timezoneValidator },
-      gender: { validator: stringValidator25000EmptyOkay },
+      gender: { validator: tellescopeGenderValidator },
       height: { validator: genericUnitWithQuantityValidator },
       weight: { validator: genericUnitWithQuantityValidator },
+      source: { validator: stringValidator1000Optional },
+      addressLineOne: { validator: stringValidator5000EmptyOkay },
+      addressLineTwo: { validator: stringValidator5000EmptyOkay },
+      city: { validator: stringValidator5000EmptyOkay },
+      state: { validator: stateValidator },
       zipCode: { validator: stringValidator25000EmptyOkay },
+      timezone: { validator: timezoneValidator },
+      humanReadableId: { validator: stringValidator100 },
+      displayName: { validator: stringValidator250 }, // intentionally not redacted for other endusers
+      unsubscribedFromPortalChatNotifications: { validator: booleanValidator },
+      triggeredEvents: { validator: objectAnyFieldsValidator(numberValidator) },
+      customTypeId: { validator: mongoIdStringValidator },
+      language: { validator: languageValidator },
+      relationships: {
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<EnduserRelationship>({
+          id: mongoIdStringRequired,
+          type: stringValidator100,
+        }))
+      },
+      markedReadAt: { validator: dateOptionalOrEmptyStringValidator },
+      markedUnreadAt: { validator: dateOptionalOrEmptyStringValidator },
+      note: { validator: stringValidator25000EmptyOkay },
       // recentMessagePreview: { 
       //   validator: stringValidator,
       // },
@@ -702,6 +1003,20 @@ export const schema: SchemaV1 = build_schema({
         name: 'Add to journey',
         path: '/add-endusers-to-journey',
         description: "Adds (or restarts) endusers in a journey",
+        parameters: { 
+          enduserIds: { validator: listOfMongoIdStringValidator, required: true },
+          journeyId: { validator: mongoIdStringValidator, required: true },
+          automationStepId: { validator: mongoIdStringValidator },
+          journeyContext: { validator: journeyContextValidator },
+          throttle: { validator: booleanValidatorOptional },
+        },
+        returns: { } 
+      },
+      remove_from_journey: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Remove from Journey',
+        path: '/remove-endusers-from-journey',
+        description: "Removes enduser(s) from in a journey",
         parameters: { 
           enduserIds: { validator: listOfMongoIdStringValidator, required: true },
           journeyId: { validator: mongoIdStringValidator, required: true },
@@ -780,6 +1095,27 @@ export const schema: SchemaV1 = build_schema({
         returns: { 
           enduser: { validator: 'enduser', required: true }, 
         } as any // todo: add enduser eventually, when validator defined
+      },
+      merge: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Merge profiles',
+        path: '/endusers/merge',
+        description: "Migrates data from a source enduser to a target enduser, and then deletes the source enduser",
+        parameters: {
+          sourceEnduserId: { validator: mongoIdStringValidator, required: true },
+          destinationEnduserId: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: {},
+      },
+      push: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Push',
+        path: '/endusers/push',
+        description: "Pushes (upserts) using some integrations, like Photon Health",
+        parameters: {
+          enduserId: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: {},
       },
     },
     publicActions: {
@@ -860,6 +1196,17 @@ export const schema: SchemaV1 = build_schema({
         },
         returns: { },
       }, 
+      unsubscribe: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Unsubscribe Enduser',
+        path: '/unsubscribe-enduser',
+        description: "Unsubscribes an enduser from one or more types of notifications",
+        parameters: { 
+          enduserId: { validator: mongoIdStringValidator, required: true },
+          unsubscribeFrom: { validator: listOfStringsValidator, required: true },
+        },
+        returns: { },
+      }, 
     },
   },
   enduser_status_updates: {
@@ -930,7 +1277,9 @@ export const schema: SchemaV1 = build_schema({
   },
   integrations: {
     info: {},
-    constraints: { unique: [], relationship: [], access: [{ type: CREATOR_ONLY_ACCESS }] },
+    constraints: { 
+      unique: [['title', 'creator']], relationship: [], access: [{ type: CREATOR_ONLY_ACCESS }] 
+    },
     defaultActions: DEFAULT_OPERATIONS,
     fields: {
       ...BuiltInFields,
@@ -949,27 +1298,42 @@ export const schema: SchemaV1 = build_schema({
           }
         ]
       },
+      lastSync: { validator: nonNegNumberValidator },
+      emailDisabled: { validator: booleanValidator },
+      calendars: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      environment: { validator: stringValidator100 },
     },
     customActions: {
       generate_google_auth_url: {
         op: 'custom', access: 'create', method: 'post',
         path: '/generate-google-auth-url',
         name: 'Generates a link to create a Google integration with Tellescope',
-        description: "",
-        parameters: {},
-        returns: { 
-          authUrl: {
-            validator: stringValidator, 
-            required: true
-          },
-        }
+        description: "", parameters: {},
+        returns: { authUrl: { validator: stringValidator, required: true }, }
       },
       disconnect_google_integration: {
+        op: 'custom', access: 'create', method: 'post',
+        path: '/generate-square-auth-url',
+        name: 'Generates a link to create a Square integration with Tellescope',
+        description: "", parameters: {},
+        returns: { authUrl: { validator: stringValidator, required: true }, }
+      },
+      generate_oauth2_auth_url: {
         op: 'custom', access: 'delete', method: 'post',
-        path: '/disconnect-google-integration',
-        name: 'Disconnects an integration with Google',
-        description: "",
-        parameters: {},
+        path: '/generate-oauth2-auth-url',
+        description: "", 
+        parameters: { integration: { validator: integrationTitleValidator,  }},
+        returns: { 
+          authUrl: { validator: stringValidator, required: true },  
+          state: { validator: stringValidator, required: true },  
+        }
+      },
+      disconnect_oauth2_integration: {
+        op: 'custom', access: 'delete', method: 'post',
+        path: '/disconnect-oauth2-integration',
+        name: 'Disconnects an integration with Square',
+        refresh_oauth2_sessiondescription: "", 
+        parameters: { integration: { validator: integrationTitleValidator }},
         returns: {}
       },
       refresh_oauth2_session: {
@@ -982,6 +1346,100 @@ export const schema: SchemaV1 = build_schema({
           access_token: { validator: stringValidator100, required: true },
           expiry_date: { validator: numberValidator, required: true },
         },
+      },
+      connect_stripe: {
+        op: 'custom', access: 'create', method: 'post',
+        path: '/connect-stripe',
+        name: 'Begin Stripe integration via Connect',
+        description: "", 
+        parameters: {
+          accountId: { validator: stringValidator100 },
+          countryCode: { validator: exactMatchValidator<StripeCountryCode>(['US', 'GB']) }
+        },
+        returns: { 
+          accountLinkUrl: { validator: stringValidator, required: true },
+          accountId: { validator: stringValidator, required: true },
+        }
+      },
+      connect_photon: {
+        op: 'custom', access: 'create', method: 'post',
+        path: '/integrations/connect-photon',
+        name: 'Connect Photon Health',
+        description: "", 
+        parameters: {
+          organizationId: { validator: stringValidator100, required: true },
+          clientId: { validator: stringValidator100, required: true },
+          clientSecret: { validator: stringValidator100, required: true },
+          environment: { validator: stringValidator },
+        },
+        returns: { 
+          updatedOrganization: { validator: 'organization' as any, required: true },
+        }
+      },
+      disconnect_photon: {
+        op: 'custom', access: 'create', method: 'post', adminOnly: true,
+        path: '/integrations/disconnect-photon',
+        name: 'Disconnect Photon Health',
+        description: "", 
+        parameters: {},
+        returns: { }
+      },
+      connect_elation: {
+        op: 'custom', access: 'create', method: 'post',
+        path: '/integrations/connect-elation',
+        name: 'Connect Elation',
+        description: "", 
+        parameters: {
+          clientId: { validator: stringValidator100, required: true },
+          clientSecret: { validator: stringValidator100, required: true },
+          environment: { validator: stringValidator },
+        },
+        returns: { }
+      },
+      disconnect_elation: {
+        op: 'custom', access: 'create', method: 'post', adminOnly: true,
+        path: '/integrations/disconnect-elation',
+        name: 'Disconnect Elation',
+        description: "", 
+        parameters: {},
+        returns: { }
+      },
+      add_api_key_integration: {
+        op: 'custom', access: 'create', method: 'post',
+        path: '/integrations/add-api-key',
+        name: 'Add an API-Key based integration',
+        description: "", 
+        parameters: {
+          API_KEY: { validator: stringValidator, required: true },
+          integration: { validator: stringValidator, required: true },
+        },
+        returns: { }
+      },
+      remove_api_key_integration: {
+        op: 'custom', access: 'delete', method: 'delete',
+        path: '/integrations/remove-api-key',
+        name: 'Remove an API-Key based integration',
+        description: "", 
+        parameters: {
+          integration: { validator: stringValidator, required: true },
+        },
+        returns: { }
+      },
+      sync_ehr: {
+        op: 'custom', access: 'create', method: 'post',
+        path: '/integrations/sync-ehr',
+        name: 'Syncs EHR data which is not supported by webhooks (e.g. Dr. Chrono lab results)',
+        description: "", 
+        parameters: { },
+        returns: { }
+      },
+      daily_sync: {
+        op: 'custom', access: 'create', method: 'post',
+        path: '/integrations/daily-sync',
+        name: 'Syncs background tasks (like subscribing to Gmail notifications) once per 24hours',
+        description: "", 
+        parameters: { },
+        returns: { }
       },
     }
   },
@@ -1046,6 +1504,9 @@ export const schema: SchemaV1 = build_schema({
                         ? [{ name: j.defaultState, priority: "N/A" }]
                         : [{ name: 'New', priority: "N/A" }]
       },
+      onIncomingEnduserCommunication: { 
+        validator: exactMatchValidator<'Remove' | ''>(['Remove', '']) 
+      },
     },
     constraints: { 
       unique: ['title', { array: 'states', itemKey: 'name' }], 
@@ -1093,58 +1554,33 @@ export const schema: SchemaV1 = build_schema({
           states: { validator: listOfStringsValidator, required: true },
         },
         returns: { updated: 'journey' as any },
-      }
+      },
+      handle_incoming_communication: {
+        op: 'custom', access: 'update', method: "post",
+        name: 'Handle Incoming Communication',
+        path: '/journeys/handle-incoming-communication',
+        description: "Handles removing endusers from relevant journeys and provides other automation on an incoming communication",
+        parameters: { 
+          enduserId: { validator: mongoIdStringValidator, required: true },
+          channel: { validator: stringValidator },
+          messageId: { validator: mongoIdStringOptional },
+        },
+        returns: { },
+      },
+      get_journey_statistics: {
+        op: 'custom', access: 'read', method: "get",
+        name: 'Handle Incoming Communication',
+        path: '/journeys/statistics',
+        description: "Gets statistics for a journey",
+        parameters: { 
+          journeyId: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: { 
+          // todo: document shape with validator
+          statistics: { validator: objectAnyFieldsAnyValuesValidator as any } 
+        },
+      },
     },
-  },
-  tasks: {
-    info: {},
-    fields: {
-      ...BuiltInFields,   
-        text: {
-          validator: stringValidator,
-          required: true,
-          examples: ["Task1", "Task2"]
-        },
-        completed: {
-          validator: booleanValidator,
-          examples: BOOLEAN_EXAMPLES,
-        },
-        description: {
-          validator: stringValidator,
-        },
-        dueDate: {
-          validator: dateValidator,
-        },
-        assignedTo: {
-         validator: mongoIdStringValidator,
-          dependencies: [{
-            dependsOn: ['users'],
-            dependencyField: '_id',
-            relationship: 'foreignKey',
-            onDependencyDelete: 'unset',
-          }]
-        },
-        enduserId: {
-          validator: mongoIdStringValidator,
-          dependencies: [{
-            dependsOn: ['endusers'],
-            dependencyField: '_id',
-            relationship: 'foreignKey',
-            onDependencyDelete: 'unset',
-          }]
-        },
-        subscribers: {
-          validator: listOfMongoIdStringValidator,
-        },
-        subscriberRoles: {
-          validator: listOfStringsValidator,
-        },
-    }, 
-    constraints: {
-      unique: [], relationship: [],
-    },
-    defaultActions: DEFAULT_OPERATIONS,
-    customActions: {},
   },
   emails: {
     info: {
@@ -1208,12 +1644,12 @@ export const schema: SchemaV1 = build_schema({
         examples: ["Email Subject"],
       },
       textContent: {
-        validator: stringValidator25000,
+        validator: stringValidator100000EmptyOkay,
         required: true,
         examples: ["Hi there, this is Sebastian"],
       },
       HTMLContent: {
-        validator: stringValidator25000,
+        validator: stringValidator100000EmptyOkay,
       },
       timestamp: {
         validator: dateValidator,
@@ -1275,16 +1711,47 @@ export const schema: SchemaV1 = build_schema({
         validator: listOfStringsValidatorEmptyOk,
         initializer: () => [],
       },
+      journeyContext: { validator: journeyContextValidator },
+      sendAt: { validator: dateOptionalOrEmptyStringValidator },
+      pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
+      isDraft: { validator: booleanValidator },
+      cc: { validator: listOfStringsValidatorEmptyOk },
+      fromEmailOverride: { validator: stringValidator100 },
+      ticketIds: { validator: listOfStringsValidatorEmptyOk },
+      alternateToAddress: { validator: emailValidator },
     }, 
     customActions: {
       sync_integrations: {
         op: "custom", access: 'read', method: "post",
-        name: 'Attendee display info',
+        name: 'Sync Integrations',
         path: '/sync-email-integrations',
         description: "Syncs email with external integrations (like Gmail) and returns any newly created messages",
-        parameters: { enduserEmail: { validator: emailValidator, required: true } },
+        parameters: { 
+          enduserEmail: { validator: emailValidator, required: true },
+          allUsers: { validator: booleanValidator },
+        },
         returns: { 
           newEmails: { validator: 'emails' as any, required: true },
+        } 
+      },
+      deliver_via_outlook: {
+        op: "custom", access: 'create', method: "post", 
+        warnings: [
+          "Use Create Email instead, unless you want to avoid logging the message in Tellescope"
+        ],
+        name: 'Send Outlook Mail',
+        path: '/deliver-email-via-outlook',
+        description: "Sends an email via Outlook integration without creating a record in Tellescope",
+        parameters: { 
+          senderId: { validator: stringValidator, required: true },
+          message: { validator: stringValidator100000EmptyOkay, required: true },
+          replyId: { validator: stringValidator1000Optional },
+          cc: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+        },
+        returns: { 
+          id: { validator: mongoIdStringValidator, required: true },
+          conversationId: { validator: mongoIdStringValidator, required: true },
+          timestamp: { validator: stringValidator100, required: true},
         } 
       },
     },
@@ -1292,6 +1759,38 @@ export const schema: SchemaV1 = build_schema({
   sms_messages: {
     info: {
       sideEffects: { create: [sideEffects.sendSMSMessages] },
+    },
+    publicActions: {
+      leave_message: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Leave Message',
+        path: '/sms-messages/leave-message',
+        description: "Leaves an SMS message submitted from a website page",
+        parameters: { 
+          businessId: { validator: mongoIdStringRequired, required: true },
+          fname: { validator: nameValidator, required: true },
+          lname: { validator: nameValidator, required: true },
+          phone: { validator: phoneValidator, required: true },
+          message: { validator: stringValidator5000, required: true },
+        },
+        returns: { },
+      },
+    },
+    customActions: {
+      send_message_to_number: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Send Message to Number',
+        path: '/sms-messages/send-message-to-number',
+        description: "Sends an SMS to the provided phone number, upserting an enduser if no match by phone",
+        warnings: [
+          'message must be under 1200 characters',
+        ],
+        parameters: { 
+          message: { validator: stringValidator5000, required: true },
+          to: { validator: phoneValidator, required: true }
+        },
+        returns: { enduser: { validator: 'enduser' as any, required: true } },
+      },
     },
     defaultActions: { 
       create: {
@@ -1301,9 +1800,16 @@ export const schema: SchemaV1 = build_schema({
       }, 
       update: {}, read: {}, readMany: {}, delete: {} 
     },
+    enduserActions: { leave_message: {} },
     constraints: {
       unique: [],
       relationship: [
+        {
+          explanation: "Message must be non-empty",
+          evaluate: ({ message }, deps, _) => {
+            if (message === undefined) return "message must not be blank"
+          }
+        },
         {
           explanation: "Phone number and phone consent must be set for enduser",
           evaluate: ({ enduserId, logOnly }, deps, _) => {
@@ -1314,7 +1820,7 @@ export const schema: SchemaV1 = build_schema({
             if (!e.phone) return "Missing phone"
             // if (!e.phoneConsent) return "Missing phone consent"
           }
-        }
+        },
       ],
       access: [
         { type: 'filter', field: 'userId' }, 
@@ -1330,8 +1836,9 @@ export const schema: SchemaV1 = build_schema({
       message: {
         validator: SMSMessageValidator,
         required: true,
-        updatesDisabled: true,
         examples: ["Test message"],
+        // updates should be allowed for drafts / unsent messages
+        // updatesDisabled: true
       },
       linkOpens: {
         validator: numberToDateValidator,
@@ -1388,8 +1895,13 @@ export const schema: SchemaV1 = build_schema({
         validator: listOfStringsValidatorEmptyOk,
         initializer: () => [],
       },
+      journeyContext: { validator: journeyContextValidator },
+      sendAt: { validator: dateOptionalOrEmptyStringValidator },
+      pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
+      isDraft: { validator: booleanValidator },
+      timestamp: { validator: dateValidator },
+      ticketIds: { validator: listOfStringsValidatorEmptyOk },
     }, 
-    customActions: {},
   },
   chat_rooms: {
     info: {},
@@ -1398,7 +1910,7 @@ export const schema: SchemaV1 = build_schema({
       relationship: [],
       access: [
         { type: 'filter', field: 'userIds' }, 
-        { type: 'filter', field: 'enduserIds' }
+        { type: 'filter', field: 'enduserIds' },
       ]
     },
     fields: {
@@ -1457,7 +1969,19 @@ export const schema: SchemaV1 = build_schema({
       },
       infoForUser: { // todo: access-permissions allow updates for self only (when non-admin)
         validator: chatRoomUserInfoValidator,
-      }
+      },
+      aboutEnduserId: { 
+        validator: mongoIdStringValidator,
+        dependencies: [{
+          dependsOn: ['endusers'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+      pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
+      fields: { validator: fieldsValidator },
+      suggestedReply: { validator: stringValidator5000EmptyOkay },
     },
     defaultActions: DEFAULT_OPERATIONS,
     enduserActions: { create: {}, read: {}, readMany: {}, display_info: {}, mark_read: {} },
@@ -1508,9 +2032,9 @@ export const schema: SchemaV1 = build_schema({
       relationship: [],
       access: [{ type: 'dependency', foreignModel: 'chat_rooms', foreignField: '_id', accessField: 'roomId' }]
     },
-    defaultActions: { create: {}, read: {}, readMany: {}, delete: {} }, // avoid createMany for now
+    defaultActions: { create: {}, update: {}, read: {}, readMany: {}, delete: {} }, // avoid createMany for now
     readFilter: {
-      roomId: { required: true },
+      // roomId: { required: true },
     },
     enduserActions: { create: {}, read: {}, readMany: {} },
     customActions: {},
@@ -1535,7 +2059,8 @@ export const schema: SchemaV1 = build_schema({
       },
       senderId: { 
         validator: mongoIdStringValidator,
-        readonly: true, // create a separate endpoint for storing enduser chats
+        // if changing readonly to false, need to update side effect for track_chats_timestamp
+        // readonly: true, // create a separate endpoint for storing enduser chats
         initializer: (a, s) => s.id,
         examples: [PLACEHOLDER_ID],
         dependencies: [{ // can be userId or enduserId
@@ -1573,6 +2098,8 @@ export const schema: SchemaV1 = build_schema({
         validator: listOfStringsValidatorEmptyOk,
         initializer: () => [],
       },
+      timestamp: { validator: dateValidator },
+      ticketIds: { validator: listOfStringsValidatorEmptyOk },
     },
   },
   users: {
@@ -1583,6 +2110,15 @@ export const schema: SchemaV1 = build_schema({
       unique: ['username'],
       globalUnique: ['email', 'phone'],
       relationship: [
+        {
+          explanation: "Only admin users can set the admin role",
+          evaluate: ({ _id }, deps, session, type, { updates }) => {
+            if (_id && _id.toString() === session.id) return
+            if ((session as UserSession)?.roles?.includes('Admin')) return
+
+            if (updates?.roles?.includes("Admin")) return "Only Admin users can assign the Admin role"
+          }
+        },
         {
           explanation: "Only admin users can update others' profiles",
           evaluate: ({ _id }, _, session) => {
@@ -1617,6 +2153,34 @@ export const schema: SchemaV1 = build_schema({
     },
     enduserActions: { display_info: {}, read: {}, readMany: {} },
     customActions: {
+      invite_user: { // must stay in users now, not organizations, so that create access permission is enforced
+        op: "custom", access: 'create', method: "post", 
+        adminOnly: true,
+        name: 'Invite User',
+        path: '/invite-user-to-organization',
+        description: "Invites a user to register for the given (sub)-organization",
+        parameters: { 
+          email: { validator: emailValidator, required: true },
+          fname: { validator: nameValidator, required: true },
+          lname: { validator: nameValidator, required: true },
+          internalDisplayName: { validator: stringValidatorOptionalEmptyOkay },
+          organizationId: { validator: mongoIdStringValidator, required: true },
+          role: { validator: stringValidator },
+          tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+        },
+        returns: { 
+          created: { validator: 'user' as any, required: true },
+        } 
+      },
+      send_invitation_to_existing: { // access should stay create to allow people who can create users to send invites
+        op: "custom", access: 'create', method: "post",
+        name: 'Invite user to join organization',
+        path: '/invite-existing-user-to-organization',
+        adminOnly: true,
+        description: "Invites a user to join the current (sub)organization",
+        parameters: { userId: { validator: mongoIdStringValidator, required: true } },
+        returns: { },
+      },
       generate_auth_token: {
         op: "custom", access: 'create', method: "get",
         name: 'Generate authToken (Admin Only)',
@@ -1656,8 +2220,64 @@ export const schema: SchemaV1 = build_schema({
           enduser: { validator:  'user' }, 
         } as any // add enduser eventually, when validator defined
       },
+      configure_inbox: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Configure Inbox',
+        path: '/users/configure-inbox',
+        description: "Configured inbox to support built-in email server",
+        parameters: { 
+          username: { validator: subdomainValidator, required: true },
+          fname: { validator: nameValidator, required: true },
+          lname: { validator: nameValidator, required: true },
+        },
+        returns: { 
+          authToken: { validator: stringValidator, required: true },
+          user: { validator: 'user' as any, required: true },
+        },
+      },
     },
     publicActions: {
+      register: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Register',
+        path: '/users/register',
+        description: "Registers a new account",
+        parameters: { 
+          email: { validator: emailValidator, required: true },
+          password: { validator: stringValidator100, required: true },
+          termsVersion: { validator: stringValidator100, required: true },
+          inviteCode: { validator: stringValidator1000 },
+        },
+        returns: { },
+      },
+      login: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Login',
+        path: '/users/login',
+        description: "Login with email and password",
+        parameters: { 
+          email: { validator: emailValidator, required: true },
+          password: { validator: stringValidator100, required: true },
+          expirationInSeconds: { validator: numberValidator }
+        },
+        returns: { 
+          authToken: { validator: stringValidator, required: true },
+          user: { validator: 'user' as any, required: true },
+        },
+      },
+      login_with_google: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Login with Google',
+        path: '/users/login-google',
+        description: "Login with Google",
+        parameters: { 
+          jwt: { validator: stringValidator25000, required: true },
+        },
+        returns: { 
+          authToken: { validator: stringValidator, required: true },
+          user: { validator: 'user' as any, required: true },
+        },
+      },
       request_password_reset: {
         op: "custom", access: 'update', method: "post",
         name: 'Request Password Reset',
@@ -1679,6 +2299,20 @@ export const schema: SchemaV1 = build_schema({
         },
         returns: { },
       }, 
+      submit_email_verification: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Submit Email Verification',
+        path: '/users/submit-email-verification',
+        description: "Verifies a user's email address",
+        parameters: { 
+          email: { validator: emailValidator, required: true },
+          code: { validator: stringValidator1000, required: true },
+        },
+        returns: { 
+          authToken: { validator: stringValidator, required: true },
+          user: { validator: 'user' as any, required: true },
+        },
+      },
     },
     fields: {
       ...BuiltInFields, 
@@ -1696,6 +2330,9 @@ export const schema: SchemaV1 = build_schema({
         validator: fieldsValidator,
         redactions: ['enduser'],
       },
+      unredactedFields: {
+        validator: fieldsValidator,
+      },
       username: {
         validator: subdomainValidator,
         readonly: true, // able to set once, then not change (for now, due to email configuration)
@@ -1704,12 +2341,10 @@ export const schema: SchemaV1 = build_schema({
       externalId: {
         validator: stringValidator250,
       },
-      fname: {
-        validator: nameValidator,
-      },
-      lname: {
-        validator: nameValidator,
-      },
+      fname: { validator: nameValidator, },
+      lname: { validator: nameValidator, },
+      displayName: { validator: stringValidatorOptionalEmptyOkay }, // enduser-facing
+      internalDisplayName: { validator: stringValidator100, redactions: ['enduser'] }, // internal-facing
       suffixes: { validator: listOfStringsValidatorEmptyOk },
       organization: {
         validator: mongoIdStringValidator,
@@ -1728,6 +2363,7 @@ export const schema: SchemaV1 = build_schema({
         redactions: ['enduser'],
       },
       acknowledgedIntegrations: { validator: dateValidator },
+      disableIncomingPhoneCalls: { validator: booleanValidator },
       skills: {
         validator: listOfStringsValidatorEmptyOk,
       },
@@ -1744,6 +2380,7 @@ export const schema: SchemaV1 = build_schema({
         validator: notificationPreferencesValidator,
         redactions: ['enduser'],
       },
+      notificationEmailsDisabled: { validator: booleanValidator },
       avatar: {
         validator: stringValidator1000,
         dependencies: [
@@ -1760,6 +2397,17 @@ export const schema: SchemaV1 = build_schema({
       },
       timezone: { validator: timezoneValidator },
       weeklyAvailabilities: { validator: weeklyAvailabilitiesValidator },
+      autoReplyEnabled: { validator: booleanValidatorOptional },
+      pushNotificationIosTokens: { validator: listOfStringsValidatorEmptyOk },
+      callRouting: { validator: userCallRoutingBehaviorValidator },
+      tags: { validator: listOfStringsValidatorOptionalOrEmptyOk }, 
+      emailSignature: { validator: stringValidator1000 },
+      disableTicketAutoAssignment: { validator: booleanValidator },
+      specialties: { validator: listOfStringsValidatorOptionalOrEmptyOk }, 
+      bio: { validator: stringValidator25000EmptyOkay }, 
+      TIN: { validator: stringValidatorOptionalEmptyOkay },
+      NPI: { validator: stringValidatorOptionalEmptyOkay },
+      DEA: { validator: stringValidatorOptionalEmptyOkay },
     }
   },
   templates: {
@@ -1770,22 +2418,60 @@ export const schema: SchemaV1 = build_schema({
     },
     defaultActions: DEFAULT_OPERATIONS,
     customActions: {
-    get_templated_message: {
-        op: "custom", access: 'read', method: "get",
+      get_templated_message: {
+        op: "custom", access: 'read', method: "post",
         name: 'Get templated message',
         path: '/templated-message',
-        description: "Returns a message with template values replaced",
+        description: "Returns a message with template values replaced. Uses POST to support large bodies.",
         parameters: { 
-          message: { validator: stringValidator25000, required: true },
+          message: { validator: stringValidator100000EmptyOkay, required: true },
           userId: { validator: mongoIdStringValidator, required: true },
           enduserId: { validator: mongoIdStringValidator, required: true },
-          html: { validator: stringValidator25000 },
+          html: { validator: stringValidator100000EmptyOkay },
+          subject: { validator: stringValidatorOptionalEmptyOkay },
           channel: { validator: communicationsChannelValidator },
+          automationStepId: { validator: mongoIdStringValidator },
+          journeyContext: { validator: journeyContextValidator },
         },
         returns: { 
           plaintext: { validator: stringValidator25000, required: true },
           html: { validator: stringValidator25000, required: true },
+          subject: { validator: stringValidator },
           linkOpenTrackingIds: { validator: listOfStringsValidatorEmptyOk, required: true },
+        },
+      },
+      get_suggested_reply: {
+        op: "custom", access: 'read', method: "post",
+        name: 'Get suggested reply',
+        path: '/templates/suggested-reply',
+        description: "Returns an AI-generated suggested reply to a conversation.",
+        parameters: { 
+          messages: { validator: externalChatGPTMessagesValidator, required: true },
+        },
+        returns: { 
+          completion: { validator: stringValidator, required: true }
+        },
+      },
+      create_embedding: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Generate Embedding',
+        path: '/templates/create-embedding',
+        description: "Generates an embedding for AI search",
+        parameters: { 
+          templateId: { validator: mongoIdStringValidator, required: true }
+        },
+        returns: { },
+      },
+      embedding_search: {
+        op: "custom", access: 'read', method: "post",
+        name: 'Embedding Search',
+        path: '/templates/embedding-search',
+        description: "Performs an AI search",
+        parameters: { 
+          content: { validator: stringValidator25000, required: true },
+        },
+        returns: { 
+          templateIds: { validator: listOfMongoIdStringValidator, required: true },
         },
       },
     },
@@ -1802,12 +2488,12 @@ export const schema: SchemaV1 = build_schema({
         examples: ["Template Subject"],
       },
       message: {
-        validator: stringValidator25000,
+        validator: stringValidator100000EmptyOkay,
         required: true,
         examples: ["This is the template message......"],
       },
       html: {
-        validator: stringValidator25000,
+        validator: stringValidator100000EmptyOkay,
         examples: ["This is the template message......"],
       },
       editorState: {
@@ -1821,7 +2507,7 @@ export const schema: SchemaV1 = build_schema({
       mode: {
         validator: messageTemplateModeValidator,
       },
-    }
+    },
   },
   files: {
     info: {},
@@ -1849,7 +2535,9 @@ export const schema: SchemaV1 = build_schema({
         validator: stringValidator250,
         readonly: true,
       },
-      hideFromEnduserPortal: { validator: booleanValidator },
+      hideFromEnduserPortal: { validator: booleanValidator }, // enduser self-hide
+      pushedToClientPortal: { validator: booleanValidator }, // user push
+      hiddenFromEnduser: { validator: booleanValidator }, // user hide
     },
     customActions: {
       prepare_file_upload: {
@@ -1867,7 +2555,7 @@ export const schema: SchemaV1 = build_schema({
             required: true,
           },
           type: {
-           validator: fileTypeValidator,
+            validator: fileTypeValidator,
             required: true
           },
           publicRead: { validator: booleanValidator },
@@ -1881,6 +2569,7 @@ export const schema: SchemaV1 = build_schema({
               onDependencyDelete: 'setNull',
             }]
           },
+          source: { validator: stringValidator100 },
         },
         returns: { 
           presignedUpload: {
@@ -1901,6 +2590,7 @@ export const schema: SchemaV1 = build_schema({
         },
         returns: { 
           downloadURL: { validator: stringValidator250, required: true },
+          name: { validator: stringValidator100, required: true },
         },
       },
     },
@@ -1927,12 +2617,23 @@ export const schema: SchemaV1 = build_schema({
       ]
     },
     defaultActions: DEFAULT_OPERATIONS,
-    customActions: {},
+    customActions: {
+      update_indexes: {
+        op: "custom", access: 'update', method: "patch",
+        name: 'Update Indexes',
+        path: '/tickets/update-indexes',
+        description: "Updates indexes for a number of tickets to adjust the default sorting",
+        parameters: { 
+          updates: { validator: indexUpdatesValidator, required: true },
+        },
+        returns: {},
+      },
+    },
     enduserActions: { create: {}, read: {}, readMany: {} },
     fields: {
       ...BuiltInFields, 
       title: {
-        validator: stringValidator100,
+        validator: stringValidator1000,
         required: true,
         examples: ["Ticket Name"],
       },
@@ -1943,18 +2644,15 @@ export const schema: SchemaV1 = build_schema({
           dependsOn: ['endusers'],
           dependencyField: '_id',
           relationship: 'foreignKey',
-          onDependencyDelete: 'setNull',
+          onDependencyDelete: 'delete',
         }]
       },
       automationStepId: {
         validator: mongoIdStringValidator,
       },
-      closedForReason: {
-        validator: stringValidator,
-      },
-      closeReasons: {
-        validator: listOfStringsValidatorEmptyOk,
-      },
+      closedForReason: { validator: stringValidator },
+      closeReasons: { validator: listOfStringsValidatorEmptyOk },
+      closedBy: { validator: mongoIdStringValidator },
       chatRoomId: {
         validator: mongoIdStringValidator,
       },
@@ -1977,6 +2675,21 @@ export const schema: SchemaV1 = build_schema({
       skillsRequired: {
         validator: listOfStringsValidator,
       },
+      priority: { validator: numberValidator },
+      stage: { validator: stringValidator100 },
+      blockerDescription: { validator: stringValidator5000EmptyOkay },
+      index: { validator: numberValidator },
+      carePlanId: { validator: mongoIdStringValidator },
+      journeyId: { validator: mongoIdStringValidator },
+      purchaseId: { validator: mongoIdStringValidator },
+      hiddenFromTickets: { validator: booleanValidator },
+      htmlDescription: { validator: stringValidatorOptional },
+      formResponseIds: { validator: listOfStringsValidatorEmptyOk },
+      actions: { validator: ticketActionsValidator },
+      remindAt: { validator: dateOptionalOrEmptyStringValidator },
+      reminderSilencedAt: { validator: dateOptionalOrEmptyStringValidator },
+      relatedRecords: { validator: listValidatorOptionalOrEmptyOk(relatedRecordValidator) },
+      attachments: { validator: listOfChatAttachmentsValidator },
     }
   },
   meetings: {
@@ -2154,7 +2867,8 @@ export const schema: SchemaV1 = build_schema({
       },
       fields: {
         validator: fieldsValidator,
-      }
+      },
+      pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
     }
   },
   forms: {
@@ -2166,6 +2880,20 @@ export const schema: SchemaV1 = build_schema({
     defaultActions: DEFAULT_OPERATIONS,
     customActions: {},
     enduserActions: {},
+    publicActions: {
+      public_form_details: {
+        op: "custom", access: 'read', method: "get",
+        path: '/forms/public-details',
+        name: 'Get details for public form',
+        description: "Gets details for public form, e.g. whether to require date of birth",
+        parameters: { 
+          formId: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: {
+          form: { validator: 'form' as any, required: true },
+        },
+      },
+    },
     fields: {
       ...BuiltInFields, 
       title: {
@@ -2178,14 +2906,28 @@ export const schema: SchemaV1 = build_schema({
         initializer: () => 0,
         examples: [0],
       },
+      displayTitle: { validator: stringValidator1000 },
       description: { validator: stringValidator5000EmptyOkay },
       customGreeting: { validator: stringValidator5000 },
       customSignature: { validator: stringValidator5000 },
       customSubject: { validator: stringValidator5000 },
       allowPublicURL: { validator: booleanValidator },
       intakePhone: { validator: intakePhoneValidator },
-      thanksMessage: { validator: stringValidator5000 },
+      intakeEmailRequired: { validator: booleanValidator },
+      intakeEmailHidden: { validator: booleanValidator },
+      intakeDateOfBirth: { validator: intakeDateOfBirthValidator },
+      intakeState: { validator: intakeDateOfBirthValidator },
+      thanksMessage: { validator: stringValidator5000EmptyOkay },
+      htmlThanksMessage: { validator: stringValidator5000EmptyOkay },
       type: { validator: formTypeValidator },
+      scoring: { validator: formScoringValidator },
+      externalId: { validator: stringValidator100 },
+      ga4measurementId: { validator: stringValidator100 },
+      backgroundColor: { validator: stringValidator100 },
+      productIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+      submitRedirectURL: { validator: stringValidator5000 },
+      customization: { validator: formCustomizationValidator },
+      publicFormIdRedirect: { validator: mongoIdStringOptional },
     }
   },
   form_fields: {
@@ -2201,8 +2943,23 @@ export const schema: SchemaV1 = build_schema({
       access: [{ type: 'dependency', foreignModel: 'forms', foreignField: '_id', accessField: 'formId' }]
     },
     defaultActions: DEFAULT_OPERATIONS,
-    customActions: {},
-    enduserActions: { read: {}, readMany: {} },
+    customActions: {
+      load_choices_from_database: {
+        op: "custom", access: 'read', method: "get",
+        path: '/form-fields/load-choices-from-database',
+        name: 'Load Choices From Database',
+        description: "Loads choices for a Database Select field type in a form",
+        parameters: { 
+          fieldId: { validator: mongoIdStringValidator, required: true },
+          limit: { validator: nonNegNumberValidator, required: false },
+          lastId: { validator: mongoIdStringValidator, required: false },
+        },
+        returns: {
+          choices: { validator: 'database_records' as any, required: true }
+        },
+      },
+    },
+    enduserActions: { read: {}, readMany: {}, load_choices_from_database: {} },
     fields: {
       ...BuiltInFields, 
       formId: {
@@ -2235,8 +2992,13 @@ export const schema: SchemaV1 = build_schema({
       flowchartUI: { validator: flowchartUIValidator },
       options: { validator: formFieldOptionsValidator },
       description: { validator: stringValidator5000EmptyOkay }, 
+      htmlDescription: { validator: stringValidator5000EmptyOkay }, 
       intakeField: { validator: stringValidator5000EmptyOkay }, // todo: ensure built-ins are ignored
       isOptional: { validator: booleanValidator },
+      isInGroup: { validator: booleanValidator },
+      externalId: { validator: stringValidator100 },
+      sharedWithEnduser: { validator: booleanValidator },
+      prepopulateFromFields: { validator: booleanValidator },
     }
   },
   form_responses: {
@@ -2248,7 +3010,7 @@ export const schema: SchemaV1 = build_schema({
     fields: {
       ...BuiltInFields, 
       formId: {
-        validator: mongoIdStringValidator,
+        validator: stringValidator100, // allow other external id types here too, not just mongoid
         required: true,
         dependencies: [
           {
@@ -2286,10 +3048,17 @@ export const schema: SchemaV1 = build_schema({
       responses: { validator: formResponsesValidator },
       draftSavedAt: { validator: dateValidator },
       hideFromEnduserPortal: { validator: booleanValidator },
+      sharedVia: { validator: communicationsChannelValidator },
+      isInternalNote: { validator: booleanValidator },
+      pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
+      publicIdentifier: { validator: stringValidator250 },
+      source: { validator: stringValidator250 },
+      externalId: { validator: stringValidator250 },
     },
     defaultActions: DEFAULT_OPERATIONS,
     enduserActions: { 
-      prepare_form_response: {}, info_for_access_code: {}, submit_form_response: {}, read: {}, readMany: {},
+      prepare_form_response: {}, info_for_access_code: {}, submit_form_response: {}, stripe_details: {},
+      read: {}, readMany: {}, save_field_response: {},
       update: { } /* allows for hiding from client portal, storing partial responses while submitting form */ 
     },
     customActions: { 
@@ -2303,11 +3072,37 @@ export const schema: SchemaV1 = build_schema({
           enduserId: { validator: mongoIdStringValidator, required: true },
           automationStepId: { validator: mongoIdStringValidator },
           expireAt: { validator: dateValidator },
+          sharedVia: { validator: communicationsChannelValidator },
+          isInternalNote: { validator: booleanValidator },
+          title: { validator: stringValidator },
         },
         returns: {
           accessCode: { validator: stringValidator250, required: true },
           url: { validator: stringValidator250, required: true },
           response: { validator: 'form_response' as any, required: true }
+        },
+      },
+      generate_pdf: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Generate PDF',
+        path: '/form-responses/generate-pdf',
+        description: "Get a PDF document generated for a given form response",
+        parameters: { 
+          id: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: {},
+      },
+      save_field_response: {
+        op: "custom", access: 'update', method: "patch",
+        name: 'Save Field Response',
+        path: '/save-field-response',
+        description: "With an accessCode, includes the answer to an individual field in a partial form response.",
+        parameters: { 
+          accessCode: { validator: stringValidator250, required: true },
+          response: { validator: formResponseValidator, required: true },
+        },
+        returns: {
+          formResponse: 'form response' as any,
         },
       },
       submit_form_response: {
@@ -2319,6 +3114,8 @@ export const schema: SchemaV1 = build_schema({
           accessCode: { validator: stringValidator250, required: true },
           responses: { validator: formResponsesValidator, required: true },
           automationStepId: { validator: mongoIdStringValidator },
+          customerId: { validator: stringValidator },
+          productIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
         },
         returns: {
           formResponse: 'form response' as any,
@@ -2338,6 +3135,22 @@ export const schema: SchemaV1 = build_schema({
           response: 'form response' as any,
         },
       },
+      stripe_details: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Stripe details for form field',
+        path: '/form-responses/stripe-details',
+        description: "Gets the relevant information for a Stripe field",
+        parameters: { 
+          fieldId: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: {
+          clientSecret: { validator: stringValidator, required: true },
+          customerId: { validator: stringValidator, required: true },
+          publishableKey: { validator: stringValidator, required: true },
+          stripeAccount: { validator: stringValidator, required: true },
+          businessName: { validator: stringValidator, required: true },
+        },
+      },
     },
     publicActions: {
       session_for_public_form: {
@@ -2346,12 +3159,15 @@ export const schema: SchemaV1 = build_schema({
         name: 'Generate Session for Public Form',
         description: "Generates a session for filling out a public form.",
         parameters: { 
-          email: { validator: emailValidator, required: true },
           formId: { validator: mongoIdStringValidator, required: true },
           businessId: { validator: mongoIdStringValidator, required: true },
+          email: { validator: emailValidator },
+          dateOfBirth: { validator: stringValidator100 },
           phone: { validator: phoneValidator },
           fname: { validator: nameValidator },
           lname: { validator: nameValidator },
+          publicIdentifier: { validator: stringValidator },
+          state: { validator: stateValidator },
         },
         returns: {
           accessCode: { validator: stringValidator250, required: true },
@@ -2406,13 +3222,13 @@ export const schema: SchemaV1 = build_schema({
       unique: [], 
       relationship: [],
     },
-    defaultActions: {},
+    defaultActions: DEFAULT_OPERATIONS,
     customActions: {
       configure: {
         op: "custom", access: 'create', method: "post",
         name: 'Configure Webhooks (Admin Only)',
         path: '/configure-webhooks',
-        description: "Sets the URL, secret, and initial subscriptions for your organization. Only one webhooks configuration per organization is allowed at this time. Your secret must exceed 15 characters and should be generated randomly.",
+        description: "DEPRECATED: Sets the URL, secret, and initial subscriptions for your organization. Your secret must exceed 15 characters and should be generated randomly.",
         parameters: { 
           url: { validator: urlValidator, required: true },
           secret: { validator: stringValidator5000, required: true },
@@ -2424,7 +3240,7 @@ export const schema: SchemaV1 = build_schema({
         op: "custom", access: 'read', method: "get",
         name: 'Get current configuration info',
         path: '/webhook-configuration',
-        description: "Returns current webhook configuration",
+        description: "DEPRECATED: Returns current webhook configuration",
         parameters: { },
         returns: {
           subscriptions: { validator: WebhookSubscriptionValidator },
@@ -2435,7 +3251,7 @@ export const schema: SchemaV1 = build_schema({
         op: "custom", access: 'update', method: "patch",
         name: 'Update Webhooks (Admin Only)',
         path: '/update-webhooks',
-        description: "Modifies only subscriptions to models included in subscriptionUpdates. To remove subscriptions for a given model, set all values to false.",
+        description: "DEPRECATED: Modifies only subscriptions to models included in subscriptionUpdates. To remove subscriptions for a given model, set all values to false.",
         parameters: { 
           url: { validator: urlValidator },
           secret: { validator: stringValidator5000 },
@@ -2484,10 +3300,16 @@ export const schema: SchemaV1 = build_schema({
     info: {},
     constraints: {
       unique: [], 
-      relationship: [],
       access: [
         { type: 'filter', field: 'attendees.id' }, 
-      ]
+      ],
+      relationship: [{
+        explanation: 'enduser cannot update public events',
+        evaluate: (r, t, s) => {
+          if (s.type === 'user') return
+          if (r.publicRead) return "Enduser cannot create or update public events"
+        }
+      }] 
     },
     defaultActions: DEFAULT_OPERATIONS,
     customActions: {
@@ -2524,15 +3346,22 @@ export const schema: SchemaV1 = build_schema({
         name: 'Get Appointment Availability for a Calendar Event Type',
         path: '/calendar-availability',
         description: "Gets availability blocks for different users based on their internal and external calendars",
+        warnings: [
+          "The limit parameter indicates the number of future calendar event conflicts to look up when determining availability. This defaults to a high value (500) and should only be reduced with caution."
+        ],
         parameters: {  
           calendarEventTemplateId: { validator: mongoIdStringValidator, required: true },
           from: { validator: dateValidator, required: true },
+          locationId: { validator: mongoIdStringValidator },
           restrictedByState: { validator: booleanValidator },
           to: { validator: dateValidator },
           limit: { validator: nonNegNumberValidator },
+          businessId: { validator: mongoIdStringValidator }, // required for unauthenticated access
+          userId: { validator: mongoIdStringValidator }, // required for unauthenticated access
+          userIds: { validator: listOfMongoIdStringValidatorEmptyOk }, // required for unauthenticated access
         },
         returns: { 
-          availabilityBlocks: { validator: availabilityBlocksValidator, required: true }
+          availabilityBlocks: { validator: baseAvailabilityBlocksValidator, required: true }
         },
       },
       book_appointment: {
@@ -2544,13 +3373,131 @@ export const schema: SchemaV1 = build_schema({
           calendarEventTemplateId: { validator: mongoIdStringValidator, required: true }, 
           userId: { validator: mongoIdStringValidator, required: true },
           startTime: { validator: dateValidator, required: true },
+          locationId: { validator: mongoIdStringValidator },
+          rescheduledCalendarEventId: { validator: mongoIdStringValidator },
+          bookingPageId: { validator: mongoIdStringValidator },
+          agreedToTerms: { validator: appointmentTermsValidator },
+          timezone: { validator: timezoneValidator },
+          fields: { validator: objectAnyFieldsAnyValuesValidator },
+          token: { validator: stringValidator },
+          customerId: { validator: stringValidator100 },
         },
         returns: { 
           createdEvent: { validator: 'calenar_event' as any },
         },
       },
+      stripe_details: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Get Stripe Details',
+        path: '/scheduling/stripe-details',
+        description: "Gets Stripe checkout details for an appointment booking flor",
+        parameters: { },
+        returns: { 
+          stripe: { 
+            validator: objectValidator<StripeCheckoutInfo>({
+              customerId: stringValidator1000, 
+              clientSecret: stringValidator1000, 
+              publishableKey: stringValidator1000, 
+              stripeAccount: stringValidator1000, 
+              businessName: stringValidator1000,
+            })
+          }
+        },
+      },
+      generate_zoom_meeting: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Generate Zoom Meeting',
+        path: '/generate-zoom-meeting',
+        description: "Generates a Zoom meeting for including in a Calendar Event",
+        parameters: { 
+          calendarEventId: { validator: stringValidator, required: true },
+          userId: { validator: stringValidator, required: true },
+        },
+        returns: { 
+          updatedEvent: { validator: 'calendar_event' as any, required: true },
+        },
+      },
+      change_zoom_host: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Update Zoom Meeting Host',
+        path: '/change-zoom-host',
+        description: "Updates the host for an existing Zoom meeting",
+        parameters: { 
+          calendarEventId: { validator: stringValidator, required: true },
+          userId: { validator: stringValidator, required: true },
+        },
+        returns: { 
+          updatedEvent: { validator: 'calendar_event' as any, required: true },
+        },
+      },
+      download_ics_file: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Download ICS file',
+        path: '/calendar-events/download-ics-file',
+        description: "A URL which triggers the download of an ICS file for a given event",
+        parameters: { 
+          calendarEventId: { validator: mongoIdStringValidator, required: true },
+          attendeeId: { validator: stringValidator },
+          attendeeType: { validator: sessionTypeValidator },
+        },
+        returns: { },
+      },
     },
-    enduserActions: { read: {}, readMany: {}, get_appointment_availability: {}, book_appointment: {} },
+    publicActions: {
+      session_for_public_appointment_booking: {
+        op: "custom", access: 'create', method: "post",
+        path: '/session-for-public-appointment-booking',
+        name: 'Generate Session for Public Appointment Booking',
+        description: "Generates a session for booking an appointment",
+        parameters: { 
+          email: { validator: emailValidator, required: true },
+          calendarEventTemplateId: { validator: mongoIdStringValidator, required: true },
+          businessId: { validator: mongoIdStringValidator, required: true }, // organizationIds can be pulled from the corresponding appointment
+          dateOfBirth: { validator: stringValidator },
+          phone: { validator: phoneValidator },
+          fname: { validator: nameValidator },
+          lname: { validator: nameValidator },
+          state: { validator: stateValidator },
+          organizationIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+        },
+        returns: {
+          authToken: { validator: stringValidator250, required: true },
+          stripe: { 
+            validator: objectValidator<StripeCheckoutInfo>({
+              customerId: stringValidator1000, 
+              clientSecret: stringValidator1000, 
+              publishableKey: stringValidator1000, 
+              stripeAccount: stringValidator1000, 
+              businessName: stringValidator1000,
+            })
+          }
+        },
+      },
+      details_for_appointment_booking_page: {
+        op: "custom", access: 'read', method: "get",
+        path: '/details-for-appointment-booking-page',
+        name: 'Gets Appointment Booking Details',
+        description: "Gets details related to booking an appointment",
+        parameters: { 
+          appointmentBookingPageId: { validator: mongoIdStringValidator, required: true },
+          businessId: { validator: mongoIdStringValidator, required: true }, // organizationIds can be pulled from the corresponding appointment
+          userId: { validator: mongoIdStringValidator }, 
+        },
+        returns: {
+          appointmentBookingPage: { validator: 'appointment_booking_page' as any, required: true },
+          calendarEventTemplates: { validator: 'calendar_event_templates' as any, required: true },
+          locations: { validator: 'appointment_locations' as any, required: true },
+          products: { validator: 'products' as any, required: true },
+          userDisplayName: { validator: stringValidator },
+          userAvatar: { validator: stringValidator }
+        },
+      }
+    },
+    enduserActions: { 
+      read: {}, readMany: {}, update: {}, // for cancelling
+      get_appointment_availability: {}, book_appointment: {}, stripe_details: {},
+      session_for_public_appointment_booking: {}, download_ics_file: {},
+    },
     fields: {
       ...BuiltInFields, 
       title: {
@@ -2568,11 +3515,18 @@ export const schema: SchemaV1 = build_schema({
         examples: [100],
         required: true,
       },
+      locationId: { validator: mongoIdStringValidator },
       type: { validator: stringValidator100 },
       description: { validator: stringValidator5000 },
+      agreedToTerms: { validator: appointmentTermsValidator },
       meetingId: { validator: mongoIdStringValidator, readonly: true },
+      bookingPageId: { validator: mongoIdStringValidator }, // allows rescheduling via booking page
       meetingStatus: { validator: meetingStatusValidator },
       attachments: { validator: listOfGenericAttachmentsValidator },
+      cancelledAt: { validator: dateOptionalOrEmptyStringValidator },
+      rescheduledAt: { validator: dateOptionalOrEmptyStringValidator },
+      noShowedAt: { validator: dateOptionalOrEmptyStringValidator },
+      rescheduledTo: { validator: mongoIdStringValidator },
       chatRoomId: { 
         validator: mongoIdStringValidator,
         dependencies: [{
@@ -2617,10 +3571,20 @@ export const schema: SchemaV1 = build_schema({
       sharedContentIds: { validator: listOfMongoIdStringValidatorEmptyOk },
       enduserFormResponses: { validator: enduserFormResponsesForEventValidator },
       enduserTasks: { validator: enduserTasksForEventValidator },
+      color: { validator: stringValidator1000 },
       location: { validator: stringValidator1000 },
       locationURL: { validator: stringValidator1000 },
       locationNotes: { validator: stringValidator5000 },
       phone: { validator: stringValidator100 }, // leave more generous than phone validator in favor of lower friction
+      portalSettings: { validator: calendarEventPortalSettingsValidator },
+      externalId: { validator: stringValidator },
+      source: { validator: stringValidator },
+      videoIntegration: { validator: videoIntegrationTypesValidator },
+      videoURL: { validator: stringValidator },
+      timezone: { validator: timezoneValidator},
+      copiedFrom: { validator: mongoIdStringValidator },
+      internalNotes: { validator: stringValidator5000EmptyOkay },
+      // isAllDay: { validator: booleanValidator },
     }
   },
   calendar_event_templates: {
@@ -2645,6 +3609,8 @@ export const schema: SchemaV1 = build_schema({
         examples: [100],
         required: true,
       },
+      portalSettings: { validator: calendarEventPortalSettingsValidator },
+      productIds: { validator: listOfMongoIdStringValidatorEmptyOk },
       type: { validator: stringValidator100 },
       description: { validator: stringValidator5000 },
       reminders: {
@@ -2656,6 +3622,15 @@ export const schema: SchemaV1 = build_schema({
       enableSelfScheduling: { validator: booleanValidator }, 
       restrictedByState: { validator: booleanValidator }, 
       image: { validator: stringValidator5000 },
+      confirmationEmailDisabled: { validator: booleanValidatorOptional },
+      confirmationSMSDisabled: { validator: booleanValidatorOptional },
+      // confirmationSenderId: { validator: mongoIdStringValidator },
+      carePlanForms: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+      carePlanContent: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+      carePlanFiles: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+      carePlanTasks: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      videoIntegration: { validator: videoIntegrationTypesValidator },
+      color: { validator: stringValidator1000 },
     }
   },
   calendar_event_RSVPs: {
@@ -2710,7 +3685,11 @@ export const schema: SchemaV1 = build_schema({
       ],
       access: []
     },
-    defaultActions: DEFAULT_OPERATIONS,
+    defaultActions: {
+      ...DEFAULT_OPERATIONS,
+      // this is not validated, but this is too useful for copying journey to disable
+      // createMany: undefined, // need to validate parent node is same journey before enabling
+    },
     customActions: { },
     enduserActions: { },
     fields: {
@@ -2752,6 +3731,8 @@ export const schema: SchemaV1 = build_schema({
       },
       conditions: { validator: listOfAutomationConditionsValidator },
       flowchartUI: { validator: flowchartUIValidator },
+      continueOnError: { validator: booleanValidator },
+      enduserConditions: { validator: optionalAnyObjectValidator },
     }
   },
   automated_actions: {
@@ -2895,7 +3876,17 @@ export const schema: SchemaV1 = build_schema({
           subject: { validator: stringValidator250 },
         },
         returns: {},
-      }
+      },
+      bulk_update: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Bulk update (read or delete)',
+        path: '/notifications/bulk-update',
+        description: "Marks all as read, or deletes all notifications",
+        parameters: { 
+          action: { validator: stringValidator250 },
+        },
+        returns: {},
+      },
     },
     enduserActions: { },
     fields: {
@@ -2971,8 +3962,36 @@ export const schema: SchemaV1 = build_schema({
       relationship: [],
     },
     defaultActions: DEFAULT_OPERATIONS,
-    customActions: { },
-    enduserActions: { create: {}, createMany: {}, read: {}, readMany: {} },
+    customActions: { 
+      generate_embedding: {
+        op: 'custom', access: 'delete', method: 'post',
+        path: '/managed-content-records/generate-embedding',
+        description: "", 
+        parameters: { id: { validator: mongoIdStringValidator, required: true } },
+        returns: { 
+          updated: { validator: 'managed_content_record' as any },
+        }
+      },
+      search: {
+        op: 'custom', access: 'read', method: 'post',
+        path: '/managed-content-records/search',
+        name: "Search content using AI integration",
+        description: "", 
+        parameters: { 
+          query: { validator: stringValidator, required: true },
+          type: { validator: exactMatchValidator<"enduser" | "internal">(['enduser', 'internal']) },
+        },
+        returns: { 
+          record: { validator: 'managed_content_record' as any, required: true },
+          matches: { validator: 'managed_content_records' as any, required: true },
+          response: { validator: stringValidator, required: true, }
+        }
+      },
+    },
+    enduserActions: { 
+      create: {}, createMany: {}, read: {}, readMany: {},
+      search: {},
+    },
     fields: {
       ...BuiltInFields, 
       slug: { validator: stringValidator250 },
@@ -3025,6 +4044,9 @@ export const schema: SchemaV1 = build_schema({
       mode: { validator: messageTemplateModeValidator, },
       files: { validator: listOfStringsValidatorEmptyOk },
       tags: { validator: listOfStringsValidatorEmptyOk },
+      embeddingType: { validator: embeddingTypeValidator },
+      embedding: { validator: listValidator(numberValidator) },
+      forInternalUse: { validator: booleanValidator },
     }
   },
   managed_content_record_assignments: {
@@ -3144,6 +4166,9 @@ export const schema: SchemaV1 = build_schema({
         examples: ["This is the template message......"],
       },
       slug: { validator: stringValidator250 },
+      attachments: {
+        validator: listOfChatAttachmentsValidator,
+      },
     },
   },
   post_comments: {
@@ -3357,9 +4382,31 @@ export const schema: SchemaV1 = build_schema({
     constraints: {
       unique: [], 
       globalUnique: ['subdomain'], // must be unique across all organizations in tellescope
-      relationship: [],
+      relationship: [
+        {
+          explanation: 'Only organization owner can update owner',
+          evaluate: (updated, lookup, session, type, options) => {
+            if (type !== 'update') return // not updating
+            if (!options.updates?.owner) return // not changing owner
+            if (!options.original) return // original not provided to check previous owner (bug)
+
+            const original = options.original
+
+            if (original.owner) {
+              if (original.owner !== session.id) {
+                return "Only owner can change ownership"
+              }
+            } else if (original.creator !== session.id) {
+              return "Only creator can set initial owner"
+            }
+          }
+        },
+      ],
     },
-    defaultActions: { read: { }, readMany: { }, update: { adminOnly: true } },
+    defaultActions: { read: { }, readMany: { }, update: { }, 
+    /* in API, deleting root organization is explicitly blocked, but this allows for deleting sub organizations */
+      delete: {}  
+    },
     customActions: { 
       create_suborganization: {
         op: "custom", access: 'create', method: "post", 
@@ -3375,20 +4422,20 @@ export const schema: SchemaV1 = build_schema({
           created: { validator: 'organization' as any, required: true },
         } 
       },
-      invite_user: {
+      create_and_join: {
         op: "custom", access: 'create', method: "post", 
         adminOnly: true,
-        name: 'Invite User',
-        path: '/invite-user-to-organization',
-        description: "Invites a user to register for the given (sub)-organization",
+        name: 'Create and Join Organization',
+        path: '/organizations/create-and-join', 
+        description: "Creates and joins a new organization",
         parameters: { 
-          email: { validator: emailValidator, required: true },
-          fname: { validator: nameValidator, required: true },
-          lname: { validator: nameValidator, required: true },
-          organizationId: { validator: mongoIdStringValidator, required: true },
+          name: { validator: stringValidator250, required: true },
+          subdomain: { validator: slugValidator, required: true },
         },
         returns: { 
-          created: { validator: 'user' as any, required: true },
+          authToken: { validator: stringValidator, required: true },
+          organization: { validator: 'organization' as any, required: true },
+          user: { validator: 'user' as any, required: true },
         } 
       },
     },
@@ -3420,6 +4467,11 @@ export const schema: SchemaV1 = build_schema({
         required: true,
         examples: ["subdomain"],
       },
+      limits: { 
+        validator: organizationLimitsValidator,
+        readonly: true, // to be set by Tellescope super admin only
+      },
+      owner: { validator: mongoIdStringValidator },
       parentOrganizationId: { validator: mongoIdStringValidator },
       subscriptionExpiresAt: { validator: dateValidator },
       subscriptionPeriod: { validator: numberValidator },
@@ -3433,10 +4485,8 @@ export const schema: SchemaV1 = build_schema({
       customPortalURL: { validator: stringValidator250 },
       portalSettings: { validator: portalSettingsValidator },
       settings: { validator: organizationSettingsValidator },
-      limits: { 
-        validator: organizationLimitsValidator,
-        readonly: true, // to be set by Tellescope super admin only
-      },
+      timezone: { validator: timezoneValidator },
+      forwardAllIncomingEmailsTo: { validator: emailValidator },
     },
   },
   databases: {
@@ -3540,9 +4590,7 @@ export const schema: SchemaV1 = build_schema({
   enduser_tasks: {
     info: {},
     constraints: {
-      unique: [
-        ['enduserId', 'title']
-      ], 
+      unique: [], 
       relationship: [],
       access: []
     },
@@ -3613,7 +4661,14 @@ export const schema: SchemaV1 = build_schema({
     info: {},
     constraints: {
       unique: ['role'], 
-      relationship: [],
+      relationship: [
+        {
+          explanation: "role can't be 'Admin'",
+          evaluate: ({ role }, deps, _) => {
+            if (role === 'Admin') return "role must not be 'Admin'"
+          }
+        },
+      ],
     },
     defaultActions: { 
       read: {}, readMany: {},
@@ -3641,6 +4696,879 @@ export const schema: SchemaV1 = build_schema({
             }
           },
         ]
+      },
+      uiRestrictions: { validator: userUIRestrictionsValidator },
+    }
+  },
+  appointment_booking_pages: {
+    info: {},
+    constraints: {
+      unique: ['title'], 
+      relationship: [],
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {
+      generate_access_token: {
+        op: "custom", access: 'create', method: "post", 
+        name: 'Generate Access Token',
+        path: '/appointment-booking-pages/generate-access-token', 
+        description: "Generates a 1-time access token for booking an appointment",
+        parameters: { 
+          expiresAt: { validator: dateValidator, required: true },
+          bookingPageId: { validator: mongoIdStringValidator },
+        },
+        returns: { 
+          token: { validator: stringValidator, required: true },
+        } 
+      },
+    },
+    publicActions: {
+      validate_access_token: {
+        op: "custom", access: 'read', method: "get", 
+        name: 'Validate Access Token',
+        path: '/appointment-booking-pages/validate-access-token',
+        description: "Validates an appointment booking token",
+        parameters: { 
+          token: { validator: stringValidator, required: true },
+          bookingPageId: { validator: mongoIdStringValidator },
+        },
+        returns: { 
+          isValid: { validator: booleanValidator, required: true }, 
+        } 
+      },
+    },
+    enduserActions: {
+      read: {}, readMany: {}, validate_access_token: {},
+    },
+    fields: {
+      ...BuiltInFields, 
+      title: {
+        validator: stringValidator100,
+        required: true,
+        examples: ["Appointment Booking Title"]
+      },
+      calendarEventTemplateIds: {
+        validator: listOfMongoIdStringValidator,
+        required: true,
+        examples: [[PLACEHOLDER_ID]]
+      },
+      locationIds: {
+        validator: listOfMongoIdStringValidatorEmptyOk,
+        required: true,
+        examples: [[PLACEHOLDER_ID]]
+      },
+      terms: { validator: appointmentTermsValidator },
+      endDate: { validator: dateValidator },
+      startDate: { validator: dateValidator },
+      backgroundColor: { validator: stringValidator100 },
+      primaryColor: { validator: stringValidator100 },
+      secondaryColor: { validator: stringValidator100 },
+      intakeTitle: { validator: stringValidator1000 }, 
+      intakeDescription: { validator: stringValidator1000 }, 
+      thankYouRedirectURL: { validator: stringValidator1000 },
+      thankYouTitle: { validator: stringValidator1000 },
+      thankYouDescription: { validator: stringValidator1000 }, 
+      thankYouHeaderImageURL: { validator: stringValidator1000 },
+      thankYouMainImageURL: { validator: stringValidator1000 },
+      ga4measurementId: { validator: stringValidator100 },
+      hiddenFromPortal: { validator: booleanValidator },
+      hoursBeforeBookingAllowed: { validator: numberValidatorOptional },
+      limitedToCareTeam: { validator: booleanValidator },
+      limitedByState: { validator: booleanValidator },
+
+      // defer to template
+      // productIds: { validator: listOfStringsValidator },
+    }
+  },
+  appointment_locations: {
+    info: {},
+    constraints: {
+      unique: ['title'], 
+      relationship: [],
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: { read: {}, readMany: {} },
+    fields: {
+      ...BuiltInFields, 
+      title: {
+        validator: stringValidator100,
+        required: true,
+        examples: ["Appointment Booking Title"]
+      },
+      address: { validator: stringValidator1000 },
+      zipCode: { validator: stringValidator1000 },
+      phone: { validator: stringValidator }, // phoneValidator assumes cell phone and strips formatting, this should not
+      state: { validator: stateValidator },
+      timezone: { validator: timezoneValidator },
+    }
+  },
+  products: {
+    info: {},
+    constraints: {
+      unique: ['title'], 
+      relationship: [],
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {
+      prepare_stripe_checkout: {
+        op: "custom", access: 'create', method: "post", 
+        name: 'Prepare Stripe Checkout',
+        path: '/products/prepare-stripe-checkout',
+        description: "Prepares a Stripe checkout process",
+        parameters: { 
+          productIds: { validator: listOfMongoIdStringValidator, required: true },
+        },
+        returns: {
+          clientSecret: { validator: stringValidator, required: true },
+          customerId: { validator: stringValidator, required: true },
+          publishableKey: { validator: stringValidator, required: true },
+          stripeAccount: { validator: stringValidator, required: true },
+          businessName: { validator: stringValidator, required: true },
+        },
+      }, 
+    },
+    enduserActions: {
+      prepare_stripe_checkout: {}, read: {}, readMany: {}, 
+    },
+    fields: {
+      ...BuiltInFields, 
+      title: {
+        validator: stringValidator100,
+        required: true,
+        examples: ["Product Title"]
+      },
+      cost: {
+        validator: costValidator,
+        required: true,
+        examples: [{ amount: 500, currency: 'USD' }],
+      }, 
+      processor: {
+        validator: paymentProcessorValidator,
+        examples: ['Stripe'],
+      },
+      description: { validator: stringValidator5000EmptyOkay },
+      htmlDescription: { validator: stringValidator25000EmptyOkay },
+      cptCode: { validator: billingCodeValidatorOptional },
+      image: { validator: stringValidator100000EmptyOkay },
+      showInPortal: { validator: booleanValidator },
+      categories: { validator: listOfStringsValidatorEmptyOk },
+      maxCheckoutCount: { validator: numberValidatorOptional }
+    }
+  },
+  purchases: {
+    info: {},
+    constraints: { unique: [], relationship: [] },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: { read: {}, readMany: {} },
+    fields: {
+      ...BuiltInFields, 
+      productId: {
+        validator: mongoIdStringValidator,
+        examples: [PLACEHOLDER_ID],
+        dependencies: [{
+          dependsOn: ['products'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'nop',
+        }]
+      },
+      productIds: { validator: listOfStringsValidatorOptionalOrEmptyOk }, 
+      enduserId: { 
+        validator: mongoIdStringValidator,
+        examples: [PLACEHOLDER_ID],
+        required: true,
+        dependencies: [{
+          dependsOn: ['endusers'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+      title: {
+        validator: stringValidator100,
+        required: true,
+        examples: ["Product Title"]
+      },
+      cost: {
+        validator: costValidator,
+        required: true,
+        examples: [{ amount: 500, currency: 'USD' }],
+      }, 
+      processor: {
+        validator: paymentProcessorValidator,
+        required: true,
+        examples: ['Stripe'],
+      },
+      // for timestamp of old/imported data processed before Tellescope
+      processedAt: { validator: dateOptionalOrEmptyStringValidator },
+      description: { validator: stringValidator5000EmptyOkay },
+      refundedAmount: { validator: nonNegNumberValidator },
+      source: { validator: stringValidatorOptional },
+      externalId: { validator: stringValidator },
+      cptCode: { validator: billingCodeValidatorOptional },
+    }
+  },
+  purchase_credits: {
+    info: {},
+    constraints: { unique: [], relationship: [], },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      enduserId: { 
+        validator: mongoIdStringValidator,
+        examples: [PLACEHOLDER_ID],
+        required: true,
+        dependencies: [{
+          dependsOn: ['endusers'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+      title: {
+        validator: stringValidator100,
+        required: true,
+        examples: ["Purchase Credit"]
+      },
+      value: {
+        validator: purchaseCreditValueValidator,
+        required: true,
+        examples: [{
+          type: "Credit",
+          info: { amount: 100, currency: "USD" },
+        }]
+      },
+      usedAt: { validator: dateOptionalOrEmptyStringValidator, },
+      description: { validator: stringValidator5000EmptyOkay },
+    }
+  },
+  phone_calls: {
+    info: {},
+    constraints: {
+      unique: [], 
+      relationship: [],
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: { 
+      authenticate_calling: {
+        op: "custom", access: 'create', method: "post", 
+        name: 'Start Phone Call',
+        path: '/authenticate-twilio-phone-call',
+        description: "Generates an access token for creating / receiving calls via Twilio",
+        parameters: { 
+          os: { validator: exactMatchValidator<'ios' | 'android'>(['ios', 'android']) },
+          type: { validator: userCallRoutingBehaviorValidator },
+        },
+        returns: { 
+          accessToken: { validator: stringValidator, required: true },
+          identity: { validator: stringValidator, required: true },
+        } 
+      },
+    },
+    enduserActions: { },
+    fields: {
+      ...BuiltInFields, 
+      enduserId: { 
+        validator: mongoIdStringValidator,
+        examples: [PLACEHOLDER_ID],
+        required: true,
+        dependencies: [{
+          dependsOn: ['endusers'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+      inbound: { validator: booleanValidator, readonly: true, required: true },
+      externalId: { validator: stringValidator100, readonly: true, },
+      to: { validator: stringValidator100, readonly: true, },
+      from: { validator: stringValidator100, readonly: true, },
+      isVoicemail: { validator: booleanValidator, readonly: true },
+      recordingURI: { validator: stringValidator1000, readonly: true, },
+      recordingId: { validator: stringValidator100, readonly: true, },
+      transcriptionId: { validator: stringValidator100, readonly: true, },
+      recordingDurationInSeconds: { validator: nonNegNumberValidator, readonly: true, },
+
+      transcription: { validator: stringValidator25000 },
+      note: { validator: stringValidator5000EmptyOkay },
+      unread: { validator: booleanValidator },
+
+      userId: { validator: mongoIdStringValidator },
+      pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
+      readBy: { validator: idStringToDateValidator },
+      ticketIds: { validator: listOfStringsValidatorEmptyOk },
+    },
+  },
+  analytics_frames: {
+    info: {},
+    constraints: {
+      unique: [],
+      relationship: [
+        {
+          explanation: 'Title is required when parentFrame is undefined',
+          evaluate: ({ title, parentFrame }, _, session) => {
+            if (!(title || parentFrame)) return "Title is required"
+          } 
+        },
+      ],
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: { 
+      get_result_for_query: {
+        op: "custom", access: 'create', method: "get", 
+        name: 'Get analytics for query',
+        path: '/result-for-analytics-query',
+        description: "Returns a computed result for an analytics query",
+        parameters: { 
+          query: { validator: analyticsQueryValidator, required: true },
+          createdRange: { validator: dateRangeValidator },
+          updatedRange: { validator: dateRangeValidator },
+        },
+        returns: { 
+          count: { validator: nonNegNumberValidator },
+          percentage: { validator: nonNegNumberValidator },
+          values: { validator: analyticsQueryResultsValidator },
+        } 
+      },
+    },
+    enduserActions: { },
+    fields: {
+      ...BuiltInFields, 
+      title: {
+        validator: stringValidator100,
+        examples: ["Example Title"]
+      },
+      query: {
+        validator: analyticsQueryValidator,
+        required: true,
+        examples: [{
+          resource: "Endusers", 
+          info: {
+            method: 'Total', 
+            parameters: {},
+          },
+          filter: {},
+        }],
+      },
+      createdRange: { validator: dateRangeValidator },
+      updatedRange: { validator: dateRangeValidator },
+      parentFrame: {
+        validator: mongoIdStringValidator,
+        examples: [PLACEHOLDER_ID],
+        dependencies: [{
+          dependsOn: ['analytics_frames'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+      type: { validator: analyticsFrameTypeValidator }
+    },
+  },
+  availability_blocks: {
+    info: {},
+    constraints: {
+      unique: [],
+      relationship: [],
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: { 
+      update_order: {
+        op: "custom", access: 'update', method: "post", 
+        name: 'Update order of availability blocks',
+        path: '/update-order-of-availability-blocks',
+        description: "Returns a computed result for an analytics query",
+        parameters: { 
+          indexUpdates: { validator: indexUpdatesValidator, required: true }
+        },
+        returns: { } 
+      },
+      handle_autoreply: {
+        op: "custom", access: 'update', method: "post", 
+        adminOnly: true,
+        name: 'Handle Autoreply',
+        path: '/handle-out-of-office-autoreply',
+        description: "Handles autoreply during out-of-office periods, throttled to one message per hour",
+        parameters: { 
+          channel: { validator: communicationsChannelValidator, required: true },
+          // messageId: { validator: mongoIdStringValidator, required: true },
+          enduserId: { validator: mongoIdStringValidator, required: true },
+          threadId: { validator: mongoIdStringValidator },
+          userId: { validator: mongoIdStringValidator },
+        },
+        returns: { } 
+      },
+    },
+    enduserActions: { },
+    fields: {
+      ...BuiltInFields,  
+      entity: { validator: availabilityEntitiesValidator, required: true, examples: ['organization'] },
+      entityId: { 
+        validator: mongoIdStringValidator,   
+        required: true,
+        examples: [PLACEHOLDER_ID],
+        dependencies: [
+          // causes bad error on create
+          // {
+          //   dependsOn: ['organizations'],
+          //   dependencyField: '_id',
+          //   relationship: 'foreignKey',
+          //   onDependencyDelete: 'delete',
+          // },
+          // {
+          //   dependsOn: ['users'],
+          //   dependencyField: '_id',
+          //   relationship: 'foreignKey',
+          //   onDependencyDelete: 'delete',
+          // },
+        ]
+      },
+      index: { validator: nonNegNumberValidator, required: true, examples: [30] },
+      dayOfWeekStartingSundayIndexedByZero: { validator: nonNegNumberValidator, required: true, examples: [30] },
+      startTimeInMinutes: { validator: nonNegNumberValidator, required: true, examples: [30] },
+      endTimeInMinutes: { validator: nonNegNumberValidator, required: true, examples: [30] },
+      active: { validator: dateRangeOptionalValidator },
+    },
+  },
+  enduser_views: {
+    info: {},
+    constraints: { unique: ['title'], relationship: [], },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      title: {
+        validator: stringValidator100,
+        required: true,
+        examples: ["Custom View"]
+      },
+      fields: {
+        validator: listOfStringsValidator,
+      },
+      filter: { validator: objectAnyFieldsAnyValuesValidator },
+      defaultForRole: { validator: stringValidator100 },
+      hideProfileLink: { validator: booleanValidator },
+      customTypeId: { validator: mongoIdStringValidator },
+      style: { validator: objectAnyFieldsAnyValuesValidator as any },
+    }
+  },
+  enduser_profile_views: {
+    info: {},
+    constraints: { unique: ['title'], relationship: [], },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      title: {
+        validator: stringValidator100,
+        required: true,
+        examples: ["Custom Profile View"]
+      },
+      blocks: {
+        validator: enduserProfileViewBlocksValidator,
+        required: true,
+        examples: [
+          [{
+            type: 'Field Group',
+            info: {
+              fields: ['email'],
+              title: 'title'
+            }
+          }]
+        ]
+      },
+    }
+  },
+  background_errors: {
+    info: {},
+    constraints: { unique: [], relationship: [], },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      title: {
+        validator: stringValidator100,
+        required: true,
+        examples: ["Automation Error"]
+      },
+      message: {
+        validator: stringValidator25000,
+        required: true,
+        examples: ["Details relating to an automation error"]
+      },
+      acknowledgedAt: { validator: dateOptionalOrEmptyStringValidator },
+      journeyId: { validator: mongoIdStringValidator },
+      enduserId: { validator: mongoIdStringValidator },
+    }
+  },
+  automation_triggers: {
+    info: {},
+    // making title unique causes issues in journey copy when creating copy of waitForTrigger action
+    constraints: { unique: [], relationship: [], },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {
+      trigger_events: {
+        op: "custom", access: 'create', method: "post", 
+        adminOnly: true,
+        name: 'Trigger Event',
+        path: '/automation-triggers/trigger-events',
+        description: "Triggers a list of events for endusers",
+        parameters: { 
+          triggers: {
+            validator: listValidator(objectValidator<{ enduserId: string, automationTriggerId: string }>({
+              automationTriggerId: mongoIdStringRequired,
+              enduserId: mongoIdStringRequired,
+            })),
+            required: true,
+          }
+        },
+        returns: { } 
+      },
+    },
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      title: {
+        validator: stringValidator100,
+        required: true,
+        examples: ["Automation Trigger"]
+      },
+      event: {
+        validator: automationTriggerEventValidator,
+        required: true,
+        examples: [
+          {
+            type: "Form Submitted", 
+            info: {
+              formId: PLACEHOLDER_ID
+            }
+          }
+        ]
+      },
+      action: {
+        validator: automationTriggerActionValidator,
+        required: true,
+        examples: [
+          {
+            type: "Add To Journey", 
+            info: {
+              journeyId: PLACEHOLDER_ID
+            }
+          }
+        ]
+      },
+      status: { 
+        validator: automatioNTriggerStatusValidator,
+        required: true,
+        examples: ["Active"]
+      },
+      enduserCondition: { 
+        validator: orValidator({
+          optional: optionalAnyObjectValidator,
+          included: objectAnyFieldsAnyValuesValidator,
+        }, { isOptional: true })
+      },
+      journeyId: { 
+        validator: mongoIdStringValidator,
+        examples: [PLACEHOLDER_ID],
+        dependencies: [{
+          dependsOn: ['journeys'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+      oncePerEnduser: { validator: booleanValidator },
+      // automationStepId: { 
+      //   validator: mongoIdStringValidator,
+      //   examples: [PLACEHOLDER_ID],
+      //   dependencies: [{
+      //     dependsOn: ['automation_steps'],
+      //     dependencyField: '_id',
+      //     relationship: 'foreignKey',
+      //     onDependencyDelete: 'delete',
+      //   }]
+      // },
+    }
+  },
+  superbill_providers: {
+    info: {},
+    constraints: { unique: [], relationship: [], },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      address: {
+        validator: addressValidator,
+        required: true,
+        examples: [{
+          city: 'city',
+          state: 'CA',
+          lineOne: 'address line one',
+          zipCode: '12345',
+        }]
+      },
+      email: { 
+        validator: emailValidator,
+        required: true,
+        examples: ['example@tellescope.com']
+      },
+      phone: {
+        validator: stringValidator,
+        required: true,
+        examples: ['415-415-4155'],
+      },
+      officeName: {
+        validator: stringValidator,
+        required: true,
+        examples: ['office name'],
+      },
+      taxId: {
+        validator: stringValidator,
+        required: true,
+        examples: ['XX-XXXXXXX'],
+      },
+      providerName: {
+        validator: stringValidator,
+        required: true,
+        examples: ['provider name'],
+      },
+      placeOfServiceCode: {
+        validator: stringValidator,
+        required: true,
+        examples: ['17'],
+      },
+      providerLicense: {
+        validator: stringValidator,
+        required: true,
+        examples: ['17'],
+      },
+      providerNPI: {
+        validator: stringValidator,
+        required: true,
+        examples: ['17'],
+      },
+    }
+  },
+  superbills: {
+    info: {},
+    constraints: { unique: [], relationship: [], },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      enduserId: { 
+        validator: mongoIdStringValidator,
+        examples: [PLACEHOLDER_ID],
+        required: true,
+        dependencies: [{
+          dependsOn: ['endusers'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+      appointmentDate: { 
+        validator: dateValidator,
+        required: true,
+        examples: [new Date()]
+      },
+      patient: {
+        validator: superbillPatientInfoValidator,
+        required: true,
+        examples: [] // too lazy
+      },
+      provider: {
+        validator: superbillProviderInfoValidator,
+        required: true,
+        examples: [] // too lazy
+      },
+      lineItems: {
+        validator: superbillLineItemsValidator,
+        required: true,
+        examples: [] // too lazy
+      }
+    }
+  },
+  referral_providers: {
+    info: {},
+    constraints: { unique: [], relationship: [], },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {
+      read: {}, readMany: {},
+    },
+    fields: {
+      ...BuiltInFields, 
+      fname: { 
+        validator: stringValidator,
+        // required: true,
+        examples: ['Name'],
+      },
+      lname: { 
+        validator: stringValidator,
+        // required: true,
+        examples: ['Name'],
+      },
+      organizationName: { 
+        validator: stringValidator,
+        required: true,
+        examples: ['Name'],
+      },
+      clinicName: { 
+        validator: stringValidator,
+        examples: ['Name'],
+      },
+      types: {
+        validator: listOfStringsValidatorEmptyOk,
+        examples: [['Type']]
+      },
+      acceptedInsurance: { validator: insurancesValidator },
+      address: { validator: addressOptionalValidator },
+      email: { validator: emailValidator },
+      phone: { validator: phoneValidator },
+      phoneExtension: { validator: stringValidator100 },
+      notes: { validator: stringValidator25000 },
+      website: { validator: stringValidator1000 },
+      bookingLink: { validator: stringValidator1000 },
+      uninsuredDescription: { validator: stringValidator1000 },
+      description: { validator: stringValidator1000 },
+      services: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      locations: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      languages: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      eligibilityCriteria: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      activeRelationshipStatus: { validator: stringValidator100 },
+      acceptingReferralsStatus: { validator: stringValidator100 },
+      inPersonServiceStatusStatus: { validator: stringValidator100 },
+      virtualServiceStatusStatus: { validator: stringValidator100 },
+    }
+  },
+  enduser_medications: {
+    info: {},
+    constraints: { unique: [], relationship: [], },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {
+      read: {}, readMany: {},
+    },
+    fields: {
+      ...BuiltInFields, 
+      enduserId: {
+        validator: mongoIdStringValidator,
+        required: true,
+        examples: [PLACEHOLDER_ID],
+        updatesDisabled: true,
+        dependencies: [{
+          dependsOn: ['endusers'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+      title: { 
+        required: true,
+        validator: stringValidator,
+        examples: ['Medication Name'],
+      },
+      calendarEventId: { validator: mongoIdStringValidator },
+      prescribedBy: { validator: mongoIdStringValidator },
+      prescribedAt: { validator: dateOptionalOrEmptyStringValidator },
+      startedTakingAt: { validator: dateOptionalOrEmptyStringValidator },
+      stoppedTakingAt: { validator: dateOptionalOrEmptyStringValidator },
+      rxNormCode: { validator: stringValidator },
+      dispensing: {
+        validator: objectValidator<EnduserMedication['dispensing']>({ 
+          quantity: numberValidator,
+          unit: stringValidator,
+        }), 
+      },
+      dosage: {
+        validator: objectValidator<EnduserMedication['dosage']>({ 
+          value: stringValidator, 
+          unit: stringValidator,
+          frequency: stringValidator,
+        }), 
+      },
+      source: { validator: stringValidator1000Optional },
+      externalId: { validator: stringValidator250 },  
+      notes: { validator: stringValidator },  
+    }
+  },
+  phone_trees: {
+    info: {},
+    constraints: { unique: [], relationship: [], },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {
+      read: {}, readMany: {},
+    },
+    fields: {
+      ...BuiltInFields, 
+      number: { 
+        required: true,
+        validator: stringValidator,
+        examples: ['+15555555555'],
+      },
+      isActive: { 
+        required: true,
+        validator: booleanValidator,
+        examples: [true],
+      },
+      nodes: {
+        required: true,
+        validator: phoneTreeNodesValidator,
+        examples: [
+          [
+          //   {
+          //   id: "10293u0f913ikf0foeq",
+          //   action: {
+          //     type: 'Dial Users',
+          //     info: {
+          //       userIds: [PLACEHOLDER_ID],
+          //     },
+          //   },
+          //   events: [{
+          //     type: 'Start',
+          //     parentId: "10293u0f913ikf0foeq",
+          //     info: {},
+          //   }]
+          // }
+        ],
+        ]
+      },
+      testEnduserIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      enduserCondition: { validator: phoneTreeEnduserConditionValidator },
+    }
+  },
+  enduser_custom_types: {
+    info: {},
+    constraints: { unique: [], relationship: [], },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {
+      read: {}, readMany: {},
+    },
+    fields: {
+      ...BuiltInFields, 
+      title: {
+        validator: stringValidator,
+        required: true,
+        examples: ["Title"]
+      },
+      builtinFields: {
+        validator: buildInFieldsValidator,
+      },
+      customFields: {
+        validator: customEnduserFieldsValidatorOptionalOrEmpty,
       }
     }
   },

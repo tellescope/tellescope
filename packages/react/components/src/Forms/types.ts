@@ -13,6 +13,8 @@ export interface FormInputProps<K extends keyof AnswerForType> {
   onChange: ChangeHandler<K>,
   autoFocus?: boolean,
   size?: 'small',
+  label?: string,
+  fullWidth?: boolean,
 }
 
 export type FormInputs = { 

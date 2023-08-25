@@ -9,6 +9,7 @@ import {
 } from "@tellescope/react-components"
 import { remove_script_tags, user_display_name } from "@tellescope/utilities";
 import { Checkbox, TextField, FormControlLabel, Grid } from "@mui/material";
+import { ChatAttachment } from "@tellescope/types-models";
 
 export interface HTMLMessageProps {
   html: string,
@@ -34,6 +35,8 @@ interface SendMessage_T {
   sendOnEnterPress?: boolean,
   multiline?: boolean,
   maxRows?: number,
+  size?: 'small',
+  getAttachments?: () => Promise<ChatAttachment[]>
 }
 export const SendMessage = ({ 
   roomId, 
@@ -44,6 +47,8 @@ export const SendMessage = ({
   sendOnEnterPress,
   multiline,
   maxRows,
+  size,
+  getAttachments
 }: SendMessage_T) => {
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
@@ -58,11 +63,14 @@ export const SendMessage = ({
     if (!sendOnEnterPress) return
     if (typeof window === 'undefined') return
 
-    const handleSend = (e: any) => {
+    const handleSend = async (e: any) => {
       if (e.key !== 'Enter') return
       setDisabled(true)
+      if (!message.trim()) return
 
-      createMessage({ message, roomId })
+      const attachments = await getAttachments?.()
+
+      createMessage({ message, roomId, attachments })
       .then(m => {
         setMessage('')
         onNewMessage?.(m)
@@ -78,7 +86,8 @@ export const SendMessage = ({
   return (
     <Flex row flex={1} alignContent="center" style={style}>
       <Flex column flex={1}>
-        <TextField variant="outlined" value={message}  disabled={sending}
+        <TextField variant="outlined" value={message} disabled={sending}
+          size={size}
           onChange={e => setMessage(e.target.value)}
           aria-label="Enter a message" 
           multiline={multiline} maxRows={maxRows}
@@ -90,7 +99,10 @@ export const SendMessage = ({
       <Flex column alignSelf="center">
         <AsyncIconButton label="send" Icon={Icon} 
           disabled={message === '' || disabled}  
-          action={() => createMessage({ message, roomId })}
+          action={async () => {
+            const attachments = await getAttachments?.()
+            return createMessage({ message, roomId, attachments })
+          }}
           onSuccess={m => {
             setMessage('')
             onNewMessage?.(m)

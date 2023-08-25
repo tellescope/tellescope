@@ -21,9 +21,9 @@ import { UserSession } from "@tellescope/types-models"
 
 export const get_sha256 = (s='') => createHash('sha256').update(s).digest('hex')
 
-const VERBOSE = true
+const VERBOSE = false// true
 
-const AWAIT_SOCKET_DURATION = 500 // 25ms was generally passing for Redis, 1000ms should be upper limit of performance
+const AWAIT_SOCKET_DURATION = 1000 // 25ms was generally passing for Redis, 1000ms should be upper limit of performance
 
 const host = process.env.TEST_URL || 'http://localhost:8080'
 const [email, password] = [process.env.TEST_EMAIL, process.env.TEST_PASSWORD]
@@ -91,14 +91,25 @@ const sub_organization_tests = async () => {
   sdkSubSub.handle_events({ 'created-endusers': es => sub_sub_events.push(es) })
 
   const e = await sdkSub.api.endusers.createOne({ email: "sockets_other@tellescope.com" })
-  await wait(undefined, AWAIT_SOCKET_DURATION)
+  await wait(undefined, AWAIT_SOCKET_DURATION * 3)
 
   assert(objects_equivalent(e, root_events?.[0]?.[0]), 'access error', 'root gets sub')
   assert(objects_equivalent(e, sub_events?.[0]?.[0]), 'access error', 'sub gets sub')
   assert(other_sub_events.length === 0, 'got access incorrectly', 'other sub no access')
   assert(sub_sub_events.length === 0, 'got access incorrectly', 'sub sub no access')
 
-  await user1.api.endusers.deleteOne(e.id)
+  const e2 = await user1.api.endusers.createOne({ email: "sockets_other_shared@tellescope.com", sharedWithOrganizations: [sdkSub.userInfo.organizationIds!] })
+  await wait(undefined, AWAIT_SOCKET_DURATION * 3)
+
+  assert(objects_equivalent(e2, root_events?.[1]?.[0]), 'access error', 'root confirmation on shared')
+  assert(objects_equivalent(e2, sub_events?.[1]?.[0]), 'access error', 'sub gets sub shared')
+  assert(other_sub_events.length === 0, 'got access incorrectly', 'other sub no access')
+  assert(sub_sub_events.length === 0, 'got access incorrectly', 'sub sub no access')
+
+  await Promise.all([
+    user1.api.endusers.deleteOne(e.id),
+    user1.api.endusers.deleteOne(e2.id),
+  ])
 }
 
 const access_tests = async () => {
@@ -268,7 +279,7 @@ const access_tests = async () => {
   userMessage = await user1.api.chats.createOne({ message: 'user assigned', roomId: roomAssigned.id })
   enduserMessage = await enduserSDK.api.chats.createOne({ message: 'enduser assigned', roomId: roomAssigned.id })
   nonAdminMessage = await sdkNonAdmin.api.chats.createOne({ message: 'non-admin assigned', roomId: roomAssigned.id })
-  await wait (undefined, AWAIT_SOCKET_DURATION)
+  await wait (undefined, AWAIT_SOCKET_DURATION * 2)
 
   assert(
     !!enduserEvents.find(e => e.id === userMessage.id) && !!enduserEvents.find(e => e.id === nonAdminMessage.id),
@@ -286,7 +297,6 @@ const access_tests = async () => {
     'non-admin got message from user and enduser',
   )
 
-  console.log('cleaning up')
   await Promise.all([
     await user1.api.endusers.deleteOne(unassignedEnduser.id),
     await user1.api.endusers.deleteOne(assignedEnduser.id),
@@ -463,6 +473,15 @@ const calendar_events = async () => {
   await user1.api.endusers.deleteOne(enduser.id)
 }
 
+const cleanup_cache = () => {
+  user1.loadedSocketEvents = {}
+  user2.loadedSocketEvents = {}
+  sdkSub.loadedSocketEvents = {}
+  sdkOtherSub.loadedSocketEvents = {}
+  sdkSubSub.loadedSocketEvents = {}
+  enduserSDK.loadedSocketEvents = {}
+}
+
 (async () => {
   log_header("Sockets")
 
@@ -479,15 +498,15 @@ const calendar_events = async () => {
     ])
     await wait(undefined, AWAIT_SOCKET_DURATION) // wait for socket connections
 
-    await basic_tests()
-    await sub_organization_tests()
-    await access_tests()
-    await calendar_events()
-    await enduser_tests()
-    await notification_tests()
+    cleanup_cache(); await basic_tests()
+    cleanup_cache(); await sub_organization_tests()
+    cleanup_cache(); await access_tests()
+    cleanup_cache(); await calendar_events()
+    cleanup_cache(); await enduser_tests()
+    cleanup_cache(); await notification_tests()
 
-    await deauthentication_tests() // should come last!
-    await deauthentication_tests(true) // should come last!
+    cleanup_cache(); await deauthentication_tests() // should come last!
+    cleanup_cache(); await deauthentication_tests(true) // should come last!
   } catch(err) {
     console.error(err)
   }

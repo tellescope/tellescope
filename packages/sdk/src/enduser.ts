@@ -1,5 +1,3 @@
-import { io } from 'socket.io-client'
-
 import { Session, SessionOptions } from "./session"
 import { APIQuery } from "./sdk"
 import { url_safe_path } from "@tellescope/utilities"
@@ -16,12 +14,13 @@ import {
   Meeting,
   UserDisplayInfo,
 } from "@tellescope/types-client"
-import { schema, CustomActions, extractFields, PublicActions } from '@tellescope/schema'
+import { schema, CustomActions, extractFields, PublicActions, CustomAction } from '@tellescope/schema'
 
 export interface EnduserSessionOptions extends SessionOptions { enduser?: Enduser, businessId: string }
 
 type EnduserAccessibleModels = (
     'endusers' 
+  | 'appointment_booking_pages'
   | 'users'
   | 'form_responses' 
   | "chat_rooms" 
@@ -46,6 +45,12 @@ type EnduserAccessibleModels = (
   | "care_plans"
   | "enduser_tasks"
   | 'integrations' // may want OAuth2 support in future
+  | 'products'
+  | 'purchases'
+  | 'purchase_credits'
+  | 'appointment_locations'
+  | 'referral_providers'
+  | 'enduser_medications'
 )
 
 export const defaultQueries = <N extends keyof ClientModelForName>(
@@ -61,6 +66,7 @@ export const defaultQueries = <N extends keyof ClientModelForName>(
     getOne: (argument) => typeof argument === 'string' ? s._GET(`/v1/${singularName}/${argument}`)
                                                        : s._GET(`/v1/${singularName}`, { filter: argument}),
     getSome: o => s._GET(`/v1/${safeName}`, o),
+    getByIds: (o) => s._POST(`/v1/${safeName}/bulk-read`, o),
     updateOne: (id, updates, options) => s._PATCH(`/v1/${singularName}/${id}`, { updates, options }),
     deleteOne: id => s._DELETE(`/v1/${singularName}/${id}`),
   }
@@ -76,16 +82,27 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
     set_password: (args: extractFields<CustomActions['endusers']['set_password']['parameters']>) => (
       Promise<extractFields<CustomActions['endusers']['set_password']['returns']>>
     ),
+    unsubscribe: (args: extractFields<PublicActions['endusers']['unsubscribe']['parameters']>) => (
+      Promise<extractFields<PublicActions['endusers']['unsubscribe']['returns']>>
+    ),
   },
   users: {
     display_info: () => Promise<UserDisplayInfo[]>
   },
   files: {
-    prepare_file_upload: (args: FileDetails) => Promise<{ presignedUpload: S3PresignedPost, file: File }>,
+    prepare_file_upload: (args: FileDetails & { publicRead?: boolean, publicName?: string, }) => Promise<{ presignedUpload: S3PresignedPost, file: File }>,
     file_download_URL: (args: extractFields<CustomActions['files']['file_download_URL']['parameters']>) => 
                           Promise<extractFields<CustomActions['files']['file_download_URL']['returns']>>,
   },
+  form_fields: {
+    load_choices_from_database: (args: extractFields<CustomActions['form_fields']['load_choices_from_database']['parameters']>) => (
+      Promise<extractFields<CustomActions['form_fields']['load_choices_from_database']['returns']>>
+    ),
+  },
   form_responses: {
+    save_field_response: (args: extractFields<CustomActions['form_responses']['save_field_response']['parameters']>) => (
+      Promise<extractFields<CustomActions['form_responses']['save_field_response']['returns']>>
+    ),
     submit_form_response: (args: extractFields<CustomActions['form_responses']['submit_form_response']['parameters']>) => (
       Promise<extractFields<CustomActions['form_responses']['submit_form_response']['returns']>>
     ),
@@ -97,6 +114,9 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
     ),
     info_for_access_code: (args: extractFields<CustomActions['form_responses']['info_for_access_code']['parameters']>) => (
       Promise<extractFields<CustomActions['form_responses']['info_for_access_code']['returns']>>
+    ),
+    stripe_details: (args: extractFields<CustomActions['form_responses']['stripe_details']['parameters']>) => (
+      Promise<extractFields<CustomActions['form_responses']['stripe_details']['returns']>>
     ),
   },
   meetings: {
@@ -127,6 +147,11 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
       Promise<extractFields<PublicActions['organizations']['get_theme']['returns']>>
     ),
   },
+  sms_messages: {
+    leave_message: (args: extractFields<PublicActions['sms_messages']['leave_message']['parameters']>) => (
+      Promise<extractFields<PublicActions['sms_messages']['leave_message']['returns']>>
+    ),
+  },
   calendar_events: {
     get_appointment_availability: (args: extractFields<CustomActions['calendar_events']['get_appointment_availability']['parameters']>) => (
       Promise<extractFields<CustomActions['calendar_events']['get_appointment_availability']['returns']>>
@@ -134,10 +159,42 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
     book_appointment: (args: extractFields<CustomActions['calendar_events']['book_appointment']['parameters']>) => (
       Promise<extractFields<CustomActions['calendar_events']['book_appointment']['returns']>>
     ),
-  }
+    stripe_details: (args: extractFields<CustomActions['calendar_events']['stripe_details']['parameters']>) => (
+      Promise<extractFields<CustomActions['calendar_events']['stripe_details']['returns']>>
+    ),
+    session_for_public_appointment_booking: (args: extractFields<PublicActions['calendar_events']['session_for_public_appointment_booking']['parameters']>) => (
+      Promise<extractFields<PublicActions['calendar_events']['session_for_public_appointment_booking']['returns']>>
+    ),
+    details_for_appointment_booking_page: (args: extractFields<PublicActions['calendar_events']['details_for_appointment_booking_page']['parameters']>) => (
+      Promise<extractFields<PublicActions['calendar_events']['details_for_appointment_booking_page']['returns']>>
+    ),
+  },
+  managed_content_records: {
+    search: (args: extractFields<CustomActions['managed_content_records']['search']['parameters']>) => (
+      Promise<extractFields<CustomActions['managed_content_records']['search']['returns']>>
+    ),
+  },
+  forms: {
+    public_form_details: (args: extractFields<PublicActions['forms']['public_form_details']['parameters']>) => (
+      Promise<extractFields<PublicActions['forms']['public_form_details']['returns']>>
+    ),
+  },
+  appointment_booking_pages: {
+    validate_access_token: (args: extractFields<PublicActions['appointment_booking_pages']['validate_access_token']['parameters']>) => (
+      Promise<extractFields<PublicActions['appointment_booking_pages']['validate_access_token']['returns']>>
+    ),
+  },
+  products: {
+    prepare_stripe_checkout: (args: extractFields<CustomActions['products']['prepare_stripe_checkout']['parameters']>) => (
+      Promise<extractFields<CustomActions['products']['prepare_stripe_checkout']['returns']>>
+    ),
+  },
 }
 
+export type PublicAppointmentBookingInfo = extractFields<PublicActions['calendar_events']['details_for_appointment_booking_page']['returns']>
+
 const loadDefaultQueries = (s: EnduserSession): { [K in EnduserAccessibleModels] : APIQuery<K> } => ({
+  appointment_booking_pages: defaultQueries(s, 'appointment_booking_pages'),
   chat_rooms: defaultQueries(s, 'chat_rooms'),
   chats: defaultQueries(s, 'chats'),
   endusers: defaultQueries(s, 'endusers'),
@@ -163,6 +220,12 @@ const loadDefaultQueries = (s: EnduserSession): { [K in EnduserAccessibleModels]
   portal_customizations: defaultQueries(s, 'portal_customizations'),
   care_plans: defaultQueries(s, 'care_plans'),
   enduser_tasks: defaultQueries(s, 'enduser_tasks'),
+  products: defaultQueries(s, 'products'),
+  purchase_credits: defaultQueries(s, 'purchase_credits'),
+  purchases: defaultQueries(s, 'purchases'),
+  appointment_locations: defaultQueries(s, 'appointment_locations'),
+  referral_providers: defaultQueries(s, 'referral_providers'),
+  enduser_medications: defaultQueries(s, 'enduser_medications'),
 })
 
 
@@ -182,11 +245,15 @@ export class EnduserSession extends Session {
 
     this.api.calendar_events.get_appointment_availability = a => this._GET(`/v1${schema.calendar_events.customActions.get_appointment_availability.path}`, a)
     this.api.calendar_events.book_appointment = a => this._POST(`/v1${schema.calendar_events.customActions.book_appointment.path}`, a)
+    this.api.calendar_events.session_for_public_appointment_booking = a => this._POST(`/v1${schema.calendar_events.publicActions.session_for_public_appointment_booking.path}`, a)
+    this.api.calendar_events.details_for_appointment_booking_page = a => this._GET(`/v1${schema.calendar_events.publicActions.details_for_appointment_booking_page.path}`, a)
+    this.api.calendar_events.stripe_details = a => this._GET(`/v1${schema.calendar_events.customActions.stripe_details.path}`, a)
 
     this.api.chat_rooms.display_info = a => this._GET(`/v1${schema.chat_rooms.customActions.display_info.path}`, a)
     this.api.chat_rooms.mark_read = a => this._POST(`/v1${schema.chat_rooms.customActions.mark_read.path}`, a)
 
     this.api.endusers.logout = () => this._POST('/v1/logout-enduser')
+    this.api.endusers.unsubscribe = a => this._POST(`/v1${schema.endusers.publicActions.unsubscribe.path}`, a)
     this.api.endusers.current_session_info = () => this._GET(`/v1${schema.endusers.customActions.current_session_info.path}`)
     this.api.endusers.add_to_journey = a => this._POST(`/v1${schema.endusers.customActions.add_to_journey.path}`, a)
     this.api.endusers.set_password = a => this._POST(`/v1${schema.endusers.customActions.set_password.path}`, a)
@@ -201,10 +268,14 @@ export class EnduserSession extends Session {
       get_theme: a => this._GET(`/v1/${schema.organizations.publicActions.get_theme.path}`, a)
     }
 
+    this.api.form_fields.load_choices_from_database = args => this._GET(`/v1${schema.form_fields.customActions.load_choices_from_database.path}`, args)
+
     this.api.form_responses.prepare_form_response   = args => this._POST(`/v1${schema.form_responses.customActions.prepare_form_response.path}`, args)
     this.api.form_responses.session_for_public_form = args => this._POST(`/v1${schema.form_responses.publicActions.session_for_public_form.path}`, args)
     this.api.form_responses.submit_form_response    = args => this._PATCH(`/v1${schema.form_responses.customActions.submit_form_response.path}`, args)
+    this.api.form_responses.save_field_response     = args => this._PATCH(`/v1${schema.form_responses.customActions.save_field_response.path}`, args)
     this.api.form_responses.info_for_access_code    = args => this._GET(`/v1${schema.form_responses.customActions.info_for_access_code.path}`, args)
+    this.api.form_responses.stripe_details          = args => this._GET(`/v1${schema.form_responses.customActions.stripe_details.path}`, args)
 
     // files have defaultQueries
     this.api.files.prepare_file_upload = a => this._POST(`/v1/prepare-file-upload`, a)
@@ -213,6 +284,19 @@ export class EnduserSession extends Session {
     this.api.post_likes.createOne = args => this._POST(`/v1${schema.post_likes.customActions.create.path}`, args)
     this.api.post_likes.unlike_post = args => this._POST(`/v1${schema.post_likes.customActions.unlike_post.path}`, args)
 
+    this.api.managed_content_records.search = args => this._POST(`/v1${schema.managed_content_records.customActions.search.path}`, args)
+
+    this.api.forms = {
+      public_form_details: args => this._GET(`/v1${schema.forms.publicActions.public_form_details.path}`, args)
+    }
+
+    this.api.sms_messages = {
+      leave_message: args => this._POST(`/v1${schema.sms_messages.publicActions.leave_message.path}`, args)
+    }
+
+    this.api.appointment_booking_pages.validate_access_token = args => this._GET(`/v1${schema.appointment_booking_pages.publicActions.validate_access_token.path}`, args)
+
+    this.api.products.prepare_stripe_checkout = args => this._POST(`/v1${schema.products.customActions.prepare_stripe_checkout.path}`, args)
     // if (this.authToken) this.refresh_session()
   }
 
@@ -236,19 +320,21 @@ export class EnduserSession extends Session {
     return await this.DELETE<A,R>(endpoint, args, authenticated)
   }
 
-  prepare_and_upload_file = async (details: FileDetails, file: Blob | Buffer | ReactNativeFile) => {
-    const { name, size, type, enduserId } = details
-    const { presignedUpload, file: createdFile } = await this.api.files.prepare_file_upload({ name, size, type, enduserId })
+  prepare_and_upload_file = async (details: FileDetails & { publicRead?: boolean, publicName?: string, source?: string }, file: Blob | Buffer | ReactNativeFile) => {
+    const { name, size, type, enduserId, publicName, publicRead, source } = details
+    const { presignedUpload, file: createdFile } = await this.api.files.prepare_file_upload({ name, size, type, enduserId, publicRead, publicName, source })
     await this.UPLOAD(presignedUpload, file)
     return createdFile
   }
 
   handle_new_session = async ({ authToken, enduser }: { authToken: string, enduser: Enduser }) => {
-    this.clearState()
+    this.clearState(enduser.id === this.userInfo.id) // true to keep existing socket for same user
+
     this.sessionStart = Date.now()
     this.setAuthToken(authToken)
     this.setUserInfo(enduser)
-    this.authenticate_socket()
+
+    if (!this.socket) this.authenticate_socket()
 
     return { authToken, enduser }
   }

@@ -11,10 +11,12 @@ import {
   Flex,
   Paper,
   Styled,
+  Button,
+  Typography,
 } from "@tellescope/react-components"
 import { CurrentCallContext } from "./video_shared"
 import { useStartVideoCall } from "./video"
-import { useJoinVideoCall } from "."
+import { ScreenShareIcon, useJoinVideoCall } from "."
 
 const DEFAULT_BUTTON_SIZE = 30
 interface ButtonProps {
@@ -24,7 +26,7 @@ export const VideoToggle = ({ size=DEFAULT_BUTTON_SIZE } : ButtonProps) => {
   const { toggleVideo, videoIsEnabled } = React.useContext(CurrentCallContext)
 
   return (
-    <LabeledIconButton size={size} Icon={videoIsEnabled ? VideoIcon : VideoOffIcon} onClick={toggleVideo} 
+    <LabeledIconButton color="white" size={size} Icon={videoIsEnabled ? VideoIcon : VideoOffIcon} onClick={toggleVideo} 
       label={videoIsEnabled ? "Turn Camera Off" : "Turn Camera On"}
     />
   )
@@ -34,7 +36,7 @@ export const MicrophoneToggle = ({ size=DEFAULT_BUTTON_SIZE }: ButtonProps) => {
   const { microphoneIsEnabled, toggleMicrophone } = React.useContext(CurrentCallContext)
 
   return (
-    <LabeledIconButton size={size} Icon={microphoneIsEnabled ? MicrophoneIcon : MicrophoneOffIcon} onClick={toggleMicrophone} 
+    <LabeledIconButton color="white" size={size} Icon={microphoneIsEnabled ? MicrophoneIcon : MicrophoneOffIcon} onClick={toggleMicrophone} 
       label={microphoneIsEnabled ? "Turn Microphone Off" : "Turn Microphone On"}
     />
   )
@@ -45,12 +47,15 @@ export const EndMeeting = ({ size=DEFAULT_BUTTON_SIZE, onLeave }: ButtonProps & 
   const { endMeeting } = useStartVideoCall()
 
   return (
-    <LabeledIconButton size={size} Icon={CallEndIcon} label="End Meeting"
-      onClick={() => {
-        endMeeting()
+    <Button variant="outlined"
+      style={{ width: 200, color: 'white', borderColor: 'white' }}
+      onClick={() => { 
         onLeave?.()
-      }}
-    />
+        endMeeting()
+      }}    
+    >
+      End Meeting for All 
+    </Button>
   )
 }
 
@@ -60,27 +65,50 @@ interface LeaveMeetingProps {
 export const LeaveMeeting = ({ onLeave, size=DEFAULT_BUTTON_SIZE } : LeaveMeetingProps & ButtonProps) => {
   const { leaveMeeting } = useJoinVideoCall()
 
+
   return (
-    <LabeledIconButton size={size} Icon={CallEndIcon} label="Leave Meeting" 
-      onClick={() => { 
-        onLeave?.()
-        leaveMeeting()
-      }}
-    />
+    <LabeledIconButton size={size} Icon={CallEndIcon} label="Leave Meeting"
+      color="white"
+        onClick={() => {
+          leaveMeeting()
+          onLeave?.()
+        }}
+      />
   )
 }
 
 interface ControlbarProps {
   spacing?: number,
   size?: number,
+  showEndMeeting?: boolean,
+  showScreenShare?: boolean,
 }
-export const ControlBar = ({ onLeave, style, spacing=15, size } : ControlbarProps & LeaveMeetingProps & Styled) => {
+export const ControlBar = ({ onLeave, style, spacing=15, size, showEndMeeting, showScreenShare, } : ControlbarProps & LeaveMeetingProps & Styled) => {
   const { isHost } = React.useContext(CurrentCallContext)
   const itemStyle = { marginLeft: spacing, marginRight: spacing }
 
   return (
     <Flex flex={1} alignItems="center" justifyContent="center" style={style}>
-      <Paper elevation={5} style={{ display: 'flex', flexDirection: 'row', padding: spacing }}>
+      <Paper elevation={5} 
+        style={{ 
+          display: 'flex', flexDirection: 'row', padding: spacing,
+          backgroundColor: '#00000088',
+          borderColor: 'white',
+        }}
+      >
+        {showScreenShare &&
+          <Flex column justifyContent="center" style={itemStyle}>
+            <Flex>
+              <ScreenShareIcon />
+            </Flex>
+
+            <Flex>
+            <Typography style={{ color: 'white', textAlign: 'center', fontSize: 11 }}>
+              Screen share
+            </Typography>
+            </Flex>
+          </Flex>
+        }
         <Flex style={itemStyle}>
           <VideoToggle size={size}/>
         </Flex>
@@ -88,8 +116,13 @@ export const ControlBar = ({ onLeave, style, spacing=15, size } : ControlbarProp
           <MicrophoneToggle size={size}/>
         </Flex>
         <Flex style={itemStyle}>
-          {isHost ? <EndMeeting size={size} onLeave={onLeave}/> : <LeaveMeeting size={size} onLeave={onLeave}/>}
+          <LeaveMeeting size={size} onLeave={onLeave}/>
         </Flex>
+        {(isHost || showEndMeeting) && 
+          <Flex style={{ marginLeft: 30, marginRight: 20 }}>
+            <EndMeeting size={size} onLeave={onLeave} />
+          </Flex>
+        }
       </Paper>
     </Flex>
   )

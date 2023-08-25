@@ -34,6 +34,7 @@ export type InputSchema<T extends HasValidators, V=any> = {
     type?: string,
     values?: V[],
     style?: CSSProperties,
+    required?: boolean,
   }
 }
 
@@ -229,7 +230,7 @@ interface LoadingButtonProps extends SubmitButtonOptions {
 export const LoadingButton = ({ disabled, uniquenessError, throwOnError, variant="contained", onError, submitting, onClick, submitText="Submit", submittingText="Submitting", type, style={ marginTop: 5, width: '100%' } }: LoadingButtonProps & Styled & { type?: 'submit'}) => {
   const { errorDisplay, handleAPIError, loading } = useHandleError({ onError, uniquenessError })
   const formLoading = React.useContext(WithHTMLFormContext)?.loading
-  
+
   return (
     <>
     <Button color="primary" variant={variant} type={type} onClick={() => handleAPIError(async () => {
@@ -329,7 +330,7 @@ export const FormBuilder = <T,>({ fields, onSubmit, onSuccess, onError, style, d
               <FormikSubmitButton formik={formik} disabledIfUnchanged={disabledIfUnchanged} onClick={formik.handleSubmit} {...options}/>
             </Flex>
             <Flex>
-            {error ? <Typography color="error">{error}</Typography> : null}
+              {error ? <Typography color="error">{error?.toString()}</Typography> : null}
             </Flex>
           </Flex>
           </Form>

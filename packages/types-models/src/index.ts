@@ -8,6 +8,17 @@ export interface SearchOptions {
   query: string,
 }
 
+export type StripeCountryCode = "US" | "GB"
+export type StripeCheckoutInfo = {
+  customerId: string, 
+  clientSecret: string, 
+  publishableKey: string, 
+  stripeAccount: string, 
+  businessName: string
+}
+
+export type SortBy = 'updatedAt'
+
 export type AccessType = "All" | "Default" | "Assigned" | null
 export type AccessAction = "create" | "read" | "update" | "delete"
 export type AccessResources = ModelName
@@ -21,6 +32,11 @@ export type AccessPermissions = {
   [K in AccessResources]: AccessForResource
 }
 
+export type IndexUpdate = {
+  id: string,
+  index: number,
+}
+
 export type Filters = { _exists: boolean, _gt: number, _gte: number, _lt: number, _lte: number, _all: any[] } 
 export type ExistsFilter = { _exists: boolean }
 export type FilterType = Filters
@@ -31,6 +47,23 @@ export type ReadFilter<T> = { [K in keyof T]?: T[K] | Partial<FilterType> }
 export type FlowchartUI = {
   x: number,
   y: number,
+}
+
+export type BasicFilter<T extends string> = {
+  [K in T]: (
+      string
+    | number
+    | null
+    | {
+      $exists: boolean,
+    } 
+  )
+}
+
+export type CompoundFilter<T extends string> = {
+  condition?: BasicFilter<T>
+  $or?: (CompoundFilter<T>)[]
+  $and?: (CompoundFilter<T>)[]
 }
 
 /** @deprecated */
@@ -52,7 +85,7 @@ export type OrganizationLimit = 'endusersLimit'
 // }
 
 export type PortalSettings = {
-  authentication: {
+  authentication?: {
     landingTitle?: string,
     landingLogo?: string,
     landingGraphic?: string,
@@ -62,23 +95,71 @@ export type PortalSettings = {
     registerTitle?: string,
     registerDescription?: string,
     registerGraphic?: string,
-  } 
+    hideRegister?: boolean,
+  },
+  communication?: {
+    allowEnduserInitiatedChat?: boolean,
+    sendEmailNotificationsToEnduser?: boolean,
+  }
 }
 
 export type WithLinkOpenTrackingIds = { linkOpenTrackingIds: string[] }
 
-type BuildCustomEnduserField <T, I> = { type: T, info: I, field: string, required?: boolean }
+type BuildCustomEnduserField <T, I> = { type: T, info: I, field: string, required?: boolean, hiddenFromProfile?: boolean }
 export type CustomEnduserFields = {
-  "Select": BuildCustomEnduserField<'Select', { options: string[] }>,
+  "Select": BuildCustomEnduserField<'Select', { options: string[], other?: boolean }>,
+  "Text": BuildCustomEnduserField<'Text', { }>,
+  "Multiple Text": BuildCustomEnduserField<'Multiple Text', { }>,
+  "Date": BuildCustomEnduserField<'Date', { }>,
+  'Auto Detect': BuildCustomEnduserField<'Auto Detect', { }>,
+  // "Table": BuildCustomEnduserField<"Table", { columns: TableInputChoice[] }>
 }
 export type CustomEnduserFieldType = keyof CustomEnduserFields
 export type CustomEnduserField = CustomEnduserFields[CustomEnduserFieldType]
 
+export type EnduserBuiltInField = {
+  field: string,
+  label: string,
+  required?: boolean,
+  requireConfirmation?: boolean,
+  hidden?: boolean,
+}
+
 export type OrganizationSettings = {
   endusers: { 
     disableMultipleChatRooms?: boolean,
-    customFields?: CustomEnduserField[]
+    disableCalendarEventAutoAssignment?: boolean,
+    builtinFields?: EnduserBuiltInField[],
+    customFields?: CustomEnduserField[],
+    disableAdhocFields?: boolean,
+    autoReplyEnabled?: boolean,
+    tags?: string[],
+    showFreeNote?: boolean,
+    recordCalls?: boolean,
+    transcribeCalls?: boolean,
   },
+  calendar?: {
+    dayStart?: {
+      hour: number,
+      minute: number,
+      timezone: Timezone,
+    },
+    dayEnd?: {
+      hour: number,
+      minute: number,
+      timezone: Timezone,
+    },
+    bookingStartOffset?: {
+      month?: number,
+      day?: number,
+      hour?: number,
+    },
+    bookingEndOffset?: {
+      month?: number,
+      day?: number,
+      hour?: number,
+    },
+  }
 }
 
 export type OrganizationLimits = {
@@ -90,6 +171,16 @@ export interface Organization_readonly extends ClientRecord {
   subscriptionPeriod: number;
   lastSync?: number;
   limits?: OrganizationLimits, 
+  twilioNumber?: string;
+  twilioNumbers?: string[];
+  stripeAccountId?: string;
+  stripeIsConnected?: boolean;
+  photon?: {
+    organizationId: string,
+    clientId: string,
+    environment: string,
+  }
+  fromEmails?: string[],
 } 
 export interface Organization_required {}
 export interface Organization_updatesDisabled {
@@ -97,6 +188,8 @@ export interface Organization_updatesDisabled {
   subdomain: string;
 }
 export interface Organization extends Organization_readonly, Organization_required, Organization_updatesDisabled {
+  owner?: string,
+  timezone?: Timezone,
   roles?: string[];
   skills?: string[];
   logoVersion?: number; // missing if no logo set
@@ -104,10 +197,28 @@ export interface Organization extends Organization_readonly, Organization_requir
   themeColor?: string;
   themeColorSecondary?: string
   customPortalURL?: string,
+  customProviderURL?: string,
+  customTermsOfService?: string,
+  customPrivacyPolicy?: string,
   settings?: OrganizationSettings,
   portalSettings?: PortalSettings,
   enduserDisplayName?: string,
   parentOrganizationId?: string,
+  hasCustomBusinessSubdomain?: boolean,
+  callForwardingNumber?: string,
+  customAutoreplyMessage?: string,
+  externalCalendarEventPlaceholderTitle?: string,
+  externalCalendarEventPlaceholderDescription?: string,
+  customVoicemailText?: string,
+  hasConnectedOpenAI?: boolean,
+  hasConnectedHealthie?: boolean,
+  hasConnectedElation?: boolean,
+  replyToAllEmails?: string,
+  forwardAllIncomingEmailsTo?: string,
+  numCustomTypes?: number,
+
+  _groupChatsEnabled?: boolean,
+  // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {
   name: string,
@@ -120,6 +231,8 @@ export type OrganizationTheme = {
   customPortalURL?: string,
   faviconURL?: string,
   portalSettings?: PortalSettings,
+  customTermsOfService?: string,
+  customPrivacyPolicy?: string,
 }
 
 
@@ -129,6 +242,7 @@ export interface RecordInfo {
   updatedAt: Date;
   creator: string; // can technically be null in some cases (e.g. enduser creates self), todo: allow as part of type
   organizationIds?: string[];
+  sharedWithOrganizations?: string[][],
 }
 
 export interface ClientRecord extends RecordInfo { id: string }
@@ -151,33 +265,62 @@ export interface EnduserSession extends Session, Enduser {
   passwordIsUnset?: boolean,
 }
 
-export interface UserSession extends Session, User, OrganizationLimits { // User joined with organization, access, and other details
+// potentially large fields, like 'fields' and 'availability' should be left out to prevent large JWT
+export interface UserSession extends Session, OrganizationLimits { // User joined with organization, access, and other details
   type: "user";
+  id: string,
+  email: string,
+  businessId: string,
+  organizationIds: string[],
+  organization: string, // shouldn't be used anymore after migrating fully to /v1 api
+  phone?: string,
+  username?: string,
+  orgEmail?: string,
+  fname?: string,
+  roles?: string[],
+  lname?: string,
+  displayName?: string,
+  avatar?: string,
+  twilioNumber?: string,
+  enduserDisplayName?: string,
   subscriptionExpiresAt: Date;
   subscriptionPeriod: number;
   access: AccessPermissions;
   orgName: string;
+  orgTwilioNumber: string;
+  fromEmail?: string,
   verifiedEmail: boolean;
   wasAutomated: boolean;
-  enduserDisplayName?: string,
   limits?: OrganizationLimits, 
+  uiRestrictions?: UserUIRestrictions
 }
 
 export type StateCredentialInfo = {
   state: string,
+  licenseId?: string,
   expiresAt?: Date,
 }
-
 
 export type WeeklyAvailability = {
   dayOfWeekStartingSundayIndexedByZero: number,
   startTimeInMinutes: number,
   endTimeInMinutes: number,
+  active?: DateRange,
+  locationId?: string,
+  validTemplateIds?: string[],
 }
 export type NotificationPreference = {
   email?: boolean 
 }
 export type AccountType = string
+
+export type UserCallRoutingBehavior = (
+  ''
+| 'Assigned'
+| 'Unassigned'
+| 'All'
+)
+
 export interface User_readonly extends ClientRecord {
   organization?: string 
   username?: string;
@@ -196,19 +339,41 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   phone?: string;
   fname?: string;
   lname?: string;
+  displayName?: string; // enduser-facing
+  internalDisplayName?: string,
   suffixes?: string[],
   accountType?: AccountType;
   hashedInviteCode?: string,
   roles?: string[];
   avatar?: string,
   fields?: CustomFields;
+  unredactedFields? : CustomFields;
   acknowledgedIntegrations?: Date,
   notificationPreferences?: {
     [index: string]: NotificationPreference,
   },
+  notificationEmailsDisabled?: boolean,
+  disableIncomingPhoneCalls?: boolean,
+  disableTicketAutoAssignment?: boolean,
+  callRouting?: UserCallRoutingBehavior,
   credentialedStates?: StateCredentialInfo[],
   timezone?: Timezone,
   weeklyAvailabilities?: WeeklyAvailability[],
+  autoReplyEnabled?: boolean,
+  twilioNumber?: string;
+  hashedPass?: string,
+  pushNotificationIosTokens?: string[],
+  pushNotificationDestinations?: string[],
+  drChronoId?: string,
+  zoomId?: string,
+  tags?: string[],
+  emailSignature?: string,
+  specialties?: string[],
+  bio?: string,
+  fromEmail?: string,
+  TIN?: string,
+  NPI?: string,
+  DEA?: string,
 }
 
 export type Preference = 'email' | 'sms' | 'call' | 'chat'
@@ -224,22 +389,72 @@ export type GenericQuantityWithUnit = {
   unit: string,
 }
 
-export interface Enduser_readonly extends UserActivityInfo, ClientRecord {
+export interface EnduserEngagementTimestamps{
+  // important convenention that these fields start with "recent", as that ensures new fields are automatically copied to records of deleted endusers for billing purposes
+  recentFormSubmittedAt?: Date,
+  recentEventBookedAt?: Date, // should cover video calling
+  recentOutboundCallAt?: Date,
+  recentInboundCallAt?: Date,
+  recentOutboundChatAt?: Date,
+  recentInboundChatAt?: Date,
+  recentOutboundSMSAt?: Date,
+  recentInboundSMSAt?: Date,
+  recentOutboundEmailAt?: Date,
+  recentInboundEmailAt?: Date,
+  recentActivityAt?: Date,
+}
+
+export type StripeSubscriptionStatus = 'active' | 'trialing' | 'incomplete' | 'incomplete_expired' | 'past_due' | 'canceled' | 'unpaid'
+export type StripeSubscription = {
+  status: StripeSubscriptionStatus,
+}
+
+export type ScheduledJourney = {
+  journeyId: string,
+  addAt: Date,
+}
+
+export type EnduserRelationship = {
+  type: 'Parent' | 'Child' | 'Spouse' | 'Sibling' | 'Relates To'
+  id: string,
+}
+export type Language = {
+  displayName: string,
+  iso6391: string,
+}
+
+export type TellescopeGender = "Male" | "Female" | "Other" | "Unknown"
+export interface Enduser_readonly extends UserActivityInfo, ClientRecord, EnduserEngagementTimestamps {
   lastCommunication?: Date;
   recentMessagePreview?: string;
   hashedPassword: string;
+  stripeCustomerId?: string,
+  stripeSubscription?: StripeSubscription,
+  _dateOfBirth?: Date,
+  _age?: number,
+  // _ageDecade?: number,
+  references?: RelatedRecord[],
+  mergedIds?: string[],
 } 
 export interface Enduser_required {}
 export interface Enduser_updatesDisabled {}
 export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_updatesDisabled {
+  unsubscribePhone?: boolean; // on AWS STOP reply
   externalId?: string;
+  humanReadableId?: string;
+  displayName?: string,
+  lockId?: string;
   email? : string;
+  alternateEmails?: string[],
   emailConsent? : boolean;
-  phone? : string;
+  phone? : string; // cell phone
+  landline?: string;
   phoneConsent? : boolean;
   fname? : string;
+  mname? : string;
   lname? : string;
   journeys?: Indexable<string>;
+  scheduledJourneys?: ScheduledJourney[],
   tags? : string[];
   unredactedTags? : string[];
   fields? : CustomFields;
@@ -250,13 +465,40 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   unread?: boolean,
   termsSigned?: Date,
   termsVersion?: string,
-  state?: string,
   timezone?: Timezone,
-  zipCode?: string,
   dateOfBirth?: string;
-  gender?: string;
+  gender?: TellescopeGender;
   height?: GenericQuantityWithUnit,
   weight?: GenericQuantityWithUnit;
+  source?: string,
+  usingV1SMS?: boolean, 
+  addressLineOne?: string,
+  addressLineTwo?: string,
+  city?: string,
+  state?: string,
+  zipCode?: string,
+  lastAutoreplySentAt?: Date,
+  unsubscribedFromPortalChatNotifications?: boolean,
+  triggeredEvents?: Record<string, number>
+  relationships?: EnduserRelationship[]
+  customTypeId?: string,
+  language?: Language,
+  triggerIds?: string[],
+  markedReadAt?: Date | '',
+  markedUnreadAt?: Date | '',
+  note?: string,
+  // unsubscribedFromEmail?: boolean,
+  // unsubscribedFromSMS?: boolean,
+}
+
+export interface EnduserCustomType_readonly extends ClientRecord {}
+export interface EnduserCustomType_required {
+  title: string,
+}
+export interface EnduserCustomType_updatesDisabled {}
+export interface EnduserCustomType extends EnduserCustomType_readonly, EnduserCustomType_required, EnduserCustomType_updatesDisabled {
+  builtinFields?: EnduserBuiltInField[];
+  customFields?: CustomEnduserField[];
 }
 
 export interface EnduserStatusUpdate_readonly extends ClientRecord {} 
@@ -267,6 +509,34 @@ export interface EnduserStatusUpdate_required {
 }
 export interface EnduserStatusUpdate_updatesDisabled {}
 export interface EnduserStatusUpdate extends EnduserStatusUpdate_readonly, EnduserStatusUpdate_required, EnduserStatusUpdate_updatesDisabled {}
+
+export interface EnduserMedication_readonly extends ClientRecord {} 
+export interface EnduserMedication_required {
+  enduserId: string,
+  title: string,
+}
+export interface EnduserMedication_updatesDisabled {}
+export interface EnduserMedication extends EnduserMedication_readonly, EnduserMedication_required, EnduserMedication_updatesDisabled {
+  source?: string,
+  externalId?: string,
+  references?: RelatedRecord[],
+  calendarEventId?: string,
+  prescribedBy?: string,
+  prescribedAt?: Date | '',
+  startedTakingAt?: Date | '',
+  stoppedTakingAt?: Date | '',
+  rxNormCode?: string,
+  dispensing?: {
+    quantity: number,
+    unit?: string,
+  },
+  dosage?: {
+    value: string,
+    unit: string,
+    frequency?: string,
+  },
+  notes?: string,
+}
 
 export interface APIKey_readonly extends ClientRecord { 
   hashedKey: string, // stored as hash
@@ -289,6 +559,10 @@ export interface EngagementEvent extends EngagementEvent_readonly, EngagementEve
   fields? : CustomFields;
 }
 
+export type JourneyStatistics = {
+  steps: Record<string, { count: number }>,
+}
+
 export type JourneyStatePriority = "Disengaged" | "N/A" | "Engaged"
 
 export interface JourneyState { // info needed to create a state
@@ -307,21 +581,7 @@ export interface Journey extends Journey_readonly, Journey_required, Journey_upd
   defaultState: string;
   states: JourneyState[];
   description?: string;
-}
-
-export interface Task_readonly extends ClientRecord {}
-export interface Task_required {
-  text: string;
-}
-export interface Task_updatesDisabled {}
-export interface Task extends Task_required, Task_readonly, Task_updatesDisabled { 
-  completed?: boolean;
-  description?: string;
-  dueDate?: Date;
-  assignedTo?: string;
-  enduserId?: string;
-  subscribers?: string[];
-  subscriberRoles?: string[];
+  onIncomingEnduserCommunication?: 'Remove' | ''
 }
 
 export interface TextCommunication extends WithLinkOpenTrackingIds {
@@ -339,7 +599,9 @@ export interface Email_readonly extends ClientRecord {
   openedAt?: Date;
   textEncoding?: EmailEncoding,
   htmlEncoding?: EmailEncoding,
+  numForms?: number,
   s3id: string | null,
+  error?: string,
 }
 export interface Email_required {
   enduserId: string | null;
@@ -358,6 +620,16 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
   replyTo?: string | null;  
   via?: string,
   readBy?: { [index: string] : Date };
+  journeyContext?: JourneyContext,
+  sendAt?: Date | '',
+  pinnedAt?: Date | '',
+  isDraft?: boolean,
+  attachments?: ChatAttachment[]
+  syncedAt?: Date, // helps to indicate whether an outbound email was sent via Tellescope or Synced back from external source
+  cc?: string[],
+  fromEmailOverride?: string,
+  ticketIds?: string[],
+  alternateToAddress?: string,
   // sentAt: string, // only outgoing
 }
 
@@ -365,6 +637,14 @@ export interface SMSMessage_readonly extends ClientRecord {
   delivered: boolean, 
   internalMessageId?: string,
   linkOpens?: { [index: number]: Date };
+  price?: string,
+  priceUnit?: string,
+  numForms?: number,
+  error?: string,
+  images?: {
+    url: string,
+    type: string,
+  }[]
 }
 export interface SMSMessage_required {
   enduserId: string, 
@@ -378,13 +658,21 @@ export interface SMSMessage_updatesDisabled {
 export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SMSMessage_updatesDisabled, TextCommunication, WithLinkOpenTrackingIds {
   userId?: string, // defaults to self, but should allow future options to send as other user
   readBy?: { [index: string] : Date };
+  error?: string,
+  journeyContext?: JourneyContext,
+  sendAt?: Date | '',
+  pinnedAt?: Date | '',
+  isDraft?: boolean,
+  timestamp?: Date,
+  ticketIds?: string[],
   // usingPublicNumber?: boolean, // flagged on outgoing messages from public number
   // sentAt: string, // only outgoing
 }
-export type ChatRoomType = 'internal' | 'external'
+export type ChatRoomType = 'internal' | 'external' | 'Group Chat'
 
 export interface ChatRoom_readonly extends ClientRecord {
   recentMessage?: string,
+  recentEnduserMessage?: string,
   recentSender?: string,
   recentMessageSentAt?: number,
   numMessages: number,
@@ -403,16 +691,21 @@ export interface ChatRoom extends ChatRoom_readonly, ChatRoom_required, ChatRoom
   topicId?: string;
   enduserIds?: string[];
   ticketId?: string; // for connecting with a related ticket
-  endedAt?: Date;
+  endedAt?: Date | '';
   tags?: string[];
   infoForUser?: {
     [index: string]: ChatRoomUserInfo,
-  }
+  },
+  aboutEnduserId: string,
+  pinnedAt?: Date | '',
+  fields?: Indexable<string | CustomField>,
+  suggestedReply?: string,
 }
 
-export type ChatAttachmentType = 'image' | 'video' | 'file'  
+export type ChatAttachmentType = 'image' | 'video' | 'file' | string 
 export type ChatAttachment = {
   type: ChatAttachmentType,
+  name?: string,
   secureName: string,
 }
 
@@ -424,7 +717,6 @@ export type GenericAttachment = {
 }
 
 export interface ChatMessage_readonly extends ClientRecord {
-  senderId: string | null;
   linkOpens?: { [index: number]: Date };
 }
 export interface ChatMessage_required {
@@ -436,12 +728,15 @@ export interface ChatMessage_updatesDisabled {
   replyId?: string | null; // to support threaded replies to a specific root message
 }
 export interface ChatMessage extends ChatMessage_readonly, ChatMessage_required, ChatMessage_updatesDisabled, TextCommunication {
+  senderId: string | null;
   html?: string,
   readBy?: { [index: string] : Date };
   attachments?: ChatAttachment[]
+  timestamp?: Date,
+  ticketIds?: string[],
 }
 
-export type MessageTemplateType = 'enduser' | 'team'  // default to 'enduser'
+export type MessageTemplateType = 'enduser' | 'Reply' | 'team'  // default to 'enduser'
 export type MessageTemplateMode = 'html' | 'richtext'
 export interface MessageTemplate_readonly extends ClientRecord {}
 export interface MessageTemplate_required {
@@ -455,11 +750,19 @@ export interface MessageTemplate extends MessageTemplate_readonly, MessageTempla
   type?: MessageTemplateType;
   editorState?: string
   mode?: MessageTemplateMode,
+  embeddingHash?: string,
 }
 
 export interface File_readonly extends ClientRecord {
   secureName: string,
   publicRead?: boolean, // set on prepare_file_upload and cannot be changed without messing up assumptions in access
+  viewsById?: Record<string, {
+    recentlyViewedAt: Date,
+    type: 'user' | 'enduser'
+  }>,
+  source?: string
+  externalId?: string,
+  timestamp?: Date,
 }
 export interface File_required {
   name: string;
@@ -469,9 +772,25 @@ export interface File_required {
 export interface File_updatesDisabled {}
 export interface File extends File_readonly, File_required, File_updatesDisabled, EnduserPortalVisibility {
   enduserId?: string;
+  pushedToClientPortal?: boolean,
+  hiddenFromEnduser?: boolean,
+  source?: string,
 }
 
-export interface Ticket_readonly extends ClientRecord {}
+
+export type TicketActionBuilder <T, I> = { type: T, info: I, completedAt?: Date | '' }
+export type TicketActions = {
+  "Complete Form": TicketActionBuilder<'Complete Form', { formId: string, formResponseId?: string }>,
+  "Create Prescription": TicketActionBuilder<'Create Prescription', { }>,
+}
+export type TicketActionType = keyof TicketActions
+export type TicketAction = TicketActions[TicketActionType]
+
+export interface Ticket_readonly extends ClientRecord {
+  source?: string,
+  externalId?: string,
+  references?: RelatedRecord[] // internal, for storing built-in integrations info
+}
 export interface Ticket_required {
   title: string;
 }
@@ -479,6 +798,7 @@ export interface Ticket_updatesDisabled {}
 export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updatesDisabled {
   enduserId?: string;
   closedAt?: Date;
+  closedBy?: string,
   closedForReason?: string;
   closeReasons?: string[];
   automationStepId?: string;
@@ -488,6 +808,24 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
   owner?: string;
   skillsRequired?: string[];
   chatRoomId?: string;
+  priority?: number;
+  stage?: string,
+  blockerDescription?: string,
+  index?: number,
+  carePlanId?: string,
+  journeyId?: string,
+  hiddenFromTickets?: boolean,
+  htmlDescription?: string,
+  formResponseIds?: string[],
+  purchaseId?: string,
+  actions?: TicketAction[]
+  remindAt?: Date | '',
+  reminderSilencedAt?: Date | '',
+  reminderLockId?: string,
+  relatedRecords?: RelatedRecord[],
+  attachments?: ChatAttachment[],
+  rootTicketId?: string,
+  parentTicketId?: string,
 }
 
 export type AttendeeInfo = {
@@ -526,21 +864,12 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
   type?: string,
   ticketId?: string,
   fields?: Indexable<string | CustomField>,
+  pinnedAt?: Date | '',
 }
 
-export type FormFieldLiteralType = 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' | 'rating'
-export type FormFieldComplexType = "multiple_choice" | "file" | "signature" | 'ranking'
+export type FormFieldLiteralType = 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time'
+export type FormFieldComplexType = "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications"
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
-
-export type FormFieldOptions = {
-  choices?: string[];
-  from?: number,
-  to?: number,
-  radio?: boolean; // absent indicates not radio
-  other?: boolean; // include an 'other' option
-  pdfAttachment?: string,
-}
-export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals'
 export type PreviousFormFieldBuilder <T extends PreviousFormFieldType, V> = { type: T, info: V }
@@ -556,6 +885,41 @@ export type PreviousFormField = (
   | PreviousFormFieldEquals
 )
 
+export type FormSubField = { id: string }
+
+export type TableChoiceBuilder <T, I> = { type: T, info: I, label: string}
+export type TableInputChoices = {
+  Text: TableChoiceBuilder<'Text', {}>
+  Select: TableChoiceBuilder<'Select', { choices: string[] }>
+  Date: TableChoiceBuilder<'Date', { }> // dateString not datetime
+}
+
+export type TableInputChoiceType = keyof TableInputChoices
+export type TableInputChoice = TableInputChoices[TableInputChoiceType]
+
+export type FormFieldValidation = {
+  minLength?: number,
+  maxLength?: number,
+  repeat?: boolean,
+
+}
+export type FormFieldOptions = FormFieldValidation & {
+  tableChoices?: TableInputChoice[],  
+  choices?: string[];
+  from?: number,
+  to?: number,
+  radio?: boolean; // absent indicates not radio
+  other?: boolean; // include an 'other' option
+  pdfAttachment?: string,
+  subFields?: FormSubField[],
+  validFileTypes?: string[], // should be human readable files where the lower-case version is included in a filetype, e.g. Image, Video, PDF
+  signatureUrl?: string,
+  productIds?: string[],
+  databaseId?: string,
+  databaseLabel?: string,
+  databaseLabels?: string[],
+}
+export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
 export interface FormField_readonly extends ClientRecord {}
 export interface FormField_required {
@@ -568,13 +932,34 @@ export interface FormField_updatesDisabled {}
 export interface FormField extends FormField_readonly, FormField_required, FormField_updatesDisabled {
   isOptional  ?: boolean,
   description ?: string,
+  htmlDescription?: string,
   headerText  ?: string,
   options     ?: FormFieldOptions,
   intakeField ?: string | null,
   flowchartUI?: FlowchartUI,
+  isInGroup?: boolean,
+  externalId?: string,
+  sharedWithEnduser?: boolean,
+  prepopulateFromFields?: boolean,
+}
+
+export type FormScoring = {
+  title: string,
+  fieldId: string,
+  response?: string,
+  score: (
+    string // to represent using the numerical value of the response
+  | number // use an explicit value
+  ),
 }
 
 export type FormType = 'note' | 'enduserFacing'
+export type FormCustomization = {
+  publicFormSubmitHTMLDescription?: string,
+  publicLabelPrefix?: string,
+  hideProgressBar?: boolean,
+  showRestartAtEnd?: boolean,
+}
 export interface Form_readonly extends ClientRecord {
   numFields: number,
 }
@@ -584,14 +969,28 @@ export interface Form_required {
 }
 export interface Form_updatesDisabled {}
 export interface Form extends Form_readonly, Form_required, Form_updatesDisabled {
+  displayTitle?: string, // for displaying in portal / timeline, but not internally
   description?: string,
   customSubject?: string,
   customGreeting?: string,
   customSignature?: string,
   allowPublicURL?: boolean,
-  intakePhone?: 'required' | 'optional',
+  intakeEmailRequired?: boolean,
+  intakeEmailHidden?: boolean,
+  intakePhone?: 'required' | 'optional' | 'hidden',
+  intakeDateOfBirth?: 'required' | 'optional' | 'hidden',
+  intakeState?: 'required' | 'optional' | 'hidden',
   thanksMessage?: string,
-  type?: FormType
+  htmlThanksMessage?: string,
+  type?: FormType,
+  scoring?: FormScoring[]
+  externalId?: string,
+  ga4measurementId?: string,
+  backgroundColor?: string,
+  productIds?: string[],
+  submitRedirectURL?: string,
+  publicFormIdRedirect?: string,
+  customization?: FormCustomization,
 }
 
 
@@ -601,6 +1000,7 @@ export type OAuth2AuthenticationFields = {
   scope: string,
   token_type: 'Bearer',
   expiry_date: number,
+  external_id?: string,
   state?: string,
   email?: string,
 }
@@ -609,24 +1009,34 @@ export type IntegrationAuthentication = (
     type: 'oauth2',
     info: OAuth2AuthenticationFields,
   }
+| {
+    type: 'apiKey',
+    info: OAuth2AuthenticationFields,
+  }
 )
 
 export interface Integration_readonly extends ClientRecord {
   lastSync?: number,
   lastSyncId?: string,
+  historyId?: string,
 }
 export interface Integration_required {}
 export interface Integration_updatesDisabled {}
 export interface Integration extends Integration_readonly, Integration_required, Integration_updatesDisabled {
   title: string,
   authentication: IntegrationAuthentication,
+  emailDisabled?: boolean, 
+  calendars?: string[],
+  environment?: string,
 }
 
-export type BuildDatabaseRecordField <K extends string, V> = { type: K, value: V }
+export type BuildDatabaseRecordField <K extends string, V, O> = { type: K, value: V, options: O & { width?: string } }
 export type DatabaseRecordFieldsInfo = {
-  string: BuildDatabaseRecordField<'string', string>
-  'string-long': BuildDatabaseRecordField<'string-long', string>,
-  'number': BuildDatabaseRecordField<'number', number>,
+  Text: BuildDatabaseRecordField<'Text', string, { }>
+  'Text Long': BuildDatabaseRecordField<'Text Long', string, { }>,
+  'Text List': BuildDatabaseRecordField<'Text List', string[], { }>,
+  'Number': BuildDatabaseRecordField<'Number', number | '', { }>,
+  Address: BuildDatabaseRecordField<'Address', Address | undefined, { }>
 }
 export type DatabaseRecordFieldType = keyof DatabaseRecordFieldsInfo
 
@@ -634,6 +1044,7 @@ export type DatabaseRecordValues = {
   [K in DatabaseRecordFieldType] : {
     type: K,
     value: DatabaseRecordFieldsInfo[K]['value'],
+    label: string,
   }
 }
 export type DatabaseRecordValue = DatabaseRecordValues[DatabaseRecordFieldType]
@@ -642,6 +1053,8 @@ export type DatabaseRecordFields = {
   [K in DatabaseRecordFieldType] : {
     type: K,
     label: string,
+    hideFromTable?: boolean,
+    options?: DatabaseRecordFieldsInfo[K]['options']
   }
 }
 export type DatabaseRecordField = DatabaseRecordFields[DatabaseRecordFieldType]
@@ -680,34 +1093,82 @@ export type FormResponseValueAnswerBuilder <TYPE extends FormFieldType, VALUE ex
   value?: VALUE,
 }
 
+export type TableInputCell = {
+  label: string,
+  entry: string,
+}
+
+export type FormResponseAnswerAddress = FormResponseValueAnswerBuilder<'Address', {
+  addressLineOne: string,
+  addressLineTwo?: string,
+  city: string,
+  zipCode: string,
+  state: string,
+}>
+export type DatabaseSelectResponse = {
+  text: string,
+  databaseId: string,
+  recordId: string,
+}
+export type MedicationResponse = {
+  displayTerm: string,
+  drugName: string,
+  otherDrug?: string,
+  drugSynonym?: string,
+  rxNormCode?: string,
+  dosage?: {
+    value: string,
+    unit: string,
+    quantity?: string, // how many per frequency
+    frequency?: string,
+  },
+  NDCs?: string[],
+  reasonForTaking?: string,
+}
+
+export type FormResponseAnswerTable = FormResponseValueAnswerBuilder<'Table Input', TableInputCell[][]>
+export type FormResponseAnswerGroup = FormResponseValueAnswerBuilder<'Question Group', FormSubField[]>
+export type FormResponseAnswerDescription  = FormResponseValueAnswerBuilder<'description', ''>
 export type FormResponseAnswerEmail = FormResponseValueAnswerBuilder<'email', string>
 export type FormResponseAnswerNumber = FormResponseValueAnswerBuilder<'number', number>
 export type FormResponseAnswerPhone = FormResponseValueAnswerBuilder<'phone', string>
 export type FormResponseAnswerString = FormResponseValueAnswerBuilder<'string', string>
 export type FormResponseAnswerStringLong = FormResponseValueAnswerBuilder<'stringLong', string>
 export type FormResponseAnswerDate = FormResponseValueAnswerBuilder<'date', Date>
+export type FormResponseAnswerDateString = FormResponseValueAnswerBuilder<'dateString', string>
 export type FormResponseAnswerRating = FormResponseValueAnswerBuilder<'rating', number>
+export type FormResponseAnswerTime = FormResponseValueAnswerBuilder<'Time', string>
+export type FormResponseAnswerStripe = FormResponseValueAnswerBuilder<'Stripe', string>
+export type FormResponseAnswerDatabaseSelect = FormResponseValueAnswerBuilder<'Database Select', DatabaseSelectResponse[]>
+export type FormResponseAnswerMedications = FormResponseValueAnswerBuilder<'Medications', MedicationResponse[]>
 
 export type FormResponseAnswerSignatureValue = {
   fullName: string,
   signed: boolean,
   pdfAttachment?: string,
   signedPdfSecureName?: string,
+  url?: string,
 }
 export type FormResponseAnswerSignature = FormResponseValueAnswerBuilder<'signature', FormResponseAnswerSignatureValue>
 
 export type FormResponseAnswerMultipleChoiceValue = string[]
 export type FormResponseAnswerMultipleChoice = FormResponseValueAnswerBuilder<'multiple_choice', FormResponseAnswerMultipleChoiceValue>
+export type FormResponseAnswerDropdown = FormResponseValueAnswerBuilder<'Dropdown', FormResponseAnswerMultipleChoiceValue>
 export type FormResponseAnswerRanking = FormResponseValueAnswerBuilder<'ranking', FormResponseAnswerMultipleChoiceValue>
 
 export type FormResponseAnswerFileValue = {
   secureName: string,
   name: string,
+  type?: string,
 }
 export type FormResponseAnswerFile = FormResponseValueAnswerBuilder<'file', FormResponseAnswerFileValue>
+export type FormResponseAnswerFiles = FormResponseValueAnswerBuilder<'files', FormResponseAnswerFileValue[]>
 
 export type FormResponseValueAnswer = (
-    FormResponseAnswerEmail
+    FormResponseAnswerGroup
+  | FormResponseAnswerTable
+  | FormResponseAnswerDescription
+  | FormResponseAnswerEmail
   | FormResponseAnswerNumber
   | FormResponseAnswerPhone
   | FormResponseAnswerString
@@ -715,16 +1176,27 @@ export type FormResponseValueAnswer = (
   | FormResponseAnswerSignature
   | FormResponseAnswerMultipleChoice
   | FormResponseAnswerFile
+  | FormResponseAnswerFiles
   | FormResponseAnswerDate
   | FormResponseAnswerRating
   | FormResponseAnswerRanking
+  | FormResponseAnswerDateString
+  | FormResponseAnswerAddress
+  | FormResponseAnswerTime
+  | FormResponseAnswerStripe
+  | FormResponseAnswerDropdown
+  | FormResponseAnswerDatabaseSelect
+  | FormResponseAnswerMedications
 )
 
 export type FormResponseValue = {
   fieldId: string,
   fieldTitle: string,
   fieldDescription?: string,
+  fieldHtmlDescription?: string,
   answer: FormResponseValueAnswer,
+  externalId?: string,
+  sharedWithEnduser?: boolean,
 }
 
 export type AnswerForType = {
@@ -735,14 +1207,25 @@ export type AnswerForType = {
   'stringLong': FormResponseAnswerStringLong['value'],
   'signature': FormResponseAnswerSignature['value'],
   'multiple_choice': FormResponseAnswerMultipleChoice['value'],
+  'Dropdown': FormResponseAnswerMultipleChoice['value'],
   'file': FormResponseAnswerFile['value'],
+  'files': FormResponseAnswerFiles['value'],
   'date': FormResponseAnswerDate['value'],
   'rating': FormResponseAnswerRating['value'],
   'ranking': FormResponseAnswerRanking['value'],
+  'dateString': FormResponseAnswerDateString['value'],
+  'Input Table': FormResponseAnswerTable['value'],
+  'Address': FormResponseAnswerAddress['value'],
+  'Time': FormResponseAnswerTime['value']
+  'Stripe': FormResponseAnswerStripe['value']
+  'Database Select': FormResponseAnswerDatabaseSelect['value']
+  'Medications': FormResponseAnswerMedications['value']
 }
 
 export interface FormResponse_readonly extends ClientRecord {
   openedAt?: Date,
+  references?: RelatedRecord[]
+  triggerIds?: string[],
 }
 export interface FormResponse_required {
   formId: string,
@@ -761,6 +1244,16 @@ export interface FormResponse_updatesDisabled {
 }
 export interface FormResponse extends FormResponse_readonly, FormResponse_required, FormResponse_updatesDisabled, EnduserPortalVisibility {
   draftSavedAt?: Date,
+  sharedVia?: CommunicationsChannel,
+  isInternalNote?: boolean,
+  scores?: {
+    title: string,
+    value: number
+  }[],
+  source?: string,
+  externalId?: string,
+  pinnedAt?: Date | '',
+  publicIdentifier?: string,
 }
 
 export interface WebHook_readonly extends ClientRecord {}
@@ -772,11 +1265,25 @@ export interface WebHook extends WebHook_readonly, WebHook_required, WebHook_upd
   subscriptions: WebhookSubscriptionsType
 }
 
-export type AvailabilityBlock = {
+export type BaseAvailabilityBlock = {
   userId: string,
   startTimeInMS: number,
   durationInMinutes: number,
 }
+
+export interface AvailabilityBlock_readonly extends ClientRecord {
+}
+export interface AvailabilityBlock_required extends Pick<WeeklyAvailability, 'startTimeInMinutes' | 'endTimeInMinutes' | 'dayOfWeekStartingSundayIndexedByZero'> {
+  entity: 'organization' | 'user',
+  entityId: string,
+}
+export interface AvailabilityBlock_updatesDisabled {
+  index: number, // updates done via different endpoint
+}
+export interface AvailabilityBlock extends WeeklyAvailability, AvailabilityBlock_readonly, AvailabilityBlock_required, AvailabilityBlock_updatesDisabled {
+
+}
+
 
 export type CalendarEventReminderNotificationInfo = { 
   templateId?: string,
@@ -788,6 +1295,7 @@ export type CalendarEventReminderInfoForType = {
   "add-to-journey": BuildCalendarEventReminderInfo<'add-to-journey', { journeyId: string }>,
   "user-notification": BuildCalendarEventReminderInfo<'user-notification', CalendarEventReminderNotificationInfo>,
   "enduser-notification": BuildCalendarEventReminderInfo<'enduser-notification', CalendarEventReminderNotificationInfo>,
+  "create-ticket": BuildCalendarEventReminderInfo<'create-ticket', { title: string }>,
 }
 export type CalendarEventReminderType = keyof CalendarEventReminderInfoForType
 export type CalendarEventReminder = CalendarEventReminderInfoForType[CalendarEventReminderType]
@@ -800,6 +1308,10 @@ export type EnduserFormResponseForEvent = {
   formId: string,
   enduserId: string,
   accessCode: string,
+}
+
+export interface CalendarEventPortalSettings {
+  hideUsers?: boolean,
 }
 
 export interface CalendarEvent_readonly extends ClientRecord { 
@@ -815,6 +1327,7 @@ export interface CalendarEvent_required {
 export interface CalendarEvent_updatesDisabled {}
 export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_required, CalendarEvent_updatesDisabled {
   attendees: UserIdentity[],
+  color?: string,
   enableVideoCall?: boolean,
   type?: string,
   publicRead?: boolean,
@@ -825,19 +1338,103 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   image?: string,
   numRSVPs?: number,
   source?: string,
+  externalId?: string,
   templateId?: string,
   carePlanId?: string,
   enduserTasks?: EnduserTaskForEvent[],
   enduserFormResponses?: EnduserFormResponseForEvent[],
   sharedContentIds?: string[],
+  attachments?: GenericAttachment[]
+  bookingPageId?: string,
+  locationId?: string,
   location?: string,
   locationNotes?: string,
   locationURL?: string,
   phone?: string,
-  attachments?: GenericAttachment[]
   wasSelfScheduled?: boolean,
+  agreedToTerms?: AppointmentTerm[],
+  cancelledAt?: Date | '',
+  rescheduledAt?: Date | '',
+  rescheduledTo?: string,
+  noShowedAt?: Date | '',
+  portalSettings?: CalendarEventPortalSettings,
+  isEphemeral?: boolean,
+  videoIntegration?: VideoIntegrationType,
+  videoURL?: string,
+  videoHostUserId?: string, // so we know which integration to use for updating / deleting the event
+  timezone?: Timezone
+  copiedFrom?: string,
+  sequence?: number,
+  internalNotes?: string,
+  // isAllDay?: boolean,
 }
 
+export type PaymentProcessor = 'Square' | 'Stripe'
+export interface Product_readonly extends ClientRecord { }
+export interface Product_required {
+  title: string,
+  cost: {
+    amount: number, // following Stripe convention of smallest currency unit (e.g. cents for usd)
+    currency: Currency // supported currencies
+  },
+  processor: PaymentProcessor,
+}
+export interface Product_updatesDisabled {}
+export interface Product extends Product_readonly, Product_required, Product_updatesDisabled {
+  description?: string,
+  htmlDescription?: string,
+  cptCode?: BillingCode,
+  image?: string,
+  showInPortal?: boolean,
+  categories?: string[],
+  maxCheckoutCount?: number | '',
+}
+
+export interface Purchase_readonly extends ClientRecord {}
+export interface Purchase_required {
+  title: string,
+  cost: {
+    amount: number,
+    currency: Currency
+  },
+  processor: PaymentProcessor,
+  source?: string,
+  enduserId: string,
+}
+export interface Purchase_updatesDisabled {}
+export interface Purchase extends Purchase_readonly, Purchase_required, Purchase_updatesDisabled {
+  description?: string,
+  refundedAmount?: number,
+  processedAt?: Date | '',
+  productId?: string,
+  productIds?: string[],
+  externalId?: string,
+  cptCode?: BillingCode,
+}
+
+type BuildPurchaseCreditInfo <T, I> = { type: T, info: I }
+export type PurchaseCreditInfoForType = {
+  "Credit": BuildPurchaseCreditInfo<"Credit", {
+    amount: number,
+    currency: Currency,
+  }>,
+  // "Voucher": BuildPurchaseCreditInfo<"Voucher", {}>,
+}
+export type PurcahseCreditType = keyof PurchaseCreditInfoForType
+export type PurchaseCreditInfo = PurchaseCreditInfoForType[PurcahseCreditType]
+
+export interface PurchaseCredit_readonly extends ClientRecord { }
+export interface PurchaseCredit_required {
+  title: string,
+  enduserId: string,
+  value: PurchaseCreditInfo,
+}
+export interface PurchaseCredit_updatesDisabled {}
+export interface PurchaseCredit extends PurchaseCredit_readonly, PurchaseCredit_required, PurchaseCredit_updatesDisabled {
+  usedAt?: Date | string,
+  description?: string,
+}
+export type VideoIntegrationType = "Zoom" | 'No Integration'
 export interface CalendarEventTemplate_readonly extends ClientRecord { }
 export interface CalendarEventTemplate_required {}
 export interface CalendarEventTemplate_updatesDisabled {}
@@ -846,12 +1443,70 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   durationInMinutes: number,
   type?: string,
   enableVideoCall?: boolean,
+  videoIntegration?: VideoIntegrationType,
   enableSelfScheduling?: boolean,
   restrictedByState?: boolean,
   publicRead?: boolean,
   description?: string,
   reminders?: CalendarEventReminder[],
   image?: string,
+  productIds?: string[],
+  portalSettings?: CalendarEventPortalSettings,
+  confirmationEmailDisabled?: boolean,
+  confirmationSMSDisabled?: boolean,
+  color?: string,
+
+  carePlanTasks?: string[],
+  carePlanForms?: string[],
+  carePlanContent?: string[],
+  carePlanFiles?: string[]
+}
+
+export interface AppointmentLocation_readonly extends ClientRecord {}
+export interface AppointmentLocation_required {
+  title: string,
+}
+export interface AppointmentLocation_updatesDisabled {}
+export interface AppointmentLocation extends AppointmentLocation_readonly, AppointmentLocation_required, AppointmentLocation_updatesDisabled {
+  address?: string,
+  zipCode?: string,
+  state?: string,
+  phone?: string,
+  timezone?: Timezone,
+}
+
+export type AppointmentTerm = {
+  title: string,
+  link: string,
+}
+export type Currency = 'USD' // subset of ISO 4217 Currency codes
+export interface AppointmentBookingPage_readonly extends ClientRecord {}
+export interface AppointmentBookingPage_required {
+  title: string,
+  locationIds: string[], // ids of AppointmentLocations
+  calendarEventTemplateIds: string[],
+}
+export interface AppointmentBookingPage_updatesDisabled {}
+export interface AppointmentBookingPage extends AppointmentBookingPage_readonly, AppointmentBookingPage_required, AppointmentBookingPage_updatesDisabled {
+  startDate?: Date,
+  endDate?: Date,
+  primaryColor?: string,
+  secondaryColor?: string,
+  backgroundColor?: string,
+  terms?: AppointmentTerm[],
+  intakeTitle?: string,
+  intakeDescription?: string,
+  thankYouRedirectURL?: string,
+  thankYouTitle?: string,
+  thankYouDescription?: string, 
+  thankYouHeaderImageURL?: string,
+  thankYouMainImageURL?: string,
+  ga4measurementId?: string,
+  hiddenFromPortal?: boolean,
+  hoursBeforeBookingAllowed?: number | '',
+  limitedToCareTeam?: boolean,
+  limitedByState?: boolean,
+  // productIds?: string[], // defer to specific template
 }
 
 export interface CalendarEventRSVP_readonly extends ClientRecord {
@@ -871,7 +1526,6 @@ export type WebhookRecord = {
   id: string,
   [index: string]: any,
 }
-
 export type WebhookUpdates = {
   recordBeforeUpdate: WebhookRecord, 
   update: Partial<WebhookRecord>,
@@ -886,14 +1540,18 @@ export interface WebhookCall {
   relatedRecords: { [index: string]: WebhookRecord },
   timestamp: string,
   integrity: string,
+  description?: string,
 }
 
 export type AutomationEventType = 
     'onJourneyStart'
   | 'afterAction'
   | "formResponse"
+  | "formResponses" // multiple forms submitted
   | "formUnsubmitted"
+  | "formsUnsubmitted"
   | "ticketCompleted"
+  | 'waitForTrigger'
 
 interface AutomationEventBuilder <T extends AutomationEventType, V extends object> {
   type: T,
@@ -920,10 +1578,18 @@ export interface AutomationForWebhook { message: string }
 export type FormResponseAutomationEvent = AutomationEventBuilder<'formResponse', {
   automationStepId: string, 
 }> 
+export type FormResponsesAutomationEvent = AutomationEventBuilder<'formResponses', {
+  automationStepId: string, 
+}> 
 export type UnitOfTime = "Seconds" | "Minutes" | "Hours" | "Days"
 
 export type FormSubmitCancellationConditionInfo = { automationStepId: string }
-export type CancelCondition = { type: 'formResponse', info: FormSubmitCancellationConditionInfo }
+export type CancelConditions = {
+  formResponse: { type: 'formResponse', info: FormSubmitCancellationConditionInfo },
+  formResponses: { type: 'formResponses', info: FormSubmitCancellationConditionInfo & { unsubmittedFormCount: number } }
+}
+export type CancelConditionType = keyof CancelConditions
+export type CancelCondition = CancelConditions[CancelConditionType]
 
 export type AfterActionEventInfo = {
   automationStepId: string,
@@ -937,51 +1603,112 @@ export type TicketCompletedEventInfo = {
   closedForReason?: string, // null for default option
 }
 export interface FormUnsubmittedEventInfo extends AfterActionEventInfo {}
-export type AfterActionAutomationEvent = AutomationEventBuilder<'afterAction', AfterActionEventInfo> 
+
+export type AfterActionAutomationEvent = AutomationEventBuilder<'afterAction', AfterActionEventInfo & {
+  formCondition?: {
+    formId: string,
+    formFieldId: string,
+    before?: boolean,
+  }
+  fieldCondition?: {
+    field: string,
+    before?: boolean,
+  }
+}> 
 export type FormUnsubmittedEvent = AutomationEventBuilder<'formUnsubmitted', FormUnsubmittedEventInfo> 
+export type FormsUnsubmittedEvent = AutomationEventBuilder<'formsUnsubmitted', FormUnsubmittedEventInfo> 
 export type OnJourneyStartAutomationEvent = AutomationEventBuilder<'onJourneyStart', {}> 
 export type TicketCompletedAutomationEvent = AutomationEventBuilder<'ticketCompleted', TicketCompletedEventInfo>
+export type WaitForTriggerAutomationEvent = AutomationEventBuilder<'waitForTrigger', { automationStepId: string, triggerId: string }> 
 
 export type AutomationEvent = 
   FormResponseAutomationEvent
+  | FormResponsesAutomationEvent
   | AfterActionAutomationEvent
   | OnJourneyStartAutomationEvent
   | FormUnsubmittedEvent
+  | FormsUnsubmittedEvent
   | TicketCompletedAutomationEvent
+  | WaitForTriggerAutomationEvent
 
 export type AutomationEventForType = {
   'onJourneyStart': OnJourneyStartAutomationEvent
   'afterAction': AfterActionAutomationEvent 
   "formResponse":  FormResponseAutomationEvent
+  "formResponses": FormResponsesAutomationEvent
   'formUnsubmitted': FormUnsubmittedEvent
+  'formsUnsubmitted': FormsUnsubmittedEvent
   'ticketCompleted': TicketCompletedAutomationEvent
+  'waitForTrigger': WaitForTriggerAutomationEvent
 }
 
 export type SetEnduserStatusInfo = { status: string }
 
-interface AutomationActionBuilder <T extends AutomationActionType, V extends object> {
+interface AutomationActionBuilder <T extends string, V extends object> {
   type: T,
   info: V,
 }
 
-export type CreateTicketAssignmentStrategyType = 'care-team-random'
-export type CreateTicketAssignmentStrategy = {
-  type: CreateTicketAssignmentStrategyType,
-  info: object
+export type CreateTicketAssignmentStrategies = {
+  'care-team-random': {
+    type: 'care-team-random',
+    info: {}, 
+  },
+  'care-team-primary': {
+    type: 'care-team-primary',
+    info: {}, 
+  },
+  'by-tags': {
+    type: 'by-tags',
+    info: ListOfStringsWithQualifier, 
+  },
+  'default': {
+    type: 'default',
+    info: {}, 
+  },
 }
+export type CreateTicketAssignmentStrategyType = keyof CreateTicketAssignmentStrategies
+export type CreateTicketAssignmentStrategy = CreateTicketAssignmentStrategies[CreateTicketAssignmentStrategyType]
 export type CreateTicketActionInfo = {
   title: string,
   assignmentStrategy: CreateTicketAssignmentStrategy, // add or options with new types for CreateTicketAssignmentStrategy
   defaultAssignee: string,
+  restrictByState?: boolean,
   closeReasons?: string[],
+  forCarePlan?: boolean,
+  hiddenFromTickets?: boolean,
+  htmlDescription?: string,
+  actions?: TicketAction[],
+  dueDateOffsetInMS?: number,
 }
 
 export type SendEmailAutomationAction = AutomationActionBuilder<'sendEmail', AutomationForMessage>
+export type NotifyTeamAutomationAction = AutomationActionBuilder<'notifyTeam', {
+  templateId: string,
+  forAssigned: boolean,
+  roles?: string[],
+}>
 export type SendSMSAutomationAction = AutomationActionBuilder<'sendSMS', AutomationForMessage>
 export type SendFormAutomationAction = AutomationActionBuilder<'sendForm', AutomationForFormRequest>
 export type SetEnduserStatusAutomationAction = AutomationActionBuilder<'setEnduserStatus', SetEnduserStatusInfo>
 export type CreateTicketAutomationAction = AutomationActionBuilder<'createTicket', CreateTicketActionInfo>
 export type SendWebhookAutomationAction = AutomationActionBuilder<'sendWebhook', AutomationForWebhook>
+export type ShareContentAutomationAction = AutomationActionBuilder<'shareContent', {
+  managedContentRecordIds: string[],
+}>
+export type AddEnduserTagsAutomationAction = AutomationActionBuilder<'addEnduserTags', { tags: string[] }>
+export type AddToJourneyAutomationAction = AutomationActionBuilder<'addToJourney', { journeyId: string }>
+export type RemoveFromJourneyAutomationAction = AutomationActionBuilder<'removeFromJourney', { journeyId: string }>
+
+export type EnduserFieldSetterType = 'Custom Value' | 'Current Timestamp' | 'Current Date'
+export type EnduserFieldSetter = {
+  name: string,
+  type: EnduserFieldSetterType,
+  value: string,
+}
+export type SetEnduserFieldsAutomationAction = AutomationActionBuilder<'setEnduserFields', {
+  fields: EnduserFieldSetter[]
+}>
 
 export type AutomationConditionType = 'atJourneyState' // deprecated
 export type AutomationConditionBuilder <T extends AutomationConditionType, V extends object>  = {
@@ -996,8 +1723,14 @@ export type AutomationActionForType = {
   "sendSMS": SendSMSAutomationAction,
   "sendForm": SendFormAutomationAction,
   "createTicket": CreateTicketAutomationAction,
-  'sendWebhook': SendWebhookAutomationAction
-  'setEnduserStatus': SetEnduserStatusAutomationAction
+  'sendWebhook': SendWebhookAutomationAction,
+  'setEnduserStatus': SetEnduserStatusAutomationAction,
+  'setEnduserFields': SetEnduserFieldsAutomationAction,
+  'shareContent': ShareContentAutomationAction,
+  'notifyTeam': NotifyTeamAutomationAction,
+  'addEnduserTags': AddEnduserTagsAutomationAction,
+  'addToJourney': AddToJourneyAutomationAction,
+  'removeFromJourney': RemoveFromJourneyAutomationAction,
 }
 export type AutomationActionType = keyof AutomationActionForType
 export type AutomationAction = AutomationActionForType[AutomationActionType]
@@ -1006,15 +1739,17 @@ export interface AutomationStep_readonly extends ClientRecord {}
 export interface AutomationStep_required {
   events: AutomationEvent[],
   conditions?: AutomationCondition[],
+  enduserConditions?: Record<any, any>,
   action: AutomationAction,
 }
 export interface AutomationStep_updatesDisabled {}
 export interface AutomationStep extends AutomationStep_readonly, AutomationStep_required, AutomationStep_updatesDisabled {
   journeyId: string,
   flowchartUI?: FlowchartUI,
+  continueOnError?: boolean,
 }
 
-export type RelatedRecord = { type: string, id: string, creator?: string }
+export type RelatedRecord = { type: string, id: string, creator?: string, environment?: string }
 export interface UserNotification_readonly extends ClientRecord {}
 export interface UserNotification_required {
   userId: string,
@@ -1071,7 +1806,9 @@ export type BlockContentMedia = {
   link: string,
   name?: string,
   height?: number,
+  maxHeight?: number,
   width?: number,
+  maxWidth?: number
 }
 export type BlockContentH1 = ContentBlockBuilder<'h1', BlockContentText>
 export type BlockContentH2 = ContentBlockBuilder<'h2', BlockContentText>
@@ -1090,6 +1827,14 @@ export type Block = (
   | BlockContentH2
   | BlockContentIFrame
 )
+
+export const TEXT_EMBEDDING_ADA_002 = "text-embedding-ada-002"
+export const EmbeddingInfo = {
+  [TEXT_EMBEDDING_ADA_002]: {
+    maxTokens: 8191,
+  }
+}
+export type EmbeddingType = keyof typeof EmbeddingInfo
 
 export type ManagedContentRecordType = 'Article' | 'PDF' | 'Video'
 export type ManagedContentRecordAssignmentType = 'All' | "By Tags" | 'Manual' | 'Individual'
@@ -1116,6 +1861,10 @@ export interface ManagedContentRecord extends ManagedContentRecord_readonly, Man
   mode?: MessageTemplateMode,
   attachments?: ChatAttachment[]
   assignmentType?: ManagedContentRecordAssignmentType,
+  embedding?: number[],
+  embeddingHash?: string,
+  embeddingType?: EmbeddingType,
+  forInternalUse?: boolean,
 }
 
 export interface ManagedContentRecordAssignment_readonly extends ClientRecord {}
@@ -1141,6 +1890,7 @@ export type PortalBlockForType = {
   }>,
   carePlan: BuildPortalBlockInfo<'carePlan', {}>,
   education: BuildPortalBlockInfo<'education', {}>,
+  Events: BuildPortalBlockInfo<'Events', {}>,
   text: BuildPortalBlockInfo<'text', { text: string }>
 }
 export type PortalBlockType = keyof PortalBlockForType
@@ -1164,7 +1914,7 @@ export const DEFAULT_PATIENT_PORTAL_BOTTOM_NAVIGATION_POSITIONS: { [K in PortalP
   Communications: 1,
   Documents: 2,
   Education: 3,
-  Community: 4,
+  Community: MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION, // ensure community is disabled by default
   "Care Plan": MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION,
   "Appointment Booking": MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION,
 }
@@ -1197,6 +1947,7 @@ export interface ForumPost extends ForumPost_readonly, ForumPost_required, Forum
   postedBy: UserIdentity,
   slug?: string,
   description?: string,
+  attachments?: ChatAttachment[],
 }
 
 export interface PostLike_readonly extends ClientRecord {}
@@ -1237,7 +1988,9 @@ export interface CommentLike_updatesDisabled {}
 export interface CommentLike extends CommentLike_readonly, CommentLike_required, CommentLike_updatesDisabled {}
 
 export type AutomatedActionStatus = 'active' | 'finished' | 'cancelled' | 'error'
-export interface AutomatedAction_readonly extends ClientRecord {}
+export interface AutomatedAction_readonly extends ClientRecord {
+  journeyContext?: JourneyContext
+}
 export interface AutomatedAction_required {
   enduserId: string,
   automationStepId: string,
@@ -1248,6 +2001,7 @@ export interface AutomatedAction_required {
   // cancelConditions: CancelCondition[] // already included as part of the event
   processAfter: number,
   errorMessage?: string,
+  enduserConditions?: Record<any, any>,
 }
 export interface AutomatedAction_updatesDisabled {}
 export interface AutomatedAction extends AutomatedAction_readonly, AutomatedAction_required, AutomatedAction_updatesDisabled {
@@ -1262,7 +2016,10 @@ export interface UserLog_readonly extends ClientRecord {
 }
 export interface UserLog_required {}
 export interface UserLog_updatesDisabled {}
-export interface UserLog extends UserLog_readonly, UserLog_required, UserLog_updatesDisabled {}
+export interface UserLog extends UserLog_readonly, UserLog_required, UserLog_updatesDisabled {
+  info?: Indexable,
+  enduserId?: string,
+}
 
 export interface EnduserTask_readonly extends ClientRecord {}
 export interface EnduserTask_required {
@@ -1286,20 +2043,531 @@ export interface CarePlan extends CarePlan_readonly, CarePlan_required, CarePlan
   eventIds?: string[],
 }
 
+export type UserUIRestrictions = {
+  hideDashboard?: boolean,
+  hideInbox?: boolean,
+  hideTeamChat?: boolean,
+  hideEnduserChat?: boolean,
+}
+
 export interface RoleBasedAccessPermission_readonly extends ClientRecord {}
 export interface RoleBasedAccessPermission_required {
   role: string,
   permissions: Partial<AccessPermissions>,
+  uiRestrictions?: UserUIRestrictions,
 }
 export interface RoleBasedAccessPermission_updatesDisabled {}
 export interface RoleBasedAccessPermission extends RoleBasedAccessPermission_readonly, RoleBasedAccessPermission_required, RoleBasedAccessPermission_updatesDisabled {}
 
+export interface PhoneCall_readonly extends ClientRecord {
+  enduserId: string,
+  externalId: string,
+  from: string,
+  to: string,
+  inbound: boolean,
+  isVoicemail?: boolean,
+  callDurationInSeconds?: number,
+  recordingURI?: string,
+  recordingId?: string,
+  recordingDurationInSeconds?: number,
+  transcriptionId?: string,
+}
+export interface PhoneCall_required {}
+export interface PhoneCall_updatesDisabled {}
+export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, PhoneCall_updatesDisabled {
+  unread?: boolean,
+  transcription?: string,
+  note?: string,
+  userId?: string,
+  pinnedAt?: Date | '',
+  readBy?: { [index: string] : Date | '' };
+  ticketIds?: string[],
+}
+
+export type AnalyticsQueryResultValue = {
+  key?: string,
+  timestamp?: Date,
+  unit?: string,
+  value: number,
+  numerator?: number,
+  denominator?: number,
+}
+export type AnalyticsQueryResult = { 
+  count?: number, // for simple queries
+  values?: AnalyticsQueryResultValue[] // for group or longitudinal queries
+}
+export type DateRange = { from?: Date | '', to?: Date | '' }
+
+type AnalyticsQueryInfoBuilder <M extends string, P extends object | undefined> = { method: M, parameters: P }
+export type AnalyticsQueryInfoForType = {
+  "Endusers": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },
+  "Calendar Events": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },
+  "Form Responses": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },
+  "Purchases": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },  
+  "Purchase Credits": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },  
+  "Tickets": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },  
+  "Emails": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },  
+  "SMS Messages": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },
+  "Phone Calls": { 
+    Total:  AnalyticsQueryInfoBuilder<'Total', undefined>,
+    Duration:  AnalyticsQueryInfoBuilder<'Duration', undefined>,
+  },
+}
+export type AnalyticsQueryInfoType = keyof AnalyticsQueryInfoForType
+export type AnalyticsQueryInfo = AnalyticsQueryInfoForType[AnalyticsQueryInfoType]
+
+export type ListQueryQualifier = 'All Of' | 'One Of'
+
+export type AnalyticsQueryFilterForType = {
+  "Endusers": {
+    activeSince?: Date | '',
+    "Submitted Forms"?: {
+      qualifier: ListQueryQualifier,
+      formIds: string[],
+      formResponseCondition?: CompoundFilter<string>,
+    }, 
+    fields?: { key: string, value: string, range?: DateRange | '' }[],
+    gender?: TellescopeGender,
+    assignedTo?: {
+      qualifier: ListQueryQualifier,
+      userIds: string[],
+    }, 
+    born?: DateRange,
+    tags?: ListOfStringsWithQualifier,
+  },  
+  "Calendar Events": {
+    userIds?: string[],
+    templateIds?: string[],
+    starts?: DateRange,
+    wasSelfScheduled?: boolean,
+    wasCancelled?: boolean,
+    wasRescheduled?: boolean,
+    wasNoShowed?: boolean,
+  },  
+  "Form Responses": {
+    formIds?: string[],
+    formResponseCondition?: CompoundFilter<string>,
+  }
+  "Purchases": { },
+  "Purchase Credits": { },
+  "Tickets": { },
+  "Phone Calls": { },
+  "SMS Messages": { },
+  Emails: { },
+}
+
+export type EnduserGrouping = {
+  Field?: string,
+  Gender?: boolean,
+  "Assigned To"?: boolean,
+  Tags?: boolean,
+  Age?: boolean,
+}
+
+export type AnalyticsQueryGroupingForType = {
+  "Endusers": EnduserGrouping,  
+  "Calendar Events": {
+    Type: boolean,
+  },
+  "Form Responses": {
+    /* by joining on Endusers */
+  } & EnduserGrouping & { Enduser: string },
+  "Purchases": { 
+    Cost?: boolean,
+    /* by joining on Endusers */
+  } & EnduserGrouping & { Enduser: string },
+  "Purchase Credits": { 
+    /* by joining on Endusers */
+  } & EnduserGrouping & { Enduser: string },
+  "Tickets": { 
+    /* by joining on Endusers */
+  } & EnduserGrouping & { Enduser: string },
+  "Phone Calls": { 
+    // Cost?: boolean,
+    /* by joining on Endusers */
+  } & EnduserGrouping & { Enduser: string },
+  "SMS Messages": { 
+    // Cost?: boolean,
+    /* by joining on Endusers */
+  } & EnduserGrouping & { Enduser: string },
+  "Emails": { 
+    // Cost?: boolean,
+    /* by joining on Endusers */
+  } & EnduserGrouping & { Enduser: string },
+}
+
+type DefaultRangeKey = 'Created At' | 'Updated At'
+export type AnalyticsQueryRangeKeyForType = {
+  "Endusers": DefaultRangeKey,// | 'Last Active At',
+  "Calendar Events": DefaultRangeKey,
+  "Form Responses": DefaultRangeKey,
+  "Purchases": DefaultRangeKey,
+  "Purchase Credits": DefaultRangeKey,
+  "Tickets": DefaultRangeKey,
+  "Phone Calls": DefaultRangeKey,
+  "SMS Messages": DefaultRangeKey,
+  "Emails": DefaultRangeKey,
+}
+
+export type AnalyticsQueryRangeInterval = 'Daily' | 'Weekly' | 'Monthly'
+export type AnalyticsQueryRange <R> = {
+  interval: AnalyticsQueryRangeInterval,
+  key: R, 
+}
+
+type AnalyticsQueryBuilder <T extends keyof AnalyticsQueryInfoForType, M, F, G, R> = { 
+  resource: T, 
+  info: M, 
+  filter?: F,
+  grouping?: G, 
+  range?: AnalyticsQueryRange<R>,
+}
+export type AnalyticsQueryForType = {
+  "Endusers": AnalyticsQueryBuilder<
+    "Endusers", 
+    AnalyticsQueryInfoForType['Endusers'][keyof AnalyticsQueryInfoForType['Endusers']],
+    AnalyticsQueryFilterForType['Endusers'],
+    AnalyticsQueryGroupingForType['Endusers'],
+    AnalyticsQueryRangeKeyForType['Endusers']
+  >,
+  "Calendar Events": AnalyticsQueryBuilder<
+    "Calendar Events", 
+    AnalyticsQueryInfoForType['Calendar Events'][keyof AnalyticsQueryInfoForType['Calendar Events']],
+    AnalyticsQueryFilterForType['Calendar Events'],
+    AnalyticsQueryGroupingForType['Calendar Events'],
+    AnalyticsQueryRangeKeyForType['Calendar Events']
+  >,
+  "Form Responses": AnalyticsQueryBuilder<
+    "Form Responses", 
+    AnalyticsQueryInfoForType['Form Responses'][keyof AnalyticsQueryInfoForType['Form Responses']],
+    AnalyticsQueryFilterForType['Form Responses'],
+    AnalyticsQueryGroupingForType['Form Responses'],
+    AnalyticsQueryRangeKeyForType['Form Responses']
+  >,
+  "Purchases": AnalyticsQueryBuilder<
+    "Purchases", 
+    AnalyticsQueryInfoForType['Purchases'][keyof AnalyticsQueryInfoForType['Purchases']],
+    AnalyticsQueryFilterForType['Purchases'],
+    AnalyticsQueryGroupingForType['Purchases'],
+    AnalyticsQueryRangeKeyForType['Purchases']
+  >,
+  "Purchase Credits": AnalyticsQueryBuilder<
+    "Purchase Credits", 
+    AnalyticsQueryInfoForType['Purchase Credits'][keyof AnalyticsQueryInfoForType['Purchase Credits']],
+    AnalyticsQueryFilterForType['Purchase Credits'],
+    AnalyticsQueryGroupingForType['Purchase Credits'],
+    AnalyticsQueryRangeKeyForType['Purchase Credits']
+  >,
+  "Tickets": AnalyticsQueryBuilder<
+    "Tickets", 
+    AnalyticsQueryInfoForType['Tickets'][keyof AnalyticsQueryInfoForType['Tickets']],
+    AnalyticsQueryFilterForType['Tickets'],
+    AnalyticsQueryGroupingForType['Tickets'],
+    AnalyticsQueryRangeKeyForType['Tickets']
+  >,
+  "Phone Calls": AnalyticsQueryBuilder<
+    "Phone Calls", 
+    AnalyticsQueryInfoForType['Phone Calls'][keyof AnalyticsQueryInfoForType['Phone Calls']],
+    AnalyticsQueryFilterForType['Phone Calls'],
+    AnalyticsQueryGroupingForType['Phone Calls'],
+    AnalyticsQueryRangeKeyForType['Phone Calls']
+  >,
+  "Emails": AnalyticsQueryBuilder<
+    "Emails", 
+    AnalyticsQueryInfoForType['Emails'][keyof AnalyticsQueryInfoForType['Emails']],
+    AnalyticsQueryFilterForType['Emails'],
+    AnalyticsQueryGroupingForType['Emails'],
+    AnalyticsQueryRangeKeyForType['Emails']
+  >,
+  "SMS Messages": AnalyticsQueryBuilder<
+    "SMS Messages", 
+    AnalyticsQueryInfoForType['SMS Messages'][keyof AnalyticsQueryInfoForType['SMS Messages']],
+    AnalyticsQueryFilterForType['SMS Messages'],
+    AnalyticsQueryGroupingForType['SMS Messages'],
+    AnalyticsQueryRangeKeyForType['SMS Messages']
+  >,
+}
+export type AnalyticsQueryType = keyof AnalyticsQueryForType
+export type AnalyticsQuery = AnalyticsQueryForType[AnalyticsQueryType]
+
+export const resource_to_modelName: { [K in AnalyticsQueryType] : ModelName } = {
+  Endusers: 'endusers',
+  "Calendar Events": 'calendar_events',
+  "Form Responses": 'form_responses',
+  Purchases: 'purchases',
+  "Purchase Credits": 'purchase_credits',
+  Tickets: 'tickets',
+  "Phone Calls": 'phone_calls',
+  "SMS Messages": 'sms_messages',
+  Emails: "emails",
+}
+
+export type AnalyticsQueryOptions = {
+  createdRange?: DateRange,
+  updatedRange?: DateRange,
+}
+
+export type AnalyticsFrameType = 'Percentage'
+export interface AnalyticsFrame_readonly extends ClientRecord {}
+export interface AnalyticsFrame_required {
+  title: string,
+  query: AnalyticsQuery,
+}
+export interface AnalyticsFrame_updatesDisabled {}
+export interface AnalyticsFrame extends 
+  AnalyticsFrame_readonly, AnalyticsFrame_required, AnalyticsFrame_updatesDisabled, AnalyticsQueryOptions 
+{
+  parentFrame?: string,
+  type?: AnalyticsFrameType,
+}
+
+
+export interface BackgroundError_readonly extends ClientRecord {}
+export interface BackgroundError_required {
+  title: string,
+  message: string,
+}
+export interface BackgroundError_updatesDisabled {}
+export interface BackgroundError extends BackgroundError_readonly, BackgroundError_required, BackgroundError_updatesDisabled {
+  acknowledgedAt?: Date | '',
+  journeyId?: string,
+  enduserId?: string,
+}
+
+export interface EnduserView_readonly extends ClientRecord {}
+export interface EnduserView_required {
+  title: string,
+  fields: string[],
+  filter: Indexable,
+}
+export interface EnduserView_updatesDisabled {}
+export interface EnduserView extends EnduserView_readonly, EnduserView_required, EnduserView_updatesDisabled {
+  defaultForRole?: string,
+  hideProfileLink?: boolean,
+  customTypeId?: string,
+  style?: {
+    [index: string]: {
+      width?: number,
+    }
+  },
+}
+
+export type EnduserProfileViewBlockBuilder <T, I> = { type: T, info: I, width?: string }
+export type EnduserProfileViewBlocks = {
+  "Field Group": EnduserProfileViewBlockBuilder<"Field Group", { title: string, fields: string[] }>,
+}
+export type EnduserProfileViewBlockType = keyof EnduserProfileViewBlocks
+export type EnduserProfileViewBlock = EnduserProfileViewBlocks[EnduserProfileViewBlockType]
+
+export interface EnduserProfileView_readonly extends ClientRecord {}
+export interface EnduserProfileView_required {
+  title: string,
+  blocks: EnduserProfileViewBlock[],
+}
+export interface EnduserProfileView_updatesDisabled {}
+export interface EnduserProfileView extends EnduserProfileView_readonly, EnduserProfileView_required, EnduserProfileView_updatesDisabled {}
+
+export type ListOfStringsWithQualifier = {
+  qualifier: ListQueryQualifier,
+  values: string[],
+}
+
+export type AutomationTriggerActionBuilder <T, I> = { type: T, info: I }
+export type AutomationTriggerActions = {
+  "Add To Journey": AutomationTriggerActionBuilder<'Add To Journey', { journeyId: string, doNotRestart?: boolean }>,
+  "Remove From Journey": AutomationTriggerActionBuilder<'Remove From Journey', { journeyId: string }>,
+  "Add Tags": AutomationTriggerActionBuilder<'Add Tags', { tags: string[] }>,
+  "Move To Step": AutomationTriggerActionBuilder<'Move To Step', { }>, // journeyId and automationStepId stored as part of trigger for better dependency deletion
+  "Assign Care Team": AutomationTriggerActionBuilder<'Assign Care Team', { 
+    tags: ListOfStringsWithQualifier
+  }>, 
+}
+export type AutomationTriggerActionType = keyof AutomationTriggerActions
+export type AutomationTriggerAction = AutomationTriggerActions[AutomationTriggerActionType]
+
+export type AutomationTriggerEventBuilder <T, I, C> = { type: T, info: I, conditions?: C }
+
+export type AutomationTriggerEvents = {
+  'Form Submitted': AutomationTriggerEventBuilder<"Form Submitted", { formId: string, submitterType?: SessionType | 'Anyone', publicIdentifier?: string }, {}>,
+  'Form Unsubmitted': AutomationTriggerEventBuilder<"Form Unsubmitted", { formId: string, intervalInMS: number }, {}>,
+  'Purchase Made': AutomationTriggerEventBuilder<"Purchase Made", { }, {}>,
+  'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", { }, {}>,
+  'Field Equals': AutomationTriggerEventBuilder<"Field Equals", { field: string, value: string }, { }>,
+  'Appointment Created': AutomationTriggerEventBuilder<"Appointment Created", { }, {}>,
+  'Medication Added': AutomationTriggerEventBuilder<"Medication Added", { titles: string[] }, {}>,
+  'No Recent Appointment': AutomationTriggerEventBuilder<"No Recent Appointment", { intervalInMS: number }, {}>,
+}
+export type AutomationTriggerEventType = keyof AutomationTriggerEvents
+export type AutomationTriggerEvent = AutomationTriggerEvents[AutomationTriggerEventType]
+
+export type AutomationTriggerStatus = "Active" | "Inactive"
+export interface AutomationTrigger_readonly extends ClientRecord {}
+export interface AutomationTrigger_required {
+  title: string,
+  event: AutomationTriggerEvent,
+  action: AutomationTriggerAction,
+  status: AutomationTriggerStatus,
+}
+export interface AutomationTrigger_updatesDisabled {}
+export interface AutomationTrigger extends AutomationTrigger_readonly, AutomationTrigger_required, AutomationTrigger_updatesDisabled {
+  enduserCondition?: Record<string, any>,
+  journeyId?: string,
+  oncePerEnduser?: boolean,
+}
+
+export type Address = {
+  lineOne: string,
+  lineTwo?: string,
+  city: string,
+  state: string,
+  zipCode: string,
+}
+
+type SuperbillProviderInfoRequired = {
+  phone: string,
+  email: string,
+  officeName: string,
+  taxId: string,
+  placeOfServiceCode?: string,
+  providerName: string,
+  providerNPI: string,
+  providerLicense: string,
+  address: Address,
+}
+export type SuperbillProviderInfo = SuperbillProviderInfoRequired & {} // all required for now
+
+export interface SuperbillProvider_readonly extends ClientRecord {}
+export interface SuperbillProvider_required extends SuperbillProviderInfoRequired {}
+export interface SuperbillProvider_updatesDisabled {}
+export interface SuperbillProvider extends SuperbillProviderInfo, SuperbillProvider_readonly, SuperbillProvider_required, SuperbillProvider_updatesDisabled {}
+
+export type Insurance = { name: string }
+
+export interface ReferralProvider_readonly extends ClientRecord {}
+export interface ReferralProvider_required {}
+export interface ReferralProvider_updatesDisabled {}
+export interface ReferralProvider extends ReferralProvider_readonly, ReferralProvider_required, ReferralProvider_updatesDisabled {
+  fname?: string,
+  lname?: string,
+  description?: string,
+  activeRelationshipStatus?: string,
+  acceptingReferralsStatus?: string,
+  inPersonServiceStatus?: string,
+  virtualServiceStatus?: string,
+  services?: string[],
+  locations?: string[],
+  languages?: string[],
+  eligibilityCriteria?: string[],
+  organizationName: string,
+  clinicName: string,
+  types: string[],
+  acceptedInsurance?: Insurance[],  
+  address?: Address,
+  phone?: string, 
+  phoneExtension?: string,
+  email?: string,
+  website?: string,
+  bookingLink?: string,
+  notes?: string,
+  uninsuredDescription?: string,
+}
+
+export type BillingCode = {
+  code: number,
+  label: string,
+}
+
+export type SuperbillLineItem = {
+  billingCode: BillingCode,
+  quantity: number,
+  cost: {
+    amount: number, // following Stripe convention of smallest currency unit (e.g. cents for usd)
+    currency: Currency // supported currencies
+  },
+  discount?: number, // following Stripe convention of smallest currency unit (e.g. cents for usd)
+}
+
+export type SuperbillPatientInfo = {
+  name: string
+  dateOfBirth: string,
+  phone: string,
+}
+
+export interface Superbill_readonly extends ClientRecord {}
+export interface Superbill_required {
+  enduserId: string,
+  appointmentDate: Date,
+  provider: SuperbillProviderInfo,
+  patient: SuperbillPatientInfo,
+  lineItems: SuperbillLineItem[]
+}
+export interface Superbill_updatesDisabled {}
+export interface Superbill extends Superbill_readonly, Superbill_required, Superbill_updatesDisabled {}
+
+export type PhoneTreeEventBuilder <T, V> = { parentId: string, type: T, info: V }
+export type PhoneTreeEvents = {
+  'Start': PhoneTreeEventBuilder<'Start', {}>,
+  'On Gather': PhoneTreeEventBuilder<'On Gather', { digits?: string, transcription?: string }>,
+}
+export type PhoneTreeEventType = keyof PhoneTreeEvents
+export type PhoneTreeEvent = PhoneTreeEvents[PhoneTreeEventType]
+
+export type PhonePlaybackInfo = { 
+  Say: { type: 'Say', info: { script: string, url?: string, } }
+  Play: { type: "Play", info: { url: string, script?: string, } }
+}
+export type PhonePlaybackType = keyof PhonePlaybackInfo
+export type PhonePlayback = PhonePlaybackInfo[PhonePlaybackType]
+
+export type PhoneTreeActionBuilder <T, V> = { type: T, info: V }
+export type PhoneTreeActions = {
+  // 'Play': PhoneTreeActionBuilder<"Play", { playback: PhonePlayback }>
+  'Gather': PhoneTreeActionBuilder<"Gather", { digits: boolean, speech: boolean, playback: PhonePlayback }>
+  'Voicemail': PhoneTreeActionBuilder<"Voicemail", { playback: PhonePlayback }>
+  'Dial Users': PhoneTreeActionBuilder<"Dial Users", { userIds: string[] }>
+}
+export type PhoneTreeActionType = keyof PhoneTreeActions 
+export type PhoneTreeAction = PhoneTreeActions[PhoneTreeActionType]
+
+export type PhoneTreeNode = {
+  id: string,
+  action: PhoneTreeAction,
+  events: PhoneTreeEvent[],
+  flowchartUI: FlowchartUI,
+}
+
+export type PhoneTreeEnduserCondition = (
+  'All' 
+| 'Unassigned'
+)
+export interface PhoneTree_readonly extends ClientRecord {}
+export interface PhoneTree_required {
+  number: string,
+  nodes: PhoneTreeNode[],
+  isActive: boolean,
+}
+export interface PhoneTree_updatesDisabled {}
+export interface PhoneTree extends PhoneTree_readonly, PhoneTree_required, PhoneTree_updatesDisabled {
+  testEnduserIds?: string[],
+  enduserCondition?: PhoneTreeEnduserCondition,
+}
+
 export type ModelForName_required = {
+  enduser_custom_types: EnduserCustomType_required,
+  phone_trees: PhoneTree_required,
+  referral_providers: ReferralProvider_required,
+  superbill_providers: SuperbillProvider_required,
+  superbills: Superbill_required,
+  automation_triggers: AutomationTrigger_required,
+  background_errors: BackgroundError_required,
+  enduser_views: EnduserView_required,
+  availability_blocks: AvailabilityBlock_required,
+  analytics_frames: AnalyticsFrame_required,
   endusers: Enduser_required;
+  enduser_profile_views: EnduserProfileView_required,
   engagement_events: EngagementEvent_required;
   journeys: Journey_required;
   api_keys: APIKey_required;
-  tasks: Task_required;
   emails: Email_required;
   sms_messages: SMSMessage_required;
   chat_rooms: ChatRoom_required;
@@ -1338,15 +2606,32 @@ export type ModelForName_required = {
   enduser_tasks: EnduserTask_required;
   care_plans: CarePlan_required;
   role_based_access_permissions: RoleBasedAccessPermission_required;
+  appointment_booking_pages: AppointmentBookingPage_required;
+  appointment_locations: AppointmentLocation_required;
+  products: Product_required,
+  purchases: Purchase_required,
+  purchase_credits: PurchaseCredit_required,
+  phone_calls: PhoneCall_required,
+  enduser_medications: EnduserMedication_required,
 }
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  enduser_custom_types: EnduserCustomType_readonly,
+  phone_trees: PhoneTree_readonly,
+  enduser_medications: EnduserMedication_readonly,
+  referral_providers: ReferralProvider_readonly,
+  superbill_providers: SuperbillProvider_readonly,
+  superbills: Superbill_readonly,
+  automation_triggers: AutomationTrigger_readonly,
+  background_errors: BackgroundError_readonly,
+  enduser_views: EnduserView_readonly,
+  availability_blocks: AvailabilityBlock_readonly,
+  analytics_frames: AnalyticsFrame_readonly,
   endusers: Enduser_readonly;
   engagement_events: EngagementEvent_readonly;
   journeys: Journey_readonly;
   api_keys: APIKey_readonly;
-  tasks: Task_readonly;
   emails: Email_readonly;
   sms_messages: SMSMessage_readonly;
   chat_rooms: ChatRoom_readonly;
@@ -1385,15 +2670,32 @@ export interface ModelForName_readonly {
   enduser_tasks: EnduserTask_readonly;
   care_plans: CarePlan_readonly;
   role_based_access_permissions: RoleBasedAccessPermission_readonly;
+  appointment_booking_pages: AppointmentBookingPage_readonly;
+  appointment_locations: AppointmentLocation_readonly;
+  products: Product_readonly,
+  purchases: Purchase_readonly,
+  purchase_credits: PurchaseCredit_readonly,
+  phone_calls: PhoneCall_readonly,
+  enduser_profile_views: EnduserProfileView_readonly,
 }
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  enduser_custom_types: EnduserCustomType_updatesDisabled,
+  phone_trees: PhoneTree_updatesDisabled,
+  enduser_medications: EnduserMedication_updatesDisabled,
+  referral_providers: ReferralProvider_updatesDisabled,
+  superbill_providers: SuperbillProvider_updatesDisabled,
+  superbills: Superbill_updatesDisabled,
+  automation_triggers: AutomationTrigger_updatesDisabled,
+  background_errors: BackgroundError_updatesDisabled,
+  enduser_views: EnduserView_updatesDisabled,
+  availability_blocks: AvailabilityBlock_updatesDisabled,
+  analytics_frames: AnalyticsFrame_updatesDisabled,
   endusers: Enduser_updatesDisabled;
   engagement_events: EngagementEvent_updatesDisabled;
   journeys: Journey_updatesDisabled;
   api_keys: APIKey_updatesDisabled;
-  tasks: Task_updatesDisabled;
   emails: Email_updatesDisabled;
   sms_messages: SMSMessage_updatesDisabled;
   chat_rooms: ChatRoom_updatesDisabled;
@@ -1432,15 +2734,32 @@ export interface ModelForName_updatesDisabled {
   enduser_tasks: EnduserTask_updatesDisabled;
   care_plans: CarePlan_updatesDisabled;
   role_based_access_permissions: RoleBasedAccessPermission_updatesDisabled;
+  appointment_booking_pages: AppointmentBookingPage_updatesDisabled;
+  appointment_locations: AppointmentLocation_updatesDisabled;
+  products: Product_updatesDisabled,
+  purchases: Purchase_updatesDisabled,
+  purchase_credits: PurchaseCredit_updatesDisabled,
+  phone_calls: PhoneCall_updatesDisabled,
+  enduser_profile_views: EnduserProfileView_updatesDisabled,
 }
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly {
+  enduser_custom_types: EnduserCustomType,
+  phone_trees: PhoneTree,
+  enduser_medications: EnduserMedication,
+  referral_providers: ReferralProvider,
+  superbill_providers: SuperbillProvider,
+  superbills: Superbill,
+  automation_triggers: AutomationTrigger,
+  background_errors: BackgroundError,
+  enduser_views: EnduserView,
+  availability_blocks: AvailabilityBlock,
+  analytics_frames: AnalyticsFrame,
   endusers: Enduser;
   engagement_events: EngagementEvent;
   journeys: Journey;
   api_keys: APIKey;
-  tasks: Task;
   emails: Email;
   sms_messages: SMSMessage;
   chat_rooms: ChatRoom;
@@ -1479,6 +2798,13 @@ export interface ModelForName extends ModelForName_required, ModelForName_readon
   enduser_tasks: EnduserTask;
   care_plans: CarePlan;
   role_based_access_permissions: RoleBasedAccessPermission;
+  appointment_booking_pages: AppointmentBookingPage;
+  appointment_locations: AppointmentLocation;
+  products: Product,
+  purchases: Purchase,
+  purchase_credits: PurchaseCredit,
+  phone_calls: PhoneCall,
+  enduser_profile_views: EnduserProfileView,
 }
 export type ModelName = keyof ModelForName
 export type Model = ModelForName[keyof ModelForName]
@@ -1493,12 +2819,22 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  enduser_custom_types: true,
+  phone_trees: true,
+  referral_providers: true,
+  enduser_medications: true,
+  superbill_providers: true,
+  superbills: true,
+  automation_triggers: true,
+  background_errors: true,
+  enduser_views: true,
+  availability_blocks: true,
+  analytics_frames: true,
   endusers: true,
   enduser_status_updates: true,
   engagement_events: true,
   journeys: true,
   api_keys: true,
-  tasks: true,
   emails: true,
   sms_messages: true,
   chat_rooms: true,
@@ -1536,6 +2872,13 @@ export const modelNameChecker: { [K in ModelName] : true } = {
   care_plans: true,
   enduser_tasks: true,
   role_based_access_permissions: true,
+  appointment_booking_pages: true,
+  appointment_locations: true,
+  products: true,
+  purchases: true,
+  purchase_credits: true,
+  phone_calls: true,
+  enduser_profile_views: true,
 }
 
 
@@ -1556,6 +2899,11 @@ export const is_webhook_supported_model = (m: ModelName): m is WebhookSupportedM
 
 export const isModelName = (s: string): s is ModelName => modelNameChecker[s as ModelName]
 
+export type JourneyContext = {
+  calendarEventId?: string,
+  formResponseId?: string,
+  purchaseId?: string,
+}
 
 // https://gist.github.com/aviflax/a4093965be1cd008f172/ 
 export const TIMEZONE_MAP = {
@@ -2103,31 +3451,142 @@ export type Timezone = keyof typeof TIMEZONE_MAP
 export const TIMEZONES = Object.keys(TIMEZONE_MAP) as Timezone[]
 
 export const TIMEZONES_USA: Timezone[] = [
-  "America/Anchorage",
-  "America/Boise",
-  "America/Chicago",
-  "America/Denver",
-  "America/Detroit",
-  "America/Indiana/Indianapolis",
-  "America/Indiana/Knox",
-  "America/Indiana/Marengo",
-  "America/Indiana/Petersburg",
-  "America/Indiana/Tell_City",
-  "America/Indiana/Valparaiso",
-  "America/Indiana/Vevay",
-  "America/Indiana/Vincennes",
-  "America/Indiana/Winamac",
-  "America/Indianapolis",
-  "America/Juneau",
-  "America/Kentucky/Louisville",
-  "America/Kentucky/Monticello",
-  "America/Knox_IN",
-  "America/Los_Angeles",
-  "America/Louisville",
-  "America/New_York",
-  "America/North_Dakota/Beulah",
-  "America/North_Dakota/Center",
-  "America/North_Dakota/New_Salem",
-  "America/Phoenix",
-  "America/Puerto_Rico",
+  "US/Hawaii",
+  "US/Alaska",
+  "US/Pacific",
+  "US/Arizona",
+  "US/Mountain",
+  "US/Central",
+  "US/Eastern",
+  "US/Samoa",
 ]
+
+export const VALID_STATES: string[] = [
+  "AK", 
+  "AL", 
+  "AR", 
+  "AS", 
+  "AZ", 
+  "CA", 
+  "CO", 
+  "CT", 
+  "DC", 
+  "DE", 
+  "FL", 
+  "GA", 
+  "GU", 
+  "HI", 
+  "IA", 
+  "ID", 
+  "IL", 
+  "IN", 
+  "KS", 
+  "KY", 
+  "LA", 
+  "MA", 
+  "MD", 
+  "ME", 
+  "MI", 
+  "MN", 
+  "MO", 
+  "MP", 
+  "MS", 
+  "MT", 
+  "NC", 
+  "ND", 
+  "NE", 
+  "NH", 
+  "NJ", 
+  "NM", 
+  "NV", 
+  "NY", 
+  "OH", 
+  "OK", 
+  "OR", 
+  "PA", 
+  "PR", 
+  "RI", 
+  "SC", 
+  "SD", 
+  "TN", 
+  "TX", 
+  "UM", 
+  "UT", 
+  "VA", 
+  "VI", 
+  "VT", 
+  "WA", 
+  "WI", 
+  "WV",
+  "WY",
+]
+
+export const USA_STATE_TO_TIMEZONE: { [index: string]: Timezone } = {
+  "AK": 'US/Alaska', 
+  "AL": 'US/Central', 
+  "AR": 'US/Central', 
+  "AS": 'US/Samoa', 
+  "AZ": 'US/Arizona', 
+  "CA": 'US/Pacific', 
+  "CO": 'US/Mountain', 
+  "CT": 'US/Eastern', 
+  "DC": 'US/Eastern', 
+  "DE": 'US/Eastern', 
+  "FL": 'US/Eastern', 
+  "GA": 'US/Eastern', 
+  "GU": 'Pacific/Guam', 
+  "HI": 'US/Hawaii', 
+  "IA": 'US/Central', 
+  "ID": 'US/Mountain', 
+  "IL": 'US/Central', 
+  "IN": 'US/Eastern', 
+  "KS": 'US/Central', 
+  "KY": 'US/Eastern', 
+  "LA": 'US/Central', 
+  "MA": 'US/Eastern', 
+  "MD": 'US/Eastern', 
+  "ME": 'US/Eastern', 
+  "MI": 'US/Eastern', 
+  "MN": 'US/Central', 
+  "MO": 'US/Central', 
+  "MP": 'Pacific/Port_Moresby',  // northern mariana islands, not exact, but same +10 UTC offset
+  "MS": 'US/Central', 
+  "MT": 'US/Mountain', 
+  "NC": 'US/Eastern', 
+  "ND": 'US/Central', 
+  "NE": 'US/Central', 
+  "NH": 'US/Eastern', 
+  "NJ": 'US/Eastern', 
+  "NM": 'US/Mountain', 
+  "NV": 'US/Pacific', 
+  "NY": 'US/Eastern', 
+  "OH": 'US/Eastern', 
+  "OK": 'US/Central', 
+  "OR": 'US/Pacific', 
+  "PA": 'US/Eastern', 
+  "PR": 'Atlantic/Bermuda', 
+  "RI": 'US/Eastern', 
+  "SC": 'US/Eastern', 
+  "SD": 'US/Central', 
+  "TN": 'US/Central', 
+  "TX": 'US/Central', 
+  "UM": 'US/Samoa', 
+  "UT": 'US/Mountain', 
+  "VA": 'US/Eastern', 
+  "VI": 'Atlantic/Bermuda', 
+  "VT": 'US/Eastern', 
+  "WA": 'US/Pacific', 
+  "WI": 'US/Central', 
+  "WV": 'US/Eastern',
+  "WY": 'US/Mountain',
+}
+
+export type ExternalChatGPTMessage = {
+  role: 'user' | 'assistant',
+  content: string,
+}
+export type ChatGPTMessage = ExternalChatGPTMessage | {
+  role: 'system',
+  content: string,
+}
+export type ChatGPTModel ='gpt-3.5-turbo' | 'gpt4'

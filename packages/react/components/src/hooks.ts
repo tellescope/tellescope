@@ -47,8 +47,10 @@ export const useSearchAPI = <T,>({ query, onLoad, searchAPI } : { query: string 
     const t = setTimeout(() => {
       searchedRef.current = trimmed // only update on successful trigger of search
 
+      // console.log('searching')
       searchAPI({ search: { query: trimmed }})
       .then(results => {
+        // console.log('got results', results)
         if (results.length === 0) { return }
 
         onLoad?.(results)

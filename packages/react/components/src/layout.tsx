@@ -1,5 +1,5 @@
+import React, { CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Grid, Typography } from "@mui/material";
-import React, { CSSProperties, useRef, useState } from "react";
 import { ViewStyle } from "react-native"
 import { ErrorOptions, useHandleError } from "./errors";
 
@@ -7,6 +7,11 @@ import {
   ClickableWeb,
   Styled,
 } from "./mui"
+import { DragDropContext, Draggable, DropResult, Droppable } from "react-beautiful-dnd";
+import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
+
+import { FixedSizeList } from 'react-window';
+import { usePageWidth } from "./CMS";
 
 export const IN_REACT_WEB = true
 
@@ -171,7 +176,7 @@ export const Form = ({ onSubmit, uniquenessError, onError, children, style }: Fo
 export const SUPPORTS_FORMS = true
 
 
-export type Item = { id: string | number }
+export type Item = { id: string | number, index?: number }
 export type ItemClickable<T> = { 
   onClick?: (item: T) => void;
   onPress?: (item: T) => void;
@@ -274,6 +279,14 @@ export interface ScrollingListProps <T extends { id: string | number }> extends 
   TitleComponent?: TitleComponentType,
   titleActionsComponent?: React.ReactNode,
   noWrap?: boolean,
+  virtualization?: {
+    rowHeight?: number,
+    height?: number,
+    width?: number,
+    widthOffset?: number,
+    virtualize?: boolean,
+    hideHorizontalScroll?: boolean,
+  }
 }
 export const ScrollingList = <T extends { id: string | number }>({
   title,
@@ -289,12 +302,220 @@ export const ScrollingList = <T extends { id: string | number }>({
   TitleComponent,
   titleActionsComponent,
   style,
+  header,
+  itemContainerStyle,
+  virtualization,
+} : ScrollingListProps<T>) => {
+  const width = usePageWidth()
+  const fetchRef = useRef(0)
+  const titleStyleWithDefaults = { fontSize: 20, fontWeight: 'bold', marginBottom: 3, ...titleStyle }
+  const rowHeight = virtualization?.rowHeight ?? 40
+
+  return (
+    <Grid container direction="column" 
+      style={{ 
+        maxWidth, 
+        overflowX: maxWidth ? 'auto' : undefined, 
+        ...style, 
+      }}
+    >
+      {TitleComponent
+        ? <TitleComponent title={title} titleStyle={titleStyleWithDefaults} />
+        : (
+          <Grid container alignItems="center" justifyContent="space-between">
+            {typeof title === 'string'
+              ? (
+                <Typography style={titleStyleWithDefaults}>
+                  {title}
+                </Typography>
+              )
+              : title   
+            } 
+            <Grid item> 
+              {titleActionsComponent}
+            </Grid>
+          </Grid>
+        )
+      }
+
+      {header}
+      
+      <div style={{ 
+        minHeight, maxHeight, overflowY: 'auto',
+        ...itemContainerStyle,
+      }}
+        onScroll={e => {
+          if (doneLoading?.() || !loadMore) return
+
+          const atBottom = e.currentTarget.scrollHeight - e.currentTarget.scrollTop <= e.currentTarget.clientHeight + 5;
+          if (!atBottom) return
+
+          if (fetchRef.current === e.currentTarget.scrollHeight) return
+          fetchRef.current = e.currentTarget.scrollHeight
+
+          loadMore().catch(console.error)
+        }}
+      >
+      {items.length === 0 
+        ? typeof emptyText === 'string'
+          ? <Typography>{emptyText}</Typography>
+          : emptyText
+        : virtualization?.virtualize ? (
+            <FixedSizeList
+              style={{ overflowX: virtualization?.hideHorizontalScroll ? 'hidden' : undefined }}
+              height={virtualization?.height || window.innerHeight - 225}
+              width={(virtualization?.width ?? width) - 200 - (virtualization?.widthOffset || 0)}
+              itemCount={items.length}
+              itemSize={rowHeight}
+              itemData={items}
+              itemKey={(index, data) => data[index].id}
+              onScroll={p => {
+                if (p.scrollOffset, p.scrollOffset / (items.length * rowHeight) < .75) {
+                  return
+                }
+                if (doneLoading?.() || !loadMore) return
+
+                loadMore()
+              }}
+            >
+              {({ data, index, style }) => (
+                <div style={style}>
+                  <Item key={data[index].id} item={data[index]} index={index} />
+                </div>
+              )}
+            </FixedSizeList>
+        ) : (
+          items.map((item, index) => (
+            <Item key={item.id} item={item} index={index} />
+          ))
+        )
+      }
+      </div>
+    </Grid>
+  )
+}
+
+const getListStyle = (isDraggingOver: boolean) => ({
+  // background: isDraggingOver ? "#ffffff44" : undefined,
+  // padding: `${grid}px`,
+  // width: '250px'
+});
+
+const grid = 2;
+const defaultStyles: React.CSSProperties = {
+  // border: '1px solid',
+  // borderColor: "primary.main",
+  // borderRadius: grid / 2,
+}
+
+const getItemStyle = (isDragging: boolean, draggableStyle?: React.CSSProperties): React.CSSProperties => ({
+  // some basic styles to make the items look a bit nicer
+  userSelect: "none",
+  padding: `${grid}px`,
+  margin: `0 0 ${grid}px 0`,
+
+  // change background colour if dragging
+  backgroundColor: isDragging ? "#ffffff88" : undefined,
+  
+  ...defaultStyles,
+
+  // styles we need to apply on draggables
+  ...draggableStyle
+});
+
+const reorder = <T,>(list: T[], startIndex: number, endIndex: number): T[] => {
+  const result = Array.from(list);
+  const [removed] = result.splice(startIndex, 1);
+  result.splice(endIndex, 0, removed);
+
+  return result;
+};
+
+const DRAG_ICON_WIDTH = 20
+export const DraggableList = <T extends { id: string | number }>({
+  title,
+  titleStyle,
+  items: _items,
+  emptyText,
+  Item,
+  TitleComponent,
+  titleActionsComponent,
+  style,
   noWrap,
   header,
   itemContainerStyle,
-} : ScrollingListProps<T>) => {
-  const fetchRef = useRef(0)
+  onReorder,
+  virtualization,
+  doneLoading,
+  loadMore,
+} : ScrollingListProps<T> & {
+  onReorder?: (updated: { id: string, index: number }[]) => any,
+}) => {
+  const width = usePageWidth()
   const titleStyleWithDefaults = { fontSize: 20, fontWeight: 'bold', marginBottom: 3, ...titleStyle }
+  const rowHeight = virtualization?.rowHeight ?? 40
+  
+  const [items, setItems] = useState(_items)
+  const [updating, setUpdating] = useState(false)
+
+  useEffect(() => {
+    setItems(_items)
+  }, [_items])
+
+  const Row = useMemo(() => ({ data, index, style }: { data: T[], index: number, style: React.CSSProperties }) => (
+    <Draggable 
+      key={data[index].id} 
+      index={index}
+      draggableId={data[index].id.toString()} 
+      isDragDisabled={updating} 
+    >
+      {(provided, snapshot) => (
+        <Grid container alignItems="center" wrap="nowrap"
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          {...provided.dragHandleProps}
+          sx={{
+            ...getItemStyle(
+              snapshot.isDragging,
+              provided.draggableProps.style
+            ),
+            // ...itemStyle,
+          }}
+          style={{ height: rowHeight, ...style }}
+        >
+          <Grid item sx={{ width: DRAG_ICON_WIDTH, height: DRAG_ICON_WIDTH, ml: '2px' }}>
+            <DragIndicatorIcon fontSize={'small'} 
+              color={updating ? 'inherit' : "primary"} 
+            />
+          </Grid>
+
+          <Item key={data[index].id} item={data[index]} index={index} />
+        </Grid>
+      )}
+    </Draggable>
+  ), [updating, rowHeight, Item])
+
+  const handleDragEnd = useCallback(async (result: DropResult) => {
+    if (!result.destination) {
+      return;
+    }
+    if (result.destination === result.source) return
+  
+    try {
+      const updated = reorder(
+        items,
+        result.source.index,
+        result.destination.index
+      )
+      setItems(updated)
+      setUpdating(true)
+      await onReorder?.(updated.map(({ id }, index) => ({ id: id.toString(), index })))
+    } catch(err) {
+      setItems(items) // in case of error, reset with original data
+    } finally {
+      setUpdating(false)
+    }
+  }, [items, onReorder])
  
   return (
     <Grid container direction="column" style={style} wrap={noWrap ? 'nowrap' : undefined}>
@@ -310,40 +531,77 @@ export const ScrollingList = <T extends { id: string | number }>({
               )
               : title   
             } 
-            
-            {titleActionsComponent}
+            <Grid item> 
+              {titleActionsComponent}
+            </Grid>
           </Grid>
         )
       }
 
-      <Grid container direction="column" flexWrap={'nowrap'} 
-        style={{ minHeight, maxHeight, maxWidth, overflow: 'auto' }}
-        onScroll={e => {
-          if (doneLoading?.() || !loadMore) return
+      {header}
 
-          const atBottom = e.currentTarget.scrollHeight - e.currentTarget.scrollTop <= e.currentTarget.clientHeight + 5;
-          if (!atBottom) return
+      <Grid container direction="column" style={itemContainerStyle}>
+        {items.length === 0 
+          ? typeof emptyText === 'string'
+            ? <Typography>{emptyText}</Typography>
+            : emptyText
+          : null
+        }
 
-          if (fetchRef.current === e.currentTarget.scrollHeight) return
-          fetchRef.current = e.currentTarget.scrollHeight
+        <DragDropContext onDragEnd={handleDragEnd}>
+          <Droppable droppableId="droppable"
+            mode="virtual"
+            renderClone={(provided, snapshot, rubric) => (
+              <Grid container alignItems="center" wrap="nowrap"
+                ref={provided.innerRef}
+                {...provided.draggableProps}
+                {...provided.dragHandleProps}
+                sx={{
+                  ...getItemStyle(
+                    snapshot.isDragging,
+                    provided.draggableProps.style
+                  ),
+                  // ...itemStyle,
+                }}
+                style={{ height: rowHeight, margin: 0 }}
+              >
+                <Grid item sx={{ width: DRAG_ICON_WIDTH, height: DRAG_ICON_WIDTH, ml: '2px' }}>
+                  <DragIndicatorIcon fontSize={'small'} 
+                    color={updating ? 'inherit' : "primary"} 
+                  />
+                </Grid>
 
-          loadMore().catch(console.error)
-        }}
-      >
-        <Grid container direction="column" style={itemContainerStyle}>
-          {header}
+                <Item 
+                  key={items[rubric.source.index].id} 
+                  item={items[rubric.source.index]} 
+                  index={rubric.source.index} 
+                />
+              </Grid>
+            )}
+          >
+            {(provided) => (
+              <FixedSizeList
+                height={virtualization?.height || window.innerHeight - 225}
+                width={width - 120 - (virtualization?.widthOffset || 0)}
+                itemCount={items.length}
+                itemSize={rowHeight}
+                outerRef={provided.innerRef}
+                itemData={items}
+                itemKey={(index, data) => data[index].id}
+                onScroll={p => {
+                  if (p.scrollOffset, p.scrollOffset / (items.length * rowHeight) < .75) {
+                    return
+                  }
+                  if (doneLoading?.() || !loadMore) return
 
-          {items.length === 0 
-            ? typeof emptyText === 'string'
-              ? <Typography>{emptyText}</Typography>
-              : emptyText
-            : null
-          }
-
-          {items.map((item, index) => (
-            <Item key={item.id} item={item} index={index} />
-          ))}
-        </Grid>
+                  loadMore()
+                }}
+              >
+                {Row}
+              </FixedSizeList>
+            )}
+          </Droppable>
+        </DragDropContext>
       </Grid>
     </Grid>
   )

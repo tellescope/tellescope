@@ -1,4 +1,4 @@
-import React, { useCallback, useState, CSSProperties, JSXElementConstructor, useEffect } from "react"
+import React, { useCallback, useState, CSSProperties, JSXElementConstructor, useEffect, useMemo, memo } from "react"
 
 import {
   Button,
@@ -10,19 +10,27 @@ import {
 
   NavigateBeforeIcon,
   NavigateNextIcon,
+  SortDescendingIcon,
+  SortAscendingIcon,
+  SortInactiveIcon,
+  FilterIcon,
+  FilterActiveIcon,
+  Modal,
 } from "./mui"
 import {
   LabeledIconButton,
 } from "./controls"
 import {  
+  DraggableList,
   Flex,
   Item,
   ItemClickable,
-  List,
   ScrollingList,
+  ScrollingListProps,
   WithHover,
 } from "./layout"
 import { LoadMoreFunctions } from "./state"
+import { read_local_storage, update_local_storage } from "@tellescope/utilities"
 
 const LIGHT_GRAY = "#fafafa"
 export const GRAY = "#EFEFEF"
@@ -33,10 +41,11 @@ const ROW_HEIGHT = 45
 export interface HorizontalPadded { horizontalPadding?: number }
 export interface TableTitleProps extends Styled, HorizontalPadded {
   title: React.ReactNode,
+  description?: string,
   textStyle?: CSSProperties,
   actionsComponent?: React.ReactNode,
 }
-export const TableTitle = ({ title, actionsComponent, style, textStyle={}, horizontalPadding } : TableTitleProps) => (
+export const TableTitle = ({ title, description, actionsComponent, style, textStyle={}, horizontalPadding } : TableTitleProps) => (
   <Flex flex={1} alignItems="center" justifyContent={"space-between"} style={{ 
     paddingLeft: horizontalPadding, paddingRight: horizontalPadding, 
     backgroundColor: LIGHT_GRAY,
@@ -57,6 +66,16 @@ export const TableTitle = ({ title, actionsComponent, style, textStyle={}, horiz
       )
       : <Flex>{title}</Flex>
     }
+    {/* {description && 
+      <Typography style={{ 
+        fontSize: 14, 
+        marginRight: horizontalPadding,
+        minWidth: 100,
+        ...textStyle 
+      }}>
+        {description}
+      </Typography>
+    } */}
     <Flex flex={1} alignItems="center" justifyContent={"flex-end"}>
       {actionsComponent}
     </Flex>
@@ -70,6 +89,12 @@ const checkboxStyle: React.CSSProperties = {
   right: '10px',
 }
 
+// export type SortType = 'infer'
+export type Sorting = {
+  field: string,
+  // type: SortType,
+  direction: 'ascending' | 'descending'
+}
 type Indices = { index: number, indexOfPage: number }
 type Renderer <T> = (value: T, indices: Indices) => React.ReactElement | string | number
 export type TableField <T> = {
@@ -78,52 +103,131 @@ export type TableField <T> = {
   hidden?: boolean,
   render?: Renderer<T>,
   width?: CSSProperties['width'],
+  titleWidth?: CSSProperties['width'],
   textAlign?: CSSProperties['textAlign'],
   style?: CSSProperties,
   flex?: boolean,
+  // sortType?: SortType,
+  getSortValue?: (v: T) => string | number,
+  filterIsActive?: boolean,
+  filterComponent?: React.ReactNode,
 }
 export interface TableHeaderProps<T extends Item> extends Styled, HorizontalPadded, SelectionPropsOptional {
   fields: TableField<T>[],
   textStyle?: CSSProperties,
   fontSize?: CSSProperties['fontSize']
+  sorting: Sorting[],
+  setSorting: React.Dispatch<React.SetStateAction<Sorting[]>>,
 }
-export const TableHeader = <T extends Item>({ fields, selectable, allSelected, setAllSelected, style, textStyle, horizontalPadding, fontSize=15 } : TableHeaderProps<T>) => (
-  <Flex alignItems="center" style={{ 
-    paddingLeft: horizontalPadding, paddingRight: horizontalPadding,
-    minHeight: ROW_HEIGHT,
-    backgroundColor: DARK_GRAY,
-    ...style 
-  }}>
-    {selectable && 
-      <Flex style={checkboxStyle}>
-        <Checkbox  checked={allSelected} onChange={setAllSelected} />
+export const TableHeader = <T extends Item>({ 
+  fields, 
+  sorting, 
+  setSorting, 
+  selectable, 
+  allSelected, 
+  setAllSelected, 
+  style, 
+  textStyle, 
+  horizontalPadding, 
+  fontSize=15 
+} : TableHeaderProps<T>) => { 
+  const [openFilter, setOpenFilter] = useState(-1)
+
+  return (
+    <>
+    <Modal open={openFilter !== -1} setOpen={o => !o && setOpenFilter(-1)} >
+      {fields[openFilter]?.filterComponent}
+    </Modal>
+
+    <Flex alignItems="center" style={{ 
+      paddingLeft: horizontalPadding, paddingRight: horizontalPadding,
+      minHeight: ROW_HEIGHT,
+      backgroundColor: DARK_GRAY,
+      ...style 
+    }}>
+      {selectable && 
+        <Flex style={checkboxStyle}>
+          <Checkbox  checked={allSelected} onChange={setAllSelected} />
+        </Flex>
+      }
+      <Flex flex={1} justifyContent="space-between" wrap="nowrap">
+      {fields.map(({ key, label, textAlign, titleWidth, width, getSortValue, hidden, style, filterIsActive, filterComponent }, i) => {
+        if (hidden) return null
+
+        const sort = sorting.find(s => s.field === label)
+
+        return (
+          <Flex key={key} flex={width !== undefined ? 0 : 1} style={{ 
+            alignItems: 'center',
+            justifyContent: textAlign === 'right' ? 'flex-end' : 'flex-start',
+            ...style,
+          }}
+          >
+            <Flex wrap="nowrap" style={{ 
+              textAlign, 
+              justifyContent: textAlign === 'right' ? 'flex-end' : 'flex-start',
+              width: width ?? defaultWidthForFields(fields.length), 
+              alignItems: 'center',
+            }}>
+              <Typography component="h5"  style={{ 
+                fontWeight: 600,
+                fontSize,
+                minWidth: titleWidth,
+                ...textStyle 
+              }}>
+                {label}
+              </Typography>
+
+              <Flex wrap="nowrap">
+                {getSortValue && (
+                  sort?.direction === 'ascending'
+                    ? <LabeledIconButton size={22} Icon={SortAscendingIcon} color="primary" label="Click to Sort Descending" 
+                        onClick={() => setSorting(
+                          sorting => sorting.map(s => s.field !== label ? s : {
+                            ...s,
+                            direction: 'descending' 
+                          })
+                        )}
+                      />
+                : sort?.direction === 'descending'
+                    ? <LabeledIconButton size={22} Icon={SortDescendingIcon} color="primary" label="Click to Disable Sort" 
+                        onClick={() => setSorting(
+                          sorting => sorting.filter(s => s.field !== label)
+                        )}
+                      />
+                  : <LabeledIconButton size={22} Icon={SortInactiveIcon} color="inherit" label="Click to Sort Ascending" 
+                        onClick={() => setSorting(
+                          sorting => [...sorting, {
+                            field: label,
+                            direction: 'ascending' 
+                          }]
+                        )}
+                    />
+                )}
+                {filterComponent && (
+                  <LabeledIconButton size={22} offsetX={getSortValue ? -7 : -4}
+                    label="Filter" 
+                    disabled={openFilter !== -1}
+                    color={filterIsActive ? "primary" : 'inherit'}
+                    Icon={filterIsActive ? FilterActiveIcon : FilterIcon}
+                    onClick={() => setOpenFilter(i)}
+                  />
+                )}
+              
+              </Flex>
+            </Flex>
+          </Flex>
+        )
+      })}
       </Flex>
-    }
-    <Flex flex={1} justifyContent="space-between" wrap="nowrap">
-    {fields.map(({ key, label, textAlign, width, hidden, style }) => hidden ? null : (
-      <Flex key={key} flex={width !== undefined ? 0 : 1} style={{ 
-        alignItems: 'center',
-        justifyContent: textAlign === 'right' ? 'flex-end' : 'flex-start',
-        ...style,
-      }}
-      >
-        <Typography component="h5" style={{ 
-          textAlign, fontSize,
-          width: width ?? defaultWidthForFields(fields.length), 
-          fontWeight: 600,
-          ...textStyle 
-        }}>
-          {label}
-        </Typography>
-      </Flex>
-    ))}
     </Flex>
-  </Flex>
-)
+    </>
+  )
+}
 
 const ROW_DIVIDER_STYLE = `1px solid ${DARK_GRAY}` 
 
-const get_display_value = <T,>(item: T, key: string | number, indices: Indices, render?: Renderer<T>) => {
+const get_display_value = <T extends object>(item: T, key: string | number, indices: Indices, render?: Renderer<T>) => {
   if (render) { return render(item, indices) }
 
   const value = item[key as keyof T]
@@ -206,23 +310,39 @@ export const TableRow = <T extends Item>({
   </WithHover>
 )
 
-export interface PaginationOptions {
+export interface PaginationOptions<T> {
   paginated?: boolean; // defaults to true
   pageSize?: number;
   initialPage?: number;
+  pageMemoryId?: string,
 }
-export interface PaginationProps<T> extends PaginationOptions {
+export interface PaginationProps<T> extends PaginationOptions<T> {
   items: T[];
+  applySorting?: (items: T[]) => T[], // assume sorts in-place
 }
 const DEFAULT_PAGE_SIZE = 10
-export const usePagination = <T,>({ items, pageSize=DEFAULT_PAGE_SIZE, initialPage }: PaginationProps<T>) => {
+export const usePagination = <T,>({ paginated=true, items, pageMemoryId, pageSize=DEFAULT_PAGE_SIZE, applySorting, initialPage }: PaginationProps<T>) => {
   if (pageSize < 1) throw new Error("pageSize must be greater than 0")
   if (initialPage && initialPage < 0) throw new Error("initialPage must be a positive number")
 
   const count = items.length
   const numPages = Math.ceil(count / pageSize)
 
-  const [selectedPage, setSelectedPage] = useState(initialPage ?? 0)
+  const fromMemory = pageMemoryId ? parseInt(read_local_storage(pageMemoryId) ?? '') : undefined
+
+  const [selectedPage, setSelectedPage] = useState(
+    initialPage ?? (
+      typeof fromMemory === 'number' && !isNaN(fromMemory)
+        ? fromMemory
+        : 0
+    )
+  )
+
+  useEffect(() => {
+    if (!pageMemoryId) return
+
+    update_local_storage(pageMemoryId, selectedPage.toString())
+  }, [pageMemoryId, selectedPage])
 
   const goToPage = useCallback((page: number) => {
     setSelectedPage(s => (s !== page && page <= numPages && page >= 0) ? page : s)
@@ -234,12 +354,15 @@ export const usePagination = <T,>({ items, pageSize=DEFAULT_PAGE_SIZE, initialPa
     setSelectedPage(s => s > 0 ? s - 1 : s)
   }, [])
   const mapSelectedItems = useCallback(<R,>(apply: (item: T, info: { index: number, isLast: boolean }) => R) => {
+    const sorted = applySorting ? applySorting([...items]) : items // don't need to deep copy if not sorting in place
+    if (!paginated) return sorted
+
     const mapped: R[] = []
     for (let i=selectedPage * pageSize; i < (selectedPage + 1) * pageSize && i < count; i++) {
-      mapped.push(apply(items[i], { index: i, isLast: i === count -1 || i === (selectedPage + 1) * pageSize - 1 }))
+      mapped.push(apply(sorted[i], { index: i, isLast: i === count -1 || i === (selectedPage + 1) * pageSize - 1 }))
     }
     return mapped
-  }, [items, count, selectedPage, numPages, pageSize])
+  }, [items, applySorting, count, selectedPage, numPages, pageSize])
 
   useEffect(() => {
     if (selectedPage >= numPages) {
@@ -392,6 +515,7 @@ const BORDER_STYLE = `1px solid ${GRAY}`
 export type WithTitle = {
   title?: React.ReactNode; 
   TitleComponent?: JSXElementConstructor<TableTitleProps>;
+  renderTitleComponent?: (p: TableTitleProps) => React.ReactNode;
 } 
 export type WithHeader<T extends Item> = {
   fields?: TableHeaderProps<T>['fields']; 
@@ -411,12 +535,13 @@ export interface TableProps<T extends Item> extends WithTitle, WithHeader<T>, Wi
 {
   items: T[],
   titleStyle?: React.CSSProperties,
+  // description?: string,
   titleActionsComponent?: React.ReactNode,
   noPaper?: boolean,
   emptyText?: string,
   emptyComponent?: React.ReactElement,
   fields: TableHeaderProps<T>['fields']; // make fields required
-  pageOptions?: PaginationOptions,
+  pageOptions?: PaginationOptions<T>,
   paddingHorizontal?: number,
   headerFontSize?: CSSProperties['fontSize'],
   rowFontSize?: CSSProperties['fontSize'],
@@ -425,6 +550,9 @@ export interface TableProps<T extends Item> extends WithTitle, WithHeader<T>, Wi
   maxRowsHeight?: React.CSSProperties['maxHeight'],
   maxWidth?: React.CSSProperties['maxWidth'],
   noWrap?: boolean,
+  memoryId?: string,
+  onReorder?: (updated: { id: string, index: number }[]) => void,
+  virtualization?: ScrollingListProps<T>['virtualization'],
 }
 export const Table = <T extends Item>({
   items,
@@ -445,7 +573,9 @@ export const Table = <T extends Item>({
   title,
   titleStyle,
   titleActionsComponent,
+  // description,
   TitleComponent=TableTitle,
+  renderTitleComponent,
   fields,
   HeaderComponent=TableHeader,
   hover,
@@ -463,41 +593,123 @@ export const Table = <T extends Item>({
   noWrap,
   maxWidth,
   maxRowsHeight,
+  memoryId,
+
+  paginated: _paginated,
+  onReorder,
+  virtualization,
 }: TableProps<T> & Styled) => {
-  const paginated = pageOptions.paginated !== false // default to true
-  const { ...paginationProps } = usePagination({ items, ...pageOptions, })
+  const sortingStorageKey = memoryId ?? '' + 'sorting'
+  const cachedSortString = read_local_storage(sortingStorageKey)
+
+  let loadedSorting;
+  try {
+    loadedSorting = JSON.parse(cachedSortString)
+  } catch(err) {}
+
+  const [sorting, setSorting] = useState<Sorting[]>(
+    Array.isArray(loadedSorting)
+      ? loadedSorting
+      : []
+  )
+
+  useEffect(() => {
+    if (!memoryId) return
+    
+    update_local_storage(sortingStorageKey, JSON.stringify(sorting))
+  }, [sorting, memoryId])
+
+  // sorts in place
+  const applySorting = useCallback((items: T[]) => {
+    if (items.find(i => typeof i.index === 'number')) {
+      items.sort((item1, item2) => (
+        // default to -1 so that new elements without index appear at the start
+        (item1.index ?? -1) - (item2.index ?? -1)
+      ))
+    }
+    for (const s of sorting) {
+      items.sort((itemA, itemB) => {
+        const field = fields.find(f => f.label === s.field)
+        if (!field?.getSortValue) return 0
+
+        const a = field.getSortValue(itemA);
+        const b = field.getSortValue(itemB);
+
+        const comparison = (
+          (typeof a === 'number' && typeof b === 'number')
+            ? a - b
+        : (typeof a === 'string' && typeof b === 'string') 
+            ? a.localeCompare(b)
+            : 0
+        );
+
+        return comparison * (s.direction === 'descending' ? -1 : 1)
+      })
+    }
+    return items
+  }, [sorting, fields])
+
+  const paginated = _paginated ?? pageOptions.paginated !== false // default to true
+  const { ...paginationProps } = usePagination({ 
+    items, ...pageOptions,
+    applySorting: (sorting.length || onReorder) ? applySorting : undefined // don't sort when sorting is empty, way more efficient with time/memory
+  })
   RowComponent = RowComponent ?? TableRow // don't allow to be undefined 
+
+  const sorted = useMemo(() => paginationProps.mapSelectedItems(i => i), [paginationProps.mapSelectedItems])
+
+  const headerFilterIsActive = (
+    !!fields.find(f => f.filterIsActive)
+  )
+  
+  const draggable = (onReorder && sorting.length === 0)
+  const ListComponent = useMemo(() => (
+    draggable
+      ? DraggableList
+      : ScrollingList
+  ), [draggable])
 
   const table = (
     <Flex column>
-      {title && TitleComponent && (
-        <TitleComponent title={title} actionsComponent={titleActionsComponent} 
+      {title && TitleComponent && !renderTitleComponent && (
+        <TitleComponent title={title} actionsComponent={titleActionsComponent}  
+          // description={description} 
           horizontalPadding={noPaper ? 0 : horizontalPadding}
           style={{ maxWidth, ...titleStyle }} 
         />
       )} 
-      <ScrollingList items={paginationProps.mapSelectedItems(i => i)} 
+      {title && renderTitleComponent && (
+        renderTitleComponent({
+          title, actionsComponent: titleActionsComponent, 
+          horizontalPadding: noPaper ? 0 : horizontalPadding,
+          style: { maxWidth, ...titleStyle }
+        }) 
+      )}
+      <ListComponent items={sorted} onReorder={onReorder} 
         noWrap={noWrap}
-        maxHeight={maxRowsHeight} maxWidth={maxWidth}
-
-        header={fields && HeaderComponent && fields.length > 0 && items.length > 0 && 
+        maxHeight={maxRowsHeight} 
+        maxWidth={maxWidth}
+        virtualization={virtualization}
+        header={fields && HeaderComponent && fields.length > 0 && (items.length > 0 || headerFilterIsActive) && (
           <HeaderComponent selectable={selectable} allSelected={allSelected} setAllSelected={setAllSelected}
             fields={fields} horizontalPadding={horizontalPadding} fontSize={headerFontSize}
+            sorting={sorting} setSorting={setSorting} 
             style={{
               flexWrap: noWrap ? 'nowrap' : undefined,
+              paddingLeft: draggable ? '42px' : horizontalPadding,
             }}
           />
-        }
+        )}
 
         // handle load when scroll to bottom, when table not paginated
-        doneLoading={!pageOptions.paginated ? doneLoading : undefined} 
-        loadMore={!pageOptions.paginated ? loadMore : undefined}
+        doneLoading={!paginated ? doneLoading : undefined} 
+        loadMore={!paginated ? loadMore : undefined}
 
         // renderProps={{ horizontalPadding }}
         emptyText={emptyComponent ?? (
-          emptyText 
+          (emptyText || headerFilterIsActive)
             ? <Typography style={{ padding: horizontalPadding }}>
-                {emptyText}
+                {emptyText || 'No results found the current filter'}
               </Typography> 
             : undefined
           )
@@ -529,9 +741,9 @@ export const Table = <T extends Item>({
         )
       } />
 
-    {paginated && FooterComponent && items.length > 0 && // avoid displaying footer / unnecessary border when no items
-      <FooterComponent doneLoading={doneLoading} loadMore={loadMore} {...paginationProps } {...pageOptions} horizontalPadding={horizontalPadding}/>
-    }
+      {paginated && FooterComponent && items.length > 0 && // avoid displaying footer / unnecessary border when no items
+        <FooterComponent doneLoading={doneLoading} loadMore={loadMore} {...paginationProps } {...pageOptions} horizontalPadding={horizontalPadding}/>
+      }
     </Flex>
   )
 

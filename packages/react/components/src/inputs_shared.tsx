@@ -1,32 +1,66 @@
-import React, { useEffect, useCallback, useMemo, useState } from "react"
-import { Filter, Indexable } from "@tellescope/types-utilities"
-import { objects_equivalent, user_display_name } from "@tellescope/utilities"
+import React, { useEffect, useCallback, useMemo, useState, useRef } from "react"
+import { Indexable, ScoreFilter } from "@tellescope/types-utilities"
+import { objects_equivalent, read_local_storage, safeJSONParse, update_local_storage, user_display_name } from "@tellescope/utilities"
 import { LoadFunction, LoadFunctionArguments } from "@tellescope/sdk"
 import { UNSEARCHABLE_FIELDS } from "@tellescope/constants"
 import { SearchAPIProps, useSearchAPI } from "./hooks"
 import { TextFieldProps } from "./mui"
-import { CalendarEventTemplate, Database, DatabaseRecord, Enduser, Forum, ManagedContentRecord, User } from "@tellescope/types-client"
-import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, ScrollingList, SearchTextInput, TextField, Typography, useCalendarEventTemplates, useDatabaseRecords, useDatabases, useEndusers, useForums, useManagedContentRecords, useResolvedSession, useSession, useUsers } from "."
+import { AutomationTrigger, CalendarEventTemplate, Database, DatabaseRecord, Enduser, File, Form, Forum, Journey, ManagedContentRecord, ReferralProvider, Template, Ticket, User } from "@tellescope/types-client"
+import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, LoadingLinear, ScrollingList, SearchTextInput, Typography, useAutomationTriggers, useCalendarEventTemplates, useDatabaseRecords, useDatabases, useEndusers, useFiles, useForms, useForums, useJourneys, useManagedContentRecords, useReferralProviders, useResolvedSession, useSession, useTemplates, useTickets, useUsers, value_is_loaded } from "."
 import { SxProps } from "@mui/material"
 
 /* FILTER / SEARCH */
 export const filter_setter_for_key = <T,>(key: string, setFilters: React.Dispatch<React.SetStateAction<Filters<T>>>) => (
-  f: Filter<T>
+  f: ScoreFilter<T>
 ) => setFilters(fs => ({ ...fs, [key]: { ...fs?.[key], filter: f } }))
 
-export const apply_filters = <T,>(fs: Filters<T>, data: T[]) => (
-  data.filter(d => {
+export const apply_filters = <T,>(fs: Filters<T>, data: T[]): T[] => {
+  let shouldSort = false
+  const scored: { value: T, score: number }[] = []
+  const filtered = data.filter(d => {
+    let totalScore = 0
     for (const f of Object.values(fs)) {
       if (!f?.filter) continue
-      if (f.filter(d) === false) return false
+
+      const score = f.filter(d)
+      if (score === 0) return false
+
+      totalScore += score
+    }
+
+    if (totalScore > 1) {
+      shouldSort = true
+      scored.push({
+        score: totalScore,
+        value: d,
+      })
     }
     return true
   })
-)
 
-export const useFilters = <T,>(args?: { onFilterChange: () => void }) => {
-  const { onFilterChange } = args ?? {}
-  const [filters, setFilters] = React.useState({} as Filters<T>)
+  return (
+    shouldSort
+      ? scored.sort((v1, v2) => v2.score - v1.score).map(v => v.value)
+      : filtered
+  )
+}
+
+export const useFilters = <T,>(args?: { memoryId?: string, initialFilters?: Filters<T>, deserialize?: (fs: Filters<T>) => Filters<T>, onFilterChange?: (fs: Filters<T>) => void }) => {
+  const { onFilterChange, memoryId, initialFilters, deserialize } = args ?? {}
+  if (memoryId && !deserialize) console.warn("memoryId provided without deserialize")
+
+  const [filters, setFilters] = React.useState<Filters<T>>(
+    initialFilters || (
+      (memoryId && deserialize)
+        ? deserialize((safeJSONParse(read_local_storage(memoryId)) || {}))
+        : {}
+    )
+  )
+
+  useEffect(() => {
+    if (!memoryId) return
+    update_local_storage(memoryId, JSON.stringify(filters))
+  }, [filters, memoryId])
 
   const prevFilterRef = React.useRef(filters)
   useEffect(() => {
@@ -34,7 +68,7 @@ export const useFilters = <T,>(args?: { onFilterChange: () => void }) => {
     if (objects_equivalent(prevFilterRef.current, filters)) return
 
     prevFilterRef.current = filters
-    onFilterChange()
+    onFilterChange(filters)
   }, [filters, onFilterChange])
 
   const applyFilters = useCallback((data: T[]) => apply_filters(filters, data), [filters])
@@ -77,16 +111,37 @@ export const useFilters = <T,>(args?: { onFilterChange: () => void }) => {
   }
 }
 
+export const record_field_matches_query = (value: any, query: string) => {
+  if (
+    typeof value === 'string' && value.toUpperCase().includes(query.toUpperCase())
+  ) {
+    return true
+  }
+  
+  if (typeof value === 'number' && value.toString() === query) {
+    return true
+  }
+
+  if (typeof value === 'object') {
+    for (const k in value) {
+      if (record_field_matches_query(value[k], query)) {
+        return true
+      }
+    }
+  }
+
+  return false
+}
+
 export const record_matches_for_query = <T,>(records: T[], query: string) => {
   const matches = [] as T[]
 
   for (const record of records) {
     for (const field in record) {
       const value = record[field]
-      if (typeof value !== 'string') continue
       if (UNSEARCHABLE_FIELDS.includes(field)) continue
 
-      if (value.toUpperCase().includes(query.toUpperCase())) {
+      if (record_field_matches_query(value, query)) {
         matches.push(record)
         break; 
       }
@@ -96,10 +151,36 @@ export const record_matches_for_query = <T,>(records: T[], query: string) => {
   return matches
 }
 
-export const filter_for_query = <T,>(query: string): FilterWithData<T> => {
-  const baseFilter = (record: Indexable): boolean => {
-    for (const field in record) {
-      const value = record[field as keyof typeof record]
+export const filter_for_query = <T,>(query: string, getAdditionalFields?: (v: T) => Indexable | undefined): FilterWithData<T> => {
+  const baseFilter = (record: Indexable): number => {
+    if (!record) return 0
+    if (query === '') return 1
+    const queryLC = query.toLowerCase()
+
+    let score = 0
+
+    // heuristic for high priority matching against full name
+    if (record?.fname && record?.lname) {
+      const fullName = `${record.fname} ${record.lname}`.toLowerCase()
+      if (fullName.startsWith(queryLC)) {
+        score += 25
+      } else if (fullName === queryLC) {
+        score += 50 
+      }
+    }
+
+    const toAdd = getAdditionalFields?.(record as T)
+    const joined = { ...toAdd, ...record }
+    // console.log(JSON.stringify(joined, null, 2))
+
+    for (const field in joined) {
+      const value = joined[field as keyof typeof record]
+
+      // exact match is useful for things like id match and easy heuristic check for others
+      if (value === query) {
+        score += 10; 
+        continue
+      }
       
       if (UNSEARCHABLE_FIELDS.includes(field)) continue
       
@@ -113,16 +194,18 @@ export const filter_for_query = <T,>(query: string): FilterWithData<T> => {
             return false
           }
         )) {
-          return true
+          score += 1
+          continue
         }
       }       
       if (typeof value !== 'string') continue
       if (value.toUpperCase().includes(query.toUpperCase())) {
-        return true
+        score +=1
+        continue
       }
     }
 
-    return false
+    return score
   }
 
   return ({
@@ -133,31 +216,42 @@ export const filter_for_query = <T,>(query: string): FilterWithData<T> => {
 
 export const performBulkAction = async <T extends { id: string }, R> ({ 
   allSelected,
-  apiFilter, 
+  // apiFilter, 
+  applyFilters,
   selected, 
   processBatch, 
+  onSuccess,
   fetchBatch,
   batchSize=250, 
 } : BulkActionProps<T> & {
   batchSize?: number,
   fetchBatch: LoadFunction<T>,
-  processBatch: (matches: T[]) => Promise<R>,
+  processBatch: (matches: T[]) => Promise<R & { error?: string, successCount?: number }>,
 }) => {
-  if (!(selected || allSelected || apiFilter)) throw new Error("One of allSelected, apiFilter, or selected is required")
+  if (!(selected || allSelected)) throw new Error("One of allSelected or selected is required")
   if (batchSize <= 0) throw new Error("batchSize must be at least 1")
   const args: LoadFunctionArguments<T> = (
     allSelected 
-      ? (apiFilter ?? {})
+      ? {}
       : { ids: selected }
   )
 
+  let successCount = 0
+  const errors: string[] = []
+
   args.limit = batchSize
   const results = []
+  const loaded: T[] = []
   while (true) {
     const matches = await fetchBatch(args)
     if (matches.length === 0) break
 
-    results.push(await processBatch(matches))
+    loaded.push(...matches)
+
+    const { successCount: _successCount, error, ...result } = await processBatch(applyFilters(matches))
+    results.push(result)
+    if (_successCount) { successCount += _successCount }
+    if (error) { errors.push(error) }
 
     if (matches.length < batchSize) {
       break
@@ -166,8 +260,16 @@ export const performBulkAction = async <T extends { id: string }, R> ({
     args.lastId = matches[matches.length - 1].id
   }
 
+  if (successCount || errors.length) {
+    alert(
+`Success Count: ${successCount}${errors.length ? `\nErrors: ${errors.join('\n')}` : ''}`
+)
+  }
+
   // clean up in case same object is reused for future queries
   delete args.lastId
+
+  onSuccess?.(loaded)
 
   return results
 }
@@ -175,13 +277,15 @@ export const performBulkAction = async <T extends { id: string }, R> ({
 export interface BulkActionProps <T>{
   allSelected?: boolean,
   selected?: string[],
-  apiFilter?: LoadFunctionArguments<T> | null,
-  onSuccess?: () => void,
+  // apiFilter?: LoadFunctionArguments<T> | null,
+  applyFilters: (v: T[]) => T[],
+  onSuccess?: (loaded: T[]) => void,
   onError?: (message: string) => void,
 }
 
+export type NumericFilter<T,> = ((f: T) => number)
 export type FilterWithData<T> = {
-  filter: null | ((f: T) => boolean),
+  filter: null | NumericFilter<T>,
   apiFilter: LoadFunctionArguments<T> | null,
   data?: Indexable,
 }
@@ -198,77 +302,225 @@ export interface FilterComponent<T> extends FilterComponentWithDefaultKey<T> {
   filterKey: string,
 }
 
-interface GenericSearchProps <T> extends FilterComponent<T> {
+export interface GenericSearchProps <T> extends FilterComponent<T> {
   placeholder?: string,
   fullWidth?: boolean,
   label?: string,
   style?: React.CSSProperties,
   size?: TextFieldProps['size'],
   sx?: SxProps,
+  attachSearchableFields?: (v: T) => Indexable | undefined,
 }
 interface ModelSearchProps<T> extends GenericSearchProps<T>, SearchAPIProps<T> {}
 export const ModelSearchInput = <T,>({ 
   filterKey, setFilters, searchAPI, onLoad, 
+  attachSearchableFields,
 
   // @ts-ignore remove from props if provided by mistake
   activeFilterCount, 
+  // @ts-ignore remove from props if provided by mistake
+  compoundApiFilter, 
 
   ...props 
 } : ModelSearchProps<T>) => {
-  const [query, setQuery] = useState('')
+  const cacheKey = `search-cache-${filterKey}`
+  const [query, setQuery] = useState(read_local_storage(cacheKey) || '')
+  const filterOnLoadRef = useRef(!!query)
+
+  useEffect(() => {
+    update_local_storage(cacheKey, query) 
+  }, [query])
 
   useSearchAPI({ query, searchAPI, onLoad })
 
   useEffect(() => {
     const t = setTimeout(() => {
       setFilters(fs => (
-        fs[filterKey]?.apiFilter?.search?.query === query
+        (fs[filterKey]?.apiFilter?.search?.query === query && !filterOnLoadRef.current)
           ? fs
-          : { ...fs, [filterKey]: filter_for_query(query) }
+          : { ...fs, [filterKey]: filter_for_query(query, attachSearchableFields) }
       )) 
+
+      filterOnLoadRef.current = false
     }, 50)
 
     return () => { clearTimeout(t) } 
-  }, [query, filterKey, setFilters])
+  }, [query, filterKey, setFilters, attachSearchableFields])
 
-  return <SearchTextInput {...props} value={query} onChange={(s: string) => setQuery(s)} />
+  return (
+    <SearchTextInput {...props} value={query} onChange={(s: string) => setQuery(s)} />
+  )
 }
 
 
-export const EnduserSearch = (props: Omit<GenericSearchProps<Enduser>, 'filterKey'>) => {
+export const EnduserSearch = (props: Omit<GenericSearchProps<Enduser>, 'filterKey'> & { filterKey?: string }) => {
   const session = useResolvedSession()
   const [, { addLocalElements }] = useEndusers()
+  const [usersLoading, { findById: findUser }] = useUsers() 
+
+  // wait for users to load, so that a saved query is able to match attachSearchableFields
+  if (!value_is_loaded(usersLoading)) return null
   return (
-    <ModelSearchInput {...props} filterKey="endusers"
+    <ModelSearchInput filterKey="endusers" {...props} 
       searchAPI={session.api.endusers.getSome}
+      onLoad={addLocalElements}
+      attachSearchableFields={t => {
+        const users = t.assignedTo?.map(userId => findUser(userId, { batch: true })).filter(u => u) as User[]
+        if (!users?.length) return undefined
+
+        const toJoin = {} as Record<string,string>
+        users.forEach((user, i) => {
+          toJoin[`${i}fname`] = user.fname || '';
+          toJoin[`${i}lname`] = user.lname || '';
+          toJoin[`${i}fullname`]=  `${user.fname} ${user.lname}`;
+        })
+
+        return toJoin
+      }}
+    />
+  )
+}
+
+export const TICKET_SEARCH_FILTER_KEY = 'ticket-search'
+export const TicketSearch = (props: Omit<GenericSearchProps<Ticket>, 'filterKey'> & { filterKey?: string }) => {
+  const session = useResolvedSession()
+  const [, { addLocalElements }] = useTickets()
+  const [usersLoading, { findById: findUser }] = useUsers() 
+  const [endusersLoading, { findById: findEnduser }] = useEndusers() 
+
+  // wait for users/endusers to load, so that a saved query is able to match attachSearchableFields
+  if (!value_is_loaded(usersLoading)) return null
+  if (!value_is_loaded(endusersLoading)) return null
+  return (
+    <ModelSearchInput filterKey={TICKET_SEARCH_FILTER_KEY} {...props} 
+      searchAPI={session.api.tickets.getSome}
+      onLoad={addLocalElements}
+      attachSearchableFields={t => {
+        const user = findUser(t.owner ?? '', { batch: true })
+        const enduser = findEnduser(t.enduserId ?? '', { batch: true })
+        if (!(user || enduser)) return undefined
+    
+        const fields = {} as Record<string, string>
+        if (user) {
+          fields.user_fname = user.fname || '';
+          fields.user_lname = user.lname || '';
+          fields.user_fullname = `${user.fname} ${user.lname}`;
+        }
+        if (enduser) {
+          fields.enduser_fname = enduser.fname || '';
+          fields.enduser_lname = enduser.lname || '';
+          fields.enduser_fullname = `${enduser.fname} ${enduser.lname}`;
+        }
+    
+        return fields
+      }}
+    />
+  )
+}
+
+export const FileSearch = (props: Omit<GenericSearchProps<File>, 'filterKey'> & { filterKey?: string }) => {
+  const session = useSession()
+  const [, { addLocalElements }] = useFiles()
+  const [, { findById: findEnduser }] = useEndusers() 
+
+  return (
+    <ModelSearchInput filterKey="files" {...props} 
+      searchAPI={session.api.files.getSome}
+      onLoad={addLocalElements}
+      attachSearchableFields={t => {
+        const enduser = t.enduserId ? findEnduser(t.enduserId, { batch: true }) : undefined
+        if (!enduser) return undefined
+
+        const toJoin = {
+          fname: enduser.fname,
+          lname: enduser.lname,
+          fullname: `${enduser.fname} ${enduser.lname}`,
+        } 
+
+        return toJoin
+      }}
+    />
+  )
+}
+
+export const ReferralProviderSearch = (props: Omit<GenericSearchProps<ReferralProvider>, 'filterKey'> & { filterKey?: string }) => {
+  const session = useSession()
+  const [, { addLocalElements }] = useReferralProviders()
+  return (
+    <ModelSearchInput filterKey="referral-provider-search" {...props} 
+      searchAPI={session.api.referral_providers.getSome}
       onLoad={addLocalElements}
     />
   )
 }
 
-export const ForumSearch = (props: Omit<GenericSearchProps<Forum>, 'filterKey'>) => {
+export const FormSearch = (props: Omit<GenericSearchProps<Form>, 'filterKey'> & { filterKey?: string }) => {
+  const session = useSession()
+  const [, { addLocalElements }] = useForms()
+  return (
+    <ModelSearchInput filterKey="form-search" {...props} 
+      searchAPI={session.api.forms.getSome}
+      onLoad={addLocalElements}
+    />
+  )
+}
+
+export const AutomationTriggerSearch = (props: Omit<GenericSearchProps<AutomationTrigger>, 'filterKey'> & { filterKey?: string }) => {
+  const session = useSession()
+  const [, { addLocalElements }] = useAutomationTriggers()
+  return (
+    <ModelSearchInput filterKey="trigger-search" {...props} 
+      searchAPI={session.api.automation_triggers.getSome}
+      onLoad={addLocalElements}
+    />
+  )
+}
+
+export const JourneySearch = (props: Omit<GenericSearchProps<Journey>, 'filterKey'> & { filterKey?: string }) => {
+  const session = useSession()
+  const [, { addLocalElements }] = useJourneys()
+  return (
+    <ModelSearchInput filterKey="journeys" {...props} 
+      searchAPI={session.api.journeys.getSome}
+      onLoad={addLocalElements}
+    />
+  )
+}
+
+export const TemplateSearch = (props: Omit<GenericSearchProps<Template>, 'filterKey'> & { filterKey?: string }) => {
+  const session = useSession()
+  const [, { addLocalElements }] = useTemplates()
+  return (
+    <ModelSearchInput filterKey="templates" {...props} 
+      searchAPI={session.api.templates.getSome}
+      onLoad={addLocalElements}
+    />
+  )
+}
+
+export const ForumSearch = (props: Omit<GenericSearchProps<Forum>, 'filterKey'> & { filterKey?: string }) => {
   const session = useResolvedSession()
   const [, { addLocalElements }] = useForums()
   return (
-    <ModelSearchInput {...props} filterKey="forums"
+    <ModelSearchInput filterKey="forums" {...props} 
       searchAPI={session.api.forums.getSome}
       onLoad={addLocalElements}
     />
   )
 }
 
-export const UserSearch = (props: Omit<GenericSearchProps<User>, 'filterKey'>) => {
+export const UserSearch = (props: Omit<GenericSearchProps<User>, 'filterKey'> & { filterKey?: string }) => {
   const session = useResolvedSession()
   const [, { addLocalElements }] = useUsers()
   return (
-    <ModelSearchInput {...props} filterKey="users"
+    <ModelSearchInput filterKey="users" {...props} 
       searchAPI={session.api.users.getSome}
       onLoad={addLocalElements}
     />
   )
 }
 
-export const EnduserOrUserSearch = (props: Omit<GenericSearchProps<Enduser | User>, 'filterKey'>) => {
+export const EnduserOrUserSearch = (props: Omit<GenericSearchProps<Enduser | User>, 'filterKey'> & { filterKey?: string }) => {
   const session = useResolvedSession()
   const [, { addLocalElements: addLocalEndusers }] = useEndusers()
   const [, { addLocalElements: addLocalUsers }] = useUsers()
@@ -286,45 +538,45 @@ export const EnduserOrUserSearch = (props: Omit<GenericSearchProps<Enduser | Use
   }
 
   return (
-    <ModelSearchInput {...props} filterKey="endusers-or-users"
+    <ModelSearchInput filterKey="endusers-or-users" {...props} 
       searchAPI={searchAPI}
     />
   )
 }
 
-export const ContentSearch = (props: Omit<GenericSearchProps<ManagedContentRecord>, 'filterKey'>) => {
+export const ContentSearch = (props: Omit<GenericSearchProps<ManagedContentRecord>, 'filterKey'> & { filterKey?: string }) => {
   const session = useResolvedSession()
   const [, { addLocalElements }] = useManagedContentRecords()
   return (
-    <ModelSearchInput {...props} filterKey="managed_content_records"
+    <ModelSearchInput filterKey="managed_content_records" {...props} 
       searchAPI={session.api.managed_content_records.getSome}
       onLoad={addLocalElements}
     />
   )
 }
 
-export const CalendarEventTemplatesSearch = (props: Omit<GenericSearchProps<CalendarEventTemplate>, 'filterKey'>) => {
+export const CalendarEventTemplatesSearch = (props: Omit<GenericSearchProps<CalendarEventTemplate>, 'filterKey'> & { filterKey?: string }) => {
   const session = useSession()
   const [, { addLocalElements }] = useCalendarEventTemplates()
   return (
-    <ModelSearchInput {...props} filterKey="calendar_event_templates"
+    <ModelSearchInput  filterKey="calendar_event_templates" {...props}
       searchAPI={session.api.calendar_event_templates.getSome}
       onLoad={addLocalElements}
     />
   )
 }
 
-export const DatabaseSearch = (props: Omit<GenericSearchProps<Database>, 'filterKey'>) => {
+export const DatabaseSearch = (props: Omit<GenericSearchProps<Database>, 'filterKey'> & { filterKey?: string }) => {
   const session = useSession()
   const [, { addLocalElements }] = useDatabases()
   return (
-    <ModelSearchInput {...props} filterKey="databases"
+    <ModelSearchInput filterKey="databases" {...props} 
       searchAPI={session.api.databases.getSome}
       onLoad={addLocalElements}
     />
   )
 }
-export const DatabaseRecordSearch = ({ databaseId, ...props }: Omit<GenericSearchProps<DatabaseRecord> & { databaseId: string }, 'filterKey'>) => {
+export const DatabaseRecordSearch = ({ databaseId, ...props }: Omit<GenericSearchProps<DatabaseRecord> & { databaseId: string }, 'filterKey'> & { filterKey?: string }) => {
   const session = useSession()
   const [, { addLocalElements }] = useDatabaseRecords()
 
@@ -333,7 +585,7 @@ export const DatabaseRecordSearch = ({ databaseId, ...props }: Omit<GenericSearc
   ), [session, databaseId])
 
   return (
-    <ModelSearchInput {...props} filterKey="database_records"
+    <ModelSearchInput filterKey="database_records" {...props} 
       searchAPI={searchAPI}
       onLoad={addLocalElements}
     />
@@ -354,6 +606,9 @@ export interface UserAndEnduserSelectorProps {
   showTitleInput?: boolean,
   searchBarPlacement?: "top" | "bottom", 
   hiddenIds?: string[]
+  initialSelected?: string[]
+  buttonText?: string,
+  filter?: (e: Enduser | User) => boolean,
 }
 export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserSelectorProps> = ({
   titleInput,
@@ -366,7 +621,11 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
   title="Select Members",
   minHeight,
   maxHeight='50vh',
-  searchBarPlacement="top"
+  searchBarPlacement="top",
+  initialSelected=[],
+  buttonText="Create",
+  filter,
+  radio,
 }) => {
   const session = useResolvedSession()
   const [endusersLoading, { loadMore: loadMoreEndusers, doneLoading: doneLoadingEndusers }] = useEndusers()
@@ -382,7 +641,7 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
     if (!excludeUsers && !doneLoadingUsers()) { loadMoreUsers().catch(console.error) };
   }, [doneLoadingEndusers, doneLoadingUsers, loadMoreEndusers, loadMoreUsers])
 
-  const [selected, setSelected] = useState<string[]>([])
+  const [selected, setSelected] = useState<string[]>(initialSelected)
 
   const { applyFilters, ...filterProps } = useFilters<any>()
 
@@ -412,7 +671,11 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
   return (
     <LoadingData data={{ endusers: endusersLoading, users: usersLoading }} render={({ users, endusers }) => {
       const itemsUnfiltered = [...excludeUsers ? [] : users, ... excludeEndusers ? [] : endusers].filter(i => !hiddenIds?.includes(i.id))
-      const items = applyFilters(itemsUnfiltered)
+      const items = applyFilters(
+        filter
+          ? itemsUnfiltered.filter(filter)
+          : itemsUnfiltered
+      )
       return (
       <Flex flex={1} column justifyContent="center">
         <Flex alignItems="center" justifyContent={"space-between"} wrap="nowrap"
@@ -429,8 +692,8 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
             {title}
           </Typography>
 
-          <LoadingButton submitText='Create' submittingText='Create' 
-            disabled={selected.length === 0}
+          <LoadingButton submitText={buttonText} submittingText={buttonText} 
+            disabled={selected.length === 0 && !initialSelected?.length}
             style={{ display: 'flex' }}
             onClick={() => handleSelect(users, endusers)}
           />
@@ -461,11 +724,21 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
           Item={({ item: user }) => (
             <HoverPaper style={{ marginBottom: 4 }}>
             <Flex flex={1} alignItems="center" justifyContent="space-between" 
-              onClick={() => setSelected(ss => (
-                ss.includes(user.id) 
-                  ? ss.filter(s => s !== user.id)
-                  : [user.id, ...ss]
-              ))}
+              onClick={() => 
+                radio 
+                  ? (
+                    setSelected(ss => 
+                      ss.includes(user.id) 
+                        ? []
+                        : [user.id]
+                    ) 
+                  )
+                  : setSelected(ss => (
+                      ss.includes(user.id) 
+                        ? ss.filter(s => s !== user.id)
+                        : [user.id, ...ss]
+                  ))
+              }
               style={{
                 paddingLeft: 5, paddingRight: 5,
               }}

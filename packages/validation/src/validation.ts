@@ -44,7 +44,6 @@ import {
   ChatAttachment,
   FormFieldType,
   FormResponseValue,
-  ChatAttachmentType,
   CalendarEventReminderType,
   MessageTemplateMode,
   AutomationCondition,
@@ -123,7 +122,7 @@ import {
   EnduserTaskForEvent,
   EnduserFormResponseForEvent,
   StateCredentialInfo,
-  AvailabilityBlock,
+  BaseAvailabilityBlock,
   WeeklyAvailability,
   Timezone,
   TIMEZONE_MAP,
@@ -141,9 +140,98 @@ import {
   GenericQuantityWithUnit,
   CustomEnduserFieldType,
   CustomEnduserFields,
+  FormResponseAnswerDateString,
+  TellescopeGender,
+  AppointmentTerm,
+  Currency,
+  PaymentProcessor,
+  PurchaseCreditInfo,
+  PurchaseCreditInfoForType,
+  PurcahseCreditType,
+  Product,
+  CancelConditions,
+  FormsUnsubmittedEvent,
+  FormResponsesAutomationEvent,
+  JourneyContext,
+  AnalyticsQueryType,
+  AnalyticsQueryForType,
+  AnalyticsQueryInfoForType,
+  DateRange,
+  AnalyticsQueryFilterForType,
+  FormResponseAnswerGroup,
+  FormSubField,
+  FormResponseAnswerDescription,
+  FormResponseAnswerTable,
+  TableInputChoices,
+  TableInputChoiceType,
+  TableInputCell,
+  CalendarEventPortalSettings,
+  AvailabilityBlock,
+  IndexUpdate,
+  FormResponseAnswerAddress,
+  ListQueryQualifier,
+  AutomationTriggerEventType,
+  AutomationTriggerEvents,
+  AutomationTriggerActionType,
+  AutomationTriggerActions,
+  AutomationTriggerStatus,
+  EnduserBuiltInField,
+  AnalyticsQueryResultValue,
+  AnalyticsQueryGroupingForType,
+  AnalyticsQueryRange,
+  AnalyticsQueryRangeInterval,
+  AnalyticsQueryRangeKeyForType,
+  SuperbillProvider,
+  SuperbillProviderInfo,
+  SuperbillPatientInfo,
+  SuperbillLineItem,
+  AnalyticsFrameType,
+  VideoIntegrationType,
+  VALID_STATES,
+  ScheduledJourney,
+  FormScoring,
+  EmbeddingType,
+  UserCallRoutingBehavior,
+  UserUIRestrictions,
+  ExternalChatGPTMessage,
+  FormResponseAnswerTime,
+  EnduserProfileViewBlocks,
+  EnduserProfileViewBlockType,
+  Form,
+  Insurance,
+  SetEnduserFieldsAutomationAction,
+  EnduserFieldSetter,
+  PhoneTreeEventType,
+  PhoneTreeEvents,
+  PhoneTreeNode,
+  PhoneTreeActionType,
+  PhoneTreeActions,
+  PhonePlayback,
+  PhonePlaybackType,
+  PhonePlaybackInfo,
+  Enduser,
+  FormResponseAnswerStripe,
+  PhoneTreeEnduserCondition,
+  WaitForTriggerAutomationEvent,
+  ShareContentAutomationAction,
+  FormResponseAnswerDropdown,
+  NotifyTeamAutomationAction,
+  ListOfStringsWithQualifier,
+  TicketActionType,
+  TicketAction,
+  TicketActions,
+  FormResponseAnswerFiles,
+  DatabaseRecordFields,
+  FormResponseAnswerDatabaseSelect,
+  DatabaseSelectResponse,
+  AddEnduserTagsAutomationAction,
+  AddToJourneyAutomationAction,
+  FormResponseAnswerMedications,
+  MedicationResponse,
+  Language,
+  RemoveFromJourneyAutomationAction,
 } from "@tellescope/types-models"
 import {
-  DatabaseRecord,
   UserDisplayInfo,
 } from "@tellescope/types-client"
 
@@ -175,7 +263,12 @@ import {
   ALL_ACCESS,
   ASSIGNED_ACCESS,
   DEFAULT_ACCESS,
+  ENDUSER_FIELD_TYPES,
   NO_ACCESS,
+  OUTLOOK_INTEGRATIONS_TITLE,
+  SQUARE_INTEGRATIONS_TITLE,
+  ZOHO_TITLE,
+  ZOOM_TITLE,
  } from "@tellescope/constants"
 
 export interface ValidatorOptions {
@@ -229,8 +322,8 @@ export type InputValues <T> = { [K in keyof T]: JSONType }
 export type InputValidation<T> = { [K in keyof T]: ValidatorDefinition }
 export type InputValidationOld<T> = { [K in keyof T]: EscapeFunction }
 
-export const MAX_FILE_SIZE = 25000000 // 25 megabytes in bytes
-const DEFAULT_MAX_LENGTH = 5000
+export const MAX_FILE_SIZE = 1000000000 // 1gb megabytes in bytes
+const DEFAULT_MAX_LENGTH = 50000
 type BuildValidator_T = {
   (escapeFunction: EscapeFunction, options: ValidatorOptionsForList): EscapeToList;
   (escapeFunction: EscapeFunction, options: ValidatorOptionsForValue): EscapeFunction;
@@ -246,6 +339,7 @@ export const build_validator: BuildValidator_T = (escapeFunction, options={} as 
   const maxLength = options.maxLength || DEFAULT_MAX_LENGTH
 
   return (fieldValue: JSONType) => {
+    // console.log(fieldValue)
     if (isOptional && fieldValue === undefined) return undefined
     if (isOptional && fieldValue === null && !nullOk) return undefined
     if (nullOk && fieldValue === null) return null
@@ -354,20 +448,22 @@ export const binaryOrValidator = <A, B>(f1: EscapeFunction<A>, f2: EscapeFunctio
   }, 
   { ...o, listOf: false }
 )
-export const orValidator = <T>(validators: { [K in keyof T]: ValidatorDefinition<T[K]> }): ValidatorDefinition<T[keyof T]> => ({
+export const orValidator = <T>(validators: { [K in keyof T]: ValidatorDefinition<T[K]> }, _o?: { isOptional?: boolean }): ValidatorDefinition<T[keyof T]> => ({
   validate: (o={}) => build_validator(
     value => {
       for (const field in validators) {
         const escape = validators[field]
         try {
+          // console.log(field, value)
           return escape.validate()(value)
         } catch(err) { 
+          // console.error(err)
           continue 
         }
       }
-      throw `Value does not match any of the expected options`
+      throw `Value does not match any of the expected options: ${typeof value === 'object' ? JSON.stringify(value, null, 2) : ''}`
     },
-    { ...o, listOf: false }
+    { ..._o, ...o, listOf: false }
   ),
   getExample: () => (Object.values(validators)[0] as ValidatorDefinition).getExample(),
   getType: () => [Object.values(validators).map(v => (v as ValidatorDefinition).getType())]
@@ -491,10 +587,11 @@ const typeObject = (fields: InputValidation<any>) => {
   return types
 }
 
-export const objectValidator = <T extends object>(i: InputValidation<Required<T>>, objectOptions={ emptyOk: true } as ObjectOptions): ValidatorDefinition<T>  => ({
+export const objectValidator = <T extends object | undefined>(i: InputValidation<Required<T>>, objectOptions={ emptyOk: true } as ObjectOptions): ValidatorDefinition<T>  => ({
   validate: (o={}) => build_validator(
     (object: any) => {
       const emptyOk = objectOptions.emptyOk ?? true
+      // const isOptional = !!objectOptions.isOptional || o.isOptional
       const validated = {} as T
 
       if (!is_object(object)) {
@@ -518,15 +615,18 @@ export const objectValidator = <T extends object>(i: InputValidation<Required<T>
       }
 
       for (const field in i) {
+        // console.log('validating field of object', field)
         const value = (object as Indexable)[field] 
+        // console.log(field, value)
         const escaped = i[field].validate()(value) // may be required
+        // console.log('escaped', escaped)
         if (escaped === undefined) continue
 
-        validated[field] = escaped
+        (validated as Indexable)[field] = escaped
       }
 
       return validated
-    }, { ...o, isObject: true, listOf: false, isOptional: !!objectOptions.isOptional || o.isOptional }
+    }, { ...o, maxLength: 100000, isObject: true, listOf: false, isOptional: !!objectOptions.isOptional || o.isOptional }
   ),
   getExample: () => exampleObject(i),
   getType: () => typeObject(i),
@@ -602,8 +702,31 @@ export const objectAnyFieldsValidator = <T>(valueValidator?: ValidatorDefinition
   getExample: () => `{ "key": ${valueValidator?.getExample?.() ?? '"value"'} }`,
   getType: () => `{ "key": ${valueValidator?.getType?.() ?? 'string'} }`,
 })
-
 export const objectAnyFieldsAnyValuesValidator = objectAnyFieldsValidator()
+
+export const optionalEmptyObjectValidator: ValidatorDefinition<object> = ({
+  validate: (o={}) => build_validator(
+    (object: any) => { 
+      return {} 
+    }, 
+    { ...o, isOptional: true, isObject: true, listOf: false }
+  ),
+  getExample: () => `{ }`,
+  getType: () => `{ }`,
+})
+
+export const optionalAnyObjectValidator: ValidatorDefinition<object> = ({
+  validate: (o={}) => build_validator(
+    (object: any) => { 
+      if (typeof object !== 'object') throw "Must be an object value"
+      return object
+    }, 
+    { ...o, isOptional: true, isObject: true, listOf: false }
+  ),
+  getExample: () => `{ }`,
+  getType: () => `{ }`,
+})
+
 
 export const escapeString: EscapeWithOptions<string> = (o={}) => string => {
   if (typeof string !== "string") throw new Error('Expecting string value')
@@ -627,7 +750,21 @@ export const stringValidator: ValidatorDefinition<string> = {
 }
 export const stringValidatorOptional: ValidatorDefinition<string> = {
   validate: (o={}) => build_validator(
+    escapeString(o), { ...o, maxLength: o.maxLength ?? 1000, listOf: false, isOptional: true, emptyStringOk: true } 
+  ),
+  getExample: getExampleString,
+  getType: getTypeString,
+}
+export const stringValidatorOptionalEmptyOkay: ValidatorDefinition<string> = {
+  validate: (o={}) => build_validator(
     escapeString(o), { ...o, maxLength: o.maxLength ?? 1000, listOf: false, isOptional: true } 
+  ),
+  getExample: getExampleString,
+  getType: getTypeString,
+}
+export const stringValidator5000OptionalEmptyOkay: ValidatorDefinition<string> = {
+  validate: (o={}) => build_validator(
+    escapeString(o), { ...o, maxLength: o.maxLength ?? 5000, listOf: false, isOptional: true } 
   ),
   getExample: getExampleString,
   getType: getTypeString,
@@ -656,7 +793,7 @@ export const stringValidator1000: ValidatorDefinition<string> = {
 }
 export const stringValidator1000Optional: ValidatorDefinition<string> = {
   validate: (o={}) => build_validator(
-    escapeString(o), { ...o, maxLength: 1000, listOf: false, isOptional: true  } 
+    escapeString(o), { ...o, maxLength: 1000, listOf: false, isOptional: true, emptyStringOk: true,  } 
   ),
   getExample: getExampleString,
   getType: getTypeString,
@@ -689,6 +826,13 @@ export const stringValidator25000: ValidatorDefinition<string> = {
   getExample: getExampleString,
   getType: getTypeString,
 }
+export const stringValidator100000EmptyOkay: ValidatorDefinition<string> = {
+  validate: (o={}) => build_validator(
+    escapeString(o), { ...o, maxLength: 100000, listOf: false, emptyStringOk: true } 
+  ),
+  getExample: getExampleString,
+  getType: getTypeString,
+}
 export const stringValidator25000EmptyOkay: ValidatorDefinition<string> = {
   validate: (o={}) => build_validator(
     escapeString(o), { ...o, maxLength: 25000, listOf: false, emptyStringOk: true } 
@@ -698,14 +842,14 @@ export const stringValidator25000EmptyOkay: ValidatorDefinition<string> = {
 }
 export const SMSMessageValidator: ValidatorDefinition<string> = {
   validate: (o={}) => build_validator(
-    escapeString(o), { ...o, maxLength: 630, listOf: false  } 
+    escapeString(o), { ...o, maxLength: 1200, listOf: false  } 
   ),
   getExample: getExampleString,
   getType: getTypeString,
 }
 
-export const listValidator = <T>(b: ValidatorDefinition<T>, o?: ValidatorOptions | ValidatorOptionsForList): ValidatorDefinition<T[]> => ({
-  validate: o => build_validator(b.validate(o as any), { ...o, listOf: true }),
+export const listValidator = <T>(b: ValidatorDefinition<T>, _o?: ValidatorOptions | ValidatorOptionsForList): ValidatorDefinition<T[]> => ({
+  validate: o => build_validator(b.validate(o as any), { ..._o, ...o, listOf: true }),
   getExample: () => [b.getExample()],
   getType: () => [b.getExample()],
 })
@@ -791,7 +935,10 @@ export const listOfMongoIdValidator = listValidator(mongoIdValidator)
 export const mongoIdStringRequired = buildMongoIdStringValidator({ isOptional: false })
 export const mongoIdStringOptional = buildMongoIdStringValidator({ isOptional: true })
 export const listOfMongoIdStringValidator = listValidator(mongoIdStringRequired)
+export const listOfMongoIdStringValidatorOptional = listValidator(mongoIdStringRequired, { isOptional: true })
 export const listOfMongoIdStringValidatorEmptyOk = listValidatorEmptyOk(mongoIdStringRequired)
+export const listOfMongoIdStringValidatorOptionalOrEmptyOk = listValidatorOptionalOrEmptyOk(mongoIdStringRequired)
+export const sharedWithOrganizationIdsValidator = listValidatorEmptyOk(listValidator(mongoIdStringRequired))
 
 export const slugValidator: ValidatorDefinition<string> = {
   validate: (o={}) => build_validator(
@@ -807,7 +954,7 @@ export const slugValidator: ValidatorDefinition<string> = {
 }
 
 export const first_letter_capitalized = (s='') => s.charAt(0).toUpperCase() + s.slice(1)
-export const escape_name = (namestring: string) => namestring.replace(/[^a-zA-Z0-9-_ /.]/, '').substring(0, 100)
+export const escape_name = (namestring: string) => namestring.replaceAll(/[^a-zA-Z0-9-_ /.]/g, '').substring(0, 100)
 
 // enforces first-letter capitalization
 export const nameValidator: ValidatorDefinition<string> = {
@@ -815,7 +962,8 @@ export const nameValidator: ValidatorDefinition<string> = {
     name => {
       if (typeof name !== 'string') throw new Error('Expecting string value')
 
-      name = escape_name(name)  
+      // allow special characters, foreign language characters, accents, etc.
+      name = name.substring(0, 100) // escape_name(name)  
       if (!name) throw new Error("Invalid name")
 
       return first_letter_capitalized(name) 
@@ -893,9 +1041,18 @@ export const numberValidatorBuilder: ValidatorBuilder<number, { lower: number, u
 })
 
 export const nonNegNumberValidator = numberValidatorBuilder({ lower: 0, upper: 10000000000000 }) // max is 2286 in UTC MS
-export const numberValidator = numberValidatorBuilder({ lower: -100000000, upper: 10000000000000 }) // max is 2286 in UTC MS
-export const numberValidatorOptional = numberValidatorBuilder({ lower: -100000000, upper: 10000000000000, isOptional: true, emptyStringOk: true }) // max is 2286 in UTC MS
+export const numberValidator = numberValidatorBuilder({ lower: -10000000000000, upper: 10000000000000 }) // max is 2286 in UTC MS
+export const numberValidatorOptional = numberValidatorBuilder({ lower: -10000000000000, upper: 10000000000000, isOptional: true, emptyStringOk: true }) // max is 2286 in UTC MS
 export const fileSizeValidator = numberValidatorBuilder({ lower: 0, upper: MAX_FILE_SIZE })
+
+export const numberOrStringValidatorEmptyOkay = orValidator({
+  number: numberValidator,
+  string: stringValidator5000EmptyOkay,
+})
+export const numberOrStringValidatorOptional = orValidator({
+  number: numberValidatorOptional,
+  string: stringValidatorOptional
+})
 
 export const dateValidator: ValidatorDefinition<Date> = {
   validate: (options={}) => build_validator(
@@ -905,6 +1062,20 @@ export const dateValidator: ValidatorDefinition<Date> = {
       return new Date(date)
     }, 
     { ...options, maxLength: 250, listOf: false }
+  ),
+  getExample: () => new Date().toISOString(),
+  getType: () => "Date",
+}
+export const dateOptionalOrEmptyStringValidator: ValidatorDefinition<Date> = {
+  validate: (options={}) => build_validator(
+    (date: any) => {
+      if (date === '') return date
+      // coerce to string in case date is an actual Date object
+      if (isDate(date?.toString())) throw new Error(options.errorMessage || "Invalid date") 
+
+      return new Date(date)
+    }, 
+    { ...options, maxLength: 250, emptyStringOk: true, isOptional: true, listOf: false }
   ),
   getExample: () => new Date().toISOString(),
   getType: () => "Date",
@@ -921,6 +1092,15 @@ export const dateValidatorOptional: ValidatorDefinition<Date> = {
   getExample: () => new Date().toISOString(),
   getType: () => "Date",
 }
+export const dateRangeValidator = objectValidator<DateRange>({
+  from: dateOptionalOrEmptyStringValidator,
+  to: dateOptionalOrEmptyStringValidator,
+})
+export const dateRangeOptionalValidator = objectValidator<DateRange>({
+  from: dateOptionalOrEmptyStringValidator,
+  to: dateOptionalOrEmptyStringValidator,
+}, { isOptional: true, emptyOk: true })
+
 
 export const exactMatchValidator = <T extends string | null>(matches: T[], options?: ValidatorOptions): ValidatorDefinition<T> => ({
   validate: (o={}) => build_validator(
@@ -949,6 +1129,11 @@ export const exactMatchValidatorOptional = <T extends string | null>(matches: T[
   getType: getTypeString,
 })
 export const exactMatchListValidator = <T extends string | null>(matches: T[]) => listValidator(exactMatchValidator(matches))
+
+// export for backwards compatibility after moving to types-models
+export { VALID_STATES }
+export const stateValidator = exactMatchValidator(VALID_STATES)
+export const stateValidatorOptional = exactMatchValidatorOptional(VALID_STATES)
 
 export const journeysValidator: ValidatorDefinition<Indexable> = {
   validate: (options={}) => build_validator(
@@ -1028,7 +1213,11 @@ export const fileTypeValidator: ValidatorDefinition<string> = {
 
       return s
     }, 
-    { ...options, listOf: false }
+    { 
+      ...options, 
+      emptyStringOk: true,  // allow empty string for unknown file types
+      listOf: false,
+    }
   ),
   getExample: () => 'text/plain',
   getType: getTypeString,
@@ -1138,6 +1327,7 @@ const DEFAULT_ENDUSER_FIELDS = [
 const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
   email: '',
   file: '',
+  files: '',
   multiple_choice: '',
   number: '',
   phone: '',
@@ -1147,11 +1337,30 @@ const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
   ranking: '',
   rating: '',
   date: '',
+  dateString: '',
+  "Question Group": '',
+  "Table Input": '',
+  description: '',
+  Address: '',
+  Time: '',
+  Stripe: '',
+  Dropdown: '',
+  "Database Select": '',
+  Medications: '',
 }
 export const FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES) as FormFieldType[]
 export const formFieldTypeValidator = exactMatchValidator<FormFieldType>(FORM_FIELD_TYPES)
 
 export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' | 'phoneNumber']: (value?: FormResponseValueAnswer[keyof FormResponseValueAnswer], options?: any, isOptional?: boolean) => any } = {
+  'Address': objectAnyFieldsAnyValuesValidator.validate(),
+  'Database Select': objectAnyFieldsAnyValuesValidator.validate(),
+  'Time': stringValidator.validate({ maxLength: 100 }),
+  'Stripe': stringValidator.validate({ maxLength: 100 }),
+  'Medications': listValidator(objectAnyFieldsAnyValuesValidator).validate(),
+  Dropdown: listOfStringsValidator.validate({ emptyListOk: true }),
+  'description': g => '',
+  'Table Input': (g) => Array.isArray(g) ? g : [],
+  'Question Group': (g) => Array.isArray(g) ? g : [],
   'string': stringValidator.validate({ maxLength: 1000, emptyStringOk: true, errorMessage: "Response must not exceed 1000 characters" }),
   'stringLong': stringValidator.validate({ maxLength: 10000, emptyStringOk: true, errorMessage: "Response must not exceed 10000 characters" }),
   'number': numberValidator.validate({ errorMessage: "Response must be a number" }),
@@ -1162,6 +1371,7 @@ export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' 
   'phoneNumber': phoneValidator.validate(), // backwards compatibility with old field name for phone
 
   "date": dateValidator.validate(),
+  "dateString": stringValidator100.validate(),
   "ranking": listOfStringsValidator.validate(),
   "rating": numberValidator.validate(),
 
@@ -1172,8 +1382,7 @@ export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' 
     }
     return fileResponseValidator.validate()(fileInfo)
   },
-  // sigInfo: SignatureResponse
-  
+  'files': fs => fs,
   'signature': (sigInfo: any, _, isOptional) => {
     if (isOptional && (!sigInfo || object_is_empty(sigInfo)))  {
       return { type: 'signature', signed: null }
@@ -1230,7 +1439,7 @@ export const fieldsValidator: ValidatorDefinition<Indexable<string | CustomField
         } else if (typeof val === 'number' || val === null || typeof val === 'boolean') {
           continue // nothing to restrict on number type yet
         } else if (typeof val === 'object') {
-          if (JSON.stringify(val).length > 1024) throw new Error(`object value for key ${k} exceeds the maximum length of 1024 characters in string representation`)
+          if (JSON.stringify(val).length > 4096) throw new Error(`object value for key ${k} exceeds the maximum length of 4096 characters in string representation`)
           // previous restricted structure for fields object
           // try {
           //   if (val.type && typeof val.type === 'string') { // form responses can be stored as custom fields (form responses is simple array)
@@ -1255,13 +1464,13 @@ export const fieldsValidator: ValidatorDefinition<Indexable<string | CustomField
           //   throw new Error(`object value is invalid JSON for key ${k}`)
           // }
         } else {
-          throw new Error(`Expecting value to be a string or object but got ${typeof val} for key {k}`)
+          throw new Error(`Expecting value to be a string or object but got ${typeof val} for key ${k}`)
         }
       }
 
       return fields
     }, 
-    { ...options, isObject: true, listOf: false }
+    { ...options, maxLength: 100000, isObject: true, listOf: false }
   ),
   getExample: () => `{}`,
   getType: () => `{}`,
@@ -1324,7 +1533,7 @@ export const rejectionWithMessage: EscapeBuilder<undefined> = o => build_validat
 )
 
 export const numberToDateValidator = indexableNumberValidator(numberValidator, dateValidator)
-export const idStringToDateValidator = indexableValidator(mongoIdStringRequired, dateValidator)
+export const idStringToDateValidator = indexableValidator(mongoIdStringRequired, dateOptionalOrEmptyStringValidator)
 
 // todo: move preference to FIELD_TYPES with drop-down option in user-facing forms
 const FIELD_TYPES = ['string', 'number', 'email', 'phone', 'multiple_choice', 'file', 'signature']
@@ -1338,14 +1547,14 @@ const VALIDATE_OPTIONS_FOR_FIELD_TYPES = {
 }
 export const RESERVED_INTAKE_FIELDS = ['_id', 'id', 'externalId', 'phoneConsent', 'emailConsent', 'tags', 'journeys', 'updatedAt', 'preference', 'assignedTo', 'lastCommunication']
 
-export const ENDUSER_FIELD_TYPES = {
-  'email': 'email',
-  'phone': 'phone',
-  'fname': 'string',
-  'lname': 'string',
-} 
 export const INTERNAL_NAME_TO_DISPLAY_FIELD = { 
   "string": 'Text',
+  "stringLong": 'Text Long',
+  'file': "File",
+  'dateString': "Date",
+  'date': "Date & Time",
+  'rating': "Rating",
+  'ranking': "Ranking",
   "number": 'Number',
   "email": "Email",
   "phone": "Phone Number",
@@ -1433,6 +1642,35 @@ const isFormField = (f: JSONType, fieldOptions={ forUpdate: false }) => {
 
 // validate optional vs not at endpoint-level
 export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: FormResponseValueAnswer & { type: K } } >({
+  "Question Group": objectValidator<FormResponseAnswerGroup>({
+    type: exactMatchValidator(['Question Group']),
+    value: listValidatorEmptyOk(objectValidator<FormSubField>({ 
+      id: mongoIdStringRequired,
+    }))
+  }),
+  "Address": objectValidator<FormResponseAnswerAddress>({
+    type: exactMatchValidator(['Address']),
+    value: objectValidator<FormResponseAnswerAddress['value']>({ 
+      addressLineOne: stringValidator1000Optional,
+      addressLineTwo: stringValidator1000Optional,
+      city: stringValidator1000Optional,
+      state: stateValidatorOptional,
+      zipCode: stringValidator1000Optional,
+    }, { emptyOk: true, isOptional: true })
+  }),
+  "Table Input": objectValidator<FormResponseAnswerTable>({
+    type: exactMatchValidator(['Table Input']),
+    value: listValidatorOptionalOrEmptyOk( // optional to support optional Table Input questions
+      listValidator(objectValidator<TableInputCell>({
+        label: stringValidator,
+        entry: stringValidatorOptionalEmptyOkay,
+      })
+    ))
+  }),
+  description: objectValidator<FormResponseAnswerDescription>({
+    type: exactMatchValidator(['description']),
+    value: stringValidatorOptionalEmptyOkay,
+  }),
   email: objectValidator<FormResponseAnswerEmail>({
     type: exactMatchValidator(['email']),
     value: emailValidatorOptional,
@@ -1453,6 +1691,14 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
     type: exactMatchValidator(['string']),
     value: stringValidator5000Optional,
   }),
+  Time: objectValidator<FormResponseAnswerTime>({
+    type: exactMatchValidator(['Time']),
+    value: stringValidator1000Optional,
+  }),
+  Stripe: objectValidator<FormResponseAnswerStripe>({
+    type: exactMatchValidator(['Stripe']),
+    value: stringValidator1000Optional,
+  }),
   stringLong: objectValidator<FormResponseAnswerStringLong>({
     type: exactMatchValidator(['stringLong']),
     value: stringValidator5000Optional,
@@ -1461,16 +1707,33 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
     type: exactMatchValidator(['date']),
     value: dateValidatorOptional,
   }),
+  dateString: objectValidator<FormResponseAnswerDateString>({
+    type: exactMatchValidator(['dateString']),
+    value: stringValidator1000Optional,
+  }),
   file: objectValidator<FormResponseAnswerFile>({
     type: exactMatchValidator(['file']),
     value: objectValidator<FormResponseAnswerFileValue>({
       name: stringValidator5000,
       secureName: stringValidator250,
+      type: stringValidator1000Optional,
     }, { emptyOk: false, isOptional: true }),
+  }),
+  files: objectValidator<FormResponseAnswerFiles>({
+    type: exactMatchValidator(['files']),
+    value: listValidatorOptionalOrEmptyOk(objectValidator<FormResponseAnswerFileValue>({
+      name: stringValidator5000,
+      secureName: stringValidator250,
+      type: stringValidator1000Optional,
+    }, { emptyOk: false, isOptional: true })),
   }),
   multiple_choice: objectValidator<FormResponseAnswerMultipleChoice>({
     type: exactMatchValidator(['multiple_choice']),
-    value: listOfStringsValidatorEmptyOk,
+    value: listOfStringsValidatorOptionalOrEmptyOk,
+  }),
+  Dropdown: objectValidator<FormResponseAnswerDropdown>({
+    type: exactMatchValidator(['Dropdown']),
+    value: listOfStringsValidatorOptionalOrEmptyOk,
   }),
   ranking: objectValidator<FormResponseAnswerRanking>({
     type: exactMatchValidator(['ranking']),
@@ -1479,23 +1742,67 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
   signature: objectValidator<FormResponseAnswerSignature>({
     type: exactMatchValidator(['signature']),
     value: objectValidator<FormResponseAnswerSignatureValue>({
-      fullName: stringValidator250,
-      signed: booleanValidator,
+      fullName: stringValidator1000Optional,
+      signed: booleanValidatorOptional,
       pdfAttachment: stringValidatorOptional,
+      url: stringValidator1000Optional,
       signedPdfSecureName: stringReadonlyValidator, // created/set in backend only
     }, { emptyOk: false, isOptional: true }),
   }),
+  "Database Select": objectValidator<FormResponseAnswerDatabaseSelect>({
+    type: exactMatchValidator(['Database Select']),
+    value: listValidatorOptionalOrEmptyOk(
+      objectValidator<DatabaseSelectResponse>({
+        recordId: mongoIdStringRequired,
+        databaseId: mongoIdStringRequired,
+        text: stringValidator25000,
+      }, { emptyOk: false, isOptional: true })
+    ),
+  }),
+  "Medications": objectValidator<FormResponseAnswerMedications>({
+    type: exactMatchValidator(['Medications']),
+    value: listValidatorOptionalOrEmptyOk(
+      objectValidator<MedicationResponse>({
+        displayTerm: stringValidatorOptionalEmptyOkay,
+        drugName: stringValidatorOptionalEmptyOkay,
+        drugSynonym: stringValidatorOptionalEmptyOkay,
+        otherDrug: stringValidatorOptionalEmptyOkay,
+        NDCs: listOfStringsValidatorOptionalOrEmptyOk,
+        rxNormCode: stringValidatorOptionalEmptyOkay,
+        reasonForTaking: stringValidatorOptionalEmptyOkay,
+        dosage: objectValidator<MedicationResponse['dosage']>({
+          value: stringValidatorOptionalEmptyOkay,
+          unit: stringValidatorOptionalEmptyOkay,
+          quantity: stringValidatorOptionalEmptyOkay,
+          frequency: stringValidatorOptionalEmptyOkay,
+        }, { emptyOk: true, isOptional: true }),
+      }, { emptyOk: false, isOptional: true })
+    ),
+  }),
+
 })
 
+export const mmddyyyyRegex = /^\d{2}-\d{2}-\d{4}$/
+export const photonDisabledForEnduser = (
+  enduser: Pick<Enduser, 'phone' | 'fname' | 'lname' | 'gender' | 'dateOfBirth'>
+) => !(
+  enduser.fname && enduser.lname && enduser.gender && enduser.phone
+  && enduser.dateOfBirth && mmddyyyyRegex.test(enduser.dateOfBirth)
+)
+
 export const formResponseValidator = objectValidator<FormResponseValue>({
-  fieldId: mongoIdStringRequired,
-  fieldTitle: stringValidator5000,
+  fieldId: stringValidatorOptionalEmptyOkay,
+  fieldTitle: stringValidator5000EmptyOkay,
   fieldDescription: stringValidator5000Optional,
+  fieldHtmlDescription: stringValidator5000Optional,
   answer: formResponseAnswerValidator,
+  externalId: stringValidatorOptional,
+  sharedWithEnduser: booleanValidatorOptional,
 })
 export const formResponsesValidator = listValidator(formResponseValidator)
 
-export const intakePhoneValidator = exactMatchValidator<'optional' | 'required'>(['optional', 'required'])
+export const intakePhoneValidator = exactMatchValidator<Required<Form>['intakePhone']>(['optional', 'required', 'hidden'])
+export const intakeDateOfBirthValidator = exactMatchValidator<Required<Form>['intakeDateOfBirth']>(['optional', 'required', 'hidden'])
 
 export const formFieldValidator: EscapeBuilder<FormField> = (options={}, fieldOptions={ forUpdate: false }) => build_validator(
   v => isFormField(v, fieldOptions), 
@@ -1519,6 +1826,7 @@ export const listOfFormFieldsValidator: EscapeBuilder<FormField[]> = (options={}
 const _CHAT_ROOM_TYPES: { [K in ChatRoomType]: any } = {
   internal: '',
   external: '',
+  'Group Chat': '',
 }
 export const CHAT_ROOM_TYPES = Object.keys(_CHAT_ROOM_TYPES) as ChatRoomType[]
 export const chatRoomTypeValidator = exactMatchValidator<ChatRoomType>(CHAT_ROOM_TYPES)
@@ -1533,6 +1841,7 @@ export const accountTypeValidator = exactMatchValidator<AccountType>(ACCOUNT_TYP
 const _MESSAGE_TEMPLATE_TYPES: { [K in MessageTemplateType]: any } = {
   enduser: '',
   team: '',
+  Reply: '',
 }
 export const MESSAGE_TEMPLATE_TYPES = Object.keys(_MESSAGE_TEMPLATE_TYPES) as MessageTemplateType[]
 export const messageTemplateTypeValidator = exactMatchValidator<MessageTemplateType>(MESSAGE_TEMPLATE_TYPES)
@@ -1580,6 +1889,7 @@ export const WebhookSubscriptionValidator = objectValidator<{ [K in WebhookSuppo
 )
 
 export const sessionTypeValidator = exactMatchValidator<SessionType>(['user', 'enduser'])
+export const sessionTypeOrAnyoneValidatorOptional = exactMatchValidatorOptional<SessionType | 'Anyone'>(['user', 'enduser', 'Anyone'])
 
 export const listOfDisplayNameInfo = listValidator(objectValidator<{ fname: string, lname: string, id: string }>({ 
   fname: nameValidator, 
@@ -1617,7 +1927,8 @@ export const userIdentityValidator = objectValidator<{
 export const listOfUserIndentitiesValidator = listValidator(userIdentityValidator)
 
 export const chatAttachmentValidator = objectValidator<ChatAttachment>({ 
-  type: exactMatchValidator<ChatAttachmentType>(['image', 'video', 'file']),
+  type: stringValidator100,
+  name: stringValidatorOptional,
   secureName: stringValidator250,
 }) 
 export const listOfChatAttachmentsValidator = listValidatorEmptyOk(chatAttachmentValidator)
@@ -1625,7 +1936,7 @@ export const listOfChatAttachmentsValidator = listValidatorEmptyOk(chatAttachmen
 export const genericAttachmentValidator = objectValidator<GenericAttachment>({ 
   displayName: stringValidator1000,
   fileId: mongoIdStringRequired,
-  type: stringValidator100,
+  type: stringValidatorOptional,
   secureName: stringValidator250,
 }) 
 export const listOfGenericAttachmentsValidator = listValidatorEmptyOk(genericAttachmentValidator)
@@ -1656,6 +1967,22 @@ export const chatRoomUserInfoValidator = objectAnyFieldsValidator(objectValidato
   unreadCount: nonNegNumberValidator,
 }))
 
+const _LIST_QUERY_QUALIFIERS: { [K in ListQueryQualifier]: any} = {
+  "One Of": '',
+  "All Of": "",
+} 
+export const LIST_QUERY_QUALIFIERS = Object.keys(_LIST_QUERY_QUALIFIERS) as ListQueryQualifier[]
+export const listQueryQualifiersValidator = exactMatchValidator<ListQueryQualifier>(LIST_QUERY_QUALIFIERS)
+
+export const listOfStringsWithQualifierValidator = objectValidator<ListOfStringsWithQualifier>({
+  qualifier: listQueryQualifiersValidator,
+  values: listOfStringsValidator,
+})
+export const listOfStringsWithQualifierValidatorOptional = objectValidator<ListOfStringsWithQualifier>({
+  qualifier: listQueryQualifiersValidator,
+  values: listOfStringsValidator,
+}, { isOptional: true })
+
 const _AUTOMATION_ENDUSER_STATUS: { [K in AutomatedActionStatus]: any } = {
   active: '',
   finished: '',
@@ -1667,10 +1994,13 @@ export const automatedActionStatusValidator = exactMatchValidator<AutomatedActio
 
 const _AUTOMATION_EVENTS: { [K in AutomationEventType]: any } = {
   formResponse: '',
+  formResponses: '',
   afterAction: '',
   onJourneyStart: '',
   formUnsubmitted: '',
+  formsUnsubmitted: '',
   ticketCompleted: '',
+  waitForTrigger: '',
 }
 export const AUTOMATION_EVENTS = Object.keys(_AUTOMATION_EVENTS) as AutomationEventType[]
 export const automationEventTypeValidator = exactMatchValidator<AutomationEventType>(AUTOMATION_EVENTS)
@@ -1682,6 +2012,12 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   sendForm: '',
   sendWebhook: '',
   setEnduserStatus: '',
+  setEnduserFields: '',
+  shareContent: '',
+  notifyTeam: '',
+  addEnduserTags: '',
+  addToJourney: '',
+  removeFromJourney: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -1703,7 +2039,7 @@ export const MESSAGE_TEMPLATE_MODES = Object.keys(_MESSAGE_TEMPLATE_MODES) as Me
 export const messageTemplateModeValidator = exactMatchValidator<MessageTemplateMode>(MESSAGE_TEMPLATE_MODES)
 
 const sharedReminderValidators = {
-  msBeforeStartTime: nonNegNumberValidator,
+  msBeforeStartTime: numberValidator,
   didRemind: booleanValidatorOptional,
 }
 
@@ -1736,8 +2072,32 @@ export const calendarEventReminderValidator = orValidator<{ [K in CalendarEventR
     type: exactMatchValidator<'user-notification'>(['user-notification']), 
     ...sharedReminderValidators, 
   }),
+  "create-ticket": objectValidator<CalendarEventReminderInfoForType['create-ticket']>({
+    info: objectValidator<CalendarEventReminderInfoForType['create-ticket']['info']>({
+      title: stringValidator1000Optional,
+    }, { emptyOk: true }),
+    type: exactMatchValidator<'create-ticket'>(['create-ticket']), 
+    ...sharedReminderValidators, 
+  }),
 })
 export const listOfCalendarEventRemindersValidator = listValidatorEmptyOk(calendarEventReminderValidator)
+
+
+export const cancelConditionValidator = orValidator<{ [K in keyof CancelConditions]: CancelCondition & { type: K } } >({
+  formResponse: objectValidator<CancelConditions['formResponse']>({
+    type: exactMatchValidator(['formResponse']),
+    info: objectValidator<CancelConditions['formResponse']['info']>({
+      automationStepId: mongoIdStringRequired,
+    }, { emptyOk: false }),
+  }),
+  formResponses: objectValidator<CancelConditions['formResponses']>({
+    type: exactMatchValidator(['formResponses']),
+    info: objectValidator<CancelConditions['formResponses']['info']>({
+      automationStepId: mongoIdStringRequired,
+      unsubmittedFormCount: numberValidator,
+    }, { emptyOk: false }),
+  }),
+})
 
 export const cancelConditionsValidator = listOfObjectsValidator<CancelCondition>({
   type: exactMatchValidator(['formResponse']),
@@ -1767,12 +2127,36 @@ export const automationEventValidator = orValidator<{ [K in AutomationEventType]
       automationStepId: mongoIdStringRequired,
     }, { emptyOk: false }),
   }),
+  formResponses: objectValidator<FormResponsesAutomationEvent>({
+    type: exactMatchValidator(['formResponses']),
+    info: objectValidator<WithAutomationStepId>({ 
+      automationStepId: mongoIdStringRequired,
+    }, { emptyOk: false }),
+  }),
   afterAction: objectValidator<AfterActionAutomationEvent>({
     type: exactMatchValidator(['afterAction']),
-    info: objectValidator<AfterActionEventInfo>(delayValidation, { emptyOk: false }),
+    info: objectValidator<AfterActionAutomationEvent['info']>({
+      ...delayValidation,
+      formCondition: objectValidator<AfterActionAutomationEvent['info']['formCondition']>({
+        formId: mongoIdStringRequired,
+        formFieldId: mongoIdStringRequired,
+        before: booleanValidatorOptional,
+      }, { isOptional: true, emptyOk: true, }),
+      fieldCondition: objectValidator<AfterActionAutomationEvent['info']['fieldCondition']>({
+        field: stringValidator,
+        before: booleanValidatorOptional,
+      }, { isOptional: true, emptyOk: true, }),
+    }, { emptyOk: false }),
   }),
   formUnsubmitted: objectValidator<FormUnsubmittedEvent>({
     type: exactMatchValidator(['formUnsubmitted']),
+    info: objectValidator<FormUnsubmittedEventInfo>({ 
+      ...delayValidation,
+      automationStepId: mongoIdStringRequired, 
+    }, { emptyOk: false }),
+  }),
+  formsUnsubmitted: objectValidator<FormsUnsubmittedEvent>({
+    type: exactMatchValidator(['formsUnsubmitted']),
     info: objectValidator<FormUnsubmittedEventInfo>({ 
       ...delayValidation,
       automationStepId: mongoIdStringRequired, 
@@ -1789,6 +2173,13 @@ export const automationEventValidator = orValidator<{ [K in AutomationEventType]
       closedForReason: stringValidatorOptional,
     }, { emptyOk: false }),
   }),
+  waitForTrigger: objectValidator<WaitForTriggerAutomationEvent>({
+    type: exactMatchValidator(['waitForTrigger']),
+    info: objectValidator<WaitForTriggerAutomationEvent['info']>({ 
+      automationStepId: mongoIdStringRequired, 
+      triggerId: mongoIdStringRequired, 
+    }, { emptyOk: false }),
+  }),
 })
 export const automationEventsValidator = listValidatorEmptyOk(automationEventValidator)
 
@@ -1799,6 +2190,23 @@ export const automationConditionValidator = orValidator<{ [K in AutomationCondit
   }),
 })
 export const listOfAutomationConditionsValidator = listValidatorEmptyOk(automationConditionValidator)
+
+export const ticketActionValidator = orValidator<{ [K in TicketActionType]: TicketAction & { type: K } } >({
+  "Complete Form": objectValidator<TicketActions['Complete Form']>({
+    type: exactMatchValidator(['Complete Form']),
+    info: objectValidator<TicketActions['Complete Form']['info']>({ 
+      formId: mongoIdStringRequired, 
+      formResponseId: mongoIdStringOptional, 
+    }, { emptyOk: false }),
+    completedAt: dateOptionalOrEmptyStringValidator,
+  }),
+  "Create Prescription": objectValidator<TicketActions['Create Prescription']>({
+    type: exactMatchValidator(['Create Prescription']),
+    info: objectValidator<TicketActions['Create Prescription']['info']>({}, { emptyOk: true, isOptional: true }),
+    completedAt: dateOptionalOrEmptyStringValidator,
+  }),
+})
+export const ticketActionsValidator = listValidatorOptionalOrEmptyOk(ticketActionValidator)
 
 export const automationActionValidator = orValidator<{ [K in AutomationActionType]: AutomationAction & { type: K } } >({
   setEnduserStatus: objectValidator<SetEnduserStatusAutomationAction>({
@@ -1813,6 +2221,17 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     type: exactMatchValidator(['sendSMS']),
     info: objectValidator<AutomationForMessage>({ senderId: mongoIdStringRequired, templateId: mongoIdStringRequired }, { emptyOk: false }),
   }),
+  notifyTeam: objectValidator<NotifyTeamAutomationAction>({
+    type: exactMatchValidator(['notifyTeam']),
+    info: objectValidator<NotifyTeamAutomationAction['info']>(
+      { 
+        templateId: mongoIdStringRequired,
+        forAssigned: booleanValidator,
+        roles: listOfStringsValidatorOptionalOrEmptyOk,
+      }, 
+      { emptyOk: false }
+    ),
+  }),
   sendForm: objectValidator<SendFormAutomationAction>({
     type: exactMatchValidator(['sendForm']),
     info: objectValidator<AutomationForFormRequest>({ 
@@ -1821,30 +2240,89 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       channel: communicationsChannelValidatorOptional,
     }, { emptyOk: false }),
   }),
+  shareContent: objectValidator<ShareContentAutomationAction>({
+    type: exactMatchValidator(['shareContent']),
+    info: objectValidator<ShareContentAutomationAction['info']>({ 
+      managedContentRecordIds: listOfMongoIdStringValidator, 
+    }, { emptyOk: false }),
+  }),
   createTicket: objectValidator<CreateTicketAutomationAction>({
     type: exactMatchValidator(['createTicket']),
     info: objectValidator<CreateTicketActionInfo>({ 
-      title: stringValidatorOptional,
-      assignmentStrategy: orValidator<{ [K in CreateTicketAssignmentStrategyType ]: CreateTicketAssignmentStrategy & { type: K } }>({
+      title: stringValidator1000,
+      assignmentStrategy: orValidator<{ [K in CreateTicketAssignmentStrategyType ]: CreateTicketAssignmentStrategy }>({
         'care-team-random': objectValidator<CreateTicketAssignmentStrategy>({ 
-          type: exactMatchValidator<CreateTicketAssignmentStrategyType>(['care-team-random']),
+          type: exactMatchValidator<'care-team-random'>(['care-team-random']),
           info: objectValidator<object>({}, { emptyOk: true }),
-        })
+        }),
+        'care-team-primary': objectValidator<CreateTicketAssignmentStrategy>({ 
+          type: exactMatchValidator<'care-team-primary'>(['care-team-primary']),
+          info: objectValidator<object>({}, { emptyOk: true }),
+        }),
+        'by-tags': objectValidator<CreateTicketAssignmentStrategy>({ 
+          type: exactMatchValidator<'by-tags'>(['by-tags']),
+          info: listOfStringsWithQualifierValidator,
+        }),
+        'default': objectValidator<CreateTicketAssignmentStrategy>({ 
+          type: exactMatchValidator<'default'>(['default']),
+          info: objectValidator<object>({}, { emptyOk: true }),
+        }),
       }), 
       closeReasons: listOfStringsValidatorOptionalOrEmptyOk,
+      restrictByState: booleanValidatorOptional,
       defaultAssignee: mongoIdStringRequired,
+      forCarePlan: booleanValidatorOptional,
+      hiddenFromTickets: booleanValidatorOptional,
+      htmlDescription: stringValidatorOptional, // keep consistent with validator on Tickets model
+      actions: ticketActionsValidator,
+      dueDateOffsetInMS: numberValidatorOptional,
     }, { emptyOk: false }),
   }),
   sendWebhook: objectValidator<SendWebhookAutomationAction>({
     type: exactMatchValidator(['sendWebhook']),
     info: objectValidator<AutomationForWebhook>({ message: stringValidator5000 }, { emptyOk: false }),
   }),
+  setEnduserFields: objectValidator<SetEnduserFieldsAutomationAction>({
+    type: exactMatchValidator(['setEnduserFields']),
+    info: objectValidator<SetEnduserFieldsAutomationAction['info']>({ 
+      fields: listValidator(objectValidator<EnduserFieldSetter>({
+        name: stringValidator,
+        type: stringValidator,
+        value: stringValidator,
+      }))
+    }, { emptyOk: false }),
+  }),
+  addEnduserTags: objectValidator<AddEnduserTagsAutomationAction>({
+    type: exactMatchValidator(['addEnduserTags']),
+    info: objectValidator<AddEnduserTagsAutomationAction['info']>({ 
+      tags: listOfStringsValidator, 
+    }, { emptyOk: false }),
+  }),
+  addToJourney: objectValidator<AddToJourneyAutomationAction>({
+    type: exactMatchValidator(['addToJourney']),
+    info: objectValidator<AddToJourneyAutomationAction['info']>({ 
+      journeyId: mongoIdStringRequired, 
+    }, { emptyOk: false }),
+  }),
+  removeFromJourney: objectValidator<RemoveFromJourneyAutomationAction>({
+    type: exactMatchValidator(['removeFromJourney']),
+    info: objectValidator<RemoveFromJourneyAutomationAction['info']>({ 
+      journeyId: mongoIdStringRequired, 
+    }, { emptyOk: false }),
+  }),
+})
+
+export const journeyContextValidator = objectValidator<JourneyContext>({
+  calendarEventId: mongoIdStringOptional,
+  formResponseId: mongoIdStringOptional,
+  purchaseId: mongoIdStringOptional,
 })
 
 export const relatedRecordValidator = objectValidator<RelatedRecord>({
   type: stringValidator100,
   id: mongoIdStringRequired,
   creator: mongoIdStringOptional,
+  environment: stringValidatorOptional,
 })
 export const listOfRelatedRecordsValidator = listValidatorEmptyOk(relatedRecordValidator)
 
@@ -1907,7 +2385,12 @@ export const portalSettingsValidator = objectValidator<PortalSettings>({
     registerDescription: stringValidator1000Optional,
     registerGraphic: stringValidator1000Optional,
     registerTitle: stringValidator1000Optional,
-  }, { isOptional: true })
+    hideRegister: booleanValidatorOptional,
+  }, { isOptional: true, emptyOk: true, }),
+  communication: objectValidator<PortalSettings['communication']>({
+    allowEnduserInitiatedChat: booleanValidatorOptional,
+    sendEmailNotificationsToEnduser: booleanValidatorOptional,
+  }, { isOptional: true, emptyOk: true })
 })
 
 export const organizationThemeValidator = objectValidator<OrganizationTheme>({
@@ -1921,6 +2404,8 @@ export const organizationThemeValidator = objectValidator<OrganizationTheme>({
   customPortalURL: stringValidator250,
   portalSettings: portalSettingsValidator,
   organizationIds: listOfStringsValidatorOptionalOrEmptyOk,
+  customPrivacyPolicy: stringValidatorOptional,
+  customTermsOfService: stringValidatorOptional,
 })
 
 const _MANAGED_CONTENT_RECORD_TYPES: { [K in ManagedContentRecordType]: any } = {
@@ -1977,26 +2462,67 @@ export const flowchartUIValidator = objectValidator<FlowchartUI>({
 
 
 export const integrationAuthenticationsValidator = objectValidator<IntegrationAuthentication>({
-  type: exactMatchValidator(['oauth2']),
+  type: exactMatchValidator(['oauth2', 'apiKey']),
   info: objectValidator<OAuth2AuthenticationFields>({
     access_token: stringValidator250,
     refresh_token: stringValidator250,
-    scope: stringValidator5000,
+    scope: stringValidator25000EmptyOkay,
     expiry_date: nonNegNumberValidator,
     token_type: exactMatchValidator<'Bearer'>(['Bearer']),
+    external_id: stringValidatorOptional,
     state: stringValidatorOptional,
     email: emailValidatorOptional,
   }),
 })
 
+const _TABLE_INPUT_TYPES: { [K in TableInputChoiceType]: any } = {
+  Date: '',
+  Text: '',
+  Select: '',
+}
+export const TABLE_INPUT_TYPES = Object.keys(_TABLE_INPUT_TYPES) as TableInputChoiceType[]
+export const tableInputTypesValidator = exactMatchValidator<TableInputChoiceType>(TABLE_INPUT_TYPES)
+
+export const tableInputChoiceValidator = orValidator<{ [K in TableInputChoiceType]: TableInputChoices[K] }>({
+  Text: objectValidator<TableInputChoices['Text']>({
+    type: exactMatchValidator<'Text'>(['Text']),
+    label: stringValidator1000,
+    info: optionalEmptyObjectValidator,
+  }),
+  Date: objectValidator<TableInputChoices['Date']>({
+    type: exactMatchValidator<'Date'>(['Date']),
+    label: stringValidator1000,
+    info: optionalEmptyObjectValidator,
+  }),
+  Select: objectValidator<TableInputChoices['Select']>({
+    type: exactMatchValidator<'Select'>(['Select']),
+    label: stringValidator1000,
+    info: objectValidator<TableInputChoices['Select']['info']>({
+      choices: listOfStringsValidator,
+    }),
+  }),
+})
 
 export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
+  tableChoices: listValidatorOptionalOrEmptyOk(tableInputChoiceValidator),
   choices: listOfStringsValidatorOptionalOrEmptyOk,
   from: numberValidatorOptional,
   to: numberValidatorOptional,
   other: booleanValidatorOptional,
   radio: booleanValidatorOptional,
   pdfAttachment: stringValidator5000Optional,
+  subFields: listValidatorOptionalOrEmptyOk(objectValidator<FormSubField>({ 
+    id: mongoIdStringRequired,
+  })),
+  validFileTypes: listOfStringsValidatorOptionalOrEmptyOk,
+  productIds: listOfStringsValidatorOptionalOrEmptyOk,
+  signatureUrl: stringValidator5000Optional,
+  maxLength: numberValidatorOptional,
+  minLength: numberValidatorOptional,
+  repeat: booleanValidatorOptional,
+  databaseId: mongoIdStringOptional,
+  databaseLabel: stringValidatorOptionalEmptyOkay,
+  databaseLabels: listOfStringsValidatorOptionalOrEmptyOk,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -2024,7 +2550,9 @@ export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K 
       link: stringValidator5000EmptyOkay,
       name: stringValidatorOptional,
       height: numberValidatorOptional,
+      maxHeight: numberValidatorOptional,
       width: numberValidatorOptional,
+      maxWidth: numberValidatorOptional,
     }),
   }),
   pdf: objectValidator<BlockContentPDF>({
@@ -2033,7 +2561,9 @@ export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K 
       link: stringValidator5000EmptyOkay,
       name: stringValidatorOptional,
       height: numberValidatorOptional,
+      maxHeight: numberValidatorOptional,
       width: numberValidatorOptional,
+      maxWidth: numberValidatorOptional,
     }),
   }),
   youtube: objectValidator<BlockContentYoutube>({
@@ -2042,7 +2572,9 @@ export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K 
       link: stringValidator5000EmptyOkay,
       name: stringValidatorOptional,
       height: numberValidatorOptional,
+      maxHeight: numberValidatorOptional,
       width: numberValidatorOptional,
+      maxWidth: numberValidatorOptional,
     }),
   }),
   iframe: objectValidator<BlockContentIFrame>({
@@ -2051,7 +2583,9 @@ export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K 
       link: stringValidator5000EmptyOkay,
       name: stringValidatorOptional,
       height: numberValidatorOptional,
+      maxHeight: numberValidatorOptional,
       width: numberValidatorOptional,
+      maxWidth: numberValidatorOptional,
     }),
   }),
 })
@@ -2071,52 +2605,102 @@ export const is_block_type = (type: any): type is BlockType => BLOCK_TYPES.inclu
 
 export const blocksValidator = listValidatorEmptyOk(blockValidator)
 
+export const addressValidator = objectValidator<SuperbillProvider['address']>({
+  city: stringValidator,
+  state: stateValidator,
+  lineOne: stringValidator,
+  lineTwo: stringValidatorOptional,
+  zipCode: stringValidator100,
+})
+export const addressOptionalValidator = objectValidator<SuperbillProvider['address']>({
+  city: stringValidatorOptional,
+  state: stateValidatorOptional,
+  lineOne: stringValidatorOptional,
+  lineTwo: stringValidatorOptional,
+  zipCode: stringValidator1000Optional,
+}, { isOptional: true, emptyOk: true })
 
 const _DATABASE_RECORD_FIELD_TYPES: { [K in DatabaseRecordFieldType]: any } = {
-  "string-long": '',
-  number: '',
-  string: '',
+  Text: '',
+  "Text Long": '',
+  "Text List": '',
+  Number: '',
+  Address: '',
 }
 export const DATABASE_RECORD_FIELD_TYPES = Object.keys(_DATABASE_RECORD_FIELD_TYPES) as DatabaseRecordFieldType[]
 export const databaseRecordFieldTypeValidator = exactMatchValidator<DatabaseRecordFieldType>(DATABASE_RECORD_FIELD_TYPES)
 export const is_database_record_field_type = (type: any): type is DatabaseRecordFieldType => DATABASE_RECORD_FIELD_TYPES.includes(type)
 
-// structure in this way to support potential differences in the future, like options which apply to only specific types
-// export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldType]: DatabaseRecordFields[K] } >({
-//   string: objectValidator<DatabaseRecordFields['string']>({
-//     type: exactMatchValidator(['string'])(),
-//     label: stringValidator250(),
-//   })(), 
-//   'string-long': objectValidator<DatabaseRecordFields['string-long']>({
-//     type: exactMatchValidator(['string-long'])(),
-//     label: stringValidator250(),
-//   })(), 
-//   'number': objectValidator<DatabaseRecordFields['number']>({
-//     type: exactMatchValidator(['number'])(),
-//     label: stringValidator250(),
-//   })(), 
-// })
-
-// structure as above instead if need unique label or additional config based on type
-export const databaseFieldValidator = objectValidator<DatabaseRecordField>({
-  type: databaseRecordFieldTypeValidator,
-  label: stringValidator250,
+export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldType]: DatabaseRecordFields[K] }>({
+  Text: objectValidator<DatabaseRecordFields['Text']>({
+    type: exactMatchValidator(['Text']),
+    label: stringValidator250,
+    hideFromTable: booleanValidatorOptional,
+    options: objectValidator<DatabaseRecordFields['Text']['options']>({
+      width: stringValidatorOptionalEmptyOkay,
+    }, { isOptional: true, emptyOk: true }),
+  }), 
+  'Text Long': objectValidator<DatabaseRecordFields['Text Long']>({
+    type: exactMatchValidator(['Text Long']),
+    label: stringValidator250,
+    hideFromTable: booleanValidatorOptional,
+    options: objectValidator<DatabaseRecordFields['Text Long']['options']>({
+      width: stringValidatorOptionalEmptyOkay,
+    }, { isOptional: true, emptyOk: true }),
+  }), 
+  'Text List': objectValidator<DatabaseRecordFields['Text List']>({
+    type: exactMatchValidator(['Text List']),
+    label: stringValidator250,
+    hideFromTable: booleanValidatorOptional,
+    options: objectValidator<DatabaseRecordFields['Text List']['options']>({
+      width: stringValidatorOptionalEmptyOkay,
+    }, { isOptional: true, emptyOk: true }),
+  }), 
+  'Number': objectValidator<DatabaseRecordFields['Number']>({
+    type: exactMatchValidator(['Number']),
+    label: stringValidator250,
+    hideFromTable: booleanValidatorOptional,
+    options: objectValidator<DatabaseRecordFields['Number']['options']>({
+      width: stringValidatorOptionalEmptyOkay,
+    }, { isOptional: true, emptyOk: true }),
+  }), 
+  'Address': objectValidator<DatabaseRecordFields['Address']>({
+    type: exactMatchValidator(['Address']),
+    label: stringValidator250,
+    hideFromTable: booleanValidatorOptional,
+    options: objectValidator<DatabaseRecordFields['Address']['options']>({
+      width: stringValidatorOptionalEmptyOkay,
+    }, { isOptional: true, emptyOk: true }),
+  }), 
 })
 export const databaseFieldsValidator = listValidator(databaseFieldValidator)
 
 
 export const databaseRecordValueValidator = orValidator<{ [K in DatabaseRecordFieldType]: DatabaseRecordValues[K] } >({
-  string: objectValidator<DatabaseRecordValues['string']>({
-    type: exactMatchValidator(['string']),
-    value: stringValidator1000,
+  Text: objectValidator<DatabaseRecordValues['Text']>({
+    type: exactMatchValidator(['Text']),
+    value: stringValidatorOptionalEmptyOkay,
+    label: stringValidator250,
   }), 
-  'string-long': objectValidator<DatabaseRecordValues['string-long']>({
-    type: exactMatchValidator(['string-long']),
-    value: stringValidator5000,
+  'Text Long': objectValidator<DatabaseRecordValues['Text Long']>({
+    type: exactMatchValidator(['Text Long']),
+    value: stringValidatorOptionalEmptyOkay,
+    label: stringValidator250,
   }), 
-  'number': objectValidator<DatabaseRecordValues['number']>({
-    type: exactMatchValidator(['number']),
-    value: numberValidator,
+  'Text List': objectValidator<DatabaseRecordValues['Text List']>({
+    type: exactMatchValidator(['Text List']),
+    value: listOfStringsValidatorOptionalOrEmptyOk,
+    label: stringValidator250,
+  }), 
+  'Number': objectValidator<DatabaseRecordValues['Number']>({
+    type: exactMatchValidator(['Number']),
+    value: numberValidatorOptional,
+    label: stringValidator250,
+  }), 
+  'Address': objectValidator<DatabaseRecordValues['Address']>({
+    type: exactMatchValidator(['Address']),
+    value: addressOptionalValidator,
+    label: stringValidator250,
   }), 
 })
 export const databaseRecordValuesValidator = listValidator(databaseRecordValueValidator)
@@ -2157,6 +2741,10 @@ export const portalBlockValidator = orValidator<{ [K in PortalBlockType]: Portal
     type: exactMatchValidator(['education']),
     info: objectValidator<PortalBlockForType['education']['info']>({}, { emptyOk: true })
   }), 
+  Events: objectValidator<PortalBlockForType['Events']>({
+    type: exactMatchValidator(['Events']),
+    info: objectValidator<PortalBlockForType['Events']['info']>({}, { emptyOk: true })
+  }), 
   careTeam: objectValidator<PortalBlockForType['careTeam']>({
     type: exactMatchValidator(['careTeam']),
     info: objectValidator<PortalBlockForType['careTeam']['info']>({
@@ -2183,6 +2771,7 @@ const _PORTAL_BLOCK_TYPES: { [K in PortalBlockType]: any } = {
   careTeam: '',
   education: '',
   text: '',
+  Events: '',
 }
 export const PORTAL_BLOCK_TYPES = Object.keys(_PORTAL_BLOCK_TYPES) as PortalBlockType[]
 export const portalTypeValidator = exactMatchValidator<PortalBlockType>(PORTAL_BLOCK_TYPES)
@@ -2202,88 +2791,31 @@ export const enduserFormResponseForEventValidator = objectValidator<EnduserFormR
 export const enduserFormResponsesForEventValidator = listValidatorEmptyOk(enduserFormResponseForEventValidator)
 
 export const genericUnitWithQuantityValidator = objectValidator<GenericQuantityWithUnit>({
-  value: stringValidator5000EmptyOkay,
+  value: numberOrStringValidatorEmptyOkay,
   unit: stringValidator1000,
 })
 
-export const VALID_STATES: string[] = [
-  "AK", 
-  "AL", 
-  "AR", 
-  "AS", 
-  "AZ", 
-  "CA", 
-  "CO", 
-  "CT", 
-  "DC", 
-  "DE", 
-  "FL", 
-  "GA", 
-  "GU", 
-  "HI", 
-  "IA", 
-  "ID", 
-  "IL", 
-  "IN", 
-  "KS", 
-  "KY", 
-  "LA", 
-  "MA", 
-  "MD", 
-  "ME", 
-  "MI", 
-  "MN", 
-  "MO", 
-  "MP", 
-  "MS", 
-  "MT", 
-  "NC", 
-  "ND", 
-  "NE", 
-  "NH", 
-  "NJ", 
-  "NM", 
-  "NV", 
-  "NY", 
-  "OH", 
-  "OK", 
-  "OR", 
-  "PA", 
-  "PR", 
-  "RI", 
-  "SC", 
-  "SD", 
-  "TN", 
-  "TX", 
-  "UM", 
-  "UT", 
-  "VA", 
-  "VI", 
-  "VT", 
-  "WA", 
-  "WI", 
-  "WV",
-  "WY",
-]
-export const stateValidator = exactMatchValidator(VALID_STATES)
-
 export const stateCredentialValidator = objectValidator<StateCredentialInfo>({
   expiresAt: dateValidatorOptional,
+  licenseId: stringValidatorOptionalEmptyOkay,
   state: stateValidator,
 })
 export const stateCredentialsValidator = listValidatorEmptyOk(stateCredentialValidator)
 
-export const availabilityBlockValidator = objectValidator<AvailabilityBlock>({
+export const baseAvailabilityBlockValidator = objectValidator<BaseAvailabilityBlock>({
   durationInMinutes: nonNegNumberValidator,
   startTimeInMS: nonNegNumberValidator,
   userId: mongoIdStringRequired,
 })
-export const availabilityBlocksValidator = listValidatorEmptyOk(availabilityBlockValidator)
+export const baseAvailabilityBlocksValidator = listValidatorEmptyOk(baseAvailabilityBlockValidator)
 
 export const weeklyAvailabilityValidator = objectValidator<WeeklyAvailability>({
   dayOfWeekStartingSundayIndexedByZero: nonNegNumberValidator,
   endTimeInMinutes: nonNegNumberValidator,
   startTimeInMinutes: nonNegNumberValidator,
+  locationId: mongoIdStringOptional,
+  active: dateRangeOptionalValidator,
+  validTemplateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
 })
 export const weeklyAvailabilitiesValidator = listValidatorEmptyOk(weeklyAvailabilityValidator)
 
@@ -2295,28 +2827,292 @@ export const accessValidator = exactMatchValidator<AccessType>([
 
 const _CUSTOM_ENDUSER_FIELD_TYPES: { [K in CustomEnduserFieldType]: any } = {
   "Select": true,
+  "Text": true,
+  "Multiple Text": true,
+  "Date": true,
+  "Auto Detect": true,
+  // Table: true,
 }
 export const CUSTOM_ENDUSER_FIELD_TYPES = Object.keys(_CUSTOM_ENDUSER_FIELD_TYPES) as CustomEnduserFieldType[]
 export const customEnduserFieldTypeValidator = exactMatchValidator<CustomEnduserFieldType>(CUSTOM_ENDUSER_FIELD_TYPES)
+
+const _AVAILABILITY_BLOCK_ENTITIES: { [K in AvailabilityBlock['entity']]: any } = {
+  organization: true,
+  user: true,
+}
+export const AVAILABILITY_BLOCK_ENTITIES = Object.keys(_AVAILABILITY_BLOCK_ENTITIES) as AvailabilityBlock['entity'][]
+export const availabilityEntitiesValidator = exactMatchValidator<AvailabilityBlock['entity']>(AVAILABILITY_BLOCK_ENTITIES)
+
+export const indexUpdateValidator = objectValidator<IndexUpdate>({
+  id: mongoIdStringRequired,
+  index: nonNegNumberValidator,
+})
+export const indexUpdatesValidator = listValidator(indexUpdateValidator)
 
 export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFieldType]: CustomEnduserFields[K] } >({
   Select: objectValidator<CustomEnduserFields['Select']>({
     type: exactMatchValidator(['Select']),
     info: objectValidator<CustomEnduserFields['Select']['info']>({
       options: listOfStringsValidator,
+      other: booleanValidatorOptional,
     }),
     field: stringValidator,
     required: booleanValidatorOptional,
+    hiddenFromProfile: booleanValidatorOptional,
   }), 
+  Text: objectValidator<CustomEnduserFields['Text']>({
+    type: exactMatchValidator(['Text']),
+    info: optionalEmptyObjectValidator,
+    field: stringValidator,
+    required: booleanValidatorOptional,
+    hiddenFromProfile: booleanValidatorOptional,
+  }), 
+  "Multiple Text": objectValidator<CustomEnduserFields["Multiple Text"]>({
+    type: exactMatchValidator(["Multiple Text"]),
+    info: optionalEmptyObjectValidator,
+    field: stringValidator,
+    required: booleanValidatorOptional,
+    hiddenFromProfile: booleanValidatorOptional,
+  }), 
+  Date: objectValidator<CustomEnduserFields['Date']>({
+    type: exactMatchValidator(['Date']),
+    info: optionalEmptyObjectValidator,
+    field: stringValidator,
+    required: booleanValidatorOptional,
+    hiddenFromProfile: booleanValidatorOptional,
+  }), 
+  "Auto Detect": objectValidator<CustomEnduserFields["Auto Detect"]>({
+    type: exactMatchValidator(["Auto Detect"]),
+    info: optionalEmptyObjectValidator,
+    field: stringValidator,
+    required: booleanValidatorOptional,
+    hiddenFromProfile: booleanValidatorOptional,
+  }), 
+  // "Table": objectValidator<CustomEnduserFields["Table"]>({
+  //   type: exactMatchValidator(["Table"]),
+  //   info: objectValidator<CustomEnduserFields['Table']['info']>({
+  //     columns: listValidator(tableInputChoiceValidator),
+  //   }),
+  //   field: stringValidator,
+  //   required: booleanValidatorOptional,
+  //   hiddenFromProfile: booleanValidatorOptional,
+  // }), 
 })
 export const customEnduserFieldsValidatorOptionalOrEmpty = listValidatorOptionalOrEmptyOk(customEnduserFieldValidator)
+
+export const buildInFieldsValidator = listValidatorOptionalOrEmptyOk(objectValidator<EnduserBuiltInField>({
+  field: stringValidator100,
+  label: stringValidator100,
+  hidden: booleanValidatorOptional,
+  required: booleanValidatorOptional,
+  requireConfirmation: booleanValidatorOptional,
+}))
 
 export const organizationSettingsValidator = objectValidator<OrganizationSettings>({
   endusers: objectValidator<OrganizationSettings['endusers']>({
     disableMultipleChatRooms: booleanValidatorOptional,
+    disableCalendarEventAutoAssignment: booleanValidatorOptional,
+    disableAdhocFields: booleanValidatorOptional,
+    autoReplyEnabled: booleanValidatorOptional,
+    recordCalls: booleanValidatorOptional,
+    transcribeCalls: booleanValidatorOptional,
+    showFreeNote: booleanValidatorOptional,
     customFields: customEnduserFieldsValidatorOptionalOrEmpty,
-  }, { isOptional: true })
+    builtinFields: buildInFieldsValidator,
+    tags: listOfStringsValidatorOptionalOrEmptyOk,
+  }, { isOptional: true }),
+  calendar: objectValidator<OrganizationSettings['calendar']>({
+    dayStart: objectValidator<Required<OrganizationSettings>['calendar']['dayStart']>({
+      hour: numberValidator, 
+      minute: numberValidatorOptional, 
+      timezone: timezoneValidator,
+    }, { isOptional: true }),
+    dayEnd: objectValidator<Required<OrganizationSettings>['calendar']['dayEnd']>({
+      hour: numberValidator, 
+      minute: numberValidatorOptional, 
+      timezone: timezoneValidator,
+    }, { isOptional: true }),
+    bookingStartOffset: objectValidator<Required<OrganizationSettings>['calendar']['bookingStartOffset']>({
+      month: numberValidatorOptional, 
+      day: numberValidatorOptional, 
+      hour: numberValidatorOptional, 
+    }, { isOptional: true }),
+    bookingEndOffset: objectValidator<Required<OrganizationSettings>['calendar']['bookingEndOffset']>({
+      month: numberValidatorOptional, 
+      day: numberValidatorOptional, 
+      hour: numberValidatorOptional, 
+    }, { isOptional: true }),
+  }, { isOptional: true }),
 })
+
+export const calendarEventPortalSettingsValidator = objectValidator<CalendarEventPortalSettings>({
+  hideUsers: booleanValidatorOptional,
+})
+
+const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any } = {
+  "Form Submitted": true,
+  "Form Unsubmitted": true,
+  "Purchase Made": true,
+  "Appointment No-Showed": true,
+  "Appointment Created": true,
+  "Field Equals": true,
+  "No Recent Appointment": true,
+  "Medication Added": true,
+}
+export const AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES) as AutomationTriggerEventType[]
+
+export const automationTriggerEventValidator = orValidator<{ [K in AutomationTriggerEventType]: AutomationTriggerEvents[K] } >({
+  "Form Submitted": objectValidator<AutomationTriggerEvents["Form Submitted"]>({
+    type: exactMatchValidator(['Form Submitted']),
+    info: objectValidator<AutomationTriggerEvents['Form Submitted']['info']>({
+      formId: mongoIdStringRequired,
+      publicIdentifier: stringValidatorOptionalEmptyOkay,
+      submitterType: sessionTypeOrAnyoneValidatorOptional,
+    }),
+    conditions: orValidator({
+      optional: optionalAnyObjectValidator,
+      included: objectAnyFieldsAnyValuesValidator,
+    }, { isOptional: true }),
+  }), 
+  "Form Unsubmitted": objectValidator<AutomationTriggerEvents["Form Unsubmitted"]>({
+    type: exactMatchValidator(['Form Unsubmitted']),
+    info: objectValidator<AutomationTriggerEvents['Form Unsubmitted']['info']>({
+      formId: mongoIdStringRequired,
+      intervalInMS: nonNegNumberValidator,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Field Equals": objectValidator<AutomationTriggerEvents["Field Equals"]>({
+    type: exactMatchValidator(['Field Equals']),
+    info: objectValidator<AutomationTriggerEvents['Field Equals']['info']>({
+      field: stringValidator1000,
+      value: stringValidator1000,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "No Recent Appointment": objectValidator<AutomationTriggerEvents["No Recent Appointment"]>({
+    type: exactMatchValidator(['No Recent Appointment']),
+    info: objectValidator<AutomationTriggerEvents['No Recent Appointment']['info']>({
+      intervalInMS: nonNegNumberValidator,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Purchase Made": objectValidator<AutomationTriggerEvents["Purchase Made"]>({
+    type: exactMatchValidator(['Purchase Made']),
+    info: optionalEmptyObjectValidator,
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Appointment No-Showed": objectValidator<AutomationTriggerEvents["Appointment No-Showed"]>({
+    type: exactMatchValidator(['Appointment No-Showed']),
+    info: optionalEmptyObjectValidator,
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Appointment Created": objectValidator<AutomationTriggerEvents["Appointment Created"]>({
+    type: exactMatchValidator(['Appointment Created']),
+    info: optionalEmptyObjectValidator,
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Medication Added": objectValidator<AutomationTriggerEvents["Medication Added"]>({
+    type: exactMatchValidator(['Medication Added']),
+    info: objectValidator<AutomationTriggerEvents['Medication Added']['info']>({
+      titles: listOfStringsValidatorEmptyOk,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+})
+
+
+
+const _AUTOMATION_TRIGGER_ACTION_TYPES: { [K in AutomationTriggerActionType]: any } = {
+  "Add To Journey": true,
+  "Remove From Journey": true,
+  "Move To Step": true,
+  "Add Tags": true,
+  "Assign Care Team": true,
+}
+export const AUTOMATION_TRIGGER_ACTION_TYPES = Object.keys(_AUTOMATION_TRIGGER_ACTION_TYPES) as AutomationTriggerActionType[]
+
+export const automationTriggerActionValidator = orValidator<{ [K in AutomationTriggerActionType]: AutomationTriggerActions[K] } >({
+  "Add To Journey": objectValidator<AutomationTriggerActions["Add To Journey"]>({
+    type: exactMatchValidator(['Add To Journey']),
+    info: objectValidator<AutomationTriggerActions['Add To Journey']['info']>({
+      journeyId: mongoIdStringRequired,
+      doNotRestart: booleanValidatorOptional,
+    }),
+  }), 
+  "Remove From Journey": objectValidator<AutomationTriggerActions["Remove From Journey"]>({
+    type: exactMatchValidator(['Remove From Journey']),
+    info: objectValidator<AutomationTriggerActions['Remove From Journey']['info']>({
+      journeyId: mongoIdStringRequired,
+    }),
+  }), 
+  "Move To Step": objectValidator<AutomationTriggerActions["Move To Step"]>({
+    type: exactMatchValidator(['Move To Step']),
+    info: optionalEmptyObjectValidator,
+  }), 
+  "Add Tags": objectValidator<AutomationTriggerActions["Add Tags"]>({
+    type: exactMatchValidator(['Add Tags']),
+    info: objectValidator<AutomationTriggerActions['Add Tags']['info']>({
+      tags: listOfStringsValidator,
+    }),
+  }), 
+  "Assign Care Team": objectValidator<AutomationTriggerActions["Assign Care Team"]>({
+    type: exactMatchValidator(['Assign Care Team']),
+    info: objectValidator<AutomationTriggerActions['Assign Care Team']['info']>({
+      tags: listOfStringsWithQualifierValidator,
+    }),
+  }), 
+})
+
+
+const _AUTOMATION_TRIGGER_STATUSES: { [K in AutomationTriggerStatus]: any } = {
+  Active: true,
+  Inactive: true,
+}
+export const AUTOMATION_TRIGGER_STATUSES = Object.keys(_AUTOMATION_TRIGGER_STATUSES) as AutomationTriggerStatus[]
+export const automatioNTriggerStatusValidator = exactMatchValidator<AutomationTriggerStatus>(AUTOMATION_TRIGGER_STATUSES)
+
+const _EMBEDDING_TYPES: { [K in EmbeddingType]: any } = {
+  "text-embedding-ada-002": true,
+}
+export const EMBEDDING_TYPES = Object.keys(_EMBEDDING_TYPES) as EmbeddingType[]
+export const embeddingTypeValidator = exactMatchValidator<EmbeddingType>(EMBEDDING_TYPES)
+
+export const superbillPatientInfoValidator = objectValidator<SuperbillPatientInfo>({
+  dateOfBirth: stringValidator,
+  name: stringValidator,
+  phone: stringValidator,
+})
+export const superbillProviderInfoValidator = objectValidator<SuperbillProviderInfo>({
+  address: addressValidator,
+  email: emailValidator,
+  officeName: stringValidator1000,
+  phone: stringValidator,
+  placeOfServiceCode: stringValidatorOptionalEmptyOkay,
+  providerLicense: stringValidator,
+  providerName: stringValidator,
+  providerNPI: stringValidator,
+  taxId: stringValidator,
+})
+export const billingCodeValidator = objectValidator<SuperbillLineItem['billingCode']>({
+  code: numberValidator, 
+  label: stringValidator,
+})
+export const billingCodeValidatorOptional = objectValidator<SuperbillLineItem['billingCode']>({
+  code: numberValidatorOptional, 
+  label: stringValidatorOptional,
+}, { emptyOk: true, isOptional: true })
+
+const superbillLineItemValidator = objectValidator<SuperbillLineItem>({
+  billingCode: billingCodeValidator,
+  quantity: numberValidator,
+  cost: objectValidator<SuperbillLineItem['cost']>({
+    amount: numberValidator,
+    currency: stringValidator,
+  }),
+  discount: numberValidatorOptional,
+})
+export const superbillLineItemsValidator = listValidator(superbillLineItemValidator)
 
 // for each model name, this should be optional, but when a model name is provided, all CRUD fields should be required
 // if this changes (e.g. CRUD fields are made optional), must merge better in authentication.ts in API
@@ -2328,12 +3124,16 @@ export const accessPermissionValidator = objectValidator<AccessForResource>({
   showInSidebar: booleanValidatorOptional,
 }, { isOptional: true })
 export const accessPermissionsValidator = objectValidator<AccessPermissions>({
+  enduser_custom_types: accessPermissionValidator,
+  superbill_providers: accessPermissionValidator,
+  superbills: accessPermissionValidator,
+  availability_blocks: accessPermissionValidator,
+  analytics_frames: accessPermissionValidator,
   endusers: accessPermissionValidator,
   enduser_status_updates: accessPermissionValidator,
   engagement_events: accessPermissionValidator,
   journeys: accessPermissionValidator,
   api_keys: accessPermissionValidator,
-  tasks: accessPermissionValidator,
   emails: accessPermissionValidator,
   sms_messages: accessPermissionValidator,
   chat_rooms: accessPermissionValidator,
@@ -2371,18 +3171,39 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   care_plans: accessPermissionValidator,
   enduser_tasks: accessPermissionValidator,
   role_based_access_permissions: accessPermissionValidator,
+  appointment_booking_pages: accessPermissionValidator,
+  appointment_locations: accessPermissionValidator,
+  products: accessPermissionValidator,
+  purchase_credits: accessPermissionValidator,
+  purchases: accessPermissionValidator,
+  phone_calls: accessPermissionValidator,
+  background_errors: accessPermissionValidator,
+  enduser_views: accessPermissionValidator,
+  automation_triggers: accessPermissionValidator,
+  enduser_profile_views: accessPermissionValidator,
+  referral_providers: accessPermissionValidator,
+  enduser_medications: accessPermissionValidator,
+  phone_trees: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
 })
 
 export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
+  enduser_custom_types: numberValidatorOptional,
+  referral_providers: numberValidatorOptional,
+  superbill_providers: numberValidatorOptional,
+  superbills: numberValidatorOptional,
+  automation_triggers: numberValidatorOptional,
+  background_errors: numberValidatorOptional,
+  enduser_views: numberValidatorOptional,
+  availability_blocks: numberValidatorOptional,
+  analytics_frames: numberValidatorOptional,
   endusers: numberValidatorOptional,
   enduser_status_updates: numberValidatorOptional,
   engagement_events: numberValidatorOptional,
   journeys: numberValidatorOptional,
   api_keys: numberValidatorOptional,
-  tasks: numberValidatorOptional,
   emails: numberValidatorOptional,
   sms_messages: numberValidatorOptional,
   chat_rooms: numberValidatorOptional,
@@ -2420,6 +3241,15 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   care_plans: numberValidatorOptional,
   enduser_tasks: numberValidatorOptional,
   role_based_access_permissions: numberValidatorOptional,
+  appointment_booking_pages: numberValidatorOptional,
+  appointment_locations: numberValidatorOptional,
+  products: numberValidatorOptional,
+  purchase_credits: numberValidatorOptional,
+  purchases: numberValidatorOptional,
+  phone_calls: numberValidatorOptional,
+  enduser_profile_views: numberValidatorOptional,
+  enduser_medications: numberValidatorOptional,
+  phone_trees: numberValidatorOptional,
 }, { emptyOk: true })
 
 const _LOGIN_FLOW_RESULTS = {
@@ -2431,3 +3261,506 @@ const _LOGIN_FLOW_RESULTS = {
 export type LoginFlowResult = keyof typeof _LOGIN_FLOW_RESULTS
 export const LOGIN_FLOW_RESULTS = Object.keys(_LOGIN_FLOW_RESULTS) as LoginFlowResult[]
 export const loginFlowResultValidator = exactMatchValidator<LoginFlowResult>(LOGIN_FLOW_RESULTS)
+
+const _TELLESCOPE_GENDER: { [K in TellescopeGender]: any} = {
+  Female: '',
+  Male: '',
+  Other: '',
+  Unknown: '',
+} 
+export const TELLESCOPE_GENDER = Object.keys(_TELLESCOPE_GENDER) as TellescopeGender[]
+export const tellescopeGenderValidator = exactMatchValidator<TellescopeGender>(TELLESCOPE_GENDER)
+export const tellescopeGenderOptionalValidator = exactMatchValidatorOptional<TellescopeGender | ''>([...TELLESCOPE_GENDER, ''])
+
+export const appointmentTermsValidator = listValidatorEmptyOk(objectValidator<AppointmentTerm>({
+  link: stringValidator5000,
+  title: stringValidator1000,
+}))
+
+const _CURRENCIES: { [K in Currency]: any} = {
+  USD: '',
+} 
+export const CURRENCIES = Object.keys(_CURRENCIES) as Currency[]
+export const currencyValidator = exactMatchValidator<Currency>(CURRENCIES)
+
+const _PAYMENT_PROCESSORS: { [K in PaymentProcessor]: any} = {
+  Stripe: '',
+  Square: '',
+} 
+export const PAYMENT_PROCESSORS = Object.keys(_PAYMENT_PROCESSORS) as PaymentProcessor[]
+export const paymentProcessorValidator = exactMatchValidator<PaymentProcessor>(PAYMENT_PROCESSORS)
+
+export const costValidator = objectValidator<Product['cost']>({
+  amount: nonNegNumberValidator,
+  currency: currencyValidator,
+})
+
+export const purchaseCreditValueValidator = orValidator<{ [K in PurcahseCreditType]: PurchaseCreditInfoForType[K] }>({
+  Credit: objectValidator<PurchaseCreditInfoForType['Credit']>({
+    type: exactMatchValidator(['Credit']),
+    info: objectValidator<PurchaseCreditInfoForType['Credit']['info']>({
+      amount: numberValidator,
+      currency: currencyValidator,
+    }),
+  }), 
+  // Voucher: objectValidator<PurchaseCreditInfoForType['Voucher']>({
+  //   type: exactMatchValidator(['Voucher']),
+  //   info: objectValidator<PurchaseCreditInfoForType['Voucher']['info']>({}),
+  // }), 
+})
+
+export type IntegrationsTitleType = (
+  typeof SQUARE_INTEGRATIONS_TITLE 
+| typeof OUTLOOK_INTEGRATIONS_TITLE 
+| typeof ZOHO_TITLE 
+| typeof ZOOM_TITLE
+)
+export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleType>([
+  SQUARE_INTEGRATIONS_TITLE,
+  OUTLOOK_INTEGRATIONS_TITLE,
+  ZOHO_TITLE,
+  ZOOM_TITLE,
+])
+
+const _VIDEO_INTEGRATION_TYPES: { [K in VideoIntegrationType]: any} = {
+  Zoom: '',
+  "No Integration": '',
+} 
+export const VIDEO_INTEGRATION_TYPES = Object.keys(_VIDEO_INTEGRATION_TYPES) as VideoIntegrationType[]
+export const videoIntegrationTypesValidator = exactMatchValidator<VideoIntegrationType>(VIDEO_INTEGRATION_TYPES)
+
+export const analyticsQueryResultsValidator = listValidator(objectValidator<AnalyticsQueryResultValue>({
+  key: stringValidator100,
+  timestamp: dateOptionalOrEmptyStringValidator,
+  unit: stringValidator,
+  value: numberValidator,
+  numerator: numberValidatorOptional,
+  denominator: numberValidatorOptional,
+}))
+
+export const scheduledJourneysValidator = listValidatorOptionalOrEmptyOk(objectValidator<ScheduledJourney>({
+  journeyId: mongoIdStringRequired,
+  addAt: dateValidator,
+}))
+
+export const formScoringValidator = listValidatorOptionalOrEmptyOk(objectValidator<FormScoring>({
+  title: stringValidator100,
+  fieldId: mongoIdStringRequired,
+  response: stringValidatorOptional,
+  score: orValidator({
+    responseValue: stringValidator, // use the numerical response as the score
+    number: numberValidator, // use the pre-defined number as the score for this response
+  })
+}))
+
+// // todo: add more restrictions
+// export const basicFilterValidateFuction: EscapeBuilder<BasicFilter<string>> = o => build_validator(v => {
+//   if (!v) throw new Error("Filter value must be defined")
+//   if (typeof v !== 'object') throw new Error('Expecting an object')
+
+//   return v
+// }, { ...o, listOf: false })
+
+// // todo: add more restrictions
+// export const compoundFilterValidateFuction: EscapeBuilder<CompoundFilter<string>> = o => build_validator(v => {
+//   if (!v) throw new Error("Filter value must be defined")
+//   if (typeof v !== 'object') throw new Error('Expecting an object')
+
+//   return v
+// }, { ...o, listOf: false })
+
+export const basicFilterValidator = objectAnyFieldsAnyValuesValidator
+export const compoundFilterValidator = objectAnyFieldsAnyValuesValidator
+
+export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: AnalyticsQueryForType[K] } >({
+  Endusers: objectValidator<AnalyticsQueryForType['Endusers']>({
+    resource: exactMatchValidator<'Endusers'>(['Endusers']),
+    filter: objectValidator<AnalyticsQueryFilterForType['Endusers']>({
+      activeSince: dateOptionalOrEmptyStringValidator,
+      gender: tellescopeGenderOptionalValidator,
+      fields: listValidatorOptionalOrEmptyOk(objectValidator({
+        key: stringValidator1000,
+        value: stringValidator5000EmptyOkay,
+        range: dateRangeOptionalValidator, 
+      })),
+      "Submitted Forms": objectValidator<AnalyticsQueryFilterForType['Endusers']['Submitted Forms']>({
+        qualifier: listQueryQualifiersValidator,
+        formIds: listOfMongoIdStringValidator,
+        formResponseCondition: orValidator({
+          optional: optionalAnyObjectValidator,
+          included: objectAnyFieldsAnyValuesValidator,
+        }, { isOptional: true }),
+      }, { isOptional: true }),
+      "assignedTo": objectValidator<AnalyticsQueryFilterForType['Endusers']['assignedTo']>({
+        qualifier: listQueryQualifiersValidator,
+        userIds: listOfMongoIdStringValidator,
+      }, { isOptional: true }),
+      "born": objectValidator<AnalyticsQueryFilterForType['Endusers']['born']>({
+        from: dateOptionalOrEmptyStringValidator,
+        to: dateOptionalOrEmptyStringValidator,
+      }, { isOptional: true }),
+      tags: listOfStringsWithQualifierValidatorOptional,
+    }, { isOptional: true, emptyOk: true }),
+    info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Endusers']]: AnalyticsQueryInfoForType['Endusers'][K] }>({
+      "Total": objectValidator<AnalyticsQueryInfoForType['Endusers']['Total']>({
+        method: exactMatchValidator<"Total">(['Total']),
+        parameters: optionalEmptyObjectValidator,
+      }),
+    }),
+    grouping: objectValidator<AnalyticsQueryGroupingForType['Endusers']>({
+      Gender: booleanValidatorOptional,
+      "Assigned To": booleanValidatorOptional,
+      Field: stringValidatorOptionalEmptyOkay,
+      Tags: booleanValidatorOptional,
+      Age: booleanValidatorOptional,
+    }, { isOptional: true, emptyOk: true }),
+    range: objectValidator<AnalyticsQueryRange<any>>({
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Endusers']>(['Created At', 'Updated At']),
+    }, { isOptional: true, emptyOk: true })
+  }), 
+  "Calendar Events": objectValidator<AnalyticsQueryForType['Calendar Events']>({
+    resource: exactMatchValidator<'Calendar Events'>(['Calendar Events']),
+    filter: objectValidator<AnalyticsQueryFilterForType['Calendar Events']>({
+      templateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+      starts: dateRangeOptionalValidator,
+      wasSelfScheduled: booleanValidatorOptional,
+      wasCancelled: booleanValidatorOptional,
+      wasNoShowed: booleanValidatorOptional,
+      wasRescheduled: booleanValidatorOptional,
+      userIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+    }, { isOptional: true, emptyOk: true }),
+    info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Calendar Events']]: AnalyticsQueryInfoForType['Calendar Events'][K] }>({
+      "Total": objectValidator<AnalyticsQueryInfoForType['Calendar Events']['Total']>({
+        method: exactMatchValidator<"Total">(['Total']),
+        parameters: optionalEmptyObjectValidator,
+      }),
+    }),
+    grouping: objectValidator<AnalyticsQueryGroupingForType['Calendar Events']>({
+      Type: booleanValidatorOptional,
+    }, { isOptional: true, emptyOk: true }),
+    range: objectValidator<AnalyticsQueryRange<any>>({
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Calendar Events']>(['Created At', 'Updated At']),
+    }, { isOptional: true, emptyOk: true })
+  }), 
+  "Form Responses": objectValidator<AnalyticsQueryForType['Form Responses']>({
+    resource: exactMatchValidator<'Form Responses'>(['Form Responses']),
+    filter: objectValidator<AnalyticsQueryFilterForType['Form Responses']>({
+      formIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+      formResponseCondition: orValidator({
+        optional: optionalAnyObjectValidator,
+        included: objectAnyFieldsAnyValuesValidator,
+      }, { isOptional: true }),
+    }, { isOptional: true, emptyOk: true }),
+    info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Form Responses']]: AnalyticsQueryInfoForType['Form Responses'][K] }>({
+      "Total": objectValidator<AnalyticsQueryInfoForType['Form Responses']['Total']>({
+        method: exactMatchValidator<"Total">(['Total']),
+        parameters: optionalEmptyObjectValidator,
+      }),
+    }),
+    grouping: objectValidator<AnalyticsQueryGroupingForType['Form Responses']>({
+      Enduser: booleanValidatorOptional,
+      Gender: booleanValidatorOptional,
+      "Assigned To": booleanValidatorOptional,
+      Field: stringValidatorOptionalEmptyOkay,
+      Tags: booleanValidatorOptional,
+      Age: booleanValidatorOptional,
+    }, { isOptional: true, emptyOk: true }),
+    range: objectValidator<AnalyticsQueryRange<any>>({
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Form Responses']>(['Created At', 'Updated At']),
+    }, { isOptional: true, emptyOk: true })
+  }), 
+  "Purchases": objectValidator<AnalyticsQueryForType['Purchases']>({
+    resource: exactMatchValidator<'Purchases'>(['Purchases']),
+    filter: objectValidator<AnalyticsQueryFilterForType['Purchases']>({ }, { isOptional: true, emptyOk: true }),
+    info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Purchases']]: AnalyticsQueryInfoForType['Purchases'][K] }>({
+      "Total": objectValidator<AnalyticsQueryInfoForType['Purchases']['Total']>({
+        method: exactMatchValidator<"Total">(['Total']),
+        parameters: optionalEmptyObjectValidator,
+      }),
+    }),
+    grouping: objectValidator<AnalyticsQueryGroupingForType['Purchases']>({
+      Enduser: booleanValidatorOptional,
+      Cost: booleanValidatorOptional,
+      Gender: booleanValidatorOptional,
+      "Assigned To": booleanValidatorOptional,
+      Field: stringValidatorOptionalEmptyOkay,
+      Tags: booleanValidatorOptional,
+      Age: booleanValidatorOptional,
+    }, { isOptional: true, emptyOk: true }),
+    range: objectValidator<AnalyticsQueryRange<any>>({
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Calendar Events']>(['Created At', 'Updated At']),
+    }, { isOptional: true, emptyOk: true })
+  }), 
+  "Purchase Credits": objectValidator<AnalyticsQueryForType['Purchase Credits']>({
+    resource: exactMatchValidator<'Purchase Credits'>(['Purchase Credits']),
+    filter: objectValidator<AnalyticsQueryFilterForType['Purchase Credits']>({ }, { isOptional: true, emptyOk: true }),
+    info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Purchase Credits']]: AnalyticsQueryInfoForType['Purchase Credits'][K] }>({
+      "Total": objectValidator<AnalyticsQueryInfoForType['Purchase Credits']['Total']>({
+        method: exactMatchValidator<"Total">(['Total']),
+        parameters: optionalEmptyObjectValidator,
+      }),
+    }),
+    grouping: objectValidator<AnalyticsQueryGroupingForType['Purchase Credits']>({
+      Enduser: booleanValidatorOptional,
+      Gender: booleanValidatorOptional,
+      "Assigned To": booleanValidatorOptional,
+      Field: stringValidatorOptionalEmptyOkay,
+      Tags: booleanValidatorOptional,
+      Age: booleanValidatorOptional,
+    }, { isOptional: true, emptyOk: true }),
+    range: objectValidator<AnalyticsQueryRange<any>>({
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Purchase Credits']>(['Created At', 'Updated At']),
+    }, { isOptional: true, emptyOk: true })
+  }), 
+  "Tickets": objectValidator<AnalyticsQueryForType['Tickets']>({
+    resource: exactMatchValidator<'Tickets'>(['Tickets']),
+    filter: objectValidator<AnalyticsQueryFilterForType['Tickets']>({ }, { isOptional: true, emptyOk: true }),
+    info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Tickets']]: AnalyticsQueryInfoForType['Tickets'][K] }>({
+      "Total": objectValidator<AnalyticsQueryInfoForType['Tickets']['Total']>({
+        method: exactMatchValidator<"Total">(['Total']),
+        parameters: optionalEmptyObjectValidator,
+      }),
+    }),
+    grouping: objectValidator<AnalyticsQueryGroupingForType['Tickets']>({
+      Enduser: booleanValidatorOptional,
+      Gender: booleanValidatorOptional,
+      "Assigned To": booleanValidatorOptional,
+      Field: stringValidatorOptionalEmptyOkay,
+      Tags: booleanValidatorOptional,
+      Age: booleanValidatorOptional,
+    }, { isOptional: true, emptyOk: true }),
+    range: objectValidator<AnalyticsQueryRange<any>>({
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Tickets']>(['Created At', 'Updated At']),
+    }, { isOptional: true, emptyOk: true })
+  }), 
+  "Emails": objectValidator<AnalyticsQueryForType['Emails']>({
+    resource: exactMatchValidator<'Emails'>(['Emails']),
+    filter: objectValidator<AnalyticsQueryFilterForType['Emails']>({ }, { isOptional: true, emptyOk: true }),
+    info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Emails']]: AnalyticsQueryInfoForType['Emails'][K] }>({
+      "Total": objectValidator<AnalyticsQueryInfoForType['Emails']['Total']>({
+        method: exactMatchValidator<"Total">(['Total']),
+        parameters: optionalEmptyObjectValidator,
+      }),
+    }),
+    grouping: objectValidator<AnalyticsQueryGroupingForType['Emails']>({
+      Enduser: booleanValidatorOptional,
+      Gender: booleanValidatorOptional,
+      "Assigned To": booleanValidatorOptional,
+      Field: stringValidatorOptionalEmptyOkay,
+      Tags: booleanValidatorOptional,
+      Age: booleanValidatorOptional,
+    }, { isOptional: true, emptyOk: true }),
+    range: objectValidator<AnalyticsQueryRange<any>>({
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Emails']>(['Created At', 'Updated At']),
+    }, { isOptional: true, emptyOk: true })
+  }), 
+  "Phone Calls": objectValidator<AnalyticsQueryForType['Phone Calls']>({
+    resource: exactMatchValidator<'Phone Calls'>(['Phone Calls']),
+    filter: objectValidator<AnalyticsQueryFilterForType['Phone Calls']>({ }, { isOptional: true, emptyOk: true }),
+    info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Phone Calls']]: AnalyticsQueryInfoForType['Phone Calls'][K] }>({
+      "Total": objectValidator<AnalyticsQueryInfoForType['Phone Calls']['Total']>({
+        method: exactMatchValidator<"Total">(['Total']),
+        parameters: optionalEmptyObjectValidator,
+      }),
+      "Duration": objectValidator<AnalyticsQueryInfoForType['Phone Calls']['Duration']>({
+        method: exactMatchValidator<"Duration">(['Duration']),
+        parameters: optionalEmptyObjectValidator,
+      }),
+    }),
+    grouping: objectValidator<AnalyticsQueryGroupingForType['Phone Calls']>({
+      Enduser: booleanValidatorOptional,
+      Gender: booleanValidatorOptional,
+      "Assigned To": booleanValidatorOptional,
+      Field: stringValidatorOptionalEmptyOkay,
+      Tags: booleanValidatorOptional,
+      Age: booleanValidatorOptional,
+    }, { isOptional: true, emptyOk: true }),
+    range: objectValidator<AnalyticsQueryRange<any>>({
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Phone Calls']>(['Created At', 'Updated At']),
+    }, { isOptional: true, emptyOk: true })
+  }), 
+  "SMS Messages": objectValidator<AnalyticsQueryForType['SMS Messages']>({
+    resource: exactMatchValidator<'SMS Messages'>(['SMS Messages']),
+    filter: objectValidator<AnalyticsQueryFilterForType['SMS Messages']>({ }, { isOptional: true, emptyOk: true }),
+    info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['SMS Messages']]: AnalyticsQueryInfoForType['SMS Messages'][K] }>({
+      "Total": objectValidator<AnalyticsQueryInfoForType['SMS Messages']['Total']>({
+        method: exactMatchValidator<"Total">(['Total']),
+        parameters: optionalEmptyObjectValidator,
+      }),
+    }),
+    grouping: objectValidator<AnalyticsQueryGroupingForType['SMS Messages']>({
+      Enduser: booleanValidatorOptional,
+      Gender: booleanValidatorOptional,
+      "Assigned To": booleanValidatorOptional,
+      Field: stringValidatorOptionalEmptyOkay,
+      Tags: booleanValidatorOptional,
+      Age: booleanValidatorOptional,
+    }, { isOptional: true, emptyOk: true }),
+    range: objectValidator<AnalyticsQueryRange<any>>({
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      key: exactMatchValidator<AnalyticsQueryRangeKeyForType['SMS Messages']>(['Created At', 'Updated At']),
+    }, { isOptional: true, emptyOk: true })
+  }), 
+})
+export const analyticsQueriesValidatorOptional = listValidatorOptionalOrEmptyOk(analyticsQueryValidator)
+
+const _ANALYTICS_FRAME_TYPES: { [K in AnalyticsFrameType]: any } = {
+  Percentage: '',
+}
+export const ANALYTICS_FRAME_TYPES = Object.keys(_ANALYTICS_FRAME_TYPES) as AnalyticsFrameType[]
+export const analyticsFrameTypeValidator = exactMatchValidator<AnalyticsFrameType>(ANALYTICS_FRAME_TYPES)
+
+const _ANALYTICS_QUERY_TYPES: { [K in AnalyticsQueryType]: any } = {
+  Endusers: true,
+  "Calendar Events": true,
+  "Form Responses": true,
+  Purchases: true,
+  "Purchase Credits": true,
+  Tickets: true,
+  "Phone Calls": true,
+  "SMS Messages": true,
+  Emails: true,
+}
+export const ANALYTICS_QUERY_TYPES = Object.keys(_ANALYTICS_QUERY_TYPES) as AnalyticsQueryType[]
+export const analyticsQueryTypeValidator = exactMatchValidator<AnalyticsQueryType>(ANALYTICS_QUERY_TYPES)
+
+const _USER_CALL_ROUTING_BEHAVIORS: { [K in UserCallRoutingBehavior]: any } = {
+  "": '',
+  All: '',
+  Assigned: '',
+  Unassigned: '',
+}
+export const USER_CALL_ROUTING_BEHAVIORS = Object.keys(_USER_CALL_ROUTING_BEHAVIORS) as UserCallRoutingBehavior[]
+export const userCallRoutingBehaviorValidator = exactMatchValidator<UserCallRoutingBehavior>(USER_CALL_ROUTING_BEHAVIORS)
+
+export const userUIRestrictionsValidator = objectValidator<UserUIRestrictions>({
+  hideDashboard: booleanValidatorOptional,
+  hideInbox: booleanValidatorOptional,
+  hideTeamChat: booleanValidatorOptional,
+  hideEnduserChat: booleanValidatorOptional,
+}, { emptyOk: true })
+
+const externalChatGPTMessageValidator = objectValidator<ExternalChatGPTMessage>({
+  role: exactMatchValidator<ExternalChatGPTMessage['role']>(['assistant', 'user']),
+  content: stringValidator5000,
+})
+export const externalChatGPTMessagesValidator = listValidator(externalChatGPTMessageValidator)
+
+export const sharedEnduserProfileViewBlockFields = {
+  width: stringValidator1000Optional,
+}
+
+export const enduserProfileViewBlockValidator = orValidator<{ [K in EnduserProfileViewBlockType]: EnduserProfileViewBlocks[K] } >({
+  "Field Group": objectValidator<EnduserProfileViewBlocks["Field Group"]>({
+    ...sharedEnduserProfileViewBlockFields,
+    type: exactMatchValidator(['Field Group']),
+    info: objectValidator<EnduserProfileViewBlocks['Field Group']['info']>({
+      title: stringValidator100,
+      fields: listOfStringsValidator, 
+    }),
+  }), 
+})
+export const enduserProfileViewBlocksValidator = listValidator(enduserProfileViewBlockValidator)
+
+const insuranceValidator = objectValidator<Insurance>({
+  name: stringValidator100,
+})
+export const insurancesValidator = listValidator(insuranceValidator)
+
+export const phoneTreeEventValidator = orValidator<{ [K in PhoneTreeEventType]: PhoneTreeEvents[K] } >({
+  "Start": objectValidator<PhoneTreeEvents["Start"]>({
+    type: exactMatchValidator(['Start']),
+    info: optionalEmptyObjectValidator,
+    parentId: stringValidator1000Optional,
+  }), 
+  "On Gather": objectValidator<PhoneTreeEvents["On Gather"]>({
+    type: exactMatchValidator(['On Gather']),
+    parentId: stringValidator100,
+    info: objectValidator<PhoneTreeEvents["On Gather"]['info']>({
+      digits: stringValidatorOptional,
+      transcription: stringValidatorOptional,
+    }),
+  }), 
+})
+export const phoneTreeEventsValidator = listValidatorEmptyOk(phoneTreeEventValidator)
+
+export const phonePlaybackValidator = orValidator<{ [K in PhonePlaybackType]: PhonePlaybackInfo[K] }>({
+  Play: objectValidator<PhonePlaybackInfo['Play']>({
+    type: exactMatchValidator(['Play']),
+    info: objectValidator<PhonePlaybackInfo["Play"]['info']>({
+      url: stringValidator5000,
+      script: stringValidatorOptional,
+    }),
+  }), 
+  Say: objectValidator<PhonePlaybackInfo['Say']>({
+    type: exactMatchValidator(['Say']),
+    info: objectValidator<PhonePlaybackInfo["Say"]['info']>({
+      script: stringValidator5000,
+      url: stringValidatorOptional,
+    }),
+  }), 
+})
+
+export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]: PhoneTreeActions[K] }>({
+  // "Play": objectValidator<PhoneTreeActions["Play"]>({
+  //   type: exactMatchValidator(['Play']),
+  //   info: objectValidator<PhoneTreeActions["Play"]['info']>({
+  //     playback: phonePlaybackValidator,
+  //   }),
+  // }), 
+  "Gather": objectValidator<PhoneTreeActions["Gather"]>({
+    type: exactMatchValidator(['Gather']),
+    info: objectValidator<PhoneTreeActions["Gather"]['info']>({
+      playback: phonePlaybackValidator,
+      digits: booleanValidator,
+      speech: booleanValidator,
+    }),
+  }), 
+  "Voicemail": objectValidator<PhoneTreeActions["Voicemail"]>({
+    type: exactMatchValidator(['Voicemail']),
+    info: objectValidator<PhoneTreeActions["Voicemail"]['info']>({
+      playback: phonePlaybackValidator,
+    }),
+  }),
+  "Dial Users": objectValidator<PhoneTreeActions["Dial Users"]>({
+    type: exactMatchValidator(['Dial Users']),
+    info: objectValidator<PhoneTreeActions["Dial Users"]['info']>({
+      userIds: listOfMongoIdStringValidatorEmptyOk,
+    }),
+  }),
+})
+
+export const phoneTreeNodeValidator = objectValidator<PhoneTreeNode>({
+  id: stringValidator100,
+  action: phoneTreeActionValidator,
+  events: phoneTreeEventsValidator,
+  flowchartUI: flowchartUIValidator,
+})
+export const phoneTreeNodesValidator = listValidatorEmptyOk(phoneTreeNodeValidator)
+
+const _PHONE_TREE_ENDUSER_CONDITIONS: { [K in PhoneTreeEnduserCondition]: any } = {
+  All: '',
+  Unassigned: '',
+}
+export const PHONE_TREE_ENDUSER_CONDITIONS = Object.keys(_PHONE_TREE_ENDUSER_CONDITIONS) as PhoneTreeEnduserCondition[]
+export const phoneTreeEnduserConditionValidator = exactMatchValidator<PhoneTreeEnduserCondition>(PHONE_TREE_ENDUSER_CONDITIONS)
+
+export const formCustomizationValidator = objectValidator<Form['customization']>({
+  publicFormSubmitHTMLDescription: stringValidator5000OptionalEmptyOkay, // all strings should be optional or empty ok!
+  publicLabelPrefix: stringValidator5000OptionalEmptyOkay, // all strings should be optional or empty ok!
+  hideProgressBar: booleanValidatorOptional,
+  showRestartAtEnd: booleanValidatorOptional,
+})
+
+export const languageValidator = objectValidator<Language>({
+  displayName: stringValidator100,
+  iso6391: stringValidator100,
+})

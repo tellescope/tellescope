@@ -38,15 +38,10 @@ import {
   EnduserSessionContext,
   SessionContext,
 } from "./authentication"
-import { Button, IconModal, TextField, TextFieldProps, LabeledIconButtonProps, LoadingButton, Modal, SecureImage, SubmitButton, useFiles, useModalIconButton,  } from "."
+import { Button, IconModal, TextField, TextFieldProps, LabeledIconButtonProps, LoadingButton, Modal, SecureImage, SubmitButton, useFiles, useModalIconButton, useUsers, useSession,  } from "."
 import { Grid, InputAdornment } from "@mui/material"
 import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
-import { UNSEARCHABLE_FIELDS } from "@tellescope/constants"
-import {
-  LoadFunctionArguments,
-} from "@tellescope/sdk"
-import { objects_equivalent } from "@tellescope/utilities"
 
 export {
   FileBlob,
@@ -110,9 +105,10 @@ interface UseFileUploaderOptions {
   enduserId?: string
   publicRead?: boolean,
   publicName?: string,
+  source?: string,
 }
 export const useFileUpload = (o={} as UseFileUploaderOptions) => {
-  const { enduserId, publicRead, publicName } = o
+  const { enduserId, publicRead, publicName, source } = o
   const session = useResolvedSession()
   const [, { addLocalElement }] = useFiles({ dontFetch: true })
 
@@ -121,7 +117,7 @@ export const useFileUpload = (o={} as UseFileUploaderOptions) => {
   const handleUpload: FileUploadHandler = useCallback(async (details, file) => {
     setUploading(true)
     try {
-      const createdFile = await session.prepare_and_upload_file({ ...details, publicName, enduserId, publicRead }, file);
+      const createdFile = await session.prepare_and_upload_file({ ...details, publicName, enduserId, publicRead, source }, file);
       addLocalElement(createdFile)
       return createdFile
     } catch(err) {
@@ -184,6 +180,37 @@ export const useDisplayPictureUploadForSelf = (o={} as UseFileUploaderOptions) =
   }
 }
 
+export const useUserDisplayPictureUpload = (_o={} as UseFileUploaderOptions & { userId: string }) => {
+  const session = useSession()
+  const [, { updateElement: updateUser }] = useUsers({ dontFetch: true })
+
+  const { userId, ...o } = _o
+  const { uploading, handleUpload: hookHandleUpload  } = useFileUpload(o)
+  const [updating, setUpdating] = useState(false)
+
+  const handleUpload: FileUploadHandler = useCallback(async (details, file, options) => {
+    setUpdating(true)
+
+    const { secureName, ...fileInfo } = await hookHandleUpload({
+      name: details.name, type: details.type, size: details.size, enduserId: o.enduserId,
+    }, file, options)
+    try {
+      await updateUser(userId, { avatar: secureName })
+    } catch(err) {
+      throw (err)
+    } finally {
+      setUpdating(false)
+    }
+
+    return { secureName, ...fileInfo }
+  }, [session])
+
+  return {
+    handleUpload,
+    updating: updating || uploading,
+  }
+}
+
 export interface FileUploaderProps extends SubmitButtonOptions, UseFileUploaderOptions {
   onUpload?: (file: FileClientType) => void,
 }
@@ -229,11 +256,12 @@ interface ConfirmationScreenProps <T>{
   confirmText?: string;
   loadingText?: string
 }
-const ConfirmationScreen = <T,>({ 
+export const ConfirmationScreen = <T,>({ 
   action, onCancel, onSuccess, typeToConfirm='', 
   title="Confirmation", description='',
-  confirmText='Confirm', loadingText="Loading" 
-} : ConfirmationScreenProps<T>) => {
+  confirmText='Confirm', loadingText="Loading", 
+  style,
+} : ConfirmationScreenProps<T> & Styled) => {
   const [text, setText] = useState('')
 
   const [submitting, setSubmitting] = useState(false)
@@ -248,7 +276,7 @@ const ConfirmationScreen = <T,>({
 
   return (
     <Modal open={true} setOpen={o => !o && onCancel()}>
-    <Form onSubmit={handleConfirm} style={{ width: '100%' }}>
+    <Form onSubmit={handleConfirm} style={{ width: '100%', ...style }}>
 
     <Grid container direction="column">
       <Typography style={{ fontSize: 25, marginBottom: 5 }}>
@@ -299,7 +327,7 @@ interface DeleteWithConfirmationIconProps extends Omit<ConfirmationScreenProps<a
   color?: LabeledIconButtonProps['color'],
   iconProps?: Omit<LabeledIconButtonProps, 'Icon' | 'label'>,
 }
-export const DeleteWithConfimrationIcon = ({ modelName, color, iconProps, onSuccess,  ...props } : DeleteWithConfirmationIconProps) => {
+export const DeleteWithConfimrationIcon = ({ modelName, color, iconProps, onSuccess,  ...props } : DeleteWithConfirmationIconProps & Styled) => {
   const modalProps = useModalIconButton({ 
     Icon: DeleteIcon, label: `Delete ${modelName}`, id: `delete-${modelName}-icon`,
     color, ...iconProps,
@@ -311,7 +339,8 @@ export const DeleteWithConfimrationIcon = ({ modelName, color, iconProps, onSucc
 
   return (
     <IconModal {...modalProps}>
-      <ConfirmationScreen {...props}
+      <ConfirmationScreen {...props} title={props.title ?? 'Delete Confirmation'}
+        description={props.description || "This operation is permanent and cannot be undone"} style={{ maxWidth: 500 }}
         onSuccess={onSuccess ?? defaultOnSuccess}
         onCancel={() => modalProps.setOpen(false)}  
         confirmText="Delete" loadingText="Deleting..."
@@ -326,7 +355,7 @@ export const SearchTextInput = ({ onChange, ...props } : TextFieldProps) => (
     InputProps={{
       startAdornment: (
         <InputAdornment position="start">
-          <SearchIcon />
+          <SearchIcon color={props.value ? 'primary' : undefined} />
         </InputAdornment>
       ),
     }}

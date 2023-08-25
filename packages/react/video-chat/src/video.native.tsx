@@ -448,3 +448,5 @@ export const VideoCallNative: React.JSXElementConstructor<VideoCallNativeProps> 
     </Flex>
   )
 }
+
+export const ScreenShareIcon = () => null

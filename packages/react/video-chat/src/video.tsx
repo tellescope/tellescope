@@ -36,6 +36,7 @@ import {
   useToggleLocalMute,
   useMeetingStatus,
   MeetingStatus,
+  ContentShareControl,
   // useRemoteVideoTileState,
   // useContentShareControls, // screen sharing
 } from 'amazon-chime-sdk-component-library-react';
@@ -119,9 +120,6 @@ export const useJoinMeeting = () => {
   }
 
   const joinMeeting = useCallback(async (meeting: Meeting) => {
-    setMeeting(meeting.meetingInfo.Meeting)
-    setIsHost(meeting.creator === session.userInfo.id)
-
     let attendeeInfo = meeting.attendees.find(a => a.id === session.userInfo.id)?.info
     if (!attendeeInfo) {
       const calendarEventId = meeting.calendarEventId
@@ -143,6 +141,8 @@ export const useJoinMeeting = () => {
     }); // Use the join API to create a meeting session
     await meetingManager.start(); // At this point you can let users setup their devices, or start the session immediately
 
+    setMeeting(meeting.meetingInfo.Meeting)
+    setIsHost(meeting.creator === session.userInfo.id)
   }, [setMeeting, meetingManager, setMeeting, setIsHost])
 
   return {
@@ -368,4 +368,8 @@ export { VideoTileGrid }
 // unimplemented for web
 export const VideoCallNative: React.JSXElementConstructor<VideoCallNativeProps> = () => (
   null
+)
+
+export const ScreenShareIcon = () => (
+  <ContentShareControl iconTitle="Screen Share" label="Share Screen" />
 )

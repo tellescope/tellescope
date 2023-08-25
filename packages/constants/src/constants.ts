@@ -2,8 +2,33 @@ import {
   Operation,
 } from "@tellescope/types-utilities"
 import {
-  AccessAction, AccessForResource, AccessPermissions, AccessType,
+  AccessAction, AccessForResource, AccessPermissions, AccessType, Enduser, FormFieldType,
 } from "@tellescope/types-models"
+
+export type EnduserField = keyof Pick<Enduser, 'email' | 'phone' | 'fname' | 'lname' | 'dateOfBirth' | 'height' | 'weight'>
+
+export const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
+  'fname': 'First Name',
+  'lname': 'Last Name',
+  'email': 'Email',
+  'phone': 'Phone Number',
+  'dateOfBirth': 'Date of Birth',
+  'height': 'Height (inches)',
+  'weight': 'Weight (pounds)',
+  'gender': "Gender",
+  'state': "State",
+} satisfies { [K in keyof Enduser]?: string }
+
+export const ENDUSER_FIELD_TYPES = { 
+  'email': 'email',
+  'phone': 'phone',
+  'fname': 'string',
+  'lname': 'string',
+  'dateOfBirth': 'dateString',
+  'height': 'number',
+  'weight': 'number',
+  'Address': 'Address'
+}  as { [K in EnduserField] : FormFieldType}
 
 export const PRIMARY_HEX = "#1564bf"
 export const SECONDARY_HEX = "#1c4378"
@@ -41,7 +66,30 @@ export const SECONDS_IN_ONE_YEAR = 31560000
 
 export const UNSEARCHABLE_FIELDS = ['_id', 'id', 'creator', 'createdAt', 'updatedAt', 'businessId', 'externalId', 'enduserId']
 
+export const QUESTION_GROUP_VALUE_PLACEHOLDER = "_question_group"
+
+export const MM_DD_YYYY_REGEX = /[0-1][0-9]-[0-3][0-9]-[1-2][0-9][0-9][0-9]/
+
 export const GOOGLE_INTEGRATIONS_TITLE = "Google"
+export const DR_CHRONO_INTEGRATIONS_TITLE = "Dr. Chrono"
+export const DR_CHRONO_REDIRECT_URI_ENDING = "/dr-chrono-oauth2-verify"
+export const SQUARE_INTEGRATIONS_TITLE = "Square"
+export const SQUARE_REDIRECT_URI_ENDING = "/square-oauth2-verify"
+export const DIALPAD_INTEGRATIONS_TITLE = "DialPad"
+export const DIALPAD_REDIRECT_URI_ENDING = "/dialpad-oauth2-verify"
+export const OUTLOOK_INTEGRATIONS_TITLE = "Outlook"
+export const OUTLOOK_REDIRECT_URI_ENDING = "/outlook-oauth2-verify"
+export const ZOHO_TITLE = "Zoho"
+export const ZOHO_URI_ENDING = "/zoho-oauth2-verify"
+export const ZOOM_TITLE = "Zoom"
+export const ZOOM_URI_ENDING = "/zoom-oauth2-verify"
+export const OPENAI_TITLE = "OpenAI"
+export const HEALTHIE_TITLE = "Healthie"
+export const PHASE_ZERO_TITLE = "Phase Zero"
+export const PHOTON_TITLE = "Photon Health"
+export const ELATION_TITLE = "Elation"
+
+export const ORGANIZATION_WIDE_INTEGRATIONS = [OPENAI_TITLE]
 
 export const ONE_MINUTE_IN_MS = 1000 * 60
 export const ONE_HOUR_IN_MS   = 60 * ONE_MINUTE_IN_MS // 1hr
@@ -101,6 +149,13 @@ export const READ_ONLY_DEFAULT: AccessForResource = {
 }
 
 export const PROVIDER_PERMISSIONS: AccessPermissions = {
+  enduser_custom_types: READ_ONLY_ALL,
+  superbill_providers: READ_ONLY_ALL,
+  superbills: ASSIGNED_AND_DEFAULT_ACCESS,
+  enduser_medications: ASSIGNED_AND_DEFAULT_ACCESS,
+  automation_triggers: READ_ONLY_ALL,
+  availability_blocks: READ_ONLY_ALL,
+  analytics_frames: READ_ONLY_ALL,
   api_keys: INACCESSIBLE,
   apiKeys: INACCESSIBLE, // backwards compatibility with legacy webapp usage
   automation_steps: INACCESSIBLE,
@@ -118,10 +173,14 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
   journeys: READ_ONLY_DEFAULT,
   meetings: ASSIGNED_AND_DEFAULT_ACCESS,
   sms_messages: ASSIGNED_AND_DEFAULT_ACCESS,
-  tasks: ASSIGNED_AND_DEFAULT_ACCESS,
   tickets: ASSIGNED_AND_DEFAULT_ACCESS,
   templates: READ_ONLY_ALL,
   organizations: READ_ONLY_ALL,
+  appointment_booking_pages: INACCESSIBLE,
+  appointment_locations: READ_ONLY_ALL,
+  phone_calls: ASSIGNED_AND_DEFAULT_ACCESS,
+  enduser_profile_views: READ_ONLY_ALL,
+  phone_trees: READ_ONLY_ALL,
   users: {
     ...READ_ONLY_ALL,
     update: 'Default', // allow updating self, separate restriction exists to prevent updating other users if non-admin
@@ -141,7 +200,10 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
     delete: ASSIGNED_ACCESS,
   },
   user_logs: INACCESSIBLE,
-  user_notifications: ASSIGNED_AND_DEFAULT_ACCESS,
+  user_notifications: {
+    ...ASSIGNED_AND_DEFAULT_ACCESS,
+    delete: ASSIGNED_ACCESS,
+  },
   enduser_observations: ASSIGNED_AND_DEFAULT_ACCESS,
   forum_posts: ASSIGNED_AND_DEFAULT_ACCESS,
   forums: ASSIGNED_AND_DEFAULT_ACCESS,
@@ -160,15 +222,40 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
     delete: NO_ACCESS,
     update: NO_ACCESS
   },
-  database_records: ASSIGNED_AND_DEFAULT_ACCESS,
+  database_records: {
+    read: DEFAULT_ACCESS,
+    create: NO_ACCESS,
+    delete: NO_ACCESS,
+    update: NO_ACCESS
+  },
   portal_customizations: INACCESSIBLE,
   care_plans: ASSIGNED_AND_DEFAULT_ACCESS,
   enduser_tasks: ASSIGNED_AND_DEFAULT_ACCESS,
-  role_based_access_permissions: INACCESSIBLE, // also controlled by adminOnly in schema
+  role_based_access_permissions: READ_ONLY_ALL, // also controlled by adminOnly in schema
+  products: READ_ONLY_ALL,
+  purchases: ASSIGNED_AND_DEFAULT_ACCESS,
+  purchase_credits: {
+    ...ASSIGNED_AND_DEFAULT_ACCESS,
+    delete: NO_ACCESS,
+  },
+  background_errors: INACCESSIBLE,
+  enduser_views: READ_ONLY_ALL,
+  referral_providers: READ_ONLY_ALL,
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
+  phone_trees: FULL_ACCESS,
+  referral_providers: FULL_ACCESS,
+  superbill_providers: FULL_ACCESS,
+  superbills: FULL_ACCESS,
+  automation_triggers: FULL_ACCESS,
+  background_errors: FULL_ACCESS,
+  enduser_views: FULL_ACCESS,
+  availability_blocks: FULL_ACCESS,
+  analytics_frames: FULL_ACCESS,
+  appointment_locations: FULL_ACCESS,
   api_keys: FULL_ACCESS,
+  appointment_booking_pages: FULL_ACCESS,
   apiKeys: FULL_ACCESS, // backwards compatibility with legacy webapp usage
   automated_actions: FULL_ACCESS,
   chat_rooms: FULL_ACCESS,
@@ -184,7 +271,6 @@ export const ADMIN_PERMISSIONS: AccessPermissions = {
   meetings: FULL_ACCESS,
   chats: FULL_ACCESS,
   sms_messages: FULL_ACCESS,
-  tasks: FULL_ACCESS,
   tickets: FULL_ACCESS,
   templates: FULL_ACCESS,
   users: FULL_ACCESS, // create and delete adminOnly
@@ -215,6 +301,13 @@ export const ADMIN_PERMISSIONS: AccessPermissions = {
   enduser_tasks: FULL_ACCESS,
   managed_content_record_assignments: FULL_ACCESS,
   role_based_access_permissions: FULL_ACCESS,
+  products: FULL_ACCESS,
+  purchase_credits: FULL_ACCESS,
+  purchases: FULL_ACCESS,
+  phone_calls: FULL_ACCESS,
+  enduser_profile_views: FULL_ACCESS,
+  enduser_medications: FULL_ACCESS,
+  enduser_custom_types: FULL_ACCESS,
 }
 
 export const PORTAL_DEFAULT_LANDING_TITLE = "Your Portal"
@@ -222,3 +315,14 @@ export const PORTAL_DEFAULT_LOGIN_TITLE = "Welcome back!"
 export const PORTAL_DEFAULT_LOGIN_DESCRIPTION = "Log in to your account."
 export const PORTAL_DEFAULT_REGISTER_TITLE = "Getting Started"
 export const PORTAL_DEFAULT_REGISTER_DESCRIPTION = "Let's create your account."
+
+export const CPT_CODES: { code: number, label: string }[] = [
+  { code: 76641, label: 'ULTRASOUND BREAST COMPLETE' },
+  { code: 76642, label: 'ULTRASOUND BREAST LIMITED' },
+  { code: 99202, label: "Video call, new patient, up to 20 mins" },
+  { code: 99203, label: "Video call, new patient, longer than 20 mins" },
+  { code: 99211, label: "Video call, established patient" },
+  { code: 99441, label: "Phone call (up to 10 mins) with patient" },
+  { code: 99442, label: "Phone call (11-20 mins) with patient" },
+  { code: 99421, label: "Async digital evaluation 5-10 mins" },
+]

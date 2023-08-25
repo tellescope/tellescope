@@ -32,6 +32,12 @@ export class ErrorBoundary extends React.Component<{ errorMessage?: string }, { 
 
 export const stringForError = (err: any) => (err as APIError)?.message ?? err?.toString() ?? 'An unexpected error occurred'
 
+export const parseUniquenessError = (err: any, uniquenessMessage: string) => {
+  const message = stringForError(err)
+  if (message === UNIQUENESS_VIOLATION) return uniquenessMessage
+  return message
+}
+
 export type ErrorOptions = { uniquenessError?: string, onError?: OnApiError }
 export type OnApiError = (args: { message: string }) => void
 export const useHandleError = (props?: { onError?: OnApiError, throwOnError?: boolean } & ErrorOptions) => {

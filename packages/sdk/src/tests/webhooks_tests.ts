@@ -20,22 +20,27 @@ import {
   CalendarEvent,
   CUDSubscription,
   AutomationAction,
-  AttendeeInfo,
 } from "@tellescope/types-models"
 
-import { Session } from "../sdk"
+import { EnduserSession, Session } from "../sdk"
 import { ChatMessage, Meeting } from "@tellescope/types-client"
 
 const [email, password] = [process.env.TEST_EMAIL, process.env.TEST_PASSWORD]
 const [email2, password2] = [process.env.TEST_EMAIL_2, process.env.TEST_PASSWORD_2]
 const [nonAdminEmail, nonAdminPassword] = [process.env.NON_ADMIN_EMAIL, process.env.NON_ADMIN_PASSWORD]
-if (!(email && password && email2 && password2 && nonAdminEmail && nonAdminPassword)) {
+const subUserEmail = process.env.SUB_EMAIL
+
+const host = process.env.TEST_URL || 'http://localhost:8080'
+const businessId = '60398b1131a295e64f084ff6'
+const enduserSDK = new EnduserSession({ host, businessId })
+
+if (!(email && subUserEmail && password && email2 && password2 && nonAdminEmail && nonAdminPassword)) {
   console.error("Set TEST_EMAIL and TEST_PASSWORD")
   process.exit(1)
 }
 
-
 const sdk = new Session({ host: 'http://localhost:8080' })
+const sdkSub = new Session({ host: 'http://localhost:8080' })
 const nonAdminSdk = new Session({ host: 'http://localhost:8080' })
 
 const app = express()
@@ -87,7 +92,7 @@ for (const model in WEBHOOK_MODELS) {
   emptySubscription[model as WebhookSupportedModel] = { create: false, update: false, delete: false }
 }
 
-const CHECK_WEBHOOK_DELAY_MS = 50
+const CHECK_WEBHOOK_DELAY_MS = 75
 let webhookIndex = 0
 const check_next_webhook = async (evaluate: (hook: WebhookCall) => boolean, name: string, error: string, isSubscribed: boolean, noHookExpected?: boolean) => {
   if (isSubscribed === false) return
@@ -98,7 +103,7 @@ const check_next_webhook = async (evaluate: (hook: WebhookCall) => boolean, name
   if (noHookExpected) {
     assert(!event, error, name)
   } else {
-    assert(!!event, error || 'did not get hook', name || 'got hook')
+    assert(!!event, (error || '') + ' (did not get hook)', name || 'got hook')
   }
   if (!event) return // ensure webhookIndex not incremented
 
@@ -215,14 +220,23 @@ const endusers_tests = async (isSubscribed: boolean) => {
   }
 
   const enduser = await sdk.api.endusers.createOne({ email: 'deleteme@tellescope.com' })
+
   const update = { assignedTo: [sdk.userInfo.id] }
   await sdk.api.endusers.updateOne(enduser.id, update)
 
   await check_next_webhook(
-    a => (
+    a => {
+      delete a.updates?.[0]?.recordBeforeUpdate.humanReadableId
+      delete a.updates?.[0]?.recordBeforeUpdate.lockId
+      delete a.updates?.[0]?.recordBeforeUpdate.updatedAt
+      delete (enduser as any).updatedAt
+      delete (enduser as any).___didInsert
+
+      return (
          objects_equivalent(a.updates?.[0]?.recordBeforeUpdate, enduser)
       && objects_equivalent(a.updates?.[0]?.update, update)
-    ),
+      )
+    },
     'Enduser update error', 'Update enduser webhook', isSubscribed
   ) 
 
@@ -242,6 +256,113 @@ const endusers_tests = async (isSubscribed: boolean) => {
   }
 
   await sdk.api.endusers.deleteOne(enduser.id)
+}
+
+const sub_organization_tests = async (isSubscribed: boolean) => {
+  log_header(`Sub organization Tests, isSubscribed=${isSubscribed}`)
+
+  if (isSubscribed) {
+    await sdk.api.webhooks.update({ subscriptionUpdates: { 
+      ...emptySubscription, 
+      endusers: { create: true, update: false, delete: false },
+    }})
+  }
+
+  const enduserSub = await sdk.api.endusers.createOne({ email: 'deleteme@tellescope.com' })
+
+  await check_next_webhook(
+    a => {
+      const webhookEnduser = a.records[0]
+      delete webhookEnduser.humanReadableId
+      delete webhookEnduser.lockId
+      delete webhookEnduser.updatedAt
+      delete (enduserSub as any).updatedAt
+
+      return (
+         objects_equivalent(webhookEnduser, enduserSub)
+      )
+    },
+    'Enduser create sub error', 'Create enduser sub webhook', isSubscribed
+  ) 
+
+  // cleanup
+  if (isSubscribed) {
+    await sdk.api.webhooks.update({ subscriptionUpdates: { 
+      ...emptySubscription, 
+      chats: { create: true }, 
+      meetings: { create: true, update: true, delete: false },
+    }})
+  }
+
+  await sdk.api.endusers.deleteOne(enduserSub.id)
+}
+
+
+const form_response_tests = async (isSubscribed: boolean) => {
+  log_header(`Form Response Tests, isSubscribed=${isSubscribed}`)
+
+  if (isSubscribed) {
+    await sdk.api.webhooks.update({ subscriptionUpdates: { 
+      ...emptySubscription, 
+      form_responses: { create: true },
+    }})
+  }
+
+  const form = await sdk.api.forms.createOne({ title: 'test form' })
+  const field = await sdk.api.form_fields.createOne({ 
+    title: 'test',
+    formId: form.id,
+    type: 'string',
+    previousFields: [],
+  })
+
+  const enduser = await sdk.api.endusers.createOne({ email: 'deleteme@tellescope.com' })
+  const { accessCode } = await sdk.api.form_responses.prepare_form_response({
+    enduserId: enduser.id,
+    formId: form.id,
+  })
+
+  const { formResponse } = await sdk.api.form_responses.submit_form_response({
+    accessCode,
+    responses: [
+      {
+        fieldId: field.id,
+        fieldTitle: 'test',
+        answer: {
+          type: 'string',
+          value: 'testing value',
+        }
+      }
+    ]
+  })
+
+  await check_next_webhook(
+    a => {
+      const hook = a.records[0]
+
+      return (
+        hook.id === formResponse.id
+        && hook.businessId === formResponse.businessId
+        && hook.enduserId === formResponse.enduserId
+        && objects_equivalent(formResponse.responses, hook.responses)
+      )
+    },
+    'Form response on submit error', 'Form response on submit', isSubscribed
+  ) 
+
+  // cleanup
+  if (isSubscribed) {
+    await sdk.api.webhooks.update({ subscriptionUpdates: { 
+      ...emptySubscription, 
+      chats: { create: true }, 
+      meetings: { create: true, update: true, delete: false },
+    }})
+  }
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(enduser.id),
+    sdk.api.forms.deleteOne(form.id),
+  ])
 }
 
 const AUTOMATION_POLLING_DELAY_MS = 3000 - CHECK_WEBHOOK_DELAY_MS
@@ -387,7 +508,118 @@ const calendar_event_reminders_tests = async (isSubscribed: boolean) => {
   await sdk.api.calendar_events.deleteOne(calendarEvent.id)
 }
 
-const tests: { [K in WebhookSupportedModel  | 'calendarEventReminders']?: (isSubscribed: boolean) => Promise<void> } = {
+const self_serve_appointment_booking_tests = async () => {
+  log_header("Self Serve Appointment Booking")
+
+  await sdk.api.webhooks.update({ subscriptionUpdates: { 
+    ...emptySubscription, 
+    calendar_events: { create: true, update: true } } 
+  })
+
+  const e1 = await sdk.api.endusers.createOne({ email: 'sebass+selfserve@tellescope.com' }) 
+  await sdk.api.endusers.set_password({ id: e1.id, password })
+  await enduserSDK.authenticate('sebass+selfserve@tellescope.com', password)
+
+  const event30min = await sdk.api.calendar_event_templates.createOne({ 
+    title: 'test 1', durationInMinutes: 30, confirmationEmailDisabled: true, confirmationSMSDisabled: true,
+  })
+
+  // ensure it doesn't match current day, to avoid errors on testing
+  const dayOfWeekStartingSundayIndexedByZero = (new Date().getDay() + 1) % 7 
+
+  await sdk.api.users.updateOne(sdk.userInfo.id, { 
+    weeklyAvailabilities: [
+      { 
+        dayOfWeekStartingSundayIndexedByZero,
+        startTimeInMinutes: 60 * 12, // noon,
+        endTimeInMinutes: 60 * 14, // 2pm,
+      },
+    ],
+    timezone: 'America/New_York',
+  }, {
+    replaceObjectFields: true,
+  })
+
+  const slots = await enduserSDK.api.calendar_events.get_appointment_availability({
+    calendarEventTemplateId: event30min.id,
+    from: new Date(),
+  })
+  const toCancel = (await enduserSDK.api.calendar_events.book_appointment({
+    calendarEventTemplateId: event30min.id,
+    startTime: new Date(slots.availabilityBlocks[0].startTimeInMS),
+    userId: slots.availabilityBlocks[0].userId, 
+  })).createdEvent
+  await check_next_webhook(
+    a => (
+      a.type === 'create' &&  a.records[0].id === toCancel.id 
+    ), 
+    'book-appointment webhook', 'book-appointment webhook error', true,
+  )
+
+  await enduserSDK.api.calendar_events.updateOne(toCancel.id, { cancelledAt: new Date() })
+  await check_next_webhook(
+    a => (
+      a.records[0].id === toCancel.id 
+      && a.type === 'update'
+    ), 
+    'cancel appointment webhook', 'cancel appointment webhook error', true,
+  )
+
+  const toReschedule = (await enduserSDK.api.calendar_events.book_appointment({
+    calendarEventTemplateId: event30min.id,
+    startTime: new Date(slots.availabilityBlocks[0].startTimeInMS),
+    userId: slots.availabilityBlocks[0].userId, 
+  })).createdEvent
+  await check_next_webhook(
+    a => (
+      a.records[0].id === toReschedule.id 
+    ), 
+    'to reschedule webhook', 'to reschedule webhook error', true,
+  )
+
+  const rescheduledAppointment = (await enduserSDK.api.calendar_events.book_appointment({
+    calendarEventTemplateId: event30min.id,
+    rescheduledCalendarEventId: toReschedule.id,
+    startTime: new Date(slots.availabilityBlocks[1].startTimeInMS),
+    userId: slots.availabilityBlocks[1].userId, 
+  })).createdEvent
+
+  await wait(undefined, 250)
+
+  // should get two webhooks on reschedule, and order may not be guaranteed
+  await check_next_webhook(
+    a => (
+      (a.type === 'create' && a.records[0].id === rescheduledAppointment.id)
+    || (a.type === 'update' && a.records[0].id === toReschedule.id && a.description === 'calendar event rescheduled')
+    ), 
+    'reschedule webhook', 'reschedule webhook error', true,
+  )
+  await check_next_webhook(
+    a => (
+      (a.type === 'create' && a.records[0].id === rescheduledAppointment.id)
+    || (a.type === 'update' && a.records[0].id === toReschedule.id && a.description === 'calendar event rescheduled')
+    ), 
+    'reschedule webhook', 'reschedule webhook error', true,
+  )
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(e1.id),
+    sdk.api.calendar_event_templates.deleteOne(event30min.id),
+    sdk.api.calendar_events.deleteOne(toCancel.id),
+    sdk.api.calendar_events.deleteOne(toReschedule.id),
+    sdk.api.calendar_events.deleteOne(rescheduledAppointment.id),
+    sdk.api.users.updateOne(sdk.userInfo.id, 
+      { weeklyAvailabilities: [] }, 
+      { replaceObjectFields: true },
+    ),
+    sdk.api.webhooks.update({ subscriptionUpdates: emptySubscription })
+  ])
+}
+
+
+const tests: { [K in WebhookSupportedModel  | 'calendarEventReminders' | 'sub']?: (isSubscribed: boolean) => Promise<void> } = {
+  form_responses: form_response_tests,
+  sub: sub_organization_tests,
   endusers: endusers_tests,
   chats: chats_tests,
   calendarEventReminders: calendar_event_reminders_tests, 
@@ -397,6 +629,7 @@ const tests: { [K in WebhookSupportedModel  | 'calendarEventReminders']?: (isSub
 const run_tests = async () => {
   log_header("Webhooks Tests")
   await sdk.authenticate(email, password)
+  await sdkSub.authenticate(subUserEmail, password)
   await sdk.reset_db() 
   await nonAdminSdk.authenticate(nonAdminEmail, nonAdminPassword)
 
@@ -417,9 +650,10 @@ const run_tests = async () => {
     { onResult: _ => true }
   )
   await async_test(
-    'configure webhook (only callable once)',
+    'configure webhook (overwrite)',
     () => sdk.api.webhooks.configure({ url: webhookURL, secret: TEST_SECRET }),
-    { shouldError: true, onError: e => e.message === "Only one webhook configuration is supported per organization. Use /update-webooks to update your configuration." }
+    { onResult: () => true }
+    // { shouldError: true, onError: e => e.message === "Only one webhook configuration is supported per organization. Use /update-webooks to update your configuration." }
   )
   await async_test(
     'get initial webhook configuration',
@@ -451,6 +685,8 @@ const run_tests = async () => {
     () => sdk.api.webhooks.get_configuration({}),
     { onResult: r => r.url === webhookURL && objects_equivalent(r.subscriptions, fullSubscription) }
   )
+
+  await self_serve_appointment_booking_tests()
 
   // reset to only poartial / testing fields
   // todo: subscribe in individual tests to avoid issues in ordering of tests / subscriptions

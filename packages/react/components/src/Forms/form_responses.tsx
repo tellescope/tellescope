@@ -1,127 +1,296 @@
 import React from "react"
-import { Grid, Typography } from "@mui/material"
+import { Checkbox, Divider, FormControlLabel, Grid, Typography } from "@mui/material"
 import { Enduser, FormResponse } from "@tellescope/types-client"
-import { user_display_name } from "@tellescope/utilities"
-import { DownloadFileIconButton, LabeledIconButton, useUsers } from "../index"
+import { form_response_value_to_string, getOrgnizationLogoURL, user_display_name } from "@tellescope/utilities"
+import { DownloadFileIconButton, LabeledIconButton, SecureImage, useOrganization, useResolvedSession, useSession, useUsers, value_is_loaded } from "../index"
 import CloseIcon from '@mui/icons-material/Close';
+import { DatabaseSelectResponse, FormResponseAnswerAddress, FormResponseValueAnswer } from "@tellescope/types-models"
+import { Image } from "../layout"
+import { QUESTION_GROUP_VALUE_PLACEHOLDER } from "@tellescope/constants"
+
+const answerStyles: React.CSSProperties = {
+  width: '200px',
+  borderBottom: '1px solid black',
+}
+
+export const AddressDisplay = ({ value } : { value: Required<FormResponseAnswerAddress>['value'] }) => (
+  <Grid container direction="column">
+    <Typography sx={{ ...answerStyles, mb: 1 }}>
+      {value.addressLineOne} {value.addressLineTwo}
+    </Typography> 
+    <Typography sx={answerStyles}>
+      {value.city} {value.state}, {value.zipCode}
+    </Typography> 
+  </Grid>
+) 
+
+export const ResponseAnswer = ({ answer: a, printing } : { answer: FormResponseValueAnswer, printing?: boolean }) => (
+  a.value 
+    ? (
+    <Typography component="div">
+      {(a.type === 'multiple_choice' || a.type === 'Database Select')
+        ? (
+         <div>
+          {a.value.map((t, i) => 
+            <div key={i}>
+            <input type="checkbox" checked/>
+            <label style={{ marginLeft: '4px' }}>
+              {a.type === 'Database Select' ? (t as DatabaseSelectResponse).text : t}
+            </label>
+            </div>
+          )}
+         </div>
+        )
+      : a.type === 'ranking'
+        ? <ol style={{ margin: 0 }}>
+            {a.value.map((t, i) => 
+              <li key={i}>{t}</li>
+            )}
+          </ol>
+      : a.type === 'file'
+        ? a.value.secureName 
+          ? <Typography>
+              {!printing 
+                ? <DownloadFileIconButton secureName={a.value.secureName} onDownload={url => window.open(url, '_blank')} />
+                : (
+                  <SecureImage secureName={a.value.secureName} 
+                    style={{ maxHeight: 400, maxWidth: 400 }}
+                  />
+                )
+              }
+              <em>{a.value.name || 'Attachment'}</em>
+            </Typography>
+          : null // null when optional and omitted
+      : a.type === 'files'
+        ? a.value.map(file => (
+          <Typography key={file.secureName}>
+            {!printing 
+              ? <DownloadFileIconButton secureName={file.secureName} onDownload={url => window.open(url, '_blank')} />
+              : (
+                <SecureImage secureName={file.secureName} 
+                  style={{ maxHeight: 400, maxWidth: 400 }}
+                />
+              )
+            }
+            <em>{file.name || 'Attachment'}</em>
+          </Typography>
+        ))
+      : a.type === 'signature'
+        ? <Typography style={answerStyles}>
+            {a.value.signed ? <span>Electronically signed as <em>{a.value.fullName}</em></span> : 'Unsigned'}
+          </Typography>
+      : a.type === 'stringLong'
+        ? (
+          <Grid container direction="column">
+          {a.value.split('\n').map((line, i) => (
+            <Typography key={i} style={answerStyles}>
+              {line || <br />}    
+            </Typography>
+          ))}
+          </Grid>
+        )
+      : (a.type === 'Address' && a.value)
+        ? <AddressDisplay value={a.value} />
+      : a.type === 'date'
+        ? <Typography style={answerStyles}>
+            {new Date(a.value).toDateString()} {new Date(a.value).toTimeString().split(' ')[0]}
+          </Typography>
+      : (a.type === 'Medications' && a.value)
+        ? (
+          // modified from enduser_views MedicationsResponseDisplay in private webapp 
+          <Grid container direction="column" sx={{ overflowX: 'auto'}}>
+            {a.value.map((medication, i) => (
+              <Grid item key={i}>
+              <Grid container direction="column">
+                <Grid item>
+                <Typography style={{ fontWeight: 'bold' }}>
+                {medication.drugName && medication.drugName !== 'Unknown'
+                  ? medication.drugName
+                  : medication.displayTerm  
+                }
+                </Typography>
+                </Grid>
+
+                <Grid item style={{ marginLeft: 20 }}>
+                  <Typography>
+                    {medication.dosage?.quantity ? `${medication.dosage.quantity} units` : ''}
+                    {medication.dosage?.frequency 
+                      ? `${medication.dosage?.quantity ? ', ' : ''}${medication.dosage.frequency}x daily` 
+                      : ''
+                    }
+                  </Typography>
+                </Grid>
+
+                {medication.reasonForTaking && 
+                  <Grid item style={{ marginLeft: 20 }}>
+                    <Typography>
+                      Reason: {medication.reasonForTaking}
+                    </Typography>
+                  </Grid>
+                }
+              </Grid>
+              </Grid>
+            ))}
+          </Grid>
+
+        )
+        : (
+          <Typography style={answerStyles}>
+            {form_response_value_to_string(a.value)}
+          </Typography>
+        )
+      }
+    </Typography>
+  ) : (
+    a.type === 'description'
+      ? <></>
+      : <Typography>No value provided</Typography>
+  )
+)
+
+export const OrganizationLogo = () => {
+  const [organizationLoading] = useOrganization()
+  
+  if (!value_is_loaded(organizationLoading)) return null
+  if (typeof organizationLoading.value.logoVersion !== 'number') return null
+
+  const logoURL = getOrgnizationLogoURL(organizationLoading.value)
+
+  return (
+    <Image 
+      src={logoURL} 
+      alt=""
+      maxWidth={400}
+      height={50}
+    />
+  )
+}
+
+export const ResolveOrganizationLogo = () => {
+  const session = useResolvedSession()
+  if (session.type === 'enduser') return null
+
+  return <OrganizationLogo />
+}
 
 interface FormResponse_T {
   enduser?: Enduser,
   onClose?: () => void,
   hideHeader?: boolean,
   response: FormResponse,
+  id?: string,
 }
-export const FormResponseView = ({ enduser, onClose, hideHeader, response } : FormResponse_T) => {
+// this should use all vanilla React / inline styles to ensure printing is consistent
+export const FormResponseView = ({ enduser, onClose, hideHeader, response, id, printing } : FormResponse_T & { printing ?: boolean }) => {
   const [, { findById: findUser}] = useUsers()
 
   const user = findUser(response.submittedBy ?? '')
 
-  return (
-    <Grid container alignItems="center" justifyContent="center" style={{
-      minWidth: 400,
-      maxHeight: '75vh',
-      overflowY: 'auto',
-    }}>
-      {(response.responses === undefined || response.responses.length === 0)
-        ? <Typography>Awaiting Response</Typography>
-        : <>
-          <Grid item xs={12}>
-          <Grid container alignItems="center" justifyContent={'space-between'}>
-            {!hideHeader && 
-              <Typography component="h2" style={{
-                fontSize: 20,
-                fontWeight: 'bold',
-              }}> 
-                {response.formTitle}
-              </Typography>
-            }
+  if (response.responses === undefined || response.responses.length === 0) {
+    return <Typography>Awaiting Response</Typography> 
+  }
 
-            {onClose 
-              ? <LabeledIconButton Icon={CloseIcon} label="Close" onClick={onClose} />
-              : <Grid />
-            }
-          </Grid>
-          </Grid>
-          {(enduser || response.userEmail || response.submittedBy) && !hideHeader &&
-            <Grid item xs={12}>
-              <Typography style={{
-                fontSize: 16,
-                paddingBottom: 4,
-                borderBottom: "1px solid #00000033",
-              }}>
-                {response.submittedBy
-                  ? (user 
-                      ? <span>
-                        Submitted by {user_display_name(user)}
-                      </span>
-                      : '' // still loading, or can't find user for submittedBy
-                    )
-                  : <span> 
-                      From {user_display_name(enduser ?? { email: response.userEmail } as Enduser)}
-                    </span>
-                }
-              </Typography>
-            </Grid>
-           }
-          {response.responses.map((r, i) => {
-            const q = r.fieldTitle
-            const a = r.answer
-            const description = r.fieldDescription
-            
-            return (
-              <Grid item xs={12} key={i} style={{
-                paddingTop: 8,
-                paddingBottom: 4,
-                borderBottom: "1px solid #00000033",
-              }}>
-              <Typography style={{ fontWeight: 'bold' }}>
-                {q}
-              </Typography>
-              {description &&
-                <Typography style={{  }}>
-                  {description}
-                </Typography>
-              } 
-              {a.value 
-                ? (
-                <Typography component="div">
-                  {a.type === 'multiple_choice'
-                    ? <ul style={{ margin: 0 }}>
-                        {a.value.map((t, i) => 
-                          <li key={i}>{t}</li>
-                        )}
-                      </ul>
-                  : a.type === 'file'
-                    ? a.value.secureName 
-                      ? <Typography>
-                          <em>{a.value.name || 'Attachment'}</em>
-                          <DownloadFileIconButton secureName={a.value.secureName} onDownload={url => window.open(url, '_blank')} />
-                        </Typography>
-                      : null // null when optional and omitted
-                  : a.type === 'signature'
-                    ? <Typography>
-                        {a.value.signed ? <span>Signed as <em>{a.value.fullName}</em></span> : 'Unsigned'}
-                      </Typography>
-                  : a.type === 'stringLong'
-                    ? (
-                      <Grid container direction="column">
-                      {a.value.split('\n').map((line, i) => (
-                        <Typography key={i}>
-                          {line || <br />}    
-                        </Typography>
-                      ))}
-                      </Grid>
-                    )
-                    : a.value
-                  }
-                </Typography>
-              ) : <Typography>No value provided</Typography>
-              }
-              </Grid>
-            )
-          })}
+  return (
+    <div style={{ display: 'flex', flex: 1, flexDirection: 'column', minWidth: 400, maxWidth: 650 }} id={id}>
+      <div style={{ textAlign: 'center' }}>
+        {!hideHeader && 
+          <>
+          <ResolveOrganizationLogo />
+
+          <h2 style={{
+            fontSize: 20,
+            fontWeight: 'bold',
+            marginTop: 8,
+          }}> 
+            {response.formTitle}
+          </h2>
           </>
+        }
+
+        {onClose 
+          ? <LabeledIconButton Icon={CloseIcon} label="Close" onClick={onClose} />
+          : <Grid />
+        }
+      </div>
+
+      {(enduser || response.userEmail || response.submittedBy) && !hideHeader &&
+        <Typography style={{
+          fontSize: 16,
+          paddingBottom: 4,
+          textAlign: 'center',
+        }}>
+          {response.submittedBy
+            ? (user 
+                ? <span>
+                  Submitted by {user_display_name(user)}
+                </span>
+                : '' // still loading, or can't find user for submittedBy
+              )
+            : <span> 
+                From {user_display_name(enduser ?? { email: response.userEmail } as Enduser)}
+              </span>
+          }
+        </Typography>
       }
-    </Grid>
+
+      <Divider flexItem style={{ marginTop: 2, marginBottom: 12 }} />
+
+      <div style={{ flexDirection: "column", display: 'flex', flex: 1 }}>
+      {response.responses.map((r, i) => {
+        const showAnswerInline = true 
+        // old logic for showAnswerInline
+        //  (
+        //       (!r.fieldDescription?.trim() && r.fieldHtmlDescription?.trim() === '<p></p>')
+        //   || !(r.fieldDescription?.trim() || r.fieldHtmlDescription?.trim())
+        // )
+        return (
+          <div key={i} style={{ marginBottom: 12 }}>
+            <div style={{ display: 'flex', flex: 1, flexDirection: "row", justifyContent: 'space-between', flexWrap: 'nowrap' }}>
+              {r.fieldTitle && 
+                <div style={{ }}>
+                  <Typography style={{
+                    fontWeight: 'bold',
+                    width: (
+                      showAnswerInline 
+                        ? '400px'
+                        : undefined
+                    )
+                  }}>
+                    {r.fieldTitle}
+                  </Typography>
+                </div>
+              }
+
+              <div style={{ }}>
+                {showAnswerInline && r.answer.type !== 'Question Group' 
+                && !(typeof r.answer.value === 'string' && r.answer.value.includes('{TELLESCOPE')) // hidden field for matching, not to display
+                &&
+                  <ResponseAnswer answer={r.answer} printing={printing} />
+                }
+              </div>
+            </div>
+
+            {r.fieldDescription
+              ? (
+                <Typography style={{  }}>
+                  {r.fieldDescription}
+                </Typography>
+              ): r.fieldHtmlDescription
+                ? (
+                  <div dangerouslySetInnerHTML={{
+                    __html: r.fieldHtmlDescription
+                  }} />
+                )
+                : null
+            } 
+
+            {!showAnswerInline &&
+              <ResponseAnswer answer={r.answer} />
+            }
+          </div>
+        )
+      })}
+      </div>
+    </div>
   )
 }

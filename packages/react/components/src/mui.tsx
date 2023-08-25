@@ -32,6 +32,17 @@ import CallEndIconMui from '@mui/icons-material/CallEnd';
 import AccountIconMui from '@mui/icons-material/Person';
 import { defaultModalStyle } from "./controls"
 
+import CancelIcon from '@mui/icons-material/Cancel';
+import SortInactiveIcon from '@mui/icons-material/ArrowCircleDownOutlined';
+import SortAscendingIcon from '@mui/icons-material/ExpandCircleDown';
+import FilterIcon from '@mui/icons-material/FilterAltOutlined';
+import FilterActiveIcon from '@mui/icons-material/FilterAlt';
+
+const SortDescendingIcon = (props: any) => (
+  <SortAscendingIcon {...props} style={{ transform: 'rotate(180deg)', ...props?.style }} />
+)
+export { SortAscendingIcon, SortDescendingIcon, SortInactiveIcon, CancelIcon, FilterIcon, FilterActiveIcon }
+
 import {
   Link as RouterLink, 
 } from "react-router-dom"
@@ -250,6 +261,7 @@ export type TypographyProps = {
   children?: React.ReactNode,
   style?: any, // todo: universal style
   component?: 'span' | 'p' | 'div' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5',
+  noWrap?: boolean,
 } & Clickable
 export const Typography = ({ children, onClick, onPress, component='span', ...props}: TypographyProps & ClickableWeb) => {
   return <MuiTypography onClick={onClick ?? onPress} component={component} {...props}>{children}</MuiTypography>

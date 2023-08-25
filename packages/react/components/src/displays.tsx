@@ -7,41 +7,61 @@ import {
   Typography, 
   value_is_loaded,
   useUsers,
+  convertHEIC,
 } from "./index"
 
 import { Avatar, AvatarProps, Styled } from "./mui"
-import { useResolvedSession } from "./authentication"
+import { useResolvedSession } from "."
 import { Image, ImageDimensions, Video } from "./layout"
 import { APIErrorHandler } from "@tellescope/types-utilities"
 
+export type LoadedFile = { downloadURL: string, name: string }
 // supports actual secureName as well as URL values
 export const useFileForSecureName = ({ 
   secureName, 
   onError,
-  cacheKey=secureName 
-}: { secureName: string, onError?: APIErrorHandler, cacheKey?: string }) => {
+  cacheKey=secureName,
+  onLoad,
+}: { secureName: string, onError?: APIErrorHandler, cacheKey?: string,
+  onLoad?: (f: LoadedFile) => void, 
+}) => {
   const session = useResolvedSession()
-  const [loadedImage, setLoadedImage] = useState({ uri: '', cacheKey: '' })
+  const [loadedImages, setLoadedImages] = useState<{ uri: string, cacheKey: string, name: string }[]>([])
   const fetchRef = useRef({ } as { [index: string]: boolean })
 
   useEffect(() => {
     if (!secureName) return
     if (secureName.startsWith('http')) return // not actually a secureName
 
-    if (loadedImage.cacheKey === cacheKey) return 
+    if (loadedImages.find(i => i.cacheKey === cacheKey)) return 
     if (fetchRef.current[cacheKey]) return // already fetching
     fetchRef.current[cacheKey] = true
 
     session?.api.files.file_download_URL({ secureName })
-    .then(({ downloadURL }) => setLoadedImage({ uri: downloadURL, cacheKey }))
+    .then(({ downloadURL, name }) => {
+      onLoad?.({ downloadURL, name })
+
+      if (name.endsWith('heic') || name.endsWith('heif')) {
+        convertHEIC(downloadURL)
+        .then(downloadURL => {
+          setLoadedImages(ls => [...ls, { uri: downloadURL, cacheKey, name }])
+        })
+        .catch(console.error)
+      } else {
+        setLoadedImages(ls => [...ls, { uri: downloadURL, cacheKey, name }])
+      }      
+    })
     .catch(err => {
       if (onError) onError?.(err)
       else console.warn("Error getting url for DisplayPicture", err)
     })
-    
-  }, [cacheKey, fetchRef, secureName, loadedImage, onError, session])
+  }, [cacheKey, fetchRef, secureName, loadedImages, onError, session, onLoad])
 
-  return secureName.startsWith('http') ? secureName : loadedImage.uri
+  return (
+    secureName.startsWith('http') 
+      ? secureName 
+      : (loadedImages.find(i => i.cacheKey === cacheKey)?.uri || '')
+  )
 }
 
 
@@ -68,7 +88,7 @@ export const SecureVideo = ({ secureName, placeholder, ...props } : { placeholde
 }
 
 export interface DisplayPictureProps extends AvatarProps {
-  user?: { id: string, fname?: string, lname?: string, avatar?: string } | null;
+  user?: { id: string, fname?: string, lname?: string, avatar?: string, displayName?: string } | null;
   onError?: APIErrorHandler;
   alt?: string,
 }
@@ -83,7 +103,7 @@ export const DisplayPicture = ({ user, onError, ...avatarProps } : DisplayPictur
     const letters = `${user?.fname ? user.fname[0] : ''}${user?.lname ? user.lname[0] : ''}`
     return (
       <Avatar 
-        letters={letters} 
+        letters={letters || user?.displayName?.substring(0,2)?.toUpperCase()} 
         {...avatarProps}
       />
     )

@@ -10,6 +10,7 @@ import {
   LoadedData,
   UNLOADED,
   CustomUpdateOptions,
+  SortOption,
 } from "@tellescope/types-utilities"
 
 import {
@@ -51,6 +52,25 @@ import {
   EnduserTask,
   ManagedContentRecordAssignment,
   RoleBasedAccessPermission,
+  AppointmentBookingPage,
+  AppointmentLocation,
+  Product,
+  Purchase,
+  PurchaseCredit,
+  PhoneCall,
+  AnalyticsFrame,
+  AvailabilityBlock,
+  BackgroundError,
+  EnduserView,
+  AutomationTrigger,
+  SuperbillProvider,
+  Superbill,
+  EnduserProfileView,
+  ReferralProvider,
+  EnduserMedication,
+  PhoneTree,
+  EnduserCustomType,
+  UserLog,
 } from "@tellescope/types-client"
 
 import {
@@ -65,7 +85,7 @@ import {
 } from '@tellescope/sdk'
 import { value_is_loaded } from './loading'
 import { matches_organization, objects_equivalent } from '@tellescope/utilities'
-import { ReadFilter } from '@tellescope/types-models'
+import { Model, ModelName, ReadFilter, SortBy } from '@tellescope/types-models'
 
 const RESET_CACHE_TYPE = "cache/reset" as const
 export const resetStateAction = createAction(RESET_CACHE_TYPE)
@@ -79,10 +99,13 @@ interface FetchContextValue {
   didFetch: (s: string, force?: boolean, refetchInMS?: number) => boolean,
   setFetched: (s: string, b: boolean, timestamp?: boolean) => void;
   reset: () => void;
+  getLastId: (m: string) => string | undefined,
+  setLastId: (m: string, id: string) => string | undefined,
 }
 const FetchContext = createContext({} as FetchContextValue)
 export const WithFetchContext = ( { children } : { children: React.ReactNode }) => {
   const lookupRef = React.useRef({} as Indexable<{ lastFetch: number, status: boolean }>)  
+  const lastIdRef = React.useRef({} as Indexable<string>)  
   const reset = () => lookupRef.current = {}
 
   return (
@@ -100,6 +123,8 @@ export const WithFetchContext = ( { children } : { children: React.ReactNode }) 
         lookupRef.current[s].lastFetch = timestamp ? Date.now() : 0
       },
       reset,
+      getLastId: (m) => lastIdRef.current?.[m],
+      setLastId: (m, id) => lastIdRef.current[m] = id,
      }}>
       {children}
     </FetchContext.Provider>
@@ -224,6 +249,8 @@ export type ChatRoomDisplayInfo = { id: string } & { [index: string]: UserDispla
 //   end: GCalEventTime,
 // }
 
+const appointmentBookingPagesSlice = createSliceForList<AppointmentBookingPage, 'appointment_booking_pages'>('appointment_booking_pages')
+const appointmentLocationsSlice = createSliceForList<AppointmentLocation, 'appointment_locations'>('appointment_locations')
 const chatRoomsSlice = createSliceForList<ChatRoom, 'chat_rooms'>('chat_rooms')
 const calendarEventsSlice = createSliceForList<CalendarEvent, 'calendar_events'>('calendar_events')
 const calendarEventTemplatesSlice = createSliceForList<CalendarEventTemplate, 'calendar_event_templates'>('calendar_event_templates')
@@ -252,6 +279,18 @@ const databaseRecordsSlice = createSliceForList<DatabaseRecord, 'database_record
 const portalCustomizationsSlice = createSliceForList<PortalCustomization, 'portal_customizations'>('portal_customizations')
 const carePlansSlice = createSliceForList<CarePlan, 'care_plans'>('care_plans')
 const enduserTasksSlice = createSliceForList<EnduserTask, 'enduser_tasks'>('enduser_tasks')
+const productsSlice = createSliceForList<Product, 'products'>('products')
+const purchasesSlice = createSliceForList<Purchase, 'purchases'>('purchases')
+const purchaseCreditsSlice = createSliceForList<PurchaseCredit, 'purchase_credits'>('purchase_credits')
+const phoneCallsSlice = createSliceForList<PhoneCall, 'phone_calls'>('phone_calls')
+const analyticsFramesSlice = createSliceForList<AnalyticsFrame, 'analytics_frames'>('analytics_frames')
+const enduserViewsSlice = createSliceForList<EnduserView, 'enduser_views'>('enduser_views')
+const backgroundErrorsSlice = createSliceForList<BackgroundError, 'background_errors'>('background_errors')
+const automationTriggersSlice = createSliceForList<AutomationTrigger, 'automation_triggers'>('automation_triggers')
+const superbillsSlice = createSliceForList<Superbill, 'superbills'>('superbills')
+const superbillProvidersSlice = createSliceForList<SuperbillProvider, 'superbill_providers'>('superbill_providers')
+const enduserProfileViewsSlice = createSliceForList<EnduserProfileView, 'enduser_profile_views'>('enduser_profile_views')
+const phoneTreesSlice = createSliceForList<PhoneTree, 'phone_trees'>('phone_trees')
 
 const enduserObservationsSlice = createSliceForList<EnduserObservation, 'enduser_observations'>('enduser_observations')
 const forumsSlice = createSliceForList<Forum, 'forums'>('forums')
@@ -260,15 +299,24 @@ const managedContentRecoredsSlice = createSliceForList<ManagedContentRecord, 'ma
 const managedContentRecoredAssignmentsSlice = createSliceForList<ManagedContentRecordAssignment, 'managed_content_record_assignments'>('managed_content_record_assignments')
 const postCommentsSlice = createSliceForList<PostComment, 'post_comments'>('post_comments')
 const postLikesSlice = createSliceForList<PostLike, 'post_likes'>('post_likes')
-const commentLikesSlice = createSliceForList<PostLike, 'comment_likes'>('comment_likes')
+const commentLikesSlice = createSliceForList<CommentLike, 'comment_likes'>('comment_likes')
 const organizationsSlice = createSliceForList<Organization, 'organizations'>('organizations')
+const availabilityBlocksSlice = createSliceForList<AvailabilityBlock, 'availability_blocks'>('availability_blocks')
+const referralProvidersSlice = createSliceForList<ReferralProvider, 'referral_providers'>('referral_providers')
+const enduserMedicationsSlice = createSliceForList<EnduserMedication, 'enduser_medications'>('enduser_medications')
+const enduserCustomTypesSlice = createSliceForList<EnduserCustomType, 'enduser_custom_types'>('enduser_custom_types')
 
 const roleBasedAccessPermissionsSlice = createSliceForList<RoleBasedAccessPermission, 'role_based_access_permissions'>('role_based_access_permissions')
 
 const calendarEventRSVPsSlice = createSliceForList<CalendarEventRSVP, 'calendar_event_rsvps'>('calendar_event_rsvps')
+const userLogsSlice = createSliceForList<UserLog, 'user_logs'>('user_logs')
 
 export const sharedConfig = {
   reducer: { 
+    automation_triggers: automationTriggersSlice.reducer,
+    enduser_views: enduserViewsSlice.reducer,
+    background_errors: backgroundErrorsSlice.reducer,
+    availability_blocks: availabilityBlocksSlice.reducer,
     chat_rooms: chatRoomsSlice.reducer,
     chats: chatsSlice.reducer,
     chatRoomDisplayInfo: chatRoomDisplayInfoslice.reducer,
@@ -308,6 +356,21 @@ export const sharedConfig = {
     enduser_tasks: enduserTasksSlice.reducer,
     care_plans: carePlansSlice.reducer,
     role_based_access_permissions: roleBasedAccessPermissionsSlice.reducer,
+    appointment_booking_pages: appointmentBookingPagesSlice.reducer,
+    appointment_locations: appointmentLocationsSlice.reducer,
+    products: productsSlice.reducer,
+    purchases: purchasesSlice.reducer,
+    purchase_credits: purchaseCreditsSlice.reducer, 
+    phone_calls: phoneCallsSlice.reducer, 
+    phone_trees: phoneTreesSlice.reducer,
+    analytics_frames: analyticsFramesSlice.reducer,
+    superbills: superbillsSlice.reducer,
+    superbill_providers: superbillProvidersSlice.reducer,
+    enduser_profile_views: enduserProfileViewsSlice.reducer,
+    referral_providers: referralProvidersSlice.reducer,
+    enduser_medications: enduserMedicationsSlice.reducer,
+    enduser_custom_types: enduserCustomTypesSlice.reducer,
+    user_logs: userLogsSlice.reducer,
   },
 }
 
@@ -377,7 +440,7 @@ export interface LoadMoreFunctions<T> {
   doneLoading: (id?: string) => boolean,
 }
 
-const DEFAULT_FETCH_LIMIT = 250
+const DEFAULT_FETCH_LIMIT = 500
 const DONE_LOADING_TOKEN = 'doneLoading'
 
 export type UpdateElement <T,> = (id: string, e: Partial<T>, o?: CustomUpdateOptions) => Promise<T>
@@ -388,7 +451,8 @@ export interface ListUpdateMethods <T, ADD> extends LoadMoreFunctions<T> {
   replaceLocalElement: (id: string, e: T) => T,
   createElement: (e: ADD, o?: AddOptions) => Promise<T>,
   createElements: (e: ADD[], o?: AddOptions) => Promise<T[]>,
-  findById: (id: string | number, options?: { reload?: boolean }) => T | undefined | null,
+  findById: (id: string | number, options?: { reload?: boolean, batch?: boolean }) => T | undefined | null,
+  findByFilter: (match: (potential: T) => boolean, options?: { loadFilter?: ReadFilter<T>, reload?: boolean }) => T | undefined | null,
   searchLocalElements: (query: string) => T[],
   updateElement: UpdateElement<T>,
   updateLocalElement: (id: string, e: Partial<T>) => void,
@@ -408,7 +472,8 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
   slice: Slice<any, ListReducers<T>>,
   apiCalls: {
     loadQuery?: LoadFunction<T>, 
-    findOne?: (idOrFilter: string | Partial<T>) => Promise<T>,
+    findOne?: (idOrFilter: string | ReadFilter<T>) => Promise<T>,
+    findByIds?: ({ ids } : { ids: string[] }) => Promise<{ matches: T[] }>,
     addOne?: (value: ADD) => Promise<T>,
     addSome?: (values: ADD[]) => Promise<{ created: T[], errors: any[] }>,
     updateOne?: (id: string, updates: Partial<T>, o?: CustomUpdateOptions) => Promise<T>,
@@ -421,13 +486,19 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
   } & HookOptions<T>
 ): ListStateReturnType<T, ADD> => 
 {
-  const { loadQuery, findOne, addOne, addSome, updateOne, deleteOne } = apiCalls
+  const { loadQuery, findOne, findByIds, addOne, addSome, updateOne, deleteOne } = apiCalls
   if (options?.refetchInMS !== undefined && options.refetchInMS < 5000) {
     throw new Error("refetchInMS must be greater than 5000")
   }
 
+  const batchRef = useRef({
+    fetching: false,
+    ids: [] as string[],
+    nextBatch: [] as string[], 
+  })
+
   const dispatch = useTellescopeDispatch()
-  const { didFetch, setFetched } = useContext(FetchContext)
+  const { didFetch, setFetched, getLastId, setLastId } = useContext(FetchContext)
 
   const addLocalElement = useCallback((e: T, o?: AddOptions) => {
     dispatch(slice.actions.add({ value: e, options: o }))
@@ -445,7 +516,9 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
   }, [addLocalElement, addOne])
   const createElements = useCallback(async (es: ADD[], options?: AddOptions) => {
     if (!addSome) throw new Error(`Add elements by API is not supported`)
-    return addLocalElements((await addSome(es)).created, options)
+    const { created, errors } = await addSome(es)
+    if (errors.length) { console.error(errors) }
+    return addLocalElements(created, options)
   }, [addLocalElements, addSome])
  
   const updateLocalElement = useCallback((id: string, updates: Partial<T>) => {
@@ -493,15 +566,18 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
   const findById: ListUpdateMethods<T, ADD>['findById'] = useCallback((id, options) => {
     if (!id) return undefined
 
-    if (didFetch('recordNotFound' + modelName + id)) { // return null if record not found for id
-      return null
-    }
-
     const value = (
       state.status === LoadingStatus.Loaded
         ? state.value.find(v => v.id.toString() === id.toString())
         : undefined
     )
+
+    if (
+       didFetch('recordNotFound' + modelName + id)
+    && !value // if value is added after an initial failure to find, or an error happened on refresh, make sure we don't return null
+    ) {
+      return null
+    }
 
     // prevent frequent refetches 
     if (value && options?.reload && didFetch('findById' + modelName + id, true)) return value
@@ -509,16 +585,90 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     if (options?.reload || (value === undefined && !didFetch('findById' + modelName + id))) {
       setFetched('findById' + modelName + id, true) // prevent multiple API calls
 
-      findOne?.(id.toString())
+      if (options?.batch) {
+        if (batchRef.current.fetching) {
+          batchRef.current.nextBatch.push(id.toString()) // fetch in next batch if currently fetching
+        } else {
+          batchRef.current.ids.push(id.toString())
+        }
+      } else {
+        findOne?.(id.toString())
+        .then(found => {
+          // prevent unnecessary re-renders by calling addLocalElement, when the exact value already exists
+          const existingUnchanged = value_is_loaded(state) && state.value.find(v => v.id === id && objects_equivalent(v, found))
+          if (existingUnchanged) return
+
+          addLocalElement(found, { replaceIfMatch: true })
+        })
+        .catch(e => {
+          setFetched('recordNotFound' + modelName + id, true) // mark record not found for id
+          console.error(e) 
+        })
+      }
+    }
+
+    return value
+  }, [addLocalElement, findOne, state, modelName, setFetched, didFetch])
+
+  useEffect(() => {
+    if (!findByIds) return
+
+    const i = window.setInterval(() => {
+      if (batchRef.current.fetching) return // already fetching
+      if (batchRef.current.ids.length === 0) return
+
+      batchRef.current.fetching = true
+      findByIds({
+        ids: batchRef.current.ids,
+      })
+      .then(({ matches }) => {
+        if (matches.length) { addLocalElements(matches) }
+
+        batchRef.current.ids = batchRef.current.nextBatch
+        batchRef.current.nextBatch = []
+      })
+      .catch(err => {
+        console.error(err)
+      })
+      .finally(() => {
+        batchRef.current.fetching = false
+      })
+    }, 250)
+
+    return () => { clearInterval(i) }
+  }, [findByIds, addLocalElements])
+
+  const findByFilter: ListUpdateMethods<T, ADD>['findByFilter'] = useCallback((filter, options) => {
+    const loadFilter = options?.loadFilter
+    const queryKey = modelName + JSON.stringify(options?.loadFilter ?? {})
+
+    const value = (
+      state.status === LoadingStatus.Loaded
+        ? state.value.find(filter)
+        : undefined
+    );
+
+    // if value is added after an initial failure to find, make sure we return it in instead of null
+    if (didFetch('recordNotFound' + queryKey)) { // return null if record not found for id
+      return value || null
+    }
+    
+    // prevent frequent refetches 
+    if (value && options?.reload && didFetch('findOne' + queryKey, true)) return value
+
+    if (loadFilter && (options?.reload || (value === undefined && !didFetch('findOne' + queryKey)))) {
+      setFetched('findOne' + queryKey, true) // prevent multiple API calls
+
+      findOne?.(loadFilter)
       .then(found => {
         // prevent unnecessary re-renders by calling addLocalElement, when the exact value already exists
-        const existingUnchanged = value_is_loaded(state) && state.value.find(v => v.id === id && objects_equivalent(v, found))
+        const existingUnchanged = value_is_loaded(state) && state.value.find(v => filter(v) && objects_equivalent(v, found))
         if (existingUnchanged) return
 
         addLocalElement(found, { replaceIfMatch: true })
       })
       .catch(e => {
-        setFetched('recordNotFound' + modelName + id, true) // mark record not found for id
+        setFetched('recordNotFound' + queryKey, true) // mark record not found for id
         console.error(e) 
       })
     }
@@ -563,42 +713,61 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     return state
   }, [state])
 
-  const load = useCallback((force: boolean, loadOptions?: HookOptions<T>) => {
+  const cantRead = (
+    session.type === 'user' && !(session as Session)?.userInfo?.access?.[modelName as ModelName]?.read
+  )
+  const load = useCallback((force: boolean, loadOptions?: HookOptions<T> & { reloading?: boolean }) => {
+    if (cantRead) return;
+
     const loadFilter = loadOptions?.loadFilter ?? options?.loadFilter
+    const sort = loadOptions?.sort ?? options?.sort
+    const sortBy = loadOptions?.sortBy ?? options?.sortBy
 
     if (!loadQuery) return
     if (options?.dontFetch) return
-    const fetchKey = loadFilter ? JSON.stringify(loadFilter) + modelName : modelName
+    const fetchKey = (loadFilter || sort || sortBy) ? JSON.stringify({ ...loadFilter, sort, sortBy }) + modelName : modelName
+
     if (didFetch(fetchKey, force, options?.refetchInMS)) return
     setFetched(fetchKey, true)
 
     const limit = options?.limit || DEFAULT_FETCH_LIMIT
-    toLoadedData(() => loadQuery({ filter: loadFilter, limit  })).then(
+    toLoadedData(() => loadQuery({ filter: loadFilter, limit, sort, sortBy })).then(
       es => {
         if (es.status === LoadingStatus.Loaded) {
-          if (es.value.length < limit) {
+          if (es.value.length < limit && !loadFilter) {
             setFetched('id' + modelName + DONE_LOADING_TOKEN, true) 
+          }
+          if (es.value.length) { // don't store oldest record from a filter, may skip some pages
+            setLastId(
+              modelName + (loadFilter ? JSON.stringify(loadFilter): ''), 
+              es.value[es.value.length - 1]?.id?.toString()
+            )
           }
           dispatch(slice.actions.addSome({ value: es.value, options: { replaceIfMatch: true } }))
         } else {
+          // don't overwrite previously loaded data when an error occurs on reload
+          if (loadOptions?.reloading) {
+            return console.error(es)
+          } 
           dispatch(slice.actions.set({ value: es }))
         }
       }
     )
-  }, [setFetched, didFetch, modelName, options, loadQuery, options?.dontFetch])
+  }, [cantRead, setFetched, didFetch, modelName, options, loadQuery, options?.dontFetch, dispatch])
 
-  const reload: ListUpdateMethods <T, ADD>['reload'] = useCallback(options => load(true, options), [load])
+  const reload: ListUpdateMethods <T, ADD>['reload'] = useCallback(options => load(true, { ...options, reloading: true }), [load])
 
   useEffect(() => {
     load(false)
   }, [load])
 
   useEffect(() => {
-    if (options?.dontFetch) return
     if (didFetch(modelName + 'socket')) return
     setFetched(modelName + 'socket', true, false)
-
+ 
     session.handle_events({
+      // create, update, and delete must go in this order 
+      // e.g. to ensure delete events are processed last, so deleted records don't appear as created
       [`created-${modelName}`]: addLocalElements,
       [`updated-${modelName}`]: es => {
         const idToUpdates = {} as Indexable<Partial<T>>
@@ -610,43 +779,51 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
       [`deleted-${modelName}`]: removeLocalElements,
     })
 
-    // unneeded
     return () => { 
-      // setFetched(modelName + 'socket', false, false)
-      // session.removeAllSocketListeners(`created-${modelName}`)
-      // session.removeAllSocketListeners(`updated-${modelName}`)
-      // session.removeAllSocketListeners(`deleted-${modelName}`)
+      setFetched(modelName + 'socket', false, false)
+      session.removeListenersForEvent(`created-${modelName}`)
+      session.removeListenersForEvent(`updated-${modelName}`)
+      session.removeListenersForEvent(`deleted-${modelName}`)
     }
-  }, [session, didFetch, options])
+  }, [session, addLocalElement, updateLocalElements, removeLocalElements, modelName, didFetch])
 
-  const loadMore = useCallback(async (options?: LoadMoreOptions<T>) => {
+  const doneLoading = useCallback((key="id") => (
+    didFetch(key + modelName + DONE_LOADING_TOKEN)
+  ), [didFetch, modelName])
+
+  const loadMore = useCallback(async (loadOptions?: LoadMoreOptions<T>) => {
+    const filter = loadOptions?.filter ?? options?.loadFilter
+
+    const lastId = getLastId(
+      modelName + (filter ? JSON.stringify(filter) : ""), 
+    )
+    if (!lastId) return
     if (!loadQuery) return
-    // if (!value_is_loaded(state)) {
-    //   // console.warn("loadMore called before state is loaded. This is a no op", modelName)
-      // return
-    // }
+    if (didFetch(modelName + 'lastId' + lastId)) return
+    setFetched(modelName + 'lastId' + lastId, true)
 
     // todo: support for updatedAt as well, and more?
-    const key = options?.key ?? 'id' 
+    const key = loadOptions?.key ?? 'id' 
     if (key !== 'id') console.warn("Unrecognized key provided")
-
-    let oldestRecord = value_is_loaded(state) ? state.value[0] : undefined
-    for (const record of value_is_loaded(state) ? state.value : []) {
-      if (new Date((record as any).createdAt ?? 0).getTime() < new Date((oldestRecord as any).createdAt).getTime()) {
-        oldestRecord = record
-      }
-    }
 
     const limit = options?.limit ?? DEFAULT_FETCH_LIMIT
     return toLoadedData(() => loadQuery({ 
-      lastId: !options?.filter ? oldestRecord?.id?.toString() : undefined,  // don't provide a lastId when there's a filter, filter could include that on its own
+      // lastId: !options?.filter ? oldestRecord?.id?.toString() : undefined,  // don't provide a lastId when there's a filter, filter could include that on its own
+      lastId,
       limit, 
-      filter: options?.filter,
+      filter,
     })).then(
       es => {
         if (es.status === LoadingStatus.Loaded) {
           if (es.value.length < limit) {
             setFetched(key + modelName + DONE_LOADING_TOKEN, true) 
+          }
+          const newLastId = es.value[es.value.length - 1]?.id?.toString()
+          if (newLastId) {
+            setLastId(
+              modelName + (filter ? JSON.stringify(filter) : ""), 
+              newLastId
+            )
           }
 
           dispatch(slice.actions.addSome({ value: es.value, options: { replaceIfMatch: true, addTo: 'end' } }))
@@ -655,23 +832,21 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
         }
       }
     )
-  }, [state, modelName, loadQuery])
-
-  const doneLoading = useCallback((key="id") => (
-    didFetch(key + modelName + DONE_LOADING_TOKEN)
-  ), [didFetch, modelName])
+  }, [getLastId, modelName, loadQuery, didFetch, setFetched])
   
   return [
     state,
     {
       addLocalElement, addLocalElements, replaceLocalElement, modifyLocalElements, searchLocalElements,
-      createElement, createElements, updateElement, updateLocalElement, updateLocalElements, findById, removeElement, removeLocalElements,
+      createElement, createElements, updateElement, updateLocalElement, updateLocalElements, findByFilter, findById, removeElement, removeLocalElements,
       reload, loadMore, doneLoading, filtered,
     }
   ]
 }
 
 export type HookOptions<T> = {
+  sort?: SortOption, 
+  sortBy?: SortBy,
   limit?: number,
   loadFilter?: ReadFilter<T>,
   refetchInMS?: number,
@@ -736,6 +911,44 @@ export const useUserAndEnduserDisplayInfo = () => {
   return displayInfo
 }
 
+export const useEnduserMedications = (options={} as HookOptions<EnduserMedication>) => {
+  const session = useResolvedSession()
+
+  return useListStateHook('enduser_medications', useTypedSelector(s => s.enduser_medications), session, enduserMedicationsSlice,
+    { 
+      loadQuery: session.api.enduser_medications.getSome,
+      findOne: session.api.enduser_medications.getOne,
+      findByIds: session.api.enduser_medications.getByIds,
+      addOne: session.api.enduser_medications.createOne,
+      addSome: session.api.enduser_medications.createSome,
+      deleteOne: session.api.enduser_medications.deleteOne,
+      updateOne: session.api.enduser_medications.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
+
+export const useReferralProviders = (options={} as HookOptions<ReferralProvider>) => {
+  const session = useResolvedSession()
+
+  return useListStateHook('referral_providers', useTypedSelector(s => s.referral_providers), session, referralProvidersSlice,
+    { 
+      loadQuery: session.api.referral_providers.getSome,
+      findOne: session.api.referral_providers.getOne,
+      findByIds: session.api.referral_providers.getByIds,
+      addOne: session.api.referral_providers.createOne,
+      addSome: session.api.referral_providers.createSome,
+      deleteOne: session.api.referral_providers.deleteOne,
+      updateOne: session.api.referral_providers.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
+
 export const useCalendarEvents = (options={} as HookOptions<CalendarEvent>) => {
   const session = useResolvedSession()
 
@@ -743,6 +956,7 @@ export const useCalendarEvents = (options={} as HookOptions<CalendarEvent>) => {
     { 
       loadQuery: session.api.calendar_events.getSome,
       findOne: session.api.calendar_events.getOne,
+      findByIds: session.api.calendar_events.getByIds,
       addOne: session.api.calendar_events.createOne,
       addSome: session.api.calendar_events.createSome,
       deleteOne: session.api.calendar_events.deleteOne,
@@ -761,6 +975,7 @@ export const useEngagementEvents = (options={} as HookOptions<EngagementEvent>) 
     { 
       loadQuery: session.api.engagement_events.getSome,
       findOne: session.api.engagement_events.getOne,
+      findByIds: session.api.engagement_events.getByIds,
       addOne: session.api.engagement_events.createOne,
       addSome: session.api.engagement_events.createSome,
       deleteOne: session.api.engagement_events.deleteOne,
@@ -771,7 +986,60 @@ export const useEngagementEvents = (options={} as HookOptions<EngagementEvent>) 
     },
   )
 }
+export const useEnduserProfileViews = (options={} as HookOptions<EnduserProfileView>) => {
+  const session = useSession() 
 
+  return useListStateHook('enduser_profile_views', useTypedSelector(s => s.enduser_profile_views), session, enduserProfileViewsSlice,
+    { 
+      loadQuery: session.api.enduser_profile_views.getSome,
+      findOne: session.api.enduser_profile_views.getOne,
+      findByIds: session.api.enduser_profile_views.getByIds,
+      addOne: session.api.enduser_profile_views.createOne,
+      addSome: session.api.enduser_profile_views.createSome,
+      deleteOne: session.api.enduser_profile_views.deleteOne,
+      updateOne: session.api.enduser_profile_views.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
+export const usePhoneTrees = (options={} as HookOptions<PhoneTree>) => {
+  const session = useSession() 
+
+  return useListStateHook('phone_trees', useTypedSelector(s => s.phone_trees), session, phoneTreesSlice,
+    { 
+      loadQuery: session.api.phone_trees.getSome,
+      findOne: session.api.phone_trees.getOne,
+      findByIds: session.api.phone_trees.getByIds,
+      addOne: session.api.phone_trees.createOne,
+      addSome: session.api.phone_trees.createSome,
+      deleteOne: session.api.phone_trees.deleteOne,
+      updateOne: session.api.phone_trees.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
+export const useAutomationTriggers = (options={} as HookOptions<AutomationTrigger>) => {
+  const session = useSession() 
+
+  return useListStateHook('automation_triggers', useTypedSelector(s => s.automation_triggers), session, automationTriggersSlice,
+    { 
+      loadQuery: session.api.automation_triggers.getSome,
+      findOne: session.api.automation_triggers.getOne,
+      findByIds: session.api.automation_triggers.getByIds,
+      addOne: session.api.automation_triggers.createOne,
+      addSome: session.api.automation_triggers.createSome,
+      deleteOne: session.api.automation_triggers.deleteOne,
+      updateOne: session.api.automation_triggers.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
 export const useEmails = (options={} as HookOptions<Email>) => {
   const session = useSession() // endusers cannot send emails for now
 
@@ -779,6 +1047,7 @@ export const useEmails = (options={} as HookOptions<Email>) => {
     { 
       loadQuery: session.api.emails.getSome,
       findOne: session.api.emails.getOne,
+      findByIds: session.api.emails.getByIds,
       addOne: session.api.emails.createOne,
       addSome: session.api.emails.createSome,
       deleteOne: session.api.emails.deleteOne,
@@ -796,6 +1065,7 @@ export const useSmsMessages = (options={} as HookOptions<SMSMessage>) => {
     { 
       loadQuery: session.api.sms_messages.getSome,
       findOne: session.api.sms_messages.getOne,
+      findByIds: session.api.sms_messages.getByIds,
       addOne: session.api.sms_messages.createOne,
       addSome: session.api.sms_messages.createSome,
       deleteOne: session.api.sms_messages.deleteOne,
@@ -813,10 +1083,68 @@ export const useNotifications = (options={} as HookOptions<UserNotification>) =>
     { 
       loadQuery: session.api.user_notifications.getSome,
       findOne: session.api.user_notifications.getOne,
+      findByIds: session.api.user_notifications.getByIds,
       addOne: session.api.user_notifications.createOne,
       addSome: session.api.user_notifications.createSome,
       deleteOne: session.api.user_notifications.deleteOne,
       updateOne: session.api.user_notifications.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
+
+export const useUserLogs = (options={} as HookOptions<UserLog>) => {
+  const session = useSession() 
+
+  return useListStateHook('user_logs', useTypedSelector(s => s.user_logs), session, userLogsSlice,
+    { 
+      loadQuery: session.api.user_logs.getSome,
+      findOne: session.api.user_logs.getOne,
+      findByIds: session.api.user_logs.getByIds,
+      addOne: session.api.user_logs.createOne,
+      addSome: session.api.user_logs.createSome,
+      deleteOne: session.api.user_logs.deleteOne,
+      updateOne: session.api.user_logs.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
+
+export const useAnalyticsFrames = (options={} as HookOptions<AnalyticsFrame>) => {
+  const session = useSession() 
+
+  return useListStateHook('analytics_frames', useTypedSelector(s => s.analytics_frames), session, analyticsFramesSlice,
+    { 
+      loadQuery: session.api.analytics_frames.getSome,
+      findOne: session.api.analytics_frames.getOne,
+      findByIds: session.api.analytics_frames.getByIds,
+      addOne: session.api.analytics_frames.createOne,
+      addSome: session.api.analytics_frames.createSome,
+      deleteOne: session.api.analytics_frames.deleteOne,
+      updateOne: session.api.analytics_frames.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
+
+export const useEnduserCustomTypes = (options={} as HookOptions<EnduserCustomType>) => {
+  const session = useSession() 
+
+  return useListStateHook('enduser_custom_types', useTypedSelector(s => s.enduser_custom_types), session, enduserCustomTypesSlice,
+    { 
+      loadQuery: session.api.enduser_custom_types.getSome,
+      findOne: session.api.enduser_custom_types.getOne,
+      findByIds: session.api.enduser_custom_types.getByIds,
+      addOne: session.api.enduser_custom_types.createOne,
+      addSome: session.api.enduser_custom_types.createSome,
+      deleteOne: session.api.enduser_custom_types.deleteOne,
+      updateOne: session.api.enduser_custom_types.updateOne,
     },
     { 
       ...options,
@@ -846,6 +1174,7 @@ export const useChatRooms = (options={} as HookOptions<ChatRoom>) => {
     { 
       loadQuery: session.api.chat_rooms.getSome,
       findOne: session.api.chat_rooms.getOne,
+      findByIds: session.api.chat_rooms.getByIds,
       addOne: session.api.chat_rooms.createOne,
       addSome: session.api.chat_rooms.createSome,
       deleteOne: session.api.chat_rooms.deleteOne,
@@ -876,8 +1205,9 @@ export const useChats = (roomId?: string, options={} as HookOptions<ChatMessage>
   const toReturn = useListStateHook(
     'chats', state, session, chatsSlice,
     { 
-      loadQuery: !roomId ? undefined : session.api.chats.getSome,
+      loadQuery: session.api.chats.getSome, // !roomId ? undefined : session.api.chats.getSome,
       findOne: session.api.chats.getOne,
+      findByIds: session.api.chats.getByIds,
       addOne: session.api.chats.createOne,
       addSome: session.api.chats.createSome,
       deleteOne: session.api.chats.deleteOne,
@@ -908,6 +1238,7 @@ export const useEndusers = (options={} as HookOptions<Enduser>) => {
     { 
       loadQuery: session.api.endusers.getSome,
       findOne: session.api.endusers.getOne,
+      findByIds: session.api.endusers.getByIds,
       addOne: session.api.endusers.createOne,
       addSome: session.api.endusers.createSome,
       deleteOne: session.api.endusers.deleteOne,
@@ -923,6 +1254,7 @@ export const useTickets = (options={} as HookOptions<Ticket>) => {
     { 
       loadQuery: session.api.tickets.getSome,
       findOne: session.api.tickets.getOne,
+      findByIds: session.api.tickets.getByIds,
       addOne: session.api.tickets.createOne,
       addSome: session.api.tickets.createSome,
       deleteOne: session.api.tickets.deleteOne,
@@ -938,6 +1270,7 @@ export const useMeetings = (options={} as HookOptions<Meeting>) => {
     { 
       loadQuery: session.api.meetings.my_meetings,
       findOne: session.api.meetings.getOne,
+      findByIds: session.api.meetings.getByIds,
       addOne: session.api.meetings.createOne,
       addSome: session.api.meetings.createSome,
       deleteOne: session.api.meetings.deleteOne,
@@ -953,6 +1286,7 @@ export const useFiles = (options={} as HookOptions<File>) => {
     { 
       loadQuery: session.api.files.getSome,
       findOne: session.api.files.getOne,
+      findByIds: session.api.files.getByIds,
       deleteOne: session.api.files.deleteOne,
       updateOne: session.api.files.updateOne,
     }, 
@@ -966,6 +1300,7 @@ export const useJourneys = (options={} as HookOptions<Journey>) => {
     { 
       loadQuery: session.api.journeys.getSome,
       findOne: session.api.journeys.getOne,
+      findByIds: session.api.journeys.getByIds,
       addOne: session.api.journeys.createOne,
       addSome: session.api.journeys.createSome,
       deleteOne: session.api.journeys.deleteOne,
@@ -981,6 +1316,7 @@ export const useUsers = (options={} as HookOptions<User>) => {
     { 
       loadQuery: session.api.users.getSome,
       findOne: session.api.users.getOne,
+      findByIds: session.api.users.getByIds,
       addOne: session.api.users.createOne,
       addSome: session.api.users.createSome,
       deleteOne: session.api.users.deleteOne,
@@ -996,6 +1332,7 @@ export const useAutomationSteps = (options={} as HookOptions<AutomationStep>) =>
     { 
       loadQuery: session.api.automation_steps.getSome,
       findOne: session.api.automation_steps.getOne,
+      findByIds: session.api.automation_steps.getByIds,
       addOne: session.api.automation_steps.createOne,
       addSome: session.api.automation_steps.createSome,
       deleteOne: session.api.automation_steps.deleteOne,
@@ -1011,10 +1348,27 @@ export const useNotes = (options={} as HookOptions<Note>) => {
     { 
       loadQuery: session.api.notes.getSome,
       findOne: session.api.notes.getOne,
+      findByIds: session.api.notes.getByIds,
       addOne: session.api.notes.createOne,
       addSome: session.api.notes.createSome,
       deleteOne: session.api.notes.deleteOne,
       updateOne: session.api.notes.updateOne,
+    }, 
+    {...options}
+  )
+}
+export const useAvailabilityBlocks = (options={} as HookOptions<AvailabilityBlock>) => {
+  const session = useSession()
+  return useListStateHook(
+    'availability_blocks', useTypedSelector(s => s.availability_blocks), session, availabilityBlocksSlice, 
+    { 
+      loadQuery: session.api.availability_blocks.getSome,
+      findOne: session.api.availability_blocks.getOne,
+      findByIds: session.api.availability_blocks.getByIds,
+      addOne: session.api.availability_blocks.createOne,
+      addSome: session.api.availability_blocks.createSome,
+      deleteOne: session.api.availability_blocks.deleteOne,
+      updateOne: session.api.availability_blocks.updateOne,
     }, 
     {...options}
   )
@@ -1026,6 +1380,7 @@ export const useTemplates = (options={} as HookOptions<Template>) => {
     { 
       loadQuery: session.api.templates.getSome,
       findOne: session.api.templates.getOne,
+      findByIds: session.api.templates.getByIds,
       addOne: session.api.templates.createOne,
       addSome: session.api.templates.createSome,
       deleteOne: session.api.templates.deleteOne,
@@ -1041,6 +1396,7 @@ export const useForms = (options={} as HookOptions<Form>) => {
     { 
       loadQuery: session.api.forms.getSome,
       findOne: session.api.forms.getOne,
+      findByIds: session.api.forms.getByIds,
       addOne: session.api.forms.createOne,
       addSome: session.api.forms.createSome,
       deleteOne: session.api.forms.deleteOne,
@@ -1056,6 +1412,7 @@ export const useFormFields = (options={} as HookOptions<FormField>) => {
     { 
       loadQuery: session.api.form_fields.getSome,
       findOne: session.api.form_fields.getOne,
+      findByIds: session.api.form_fields.getByIds,
       addOne: session.api.form_fields.createOne,
       addSome: session.api.form_fields.createSome,
       deleteOne: session.api.form_fields.deleteOne,
@@ -1068,10 +1425,11 @@ export const useFormFields = (options={} as HookOptions<FormField>) => {
 export const useFormResponses = (options={} as HookOptions<FormResponse>) => {
   const session = useResolvedSession()
   return useListStateHook(
-    'forms_responses', useTypedSelector(s => s.form_responses), session, formResponsesSlice, 
+    'form_responses', useTypedSelector(s => s.form_responses), session, formResponsesSlice, 
     { 
       loadQuery: session.api.form_responses.getSome,
       findOne: session.api.form_responses.getOne,
+      findByIds: session.api.form_responses.getByIds,
       addOne: session.api.form_responses.createOne,
       addSome: session.api.form_responses.createSome,
       deleteOne: session.api.form_responses.deleteOne,
@@ -1103,6 +1461,7 @@ export const useEnduserObservations = (options={} as HookOptions<EnduserObservat
     { 
       loadQuery: session.api.enduser_observations.getSome,
       findOne: session.api.enduser_observations.getOne,
+      findByIds: session.api.enduser_observations.getByIds,
       addOne: session.api.enduser_observations.createOne,
       addSome: session.api.enduser_observations.createSome,
       deleteOne: session.api.enduser_observations.deleteOne,
@@ -1119,6 +1478,7 @@ export const useManagedContentRecords = (options={} as HookOptions<ManagedConten
     { 
       loadQuery: session.api.managed_content_records.getSome,
       findOne: session.api.managed_content_records.getOne,
+      findByIds: session.api.managed_content_records.getByIds,
       addOne: session.api.managed_content_records.createOne,
       addSome: session.api.managed_content_records.createSome,
       deleteOne: session.api.managed_content_records.deleteOne,
@@ -1134,6 +1494,7 @@ export const useManagedContentRecordAssignments = (options={} as HookOptions<Man
     { 
       loadQuery: session.api.managed_content_record_assignments.getSome,
       findOne: session.api.managed_content_record_assignments.getOne,
+      findByIds: session.api.managed_content_record_assignments.getByIds,
       addOne: session.api.managed_content_record_assignments.createOne,
       addSome: session.api.managed_content_record_assignments.createSome,
       deleteOne: session.api.managed_content_record_assignments.deleteOne,
@@ -1193,6 +1554,7 @@ export const useForums = (options={} as HookOptions<Forum>) => {
     { 
       loadQuery: session.api.forums.getSome,
       findOne: session.api.forums.getOne,
+      findByIds: session.api.forums.getByIds,
       addOne: session.api.forums.createOne,
       addSome: session.api.forums.createSome,
       deleteOne: session.api.forums.deleteOne,
@@ -1208,6 +1570,7 @@ export const useForumPosts = (options={} as HookOptions<ForumPost>) => {
     { 
       loadQuery: session.api.forum_posts.getSome,
       findOne: session.api.forum_posts.getOne,
+      findByIds: session.api.forum_posts.getByIds,
       addOne: session.api.forum_posts.createOne,
       addSome: session.api.forum_posts.createSome,
       deleteOne: session.api.forum_posts.deleteOne,
@@ -1223,6 +1586,7 @@ export const usePostComments = (options={} as HookOptions<PostComment>) => {
     { 
       loadQuery: session.api.post_comments.getSome,
       findOne: session.api.post_comments.getOne,
+      findByIds: session.api.post_comments.getByIds,
       addOne: session.api.post_comments.createOne,
       addSome: session.api.post_comments.createSome,
       deleteOne: session.api.post_comments.deleteOne,
@@ -1238,6 +1602,7 @@ export const usePostLikes = (options={} as HookOptions<PostLike>) => {
     { 
       loadQuery: session.api.post_likes.getSome,
       findOne: session.api.post_likes.getOne,
+      findByIds: session.api.post_likes.getByIds,
       addOne: session.api.post_likes.createOne,
       addSome: session.api.post_likes.createSome,
       deleteOne: session.api.post_likes.deleteOne,
@@ -1253,6 +1618,7 @@ export const useCommentLikes = (options={} as HookOptions<CommentLike>) => {
     { 
       loadQuery: session.api.comment_likes.getSome,
       findOne: session.api.comment_likes.getOne,
+      findByIds: session.api.comment_likes.getByIds,
       addOne: session.api.comment_likes.createOne,
       addSome: session.api.comment_likes.createSome,
       deleteOne: session.api.comment_likes.deleteOne,
@@ -1269,6 +1635,7 @@ export const useCalendarEventRSVPs = (options={} as HookOptions<CalendarEventRSV
     { 
       loadQuery: session.api.calendar_event_RSVPs.getSome,
       findOne: session.api.calendar_event_RSVPs.getOne,
+      findByIds: session.api.calendar_event_RSVPs.getByIds,
       addOne: session.api.calendar_event_RSVPs.createOne,
       addSome: session.api.calendar_event_RSVPs.createSome,
       deleteOne: session.api.calendar_event_RSVPs.deleteOne,
@@ -1286,12 +1653,67 @@ export const useRoleBasedAccessPermissions = (options={} as HookOptions<Organiza
     { 
       loadQuery: session.api.role_based_access_permissions.getSome,
       findOne: session.api.role_based_access_permissions.getOne,
+      findByIds: session.api.role_based_access_permissions.getByIds,
       addOne: session.api.role_based_access_permissions.createOne,
       addSome: session.api.role_based_access_permissions.createSome,
       deleteOne: session.api.role_based_access_permissions.deleteOne,
       updateOne: session.api.role_based_access_permissions.updateOne,
     }, 
     {...options}
+  )
+}
+
+export const useSuperbills = (options={} as HookOptions<Superbill>) => {
+  const session = useSession()
+  return useListStateHook(
+    'superbills', useTypedSelector(s => s.superbills), session, superbillsSlice, 
+    { 
+      loadQuery: session.api.superbills.getSome,
+      findOne: session.api.superbills.getOne,
+      findByIds: session.api.superbills.getByIds,
+      addOne: session.api.superbills.createOne,
+      addSome: session.api.superbills.createSome,
+      deleteOne: session.api.superbills.deleteOne,
+      updateOne: session.api.superbills.updateOne,
+    }, 
+    {...options}
+  )
+}
+export const useSuperbillProviders = (options={} as HookOptions<SuperbillProvider>) => {
+  const session = useSession()
+  return useListStateHook(
+    'superbill_providers', useTypedSelector(s => s.superbill_providers), session, superbillProvidersSlice, 
+    { 
+      loadQuery: session.api.superbill_providers.getSome,
+      findOne: session.api.superbill_providers.getOne,
+      findByIds: session.api.superbill_providers.getByIds,
+      addOne: session.api.superbill_providers.createOne,
+      addSome: session.api.superbill_providers.createSome,
+      deleteOne: session.api.superbill_providers.deleteOne,
+      updateOne: session.api.superbill_providers.updateOne,
+    }, 
+    {...options}
+  )
+}
+
+
+export const usePhoneCalls = (options={} as HookOptions<PhoneCall>) => {
+  const session = useSession()
+  return useListStateHook(
+    'phone_calls', useTypedSelector(s => s.phone_calls), session, phoneCallsSlice, 
+    { 
+      loadQuery: session.api.phone_calls.getSome,
+      findOne: session.api.phone_calls.getOne,
+      findByIds: session.api.phone_calls.getByIds,
+      addOne: session.api.phone_calls.createOne,
+      addSome: session.api.phone_calls.createSome,
+      deleteOne: session.api.phone_calls.deleteOne,
+      updateOne: session.api.phone_calls.updateOne,
+    }, 
+    { 
+      ...options,
+      dontFetch: options.dontFetch ?? !(session.userInfo.orgTwilioNumber || session.userInfo.twilioNumber)
+    }
   )
 }
 
@@ -1302,24 +1724,25 @@ export const useOrganizations = (options={} as HookOptions<Organization>) => {
     { 
       loadQuery: session.api.organizations.getSome,
       findOne: session.api.organizations.getOne,
+      findByIds: session.api.organizations.getByIds,
       // addOne: session.api.organizations.createOne,
       // addSome: session.api.organizations.createSome,
-      // deleteOne: session.api.organizations.deleteOne,
+      deleteOne: session.api.organizations.deleteOne,
       updateOne: session.api.organizations.updateOne,
     }, 
     {...options}
   )
 }
-export const useOrganization = () => {
+export const useOrganization = (options={} as HookOptions<Organization>) => {
   const session = useSession()
-  const [organizationsLoading, actions] = useOrganizations()
+  const [organizationsLoading, actions] = useOrganizations(options)
 
   return [
     {
       status: organizationsLoading.status,
       value: (
         value_is_loaded(organizationsLoading)
-          ? organizationsLoading.value.find(o => matches_organization(o, session.userInfo)) 
+          ? organizationsLoading.value.find(o => matches_organization(session.userInfo, o)) 
           : undefined
       )
     } as LoadedData<Organization>,
@@ -1334,6 +1757,7 @@ export const useIntegrations = (options={} as HookOptions<Integration>) => {
     { 
       loadQuery: session.api.integrations.getSome,
       findOne: session.api.integrations.getOne,
+      findByIds: session.api.integrations.getByIds,
       addOne: session.api.integrations.createOne,
       addSome: session.api.integrations.createSome,
       deleteOne: session.api.integrations.deleteOne,
@@ -1350,6 +1774,7 @@ export const usePortalCustomizations = (options={} as HookOptions<PortalCustomiz
     { 
       loadQuery: session.api.portal_customizations.getSome,
       findOne: session.api.portal_customizations.getOne,
+      findByIds: session.api.portal_customizations.getByIds,
       addOne: session.api.portal_customizations.createOne,
       addSome: session.api.portal_customizations.createSome,
       deleteOne: session.api.portal_customizations.deleteOne,
@@ -1366,6 +1791,7 @@ export const useCarePlans = (options={} as HookOptions<CarePlan>) => {
     { 
       loadQuery: session.api.care_plans.getSome,
       findOne: session.api.care_plans.getOne,
+      findByIds: session.api.care_plans.getByIds,
       addOne: session.api.care_plans.createOne,
       addSome: session.api.care_plans.createSome,
       deleteOne: session.api.care_plans.deleteOne,
@@ -1382,6 +1808,7 @@ export const useEnduserTasks = (options={} as HookOptions<EnduserTask>) => {
     { 
       loadQuery: session.api.enduser_tasks.getSome,
       findOne: session.api.enduser_tasks.getOne,
+      findByIds: session.api.enduser_tasks.getByIds,
       addOne: session.api.enduser_tasks.createOne,
       addSome: session.api.enduser_tasks.createSome,
       deleteOne: session.api.enduser_tasks.deleteOne,
@@ -1398,10 +1825,75 @@ export const useCalendarEventTemplates = (options={} as HookOptions<CalendarEven
     { 
       loadQuery: session.api.calendar_event_templates.getSome,
       findOne: session.api.calendar_event_templates.getOne,
+      findByIds: session.api.calendar_event_templates.getByIds,
       addOne: session.api.calendar_event_templates.createOne,
       addSome: session.api.calendar_event_templates.createSome,
       deleteOne: session.api.calendar_event_templates.deleteOne,
       updateOne: session.api.calendar_event_templates.updateOne,
+    }, 
+    {...options}
+  )
+}
+export const useAppointmentBookingPages = (options={} as HookOptions<AppointmentBookingPage>) => {
+  const session = useResolvedSession() // enduser should be able to load for self-scheduling
+  return useListStateHook(
+    'appointment_booking_pages', useTypedSelector(s => s.appointment_booking_pages), session, appointmentBookingPagesSlice, 
+    { 
+      loadQuery: session.api.appointment_booking_pages.getSome,
+      findOne: session.api.appointment_booking_pages.getOne,
+      findByIds: session.api.appointment_booking_pages.getByIds,
+      addOne: session.api.appointment_booking_pages.createOne,
+      addSome: session.api.appointment_booking_pages.createSome,
+      deleteOne: session.api.appointment_booking_pages.deleteOne,
+      updateOne: session.api.appointment_booking_pages.updateOne,
+    }, 
+    {...options}
+  )
+}
+export const useEnduserViews = (options={} as HookOptions<EnduserView>) => {
+  const session = useSession()
+  return useListStateHook(
+    'enduser_views', useTypedSelector(s => s.enduser_views), session, enduserViewsSlice, 
+    { 
+      loadQuery: session.api.enduser_views.getSome,
+      findOne: session.api.enduser_views.getOne,
+      findByIds: session.api.enduser_views.getByIds,
+      addOne: session.api.enduser_views.createOne,
+      addSome: session.api.enduser_views.createSome,
+      deleteOne: session.api.enduser_views.deleteOne,
+      updateOne: session.api.enduser_views.updateOne,
+    }, 
+    {...options}
+  )
+}
+export const useBackgroundErrors = (options={} as HookOptions<BackgroundError>) => {
+  const session = useSession()
+  return useListStateHook(
+    'background_errors', useTypedSelector(s => s.background_errors), session, backgroundErrorsSlice, 
+    { 
+      loadQuery: session.api.background_errors.getSome,
+      findOne: session.api.background_errors.getOne,
+      findByIds: session.api.background_errors.getByIds,
+      addOne: session.api.background_errors.createOne,
+      addSome: session.api.background_errors.createSome,
+      deleteOne: session.api.background_errors.deleteOne,
+      updateOne: session.api.background_errors.updateOne,
+    }, 
+    {...options}
+  )
+}
+export const useAppointmentLocations = (options={} as HookOptions<AppointmentLocation>) => {
+  const session = useResolvedSession()
+  return useListStateHook(
+    'appointment_locations', useTypedSelector(s => s.appointment_locations), session, appointmentLocationsSlice, 
+    { 
+      loadQuery: session.api.appointment_locations.getSome,
+      findOne: session.api.appointment_locations.getOne,
+      findByIds: session.api.appointment_locations.getByIds,
+      addOne: session.api.appointment_locations.createOne,
+      addSome: session.api.appointment_locations.createSome,
+      deleteOne: session.api.appointment_locations.deleteOne,
+      updateOne: session.api.appointment_locations.updateOne,
     }, 
     {...options}
   )
@@ -1414,6 +1906,7 @@ export const useDatabases = (options={} as HookOptions<Database>) => {
     { 
       loadQuery: session.api.databases.getSome,
       findOne: session.api.databases.getOne,
+      findByIds: session.api.databases.getByIds,
       addOne: session.api.databases.createOne,
       addSome: session.api.databases.createSome,
       deleteOne: session.api.databases.deleteOne,
@@ -1433,12 +1926,68 @@ export const useDatabaseRecords = (options={} as HookOptions<DatabaseRecord>) =>
           : undefined
       ),
       findOne: session.api.database_records.getOne,
+      findByIds: session.api.database_records.getByIds,
       addOne: session.api.database_records.createOne,
       addSome: session.api.database_records.createSome,
       deleteOne: session.api.database_records.deleteOne,
       updateOne: session.api.database_records.updateOne,
     }, 
     {...options}
+  )
+}
+
+export const useProducts = (options={} as HookOptions<Product>) => {
+  const session = useResolvedSession()
+
+  return useListStateHook('products', useTypedSelector(s => s.products), session, productsSlice,
+    { 
+      loadQuery: session.api.products.getSome,
+      findOne: session.api.products.getOne,
+      findByIds: session.api.products.getByIds,
+      addOne: session.api.products.createOne,
+      addSome: session.api.products.createSome,
+      deleteOne: session.api.products.deleteOne,
+      updateOne: session.api.products.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
+export const usePurchases = (options={} as HookOptions<Purchase>) => {
+  const session = useResolvedSession()
+
+  return useListStateHook('purchases', useTypedSelector(s => s.purchases), session, purchasesSlice,
+    { 
+      loadQuery: session.api.purchases.getSome,
+      findOne: session.api.purchases.getOne,
+      findByIds: session.api.purchases.getByIds,
+      addOne: session.api.purchases.createOne,
+      addSome: session.api.purchases.createSome,
+      deleteOne: session.api.purchases.deleteOne,
+      updateOne: session.api.purchases.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
+export const usePurchaseCredits = (options={} as HookOptions<PurchaseCredit>) => {
+  const session = useResolvedSession()
+
+  return useListStateHook('purchase_credits', useTypedSelector(s => s.purchase_credits), session, purchaseCreditsSlice,
+    { 
+      loadQuery: session.api.purchase_credits.getSome,
+      findOne: session.api.purchase_credits.getOne,
+      findByIds: session.api.purchase_credits.getByIds,
+      addOne: session.api.purchase_credits.createOne,
+      addSome: session.api.purchase_credits.createSome,
+      deleteOne: session.api.purchase_credits.deleteOne,
+      updateOne: session.api.purchase_credits.updateOne,
+    },
+    { 
+      ...options,
+    },
   )
 }
 
@@ -1533,7 +2082,7 @@ export const useCalendarEventsForUser = (options={} as HookOptions<CalendarEvent
         limit: calledOptions?.limit ?? options?.limit,
         from: calledOptions?.from ?? options?.from ?? new Date(),
       })
-    ).events.filter(e => e.title !== '[Tellescope Event Placeholder]')
+    ).events.filter((e: any) => e.title !== '[Tellescope Event Placeholder]')
   }, [options, session])
 
   const [eventsLoading, { addLocalElements, filtered }] = useCalendarEvents()

@@ -1,14 +1,20 @@
 import React, { useCallback, useEffect } from "react"
 import { Button, Flex, LoadingButton, Paper, Styled, Typography, useFileUpload, useFormResponses, useSession } from "../index"
-import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme } from "./hooks"
+import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
-import { DateInput, EmailInput, FileInput, MultipleChoiceInput, NumberInput, PhoneInput, RankingInput, RatingInput, SignatureInput, StringInput, StringLongInput } from "./inputs"
+import { AddressInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, FileInput, FilesInput, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
-import { FormResponse } from "@tellescope/types-client"
+import { FormResponse, FormField } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
+import { remove_script_tags } from "@tellescope/utilities"
 
 export const TellescopeFormContainer = ({ businessId, organizationIds, ...props } : { 
-  children: React.ReactNode, businessId?: string, organizationIds?: string[], dontAddContext?: boolean,
+  businessId?: string, 
+  organizationIds?: string[], 
+  dontAddContext?: boolean,
+  children: React.ReactNode, 
+  hideBg?: boolean,
+  backgroundColor?: string,
 } & Styled) => {
   // if context already is provided, no need to duplicate
   if (props.dontAddContext) return (
@@ -22,17 +28,15 @@ export const TellescopeFormContainer = ({ businessId, organizationIds, ...props 
   )
 }
 
-const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ children, style }) => {
+const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ children, style, hideBg, backgroundColor }) => {
   const theme = useOrganizationTheme()
 
-  return (
-    <Flex flex={1} alignItems="center" justifyContent="center" style={{ backgroundColor: theme.themeColor ?? '#ffffff', ...style }}>
-    <Paper flex elevation={3} style={{ marginTop: 50, marginBottom: 50, padding: 20, maxWidth: 650, minWidth: 250, minHeight: 600 }}>
+  const formContent = (
     <Flex flex={1} column>
       {theme.logoURL 
         ? (
-          <Flex alignItems="center" justifyContent={"center"} style={{ height: LOGO_HEIGHT, marginTop: 10 }}>
-            <img src={theme.logoURL} alt={theme.name} height={LOGO_HEIGHT} style={{ maxWidth: 225 }} /> {/* todo: replace with something that resolves better for native */}
+          <Flex alignItems="center" justifyContent={"center"} style={{ maxHeight: LOGO_HEIGHT, marginTop: 10 }}>
+            <img src={theme.logoURL} alt={theme.name} style={{ maxHeight: LOGO_HEIGHT, maxWidth: 225 }} /> {/* todo: replace with something that resolves better for native */}          
           </Flex>
         )
         : (
@@ -43,6 +47,20 @@ const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ chil
       }
       {children}
     </Flex>
+  )
+  if (hideBg) {
+    return (
+      <Flex flex={1} alignItems="flex-start" justifyContent="center" style={style}>
+      <Flex flex={1} style={{ padding: 20, maxWidth: 650, minWidth: 250, minHeight: 475 }}>
+        {formContent}
+      </Flex>
+      </Flex>
+    )
+  }
+  return (
+    <Flex flex={1} alignItems="center" justifyContent="center" style={{ backgroundColor: backgroundColor ?? theme.themeColor ?? '#ffffff', ...style }}>
+    <Paper flex elevation={3} style={{ marginTop: 50, marginBottom: 50, padding: 20, maxWidth: 650, minWidth: 250, minHeight: 575 }}>
+      {formContent}
     </Paper>
     </Flex>
   )
@@ -54,15 +72,207 @@ export interface TellescopeFormProps extends ReturnType<typeof useTellescopeForm
   customInputs?: FormInputs
   submitted?: boolean,
   thanksMessage?: string,
+  htmlThanksMessage?: string,
   showSaveDraft?: boolean,
+  formTitle?: string,
+  repeats: Record<string, string | number>
+  backgroundColor?: string,
 }
 
 const LOGO_HEIGHT = 40
-export const TellescopeForm = (props : TellescopeFormProps & Styled & { theme?: OrganizationTheme, inputStyle?: React.CSSProperties }) => (
+export const TellescopeForm = (props : TellescopeFormProps & Styled & { hideBg?: boolean, theme?: OrganizationTheme, inputStyle?: React.CSSProperties }) => (
   <WithOrganizationTheme>
     <TellescopeFormWithContext {...props} /> 
   </WithOrganizationTheme>
 )
+
+export const QuestionForField = ({
+  value,
+  field,
+  file,
+  responses,
+  selectedFiles,
+  onAddFile,
+  onFieldChange,
+  customInputs,
+  fields,
+  validateField,
+  repeats,
+  onRepeatsChange,
+  setCustomerId,
+} : {
+  repeats: Record<string, string | number>,
+  onRepeatsChange: (v: Record<string, string | number>) => void,
+  value: Response,
+  file: FileResponse,
+  field: FormField,
+  setCustomerId: (s: string) => void,
+} & Pick<TellescopeFormProps, 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField'>) => {
+  const String = customInputs?.['string'] ?? StringInput
+  const StringLong = customInputs?.['stringLong'] ?? StringLongInput
+  const Email = customInputs?.['email'] ?? EmailInput
+  const Number = customInputs?.['number'] ?? NumberInput
+  const Phone = customInputs?.['phone'] ?? PhoneInput 
+  const ResolvedDateInput = customInputs?.['date'] ?? DateInput 
+  const Signature = customInputs?.['signature'] ?? SignatureInput 
+  const MultipleChoice = customInputs?.['multiple_choice'] ?? MultipleChoiceInput 
+  const Stripe = customInputs?.['Stripe'] ?? StripeInput 
+  const File = customInputs?.['file'] ?? FileInput 
+  const Files = customInputs?.['files'] ?? FilesInput 
+  const Ranking = customInputs?.['ranking'] ?? RankingInput
+  const Rating = customInputs?.['rating'] ?? RatingInput
+  const Address = customInputs?.['Address'] ?? AddressInput
+  const Time = customInputs?.['Time'] ?? TimeInput
+  const Dropdown = customInputs?.['Dropdown'] ?? DropdownInput
+  const DatabaseSelect = customInputs?.['Database Select'] ?? DatabaseSelectInput
+  const Medications = customInputs?.['Medications'] ?? MedicationsInput
+
+  const validationMessage = validateField(field)
+
+  if (!value) return null
+  return ( 
+    // margin leaves room for error message in Question Group
+    <Flex column flex={1} style={{ marginBottom: 25 }}> 
+      <Typography component="h4" style={{ 
+        fontSize: 22, 
+        marginTop: 15, // ensures PDF display doesn't push description into overlap with logo / title at top of form
+      }}>
+        {field.title}{!(field.isOptional || field.type === 'description' || field.type === 'Question Group') ? '*' : ''}
+      </Typography>
+
+      <Description field={field} style={{ fontSize: 16 }} />
+
+      {
+        field.type === 'file' ? (
+          <File field={field} value={file.blobs?.[0] as any} onChange={onAddFile as any} 
+            existingFileName={
+              value.answer.type === 'file'
+                ? value.answer.value?.name
+                : ''
+            } 
+          />
+        )
+        : field.type === 'files' ? (
+          <Files field={field} value={file.blobs as any} onChange={onAddFile as any} 
+            // existingFileName={
+            //   value.answer.type === 'files'
+            //     ? value.answer.value?.name
+            //     : ''
+            // } 
+          />
+        )
+        : field.type === 'dateString' ? (
+          <DateStringInput field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} />
+        )
+        : field.type === 'Address' ? (
+          <Address field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} />
+        )
+        : field.type === 'string' ? (
+          <String field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} />
+        )
+        : field.type === 'Stripe' ? (
+          <Stripe field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} setCustomerId={setCustomerId} />
+        )
+        : field.type === 'stringLong' ? (
+          <StringLong field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string' | 'stringLong'>} />
+        )
+        : field.type === 'email' ? (
+          <Email field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'email'>} />
+        )
+        : field.type === 'number' ? (
+          <Number field={field} value={value.answer.value as number} onChange={onFieldChange as ChangeHandler<'number'>} />
+        )
+        : field.type === 'phone' ? (
+          <Phone field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'phone'>} />
+        )
+        : field.type === 'date' ? (
+          <ResolvedDateInput field={field} value={value.answer.value ? new Date(value.answer.value as string | Date) : undefined} onChange={onFieldChange as ChangeHandler<'date'>} />
+        )
+        : field.type === 'signature' ? (
+          <Signature field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'signature'>} />
+        )
+        : field.type === 'multiple_choice' ? (
+          <MultipleChoice field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'multiple_choice'>} />
+        )
+        : field.type === 'Dropdown' ? (
+          <Dropdown field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Dropdown'>} />
+        )
+        : field.type === 'Database Select' ? (
+          <DatabaseSelect field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Database Select'>} />
+        )
+        : field.type === 'Medications' ? (
+          <Medications field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Medications'>} />
+        )
+        : field.type === 'rating' ? (
+          <Rating field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'rating'>} />
+        )
+        : field.type === 'ranking' ? (
+          <Ranking field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'ranking'>} />
+        )
+        : field.type === 'Table Input' ? (
+          <TableInput field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} />
+        )
+        : field.type === 'Time' ? (
+          <Time field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} />
+        )
+        : field.type === 'Question Group' ? (
+          <Flex column flex={1}>
+          {(field.options?.subFields ?? []).map(({ id }) => {
+            const match = fields.find(f => f.id === id)
+            if (!match) return null
+
+            const value = responses.find(r => r.fieldId === match.id)
+            const file = selectedFiles.find(r => r.fieldId === match.id)
+            if (!value) return null
+            if (!file) return null
+
+            return (
+              <Flex key={id} flex={1}>
+                <QuestionForField customInputs={customInputs} field={match} fields={fields} 
+                  repeats={repeats} onRepeatsChange={onRepeatsChange} setCustomerId={setCustomerId}
+                  value={value} file={file} 
+                  onAddFile={onAddFile} onFieldChange={onFieldChange}
+                  responses={responses} selectedFiles={selectedFiles}
+                  validateField={validateField}
+                />
+              </Flex>
+            )
+          })}
+          </Flex>
+        )
+        : null
+      }
+
+      {field.options?.repeat && (
+        <Flex style={{ marginTop: '8px' }}>
+        {
+          field.type === 'string' ? (
+            <String field={field} label="Repeat" value={repeats[field.id] as string ?? ''} onChange={u => onRepeatsChange({ ...repeats, [field.id]: u! })} />
+          )
+          : field.type === 'stringLong' ? (
+            <StringLong field={field} label="Repeat" value={repeats[field.id] as string ?? ''} onChange={u => onRepeatsChange({ ...repeats, [field.id]: u! })} />
+          ) 
+          : field.type === 'number' ? (
+            <Number field={field} label="Repeat" value={repeats[field.id] as number ?? ''} onChange={u => onRepeatsChange({ ...repeats, [field.id]: u! })} />
+          )
+          : null
+        }
+        </Flex>
+      )}
+
+      {field.type !== 'Question Group' &&
+        <Typography color="error" style={{ marginTop: 3, height: 10, fontSize: 14, marginBottom: -10 }}> 
+          {(validationMessage === 'A response is required' || validationMessage === 'A value must be checked' || validationMessage === 'A file is required')
+            ? value.touched 
+              ? validationMessage
+              : null 
+            : validationMessage
+          }
+        </Typography>  
+      }
+    </Flex>
+  )
+}
 
 export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
   activeField, 
@@ -82,39 +292,62 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
   validateField,
 
   thanksMessage="Your response was successfully recorded",
+  htmlThanksMessage,
   submitted,
   onSuccess,
   isPreview,
-  validateCurrentField,
   theme,
 
-  style,
+  fields,
+  responses,
+  selectedFiles,
   inputStyle,
+  repeats,
+  setRepeats,
+
+  currentPageIndex,
+  getNumberOfRemainingPages,
+  validateCurrentField,
+
+  setCustomerId,
+  customization,
 }) => {
-  const String = customInputs?.['string'] ?? StringInput
-  const StringLong = customInputs?.['stringLong'] ?? StringLongInput
-  const Email = customInputs?.['email'] ?? EmailInput
-  const Number = customInputs?.['number'] ?? NumberInput
-  const Phone = customInputs?.['phone'] ?? PhoneInput 
-  const ResolvedDateInput = customInputs?.['date'] ?? DateInput 
-  const Signature = customInputs?.['signature'] ?? SignatureInput 
-  const MultipleChoice = customInputs?.['multiple_choice'] ?? MultipleChoiceInput 
-  const File = customInputs?.['file'] ?? FileInput 
-  const Ranking = customInputs?.['ranking'] ?? RankingInput
-  const Rating = customInputs?.['rating'] ?? RatingInput
+  const beforeunloadHandler = React.useCallback((e: BeforeUnloadEvent) => {
+    try {
+      e.preventDefault()
+      e.returnValue = 'You have unsaved changes'
+    } catch(err) { }
+
+    return ''
+  }, [])
+
+  useEffect(() => {
+    window.addEventListener('beforeunload', beforeunloadHandler)
+    return () => { window.removeEventListener('beforeunload', beforeunloadHandler) }
+  }, [beforeunloadHandler])
 
   const handleSubmit = useCallback(async () => {
+    // submission may trigger a redirect, so don't block with warning message
+    try {
+      window.removeEventListener('beforeunload', beforeunloadHandler) 
+    } catch(err) {}
+
     if (isPreview) {
       return onSuccess?.({} as any)
     } 
-    await submit({ onSuccess })
-  }, [isPreview, onSuccess, submit])
 
-  const validationMessage = validateField()
+    await submit({ onSuccess })
+  }, [isPreview, onSuccess, submit, beforeunloadHandler])
+
+  const validationMessage = validateField(activeField.value)
 
   const handleKeyPress = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Enter') {
+    if (
+      e.key === 'Enter'
+    && !(activeField.value.type === 'Dropdown' && activeField.value.options?.other && !activeField.value.options?.radio)
+    ) {
       if (activeField.value.type === 'stringLong') return // 
+      if (activeField.value.type === 'Question Group') return // ensure enter is allowed in stringLong at end of a question group before next
       if (isNextDisabled()) return
       goToNextField()
     } 
@@ -125,75 +358,28 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
     return () => { window.removeEventListener('keydown', handleKeyPress)}
   }, [handleKeyPress])
 
+  const numRemainingPages = getNumberOfRemainingPages()
+
+  if (!(currentValue && currentFileValue)) return <></>
   return (
     submitted 
-      ? <Typography style={{ marginTop: 25, alignSelf: 'center' }}>{thanksMessage}</Typography>
+      ? <ThanksMessage htmlThanksMessage={htmlThanksMessage} thanksMessage={thanksMessage} 
+          showRestartAtEnd={customization?.showRestartAtEnd}
+        />
       : (
         <Flex column flex={1}>
           <Flex flex={1} justifyContent={"center"} column>
-            <Typography component="h4" style={{ fontSize: 20 }}>
-              {activeField.value.title}
-            </Typography>
-
-            <Typography style={{ marginBottom: 5 }} 
-              // @ts-ignore
-              color={theme.themeColor || 'primary'}
-            >
-              
-              {activeField.value.description}
-            </Typography>
-
             <Flex style={inputStyle}>
-            { 
-              // KEEP THIS CONSISTENT WITH TellescopeSinglePageForm
-
-              // file is a unique case
-              activeField.value.type === 'file' ? (
-                <File field={activeField.value} value={currentFileValue.blob as any} onChange={onAddFile as any} />
-              )
-              : activeField.value.type === 'string' ? (
-                <String field={activeField.value} value={currentValue.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} />
-              )
-              : activeField.value.type === 'stringLong' ? (
-                <StringLong field={activeField.value} value={currentValue.answer.value as string} onChange={onFieldChange as ChangeHandler<'string' | 'stringLong'>} />
-              )
-              : activeField.value.type === 'email' ? (
-                <Email field={activeField.value} value={currentValue.answer.value as string} onChange={onFieldChange as ChangeHandler<'email'>} />
-              )
-              : activeField.value.type === 'number' ? (
-                <Number field={activeField.value} value={currentValue.answer.value as number} onChange={onFieldChange as ChangeHandler<'number'>} />
-              )
-              : activeField.value.type === 'phone' ? (
-                <Phone field={activeField.value} value={currentValue.answer.value as string} onChange={onFieldChange as ChangeHandler<'phone'>} />
-              )
-              : activeField.value.type === 'date' ? (
-                <ResolvedDateInput field={activeField.value} value={currentValue.answer.value ? new Date(currentValue.answer.value as string | Date) : undefined} onChange={onFieldChange as ChangeHandler<'date'>} />
-              )
-              : activeField.value.type === 'signature' ? (
-                <Signature field={activeField.value} value={currentValue.answer.value as any} onChange={onFieldChange as ChangeHandler<'signature'>} />
-              )
-              : activeField.value.type === 'multiple_choice' ? (
-                <MultipleChoice field={activeField.value} value={currentValue.answer.value as any} onChange={onFieldChange as ChangeHandler<'multiple_choice'>} />
-              )
-              : activeField.value.type === 'rating' ? (
-                <Rating field={activeField.value} value={currentValue.answer.value as any} onChange={onFieldChange as ChangeHandler<'rating'>} />
-              )
-              : activeField.value.type === 'ranking' ? (
-                <Ranking field={activeField.value} value={currentValue.answer.value as any} onChange={onFieldChange as ChangeHandler<'ranking'>} />
-              )
-              : null
-            }   
+              <QuestionForField fields={fields} field={activeField.value} 
+                setCustomerId={setCustomerId}
+                repeats={repeats} onRepeatsChange={setRepeats}
+                value={currentValue} file={currentFileValue} 
+                customInputs={customInputs}
+                onAddFile={onAddFile} onFieldChange={onFieldChange}
+                responses={responses} selectedFiles={selectedFiles}
+                validateField={validateField}
+              />
             </Flex>
-
-            {/* height/margin to avoid moving answer field when this appears */}
-            <Typography color="error" style={{ marginTop: 3, height: 10, fontSize: 14, marginBottom: -10 }}> 
-              {(validationMessage === 'A response is required' || validationMessage === 'A value must be checked' || validationMessage === 'A file is required')
-                ? currentValue.touched 
-                  ? validationMessage
-                  : null 
-                : validationMessage
-              }
-            </Typography>  
         </Flex>
 
         <Flex alignItems={'center'} justifyContent="space-between">
@@ -208,7 +394,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
           {showSubmit 
             ? (
               <LoadingButton onClick={handleSubmit} 
-                disabled={!!validateCurrentField()}
+                disabled={!!validationMessage}
                 submitText="Submit" 
                 submittingText={
                   submittingStatus === 'uploading-files' 
@@ -228,6 +414,14 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
           }
         </Flex>
 
+        {!customization?.hideProgressBar && 
+          <Progress 
+            numerator={currentPageIndex + (validateCurrentField() ? 0 : 1)} 
+            denominator={currentPageIndex + 1 + numRemainingPages}  
+            style={{ marginTop: '15px' }}
+          />
+        }
+
         <Typography color="error" style={{ alignText: 'center', marginTop: 3 }}>
           {submitErrorMessage}
         </Typography>
@@ -236,13 +430,43 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
   )
 }
 
+export const DEFAULT_THANKS_MESSAGE = "Your response was successfully recorded";
+const ThanksMessage = ({ 
+  thanksMessage, 
+  htmlThanksMessage,
+  showRestartAtEnd,
+} : { 
+  thanksMessage?: string, 
+  htmlThanksMessage?: string,
+  showRestartAtEnd?: boolean,
+}) => (
+  <Flex column>
+    {htmlThanksMessage
+      ? (
+        <div style={{ textAlign: 'center' }} dangerouslySetInnerHTML={{
+          __html: remove_script_tags(htmlThanksMessage)
+        }} />
+      ) : (
+        <Typography style={{ marginTop: 25, alignSelf: 'center' }}>{thanksMessage || DEFAULT_THANKS_MESSAGE}</Typography>
+      )
+    }
+    {showRestartAtEnd && window.localStorage[`ts_form_url`] &&
+      <Button variant="outlined" style={{ maxWidth: 200, marginTop: 25, alignSelf: 'center' }}
+        onClick={() => window.location.href = window.localStorage[`ts_form_url`]}
+      >
+        Submit Again
+      </Button>
+    }
+  </Flex>
+)
+
 const TellescopeFormWithContext: typeof TellescopeForm = (props) => {
   const theme = useOrganizationTheme()
 
   return (
-    <TellescopeFormContainer style={props.style} dontAddContext>
+    <TellescopeFormContainer style={props.style} dontAddContext hideBg={props.hideBg} backgroundColor={props.backgroundColor}>
       {props.submitted 
-        ? <Typography style={{ marginTop: 25, alignSelf: 'center' }}>{props.thanksMessage}</Typography>
+        ? <ThanksMessage {...props} showRestartAtEnd={props?.customization?.showRestartAtEnd} /> 
         : (<TellescopeSingleQuestionFlow {...props} theme={theme} />)
       }
     </TellescopeFormContainer>
@@ -253,17 +477,24 @@ export const SaveDraft = ({
   selectedFiles,
   enduserId,
   responses,
+  existingResponses,
+  fields,
   onSuccess,
   formResponseId,
   includedFieldIds,
   formId,
   style,
   disabled,
-} : Styled & Pick<TellescopeFormProps, 'onSuccess' | 'selectedFiles' | 'responses' | 'enduserId'> & { 
+  getResponsesWithQuestionGroupAnswers,
+  isInternalNote,
+  formTitle,
+} : Styled & Pick<TellescopeFormProps, 'existingResponses' | 'fields' | 'onSuccess' | 'selectedFiles' | 'responses' | 'enduserId' | 'getResponsesWithQuestionGroupAnswers'> & { 
   disabled?: boolean,
   formResponseId?: string, 
   formId: string,
   includedFieldIds: string[]
+  isInternalNote?: boolean,
+  formTitle?: string,
 }) => {
   const [, { updateElement: updateFormResponse }] = useFormResponses({ dontFetch: true })
   const session = useSession()
@@ -272,29 +503,40 @@ export const SaveDraft = ({
   return (
     <LoadingButton style={style} disabled={disabled} variant='outlined'
       onClick={async () => {
-        const hasFile = selectedFiles.find(f => !!f.blob) !== undefined
+        const hasFile = selectedFiles.find(f => !!f.blobs?.length) !== undefined
 
         if (hasFile) {
           try { // convert FileBlobs to FileResponses
             for (const blobInfo of selectedFiles) {
-              const { blob, fieldId } = blobInfo
-              if (!blob) continue
+              const { blobs, fieldId } = blobInfo
+              if (!blobs) continue
       
-              const result: FormResponseAnswerFileValue = { name: blob.name, secureName: '' }
-              const { secureName } = await handleUpload(
-                {
-                  name: blob.name,
-                  size: blob.size,
-                  type: blob.type,
-                  enduserId,
-                }, 
-                blob
-              )
-
-              const responseIndex = responses.findIndex(f => f.fieldId === fieldId)
-              responses[responseIndex].answer.value = { ...result, secureName, name: result.name ?? '' } 
+              for (const blob of blobs) {
+                const result: FormResponseAnswerFileValue = { name: blob.name, secureName: '' }
+                const { secureName } = await handleUpload(
+                  {
+                    name: blob.name,
+                    size: blob.size,
+                    type: blob.type,
+                    enduserId,
+                  }, 
+                  blob
+                )
+    
+                const responseIndex = responses.findIndex(f => f.fieldId === fieldId)
+    
+                if (responses[responseIndex].answer.type === 'files') {
+                  if (!responses[responseIndex].answer.value) {
+                    responses[responseIndex].answer.value = []
+                  }
+                  (responses[responseIndex].answer.value as any[]).push({ 
+                    ...result, type: blob.type, secureName, name: result.name ?? ''
+                  })
+                } else {
+                  responses[responseIndex].answer.value = { ...result, type: blob.type, secureName, name: result.name ?? '' } 
+                }
+              }    
             }
-
           } catch(err: any) {
           } finally {
           }
@@ -304,11 +546,14 @@ export const SaveDraft = ({
           const response = await updateFormResponse(
             (
               formResponseId 
-              ?? (await session.api.form_responses.prepare_form_response({ formId, enduserId })).response.id
+              ?? (await session.api.form_responses.prepare_form_response({ isInternalNote, formId, enduserId, title: formTitle })).response.id
             ),
             { 
               draftSavedAt: new Date(),
-              responses: includedFieldIds.map(id => responses.find(r => r.fieldId === id)!)
+              responses: [
+                ...(existingResponses ?? []).filter(r => !fields.find(f => f.id === r.fieldId)),
+                ...getResponsesWithQuestionGroupAnswers(includedFieldIds.map(id => responses.find(r => r.fieldId === id)!))
+              ]
             },
             { replaceObjectFields: true }
           )
@@ -336,7 +581,10 @@ export const UpdateResponse = ({
   formId,
   style,
   disabled,
-} : Styled & Pick<TellescopeFormProps, 'onSuccess' | 'selectedFiles' | 'responses' | 'enduserId'> & { 
+  getResponsesWithQuestionGroupAnswers,
+  existingResponses,
+  fields,
+} : Styled & Pick<TellescopeFormProps, 'existingResponses' | 'fields' | 'onSuccess' | 'selectedFiles' | 'responses' | 'enduserId' | 'getResponsesWithQuestionGroupAnswers'> & { 
   disabled?: boolean,
   formResponseId?: string, 
   formId: string,
@@ -349,27 +597,39 @@ export const UpdateResponse = ({
   return (
     <LoadingButton style={style} disabled={disabled} variant='contained'
       onClick={async () => {
-        const hasFile = selectedFiles.find(f => !!f.blob) !== undefined
+        const hasFile = selectedFiles.find(f => !!f.blobs?.length) !== undefined
 
         if (hasFile) {
           try { // convert FileBlobs to FileResponses
             for (const blobInfo of selectedFiles) {
-              const { blob, fieldId } = blobInfo
-              if (!blob) continue
+              const { blobs, fieldId } = blobInfo
+              if (!blobs) continue
       
-              const result: FormResponseAnswerFileValue = { name: blob.name, secureName: '' }
-              const { secureName } = await handleUpload(
-                {
-                  name: blob.name,
-                  size: blob.size,
-                  type: blob.type,
-                  enduserId,
-                }, 
-                blob
-              )
-
-              const responseIndex = responses.findIndex(f => f.fieldId === fieldId)
-              responses[responseIndex].answer.value = { ...result, secureName, name: result.name ?? '' } 
+              for (const blob of blobs) {
+                const result: FormResponseAnswerFileValue = { name: blob.name, secureName: '' }
+                const { secureName } = await handleUpload(
+                  {
+                    name: blob.name,
+                    size: blob.size,
+                    type: blob.type,
+                    enduserId,
+                  }, 
+                  blob
+                )
+    
+                const responseIndex = responses.findIndex(f => f.fieldId === fieldId)
+    
+                if (responses[responseIndex].answer.type === 'files') {
+                  if (!responses[responseIndex].answer.value) {
+                    responses[responseIndex].answer.value = []
+                  }
+                  (responses[responseIndex].answer.value as any[]).push({ 
+                    ...result, type: blob.type, secureName, name: result.name ?? ''
+                  })
+                } else {
+                  responses[responseIndex].answer.value = { ...result, type: blob.type, secureName, name: result.name ?? '' } 
+                }
+              }    
             }
 
           } catch(err: any) {
@@ -377,24 +637,21 @@ export const UpdateResponse = ({
           }
         }
 
-        try {
-          const response = await updateFormResponse(
-            (
-              formResponseId 
-              ?? (await session.api.form_responses.prepare_form_response({ formId, enduserId })).response.id
-            ),
-            { 
-              responses: includedFieldIds.map(id => responses.find(r => r.fieldId === id)!)
-            },
-            { replaceObjectFields: true }
-          )
+        const response = await updateFormResponse(
+          (
+            formResponseId 
+            ?? (await session.api.form_responses.prepare_form_response({ formId, enduserId })).response.id
+          ),
+          { 
+            responses: [
+              ...(existingResponses ?? []).filter(r => !fields.find(f => f.id === r.fieldId)),
+              ...getResponsesWithQuestionGroupAnswers(includedFieldIds.map(id => responses.find(r => r.fieldId === id)!))
+            ]
+          },
+          { replaceObjectFields: true }
+        )
 
-          onSuccess?.(response)
-        } catch(err: any) {
-          // setSubmitErrorMessage(err?.message ?? 'Failed to upload file')
-        } finally {
-          // setSubmittingStatus(undefined)
-        }
+        onSuccess?.(response)
       }}
       submitText="Update"
       submittingText="Saving..."
@@ -402,7 +659,24 @@ export const UpdateResponse = ({
   )
 }
 
-export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFormProps & Styled & { updating?: boolean }> = ({
+export const Description = ({ field, color="primary", style } : { field: FormField, color?: string } & Styled) => {
+  if (!field.htmlDescription && field.description) {
+    return (
+      <Typography color={color as any} style={style}>
+        {field.description}
+      </Typography>
+    )
+  } 
+  if (!field.htmlDescription) return null
+
+  return (
+    <span dangerouslySetInnerHTML={{
+      __html: remove_script_tags(field.htmlDescription)
+    }} />
+  )
+}
+
+export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFormProps & Styled & { updating?: boolean, isInternalNote?: boolean }> = ({
   customInputs, 
   submitErrorMessage,
   onAddFile,
@@ -418,8 +692,10 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
   updating,
   validateField,
   validateResponsesForFields,
+  formTitle,
 
-  thanksMessage="Your response was successfully recorded",
+  thanksMessage=DEFAULT_THANKS_MESSAGE,
+  htmlThanksMessage,
   submitted,
   style,
   onSuccess,
@@ -429,103 +705,56 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
   selectedFiles,
   responses,
 
+  isInternalNote,
+  existingResponses,
+
+  repeats,
+  setRepeats,
+
+  setCustomerId,
+
   ...props 
 }) => {
-  const list = useListForFormFields(fields)
+  const list = useListForFormFields(fields, responses)
 
-  const String = customInputs?.['string'] ?? StringInput
-  const StringLong = customInputs?.['stringLong'] ?? StringLongInput
-  const Email = customInputs?.['email'] ?? EmailInput
-  const Number = customInputs?.['number'] ?? NumberInput
-  const Phone = customInputs?.['phone'] ?? PhoneInput 
-  const ResolvedDate = customInputs?.['date'] ?? DateInput  // don't name Date or conflicts with global Date constructor
-  const Signature = customInputs?.['signature'] ?? SignatureInput 
-  const MultipleChoice = customInputs?.['multiple_choice'] ?? MultipleChoiceInput 
-  const File = customInputs?.['file'] ?? FileInput 
-  const Ranking = customInputs?.['ranking'] ?? RankingInput
-  const Rating = customInputs?.['rating'] ?? RatingInput
-
-  const includedFieldIds = list.map(f => f.id)
+  const includedFieldIds = (
+    Array.from(new Set([...list.map(f => f.id), ...(existingResponses ?? []).map(e => e.fieldId)])) 
+  )
 
   const handleSubmit = useCallback(async () => {
     if (isPreview) {
       return onSuccess?.({} as any)
     } 
-    await submit({ onSuccess, includedFieldIds, /* ensures all answers are included and in the correct order */ })
+    await submit({ 
+      onSuccess, 
+      includedFieldIds, /* ensures all answers are included and in the correct order */ 
+    })
   }, [isPreview, onSuccess, submit])
 
   return (
     <Flex flex={1} column>
       {submitted 
-      ? <Typography style={{ marginTop: 25, alignSelf: 'center' }}>{thanksMessage}</Typography>
+      ? <ThanksMessage htmlThanksMessage={htmlThanksMessage} thanksMessage={thanksMessage} 
+          showRestartAtEnd={props?.customization?.showRestartAtEnd} 
+        />
       : (
         <>
         <Flex flex={1} justifyContent={"center"} column style={{ marginBottom: 15 }}>
         {list.map((activeField, i) => {
           const value = responses.find(r => r.fieldId === activeField.id)!
           const file = selectedFiles.find(r => r.fieldId === activeField.id)!
-          const validationMessage = validateField(activeField)
 
           return (
             <Flex key={activeField.id} style={{ marginBottom: 5 }}>
               <Flex column flex={1}>
-                <Typography component="h4" style={{ fontSize: 16 }}>
-                  {activeField.title}
-                </Typography>
-
-                <Typography color="primary" style={{ fontSize: 14, marginBottom: 5 }}>
-                  {activeField.description}
-                </Typography>
-
-              { 
-                // KEEP THIS CONSISTENT WITH THE TellescopeFormWithContext
-
-                // file is a unique case
-                activeField.type === 'file' ? (
-                  <File autoFocus={i === 0} field={activeField} value={file.blob as any} onChange={onAddFile as any} />
-                )
-                : activeField.type === 'string' ? (
-                  <String size="small" autoFocus={i === 0} field={activeField} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} />
-                )
-                : activeField.type === 'stringLong' ? (
-                  <StringLong size="small" autoFocus={i === 0} field={activeField} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'stringLong' | 'string'>} />
-                )
-                : activeField.type === 'email' ? (
-                  <Email size="small" autoFocus={i === 0} field={activeField} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'email'>} />
-                )
-                : activeField.type === 'number' ? (
-                  <Number size="small" autoFocus={i === 0} field={activeField} value={value.answer.value as number} onChange={onFieldChange as ChangeHandler<'number'>} />
-                )
-                : activeField.type === 'phone' ? (
-                  <Phone size="small" autoFocus={i === 0} field={activeField} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'phone'>} />
-                )
-                : activeField.type === 'date' ? (
-                  <ResolvedDate size="small" autoFocus={i === 0} field={activeField} value={value.answer.value ? new Date(value.answer.value as string | Date) : undefined} onChange={onFieldChange as ChangeHandler<'date'>} />
-                )
-                : activeField.type === 'signature' ? (
-                  <Signature autoFocus={i === 0} field={activeField} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'signature'>} />
-                )
-                : activeField.type === 'multiple_choice' ? (
-                  <MultipleChoice autoFocus={i === 0} field={activeField} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'multiple_choice'>} />
-                )
-                : activeField.type === 'rating' ? (
-                  <Rating autoFocus={i === 0} field={activeField} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'rating'>} />
-                )
-                : activeField.type === 'ranking' ? (
-                  <Ranking autoFocus={i === 0} field={activeField} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'ranking'>} />
-                )
-                : null
-              }
-              
-              {/* height/margin to avoid moving answer field when this appears */}
-              <Typography color="error" style={{ marginTop: 3, fontSize: 14 }}> 
-                {(validationMessage === 'A response is required' || validationMessage === 'A value must be checked' || validationMessage === 'A file is required')
-                  ? value.touched 
-                    ? validationMessage
-                    : null 
-                  : validationMessage
-                }
-              </Typography>  
+                <QuestionForField fields={fields} field={activeField} 
+                  repeats={repeats} onRepeatsChange={setRepeats} setCustomerId={setCustomerId}
+                  value={value} file={file} 
+                  customInputs={customInputs}
+                  onAddFile={onAddFile} onFieldChange={onFieldChange}
+                  responses={responses} selectedFiles={selectedFiles}
+                  validateField={validateField}
+                />
               </Flex>
             </Flex>
           )
@@ -535,20 +764,22 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
         <Flex flex={1} wrap="nowrap">
           {updating
             ? (
+              <Flex flex={1} column>
               <UpdateResponse 
-                {...props}
+                {...props} fields={fields} existingResponses={existingResponses}
                 includedFieldIds={includedFieldIds}
                 // style={{ width: 200, marginRight: 5, height: 42 }}
                 formId={fields[0].formId}
                 responses={responses}
                 selectedFiles={selectedFiles}
                 onSuccess={onSuccess}
-            />
+              />
+              </Flex>
             ) : (
               <>
               {showSaveDraft && 
-                <SaveDraft 
-                  {...props}
+                <SaveDraft existingResponses={existingResponses} fields={fields}
+                  {...props} formTitle={formTitle} isInternalNote={isInternalNote}
                   includedFieldIds={includedFieldIds}
                   style={{ width: 200, marginRight: 5, height: 42 }}
                   formId={fields[0].formId}

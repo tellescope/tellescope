@@ -12,6 +12,7 @@ import {
   SessionOptions,
   EnduserSession,
   EnduserSessionOptions,
+  PublicAppointmentBookingInfo,
 } from "@tellescope/sdk"
 
 import {
@@ -23,6 +24,21 @@ import {
   Styled,
 } from "./mui"
 
+export const useRunOnce = (action: Function) => {
+  const ref = useRef(false)
+
+  useEffect(() => {
+    if (ref.current) return
+    ref.current = true
+
+    action()
+  }, [action])
+}
+
+
+// to avoid installing schema directly in patient portal, can move
+export { PublicAppointmentBookingInfo }
+
 type UserSession = Session
 type UserSessionOptions = SessionOptions
 
@@ -32,15 +48,17 @@ export interface WithAnySession {
 
 interface SessionContext_T {
   session: UserSession,
+  updateCount: number,
   logout: () => Promise<void>,
   refresh: () => Promise<void>,
   // setSession: React.Dispatch<React.SetStateAction<Session>>
-  updateUserInfo: (updates: Parameters<Session['api']['users']['updateOne']>[1], options?: Parameters<Session['api']['users']['updateOne']>[2]) => Promise<void>,
+  updateUserInfo: (updates: Parameters<Session['api']['users']['updateOne']>[1], options?: Parameters<Session['api']['users']['updateOne']>[2]) => Promise<User>,
   updateLocalSessionInfo: (u: Partial<User>, authToken?: string) => void
 }
 export const SessionContext = createContext({} as SessionContext_T)
 export const WithSession = (p : { children: React.ReactNode, sessionOptions?: UserSessionOptions }) => {
   const [session, setSession] = useState(() => new Session(p.sessionOptions))
+  const [updateCount, setUpdateCount] = useState(0) // trigger refresh when keeping reference to session the same
   const lastRefreshRef = useRef(Date.now())
 
   const logout = () => {
@@ -49,39 +67,52 @@ export const WithSession = (p : { children: React.ReactNode, sessionOptions?: Us
   }
 
   const updateLocalSessionInfo: SessionContext_T['updateLocalSessionInfo'] = (u, a) => {
-    setSession(s => new Session({ 
-      ...s,
-      handleUnauthenticated: s.handleUnauthenticated,
-      host: s.host, apiKey: s.apiKey, authToken: a ?? s.authToken,  // preserve other important info
-      userInfo: { ...s.userInfo, ...u }
-    }))
+    session.setUserInfo({ ...session.userInfo, ...u })
+    session.setAuthToken(a || session.authToken)
+
+    setSession(session)
+    setUpdateCount(u => u+1)
   }
 
   const refresh = async () => {
+    if (!session.authToken) return
+
+    // console.log('refreshing session')
+
     await session.refresh_session()
-    .then(() => updateLocalSessionInfo(session.userInfo, session.authToken))
+    .then(({ authToken, user }) => updateLocalSessionInfo(user, authToken))
+    .catch(e => console.error('error refreshing', e))
   }
 
-  useEffect(() => {
-    if (!session.authToken) return
-    if (lastRefreshRef.current > Date.now() - 10000) return
-    lastRefreshRef.current = Date.now()
+  useRunOnce(refresh) // refresh on load
 
-    session.refresh_session()
-    .then(({ authToken, user }) => updateLocalSessionInfo(user, authToken))
-    .catch(console.error)
+  useEffect(() => {
+    // poll to automatically refresh session every hour
+    const i = setInterval(() => {
+      if (!session.authToken) return
+      if (lastRefreshRef.current > Date.now() - 10000) return // don't refresh if last refresh was under 10 seconds ago
+      lastRefreshRef.current = Date.now()
+
+      session.refresh_session()
+      .then(({ authToken, user }) => updateLocalSessionInfo(user, authToken))
+      .catch(console.error)
+    }, 1000 * 60 * 60)
+
+    return () => { clearInterval(i) }
   }, [session, updateLocalSessionInfo])
 
 
   const updateUserInfo: SessionContext_T['updateUserInfo'] = async (updates, options) => {
-    await session.api.users.updateOne(session.userInfo.id, updates, options)
-    const { authToken, user } = await session.refresh_session()
-    updateLocalSessionInfo(user, authToken)
+    const updated = await session.api.users.updateOne(session.userInfo.id, updates, options)
+    await refresh()
+
+    return updated
   }
 
   return (
     <SessionContext.Provider value={{ 
       session, //setSession,
+      updateCount,
       refresh,
       logout,
       updateUserInfo,
@@ -200,7 +231,7 @@ export const UserLogin = ({ onLogin, ...props }: AccountFill & LoginHandler<User
     <LoginForm {...props} onSubmit={async ({ email, password }) => {
       const { authToken, ...userInfo } = await session.authenticate(email, password)
       updateLocalSessionInfo?.(userInfo, authToken)
-      onLogin?.({ authToken, ...userInfo })
+      onLogin?.({ authToken, ...userInfo as UserSessionModel })
     }}/>
   )
 }
