@@ -3054,6 +3054,8 @@ export const schema: SchemaV1 = build_schema({
       publicIdentifier: { validator: stringValidator250 },
       source: { validator: stringValidator250 },
       externalId: { validator: stringValidator250 },
+      rootResponseId: { validator: mongoIdStringValidator },
+      parentResponseId: { validator: mongoIdStringValidator },
     },
     defaultActions: DEFAULT_OPERATIONS,
     enduserActions: { 

@@ -1254,6 +1254,8 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   externalId?: string,
   pinnedAt?: Date | '',
   publicIdentifier?: string,
+  rootResponseId?: string,
+  parentResponseId?: string,
 }
 
 export interface WebHook_readonly extends ClientRecord {}
