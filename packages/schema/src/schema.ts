@@ -674,6 +674,8 @@ export type CustomActions = {
   },
   phone_calls: {
     authenticate_calling: CustomAction<{ os?: "ios" | "android", type?: UserCallRoutingBehavior }, { accessToken: string, identity: string }>, 
+    // can be done in client-side
+    // send_digits: CustomAction<{ callId: string, digits: string }, { }>, 
   },
   analytics_frames: {
     get_result_for_query: CustomAction<{ 
@@ -1702,9 +1704,8 @@ export const schema: SchemaV1 = build_schema({
         validator: stringValidator250,
         readonly: true,
       },
-      readBy: {
-        validator: idStringToDateValidator,
-      },
+      readBy: { validator: idStringToDateValidator },
+      hiddenBy: { validator: idStringToDateValidator },
       templateId: { validator: mongoIdStringValidator },
       automationStepId: { validator: mongoIdStringValidator },
       linkOpenTrackingIds: {
@@ -1886,9 +1887,8 @@ export const schema: SchemaV1 = build_schema({
         validator: stringValidator250,
         readonly:  true,
       },
-      readBy: {
-        validator: idStringToDateValidator,
-      },
+      readBy: { validator: idStringToDateValidator },
+      hiddenBy: { validator: idStringToDateValidator },
       templateId: { validator: mongoIdStringValidator },
       automationStepId: { validator: mongoIdStringValidator },
       linkOpenTrackingIds: {
@@ -2086,9 +2086,8 @@ export const schema: SchemaV1 = build_schema({
           onDependencyDelete: 'setNull',
         }]
       },
-      readBy: {
-        validator: idStringToDateValidator,
-      },
+      readBy: { validator: idStringToDateValidator },
+      hiddenBy: { validator: idStringToDateValidator },
       attachments: {
         validator: listOfChatAttachmentsValidator,
       },
@@ -4970,6 +4969,18 @@ export const schema: SchemaV1 = build_schema({
           identity: { validator: stringValidator, required: true },
         } 
       },
+      // can be done in front-end
+      // send_digits: {
+      //   op: "custom", access: 'create', method: "post", 
+      //   name: 'Send Digits',
+      //   path: '/phone-calls/send-digits',
+      //   description: "Sends digits, e.g. 1234#, for an active phone call",
+      //   parameters: { 
+      //     callId: { validator: stringValidator, required: true },
+      //     digits: { validator: stringValidator100, required: true },
+      //   },
+      //   returns: { } 
+      // },
     },
     enduserActions: { },
     fields: {
@@ -5002,6 +5013,7 @@ export const schema: SchemaV1 = build_schema({
       userId: { validator: mongoIdStringValidator },
       pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
       readBy: { validator: idStringToDateValidator },
+      hiddenBy: { validator: idStringToDateValidator },
       ticketIds: { validator: listOfStringsValidatorEmptyOk },
     },
   },

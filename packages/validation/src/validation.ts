@@ -2626,6 +2626,7 @@ const _DATABASE_RECORD_FIELD_TYPES: { [K in DatabaseRecordFieldType]: any } = {
   "Text List": '',
   Number: '',
   Address: '',
+  'Multiple Select': '',
 }
 export const DATABASE_RECORD_FIELD_TYPES = Object.keys(_DATABASE_RECORD_FIELD_TYPES) as DatabaseRecordFieldType[]
 export const databaseRecordFieldTypeValidator = exactMatchValidator<DatabaseRecordFieldType>(DATABASE_RECORD_FIELD_TYPES)
@@ -2672,6 +2673,15 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
       width: stringValidatorOptionalEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
   }), 
+  'Multiple Select': objectValidator<DatabaseRecordFields['Multiple Select']>({
+    type: exactMatchValidator(['Multiple Select']),
+    label: stringValidator250,
+    hideFromTable: booleanValidatorOptional,
+    options: objectValidator<DatabaseRecordFields['Multiple Select']['options']>({
+      width: stringValidatorOptionalEmptyOkay,
+      options: listOfStringsValidatorEmptyOk,
+    }, { isOptional: true, emptyOk: true }),
+  }), 
 })
 export const databaseFieldsValidator = listValidator(databaseFieldValidator)
 
@@ -2700,6 +2710,11 @@ export const databaseRecordValueValidator = orValidator<{ [K in DatabaseRecordFi
   'Address': objectValidator<DatabaseRecordValues['Address']>({
     type: exactMatchValidator(['Address']),
     value: addressOptionalValidator,
+    label: stringValidator250,
+  }), 
+  'Multiple Select': objectValidator<DatabaseRecordValues['Multiple Select']>({
+    type: exactMatchValidator(['Multiple Select']),
+    value: listOfStringsValidatorEmptyOk,
     label: stringValidator250,
   }), 
 })
@@ -2827,6 +2842,7 @@ export const accessValidator = exactMatchValidator<AccessType>([
 
 const _CUSTOM_ENDUSER_FIELD_TYPES: { [K in CustomEnduserFieldType]: any } = {
   "Select": true,
+  "Multiple Select": true,
   "Text": true,
   "Multiple Text": true,
   "Date": true,
@@ -2855,6 +2871,15 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     info: objectValidator<CustomEnduserFields['Select']['info']>({
       options: listOfStringsValidator,
       other: booleanValidatorOptional,
+    }),
+    field: stringValidator,
+    required: booleanValidatorOptional,
+    hiddenFromProfile: booleanValidatorOptional,
+  }), 
+  "Multiple Select": objectValidator<CustomEnduserFields['Multiple Select']>({
+    type: exactMatchValidator(['Multiple Select']),
+    info: objectValidator<CustomEnduserFields['Multiple Select']['info']>({
+      options: listOfStringsValidator,
     }),
     field: stringValidator,
     required: booleanValidatorOptional,

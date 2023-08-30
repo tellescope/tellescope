@@ -108,6 +108,7 @@ export type WithLinkOpenTrackingIds = { linkOpenTrackingIds: string[] }
 type BuildCustomEnduserField <T, I> = { type: T, info: I, field: string, required?: boolean, hiddenFromProfile?: boolean }
 export type CustomEnduserFields = {
   "Select": BuildCustomEnduserField<'Select', { options: string[], other?: boolean }>,
+  "Multiple Select": BuildCustomEnduserField<'Multiple Select', { options: string[] }>,
   "Text": BuildCustomEnduserField<'Text', { }>,
   "Multiple Text": BuildCustomEnduserField<'Multiple Text', { }>,
   "Date": BuildCustomEnduserField<'Date', { }>,
@@ -630,6 +631,7 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
   fromEmailOverride?: string,
   ticketIds?: string[],
   alternateToAddress?: string,
+  hiddenBy?: { [index: string] : Date | '' };
   // sentAt: string, // only outgoing
 }
 
@@ -658,6 +660,7 @@ export interface SMSMessage_updatesDisabled {
 export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SMSMessage_updatesDisabled, TextCommunication, WithLinkOpenTrackingIds {
   userId?: string, // defaults to self, but should allow future options to send as other user
   readBy?: { [index: string] : Date };
+  hiddenBy?: { [index: string] : Date | '' };
   error?: string,
   journeyContext?: JourneyContext,
   sendAt?: Date | '',
@@ -731,6 +734,7 @@ export interface ChatMessage extends ChatMessage_readonly, ChatMessage_required,
   senderId: string | null;
   html?: string,
   readBy?: { [index: string] : Date };
+  hiddenBy?: { [index: string] : Date | '' };
   attachments?: ChatAttachment[]
   timestamp?: Date,
   ticketIds?: string[],
@@ -1037,6 +1041,7 @@ export type DatabaseRecordFieldsInfo = {
   'Text List': BuildDatabaseRecordField<'Text List', string[], { }>,
   'Number': BuildDatabaseRecordField<'Number', number | '', { }>,
   Address: BuildDatabaseRecordField<'Address', Address | undefined, { }>
+  'Multiple Select': BuildDatabaseRecordField<'Multiple Select', string[], { options: string[] }>,
 }
 export type DatabaseRecordFieldType = keyof DatabaseRecordFieldsInfo
 
@@ -2083,6 +2088,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
   userId?: string,
   pinnedAt?: Date | '',
   readBy?: { [index: string] : Date | '' };
+  hiddenBy?: { [index: string] : Date | '' };
   ticketIds?: string[],
 }
 
