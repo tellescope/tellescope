@@ -77,6 +77,8 @@ export interface TellescopeFormProps extends ReturnType<typeof useTellescopeForm
   formTitle?: string,
   repeats: Record<string, string | number>
   backgroundColor?: string,
+  rootResponseId?: string,
+  parentResponseId?: string,
 }
 
 const LOGO_HEIGHT = 40
@@ -488,6 +490,8 @@ export const SaveDraft = ({
   getResponsesWithQuestionGroupAnswers,
   isInternalNote,
   formTitle,
+  rootResponseId,
+  parentResponseId,
 } : Styled & Pick<TellescopeFormProps, 'existingResponses' | 'fields' | 'onSuccess' | 'selectedFiles' | 'responses' | 'enduserId' | 'getResponsesWithQuestionGroupAnswers'> & { 
   disabled?: boolean,
   formResponseId?: string, 
@@ -495,6 +499,8 @@ export const SaveDraft = ({
   includedFieldIds: string[]
   isInternalNote?: boolean,
   formTitle?: string,
+  rootResponseId?: string,
+  parentResponseId?: string,
 }) => {
   const [, { updateElement: updateFormResponse }] = useFormResponses({ dontFetch: true })
   const session = useSession()
@@ -546,7 +552,7 @@ export const SaveDraft = ({
           const response = await updateFormResponse(
             (
               formResponseId 
-              ?? (await session.api.form_responses.prepare_form_response({ isInternalNote, formId, enduserId, title: formTitle })).response.id
+              ?? (await session.api.form_responses.prepare_form_response({ rootResponseId, parentResponseId, isInternalNote, formId, enduserId, title: formTitle })).response.id
             ),
             { 
               draftSavedAt: new Date(),
@@ -713,6 +719,9 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
 
   setCustomerId,
 
+  rootResponseId,
+  parentResponseId,
+
   ...props 
 }) => {
   const list = useListForFormFields(fields, responses)
@@ -786,6 +795,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
                   responses={responses}
                   selectedFiles={selectedFiles}
                   onSuccess={onSuccess}
+                  rootResponseId={rootResponseId} parentResponseId={parentResponseId}
                 />
               }
 

@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/react-components",
-  "version": "1.51.0",
+  "version": "1.51.1",
   "description": "",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
@@ -49,7 +49,7 @@
     "@stripe/react-stripe-js": "^2.1.0",
     "@stripe/stripe-js": "^1.52.1",
     "@tellescope/constants": "^1.51.0",
-    "@tellescope/sdk": "^1.51.0",
+    "@tellescope/sdk": "^1.51.1",
     "@tellescope/types-client": "^1.51.0",
     "@tellescope/types-models": "^1.51.0",
     "@tellescope/types-utilities": "^1.38.4",

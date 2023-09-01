@@ -514,6 +514,8 @@ export type CustomActions = {
       { 
         formId: string, enduserId: string, automationStepId?: string, expireAt?: Date, sharedVia?: CommunicationsChannel 
         isInternalNote?: boolean, title?: string,
+        rootResponseId?: string,
+        parentResponseId?: string,
       }, 
       { accessCode: string, url: string, response: FormResponse,  }>
     ,
@@ -3076,6 +3078,8 @@ export const schema: SchemaV1 = build_schema({
           sharedVia: { validator: communicationsChannelValidator },
           isInternalNote: { validator: booleanValidator },
           title: { validator: stringValidator },
+          parentResponseId: { validator: mongoIdStringValidator },
+          rootResponseId: { validator: mongoIdStringValidator },
         },
         returns: {
           accessCode: { validator: stringValidator250, required: true },
