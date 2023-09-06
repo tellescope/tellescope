@@ -328,3 +328,10 @@ export const CPT_CODES: { code: number, label: string }[] = [
   { code: 99442, label: "Phone call (11-20 mins) with patient" },
   { code: 99421, label: "Async digital evaluation 5-10 mins" },
 ]
+
+export const HELPDESK_TICKET_CLOSE_REASONS = [
+  "Resolved",
+  "Transferred",
+  "Not needed",
+  "Unresponsive",
+]
