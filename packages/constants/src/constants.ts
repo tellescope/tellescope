@@ -241,6 +241,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
   background_errors: INACCESSIBLE,
   enduser_views: READ_ONLY_ALL,
   referral_providers: READ_ONLY_ALL,
+  table_views: READ_ONLY_ALL,
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
@@ -308,6 +309,7 @@ export const ADMIN_PERMISSIONS: AccessPermissions = {
   enduser_profile_views: FULL_ACCESS,
   enduser_medications: FULL_ACCESS,
   enduser_custom_types: FULL_ACCESS,
+  table_views: FULL_ACCESS,
 }
 
 export const PORTAL_DEFAULT_LANDING_TITLE = "Your Portal"

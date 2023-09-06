@@ -230,6 +230,7 @@ import {
   MedicationResponse,
   Language,
   RemoveFromJourneyAutomationAction,
+  TableViewColumn,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -2390,6 +2391,7 @@ export const portalSettingsValidator = objectValidator<PortalSettings>({
   communication: objectValidator<PortalSettings['communication']>({
     allowEnduserInitiatedChat: booleanValidatorOptional,
     sendEmailNotificationsToEnduser: booleanValidatorOptional,
+    enduserInitiatedChatDefaultSubject: stringValidator5000OptionalEmptyOkay,
   }, { isOptional: true, emptyOk: true })
 })
 
@@ -3209,6 +3211,7 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   referral_providers: accessPermissionValidator,
   enduser_medications: accessPermissionValidator,
   phone_trees: accessPermissionValidator,
+  table_views: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
@@ -3275,6 +3278,7 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   enduser_profile_views: numberValidatorOptional,
   enduser_medications: numberValidatorOptional,
   phone_trees: numberValidatorOptional,
+  table_views: numberValidatorOptional,
 }, { emptyOk: true })
 
 const _LOGIN_FLOW_RESULTS = {
@@ -3789,3 +3793,9 @@ export const languageValidator = objectValidator<Language>({
   displayName: stringValidator100,
   iso6391: stringValidator100,
 })
+
+export const tableViewColumnsValidator = listValidatorEmptyOk(objectValidator<TableViewColumn>({
+  field: stringValidator100,
+  width: numberValidatorOptional,
+  type: stringValidatorOptionalEmptyOkay,
+}))

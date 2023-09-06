@@ -236,6 +236,7 @@ import {
   languageValidator,
   relatedRecordValidator,
   mongoIdStringOptional,
+  tableViewColumnsValidator,
 } from "@tellescope/validation"
 
 import {
@@ -3589,6 +3590,7 @@ export const schema: SchemaV1 = build_schema({
       timezone: { validator: timezoneValidator},
       copiedFrom: { validator: mongoIdStringValidator },
       internalNotes: { validator: stringValidator5000EmptyOkay },
+      hiddenFromPortal: { validator: booleanValidatorOptional },
       // isAllDay: { validator: booleanValidator },
     }
   },
@@ -5588,6 +5590,32 @@ export const schema: SchemaV1 = build_schema({
       customFields: {
         validator: customEnduserFieldsValidatorOptionalOrEmpty,
       }
+    }
+  },
+  table_views: {
+    info: {},
+    constraints: { unique: [], relationship: [], },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      title: {
+        validator: stringValidator,
+        required: true,
+        examples: ["Title"]
+      },
+      page: {
+        validator: stringValidator,
+        required: true,
+        examples: ["Title"]
+      },
+      columns: {
+        validator: tableViewColumnsValidator,
+        required: true,
+        examples: [[]],
+      },
+      defaultForRoles: { validator: listOfStringsValidatorOptionalOrEmptyOk },
     }
   },
 })

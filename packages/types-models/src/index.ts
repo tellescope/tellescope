@@ -99,6 +99,7 @@ export type PortalSettings = {
   },
   communication?: {
     allowEnduserInitiatedChat?: boolean,
+    enduserInitiatedChatDefaultSubject?: string,
     sendEmailNotificationsToEnduser?: boolean,
   }
 }
@@ -1373,6 +1374,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   copiedFrom?: string,
   sequence?: number,
   internalNotes?: string,
+  hiddenFromPortal?: boolean,
   // isAllDay?: boolean,
 }
 
@@ -2560,6 +2562,23 @@ export interface PhoneTree extends PhoneTree_readonly, PhoneTree_required, Phone
   enduserCondition?: PhoneTreeEnduserCondition,
 }
 
+export type TableViewColumn = {
+  field: string,
+  type?: string,
+  width?: number | '',
+}
+
+export interface TableView_readonly extends ClientRecord {}
+export interface TableView_required {
+  title: string,
+  page: string,
+  columns: TableViewColumn[],
+}
+export interface TableView_updatesDisabled {}
+export interface TableView extends TableView_readonly, TableView_required, TableView_updatesDisabled {
+  defaultForRoles?: string[],
+}
+
 export type ModelForName_required = {
   enduser_custom_types: EnduserCustomType_required,
   phone_trees: PhoneTree_required,
@@ -2621,6 +2640,7 @@ export type ModelForName_required = {
   purchase_credits: PurchaseCredit_required,
   phone_calls: PhoneCall_required,
   enduser_medications: EnduserMedication_required,
+  table_views: TableView_required,
 }
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
@@ -2685,6 +2705,7 @@ export interface ModelForName_readonly {
   purchase_credits: PurchaseCredit_readonly,
   phone_calls: PhoneCall_readonly,
   enduser_profile_views: EnduserProfileView_readonly,
+  table_views: TableView_readonly,
 }
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
@@ -2749,6 +2770,7 @@ export interface ModelForName_updatesDisabled {
   purchase_credits: PurchaseCredit_updatesDisabled,
   phone_calls: PhoneCall_updatesDisabled,
   enduser_profile_views: EnduserProfileView_updatesDisabled,
+  table_views: TableView_updatesDisabled,
 }
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
@@ -2813,6 +2835,7 @@ export interface ModelForName extends ModelForName_required, ModelForName_readon
   purchase_credits: PurchaseCredit,
   phone_calls: PhoneCall,
   enduser_profile_views: EnduserProfileView,
+  table_views: TableView,
 }
 export type ModelName = keyof ModelForName
 export type Model = ModelForName[keyof ModelForName]
@@ -2887,6 +2910,7 @@ export const modelNameChecker: { [K in ModelName] : true } = {
   purchase_credits: true,
   phone_calls: true,
   enduser_profile_views: true,
+  table_views: true,
 }
 
 

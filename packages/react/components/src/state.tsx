@@ -71,6 +71,7 @@ import {
   PhoneTree,
   EnduserCustomType,
   UserLog,
+  TableView,
 } from "@tellescope/types-client"
 
 import {
@@ -291,6 +292,7 @@ const superbillsSlice = createSliceForList<Superbill, 'superbills'>('superbills'
 const superbillProvidersSlice = createSliceForList<SuperbillProvider, 'superbill_providers'>('superbill_providers')
 const enduserProfileViewsSlice = createSliceForList<EnduserProfileView, 'enduser_profile_views'>('enduser_profile_views')
 const phoneTreesSlice = createSliceForList<PhoneTree, 'phone_trees'>('phone_trees')
+const tableViewsSlice = createSliceForList<TableView, 'table_views'>('table_views')
 
 const enduserObservationsSlice = createSliceForList<EnduserObservation, 'enduser_observations'>('enduser_observations')
 const forumsSlice = createSliceForList<Forum, 'forums'>('forums')
@@ -371,6 +373,7 @@ export const sharedConfig = {
     enduser_medications: enduserMedicationsSlice.reducer,
     enduser_custom_types: enduserCustomTypesSlice.reducer,
     user_logs: userLogsSlice.reducer,
+    table_views: tableViewsSlice.reducer,
   },
 }
 
@@ -1691,6 +1694,22 @@ export const useSuperbillProviders = (options={} as HookOptions<SuperbillProvide
       addSome: session.api.superbill_providers.createSome,
       deleteOne: session.api.superbill_providers.deleteOne,
       updateOne: session.api.superbill_providers.updateOne,
+    }, 
+    {...options}
+  )
+}
+export const useTableViews = (options={} as HookOptions<TableView>) => {
+  const session = useSession()
+  return useListStateHook(
+    'table_views', useTypedSelector(s => s.table_views), session, tableViewsSlice, 
+    { 
+      loadQuery: session.api.table_views.getSome,
+      findOne: session.api.table_views.getOne,
+      findByIds: session.api.table_views.getByIds,
+      addOne: session.api.table_views.createOne,
+      addSome: session.api.table_views.createSome,
+      deleteOne: session.api.table_views.deleteOne,
+      updateOne: session.api.table_views.updateOne,
     }, 
     {...options}
   )

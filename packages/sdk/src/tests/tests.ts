@@ -4535,6 +4535,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   enduser_profile_views: NO_TEST,
   referral_providers: NO_TEST,
   enduser_custom_types: NO_TEST,
+  table_views: NO_TEST,
 };
 
 (async () => {

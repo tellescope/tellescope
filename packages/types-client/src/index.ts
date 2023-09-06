@@ -66,6 +66,7 @@ export type ReferralProvider = ClientModelForName['referral_providers']
 export type EnduserMedication = ClientModelForName['enduser_medications']
 export type EnduserCustomType = ClientModelForName['enduser_custom_types']
 export type PhoneTree = ClientModelForName['phone_trees']
+export type TableView = ClientModelForName['table_views']
 
 export type Forum = ClientModelForName['forums']
 export type ForumPost = ClientModelForName['forum_posts']
