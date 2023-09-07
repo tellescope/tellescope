@@ -996,6 +996,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   submitRedirectURL?: string,
   publicFormIdRedirect?: string,
   customization?: FormCustomization,
+  disabled?: boolean,
 }
 
 

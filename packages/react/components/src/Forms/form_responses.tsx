@@ -2,7 +2,7 @@ import React from "react"
 import { Checkbox, Divider, FormControlLabel, Grid, Typography } from "@mui/material"
 import { Enduser, FormResponse } from "@tellescope/types-client"
 import { form_response_value_to_string, getOrgnizationLogoURL, user_display_name } from "@tellescope/utilities"
-import { DownloadFileIconButton, LabeledIconButton, SecureImage, useOrganization, useResolvedSession, useSession, useUsers, value_is_loaded } from "../index"
+import { DownloadFileIconButton, LabeledIconButton, SecureImage, useEndusers, useOrganization, useResolvedSession, useSession, useUsers, value_is_loaded } from "../index"
 import CloseIcon from '@mui/icons-material/Close';
 import { DatabaseSelectResponse, FormResponseAnswerAddress, FormResponseValueAnswer } from "@tellescope/types-models"
 import { Image } from "../layout"
@@ -182,7 +182,7 @@ interface FormResponse_T {
 }
 // this should use all vanilla React / inline styles to ensure printing is consistent
 export const FormResponseView = ({ enduser, onClose, hideHeader, response, id, printing } : FormResponse_T & { printing ?: boolean }) => {
-  const [, { findById: findUser}] = useUsers()
+  const [, { findById: findUser }] = useUsers()
 
   const user = findUser(response.submittedBy ?? '')
 
@@ -212,6 +212,17 @@ export const FormResponseView = ({ enduser, onClose, hideHeader, response, id, p
           : <Grid />
         }
       </div>
+
+      {enduser && 
+        <Typography style={{
+          fontSize: 18,
+          color: 'black',
+          paddingBottom: 4,
+          textAlign: 'center',
+        }}>
+          {user_display_name(enduser)}
+        </Typography>
+      }
 
       {(enduser || response.userEmail || response.submittedBy) && !hideHeader &&
         <Typography style={{

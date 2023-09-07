@@ -2930,6 +2930,7 @@ export const schema: SchemaV1 = build_schema({
       submitRedirectURL: { validator: stringValidator5000 },
       customization: { validator: formCustomizationValidator },
       publicFormIdRedirect: { validator: mongoIdStringOptional },
+      disabled: { validator: booleanValidatorOptional },
     }
   },
   form_fields: {
