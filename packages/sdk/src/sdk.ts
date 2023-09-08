@@ -288,6 +288,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     generate_pdf: (args: extractFields<CustomActions['form_responses']['generate_pdf']['parameters']>) => (
       Promise<extractFields<CustomActions['form_responses']['generate_pdf']['returns']>>
     ),
+    push_to_EHR: (args: extractFields<CustomActions['form_responses']['push_to_EHR']['parameters']>) => (
+      Promise<extractFields<CustomActions['form_responses']['push_to_EHR']['returns']>>
+    ),
   },
   meetings: {
     start_meeting: (args?: extractFields<CustomActions['meetings']['start_meeting']['parameters']>) => (
@@ -543,6 +546,7 @@ export class Session extends SessionManager {
     queries.form_responses.save_field_response = (args) => this._PATCH(`/v1${schema.form_responses.customActions.save_field_response.path}`, args)
     queries.form_responses.info_for_access_code = (args) => this._GET(`/v1${schema.form_responses.customActions.info_for_access_code.path}`, args)
     queries.form_responses.stripe_details = (args) => this._GET(`/v1${schema.form_responses.customActions.stripe_details.path}`, args)
+    queries.form_responses.push_to_EHR = (args) => this._POST(`/v1${schema.form_responses.customActions.push_to_EHR.path}`, args)
     
     // need arraybuffer response type, see tests.ts
     // queries.form_responses.generate_pdf = (args) => (

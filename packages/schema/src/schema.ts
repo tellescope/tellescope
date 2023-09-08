@@ -541,6 +541,10 @@ export type CustomActions = {
       { id: string }, 
       {  }
     >,
+    push_to_EHR: CustomAction<
+      { id: string }, 
+      {  }
+    >,
   },
   journeys: {
     // update_state: CustomAction<{ updates: Partial<JourneyState>, id: string, name: string }, { updated: Journey }>,
@@ -2931,6 +2935,7 @@ export const schema: SchemaV1 = build_schema({
       customization: { validator: formCustomizationValidator },
       publicFormIdRedirect: { validator: mongoIdStringOptional },
       disabled: { validator: booleanValidatorOptional },
+      disableAutomaticIntegrationPush: { validator: booleanValidatorOptional },
     }
   },
   form_fields: {
@@ -3098,6 +3103,16 @@ export const schema: SchemaV1 = build_schema({
           id: { validator: mongoIdStringValidator, required: true },
         },
         returns: {},
+      },
+      push_to_EHR: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Push to EHR',
+        path: '/form-responses/push-to-ehr',
+        description: "Pushes to an external EHR (e.g. Healthie)",
+        parameters: { 
+          id: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: { },
       },
       save_field_response: {
         op: "custom", access: 'update', method: "patch",
