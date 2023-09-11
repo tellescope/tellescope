@@ -496,6 +496,8 @@ export const form_response_value_to_string = (value: FormResponseValueAnswer['va
 
   const anyValue = value as Indexable
 
+  if (anyValue?.text && anyValue?.recordId) return anyValue.text
+
   if (anyValue.name) { // file
     return anyValue.name
   } 
@@ -504,6 +506,7 @@ export const form_response_value_to_string = (value: FormResponseValueAnswer['va
     
     const value = anyValue[0]
     if (value?.text && value?.recordId) { // DatabaseSelect repsonse
+      console.log(anyValue)
       return (
         anyValue.map(row => (row.text || 'No response provided')).join(', ')
       )

@@ -694,6 +694,7 @@ export type CustomActions = {
   managed_content_records: {
     generate_embedding: CustomAction<{ id: string }, { updated: ManagedContentRecord }>, 
     search: CustomAction<{ query: string, type?: "enduser" | "internal" }, { record: ManagedContentRecord, matches: ManagedContentRecord[], response: string }>, 
+    update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
   },
   automation_triggers: {
     trigger_events: CustomAction<{ triggers: { enduserId: string, automationTriggerId: string }[] }, { }>, 
@@ -3986,6 +3987,16 @@ export const schema: SchemaV1 = build_schema({
     },
     defaultActions: DEFAULT_OPERATIONS,
     customActions: { 
+      update_indexes: {
+        op: "custom", access: 'update', method: "patch",
+        name: 'Update Indexes',
+        path: '/managed-content-records/update-indexes',
+        description: "Updates indexes for a number of managed content records to adjust the default sorting",
+        parameters: { 
+          updates: { validator: indexUpdatesValidator, required: true },
+        },
+        returns: {},
+      },
       generate_embedding: {
         op: 'custom', access: 'delete', method: 'post',
         path: '/managed-content-records/generate-embedding',

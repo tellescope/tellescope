@@ -462,6 +462,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     search: (args: extractFields<CustomActions['managed_content_records']['search']['parameters']>) => (
       Promise<extractFields<CustomActions['managed_content_records']['search']['returns']>>
     ),
+    update_indexes: (args: extractFields<CustomActions['managed_content_records']['update_indexes']['parameters']>) => (
+      Promise<extractFields<CustomActions['managed_content_records']['update_indexes']['returns']>>
+    ),
   },
   automation_triggers: {
     trigger_events: (args: extractFields<CustomActions['automation_triggers']['trigger_events']['parameters']>) => (
@@ -621,6 +624,7 @@ export class Session extends SessionManager {
 
     queries.managed_content_records.generate_embedding = a => this._POST(`/v1/${schema.managed_content_records.customActions.generate_embedding.path}`, a)
     queries.managed_content_records.search = a => this._POST(`/v1/${schema.managed_content_records.customActions.search.path}`, a)
+    queries.managed_content_records.update_indexes = a => this._PATCH(`/v1/${schema.managed_content_records.customActions.update_indexes.path}`, a)
 
     queries.automation_triggers.trigger_events = a => this._POST(`/v1/${schema.automation_triggers.customActions.trigger_events.path}`, a)
 

@@ -1859,6 +1859,7 @@ export interface ManagedContentRecord_updatesDisabled {
   type?: ManagedContentRecordType,
 }
 export interface ManagedContentRecord extends ManagedContentRecord_readonly, ManagedContentRecord_required, ManagedContentRecord_updatesDisabled {
+  index?: number,
   headerPhoto?: string,
   publicRead?: boolean,
   slug?: string,
