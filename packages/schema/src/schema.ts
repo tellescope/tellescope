@@ -1310,6 +1310,7 @@ export const schema: SchemaV1 = build_schema({
       },
       lastSync: { validator: nonNegNumberValidator },
       emailDisabled: { validator: booleanValidator },
+      syncUnrecognizedSenders: { validator: booleanValidator },
       calendars: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       environment: { validator: stringValidator100 },
     },
@@ -5643,6 +5644,21 @@ export const schema: SchemaV1 = build_schema({
         examples: [[]],
       },
       defaultForRoles: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+    }
+  },
+  email_sync_denials: {
+    info: {},
+    constraints: { unique: [], relationship: [], },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      email: {
+        validator: emailValidator,
+        required: true,
+        examples: ["test@test.com"]
+      },
     }
   },
 })

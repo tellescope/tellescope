@@ -19,6 +19,19 @@ export const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
   'state': "State",
 } satisfies { [K in keyof Enduser]?: string }
 
+export const READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
+  recentFormSubmittedAt: "Recent Form Submitted At",
+  recentEventBookedAt: "Recent Event Booked At", 
+  recentOutboundCallAt: "Recent Outbound Call Made At",
+  recentInboundCallAt: "Recent Inbound Call Made At",
+  recentOutboundChatAt: "Recent Outbound Chat Sent At",
+  recentInboundChatAt: "Recent Inbound Chat Sent At",
+  recentOutboundSMSAt: "Recent Outbound SMS Sent At",
+  recentInboundSMSAt: "Recent Inbound SMS Sent At",
+  recentOutboundEmailAt: "Recent Outbound Email Sent At",
+  recentInboundEmailAt: "Recent Inbound Email Sent At",
+} satisfies { [K in keyof Enduser]?: string }
+
 export const ENDUSER_FIELD_TYPES = { 
   'email': 'email',
   'phone': 'phone',
@@ -243,6 +256,12 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
   enduser_views: READ_ONLY_ALL,
   referral_providers: READ_ONLY_ALL,
   table_views: READ_ONLY_ALL,
+  email_sync_denials: {
+    read: ALL_ACCESS,
+    create: ALL_ACCESS,
+    delete: NO_ACCESS,
+    update: DEFAULT_ACCESS
+  },
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
@@ -311,6 +330,7 @@ export const ADMIN_PERMISSIONS: AccessPermissions = {
   enduser_medications: FULL_ACCESS,
   enduser_custom_types: FULL_ACCESS,
   table_views: FULL_ACCESS,
+  email_sync_denials: FULL_ACCESS,
 }
 
 export const PORTAL_DEFAULT_LANDING_TITLE = "Your Portal"

@@ -3212,6 +3212,7 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   enduser_medications: accessPermissionValidator,
   phone_trees: accessPermissionValidator,
   table_views: accessPermissionValidator,
+  email_sync_denials: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
@@ -3279,6 +3280,7 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   enduser_medications: numberValidatorOptional,
   phone_trees: numberValidatorOptional,
   table_views: numberValidatorOptional,
+  email_sync_denials: numberValidatorOptional,
 }, { emptyOk: true })
 
 const _LOGIN_FLOW_RESULTS = {

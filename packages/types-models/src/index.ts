@@ -1033,6 +1033,7 @@ export interface Integration extends Integration_readonly, Integration_required,
   title: string,
   authentication: IntegrationAuthentication,
   emailDisabled?: boolean, 
+  syncUnrecognizedSenders?: boolean,
   calendars?: string[],
   environment?: string,
 }
@@ -2582,6 +2583,13 @@ export interface TableView extends TableView_readonly, TableView_required, Table
   defaultForRoles?: string[],
 }
 
+export interface EmailSyncDenial_readonly extends ClientRecord {}
+export interface EmailSyncDenial_required {}
+export interface EmailSyncDenial_updatesDisabled {}
+export interface EmailSyncDenial extends EmailSyncDenial_readonly, EmailSyncDenial_required, EmailSyncDenial_updatesDisabled {
+  email: string,
+}
+
 export type ModelForName_required = {
   enduser_custom_types: EnduserCustomType_required,
   phone_trees: PhoneTree_required,
@@ -2644,6 +2652,7 @@ export type ModelForName_required = {
   phone_calls: PhoneCall_required,
   enduser_medications: EnduserMedication_required,
   table_views: TableView_required,
+  email_sync_denials: EmailSyncDenial_required,
 }
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
@@ -2709,6 +2718,7 @@ export interface ModelForName_readonly {
   phone_calls: PhoneCall_readonly,
   enduser_profile_views: EnduserProfileView_readonly,
   table_views: TableView_readonly,
+  email_sync_denials: EmailSyncDenial_readonly,
 }
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
@@ -2774,6 +2784,7 @@ export interface ModelForName_updatesDisabled {
   phone_calls: PhoneCall_updatesDisabled,
   enduser_profile_views: EnduserProfileView_updatesDisabled,
   table_views: TableView_updatesDisabled,
+  email_sync_denials: EmailSyncDenial_updatesDisabled,
 }
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
@@ -2839,6 +2850,7 @@ export interface ModelForName extends ModelForName_required, ModelForName_readon
   phone_calls: PhoneCall,
   enduser_profile_views: EnduserProfileView,
   table_views: TableView,
+  email_sync_denials: EmailSyncDenial,
 }
 export type ModelName = keyof ModelForName
 export type Model = ModelForName[keyof ModelForName]
@@ -2914,6 +2926,7 @@ export const modelNameChecker: { [K in ModelName] : true } = {
   phone_calls: true,
   enduser_profile_views: true,
   table_views: true,
+  email_sync_denials: true,
 }
 
 

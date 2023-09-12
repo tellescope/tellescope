@@ -72,6 +72,7 @@ export type EnduserProfileView = ServerModelForName['enduser_profile_views']
 export type PhoneTree = ServerModelForName['phone_trees']
 export type EnduserCustomType = ServerModelForName['enduser_custom_types']
 export type TableView = ServerModelForName['table_views']
+export type EmailSyncDenial = ServerModelForName['email_sync_denials']
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']

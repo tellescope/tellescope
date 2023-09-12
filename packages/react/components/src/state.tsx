@@ -72,6 +72,7 @@ import {
   EnduserCustomType,
   UserLog,
   TableView,
+  EmailSyncDenial,
 } from "@tellescope/types-client"
 
 import {
@@ -86,7 +87,7 @@ import {
 } from '@tellescope/sdk'
 import { value_is_loaded } from './loading'
 import { matches_organization, objects_equivalent } from '@tellescope/utilities'
-import { Model, ModelName, ReadFilter, SortBy } from '@tellescope/types-models'
+import { ModelName, ReadFilter, SortBy } from '@tellescope/types-models'
 
 const RESET_CACHE_TYPE = "cache/reset" as const
 export const resetStateAction = createAction(RESET_CACHE_TYPE)
@@ -293,6 +294,7 @@ const superbillProvidersSlice = createSliceForList<SuperbillProvider, 'superbill
 const enduserProfileViewsSlice = createSliceForList<EnduserProfileView, 'enduser_profile_views'>('enduser_profile_views')
 const phoneTreesSlice = createSliceForList<PhoneTree, 'phone_trees'>('phone_trees')
 const tableViewsSlice = createSliceForList<TableView, 'table_views'>('table_views')
+const emailSyncDenialsSlice = createSliceForList<EmailSyncDenial, 'email_sync_denials'>('email_sync_denials')
 
 const enduserObservationsSlice = createSliceForList<EnduserObservation, 'enduser_observations'>('enduser_observations')
 const forumsSlice = createSliceForList<Forum, 'forums'>('forums')
@@ -374,6 +376,7 @@ export const sharedConfig = {
     enduser_custom_types: enduserCustomTypesSlice.reducer,
     user_logs: userLogsSlice.reducer,
     table_views: tableViewsSlice.reducer,
+    email_sync_denials: emailSyncDenialsSlice.reducer,
   },
 }
 
@@ -1710,6 +1713,22 @@ export const useTableViews = (options={} as HookOptions<TableView>) => {
       addSome: session.api.table_views.createSome,
       deleteOne: session.api.table_views.deleteOne,
       updateOne: session.api.table_views.updateOne,
+    }, 
+    {...options}
+  )
+}
+export const useEmailSyncDenials = (options={} as HookOptions<EmailSyncDenial>) => {
+  const session = useSession()
+  return useListStateHook(
+    'email_sync_denials', useTypedSelector(s => s.email_sync_denials), session, emailSyncDenialsSlice, 
+    { 
+      loadQuery: session.api.email_sync_denials.getSome,
+      findOne: session.api.email_sync_denials.getOne,
+      findByIds: session.api.email_sync_denials.getByIds,
+      addOne: session.api.email_sync_denials.createOne,
+      addSome: session.api.email_sync_denials.createSome,
+      deleteOne: session.api.email_sync_denials.deleteOne,
+      updateOne: session.api.email_sync_denials.updateOne,
     }, 
     {...options}
   )
