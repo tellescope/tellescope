@@ -231,6 +231,8 @@ import {
   Language,
   RemoveFromJourneyAutomationAction,
   TableViewColumn,
+  FormFieldCalloutCondition,
+  FormFieldCalloutConditionComparison,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -1799,6 +1801,7 @@ export const formResponseValidator = objectValidator<FormResponseValue>({
   answer: formResponseAnswerValidator,
   externalId: stringValidatorOptional,
   sharedWithEnduser: booleanValidatorOptional,
+  isCalledOut: booleanValidatorOptional,
 })
 export const formResponsesValidator = listValidator(formResponseValidator)
 
@@ -3800,4 +3803,9 @@ export const tableViewColumnsValidator = listValidatorEmptyOk(objectValidator<Ta
   field: stringValidator100,
   width: numberValidatorOptional,
   type: stringValidatorOptionalEmptyOkay,
+}))
+
+export const formFieldCalloutConditionsValidator = listValidatorOptionalOrEmptyOk(objectValidator<FormFieldCalloutCondition>({
+  comparison: exactMatchValidator<FormFieldCalloutConditionComparison>(['Equals']),
+  value: stringValidator1000,
 }))

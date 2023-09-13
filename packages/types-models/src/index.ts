@@ -926,6 +926,12 @@ export type FormFieldOptions = FormFieldValidation & {
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
+export type FormFieldCalloutConditionComparison = 'Equals'
+export type FormFieldCalloutCondition = {
+  comparison: FormFieldCalloutConditionComparison, 
+  value: string,
+}
+
 export interface FormField_readonly extends ClientRecord {}
 export interface FormField_required {
   formId: string,
@@ -946,6 +952,7 @@ export interface FormField extends FormField_readonly, FormField_required, FormF
   externalId?: string,
   sharedWithEnduser?: boolean,
   prepopulateFromFields?: boolean,
+  calloutConditions?: FormFieldCalloutCondition[],
 }
 
 export type FormScoring = {
@@ -1206,6 +1213,7 @@ export type FormResponseValue = {
   answer: FormResponseValueAnswer,
   externalId?: string,
   sharedWithEnduser?: boolean,
+  isCalledOut?: boolean,
 }
 
 export type AnswerForType = {
@@ -2581,6 +2589,7 @@ export interface TableView_required {
 export interface TableView_updatesDisabled {}
 export interface TableView extends TableView_readonly, TableView_required, TableView_updatesDisabled {
   defaultForRoles?: string[],
+  defaultForUserIds?: string[],
 }
 
 export interface EmailSyncDenial_readonly extends ClientRecord {}

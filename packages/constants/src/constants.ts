@@ -16,7 +16,11 @@ export const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
   'height': 'Height (inches)',
   'weight': 'Weight (pounds)',
   'gender': "Gender",
+  'addressLineOne': "Address",
+  'addressLineTwo': "Address Line Two",
+  'city': "City",
   'state': "State",
+  'zipCode': "ZIP Code",
 } satisfies { [K in keyof Enduser]?: string }
 
 export const READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME = {

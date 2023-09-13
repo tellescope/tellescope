@@ -237,6 +237,7 @@ import {
   relatedRecordValidator,
   mongoIdStringOptional,
   tableViewColumnsValidator,
+  formFieldCalloutConditionsValidator,
 } from "@tellescope/validation"
 
 import {
@@ -3009,6 +3010,7 @@ export const schema: SchemaV1 = build_schema({
       externalId: { validator: stringValidator100 },
       sharedWithEnduser: { validator: booleanValidator },
       prepopulateFromFields: { validator: booleanValidator },
+      calloutConditions: { validator: formFieldCalloutConditionsValidator },
     }
   },
   form_responses: {
@@ -5644,11 +5646,12 @@ export const schema: SchemaV1 = build_schema({
         examples: [[]],
       },
       defaultForRoles: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      defaultForUserIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
     }
   },
   email_sync_denials: {
     info: {},
-    constraints: { unique: [], relationship: [], },
+    constraints: { unique: ['email'], relationship: [], },
     defaultActions: DEFAULT_OPERATIONS,
     customActions: {},
     enduserActions: {},

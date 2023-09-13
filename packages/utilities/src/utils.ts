@@ -495,6 +495,11 @@ export const form_response_value_to_string = (value: FormResponseValueAnswer['va
   if (typeof value === 'number' || typeof value === 'boolean') return value.toString()
 
   const anyValue = value as Indexable
+  if (anyValue?.value !== 'object' && anyValue?.unit
+    && typeof anyValue?.value !== 'object' && typeof anyValue?.unit !== 'object'
+  ) {
+    return `${anyValue.value} ${anyValue.unit}`
+  }
 
   if (anyValue?.text && anyValue?.recordId) return anyValue.text
 
@@ -1217,6 +1222,7 @@ const URIReplacements = {
 export const URIDecodeEmail = (content: string, verbose?: boolean) => (
   content
   .replace(/=\s/gi, '')
+  .replaceAll("\r\n", '')
   .replace(
     /=21|=3D|=22|=23|=24|=25|=26|=27|=28|=29|=2A|=2B|=2C|=2D|=2E|=2F|=30|=31|=32|=33|=34|=35|=36|=37|=38|=39|=3A|=3B|=3C|=3E|=3F|=40|=41|=42|=43|=44|=45|=46|=47|=48|=49|=4A|=4B|=4C|=4D|=4E|=4F|=50|=51|=52|=53|=54|=55|=56|=57|=58|=59|=5A|=5B|=5C|=5D|=5E|=5F|=60|=61|=62|=63|=64|=65|=66|=67|=68|=69|=6A|=6B|=6C|=6D|=6E|=6F|=70|=71|=72|=73|=74|=75|=76|=77|=78|=79|=7A|=7B|=7C|=7D|=7E|=7F|=80|=E2=82=AC|=81|=82|=E2=80=9A|=83|=C6=92|=84|=E2=80=9E|=85|=E2=80=A6|=86|=E2=80=A0|=87|=E2=80=A1|=88|=CB=86|=89|=E2=80=B0|=8A|=C5=A0|=8B|=E2=80=B9|=8C|=C5=92|=8D|=C5=8D|=8E|=C5=BD|=8F|=90|=C2=90|=91|=E2=80=98|=92|=E2=80=99|=93|=E2=80=9C|=94|=E2=80=9D|=95|=E2=80=A2|=96|=E2=80=93|=97|=E2=80=94|=98|=CB=9C|=99|=E2=84|=9A|=C5=A1|=9B|=E2=80|=9C|=C5=93|=9D|=9E|=C5=BE|=9F|=C5=B8|=A0|=C2=A0|=A1|=C2=A1|=A2|=C2=A2|=A3|=C2=A3|=A4|=C2=A4|=A5|=C2=A5|=A6|=C2=A6|=A7|=C2=A7|=A8|=C2=A8|=A9|=C2=A9|=AA|=C2=AA|=AB|=C2=AB|=AC|=C2=AC|=AD|=C2=AD|=AE|=C2=AE|=AF|=C2=AF|=B0|=C2=B0|=B1|=C2=B1|=B2|=C2=B2|=B3|=C2=B3|=B4|=C2=B4|=B5|=C2=B5|=B6|=C2=B6|=B7|=C2=B7|=B8|=C2=B8|=B9|=C2=B9|=BA|=C2=BA|=BB|=C2=BB|=BC|=C2=BC|=BD|=C2=BD|=BE|=C2=BE|=BF|=C2=BF|=C0|=C3=80|=C1|=C3=81|=C2|=C3=82|=C3|=C3=83|=C4|=C3=84|=C5|=C3=85|=C6|=C3=86|=C7|=C3=87|=C8|=C3=88|=C9|=C3=89|=CA|=C3=8A|=CB|=C3=8B|=CC|=C3=8C|=CD|=C3=8D|=CE|=C3=8E|=CF|=C3=8F|=D0|=C3=90|=D1|=C3=91|=D2|=C3=92|=D3|=C3=93|=D4|=C3=94|=D5|=C3=95|=D6|=C3=96|=D7|=C3=97|=D8|=C3=98|=D9|=C3=99|=DA|=C3=9A|=DB|=C3=9B|=DC|=C3=9C|=DD|=C3=9D|=DE|=C3=9E|=DF|=C3=9F|=E0|=C3=A0|=E1|=C3=A1|=E2|=C3=A2|=E3|=C3=A3|=E4|=C3=A4|=E5|=C3=A5|=E6|=C3=A6|=E7|=C3=A7|=E8|=C3=A8|=E9|=C3=A9|=EA|=C3=AA|=EB|=C3=AB|=EC|=C3=AC|=ED|=C3=AD|=EE|=C3=AE|=EF|=C3=AF|=F0|=C3=B0|=F1|=C3=B1|=F2|=C3=B2|=F3|=C3=B3|=F4|=C3=B4|=F5|=C3=B5|=F6|=C3=B6|=F7|=C3=B7|=F8|=C3=B8|=F9|=C3=B9|=FA|=C3=BA|=FB|=C3=BB|=FC|=C3=BC|=FD|=C3=BD|=FE|=C3=BE|=FF|=C3=BF/gi,
     (k, ...v) => {

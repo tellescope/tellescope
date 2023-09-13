@@ -371,6 +371,26 @@ const existing_response_if_compatible = (existingResponses: FormResponseValue[] 
   return undefined // no valid match, write off as data loss due to incompatible type of new question
 }
 
+const shouldCallout = (field: FormField | undefined, value: FormResponseValueAnswer['value']) => {
+  if (!field) return false
+  if (!value) return false 
+
+  try {
+    if (!field.calloutConditions?.length) return false
+
+    for (const condition of field.calloutConditions) {
+      if (Array.isArray(value) && (value as string[]).find(v => v === condition.value)) {
+        return true
+      }
+      if (value === condition.value) {
+        return true
+      }
+    }
+  } catch(err) {}
+
+  return false
+}
+
 export type Response = FormResponseValue & { touched: boolean, includeInSubmit: boolean, field: FormField }
 export type FileResponse = { fieldId: string, fieldTitle: string, blobs?: FileBlob[] }
 export const useTellescopeForm = ({ customization, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL }: UseTellescopeFormOptions) => {
@@ -448,6 +468,7 @@ export const useTellescopeForm = ({ customization, ga4measurementId, rootRespons
       touched: false, 
       includeInSubmit: false,
       sharedWithEnduser: f.sharedWithEnduser,
+      isCalledOut: existingResponses?.find(r => r.fieldId === f.id)?.isCalledOut,
       answer: { 
         type: f.type,
         value: (
@@ -891,6 +912,7 @@ export const useTellescopeForm = ({ customization, ga4measurementId, rootRespons
     setResponses(rs => rs.map(r => r.fieldId !== fieldId ? r : ({
       ...r,
       touched,
+      isCalledOut: shouldCallout(fields?.find(f => f?.id === fieldId), value),
       answer: {
         ...r.answer,
         value: value as any,
