@@ -16,6 +16,7 @@ export const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
   'height': 'Height (inches)',
   'weight': 'Weight (pounds)',
   'gender': "Gender",
+  'tags': "Tags",
   'addressLineOne': "Address",
   'addressLineTwo': "Address Line Two",
   'city': "City",
