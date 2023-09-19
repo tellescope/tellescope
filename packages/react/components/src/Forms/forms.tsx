@@ -102,6 +102,7 @@ export const QuestionForField = ({
   repeats,
   onRepeatsChange,
   setCustomerId,
+  handleDatabaseSelect,
 } : {
   repeats: Record<string, string | number>,
   onRepeatsChange: (v: Record<string, string | number>) => void,
@@ -109,7 +110,7 @@ export const QuestionForField = ({
   file: FileResponse,
   field: FormField,
   setCustomerId: (s: string) => void,
-} & Pick<TellescopeFormProps, 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField'>) => {
+} & Pick<TellescopeFormProps, 'handleDatabaseSelect' | 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField'>) => {
   const String = customInputs?.['string'] ?? StringInput
   const StringLong = customInputs?.['stringLong'] ?? StringLongInput
   const Email = customInputs?.['email'] ?? EmailInput
@@ -200,7 +201,9 @@ export const QuestionForField = ({
           <Dropdown field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Dropdown'>} />
         )
         : field.type === 'Database Select' ? (
-          <DatabaseSelect field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Database Select'>} />
+          <DatabaseSelect field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Database Select'>} 
+            onDatabaseSelect={handleDatabaseSelect}
+          />
         )
         : field.type === 'Medications' ? (
           <Medications field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Medications'>} />
@@ -230,7 +233,7 @@ export const QuestionForField = ({
 
             return (
               <Flex key={id} flex={1}>
-                <QuestionForField customInputs={customInputs} field={match} fields={fields} 
+                <QuestionForField customInputs={customInputs} field={match} fields={fields} handleDatabaseSelect={handleDatabaseSelect}
                   repeats={repeats} onRepeatsChange={onRepeatsChange} setCustomerId={setCustomerId}
                   value={value} file={file} 
                   onAddFile={onAddFile} onFieldChange={onFieldChange}
@@ -310,6 +313,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
   currentPageIndex,
   getNumberOfRemainingPages,
   validateCurrentField,
+  handleDatabaseSelect,
 
   setCustomerId,
   customization,
@@ -373,6 +377,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
           <Flex flex={1} justifyContent={"center"} column>
             <Flex style={inputStyle}>
               <QuestionForField fields={fields} field={activeField.value} 
+                handleDatabaseSelect={handleDatabaseSelect}
                 setCustomerId={setCustomerId}
                 repeats={repeats} onRepeatsChange={setRepeats}
                 value={currentValue} file={currentFileValue} 
@@ -722,6 +727,8 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
   rootResponseId,
   parentResponseId,
 
+  handleDatabaseSelect,
+
   ...props 
 }) => {
   const list = useListForFormFields(fields, responses)
@@ -756,7 +763,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
           return (
             <Flex key={activeField.id} style={{ marginBottom: 5 }}>
               <Flex column flex={1}>
-                <QuestionForField fields={fields} field={activeField} 
+                <QuestionForField fields={fields} field={activeField} handleDatabaseSelect={handleDatabaseSelect}
                   repeats={repeats} onRepeatsChange={setRepeats} setCustomerId={setCustomerId}
                   value={value} file={file} 
                   customInputs={customInputs}

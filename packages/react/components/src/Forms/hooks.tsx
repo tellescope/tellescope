@@ -1,15 +1,15 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react"
 import { Session } from "@tellescope/sdk"
 import { ChangeHandler, FormFieldNode } from "./types"
-import { FormField, FormResponse } from "@tellescope/types-client"
+import { DatabaseRecord, FormField, FormResponse } from "@tellescope/types-client"
 import { phoneValidator } from "@tellescope/validation"
 import { FileBlob, Indexable } from "@tellescope/types-utilities"
-import { FormCustomization, FormResponseAnswerFileValue, FormResponseValue, FormResponseValueAnswer, OrganizationTheme, PreviousFormFieldType } from "@tellescope/types-models"
+import { FormCustomization, FormResponseAnswerAddress, FormResponseAnswerFileValue, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, OrganizationTheme, PreviousFormFieldType } from "@tellescope/types-models"
 import { WithTheme, useFileUpload, useFormFields, useFormResponses, useResolvedSession, value_is_loaded } from "../index"
 import ReactGA from "react-ga4";
 
 import isEmail from "validator/lib/isEmail"
-import { getLocalTimezone, get_time_values } from "@tellescope/utilities"
+import { getLocalTimezone, get_time_values, object_is_empty } from "@tellescope/utilities"
 
 export const useFlattenedTree = (root?: FormFieldNode) => {
   const flat: FormField[] = []
@@ -523,6 +523,94 @@ export const useTellescopeForm = ({ customization, ga4measurementId, rootRespons
     selectedFiles.find(f => f.fieldId === activeField.value.id)
   )
 
+  const handleDatabaseSelect = useCallback((databaseRecord: DatabaseRecord) => {
+    try {
+      // no need to update if there's no prepopulation
+      if (!fields?.find(f => f.prepopulateFromDatabase?.databaseId && f.prepopulateFromDatabase?.field)) return
+
+      setResponses(rs => rs.map(r => {
+        // don't overwrite an existing value
+        if (r.answer.type === 'Address') {
+          if (!object_is_empty(r.answer.value ?? {})) {
+            return r
+          }
+        } else if (r.answer?.value) {
+           return r 
+        }
+
+        const field = fields.find(f => f.id === r.fieldId)
+        if (
+          !(
+             field?.prepopulateFromDatabase?.databaseId 
+          && field?.prepopulateFromDatabase?.field
+          )
+        ) {
+          return r
+        }
+
+        const databaseValue = databaseRecord.values.find(v => v.label === field.prepopulateFromDatabase?.field)
+        if (!databaseValue?.value) return r
+
+        if (databaseValue.type === 'Address') {
+          if (r.answer.type !== 'Address') return r
+
+          return {
+            ...r,
+            answer: {
+              ...r.answer,
+              value: {
+                ...databaseValue.value,
+                addressLineOne: databaseValue.value?.lineOne || '',
+                addressLineTwo: databaseValue.value?.lineTwo || '',
+              }
+            } as FormResponseAnswerAddress
+          }
+        }
+
+        if (r.answer.type === 'string' || r.answer.type === 'stringLong') {
+          if (
+               databaseValue.type === 'Text'
+            || databaseValue.type === 'Text Long'
+          ) {
+            return {
+              ...r,
+              answer: {
+                ...r.answer,
+                value: databaseValue.value || ''
+              } as FormResponseAnswerString
+            }
+          }
+          if (databaseValue.type === 'Number') {
+            return {
+              ...r,
+              answer: {
+                ...r.answer,
+                value: (databaseValue.value || '').toString()
+              } as FormResponseAnswerString
+            }
+          }
+          if (
+            databaseValue.type === 'Multiple Select' 
+            || databaseValue.type === 'Text List' 
+          ) {
+            return {
+              ...r,
+              answer: {
+                ...r.answer,
+                value: (databaseValue.value || []).join(", ")
+              } as FormResponseAnswerString
+            }
+          }
+        }
+
+        return r
+      }))
+
+    } catch(err) {
+      console.error(err) 
+    }
+  }, [fields])
+
   const updateInclusion = useCallback((includeInSubmit: boolean) => {
     setResponses(rs => {
       const current = rs.find(r => r.fieldId === currentValue?.fieldId)
@@ -964,5 +1052,6 @@ export const useTellescopeForm = ({ customization, ga4measurementId, rootRespons
     getNumberOfRemainingPages,
     setCustomerId,
     customization,
+    handleDatabaseSelect,
   }
 }

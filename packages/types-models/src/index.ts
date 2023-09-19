@@ -637,6 +637,7 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
   ticketIds?: string[],
   alternateToAddress?: string,
   hiddenBy?: { [index: string] : Date | '' };
+  suggestedReply?: string,
   // sentAt: string, // only outgoing
 }
 
@@ -673,6 +674,9 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
   isDraft?: boolean,
   timestamp?: Date,
   ticketIds?: string[],
+  suggestedReply?: string,
+  phoneNumber?: string,
+  enduserPhoneNumber?: string,
   // usingPublicNumber?: boolean, // flagged on outgoing messages from public number
   // sentAt: string, // only outgoing
 }
@@ -957,6 +961,10 @@ export interface FormField extends FormField_readonly, FormField_required, FormF
   sharedWithEnduser?: boolean,
   prepopulateFromFields?: boolean,
   calloutConditions?: FormFieldCalloutCondition[],
+  prepopulateFromDatabase?: {
+    databaseId?: string,
+    field?: string,
+  }
 }
 
 export type FormScoring = {

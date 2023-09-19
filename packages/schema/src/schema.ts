@@ -1734,6 +1734,7 @@ export const schema: SchemaV1 = build_schema({
       fromEmailOverride: { validator: stringValidator100 },
       ticketIds: { validator: listOfStringsValidatorEmptyOk },
       alternateToAddress: { validator: emailValidator },
+      suggestedReply: { validator: stringValidator5000EmptyOkay },
     }, 
     customActions: {
       sync_integrations: {
@@ -1915,6 +1916,9 @@ export const schema: SchemaV1 = build_schema({
       isDraft: { validator: booleanValidator },
       timestamp: { validator: dateValidator },
       ticketIds: { validator: listOfStringsValidatorEmptyOk },
+      suggestedReply: { validator: stringValidator5000EmptyOkay },
+      phoneNumber: { validator: stringValidatorOptionalEmptyOkay },
+      enduserPhoneNumber: { validator: phoneValidator },
     }, 
   },
   chat_rooms: {
@@ -3027,8 +3031,14 @@ export const schema: SchemaV1 = build_schema({
       isInGroup: { validator: booleanValidator },
       externalId: { validator: stringValidator100 },
       sharedWithEnduser: { validator: booleanValidator },
-      prepopulateFromFields: { validator: booleanValidator },
       calloutConditions: { validator: formFieldCalloutConditionsValidator },
+      prepopulateFromFields: { validator: booleanValidator },
+      prepopulateFromDatabase: {
+        validator: objectValidator<FormField['prepopulateFromDatabase']>({
+          databaseId: mongoIdStringOptional, 
+          field: stringValidatorOptionalEmptyOkay,
+        }, { isOptional: true, emptyOk: true })
+      },
     }
   },
   form_responses: {

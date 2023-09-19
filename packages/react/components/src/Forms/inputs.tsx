@@ -1095,7 +1095,7 @@ const label_for_database_record = (field: FormField, record?: DatabaseRecord) =>
   ) 
 )
 
-export const DatabaseSelectInput = ({ field, value, onChange }: FormInputProps<'Database Select'>) => {
+export const DatabaseSelectInput = ({ field, value, onChange, onDatabaseSelect }: FormInputProps<'Database Select'>) => {
   const { choices, doneLoading } = useDatabaseChoices({ 
     databaseId: field.options?.databaseId,
     field,
@@ -1136,8 +1136,11 @@ export const DatabaseSelectInput = ({ field, value, onChange }: FormInputProps<'
       value={
         (value?.map(v => choices.find(c => c.id === v.recordId))?.filter(v => v!) ?? []) as DatabaseRecord[]
       }
-      onChange={(_, v) => (
-        onChange(
+      onChange={(_, v) => {
+        if (v.length && onDatabaseSelect) {
+          onDatabaseSelect(v[0])
+        }
+        return onChange(
           (
             !field.options?.radio
               ? v.map(_v => ({
@@ -1153,7 +1156,7 @@ export const DatabaseSelectInput = ({ field, value, onChange }: FormInputProps<'
           ),
           field.id,
         )
-      )}
+      }}
       renderInput={params => <TextField {...params} />}
     />
   )
