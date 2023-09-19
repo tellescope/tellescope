@@ -207,6 +207,11 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
       Promise<extractFields<CustomActions['journeys']['get_journey_statistics']['returns']>>
     ),
   },
+  forms: {
+    get_form_statistics: (args: extractFields<CustomActions['forms']['get_form_statistics']['parameters']>) => (
+      Promise<extractFields<CustomActions['forms']['get_form_statistics']['returns']>>
+    ),
+  },
   endusers: {
     set_password: (args: { id: string, password: string }) => Promise<void>,
     is_authenticated: (args: { id?: string, authToken: string }) => Promise<{ isAuthenticated: boolean, enduser: Enduser }>
@@ -542,6 +547,8 @@ export class Session extends SessionManager {
 
     /** @deprecated */ //  keep here as well for backwards compatibility
     queries.organizations.invite_user = a => this._POST(`/v1/${schema.users.customActions.invite_user.path}`, a) 
+
+    queries.forms.get_form_statistics = args => this._GET(`/v1${schema.forms.customActions.get_form_statistics.path}`, args)
 
     queries.form_fields.load_choices_from_database = args => this._GET(`/v1${schema.form_fields.customActions.load_choices_from_database.path}`, args)
 

@@ -47,6 +47,7 @@ import {
   StripeCheckoutInfo,
   StripeCountryCode,
   JourneyStatistics,
+  FormStatistics,
 } from "@tellescope/types-models"
 
 import {
@@ -510,6 +511,9 @@ export type CustomActions = {
   },
   form_fields: {
     load_choices_from_database: CustomAction<{ fieldId: string, lastId?: string, limit?: number, }, { choices: DatabaseRecordClient[] }>,
+  },
+  forms: {
+    get_form_statistics: CustomAction<{ formId: string }, { statistics: FormStatistics }>,
   },
   form_responses: {
     prepare_form_response: CustomAction<
@@ -2887,7 +2891,21 @@ export const schema: SchemaV1 = build_schema({
       relationship: [],
     },
     defaultActions: DEFAULT_OPERATIONS,
-    customActions: {},
+    customActions: {
+      get_form_statistics: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Form Statistics',
+        path: '/forms/statistics',
+        description: "Gets response statistics for a given form",
+        parameters: { 
+          formId: { validator: mongoIdStringOptional, required: true },
+        },
+        returns: { 
+          // todo: document shape with validator
+          statistics: { validator: objectAnyFieldsAnyValuesValidator as any } 
+        },
+      },
+    },
     enduserActions: {},
     publicActions: {
       public_form_details: {

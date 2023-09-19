@@ -565,6 +565,10 @@ export type JourneyStatistics = {
   steps: Record<string, { count: number }>,
 }
 
+export type FormStatistics = {
+  fields: Record<string, { count: number }>,
+}
+
 export type JourneyStatePriority = "Disengaged" | "N/A" | "Engaged"
 
 export interface JourneyState { // info needed to create a state
