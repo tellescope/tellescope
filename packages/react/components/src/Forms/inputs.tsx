@@ -333,7 +333,20 @@ export const AutoFocusTextField = (props: TextFieldProps) => (
 
 export const DateStringInput = ({ field, value, onChange, ...props }: FormInputProps<'string'>) => (
   <AutoFocusTextField {...props} required={!field.isOptional} fullWidth placeholder="MM-DD-YYYY" value={value}
-    onChange={e => onChange(e.target.value.replaceAll('/', '-'), field.id)} 
+    onChange={e => {
+      const v = e.target.value || ''
+      onChange(
+        (
+          v.length === 2 && /\d{2}/.test(v) && value?.length !== 3 // allow deletion
+            ? v + '-'
+        : v.length === 5 && /\d{2}-\d{2}/.test(v) && value?.length !== 6 // allow deletion
+            ? v + '-'
+            : v
+        )
+        .replaceAll('/', '-'), 
+        field.id
+      )
+    }}
   />
 )
 export const StringInput = ({ field, value, onChange, ...props }: FormInputProps<'string'>) => (

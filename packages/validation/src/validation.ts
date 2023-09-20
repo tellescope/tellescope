@@ -2694,12 +2694,12 @@ export const databaseFieldsValidator = listValidator(databaseFieldValidator)
 export const databaseRecordValueValidator = orValidator<{ [K in DatabaseRecordFieldType]: DatabaseRecordValues[K] } >({
   Text: objectValidator<DatabaseRecordValues['Text']>({
     type: exactMatchValidator(['Text']),
-    value: stringValidatorOptionalEmptyOkay,
+    value: stringValidator5000OptionalEmptyOkay,
     label: stringValidator250,
   }), 
   'Text Long': objectValidator<DatabaseRecordValues['Text Long']>({
     type: exactMatchValidator(['Text Long']),
-    value: stringValidatorOptionalEmptyOkay,
+    value: stringValidator5000OptionalEmptyOkay,
     label: stringValidator250,
   }), 
   'Text List': objectValidator<DatabaseRecordValues['Text List']>({
