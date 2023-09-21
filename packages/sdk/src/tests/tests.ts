@@ -4539,8 +4539,19 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   email_sync_denials: NO_TEST,
 };
 
+const TRACK_OPEN_IMAGE = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+  'base64'
+);
+
 (async () => {
   log_header("API")
+
+  await async_test(
+    "email-image tracking endpoint is live",
+    () => axios.get('http://localhost:8080/email-image/'),
+    { onResult: result => result.data === TRACK_OPEN_IMAGE.toString('utf-8')}
+  ) 
 
   try {
     await Promise.all([

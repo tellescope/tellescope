@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useMemo, useState, useRef } from "react"
+import React, { useEffect, useCallback, useMemo, useState, useRef, memo } from "react"
 import { Indexable, ScoreFilter } from "@tellescope/types-utilities"
 import { objects_equivalent, read_local_storage, safeJSONParse, update_local_storage, user_display_name } from "@tellescope/utilities"
 import { LoadFunction, LoadFunctionArguments } from "@tellescope/sdk"
@@ -45,8 +45,8 @@ export const apply_filters = <T,>(fs: Filters<T>, data: T[]): T[] => {
   )
 }
 
-export const useFilters = <T,>(args?: { memoryId?: string, initialFilters?: Filters<T>, deserialize?: (fs: Filters<T>) => Filters<T>, onFilterChange?: (fs: Filters<T>) => void }) => {
-  const { onFilterChange, memoryId, initialFilters, deserialize } = args ?? {}
+export const useFilters = <T,>(args?: { memoryId?: string, initialFilters?: Filters<T>, reload?: boolean, deserialize?: (fs: Filters<T>) => Filters<T>, onFilterChange?: (fs: Filters<T>) => void }) => {
+  const { onFilterChange, reload, memoryId, initialFilters, deserialize } = args ?? {}
   if (memoryId && !deserialize) console.warn("memoryId provided without deserialize")
 
   const [filters, setFilters] = React.useState<Filters<T>>(
@@ -56,6 +56,23 @@ export const useFilters = <T,>(args?: { memoryId?: string, initialFilters?: Filt
         : {}
     )
   )
+
+  const didReloadRef = useRef(false)
+  useEffect(() => {
+    if (!reload) return
+    if (didReloadRef.current) return
+    didReloadRef.current = true
+
+    console.log('reloading filters')
+    setFilters(
+      initialFilters || (
+        (memoryId && deserialize)
+          ? deserialize((safeJSONParse(read_local_storage(memoryId)) || {}))
+          : {}
+      )
+    )
+
+  }, [reload, initialFilters, memoryId, deserialize])
 
   useEffect(() => {
     if (!memoryId) return

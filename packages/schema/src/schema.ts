@@ -1735,6 +1735,7 @@ export const schema: SchemaV1 = build_schema({
       ticketIds: { validator: listOfStringsValidatorEmptyOk },
       alternateToAddress: { validator: emailValidator },
       suggestedReply: { validator: stringValidator5000EmptyOkay },
+      tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
     }, 
     customActions: {
       sync_integrations: {
@@ -1919,6 +1920,7 @@ export const schema: SchemaV1 = build_schema({
       suggestedReply: { validator: stringValidator5000EmptyOkay },
       phoneNumber: { validator: stringValidatorOptionalEmptyOkay },
       enduserPhoneNumber: { validator: phoneValidator },
+      tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
     }, 
   },
   chat_rooms: {
@@ -2117,6 +2119,7 @@ export const schema: SchemaV1 = build_schema({
       },
       timestamp: { validator: dateValidator },
       ticketIds: { validator: listOfStringsValidatorEmptyOk },
+      tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
     },
   },
   users: {
@@ -2886,6 +2889,7 @@ export const schema: SchemaV1 = build_schema({
         validator: fieldsValidator,
       },
       pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
+      tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
     }
   },
   forms: {
@@ -3096,6 +3100,7 @@ export const schema: SchemaV1 = build_schema({
       externalId: { validator: stringValidator250 },
       rootResponseId: { validator: mongoIdStringValidator },
       parentResponseId: { validator: mongoIdStringValidator },
+      tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
     },
     defaultActions: DEFAULT_OPERATIONS,
     enduserActions: { 
@@ -5079,6 +5084,7 @@ export const schema: SchemaV1 = build_schema({
       readBy: { validator: idStringToDateValidator },
       hiddenBy: { validator: idStringToDateValidator },
       ticketIds: { validator: listOfStringsValidatorEmptyOk },
+      tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
     },
   },
   analytics_frames: {

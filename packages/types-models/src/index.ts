@@ -139,6 +139,7 @@ export type OrganizationSettings = {
     showFreeNote?: boolean,
     recordCalls?: boolean,
     transcribeCalls?: boolean,
+    transcribeCallInboundPlayback?: string,
   },
   calendar?: {
     dayStart?: {
@@ -562,7 +563,7 @@ export interface EngagementEvent extends EngagementEvent_readonly, EngagementEve
 }
 
 export type JourneyStatistics = {
-  steps: Record<string, { count: number }>,
+  steps: Record<string, { count: number, opens?: number }>,
 }
 
 export type FormStatistics = {
@@ -638,6 +639,7 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
   alternateToAddress?: string,
   hiddenBy?: { [index: string] : Date | '' };
   suggestedReply?: string,
+  tags?: string[],
   // sentAt: string, // only outgoing
 }
 
@@ -677,6 +679,7 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
   suggestedReply?: string,
   phoneNumber?: string,
   enduserPhoneNumber?: string,
+  tags?: string[],
   // usingPublicNumber?: boolean, // flagged on outgoing messages from public number
   // sentAt: string, // only outgoing
 }
@@ -747,6 +750,7 @@ export interface ChatMessage extends ChatMessage_readonly, ChatMessage_required,
   attachments?: ChatAttachment[]
   timestamp?: Date,
   ticketIds?: string[],
+  tags?: string[],
 }
 
 export type MessageTemplateType = 'enduser' | 'Reply' | 'team'  // default to 'enduser'
@@ -878,6 +882,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
   ticketId?: string,
   fields?: Indexable<string | CustomField>,
   pinnedAt?: Date | '',
+  tags?: string[],
 }
 
 export type FormFieldLiteralType = 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time'
@@ -1285,6 +1290,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   publicIdentifier?: string,
   rootResponseId?: string,
   parentResponseId?: string,
+  tags?: string[],
 }
 
 export interface WebHook_readonly extends ClientRecord {}
@@ -2116,6 +2122,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
   readBy?: { [index: string] : Date | '' };
   hiddenBy?: { [index: string] : Date | '' };
   ticketIds?: string[],
+  tags?: string[],
 }
 
 export type AnalyticsQueryResultValue = {
@@ -2429,7 +2436,11 @@ export type AutomationTriggerEvents = {
   'Field Equals': AutomationTriggerEventBuilder<"Field Equals", { field: string, value: string }, { }>,
   'Appointment Created': AutomationTriggerEventBuilder<"Appointment Created", { }, {}>,
   'Medication Added': AutomationTriggerEventBuilder<"Medication Added", { titles: string[] }, {}>,
-  'No Recent Appointment': AutomationTriggerEventBuilder<"No Recent Appointment", { intervalInMS: number }, {}>,
+  'No Recent Appointment': AutomationTriggerEventBuilder<"No Recent Appointment", { 
+    intervalInMS: number, 
+    templateIds?: string[],
+    titles?: string[],
+  }, {}>,
 }
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents
 export type AutomationTriggerEvent = AutomationTriggerEvents[AutomationTriggerEventType]

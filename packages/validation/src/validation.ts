@@ -2950,6 +2950,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     customFields: customEnduserFieldsValidatorOptionalOrEmpty,
     builtinFields: buildInFieldsValidator,
     tags: listOfStringsValidatorOptionalOrEmptyOk,
+    transcribeCallInboundPlayback: stringValidatorOptionalEmptyOkay,
   }, { isOptional: true }),
   calendar: objectValidator<OrganizationSettings['calendar']>({
     dayStart: objectValidator<Required<OrganizationSettings>['calendar']['dayStart']>({
@@ -3024,6 +3025,8 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['No Recent Appointment']),
     info: objectValidator<AutomationTriggerEvents['No Recent Appointment']['info']>({
       intervalInMS: nonNegNumberValidator,
+      templateIds: listOfStringsValidatorOptionalOrEmptyOk,
+      titles: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
