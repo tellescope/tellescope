@@ -48,6 +48,7 @@ import {
   StripeCountryCode,
   JourneyStatistics,
   FormStatistics,
+  CustomFields,
 } from "@tellescope/types-models"
 
 import {
@@ -513,7 +514,7 @@ export type CustomActions = {
     load_choices_from_database: CustomAction<{ fieldId: string, lastId?: string, limit?: number, }, { choices: DatabaseRecordClient[] }>,
   },
   forms: {
-    get_form_statistics: CustomAction<{ formId: string }, { statistics: FormStatistics }>,
+    get_form_statistics: CustomAction<{ formId: string, range?: DateRange }, { statistics: FormStatistics }>,
   },
   form_responses: {
     prepare_form_response: CustomAction<
@@ -571,6 +572,7 @@ export type CustomActions = {
     remove_from_journey: CustomAction<{ enduserIds: string[], journeyId: string }, { }>, 
     merge: CustomAction<{ sourceEnduserId: string, destinationEnduserId: string, }, { }>, 
     push: CustomAction<{ enduserId: string }, { }>,
+    bulk_update: CustomAction<{ ids: string[], fields: CustomFields }, { updated: Enduser[] }>,
   },
   users: {
     display_info: CustomAction<{ }, { fname: string, lname: string, id: string }[]>,
@@ -1131,6 +1133,19 @@ export const schema: SchemaV1 = build_schema({
           enduserId: { validator: mongoIdStringValidator, required: true },
         },
         returns: {},
+      },
+      bulk_update: {
+        op: "custom", access: 'update', method: "patch",
+        name: 'Bulk Updates',
+        path: '/endusers/bulk-update',
+        description: "Updates custom fields across a batch of endusers at once",
+        parameters: {
+          ids: { validator: listOfMongoIdStringValidator, required: true },
+          fields: { validator: fieldsValidator, required: true },
+        },
+        returns: {
+          updated: { validator: 'endusers' as any },
+        },
       },
     },
     publicActions: {
@@ -2091,7 +2106,7 @@ export const schema: SchemaV1 = build_schema({
         }]
       },
       message: {
-        validator: stringValidator,
+        validator: stringValidator5000,
         required: true,
         examples: ["Message"]
       },
@@ -2907,6 +2922,7 @@ export const schema: SchemaV1 = build_schema({
         description: "Gets response statistics for a given form",
         parameters: { 
           formId: { validator: mongoIdStringOptional, required: true },
+          range: { validator: dateRangeOptionalValidator },
         },
         returns: { 
           // todo: document shape with validator
@@ -5380,6 +5396,7 @@ export const schema: SchemaV1 = build_schema({
       //     onDependencyDelete: 'delete',
       //   }]
       // },
+      triggerNextAt: { validator: dateValidator },
     }
   },
   superbill_providers: {
@@ -5681,6 +5698,7 @@ export const schema: SchemaV1 = build_schema({
       },
       defaultForRoles: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       defaultForUserIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      filter: { validator: objectAnyFieldsAnyValuesValidator },
     }
   },
   email_sync_denials: {

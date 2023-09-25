@@ -230,6 +230,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     push: (args: extractFields<CustomActions['endusers']['push']['parameters']>) => (
       Promise<extractFields<CustomActions['endusers']['push']['returns']>>
     ),
+    bulk_update: (args: extractFields<CustomActions['endusers']['bulk_update']['parameters']>) => (
+      Promise<extractFields<CustomActions['endusers']['bulk_update']['returns']>>
+    ),
   },
   users: {
     display_names: () => Promise<{ fname: string, lname: string, id: string }[]>,
@@ -532,6 +535,7 @@ export class Session extends SessionManager {
     queries.endusers.generate_auth_token = args => this._GET(`/v1/generate-enduser-auth-token`, args)
     queries.endusers.merge = a => this._POST(`/v1${schema.endusers.customActions.merge.path}`, a)
     queries.endusers.push = a => this._POST(`/v1${schema.endusers.customActions.push.path}`, a)
+    queries.endusers.bulk_update = a => this._PATCH(`/v1${schema.endusers.customActions.bulk_update.path}`, a)
 
     queries.users.display_names = () => this._GET<{}, { fname: string, lname: string, id: string }[]>(`/v1/user-display-names`)
     queries.users.register = (args) => this._POST(`/v1${schema.users.publicActions.register.path}`, args)

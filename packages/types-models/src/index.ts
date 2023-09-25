@@ -114,7 +114,7 @@ export type CustomEnduserFields = {
   "Multiple Text": BuildCustomEnduserField<'Multiple Text', { }>,
   "Date": BuildCustomEnduserField<'Date', { }>,
   'Auto Detect': BuildCustomEnduserField<'Auto Detect', { }>,
-  // "Table": BuildCustomEnduserField<"Table", { columns: TableInputChoice[] }>
+  "Table": BuildCustomEnduserField<"Table", { columns: TableInputChoice[] }>
 }
 export type CustomEnduserFieldType = keyof CustomEnduserFields
 export type CustomEnduserField = CustomEnduserFields[CustomEnduserFieldType]
@@ -2379,13 +2379,13 @@ export interface EnduserView_readonly extends ClientRecord {}
 export interface EnduserView_required {
   title: string,
   fields: string[],
-  filter: Indexable,
 }
 export interface EnduserView_updatesDisabled {}
 export interface EnduserView extends EnduserView_readonly, EnduserView_required, EnduserView_updatesDisabled {
   defaultForRole?: string,
   hideProfileLink?: boolean,
   customTypeId?: string,
+  filter?: Indexable,
   style?: {
     [index: string]: {
       width?: number,
@@ -2441,6 +2441,7 @@ export type AutomationTriggerEvents = {
     templateIds?: string[],
     titles?: string[],
   }, {}>,
+  'On Birthday': AutomationTriggerEventBuilder<"On Birthday", { minutes: number }, {}>,
 }
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents
 export type AutomationTriggerEvent = AutomationTriggerEvents[AutomationTriggerEventType]
@@ -2458,6 +2459,7 @@ export interface AutomationTrigger extends AutomationTrigger_readonly, Automatio
   enduserCondition?: Record<string, any>,
   journeyId?: string,
   oncePerEnduser?: boolean,
+  triggerNextAt?: Date,
 }
 
 export type Address = {
@@ -2569,7 +2571,7 @@ export type PhoneTreeActions = {
   // 'Play': PhoneTreeActionBuilder<"Play", { playback: PhonePlayback }>
   'Gather': PhoneTreeActionBuilder<"Gather", { digits: boolean, speech: boolean, playback: PhonePlayback }>
   'Voicemail': PhoneTreeActionBuilder<"Voicemail", { playback: PhonePlayback }>
-  'Dial Users': PhoneTreeActionBuilder<"Dial Users", { userIds: string[] }>
+  'Dial Users': PhoneTreeActionBuilder<"Dial Users", { userIds: string[], playback?: Partial<PhonePlayback> }>
 }
 export type PhoneTreeActionType = keyof PhoneTreeActions 
 export type PhoneTreeAction = PhoneTreeActions[PhoneTreeActionType]
@@ -2613,6 +2615,7 @@ export interface TableView_updatesDisabled {}
 export interface TableView extends TableView_readonly, TableView_required, TableView_updatesDisabled {
   defaultForRoles?: string[],
   defaultForUserIds?: string[],
+  filter?: Indexable,
 }
 
 export interface EmailSyncDenial_readonly extends ClientRecord {}

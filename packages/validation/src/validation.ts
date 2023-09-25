@@ -2852,7 +2852,7 @@ const _CUSTOM_ENDUSER_FIELD_TYPES: { [K in CustomEnduserFieldType]: any } = {
   "Multiple Text": true,
   "Date": true,
   "Auto Detect": true,
-  // Table: true,
+  Table: true,
 }
 export const CUSTOM_ENDUSER_FIELD_TYPES = Object.keys(_CUSTOM_ENDUSER_FIELD_TYPES) as CustomEnduserFieldType[]
 export const customEnduserFieldTypeValidator = exactMatchValidator<CustomEnduserFieldType>(CUSTOM_ENDUSER_FIELD_TYPES)
@@ -2918,15 +2918,15 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
   }), 
-  // "Table": objectValidator<CustomEnduserFields["Table"]>({
-  //   type: exactMatchValidator(["Table"]),
-  //   info: objectValidator<CustomEnduserFields['Table']['info']>({
-  //     columns: listValidator(tableInputChoiceValidator),
-  //   }),
-  //   field: stringValidator,
-  //   required: booleanValidatorOptional,
-  //   hiddenFromProfile: booleanValidatorOptional,
-  // }), 
+  "Table": objectValidator<CustomEnduserFields["Table"]>({
+    type: exactMatchValidator(["Table"]),
+    info: objectValidator<CustomEnduserFields['Table']['info']>({
+      columns: listValidator(tableInputChoiceValidator),
+    }),
+    field: stringValidator,
+    required: booleanValidatorOptional,
+    hiddenFromProfile: booleanValidatorOptional,
+  }), 
 })
 export const customEnduserFieldsValidatorOptionalOrEmpty = listValidatorOptionalOrEmptyOk(customEnduserFieldValidator)
 
@@ -2989,6 +2989,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Field Equals": true,
   "No Recent Appointment": true,
   "Medication Added": true,
+  "On Birthday": true,
 }
 export const AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES) as AutomationTriggerEventType[]
 
@@ -3049,6 +3050,13 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['Medication Added']),
     info: objectValidator<AutomationTriggerEvents['Medication Added']['info']>({
       titles: listOfStringsValidatorEmptyOk,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "On Birthday": objectValidator<AutomationTriggerEvents["On Birthday"]>({
+    type: exactMatchValidator(['On Birthday']),
+    info: objectValidator<AutomationTriggerEvents['On Birthday']['info']>({
+      minutes: nonNegNumberValidator,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -3745,6 +3753,25 @@ export const phonePlaybackValidator = orValidator<{ [K in PhonePlaybackType]: Ph
     }),
   }), 
 })
+export const phonePlaybackValidatorOptional = orValidator<{ 
+  [K in PhonePlaybackType | 'optional']: K extends PhonePlaybackType ? PhonePlaybackInfo[K] : {} 
+}>({
+  Play: objectValidator<PhonePlaybackInfo['Play']>({
+    type: exactMatchValidator(['Play']),
+    info: objectValidator<PhonePlaybackInfo["Play"]['info']>({
+      url: stringValidator5000,
+      script: stringValidatorOptional,
+    }),
+  }), 
+  Say: objectValidator<PhonePlaybackInfo['Say']>({
+    type: exactMatchValidator(['Say']),
+    info: objectValidator<PhonePlaybackInfo["Say"]['info']>({
+      script: stringValidator5000,
+      url: stringValidatorOptional,
+    }),
+  }), 
+  optional: optionalEmptyObjectValidator, 
+}, { isOptional: true })
 
 export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]: PhoneTreeActions[K] }>({
   // "Play": objectValidator<PhoneTreeActions["Play"]>({
@@ -3771,6 +3798,7 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
     type: exactMatchValidator(['Dial Users']),
     info: objectValidator<PhoneTreeActions["Dial Users"]['info']>({
       userIds: listOfMongoIdStringValidatorEmptyOk,
+      playback: phonePlaybackValidatorOptional,
     }),
   }),
 })

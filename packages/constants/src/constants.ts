@@ -22,6 +22,9 @@ export const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
   'city': "City",
   'state': "State",
   'zipCode': "ZIP Code",
+  landline: "Landline",
+  timezone: "Timezone",
+  mname: "Middle Name",
 } satisfies { [K in keyof Enduser]?: string }
 
 export const READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
