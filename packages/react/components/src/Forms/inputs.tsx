@@ -1165,8 +1165,6 @@ export const DatabaseSelectInput = ({ field, value, onChange, onDatabaseSelect, 
     )
   }, [choices, filterResponse, field.options?.databaseFilter, value])
 
-  console.log('filteredChoices', filteredChoices)
-
   if (!doneLoading) return <LinearProgress />
   return (
     <Autocomplete id={field.id} freeSolo={false}
