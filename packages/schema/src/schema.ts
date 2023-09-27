@@ -572,7 +572,10 @@ export type CustomActions = {
     remove_from_journey: CustomAction<{ enduserIds: string[], journeyId: string }, { }>, 
     merge: CustomAction<{ sourceEnduserId: string, destinationEnduserId: string, }, { }>, 
     push: CustomAction<{ enduserId: string }, { }>,
-    bulk_update: CustomAction<{ ids: string[], fields: CustomFields }, { updated: Enduser[] }>,
+    bulk_update: CustomAction<
+      { ids: string[], fields?: CustomFields, pushTags?: string[], replaceTags?: string[] }, 
+      { updated: Enduser[] }
+    >,
   },
   users: {
     display_info: CustomAction<{ }, { fname: string, lname: string, id: string }[]>,
@@ -1141,7 +1144,9 @@ export const schema: SchemaV1 = build_schema({
         description: "Updates custom fields across a batch of endusers at once",
         parameters: {
           ids: { validator: listOfMongoIdStringValidator, required: true },
-          fields: { validator: fieldsValidator, required: true },
+          fields: { validator: fieldsValidator },
+          pushTags: { validator: listOfStringsValidator },
+          replaceTags: { validator: listOfStringsValidator },
         },
         returns: {
           updated: { validator: 'endusers' as any },

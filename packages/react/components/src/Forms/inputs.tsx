@@ -5,7 +5,7 @@ import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { first_letter_capitalized, getLocalTimezone, getPublicFileURL, truncate_string } from "@tellescope/utilities"
-import { MultipleChoiceOptions } from "@tellescope/types-models"
+import { FormResponseValue, MultipleChoiceOptions } from "@tellescope/types-models"
 import { VALID_STATES } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -1108,39 +1108,69 @@ const label_for_database_record = (field: FormField, record?: DatabaseRecord) =>
   ) 
 )
 
-export const DatabaseSelectInput = ({ field, value, onChange, onDatabaseSelect }: FormInputProps<'Database Select'>) => {
+export const DatabaseSelectInput = ({ field, value, onChange, onDatabaseSelect, responses }: FormInputProps<'Database Select'> & {
+  responses: FormResponseValue[],
+}) => {
   const { choices, doneLoading } = useDatabaseChoices({ 
     databaseId: field.options?.databaseId,
     field,
   })
 
+  const filterResponse = useMemo(() => (
+    field.options?.databaseFilter?.fieldId
+      ? responses.find(r => r.fieldId === field.options?.databaseFilter?.fieldId)?.answer?.value
+      : undefined
+  ), [responses, field.options?.databaseFilter])
+
+  const filteredChoices = useMemo(() => {
+    if (!choices) return []
+    if (!filterResponse) return choices
+    if (!field?.options?.databaseFilter?.databaseLabel)
+    if (!value || value.length === 0) return choices
+
+    return (
+      choices
+      .filter(c => {
+        const v = c.values.find(_v => _v.label === field.options?.databaseFilter?.databaseLabel)?.value
+        if (!v) return true
+
+        if (typeof v === 'object') {
+          return !!(
+            Object.values(v).find(oVal => (
+              typeof oVal === 'string' || typeof oVal === 'number'
+                ? (
+                  Array.isArray(filterResponse)
+                    ? (filterResponse as any[]).find(r => r === oVal.toString())
+                : (typeof filterResponse === 'string' || typeof filterResponse === 'number')
+                    ? filterResponse.toString() === oVal.toString()
+                    : false
+                )
+                : false
+            ))
+          )
+        }
+
+        if (typeof v === 'string' || typeof v === 'number') {
+          return !!(
+            Array.isArray(filterResponse)
+              ? (filterResponse as any[]).find(r => r === v.toString())
+          : (typeof filterResponse === 'string' || typeof filterResponse === 'number')
+              ? filterResponse.toString() === v.toString()
+              : false
+          )
+        }
+        
+        return false
+      })
+    )
+  }, [choices, filterResponse, field.options?.databaseFilter, value])
+
+  console.log('filteredChoices', filteredChoices)
+
   if (!doneLoading) return <LinearProgress />
   return (
-    // <>{JSON.stringify(choices, null, 2)}</>
-
-    // <DropdownInput 
-    //   field={{
-    //     ...field,
-    //     options: {
-    //       other: false,
-    //       choices: choices.map(c => c.values.find(v => v.label === field.options?.databaseLabel)?.value?.toString() ?? ''),
-    //     }
-    //   }} 
-    //   value={value?.map(v => v.text)}
-    //   onChange={value => (
-    //     onChange(
-    //       value?.map(text => ({
-    //         databaseId: field.options?.databaseId!,
-    //         recordId: choices.find(c => c.values.find(v => v.label === text))!.id,
-    //         text,
-    //       })), 
-    //       field.id
-    //     )
-    //   )}
-    // />
-
     <Autocomplete id={field.id} freeSolo={false}
-      options={choices ?? []} multiple={true}
+      options={filteredChoices} multiple={true}
       getOptionLabel={o => (
         Array.isArray(o) // edge case
           ? ''

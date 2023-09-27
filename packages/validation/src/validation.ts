@@ -2528,6 +2528,10 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   databaseId: mongoIdStringOptional,
   databaseLabel: stringValidatorOptionalEmptyOkay,
   databaseLabels: listOfStringsValidatorOptionalOrEmptyOk,
+  databaseFilter: objectValidator<FormFieldOptions['databaseFilter']>({
+    databaseLabel: stringValidator1000Optional,
+    fieldId: mongoIdStringOptional,
+  }, { isOptional: true, emptyOk: true })
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -3061,8 +3065,6 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     conditions: optionalEmptyObjectValidator,
   }), 
 })
-
-
 
 const _AUTOMATION_TRIGGER_ACTION_TYPES: { [K in AutomationTriggerActionType]: any } = {
   "Add To Journey": true,

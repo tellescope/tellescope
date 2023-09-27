@@ -936,6 +936,10 @@ export type FormFieldOptions = FormFieldValidation & {
   databaseId?: string,
   databaseLabel?: string,
   databaseLabels?: string[],
+  databaseFilter?: {
+    fieldId?: string,
+    databaseLabel?: string,
+  }
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
