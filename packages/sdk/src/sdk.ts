@@ -484,6 +484,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     update_indexes: (args: extractFields<CustomActions['tickets']['update_indexes']['parameters']>) => (
       Promise<extractFields<CustomActions['tickets']['update_indexes']['returns']>>
     ),
+    get_report: (args: extractFields<CustomActions['tickets']['get_report']['parameters']>) => (
+      Promise<extractFields<CustomActions['tickets']['get_report']['returns']>>
+    ),
   },
   appointment_booking_pages: {
     generate_access_token: (args: extractFields<CustomActions['appointment_booking_pages']['generate_access_token']['parameters']>) => (
@@ -641,6 +644,7 @@ export class Session extends SessionManager {
     queries.automation_triggers.trigger_events = a => this._POST(`/v1/${schema.automation_triggers.customActions.trigger_events.path}`, a)
 
     queries.tickets.update_indexes = a => this._PATCH(`/v1/${schema.tickets.customActions.update_indexes.path}`, a)
+    queries.tickets.get_report = a => this._GET(`/v1/${schema.tickets.customActions.get_report.path}`, a)
 
     queries.appointment_booking_pages.generate_access_token = a => this._POST(`/v1/${schema.appointment_booking_pages.customActions.generate_access_token.path}`, a)
 

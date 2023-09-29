@@ -49,6 +49,7 @@ import {
   JourneyStatistics,
   FormStatistics,
   CustomFields,
+  TicketsReport,
 } from "@tellescope/types-models"
 
 import {
@@ -711,6 +712,7 @@ export type CustomActions = {
   },
   tickets: {
     update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
+    get_report: CustomAction<{ title?: string, userId?: string, range?: DateRange }, { report: TicketsReport }>,
   },
   appointment_booking_pages: {
     generate_access_token: CustomAction<{ expiresAt: Date, bookingPageId?: string }, { token: string }>,
@@ -2443,6 +2445,7 @@ export const schema: SchemaV1 = build_schema({
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk }, 
       emailSignature: { validator: stringValidator1000 },
       disableTicketAutoAssignment: { validator: booleanValidator },
+      ticketAssignmentPriority: { validator: nonNegNumberValidator },
       specialties: { validator: listOfStringsValidatorOptionalOrEmptyOk }, 
       bio: { validator: stringValidator25000EmptyOkay }, 
       TIN: { validator: stringValidatorOptionalEmptyOkay },
@@ -2667,6 +2670,20 @@ export const schema: SchemaV1 = build_schema({
           updates: { validator: indexUpdatesValidator, required: true },
         },
         returns: {},
+      },
+      get_report: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Get Report',
+        path: '/tickets/report',
+        description: "Gets aggregate data for building a report on tickets",
+        parameters: { 
+          userId: { validator: mongoIdStringOptional },
+          title: { validator: stringValidator25000 },
+          range: { validator: dateRangeOptionalValidator },
+        },
+        returns: {
+          report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
+        },
       },
     },
     enduserActions: { create: {}, read: {}, readMany: {} },

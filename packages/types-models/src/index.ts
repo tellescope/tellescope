@@ -358,6 +358,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   notificationEmailsDisabled?: boolean,
   disableIncomingPhoneCalls?: boolean,
   disableTicketAutoAssignment?: boolean,
+  ticketAssignmentPriority?: number,
   callRouting?: UserCallRoutingBehavior,
   credentialedStates?: StateCredentialInfo[],
   timezone?: Timezone,
@@ -561,6 +562,43 @@ export interface EngagementEvent extends EngagementEvent_readonly, EngagementEve
   timestamp: Date,
   fields? : CustomFields;
 }
+
+export type TicketsReports = {
+  'default': { 
+    type: 'default',
+    data: {
+      open: {
+        title: string,
+        count: number,
+        unassignedCount: number,
+      }[],
+      closed: {
+        title: string,
+        count: number,
+        unassignedCount: number,
+        averageTimeToCloseInMS: number,
+      }[],
+    }
+  },
+  'by-user': { 
+    type: 'by-user',
+    data: {
+      open: {
+        userId: string,
+        count: number,
+        unassignedCount: number,
+      }[],
+      closed: {
+        userId: string,
+        count: number,
+        unassignedCount: number,
+        averageTimeToCloseInMS: number,
+      }[],
+    }
+  },
+}
+export type TicketsReportType = keyof TicketsReports
+export type TicketsReport = TicketsReports[TicketsReportType]
 
 export type JourneyStatistics = {
   steps: Record<string, { count: number, opens?: number }>,
@@ -814,7 +852,7 @@ export interface Ticket_required {
 export interface Ticket_updatesDisabled {}
 export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updatesDisabled {
   enduserId?: string;
-  closedAt?: Date;
+  closedAt?: Date | '';
   closedBy?: string,
   closedForReason?: string;
   closeReasons?: string[];
@@ -843,6 +881,7 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
   attachments?: ChatAttachment[],
   rootTicketId?: string,
   parentTicketId?: string,
+  timeToCloseInMS?: number,
 }
 
 export type AttendeeInfo = {

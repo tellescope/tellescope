@@ -206,7 +206,6 @@ import {
   PhoneTreeNode,
   PhoneTreeActionType,
   PhoneTreeActions,
-  PhonePlayback,
   PhonePlaybackType,
   PhonePlaybackInfo,
   Enduser,
