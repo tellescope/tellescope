@@ -571,6 +571,7 @@ export type TicketsReports = {
         title: string,
         count: number,
         unassignedCount: number,
+        overdueCount: number,
       }[],
       closed: {
         title: string,
@@ -587,6 +588,7 @@ export type TicketsReports = {
         userId: string,
         count: number,
         unassignedCount: number,
+        overdueCount: number,
       }[],
       closed: {
         userId: string,
@@ -599,6 +601,30 @@ export type TicketsReports = {
 }
 export type TicketsReportType = keyof TicketsReports
 export type TicketsReport = TicketsReports[TicketsReportType]
+
+export type ReportQuery = {
+  range?: DateRange,
+  groupBy?: string,
+}
+export type ReportQueries = Record<string, ReportQuery>
+export type Report = Record<string, { count: number, _id: string | string[] }>
+
+export type FormResponsesReportQuery = ReportQuery & {
+  submittedAtRange?: DateRange,
+  answers?: string[],
+}
+export type FormResponsesReportQueries = Record<string, FormResponsesReportQuery>
+export type FormResponsesReport = Record<string, { count: number, _id: string | string[] }>
+
+export type PhoneCallsReportQuery = ReportQuery & {}
+export type PhoneCallsReportQueries = Record<string, PhoneCallsReportQuery>
+export type PhoneCallsReport = Record<string, { count: number, callDurationInSeconds: number, _id: string | string[] }>
+
+export type EnduserReportQuery = ReportQuery & {
+  activeSince?: Date,
+}
+export type EndusersReportQueries = Record<string, EnduserReportQuery>
+export type EndusersReport = Record<string, { count: number, _id: string }>
 
 export type JourneyStatistics = {
   steps: Record<string, { count: number, opens?: number }>,

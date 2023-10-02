@@ -233,6 +233,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     bulk_update: (args: extractFields<CustomActions['endusers']['bulk_update']['parameters']>) => (
       Promise<extractFields<CustomActions['endusers']['bulk_update']['returns']>>
     ),
+    get_report: (args: extractFields<CustomActions['endusers']['get_report']['parameters']>) => (
+      Promise<extractFields<CustomActions['endusers']['get_report']['returns']>>
+    ),
   },
   users: {
     display_names: () => Promise<{ fname: string, lname: string, id: string }[]>,
@@ -299,6 +302,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
     push_to_EHR: (args: extractFields<CustomActions['form_responses']['push_to_EHR']['parameters']>) => (
       Promise<extractFields<CustomActions['form_responses']['push_to_EHR']['returns']>>
+    ),
+    get_report: (args: extractFields<CustomActions['form_responses']['get_report']['parameters']>) => (
+      Promise<extractFields<CustomActions['form_responses']['get_report']['returns']>>
     ),
   },
   meetings: {
@@ -413,6 +419,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
   phone_calls: {
     authenticate_calling: (args: extractFields<CustomActions['phone_calls']['authenticate_calling']['parameters']>) => (
       Promise<extractFields<CustomActions['phone_calls']['authenticate_calling']['returns']>>
+    ),
+    get_report: (args: extractFields<CustomActions['phone_calls']['get_report']['parameters']>) => (
+      Promise<extractFields<CustomActions['phone_calls']['get_report']['returns']>>
     ),
   },
   sms_messages: {
@@ -539,6 +548,7 @@ export class Session extends SessionManager {
     queries.endusers.merge = a => this._POST(`/v1${schema.endusers.customActions.merge.path}`, a)
     queries.endusers.push = a => this._POST(`/v1${schema.endusers.customActions.push.path}`, a)
     queries.endusers.bulk_update = a => this._PATCH(`/v1${schema.endusers.customActions.bulk_update.path}`, a)
+    queries.endusers.get_report = a => this._GET(`/v1/${schema.endusers.customActions.get_report.path}`, a)
 
     queries.users.display_names = () => this._GET<{}, { fname: string, lname: string, id: string }[]>(`/v1/user-display-names`)
     queries.users.register = (args) => this._POST(`/v1${schema.users.publicActions.register.path}`, args)
@@ -565,6 +575,7 @@ export class Session extends SessionManager {
     queries.form_responses.info_for_access_code = (args) => this._GET(`/v1${schema.form_responses.customActions.info_for_access_code.path}`, args)
     queries.form_responses.stripe_details = (args) => this._GET(`/v1${schema.form_responses.customActions.stripe_details.path}`, args)
     queries.form_responses.push_to_EHR = (args) => this._POST(`/v1${schema.form_responses.customActions.push_to_EHR.path}`, args)
+    queries.form_responses.get_report = a => this._GET(`/v1/${schema.form_responses.customActions.get_report.path}`, a)
     
     // need arraybuffer response type, see tests.ts
     // queries.form_responses.generate_pdf = (args) => (
@@ -626,6 +637,7 @@ export class Session extends SessionManager {
     queries.calendar_events.change_zoom_host = a => this._POST(`/v1/${schema.calendar_events.customActions.change_zoom_host.path}`, a)
 
     queries.phone_calls.authenticate_calling = a => this._POST(`/v1${schema.phone_calls.customActions.authenticate_calling.path}`, a)
+    queries.phone_calls.get_report = a => this._GET(`/v1/${schema.phone_calls.customActions.get_report.path}`, a)
 
     queries.templates.get_templated_message = a => this._POST(`/v1/${schema.templates.customActions.get_templated_message.path}`, a)
     queries.templates.get_suggested_reply = a => this._POST(`/v1/${schema.templates.customActions.get_suggested_reply.path}`, a)

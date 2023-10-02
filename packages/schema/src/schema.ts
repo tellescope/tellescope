@@ -50,6 +50,12 @@ import {
   FormStatistics,
   CustomFields,
   TicketsReport,
+  EndusersReportQueries,
+  EndusersReport,
+  Report,
+  ReportQueries,
+  FormResponsesReportQueries,
+  PhoneCallsReportQueries,
 } from "@tellescope/types-models"
 
 import {
@@ -241,6 +247,9 @@ import {
   mongoIdStringOptional,
   tableViewColumnsValidator,
   formFieldCalloutConditionsValidator,
+  endusersReportQueriesValidator,
+  formResponsesReportQueriesValidator,
+  phoneCallsReportQueriesValidator,
 } from "@tellescope/validation"
 
 import {
@@ -552,6 +561,16 @@ export type CustomActions = {
       { id: string }, 
       {  }
     >,
+    get_report: CustomAction<{ 
+      queries: FormResponsesReportQueries, 
+      formIds?: string[],
+      submittedAtRange?: DateRange, 
+      range?: DateRange, 
+      enduserFilter?: Record<string, any>,
+      submittedOnly?: boolean,
+    }, 
+    { report: Report }
+  >,
   },
   journeys: {
     // update_state: CustomAction<{ updates: Partial<JourneyState>, id: string, name: string }, { updated: Journey }>,
@@ -577,6 +596,7 @@ export type CustomActions = {
       { ids: string[], fields?: CustomFields, pushTags?: string[], replaceTags?: string[] }, 
       { updated: Enduser[] }
     >,
+    get_report: CustomAction<{ queries: EndusersReportQueries, activeSince?: Date, }, { report: EndusersReport }>,
   },
   users: {
     display_info: CustomAction<{ }, { fname: string, lname: string, id: string }[]>,
@@ -692,8 +712,11 @@ export type CustomActions = {
   },
   phone_calls: {
     authenticate_calling: CustomAction<{ os?: "ios" | "android", type?: UserCallRoutingBehavior }, { accessToken: string, identity: string }>, 
-    // can be done in client-side
-    // send_digits: CustomAction<{ callId: string, digits: string }, { }>, 
+    get_report: CustomAction<{ 
+      queries: PhoneCallsReportQueries,
+      range?: DateRange, 
+      enduserFilter?: Record<string, any>,
+    }, { report: Report }>,
   },
   analytics_frames: {
     get_result_for_query: CustomAction<{ 
@@ -1152,6 +1175,19 @@ export const schema: SchemaV1 = build_schema({
         },
         returns: {
           updated: { validator: 'endusers' as any },
+        },
+      },
+      get_report: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Report',
+        path: '/endusers/report',
+        description: "Builds a report",
+        parameters: {
+          queries: { validator: endusersReportQueriesValidator, required: true },
+          activeSince: { validator: dateValidator, },
+        },
+        returns: {
+          report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
         },
       },
     },
@@ -3248,6 +3284,23 @@ export const schema: SchemaV1 = build_schema({
           businessName: { validator: stringValidator, required: true },
         },
       },
+      get_report: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Report',
+        path: '/form-responses/report',
+        description: "Builds a report",
+        parameters: {
+          queries: { validator: formResponsesReportQueriesValidator, required: true },
+          formIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+          submittedAtRange: { validator: dateRangeOptionalValidator },
+          range: { validator: dateRangeOptionalValidator },
+          enduserFilter: { validator: objectAnyFieldsAnyValuesValidator },
+          submittedOnly: { validator: booleanValidatorOptional },
+        },
+        returns: {
+          report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
+        },
+      },
     },
     publicActions: {
       session_for_public_form: {
@@ -5075,6 +5128,20 @@ export const schema: SchemaV1 = build_schema({
           accessToken: { validator: stringValidator, required: true },
           identity: { validator: stringValidator, required: true },
         } 
+      },
+      get_report: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Report',
+        path: '/phone-calls/report',
+        description: "Builds a report",
+        parameters: {
+          queries: { validator: phoneCallsReportQueriesValidator, required: true },
+          range: { validator: dateRangeOptionalValidator },
+          enduserFilter: { validator: objectAnyFieldsAnyValuesValidator },
+        },
+        returns: {
+          report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
+        },
       },
       // can be done in front-end
       // send_digits: {

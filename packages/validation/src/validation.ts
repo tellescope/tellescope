@@ -232,6 +232,11 @@ import {
   TableViewColumn,
   FormFieldCalloutCondition,
   FormFieldCalloutConditionComparison,
+  EndusersReportQueries,
+  EnduserReportQuery,
+  ReportQuery,
+  FormResponsesReportQuery,
+  PhoneCallsReportQuery,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -3840,4 +3845,20 @@ export const tableViewColumnsValidator = listValidatorEmptyOk(objectValidator<Ta
 export const formFieldCalloutConditionsValidator = listValidatorOptionalOrEmptyOk(objectValidator<FormFieldCalloutCondition>({
   comparison: exactMatchValidator<FormFieldCalloutConditionComparison>(['Equals']),
   value: stringValidator1000,
+}))
+
+export const endusersReportQueriesValidator = objectAnyFieldsValidator(objectValidator<EnduserReportQuery>({
+  groupBy: stringValidatorOptional,
+  range: dateRangeOptionalValidator,
+  activeSince: dateOptionalOrEmptyStringValidator,
+}))
+export const formResponsesReportQueriesValidator = objectAnyFieldsValidator(objectValidator<FormResponsesReportQuery>({
+  groupBy: stringValidatorOptional,
+  range: dateRangeOptionalValidator,
+  submittedAtRange: dateRangeOptionalValidator,
+  answers: listOfStringsValidatorOptionalOrEmptyOk,
+}))
+export const phoneCallsReportQueriesValidator = objectAnyFieldsValidator(objectValidator<PhoneCallsReportQuery>({
+  groupBy: stringValidatorOptional,
+  range: dateRangeOptionalValidator,
 }))
