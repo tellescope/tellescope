@@ -601,7 +601,8 @@ export type CustomActions = {
       queries: EndusersReportQueries, 
       customTypeId?: string, 
       activeSince?: Date,
-      fields?: { field: string, value: string }[]
+      fields?: { field: string, value: string }[],
+      range?: DateRange, 
     }, { report: EndusersReport }>,
   },
   users: {
@@ -1192,6 +1193,7 @@ export const schema: SchemaV1 = build_schema({
           queries: { validator: endusersReportQueriesValidator, required: true },
           activeSince: { validator: dateValidator, },
           customTypeId: { validator: stringValidator100 }, // don't limit to objectId, allow 'All' to not filter, otherwise filter by default to patients
+          range: { validator: dateRangeOptionalValidator },
           fields: { 
             validator: listValidatorEmptyOk(objectValidator<{ field: string, value: string }>({ field: stringValidator, value: stringValidator })) 
           }
