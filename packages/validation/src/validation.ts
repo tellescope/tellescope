@@ -3851,7 +3851,7 @@ export const endusersReportQueriesValidator = objectAnyFieldsValidator(objectVal
   groupBy: stringValidatorOptional,
   range: dateRangeOptionalValidator,
   activeSince: dateOptionalOrEmptyStringValidator,
-  // customTypeId: stringValidatorOptional,
+  fields: listValidatorOptionalOrEmptyOk(objectValidator<{ field: string, value: string }>({ field: stringValidator, value: stringValidator }))
 }))
 export const formResponsesReportQueriesValidator = objectAnyFieldsValidator(objectValidator<FormResponsesReportQuery>({
   groupBy: stringValidatorOptional,

@@ -622,6 +622,7 @@ export type PhoneCallsReport = Record<string, { count: number, callDurationInSec
 
 export type EnduserReportQuery = ReportQuery & {
   activeSince?: Date,
+  fields?: { field: string, value: string }[]
 }
 export type EndusersReportQueries = Record<string, EnduserReportQuery>
 export type EndusersReport = Report
