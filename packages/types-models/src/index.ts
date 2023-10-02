@@ -607,18 +607,18 @@ export type ReportQuery = {
   groupBy?: string,
 }
 export type ReportQueries = Record<string, ReportQuery>
-export type Report = Record<string, { count: number, _id: string | string[] }>
+export type Report = Record<string, { count: number, _id: string | string[] }[]>
 
 export type FormResponsesReportQuery = ReportQuery & {
   submittedAtRange?: DateRange,
   answers?: string[],
 }
 export type FormResponsesReportQueries = Record<string, FormResponsesReportQuery>
-export type FormResponsesReport = Record<string, { count: number, _id: string | string[] }>
+export type FormResponsesReport = Report
 
 export type PhoneCallsReportQuery = ReportQuery & {}
 export type PhoneCallsReportQueries = Record<string, PhoneCallsReportQuery>
-export type PhoneCallsReport = Record<string, { count: number, callDurationInSeconds: number, _id: string | string[] }>
+export type PhoneCallsReport = Record<string, { count: number, callDurationInSeconds: number, _id: string | string[] }[]>
 
 export type EnduserReportQuery = ReportQuery & {
   activeSince?: Date,
