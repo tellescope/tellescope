@@ -3855,7 +3855,11 @@ export const endusersReportQueriesValidator = objectAnyFieldsValidator(objectVal
   hasSubmittedForms: objectValidator<EnduserReportQuery['hasSubmittedForms']>({
     formIds: listOfStringsValidatorEmptyOk,
     range: dateRangeOptionalValidator,
-  }, { isOptional: true, emptyOk: true })
+  }, { isOptional: true, emptyOk: true }),
+  hasNotSubmittedForms: objectValidator<EnduserReportQuery['hasNotSubmittedForms']>({
+    formIds: listOfStringsValidatorEmptyOk,
+    range: dateRangeOptionalValidator,
+  }, { isOptional: true, emptyOk: true }),
 }))
 export const formResponsesReportQueriesValidator = objectAnyFieldsValidator(objectValidator<FormResponsesReportQuery>({
   groupBy: stringValidatorOptional,

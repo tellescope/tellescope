@@ -626,7 +626,11 @@ export type EnduserReportQuery = ReportQuery & {
   hasSubmittedForms?: {
     formIds?: string[],
     range?: DateRange,
-  }
+  },
+  hasNotSubmittedForms?: {
+    formIds?: string[],
+    range?: DateRange,
+  },
 }
 export type EndusersReportQueries = Record<string, EnduserReportQuery>
 export type EndusersReport = Report
