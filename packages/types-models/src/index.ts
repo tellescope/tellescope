@@ -624,7 +624,7 @@ export type EnduserReportQuery = ReportQuery & {
   activeSince?: Date,
 }
 export type EndusersReportQueries = Record<string, EnduserReportQuery>
-export type EndusersReport = Record<string, { count: number, _id: string }>
+export type EndusersReport = Report
 
 export type JourneyStatistics = {
   steps: Record<string, { count: number, opens?: number }>,
