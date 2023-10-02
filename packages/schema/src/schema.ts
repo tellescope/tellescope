@@ -250,6 +250,7 @@ import {
   endusersReportQueriesValidator,
   formResponsesReportQueriesValidator,
   phoneCallsReportQueriesValidator,
+  listValidatorEmptyOk,
 } from "@tellescope/validation"
 
 import {
@@ -596,7 +597,12 @@ export type CustomActions = {
       { ids: string[], fields?: CustomFields, pushTags?: string[], replaceTags?: string[] }, 
       { updated: Enduser[] }
     >,
-    get_report: CustomAction<{ queries: EndusersReportQueries, activeSince?: Date, }, { report: EndusersReport }>,
+    get_report: CustomAction<{ 
+      queries: EndusersReportQueries, 
+      customTypeId?: string, 
+      activeSince?: Date,
+      fields?: { field: string, value: string }[]
+    }, { report: EndusersReport }>,
   },
   users: {
     display_info: CustomAction<{ }, { fname: string, lname: string, id: string }[]>,
@@ -1185,6 +1191,10 @@ export const schema: SchemaV1 = build_schema({
         parameters: {
           queries: { validator: endusersReportQueriesValidator, required: true },
           activeSince: { validator: dateValidator, },
+          customTypeId: { validator: stringValidator100 }, // don't limit to objectId, allow 'All' to not filter, otherwise filter by default to patients
+          fields: { 
+            validator: listValidatorEmptyOk(objectValidator<{ field: string, value: string }>({ field: stringValidator, value: stringValidator })) 
+          }
         },
         returns: {
           report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
