@@ -802,8 +802,13 @@ export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Endu
           ? (
             (enduser.fields?.[key] ?? enduser?.[key as keyof typeof enduser]) === value
             || (
-              Array.isArray(enduser.fields?.[key]) && (enduser?.fields?.[key] as string[]).includes(value)
+              Array.isArray(enduser.fields?.[key]) 
+              && (enduser?.fields?.[key] as string[]).includes(value)
             )
+            || (
+              Array.isArray(enduser?.[key as keyof typeof enduser]) 
+              && (enduser[key as keyof typeof enduser] as string[]).includes(value)
+            ) 
             )
           : false
     )  
