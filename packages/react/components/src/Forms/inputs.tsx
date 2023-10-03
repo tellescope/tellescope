@@ -17,56 +17,80 @@ import { DatabaseRecord, FormField } from "@tellescope/types-client"
 import { css } from '@emotion/css'
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
-import { usePdf } from '@mikecousins/react-pdf';
 import heic2any from "heic2any"
+
+// import { pdfjs, Document, Page } from 'react-pdf';
+
+// try {
+//   pdfjs.GlobalWorkerOptions.workerSrc = new URL(
+//     'pdfjs-dist/build/pdf.worker.min.js',
+//     import.meta.url,
+//   ).toString();
+// } catch(err) {
+//   console.error(err)
+// }
+// try {
+//   pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
+// } catch(err) { console.error(err) }
 
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js'; 
 import { CheckCircleOutline, Delete } from "@mui/icons-material"
 
 export const PdfViewer = ({ url } : { url: string }) => {
-  const [page, setPage] = useState(1);
+  // const [numPages, setNumPages] = useState<number>();
+  // const [page, setPage] = useState(1);
   
-  const parentRef = useRef<HTMLDivElement | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  // const parentRef = useRef<HTMLDivElement | null>(null);
+  // const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  const { pdfDocument, pdfPage } = usePdf({
-    file: url,
-    page,
-    canvasRef,
-  });
+  // function onDocumentLoadSuccess({ numPages }: { numPages: number }): void {
+  //   setNumPages(numPages);
+  // }
 
-  const pdfHeight: number | undefined = pdfPage?._pageInfo?.view?.[3]
-  const pdfWidth: number | undefined = pdfPage?._pageInfo?.view?.[2]
+  // const pdfHeight: number | undefined = pdfPage?._pageInfo?.view?.[3]
+  // const pdfWidth: number | undefined = pdfPage?._pageInfo?.view?.[2]
 
-  const parentWidth = parentRef.current?.clientWidth
+  // const parentWidth = parentRef.current?.clientWidth
 
   return (
     <Grid container direction="column">
-      {!pdfDocument && <span>Loading pdf...</span>}
+      {/* {!pdfDocument && <span>Loading pdf...</span>} */}
 
-      <Grid item ref={parentRef} style={{ width: '100%' }}>
-        {pdfDocument && pdfHeight && pdfWidth && parentWidth &&
+      {/* <Grid item ref={parentRef} style={{ width: '100%' }}> */}
+        {/* {pdfDocument && pdfHeight && pdfWidth && parentWidth &&
           <canvas ref={canvasRef} style={{ 
             maxWidth: '100%', 
             maxHeight: parentWidth / pdfWidth * pdfHeight
           }}  />
-        }
-      </Grid>
+        } */}
+        {/* <Document file="somefile.pdf" onLoadSuccess={onDocumentLoadSuccess}>
+          <Page pageNumber={page} />
+        </Document>
+      </Grid> */}
 
-      {pdfDocument && pdfHeight && pdfWidth && parentWidth &&
-        <Grid container alignItems="center" justifyContent="space-between">
+      {/* {pdfDocument && pdfHeight && pdfWidth && parentWidth && */}
+        {/* <Grid container alignItems="center" justifyContent="space-between">
           <Button variant="outlined" disabled={page === 1} onClick={() => setPage(page - 1)}>
             Previous Page
           </Button>
           <Button variant="outlined" 
-            disabled={page === pdfDocument.numPages}
+            disabled={page === numPages}
             onClick={() => setPage(page + 1)}
           >
             Next Page
           </Button>
-        </Grid>
-      }
+        </Grid> */}
+      {/* } */}
+      <iframe src={url} title="PDF Viewer"  
+        style={{ 
+          border: 'none',
+          height: 420,
+          width: '100%',
+          marginBottom: '5px'
+        }}
+      />
+
       <a href={url} target="__blank" rel="noopener noreferrer"
         style={{ marginTop: 5 }}
       >

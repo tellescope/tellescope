@@ -2959,6 +2959,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     builtinFields: buildInFieldsValidator,
     tags: listOfStringsValidatorOptionalOrEmptyOk,
     transcribeCallInboundPlayback: stringValidatorOptionalEmptyOkay,
+    sendSMSOnZoomStart: booleanValidatorOptional,
   }, { isOptional: true }),
   calendar: objectValidator<OrganizationSettings['calendar']>({
     dayStart: objectValidator<Required<OrganizationSettings>['calendar']['dayStart']>({
@@ -3866,6 +3867,7 @@ export const formResponsesReportQueriesValidator = objectAnyFieldsValidator(obje
   range: dateRangeOptionalValidator,
   submittedAtRange: dateRangeOptionalValidator,
   answers: listOfStringsValidatorOptionalOrEmptyOk,
+  submittedAtBuckets: listValidatorOptionalOrEmptyOk(dateValidator),
 }))
 export const phoneCallsReportQueriesValidator = objectAnyFieldsValidator(objectValidator<PhoneCallsReportQuery>({
   groupBy: stringValidatorOptional,

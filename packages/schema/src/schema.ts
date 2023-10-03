@@ -251,6 +251,7 @@ import {
   formResponsesReportQueriesValidator,
   phoneCallsReportQueriesValidator,
   listValidatorEmptyOk,
+  phonePlaybackValidatorOptional,
 } from "@tellescope/validation"
 
 import {
@@ -2499,6 +2500,7 @@ export const schema: SchemaV1 = build_schema({
       TIN: { validator: stringValidatorOptionalEmptyOkay },
       NPI: { validator: stringValidatorOptionalEmptyOkay },
       DEA: { validator: stringValidatorOptionalEmptyOkay },
+      voicemailPlayback: { validator: phonePlaybackValidatorOptional },
     }
   },
   templates: {
@@ -3127,6 +3129,7 @@ export const schema: SchemaV1 = build_schema({
         validator: objectValidator<FormField['prepopulateFromDatabase']>({
           databaseId: mongoIdStringOptional, 
           field: stringValidatorOptionalEmptyOkay,
+          overwrite: booleanValidatorOptional,
         }, { isOptional: true, emptyOk: true })
       },
     }

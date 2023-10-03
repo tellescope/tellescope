@@ -529,16 +529,19 @@ export const useTellescopeForm = ({ customization, ga4measurementId, rootRespons
       if (!fields?.find(f => f.prepopulateFromDatabase?.databaseId && f.prepopulateFromDatabase?.field)) return
 
       setResponses(rs => rs.map(r => {
-        // don't overwrite an existing value
-        if (r.answer.type === 'Address') {
-          if (!object_is_empty(r.answer.value ?? {})) {
-            return r
+        const field = fields.find(f => f.id === r.fieldId)
+
+        // don't overwrite an existing value by default
+        if (!field?.prepopulateFromDatabase?.overwrite) {
+          if (r.answer.type === 'Address') {
+            if (!object_is_empty(r.answer.value ?? {})) {
+              return r
+            }
+          } else if (r.answer?.value) {
+            return r 
           }
-        } else if (r.answer?.value) {
-           return r 
         }
 
-        const field = fields.find(f => f.id === r.fieldId)
         if (
           !(
              field?.prepopulateFromDatabase?.databaseId 

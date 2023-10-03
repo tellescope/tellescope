@@ -4561,6 +4561,14 @@ const TRACK_OPEN_IMAGE = Buffer.from(
       sdkSubSub.authenticate(subSubUserEmail, password),
       sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword),
     ]) 
+    
+    await async_test(
+      "count exists",
+      // @ts-ignore
+      () => sdk.api.endusers.getSome({ returnCount: true }),
+      { onResult: result => typeof (result as any).count === 'number' }
+    ) 
+
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await pdf_generation()

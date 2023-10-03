@@ -140,6 +140,7 @@ export type OrganizationSettings = {
     recordCalls?: boolean,
     transcribeCalls?: boolean,
     transcribeCallInboundPlayback?: string,
+    sendSMSOnZoomStart?: boolean,
   },
   calendar?: {
     dayStart?: {
@@ -378,6 +379,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   TIN?: string,
   NPI?: string,
   DEA?: string,
+  voicemailPlayback?: PhonePlayback | {},
 }
 
 export type Preference = 'email' | 'sms' | 'call' | 'chat'
@@ -611,6 +613,7 @@ export type Report = Record<string, { count: number, _id: null | string | string
 
 export type FormResponsesReportQuery = ReportQuery & {
   submittedAtRange?: DateRange,
+  submittedAtBuckets?: Date[],
   answers?: string[],
 }
 export type FormResponsesReportQueries = Record<string, FormResponsesReportQuery>
@@ -1047,6 +1050,7 @@ export interface FormField extends FormField_readonly, FormField_required, FormF
   prepopulateFromDatabase?: {
     databaseId?: string,
     field?: string,
+    overwrite?: boolean,
   }
 }
 
