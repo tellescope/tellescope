@@ -82,7 +82,14 @@ export const PdfViewer = ({ url } : { url: string }) => {
           </Button>
         </Grid> */}
       {/* } */}
-      <iframe src={url} title="PDF Viewer"  
+      <iframe 
+        src={
+          // url
+          // encodeURI(`http://localhost:5173?url=${url}`)
+          // encodeURI(`http://tellescope-pdf-renderer.s3-website.us-east-2.amazonaws.com?url=${url}`)
+          encodeURI(`https://pdf.tellescope.com?url=${url}`)
+        } 
+        title="PDF Viewer"  
         style={{ 
           border: 'none',
           height: 420,
