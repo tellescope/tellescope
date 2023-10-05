@@ -3869,6 +3869,7 @@ export const endusersReportQueriesValidator = objectAnyFieldsValidator(objectVal
     formIds: listOfStringsValidatorEmptyOk,
     range: dateRangeOptionalValidator,
   }, { isOptional: true, emptyOk: true }),
+  createdAtBuckets: listValidatorOptionalOrEmptyOk(dateValidator),
 }))
 export const formResponsesReportQueriesValidator = objectAnyFieldsValidator(objectValidator<FormResponsesReportQuery>({
   groupBy: stringValidatorOptional,
@@ -3876,8 +3877,10 @@ export const formResponsesReportQueriesValidator = objectAnyFieldsValidator(obje
   submittedAtRange: dateRangeOptionalValidator,
   answers: listOfStringsValidatorOptionalOrEmptyOk,
   submittedAtBuckets: listValidatorOptionalOrEmptyOk(dateValidator),
+  createdAtBuckets: listValidatorOptionalOrEmptyOk(dateValidator),
 }))
 export const phoneCallsReportQueriesValidator = objectAnyFieldsValidator(objectValidator<PhoneCallsReportQuery>({
   groupBy: stringValidatorOptional,
   range: dateRangeOptionalValidator,
+  createdAtBuckets: listValidatorOptionalOrEmptyOk(dateValidator),
 }))

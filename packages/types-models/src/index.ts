@@ -610,6 +610,7 @@ export type TicketsReport = TicketsReports[TicketsReportType]
 export type ReportQuery = {
   range?: DateRange,
   groupBy?: string,
+  createdAtBuckets?: Date[],
 }
 export type ReportQueries = Record<string, ReportQuery>
 export type Report = Record<string, { count: number, _id: null | string | string[] }[]>

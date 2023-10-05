@@ -206,4 +206,5 @@ export interface GmailWebhookLog extends InternalBusinessRecord {
   from: string,
   headers?: any[],
   existingMessageId?: string,
+  messageData: { emailAddress: string, }
 }
