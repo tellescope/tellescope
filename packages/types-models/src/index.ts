@@ -128,7 +128,7 @@ export type EnduserBuiltInField = {
 }
 
 export type OrganizationSettings = {
-  endusers: { 
+  endusers?: { 
     disableMultipleChatRooms?: boolean,
     disableCalendarEventAutoAssignment?: boolean,
     builtinFields?: EnduserBuiltInField[],
@@ -141,6 +141,9 @@ export type OrganizationSettings = {
     transcribeCalls?: boolean,
     transcribeCallInboundPlayback?: string,
     sendSMSOnZoomStart?: boolean,
+  },
+  tickets?: {
+    defaultJourneyDueDateOffsetInMS?: number | '',
   },
   calendar?: {
     dayStart?: {
@@ -716,6 +719,7 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
   hiddenBy?: { [index: string] : Date | '' };
   suggestedReply?: string,
   tags?: string[],
+  batchId?: string,
   // sentAt: string, // only outgoing
 }
 
@@ -756,6 +760,7 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
   phoneNumber?: string,
   enduserPhoneNumber?: string,
   tags?: string[],
+  batchId?: string,
   // usingPublicNumber?: boolean, // flagged on outgoing messages from public number
   // sentAt: string, // only outgoing
 }
@@ -827,6 +832,7 @@ export interface ChatMessage extends ChatMessage_readonly, ChatMessage_required,
   timestamp?: Date,
   ticketIds?: string[],
   tags?: string[],
+  userId?: string,
 }
 
 export type MessageTemplateType = 'enduser' | 'Reply' | 'team'  // default to 'enduser'
@@ -2499,6 +2505,7 @@ export type AutomationTriggerActionBuilder <T, I> = { type: T, info: I }
 export type AutomationTriggerActions = {
   "Add To Journey": AutomationTriggerActionBuilder<'Add To Journey', { journeyId: string, doNotRestart?: boolean }>,
   "Remove From Journey": AutomationTriggerActionBuilder<'Remove From Journey', { journeyId: string }>,
+  "Remove From All Journeys": AutomationTriggerActionBuilder<'Remove From All Journeys', { }>,
   "Add Tags": AutomationTriggerActionBuilder<'Add Tags', { tags: string[] }>,
   "Move To Step": AutomationTriggerActionBuilder<'Move To Step', { }>, // journeyId and automationStepId stored as part of trigger for better dependency deletion
   "Assign Care Team": AutomationTriggerActionBuilder<'Assign Care Team', { 

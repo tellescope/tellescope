@@ -197,3 +197,13 @@ export interface ElectronicSignature extends InternalBusinessRecord {
   pdfSecureName?: string,
   url?: string,
 }
+
+
+
+export interface GmailWebhookLog extends InternalBusinessRecord {
+  type: string, 
+  to: string,
+  from: string,
+  headers?: any[],
+  existingMessageId?: string,
+}

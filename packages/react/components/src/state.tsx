@@ -103,11 +103,14 @@ interface FetchContextValue {
   reset: () => void;
   getLastId: (m: string) => string | undefined,
   setLastId: (m: string, id: string) => string | undefined,
+  getLastDate: (m: string) => Date | undefined,
+  setLastDate: (m: string, d: Date) => void,
 }
 const FetchContext = createContext({} as FetchContextValue)
 export const WithFetchContext = ( { children } : { children: React.ReactNode }) => {
   const lookupRef = React.useRef({} as Indexable<{ lastFetch: number, status: boolean }>)  
   const lastIdRef = React.useRef({} as Indexable<string>)  
+  const lastDateRef = React.useRef({} as Indexable<Date>)  
   const reset = () => lookupRef.current = {}
 
   return (
@@ -127,6 +130,8 @@ export const WithFetchContext = ( { children } : { children: React.ReactNode }) 
       reset,
       getLastId: (m) => lastIdRef.current?.[m],
       setLastId: (m, id) => lastIdRef.current[m] = id,
+      getLastDate: (m) => lastDateRef.current?.[m],
+      setLastDate: (m, d) => lastDateRef.current[m] = d,
      }}>
       {children}
     </FetchContext.Provider>
@@ -468,6 +473,10 @@ export interface ListUpdateMethods <T, ADD> extends LoadMoreFunctions<T> {
   removeLocalElements: (ids: string[]) => void,
   reload: (loadOptions?: Pick<HookOptions<T>, 'loadFilter'>) => void;
   filtered: (filter: (value: T) => boolean) => LoadedData<T[]>;
+  getOldestLoadedDate: () => Date | undefined,
+  setOldestLoadedDate: (d: Date) => void,
+  getOldestLoadedId: () => string | undefined,
+  setOldestLoadedId: (id: string) => void,
 }
 export type ListStateReturnType <T extends { id: string | number }, ADD=Partial<T>> = [LoadedData<T[]>, ListUpdateMethods<T, ADD>]
 
@@ -504,7 +513,7 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
   })
 
   const dispatch = useTellescopeDispatch()
-  const { didFetch, setFetched, getLastId, setLastId } = useContext(FetchContext)
+  const { didFetch, setFetched, getLastId, setLastId, getLastDate, setLastDate } = useContext(FetchContext)
 
   const addLocalElement = useCallback((e: T, o?: AddOptions) => {
     dispatch(slice.actions.add({ value: e, options: o }))
@@ -748,6 +757,10 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
               modelName + (loadFilter ? JSON.stringify(loadFilter): ''), 
               es.value[es.value.length - 1]?.id?.toString()
             )
+            const createdAt: any = (es.value[es.value.length - 1] as any).createdAt;
+            if (typeof createdAt === 'string' || createdAt instanceof Date) {
+              setLastDate(modelName, new Date(createdAt))
+            }
           }
           dispatch(slice.actions.addSome({ value: es.value, options: { replaceIfMatch: true } }))
         } else {
@@ -760,6 +773,11 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
       }
     )
   }, [cantRead, setFetched, didFetch, modelName, options, loadQuery, options?.dontFetch, dispatch])
+
+  const getOldestLoadedId = () => getLastId(modelName)
+  const setOldestLoadedId = (id: string) => setLastId(modelName, id)
+  const setOldestLoadedDate = (d: Date) => setLastDate(modelName, d)
+  const getOldestLoadedDate = () => getLastDate(modelName)
 
   const reload: ListUpdateMethods <T, ADD>['reload'] = useCallback(options => load(true, { ...options, reloading: true }), [load])
 
@@ -845,7 +863,8 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     {
       addLocalElement, addLocalElements, replaceLocalElement, modifyLocalElements, searchLocalElements,
       createElement, createElements, updateElement, updateLocalElement, updateLocalElements, findByFilter, findById, removeElement, removeLocalElements,
-      reload, loadMore, doneLoading, filtered,
+      reload, loadMore, doneLoading, filtered, 
+      getOldestLoadedDate, setOldestLoadedDate, setOldestLoadedId, getOldestLoadedId,
     }
   ]
 }

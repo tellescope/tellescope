@@ -4442,9 +4442,12 @@ const pdf_generation = async () => {
 
   // include lots of answers to ensure PDF height doesn't produce any cut-off
   const responses: FormResponseValue[] = []
-  for (let i=0; i < 1; i++) {
+  for (let i=0; i < 3; i++) {
     responses.push({
-      fieldId: PLACEHOLDER_ID, fieldTitle: 'test', answer: { type: 'string', value: `Answer ${i}` },
+      fieldId: PLACEHOLDER_ID, fieldTitle: 'test', answer: { 
+        type: 'string', 
+        value: `Answer ${i} 😅 _-!@#$%^&*()+<>?{}|[] áccéñt test`
+      },
     })
   }
   const fr = await sdk.api.form_responses.createOne({ 
@@ -4567,6 +4570,12 @@ const TRACK_OPEN_IMAGE = Buffer.from(
       // @ts-ignore
       () => sdk.api.endusers.getSome({ returnCount: true }),
       { onResult: result => typeof (result as any).count === 'number' }
+    ) 
+
+    await async_test(
+      "push_to_EHR allows missing addedResponses",
+      () => sdk.api.form_responses.push_to_EHR({ id: PLACEHOLDER_ID }),
+      { shouldError: true, onError: e => { return e?.message === 'Could not find a record for the given id' } }
     ) 
 
     await setup_tests()

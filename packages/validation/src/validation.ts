@@ -2961,6 +2961,9 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     transcribeCallInboundPlayback: stringValidatorOptionalEmptyOkay,
     sendSMSOnZoomStart: booleanValidatorOptional,
   }, { isOptional: true }),
+  tickets: objectValidator<OrganizationSettings['tickets']>({
+    defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
+  }, { isOptional: true }),
   calendar: objectValidator<OrganizationSettings['calendar']>({
     dayStart: objectValidator<Required<OrganizationSettings>['calendar']['dayStart']>({
       hour: numberValidator, 
@@ -3077,6 +3080,7 @@ const _AUTOMATION_TRIGGER_ACTION_TYPES: { [K in AutomationTriggerActionType]: an
   "Move To Step": true,
   "Add Tags": true,
   "Assign Care Team": true,
+  "Remove From All Journeys": true
 }
 export const AUTOMATION_TRIGGER_ACTION_TYPES = Object.keys(_AUTOMATION_TRIGGER_ACTION_TYPES) as AutomationTriggerActionType[]
 
@@ -3109,6 +3113,10 @@ export const automationTriggerActionValidator = orValidator<{ [K in AutomationTr
     info: objectValidator<AutomationTriggerActions['Assign Care Team']['info']>({
       tags: listOfStringsWithQualifierValidator,
     }),
+  }), 
+  "Remove From All Journeys": objectValidator<AutomationTriggerActions["Remove From All Journeys"]>({
+    type: exactMatchValidator(['Remove From All Journeys']),
+    info: optionalEmptyObjectValidator,
   }), 
 })
 

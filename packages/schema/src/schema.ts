@@ -560,7 +560,10 @@ export type CustomActions = {
       {  }
     >,
     push_to_EHR: CustomAction<
-      { id: string }, 
+      { 
+        id: string,
+        addedResponses?: FormResponseValue[],
+      }, 
       {  }
     >,
     get_report: CustomAction<{ 
@@ -1807,6 +1810,7 @@ export const schema: SchemaV1 = build_schema({
       alternateToAddress: { validator: emailValidator },
       suggestedReply: { validator: stringValidator5000EmptyOkay },
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      batchId: { validator: stringValidator250 }, 
     }, 
     customActions: {
       sync_integrations: {
@@ -1992,6 +1996,7 @@ export const schema: SchemaV1 = build_schema({
       phoneNumber: { validator: stringValidatorOptionalEmptyOkay },
       enduserPhoneNumber: { validator: phoneValidator },
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      batchId: { validator: stringValidator250 }, 
     }, 
   },
   chat_rooms: {
@@ -2160,6 +2165,11 @@ export const schema: SchemaV1 = build_schema({
           relationship: 'foreignKey',
           onDependencyDelete: 'setNull',
         }]
+      },
+      userId: {
+        validator: mongoIdStringValidator,
+        // don't use initializer to avoid setting userId by Admin API caller
+        // initializer: (a, s) => s.type === 'user' ? s.id : undefined,
       },
       message: {
         validator: stringValidator5000,
@@ -3237,6 +3247,7 @@ export const schema: SchemaV1 = build_schema({
         description: "Pushes to an external EHR (e.g. Healthie)",
         parameters: { 
           id: { validator: mongoIdStringValidator, required: true },
+          addedResponses: { validator: formResponsesValidator }
         },
         returns: { },
       },
