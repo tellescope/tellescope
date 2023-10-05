@@ -653,6 +653,10 @@ export type EnduserReportQuery = ReportQuery & {
   hasInboundCall?: {
     range?: DateRange,
   },
+  hasEngaged?: {
+    range?: DateRange,
+    omitFormResponses?: boolean,
+  },
 }
 export type EndusersReportQueries = Record<string, EnduserReportQuery>
 export type EndusersReport = Report
