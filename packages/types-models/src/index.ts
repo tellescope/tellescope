@@ -638,6 +638,21 @@ export type EnduserReportQuery = ReportQuery & {
     formIds?: string[],
     range?: DateRange,
   },
+  hasAppointment?: {
+    range?: DateRange,
+  },
+  hasInboundSMS?: {
+    range?: DateRange,
+  },
+  hasInboundEmail?: {
+    range?: DateRange,
+  },
+  hasInboundChat?: {
+    range?: DateRange,
+  },
+  hasInboundCall?: {
+    range?: DateRange,
+  },
 }
 export type EndusersReportQueries = Record<string, EnduserReportQuery>
 export type EndusersReport = Report

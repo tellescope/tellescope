@@ -3858,6 +3858,7 @@ export const formFieldCalloutConditionsValidator = listValidatorOptionalOrEmptyO
 
 export const endusersReportQueriesValidator = objectAnyFieldsValidator(objectValidator<EnduserReportQuery>({
   groupBy: stringValidatorOptional,
+  createdAtBuckets: listValidatorOptionalOrEmptyOk(dateValidator),
   range: dateRangeOptionalValidator,
   activeSince: dateOptionalOrEmptyStringValidator,
   fields: listValidatorOptionalOrEmptyOk(objectValidator<{ field: string, value: string }>({ field: stringValidator, value: stringValidator })),
@@ -3869,7 +3870,21 @@ export const endusersReportQueriesValidator = objectAnyFieldsValidator(objectVal
     formIds: listOfStringsValidatorEmptyOk,
     range: dateRangeOptionalValidator,
   }, { isOptional: true, emptyOk: true }),
-  createdAtBuckets: listValidatorOptionalOrEmptyOk(dateValidator),
+  hasAppointment: objectValidator<EnduserReportQuery['hasAppointment']>({
+    range: dateRangeOptionalValidator,
+  }, { isOptional: true, emptyOk: true }),
+  hasInboundCall: objectValidator<EnduserReportQuery['hasInboundCall']>({
+    range: dateRangeOptionalValidator,
+  }, { isOptional: true, emptyOk: true }),
+  hasInboundChat: objectValidator<EnduserReportQuery['hasInboundChat']>({
+    range: dateRangeOptionalValidator,
+  }, { isOptional: true, emptyOk: true }),
+  hasInboundEmail: objectValidator<EnduserReportQuery['hasInboundEmail']>({
+    range: dateRangeOptionalValidator,
+  }, { isOptional: true, emptyOk: true }),
+  hasInboundSMS: objectValidator<EnduserReportQuery['hasInboundSMS']>({
+    range: dateRangeOptionalValidator,
+  }, { isOptional: true, emptyOk: true }),
 }))
 export const formResponsesReportQueriesValidator = objectAnyFieldsValidator(objectValidator<FormResponsesReportQuery>({
   groupBy: stringValidatorOptional,
