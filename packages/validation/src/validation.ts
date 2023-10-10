@@ -2968,12 +2968,12 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     dayStart: objectValidator<Required<OrganizationSettings>['calendar']['dayStart']>({
       hour: numberValidator, 
       minute: numberValidatorOptional, 
-      timezone: timezoneValidator,
+      // timezone: timezoneValidator, // weird stuff happens at the boundaries with timezones, leave out for now
     }, { isOptional: true }),
     dayEnd: objectValidator<Required<OrganizationSettings>['calendar']['dayEnd']>({
       hour: numberValidator, 
       minute: numberValidatorOptional, 
-      timezone: timezoneValidator,
+      // timezone: timezoneValidator, // weird stuff happens at the boundaries with timezones, leave out for now
     }, { isOptional: true }),
     bookingStartOffset: objectValidator<Required<OrganizationSettings>['calendar']['bookingStartOffset']>({
       month: numberValidatorOptional, 

@@ -149,12 +149,12 @@ export type OrganizationSettings = {
     dayStart?: {
       hour: number,
       minute: number,
-      timezone: Timezone,
+      // timezone?: Timezone,
     },
     dayEnd?: {
       hour: number,
       minute: number,
-      timezone: Timezone,
+      // timezone?: Timezone,
     },
     bookingStartOffset?: {
       month?: number,
@@ -1130,6 +1130,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   customization?: FormCustomization,
   disabled?: boolean,
   disableAutomaticIntegrationPush?: boolean,
+  customTypeIds?: string[],
 }
 
 

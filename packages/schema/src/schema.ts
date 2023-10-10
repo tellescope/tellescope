@@ -803,6 +803,7 @@ export type PublicActions = {
       businessId: string,
       publicIdentifier?: string,
       state?: string,
+      customTypeId?: string,
       // organizationIds?: string[]
     }, { accessCode: string, authToken: string, url: string, path: string }>,
   },
@@ -3063,6 +3064,7 @@ export const schema: SchemaV1 = build_schema({
       publicFormIdRedirect: { validator: mongoIdStringOptional },
       disabled: { validator: booleanValidatorOptional },
       disableAutomaticIntegrationPush: { validator: booleanValidatorOptional },
+      customTypeIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
     }
   },
   form_fields: {
@@ -3344,6 +3346,7 @@ export const schema: SchemaV1 = build_schema({
           lname: { validator: nameValidator },
           publicIdentifier: { validator: stringValidator },
           state: { validator: stateValidator },
+          customTypeId: { validator: stringValidator },
         },
         returns: {
           accessCode: { validator: stringValidator250, required: true },
