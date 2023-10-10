@@ -267,6 +267,15 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     configure_inbox: (args: extractFields<CustomActions['users']['configure_inbox']['parameters']>) => (
       Promise<extractFields<CustomActions['users']['configure_inbox']['returns']>>
     ),
+    configure_MFA: (args: extractFields<CustomActions['users']['configure_MFA']['parameters']>) => (
+      Promise<extractFields<CustomActions['users']['configure_MFA']['returns']>>
+    ),
+    generate_MFA_challenge: (args: extractFields<CustomActions['users']['generate_MFA_challenge']['parameters']>) => (
+      Promise<extractFields<CustomActions['users']['generate_MFA_challenge']['returns']>>
+    ),
+    submit_MFA_challenge: (args: extractFields<CustomActions['users']['submit_MFA_challenge']['parameters']>) => (
+      Promise<extractFields<CustomActions['users']['submit_MFA_challenge']['returns']>>
+    ),
   },
   files: {
     prepare_file_upload: (args: extractFields<CustomActions['files']['prepare_file_upload']['parameters']>) => (
@@ -517,7 +526,8 @@ type UserInfo = User & {
   access: AccessPermissions,
   orgName?: string,
   limits?: OrganizationLimits,
-  uiRestrictions?: UserUIRestrictions
+  uiRestrictions?: UserUIRestrictions,
+  requiresMFA?: boolean,
 }
 
 export class Session extends SessionManager {
@@ -561,6 +571,10 @@ export class Session extends SessionManager {
     queries.users.send_invitation_to_existing = args => this._POST(`/v1/${schema.users.customActions.send_invitation_to_existing.path}`, args) 
     queries.users.invite_user = a => this._POST(`/v1/${schema.users.customActions.invite_user.path}`, a)
     queries.users.configure_inbox = a => this._POST(`/v1/${schema.users.customActions.configure_inbox.path}`, a)
+
+    queries.users.configure_MFA = a => this._POST(`/v1/${schema.users.customActions.configure_MFA.path}`, a)
+    queries.users.generate_MFA_challenge = a => this._POST(`/v1/${schema.users.customActions.generate_MFA_challenge.path}`, a)
+    queries.users.submit_MFA_challenge = a => this._POST(`/v1/${schema.users.customActions.submit_MFA_challenge.path}`, a)
 
     /** @deprecated */ //  keep here as well for backwards compatibility
     queries.organizations.invite_user = a => this._POST(`/v1/${schema.users.customActions.invite_user.path}`, a) 

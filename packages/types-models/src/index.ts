@@ -264,6 +264,7 @@ export interface Session {
   iat: number,
   exp: number,
   allowedPaths?: string[],
+  requiresMFA?: boolean,
 }
   
 export type SessionType = "user" | "enduser"
@@ -328,6 +329,8 @@ export type UserCallRoutingBehavior = (
 | 'All'
 )
 
+export type MFASettings = { email?: boolean }
+
 export interface User_readonly extends ClientRecord {
   organization?: string 
   username?: string;
@@ -383,6 +386,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   NPI?: string,
   DEA?: string,
   voicemailPlayback?: PhonePlayback | {},
+  mfa?: MFASettings,
 }
 
 export type Preference = 'email' | 'sms' | 'call' | 'chat'
@@ -496,6 +500,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   markedReadAt?: Date | '',
   markedUnreadAt?: Date | '',
   note?: string,
+  mfa?: MFASettings,
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
 }

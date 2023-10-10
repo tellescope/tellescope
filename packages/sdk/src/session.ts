@@ -17,7 +17,9 @@ export interface SessionOptions {
   apiKey?: string;
   authToken?: string;
   servicesSecret?: string,
-  user?: User,
+  user?: User & { 
+    requiresMFA?: boolean,
+  },
   businessId?: string,
   organizationIds?: string[],
   host?: string;
@@ -89,7 +91,7 @@ export class Session {
   handleUnauthenticated?: SessionOptions['handleUnauthenticated']
   expirationInSeconds?: number;
   socketAuthenticated: boolean;
-  userInfo: { businessId?: string, id?: string };
+  userInfo: { businessId?: string, id?: string, requiresMFA?: boolean } ;
   sessionStart = Date.now();
   AUTO_REFRESH_MS = 3600000 // 1hr elapsed
   lastSocketConnection: number;
@@ -348,6 +350,7 @@ export class Session {
     );
   }
   authenticate_socket = () => { 
+    if (this.userInfo.requiresMFA) return
     if (this.lastSocketConnection + 2500 > Date.now()) return
     this.lastSocketConnection = Date.now()
 

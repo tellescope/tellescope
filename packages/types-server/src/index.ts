@@ -198,8 +198,6 @@ export interface ElectronicSignature extends InternalBusinessRecord {
   url?: string,
 }
 
-
-
 export interface GmailWebhookLog extends InternalBusinessRecord {
   type: string, 
   to: string,
@@ -207,4 +205,9 @@ export interface GmailWebhookLog extends InternalBusinessRecord {
   headers?: any[],
   existingMessageId?: string,
   messageData: { emailAddress: string, }
+}
+
+export interface MFACode extends InternalBusinessRecord {
+  hashedCode: string,
+  expiresAt?: Date, // will not expire by TTL index if left blank
 }

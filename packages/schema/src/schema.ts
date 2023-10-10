@@ -623,6 +623,9 @@ export type CustomActions = {
       { created: UserClient }
     >
     configure_inbox: CustomAction<{ username: string, fname: string, lname: string }, { user: User, authToken: string }>,
+    configure_MFA: CustomAction<{  }, { recoveryCodes: string[], authToken: string, user: UserSession }>,
+    generate_MFA_challenge: CustomAction<{ method: string }, { }>,
+    submit_MFA_challenge: CustomAction<{ code: string }, { authToken: string, user: UserSession }>,
   },
   chat_rooms: {
     join_room: CustomAction<{ id: string }, { room: ChatRoom }>,
@@ -2321,6 +2324,41 @@ export const schema: SchemaV1 = build_schema({
           authToken: { validator: stringValidator, required: true }, 
           enduser: { validator:  'user' }, 
         } as any // add enduser eventually, when validator defined
+      },
+      configure_MFA: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Configure MFA',
+        path: '/users/configure-mfa',
+        description: "Configures MFA",
+        parameters: { },
+        returns: { 
+          recoveryCodes: { validator: listOfStringsValidator, required: true },
+          authToken: { validator: stringValidator, required: true }, 
+          user: { validator: 'user' as any, required: true }, 
+        } 
+      },
+      generate_MFA_challenge: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Generate MFA Challenge',
+        path: '/users/generate-mfa-challenge',
+        description: "Begins the MFA verification process, e.g. by sending an email with a code",
+        parameters: { 
+          method: { validator: stringValidator100, required: true },
+        },
+        returns: { } 
+      },
+      submit_MFA_challenge: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Submit MFA Challenge',
+        path: '/users/submit-mfa-challenge',
+        description: "Completes the MFA verification process and generates a new auth token",
+        parameters: { 
+          code: { validator: stringValidator100, required: true },
+        },
+        returns: { 
+          authToken: { validator: stringValidator, required: true }, 
+          user: { validator: 'user' as any, required: true }, 
+        } 
       },
       configure_inbox: {
         op: "custom", access: 'update', method: "post",

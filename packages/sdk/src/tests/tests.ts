@@ -53,6 +53,7 @@ const UniquenessViolationMessage = 'Uniqueness Violation'
 
 const host = process.env.TEST_URL || 'http://localhost:8080'
 const [email, password] = [process.env.TEST_EMAIL, process.env.TEST_PASSWORD]
+const [mfaEmail, mfaPassword] = [process.env.MFA_EMAIL, process.env.TEST_PASSWORD]
 const [email2, password2] = [process.env.TEST_EMAIL_2, process.env.TEST_PASSWORD_2]
 const [nonAdminEmail, nonAdminPassword] = [process.env.NON_ADMIN_EMAIL, process.env.NON_ADMIN_PASSWORD]
 
@@ -102,13 +103,15 @@ const sdkSub = new Session({ host })
 const sdkOtherSub = new Session({ host })
 const sdkSubSub = new Session({ host })
 const sdkOther = new Session({ host, apiKey: "ba745e25162bb95a795c5fa1af70df188d93c4d3aac9c48b34a5c8c9dd7b80f7" })
+const sdkMfa = new Session({ host })
+const sdkMfaApiKey = new Session({ host, apiKey: "9d4f9dff00f60df2690a16da2cb848f289b447614ad9bef850e54af09a1fbf7a" })
 const sdkNonAdmin = new Session({ host })
 const enduserSDK = new EnduserSession({ host, businessId })
 const subEnduserSDK = new EnduserSession({ host, businessId,"organizationIds" : ["636d3c230067fc6b4c92c59c"] })
 const enduserSDKDifferentBusinessId = new EnduserSession({ host, businessId: '80398b1131a295e64f084ff6' })
 // const sdkOtherEmail = "sebass@tellescope.com"
 
-if (!(email && subUserEmail && otherSubUserEmail && subSubUserEmail && password && email2 && password2 && nonAdminEmail && nonAdminPassword)) {
+if (!(email && mfaEmail && mfaPassword && subUserEmail && otherSubUserEmail && subSubUserEmail && password && email2 && password2 && nonAdminEmail && nonAdminPassword)) {
   console.error("Set TEST_EMAIL and TEST_PASSWORD")
   process.exit()
 }
@@ -4380,7 +4383,7 @@ const remove_from_journey_on_incoming_comms_tests = async () => {
 
   const room = await sdk.api.chat_rooms.createOne({ })
   await sdk.api.chats.createOne({ roomId: room.id, senderId: e1.id, message: 'cancel' })
-  await wait(undefined, 250)
+  await wait(undefined, 1000)
 
   await async_test(
     "Appropriate Automated Actions are cancelled on incoming message",
@@ -4474,6 +4477,24 @@ const pdf_generation = async () => {
     sdk.api.endusers.deleteOne(e.id),
     sdk.api.form_responses.deleteOne(fr.id),
   ])
+}
+
+const mfa_tests = async () => {
+  log_header("MFA Tests")
+  await sdkMfa.authenticate(mfaEmail, mfaPassword)
+
+  await async_test(
+    "MFA must be handled before sdk works",
+    () => sdkMfa.api.endusers.createOne({ fname: 'wont work'}),
+    { shouldError: true, onError: (e: any) => e === 'Unauthenticated' }
+  ) 
+
+  const enduser = await sdkMfaApiKey.api.endusers.createOne({ fname: 'will work' })
+  await async_test(
+    "API Key Auth does not require MFA",
+    () => sdkMfaApiKey.api.endusers.deleteOne(enduser.id),
+    passOnAnyResult
+  ) 
 }
 
 const NO_TEST = () => {}
@@ -4578,6 +4599,7 @@ const TRACK_OPEN_IMAGE = Buffer.from(
       { shouldError: true, onError: e => { return e?.message === 'Could not find a record for the given id' } }
     ) 
 
+    await mfa_tests()
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await pdf_generation()

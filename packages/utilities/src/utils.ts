@@ -1248,3 +1248,7 @@ export const URIDecodeEmail = (content: string, verbose?: boolean) => (
     }
   )
 )
+
+export const mfa_is_enabled = (u: { mfa?: User['mfa'] }) => (
+  !!u?.mfa?.email
+)
