@@ -75,7 +75,8 @@ export const WithSession = (p : { children: React.ReactNode, sessionOptions?: Us
   }
 
   const refresh = async () => {
-    if (!session.authToken) return
+    if (!session.authToken) return // refresh will fail
+    if (session.userInfo?.requiresMFA) return // refresh will fail
 
     // console.log('refreshing session')
 

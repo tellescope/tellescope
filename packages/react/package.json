@@ -1,7 +1,7 @@
 {
   "name": "@tellescope/react",
   "private": true,
-  "version": "1.60.0",
+  "version": "1.61.1",
   "description": "",
   "main": ".eslintrc.js",
   "scripts": {
