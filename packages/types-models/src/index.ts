@@ -661,6 +661,7 @@ export type EnduserReportQuery = ReportQuery & {
   hasEngaged?: {
     range?: DateRange,
     omitFormResponses?: boolean,
+    formIds?: string[],
   },
 }
 export type EndusersReportQueries = Record<string, EnduserReportQuery>

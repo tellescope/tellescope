@@ -3888,6 +3888,7 @@ export const endusersReportQueriesValidator = objectAnyFieldsValidator(objectVal
   hasEngaged: objectValidator<EnduserReportQuery['hasEngaged']>({ // when provided, the above engagement queries are ignored
     range: dateRangeOptionalValidator,
     omitFormResponses: booleanValidatorOptional,
+    formIds: listOfStringsValidatorOptionalOrEmptyOk,
   }, { isOptional: true, emptyOk: true }),
 }))
 export const formResponsesReportQueriesValidator = objectAnyFieldsValidator(objectValidator<FormResponsesReportQuery>({
