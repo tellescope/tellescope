@@ -41,7 +41,7 @@ export const useFileForSecureName = ({
     .then(({ downloadURL, name }) => {
       onLoad?.({ downloadURL, name })
 
-      if (name.endsWith('heic') || name.endsWith('heif')) {
+      if (name.toLowerCase().endsWith('heic') || name.toLowerCase().endsWith('heif')) {
         convertHEIC(downloadURL)
         .then(downloadURL => {
           setLoadedImages(ls => [...ls, { uri: downloadURL, cacheKey, name }])
