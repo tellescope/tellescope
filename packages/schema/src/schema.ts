@@ -609,10 +609,12 @@ export type CustomActions = {
       range?: DateRange, 
     }, { report: EndusersReport }>,
     get_engagement_statistics: CustomAction<{ 
+      enduserFields?: { field: string, value: string }[],
       formIds?: string[],
       range?: DateRange, 
       customTypeId?: string,
-    }, { count: number }>,
+      groupBy?: string,
+    }, { count: number, grouped?: { _id: string, count: number }[] }>,
   },
   users: {
     display_info: CustomAction<{ }, { fname: string, lname: string, id: string }[]>,
@@ -1224,9 +1226,14 @@ export const schema: SchemaV1 = build_schema({
           formIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
           range: { validator: dateRangeOptionalValidator },
           customTypeId: { validator: mongoIdStringOptional },
+          enduserFields: { 
+            validator: listValidatorEmptyOk(objectValidator<{ field: string, value: string }>({ field: stringValidator, value: stringValidator })) 
+          },
+          groupBy: { validator: stringValidator },
         },
         returns: {
-          count: { validator: numberValidator, required: true }
+          count: { validator: numberValidator, required: true },
+          grouped: { validator: objectAnyFieldsAnyValuesValidator as any, },
         },
       },
     },
