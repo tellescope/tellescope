@@ -859,6 +859,7 @@ export interface ChatMessage extends ChatMessage_readonly, ChatMessage_required,
   ticketIds?: string[],
   tags?: string[],
   userId?: string,
+  enduserId?: string,
 }
 
 export type MessageTemplateType = 'enduser' | 'Reply' | 'team'  // default to 'enduser'

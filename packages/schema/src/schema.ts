@@ -608,6 +608,11 @@ export type CustomActions = {
       fields?: { field: string, value: string }[],
       range?: DateRange, 
     }, { report: EndusersReport }>,
+    get_engagement_statistics: CustomAction<{ 
+      formIds?: string[],
+      range?: DateRange, 
+      customTypeId?: string,
+    }, { count: number }>,
   },
   users: {
     display_info: CustomAction<{ }, { fname: string, lname: string, id: string }[]>,
@@ -1208,6 +1213,20 @@ export const schema: SchemaV1 = build_schema({
         },
         returns: {
           report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
+        },
+      },
+      get_engagement_statistics: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Get Engagement Statistics',
+        path: '/endusers/engagement',
+        description: "Gets the number of active endusers over a period of time (only includes chats if enduserId is set). Uses default entity only by default",
+        parameters: {
+          formIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+          range: { validator: dateRangeOptionalValidator },
+          customTypeId: { validator: mongoIdStringOptional },
+        },
+        returns: {
+          count: { validator: numberValidator, required: true }
         },
       },
     },
@@ -2205,6 +2224,10 @@ export const schema: SchemaV1 = build_schema({
       timestamp: { validator: dateValidator },
       ticketIds: { validator: listOfStringsValidatorEmptyOk },
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      enduserId: { 
+        validator: mongoIdStringOptional, 
+        initializer: (_, s) => s.type === 'enduser' ? s.id : undefined
+      }
     },
   },
   users: {

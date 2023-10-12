@@ -236,6 +236,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     get_report: (args: extractFields<CustomActions['endusers']['get_report']['parameters']>) => (
       Promise<extractFields<CustomActions['endusers']['get_report']['returns']>>
     ),
+    get_engagement_statistics: (args: extractFields<CustomActions['endusers']['get_engagement_statistics']['parameters']>) => (
+      Promise<extractFields<CustomActions['endusers']['get_engagement_statistics']['returns']>>
+    ),
   },
   users: {
     display_names: () => Promise<{ fname: string, lname: string, id: string }[]>,
@@ -559,6 +562,7 @@ export class Session extends SessionManager {
     queries.endusers.push = a => this._POST(`/v1${schema.endusers.customActions.push.path}`, a)
     queries.endusers.bulk_update = a => this._PATCH(`/v1${schema.endusers.customActions.bulk_update.path}`, a)
     queries.endusers.get_report = a => this._GET(`/v1/${schema.endusers.customActions.get_report.path}`, a)
+    queries.endusers.get_engagement_statistics = a => this._GET(`/v1/${schema.endusers.customActions.get_engagement_statistics.path}`, a)
 
     queries.users.display_names = () => this._GET<{}, { fname: string, lname: string, id: string }[]>(`/v1/user-display-names`)
     queries.users.register = (args) => this._POST(`/v1${schema.users.publicActions.register.path}`, args)
