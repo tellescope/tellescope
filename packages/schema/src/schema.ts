@@ -575,7 +575,14 @@ export type CustomActions = {
       submittedOnly?: boolean,
     }, 
     { report: Report }
-  >,
+    >,
+    get_enduser_statistics: CustomAction<{ 
+      enduserFields?: { field: string, value: string }[],
+      formIds?: string[],
+      range?: DateRange, 
+      customTypeId?: string,
+      groupBy?: string,
+    }, { count: number, grouped?: { _id: string, count: number }[] }>,
   },
   journeys: {
     // update_state: CustomAction<{ updates: Partial<JourneyState>, id: string, name: string }, { updated: Journey }>,
@@ -3395,6 +3402,25 @@ export const schema: SchemaV1 = build_schema({
         },
         returns: {
           report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
+        },
+      },
+      get_enduser_statistics: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Get Enduser Statistics',
+        path: '/form-responses/enduser-statistics',
+        description: "Get statistics on the number of *unique* endusers who have submitted forms",
+        parameters: {
+          formIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+          range: { validator: dateRangeOptionalValidator },
+          customTypeId: { validator: mongoIdStringOptional },
+          enduserFields: { 
+            validator: listValidatorEmptyOk(objectValidator<{ field: string, value: string }>({ field: stringValidator, value: stringValidator })) 
+          },
+          groupBy: { validator: stringValidator },
+        },
+        returns: {
+          count: { validator: numberValidator, required: true },
+          grouped: { validator: objectAnyFieldsAnyValuesValidator as any, },
         },
       },
     },
