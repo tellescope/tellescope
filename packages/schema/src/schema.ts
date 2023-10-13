@@ -3763,6 +3763,7 @@ export const schema: SchemaV1 = build_schema({
         required: true,
       },
       locationId: { validator: mongoIdStringValidator },
+      locationIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
       type: { validator: stringValidator100 },
       description: { validator: stringValidator5000 },
       agreedToTerms: { validator: appointmentTermsValidator },

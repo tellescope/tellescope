@@ -635,34 +635,34 @@ export type PhoneCallsReport = Record<string, { count: number, callDurationInSec
 export type EnduserReportQuery = ReportQuery & {
   activeSince?: Date,
   fields?: { field: string, value: string }[]
-  hasSubmittedForms?: {
-    formIds?: string[],
-    range?: DateRange,
-  },
-  hasNotSubmittedForms?: {
-    formIds?: string[],
-    range?: DateRange,
-  },
-  hasAppointment?: {
-    range?: DateRange,
-  },
-  hasInboundSMS?: {
-    range?: DateRange,
-  },
-  hasInboundEmail?: {
-    range?: DateRange,
-  },
-  hasInboundChat?: {
-    range?: DateRange,
-  },
-  hasInboundCall?: {
-    range?: DateRange,
-  },
-  hasEngaged?: {
-    range?: DateRange,
-    omitFormResponses?: boolean,
-    formIds?: string[],
-  },
+  // hasSubmittedForms?: {
+  //   formIds?: string[],
+  //   range?: DateRange,
+  // },
+  // hasNotSubmittedForms?: {
+  //   formIds?: string[],
+  //   range?: DateRange,
+  // },
+  // hasAppointment?: {
+  //   range?: DateRange,
+  // },
+  // hasInboundSMS?: {
+  //   range?: DateRange,
+  // },
+  // hasInboundEmail?: {
+  //   range?: DateRange,
+  // },
+  // hasInboundChat?: {
+  //   range?: DateRange,
+  // },
+  // hasInboundCall?: {
+  //   range?: DateRange,
+  // },
+  // hasEngaged?: {
+  //   range?: DateRange,
+  //   omitFormResponses?: boolean,
+  //   formIds?: string[],
+  // },
 }
 export type EndusersReportQueries = Record<string, EnduserReportQuery>
 export type EndusersReport = Report
@@ -1500,6 +1500,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   attachments?: GenericAttachment[]
   bookingPageId?: string,
   locationId?: string,
+  locationIds?: string[],
   location?: string,
   locationNotes?: string,
   locationURL?: string,

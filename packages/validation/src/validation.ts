@@ -3862,34 +3862,34 @@ export const endusersReportQueriesValidator = objectAnyFieldsValidator(objectVal
   range: dateRangeOptionalValidator,
   activeSince: dateOptionalOrEmptyStringValidator,
   fields: listValidatorOptionalOrEmptyOk(objectValidator<{ field: string, value: string }>({ field: stringValidator, value: stringValidator })),
-  hasSubmittedForms: objectValidator<EnduserReportQuery['hasSubmittedForms']>({
-    formIds: listOfStringsValidatorOptionalOrEmptyOk,
-    range: dateRangeOptionalValidator,
-  }, { isOptional: true, emptyOk: true }),
-  hasNotSubmittedForms: objectValidator<EnduserReportQuery['hasNotSubmittedForms']>({
-    formIds: listOfStringsValidatorOptionalOrEmptyOk,
-    range: dateRangeOptionalValidator,
-  }, { isOptional: true, emptyOk: true }),
-  hasAppointment: objectValidator<EnduserReportQuery['hasAppointment']>({
-    range: dateRangeOptionalValidator,
-  }, { isOptional: true, emptyOk: true }),
-  hasInboundCall: objectValidator<EnduserReportQuery['hasInboundCall']>({
-    range: dateRangeOptionalValidator,
-  }, { isOptional: true, emptyOk: true }),
-  hasInboundChat: objectValidator<EnduserReportQuery['hasInboundChat']>({
-    range: dateRangeOptionalValidator,
-  }, { isOptional: true, emptyOk: true }),
-  hasInboundEmail: objectValidator<EnduserReportQuery['hasInboundEmail']>({
-    range: dateRangeOptionalValidator,
-  }, { isOptional: true, emptyOk: true }),
-  hasInboundSMS: objectValidator<EnduserReportQuery['hasInboundSMS']>({
-    range: dateRangeOptionalValidator,
-  }, { isOptional: true, emptyOk: true }),
-  hasEngaged: objectValidator<EnduserReportQuery['hasEngaged']>({ // when provided, the above engagement queries are ignored
-    range: dateRangeOptionalValidator,
-    omitFormResponses: booleanValidatorOptional,
-    formIds: listOfStringsValidatorOptionalOrEmptyOk,
-  }, { isOptional: true, emptyOk: true }),
+  // hasSubmittedForms: objectValidator<EnduserReportQuery['hasSubmittedForms']>({
+  //   formIds: listOfStringsValidatorOptionalOrEmptyOk,
+  //   range: dateRangeOptionalValidator,
+  // }, { isOptional: true, emptyOk: true }),
+  // hasNotSubmittedForms: objectValidator<EnduserReportQuery['hasNotSubmittedForms']>({
+  //   formIds: listOfStringsValidatorOptionalOrEmptyOk,
+  //   range: dateRangeOptionalValidator,
+  // }, { isOptional: true, emptyOk: true }),
+  // hasAppointment: objectValidator<EnduserReportQuery['hasAppointment']>({
+  //   range: dateRangeOptionalValidator,
+  // }, { isOptional: true, emptyOk: true }),
+  // hasInboundCall: objectValidator<EnduserReportQuery['hasInboundCall']>({
+  //   range: dateRangeOptionalValidator,
+  // }, { isOptional: true, emptyOk: true }),
+  // hasInboundChat: objectValidator<EnduserReportQuery['hasInboundChat']>({
+  //   range: dateRangeOptionalValidator,
+  // }, { isOptional: true, emptyOk: true }),
+  // hasInboundEmail: objectValidator<EnduserReportQuery['hasInboundEmail']>({
+  //   range: dateRangeOptionalValidator,
+  // }, { isOptional: true, emptyOk: true }),
+  // hasInboundSMS: objectValidator<EnduserReportQuery['hasInboundSMS']>({
+  //   range: dateRangeOptionalValidator,
+  // }, { isOptional: true, emptyOk: true }),
+  // hasEngaged: objectValidator<EnduserReportQuery['hasEngaged']>({ // when provided, the above engagement queries are ignored
+  //   range: dateRangeOptionalValidator,
+  //   omitFormResponses: booleanValidatorOptional,
+  //   formIds: listOfStringsValidatorOptionalOrEmptyOk,
+  // }, { isOptional: true, emptyOk: true }),
 }))
 export const formResponsesReportQueriesValidator = objectAnyFieldsValidator(objectValidator<FormResponsesReportQuery>({
   groupBy: stringValidatorOptional,
