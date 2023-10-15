@@ -209,5 +209,6 @@ export interface GmailWebhookLog extends InternalBusinessRecord {
 
 export interface MFACode extends InternalBusinessRecord {
   hashedCode: string,
+  userId: string,
   expiresAt?: Date, // will not expire by TTL index if left blank
 }

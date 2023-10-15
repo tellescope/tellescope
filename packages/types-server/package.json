@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/types-server",
-  "version": "1.61.6",
+  "version": "1.61.8",
   "description": "Types for Tellescope models used in the server-side",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",

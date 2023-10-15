@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/schema",
-  "version": "1.61.7",
+  "version": "1.61.8",
   "description": "Schema definition for Tellescope models",
   "main": "./lib/cjs/schema.js",
   "module": "./lib/esm/schema.js",
@@ -26,7 +26,7 @@
     "@tellescope/constants": "^1.61.6",
     "@tellescope/types-client": "^1.61.6",
     "@tellescope/types-models": "^1.61.6",
-    "@tellescope/types-server": "^1.61.6",
+    "@tellescope/types-server": "^1.61.8",
     "@tellescope/types-utilities": "^1.38.4",
     "@tellescope/validation": "^1.61.6",
     "validator": "^13.5.2"
