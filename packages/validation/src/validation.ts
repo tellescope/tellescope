@@ -237,6 +237,7 @@ import {
   ReportQuery,
   FormResponsesReportQuery,
   PhoneCallsReportQuery,
+  TypedField,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -3706,6 +3707,14 @@ export const userUIRestrictionsValidator = objectValidator<UserUIRestrictions>({
   hideInbox: booleanValidatorOptional,
   hideTeamChat: booleanValidatorOptional,
   hideEnduserChat: booleanValidatorOptional,
+  hiddenFields: listValidatorOptionalOrEmptyOk(objectValidator<TypedField>({
+    field: stringValidator,
+    type: mongoIdStringOptional,
+  })),
+  disabledFields: listValidatorOptionalOrEmptyOk(objectValidator<TypedField>({
+    field: stringValidator,
+    type: mongoIdStringOptional,
+  })),
 }, { emptyOk: true })
 
 const externalChatGPTMessageValidator = objectValidator<ExternalChatGPTMessage>({

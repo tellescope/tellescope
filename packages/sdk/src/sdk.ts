@@ -475,6 +475,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     get_events_for_user: (args: extractFields<CustomActions['calendar_events']['get_events_for_user']['parameters']>) => (
       Promise<extractFields<CustomActions['calendar_events']['get_events_for_user']['returns']>>
     ),
+    load_events: (args: extractFields<CustomActions['calendar_events']['load_events']['parameters']>) => (
+      Promise<extractFields<CustomActions['calendar_events']['load_events']['returns']>>
+    ),
     generate_zoom_meeting: (args: extractFields<CustomActions['calendar_events']['generate_zoom_meeting']['parameters']>) => (
       Promise<extractFields<CustomActions['calendar_events']['generate_zoom_meeting']['returns']>>
     ),
@@ -654,6 +657,7 @@ export class Session extends SessionManager {
     queries.emails.deliver_via_outlook = a => this._POST(`/v1/${schema.emails.customActions.deliver_via_outlook.path}`, a)
     
     queries.calendar_events.get_events_for_user = a => this._GET(`/v1/${schema.calendar_events.customActions.get_events_for_user.path}`, a)
+    queries.calendar_events.load_events = a => this._GET(`/v1/${schema.calendar_events.customActions.load_events.path}`, a)
     queries.calendar_events.generate_meeting_link = a => this._POST(`/v1/${schema.calendar_events.customActions.generate_meeting_link.path}`, a)
     queries.calendar_events.generate_zoom_meeting = a => this._POST(`/v1/${schema.calendar_events.customActions.generate_zoom_meeting.path}`, a)
     queries.calendar_events.change_zoom_host = a => this._POST(`/v1/${schema.calendar_events.customActions.change_zoom_host.path}`, a)

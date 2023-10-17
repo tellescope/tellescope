@@ -707,6 +707,7 @@ export type CustomActions = {
   },
   calendar_events: {
     get_events_for_user: CustomAction<{ userId: string, from: Date, to?: Date, limit?: number }, { events: CalendarEvent[] }>, 
+    load_events: CustomAction<{ userIds: string[], from: Date, to: Date, limit?: number, external?: boolean }, { events: CalendarEvent[] }>, 
     generate_meeting_link: CustomAction<{ eventId: string, enduserId: string }, { link: string }>, 
     get_appointment_availability: CustomAction<{ 
       from: Date, calendarEventTemplateId: string, to?: Date, restrictedByState?: boolean, limit?: number, locationId?: string,
@@ -3140,6 +3141,7 @@ export const schema: SchemaV1 = build_schema({
       disabled: { validator: booleanValidatorOptional },
       disableAutomaticIntegrationPush: { validator: booleanValidatorOptional },
       customTypeIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+      lockResponsesOnSubmission: { validator: booleanValidatorOptional },
     }
   },
   form_fields: {
@@ -3596,6 +3598,22 @@ export const schema: SchemaV1 = build_schema({
           from: { validator: dateValidator, required: true },
           to: { validator: dateValidator },
           limit: { validator: nonNegNumberValidator },
+        },
+        returns: { 
+          events: { validator: 'calendar_events' as any, required: true }
+        },
+      },
+      load_events: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Load Events',
+        path: '/calendar-events/load-events',
+        description: "For loading Tellescope events across multiple users for a given time period",
+        parameters: { 
+          userIds: { validator: listOfStringsValidator, required: true },
+          from: { validator: dateValidator, required: true },
+          to: { validator: dateValidator, required: true },
+          limit: { validator: nonNegNumberValidator },
+          external: { validator: booleanValidator },
         },
         returns: { 
           events: { validator: 'calendar_events' as any, required: true }

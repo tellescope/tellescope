@@ -484,7 +484,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   height?: GenericQuantityWithUnit,
   weight?: GenericQuantityWithUnit;
   source?: string,
-  usingV1SMS?: boolean, 
+  usingV1SMS?: boolean, // this was never used in practice, don't use
   addressLineOne?: string,
   addressLineTwo?: string,
   city?: string,
@@ -1138,6 +1138,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   disabled?: boolean,
   disableAutomaticIntegrationPush?: boolean,
   customTypeIds?: string[],
+  lockResponsesOnSubmission?: boolean,
 }
 
 
@@ -1407,6 +1408,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   rootResponseId?: string,
   parentResponseId?: string,
   tags?: string[],
+  lockedAt?: Date | '',
 }
 
 export interface WebHook_readonly extends ClientRecord {}
@@ -2199,11 +2201,14 @@ export interface CarePlan extends CarePlan_readonly, CarePlan_required, CarePlan
   eventIds?: string[],
 }
 
+export type TypedField = { type?: string, field?: string, }
 export type UserUIRestrictions = {
   hideDashboard?: boolean,
   hideInbox?: boolean,
   hideTeamChat?: boolean,
   hideEnduserChat?: boolean,
+  hiddenFields?: TypedField[],
+  disabledFields?: TypedField[],
 }
 
 export interface RoleBasedAccessPermission_readonly extends ClientRecord {}
