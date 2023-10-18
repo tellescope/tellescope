@@ -1099,6 +1099,7 @@ export type FormScoring = {
 
 export type FormType = 'note' | 'enduserFacing'
 export type FormCustomization = {
+  publicFormHTMLDescription?: string,
   publicFormSubmitHTMLDescription?: string,
   publicLabelPrefix?: string,
   hideProgressBar?: boolean,
@@ -1226,6 +1227,7 @@ export interface Database_required {
 export interface Database_updatesDisabled {}
 export interface Database extends Database_readonly, Database_required, Database_updatesDisabled {
   // organizationRead?: boolean,
+  visibleForRoles?: string[],
 }
 
 export interface DatabaseRecord_readonly extends ClientRecord {}
@@ -2207,6 +2209,7 @@ export type UserUIRestrictions = {
   hideInbox?: boolean,
   hideTeamChat?: boolean,
   hideEnduserChat?: boolean,
+  disableTicketDueDate?: boolean,
   hiddenFields?: TypedField[],
   disabledFields?: TypedField[],
 }

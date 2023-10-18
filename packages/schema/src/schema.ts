@@ -4818,6 +4818,7 @@ export const schema: SchemaV1 = build_schema({
         initializer: () => 0,
       },
       // organizationRead: { validator: booleanValidator },
+      visibleForRoles: { validator: listOfStringsValidatorOptionalOrEmptyOk }
     },
   },
   database_records: {

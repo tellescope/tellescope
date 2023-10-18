@@ -349,6 +349,14 @@ export class Session {
       }
     );
   }
+
+  socket_ping = (handler: (...args: any[]) => void) => {
+    if (!this.socket) return
+
+    this.socket.on('pong', handler)
+    this.socket.emit('ping')
+  }
+
   authenticate_socket = () => { 
     if (this.userInfo.requiresMFA) return
     if (this.lastSocketConnection + 2500 > Date.now()) return

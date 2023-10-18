@@ -3707,6 +3707,7 @@ export const userUIRestrictionsValidator = objectValidator<UserUIRestrictions>({
   hideInbox: booleanValidatorOptional,
   hideTeamChat: booleanValidatorOptional,
   hideEnduserChat: booleanValidatorOptional,
+  disableTicketDueDate: booleanValidatorOptional,
   hiddenFields: listValidatorOptionalOrEmptyOk(objectValidator<TypedField>({
     field: stringValidator,
     type: mongoIdStringOptional,
@@ -3843,6 +3844,7 @@ export const PHONE_TREE_ENDUSER_CONDITIONS = Object.keys(_PHONE_TREE_ENDUSER_CON
 export const phoneTreeEnduserConditionValidator = exactMatchValidator<PhoneTreeEnduserCondition>(PHONE_TREE_ENDUSER_CONDITIONS)
 
 export const formCustomizationValidator = objectValidator<Form['customization']>({
+  publicFormHTMLDescription: stringValidator5000OptionalEmptyOkay, // all strings should be optional or empty ok!
   publicFormSubmitHTMLDescription: stringValidator5000OptionalEmptyOkay, // all strings should be optional or empty ok!
   publicLabelPrefix: stringValidator5000OptionalEmptyOkay, // all strings should be optional or empty ok!
   hideProgressBar: booleanValidatorOptional,

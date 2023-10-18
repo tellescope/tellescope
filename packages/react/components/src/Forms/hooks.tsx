@@ -659,12 +659,15 @@ export const useTellescopeForm = ({ customization, ga4measurementId, rootRespons
     if (field.type === 'description') return null
 
     if (field.type === 'string' || field.type === 'stringLong' || field.type === 'number') {
-      if (field.options?.maxLength && field.options.maxLength !== -1) {
+      if (field.options?.maxLength && field.options.maxLength !== -1) {        
         if ((value.answer.value ?? '').toString().length > field.options.maxLength) {
           return `Answer must be no more than ${field.options.maxLength} characters`
         }
       }
       if (field.options?.minLength && field.options.minLength !== -1) {
+        // allow optional when min length is greater than 0, only show error when value is entered
+        if (field.isOptional && !value.answer.value) return null
+
         if ((value.answer.value ?? '').toString().length < field.options.minLength) {
           return `Answer must be at least ${field.options.minLength} characters`
         }

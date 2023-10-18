@@ -1041,12 +1041,17 @@ export const Progress = ({ numerator, denominator, style } : { numerator: number
 export const DropdownInput = ({ field, value, onChange }: FormInputProps<'Dropdown'>) => {
   const [typing, setTyping] = useState('')
 
+  // this should run only once, even if the field updates but the id is unchanged, otherwise will overwrite input
+  const typingRef = useRef('')
   useEffect(() => {
+    if (typingRef.current === field.id) return
+    typingRef.current = field.id
+
     setTyping('')
   }, [field])
 
   return (
-    <Autocomplete id={field.id}
+    <Autocomplete id={field.id} style={{ marginTop: 5 }}
       multiple={!field.options?.radio}
       freeSolo={!!field.options?.other}
       value={
@@ -1061,7 +1066,11 @@ export const DropdownInput = ({ field, value, onChange }: FormInputProps<'Dropdo
         )
       )}
       options={field.options?.choices ?? []}
-      inputValue={typing}
+      inputValue={
+        field.options?.radio && Array.isArray(value) && value[0]
+          ? value[0]
+          : typing
+      }
       onInputChange={(e, value) => setTyping(value)}
       renderInput={params => 
         <TextField {...params}

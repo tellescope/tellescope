@@ -477,6 +477,8 @@ export interface ListUpdateMethods <T, ADD> extends LoadMoreFunctions<T> {
   setOldestLoadedDate: (d: Date) => void,
   getOldestLoadedId: () => string | undefined,
   setOldestLoadedId: (id: string) => void,
+  loadRecentlyCreated: () => Promise<T[]>,
+  recentlyCreatedFetch: Date,
 }
 export type ListStateReturnType <T extends { id: string | number }, ADD=Partial<T>> = [LoadedData<T[]>, ListUpdateMethods<T, ADD>]
 
@@ -514,6 +516,12 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
 
   const dispatch = useTellescopeDispatch()
   const { didFetch, setFetched, getLastId, setLastId, getLastDate, setLastDate } = useContext(FetchContext)
+
+  const now = new Date()
+  const recentlyCreatedFetch = useRef(getLastDate(`${modelName}-recentlyCreatedFetch`) || now)
+  if (now.getTime() === recentlyCreatedFetch.current.getTime()) {
+    setLastDate(`${modelName}-recentlyCreatedFetch`, now)
+  }
 
   const addLocalElement = useCallback((e: T, o?: AddOptions) => {
     dispatch(slice.actions.add({ value: e, options: o }))
@@ -857,6 +865,25 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
       }
     )
   }, [getLastId, modelName, loadQuery, didFetch, setFetched])
+
+  const loadRecentlyCreated = React.useCallback(async () => {
+    if (!loadQuery) return []
+
+    const from = recentlyCreatedFetch.current
+
+    if (from.getTime() + 1000 > Date.now()) return [] // throttle by 1 sec
+    recentlyCreatedFetch.current = new Date()
+    setLastDate(`${modelName}-recentlyCreatedFetch`, recentlyCreatedFetch.current)
+
+    try {
+      const created = await loadQuery({ from })
+      if (created.length === 0) return []
+
+      return addLocalElements(created, { replaceIfMatch: true })
+    } catch(err) { console.error(err) }
+
+    return []
+  }, [session.api, modelName, addLocalElements, loadQuery, setLastDate])
   
   return [
     state,
@@ -865,6 +892,8 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
       createElement, createElements, updateElement, updateLocalElement, updateLocalElements, findByFilter, findById, removeElement, removeLocalElements,
       reload, loadMore, doneLoading, filtered, 
       getOldestLoadedDate, setOldestLoadedDate, setOldestLoadedId, getOldestLoadedId,
+      loadRecentlyCreated,
+      recentlyCreatedFetch: recentlyCreatedFetch.current,
     }
   ]
 }
@@ -1219,6 +1248,8 @@ export const useChats = (roomId?: string, options={} as HookOptions<ChatMessage>
 
   // don't rely on socket update for new messages
   const onAdd = useCallback((ms: ChatMessage[]) => {
+    if (ms.length === 0) return
+
     const newest = ms[0]
     updateLocalChatRoom(newest.roomId, { 
       recentMessage: newest.message, 
