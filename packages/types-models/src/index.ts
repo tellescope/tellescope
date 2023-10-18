@@ -694,6 +694,7 @@ export interface Journey extends Journey_readonly, Journey_required, Journey_upd
   states: JourneyState[];
   description?: string;
   onIncomingEnduserCommunication?: 'Remove' | ''
+  tags?: string[]
 }
 
 export interface TextCommunication extends WithLinkOpenTrackingIds {
@@ -1140,6 +1141,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   disableAutomaticIntegrationPush?: boolean,
   customTypeIds?: string[],
   lockResponsesOnSubmission?: boolean,
+  tags?: string[]
 }
 
 
@@ -2210,6 +2212,7 @@ export type UserUIRestrictions = {
   hideTeamChat?: boolean,
   hideEnduserChat?: boolean,
   disableTicketDueDate?: boolean,
+  disableUnstructuredNotes?: boolean,
   hiddenFields?: TypedField[],
   disabledFields?: TypedField[],
 }
@@ -2586,6 +2589,7 @@ export interface AutomationTrigger extends AutomationTrigger_readonly, Automatio
   journeyId?: string,
   oncePerEnduser?: boolean,
   triggerNextAt?: Date,
+  tags?: string[]
 }
 
 export type Address = {

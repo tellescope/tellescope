@@ -1635,6 +1635,7 @@ export const schema: SchemaV1 = build_schema({
       onIncomingEnduserCommunication: { 
         validator: exactMatchValidator<'Remove' | ''>(['Remove', '']) 
       },
+      tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
     },
     constraints: { 
       unique: ['title', { array: 'states', itemKey: 'name' }], 
@@ -3142,6 +3143,7 @@ export const schema: SchemaV1 = build_schema({
       disableAutomaticIntegrationPush: { validator: booleanValidatorOptional },
       customTypeIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
       lockResponsesOnSubmission: { validator: booleanValidatorOptional },
+      tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
     }
   },
   form_fields: {
@@ -4026,6 +4028,7 @@ export const schema: SchemaV1 = build_schema({
       flowchartUI: { validator: flowchartUIValidator },
       continueOnError: { validator: booleanValidator },
       enduserConditions: { validator: optionalAnyObjectValidator },
+      tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
     }
   },
   automated_actions: {

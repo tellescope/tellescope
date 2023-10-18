@@ -3708,6 +3708,7 @@ export const userUIRestrictionsValidator = objectValidator<UserUIRestrictions>({
   hideTeamChat: booleanValidatorOptional,
   hideEnduserChat: booleanValidatorOptional,
   disableTicketDueDate: booleanValidatorOptional,
+  disableUnstructuredNotes: booleanValidatorOptional,
   hiddenFields: listValidatorOptionalOrEmptyOk(objectValidator<TypedField>({
     field: stringValidator,
     type: mongoIdStringOptional,
