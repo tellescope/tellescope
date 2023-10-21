@@ -5951,6 +5951,69 @@ export const schema: SchemaV1 = build_schema({
       },
     }
   },
+  ticket_threads: {
+    info: {
+      description: 'For Zendesk integration'
+    },
+    constraints: { unique: [], relationship: [], },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      enduserId: {
+        validator: mongoIdStringValidator,
+        required: true,
+        examples: [PLACEHOLDER_ID],
+        dependencies: [{
+          dependsOn: ['endusers'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+      source: { validator: stringValidator100, }, 
+      externalId: { validator: stringValidator100, },
+      subject: { validator: stringValidator1000 },
+      pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
+    }
+  },
+  ticket_thread_comments: {
+    info: {
+      description: 'For Zendesk integration'
+    },
+    constraints: { 
+      unique: [], relationship: [], 
+      access: [{ type: 'dependency', foreignModel: 'ticket_threads', foreignField: '_id', accessField: 'ticketThreadId' }]
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      externalId: { validator: stringValidator100, },
+      source: { validator: stringValidator100, },
+      ticketThreadId: { 
+        validator: mongoIdStringValidator, required: true, examples: [PLACEHOLDER_ID],
+        dependencies: [{
+          dependsOn: ['ticket_threads'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+      externalThreadId: { validator: stringValidator100, },
+      public: { validator: booleanValidator, required: true, examples: [true] },
+      plaintext: { validator: stringValidator25000EmptyOkay },
+      html: { validator: stringValidator25000EmptyOkay },
+      type: { validator: stringValidator100, },
+      attachments: { validator: listOfChatAttachmentsValidator },
+      enduserId: { validator: mongoIdStringValidator },
+      userId: { validator: mongoIdStringValidator },
+      inbound: { validator: booleanValidator },
+      readBy: { validator: idStringToDateValidator },
+    }
+  },
 })
 
 // export type SchemaType = typeof schema

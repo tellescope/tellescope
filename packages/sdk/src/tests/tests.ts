@@ -4561,6 +4561,8 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   enduser_custom_types: NO_TEST,
   table_views: NO_TEST,
   email_sync_denials: NO_TEST,
+  ticket_threads: NO_TEST,
+  ticket_thread_comments: NO_TEST,
 };
 
 const TRACK_OPEN_IMAGE = Buffer.from(

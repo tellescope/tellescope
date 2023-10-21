@@ -223,7 +223,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   replyToAllEmails?: string,
   forwardAllIncomingEmailsTo?: string,
   numCustomTypes?: number,
-
+  ticketThreadsEnabled?: boolean, // zendesk enabled
   _groupChatsEnabled?: boolean,
   // _AIEnabled?: boolean,
 }
@@ -296,6 +296,7 @@ export interface UserSession extends Session, OrganizationLimits { // User joine
   access: AccessPermissions;
   orgName: string;
   orgTwilioNumber: string;
+  ticketThreadsEnabled?: boolean, // zendesk enabled
   fromEmail?: string,
   verifiedEmail: boolean;
   wasAutomated: boolean;
@@ -377,6 +378,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   pushNotificationDestinations?: string[],
   drChronoId?: string,
   zoomId?: string,
+  zendeskId?: number,
   tags?: string[],
   emailSignature?: string,
   specialties?: string[],
@@ -2755,7 +2757,57 @@ export interface EmailSyncDenial extends EmailSyncDenial_readonly, EmailSyncDeni
   email: string,
 }
 
+export interface TicketThread_readonly extends ClientRecord {
+  lockId?: string,
+  externalId?: string,
+  lockUntil?: number,
+  cursor?: string,
+  source: string,
+  references?: RelatedRecord[]
+}
+export interface TicketThread_required {}
+export interface TicketThread_updatesDisabled {
+}
+export interface TicketThread extends TicketThread_readonly, TicketThread_required, TicketThread_updatesDisabled {
+  enduserId: string,
+  subject: string,
+  closedAt?: Date | '',
+  pinnedAt?: Date | '',
+}
+
+export interface TicketThreadComment_readonly extends ClientRecord {
+  externalThreadId?: string,
+  externalId?: string,
+  source?: string,
+  references?: RelatedRecord[]
+  readBy?: { [index: string] : Date };
+}
+export interface TicketThreadComment_required {
+  ticketThreadId: string,
+  plaintext: string,
+  html: string,
+  enduserId: string,
+  public: boolean
+  inbound: boolean,
+}
+export interface TicketThreadComment_updatesDisabled {}
+export interface TicketThreadComment extends TicketThreadComment_readonly, TicketThreadComment_required, TicketThreadComment_updatesDisabled {
+  userId?: string,
+  type?: string,
+  attachments?: ChatAttachment[]
+  voice?: {
+    "from": string, // + formatted phone number
+    "to": string, // + formatted phone number
+    "recording_url": string,
+    "started_at": string,
+    durationInSeconds: number, // seconds
+    transcription?: string,
+  }
+}
+
 export type ModelForName_required = {
+  ticket_threads: TicketThread_required,
+  ticket_thread_comments: TicketThreadComment_required,
   enduser_custom_types: EnduserCustomType_required,
   phone_trees: PhoneTree_required,
   referral_providers: ReferralProvider_required,
@@ -2822,6 +2874,8 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  ticket_threads: TicketThread_readonly,
+  ticket_thread_comments: TicketThreadComment_readonly,
   enduser_custom_types: EnduserCustomType_readonly,
   phone_trees: PhoneTree_readonly,
   enduser_medications: EnduserMedication_readonly,
@@ -2888,6 +2942,8 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  ticket_threads: TicketThread_updatesDisabled,
+  ticket_thread_comments: TicketThreadComment_updatesDisabled,
   enduser_custom_types: EnduserCustomType_updatesDisabled,
   phone_trees: PhoneTree_updatesDisabled,
   enduser_medications: EnduserMedication_updatesDisabled,
@@ -2954,6 +3010,8 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly {
+  ticket_threads: TicketThread,
+  ticket_thread_comments: TicketThreadComment,
   enduser_custom_types: EnduserCustomType,
   phone_trees: PhoneTree,
   enduser_medications: EnduserMedication,
@@ -3030,6 +3088,8 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  ticket_thread_comments: true,
+  ticket_threads: true,
   enduser_custom_types: true,
   phone_trees: true,
   referral_providers: true,

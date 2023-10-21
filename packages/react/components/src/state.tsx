@@ -73,6 +73,8 @@ import {
   UserLog,
   TableView,
   EmailSyncDenial,
+  TicketThread,
+  TicketThreadComment,
 } from "@tellescope/types-client"
 
 import {
@@ -314,6 +316,8 @@ const availabilityBlocksSlice = createSliceForList<AvailabilityBlock, 'availabil
 const referralProvidersSlice = createSliceForList<ReferralProvider, 'referral_providers'>('referral_providers')
 const enduserMedicationsSlice = createSliceForList<EnduserMedication, 'enduser_medications'>('enduser_medications')
 const enduserCustomTypesSlice = createSliceForList<EnduserCustomType, 'enduser_custom_types'>('enduser_custom_types')
+const ticketThreadsSlice = createSliceForList<TicketThread, 'ticket_threads'>('ticket_threads')
+const ticketThreadCommentsSlice = createSliceForList<TicketThreadComment, 'ticket_thread_comments'>('ticket_thread_comments')
 
 const roleBasedAccessPermissionsSlice = createSliceForList<RoleBasedAccessPermission, 'role_based_access_permissions'>('role_based_access_permissions')
 
@@ -382,6 +386,8 @@ export const sharedConfig = {
     user_logs: userLogsSlice.reducer,
     table_views: tableViewsSlice.reducer,
     email_sync_denials: emailSyncDenialsSlice.reducer,
+    ticket_threads: ticketThreadsSlice.reducer,
+    ticket_thread_comments: ticketThreadCommentsSlice.reducer,
   },
 }
 
@@ -1719,6 +1725,45 @@ export const useRoleBasedAccessPermissions = (options={} as HookOptions<Organiza
   )
 }
 
+
+export const useTicketThreads = (options={} as HookOptions<TicketThread>) => {
+  const session = useSession()
+  return useListStateHook(
+    'ticket_threads', useTypedSelector(s => s.ticket_threads), session, ticketThreadsSlice, 
+    { 
+      loadQuery: session.api.ticket_threads.getSome,
+      findOne: session.api.ticket_threads.getOne,
+      findByIds: session.api.ticket_threads.getByIds,
+      addOne: session.api.ticket_threads.createOne,
+      addSome: session.api.ticket_threads.createSome,
+      deleteOne: session.api.ticket_threads.deleteOne,
+      updateOne: session.api.ticket_threads.updateOne,
+    }, 
+    { // don't attempt to fetch if not enabled
+      ...options,
+      dontFetch: options.dontFetch ?? !session.userInfo.ticketThreadsEnabled,
+    }
+  )
+}
+export const useTicketThreadComments = (options={} as HookOptions<TicketThreadComment>) => {
+  const session = useSession()
+  return useListStateHook(
+    'ticket_thread_comments', useTypedSelector(s => s.ticket_thread_comments), session, ticketThreadCommentsSlice, 
+    { 
+      loadQuery: session.api.ticket_thread_comments.getSome,
+      findOne: session.api.ticket_thread_comments.getOne,
+      findByIds: session.api.ticket_thread_comments.getByIds,
+      addOne: session.api.ticket_thread_comments.createOne,
+      addSome: session.api.ticket_thread_comments.createSome,
+      deleteOne: session.api.ticket_thread_comments.deleteOne,
+      updateOne: session.api.ticket_thread_comments.updateOne,
+    }, 
+    { // don't attempt to fetch if not enabled
+      ...options,
+      dontFetch: options.dontFetch ?? !session.userInfo.ticketThreadsEnabled,
+    }
+  )
+}
 export const useSuperbills = (options={} as HookOptions<Superbill>) => {
   const session = useSession()
   return useListStateHook(

@@ -110,6 +110,8 @@ export const MEDPLUM_TITLE = "Medplum"
 export const PHASE_ZERO_TITLE = "Phase Zero"
 export const PHOTON_TITLE = "Photon Health"
 export const ELATION_TITLE = "Elation"
+export const ZENDESK_INTEGRATIONS_TITLE = "Zendesk"
+export const ZENDESK_REDIRECT_URI_ENDING = "/zendesk-oauth2-verify"
 
 export const ORGANIZATION_WIDE_INTEGRATIONS = [OPENAI_TITLE]
 
@@ -135,6 +137,12 @@ export const FULL_ACCESS: AccessForResource = {
 }
 export const ASSIGNED_AND_DEFAULT_ACCESS: AccessForResource = {
   create: ASSIGNED_ACCESS, // allow for creating self-assigned objects
+  read:   ASSIGNED_ACCESS,
+  update: ASSIGNED_ACCESS,
+  delete: NO_ACCESS,
+}
+export const ASSIGNED_AND_DEFAULT_ACCESS_ALL_CREATE: AccessForResource = {
+  create: ALL_ACCESS, // allow for creating self-assigned objects
   read:   ASSIGNED_ACCESS,
   update: ASSIGNED_ACCESS,
   delete: NO_ACCESS,
@@ -189,10 +197,10 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
   enduser_status_updates: ASSIGNED_AND_DEFAULT_ACCESS,
   engagement_events: ASSIGNED_AND_DEFAULT_ACCESS,
   files: ASSIGNED_AND_DEFAULT_ACCESS, 
-  forms: READ_ONLY_DEFAULT,
-  form_fields: READ_ONLY_DEFAULT,
+  forms: READ_ONLY_ALL,
+  form_fields: READ_ONLY_ALL,
   form_responses: ASSIGNED_AND_DEFAULT_ACCESS, 
-  journeys: READ_ONLY_DEFAULT,
+  journeys: READ_ONLY_ALL,
   meetings: ASSIGNED_AND_DEFAULT_ACCESS,
   sms_messages: ASSIGNED_AND_DEFAULT_ACCESS,
   tickets: ASSIGNED_AND_DEFAULT_ACCESS,
@@ -270,6 +278,8 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
     delete: NO_ACCESS,
     update: DEFAULT_ACCESS
   },
+  ticket_threads: ASSIGNED_AND_DEFAULT_ACCESS_ALL_CREATE,
+  ticket_thread_comments: ASSIGNED_AND_DEFAULT_ACCESS_ALL_CREATE,
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
@@ -339,6 +349,8 @@ export const ADMIN_PERMISSIONS: AccessPermissions = {
   enduser_custom_types: FULL_ACCESS,
   table_views: FULL_ACCESS,
   email_sync_denials: FULL_ACCESS,
+  ticket_threads: FULL_ACCESS,
+  ticket_thread_comments: FULL_ACCESS,
 }
 
 export const PORTAL_DEFAULT_LANDING_TITLE = "Your Portal"

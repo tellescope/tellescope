@@ -186,6 +186,8 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   enduser_custom_types: defaultQueries(s, 'enduser_custom_types'), 
   table_views: defaultQueries(s, 'table_views'), 
   email_sync_denials: defaultQueries(s, 'email_sync_denials'), 
+  ticket_threads: defaultQueries(s, 'ticket_threads'), 
+  ticket_thread_comments: defaultQueries(s, 'ticket_thread_comments'), 
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
@@ -531,6 +533,7 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
 type UserInfo = User & {
   type: 'user',
   orgTwilioNumber?: string,
+  ticketThreadsEnabled?: boolean, // zendesk enabled
   enduserDisplayName?: string,
   access: AccessPermissions,
   orgName?: string,

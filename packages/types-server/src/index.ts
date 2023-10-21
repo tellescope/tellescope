@@ -73,6 +73,8 @@ export type PhoneTree = ServerModelForName['phone_trees']
 export type EnduserCustomType = ServerModelForName['enduser_custom_types']
 export type TableView = ServerModelForName['table_views']
 export type EmailSyncDenial = ServerModelForName['email_sync_denials']
+export type TicketThread = ServerModelForName['ticket_threads']
+export type TicketThreadComment = ServerModelForName['ticket_thread_comments']
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']
@@ -124,6 +126,14 @@ export interface ZoomConfig extends InternalBusinessRecord, EnduserEngagementTim
   clientId: string,
   clientSecret: string,
   name: string,
+}
+
+export interface ZendeskConfig extends InternalBusinessRecord {
+  subdomain: string,
+  clientId: string,
+  clientSecret: string,
+  adminAPIKey: string,
+  apiKeyEmail: string,
 }
 
 export interface ZohoConfig extends InternalBusinessRecord, EnduserEngagementTimestamps {

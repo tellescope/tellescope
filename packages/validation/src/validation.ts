@@ -275,6 +275,7 @@ import {
   NO_ACCESS,
   OUTLOOK_INTEGRATIONS_TITLE,
   SQUARE_INTEGRATIONS_TITLE,
+  ZENDESK_INTEGRATIONS_TITLE,
   ZOHO_TITLE,
   ZOOM_TITLE,
  } from "@tellescope/constants"
@@ -3243,6 +3244,8 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   phone_trees: accessPermissionValidator,
   table_views: accessPermissionValidator,
   email_sync_denials: accessPermissionValidator,
+  ticket_thread_comments: accessPermissionValidator,
+  ticket_threads: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
@@ -3311,6 +3314,8 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   phone_trees: numberValidatorOptional,
   table_views: numberValidatorOptional,
   email_sync_denials: numberValidatorOptional,
+  ticket_threads: numberValidatorOptional,
+  ticket_thread_comments: numberValidatorOptional,
 }, { emptyOk: true })
 
 const _LOGIN_FLOW_RESULTS = {
@@ -3375,12 +3380,14 @@ export type IntegrationsTitleType = (
 | typeof OUTLOOK_INTEGRATIONS_TITLE 
 | typeof ZOHO_TITLE 
 | typeof ZOOM_TITLE
+| typeof ZENDESK_INTEGRATIONS_TITLE
 )
 export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleType>([
   SQUARE_INTEGRATIONS_TITLE,
   OUTLOOK_INTEGRATIONS_TITLE,
   ZOHO_TITLE,
   ZOOM_TITLE,
+  ZENDESK_INTEGRATIONS_TITLE
 ])
 
 const _VIDEO_INTEGRATION_TYPES: { [K in VideoIntegrationType]: any} = {
