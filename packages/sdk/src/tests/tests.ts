@@ -4198,7 +4198,7 @@ const wait_for_trigger_tests = async () => {
   })
 
   await sdk.api.endusers.add_to_journey({ enduserIds: [eTrigger.id], journeyId: journey.id })
-  await wait(undefined, 2222)
+  await wait(undefined, 3000)
 
   await async_test(
     "Journey started",
@@ -4587,7 +4587,7 @@ const TRACK_OPEN_IMAGE = Buffer.from(
       sdkSubSub.authenticate(subSubUserEmail, password),
       sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword),
     ]) 
-    
+ 
     await async_test(
       "count exists",
       // @ts-ignore

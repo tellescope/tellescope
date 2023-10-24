@@ -915,6 +915,11 @@ export type TicketActions = {
 export type TicketActionType = keyof TicketActions
 export type TicketAction = TicketActions[TicketActionType]
 
+export type TicketSnooze = {
+  at: Date,
+  until: Date,
+}
+
 export interface Ticket_readonly extends ClientRecord {
   source?: string,
   externalId?: string,
@@ -956,6 +961,7 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
   rootTicketId?: string,
   parentTicketId?: string,
   timeToCloseInMS?: number,
+  snoozes?: TicketSnooze[],
 }
 
 export type AttendeeInfo = {

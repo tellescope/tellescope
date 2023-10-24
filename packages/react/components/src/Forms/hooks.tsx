@@ -880,6 +880,7 @@ export const useTellescopeForm = ({ customization, ga4measurementId, rootRespons
 
         setSubmittingStatus("submitting")
       } catch(err: any) {
+        console.error(err)
         setSubmitErrorMessage(err?.message ?? 'Failed to upload file')
       } finally {
         setSubmittingStatus(undefined)
@@ -944,7 +945,8 @@ export const useTellescopeForm = ({ customization, ga4measurementId, rootRespons
         (window?.top ?? window).location.href = submitRedirectURL;
       }
     } catch(err: any) {
-      setSubmitErrorMessage(err?.message ?? 'Failed to upload file')
+      console.error(err)
+      setSubmitErrorMessage(err?.message ?? 'An error occurred')
     } finally {
       setSubmittingStatus(undefined)
     }

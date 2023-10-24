@@ -238,6 +238,7 @@ import {
   FormResponsesReportQuery,
   PhoneCallsReportQuery,
   TypedField,
+  TicketSnooze,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -3171,6 +3172,12 @@ const superbillLineItemValidator = objectValidator<SuperbillLineItem>({
   discount: numberValidatorOptional,
 })
 export const superbillLineItemsValidator = listValidator(superbillLineItemValidator)
+
+const ticketSnoozeValidator = objectValidator<TicketSnooze>({
+  at: dateValidator,
+  until: dateValidator,
+})
+export const ticketSnoozesValidator = listValidatorOptionalOrEmptyOk(ticketSnoozeValidator)
 
 // for each model name, this should be optional, but when a model name is provided, all CRUD fields should be required
 // if this changes (e.g. CRUD fields are made optional), must merge better in authentication.ts in API

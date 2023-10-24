@@ -252,6 +252,7 @@ import {
   phoneCallsReportQueriesValidator,
   listValidatorEmptyOk,
   phonePlaybackValidatorOptional,
+  ticketSnoozesValidator,
 } from "@tellescope/validation"
 
 import {
@@ -2885,6 +2886,7 @@ export const schema: SchemaV1 = build_schema({
       reminderSilencedAt: { validator: dateOptionalOrEmptyStringValidator },
       relatedRecords: { validator: listValidatorOptionalOrEmptyOk(relatedRecordValidator) },
       attachments: { validator: listOfChatAttachmentsValidator },
+      snoozes: { validator: ticketSnoozesValidator },
     }
   },
   meetings: {
@@ -4133,6 +4135,7 @@ export const schema: SchemaV1 = build_schema({
         //   onDependencyDelete: 'delete',
         // }]
       },
+      enduserId: { validator: mongoIdStringValidator },
       resource: { 
         validator: stringValidator100,
         required: true,
