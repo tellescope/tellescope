@@ -16,6 +16,7 @@ import {
   SortBy,
   AnalyticsQuery,
   UserUIRestrictions,
+  ModelName,
 } from "@tellescope/types-models"
 
 import {
@@ -542,6 +543,13 @@ type UserInfo = User & {
   requiresMFA?: boolean,
 }
 
+type LoadOptions = {
+  lastId?: string,  
+  limit?: number,
+  from?: Date,
+  // filter?: Record<string, any>,
+}
+
 export class Session extends SessionManager {
   api: Queries;
   userInfo!: UserInfo;
@@ -694,6 +702,11 @@ export class Session extends SessionManager {
     queries.products.prepare_stripe_checkout = args => this._POST(`/v1${schema.products.customActions.prepare_stripe_checkout.path}`, args)
 
     this.api = queries
+  }
+
+  bulk_load = async (args: { load: { model: ModelName, options?: LoadOptions }[] }) => {
+    await this.refresh_session_if_expiring_soon()
+    return await this.POST<typeof args, { results: (null | { records: any[] })[] }>(`/v1/bulk-actions/read`, args, true)
   }
 
   _POST = async <A,R=void>(endpoint: string, args?: A, authenticated=true, o?: { withCredentials?: boolean }) => {

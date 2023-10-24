@@ -422,11 +422,13 @@ export const TicketSearch = (props: Omit<GenericSearchProps<Ticket>, 'filterKey'
           fields.user_fname = user.fname || '';
           fields.user_lname = user.lname || '';
           fields.user_fullname = `${user.fname} ${user.lname}`;
+          fields.user_email = user.email || '';
         }
         if (enduser) {
           fields.enduser_fname = enduser.fname || '';
           fields.enduser_lname = enduser.lname || '';
           fields.enduser_fullname = `${enduser.fname} ${enduser.lname}`;
+          fields.enduser_email = enduser.email || '';
         }
     
         return fields

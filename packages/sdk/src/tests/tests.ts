@@ -1205,6 +1205,11 @@ const chat_room_tests = async () => {
     () => sdk2.api.chat_rooms.getOne(emptyRoom.id), 
     { onResult: r => r.id === emptyRoom.id }
   ) 
+  await async_test(
+    `[bulk] get-chat-room (join successful)`, 
+    () => sdkNonAdmin.bulk_load({ load: [{ model: 'chat_rooms' }] }), 
+    { onResult: r => r.results?.[0]?.records?.find(r => r.id === emptyRoom.id )}
+  )
 
   await enduserSDK.logout()
   const loggedOutEnduser = await sdk.api.endusers.getOne(enduser.id)
@@ -3018,6 +3023,21 @@ const role_based_access_tests = async () => {
     `non-admin for enduser ticket bad`,
     () => sdkNonAdmin.api.tickets.getOne(adminTicket.id), handleAnyError,
   )  
+  await async_test(
+    `[bulkd] Admin / creator can access enduser without being assigned`,
+    () => sdk.bulk_load({ load: [{ model: 'endusers' }] }),
+    { onResult: r => r.results[0]?.records !== undefined && r.results[0].records?.find(r => r.id === e.id) } 
+  )  
+  await async_test(
+    `[bulk] Unassigned non-admin can't access enduser without being assigned`,
+      () => sdkNonAdmin.bulk_load({ load: [{ model: 'endusers' }] }),
+      { onResult: r => r.results[0]?.records !== undefined && !r.results[0].records?.find(r => r.id === e.id) } 
+  )  
+  await async_test(
+    `non-admin for enduser ticket bad`,
+      () => sdkNonAdmin.bulk_load({ load: [{ model: 'tickets' }] }),
+      { onResult: r => r.results[0]?.records !== undefined && !r.results[0].records?.find(r => r.id === adminTicket.id) } 
+  )
 
   await async_test(
     `Non-admin for own ticket`, () => sdkNonAdmin.api.tickets.getOne(ticketCreatedByNonAdmin.id), passOnAnyResult
@@ -3026,7 +3046,17 @@ const role_based_access_tests = async () => {
     `Non-admin for tickets`, () => sdkNonAdmin.api.tickets.getSome(), { onResult: ts => ts.length === 1 }
   )  
   await async_test(
+    `[bulk] Non-admin for tickets`, 
+    () => sdkNonAdmin.bulk_load({ load: [{ model: 'tickets' }] }), 
+    { onResult: r => r.results?.[0]?.records?.length === 1 }
+  )  
+  await async_test(
     `non-admin for email bad`, () => sdkNonAdmin.api.emails.getOne(email.id), handleAnyError,
+  )  
+  await async_test(
+    `[bulk] non-admin for email bad`, 
+    () => sdkNonAdmin.bulk_load({ load: [{ model: 'emails' }] }), 
+    { onResult: r => r.results?.[0]?.records?.length === 0 }
   )  
   await async_test(
     `non-admin for sms bad`, () => sdkNonAdmin.api.sms_messages.getOne(sms.id), handleAnyError,
@@ -3038,13 +3068,33 @@ const role_based_access_tests = async () => {
     `non-admin for calendar bad`, () => sdkNonAdmin.api.calendar_events.getOne(calendarEvent.id), handleAnyError,
   )  
   await async_test(
+    `[bulk] non-admin for calendar bad`, 
+    () => sdkNonAdmin.bulk_load({ load: [{ model: 'calendar_events' }] }), 
+    { onResult: r => r.results?.[0]?.records?.length === 0 }
+  )  
+  await async_test(
     `non-admin for chat room bad`, () => sdkNonAdmin.api.chat_rooms.getOne(chatRoom.id), handleAnyError,
+  )  
+  await async_test(
+    `[bulk] non-admin for chat room bad`, 
+    () => sdkNonAdmin.bulk_load({ load: [{ model: 'chat_rooms' }] }), 
+    { onResult: r => r.results?.[0]?.records?.length === 0 }
   )  
   await async_test(
     `non-admin for chat message bad`, () => sdkNonAdmin.api.chats.getOne(chatMessage.id), handleAnyError,
   )  
   await async_test(
+    `[bulk] non-admin for chat message bad`, 
+    () => sdkNonAdmin.bulk_load({ load: [{ model: 'chats' }] }), 
+    handleAnyError // throws error in this case in enforceForeignAccessConstraints because there are no accessible chats
+  )  
+  await async_test(
     `Non-admin for chats`, () => sdkNonAdmin.api.chats.getSome({ filter: { roomId: chatRoom.id } }), handleAnyError,
+  )  
+  await async_test(
+    `Non-admin for tickets with enduserId in filter`, 
+    () => sdkNonAdmin.api.tickets.getSome({ filter: { enduserId: e.id } }), 
+    { onResult: r => !r.find(t => t.id === adminTicket.id)}
   )  
 
   // unassigned update / delete coverage
@@ -3070,6 +3120,11 @@ const role_based_access_tests = async () => {
   await async_test(
     `non-admin for enduser ticket`, () => sdkNonAdmin.api.tickets.getOne(adminTicket.id), passOnAnyResult,
   )  
+  await async_test(
+    `[bulk] non-admin for enduser ticket`, 
+    () => sdkNonAdmin.bulk_load({ load: [{ model: 'tickets' }] }), 
+    { onResult: r => r.results?.[0]?.records?.find(r => r.id === adminTicket.id )}
+  )
 
   await async_test(
     `Non-admin for tickets`, () => sdkNonAdmin.api.tickets.getSome(), { onResult: ts => ts.length === 2 }
@@ -3078,17 +3133,37 @@ const role_based_access_tests = async () => {
     `non-admin for email`, () => sdkNonAdmin.api.emails.getOne(email.id), passOnAnyResult,
   )  
   await async_test(
+    `[bulk] non-admin for email`, 
+    () => sdkNonAdmin.bulk_load({ load: [{ model: 'emails' }] }), 
+    { onResult: r => r.results?.[0]?.records?.find(r => r.id === email.id )}
+  )
+  await async_test(
     `non-admin for sms`, () => sdkNonAdmin.api.sms_messages.getOne(sms.id), passOnAnyResult,
   )  
   await async_test(
     `non-admin for calendar`, () => sdkNonAdmin.api.calendar_events.getOne(calendarEvent.id), passOnAnyResult,
   )  
   await async_test(
+    `[bulk] non-admin for calendar`, 
+    () => sdkNonAdmin.bulk_load({ load: [{ model: 'calendar_events' }] }), 
+    { onResult: r => r.results?.[0]?.records?.find(r => r.id === calendarEvent.id )}
+  )
+  await async_test(
     `non-admin for chat room`, () => sdkNonAdmin.api.chat_rooms.getOne(chatRoom.id), passOnAnyResult,
   )  
   await async_test(
+    `[bulk] non-admin for chat room`, 
+    () => sdkNonAdmin.bulk_load({ load: [{ model: 'chat_rooms' }] }), 
+    { onResult: r => r.results?.[0]?.records?.find(r => r.id === chatRoom.id )}
+  )
+  await async_test(
     `non-admin for chat message`, () => sdkNonAdmin.api.chats.getOne(chatMessage.id), passOnAnyResult,
   )  
+  await async_test(
+    `[bulk] non-admin for chat message`, 
+    () => sdkNonAdmin.bulk_load({ load: [{ model: 'chats' }] }), 
+    { onResult: r => r.results?.[0]?.records?.find(r => r.id === chatMessage.id )}
+  )
   await async_test(
     `Non-admin for chats`, () => sdkNonAdmin.api.chats.getSome({ filter: { roomId: chatRoom.id } }), 
     { onResult: cs => cs.length === 2 },
@@ -4587,6 +4662,8 @@ const TRACK_OPEN_IMAGE = Buffer.from(
       sdkSubSub.authenticate(subSubUserEmail, password),
       sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword),
     ]) 
+
+    // console.log(JSON.stringify(await sdk.bulk_load({ load: [{ model: 'users' }]}), null, 2))
  
     await async_test(
       "count exists",
@@ -4603,11 +4680,11 @@ const TRACK_OPEN_IMAGE = Buffer.from(
 
     await mfa_tests()
     await setup_tests()
+    await role_based_access_tests()
     await multi_tenant_tests() // should come right after setup tests
     await pdf_generation()
     await remove_from_journey_on_incoming_comms_tests()
     await rate_limit_tests()
-    await role_based_access_tests()
     await wait_for_trigger_tests()
     await merge_enduser_tests()
     await self_serve_appointment_booking_tests()
