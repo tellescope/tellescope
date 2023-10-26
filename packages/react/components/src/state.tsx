@@ -652,14 +652,16 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
       })
       .then(({ matches }) => {
         if (matches.length) { addLocalElements(matches) }
-
-        batchRef.current.ids = batchRef.current.nextBatch
-        batchRef.current.nextBatch = []
       })
       .catch(err => {
         console.error(err)
       })
       .finally(() => {
+        // ensure we make progress to prevent looping on an error
+        batchRef.current.ids = batchRef.current.nextBatch
+        batchRef.current.nextBatch = []
+        
+        // allow next fetch
         batchRef.current.fetching = false
       })
     }, 250)

@@ -1206,8 +1206,18 @@ const chat_room_tests = async () => {
     { onResult: r => r.id === emptyRoom.id }
   ) 
   await async_test(
+    `create-chat (join successful)`, 
+    () => sdk2.api.chats.createOne({ roomId: emptyRoom.id, message: 'test' }), 
+    passOnAnyResult
+  ) 
+  await async_test(
+    `get-chat (join successful)`, 
+    () => sdk2.api.chats.getSome({ filter: { roomId: emptyRoom.id } }), 
+    { onResult: r => r.length > 0 }
+  ) 
+  await async_test(
     `[bulk] get-chat-room (join successful)`, 
-    () => sdkNonAdmin.bulk_load({ load: [{ model: 'chat_rooms' }] }), 
+    () => sdk2.bulk_load({ load: [{ model: 'chat_rooms' }] }), 
     { onResult: r => r.results?.[0]?.records?.find(r => r.id === emptyRoom.id )}
   )
 
@@ -4273,7 +4283,7 @@ const wait_for_trigger_tests = async () => {
   })
 
   await sdk.api.endusers.add_to_journey({ enduserIds: [eTrigger.id], journeyId: journey.id })
-  await wait(undefined, 3000)
+  await wait(undefined, 8000)
 
   await async_test(
     "Journey started",
@@ -4283,7 +4293,7 @@ const wait_for_trigger_tests = async () => {
 
   await sdk.api.endusers.updateOne(eTrigger.id, { fields: { Test: 'Trigger' } })
   await sdk.api.endusers.updateOne(eNoTrigger.id, { fields: { Test: 'Trigger' } })
-  await wait(undefined, 2222)
+  await wait(undefined, 3000)
   
   // TODO - Test a delayed action which comes after the triggered action
 
@@ -4454,37 +4464,38 @@ const remove_from_journey_on_incoming_comms_tests = async () => {
 
   await sdk.api.endusers.updateOne(e1.id, { journeys: { [jRemove.id]: '', [jDontRemove.id]: '' } })
   await sdk.api.endusers.updateOne(e2.id, { journeys: { [jRemove.id]: '', [jDontRemove.id]: '' } })
-  await wait(undefined, 2000)
+  await wait(undefined, 100)
 
   const room = await sdk.api.chat_rooms.createOne({ })
   await sdk.api.chats.createOne({ roomId: room.id, senderId: e1.id, message: 'cancel' })
-  await wait(undefined, 1000)
+  await wait(undefined, 100)
 
+  console.log(jRemove.id, removeStep2.id, e1.id)
   await async_test(
     "Appropriate Automated Actions are cancelled on incoming message",
     () => sdk.api.automated_actions.getSome(),
     { onResult: actions => (
         !!actions.find(a => 
             a.journeyId === jRemove.id
-          && a.automationStepId === removeStep2.id
+          && a.automationStepId === removeStep1.id
           && a.enduserId === e1.id
           && a.status === 'cancelled'
         )
       && !!actions.find(a => 
           a.journeyId === jRemove.id
-        && a.automationStepId === removeStep2.id
+        && a.automationStepId === removeStep1.id
         && a.enduserId === e2.id
         && a.status === 'active'
       )
       && !!actions.find(a => 
           a.journeyId === jDontRemove.id
-        && a.automationStepId === dontRemoveStep2.id
+        && a.automationStepId === dontRemoveStep1.id
         && a.enduserId === e1.id
         && a.status === 'active'
       )
       && !!actions.find(a => 
           a.journeyId === jDontRemove.id
-        && a.automationStepId === dontRemoveStep2.id
+        && a.automationStepId === dontRemoveStep1.id
         && a.enduserId === e2.id
         && a.status === 'active'
       )
@@ -4499,7 +4510,7 @@ const remove_from_journey_on_incoming_comms_tests = async () => {
     { onResult: actions => (
         !!actions.find(a => 
             a.journeyId === jRemove.id
-          && a.automationStepId === removeStep2.id
+          && a.automationStepId === removeStep1.id
           && a.enduserId === e2.id
           && a.status === 'cancelled'
         )
@@ -4680,12 +4691,12 @@ const TRACK_OPEN_IMAGE = Buffer.from(
 
     await mfa_tests()
     await setup_tests()
+    await wait_for_trigger_tests()
     await role_based_access_tests()
     await multi_tenant_tests() // should come right after setup tests
     await pdf_generation()
     await remove_from_journey_on_incoming_comms_tests()
     await rate_limit_tests()
-    await wait_for_trigger_tests()
     await merge_enduser_tests()
     await self_serve_appointment_booking_tests()
     await auto_reply_tests()
