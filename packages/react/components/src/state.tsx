@@ -651,7 +651,10 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
         ids: batchRef.current.ids,
       })
       .then(({ matches }) => {
-        if (matches.length) { addLocalElements(matches) }
+        if (matches.length) { 
+          addLocalElements(matches)
+          options?.onBulkRead?.(matches) 
+        }
       })
       .catch(err => {
         console.error(err)
@@ -667,7 +670,7 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     }, 250)
 
     return () => { clearInterval(i) }
-  }, [findByIds, addLocalElements])
+  }, [findByIds, addLocalElements, options?.onBulkRead])
 
   const findByFilter: ListUpdateMethods<T, ADD>['findByFilter'] = useCallback((filter, options) => {
     const loadFilter = options?.loadFilter
@@ -914,6 +917,7 @@ export type HookOptions<T> = {
   refetchInMS?: number,
   dontFetch?: boolean,
   addTo?: AddOptions['addTo'],
+  onBulkRead?: (matches: T[]) => void,
 }
 
 export const useChatRoomDisplayInfo = (roomId: string, options={} as HookOptions<ChatRoomDisplayInfo>) => {
@@ -1723,6 +1727,7 @@ export const useRoleBasedAccessPermissions = (options={} as HookOptions<Organiza
       deleteOne: session.api.role_based_access_permissions.deleteOne,
       updateOne: session.api.role_based_access_permissions.updateOne,
     }, 
+    // @ts-ignore
     {...options}
   )
 }

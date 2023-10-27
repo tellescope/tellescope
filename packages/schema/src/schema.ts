@@ -546,7 +546,7 @@ export type CustomActions = {
       }, 
       { formResponse: FormResponse }
     >,
-    save_field_response: CustomAction<{ accessCode: string, response: FormResponseValue }, { }>,
+    save_field_response: CustomAction<{ formResponseId?: string, accessCode?: string, response: FormResponseValue }, { }>,
     info_for_access_code: CustomAction<{ accessCode: string }, {
       form: Form, 
       fields: FormField[], 
@@ -3340,7 +3340,8 @@ export const schema: SchemaV1 = build_schema({
         path: '/save-field-response',
         description: "With an accessCode, includes the answer to an individual field in a partial form response.",
         parameters: { 
-          accessCode: { validator: stringValidator250, required: true },
+          formResponseId: { validator: mongoIdStringValidator },
+          accessCode: { validator: stringValidator250 },
           response: { validator: formResponseValidator, required: true },
         },
         returns: {

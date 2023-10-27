@@ -109,7 +109,7 @@ export const QuestionForField = ({
   value: Response,
   file: FileResponse,
   field: FormField,
-  setCustomerId: (s: string) => void,
+  setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>
 } & Pick<TellescopeFormProps, 'handleDatabaseSelect' | 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField'>) => {
   const String = customInputs?.['string'] ?? StringInput
   const StringLong = customInputs?.['stringLong'] ?? StringLongInput

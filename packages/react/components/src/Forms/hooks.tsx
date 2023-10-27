@@ -347,6 +347,7 @@ const existing_response_if_compatible = (existingResponses: FormResponseValue[] 
   || field.type === 'dateString'
   || field.type === 'email'
   || field.type === 'phone'
+  || field.type === 'Stripe'
   )) {
     return match.value
   }
@@ -488,6 +489,7 @@ export const useTellescopeForm = ({ customization, ga4measurementId, rootRespons
       field: f,
     }))
   ), [fields, existingResponses])
+
   const [responses, setResponses] = useState<(Response)[]>(initializeFields())
   useEffect(() => {
     // Be very careful about refreshing data to avoid losing progress -- only in the case the selected form has changed
@@ -968,9 +970,10 @@ export const useTellescopeForm = ({ customization, ga4measurementId, rootRespons
     if (isNextDisabled()) return
     if (!currentValue) return
 
-    if (accessCode && currentValue?.answer?.type !== 'file' && currentValue?.answer?.type !== 'files') {
+    if (currentValue?.answer?.type !== 'file' && currentValue?.answer?.type !== 'files') {
       session.api.form_responses.save_field_response({
         accessCode,
+        formResponseId,
         response: currentValue,
       })
       .catch(console.error)
@@ -1014,6 +1017,27 @@ export const useTellescopeForm = ({ customization, ga4measurementId, rootRespons
         value: value as any,
       },
     })))
+
+    // ensure stripe payment is stored as saved immediately
+    const stripeField = fields.find(f => f.id === fieldId && f.type === 'Stripe')
+    if (stripeField && typeof value === 'string') {
+      session.api.form_responses.save_field_response({
+        accessCode,
+        formResponseId,
+        response: {
+          answer: {
+            type: 'Stripe',
+            value,
+          },
+          fieldId: stripeField.id,
+          fieldTitle: stripeField.title,
+          externalId: stripeField.externalId,
+          fieldDescription: stripeField.description,
+          fieldHtmlDescription: stripeField.htmlDescription,
+        },
+      })
+      .catch(console.error)
+    }
   }, [fields])
 
   const onAddFile = useCallback((blobs?: FileBlob | FileBlob[], fieldId=activeField.value.id) => {

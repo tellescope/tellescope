@@ -12,7 +12,7 @@ import LinearProgress from '@mui/material/LinearProgress';
 
 import DatePicker from "react-datepicker";
 import { datepickerCSS } from "./css/react-datepicker" // avoids build issue with RN
-import { CancelIcon, FileBlob, LabeledIconButton, Styled, useResolvedSession } from ".."
+import { CancelIcon, FileBlob, LabeledIconButton, Styled, useProducts, useResolvedSession } from ".."
 import { DatabaseRecord, FormField } from "@tellescope/types-client"
 import { css } from '@emotion/css'
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
@@ -919,15 +919,21 @@ export const MultipleChoiceInput = ({ field, value: _value, onChange }: FormInpu
   )
 }
 
-export const StripeInput = ({ field, value, onChange, setCustomerId }: FormInputProps<'Stripe'> & { setCustomerId: (s: string) => void }) => {
+export const StripeInput = ({ field, value, onChange, setCustomerId }: FormInputProps<'Stripe'> & { 
+  setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>,
+}) => {
   const session = useResolvedSession()
   const [clientSecret, setClientSecret] = useState('')
   const [businessName, setBusinessName] = useState('')
   const [stripePromise, setStripePromise] = useState<ReturnType<typeof loadStripe>>()
+  const [, { findById: findProduct }] = useProducts({ dontFetch: true })
 
   const fetchRef = useRef(false)
   useEffect(() => {
     if (fetchRef.current) return
+    if (value && (session.userInfo as any)?.stripeCustomerId) {
+      return setCustomerId(c => c ? c : (session.userInfo as any)?.stripeCustomerId) // already paid or saved card
+    }
     fetchRef.current = true
 
     session.api.form_responses.stripe_details({ fieldId: field.id })
@@ -938,30 +944,38 @@ export const StripeInput = ({ field, value, onChange, setCustomerId }: FormInput
       setCustomerId(customerId)
     })
     .catch(console.error)
-  }, [session])
+  }, [session, value, field.id])
 
-  if (!(clientSecret && stripePromise)) return <LinearProgress />
+  const cost = (
+    (field.options?.productIds || []).map(id => findProduct(id, { batch: false })) // seems to be having issues with bulk read
+    .reduce((t, p) => t + (p?.cost?.amount || 0), 0)
+  )
+
   if (value) {
     return (
       <Grid container alignItems="center" wrap="nowrap">
         <CheckCircleOutline color="success" />
 
         <Typography sx={{ ml: 1, fontSize: 20 }}>
-          Your payment details have been saved!
+          {field.options?.chargeImmediately ? 'Your purcahse was successful' : "Your payment details have been saved!"}
         </Typography>
       </Grid>
     )
   }
+  if (!(clientSecret && stripePromise)) return <LinearProgress />
   return (
     <Elements stripe={stripePromise} options={{
       clientSecret,
     }}>
-      <StripeForm businessName={businessName} onSuccess={() => onChange('Saved card details', field.id)} />
+      <StripeForm businessName={businessName} onSuccess={() => onChange('Saved card details', field.id)} 
+        cost={cost}
+        field={field}
+      />
     </Elements>
   )
 }
 
-const StripeForm = ({ businessName, onSuccess } : { businessName: string, onSuccess: () => void }) => {
+const StripeForm = ({ businessName, onSuccess, field, cost } : { businessName: string, onSuccess: () => void, field: FormField, cost: number }) => {
   const stripe = useStripe();
   const elements = useElements()
 
@@ -979,7 +993,7 @@ const StripeForm = ({ businessName, onSuccess } : { businessName: string, onSucc
       return null;
     }
 
-    const {error} = await stripe.confirmSetup({
+    const {error} = await (field.options?.chargeImmediately ? stripe.confirmPayment : stripe.confirmSetup)({
       //`Elements` instance that was used to create the Payment Element
       elements,
       confirmParams: { 
@@ -1011,8 +1025,15 @@ const StripeForm = ({ businessName, onSuccess } : { businessName: string, onSucc
       <Button variant="contained" color="primary" type="submit" sx={{ mt: 1 }}
         disabled={!(stripe && ready)}
       >
-        Save Payment Details
+        {field.options?.chargeImmediately ? 'Make Payment' : 'Save Payment Details'}
       </Button>
+
+      {cost > 0 && 
+        <Typography sx={{ mt: 0.5 }}>
+          You will be charged ${(cost / 100).toFixed(2)} {field.options?.chargeImmediately ? '' : 'on form submission'}
+        </Typography>
+      }
+
       {/* Show error message to your customers */}
       {errorMessage && 
         <Typography color="error" sx={{ mt: 0.5 }}>

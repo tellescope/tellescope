@@ -1052,6 +1052,7 @@ export type FormFieldOptions = FormFieldValidation & {
   validFileTypes?: string[], // should be human readable files where the lower-case version is included in a filetype, e.g. Image, Video, PDF
   signatureUrl?: string,
   productIds?: string[],
+  chargeImmediately?: boolean,
   databaseId?: string,
   databaseLabel?: string,
   databaseLabels?: string[],

@@ -2528,6 +2528,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   })),
   validFileTypes: listOfStringsValidatorOptionalOrEmptyOk,
   productIds: listOfStringsValidatorOptionalOrEmptyOk,
+  chargeImmediately: booleanValidatorOptional,
   signatureUrl: stringValidator5000Optional,
   maxLength: numberValidatorOptional,
   minLength: numberValidatorOptional,
