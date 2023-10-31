@@ -2938,6 +2938,12 @@ export const meetings_tests = async () => {
 const search_tests = async () => {
   log_header("Search")
 
+  await async_test(
+    `user_logs earch disabled`,
+    () => sdk.api.user_logs.getSome({ search: { query: 'john'} }),
+    handleAnyError
+  )  
+
   const e1 = await sdk.api.endusers.createOne({ email: 'e1_search@tellescope.com', fname: 'JoHn', lname: "strauss" })
   const e2 = await sdk.api.endusers.createOne({ email: 'e2_search@tellescope.com', fname: 'sebastian', lname: "coates" })
   
@@ -4691,6 +4697,7 @@ const TRACK_OPEN_IMAGE = Buffer.from(
 
     await mfa_tests()
     await setup_tests()
+    await search_tests()
     await wait_for_trigger_tests()
     await role_based_access_tests()
     await multi_tenant_tests() // should come right after setup tests
@@ -4707,7 +4714,6 @@ const TRACK_OPEN_IMAGE = Buffer.from(
     await generate_user_auth_tests()
     await generateEnduserAuthTests()
     await public_form_tests()
-    await search_tests()
     await badInputTests()
     await filterTests()
     await updatesTests()

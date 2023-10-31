@@ -2276,6 +2276,7 @@ export type AnalyticsQueryResult = {
 }
 export type DateRange = { from?: Date | '', to?: Date | '' }
 
+
 type AnalyticsQueryInfoBuilder <M extends string, P extends object | undefined> = { method: M, parameters: P }
 export type AnalyticsQueryInfoForType = {
   "Endusers": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },

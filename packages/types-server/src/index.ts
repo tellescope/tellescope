@@ -148,6 +148,7 @@ export interface TwilioConfig extends InternalBusinessRecord, EnduserEngagementT
   twimlAppId: string,
   name: string,
   twilioIosSid: string,
+  twilioAndroidSid: string,
 }
 
 export interface OutstandingFormsTracker extends InternalBusinessRecord {

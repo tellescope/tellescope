@@ -641,6 +641,7 @@ export type CustomActions = {
     configure_MFA: CustomAction<{  }, { recoveryCodes: string[], authToken: string, user: UserSession }>,
     generate_MFA_challenge: CustomAction<{ method: string }, { }>,
     submit_MFA_challenge: CustomAction<{ code: string }, { authToken: string, user: UserSession }>,
+    get_engagement_report: CustomAction<{ range?: DateRange }, { report: Record<string, any> }>,
   },
   chat_rooms: {
     join_room: CustomAction<{ id: string }, { room: ChatRoom }>,
@@ -2398,6 +2399,18 @@ export const schema: SchemaV1 = build_schema({
         returns: { 
           authToken: { validator: stringValidator, required: true }, 
           user: { validator: 'user' as any, required: true }, 
+        } 
+      },
+      get_engagement_report: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Get Engagement Report',
+        path: '/users/get-engagement-report',
+        description: "Gets a report on engagement by care team",
+        parameters: {
+          range: { validator: dateRangeOptionalValidator },
+        },
+        returns: { 
+          report: { validator: objectAnyFieldsAnyValuesValidator, required: true },
         } 
       },
       configure_inbox: {
