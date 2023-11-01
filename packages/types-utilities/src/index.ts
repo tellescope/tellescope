@@ -46,7 +46,7 @@ export interface CustomUpdateOptions {
 
 export type CUD = 'create' | 'update' | 'delete' 
 export type CRUD = CUD | 'read'
-export type HTTPMethod = 'post' | 'get' | 'patch' | 'delete' 
+export type HTTPMethod = 'post' | 'get' | 'patch' | 'delete' | 'all'
 export type Operation = CRUD | 'createMany' | 'readMany' 
 
 export interface FileBlob extends Blob {

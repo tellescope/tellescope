@@ -3408,7 +3408,7 @@ export const schema: SchemaV1 = build_schema({
         },
       },
       get_report: {
-        op: "custom", access: 'read', method: "get",
+        op: "custom", access: 'read', method: "all", // backwards compatible for GET but supports post for larger data posting
         name: 'Report',
         path: '/form-responses/report',
         description: "Builds a report",

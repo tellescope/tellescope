@@ -324,6 +324,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     get_report: (args: extractFields<CustomActions['form_responses']['get_report']['parameters']>) => (
       Promise<extractFields<CustomActions['form_responses']['get_report']['returns']>>
     ),
+    get_report_as_post: (args: extractFields<CustomActions['form_responses']['get_report']['parameters']>) => (
+      Promise<extractFields<CustomActions['form_responses']['get_report']['returns']>>
+    ),
     get_enduser_statistics: (args: extractFields<CustomActions['form_responses']['get_enduser_statistics']['parameters']>) => (
       Promise<extractFields<CustomActions['form_responses']['get_enduser_statistics']['returns']>>
     ),
@@ -614,7 +617,7 @@ export class Session extends SessionManager {
     queries.form_responses.info_for_access_code = (args) => this._GET(`/v1${schema.form_responses.customActions.info_for_access_code.path}`, args)
     queries.form_responses.stripe_details = (args) => this._GET(`/v1${schema.form_responses.customActions.stripe_details.path}`, args)
     queries.form_responses.push_to_EHR = (args) => this._POST(`/v1${schema.form_responses.customActions.push_to_EHR.path}`, args)
-    queries.form_responses.get_report = a => this._GET(`/v1/${schema.form_responses.customActions.get_report.path}`, a)
+    queries.form_responses.get_report = a => this._POST(`/v1/${schema.form_responses.customActions.get_report.path}`, a)
     queries.form_responses.get_enduser_statistics = a => this._GET(`/v1/${schema.form_responses.customActions.get_enduser_statistics.path}`, a)
     
     // need arraybuffer response type, see tests.ts
