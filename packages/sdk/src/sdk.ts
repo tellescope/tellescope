@@ -242,6 +242,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     get_engagement_statistics: (args: extractFields<CustomActions['endusers']['get_engagement_statistics']['parameters']>) => (
       Promise<extractFields<CustomActions['endusers']['get_engagement_statistics']['returns']>>
     ),
+    sync_zendesk: (args: extractFields<CustomActions['endusers']['sync_zendesk']['parameters']>) => (
+      Promise<extractFields<CustomActions['endusers']['sync_zendesk']['returns']>>
+    ),
   },
   users: {
     display_names: () => Promise<{ fname: string, lname: string, id: string }[]>,
@@ -439,6 +442,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     disconnect_elation: (args: extractFields<CustomActions['integrations']['disconnect_elation']['parameters']>) => (
       Promise<extractFields<CustomActions['integrations']['disconnect_elation']['returns']>>
     ),
+    connect_zendesk: (args: extractFields<CustomActions['integrations']['connect_zendesk']['parameters']>) => (
+      Promise<extractFields<CustomActions['integrations']['connect_zendesk']['returns']>>
+    ),
   },
   phone_calls: {
     authenticate_calling: (args: extractFields<CustomActions['phone_calls']['authenticate_calling']['parameters']>) => (
@@ -478,6 +484,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
     deliver_via_outlook: (args: extractFields<CustomActions['emails']['deliver_via_outlook']['parameters']>) => (
       Promise<extractFields<CustomActions['emails']['deliver_via_outlook']['returns']>>
+    ),
+    deliver_via_iterable: (args: extractFields<CustomActions['emails']['deliver_via_iterable']['parameters']>) => (
+      Promise<extractFields<CustomActions['emails']['deliver_via_iterable']['returns']>>
     ),
   },
   calendar_events: {
@@ -586,6 +595,7 @@ export class Session extends SessionManager {
     queries.endusers.bulk_update = a => this._PATCH(`/v1${schema.endusers.customActions.bulk_update.path}`, a)
     queries.endusers.get_report = a => this._GET(`/v1/${schema.endusers.customActions.get_report.path}`, a)
     queries.endusers.get_engagement_statistics = a => this._GET(`/v1/${schema.endusers.customActions.get_engagement_statistics.path}`, a)
+    queries.endusers.sync_zendesk = a => this._POST(`/v1${schema.endusers.customActions.sync_zendesk.path}`, a)
 
     queries.users.display_names = () => this._GET<{}, { fname: string, lname: string, id: string }[]>(`/v1/user-display-names`)
     queries.users.register = (args) => this._POST(`/v1${schema.users.publicActions.register.path}`, args)
@@ -670,9 +680,11 @@ export class Session extends SessionManager {
     queries.integrations.disconnect_photon = a => this._POST(`/v1/${schema.integrations.customActions.disconnect_photon.path}`, a)
     queries.integrations.connect_elation = a => this._POST(`/v1${schema.integrations.customActions.connect_elation.path}`, a)
     queries.integrations.disconnect_elation = a => this._POST(`/v1${schema.integrations.customActions.disconnect_elation.path}`, a)
+    queries.integrations.connect_zendesk = a => this._POST(`/v1${schema.integrations.customActions.connect_zendesk.path}`, a)
     
     queries.emails.sync_integrations = a => this._POST(`/v1/${schema.emails.customActions.sync_integrations.path}`, a)
     queries.emails.deliver_via_outlook = a => this._POST(`/v1/${schema.emails.customActions.deliver_via_outlook.path}`, a)
+    queries.emails.deliver_via_iterable = a => this._POST(`/v1/${schema.emails.customActions.deliver_via_iterable.path}`, a)
     
     queries.calendar_events.get_events_for_user = a => this._GET(`/v1/${schema.calendar_events.customActions.get_events_for_user.path}`, a)
     queries.calendar_events.load_events = a => this._GET(`/v1/${schema.calendar_events.customActions.load_events.path}`, a)

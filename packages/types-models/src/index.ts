@@ -220,6 +220,8 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedOpenAI?: boolean,
   hasConnectedHealthie?: boolean,
   hasConnectedElation?: boolean,
+  hasConnectedIterable?: boolean,
+  hasConnectedZendesk?: boolean,
   replyToAllEmails?: string,
   forwardAllIncomingEmailsTo?: string,
   numCustomTypes?: number,
@@ -503,6 +505,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   markedUnreadAt?: Date | '',
   note?: string,
   mfa?: MFASettings,
+  lastZendeskSyncAt?: Date,
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
 }
@@ -1869,6 +1872,7 @@ export type ShareContentAutomationAction = AutomationActionBuilder<'shareContent
 export type AddEnduserTagsAutomationAction = AutomationActionBuilder<'addEnduserTags', { tags: string[] }>
 export type AddToJourneyAutomationAction = AutomationActionBuilder<'addToJourney', { journeyId: string }>
 export type RemoveFromJourneyAutomationAction = AutomationActionBuilder<'removeFromJourney', { journeyId: string }>
+export type IterableSendEmailAutomationAction = AutomationActionBuilder<'iterableSendEmail', { campaignId: string }>
 
 export type EnduserFieldSetterType = 'Custom Value' | 'Current Timestamp' | 'Current Date'
 export type EnduserFieldSetter = {
@@ -1901,6 +1905,7 @@ export type AutomationActionForType = {
   'addEnduserTags': AddEnduserTagsAutomationAction,
   'addToJourney': AddToJourneyAutomationAction,
   'removeFromJourney': RemoveFromJourneyAutomationAction,
+  'iterableSendEmail': IterableSendEmailAutomationAction,
 }
 export type AutomationActionType = keyof AutomationActionForType
 export type AutomationAction = AutomationActionForType[AutomationActionType]
@@ -2772,6 +2777,7 @@ export interface TicketThread_readonly extends ClientRecord {
   cursor?: string,
   source: string,
   references?: RelatedRecord[]
+  timestamp?: Date,
 }
 export interface TicketThread_required {}
 export interface TicketThread_updatesDisabled {
@@ -2789,6 +2795,7 @@ export interface TicketThreadComment_readonly extends ClientRecord {
   source?: string,
   references?: RelatedRecord[]
   readBy?: { [index: string] : Date };
+  timestamp?: Date,
 }
 export interface TicketThreadComment_required {
   ticketThreadId: string,
@@ -2810,7 +2817,9 @@ export interface TicketThreadComment extends TicketThreadComment_readonly, Ticke
     "started_at": string,
     durationInSeconds: number, // seconds
     transcription?: string,
-  }
+  },
+  hiddenBy?: { [index: string] : Date | '' };
+  ticketIds?: string[],
 }
 
 export type ModelForName_required = {

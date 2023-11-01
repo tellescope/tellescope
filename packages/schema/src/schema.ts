@@ -623,6 +623,7 @@ export type CustomActions = {
       customTypeId?: string,
       groupBy?: string,
     }, { count: number, grouped?: { _id: string, count: number }[] }>,
+    sync_zendesk: CustomAction<{ enduserId: string }, { }>,
   },
   users: {
     display_info: CustomAction<{ }, { fname: string, lname: string, id: string }[]>,
@@ -698,6 +699,13 @@ export type CustomActions = {
       environment?: string
     }, {  }>, 
     disconnect_elation: CustomAction<{  }, { }>, 
+    connect_zendesk: CustomAction<{ 
+      subdomain: string,
+      clientId: string,
+      clientSecret: string,
+      adminAPIKey: string,
+      apiKeyEmail: string,
+    }, {  }>, 
   },
   emails: {
     sync_integrations: CustomAction<{ enduserEmail: string, allUsers?: boolean }, { newEmails: Email[] }>,
@@ -706,6 +714,7 @@ export type CustomActions = {
       conversationId: string,
       timestamp: string,
     }>, 
+    deliver_via_iterable: CustomAction<{ recipientEmail: string, campaignId: string }, {}>,
   },
   calendar_events: {
     get_events_for_user: CustomAction<{ userId: string, from: Date, to?: Date, limit?: number }, { events: CalendarEvent[] }>, 
@@ -1246,6 +1255,14 @@ export const schema: SchemaV1 = build_schema({
           grouped: { validator: objectAnyFieldsAnyValuesValidator as any, },
         },
       },
+      sync_zendesk: {
+        op: 'custom', access: 'read', method: 'post', adminOnly: true,
+        path: '/endusers/sync-zendesk',
+        name: 'Sync historical Zendesk tickets for a given enduser',
+        description: "", 
+        parameters: { enduserId: { validator: mongoIdStringValidator, required: true } },
+        returns: { }
+      },
     },
     publicActions: {
       begin_login_flow: {
@@ -1532,6 +1549,20 @@ export const schema: SchemaV1 = build_schema({
         name: 'Disconnect Elation',
         description: "", 
         parameters: {},
+        returns: { }
+      },
+      connect_zendesk: {
+        op: 'custom', access: 'create', method: 'post', adminOnly: true,
+        path: '/integrations/configure-zendesk',
+        name: 'Configure Zendesk',
+        description: "", 
+        parameters: {
+          adminAPIKey: { validator: stringValidator, required: true },
+          apiKeyEmail: { validator: emailValidator, required: true },
+          clientId: { validator: stringValidator, required: true },
+          clientSecret: { validator: stringValidator, required: true },
+          subdomain: { validator: stringValidator, required: true },
+        },
         returns: { }
       },
       add_api_key_integration: {
@@ -1886,6 +1917,17 @@ export const schema: SchemaV1 = build_schema({
           conversationId: { validator: mongoIdStringValidator, required: true },
           timestamp: { validator: stringValidator100, required: true},
         } 
+      },
+      deliver_via_iterable: {
+        op: "custom", access: 'create', method: "post", 
+        name: 'Send Email via Iterable',
+        path: '/emails/deliver-via-iterable',
+        description: "Sends an email via Iterable",
+        parameters: { 
+          recipientEmail: { validator: emailValidator, required: true },
+          campaignId: { validator: stringValidator, required: true },
+        },
+        returns: { } 
       },
     },
   },
@@ -6029,6 +6071,8 @@ export const schema: SchemaV1 = build_schema({
       userId: { validator: mongoIdStringValidator },
       inbound: { validator: booleanValidator },
       readBy: { validator: idStringToDateValidator },
+      hiddenBy: { validator: idStringToDateValidator },
+      ticketIds: { validator: listOfStringsValidatorEmptyOk },
     }
   },
 })

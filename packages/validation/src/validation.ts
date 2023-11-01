@@ -239,6 +239,7 @@ import {
   PhoneCallsReportQuery,
   TypedField,
   TicketSnooze,
+  IterableSendEmailAutomationAction,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -2029,6 +2030,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   addEnduserTags: '',
   addToJourney: '',
   removeFromJourney: '',
+  iterableSendEmail: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -2319,6 +2321,12 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     type: exactMatchValidator(['removeFromJourney']),
     info: objectValidator<RemoveFromJourneyAutomationAction['info']>({ 
       journeyId: mongoIdStringRequired, 
+    }, { emptyOk: false }),
+  }),
+  iterableSendEmail: objectValidator<IterableSendEmailAutomationAction>({
+    type: exactMatchValidator(['iterableSendEmail']),
+    info: objectValidator<IterableSendEmailAutomationAction['info']>({ 
+      campaignId: stringValidator, 
     }, { emptyOk: false }),
   }),
 })
