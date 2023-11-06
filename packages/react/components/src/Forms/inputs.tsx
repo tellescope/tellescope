@@ -957,7 +957,7 @@ export const StripeInput = ({ field, value, onChange, setCustomerId }: FormInput
         <CheckCircleOutline color="success" />
 
         <Typography sx={{ ml: 1, fontSize: 20 }}>
-          {field.options?.chargeImmediately ? 'Your purcahse was successful' : "Your payment details have been saved!"}
+          {field.options?.chargeImmediately ? 'Your purchase was successful' : "Your payment details have been saved!"}
         </Typography>
       </Grid>
     )

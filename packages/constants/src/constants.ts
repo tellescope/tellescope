@@ -377,3 +377,11 @@ export const HELPDESK_TICKET_CLOSE_REASONS = [
   "Not needed",
   "Unresponsive",
 ]
+
+export const AUTOMATED_ACTION_CANCEL_REASONS = [
+  'Removed by User',
+  'Restarted in Journey',
+  'Form Submission',
+  'Incoming Communication',
+  'Removed by Automation',
+] as const

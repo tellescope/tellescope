@@ -1539,6 +1539,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   sequence?: number,
   internalNotes?: string,
   hiddenFromPortal?: boolean,
+  nextReminderInMS?: number | null,
   // isAllDay?: boolean,
 }
 
@@ -2174,6 +2175,7 @@ export interface AutomatedAction_required {
   event: AutomationEvent,
   action: AutomationAction,
   status: AutomatedActionStatus,
+  cancelReason?: number,
   // cancelConditions: CancelCondition[] // already included as part of the event
   processAfter: number,
   errorMessage?: string,

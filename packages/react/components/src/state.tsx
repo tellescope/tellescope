@@ -75,6 +75,7 @@ import {
   EmailSyncDenial,
   TicketThread,
   TicketThreadComment,
+  AutomatedAction,
 } from "@tellescope/types-client"
 
 import {
@@ -302,6 +303,7 @@ const enduserProfileViewsSlice = createSliceForList<EnduserProfileView, 'enduser
 const phoneTreesSlice = createSliceForList<PhoneTree, 'phone_trees'>('phone_trees')
 const tableViewsSlice = createSliceForList<TableView, 'table_views'>('table_views')
 const emailSyncDenialsSlice = createSliceForList<EmailSyncDenial, 'email_sync_denials'>('email_sync_denials')
+const automatedActionsSlice = createSliceForList<AutomatedAction, 'automated_actions'>('automated_actions')
 
 const enduserObservationsSlice = createSliceForList<EnduserObservation, 'enduser_observations'>('enduser_observations')
 const forumsSlice = createSliceForList<Forum, 'forums'>('forums')
@@ -327,6 +329,7 @@ const userLogsSlice = createSliceForList<UserLog, 'user_logs'>('user_logs')
 export const sharedConfig = {
   reducer: { 
     automation_triggers: automationTriggersSlice.reducer,
+    automated_actions: automatedActionsSlice.reducer,
     enduser_views: enduserViewsSlice.reducer,
     background_errors: backgroundErrorsSlice.reducer,
     availability_blocks: availabilityBlocksSlice.reducer,
@@ -1100,6 +1103,24 @@ export const useAutomationTriggers = (options={} as HookOptions<AutomationTrigge
       addSome: session.api.automation_triggers.createSome,
       deleteOne: session.api.automation_triggers.deleteOne,
       updateOne: session.api.automation_triggers.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
+export const useAutomatedActions = (options={} as HookOptions<AutomatedAction>) => {
+  const session = useSession() 
+
+  return useListStateHook('automated_actions', useTypedSelector(s => s.automated_actions), session, automatedActionsSlice,
+    { 
+      loadQuery: session.api.automated_actions.getSome,
+      findOne: session.api.automated_actions.getOne,
+      findByIds: session.api.automated_actions.getByIds,
+      addOne: session.api.automated_actions.createOne,
+      addSome: session.api.automated_actions.createSome,
+      deleteOne: session.api.automated_actions.deleteOne,
+      updateOne: session.api.automated_actions.updateOne,
     },
     { 
       ...options,

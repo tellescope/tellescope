@@ -4589,6 +4589,166 @@ const mfa_tests = async () => {
   ) 
 }
 
+const nextReminderInMS_tests = async () => {
+  log_header("nextReminderInMS Tests")
+
+  const startTimeInMS = Date.now() + 1000 * 60 * 60 * 24 * 7
+  const durationInMinutes = 60
+
+  const eNoReminders = await sdk.api.calendar_events.createOne({ title: 'eNoReminders', startTimeInMS, durationInMinutes })
+  await wait(undefined, 100)
+  await async_test(
+    "Create no reminders",
+    () => sdk.api.calendar_events.getOne(eNoReminders.id),
+    { onResult: e => e.nextReminderInMS === -1 }
+  ) 
+
+  await sdk.api.calendar_events.updateOne(eNoReminders.id, { title: 'updated title' })
+  await wait(undefined, 100)
+  await async_test(
+    "Update title, no change",
+    () => sdk.api.calendar_events.getOne(eNoReminders.id),
+    { onResult: e => e.nextReminderInMS === -1}
+  ) 
+
+  const eOneReminder = await sdk.api.calendar_events.createOne({ 
+    title: 'eOneReminder', startTimeInMS, durationInMinutes,
+    reminders: [{ type: 'create-ticket', info: { title: 'title' }, msBeforeStartTime: 1000 }]
+  })
+  await wait(undefined, 100)
+  await async_test(
+    "Create one reminder",
+    () => sdk.api.calendar_events.getOne(eOneReminder.id),
+    { onResult: e => e.nextReminderInMS === startTimeInMS - 1000 }
+  ) 
+
+  await sdk.api.calendar_events.updateOne(eOneReminder.id, { startTimeInMS: startTimeInMS - 1000 })
+  await wait(undefined, 100)
+  await async_test(
+    "Update startTimeInMS",
+    () => sdk.api.calendar_events.getOne(eOneReminder.id),
+    { onResult: e => e.nextReminderInMS === startTimeInMS - 1000 - 1000 }
+  ) 
+
+  await sdk.api.calendar_events.updateOne(eOneReminder.id, { 
+    reminders: [{ type: 'create-ticket', info: { title: 'title' }, msBeforeStartTime: 5000 }]
+  }, { replaceObjectFields: true })
+  await wait(undefined, 100)
+  await async_test(
+    "Update earliest reminder",
+    () => sdk.api.calendar_events.getOne(eOneReminder.id),
+    { onResult: e => e.nextReminderInMS === startTimeInMS - 5000 - 1000 }
+  ) 
+
+  await sdk.api.calendar_events.updateOne(eOneReminder.id, { 
+    reminders: [{ type: 'create-ticket', info: { title: 'title' }, msBeforeStartTime: 1000 }]
+  })
+  await wait(undefined, 100)
+  await async_test(
+    "Later reminder added",
+    () => sdkMfaApiKey.api.calendar_events.getOne(eOneReminder.id),
+    { onResult: e => e.nextReminderInMS === startTimeInMS - 5000 - 1000 }
+  ) 
+
+  await sdk.api.calendar_events.updateOne(eOneReminder.id, { 
+    reminders: [{ type: 'create-ticket', info: { title: 'title' }, msBeforeStartTime: 7500 }]
+  })
+  await wait(undefined, 100)
+  await async_test(
+    "Earlier reminder added",
+    () => sdk.api.calendar_events.getOne(eOneReminder.id),
+    { onResult: e => e.nextReminderInMS === startTimeInMS - 7500 - 1000 }
+  ) 
+
+  const eOneReminderDidRemind = await sdk.api.calendar_events.createOne({ 
+    title: 'eOneReminderDidRemind', startTimeInMS, durationInMinutes,
+    reminders: [{ type: 'create-ticket', info: { title: 'title' }, msBeforeStartTime: 1000, didRemind: true }]
+  })
+  await wait(undefined, 100)
+  await async_test(
+    "One reminder with didRemind: true",
+    () => sdk.api.calendar_events.getOne(eOneReminderDidRemind.id),
+    { onResult: e => e.nextReminderInMS === -1 }
+  ) 
+
+  const eOneReminderDidRemindWithValid = await sdk.api.calendar_events.createOne({ 
+    title: 'eOneReminderDidRemindWithValid', startTimeInMS, durationInMinutes,
+    reminders: [
+      { type: 'create-ticket', info: { title: 'title' }, msBeforeStartTime: 1000, didRemind: true },
+      { type: 'create-ticket', info: { title: 'title' }, msBeforeStartTime: 0 },
+    ]
+  })
+  await wait(undefined, 100)
+  await async_test(
+    "Multiple reminders with one didRemind: true",
+    () => sdk.api.calendar_events.getOne(eOneReminderDidRemindWithValid.id),
+    { onResult: e => e.nextReminderInMS === startTimeInMS }
+  ) 
+
+  const eMultipleReminders = await sdk.api.calendar_events.createOne({ 
+    title: 'eMultipleReminders', startTimeInMS, durationInMinutes,
+    reminders: [
+      { type: 'create-ticket', info: { title: 'title' }, msBeforeStartTime: 1000 },
+      { type: 'create-ticket', info: { title: 'title' }, msBeforeStartTime: 5000 },
+      { type: 'create-ticket', info: { title: 'title' }, msBeforeStartTime: -3000 },
+    ]
+  })
+  await wait(undefined, 100)
+  await async_test(
+    "Create multiple reminders",
+    () => sdk.api.calendar_events.getOne(eMultipleReminders.id),
+    { onResult: e => e.nextReminderInMS === startTimeInMS - 5000 }
+  ) 
+
+  // changing far out reminders shouldn't change nextReminderInMS
+  await sdk.api.calendar_events.updateOne(eMultipleReminders.id, { 
+    reminders: [
+      { type: 'create-ticket', info: { title: 'title' }, msBeforeStartTime: -1000 },
+      { type: 'create-ticket', info: { title: 'title' }, msBeforeStartTime: 5000 },
+      { type: 'create-ticket', info: { title: 'title' }, msBeforeStartTime: -8000 },
+    ]
+  }, { replaceObjectFields: true })
+  await wait(undefined, 100)
+  await async_test(
+    "Later reminders changed", 
+    () => sdk.api.calendar_events.getOne(eMultipleReminders.id),
+    { onResult: e => e.nextReminderInMS === startTimeInMS - 5000 }
+  ) 
+
+  // changing nearest reminder shouldn change nextReminderInMS
+  await sdk.api.calendar_events.updateOne(eMultipleReminders.id, { 
+    reminders: [
+      { type: 'create-ticket', info: { title: 'title' }, msBeforeStartTime: 6000 },
+      { type: 'create-ticket', info: { title: 'title' }, msBeforeStartTime: 7000 },
+      { type: 'create-ticket', info: { title: 'title' }, msBeforeStartTime: 5000 },
+    ]
+  }, { replaceObjectFields: true })
+  await wait(undefined, 100)
+  await async_test(
+    "Earlier reminders changed", 
+    () => sdkMfaApiKey.api.calendar_events.getOne(eMultipleReminders.id),
+    { onResult: e => e.nextReminderInMS === startTimeInMS - 7000 }
+  ) 
+
+  await sdk.api.calendar_events.updateOne(eMultipleReminders.id, { 
+    startTimeInMS: startTimeInMS - 3000 
+  })
+  await wait(undefined, 100)
+  await async_test(
+    "startTimeInMS changed for multiple reminders", 
+    () => sdk.api.calendar_events.getOne(eMultipleReminders.id),
+    { onResult: e => e.nextReminderInMS === startTimeInMS - 7000 - 3000 }
+  ) 
+
+  await Promise.all([
+    sdk.api.calendar_events.deleteOne(eNoReminders.id),
+    sdk.api.calendar_events.deleteOne(eMultipleReminders.id),
+    sdk.api.calendar_events.deleteOne(eOneReminderDidRemindWithValid.id),
+    sdk.api.calendar_events.deleteOne(eOneReminderDidRemind.id),
+    sdk.api.calendar_events.deleteOne(eOneReminder.id),
+  ])
+}
+
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
   phone_trees: NO_TEST,
@@ -4697,6 +4857,7 @@ const TRACK_OPEN_IMAGE = Buffer.from(
 
     await mfa_tests()
     await setup_tests()
+    await nextReminderInMS_tests()
     await search_tests()
     await wait_for_trigger_tests()
     await role_based_access_tests()

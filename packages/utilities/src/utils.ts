@@ -1252,3 +1252,12 @@ export const URIDecodeEmail = (content: string, verbose?: boolean) => (
 export const mfa_is_enabled = (u: { mfa?: User['mfa'] }) => (
   !!u?.mfa?.email
 )
+
+export const get_next_reminder_timestamp = ({ startTimeInMS, reminders } : Pick<CalendarEvent, 'startTimeInMS' | 'reminders'>): number => {
+  const pending = reminders?.filter(r => !r.didRemind)
+  if (!pending?.length) return -1
+
+  const maxMsBeforeStartTime = Math.max(...pending.map(p => p.msBeforeStartTime))
+
+  return startTimeInMS - maxMsBeforeStartTime 
+}
