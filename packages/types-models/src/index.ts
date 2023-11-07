@@ -274,6 +274,7 @@ export interface EnduserSession extends Session, Enduser {
   type: "enduser",
   passwordIsUnset?: boolean,
   denySocket?: boolean,
+  fromPublicSession?: boolean,
 }
 
 // potentially large fields, like 'fields' and 'availability' should be left out to prevent large JWT
@@ -1611,11 +1612,12 @@ export interface PurchaseCredit extends PurchaseCredit_readonly, PurchaseCredit_
 }
 export type VideoIntegrationType = "Zoom" | 'No Integration'
 export interface CalendarEventTemplate_readonly extends ClientRecord { }
-export interface CalendarEventTemplate_required {}
-export interface CalendarEventTemplate_updatesDisabled {}
-export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, CalendarEventTemplate_required, CalendarEventTemplate_updatesDisabled {
+export interface CalendarEventTemplate_required {
   title: string,
   durationInMinutes: number,
+}
+export interface CalendarEventTemplate_updatesDisabled {}
+export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, CalendarEventTemplate_required, CalendarEventTemplate_updatesDisabled {
   type?: string,
   enableVideoCall?: boolean,
   videoIntegration?: VideoIntegrationType,

@@ -337,7 +337,7 @@ export class Session {
       return 
     }
     if (!this.authToken) return
-    
+
     if (this.userInfo.denySocket) {
       console.warn("not attempting socket connection since denySocket: true")
       return

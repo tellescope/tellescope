@@ -1577,7 +1577,67 @@ const enduser_session_tests = async () => {
   const users = await enduserSDK.api.users.display_info()
   assert(users && users.length > 0, 'No users returned', 'Get user display info for enduser')
 
-  await sdk.api.endusers.deleteOne(enduser.id)
+  await async_test(
+    `Enduser session refresh on authenticated session includes enduser info`,
+    () => enduserSDK.refresh_session(),
+    { onResult: ({ authToken, enduser }) => !!authToken && !!enduser.email }
+  ) 
+  await async_test(
+    `Enduser session refresh on authenticated session includes enduser info (2x)`,
+    () => enduserSDK.refresh_session(),
+    { onResult: ({ authToken, enduser }) => !!authToken && !!enduser.email }
+  ) 
+
+  const form = await sdk.api.forms.createOne({ title: 'session test', allowPublicURL: true })
+  await sdk.api.form_fields.createOne({ formId: form.id, previousFields: [{ type: 'root', info: {} }], title: 'session test', type: 'string' })
+  const formSession = await new EnduserSession({ businessId: form.businessId, host }).api.form_responses.session_for_public_form({
+    formId: form.id,
+    businessId: form.businessId,
+    email: enduser.email,
+    phone: '5555555555',
+    fname: 'session',
+    lname: 'test',
+  })
+
+  const formEnduserSession = new EnduserSession({ authToken: formSession.authToken, businessId: form.businessId, host })
+  await async_test(
+    `Enduser session refresh does not leak info for public form session`,
+    () => formEnduserSession.refresh_session(),
+    { onResult: ({ authToken, enduser }) => !!authToken && !enduser.email }
+  ) 
+  await async_test(
+    `2x Enduser session refresh does not leak info for public form session`,
+    () => formEnduserSession.refresh_session(),
+    { onResult: ({ authToken, enduser }) => !!authToken && !enduser.email }
+  ) 
+
+  const template = await sdk.api.calendar_event_templates.createOne({ title: 'session test', durationInMinutes: 15 })
+  const bookingSession = await new EnduserSession({ businessId: form.businessId, host }).api.calendar_events.session_for_public_appointment_booking({
+    businessId: form.businessId,
+    email: enduser.email!,
+    phone: '5555555555',
+    calendarEventTemplateId: template.id,
+    dateOfBirth: '12-20-1997',
+    fname: 'session',
+    lname: 'test',
+  })
+  const bookingEnduserSession = new EnduserSession({ authToken: bookingSession.authToken, businessId: form.businessId, host })
+  await async_test(
+    `Enduser session refresh does not leak info for public booking session`,
+    () => bookingEnduserSession.refresh_session(),
+    { onResult: ({ authToken, enduser }) => !!authToken && !enduser.email }
+  ) 
+  await async_test(
+    `2x Enduser session refresh does not leak info for public booking session`,
+    () => bookingEnduserSession.refresh_session(),
+    { onResult: ({ authToken, enduser }) => !!authToken && !enduser.email }
+  ) 
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(enduser.id),
+    sdk.api.forms.deleteOne(form.id),
+    sdk.api.calendar_event_templates.deleteOne(template.id),
+  ])
 }
 
 const users_tests = async () => {
@@ -4857,6 +4917,7 @@ const TRACK_OPEN_IMAGE = Buffer.from(
 
     await mfa_tests()
     await setup_tests()
+    await enduser_session_tests()
     await nextReminderInMS_tests()
     await search_tests()
     await wait_for_trigger_tests()
@@ -4880,7 +4941,6 @@ const TRACK_OPEN_IMAGE = Buffer.from(
     await updatesTests()
     await threadKeyTests()
     await enduserAccessTests()
-    await enduser_session_tests()
     await enduser_redaction_tests()
   } catch(err: any) {
     console.error("Failed during custom test")

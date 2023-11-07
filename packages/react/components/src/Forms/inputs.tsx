@@ -1115,9 +1115,11 @@ const choicesForDatabase: {
   [index: string]: {
     done: boolean,
     records: DatabaseRecord[],
+    lastId?: string,
   } | {
     done: undefined,
     records: undefined,
+    lastId?: string,
   }
 } = {}
 
@@ -1128,22 +1130,25 @@ const useDatabaseChoices = ({ databaseId='', field } : { databaseId?: string, fi
 
   useEffect(() => {
     if (choicesForDatabase[databaseId]?.done) return
+    if (renderCount > 10) return // limit to 5000 entries / prevent infinite looping
     const choices = choicesForDatabase[databaseId]?.records ?? []
-    
+    const lastId = choicesForDatabase[databaseId]?.lastId
+
     session.api.form_fields.load_choices_from_database({
       fieldId: field.id,
-      lastId: choices[choices.length - 1]?.id,
+      lastId,
       limit: LOAD_CHOICES_LIMIT,
     })
     .then(({ choices: newChoices }) => {
       choicesForDatabase[databaseId] = {
+        lastId: newChoices?.[newChoices.length - 1]?.id,
         records: [...choices, ...newChoices]
           .sort((c1, c2) => (
             label_for_database_record(field, c1)
             .localeCompare(label_for_database_record(field, c2))
           )
         ),
-        done: choices.length < LOAD_CHOICES_LIMIT, 
+        done: newChoices.length < LOAD_CHOICES_LIMIT, 
       } 
       setRenderCount(r => r + 1)
     })
