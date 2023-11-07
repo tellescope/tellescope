@@ -234,7 +234,7 @@ const loadDefaultQueries = (s: EnduserSession): { [K in EnduserAccessibleModels]
 
 
 export class EnduserSession extends Session {
-  userInfo!: Enduser & { passwordIsUnset?: boolean }; 
+  userInfo!: Enduser & { passwordIsUnset?: boolean, denySocket?: boolean }; 
   api: EnduserQueries;
   businessId: string;
   type: SessionType = 'enduser';

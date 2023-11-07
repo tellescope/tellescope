@@ -91,7 +91,7 @@ export class Session {
   handleUnauthenticated?: SessionOptions['handleUnauthenticated']
   expirationInSeconds?: number;
   socketAuthenticated: boolean;
-  userInfo: { businessId?: string, id?: string, requiresMFA?: boolean } ;
+  userInfo: { businessId?: string, id?: string, requiresMFA?: boolean, denySocket?: boolean } ;
   sessionStart = Date.now();
   AUTO_REFRESH_MS = 3600000 // 1hr elapsed
   lastSocketConnection: number;
@@ -337,6 +337,11 @@ export class Session {
       return 
     }
     if (!this.authToken) return
+    
+    if (this.userInfo.denySocket) {
+      console.warn("not attempting socket connection since denySocket: true")
+      return
+    }
 
     // if (this.enableSocketLogging) console.log('initializing socket', `${this.host}/${this.userInfo.businessId || this.businessId}`)
 

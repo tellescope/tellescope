@@ -453,6 +453,16 @@ const calendar_event_reminders_tests = async (isSubscribed: boolean) => {
     'First calendar event reminder received', 
     true,
   )
+  await async_test(
+    'First reminder progress',
+    () => sdk.api.calendar_events.getOne(calendarEvent.id),
+    { onResult: c => (
+        c.nextReminderInMS === c.startTimeInMS - secondRemindAt 
+        && c.reminders?.filter(r => r.didRemind).length === 1
+        && c.startTimeInMS === calendarEvent.startTimeInMS // ensure this isn't changed in background
+      ) 
+    }
+  )
 
   await wait(undefined, AUTOMATION_POLLING_DELAY_MS) 
   await check_next_webhook(
@@ -460,6 +470,16 @@ const calendar_event_reminders_tests = async (isSubscribed: boolean) => {
     "Correctly didn't get webhook yet", 
     'Got calendar event webhook too early', 
     true, true,
+  )
+  await async_test(
+    'First reminder progress pending',
+    () => sdk.api.calendar_events.getOne(calendarEvent.id),
+    { onResult: c => (
+        c.nextReminderInMS === c.startTimeInMS - secondRemindAt 
+        && c.reminders?.filter(r => r.didRemind).length === 1
+        && c.startTimeInMS === calendarEvent.startTimeInMS // ensure this isn't changed in background
+      ) 
+    }
   )
 
   await wait(undefined, AUTOMATION_POLLING_DELAY_MS) 
@@ -473,6 +493,16 @@ const calendar_event_reminders_tests = async (isSubscribed: boolean) => {
     'First calendar event reminder received', 
     true
   )
+  await async_test(
+    'Second reminder progress',
+    () => sdk.api.calendar_events.getOne(calendarEvent.id),
+    { onResult: c => (
+        c.nextReminderInMS === c.startTimeInMS - thirdRemindAt 
+        && c.reminders?.filter(r => r.didRemind).length === 2
+        && c.startTimeInMS === calendarEvent.startTimeInMS // ensure this isn't changed in background
+      ) 
+    }
+  )
 
   await wait(undefined, AUTOMATION_POLLING_DELAY_MS) 
   await check_next_webhook(
@@ -480,6 +510,16 @@ const calendar_event_reminders_tests = async (isSubscribed: boolean) => {
     "Correctly didn't get webhook yet", 
     'Got calendar event webhook too early', 
     true, true,
+  )
+  await async_test(
+    'Second reminder progress pending',
+    () => sdk.api.calendar_events.getOne(calendarEvent.id),
+    { onResult: c => (
+        c.nextReminderInMS === c.startTimeInMS - thirdRemindAt 
+        && c.reminders?.filter(r => r.didRemind).length === 2
+        && c.startTimeInMS === calendarEvent.startTimeInMS // ensure this isn't changed in background
+      ) 
+    }
   )
 
   await wait(undefined, AUTOMATION_POLLING_DELAY_MS) 
@@ -503,6 +543,16 @@ const calendar_event_reminders_tests = async (isSubscribed: boolean) => {
     true, true,
   )
 
+  await async_test(
+    'Reminders are done processing',
+    () => sdk.api.calendar_events.getOne(calendarEvent.id),
+    { onResult: c => (
+      c.nextReminderInMS === -1 
+      && c.startTimeInMS === calendarEvent.startTimeInMS // ensure this isn't changed in background
+      && !c.reminders?.find(r => !r.didRemind) 
+      && c.reminders?.filter(r => r.didRemind).length === 3
+    )}
+  )
 
   // cleanup
   await sdk.api.calendar_events.deleteOne(calendarEvent.id)

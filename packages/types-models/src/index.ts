@@ -273,6 +273,7 @@ export type SessionType = "user" | "enduser"
 export interface EnduserSession extends Session, Enduser {
   type: "enduser",
   passwordIsUnset?: boolean,
+  denySocket?: boolean,
 }
 
 // potentially large fields, like 'fields' and 'availability' should be left out to prevent large JWT
@@ -2267,6 +2268,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
   hiddenBy?: { [index: string] : Date | '' };
   ticketIds?: string[],
   tags?: string[],
+  inputs?: string[],
 }
 
 export type AnalyticsQueryResultValue = {
