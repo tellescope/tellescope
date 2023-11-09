@@ -24,7 +24,11 @@ export const AddressDisplay = ({ value } : { value: Required<FormResponseAnswerA
   </Grid>
 ) 
 
-export const ResponseAnswer = ({ answer: a, printing } : { answer: FormResponseValueAnswer, printing?: boolean }) => (
+export const ResponseAnswer = ({ answer: a, printing, onImageClick } : { 
+  answer: FormResponseValueAnswer, 
+  printing?: boolean,
+  onImageClick?: (args: { src: string }) => void,
+}) => (
   a.value 
     ? (
     <Typography component="div">
@@ -53,7 +57,7 @@ export const ResponseAnswer = ({ answer: a, printing } : { answer: FormResponseV
               {!printing 
                 ? <DownloadFileIconButton secureName={a.value.secureName} onDownload={url => window.open(url, '_blank')} />
                 : (
-                  <SecureImage secureName={a.value.secureName} 
+                  <SecureImage secureName={a.value.secureName} onImageClick={onImageClick}
                     style={{ maxHeight: 400, maxWidth: 400 }}
                   />
                 )
@@ -181,7 +185,10 @@ interface FormResponse_T {
   id?: string,
 }
 // this should use all vanilla React / inline styles to ensure printing is consistent
-export const FormResponseView = ({ enduser, onClose, hideHeader, response, id, printing } : FormResponse_T & { printing ?: boolean }) => {
+export const FormResponseView = ({ enduser, onClose, hideHeader, response, id, printing, onImageClick } : FormResponse_T & { 
+  printing?: boolean,
+  onImageClick?: (args: { src: string }) => void,
+}) => {
   const [, { findById: findUser }] = useUsers()
 
   const user = findUser(response.submittedBy ?? '')

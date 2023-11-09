@@ -65,14 +65,19 @@ export const useFileForSecureName = ({
 }
 
 
-export const SecureImage = ({ secureName, placeholder, ...props } : { placeholder?: React.ReactElement, secureName: string, alt?: string } & ImageDimensions & Styled) => {
+export const SecureImage = ({ secureName, placeholder, onImageClick, ...props } : {  
+  placeholder?: React.ReactElement, 
+  secureName: string, 
+  alt?: string,
+  onImageClick?: (args: { src: string }) => void,
+} & ImageDimensions & Styled) => {
   const loadedImage = useFileForSecureName({ secureName })
 
   // if user doesn't have picture, or it's still loading
   if (loadedImage === '') return placeholder ?? null
 
   return (
-    <Image src={loadedImage} {...props} />
+    <Image src={loadedImage} {...props} onClick={() => onImageClick?.({ src: loadedImage })} />
   )
 }
 

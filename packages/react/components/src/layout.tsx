@@ -37,8 +37,11 @@ export interface ImageDimensions {
 export interface ImageProps extends ImageDimensions, Styled {
   src: string,
   alt?: string,
+  onClick?: () => void,
 }
-export const Image = ({ src, alt, style, ...props }: ImageProps) => <img src={src} alt={alt} style={{ ...props, ...style }} />
+export const Image = ({ src, alt, style, onClick, ...props }: ImageProps) => (
+  <img src={src} alt={alt} onClick={onClick} style={{ cursor: !!onClick ? 'pointer' : undefined, ...props, ...style }} />
+)
 
 export interface VideoProps extends Styled {
   src: string,
