@@ -255,6 +255,7 @@ import {
   phonePlaybackValidatorOptional,
   ticketSnoozesValidator,
   listOfStringsWithQualifierValidator,
+  listOfStringsWithQualifierValidatorOptional,
 } from "@tellescope/validation"
 
 import {
@@ -617,6 +618,7 @@ export type CustomActions = {
         field?: string, existingFieldValue?: string, 
         removeIds?: string[],
         addIds?: string[],
+        customTypeId?: string,
       }, 
       { updated: Enduser[] }
     >,
@@ -1238,11 +1240,12 @@ export const schema: SchemaV1 = build_schema({
           'ids added by addIds are included before ids in removeIds are removed',
         ],
         parameters: {
+          customTypeId: { validator: mongoIdStringValidator },
           addIds: { validator: listOfMongoIdStringValidator },
           removeIds: { validator: listOfMongoIdStringValidator },
           field: { validator: stringValidator },
           existingFieldValue: { validator: stringValidator },
-          existingAssignment: { validator: listOfStringsWithQualifierValidator },
+          existingAssignment: { validator: listOfStringsWithQualifierValidatorOptional },
         },
         returns: {
           updated: { validator: 'endusers' as any },
@@ -5576,6 +5579,7 @@ export const schema: SchemaV1 = build_schema({
       },
       filter: { validator: objectAnyFieldsAnyValuesValidator },
       defaultForRole: { validator: stringValidator100 },
+      defaultForUserIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       hideProfileLink: { validator: booleanValidator },
       customTypeId: { validator: mongoIdStringValidator },
       style: { validator: objectAnyFieldsAnyValuesValidator as any },

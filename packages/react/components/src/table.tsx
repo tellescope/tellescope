@@ -32,6 +32,10 @@ import {
 import { LoadMoreFunctions } from "./state"
 import { read_local_storage, update_local_storage } from "@tellescope/utilities"
 
+import Draggable from 'react-draggable'; // The default
+
+// import DragHandleIcon from '@mui/icons-material/DragHandle';
+
 const LIGHT_GRAY = "#fafafa"
 export const GRAY = "#EFEFEF"
 const DARK_GRAY = "#E8E8E8"
@@ -111,6 +115,7 @@ export type TableField <T> = {
   getSortValue?: (v: T) => string | number,
   filterIsActive?: boolean,
   filterComponent?: React.ReactNode,
+  allowWidthAdjustment?: boolean,
 }
 export interface TableHeaderProps<T extends Item> extends Styled, HorizontalPadded, SelectionPropsOptional {
   fields: TableField<T>[],
@@ -118,6 +123,9 @@ export interface TableHeaderProps<T extends Item> extends Styled, HorizontalPadd
   fontSize?: CSSProperties['fontSize']
   sorting: Sorting[],
   setSorting: React.Dispatch<React.SetStateAction<Sorting[]>>,
+  memoryId?: string,
+  widthOffsets: Record<string, number>,
+  setWidthOffsets: React.Dispatch<React.SetStateAction<Record<string, number>>>
 }
 export const TableHeader = <T extends Item>({ 
   fields, 
@@ -128,10 +136,15 @@ export const TableHeader = <T extends Item>({
   setAllSelected, 
   style, 
   textStyle, 
-  horizontalPadding, 
-  fontSize=15 
+  horizontalPadding,
+  fontSize=15,
+  memoryId,
+  widthOffsets,
+  setWidthOffsets,
 } : TableHeaderProps<T>) => { 
   const [openFilter, setOpenFilter] = useState(-1)
+  const [startX, setStartX] = useState(0)
+  const [dragPosition, setDragPosition] = useState<{x: number, y: number}>()
 
   return (
     <>
@@ -151,7 +164,7 @@ export const TableHeader = <T extends Item>({
         </Flex>
       }
       <Flex flex={1} justifyContent="space-between" wrap="nowrap">
-      {fields.map(({ key, label, textAlign, titleWidth, width, getSortValue, hidden, style, filterIsActive, filterComponent }, i) => {
+      {fields.map(({ key, label, textAlign, titleWidth, width, getSortValue, hidden, style, filterIsActive, filterComponent, allowWidthAdjustment }, i) => {
         if (hidden) return null
 
         const sort = sorting.find(s => s.field === label)
@@ -166,7 +179,11 @@ export const TableHeader = <T extends Item>({
             <Flex wrap="nowrap" style={{ 
               textAlign, 
               justifyContent: textAlign === 'right' ? 'flex-end' : 'flex-start',
-              width: width ?? defaultWidthForFields(fields.length), 
+              width: (
+                typeof width === 'number'
+                  ? Math.max(75, width + (widthOffsets[key] || 0))
+                  : (width ?? defaultWidthForFields(fields.length))
+              ), 
               alignItems: 'center',
             }}>
               <Typography component="h5"  style={{ 
@@ -216,6 +233,51 @@ export const TableHeader = <T extends Item>({
               
               </Flex>
             </Flex>
+
+
+            {allowWidthAdjustment && memoryId &&
+              <Flex flex={1} justifyContent="flex-end">
+              <Draggable axis="x" position={dragPosition}
+                onStart={(e, data) => {
+                  setDragPosition(undefined)
+                  setStartX(data.lastX - (widthOffsets[key] || 0))
+                }}
+                onStop={(e, data) => {
+                  setWidthOffsets(o => {
+                    const increment = Math.max(
+                      // 0,
+                      (data.lastX - startX) / 1
+                    )
+
+                    update_local_storage(`${memoryId}${key}width`, increment.toString())
+
+                    return { ...o, [key]: increment }
+                  })
+
+                  setDragPosition({ x: 0, y: 0 }) // snaps back to appropriate spot
+                }}
+              >
+                {/* <div>
+                <DragHandleIcon 
+                  style={{
+                    transform: 'rotate(90deg)',
+                    cursor: !dragPosition ? 'grabbing' : 'grab', 
+                    opacity: 0.8,
+                    zIndex: 1000, alignSelf: 'flex-end'
+                  }}
+                />
+                </div> */}
+
+                <div style={{ 
+                  width: '3px', height: '30px',
+                  backgroundColor: '#22222266', 
+                  cursor: 'col-resize', 
+                  zIndex: 1000, alignSelf: 'flex-end',
+                  marginRight: 8,
+                }} />
+              </Draggable>
+              </Flex>
+            }
           </Flex>
         )
       })}
@@ -248,6 +310,7 @@ export interface TableRowProps<T extends Item> extends Styled, HorizontalPadded,
   hover?: boolean,
   fontSize?: CSSProperties['fontSize']
   textStyle?: CSSProperties,
+  widthOffsets: Record<string, number>,
 }
 export const TableRow = <T extends Item>({ 
   item, indices, fields, onClick, onPress, hover, 
@@ -261,6 +324,7 @@ export const TableRow = <T extends Item>({
   selected,
   setSelected,
   fontSize=14, 
+  widthOffsets,
 } : TableRowProps<T>) => (
   <WithHover hoveredColor={hoveredColor ?? GRAY} notHoveredColor={notHoveredColor} disabled={!hover} flex>
     <Flex flex={1} alignItems="center"
@@ -295,7 +359,11 @@ export const TableRow = <T extends Item>({
         }}>
           <Typography component="div" style={{ 
             textAlign, fontSize,
-            width: width ?? defaultWidthForFields(fields.length), 
+            width: (
+              typeof width === 'number'
+                ? Math.max(75, width + (widthOffsets[key] || 0))
+                : (width ?? defaultWidthForFields(fields.length))
+            ), 
             // display: flex ? 'flex' : undefined,
             // flex: flex ? 1 : undefined,
             color: DARKER_GRAY,
@@ -602,6 +670,16 @@ export const Table = <T extends Item>({
   const sortingStorageKey = memoryId ?? '' + 'sorting'
   const cachedSortString = read_local_storage(sortingStorageKey)
 
+  const [widthOffsets, setWidthOffsets] = useState<Record<string, number>>({})
+  if (memoryId) {
+    for (const { key } of fields) {
+      widthOffsets[key] = (
+        parseInt(read_local_storage(`${memoryId ?? ''}${key}width`)) || 0
+      )
+    }
+  }
+  
+
   let loadedSorting;
   try {
     loadedSorting = JSON.parse(cachedSortString)
@@ -693,7 +771,9 @@ export const Table = <T extends Item>({
         header={fields && HeaderComponent && fields.length > 0 && (items.length > 0 || headerFilterIsActive) && (
           <HeaderComponent selectable={selectable} allSelected={allSelected} setAllSelected={setAllSelected}
             fields={fields} horizontalPadding={horizontalPadding} fontSize={headerFontSize}
+            widthOffsets={widthOffsets} setWidthOffsets={setWidthOffsets}
             sorting={sorting} setSorting={setSorting} 
+            memoryId={memoryId}
             style={{
               flexWrap: noWrap ? 'nowrap' : undefined,
               paddingLeft: draggable ? '42px' : horizontalPadding,
@@ -715,7 +795,7 @@ export const Table = <T extends Item>({
           )
         }
         Item={({ item, index }) => ( // index within this list, e.g. a single page
-          <RowComponent
+          <RowComponent widthOffsets={widthOffsets}
             selectable={selectable} selected={selected} setSelected={setSelected} allSelected={allSelected}
             key={item.id} item={item} 
             indices={{ 

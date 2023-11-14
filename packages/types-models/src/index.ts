@@ -2533,6 +2533,7 @@ export interface EnduserView_required {
 export interface EnduserView_updatesDisabled {}
 export interface EnduserView extends EnduserView_readonly, EnduserView_required, EnduserView_updatesDisabled {
   defaultForRole?: string,
+  defaultForUserIds?: string[],
   hideProfileLink?: boolean,
   customTypeId?: string,
   filter?: Indexable,
