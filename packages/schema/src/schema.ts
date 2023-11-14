@@ -56,6 +56,7 @@ import {
   ReportQueries,
   FormResponsesReportQueries,
   PhoneCallsReportQueries,
+  ListOfStringsWithQualifier,
 } from "@tellescope/types-models"
 
 import {
@@ -253,6 +254,7 @@ import {
   listValidatorEmptyOk,
   phonePlaybackValidatorOptional,
   ticketSnoozesValidator,
+  listOfStringsWithQualifierValidator,
 } from "@tellescope/validation"
 
 import {
@@ -607,6 +609,15 @@ export type CustomActions = {
     push: CustomAction<{ enduserId: string }, { }>,
     bulk_update: CustomAction<
       { ids: string[], fields?: CustomFields, pushTags?: string[], replaceTags?: string[] }, 
+      { updated: Enduser[] }
+    >,
+    bulk_assignment: CustomAction<
+      { 
+        existingAssignment?: ListOfStringsWithQualifier, 
+        field?: string, existingFieldValue?: string, 
+        removeIds?: string[],
+        addIds?: string[],
+      }, 
       { updated: Enduser[] }
     >,
     get_report: CustomAction<{ 
@@ -1213,6 +1224,25 @@ export const schema: SchemaV1 = build_schema({
           fields: { validator: fieldsValidator },
           pushTags: { validator: listOfStringsValidator },
           replaceTags: { validator: listOfStringsValidator },
+        },
+        returns: {
+          updated: { validator: 'endusers' as any },
+        },
+      },
+      bulk_assignment: {
+        op: "custom", access: 'update', method: "patch",
+        name: 'Bulk Assignment',
+        path: '/endusers/bulk-assignment',
+        description: "Add, remove, or replace care team members for endusers based on current assignment or custom field value",
+        warnings: [
+          'ids added by addIds are included before ids in removeIds are removed',
+        ],
+        parameters: {
+          addIds: { validator: listOfMongoIdStringValidator },
+          removeIds: { validator: listOfMongoIdStringValidator },
+          field: { validator: stringValidator },
+          existingFieldValue: { validator: stringValidator },
+          existingAssignment: { validator: listOfStringsWithQualifierValidator },
         },
         returns: {
           updated: { validator: 'endusers' as any },

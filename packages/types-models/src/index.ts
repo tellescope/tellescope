@@ -454,6 +454,7 @@ export interface Enduser_readonly extends UserActivityInfo, ClientRecord, Enduse
   // _ageDecade?: number,
   references?: RelatedRecord[],
   mergedIds?: string[],
+  _updateKey?: string,
 } 
 export interface Enduser_required {}
 export interface Enduser_updatesDisabled {}
