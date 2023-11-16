@@ -100,13 +100,15 @@ export type Sorting = {
   direction: 'ascending' | 'descending'
 }
 type Indices = { index: number, indexOfPage: number }
-type Renderer <T> = (value: T, indices: Indices) => React.ReactElement | string | number
+type RenderOptions = { adjustedWidth?: number }
+type Renderer <T> = (value: T, indices: Indices, options: RenderOptions) => React.ReactElement | string | number
 export type TableField <T> = {
   key: string | number,
   label: string,
   hidden?: boolean,
   render?: Renderer<T>,
   width?: CSSProperties['width'],
+  // @deprecated no longer used
   titleWidth?: CSSProperties['width'],
   textAlign?: CSSProperties['textAlign'],
   style?: CSSProperties,
@@ -163,15 +165,16 @@ export const TableHeader = <T extends Item>({
           <Checkbox  checked={allSelected} onChange={setAllSelected} />
         </Flex>
       }
-      <Flex flex={1} justifyContent="space-between" wrap="nowrap">
-      {fields.map(({ key, label, textAlign, titleWidth, width, getSortValue, hidden, style, filterIsActive, filterComponent, allowWidthAdjustment }, i) => {
+      <Flex flex={1} wrap="nowrap">
+      {fields.map(({ key, label, textAlign, width, getSortValue, hidden, style, filterIsActive, filterComponent, allowWidthAdjustment }, i) => {
         if (hidden) return null
 
         const sort = sorting.find(s => s.field === label)
 
         return (
-          <Flex key={key} flex={width !== undefined ? 0 : 1} style={{ 
+          <Flex key={key} wrap="nowrap" flex={width !== undefined ? 0 : 1} style={{ 
             alignItems: 'center',
+            marginLeft: i === fields.length - 1 && textAlign === 'right' ? 'auto' : undefined,
             justifyContent: textAlign === 'right' ? 'flex-end' : 'flex-start',
             ...style,
           }}
@@ -186,10 +189,10 @@ export const TableHeader = <T extends Item>({
               ), 
               alignItems: 'center',
             }}>
-              <Typography component="h5"  style={{ 
+              <Typography component="h5" noWrap style={{ 
                 fontWeight: 600,
                 fontSize,
-                minWidth: titleWidth,
+                // minWidth: titleWidth,
                 ...textStyle 
               }}>
                 {label}
@@ -257,23 +260,13 @@ export const TableHeader = <T extends Item>({
                   setDragPosition({ x: 0, y: 0 }) // snaps back to appropriate spot
                 }}
               >
-                {/* <div>
-                <DragHandleIcon 
-                  style={{
-                    transform: 'rotate(90deg)',
-                    cursor: !dragPosition ? 'grabbing' : 'grab', 
-                    opacity: 0.8,
-                    zIndex: 1000, alignSelf: 'flex-end'
-                  }}
-                />
-                </div> */}
-
                 <div style={{ 
-                  width: '3px', height: '30px',
+                  width: '3px',
+                  height: '30px', 
                   backgroundColor: '#22222266', 
                   cursor: 'col-resize', 
-                  zIndex: 1000, alignSelf: 'flex-end',
-                  marginRight: 8,
+                  zIndex: 1000,
+                  position: 'relative', right: '6px',
                 }} />
               </Draggable>
               </Flex>
@@ -289,8 +282,8 @@ export const TableHeader = <T extends Item>({
 
 const ROW_DIVIDER_STYLE = `1px solid ${DARK_GRAY}` 
 
-const get_display_value = <T extends object>(item: T, key: string | number, indices: Indices, render?: Renderer<T>) => {
-  if (render) { return render(item, indices) }
+const get_display_value = <T extends object>(item: T, key: string | number, indices: Indices, render?: Renderer<T>, options?: RenderOptions) => {
+  if (render) { return render(item, indices, options ?? {}) }
 
   const value = item[key as keyof T]
   if (!(key in item)) console.warn(`Value missing for key ${key} while rendering Table without a specified render function.`)
@@ -350,10 +343,11 @@ export const TableRow = <T extends Item>({
         />
         </Flex>
       }
-      <Flex flex={1} justifyContent="space-between" wrap="nowrap">
-      {fields.map(({ key, width, textAlign='left', render, hidden, flex, style }) => hidden ? null : (
+      <Flex flex={1} wrap="nowrap">
+      {fields.map(({ key, width, textAlign='left', render, hidden, style }, i) => hidden ? null : (
         <Flex key={key} flex={width !== undefined ? 0 : 1} style={{ 
           alignItems: 'center',
+          marginLeft: i === fields.length - 1 && textAlign === 'right' ? 'auto' : undefined,
           justifyContent: textAlign === 'right' ? 'flex-end' : 'flex-start',
           ...style,
         }}>
@@ -369,7 +363,13 @@ export const TableRow = <T extends Item>({
             color: DARKER_GRAY,
             ...textStyle
           }}>
-            {get_display_value(item, key, indices, render)}
+            {get_display_value(item, key, indices, render, {
+              adjustedWidth: (
+                typeof width === 'number'
+                  ? Math.max(75, width + (widthOffsets[key] || 0))
+                  : undefined
+              )
+            })}
           </Typography>
         </Flex>
       ))}

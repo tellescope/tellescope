@@ -285,7 +285,7 @@ export interface ScrollingListProps <T extends { id: string | number }> extends 
   virtualization?: {
     rowHeight?: number,
     height?: number,
-    width?: number,
+    width?: number | string,
     widthOffset?: number,
     virtualize?: boolean,
     hideHorizontalScroll?: boolean,
@@ -308,7 +308,7 @@ export const ScrollingList = <T extends { id: string | number }>({
   header,
   itemContainerStyle,
   virtualization,
-} : ScrollingListProps<T>) => {
+} : ScrollingListProps<T> & { noParentScroll?: boolean, }) => {
   const width = usePageWidth()
   const fetchRef = useRef(0)
   const titleStyleWithDefaults = { fontSize: 20, fontWeight: 'bold', marginBottom: 3, ...titleStyle }
@@ -344,7 +344,7 @@ export const ScrollingList = <T extends { id: string | number }>({
       {header}
       
       <div style={{ 
-        minHeight, maxHeight, overflowY: 'auto',
+        minHeight, maxHeight, overflowY: virtualization?.virtualize ? undefined : 'auto',
         ...itemContainerStyle,
       }}
         onScroll={e => {
@@ -364,10 +364,15 @@ export const ScrollingList = <T extends { id: string | number }>({
           ? <Typography>{emptyText}</Typography>
           : emptyText
         : virtualization?.virtualize ? (
+          // keep consistent with DraggableList
             <FixedSizeList
               style={{ overflowX: virtualization?.hideHorizontalScroll ? 'hidden' : undefined }}
               height={virtualization?.height || window.innerHeight - 225}
-              width={(virtualization?.width ?? width) - 200 - (virtualization?.widthOffset || 0)}
+              width={
+                typeof virtualization.width === 'string'
+                  ? virtualization.width
+                  : (virtualization?.width ?? width) - 200 - (virtualization?.widthOffset || 0)
+              }
               itemCount={items.length}
               itemSize={rowHeight}
               itemData={items}
@@ -451,6 +456,8 @@ export const DraggableList = <T extends { id: string | number }>({
   virtualization,
   doneLoading,
   loadMore,
+  maxWidth,
+  minHeight, maxHeight,
 } : ScrollingListProps<T> & {
   onReorder?: (updated: { id: string, index: number }[]) => any,
 }) => {
@@ -521,7 +528,13 @@ export const DraggableList = <T extends { id: string | number }>({
   }, [items, onReorder])
  
   return (
-    <Grid container direction="column" style={style} wrap={noWrap ? 'nowrap' : undefined}>
+    <Grid container direction="column" wrap={noWrap ? 'nowrap' : undefined}
+      style={{ 
+        maxWidth, 
+        overflowX: maxWidth ? 'auto' : undefined, 
+        ...style, 
+      }}
+    >
       {TitleComponent
         ? <TitleComponent title={title} titleStyle={titleStyleWithDefaults} />
         : (
@@ -543,7 +556,12 @@ export const DraggableList = <T extends { id: string | number }>({
 
       {header}
 
-      <Grid container direction="column" style={itemContainerStyle}>
+      <div
+        style={{
+          minHeight, maxHeight, // overflowY: 'auto',
+          ...itemContainerStyle
+        }}
+      >
         {items.length === 0 
           ? typeof emptyText === 'string'
             ? <Typography>{emptyText}</Typography>
@@ -582,10 +600,16 @@ export const DraggableList = <T extends { id: string | number }>({
               </Grid>
             )}
           >
+            {/* keep consistent with ScrollingList  */}
             {(provided) => (
               <FixedSizeList
+                style={{ overflowX: virtualization?.hideHorizontalScroll ? 'hidden' : undefined }}
                 height={virtualization?.height || window.innerHeight - 225}
-                width={width - 120 - (virtualization?.widthOffset || 0)}
+                width={
+                  typeof virtualization?.width === 'string'
+                    ? virtualization?.width
+                    : (virtualization?.width ?? width) - 200 - (virtualization?.widthOffset || 0)
+                }
                 itemCount={items.length}
                 itemSize={rowHeight}
                 outerRef={provided.innerRef}
@@ -605,7 +629,7 @@ export const DraggableList = <T extends { id: string | number }>({
             )}
           </Droppable>
         </DragDropContext>
-      </Grid>
+      </div>
     </Grid>
   )
 }
