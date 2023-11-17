@@ -2098,7 +2098,6 @@ export const schema: SchemaV1 = build_schema({
       userId: {
         validator: mongoIdStringValidator,
         initializer: (a, s) => s.id,
-        updatesDisabled: true,
         dependencies: [{
           dependsOn: ['users'],
           dependencyField: '_id',
