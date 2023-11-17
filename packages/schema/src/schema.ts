@@ -587,6 +587,12 @@ export type CustomActions = {
       customTypeId?: string,
       groupBy?: string,
     }, { count: number, grouped?: { _id: string, count: number }[] }>,
+    get_enduser_statistics_by_submitter: CustomAction<{ 
+      enduserFields?: { field: string, value: string }[],
+      formIds?: string[],
+      range?: DateRange, 
+      customTypeId?: string,
+    }, { count: number, grouped: { _id: string, count: number }[] }>,
   },
   journeys: {
     // update_state: CustomAction<{ updates: Partial<JourneyState>, id: string, name: string }, { updated: Journey }>,
@@ -636,6 +642,12 @@ export type CustomActions = {
       customTypeId?: string,
       groupBy?: string,
     }, { count: number, grouped?: { _id: string, count: number }[] }>,
+    get_engagement_statistics_by_userId: CustomAction<{ 
+      enduserFields?: { field: string, value: string }[],
+      formIds?: string[],
+      range?: DateRange, 
+      customTypeId?: string,
+    }, { count: number, grouped: { _id: string, count: number }[] }>,
     sync_zendesk: CustomAction<{ enduserId: string }, { }>,
   },
   users: {
@@ -1282,6 +1294,24 @@ export const schema: SchemaV1 = build_schema({
             validator: listValidatorEmptyOk(objectValidator<{ field: string, value: string }>({ field: stringValidator, value: stringValidator })) 
           },
           groupBy: { validator: stringValidator },
+        },
+        returns: {
+          count: { validator: numberValidator, required: true },
+          grouped: { validator: objectAnyFieldsAnyValuesValidator as any, },
+        },
+      },
+      get_engagement_statistics_by_userId: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Get Engagement Statistics',
+        path: '/endusers/engagement-by-userid',
+        description: "Gets the number of active endusers over a period of time (only includes chats if enduserId is set). Uses default entity only by default. Groups by userId as submitter of form responses or recipient of messages.",
+        parameters: {
+          formIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+          range: { validator: dateRangeOptionalValidator },
+          customTypeId: { validator: mongoIdStringOptional },
+          enduserFields: { 
+            validator: listValidatorEmptyOk(objectValidator<{ field: string, value: string }>({ field: stringValidator, value: stringValidator })) 
+          },
         },
         returns: {
           count: { validator: numberValidator, required: true },
@@ -3512,6 +3542,24 @@ export const schema: SchemaV1 = build_schema({
             validator: listValidatorEmptyOk(objectValidator<{ field: string, value: string }>({ field: stringValidator, value: stringValidator })) 
           },
           groupBy: { validator: stringValidator },
+        },
+        returns: {
+          count: { validator: numberValidator, required: true },
+          grouped: { validator: objectAnyFieldsAnyValuesValidator as any, },
+        },
+      },
+      get_enduser_statistics_by_submitter: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Get Enduser Statistics By Submitter',
+        path: '/form-responses/enduser-statistics-by-submitter',
+        description: "Get statistics on the number of *unique* endusers who have submitted forms, grouped by form submitter ID",
+        parameters: {
+          formIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+          range: { validator: dateRangeOptionalValidator },
+          customTypeId: { validator: mongoIdStringOptional },
+          enduserFields: { 
+            validator: listValidatorEmptyOk(objectValidator<{ field: string, value: string }>({ field: stringValidator, value: stringValidator })) 
+          },
         },
         returns: {
           count: { validator: numberValidator, required: true },

@@ -245,6 +245,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     get_engagement_statistics: (args: extractFields<CustomActions['endusers']['get_engagement_statistics']['parameters']>) => (
       Promise<extractFields<CustomActions['endusers']['get_engagement_statistics']['returns']>>
     ),
+    get_engagement_statistics_by_userId: (args: extractFields<CustomActions['endusers']['get_engagement_statistics_by_userId']['parameters']>) => (
+      Promise<extractFields<CustomActions['endusers']['get_engagement_statistics_by_userId']['returns']>>
+    ),
     sync_zendesk: (args: extractFields<CustomActions['endusers']['sync_zendesk']['parameters']>) => (
       Promise<extractFields<CustomActions['endusers']['sync_zendesk']['returns']>>
     ),
@@ -335,6 +338,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
     get_enduser_statistics: (args: extractFields<CustomActions['form_responses']['get_enduser_statistics']['parameters']>) => (
       Promise<extractFields<CustomActions['form_responses']['get_enduser_statistics']['returns']>>
+    ),
+    get_enduser_statistics_by_submitter: (args: extractFields<CustomActions['form_responses']['get_enduser_statistics_by_submitter']['parameters']>) => (
+      Promise<extractFields<CustomActions['form_responses']['get_enduser_statistics_by_submitter']['returns']>>
     ),
   },
   meetings: {
@@ -599,6 +605,7 @@ export class Session extends SessionManager {
     queries.endusers.bulk_assignment = a => this._PATCH(`/v1${schema.endusers.customActions.bulk_assignment.path}`, a)
     queries.endusers.get_report = a => this._GET(`/v1/${schema.endusers.customActions.get_report.path}`, a)
     queries.endusers.get_engagement_statistics = a => this._GET(`/v1/${schema.endusers.customActions.get_engagement_statistics.path}`, a)
+    queries.endusers.get_engagement_statistics_by_userId = a => this._GET(`/v1/${schema.endusers.customActions.get_engagement_statistics_by_userId.path}`, a)
     queries.endusers.sync_zendesk = a => this._POST(`/v1${schema.endusers.customActions.sync_zendesk.path}`, a)
 
     queries.users.display_names = () => this._GET<{}, { fname: string, lname: string, id: string }[]>(`/v1/user-display-names`)
@@ -633,6 +640,7 @@ export class Session extends SessionManager {
     queries.form_responses.push_to_EHR = (args) => this._POST(`/v1${schema.form_responses.customActions.push_to_EHR.path}`, args)
     queries.form_responses.get_report = a => this._POST(`/v1/${schema.form_responses.customActions.get_report.path}`, a)
     queries.form_responses.get_enduser_statistics = a => this._GET(`/v1/${schema.form_responses.customActions.get_enduser_statistics.path}`, a)
+    queries.form_responses.get_enduser_statistics_by_submitter = a => this._GET(`/v1/${schema.form_responses.customActions.get_enduser_statistics_by_submitter.path}`, a)
     
     // need arraybuffer response type, see tests.ts
     // queries.form_responses.generate_pdf = (args) => (
