@@ -2827,6 +2827,186 @@ const formSubmittedTriggerTests = async () => {
     title: "Inactive"
   })
 
+  const noConditions = await sdk.api.automation_triggers.createOne({ 
+    event: { 
+      type: 'Form Submitted', 
+      info: { 
+        formId: form.id,
+      },
+    },
+    action: { type: 'Add Tags', info: { tags: ['No Conditions'] }},
+    status: 'Active',
+    title: "No Conditions"
+  })
+  const equals = await sdk.api.automation_triggers.createOne({ 
+    event: { 
+      type: 'Form Submitted', 
+      info: { 
+        formId: form.id,
+      },
+      conditions : {
+        "$and" : [
+            {
+              "condition" : {
+                  [field.id]: "trigger 2"
+              }
+            }
+        ]
+      },
+    },
+    action: { type: 'Add Tags', info: { tags: ['Equals'] }},
+    status: 'Active',
+    title: "Equals"
+  })
+  const equalsFalse = await sdk.api.automation_triggers.createOne({ 
+    event: { 
+      type: 'Form Submitted', 
+      info: { 
+        formId: form.id,
+      },
+      conditions : {
+        "$and" : [
+            {
+              "condition" : {
+                  [field.id]: "tri"
+              }
+            }
+        ]
+      },
+    },
+    action: { type: 'Add Tags', info: { tags: ['No'] }},
+    status: 'Active',
+    title: "Equals False"
+  })
+  const existsTrue = await sdk.api.automation_triggers.createOne({ 
+    event: { 
+      type: 'Form Submitted', 
+      info: { 
+        formId: form.id,
+      },
+      conditions : {
+        "$and" : [
+            {
+              "condition" : {
+                  [field.id]: { $exists: true }
+              }
+            }
+        ]
+      },
+    },
+    action: { type: 'Add Tags', info: { tags: ['exists'] }},
+    status: 'Active',
+    title: "Exists true"
+  })
+  const existsFalse = await sdk.api.automation_triggers.createOne({ 
+    event: { 
+      type: 'Form Submitted', 
+      info: { 
+        formId: form.id,
+      },
+      conditions : {
+        "$and" : [
+            {
+              "condition" : {
+                  [field.id]: { $exists: false }
+              }
+            }
+        ]
+      },
+    },
+    action: { type: 'Add Tags', info: { tags: ['No'] }},
+    status: 'Active',
+    title: "Exists False"
+  })
+  const doesNotContainTrue = await sdk.api.automation_triggers.createOne({ 
+    event: { 
+      type: 'Form Submitted', 
+      info: { 
+        formId: form.id,
+      },
+      conditions : {
+        "$and" : [
+            {
+              "condition" : {
+                  [field.id]: {
+                      "$doesNotContain" : "tri2"
+                  }
+              }
+            }
+        ]
+      },
+    },
+    action: { type: 'Add Tags', info: { tags: ['doesNotContain'] }},
+    status: 'Active',
+    title: "doesNotContainTrue"
+  })
+  const doesNotContainFalse = await sdk.api.automation_triggers.createOne({ 
+    event: { 
+      type: 'Form Submitted', 
+      info: { 
+        formId: form.id,
+      },
+      conditions : {
+        "$and" : [
+            {
+              "condition" : {
+                  [field.id]: {
+                      "$doesNotContain" : "tri"
+                  }
+              }
+            }
+        ]
+      },
+    },
+    action: { type: 'Add Tags', info: { tags: ['No'] }},
+    status: 'Active',
+    title: "doesNotContainFalse"
+  })
+  const containFalse = await sdk.api.automation_triggers.createOne({ 
+    event: { 
+      type: 'Form Submitted', 
+      info: { 
+        formId: form.id,
+      },
+      conditions : {
+        "$and" : [
+            {
+              "condition" : {
+                  [field.id]: {
+                      "$contains" : "tri2"
+                  }
+              }
+            }
+        ]
+      },
+    },
+    action: { type: 'Add Tags', info: { tags: ['No'] }},
+    status: 'Active',
+    title: "containFalse"
+  })
+  const containTrue = await sdk.api.automation_triggers.createOne({ 
+    event: { 
+      type: 'Form Submitted', 
+      info: { 
+        formId: form.id,
+      },
+      conditions : {
+        "$and" : [
+            {
+              "condition" : {
+                  [field.id]: {
+                      "$contains" : "tri"
+                  }
+              }
+            }
+        ]
+      },
+    },
+    action: { type: 'Add Tags', info: { tags: ['contains'] }},
+    status: 'Active',
+    title: "containTrue"
+  })
+
   const { accessCode } = await sdk.api.form_responses.prepare_form_response({
     enduserId: enduser.id,
     formId: form.id,
@@ -2850,6 +3030,19 @@ const formSubmittedTriggerTests = async () => {
   await wait(undefined, 1000)
 
   await async_test(
+    `Triggers with conditional works`,
+    () => sdk.api.endusers.getOne(enduser.id),
+    { onResult: e => !!(
+       e.tags?.includes('Equals') 
+    && e.tags?.includes('contains')
+    && e.tags?.includes('exists')
+    && e.tags?.includes('No Conditions')
+    && e.tags?.includes('doesNotContain')
+    && !e.tags?.includes('No')
+    )}
+  )  
+
+  await async_test(
     `Automated triggers work`,
     () => sdk.api.endusers.getOne(enduser.id),
     { onResult: e => !!(
@@ -2867,6 +3060,15 @@ const formSubmittedTriggerTests = async () => {
     sdk.api.automation_triggers.deleteOne(active.id),
     sdk.api.automation_triggers.deleteOne(dupActive.id),
     sdk.api.automation_triggers.deleteOne(inactive.id),
+    sdk.api.automation_triggers.deleteOne(equals.id),
+    sdk.api.automation_triggers.deleteOne(doesNotContainTrue.id),
+    sdk.api.automation_triggers.deleteOne(containTrue.id),
+    sdk.api.automation_triggers.deleteOne(noConditions.id),
+    sdk.api.automation_triggers.deleteOne(existsTrue.id),
+    sdk.api.automation_triggers.deleteOne(existsFalse.id),
+    sdk.api.automation_triggers.deleteOne(containFalse.id),
+    sdk.api.automation_triggers.deleteOne(equalsFalse.id),
+    sdk.api.automation_triggers.deleteOne(doesNotContainFalse.id),
   ])
 }
 
@@ -4917,6 +5119,7 @@ const TRACK_OPEN_IMAGE = Buffer.from(
 
     await mfa_tests()
     await setup_tests()
+    await automation_trigger_tests()
     await enduser_session_tests()
     await nextReminderInMS_tests()
     await search_tests()
@@ -4929,7 +5132,6 @@ const TRACK_OPEN_IMAGE = Buffer.from(
     await merge_enduser_tests()
     await self_serve_appointment_booking_tests()
     await auto_reply_tests()
-    await automation_trigger_tests()
     await sub_organization_enduser_tests()
     await sub_organization_tests()
     await filter_by_date_tests()
