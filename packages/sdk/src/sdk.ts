@@ -567,11 +567,11 @@ type UserInfo = User & {
   requiresMFA?: boolean,
 }
 
-type LoadOptions = {
+export type BulkLoadOptions = {
   lastId?: string,  
   limit?: number,
   from?: Date,
-  // filter?: Record<string, any>,
+  filter?: Record<string, any>,
 }
 
 export class Session extends SessionManager {
@@ -735,7 +735,7 @@ export class Session extends SessionManager {
     this.api = queries
   }
 
-  bulk_load = async (args: { load: { model: ModelName, options?: LoadOptions }[] }) => {
+  bulk_load = async (args: { load: { model: ModelName, options?: BulkLoadOptions }[] }) => {
     await this.refresh_session_if_expiring_soon()
     return await this.POST<typeof args, { results: (null | { records: any[] })[] }>(`/v1/bulk-actions/read`, args, true)
   }

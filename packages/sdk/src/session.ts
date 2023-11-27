@@ -45,7 +45,10 @@ const parseError = (err: any) => {
   if (err.response?.status === 413) return "Please try again with less data or a smaller file."
   if (err.response?.status === 500) return "Something went wrong on our end, and our team has been notified. Please try again later."
   if (err.response && err.response.data) return err.response.data
-  if (err.request)  return "No response - please check your Internet connection and try again"
+
+  // worker uses string match to detect API down and allow retry, do not change
+  if (err.request)  return "No response - please check your Internet connection and try again" 
+
   if (err.message)  return err.message
   return err
 }

@@ -3364,6 +3364,7 @@ const role_based_access_tests = async () => {
   await async_test(
     `[bulk] non-admin for chat message bad`, 
     () => sdkNonAdmin.bulk_load({ load: [{ model: 'chats' }] }), 
+    // { onResult: result => result.results.flatMap(r => r?.records || []).length === 0 }
     handleAnyError // throws error in this case in enforceForeignAccessConstraints because there are no accessible chats
   )  
   await async_test(
