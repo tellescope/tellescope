@@ -187,6 +187,7 @@ export interface DelayedEvent extends InternalBusinessRecord {
   type: 'sessionTimeout' | 'sync' | 'daily-sync' | 'delayed-message' | 'delayed-journey',
   triggerAt: number,
   fields: object,
+  userId?: string,
 }
 export interface SessionTimeoutEvent extends DelayedEvent {
   type: 'sessionTimeout'

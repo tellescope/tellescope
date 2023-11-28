@@ -4,7 +4,7 @@ import { Autocomplete, Box, Button, Checkbox, Divider, FormControl, FormControlL
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { PRIMARY_HEX } from "@tellescope/constants"
-import { first_letter_capitalized, getLocalTimezone, getPublicFileURL, truncate_string } from "@tellescope/utilities"
+import { capture_is_supported, first_letter_capitalized, getLocalTimezone, getPublicFileURL, truncate_string } from "@tellescope/utilities"
 import { FormResponseValue, MultipleChoiceOptions } from "@tellescope/types-models"
 import { VALID_STATES } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
@@ -18,6 +18,7 @@ import { css } from '@emotion/css'
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import heic2any from "heic2any"
+import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 
 // import { pdfjs, Document, Page } from 'react-pdf';
 
@@ -667,6 +668,7 @@ export const FileInput = ({ value, onChange, field, existingFileName }: FormInpu
     setPreview(URL.createObjectURL(value))
   }, [value])
 
+  // console.log(document.createElement('input').capture )
   return (
     <Grid container direction="column">
     <Grid container {...getRootProps()} sx={{
@@ -684,12 +686,27 @@ export const FileInput = ({ value, onChange, field, existingFileName }: FormInpu
       {
         <p> 
         {   isDragActive ? "Drop to select file"
-          : value        ? (
-            preview 
-              ? <img src={preview} style={{ paddingLeft: '10%', width : '80%', maxHeight: 200 }} />
-              : `${truncate_string(value.name, { length: 30, showEllipsis: true })} selected!`
-          )
-                          : "Select a File"}
+          : value        
+            ? (
+              preview 
+                ? <img src={preview} style={{ paddingLeft: '10%', width : '80%', maxHeight: 200 }} />
+                : `${truncate_string(value.name, { length: 30, showEllipsis: true })} selected!`
+            )
+            : capture_is_supported()
+              ? (
+                <Grid container direction="column" alignItems="center">
+                  <Grid item>
+                    <AddPhotoAlternateIcon color="primary" /> 
+                  </Grid>
+                  <Grid item>
+                    <Typography sx={{ fontSize: 14, textAlign: 'center' }}>
+                      Select file or take picture
+                    </Typography>
+                  </Grid>
+                </Grid>
+              )
+              : "Select a File"
+          }
         </p> 
       }
     </Grid>
@@ -751,7 +768,20 @@ export const FilesInput = ({ value, onChange, field, existingFileName }: FormInp
         <p> 
         {isDragActive 
           ? "Drop to select files"
-          : "Select Files"
+          : capture_is_supported()
+            ? (
+              <Grid container direction="column" alignItems="center">
+                <Grid item>
+                  <AddPhotoAlternateIcon color="primary" /> 
+                </Grid>
+                <Grid item>
+                  <Typography sx={{ fontSize: 14, textAlign: 'center' }}>
+                    Select files or take pictures
+                  </Typography>
+                </Grid>
+              </Grid>
+            )
+            : "Select Files"
           // preview 
           //   ? <img src={preview} style={{ paddingLeft: '10%', width : '80%', maxHeight: 200 }} />
           //   : `${truncate_string(value.name, { length: 30, showEllipsis: true })} selected!`

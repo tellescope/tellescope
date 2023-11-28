@@ -454,6 +454,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     connect_zendesk: (args: extractFields<CustomActions['integrations']['connect_zendesk']['parameters']>) => (
       Promise<extractFields<CustomActions['integrations']['connect_zendesk']['returns']>>
     ),
+    disconnect_zendesk: (args: extractFields<CustomActions['integrations']['disconnect_zendesk']['parameters']>) => (
+      Promise<extractFields<CustomActions['integrations']['disconnect_zendesk']['returns']>>
+    ),
   },
   phone_calls: {
     authenticate_calling: (args: extractFields<CustomActions['phone_calls']['authenticate_calling']['parameters']>) => (
@@ -693,6 +696,7 @@ export class Session extends SessionManager {
     queries.integrations.connect_elation = a => this._POST(`/v1${schema.integrations.customActions.connect_elation.path}`, a)
     queries.integrations.disconnect_elation = a => this._POST(`/v1${schema.integrations.customActions.disconnect_elation.path}`, a)
     queries.integrations.connect_zendesk = a => this._POST(`/v1${schema.integrations.customActions.connect_zendesk.path}`, a)
+    queries.integrations.disconnect_zendesk = a => this._POST(`/v1${schema.integrations.customActions.disconnect_zendesk.path}`, a)
     
     queries.emails.sync_integrations = a => this._POST(`/v1/${schema.emails.customActions.sync_integrations.path}`, a)
     queries.emails.deliver_via_outlook = a => this._POST(`/v1/${schema.emails.customActions.deliver_via_outlook.path}`, a)

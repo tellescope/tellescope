@@ -147,8 +147,22 @@ const setup_tests = async () => {
     'authToken refresh'
   ) 
 
+  // ensure that going to "Non-Admin" triggers a role change
+  await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Test'] }, { replaceObjectFields: true }),
+  
+  await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)
+  await async_test('non admin authenticated', sdkNonAdmin.test_authenticated, { expectedResult: 'Authenticated!' })
+
   // reset nonAdmin role to a default non-admin
   await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Non-Admin'] }, { replaceObjectFields: true }),
+
+  // should be unauthenticated due to role change
+  await wait(undefined, 100) 
+  await async_test('role change causes deauthentication', sdkNonAdmin.test_authenticated, handleAnyError)
+
+  // reauthenticate
+  await wait(undefined, 1000) 
+  await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)
 
   // may do some stuff in background after returning
   await async_test('reset_db', () => sdk.reset_db(), passOnVoid)
@@ -5085,6 +5099,34 @@ const TRACK_OPEN_IMAGE = Buffer.from(
   'base64'
 );
 
+const validate_schema = () => {
+  const endpoints = new Set<string>([])
+
+  let modelName = undefined! as ModelName
+  for (modelName in schema) {
+    for (const endpointName in schema[modelName].customActions) {
+      const path = schema[modelName].customActions[endpointName].path || ''
+      if (path === '' && endpointName === 'create') continue // uses default
+
+      if (endpoints.has(path)) {
+        throw new Error(`Duplicate path: ${path}, ${endpointName}`)
+      }
+
+      endpoints.add(path)
+    }
+
+    for (const endpointName in (schema[modelName] as any).publicActions ?? {}) {
+      const path = (schema[modelName] as any).publicActions[endpointName].path || ''
+
+      if (endpoints.has(path)) {
+        throw new Error(`Duplicate path: ${path}, ${endpointName}`)
+      }
+
+      endpoints.add(path)
+    }
+  }
+}
+
 (async () => {
   log_header("API")
 
@@ -5095,6 +5137,8 @@ const TRACK_OPEN_IMAGE = Buffer.from(
   ) 
 
   try {
+    await validate_schema()
+
     await Promise.all([
       sdk.authenticate(email, password),
       sdkSub.authenticate(subUserEmail, password),
@@ -5120,13 +5164,13 @@ const TRACK_OPEN_IMAGE = Buffer.from(
 
     await mfa_tests()
     await setup_tests()
+    await multi_tenant_tests() // should come right after setup tests
     await automation_trigger_tests()
     await enduser_session_tests()
     await nextReminderInMS_tests()
     await search_tests()
     await wait_for_trigger_tests()
     await role_based_access_tests()
-    await multi_tenant_tests() // should come right after setup tests
     await pdf_generation()
     await remove_from_journey_on_incoming_comms_tests()
     await rate_limit_tests()

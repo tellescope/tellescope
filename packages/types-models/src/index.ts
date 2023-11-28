@@ -222,6 +222,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedElation?: boolean,
   hasConnectedIterable?: boolean,
   hasConnectedZendesk?: boolean,
+  zendeskSettings?: { priorityGroups?: string[] }
   replyToAllEmails?: string,
   forwardAllIncomingEmailsTo?: string,
   numCustomTypes?: number,
@@ -2786,6 +2787,7 @@ export interface TicketThread_readonly extends ClientRecord {
   source: string,
   references?: RelatedRecord[]
   timestamp?: Date,
+  group?: string,
 }
 export interface TicketThread_required {}
 export interface TicketThread_updatesDisabled {
@@ -2804,6 +2806,7 @@ export interface TicketThreadComment_readonly extends ClientRecord {
   references?: RelatedRecord[]
   readBy?: { [index: string] : Date };
   timestamp?: Date,
+  group?: string,
 }
 export interface TicketThreadComment_required {
   ticketThreadId: string,

@@ -1261,3 +1261,5 @@ export const get_next_reminder_timestamp = ({ startTimeInMS, reminders } : Pick<
 
   return startTimeInMS - maxMsBeforeStartTime 
 }
+
+export const capture_is_supported = () => document.createElement('input').capture !== undefined

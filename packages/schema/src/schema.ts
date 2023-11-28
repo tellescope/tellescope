@@ -731,6 +731,7 @@ export type CustomActions = {
       adminAPIKey: string,
       apiKeyEmail: string,
     }, {  }>, 
+    disconnect_zendesk: CustomAction<{}, {}>,
   },
   emails: {
     sync_integrations: CustomAction<{ enduserEmail: string, allUsers?: boolean }, { newEmails: Email[] }>,
@@ -1626,6 +1627,14 @@ export const schema: SchemaV1 = build_schema({
           clientSecret: { validator: stringValidator, required: true },
           subdomain: { validator: stringValidator, required: true },
         },
+        returns: { }
+      },
+      disconnect_zendesk: {
+        op: 'custom', access: 'create', method: 'post', adminOnly: true,
+        path: '/integrations/remove-zendesk-configuration',
+        name: 'Remove Zendesk Configuration',
+        description: "", 
+        parameters: { },
         returns: { }
       },
       add_api_key_integration: {
@@ -4932,6 +4941,11 @@ export const schema: SchemaV1 = build_schema({
       settings: { validator: organizationSettingsValidator },
       timezone: { validator: timezoneValidator },
       forwardAllIncomingEmailsTo: { validator: emailValidator },
+      zendeskSettings: {
+        validator: objectValidator<Organization['zendeskSettings']>({
+          priorityGroups: listOfStringsValidatorOptionalOrEmptyOk,
+        })
+      }
     },
   },
   databases: {
@@ -6116,6 +6130,7 @@ export const schema: SchemaV1 = build_schema({
       externalId: { validator: stringValidator100, },
       subject: { validator: stringValidator1000 },
       pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
+      group: { validator: stringValidator250 },
     }
   },
   ticket_thread_comments: {
@@ -6154,6 +6169,7 @@ export const schema: SchemaV1 = build_schema({
       readBy: { validator: idStringToDateValidator },
       hiddenBy: { validator: idStringToDateValidator },
       ticketIds: { validator: listOfStringsValidatorEmptyOk },
+      group: { validator: stringValidator250 },
     }
   },
 })
