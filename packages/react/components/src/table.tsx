@@ -33,6 +33,7 @@ import { LoadMoreFunctions } from "./state"
 import { read_local_storage, update_local_storage } from "@tellescope/utilities"
 
 import Draggable from 'react-draggable'; // The default
+import { PRIMARY_HEX } from "@tellescope/constants"
 
 // import DragHandleIcon from '@mui/icons-material/DragHandle';
 
@@ -620,6 +621,11 @@ export interface TableProps<T extends Item> extends WithTitle, WithHeader<T>, Wi
   noWrap?: boolean,
   memoryId?: string,
   onReorder?: (updated: { id: string, index: number }[]) => void,
+  // onClearFilter?: () => void,
+  filterCounts?: {
+    filtered: number,
+    total: number,
+  }
   virtualization?: ScrollingListProps<T>['virtualization'],
 }
 export const Table = <T extends Item>({
@@ -637,6 +643,8 @@ export const Table = <T extends Item>({
   onPress,
   loadMore,
   doneLoading,
+  // onClearFilter,
+  filterCounts,
 
   title,
   titleStyle,
@@ -679,7 +687,6 @@ export const Table = <T extends Item>({
     }
   }
   
-
   let loadedSorting;
   try {
     loadedSorting = JSON.parse(cachedSortString)
@@ -763,6 +770,30 @@ export const Table = <T extends Item>({
           style: { maxWidth, ...titleStyle }
         }) 
       )}
+
+      {/* {onClearFilter &&
+        <Typography onClick={onClearFilter}
+          style={{ 
+            fontSize: 14, color: PRIMARY_HEX, 
+            textAlign: 'center',
+            cursor: 'pointer', textDecoration: 'underline',
+          }} 
+        >
+          Clear active filters
+        </Typography>
+      } */}
+
+      {filterCounts && filterCounts.total !== filterCounts.filtered &&
+        <Typography 
+          style={{ 
+            fontSize: 14, color: PRIMARY_HEX, 
+            textAlign: 'center', textDecoration: 'underline',
+          }} 
+        >
+          Showing {filterCounts.filtered} of {filterCounts.total} due to active filters
+        </Typography>
+      }
+
       <ListComponent items={sorted} onReorder={onReorder} 
         noWrap={noWrap}
         maxHeight={maxRowsHeight} 

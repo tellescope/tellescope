@@ -251,6 +251,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     sync_zendesk: (args: extractFields<CustomActions['endusers']['sync_zendesk']['parameters']>) => (
       Promise<extractFields<CustomActions['endusers']['sync_zendesk']['returns']>>
     ),
+    get_journeys_report: (args: extractFields<CustomActions['endusers']['get_journeys_report']['parameters']>) => (
+      Promise<extractFields<CustomActions['endusers']['get_journeys_report']['returns']>>
+    ),
   },
   users: {
     display_names: () => Promise<{ fname: string, lname: string, id: string }[]>,
@@ -610,6 +613,7 @@ export class Session extends SessionManager {
     queries.endusers.get_engagement_statistics = a => this._GET(`/v1/${schema.endusers.customActions.get_engagement_statistics.path}`, a)
     queries.endusers.get_engagement_statistics_by_userId = a => this._GET(`/v1/${schema.endusers.customActions.get_engagement_statistics_by_userId.path}`, a)
     queries.endusers.sync_zendesk = a => this._POST(`/v1${schema.endusers.customActions.sync_zendesk.path}`, a)
+    queries.endusers.get_journeys_report = a => this._POST(`/v1${schema.endusers.customActions.get_journeys_report.path}`, a)
 
     queries.users.display_names = () => this._GET<{}, { fname: string, lname: string, id: string }[]>(`/v1/user-display-names`)
     queries.users.register = (args) => this._POST(`/v1${schema.users.publicActions.register.path}`, args)

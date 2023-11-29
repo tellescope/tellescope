@@ -5165,12 +5165,12 @@ const validate_schema = () => {
     await mfa_tests()
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await role_based_access_tests()
     await automation_trigger_tests()
     await enduser_session_tests()
     await nextReminderInMS_tests()
     await search_tests()
     await wait_for_trigger_tests()
-    await role_based_access_tests()
     await pdf_generation()
     await remove_from_journey_on_incoming_comms_tests()
     await rate_limit_tests()

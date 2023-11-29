@@ -649,6 +649,7 @@ export type CustomActions = {
       customTypeId?: string,
     }, { count: number, grouped: { _id: string, count: number }[] }>,
     sync_zendesk: CustomAction<{ enduserId: string }, { }>,
+    get_journeys_report: CustomAction<{ }, { report: Record<string, any> }>,
   },
   users: {
     display_info: CustomAction<{ }, { fname: string, lname: string, id: string }[]>,
@@ -1320,12 +1321,22 @@ export const schema: SchemaV1 = build_schema({
         },
       },
       sync_zendesk: {
-        op: 'custom', access: 'read', method: 'post', adminOnly: true,
+        op: 'custom', access: 'read', method: 'post',
         path: '/endusers/sync-zendesk',
         name: 'Sync historical Zendesk tickets for a given enduser',
         description: "", 
         parameters: { enduserId: { validator: mongoIdStringValidator, required: true } },
         returns: { }
+      },
+      get_journeys_report: {
+        op: 'custom', access: 'read', method: 'post', 
+        path: '/endusers/journeys-report',
+        name: 'Get journeys report',
+        description: "", 
+        parameters: { journeyId: { validator: mongoIdStringValidator } },
+        returns: { 
+          report: { validator: objectAnyFieldsAnyValuesValidator, required: true }
+        }
       },
     },
     publicActions: {

@@ -240,6 +240,7 @@ import {
   TypedField,
   TicketSnooze,
   IterableSendEmailAutomationAction,
+  IterableCustomEventAutomationAction,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -2031,6 +2032,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   addToJourney: '',
   removeFromJourney: '',
   iterableSendEmail: '',
+  iterableCustomEvent: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -2327,6 +2329,13 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     type: exactMatchValidator(['iterableSendEmail']),
     info: objectValidator<IterableSendEmailAutomationAction['info']>({ 
       campaignId: stringValidator, 
+    }, { emptyOk: false }),
+  }),
+  iterableCustomEvent: objectValidator<IterableCustomEventAutomationAction>({
+    type: exactMatchValidator(['iterableCustomEvent']),
+    info: objectValidator<IterableCustomEventAutomationAction['info']>({ 
+      eventName: stringValidator, 
+      description: stringValidator, 
     }, { emptyOk: false }),
   }),
 })

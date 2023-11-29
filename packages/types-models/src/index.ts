@@ -1879,6 +1879,10 @@ export type AddEnduserTagsAutomationAction = AutomationActionBuilder<'addEnduser
 export type AddToJourneyAutomationAction = AutomationActionBuilder<'addToJourney', { journeyId: string }>
 export type RemoveFromJourneyAutomationAction = AutomationActionBuilder<'removeFromJourney', { journeyId: string }>
 export type IterableSendEmailAutomationAction = AutomationActionBuilder<'iterableSendEmail', { campaignId: string }>
+export type IterableCustomEventAutomationAction = AutomationActionBuilder<'iterableCustomEvent', { 
+  eventName: string,
+  description: string, // for logging in timeline 
+}>
 
 export type EnduserFieldSetterType = 'Custom Value' | 'Current Timestamp' | 'Current Date'
 export type EnduserFieldSetter = {
@@ -1912,6 +1916,7 @@ export type AutomationActionForType = {
   'addToJourney': AddToJourneyAutomationAction,
   'removeFromJourney': RemoveFromJourneyAutomationAction,
   'iterableSendEmail': IterableSendEmailAutomationAction,
+  'iterableCustomEvent': IterableCustomEventAutomationAction,
 }
 export type AutomationActionType = keyof AutomationActionForType
 export type AutomationAction = AutomationActionForType[AutomationActionType]
