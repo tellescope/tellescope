@@ -3616,6 +3616,9 @@ export const schema: SchemaV1 = build_schema({
   webhooks: {
     info: {
       description: `Allows you to subscribe to Webhooks when models in Tellescope are created, updated, and deleted.
+
+        To avoid echo (receiving webhooks when updating records with an API Key), pass the use { dontSendWebhooks: true } in the "options" parameter to the update request
+
         Each webhook is a POST request to the given URL, of the form <pre>{ 
           model: string, 
           type: 'create' | 'update' | 'delete', 

@@ -35,6 +35,7 @@ import { read_local_storage, update_local_storage } from "@tellescope/utilities"
 import Draggable from 'react-draggable'; // The default
 import { PRIMARY_HEX } from "@tellescope/constants"
 
+import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 // import DragHandleIcon from '@mui/icons-material/DragHandle';
 
 const LIGHT_GRAY = "#fafafa"
@@ -108,6 +109,7 @@ export type TableField <T> = {
   label: string,
   hidden?: boolean,
   render?: Renderer<T>,
+  getExportData?: (v: T) => string | number,
   width?: CSSProperties['width'],
   // @deprecated no longer used
   titleWidth?: CSSProperties['width'],
@@ -129,6 +131,7 @@ export interface TableHeaderProps<T extends Item> extends Styled, HorizontalPadd
   memoryId?: string,
   widthOffsets: Record<string, number>,
   setWidthOffsets: React.Dispatch<React.SetStateAction<Record<string, number>>>
+  onExport?: () => void
 }
 export const TableHeader = <T extends Item>({ 
   fields, 
@@ -144,6 +147,7 @@ export const TableHeader = <T extends Item>({
   memoryId,
   widthOffsets,
   setWidthOffsets,
+  onExport,
 } : TableHeaderProps<T>) => { 
   const [openFilter, setOpenFilter] = useState(-1)
   const [startX, setStartX] = useState(0)
@@ -276,6 +280,12 @@ export const TableHeader = <T extends Item>({
         )
       })}
       </Flex>
+
+      {onExport && 
+        <Flex >
+          <LabeledIconButton Icon={CloudDownloadIcon} label="Export Data" onClick={onExport} />
+        </Flex>
+      }
     </Flex>
     </>
   )
@@ -627,6 +637,7 @@ export interface TableProps<T extends Item> extends WithTitle, WithHeader<T>, Wi
     total: number,
   }
   virtualization?: ScrollingListProps<T>['virtualization'],
+  onExport?: (v: { data: (string | number)[][], labels: string[] }) => void,
 }
 export const Table = <T extends Item>({
   items,
@@ -674,6 +685,7 @@ export const Table = <T extends Item>({
   paginated: _paginated,
   onReorder,
   virtualization,
+  onExport,
 }: TableProps<T> & Styled) => {
   const sortingStorageKey = memoryId ?? '' + 'sorting'
   const cachedSortString = read_local_storage(sortingStorageKey)
@@ -809,6 +821,15 @@ export const Table = <T extends Item>({
               flexWrap: noWrap ? 'nowrap' : undefined,
               paddingLeft: draggable ? '42px' : horizontalPadding,
             }}
+            onExport={
+              onExport ? () => {
+                onExport({
+                  data:   sorted.map(s => fields.map(f => f.getExportData?.(s) || '')),
+                  labels: fields.map(f => f.label)
+                })
+              }
+              : undefined
+            }
           />
         )}
 

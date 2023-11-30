@@ -400,7 +400,7 @@ export const useTellescopeForm = ({ customization, ga4measurementId, rootRespons
   const root = useTreeForFormFields(fields)
   if (!root) {
     console.error(fields)
-    throw new Error("Root not found for given fields")
+    throw new Error("Root not found for given fields") // don't change this message, error handlers expect it
   }
   const formId = root.value.formId
 

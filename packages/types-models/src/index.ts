@@ -1841,6 +1841,10 @@ export type CreateTicketAssignmentStrategies = {
     type: 'by-tags',
     info: ListOfStringsWithQualifier, 
   },
+  'previous-owner': {
+    type: 'previous-owner',
+    info: {}, 
+  },
   'default': {
     type: 'default',
     info: {}, 
@@ -1853,6 +1857,7 @@ export type CreateTicketActionInfo = {
   assignmentStrategy: CreateTicketAssignmentStrategy, // add or options with new types for CreateTicketAssignmentStrategy
   defaultAssignee: string,
   restrictByState?: boolean,
+  restrictByCareTeam?: boolean,
   closeReasons?: string[],
   forCarePlan?: boolean,
   hiddenFromTickets?: boolean,

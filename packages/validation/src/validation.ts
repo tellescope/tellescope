@@ -2274,6 +2274,10 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
           type: exactMatchValidator<'care-team-primary'>(['care-team-primary']),
           info: objectValidator<object>({}, { emptyOk: true }),
         }),
+        'previous-owner': objectValidator<CreateTicketAssignmentStrategy>({ 
+          type: exactMatchValidator<'previous-owner'>(['previous-owner']),
+          info: objectValidator<object>({}, { emptyOk: true }),
+        }),
         'by-tags': objectValidator<CreateTicketAssignmentStrategy>({ 
           type: exactMatchValidator<'by-tags'>(['by-tags']),
           info: listOfStringsWithQualifierValidator,
@@ -2285,6 +2289,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       }), 
       closeReasons: listOfStringsValidatorOptionalOrEmptyOk,
       restrictByState: booleanValidatorOptional,
+      restrictByCareTeam: booleanValidatorOptional,
       defaultAssignee: mongoIdStringRequired,
       forCarePlan: booleanValidatorOptional,
       hiddenFromTickets: booleanValidatorOptional,
