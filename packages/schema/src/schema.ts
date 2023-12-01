@@ -3354,6 +3354,7 @@ export const schema: SchemaV1 = build_schema({
       externalId: { validator: stringValidator100 },
       sharedWithEnduser: { validator: booleanValidator },
       calloutConditions: { validator: formFieldCalloutConditionsValidator },
+      highlightOnTimeline: { validator: booleanValidator },
       prepopulateFromFields: { validator: booleanValidator },
       prepopulateFromDatabase: {
         validator: objectValidator<FormField['prepopulateFromDatabase']>({

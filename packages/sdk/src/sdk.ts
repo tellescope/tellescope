@@ -578,6 +578,7 @@ export type BulkLoadOptions = {
   limit?: number,
   from?: Date,
   filter?: Record<string, any>,
+  includeFields?: string[],
 }
 
 export class Session extends SessionManager {

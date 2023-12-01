@@ -25,6 +25,7 @@ export const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
   landline: "Landline",
   timezone: "Timezone",
   mname: "Middle Name",
+  externalId: "External ID",
 } satisfies { [K in keyof Enduser]?: string }
 
 export const READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
@@ -113,6 +114,8 @@ export const PHOTON_TITLE = "Photon Health"
 export const ELATION_TITLE = "Elation"
 export const ZENDESK_INTEGRATIONS_TITLE = "Zendesk"
 export const ZENDESK_REDIRECT_URI_ENDING = "/zendesk-oauth2-verify"
+export const FULLSCRIPT_INTEGRATIONS_TITLE = "Fullscript"
+export const FULLSCRIPT_REDIRECT_URI_ENDING = "/fullscript-oauth2-verify"
 
 export const ORGANIZATION_WIDE_INTEGRATIONS = [OPENAI_TITLE]
 

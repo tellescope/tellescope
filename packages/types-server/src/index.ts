@@ -134,6 +134,7 @@ export interface ZendeskConfig extends InternalBusinessRecord {
   clientSecret: string,
   adminAPIKey: string,
   apiKeyEmail: string,
+  priorityGroups?: string[],
 }
 
 export interface ZohoConfig extends InternalBusinessRecord, EnduserEngagementTimestamps {

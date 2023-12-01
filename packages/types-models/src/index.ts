@@ -37,7 +37,7 @@ export type IndexUpdate = {
   index: number,
 }
 
-export type Filters = { _exists: boolean, _gt: number, _gte: number, _lt: number, _lte: number, _all: any[] } 
+export type Filters = { _exists: boolean, _gt: number, _gte: number, _lt: number, _lte: number, _all: any[], _in: any[] } 
 export type ExistsFilter = { _exists: boolean }
 export type FilterType = Filters
 export type FilterKey = keyof Filters
@@ -615,6 +615,12 @@ export type TicketsReports = {
         unassignedCount: number,
         averageTimeToCloseInMS: number,
       }[],
+      closedForReason: {
+        userId: string,
+        reason: string,
+        count: number,
+        averageTimeToCloseInMS: number,
+      }[],
     }
   },
 }
@@ -1097,6 +1103,7 @@ export interface FormField extends FormField_readonly, FormField_required, FormF
   sharedWithEnduser?: boolean,
   prepopulateFromFields?: boolean,
   calloutConditions?: FormFieldCalloutCondition[],
+  highlightOnTimeline?: boolean,
   prepopulateFromDatabase?: {
     databaseId?: string,
     field?: string,
@@ -1368,6 +1375,7 @@ export type FormResponseValue = {
   externalId?: string,
   sharedWithEnduser?: boolean,
   isCalledOut?: boolean,
+  isHighlightedOnTimeline?: boolean,
 }
 
 export type AnswerForType = {
@@ -1884,9 +1892,15 @@ export type AddEnduserTagsAutomationAction = AutomationActionBuilder<'addEnduser
 export type AddToJourneyAutomationAction = AutomationActionBuilder<'addToJourney', { journeyId: string }>
 export type RemoveFromJourneyAutomationAction = AutomationActionBuilder<'removeFromJourney', { journeyId: string }>
 export type IterableSendEmailAutomationAction = AutomationActionBuilder<'iterableSendEmail', { campaignId: string }>
+
+export type IterableFieldsMapping = {
+  iterable: string,
+  tellescope: string,
+}
 export type IterableCustomEventAutomationAction = AutomationActionBuilder<'iterableCustomEvent', { 
   eventName: string,
   description: string, // for logging in timeline 
+  dataFieldsMapping?: IterableFieldsMapping[]
 }>
 
 export type EnduserFieldSetterType = 'Custom Value' | 'Current Timestamp' | 'Current Date'

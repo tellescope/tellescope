@@ -241,6 +241,7 @@ import {
   TicketSnooze,
   IterableSendEmailAutomationAction,
   IterableCustomEventAutomationAction,
+  IterableFieldsMapping,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -275,6 +276,7 @@ import {
   ASSIGNED_ACCESS,
   DEFAULT_ACCESS,
   ENDUSER_FIELD_TYPES,
+  FULLSCRIPT_INTEGRATIONS_TITLE,
   NO_ACCESS,
   OUTLOOK_INTEGRATIONS_TITLE,
   SQUARE_INTEGRATIONS_TITLE,
@@ -491,6 +493,7 @@ export const filterCommandsValidator: EscapeBuilder<FilterType> = (o={}) => buil
     if (value._lt && typeof value._lt === 'number' ) return { _lt: value._lt }
     if (value._lte && typeof value._gt === 'number' ) return { _lte: value._lte }
     if (value._all && Array.isArray(value._all)) return { _all: value._all }
+    if (value._in && Array.isArray(value._in)) return { _in: value._in }
     
     if (Object.keys(value).find(k => k.startsWith('$'))) { // ignore any $ injections
       throw new Error(`Unknown filter value ${JSON.stringify(value)}`)
@@ -513,6 +516,8 @@ export const convertCommand = (key: string, value: any) => {
     return { $gte: value }
   } else if (key === '_all') {
     return { $all: value }
+  } else if (key === '_in') {
+    return { $in: value }
   }
 
   return null
@@ -1811,6 +1816,7 @@ export const formResponseValidator = objectValidator<FormResponseValue>({
   externalId: stringValidatorOptional,
   sharedWithEnduser: booleanValidatorOptional,
   isCalledOut: booleanValidatorOptional,
+  isHighlightedOnTimeline: booleanValidatorOptional,
 })
 export const formResponsesValidator = listValidator(formResponseValidator)
 
@@ -2341,6 +2347,12 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     info: objectValidator<IterableCustomEventAutomationAction['info']>({ 
       eventName: stringValidator, 
       description: stringValidator, 
+      dataFieldsMapping: listValidatorOptionalOrEmptyOk(
+        objectValidator<IterableFieldsMapping>({
+          iterable: stringValidator,
+          tellescope: stringValidator,
+        })
+      )
     }, { emptyOk: false }),
   }),
 })
@@ -3411,13 +3423,15 @@ export type IntegrationsTitleType = (
 | typeof ZOHO_TITLE 
 | typeof ZOOM_TITLE
 | typeof ZENDESK_INTEGRATIONS_TITLE
+| typeof FULLSCRIPT_INTEGRATIONS_TITLE
 )
 export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleType>([
   SQUARE_INTEGRATIONS_TITLE,
   OUTLOOK_INTEGRATIONS_TITLE,
   ZOHO_TITLE,
   ZOOM_TITLE,
-  ZENDESK_INTEGRATIONS_TITLE
+  ZENDESK_INTEGRATIONS_TITLE,
+  FULLSCRIPT_INTEGRATIONS_TITLE,
 ])
 
 const _VIDEO_INTEGRATION_TYPES: { [K in VideoIntegrationType]: any} = {

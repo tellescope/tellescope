@@ -470,6 +470,7 @@ export const useTellescopeForm = ({ customization, ga4measurementId, rootRespons
       includeInSubmit: false,
       sharedWithEnduser: f.sharedWithEnduser,
       isCalledOut: existingResponses?.find(r => r.fieldId === f.id)?.isCalledOut,
+      isHighlightedOnTimeline: existingResponses?.find(r => r.fieldId === f.id)?.isHighlightedOnTimeline,
       answer: { 
         type: f.type,
         value: (
@@ -1012,6 +1013,7 @@ export const useTellescopeForm = ({ customization, ga4measurementId, rootRespons
       ...r,
       touched,
       isCalledOut: shouldCallout(fields?.find(f => f?.id === fieldId), value),
+      isHighlightedOnTimeline: fields?.find(f => f?.id === fieldId)?.highlightOnTimeline,
       answer: {
         ...r.answer,
         value: value as any,
