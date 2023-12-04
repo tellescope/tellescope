@@ -79,6 +79,7 @@ import {
   ManagedContentRecord,
   EnduserMedication,
   DatabaseRecord as DatabaseRecordClient,
+  Ticket,
 } from "@tellescope/types-client"
 
 import {
@@ -801,6 +802,7 @@ export type CustomActions = {
     trigger_events: CustomAction<{ triggers: { enduserId: string, automationTriggerId: string }[] }, { }>, 
   },
   tickets: {
+    close_ticket: CustomAction<{ ticketId: string, closedForReason?: string }, { updated: Ticket, generated?: Ticket }>,
     update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
     get_report: CustomAction<{ title?: string, userId?: string, range?: DateRange }, { report: TicketsReport }>,
   },
@@ -2961,6 +2963,20 @@ export const schema: SchemaV1 = build_schema({
           report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
         },
       },
+      close_ticket: {
+        op: "custom", access: 'read', method: "post",
+        name: 'Close Ticket',
+        path: '/tickets/close',
+        description: "Closes a ticket and returns any resulting tickets for a current journey",
+        parameters: { 
+          ticketId: { validator: mongoIdStringValidator },
+          closedForReason: { validator: stringValidator },
+        },
+        returns: {
+          updated: { validator: 'ticket' as any, required: true },
+          generated: { validator: 'ticket' as any },
+        },
+      },
     },
     enduserActions: { create: {}, read: {}, readMany: {} },
     fields: {
@@ -3618,7 +3634,7 @@ export const schema: SchemaV1 = build_schema({
     info: {
       description: `Allows you to subscribe to Webhooks when models in Tellescope are created, updated, and deleted.
 
-        To avoid echo (receiving webhooks when updating records with an API Key), pass the use { dontSendWebhooks: true } in the "options" parameter to the update request
+        To avoid echo (receiving webhooks when updating records with an API Key), pass the use { dontSendWebhook: true } in the "options" parameter to the update request
 
         Each webhook is a POST request to the given URL, of the form <pre>{ 
           model: string, 

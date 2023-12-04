@@ -242,6 +242,7 @@ import {
   IterableSendEmailAutomationAction,
   IterableCustomEventAutomationAction,
   IterableFieldsMapping,
+  ZendeskCreateTicketAutomationAction,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -2039,6 +2040,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   removeFromJourney: '',
   iterableSendEmail: '',
   iterableCustomEvent: '',
+  zendeskCreateTicket: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -2353,6 +2355,13 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
           tellescope: stringValidator,
         })
       )
+    }, { emptyOk: false }),
+  }),
+  zendeskCreateTicket: objectValidator<ZendeskCreateTicketAutomationAction>({
+    type: exactMatchValidator(['zendeskCreateTicket']),
+    info: objectValidator<ZendeskCreateTicketAutomationAction['info']>({ 
+      templateId: mongoIdStringRequired, 
+      defaultSenderId: mongoIdStringRequired, 
     }, { emptyOk: false }),
   }),
 })

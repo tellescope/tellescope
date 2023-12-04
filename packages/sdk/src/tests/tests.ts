@@ -5026,6 +5026,10 @@ const nextReminderInMS_tests = async () => {
   ])
 }
 
+const test_ticket_automation_assignment_and_optimization = async () => {
+  console.log((await sdk.api.users.getSome({ })).length)
+}
+
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
   phone_trees: NO_TEST,
@@ -5165,6 +5169,7 @@ const validate_schema = () => {
     await mfa_tests()
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await test_ticket_automation_assignment_and_optimization()
     await role_based_access_tests()
     await automation_trigger_tests()
     await enduser_session_tests()
