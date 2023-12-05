@@ -614,7 +614,7 @@ export type CustomActions = {
     add_to_journey: CustomAction<{ enduserIds: string[], journeyId: string, automationStepId?: string, journeyContext?: JourneyContext, throttle?: boolean }, { }>, 
     remove_from_journey: CustomAction<{ enduserIds: string[], journeyId: string }, { }>, 
     merge: CustomAction<{ sourceEnduserId: string, destinationEnduserId: string, }, { }>, 
-    push: CustomAction<{ enduserId: string }, { }>,
+    push: CustomAction<{ enduserId: string }, { fullscriptRedirectURL?: string }>,
     bulk_update: CustomAction<
       { ids: string[], fields?: CustomFields, pushTags?: string[], replaceTags?: string[] }, 
       { updated: Enduser[] }
@@ -902,6 +902,9 @@ export type PublicActions = {
   appointment_booking_pages: {
     validate_access_token: CustomAction<{ token: string, bookingPageId?: string }, { isValid: boolean }>,
   },
+  managed_content_records: {
+    load_unauthenticated: CustomAction<{ id: string }, { record: ManagedContentRecord }>, 
+  }
 }
 
 export type SchemaV1 = Schema & { 
@@ -1230,7 +1233,9 @@ export const schema: SchemaV1 = build_schema({
         parameters: {
           enduserId: { validator: mongoIdStringValidator, required: true },
         },
-        returns: {},
+        returns: {
+          fullscriptRedirectURL: { validator: stringValidator },
+        },
       },
       bulk_update: {
         op: "custom", access: 'update', method: "patch",
@@ -4473,6 +4478,20 @@ export const schema: SchemaV1 = build_schema({
         }
       },
     },
+    publicActions: {
+      load_unauthenticated: {
+        op: 'custom', access: 'read', method: 'get',
+        path: '/managed-content-records/load-unauthenticated',
+        name: "For accessing content which is available without authentication",
+        description: "", 
+        parameters: { 
+          id: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: { 
+          record: { validator: 'managed_content_record' as any, required: true },
+        }
+      },
+    },
     enduserActions: { 
       create: {}, createMany: {}, read: {}, readMany: {},
       search: {},
@@ -4532,6 +4551,7 @@ export const schema: SchemaV1 = build_schema({
       embeddingType: { validator: embeddingTypeValidator },
       embedding: { validator: listValidator(numberValidator) },
       forInternalUse: { validator: booleanValidator },
+      allowUnauthenticatedAccess: { validator: booleanValidator },
     }
   },
   managed_content_record_assignments: {

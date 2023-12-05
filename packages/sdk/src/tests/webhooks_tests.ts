@@ -223,7 +223,7 @@ const endusers_tests = async (isSubscribed: boolean) => {
 
   const update = { assignedTo: [sdk.userInfo.id] }
   await sdk.api.endusers.updateOne(enduser.id, update)
-
+  await sdk.api.endusers.updateOne(enduser.id, { fields: { 'dontIncludeInWebhook': true } }, { dontSendWebhook: true })
   await check_next_webhook(
     a => {
       delete a.updates?.[0]?.recordBeforeUpdate.humanReadableId

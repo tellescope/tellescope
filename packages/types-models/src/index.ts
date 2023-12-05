@@ -2061,6 +2061,7 @@ export interface ManagedContentRecord extends ManagedContentRecord_readonly, Man
   index?: number,
   headerPhoto?: string,
   publicRead?: boolean,
+  allowUnauthenticatedAccess?: boolean,
   slug?: string,
   description?: string,
   blocks?: Block[],
@@ -2169,8 +2170,7 @@ export interface PostLike_required {
 export interface PostLike_updatesDisabled {}
 export interface PostLike extends PostLike_readonly, PostLike_required, PostLike_updatesDisabled {}
 
-export interface PostComment_readonly extends ClientRecord {
-}
+export interface PostComment_readonly extends ClientRecord {}
 export interface PostComment_required {
   forumId: string,
   postId: string,

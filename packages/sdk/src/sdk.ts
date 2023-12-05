@@ -525,6 +525,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     // ),
   },
   managed_content_records: {
+    load_unauthenticated: (args: extractFields<PublicActions['managed_content_records']['load_unauthenticated']['parameters']>) => (
+      Promise<extractFields<PublicActions['managed_content_records']['load_unauthenticated']['returns']>>
+    ),
     generate_embedding: (args: extractFields<CustomActions['managed_content_records']['generate_embedding']['parameters']>) => (
       Promise<extractFields<CustomActions['managed_content_records']['generate_embedding']['returns']>>
     ),
@@ -729,6 +732,7 @@ export class Session extends SessionManager {
     queries.availability_blocks.update_order = a => this._POST(`/v1/${schema.availability_blocks.customActions.update_order.path}`, a)
     queries.availability_blocks.handle_autoreply = a => this._POST(`/v1/${schema.availability_blocks.customActions.handle_autoreply.path}`, a)
 
+    queries.managed_content_records.load_unauthenticated = a => this._GET(`/v1/${schema.managed_content_records.publicActions.load_unauthenticated.path}`, a)
     queries.managed_content_records.generate_embedding = a => this._POST(`/v1/${schema.managed_content_records.customActions.generate_embedding.path}`, a)
     queries.managed_content_records.search = a => this._POST(`/v1/${schema.managed_content_records.customActions.search.path}`, a)
     queries.managed_content_records.update_indexes = a => this._PATCH(`/v1/${schema.managed_content_records.customActions.update_indexes.path}`, a)

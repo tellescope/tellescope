@@ -1808,6 +1808,10 @@ export const photonDisabledForEnduser = (
   && enduser.dateOfBirth && mmddyyyyRegex.test(enduser.dateOfBirth)
 )
 
+export const fullscriptDisabledForEnduser = (enduser: Pick<Enduser, 'email' | 'fname' | 'lname'>) => !(
+  enduser.fname && enduser.lname && enduser.email
+)
+
 export const formResponseValidator = objectValidator<FormResponseValue>({
   fieldId: stringValidatorOptionalEmptyOkay,
   fieldTitle: stringValidator5000EmptyOkay,
