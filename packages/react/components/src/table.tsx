@@ -16,6 +16,7 @@ import {
   FilterIcon,
   FilterActiveIcon,
   Modal,
+  TextField,
 } from "./mui"
 import {
   LabeledIconButton,
@@ -95,6 +96,10 @@ const checkboxStyle: React.CSSProperties = {
   right: '10px',
 }
 
+type LocalFilter = {
+  query: string,
+}
+
 // export type SortType = 'infer'
 export type Sorting = {
   field: string,
@@ -118,6 +123,7 @@ export type TableField <T> = {
   flex?: boolean,
   // sortType?: SortType,
   getSortValue?: (v: T) => string | number,
+  getFilterValue?: (v: T) => string,
   filterIsActive?: boolean,
   filterComponent?: React.ReactNode,
   allowWidthAdjustment?: boolean,
@@ -130,8 +136,10 @@ export interface TableHeaderProps<T extends Item> extends Styled, HorizontalPadd
   setSorting: React.Dispatch<React.SetStateAction<Sorting[]>>,
   memoryId?: string,
   widthOffsets: Record<string, number>,
-  setWidthOffsets: React.Dispatch<React.SetStateAction<Record<string, number>>>
-  onExport?: () => void
+  setWidthOffsets: React.Dispatch<React.SetStateAction<Record<string, number>>>,
+  onExport?: () => void,
+  localFilters: LocalFilter[],
+  setLocalFilters: React.Dispatch<React.SetStateAction<LocalFilter[]>>,
 }
 export const TableHeader = <T extends Item>({ 
   fields, 
@@ -148,6 +156,8 @@ export const TableHeader = <T extends Item>({
   widthOffsets,
   setWidthOffsets,
   onExport,
+  localFilters,
+  setLocalFilters,
 } : TableHeaderProps<T>) => { 
   const [openFilter, setOpenFilter] = useState(-1)
   const [startX, setStartX] = useState(0)
@@ -156,7 +166,14 @@ export const TableHeader = <T extends Item>({
   return (
     <>
     <Modal open={openFilter !== -1} setOpen={o => !o && setOpenFilter(-1)} >
-      {fields[openFilter]?.filterComponent}
+    {fields[openFilter]?.filterComponent ||
+      <Flex flex={1} justifyContent="center">
+        <TextField label="Filter" size="small" style={{ width: 400 }}
+          value={localFilters[openFilter]?.query ?? ''} 
+          onChange={query => setLocalFilters(fs => fs.map((f, i) => i === openFilter ? { query } : f))} 
+        />
+      </Flex>  
+    }
     </Modal>
 
     <Flex alignItems="center" style={{ 
@@ -171,7 +188,7 @@ export const TableHeader = <T extends Item>({
         </Flex>
       }
       <Flex flex={1} wrap="nowrap">
-      {fields.map(({ key, label, textAlign, width, getSortValue, hidden, style, filterIsActive, filterComponent, allowWidthAdjustment }, i) => {
+      {fields.map(({ key, label, textAlign, width, getSortValue, hidden, style, filterIsActive, filterComponent, allowWidthAdjustment, getFilterValue }, i) => {
         if (hidden) return null
 
         const sort = sorting.find(s => s.field === label)
@@ -238,7 +255,16 @@ export const TableHeader = <T extends Item>({
                     onClick={() => setOpenFilter(i)}
                   />
                 )}
-              
+
+                {!filterComponent && getFilterValue && 
+                  <LabeledIconButton size={22} offsetX={getSortValue ? -7 : -4}
+                    label="Filter" 
+                    disabled={openFilter !== -1}
+                    color={localFilters[i].query ? "primary" : 'inherit'}
+                    Icon={localFilters[i].query ? FilterActiveIcon : FilterIcon}
+                    onClick={() => setOpenFilter(i)}
+                  />
+                }
               </Flex>
             </Flex>
 
@@ -690,6 +716,8 @@ export const Table = <T extends Item>({
   const sortingStorageKey = memoryId ?? '' + 'sorting'
   const cachedSortString = read_local_storage(sortingStorageKey)
 
+  const [localFilters, setLocalFilters] = useState<LocalFilter[]>(fields.map(f => ({ query: '' })))
+
   const [widthOffsets, setWidthOffsets] = useState<Record<string, number>>({})
   if (memoryId) {
     for (const { key } of fields) {
@@ -755,8 +783,29 @@ export const Table = <T extends Item>({
 
   const sorted = useMemo(() => paginationProps.mapSelectedItems(i => i), [paginationProps.mapSelectedItems])
 
+  const filtered = useMemo(() => {
+    if (!localFilters.find(f => f.query)) return sorted
+    if (!fields.find(f => f.getSortValue)) return sorted
+
+    return sorted.filter(v => {
+      for (let i=0; i < fields.length; i++) {
+        const { getFilterValue } = fields[i]
+        if (!getFilterValue) continue
+
+        const { query } = localFilters[i] ?? {}
+        if (!query) continue
+
+        if (!getFilterValue(v).toLowerCase().includes(query.toLowerCase())) {
+          return false
+        }
+      }
+
+      return true
+    })
+  }, [sorted, localFilters, fields])
+
   const headerFilterIsActive = (
-    !!fields.find(f => f.filterIsActive)
+     !!(fields.find(f => f.filterIsActive) || localFilters.find(f => f.query))
   )
   
   const draggable = (onReorder && sorting.length === 0)
@@ -806,7 +855,7 @@ export const Table = <T extends Item>({
         </Typography>
       }
 
-      <ListComponent items={sorted} onReorder={onReorder} 
+      <ListComponent items={filtered} onReorder={onReorder} 
         noWrap={noWrap}
         maxHeight={maxRowsHeight} 
         maxWidth={maxWidth}
@@ -816,6 +865,7 @@ export const Table = <T extends Item>({
             fields={fields} horizontalPadding={horizontalPadding} fontSize={headerFontSize}
             widthOffsets={widthOffsets} setWidthOffsets={setWidthOffsets}
             sorting={sorting} setSorting={setSorting} 
+            localFilters={localFilters} setLocalFilters={setLocalFilters}
             memoryId={memoryId}
             style={{
               flexWrap: noWrap ? 'nowrap' : undefined,

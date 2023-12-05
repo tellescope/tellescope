@@ -5029,11 +5029,11 @@ const nextReminderInMS_tests = async () => {
   ])
 }
 
-const pollForResults = async <T>(f: () => Promise<T[]>, intervalInMS=500, iterations=20) => {
+const pollForResults = async <T>(f: () => Promise<T>, evaluate: (r: T) => boolean, intervalInMS=500, iterations=20) => {
   for (let i = 0; i < iterations; i++) {
     await wait(undefined, intervalInMS)
     const result = await f()
-    if (result.length) return result
+    if (evaluate(result)) return result
   }
 
   throw new Error("failed pollForResults")
@@ -5127,7 +5127,7 @@ const test_ticket_automation_assignment_and_optimization = async () => {
     if (testDelayedChild) {
       await async_test(
         `Delayed child ticket`, 
-        () => pollForResults(() => sdk.api.automated_actions.getSome({ filter: { automationStepId: child.id } })),
+        () => pollForResults(() => sdk.api.automated_actions.getSome({ filter: { automationStepId: child.id } }), t => !!t.length),
         { onResult: steps => steps.length === 1 && !steps[0].isNOP }
       ) 
     }
@@ -5242,7 +5242,7 @@ const test_ticket_automation_assignment_and_optimization = async () => {
 
     await async_test(
       `Background ticket assignment ${++backgroundTestCounter}`, 
-      () => pollForResults(() => sdk.api.tickets.getSome({ filter: { enduserId: e.id, title: 'background ticket' } })),
+      () => pollForResults(() => sdk.api.tickets.getSome({ filter: { enduserId: e.id, title: 'background ticket' } }), t => !!t.length),
       { onResult: ts => ts.length === 1 && !!ts[0].owner && validOwners.includes(ts[0].owner) }
     ) 
 
@@ -5325,6 +5325,117 @@ const test_ticket_automation_assignment_and_optimization = async () => {
 
   return Promise.all([
     await sdk.api.journeys.deleteOne(journey.id)
+  ])
+}
+
+const field_equals_trigger_tests = async () => {
+  log_header("Field Equals / Trigger Tests")
+
+  const journey = await sdk.api.journeys.createOne({ title: 'test' })
+  const step = await sdk.api.automation_steps.createOne({
+    journeyId: journey.id,
+    events: [{
+      type: 'onJourneyStart',
+      info: {}
+    }],
+    action: {
+      type: 'addEnduserTags',
+      info: { tags: ['Journey Tag']}
+    },
+  })
+
+  const existsTriggerTags = await sdk.api.automation_triggers.createOne({ 
+    event: { type: 'Field Equals', info: { field: 'fname', value: "$exists" } },
+    action: { type: 'Add Tags', info: { tags: ["Tag"] } },
+    status: "Active",
+    title: 'existsTriggerTags',
+  })
+  const existsTriggerAddToJourney = await sdk.api.automation_triggers.createOne({ 
+    event: { type: 'Field Equals', info: { field: 'fname', value: "$exists" } },
+    action: { type: 'Add To Journey', info: { journeyId: journey.id } },
+    status: "Active",
+    title: 'existsTriggerAddToJourney',
+  })
+  const equalsTriggerTags = await sdk.api.automation_triggers.createOne({ 
+    event: { type: 'Field Equals', info: { field: 'lname', value: "Explicit" } },
+    action: { type: 'Add Tags', info: { tags: ["Tag"] } },
+    status: "Active",
+    title: 'equalsTriggerTags',
+  })
+  const equalsTriggerAddToJourney = await sdk.api.automation_triggers.createOne({ 
+    event: { type: 'Field Equals', info: { field: 'lname', value: "Explicit" } },
+    action: { type: 'Add To Journey', info: { journeyId: journey.id } },
+    enduserCondition: { $and: [ { condition: { lname: 'Explicit' } } ] },
+    status: "Active",
+    title: 'equalsTriggerAddToJourney',
+  })
+  const conditionalTriggerTags = await sdk.api.automation_triggers.createOne({ 
+    event: { type: 'Field Equals', info: { field: 'mname', value: "$exists" } },
+    action: { type: 'Add Tags', info: { tags: ["Tag"] } },
+    status: "Active",
+    enduserCondition: { $and: [ { condition: { lname: 'Conditional' } } ] },
+    title: 'conditionalTriggerTags',
+  })
+  const conditionalTriggerAddToJourney = await sdk.api.automation_triggers.createOne({ 
+    event: { type: 'Field Equals', info: { field: 'mname', value: "$exists" } },
+    action: { type: 'Add To Journey', info: { journeyId: journey.id } },
+    enduserCondition: { $and: [ { condition: { lname: 'Conditional' } } ] },
+    status: "Active",
+    title: 'conditionalTriggerAddToJourney',
+  })
+
+  // names are capitalized automatically, so make sure that is reflected in conditions
+  const endusers = (await sdk.api.endusers.createSome([
+    { fname: 'Test' },
+    { fname: 'Test' },
+    { lname: 'Test' }, // should not be added to any journey
+    { lname: 'Explicit' }, 
+    { mname: 'Test' }, // should not be added to any journey for failing conditional logic
+    { mname: 'Test' }, // should not be added to any journey for failing conditional logic
+    { mname: 'Test', lname: 'Nonconditional' }, // should not be added to any journey for failing conditional logic
+    { mname: 'Test', lname: 'Conditional' },
+  ])).created
+
+  await async_test(
+    `Journey and tags set`, 
+    () => pollForResults(
+      sdk.api.endusers.getSome, 
+      es => (
+        es.filter(e => e.tags?.includes('Tag') && e.journeys?.[journey.id] !== undefined).length === 4
+      ),
+      200,
+      25,
+    ),
+    passOnAnyResult,
+  ) 
+  await async_test(
+    `Background action queued for journey`, 
+    () => pollForResults(
+      sdk.api.automated_actions.getSome, 
+      as => (
+        as.filter(a => a.automationStepId === step.id && endusers.find(e => e.id === a.enduserId)).length === 4
+      ),
+      200,
+      25,
+    ),
+    passOnAnyResult,
+  )
+  await async_test(
+    `Endusers have trigger ids`, 
+    sdk.api.endusers.getSome,
+    { onResult: es => es.filter(e => e.triggerIds?.length === 2).length === 4 },
+  )
+
+
+  return await Promise.all([
+    sdk.api.journeys.deleteOne(journey.id),
+    sdk.api.automation_triggers.deleteOne(existsTriggerTags.id),
+    sdk.api.automation_triggers.deleteOne(existsTriggerAddToJourney.id),
+    sdk.api.automation_triggers.deleteOne(equalsTriggerAddToJourney.id),
+    sdk.api.automation_triggers.deleteOne(equalsTriggerTags.id),
+    sdk.api.automation_triggers.deleteOne(conditionalTriggerTags.id),
+    sdk.api.automation_triggers.deleteOne(conditionalTriggerAddToJourney.id),
+    ...endusers.map(e => sdk.api.endusers.deleteOne(e.id)),
   ])
 }
 
@@ -5467,6 +5578,7 @@ const validate_schema = () => {
     await mfa_tests()
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await field_equals_trigger_tests()
     await test_ticket_automation_assignment_and_optimization()
     await role_based_access_tests()
     await automation_trigger_tests()
