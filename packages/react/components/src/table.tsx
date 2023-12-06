@@ -260,8 +260,8 @@ export const TableHeader = <T extends Item>({
                   <LabeledIconButton size={22} offsetX={getSortValue ? -7 : -4}
                     label="Filter" 
                     disabled={openFilter !== -1}
-                    color={localFilters[i].query ? "primary" : 'inherit'}
-                    Icon={localFilters[i].query ? FilterActiveIcon : FilterIcon}
+                    color={localFilters[i]?.query ? "primary" : 'inherit'}
+                    Icon={localFilters[i]?.query ? FilterActiveIcon : FilterIcon}
                     onClick={() => setOpenFilter(i)}
                   />
                 }
@@ -784,7 +784,7 @@ export const Table = <T extends Item>({
   const sorted = useMemo(() => paginationProps.mapSelectedItems(i => i), [paginationProps.mapSelectedItems])
 
   const filtered = useMemo(() => {
-    if (!localFilters.find(f => f.query)) return sorted
+    if (!localFilters.find(f => f?.query)) return sorted
     if (!fields.find(f => f.getSortValue)) return sorted
 
     return sorted.filter(v => {
@@ -805,7 +805,7 @@ export const Table = <T extends Item>({
   }, [sorted, localFilters, fields])
 
   const headerFilterIsActive = (
-     !!(fields.find(f => f.filterIsActive) || localFilters.find(f => f.query))
+     !!(fields.find(f => f.filterIsActive) || localFilters.find(f => f?.query))
   )
   
   const draggable = (onReorder && sorting.length === 0)
