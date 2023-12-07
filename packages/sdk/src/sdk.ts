@@ -17,6 +17,7 @@ import {
   AnalyticsQuery,
   UserUIRestrictions,
   ModelName,
+  CustomDashboardView,
 } from "@tellescope/types-models"
 
 import {
@@ -570,6 +571,7 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
 type UserInfo = User & {
   type: 'user',
   orgTwilioNumber?: string,
+  dashboardView?: CustomDashboardView,
   ticketThreadsEnabled?: boolean, // zendesk enabled
   enduserDisplayName?: string,
   access: AccessPermissions,

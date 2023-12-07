@@ -716,7 +716,10 @@ export const Table = <T extends Item>({
   const sortingStorageKey = memoryId ?? '' + 'sorting'
   const cachedSortString = read_local_storage(sortingStorageKey)
 
-  const [localFilters, setLocalFilters] = useState<LocalFilter[]>(fields.map(f => ({ query: '' })))
+  const keyString = fields.map(f => f.key).join('')
+  const [localFilters, setLocalFilters] = useState<LocalFilter[]>(fields.map(() => ({ query: '' })))
+
+  useEffect(() => setLocalFilters(fields.map(() => ({ query: '' }))), [keyString])
 
   const [widthOffsets, setWidthOffsets] = useState<Record<string, number>>({})
   if (memoryId) {

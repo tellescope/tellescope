@@ -243,6 +243,9 @@ import {
   IterableCustomEventAutomationAction,
   IterableFieldsMapping,
   ZendeskCreateTicketAutomationAction,
+  CreateCarePlanAutomationAction,
+  CompleteCarePlanAutomationAction,
+  CustomDashboardViewBlock,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -2031,6 +2034,8 @@ export const automationEventTypeValidator = exactMatchValidator<AutomationEventT
 
 const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   createTicket: '',
+  createCarePlan: '',
+  completeCarePlan: '',
   sendEmail: '',
   sendSMS: '',
   sendForm: '',
@@ -2277,6 +2282,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     type: exactMatchValidator(['createTicket']),
     info: objectValidator<CreateTicketActionInfo>({ 
       title: stringValidator1000,
+      description: stringValidatorOptionalEmptyOkay,
       assignmentStrategy: orValidator<{ [K in CreateTicketAssignmentStrategyType ]: CreateTicketAssignmentStrategy }>({
         'care-team-random': objectValidator<CreateTicketAssignmentStrategy>({ 
           type: exactMatchValidator<'care-team-random'>(['care-team-random']),
@@ -2368,6 +2374,18 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       defaultSenderId: mongoIdStringRequired, 
     }, { emptyOk: false }),
   }),
+  createCarePlan: objectValidator<CreateCarePlanAutomationAction>({
+    type: exactMatchValidator(['createCarePlan']),
+    info: objectValidator<CreateCarePlanAutomationAction['info']>({ 
+      title: stringValidator1000, 
+      htmlDescription: stringValidator100000EmptyOkay, 
+    }, { emptyOk: false }),
+  }),
+  completeCarePlan: objectValidator<CompleteCarePlanAutomationAction>({
+    type: exactMatchValidator(['completeCarePlan']),
+    info: objectValidator<CompleteCarePlanAutomationAction['info']>({ }, { emptyOk: true }),
+  }),
+  
 })
 
 export const journeyContextValidator = objectValidator<JourneyContext>({
@@ -3037,6 +3055,13 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
       hour: numberValidatorOptional, 
     }, { isOptional: true }),
   }, { isOptional: true }),
+  dashboard: objectValidator<OrganizationSettings['dashboard']>({
+    view: objectValidator<Required<OrganizationSettings>['dashboard']['view']>({
+      blocks: listValidatorOptionalOrEmptyOk(objectValidator<CustomDashboardViewBlock>({
+        type: exactMatchValidator(['Inbox', 'Tickets']),
+      }))
+    }, { isOptional: true, emptyOk: true, }),
+  }, { isOptional: true, emptyOk: true, }),
 })
 
 export const calendarEventPortalSettingsValidator = objectValidator<CalendarEventPortalSettings>({

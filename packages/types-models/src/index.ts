@@ -127,7 +127,14 @@ export type EnduserBuiltInField = {
   hidden?: boolean,
 }
 
+export type CustomDashboardViewBlock = { type: 'Inbox' | 'Tickets' }
+export type CustomDashboardView = {
+  blocks: CustomDashboardViewBlock[]
+}
 export type OrganizationSettings = {
+  dashboard?: {
+    view?: CustomDashboardView,
+  },
   endusers?: { 
     disableMultipleChatRooms?: boolean,
     disableCalendarEventAutoAssignment?: boolean,
@@ -307,6 +314,7 @@ export interface UserSession extends Session, OrganizationLimits { // User joine
   wasAutomated: boolean;
   limits?: OrganizationLimits, 
   uiRestrictions?: UserUIRestrictions
+  dashboardView?: CustomDashboardView,
 }
 
 export type StateCredentialInfo = {
@@ -1869,6 +1877,7 @@ export type CreateTicketActionInfo = {
   closeReasons?: string[],
   forCarePlan?: boolean,
   hiddenFromTickets?: boolean,
+  description?: string,
   htmlDescription?: string,
   actions?: TicketAction[],
   dueDateOffsetInMS?: number,
@@ -1896,6 +1905,8 @@ export type ZendeskCreateTicketAutomationAction = AutomationActionBuilder<'zende
   templateId: string,
   defaultSenderId: string,
 }>
+export type CreateCarePlanAutomationAction = AutomationActionBuilder<'createCarePlan', { title: string, htmlDescription?: string }>
+export type CompleteCarePlanAutomationAction = AutomationActionBuilder<'completeCarePlan', {}>
 
 export type IterableFieldsMapping = {
   iterable: string,
@@ -1941,6 +1952,8 @@ export type AutomationActionForType = {
   'iterableSendEmail': IterableSendEmailAutomationAction,
   'iterableCustomEvent': IterableCustomEventAutomationAction,
   'zendeskCreateTicket': ZendeskCreateTicketAutomationAction,
+  'createCarePlan': CreateCarePlanAutomationAction,
+  'completeCarePlan': CompleteCarePlanAutomationAction,
 }
 export type AutomationActionType = keyof AutomationActionForType
 export type AutomationAction = AutomationActionForType[AutomationActionType]
@@ -2251,8 +2264,11 @@ export interface CarePlan_required {
 export interface CarePlan_updatesDisabled {}
 export interface CarePlan extends CarePlan_readonly, CarePlan_required, CarePlan_updatesDisabled {
   enduserId: string,
-  description?: string
+  description?: string,
+  htmlDescription?: string,
   eventIds?: string[],
+  journeyId?: string,
+  completedAt?: Date | '',
 }
 
 export type TypedField = { type?: string, field?: string, }

@@ -429,6 +429,9 @@ export const TicketSearch = (props: Omit<GenericSearchProps<Ticket>, 'filterKey'
           fields.enduser_lname = enduser.lname || '';
           fields.enduser_fullname = `${enduser.fname} ${enduser.lname}`;
           fields.enduser_email = enduser.email || '';
+          if (enduser.tags?.length) {
+            fields.tags = enduser.tags.join(',')
+          }
         }
     
         return fields

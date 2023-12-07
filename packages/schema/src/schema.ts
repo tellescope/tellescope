@@ -5134,7 +5134,7 @@ export const schema: SchemaV1 = build_schema({
     info: {},
     constraints: {
       unique: [
-        ['enduserId', 'title']
+        // ['enduserId', 'title']
       ], 
       relationship: [],
       access: []
@@ -5165,7 +5165,10 @@ export const schema: SchemaV1 = build_schema({
       },
       eventIds: {
         validator: listOfMongoIdStringValidatorEmptyOk,
-      }
+      },
+      journeyId: { validator: mongoIdStringValidator },
+      completedAt: { validator: dateOptionalOrEmptyStringValidator },
+      htmlDescription: { validator: stringValidator100000EmptyOkay },
     },
   }, 
   role_based_access_permissions: {
