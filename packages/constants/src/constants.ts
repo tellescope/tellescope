@@ -113,6 +113,7 @@ export const MEDPLUM_TITLE = "Medplum"
 export const PHASE_ZERO_TITLE = "Phase Zero"
 export const PHOTON_TITLE = "Photon Health"
 export const ELATION_TITLE = "Elation"
+export const ZUS_TITLE = "Zus"
 export const ZENDESK_INTEGRATIONS_TITLE = "Zendesk"
 export const ZENDESK_REDIRECT_URI_ENDING = "/zendesk-oauth2-verify"
 export const FULLSCRIPT_INTEGRATIONS_TITLE = "Fullscript"
@@ -216,6 +217,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
   phone_calls: ASSIGNED_AND_DEFAULT_ACCESS,
   enduser_profile_views: READ_ONLY_ALL,
   phone_trees: READ_ONLY_ALL,
+  configurations: READ_ONLY_ALL,
   users: {
     ...READ_ONLY_ALL,
     update: 'Default', // allow updating self, separate restriction exists to prevent updating other users if non-admin
@@ -289,6 +291,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
   phone_trees: FULL_ACCESS,
+  configurations: FULL_ACCESS,
   referral_providers: FULL_ACCESS,
   superbill_providers: FULL_ACCESS,
   superbills: FULL_ACCESS,

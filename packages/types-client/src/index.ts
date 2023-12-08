@@ -70,6 +70,7 @@ export type TableView = ClientModelForName['table_views']
 export type EmailSyncDenial = ClientModelForName['email_sync_denials']
 export type TicketThread = ClientModelForName['ticket_threads']
 export type TicketThreadComment = ClientModelForName['ticket_thread_comments']
+export type Configuration = ClientModelForName['configurations']
 
 export type Forum = ClientModelForName['forums']
 export type ForumPost = ClientModelForName['forum_posts']

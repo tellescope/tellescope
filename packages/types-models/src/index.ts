@@ -229,6 +229,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedElation?: boolean,
   hasConnectedIterable?: boolean,
   hasConnectedZendesk?: boolean,
+  hasConnectedZus?: boolean,
   zendeskSettings?: { priorityGroups?: string[] }
   replyToAllEmails?: string,
   forwardAllIncomingEmailsTo?: string,
@@ -604,6 +605,7 @@ export type TicketsReports = {
         title: string,
         count: number,
         unassignedCount: number,
+        overdueCount: number,
         averageTimeToCloseInMS: number,
       }[],
     }
@@ -621,6 +623,7 @@ export type TicketsReports = {
         userId: string,
         count: number,
         unassignedCount: number,
+        overdueCount: number,
         averageTimeToCloseInMS: number,
       }[],
       closedForReason: {
@@ -754,6 +757,7 @@ export interface Email_updatesDisabled {
 }
 export interface Email extends Email_required, Email_readonly, Email_updatesDisabled, TextCommunication {
   replyTo?: string | null;  
+  isBounce?: boolean,
   via?: string,
   readBy?: { [index: string] : Date };
   journeyContext?: JourneyContext,
@@ -1907,6 +1911,7 @@ export type ZendeskCreateTicketAutomationAction = AutomationActionBuilder<'zende
 }>
 export type CreateCarePlanAutomationAction = AutomationActionBuilder<'createCarePlan', { title: string, htmlDescription?: string }>
 export type CompleteCarePlanAutomationAction = AutomationActionBuilder<'completeCarePlan', {}>
+export type ZusSyncAutomationAction = AutomationActionBuilder<'zusSync', {}>
 
 export type IterableFieldsMapping = {
   iterable: string,
@@ -1954,6 +1959,7 @@ export type AutomationActionForType = {
   'zendeskCreateTicket': ZendeskCreateTicketAutomationAction,
   'createCarePlan': CreateCarePlanAutomationAction,
   'completeCarePlan': CompleteCarePlanAutomationAction,
+  'zusSync': ZusSyncAutomationAction,
 }
 export type AutomationActionType = keyof AutomationActionForType
 export type AutomationAction = AutomationActionForType[AutomationActionType]
@@ -2878,6 +2884,14 @@ export interface TicketThreadComment extends TicketThreadComment_readonly, Ticke
   ticketIds?: string[],
 }
 
+export interface Configuration_readonly extends ClientRecord {}
+export interface Configuration_updatesDisabled {}
+export interface Configuration_required {
+  type: string,
+  value: string,
+}
+export interface Configuration extends Configuration_readonly, Configuration_required, Configuration_updatesDisabled {}
+
 export type ModelForName_required = {
   ticket_threads: TicketThread_required,
   ticket_thread_comments: TicketThreadComment_required,
@@ -2942,11 +2956,13 @@ export type ModelForName_required = {
   phone_calls: PhoneCall_required,
   enduser_medications: EnduserMedication_required,
   table_views: TableView_required,
-  email_sync_denials: EmailSyncDenial_required,
+  email_sync_denials: EmailSyncDenial_required, 
+  configurations: Configuration_required,
 }
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  configurations: Configuration_readonly,
   ticket_threads: TicketThread_readonly,
   ticket_thread_comments: TicketThreadComment_readonly,
   enduser_custom_types: EnduserCustomType_readonly,
@@ -3015,6 +3031,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  configurations: Configuration_updatesDisabled,
   ticket_threads: TicketThread_updatesDisabled,
   ticket_thread_comments: TicketThreadComment_updatesDisabled,
   enduser_custom_types: EnduserCustomType_updatesDisabled,
@@ -3083,6 +3100,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly {
+  configurations: Configuration,
   ticket_threads: TicketThread,
   ticket_thread_comments: TicketThreadComment,
   enduser_custom_types: EnduserCustomType,
@@ -3161,6 +3179,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  configurations: true,
   ticket_thread_comments: true,
   ticket_threads: true,
   enduser_custom_types: true,

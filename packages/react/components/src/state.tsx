@@ -76,6 +76,7 @@ import {
   TicketThread,
   TicketThreadComment,
   AutomatedAction,
+  Configuration,
 } from "@tellescope/types-client"
 
 import {
@@ -320,6 +321,7 @@ const enduserMedicationsSlice = createSliceForList<EnduserMedication, 'enduser_m
 const enduserCustomTypesSlice = createSliceForList<EnduserCustomType, 'enduser_custom_types'>('enduser_custom_types')
 const ticketThreadsSlice = createSliceForList<TicketThread, 'ticket_threads'>('ticket_threads')
 const ticketThreadCommentsSlice = createSliceForList<TicketThreadComment, 'ticket_thread_comments'>('ticket_thread_comments')
+const configurationsSlice = createSliceForList<Configuration, 'configurations'>('configurations')
 
 const roleBasedAccessPermissionsSlice = createSliceForList<RoleBasedAccessPermission, 'role_based_access_permissions'>('role_based_access_permissions')
 
@@ -338,6 +340,7 @@ export const sharedConfig = {
     chatRoomDisplayInfo: chatRoomDisplayInfoslice.reducer,
     calendar_events: calendarEventsSlice.reducer,
     calendar_event_templates: calendarEventTemplatesSlice.reducer,
+    configurations: configurationsSlice.reducer,
     engagement_events: engagementEventsSlice.reducer,
     emails: emailsSlice.reducer,
     sms_messages: smsMessagesSlice.reducer,
@@ -1067,6 +1070,24 @@ export const useEnduserProfileViews = (options={} as HookOptions<EnduserProfileV
       addSome: session.api.enduser_profile_views.createSome,
       deleteOne: session.api.enduser_profile_views.deleteOne,
       updateOne: session.api.enduser_profile_views.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
+export const useConfigurations = (options={} as HookOptions<Configuration>) => {
+  const session = useSession() 
+
+  return useListStateHook('configurations', useTypedSelector(s => s.configurations), session, configurationsSlice,
+    { 
+      loadQuery: session.api.configurations.getSome,
+      findOne: session.api.configurations.getOne,
+      findByIds: session.api.configurations.getByIds,
+      addOne: session.api.configurations.createOne,
+      addSome: session.api.configurations.createSome,
+      deleteOne: session.api.configurations.deleteOne,
+      updateOne: session.api.configurations.updateOne,
     },
     { 
       ...options,

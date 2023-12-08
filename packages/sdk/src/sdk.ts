@@ -190,6 +190,7 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   email_sync_denials: defaultQueries(s, 'email_sync_denials'), 
   ticket_threads: defaultQueries(s, 'ticket_threads'), 
   ticket_thread_comments: defaultQueries(s, 'ticket_thread_comments'), 
+  configurations: defaultQueries(s, 'configurations'), 
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
@@ -742,7 +743,7 @@ export class Session extends SessionManager {
     queries.automation_triggers.trigger_events = a => this._POST(`/v1/${schema.automation_triggers.customActions.trigger_events.path}`, a)
 
     queries.tickets.update_indexes = a => this._PATCH(`/v1/${schema.tickets.customActions.update_indexes.path}`, a)
-    queries.tickets.get_report = a => this._GET(`/v1/${schema.tickets.customActions.get_report.path}`, a)
+    queries.tickets.get_report = a => this._POST(`/v1/${schema.tickets.customActions.get_report.path}`, a)
     queries.tickets.close_ticket = a => this._POST(`/v1/${schema.tickets.customActions.close_ticket.path}`, a)
 
     queries.appointment_booking_pages.generate_access_token = a => this._POST(`/v1/${schema.appointment_booking_pages.customActions.generate_access_token.path}`, a)

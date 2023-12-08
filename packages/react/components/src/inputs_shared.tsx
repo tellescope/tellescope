@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useMemo, useState, useRef, memo } from "react"
 import { Indexable, ScoreFilter } from "@tellescope/types-utilities"
-import { objects_equivalent, read_local_storage, safeJSONParse, update_local_storage, user_display_name } from "@tellescope/utilities"
+import { objects_equivalent, read_local_storage, safeJSONParse, update_local_storage, user_display_name, wait } from "@tellescope/utilities"
 import { LoadFunction, LoadFunctionArguments } from "@tellescope/sdk"
 import { UNSEARCHABLE_FIELDS } from "@tellescope/constants"
 import { SearchAPIProps, useSearchAPI } from "./hooks"
@@ -239,7 +239,7 @@ export const performBulkAction = async <T extends { id: string }, R> ({
   processBatch, 
   onSuccess,
   fetchBatch,
-  batchSize=250, 
+  batchSize=100, 
 } : BulkActionProps<T> & {
   batchSize?: number,
   fetchBatch: LoadFunction<T>,

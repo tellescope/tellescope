@@ -257,6 +257,7 @@ import {
   ticketSnoozesValidator,
   listOfStringsWithQualifierValidator,
   listOfStringsWithQualifierValidatorOptional,
+  stringValidator100000OptionalEmptyOkay,
 } from "@tellescope/validation"
 
 import {
@@ -706,7 +707,7 @@ export type CustomActions = {
     generate_google_auth_url: CustomAction<{ }, { authUrl: string, }>, 
     disconnect_google_integration: CustomAction<{}, {}>,
     generate_oauth2_auth_url: CustomAction<{ integration: IntegrationsTitleType }, { authUrl: string, }>, 
-    add_api_key_integration: CustomAction<{ API_KEY: string, integration: string }, { }>, 
+    add_api_key_integration: CustomAction<{ API_KEY: string, integration: string, fields?: Record<string, string> }, { }>, 
     remove_api_key_integration: CustomAction<{ integration: string }, { }>, 
     disconnect_oauth2_integration: CustomAction<{ integration: IntegrationsTitleType }, {}>,
     refresh_oauth2_session: CustomAction<{ title: string }, { access_token: string, expiry_date: number }>, 
@@ -804,7 +805,7 @@ export type CustomActions = {
   tickets: {
     close_ticket: CustomAction<{ ticketId: string, closedForReason?: string }, { updated: Ticket, generated?: Ticket }>,
     update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
-    get_report: CustomAction<{ title?: string, userId?: string, range?: DateRange }, { report: TicketsReport }>,
+    get_report: CustomAction<{ title?: string, titles?: string[], userId?: string, range?: DateRange }, { report: TicketsReport }>,
   },
   appointment_booking_pages: {
     generate_access_token: CustomAction<{ expiresAt: Date, bookingPageId?: string }, { token: string }>,
@@ -1663,6 +1664,7 @@ export const schema: SchemaV1 = build_schema({
         parameters: {
           API_KEY: { validator: stringValidator, required: true },
           integration: { validator: stringValidator, required: true },
+          fields: { validator: objectAnyFieldsAnyValuesValidator as any },
         },
         returns: { }
       },
@@ -2955,13 +2957,14 @@ export const schema: SchemaV1 = build_schema({
         returns: {},
       },
       get_report: {
-        op: "custom", access: 'read', method: "get",
+        op: "custom", access: 'read', method: "all",
         name: 'Get Report',
         path: '/tickets/report',
         description: "Gets aggregate data for building a report on tickets",
         parameters: { 
           userId: { validator: mongoIdStringOptional },
           title: { validator: stringValidator25000 },
+          titles: { validator: listOfStringsValidatorEmptyOk },
           range: { validator: dateRangeOptionalValidator },
         },
         returns: {
@@ -3037,7 +3040,7 @@ export const schema: SchemaV1 = build_schema({
       journeyId: { validator: mongoIdStringValidator },
       purchaseId: { validator: mongoIdStringValidator },
       hiddenFromTickets: { validator: booleanValidator },
-      htmlDescription: { validator: stringValidatorOptional },
+      htmlDescription: { validator: stringValidator100000OptionalEmptyOkay }, // keep consistent with createTicket action
       formResponseIds: { validator: listOfStringsValidatorEmptyOk },
       actions: { validator: ticketActionsValidator },
       remindAt: { validator: dateOptionalOrEmptyStringValidator },
@@ -4996,7 +4999,8 @@ export const schema: SchemaV1 = build_schema({
         validator: objectValidator<Organization['zendeskSettings']>({
           priorityGroups: listOfStringsValidatorOptionalOrEmptyOk,
         })
-      }
+      },
+      zusIsConnected: { validator: booleanValidator },
     },
   },
   databases: {
@@ -6225,6 +6229,18 @@ export const schema: SchemaV1 = build_schema({
       ticketIds: { validator: listOfStringsValidatorEmptyOk },
       group: { validator: stringValidator250 },
     }
+  },
+  configurations: {
+    info: {},
+    constraints: { unique: [], relationship: [], access: [] },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      type: { validator: stringValidator250, examples: ['string'] },
+      value: { validator: stringValidator100000OptionalEmptyOkay, examples: ['string'] },
+    },
   },
 })
 

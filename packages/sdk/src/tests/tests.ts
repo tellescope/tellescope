@@ -5505,6 +5505,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   email_sync_denials: NO_TEST,
   ticket_threads: NO_TEST,
   ticket_thread_comments: NO_TEST,
+  configurations: NO_TEST,
 };
 
 const TRACK_OPEN_IMAGE = Buffer.from(

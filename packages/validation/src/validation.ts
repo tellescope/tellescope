@@ -246,6 +246,7 @@ import {
   CreateCarePlanAutomationAction,
   CompleteCarePlanAutomationAction,
   CustomDashboardViewBlock,
+  ZusSyncAutomationAction,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -287,6 +288,7 @@ import {
   ZENDESK_INTEGRATIONS_TITLE,
   ZOHO_TITLE,
   ZOOM_TITLE,
+  ZUS_TITLE,
  } from "@tellescope/constants"
 
 export interface ValidatorOptions {
@@ -850,6 +852,13 @@ export const stringValidator25000: ValidatorDefinition<string> = {
 export const stringValidator100000EmptyOkay: ValidatorDefinition<string> = {
   validate: (o={}) => build_validator(
     escapeString(o), { ...o, maxLength: 100000, listOf: false, emptyStringOk: true } 
+  ),
+  getExample: getExampleString,
+  getType: getTypeString,
+}
+export const stringValidator100000OptionalEmptyOkay: ValidatorDefinition<string> = {
+  validate: (o={}) => build_validator(
+    escapeString(o), { ...o, maxLength: 100000, isOptional: true, listOf: false, emptyStringOk: true } 
   ),
   getExample: getExampleString,
   getType: getTypeString,
@@ -2050,6 +2059,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   iterableSendEmail: '',
   iterableCustomEvent: '',
   zendeskCreateTicket: '',
+  zusSync: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -2311,7 +2321,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       defaultAssignee: mongoIdStringRequired,
       forCarePlan: booleanValidatorOptional,
       hiddenFromTickets: booleanValidatorOptional,
-      htmlDescription: stringValidatorOptional, // keep consistent with validator on Tickets model
+      htmlDescription: stringValidator100000OptionalEmptyOkay, // keep consistent with validator on Tickets model
       actions: ticketActionsValidator,
       dueDateOffsetInMS: numberValidatorOptional,
     }, { emptyOk: false }),
@@ -2384,8 +2394,11 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
   completeCarePlan: objectValidator<CompleteCarePlanAutomationAction>({
     type: exactMatchValidator(['completeCarePlan']),
     info: objectValidator<CompleteCarePlanAutomationAction['info']>({ }, { emptyOk: true }),
+  }), 
+  zusSync: objectValidator<ZusSyncAutomationAction>({
+    type: exactMatchValidator(['zusSync']),
+    info: objectValidator<ZusSyncAutomationAction['info']>({ }, { emptyOk: true }),
   }),
-  
 })
 
 export const journeyContextValidator = objectValidator<JourneyContext>({
@@ -3326,6 +3339,7 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   email_sync_denials: accessPermissionValidator,
   ticket_thread_comments: accessPermissionValidator,
   ticket_threads: accessPermissionValidator,
+  configurations: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
@@ -3396,6 +3410,7 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   email_sync_denials: numberValidatorOptional,
   ticket_threads: numberValidatorOptional,
   ticket_thread_comments: numberValidatorOptional,
+  configurations: numberValidatorOptional,
 }, { emptyOk: true })
 
 const _LOGIN_FLOW_RESULTS = {
@@ -3462,6 +3477,7 @@ export type IntegrationsTitleType = (
 | typeof ZOOM_TITLE
 | typeof ZENDESK_INTEGRATIONS_TITLE
 | typeof FULLSCRIPT_INTEGRATIONS_TITLE
+| typeof ZUS_TITLE
 )
 export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleType>([
   SQUARE_INTEGRATIONS_TITLE,
@@ -3470,6 +3486,7 @@ export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleTy
   ZOOM_TITLE,
   ZENDESK_INTEGRATIONS_TITLE,
   FULLSCRIPT_INTEGRATIONS_TITLE,
+  ZUS_TITLE,
 ])
 
 const _VIDEO_INTEGRATION_TYPES: { [K in VideoIntegrationType]: any} = {
