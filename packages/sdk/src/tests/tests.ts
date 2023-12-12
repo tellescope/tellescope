@@ -2770,12 +2770,15 @@ const directAutomatedActionTest = async () => {
     journeyId: PLACEHOLDER_ID,
   })
 
-  await wait(undefined, 3000)  
-
   await async_test(
     `Enduser status set by manual automated action`,
-    () => sdk.api.endusers.getOne(enduser.id),
-    { onResult: e => e.journeys?.[PLACEHOLDER_ID] === 'Working' }
+    () => pollForResults(
+      () => sdk.api.endusers.getOne(enduser.id),
+      e => e.journeys?.[PLACEHOLDER_ID] === 'Working',
+      1000,
+      10
+    ),
+    passOnAnyResult
   )  
 
   await async_test(
@@ -5439,6 +5442,66 @@ const field_equals_trigger_tests = async () => {
   ])
 }
 
+export const no_chained_triggers_tests = async () => {
+  log_header("No Chained Triggers Tests")
+  const t1 = await sdk.api.automation_triggers.createOne({
+    title: 't1', status: 'Active',
+    event: {
+      type: 'Field Equals',
+      info: {
+        field: 'fname',
+        value: 'Trigger'
+      },
+    },
+    action: {
+      type: 'Add Tags',
+      info: { tags: ['t1'] }
+    }
+  })
+
+  const t2 = await sdk.api.automation_triggers.createOne({
+    title: 't2', status: 'Active',
+    event: {
+      type: 'Field Equals',
+      info: {
+        field: 'fname',
+        value: '$exists'
+      },
+    },
+    action: {
+      type: 'Add Tags',
+      info: { tags: ['t2'] }
+    },
+    enduserCondition: { $and: [ { condition: { tags: 't1' } } ] },
+  })
+
+  // should only trigger t1, t1 would trigger t2 if allowed, but should not
+  const enduser = await sdk.api.endusers.createOne({ fname: 'Trigger' })
+
+  await wait(undefined, 250)
+  await async_test(
+    `Trigger not activated by other trigger update`, 
+    () => sdk.api.endusers.getOne(enduser.id),
+    { onResult: e => !!(!e.tags?.includes('t2') && e.tags?.includes('t1')) },
+  )
+
+  // should cover both triggers now, which results in adding only the second tag
+  await sdk.api.endusers.updateOne(enduser.id, { fname: "Updated" })
+
+  await wait(undefined, 250)
+  await async_test(
+    `Trigger activated directly`, 
+    () => sdk.api.endusers.getOne(enduser.id),
+    { onResult: e => !!(e.tags?.includes('t1') && e.tags.includes('t2')) },
+  )
+
+  await Promise.all([
+    sdk.api.automation_triggers.deleteOne(t1.id),
+    sdk.api.automation_triggers.deleteOne(t2.id),
+    sdk.api.endusers.deleteOne(enduser.id)
+  ])
+}
+
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
   phone_trees: NO_TEST,
@@ -5579,6 +5642,7 @@ const validate_schema = () => {
     await mfa_tests()
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await no_chained_triggers_tests()
     await field_equals_trigger_tests()
     await test_ticket_automation_assignment_and_optimization()
     await role_based_access_tests()

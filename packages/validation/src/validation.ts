@@ -369,7 +369,13 @@ export const build_validator: BuildValidator_T = (escapeFunction, options={} as 
       try {
         if (typeof fieldValue !== 'string') throw ''
 
-        fieldValue = JSON.parse(fieldValue) // seems necessary for parsing query string
+        // be helpful and decodeURI if needed (%22 is invalid in JSON unless at least one '"" is present, so this should be safe)
+        if (fieldValue && fieldValue.includes('%22') && !fieldValue.includes('"')) {
+          fieldValue = JSON.parse(decodeURIComponent(fieldValue)) 
+        } else {
+          fieldValue = JSON.parse(fieldValue) // seems necessary for parsing query string
+        }
+
       } catch(err) {
         throw `Expecting an object but got ${fieldValue}`
       }
@@ -4022,3 +4028,20 @@ export const phoneCallsReportQueriesValidator = objectAnyFieldsValidator(objectV
   range: dateRangeOptionalValidator,
   createdAtBuckets: listValidatorOptionalOrEmptyOk(dateValidator),
 }))
+
+// duped in react components, forms, hooks
+export const isDateString = (_s='') => {
+  const s = _s.trim()
+
+  if (!/^\d{2}-\d{2}-\d{4}$/.test(s)) {
+    return false
+  }
+
+  // this seems to have inconsistent behavior in some mobile browsers, leave out for now
+  // // ensure mm-dd-yyyy is actually valid
+  // const [mm,dd,yyyy] = s.split('-').map(v => parseInt(v)) // don't shorthand, for radix argument of parseInt gets messed up
+  // const d = Date.parse(`${yyyy}-${mm}-${dd}`) // this format should be explicitly supported by all implementations
+  // if (isNaN(d)) return false
+  
+  return true
+}
