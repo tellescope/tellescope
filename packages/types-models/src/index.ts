@@ -173,6 +173,8 @@ export type OrganizationSettings = {
       day?: number,
       hour?: number,
     },
+    templateRequired?: boolean,
+    locationRequired?: boolean,
   }
 }
 
@@ -230,7 +232,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedIterable?: boolean,
   hasConnectedZendesk?: boolean,
   hasConnectedZus?: boolean,
-  zendeskSettings?: { priorityGroups?: string[] }
+  zendeskSettings?: { priorityGroups?: string[], resolutionFieldId?: string, resolutionFieldOptions?: string[] }
   replyToAllEmails?: string,
   forwardAllIncomingEmailsTo?: string,
   numCustomTypes?: number,
@@ -2839,6 +2841,7 @@ export interface TicketThread_readonly extends ClientRecord {
   references?: RelatedRecord[]
   timestamp?: Date,
   group?: string,
+  status?: string,
 }
 export interface TicketThread_required {}
 export interface TicketThread_updatesDisabled {

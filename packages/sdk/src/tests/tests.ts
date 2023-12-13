@@ -690,6 +690,7 @@ const run_generated_tests = async <N extends ModelName>({ queries, model, name, 
     () => queries.createOne(instance), 
     { onResult: r => !!(_id = r.id) && (name === 'api_keys' || !!r.creator) && validateReturnType(returns.create, r, defaultValidation) }
   )
+  await wait(undefined, 25)
   await async_test(
     `log-${singularName} create`, 
     () => sdk.api.user_logs.getOne({ resourceId: _id, resource: name, action: 'create' }), 
@@ -702,6 +703,7 @@ const run_generated_tests = async <N extends ModelName>({ queries, model, name, 
       () => queries.updateOne(_id, updates, { replaceObjectFields: true }), 
       { onResult: u => typeof u === 'object' && u.id === _id }
     )
+    await wait(undefined, 25)
     await async_test(
       `log-${singularName} update`, 
       () => sdk.api.user_logs.getOne({ resourceId: _id, resource: name, action: 'update' }), 
@@ -743,6 +745,7 @@ const run_generated_tests = async <N extends ModelName>({ queries, model, name, 
     () => queries.deleteOne(_id), 
     passOnVoid
   )
+  await wait(undefined, 25)
   await async_test(
     `get-${singularName} (verify delete)`, 
     () => queries.getOne(_id), 
@@ -1501,6 +1504,7 @@ const files_tests = async () => {
   const enduser = await sdk.api.endusers.createOne({ email })
   await sdk.api.endusers.set_password({ id: enduser.id, password }).catch(console.error)
   await enduserSDK.authenticate(email, password).catch(console.error)
+  await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword) // to use new role, handle logout on role change
 
   const buff = buffer.Buffer.from('test file data')
 
@@ -1933,12 +1937,16 @@ const ticketEventTests = async () => {
 
   await sdk.api.endusers.updateOne(enduser.id, { journeys: { [journey.id]: 'Added' }})
   await sdk.api.endusers.updateOne(enduserWithTeam.id, { journeys: { [nullJourney.id]: 'Added (Null)' }})
-  await wait(undefined, 2250) // wait for tickets to be automatically created
 
   await async_test(
     `Tickets automatically created`,
-    () => sdk.api.tickets.getSome(),
-    { onResult: tickets => tickets?.length === 2 }
+    () => pollForResults(
+      sdk.api.tickets.getSome,
+      tickets => tickets?.length === 2,
+      500,
+      15,
+    ),
+    passOnAnyResult
   )  
 
   await async_test(
@@ -2050,11 +2058,15 @@ const removeFromJourneyTests = async () => {
     { onResult: e => e.journeys?.[journey.id] !== 'Delayed Step' }
   )  
 
-  await wait(undefined, 4 * TEST_DELAY) // wait long enough for automation to process and delay to pass
   await async_test(
     `Sequenced action triggered`,
-    () => sdk.api.endusers.getOne(enduser.id),
-    { onResult: e => e.journeys?.[journey.id] === 'Delayed Step' }
+    () => pollForResults(
+      () => sdk.api.endusers.getOne(enduser.id),
+      e => e.journeys?.[journey.id] === 'Delayed Step',
+      TEST_DELAY,
+      15,
+    ),
+    passOnAnyResult
   )  
 
   await Promise.all([ 
@@ -2238,11 +2250,15 @@ export const formUnsubmittedCancelConditionTest = async () => {
   })
 
   // allow fast followup to trigger
-  await wait(undefined, 4000) // allow background creation with generous pause
   await async_test(
     `formUnsubmitted event with short delay is triggered`,
-    () => sdk.api.endusers.getOne(enduser.id),
-    { onResult: e => e?.journeys?.[journey.id] === 'triggered again' }
+    () => pollForResults(
+      () => sdk.api.endusers.getOne(enduser.id),
+      e => e?.journeys?.[journey.id] === 'triggered again',
+      1000,
+      10,
+    ),
+    passOnAnyResult
   )  
 
   // trigger cancel conditions
@@ -2431,8 +2447,13 @@ export const formsUnsubmittedCancelConditionTest = async () => {
   )  
   await async_test(
     `formResponses triggered after both forms submitted`,
-    () => sdk.api.endusers.getOne(enduser.id),
-    { onResult: e => e?.journeys?.[journey.id] === 'formsSubmitted' }
+    () => pollForResults(
+      () => sdk.api.endusers.getOne(enduser.id),
+      e => e?.journeys?.[journey.id] === 'formsSubmitted',
+      500,
+      10,
+    ),
+    passOnAnyResult
   )  
 
   await Promise.all([
@@ -2509,13 +2530,15 @@ export const formsUnsubmittedTest = async () => {
 
   const form_responses = await sdk.api.form_responses.getSome()
 
-  // allow fast followup to trigger
-  await wait(undefined, 5000) // allow background creation with generous pause
-
   await async_test(
     `formsUnsubmitted handler worked`,
-    () => sdk.api.endusers.getOne(enduser.id),
-    { onResult: e => e?.journeys?.[journey.id] === 'triggered' }
+    () => pollForResults(
+      () => sdk.api.endusers.getOne(enduser.id),
+      e => e?.journeys?.[journey.id] === 'triggered',
+      1000,
+      10
+    ),
+    passOnAnyResult,
   )  
 
   // trigger cancel conditions
@@ -2723,26 +2746,36 @@ const addToJourneyTests = async () => {
     { onResult: e => e.journeys?.[journey.id] === '' || e.journeys?.[journey.id] === 'Root' } 
   )  
 
-  await wait(undefined, 4000) // allow onJourneyStart step to trigger
+  // ensure that second step is generated before first is cancelled
+  await pollForResults(
+    sdk.api.automated_actions.getSome,
+    es => es.length === 2,
+    100,
+    50,
+  ),
+
   await sdk.api.endusers.add_to_journey({ enduserIds: [enduser.id], journeyId: journey.id })
+
+  await async_test(
+    `Enduser correctly added and re-added`,
+    () => pollForResults(
+      sdk.api.automated_actions.getSome,
+      es => (es.length === 4
+        && es.filter(e => e.status === 'cancelled' && e.automationStepId === follow.id).length === 1 // one afterAction is cancelled
+        && es.filter(e => e.status === 'active' && e.automationStepId === follow.id).length === 1 // one afterAction is still active
+        && es.filter(e => e.status === 'finished' && e.automationStepId === root.id).length === 2 // two initial onJourneyStart
+      ),
+      250,
+      40
+    ),
+    passOnAnyResult
+  ) 
 
   await async_test(
     `Enduser throttle journey add working`,
     () => sdk.api.endusers.add_to_journey({ enduserIds: [enduser.id], journeyId: journey.id, throttle: true }),
     handleAnyError
   )
-
-  await wait(undefined, 4000) // allow onJourneyStart step to trigger
-
-  await async_test(
-    `Enduser correctly added and re-added`,
-    () => sdk.api.automated_actions.getSome(),
-    { onResult: es => es.length === 4
-      && es.filter(e => e.status === 'cancelled' && e.automationStepId === follow.id).length === 1 // one afterAction is cancelled
-      && es.filter(e => e.status === 'active' && e.automationStepId === follow.id).length === 1 // one afterAction is still active
-      && es.filter(e => e.status === 'finished' && e.automationStepId === root.id).length === 2 // two initial onJourneyStart
-    }
-  )  
 
   await Promise.all([ 
     sdk.api.journeys.deleteOne(journey.id),
@@ -4280,15 +4313,19 @@ const run_autoreply_test = async (title: string, { expectingAutoreply } : { expe
   ) 
  
   await enduserSDK.api.chats.createOne({ roomId: room.id, message: 'enduser' })
-  await wait (undefined, 50)
   await async_test(
     'Main test',
-    () => sdk.api.chats.getSome({ filter: { roomId: room.id }}),
-    { onResult: cs => (
-      expectingAutoreply
-        ? cs.length === 3
-        : cs.length === 2
-    ) }
+    () => pollForResults(
+      () => sdk.api.chats.getSome({ filter: { roomId: room.id }}),
+      cs => (
+        expectingAutoreply
+          ? cs.length === 3
+          : cs.length === 2
+      ),
+      25,
+      10
+    ),
+    passOnAnyResult
   ) 
 
   await enduserSDK.api.chats.createOne({ roomId: room.id, message: 'enduser again' })
@@ -4605,11 +4642,15 @@ const wait_for_trigger_tests = async () => {
   ])
 
   // test trigger cleaned up on journey delete
-  await wait(undefined, 150)
   await async_test(
-    "Trigger did not fire while not journey",
-    () => sdk.api.automation_triggers.getOne(trigger.id),
-    handleAnyError
+    "Trigger cleaned up by journey deletion",
+    () => pollForResults(
+      sdk.api.automation_triggers.getSome,
+      results => !results.find(r => r.id === trigger.id),
+      100,
+      10,
+    ),
+    passOnAnyResult
   )
 
   // double-check that wait for trigger step triggers were deleted
@@ -4757,38 +4798,41 @@ const remove_from_journey_on_incoming_comms_tests = async () => {
 
   const room = await sdk.api.chat_rooms.createOne({ })
   await sdk.api.chats.createOne({ roomId: room.id, senderId: e1.id, message: 'cancel' })
-  await wait(undefined, 100)
 
-  console.log(jRemove.id, removeStep2.id, e1.id)
   await async_test(
     "Appropriate Automated Actions are cancelled on incoming message",
-    () => sdk.api.automated_actions.getSome(),
-    { onResult: actions => (
-        !!actions.find(a => 
+    () => pollForResults(
+      sdk.api.automated_actions.getSome,
+      actions => (
+          !!actions.find(a => 
+              a.journeyId === jRemove.id
+            && a.automationStepId === removeStep1.id
+            && a.enduserId === e1.id
+            && a.status === 'cancelled'
+          )
+        && !!actions.find(a => 
             a.journeyId === jRemove.id
           && a.automationStepId === removeStep1.id
-          && a.enduserId === e1.id
-          && a.status === 'cancelled'
+          && a.enduserId === e2.id
+          && a.status === 'active'
         )
-      && !!actions.find(a => 
-          a.journeyId === jRemove.id
-        && a.automationStepId === removeStep1.id
-        && a.enduserId === e2.id
-        && a.status === 'active'
-      )
-      && !!actions.find(a => 
-          a.journeyId === jDontRemove.id
-        && a.automationStepId === dontRemoveStep1.id
-        && a.enduserId === e1.id
-        && a.status === 'active'
-      )
-      && !!actions.find(a => 
-          a.journeyId === jDontRemove.id
-        && a.automationStepId === dontRemoveStep1.id
-        && a.enduserId === e2.id
-        && a.status === 'active'
-      )
-    )}
+        && !!actions.find(a => 
+            a.journeyId === jDontRemove.id
+          && a.automationStepId === dontRemoveStep1.id
+          && a.enduserId === e1.id
+          && a.status === 'active'
+        )
+        && !!actions.find(a => 
+            a.journeyId === jDontRemove.id
+          && a.automationStepId === dontRemoveStep1.id
+          && a.enduserId === e2.id
+          && a.status === 'active'
+        )
+      ),
+      25,
+      20,
+    ),
+    passOnAnyResult,
   ) 
 
   await sdk.api.journeys.handle_incoming_communication({ enduserId: e2.id })
@@ -4816,6 +4860,8 @@ const remove_from_journey_on_incoming_comms_tests = async () => {
 }
 
 const pdf_generation = async () => {
+  log_header("pdf_generation Tests")
+
   const e = await sdk.api.endusers.createOne({ fname: 'test' })
 
   // include lots of answers to ensure PDF height doesn't produce any cut-off
@@ -4850,7 +4896,6 @@ const pdf_generation = async () => {
   
   await Promise.all([
     sdk.api.endusers.deleteOne(e.id),
-    sdk.api.form_responses.deleteOne(fr.id),
   ])
 }
 
@@ -5033,12 +5078,15 @@ const nextReminderInMS_tests = async () => {
 }
 
 const pollForResults = async <T>(f: () => Promise<T>, evaluate: (r: T) => boolean, intervalInMS=500, iterations=20) => {
+  let lastResult = undefined as any
   for (let i = 0; i < iterations; i++) {
     await wait(undefined, intervalInMS)
     const result = await f()
+    lastResult = result
     if (evaluate(result)) return result
   }
 
+  console.log(lastResult)
   throw new Error("failed pollForResults")
 }
 

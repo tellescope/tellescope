@@ -774,6 +774,7 @@ export type CustomActions = {
     generate_zoom_meeting: CustomAction<{ calendarEventId: string, userId: string }, { updatedEvent: CalendarEvent }>, 
     change_zoom_host: CustomAction<{ calendarEventId: string, userId: string }, { updatedEvent: CalendarEvent }>, 
     download_ics_file: CustomAction<{ calendarEventId: string, attendeeId?: string, attendeeType?: SessionType }, { }>,
+    get_report: CustomAction<{ range?: DateRange, }, { report: Report }>,
   },
   organizations: {
     create_and_join: CustomAction<{ name: string, subdomain: string }, { authToken: string, user: User, organization: Organization }>, 
@@ -3921,6 +3922,18 @@ export const schema: SchemaV1 = build_schema({
         },
         returns: { },
       },
+      get_report: {
+        op: "custom", access: 'read', method: "all",
+        name: 'Report',
+        path: '/calendar-events/report',
+        description: "Builds a report",
+        parameters: {
+          range: { validator: dateRangeOptionalValidator },
+        },
+        returns: {
+          report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
+        },
+      },
     },
     publicActions: {
       session_for_public_appointment_booking: {
@@ -4998,6 +5011,8 @@ export const schema: SchemaV1 = build_schema({
       zendeskSettings: {
         validator: objectValidator<Organization['zendeskSettings']>({
           priorityGroups: listOfStringsValidatorOptionalOrEmptyOk,
+          resolutionFieldId: stringValidatorOptionalEmptyOkay,
+          resolutionFieldOptions: listOfStringsValidatorOptionalOrEmptyOk,
         })
       },
       zusIsConnected: { validator: booleanValidator },

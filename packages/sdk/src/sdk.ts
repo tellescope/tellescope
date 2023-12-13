@@ -522,6 +522,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     generate_meeting_link: (args: extractFields<CustomActions['calendar_events']['generate_meeting_link']['parameters']>) => (
       Promise<extractFields<CustomActions['calendar_events']['generate_meeting_link']['returns']>>
     ),
+    get_report: (args: extractFields<CustomActions['calendar_events']['get_report']['parameters']>) => (
+      Promise<extractFields<CustomActions['calendar_events']['get_report']['returns']>>
+    ),
     // get_appointment_availability: (args: extractFields<CustomActions['calendar_events']['get_appointment_availability']['parameters']>) => (
     //   Promise<extractFields<CustomActions['calendar_events']['get_appointment_availability']['returns']>>
     // ),
@@ -721,6 +724,7 @@ export class Session extends SessionManager {
     queries.calendar_events.generate_meeting_link = a => this._POST(`/v1/${schema.calendar_events.customActions.generate_meeting_link.path}`, a)
     queries.calendar_events.generate_zoom_meeting = a => this._POST(`/v1/${schema.calendar_events.customActions.generate_zoom_meeting.path}`, a)
     queries.calendar_events.change_zoom_host = a => this._POST(`/v1/${schema.calendar_events.customActions.change_zoom_host.path}`, a)
+    queries.calendar_events.get_report = a => this._POST(`/v1${schema.calendar_events.customActions.get_report.path}`, a)
 
     queries.phone_calls.authenticate_calling = a => this._POST(`/v1${schema.phone_calls.customActions.authenticate_calling.path}`, a)
     queries.phone_calls.get_report = a => this._GET(`/v1/${schema.phone_calls.customActions.get_report.path}`, a)

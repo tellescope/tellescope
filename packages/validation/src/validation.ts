@@ -3073,6 +3073,8 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
       day: numberValidatorOptional, 
       hour: numberValidatorOptional, 
     }, { isOptional: true }),
+    templateRequired: booleanValidatorOptional,
+    locationRequired: booleanValidatorOptional,
   }, { isOptional: true }),
   dashboard: objectValidator<OrganizationSettings['dashboard']>({
     view: objectValidator<Required<OrganizationSettings>['dashboard']['view']>({
