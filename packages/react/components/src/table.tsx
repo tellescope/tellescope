@@ -1,4 +1,4 @@
-import React, { useCallback, useState, CSSProperties, JSXElementConstructor, useEffect, useMemo, memo } from "react"
+import React, { useCallback, useState, CSSProperties, JSXElementConstructor, useEffect, useMemo } from "react"
 
 import {
   Button,
@@ -37,6 +37,7 @@ import Draggable from 'react-draggable'; // The default
 import { PRIMARY_HEX } from "@tellescope/constants"
 
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
+import { Autocomplete } from "@mui/material"
 // import DragHandleIcon from '@mui/icons-material/DragHandle';
 
 const LIGHT_GRAY = "#fafafa"
@@ -140,6 +141,7 @@ export interface TableHeaderProps<T extends Item> extends Styled, HorizontalPadd
   onExport?: () => void,
   localFilters: LocalFilter[],
   setLocalFilters: React.Dispatch<React.SetStateAction<LocalFilter[]>>,
+  filterSuggestions: Record<string, string[]>,
 }
 export const TableHeader = <T extends Item>({ 
   fields, 
@@ -158,6 +160,7 @@ export const TableHeader = <T extends Item>({
   onExport,
   localFilters,
   setLocalFilters,
+  filterSuggestions,
 } : TableHeaderProps<T>) => { 
   const [openFilter, setOpenFilter] = useState(-1)
   const [startX, setStartX] = useState(0)
@@ -168,9 +171,27 @@ export const TableHeader = <T extends Item>({
     <Modal open={openFilter !== -1} setOpen={o => !o && setOpenFilter(-1)} >
     {fields[openFilter]?.filterComponent ||
       <Flex flex={1} justifyContent="center">
-        <TextField label="Filter" size="small" style={{ width: 400 }}
-          value={localFilters[openFilter]?.query ?? ''} 
-          onChange={query => setLocalFilters(fs => fs.map((f, i) => i === openFilter ? { query } : f))} 
+        <Autocomplete size={'small'}
+          disablePortal 
+          options={filterSuggestions?.[fields[openFilter]?.key?.toString()] || []}
+          freeSolo autoSelect // allow any input and select it on change
+          onChange={(e, _query) => {
+            const query = _query || ''
+
+            // if (reason === 'selectOption' && onSelect) {
+            //   return onSelect(v)
+            // }
+
+            setLocalFilters(fs => fs.map((f, i) => i === openFilter ? { query } : f))
+          }}
+          value={localFilters[openFilter]?.query ?? ''}
+          renderInput={(params) => 
+            <TextField {...params} autoFocus label={"Filter"} size={'small'} 
+              style={{ width: 400 }}
+              value={localFilters[openFilter]?.query ?? ''}
+              // onKeyUp={e => e.which === 13 && onEnterPress?.()}
+            />
+          }
         />
       </Flex>  
     }
@@ -716,10 +737,34 @@ export const Table = <T extends Item>({
   const sortingStorageKey = memoryId ?? '' + 'sorting'
   const cachedSortString = read_local_storage(sortingStorageKey)
 
-  const keyString = fields.map(f => f.key).join('')
-  const [localFilters, setLocalFilters] = useState<LocalFilter[]>(fields.map(() => ({ query: '' })))
+  const localFilterStorageKey = memoryId ?? '' + 'localfilter'
+  const cachedLocalFilterString = read_local_storage(localFilterStorageKey)
 
-  useEffect(() => setLocalFilters(fields.map(() => ({ query: '' }))), [keyString])
+  let loadedFilter: LocalFilter[] = [];
+  try {
+    loadedFilter = JSON.parse(cachedLocalFilterString)
+  } catch(err) {}
+
+  const keyString = fields.map(f => f.key).join('')
+  const [localFilters, setLocalFilters] = useState<LocalFilter[]>(
+    fields.map((_, i) => ({ 
+      query: loadedFilter[i]?.query || ''
+    }))
+  )
+
+  // keep cached in local storage
+  useEffect(() => update_local_storage(localFilterStorageKey, JSON.stringify(localFilters)), [localFilterStorageKey, localFilters])
+
+  // reset when changing view
+  useEffect(() => {
+    const updated = (
+      fields.map((_, i) => ({ 
+        query: loadedFilter[i]?.query || ''
+      }))
+    ) 
+    setLocalFilters(updated)
+  }, [keyString])
+
 
   const [widthOffsets, setWidthOffsets] = useState<Record<string, number>>({})
   if (memoryId) {
@@ -818,6 +863,22 @@ export const Table = <T extends Item>({
       : ScrollingList
   ), [draggable])
 
+  // don't use filtered values, otherwise reduces suggestions to only those remaining
+  const filterSuggestions: Record<string, string[]> = useMemo(() => {
+    const suggestions: Record<string, string[]> = {}
+
+    for (const { key, getFilterValue } of fields) {
+      if (!getFilterValue) {
+        suggestions[key.toString()] = []
+        continue
+      }
+
+      suggestions[key.toString()] = Array.from(new Set(sorted.map(getFilterValue)))
+    }
+
+    return suggestions
+  }, [sorted, keyString])
+
   const table = (
     <Flex column>
       {title && TitleComponent && !renderTitleComponent && (
@@ -870,6 +931,7 @@ export const Table = <T extends Item>({
             sorting={sorting} setSorting={setSorting} 
             localFilters={localFilters} setLocalFilters={setLocalFilters}
             memoryId={memoryId}
+            filterSuggestions={filterSuggestions}
             style={{
               flexWrap: noWrap ? 'nowrap' : undefined,
               paddingLeft: draggable ? '42px' : horizontalPadding,

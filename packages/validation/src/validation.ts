@@ -2330,6 +2330,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       htmlDescription: stringValidator100000OptionalEmptyOkay, // keep consistent with validator on Tickets model
       actions: ticketActionsValidator,
       dueDateOffsetInMS: numberValidatorOptional,
+      closeOnFinishedActions: booleanValidatorOptional,
     }, { emptyOk: false }),
   }),
   sendWebhook: objectValidator<SendWebhookAutomationAction>({
@@ -3850,6 +3851,12 @@ export const enduserProfileViewBlockValidator = orValidator<{ [K in EnduserProfi
     info: objectValidator<EnduserProfileViewBlocks['Field Group']['info']>({
       title: stringValidator100,
       fields: listOfStringsValidator, 
+      displayFields: listValidatorOptionalOrEmptyOk(
+        objectValidator<{ field: string, display: string }>({
+          field: stringValidator,
+          display: stringValidator,
+        })
+      )
     }),
   }), 
 })

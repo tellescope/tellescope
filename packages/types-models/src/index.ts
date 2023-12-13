@@ -980,6 +980,7 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
   formResponseIds?: string[],
   purchaseId?: string,
   actions?: TicketAction[]
+  closeOnFinishedActions?: boolean,
   remindAt?: Date | '',
   reminderSilencedAt?: Date | '',
   reminderLockId?: string,
@@ -1451,6 +1452,8 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   parentResponseId?: string,
   tags?: string[],
   lockedAt?: Date | '',
+  carePlanId?: string,
+  context?: string,
 }
 
 export interface WebHook_readonly extends ClientRecord {}
@@ -1886,6 +1889,7 @@ export type CreateTicketActionInfo = {
   description?: string,
   htmlDescription?: string,
   actions?: TicketAction[],
+  closeOnFinishedActions?: boolean,
   dueDateOffsetInMS?: number,
 }
 
@@ -2222,6 +2226,8 @@ export interface CommentLike extends CommentLike_readonly, CommentLike_required,
 export type AutomatedActionStatus = 'active' | 'finished' | 'cancelled' | 'error'
 export interface AutomatedAction_readonly extends ClientRecord {
   journeyContext?: JourneyContext
+  source?: string,
+  triggerId?: string,
 }
 export interface AutomatedAction_required {
   enduserId: string,
@@ -2600,7 +2606,11 @@ export interface EnduserView extends EnduserView_readonly, EnduserView_required,
 
 export type EnduserProfileViewBlockBuilder <T, I> = { type: T, info: I, width?: string }
 export type EnduserProfileViewBlocks = {
-  "Field Group": EnduserProfileViewBlockBuilder<"Field Group", { title: string, fields: string[] }>,
+  "Field Group": EnduserProfileViewBlockBuilder<"Field Group", { 
+    title: string, 
+    fields: string[],
+    displayFields?: { field: string, display: string }[],
+  }>,
 }
 export type EnduserProfileViewBlockType = keyof EnduserProfileViewBlocks
 export type EnduserProfileViewBlock = EnduserProfileViewBlocks[EnduserProfileViewBlockType]

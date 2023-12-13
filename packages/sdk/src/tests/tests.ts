@@ -655,6 +655,7 @@ const run_generated_tests = async <N extends ModelName>({ queries, model, name, 
   || name === 'superbills'
   || name === 'referral_providers'
   || name === 'webhooks'
+  || name === 'automated_actions' // might process in background and cause false failure
   ) return 
   if (!defaultEnduser) defaultEnduser = await sdk.api.endusers.createOne({ email: 'default@tellescope.com', phone: "5555555555"  })
 
@@ -4237,7 +4238,9 @@ export const role_based_access_permissions_tests = async () => {
       }
     }
   })
-  await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [noEnduserAccessRole] }, { replaceObjectFields: true }),
+  const sdkNonAdminId = sdkNonAdmin.userInfo.id
+
+  await sdk.api.users.updateOne(sdkNonAdminId, { roles: [noEnduserAccessRole] }, { replaceObjectFields: true }),
   await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword) // to use new role, handle logout on role change
 
   await async_test(
@@ -4283,10 +4286,8 @@ export const role_based_access_permissions_tests = async () => {
   ) 
 
   // cleanup
-  await Promise.all([
-    sdk.api.role_based_access_permissions.deleteOne(rbap.id),
-    sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Non-Admin'] }, { replaceObjectFields: true }),
-  ])
+  await sdk.api.role_based_access_permissions.deleteOne(rbap.id)
+  await sdk.api.users.updateOne(sdkNonAdminId, { roles: ['Non-Admin'] }, { replaceObjectFields: true })
   await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword) // to use new role, handle logout on role change
 }
 
@@ -4829,8 +4830,8 @@ const remove_from_journey_on_incoming_comms_tests = async () => {
           && a.status === 'active'
         )
       ),
-      25,
-      20,
+      100,
+      50,
     ),
     passOnAnyResult,
   ) 

@@ -541,6 +541,8 @@ export type CustomActions = {
         isInternalNote?: boolean, title?: string,
         rootResponseId?: string,
         parentResponseId?: string,
+        carePlanId?: string,
+        context?: string,
       }, 
       { accessCode: string, url: string, response: FormResponse,  }>
     ,
@@ -612,7 +614,7 @@ export type CustomActions = {
     generate_auth_token: CustomAction<{ id?: string, phone?: string, email?: string, externalId?: string, durationInSeconds?: number }, { authToken: string, enduser: Enduser }>,
     logout: CustomAction<{ }, { }>,
     current_session_info: CustomAction<{ }, { enduser: Enduser }>,
-    add_to_journey: CustomAction<{ enduserIds: string[], journeyId: string, automationStepId?: string, journeyContext?: JourneyContext, throttle?: boolean }, { }>, 
+    add_to_journey: CustomAction<{ enduserIds: string[], journeyId: string, automationStepId?: string, journeyContext?: JourneyContext, throttle?: boolean, source?: string }, { }>, 
     remove_from_journey: CustomAction<{ enduserIds: string[], journeyId: string }, { }>, 
     merge: CustomAction<{ sourceEnduserId: string, destinationEnduserId: string, }, { }>, 
     push: CustomAction<{ enduserId: string }, { fullscriptRedirectURL?: string }>,
@@ -1129,6 +1131,7 @@ export const schema: SchemaV1 = build_schema({
           automationStepId: { validator: mongoIdStringValidator },
           journeyContext: { validator: journeyContextValidator },
           throttle: { validator: booleanValidatorOptional },
+          source: { validator: stringValidatorOptional },
         },
         returns: { } 
       },
@@ -3044,6 +3047,7 @@ export const schema: SchemaV1 = build_schema({
       htmlDescription: { validator: stringValidator100000OptionalEmptyOkay }, // keep consistent with createTicket action
       formResponseIds: { validator: listOfStringsValidatorEmptyOk },
       actions: { validator: ticketActionsValidator },
+      closeOnFinishedActions: { validator: booleanValidator },
       remindAt: { validator: dateOptionalOrEmptyStringValidator },
       reminderSilencedAt: { validator: dateOptionalOrEmptyStringValidator },
       relatedRecords: { validator: listValidatorOptionalOrEmptyOk(relatedRecordValidator) },
@@ -3446,6 +3450,8 @@ export const schema: SchemaV1 = build_schema({
       rootResponseId: { validator: mongoIdStringValidator },
       parentResponseId: { validator: mongoIdStringValidator },
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      carePlanId: { validator: mongoIdStringValidator },
+      context: { validator: stringValidator1000 },
     },
     defaultActions: DEFAULT_OPERATIONS,
     enduserActions: { 
@@ -3469,6 +3475,8 @@ export const schema: SchemaV1 = build_schema({
           title: { validator: stringValidator },
           parentResponseId: { validator: mongoIdStringValidator },
           rootResponseId: { validator: mongoIdStringValidator },
+          carePlanId: { validator: mongoIdStringValidator },
+          context: { validator: stringValidator1000 },
         },
         returns: {
           accessCode: { validator: stringValidator250, required: true },

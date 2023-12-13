@@ -251,6 +251,8 @@ interface UseTellescopeFormOptions {
   submitRedirectURL?: string,
   rootResponseId?: string,
   parentResponseId?: string,
+  carePlanId?: string,
+  context?: string,
 }
 
 const OrganizationThemeContext = createContext(null as any as { 
@@ -394,7 +396,7 @@ const shouldCallout = (field: FormField | undefined, value: FormResponseValueAns
 
 export type Response = FormResponseValue & { touched: boolean, includeInSubmit: boolean, field: FormField }
 export type FileResponse = { fieldId: string, fieldTitle: string, blobs?: FileBlob[] }
-export const useTellescopeForm = ({ customization, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL }: UseTellescopeFormOptions) => {
+export const useTellescopeForm = ({ customization, carePlanId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL }: UseTellescopeFormOptions) => {
   const { amPm, hoursAmPm, minutes } = get_time_values(new Date())
 
   const root = useTreeForFormFields(fields)
@@ -918,6 +920,11 @@ export const useTellescopeForm = ({ customization, ga4measurementId, rootRespons
             session as any as Session).api.form_responses.prepare_form_response({ 
               formId, enduserId, isInternalNote, title: formTitle,
               parentResponseId, rootResponseId,
+
+              // @ts-ignore
+              carePlanId, 
+              // @ts-ignore
+              context,
             })
           ).accessCode
         ),
