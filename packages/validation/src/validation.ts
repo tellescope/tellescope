@@ -1207,7 +1207,7 @@ export const phoneValidator: ValidatorDefinition<string> = {
                                         : "+"  + escaped // assume country code provided, but missing leading +
 
       if (!isMobilePhone(escaped, 'any', { strictMode: true })) {
-        throw `Invalid phone number`
+        throw `Invalid phone number: ${phone}`
       }
 
       return escaped
@@ -1230,7 +1230,7 @@ export const phoneValidatorOptional: ValidatorDefinition<string> = {
                                         : "+"  + escaped // assume country code provided, but missing leading +
 
       if (!isMobilePhone(escaped, 'any', { strictMode: true })) {
-        throw `Invalid phone number`
+        throw `Invalid phone number: ${phone}`
       }
 
       return escaped
@@ -2624,7 +2624,8 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   databaseFilter: objectValidator<FormFieldOptions['databaseFilter']>({
     databaseLabel: stringValidator1000Optional,
     fieldId: mongoIdStringOptional,
-  }, { isOptional: true, emptyOk: true })
+  }, { isOptional: true, emptyOk: true }),
+  useDatePicker: booleanValidatorOptional,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({

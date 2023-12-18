@@ -1087,7 +1087,8 @@ export type FormFieldOptions = FormFieldValidation & {
   databaseFilter?: {
     fieldId?: string,
     databaseLabel?: string,
-  }
+  },
+  useDatePicker?: boolean,
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 

@@ -4,7 +4,7 @@ import { Autocomplete, Box, Button, Checkbox, Divider, FormControl, FormControlL
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { PRIMARY_HEX } from "@tellescope/constants"
-import { capture_is_supported, first_letter_capitalized, getLocalTimezone, getPublicFileURL, truncate_string } from "@tellescope/utilities"
+import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, first_letter_capitalized, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, truncate_string } from "@tellescope/utilities"
 import { FormResponseValue, MultipleChoiceOptions } from "@tellescope/types-models"
 import { VALID_STATES } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
@@ -12,7 +12,7 @@ import LinearProgress from '@mui/material/LinearProgress';
 
 import DatePicker from "react-datepicker";
 import { datepickerCSS } from "./css/react-datepicker" // avoids build issue with RN
-import { CancelIcon, FileBlob, LabeledIconButton, Styled, useProducts, useResolvedSession } from ".."
+import { CancelIcon, FileBlob, LabeledIconButton, Styled, isDateString, useProducts, useResolvedSession } from ".."
 import { DatabaseRecord, FormField } from "@tellescope/types-client"
 import { css } from '@emotion/css'
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
@@ -363,24 +363,58 @@ export const AutoFocusTextField = (props: TextFieldProps) => (
   <TextField {...props} />
 )
 
-export const DateStringInput = ({ field, value, onChange, ...props }: FormInputProps<'string'>) => (
-  <AutoFocusTextField {...props} required={!field.isOptional} fullWidth placeholder="MM-DD-YYYY" value={value}
-    onChange={e => {
-      const v = e.target.value || ''
-      onChange(
-        (
-          v.length === 2 && /\d{2}/.test(v) && value?.length !== 3 // allow deletion
-            ? v + '-'
-        : v.length === 5 && /\d{2}-\d{2}/.test(v) && value?.length !== 6 // allow deletion
-            ? v + '-'
-            : v
-        )
-        .replaceAll('/', '-'), 
-        field.id
+const CustomDateStringInput = forwardRef((props: TextFieldProps, ref) => <TextField fullWidth inputRef={ref} {...props} />)
+export const DateStringInput = ({ field, value, onChange, ...props }: FormInputProps<'string'>) => {
+  const inputRef = useRef(null);
+
+  // if (value && isDateString(value)) {
+  //   console.log(value, new Date(
+  //     new Date(MM_DD_YYYY_to_YYYY_MM_DD(value)).getTime()
+  //   + (new Date().getTimezoneOffset() * 60 * 1000)
+  //   ))
+  // }
+  return (
+    field.options?.useDatePicker
+      ? (
+        <DatePicker // wrap in item to prevent movement on focused
+          selected={
+            (value && isDateString(value))
+              ? new Date(
+                  new Date(MM_DD_YYYY_to_YYYY_MM_DD(value)).getTime()
+                + (new Date().getTimezoneOffset() * 60 * 1000)
+              )
+              : undefined
+          }
+          onChange={(d: Date) => onChange?.(mm_dd_yyyy(d), field.id)}
+          showTimeSelect={false}
+          required={!field.isOptional}
+          autoComplete="off"
+          dateFormat={"MM-dd-yyyy"}
+          customInput={<CustomDateStringInput inputRef={inputRef} {...props} />}
+          // className={css`width: 100%;`}
+          className={css`${datepickerCSS}`}
+        />
       )
-    }}
-  />
-)
+      : (
+        <AutoFocusTextField {...props} required={!field.isOptional} fullWidth placeholder="MM-DD-YYYY" value={value}
+          onChange={e => {
+            const v = e.target.value || ''
+            onChange(
+              (
+                v.length === 2 && /\d{2}/.test(v) && value?.length !== 3 // allow deletion
+                  ? v + '-'
+              : v.length === 5 && /\d{2}-\d{2}/.test(v) && value?.length !== 6 // allow deletion
+                  ? v + '-'
+                  : v
+              )
+              .replaceAll('/', '-'), 
+              field.id
+            )
+          }}
+        />
+      )
+  )
+}
 export const StringInput = ({ field, value, onChange, ...props }: FormInputProps<'string'>) => (
   <AutoFocusTextField {...props} required={!field.isOptional} fullWidth value={value} placeholder="Answer here..." onChange={e => onChange(e.target.value, field.id)} />
 )

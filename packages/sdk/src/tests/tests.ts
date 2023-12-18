@@ -2257,7 +2257,7 @@ export const formUnsubmittedCancelConditionTest = async () => {
       () => sdk.api.endusers.getOne(enduser.id),
       e => e?.journeys?.[journey.id] === 'triggered again',
       1000,
-      10,
+      20,
     ),
     passOnAnyResult
   )  
@@ -4830,25 +4830,29 @@ const remove_from_journey_on_incoming_comms_tests = async () => {
           && a.status === 'active'
         )
       ),
-      100,
+      200,
       50,
     ),
     passOnAnyResult,
   ) 
 
   await sdk.api.journeys.handle_incoming_communication({ enduserId: e2.id })
-  await wait(undefined, 250)
   await async_test(
     "handle_incoming_communication test for other enduser",
-    () => sdk.api.automated_actions.getSome(),
-    { onResult: actions => (
+    () => pollForResults(
+      sdk.api.automated_actions.getSome,
+      actions => (
         !!actions.find(a => 
             a.journeyId === jRemove.id
           && a.automationStepId === removeStep1.id
           && a.enduserId === e2.id
           && a.status === 'cancelled'
         )
-    )}
+      ),
+      100,
+      20,
+    ),
+    passOnAnyResult
   ) 
  
   await Promise.all([
