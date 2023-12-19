@@ -446,7 +446,7 @@ export type ScheduledJourney = {
 }
 
 export type EnduserRelationship = {
-  type: 'Parent' | 'Child' | 'Spouse' | 'Sibling' | 'Relates To'
+  type: 'Parent' | 'Child' | 'Spouse' | 'Sibling' | 'Relates To' | 'Grandparent' | 'Grandchild' | 'Caregiver' | 'Caretaker' | 'Care Recipient'
   id: string,
 }
 export type Language = {
@@ -1033,7 +1033,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
 }
 
 export type FormFieldLiteralType = 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time'
-export type FormFieldComplexType = "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications"
+export type FormFieldComplexType = "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts"
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
 
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals'
@@ -1089,6 +1089,7 @@ export type FormFieldOptions = FormFieldValidation & {
     databaseLabel?: string,
   },
   useDatePicker?: boolean,
+  sharedIntakeFields?: string[],
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
@@ -1334,6 +1335,7 @@ export type FormResponseAnswerTime = FormResponseValueAnswerBuilder<'Time', stri
 export type FormResponseAnswerStripe = FormResponseValueAnswerBuilder<'Stripe', string>
 export type FormResponseAnswerDatabaseSelect = FormResponseValueAnswerBuilder<'Database Select', DatabaseSelectResponse[]>
 export type FormResponseAnswerMedications = FormResponseValueAnswerBuilder<'Medications', MedicationResponse[]>
+export type FormResponseAnswerRelatedContacts = FormResponseValueAnswerBuilder<'Related Contacts', Partial<Enduser>[]>
 
 export type FormResponseAnswerSignatureValue = {
   fullName: string,
@@ -1380,6 +1382,7 @@ export type FormResponseValueAnswer = (
   | FormResponseAnswerDropdown
   | FormResponseAnswerDatabaseSelect
   | FormResponseAnswerMedications
+  | FormResponseAnswerRelatedContacts
 )
 
 export type FormResponseValue = {
@@ -1415,6 +1418,7 @@ export type AnswerForType = {
   'Stripe': FormResponseAnswerStripe['value']
   'Database Select': FormResponseAnswerDatabaseSelect['value']
   'Medications': FormResponseAnswerMedications['value']
+  'Related Contacts': FormResponseAnswerRelatedContacts['value']
 }
 
 export interface FormResponse_readonly extends ClientRecord {

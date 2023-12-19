@@ -5,7 +5,7 @@ import { DatabaseRecord, FormField, FormResponse } from "@tellescope/types-clien
 import { phoneValidator } from "@tellescope/validation"
 import { FileBlob, Indexable } from "@tellescope/types-utilities"
 import { FormCustomization, FormResponseAnswerAddress, FormResponseAnswerFileValue, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, OrganizationTheme, PreviousFormFieldType } from "@tellescope/types-models"
-import { WithTheme, useFileUpload, useFormFields, useFormResponses, useResolvedSession, value_is_loaded } from "../index"
+import { WithTheme, contact_is_valid, useFileUpload, useFormFields, useFormResponses, useResolvedSession, value_is_loaded } from "../index"
 import ReactGA from "react-ga4";
 
 import isEmail from "validator/lib/isEmail"
@@ -687,6 +687,17 @@ export const useTellescopeForm = ({ customization, carePlanId, context, ga4measu
 
     if (field.isOptional) {
       return null 
+    }
+
+    if (value.answer.type === 'Related Contacts') {
+      for (let i=0; i < (value.answer.value ?? []).length; i++) {
+        const contact = value.answer.value![i]
+
+        const errorMessage = contact_is_valid(contact)
+        if (errorMessage) {
+          return `Contact ${i+1}: ${errorMessage}`
+        }
+      }
     }
 
     if (value.answer.type === 'Medications') {

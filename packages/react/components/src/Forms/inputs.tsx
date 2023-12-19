@@ -3,16 +3,16 @@ import axios from "axios"
 import { Autocomplete, Box, Button, Checkbox, Divider, FormControl, FormControlLabel, FormLabel, Grid, InputLabel, MenuItem, Radio, RadioGroup, Select, TextField, TextFieldProps, Typography } from "@mui/material"
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
-import { PRIMARY_HEX } from "@tellescope/constants"
-import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, first_letter_capitalized, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, truncate_string } from "@tellescope/utilities"
-import { FormResponseValue, MultipleChoiceOptions } from "@tellescope/types-models"
-import { VALID_STATES } from "@tellescope/validation"
+import { PRIMARY_HEX, RELATIONSHIP_TYPES } from "@tellescope/constants"
+import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, first_letter_capitalized, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, truncate_string, user_display_name } from "@tellescope/utilities"
+import { Enduser, EnduserRelationship, FormResponseValue, MultipleChoiceOptions } from "@tellescope/types-models"
+import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
 import LinearProgress from '@mui/material/LinearProgress';
 
 import DatePicker from "react-datepicker";
 import { datepickerCSS } from "./css/react-datepicker" // avoids build issue with RN
-import { CancelIcon, FileBlob, LabeledIconButton, Styled, isDateString, useProducts, useResolvedSession } from ".."
+import { CancelIcon, FileBlob, IconButton, LabeledIconButton, Styled, isDateString, useProducts, useResolvedSession } from ".."
 import { DatabaseRecord, FormField } from "@tellescope/types-client"
 import { css } from '@emotion/css'
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
@@ -36,7 +36,7 @@ import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js'; 
-import { CheckCircleOutline, Delete } from "@mui/icons-material"
+import { CheckCircleOutline, Delete, Edit } from "@mui/icons-material"
 
 export const PdfViewer = ({ url } : { url: string }) => {
   // const [numPages, setNumPages] = useState<number>();
@@ -443,13 +443,14 @@ const StringSelector = ({ options, value, onChange, ...props } : {
   label?: string,
   size?: "small",
 }) => (
-  <Select {...props} value={value} onChange={e => onChange(e.target.value)}
-    fullWidth 
-  >
-  {options.map((o, i) => (
-    <MenuItem value={o} key={o || i}>{o}</MenuItem>
-  ))}
-  </Select>
+  <FormControl fullWidth size={props.size}>
+    <InputLabel>{props.label}</InputLabel>
+    <Select {...props} value={value} onChange={e => onChange(e.target.value)} fullWidth>
+    {options.map((o, i) => (
+      <MenuItem value={o} key={o || i}>{o}</MenuItem>
+    ))}
+    </Select>
+  </FormControl>
 )
 
 const HourSelector = (props : { value: string, onChange: (v: string) => void })  => (
@@ -1721,6 +1722,181 @@ export const MedicationsInput = ({ field, value, onChange }: FormInputProps<'Med
           onClick={() => onChange([...(value ?? []), { displayTerm: '', drugName: '' }], field.id)}
         >
           Add Medication
+        </Button>
+      </Grid>
+    </Grid>
+  )
+}
+
+export const contact_is_valid = (e: Partial<Enduser>) => {
+  if (e.email) {
+    try {
+      emailValidator.validate()(e.email) 
+    } catch(err) {
+      return "Email is invalid"
+    }
+  } 
+  if (e.phone) {
+    try {
+      phoneValidator.validate()(e.phone) 
+    } catch(err) {
+      return "Phone is invalid"
+    }
+  } 
+  if (e.dateOfBirth && !isDateString(e.dateOfBirth)) {
+    return "Date of birth is invalid"
+  }
+}
+
+export const RelatedContactsInput = ({ field, value: _value, onChange, ...props }: FormInputProps<'Related Contacts'>) => {
+  // safeguard against any rogue values like empty string
+  const value = Array.isArray(_value) ? _value : []
+
+  const [editing, setEditing] = useState(-1)
+
+  if (value[editing]) {
+    const { fname, lname, email, phone, fields={}, dateOfBirth='', relationships } = value[editing]
+    const errorMessage = contact_is_valid(value[editing])
+
+    return (
+      <Grid container direction="column" spacing={1}>
+        <Grid item sx={{ my: 0.75 }}>
+          <Button variant="outlined" onClick={() => setEditing(-1)} size="small">
+            Back 
+          </Button>
+        </Grid>
+
+        <Grid item>
+        <Grid container alignItems="center" wrap="nowrap" spacing={1}>
+          <Grid item xs={4}>
+            <TextField label="First Name" size="small" fullWidth
+              value={fname} onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, fname: e.target.value } : v), field.id)}
+            />
+          </Grid>
+
+          <Grid item xs={4}>
+            <TextField label="Last Name" size="small" fullWidth
+              value={lname} onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, lname: e.target.value } : v), field.id)}
+            />
+          </Grid>
+
+          <Grid item xs={4}>
+            <StringSelector options={RELATIONSHIP_TYPES} label="Relationship" size="small"
+              value={relationships?.[0]?.type ?? ''} 
+              onChange={type => onChange(value.map((v, i) => i === editing ? { ...v, relationships: [{ type: type as EnduserRelationship['type'], id: '' /* to be filled on server-side */ }] } : v), field.id)}
+            />
+          </Grid>
+        </Grid>
+        </Grid>
+
+        <Grid item>
+        <Grid container alignItems="center" wrap="nowrap" spacing={1}>
+          <Grid item xs={4}>
+            <DateStringInput value={dateOfBirth} field={{ ...field, isOptional: true }} size="small" label="Date of Birth"
+              onChange={dateOfBirth => onChange(value.map((v, i) => i === editing ? { ...v, dateOfBirth } : v), field.id)}
+            />
+          </Grid>
+
+          <Grid item xs={4}>
+            <TextField label="Email" size="small" fullWidth type="email"
+              value={email} onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, email: e.target.value } : v), field.id)}
+            />
+          </Grid>
+
+          <Grid item xs={4}>
+            <TextField label="Phone Number" size="small" fullWidth
+              value={phone} onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, phone: e.target.value } : v), field.id)}
+            />
+          </Grid>
+        </Grid>
+        </Grid>
+
+        {/* todo: refactor instead of copying from table input code? */}
+        {(field.options?.tableChoices || []).length > 0 && 
+          <Grid item>
+          <Grid container spacing={1}>
+          {(field.options?.tableChoices || []).map(({ info, label, type}) => (
+            <Grid item xs={6}>
+            {type === 'Text'
+                ? (
+                  <TextField label={label} size="small" fullWidth
+                    value={fields[label] as string || ''} 
+                    onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, fields: { ...fields, [label]: e.target.value} } : v), field.id)}
+                  />
+                )
+                : type === 'Date' ? (
+                  <DateStringInput label={label} size="small" fullWidth
+                    field={field}
+                    value={fields[label] as string || ''} 
+                    onChange={(e='') => onChange(value.map((v, i) => i === editing ? { ...v, fields: { ...fields, [label]: e } } : v), field.id)}
+                  />
+                )
+                : type === 'Select' ? (
+                    <FormControl size="small" fullWidth>
+                      <InputLabel id="demo-select-small">{label}</InputLabel>
+                      <Select label={label} size="small"
+                        value={fields[label] as string || ''} 
+                        onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, fields: { ...fields, [label]: e.target.value } } : v), field.id)}
+                      >
+                        <MenuItem value="">
+                          <em>None</em>
+                        </MenuItem>
+                        {info.choices.map(c => (
+                          <MenuItem key={c} value={c}>{c}</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )
+                : null
+                }  
+            </Grid>
+          ))} 
+          </Grid>
+          </Grid>
+        }
+
+        {errorMessage &&
+          <Grid item>
+            <Typography color="error">
+              {errorMessage}
+            </Typography>
+          </Grid>
+        }
+      </Grid>
+    )
+  }
+
+  return (
+    <Grid container direction="column" spacing={1}>
+      <Grid item>
+      {value.map((contact, i) => (
+        <Grid item key={i}>
+        <Grid container alignItems="center" justifyContent={"space-between"} wrap="nowrap" spacing={1}>
+          <Grid item>
+          <Grid container alignItems="center">
+            <IconButton onClick={() => setEditing(i)} color="primary" size="small">
+              <Edit />
+            </IconButton>
+            <Typography noWrap>
+              {user_display_name(contact) || `Unnamed Contact ${i + 1}`}
+            </Typography>
+          </Grid> 
+          </Grid> 
+
+          <Grid item>
+            <LabeledIconButton Icon={Delete} label="Remove" onClick={() => onChange(value.filter((v, _i) => i !== _i), field.id)} />
+          </Grid> 
+        </Grid> 
+        </Grid>
+      ))}
+      </Grid>
+
+      <Grid item>
+        <Button variant="contained" onClick={() => {
+          onChange([...value, {}], field.id, true)
+          setEditing(value.length)
+        }}>
+          Add Contact
         </Button>
       </Grid>
     </Grid>

@@ -5588,7 +5588,7 @@ export const schema: SchemaV1 = build_schema({
     defaultActions: DEFAULT_OPERATIONS,
     customActions: { 
       get_result_for_query: {
-        op: "custom", access: 'create', method: "get", 
+        op: "custom", access: 'read', method: "get", 
         name: 'Get analytics for query',
         path: '/result-for-analytics-query',
         description: "Returns a computed result for an analytics query",

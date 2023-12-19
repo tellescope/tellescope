@@ -2,7 +2,7 @@ import {
   Operation,
 } from "@tellescope/types-utilities"
 import {
-  AccessAction, AccessForResource, AccessPermissions, AccessType, Enduser, FormFieldType,
+  AccessAction, AccessForResource, AccessPermissions, AccessType, Enduser, EnduserRelationship, FormFieldType,
 } from "@tellescope/types-models"
 
 export type EnduserField = keyof Pick<Enduser, 'email' | 'phone' | 'fname' | 'lname' | 'dateOfBirth' | 'height' | 'weight'>
@@ -392,3 +392,38 @@ export const AUTOMATED_ACTION_CANCEL_REASONS = [
   'Incoming Communication',
   'Removed by Automation',
 ] as const
+
+export const RELATIONSHIP_TYPES = [
+  'Caregiver',
+  'Caretaker',
+  'Care Recipient',
+  'Parent',
+  'Child',
+  'Sibling',
+  'Spouse',
+  'Grandparent',
+  'Grandchild',
+  'Relates To'
+] satisfies EnduserRelationship['type'][]
+
+export const get_inverse_relationship_type = (type: EnduserRelationship['type']): EnduserRelationship['type'] => (
+  type === 'Child'
+    ? 'Parent'
+: type === 'Parent'
+    ? 'Child'
+: type === 'Sibling'
+    ? 'Sibling'
+: type === 'Spouse'
+    ? 'Spouse'
+: type === 'Care Recipient'
+    ? 'Caregiver'
+: type === 'Caregiver'
+    ? 'Care Recipient'
+: type === 'Caretaker'
+    ? 'Care Recipient'
+: type === 'Grandparent'
+    ? 'Grandchild'
+: type === 'Grandchild'
+    ? 'Grandparent'
+    : 'Relates To'
+)

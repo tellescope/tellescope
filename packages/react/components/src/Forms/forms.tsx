@@ -2,7 +2,7 @@ import React, { useCallback, useEffect } from "react"
 import { Button, Flex, LoadingButton, Paper, Styled, Typography, useFileUpload, useFormResponses, useSession } from "../index"
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
-import { AddressInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, FileInput, FilesInput, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput } from "./inputs"
+import { AddressInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, FileInput, FilesInput, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
@@ -129,6 +129,7 @@ export const QuestionForField = ({
   const Dropdown = customInputs?.['Dropdown'] ?? DropdownInput
   const DatabaseSelect = customInputs?.['Database Select'] ?? DatabaseSelectInput
   const Medications = customInputs?.['Medications'] ?? MedicationsInput
+  const RelatedContacts = customInputs?.['Related Contacts'] ?? RelatedContactsInput
 
   const validationMessage = validateField(field)
 
@@ -169,6 +170,9 @@ export const QuestionForField = ({
         )
         : field.type === 'Address' ? (
           <Address field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} />
+        )
+        : field.type === 'Related Contacts' ? (
+          <RelatedContacts field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} />
         )
         : field.type === 'string' ? (
           <String field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} />

@@ -247,6 +247,7 @@ import {
   CompleteCarePlanAutomationAction,
   CustomDashboardViewBlock,
   ZusSyncAutomationAction,
+  FormResponseAnswerRelatedContacts,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -1383,11 +1384,13 @@ const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
   Dropdown: '',
   "Database Select": '',
   Medications: '',
+  "Related Contacts": "",
 }
 export const FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES) as FormFieldType[]
 export const formFieldTypeValidator = exactMatchValidator<FormFieldType>(FORM_FIELD_TYPES)
 
 export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' | 'phoneNumber']: (value?: FormResponseValueAnswer[keyof FormResponseValueAnswer], options?: any, isOptional?: boolean) => any } = {
+  'Related Contacts': objectAnyFieldsAnyValuesValidator.validate(),
   'Address': objectAnyFieldsAnyValuesValidator.validate(),
   'Database Select': objectAnyFieldsAnyValuesValidator.validate(),
   'Time': stringValidator.validate({ maxLength: 100 }),
@@ -1678,6 +1681,10 @@ const isFormField = (f: JSONType, fieldOptions={ forUpdate: false }) => {
 
 // validate optional vs not at endpoint-level
 export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: FormResponseValueAnswer & { type: K } } >({
+  "Related Contacts": objectValidator<FormResponseAnswerRelatedContacts>({
+    type: exactMatchValidator(['Related Contacts']),
+    value: listValidatorOptionalOrEmptyOk(objectAnyFieldsAnyValuesValidator),
+  }),
   "Question Group": objectValidator<FormResponseAnswerGroup>({
     type: exactMatchValidator(['Question Group']),
     value: listValidatorEmptyOk(objectValidator<FormSubField>({ 
@@ -2626,6 +2633,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
     fieldId: mongoIdStringOptional,
   }, { isOptional: true, emptyOk: true }),
   useDatePicker: booleanValidatorOptional,
+  sharedIntakeFields: listOfStringsValidatorOptionalOrEmptyOk,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
