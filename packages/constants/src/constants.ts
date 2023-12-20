@@ -27,6 +27,7 @@ export const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
   timezone: "Timezone",
   mname: "Middle Name",
   externalId: "External ID",
+  relationships: "Relationships",
 } satisfies { [K in keyof Enduser]?: string }
 
 export const READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
@@ -395,7 +396,7 @@ export const AUTOMATED_ACTION_CANCEL_REASONS = [
 
 export const RELATIONSHIP_TYPES = [
   'Caregiver',
-  'Caretaker',
+  // 'Caretaker',
   'Care Recipient',
   'Parent',
   'Child',
@@ -419,8 +420,8 @@ export const get_inverse_relationship_type = (type: EnduserRelationship['type'])
     ? 'Caregiver'
 : type === 'Caregiver'
     ? 'Care Recipient'
-: type === 'Caretaker'
-    ? 'Care Recipient'
+// : type === 'Caretaker'
+//     ? 'Care Recipient'
 : type === 'Grandparent'
     ? 'Grandchild'
 : type === 'Grandchild'

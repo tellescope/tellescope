@@ -2338,6 +2338,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       actions: ticketActionsValidator,
       dueDateOffsetInMS: numberValidatorOptional,
       closeOnFinishedActions: booleanValidatorOptional,
+      requireConfirmation: booleanValidatorOptional,
     }, { emptyOk: false }),
   }),
   sendWebhook: objectValidator<SendWebhookAutomationAction>({

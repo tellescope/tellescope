@@ -990,6 +990,7 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
   parentTicketId?: string,
   timeToCloseInMS?: number,
   snoozes?: TicketSnooze[],
+  requireConfirmation?: boolean,
 }
 
 export type AttendeeInfo = {
@@ -1896,6 +1897,7 @@ export type CreateTicketActionInfo = {
   actions?: TicketAction[],
   closeOnFinishedActions?: boolean,
   dueDateOffsetInMS?: number,
+  requireConfirmation?: boolean,
 }
 
 export type SendEmailAutomationAction = AutomationActionBuilder<'sendEmail', AutomationForMessage>

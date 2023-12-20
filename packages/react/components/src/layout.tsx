@@ -378,7 +378,9 @@ export const ScrollingList = <T extends { id: string | number }>({
               itemData={items}
               itemKey={(index, data) => data[index].id}
               onScroll={p => {
-                if (p.scrollOffset, p.scrollOffset / (items.length * rowHeight) < .75) {
+                const tableHeight = virtualization?.height || window.innerHeight - 225
+
+                if (p.scrollOffset, (tableHeight + p.scrollOffset) / (items.length * rowHeight) < .75) {
                   return
                 }
                 if (doneLoading?.() || !loadMore) return
@@ -616,7 +618,9 @@ export const DraggableList = <T extends { id: string | number }>({
                 itemData={items}
                 itemKey={(index, data) => data[index].id}
                 onScroll={p => {
-                  if (p.scrollOffset, p.scrollOffset / (items.length * rowHeight) < .75) {
+                  const tableHeight = virtualization?.height || window.innerHeight - 225
+
+                  if (p.scrollOffset, (tableHeight + p.scrollOffset) / (items.length * rowHeight) < .75) {
                     return
                   }
                   if (doneLoading?.() || !loadMore) return

@@ -1253,7 +1253,7 @@ export const DatabaseSelectInput = ({ field, value, onChange, onDatabaseSelect, 
       : undefined
   ), [responses, field.options?.databaseFilter])
 
-  const filteredChoices = useMemo(() => {
+  const filteredChoicesWithPotentialDuplicates = useMemo(() => {
     if (!choices) return []
     if (!filterResponse) return choices
     if (!field?.options?.databaseFilter?.databaseLabel)
@@ -1295,6 +1295,21 @@ export const DatabaseSelectInput = ({ field, value, onChange, onDatabaseSelect, 
       })
     )
   }, [choices, filterResponse, field.options?.databaseFilter, value])
+
+  const filteredChoices = useMemo(() => {
+    const filtered: typeof filteredChoicesWithPotentialDuplicates = [] 
+
+    const uniques = new Set<string>([])
+    for (const c of filteredChoicesWithPotentialDuplicates) {
+      const text = label_for_database_record(field, c)
+      if (uniques.has(text)) continue // duplicate found
+
+      uniques.add(text)
+      filtered.push(c)
+    }
+
+    return filtered
+  }, [field, filteredChoicesWithPotentialDuplicates])
 
   if (!doneLoading) return <LinearProgress />
   return (
@@ -1760,12 +1775,6 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
 
     return (
       <Grid container direction="column" spacing={1}>
-        <Grid item sx={{ my: 0.75 }}>
-          <Button variant="outlined" onClick={() => setEditing(-1)} size="small">
-            Back 
-          </Button>
-        </Grid>
-
         <Grid item>
         <Grid container alignItems="center" wrap="nowrap" spacing={1}>
           <Grid item xs={4}>
@@ -1854,6 +1863,12 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
           </Grid>
           </Grid>
         }
+
+        <Grid item sx={{ my: 0.75 }}>
+          <Button variant="outlined" onClick={() => setEditing(-1)} size="small">
+            Save Contact
+          </Button>
+        </Grid>
 
         {errorMessage &&
           <Grid item>

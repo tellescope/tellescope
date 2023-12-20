@@ -1,6 +1,6 @@
 import { ObjectId } from "bson"
-import { CalendarEvent, CompoundFilter, Enduser, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, TableInputCell, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus } from "@tellescope/types-models"
-import { ADMIN_ROLE } from "@tellescope/constants"
+import { CalendarEvent, CompoundFilter, Enduser, EnduserRelationship, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, TableInputCell, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus } from "@tellescope/types-models"
+import { ADMIN_ROLE, get_inverse_relationship_type } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 
 export type Indexable<T=any> = { [index: string]: T }
@@ -724,6 +724,10 @@ export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Endu
       //         : !!enduser.tags?.find(t => (value as ListOfStringsWithQualifier)?.values?.includes(t))
       //     )
       //   })()
+      : key === 'relationships' && typeof value === 'string'
+        ? (
+          !!enduser?.relationships?.find(r => r.type === get_inverse_relationship_type(value as any))
+        )
       : typeof value === 'object'
         ? (() => {
           const k = Object.keys(value)[0]
@@ -1263,3 +1267,19 @@ export const get_next_reminder_timestamp = ({ startTimeInMS, reminders } : Pick<
 }
 
 export const capture_is_supported = () => document.createElement('input').capture !== undefined
+
+export const batch_array = <T>(array: T[], size: number) => {
+  const batches: T[][] = []
+
+  for (let i = 0; i < Math.ceil(array.length / size); i++) {
+    const batch: T[] = []
+    for (let j=i * size; j < (i + 1) * size; j++) {
+      if (j >= array.length) break;
+
+      batch.push(array[j])
+    }
+    batches.push(batch)
+  }
+
+  return batches
+}
