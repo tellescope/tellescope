@@ -694,7 +694,7 @@ export type CustomActions = {
     configure: CustomAction<{ url: string, secret: string, subscriptions?: WebhookSubscriptionsType }, { }>,
     update: CustomAction<{ url?: string, secret?: string, subscriptionUpdates?: WebhookSubscriptionsType }, { }>,
     get_configuration: CustomAction<{ }, { url?: string, subscriptions?: WebhookSubscriptionsType }>,
-    send_automation_webhook: CustomAction<{ message: string }, { }>,
+    send_automation_webhook: CustomAction<{ message: string, enduserId: string }, { }>,
     send_calendar_event_reminder_webhook: CustomAction<{ id: string }, { }>,
   },
   user_notifications: {
@@ -3676,10 +3676,11 @@ export const schema: SchemaV1 = build_schema({
         Currently supported models for Webhooks: ${Object.keys(WEBHOOK_MODELS).join(', ')}
 
         You can handle webhooks from automations in Tellescope, which have a simpler format: <pre>{ 
-        type: 'automation'
-        message: string,
+          type: 'automation'
+          message: string,
           timestamp: string, 
           integrity: string, 
+          enduserId: string, 
 }</pre>
         In this case, integrity is a simple sha256 hash of message + timestamp + secret
 
@@ -3740,6 +3741,7 @@ export const schema: SchemaV1 = build_schema({
         description: "Sends a webhook with the automations format, useful for testing automation integrations",
         parameters: { 
           message: { validator: stringValidator5000, required: true },
+          enduserId: { validator: mongoIdStringValidator }, // can make required after initial updates to ensure worker uses this
         },
         returns: {},
       },

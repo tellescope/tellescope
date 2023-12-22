@@ -2752,7 +2752,7 @@ const addToJourneyTests = async () => {
     sdk.api.automated_actions.getSome,
     es => es.length === 2,
     100,
-    50,
+    100,
   ),
 
   await sdk.api.endusers.add_to_journey({ enduserIds: [enduser.id], journeyId: journey.id })
@@ -4850,7 +4850,7 @@ const remove_from_journey_on_incoming_comms_tests = async () => {
         )
       ),
       100,
-      20,
+      10,
     ),
     passOnAnyResult
   ) 
