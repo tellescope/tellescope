@@ -4,12 +4,12 @@ import { ChangeHandler, FormFieldNode } from "./types"
 import { DatabaseRecord, FormField, FormResponse } from "@tellescope/types-client"
 import { phoneValidator } from "@tellescope/validation"
 import { FileBlob, Indexable } from "@tellescope/types-utilities"
-import { FormCustomization, FormResponseAnswerAddress, FormResponseAnswerFileValue, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, OrganizationTheme, PreviousFormFieldType } from "@tellescope/types-models"
+import { FormCustomization, FormResponseAnswerAddress, FormResponseAnswerFileValue, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, OrganizationTheme, PreviousFormCompoundLogic, PreviousFormFieldType } from "@tellescope/types-models"
 import { WithTheme, contact_is_valid, useFileUpload, useFormFields, useFormResponses, useResolvedSession, value_is_loaded } from "../index"
 import ReactGA from "react-ga4";
 
 import isEmail from "validator/lib/isEmail"
-import { getLocalTimezone, get_time_values, object_is_empty } from "@tellescope/utilities"
+import { getLocalTimezone, get_time_values, object_is_empty, responses_satisfy_conditions } from "@tellescope/utilities"
 
 export const useFlattenedTree = (root?: FormFieldNode) => {
   const flat: FormField[] = []
@@ -79,6 +79,7 @@ export const loopDetected = (edges: (BasicEdge & { id: string })[], startId: str
   return false
 }
 
+export const COMPOUND_LOGIC_LABEL_SENTINEL = "___compound___"
 export const useGraphForFormFields = (fields: FormField[]) => {
   const edges = [] as {
     id: string,
@@ -99,6 +100,8 @@ export const useGraphForFormFields = (fields: FormField[]) => {
           label: (
             parent.type === 'previousEquals' 
               ? parent.info.equals // if adding text, make sure that the edge editor is able to remove it first
+          : parent.type === 'compoundLogic'
+              ? (parent.info.label || 'Advanced Logic')
               : "Default"
           ),
         })
@@ -146,7 +149,7 @@ export const useTreeForFormFields = (_fields: FormField[]) => {
   return nodesForId[fields.find(s => s.previousFields.find(p => p.type === 'root'))?.id ?? '']
 }
 
-export const getNextField = (activeField: FormFieldNode, currentValue: Response) => {
+export const getNextField = (activeField: FormFieldNode, currentValue: Response, responses: FormResponseValue[]) => {
   if (activeField.children.length === 0) {
     return
   } 
@@ -154,6 +157,24 @@ export const getNextField = (activeField: FormFieldNode, currentValue: Response)
   if (activeField.children.length === 1) {
     return activeField.children[0]
   } 
+
+  try {
+    const advancedLogic = (
+      activeField.children
+      .filter(c => !!c.value.previousFields.find(p => p.type === 'compoundLogic' && p.info.fieldId === currentValue.fieldId))
+      .map(c => ({ node: c, logic: c.value.previousFields.find(p => p.type === 'compoundLogic' && p.info.fieldId === currentValue.fieldId) as PreviousFormCompoundLogic }))
+      .sort((v1, v2) => v2.logic.info.priority - v1.logic.info.priority) // sort descending (highest priority at index 0)
+    )
+
+    for (const { node, logic } of advancedLogic) {
+      if (responses_satisfy_conditions(responses, logic.info.condition)) {
+        return node 
+      }
+    }
+  }
+  catch(err) {
+    console.error(err)
+  }
 
   return (
     activeField.children.find(c => c.value.previousFields.find(p => 
@@ -201,7 +222,8 @@ export const useListForFormFields = (fields: FormField[], responses: Response[])
           }))
         )
       }, 
-      currentValue
+      currentValue,
+      responses,
     )
     if (!nextField) break;
 
@@ -999,7 +1021,7 @@ export const useTellescopeForm = ({ customization, carePlanId, context, ga4measu
     }
 
     setActiveField(activeField => {
-      let newField = getNextField(activeField, currentValue)
+      let newField = getNextField(activeField, currentValue, responses)
 
       if (newField !== undefined) {
         prevFieldStackRef.current.push(activeField)
@@ -1008,7 +1030,7 @@ export const useTellescopeForm = ({ customization, carePlanId, context, ga4measu
       
       return newField || activeField
     })
-  }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session])
+  }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses])
 
   const isPreviousDisabled = useCallback(() => (
     prevFieldStackRef.current.length === 0

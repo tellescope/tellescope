@@ -986,6 +986,7 @@ export const schema: SchemaV1 = build_schema({
         redactions: ['enduser'],
       },
       alternateEmails: { validator: listValidatorOptionalOrEmptyOk(emailValidator) },
+      alternatePhones: { validator: listOfStringsValidatorEmptyOk  },
       emailConsent: { 
         validator: booleanValidator,
         examples: BOOLEAN_EXAMPLES,

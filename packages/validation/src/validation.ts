@@ -249,6 +249,7 @@ import {
   ZusSyncAutomationAction,
   FormResponseAnswerRelatedContacts,
   AssignToQueueInfo,
+  PreviousFormCompoundLogic,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -2480,6 +2481,15 @@ export const previousFormFieldValidator = orValidator<{ [K in PreviousFormFieldT
     info: objectValidator<PreviousFormFieldEqualsInfo>({ 
       fieldId: mongoIdStringRequired,
       equals: stringValidator250,
+    }, { emptyOk: false }),
+  }),
+  "compoundLogic": objectValidator<PreviousFormCompoundLogic>({
+    type: exactMatchValidator(['compoundLogic']),
+    info: objectValidator<PreviousFormCompoundLogic['info']>({ 
+      fieldId: mongoIdStringRequired,
+      priority: numberValidator,
+      label: stringValidatorOptionalEmptyOkay,
+      condition: objectAnyFieldsAnyValuesValidator,
     }, { emptyOk: false }),
   }),
 })

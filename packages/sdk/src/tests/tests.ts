@@ -5684,6 +5684,34 @@ export const ticket_queue_tests = async () => {
   ])
 }
 
+export const alternate_phones_tests = async () => {
+  log_header("Alternate Phones Tests")
+
+  const createPhone = "+15555555554"
+  const updatePhone = "+15555555555"
+  const e = await sdk.api.endusers.createOne({ fname: 'test', fields: { createPhone, notAPhone: 'hi' } })
+  await sdk.api.endusers.updateOne(e.id, {fields: { updatePhone, stillNotAPhone: 'hi' } })
+
+  await async_test(
+    `alternatePhones automatically populated with custom fields on create and update`, 
+    () => pollForResults(
+      () => sdk.api.endusers.getOne(e.id),
+      e => (
+         e.fields?.createPhone === createPhone
+      && e.fields?.updatePhone === updatePhone
+      && e.alternatePhones?.length === 2
+      && e.alternatePhones.includes(createPhone)
+      && e.alternatePhones.includes(updatePhone)
+      ),
+      50,
+      20
+    ),
+    passOnAnyResult
+  )
+
+  await sdk.api.endusers.deleteOne(e.id)
+}
+
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
   ticket_queues: NO_TEST,
@@ -5825,6 +5853,7 @@ const validate_schema = () => {
     await mfa_tests()
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await alternate_phones_tests()
     await ticket_queue_tests()
     await no_chained_triggers_tests()
     await field_equals_trigger_tests()

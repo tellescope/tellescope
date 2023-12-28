@@ -482,6 +482,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   alternateEmails?: string[],
   emailConsent? : boolean;
   phone? : string; // cell phone
+  alternatePhones?: string[],
   landline?: string;
   phoneConsent? : boolean;
   fname? : string;
@@ -1041,18 +1042,25 @@ export type FormFieldLiteralType = 'description' | 'string' | 'stringLong' | 'nu
 export type FormFieldComplexType = "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts"
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
 
-export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals'
+export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic'
 export type PreviousFormFieldBuilder <T extends PreviousFormFieldType, V> = { type: T, info: V }
 
 export type PreviousFormFieldAfterInfo = { fieldId: string }
 export type PreviousFormFieldEqualsInfo = { fieldId: string, equals: string }
 export type PreviousFormFieldAfter = PreviousFormFieldBuilder<'after', PreviousFormFieldAfterInfo>
 export type PreviousFormFieldEquals = PreviousFormFieldBuilder<'previousEquals', PreviousFormFieldEqualsInfo>
+export type PreviousFormCompoundLogic = PreviousFormFieldBuilder<'compoundLogic', {
+  fieldId: string,
+  priority: number,
+  label: string,
+  condition: any,
+}>
 export type PreviousFormFieldRoot = PreviousFormFieldBuilder<'root', {}>
 export type PreviousFormField = (
     PreviousFormFieldRoot
   | PreviousFormFieldAfter
   | PreviousFormFieldEquals
+  | PreviousFormCompoundLogic
 )
 
 export type FormSubField = { id: string }

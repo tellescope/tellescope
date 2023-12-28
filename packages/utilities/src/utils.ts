@@ -1,5 +1,5 @@
 import { ObjectId } from "bson"
-import { CalendarEvent, CompoundFilter, Enduser, EnduserRelationship, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, TableInputCell, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus } from "@tellescope/types-models"
+import { CalendarEvent, CompoundFilter, Enduser, EnduserRelationship, FormResponseValue, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, TableInputCell, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus } from "@tellescope/types-models"
 import { ADMIN_ROLE, get_inverse_relationship_type } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 
@@ -1282,4 +1282,86 @@ export const batch_array = <T>(array: T[], size: number) => {
   }
 
   return batches
+}
+
+// keep consistent with convert_form_logic_to_filter logic in analytics.ts
+export const responses_satisfy_conditions = (responses: FormResponseValue[], conditions: CompoundFilter<string>): boolean => {
+  const key = Object.keys(conditions)[0] as '$and' | '$or' | 'condition' | 'string' // string is form id
+  if (key === '$and') {
+    const andConditions = conditions[key] as CompoundFilter<string>[]
+    for (const c of andConditions) {
+      if (!responses_satisfy_conditions(responses, c)) {
+        return false
+      }
+    }
+
+    return true
+  } else if (key === '$or') {
+    const orConditions = conditions[key] as CompoundFilter<string>[]
+    for (const c of orConditions) {
+      if (responses_satisfy_conditions(responses, c)) {
+        return true
+      }
+    }
+
+    return false
+  } else if (key === 'condition') {
+    const fieldId = Object.keys(conditions[key] as object)[0]
+    const answer = responses.find(r => r.fieldId === fieldId)?.answer
+    if (!answer) return false
+
+    const comparison = (conditions[key] as Indexable)[fieldId]
+    if (typeof comparison === 'string') {
+      if (answer.type === 'Database Select' && answer.value?.length) {
+        return (
+          !!answer.value.find(v => v?.text === comparison)
+        )
+      }
+
+      return (
+        Array.isArray(answer.value)
+          ? (answer.value as string[]).includes(comparison)
+          : answer.value === comparison
+      )
+    } else {
+      const condition = Object.keys(comparison)[0] as '$exists' | '$contains' | '$doesNotContain' | '$range'
+      const conditionValue = comparison[condition]
+
+      if (condition === '$exists') {
+        return (
+             answer.value !== undefined
+          && answer.value !== null
+          && answer.value !== ''
+          && !(Array.isArray(answer.value) && answer.value.length === 0)
+        ) === conditionValue
+      } else if (condition === '$contains' || condition === '$doesNotContain') {
+        if (answer.value === undefined || answer.value === null || answer.value === '') {
+          return condition === '$doesNotContain' // empty responses cannot contain anything
+        }
+        if (answer.type === 'Database Select' && answer.value?.length) {
+          const contains = !!answer.value.find(v => v.text?.includes(conditionValue))
+          return (
+             (contains && condition === '$contains')
+          || (!contains && condition === '$doesNotContain') 
+          )
+        }
+        if (Array.isArray(answer.value)) {
+          const contains = (answer.value as string[]).find(v => typeof v === 'string' && v.includes(conditionValue))
+          return (
+             (contains && condition === '$contains')
+          || (!contains && condition === '$doesNotContain') 
+          )
+        }
+        if (typeof answer.value === 'string') {
+          const contains = answer.value.includes(conditionValue)
+          return (
+             (contains && condition === '$contains')
+          || (!contains && condition === '$doesNotContain') 
+          )
+        }
+      }
+    }
+  }
+
+  return true
 }
