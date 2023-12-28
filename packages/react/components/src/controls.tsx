@@ -187,12 +187,12 @@ export const ClickToDownloadFileComponent = ({
   )
 }
 
-export const useDownloadSecureFile = () => {
+export const useDownloadSecureFile = (options: { preferInBrowser?: boolean }) => {
   const session = useResolvedSession()
   return {
     downloadFile: async (secureName: string) => {
       // should be cached by API so no need to optimize with client-side state
-      const { downloadURL } = await session.api.files.file_download_URL({ secureName })
+      const { downloadURL } = await session.api.files.file_download_URL({ secureName, ...options })
       return downloadURL
     }
   } 

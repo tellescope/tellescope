@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect } from "react"
-import { Button, Flex, LoadingButton, Paper, Styled, Typography, useFileUpload, useFormResponses, useSession } from "../index"
+import { Button, Flex, LoadingButton, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
 import { AddressInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, FileInput, FilesInput, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
-import { FormResponse, FormField } from "@tellescope/types-client"
+import { FormResponse, FormField, Form } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
 import { remove_script_tags } from "@tellescope/utilities"
 
@@ -67,6 +67,7 @@ const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ chil
 }
 
 export interface TellescopeFormProps extends ReturnType<typeof useTellescopeForm> {
+  form?: Form,
   isPreview?: boolean,
   onSuccess?: (r: FormResponse) => void,
   customInputs?: FormInputs
@@ -89,6 +90,7 @@ export const TellescopeForm = (props : TellescopeFormProps & Styled & { hideBg?:
 )
 
 export const QuestionForField = ({
+  form,
   value,
   field,
   file,
@@ -104,6 +106,7 @@ export const QuestionForField = ({
   setCustomerId,
   handleDatabaseSelect,
 } : {
+  form?: Form,
   repeats: Record<string, string | number>,
   onRepeatsChange: (v: Record<string, string | number>) => void,
   value: Response,
@@ -148,7 +151,7 @@ export const QuestionForField = ({
 
       {
         field.type === 'file' ? (
-          <File field={field} value={file.blobs?.[0] as any} onChange={onAddFile as any} 
+          <File field={field} value={file.blobs?.[0] as any} onChange={onAddFile as any} form={form}
             existingFileName={
               value.answer.type === 'file'
                 ? value.answer.value?.name
@@ -157,7 +160,7 @@ export const QuestionForField = ({
           />
         )
         : field.type === 'files' ? (
-          <Files field={field} value={file.blobs as any} onChange={onAddFile as any} 
+          <Files field={field} value={file.blobs as any} onChange={onAddFile as any} form={form}
             // existingFileName={
             //   value.answer.type === 'files'
             //     ? value.answer.value?.name
@@ -166,64 +169,64 @@ export const QuestionForField = ({
           />
         )
         : field.type === 'dateString' ? (
-          <DateStringInput field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} />
+          <DateStringInput field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} form={form} />
         )
         : field.type === 'Address' ? (
-          <Address field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} />
+          <Address field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'Related Contacts' ? (
-          <RelatedContacts field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} />
+          <RelatedContacts field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'string' ? (
-          <String field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} />
+          <String field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} form={form} />
         )
         : field.type === 'Stripe' ? (
-          <Stripe field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} setCustomerId={setCustomerId} />
+          <Stripe field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} setCustomerId={setCustomerId} form={form} />
         )
         : field.type === 'stringLong' ? (
-          <StringLong field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string' | 'stringLong'>} />
+          <StringLong field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string' | 'stringLong'>} form={form} />
         )
         : field.type === 'email' ? (
-          <Email field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'email'>} />
+          <Email field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'email'>} form={form} />
         )
         : field.type === 'number' ? (
-          <Number field={field} value={value.answer.value as number} onChange={onFieldChange as ChangeHandler<'number'>} />
+          <Number field={field} value={value.answer.value as number} onChange={onFieldChange as ChangeHandler<'number'>} form={form} />
         )
         : field.type === 'phone' ? (
-          <Phone field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'phone'>} />
+          <Phone field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'phone'>} form={form} />
         )
         : field.type === 'date' ? (
-          <ResolvedDateInput field={field} value={value.answer.value ? new Date(value.answer.value as string | Date) : undefined} onChange={onFieldChange as ChangeHandler<'date'>} />
+          <ResolvedDateInput field={field} value={value.answer.value ? new Date(value.answer.value as string | Date) : undefined} onChange={onFieldChange as ChangeHandler<'date'>} form={form} />
         )
         : field.type === 'signature' ? (
-          <Signature field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'signature'>} />
+          <Signature field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'signature'>} form={form}/>
         )
         : field.type === 'multiple_choice' ? (
-          <MultipleChoice field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'multiple_choice'>} />
+          <MultipleChoice field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'multiple_choice'>} form={form}/>
         )
         : field.type === 'Dropdown' ? (
-          <Dropdown field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Dropdown'>} />
+          <Dropdown field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Dropdown'>} form={form}/>
         )
         : field.type === 'Database Select' ? (
           <DatabaseSelect field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Database Select'>} 
             onDatabaseSelect={handleDatabaseSelect}
-            responses={responses}
+            responses={responses} form={form}
           />
         )
         : field.type === 'Medications' ? (
-          <Medications field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Medications'>} />
+          <Medications field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Medications'>} form={form}/>
         )
         : field.type === 'rating' ? (
-          <Rating field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'rating'>} />
+          <Rating field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'rating'>} form={form}/>
         )
         : field.type === 'ranking' ? (
-          <Ranking field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'ranking'>} />
+          <Ranking field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'ranking'>} form={form}/>
         )
         : field.type === 'Table Input' ? (
-          <TableInput field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} />
+          <TableInput field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form}/>
         )
         : field.type === 'Time' ? (
-          <Time field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} />
+          <Time field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form}/>
         )
         : field.type === 'Question Group' ? (
           <Flex column flex={1}>
@@ -239,6 +242,7 @@ export const QuestionForField = ({
             return (
               <Flex key={id} flex={1}>
                 <QuestionForField customInputs={customInputs} field={match} fields={fields} handleDatabaseSelect={handleDatabaseSelect}
+                  form={form}
                   repeats={repeats} onRepeatsChange={onRepeatsChange} setCustomerId={setCustomerId}
                   value={value} file={file} 
                   onAddFile={onAddFile} onFieldChange={onFieldChange}
@@ -257,13 +261,13 @@ export const QuestionForField = ({
         <Flex style={{ marginTop: '8px' }}>
         {
           field.type === 'string' ? (
-            <String field={field} label="Repeat" value={repeats[field.id] as string ?? ''} onChange={u => onRepeatsChange({ ...repeats, [field.id]: u! })} />
+            <String field={field} label="Repeat" value={repeats[field.id] as string ?? ''} onChange={u => onRepeatsChange({ ...repeats, [field.id]: u! })} form={form} />
           )
           : field.type === 'stringLong' ? (
-            <StringLong field={field} label="Repeat" value={repeats[field.id] as string ?? ''} onChange={u => onRepeatsChange({ ...repeats, [field.id]: u! })} />
+            <StringLong field={field} label="Repeat" value={repeats[field.id] as string ?? ''} onChange={u => onRepeatsChange({ ...repeats, [field.id]: u! })} form={form} />
           ) 
           : field.type === 'number' ? (
-            <Number field={field} label="Repeat" value={repeats[field.id] as number ?? ''} onChange={u => onRepeatsChange({ ...repeats, [field.id]: u! })} />
+            <Number field={field} label="Repeat" value={repeats[field.id] as number ?? ''} onChange={u => onRepeatsChange({ ...repeats, [field.id]: u! })} form={form} />
           )
           : null
         }
@@ -274,9 +278,9 @@ export const QuestionForField = ({
         <Typography color="error" style={{ marginTop: 3, height: 10, fontSize: 14, marginBottom: -10 }}> 
           {(validationMessage === 'A response is required' || validationMessage === 'A value must be checked' || validationMessage === 'A file is required')
             ? value.touched 
-              ? validationMessage
+              ? form_display_text_for_language(form, validationMessage)
               : null 
-            : validationMessage
+            : form_display_text_for_language(form, validationMessage)
           }
         </Typography>  
       }
@@ -285,6 +289,7 @@ export const QuestionForField = ({
 }
 
 export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
+  form,
   activeField, 
   currentFileValue,
   customInputs, 
@@ -381,7 +386,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
         <Flex column flex={1}>
           <Flex flex={1} justifyContent={"center"} column>
             <Flex style={inputStyle}>
-              <QuestionForField fields={fields} field={activeField.value} 
+              <QuestionForField form={form} fields={fields} field={activeField.value} 
                 handleDatabaseSelect={handleDatabaseSelect}
                 setCustomerId={setCustomerId}
                 repeats={repeats} onRepeatsChange={setRepeats}
@@ -398,7 +403,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
           {!isPreviousDisabled()
             ? (
               <Button variant="outlined" disabled={isPreviousDisabled()} onClick={goToPreviousField}>
-                Previous
+                {form_display_text_for_language(form, "Previous")}
               </Button>
             )
             : <Flex />
@@ -407,7 +412,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
             ? (
               <LoadingButton onClick={handleSubmit} 
                 disabled={!!validationMessage}
-                submitText="Submit" 
+                submitText={form_display_text_for_language(form, "Submit")}
                 submittingText={
                   submittingStatus === 'uploading-files' 
                     ? 'Uploading files...'
@@ -420,7 +425,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
             )
             : (
               <Button variant="contained" disabled={isNextDisabled()} onClick={goToNextField} style={{ width: 100 }}>
-                Next
+                {form_display_text_for_language(form, "Next")}
               </Button>
             )
           }

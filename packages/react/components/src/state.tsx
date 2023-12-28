@@ -77,6 +77,7 @@ import {
   TicketThreadComment,
   AutomatedAction,
   Configuration,
+  TicketQueue,
 } from "@tellescope/types-client"
 
 import {
@@ -322,6 +323,7 @@ const enduserCustomTypesSlice = createSliceForList<EnduserCustomType, 'enduser_c
 const ticketThreadsSlice = createSliceForList<TicketThread, 'ticket_threads'>('ticket_threads')
 const ticketThreadCommentsSlice = createSliceForList<TicketThreadComment, 'ticket_thread_comments'>('ticket_thread_comments')
 const configurationsSlice = createSliceForList<Configuration, 'configurations'>('configurations')
+const ticketQueuesSlice = createSliceForList<TicketQueue, 'ticket_queues'>('ticket_queues')
 
 const roleBasedAccessPermissionsSlice = createSliceForList<RoleBasedAccessPermission, 'role_based_access_permissions'>('role_based_access_permissions')
 
@@ -330,6 +332,7 @@ const userLogsSlice = createSliceForList<UserLog, 'user_logs'>('user_logs')
 
 export const sharedConfig = {
   reducer: { 
+    ticket_queues: ticketQueuesSlice.reducer,
     automation_triggers: automationTriggersSlice.reducer,
     automated_actions: automatedActionsSlice.reducer,
     enduser_views: enduserViewsSlice.reducer,
@@ -1070,6 +1073,24 @@ export const useEnduserProfileViews = (options={} as HookOptions<EnduserProfileV
       addSome: session.api.enduser_profile_views.createSome,
       deleteOne: session.api.enduser_profile_views.deleteOne,
       updateOne: session.api.enduser_profile_views.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
+export const useTicketQueues = (options={} as HookOptions<TicketQueue>) => {
+  const session = useSession() 
+
+  return useListStateHook('ticket_queues', useTypedSelector(s => s.ticket_queues), session, ticketQueuesSlice,
+    { 
+      loadQuery: session.api.ticket_queues.getSome,
+      findOne: session.api.ticket_queues.getOne,
+      findByIds: session.api.ticket_queues.getByIds,
+      addOne: session.api.ticket_queues.createOne,
+      addSome: session.api.ticket_queues.createSome,
+      deleteOne: session.api.ticket_queues.deleteOne,
+      updateOne: session.api.ticket_queues.updateOne,
     },
     { 
       ...options,

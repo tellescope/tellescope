@@ -186,6 +186,12 @@ export const READ_ONLY_DEFAULT: AccessForResource = {
 }
 
 export const PROVIDER_PERMISSIONS: AccessPermissions = {
+  ticket_queues: {
+    create: NO_ACCESS, // allow for creating self-assigned objects
+    read:   DEFAULT_ACCESS, // only by inclusion in userIds should it be accessible by default
+    update: NO_ACCESS,
+    delete: NO_ACCESS,
+  },
   enduser_custom_types: READ_ONLY_ALL,
   superbill_providers: READ_ONLY_ALL,
   superbills: ASSIGNED_AND_DEFAULT_ACCESS,
@@ -291,6 +297,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
+  ticket_queues: FULL_ACCESS,
   phone_trees: FULL_ACCESS,
   configurations: FULL_ACCESS,
   referral_providers: FULL_ACCESS,

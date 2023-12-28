@@ -12,7 +12,7 @@ import LinearProgress from '@mui/material/LinearProgress';
 
 import DatePicker from "react-datepicker";
 import { datepickerCSS } from "./css/react-datepicker" // avoids build issue with RN
-import { CancelIcon, FileBlob, IconButton, LabeledIconButton, Styled, isDateString, useProducts, useResolvedSession } from ".."
+import { CancelIcon, FileBlob, IconButton, LabeledIconButton, Styled, form_display_text_for_language, isDateString, useProducts, useResolvedSession } from ".."
 import { DatabaseRecord, FormField } from "@tellescope/types-client"
 import { css } from '@emotion/css'
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
@@ -415,23 +415,33 @@ export const DateStringInput = ({ field, value, onChange, ...props }: FormInputP
       )
   )
 }
-export const StringInput = ({ field, value, onChange, ...props }: FormInputProps<'string'>) => (
-  <AutoFocusTextField {...props} required={!field.isOptional} fullWidth value={value} placeholder="Answer here..." onChange={e => onChange(e.target.value, field.id)} />
+export const StringInput = ({ field, value, form, onChange, ...props }: FormInputProps<'string'>) => (
+  <AutoFocusTextField {...props} required={!field.isOptional} fullWidth value={value} onChange={e => onChange(e.target.value, field.id)} 
+    placeholder={form_display_text_for_language(form, "Answer here...", '')} 
+  />
 )
-export const StringLongInput = ({ field, value, onChange, ...props }: FormInputProps<'string'>) => (
-  <AutoFocusTextField {...props} multiline minRows={3} maxRows={8} required={!field.isOptional} fullWidth value={value} placeholder="Answer here..." onChange={e => onChange(e.target.value, field.id)} />
-)
-
-export const PhoneInput = ({ field, value, onChange, ...props }: FormInputProps<'phone'>) => (
-  <AutoFocusTextField {...props} required={!field.isOptional} fullWidth placeholder="Enter phone..." value={value} onChange={e => onChange(e.target.value, field.id)} />
-)
-
-export const EmailInput = ({ field, value, onChange, ...props }: FormInputProps<'email'>) => (
-  <AutoFocusTextField {...props} required={!field.isOptional} fullWidth placeholder="Enter email..." type="email" value={value} onChange={e => onChange(e.target.value, field.id)} />
+export const StringLongInput = ({ field, value, onChange, form, ...props }: FormInputProps<'string'>) => (
+  <AutoFocusTextField {...props} multiline minRows={3} maxRows={8} required={!field.isOptional} fullWidth value={value} onChange={e => onChange(e.target.value, field.id)}  
+    placeholder={form_display_text_for_language(form, "Answer here...", '')} 
+  />
 )
 
-export const NumberInput = ({ field, value, onChange, ...props }: FormInputProps<'number'>) => (
-  <AutoFocusTextField {...props} required={!field.isOptional} fullWidth placeholder="Enter a number..." type="number" value={value} onChange={e => onChange(parseInt(e.target.value), field.id)} />
+export const PhoneInput = ({ field, value, onChange, form, ...props }: FormInputProps<'phone'>) => (
+  <AutoFocusTextField {...props} required={!field.isOptional} fullWidth value={value} onChange={e => onChange(e.target.value, field.id)} 
+    placeholder={form_display_text_for_language(form, "Enter phone...", '')}
+  />
+)
+
+export const EmailInput = ({ field, value, onChange, form, ...props }: FormInputProps<'email'>) => (
+  <AutoFocusTextField {...props} required={!field.isOptional} fullWidth type="email" value={value} onChange={e => onChange(e.target.value, field.id)} 
+    placeholder={form_display_text_for_language(form, "Enter email...", '')}
+  />
+)
+
+export const NumberInput = ({ field, value, onChange, form, ...props }: FormInputProps<'number'>) => (
+  <AutoFocusTextField {...props} required={!field.isOptional} fullWidth type="number" value={value} onChange={e => onChange(parseInt(e.target.value), field.id)}  
+    placeholder={form_display_text_for_language(form, "Enter a number...", '')}
+  />
 )
 
 

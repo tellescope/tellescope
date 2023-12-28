@@ -232,6 +232,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedIterable?: boolean,
   hasConnectedZendesk?: boolean,
   hasConnectedZus?: boolean,
+  hasTicketQueues?: boolean,
   zendeskSettings?: { priorityGroups?: string[], resolutionFieldId?: string, resolutionFieldOptions?: string[] }
   replyToAllEmails?: string,
   forwardAllIncomingEmailsTo?: string,
@@ -318,6 +319,7 @@ export interface UserSession extends Session, OrganizationLimits { // User joine
   limits?: OrganizationLimits, 
   uiRestrictions?: UserUIRestrictions
   dashboardView?: CustomDashboardView,
+  hasTicketQueues?: boolean,
 }
 
 export type StateCredentialInfo = {
@@ -957,6 +959,8 @@ export interface Ticket_required {
 }
 export interface Ticket_updatesDisabled {}
 export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updatesDisabled {
+  queueId?: string,
+  dequeuedAt?: Date | '',
   enduserId?: string;
   closedAt?: Date | '';
   closedBy?: string,
@@ -1183,6 +1187,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   customTypeIds?: string[],
   lockResponsesOnSubmission?: boolean,
   tags?: string[]
+  language?: string,
 }
 
 
@@ -1859,6 +1864,10 @@ interface AutomationActionBuilder <T extends string, V extends object> {
   info: V,
 }
 
+export type AssignToQueueInfo = {
+  queueId: string,
+}
+
 export type CreateTicketAssignmentStrategies = {
   'care-team-random': {
     type: 'care-team-random',
@@ -1875,6 +1884,10 @@ export type CreateTicketAssignmentStrategies = {
   'previous-owner': {
     type: 'previous-owner',
     info: {}, 
+  },
+  'queue': {
+    type: 'queue',
+    info: AssignToQueueInfo, 
   },
   'default': {
     type: 'default',
@@ -2912,7 +2925,20 @@ export interface Configuration_required {
 }
 export interface Configuration extends Configuration_readonly, Configuration_required, Configuration_updatesDisabled {}
 
+export interface TicketQueue_readonly extends ClientRecord {
+  count?: number,
+}
+export interface TicketQueue_updatesDisabled {}
+export interface TicketQueue_required {
+  title: string,
+  userIds: string[]
+}
+export interface TicketQueue extends TicketQueue_readonly, TicketQueue_required, TicketQueue_updatesDisabled {
+
+}
+
 export type ModelForName_required = {
+  ticket_queues: TicketQueue_required,
   ticket_threads: TicketThread_required,
   ticket_thread_comments: TicketThreadComment_required,
   enduser_custom_types: EnduserCustomType_required,
@@ -2982,6 +3008,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  ticket_queues: TicketQueue_readonly,
   configurations: Configuration_readonly,
   ticket_threads: TicketThread_readonly,
   ticket_thread_comments: TicketThreadComment_readonly,
@@ -3051,6 +3078,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  ticket_queues: TicketQueue_updatesDisabled,
   configurations: Configuration_updatesDisabled,
   ticket_threads: TicketThread_updatesDisabled,
   ticket_thread_comments: TicketThreadComment_updatesDisabled,
@@ -3120,6 +3148,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly {
+  ticket_queues: TicketQueue,
   configurations: Configuration,
   ticket_threads: TicketThread,
   ticket_thread_comments: TicketThreadComment,
@@ -3199,6 +3228,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  ticket_queues: true,
   configurations: true,
   ticket_thread_comments: true,
   ticket_threads: true,

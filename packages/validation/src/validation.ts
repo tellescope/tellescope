@@ -248,6 +248,7 @@ import {
   CustomDashboardViewBlock,
   ZusSyncAutomationAction,
   FormResponseAnswerRelatedContacts,
+  AssignToQueueInfo,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -2323,6 +2324,12 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
           type: exactMatchValidator<'by-tags'>(['by-tags']),
           info: listOfStringsWithQualifierValidator,
         }),
+        'queue': objectValidator<CreateTicketAssignmentStrategy>({ 
+          type: exactMatchValidator<'queue'>(['queue']),
+          info: objectValidator<AssignToQueueInfo>({
+            queueId: mongoIdStringRequired,
+          }),
+        }),
         'default': objectValidator<CreateTicketAssignmentStrategy>({ 
           type: exactMatchValidator<'default'>(['default']),
           info: objectValidator<object>({}, { emptyOk: true }),
@@ -3359,6 +3366,7 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   ticket_thread_comments: accessPermissionValidator,
   ticket_threads: accessPermissionValidator,
   configurations: accessPermissionValidator,
+  ticket_queues: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
@@ -3430,6 +3438,7 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   ticket_threads: numberValidatorOptional,
   ticket_thread_comments: numberValidatorOptional,
   configurations: numberValidatorOptional,
+  ticket_queues: numberValidatorOptional,
 }, { emptyOk: true })
 
 const _LOGIN_FLOW_RESULTS = {

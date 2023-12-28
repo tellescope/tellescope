@@ -5106,6 +5106,8 @@ const test_ticket_automation_assignment_and_optimization = async () => {
 
   const journey = await sdk.api.journeys.createOne({ title: "Testing" })
 
+  const queue = await sdk.api.ticket_queues.createOne({ title: 'test queue', userIds: [] })
+
   let foregroundTestCounter = 0
   const testForegroundTicket = async ({
     assignedTo,
@@ -5122,6 +5124,7 @@ const test_ticket_automation_assignment_and_optimization = async () => {
     enduser?: Enduser,
     testDelayedChild?: boolean,
   }) => {
+
     const e = enduser || await sdk.api.endusers.createOne({ assignedTo, journeys: { [journey.id]: '' } })
 
     const step = await sdk.api.automation_steps.createOne({
@@ -5164,7 +5167,10 @@ const test_ticket_automation_assignment_and_optimization = async () => {
     await async_test(
       `Foreground ticket assignment ${++foregroundTestCounter}`, 
       () => sdk.api.tickets.close_ticket({ ticketId: ticket.id, closedForReason }),
-      { onResult: ({ generated }) => !!generated?.owner && validOwners.includes(generated.owner) }
+      { onResult: ({ generated }) => 
+           (validOwners.length === 0 && generated?.queueId === queue.id && !generated.owner)
+        || (!!generated?.owner && validOwners.includes(generated.owner) )
+      }
     ) 
     await async_test(
       `Foreground ticket nop, no duplicates`,
@@ -5196,6 +5202,15 @@ const test_ticket_automation_assignment_and_optimization = async () => {
     ])
   }
 
+  await testForegroundTicket({ 
+    assignedTo: [],  
+    info: { 
+      assignmentStrategy: { type: 'queue', info: { queueId: queue.id } } , 
+      defaultAssignee: sdk.userInfo.id 
+    },
+    validOwners: [],
+    testDelayedChild: true,
+  })
   await testForegroundTicket({ 
     assignedTo: [],  
     info: { 
@@ -5298,13 +5313,28 @@ const test_ticket_automation_assignment_and_optimization = async () => {
 
     await async_test(
       `Background ticket assignment ${++backgroundTestCounter}`, 
-      () => pollForResults(() => sdk.api.tickets.getSome({ filter: { enduserId: e.id, title: 'background ticket' } }), t => !!t.length),
-      { onResult: ts => ts.length === 1 && !!ts[0].owner && validOwners.includes(ts[0].owner) }
+      () => pollForResults(() => sdk.api.tickets.getSome({ filter: { enduserId: e.id, title: 'background ticket' } }), t => !!t.length, 500, 20),
+      { 
+        onResult: ts => (
+          ts.length === 1 && (
+            (validOwners.length === 0 && ts[0].queueId === queue.id && !ts[0].owner)
+          ||(!!ts[0].owner && validOwners.includes(ts[0].owner) )
+          )
+        )
+      }
     ) 
 
     await sdk.api.endusers.deleteOne(e.id)
   }
 
+  await testBackgroundTicket({ 
+    assignedTo: [],  
+    info: { 
+      assignmentStrategy: { type: 'queue', info: { queueId: queue.id } } , 
+      defaultAssignee: sdk.userInfo.id 
+    },
+    validOwners: [],
+  })
   await testBackgroundTicket({ 
     assignedTo: [],  
     info: { 
@@ -5380,7 +5410,8 @@ const test_ticket_automation_assignment_and_optimization = async () => {
   })
 
   return Promise.all([
-    await sdk.api.journeys.deleteOne(journey.id)
+    await sdk.api.journeys.deleteOne(journey.id),
+    await sdk.api.ticket_queues.deleteOne(queue.id),
   ])
 }
 
@@ -5555,8 +5586,107 @@ export const no_chained_triggers_tests = async () => {
   ])
 }
 
+export const ticket_queue_tests = async () => {
+  log_header("Ticket Queue Tests")
+
+  const queue = await sdk.api.ticket_queues.createOne({ title: 'queue', userIds: [sdkNonAdmin.userInfo.id] })
+  const queueUnshared = await sdk.api.ticket_queues.createOne({ title: 'queue unshared', userIds: [] })
+
+  const enduser = await sdk.api.endusers.createOne({ fname: 'ticket' })
+
+  const ticket = await sdk.api.tickets.createOne({ title: 'ticket in queue', queueId: queue.id, enduserId: enduser.id })
+  const ticketUnshared = await sdk.api.tickets.createOne({ title: 'ticket no access', queueId: queueUnshared.id })
+
+  await async_test(
+    `Admin ticket access`, 
+    sdk.api.tickets.getSome,
+    { onResult: ts => ts.length === 2 },
+  )
+  await async_test(
+    `Admin ticket access (specified queue)`, 
+    () => sdk.api.tickets.getSome({ filter: { queueId: queue.id }}),
+    { onResult: ts => ts.length === 1 },
+  )
+  await async_test(
+    `Admin ticket access (specified queue, other)`, 
+    () => sdk.api.tickets.getSome({ filter: { queueId: queueUnshared.id }}),
+    { onResult: ts => ts.length === 1 },
+  )
+  await async_test(
+    `Non-Admin ticket access (unspecified queue)`, 
+    sdkNonAdmin.api.tickets.getSome,
+    { onResult: ts => ts.length === 0 },
+  )
+  await async_test(
+    `Non-Admin ticket access (specified queue)`, 
+    () => sdkNonAdmin.api.tickets.getSome({ filter: { queueId: queue.id }}),
+    { onResult: ts => ts.length === 1 },
+  )
+  await async_test(
+    `Non-Admin ticket access (specified queue, no access)`, 
+    () => sdkNonAdmin.api.tickets.getSome({ filter: { queueId: queueUnshared.id }}),
+    handleAnyError
+  )
+
+  await async_test(
+    `Queue caches number of tickets on add`, 
+    () => sdk.api.ticket_queues.getOne(queue.id),
+    { onResult: q => q.count === 1 },
+  )
+  await async_test(
+    `Non-Admin can assign ticket to self`, 
+    () => sdkNonAdmin.api.tickets.assign_from_queue({ ticketId: ticket.id }),
+    { onResult: ({ ticket }) => ticket.owner === sdkNonAdmin.userInfo.id && !ticket.queueId && !!ticket.dequeuedAt }
+  )
+  await async_test(
+    `Ticket can't be double-assigned ticket to self`, 
+    () => sdk.api.tickets.assign_from_queue({ ticketId: ticket.id }),
+    handleAnyError
+  )
+  await async_test(
+    `Non-Admin ticket cannot assign ticket to self when can't access queue`, 
+    () => sdkNonAdmin.api.tickets.assign_from_queue({ ticketId: ticketUnshared.id }),
+    handleAnyError
+  )
+  await async_test(
+    `Non-Admin can access ticket after assignment`, 
+    () => sdkNonAdmin.api.tickets.getOne(ticket.id),
+    { onResult: ticket => ticket.owner === sdkNonAdmin.userInfo.id && !ticket.queueId && !!ticket }
+  )
+
+  await async_test(
+    `Queue caches number of tickets on assignment`, 
+    () => pollForResults(
+      () => sdk.api.ticket_queues.getOne(queue.id),
+      q => q.count === 0,
+      50,
+      10
+    ),
+    passOnAnyResult
+  )
+  await async_test(
+    `Queue caches number of tickets on assignment`, 
+    () => pollForResults(
+      () => sdkNonAdmin.api.endusers.getOne(enduser.id),
+      e => !!e.assignedTo?.includes(sdkNonAdmin.userInfo.id),
+      50,
+      10
+    ),
+    passOnAnyResult
+  )
+
+
+  await Promise.all([
+    sdk.api.ticket_queues.deleteOne(queue.id),
+    sdk.api.ticket_queues.deleteOne(queueUnshared.id),
+    sdk.api.endusers.deleteOne(enduser.id), // cleans up ticket
+    sdk.api.tickets.deleteOne(ticketUnshared.id),
+  ])
+}
+
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
+  ticket_queues: NO_TEST,
   phone_trees: NO_TEST,
   enduser_medications: NO_TEST,
   automation_triggers: NO_TEST,
@@ -5695,6 +5825,7 @@ const validate_schema = () => {
     await mfa_tests()
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await ticket_queue_tests()
     await no_chained_triggers_tests()
     await field_equals_trigger_tests()
     await test_ticket_automation_assignment_and_optimization()

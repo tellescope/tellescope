@@ -526,7 +526,7 @@ export type CustomActions = {
     }, 
       { presignedUpload: object, file: File }
     >,
-    file_download_URL: CustomAction<{ secureName: string }, { downloadURL: string, name: string }>,
+    file_download_URL: CustomAction<{ secureName: string, preferInBrowser?: boolean, }, { downloadURL: string, name: string }>,
   },
   form_fields: {
     load_choices_from_database: CustomAction<{ fieldId: string, lastId?: string, limit?: number, }, { choices: DatabaseRecordClient[] }>,
@@ -809,6 +809,7 @@ export type CustomActions = {
     close_ticket: CustomAction<{ ticketId: string, closedForReason?: string }, { updated: Ticket, generated?: Ticket }>,
     update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
     get_report: CustomAction<{ title?: string, titles?: string[], userId?: string, range?: DateRange }, { report: TicketsReport }>,
+    assign_from_queue: CustomAction<{ ticketId: string }, { ticket: Ticket }>,
   },
   appointment_booking_pages: {
     generate_access_token: CustomAction<{ expiresAt: Date, bookingPageId?: string }, { token: string }>,
@@ -2920,6 +2921,7 @@ export const schema: SchemaV1 = build_schema({
         description: "Generates a temporary download link for a file (which expires in no more than 7 days).",
         parameters: { 
           secureName: { validator: stringValidator250, required: true },
+          preferInBrowser: { validator: booleanValidator },
         },
         returns: { 
           downloadURL: { validator: stringValidator250, required: true },
@@ -2951,6 +2953,18 @@ export const schema: SchemaV1 = build_schema({
     },
     defaultActions: DEFAULT_OPERATIONS,
     customActions: {
+      assign_from_queue: {
+        op: "custom", access: 'update', method: "patch",
+        name: 'Assign From Queue',
+        path: '/tickets/assign-from-queue',
+        description: "Takes a ticket from a queue and assigns to the caller of this endpoint",
+        parameters: { 
+          ticketId: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: {
+          ticket: { validator: 'ticket' as any, required: true },
+        },
+      },
       update_indexes: {
         op: "custom", access: 'update', method: "patch",
         name: 'Update Indexes',
@@ -3055,6 +3069,7 @@ export const schema: SchemaV1 = build_schema({
       attachments: { validator: listOfChatAttachmentsValidator },
       snoozes: { validator: ticketSnoozesValidator },
       requireConfirmation: { validator: booleanValidator },
+      queueId: { validator: mongoIdStringValidator }, // required for worker to be able to add ticket to queue
     }
   },
   meetings: {
@@ -3314,6 +3329,7 @@ export const schema: SchemaV1 = build_schema({
       customTypeIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
       lockResponsesOnSubmission: { validator: booleanValidatorOptional },
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      language: { validator: stringValidator },
     }
   },
   form_fields: {
@@ -5028,6 +5044,7 @@ export const schema: SchemaV1 = build_schema({
         })
       },
       zusIsConnected: { validator: booleanValidator },
+      hasTicketQueues: { validator: booleanValidator },
     },
   },
   databases: {
@@ -6267,6 +6284,23 @@ export const schema: SchemaV1 = build_schema({
       ...BuiltInFields, 
       type: { validator: stringValidator250, examples: ['string'] },
       value: { validator: stringValidator100000OptionalEmptyOkay, examples: ['string'] },
+    },
+  },
+  ticket_queues: {
+    info: {},
+    constraints: { 
+      unique: ['title'], relationship: [], 
+      access: [
+        { type: 'filter', field: 'userIds' }, 
+      ]  
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      title: { validator: stringValidator, required: true, examples: ['Title']},
+      userIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] },
     },
   },
 })

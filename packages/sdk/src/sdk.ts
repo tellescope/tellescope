@@ -191,6 +191,7 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   ticket_threads: defaultQueries(s, 'ticket_threads'), 
   ticket_thread_comments: defaultQueries(s, 'ticket_thread_comments'), 
   configurations: defaultQueries(s, 'configurations'), 
+  ticket_queues: defaultQueries(s, 'ticket_queues'), 
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
@@ -552,6 +553,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     update_indexes: (args: extractFields<CustomActions['tickets']['update_indexes']['parameters']>) => (
       Promise<extractFields<CustomActions['tickets']['update_indexes']['returns']>>
     ),
+    assign_from_queue: (args: extractFields<CustomActions['tickets']['assign_from_queue']['parameters']>) => (
+      Promise<extractFields<CustomActions['tickets']['assign_from_queue']['returns']>>
+    ),
     get_report: (args: extractFields<CustomActions['tickets']['get_report']['parameters']>) => (
       Promise<extractFields<CustomActions['tickets']['get_report']['returns']>>
     ),
@@ -583,6 +587,7 @@ type UserInfo = User & {
   limits?: OrganizationLimits,
   uiRestrictions?: UserUIRestrictions,
   requiresMFA?: boolean,
+  hasTicketQueues?: boolean,
 }
 
 export type BulkLoadOptions = {
@@ -747,6 +752,7 @@ export class Session extends SessionManager {
     queries.automation_triggers.trigger_events = a => this._POST(`/v1/${schema.automation_triggers.customActions.trigger_events.path}`, a)
 
     queries.tickets.update_indexes = a => this._PATCH(`/v1/${schema.tickets.customActions.update_indexes.path}`, a)
+    queries.tickets.assign_from_queue = a => this._PATCH(`/v1/${schema.tickets.customActions.assign_from_queue.path}`, a)
     queries.tickets.get_report = a => this._POST(`/v1/${schema.tickets.customActions.get_report.path}`, a)
     queries.tickets.close_ticket = a => this._POST(`/v1/${schema.tickets.customActions.close_ticket.path}`, a)
 

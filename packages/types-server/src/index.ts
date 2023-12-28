@@ -76,6 +76,7 @@ export type EmailSyncDenial = ServerModelForName['email_sync_denials']
 export type TicketThread = ServerModelForName['ticket_threads']
 export type TicketThreadComment = ServerModelForName['ticket_thread_comments']
 export type Configuration = ServerModelForName['configurations']
+export type TicketQueue = ServerModelForName['ticket_queues']
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']
