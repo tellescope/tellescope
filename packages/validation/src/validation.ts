@@ -3999,6 +3999,7 @@ export const formCustomizationValidator = objectValidator<Form['customization']>
   publicFormSubmitHTMLDescription: stringValidator5000OptionalEmptyOkay, // all strings should be optional or empty ok!
   publicLabelPrefix: stringValidator5000OptionalEmptyOkay, // all strings should be optional or empty ok!
   hideProgressBar: booleanValidatorOptional,
+  hideLogo: booleanValidatorOptional,
   showRestartAtEnd: booleanValidatorOptional,
 })
 

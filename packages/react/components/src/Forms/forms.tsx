@@ -15,6 +15,7 @@ export const TellescopeFormContainer = ({ businessId, organizationIds, ...props 
   children: React.ReactNode, 
   hideBg?: boolean,
   backgroundColor?: string,
+  hideLogo?: boolean,
 } & Styled) => {
   // if context already is provided, no need to duplicate
   if (props.dontAddContext) return (
@@ -28,22 +29,24 @@ export const TellescopeFormContainer = ({ businessId, organizationIds, ...props 
   )
 }
 
-const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ children, style, hideBg, backgroundColor }) => {
+const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ children, style, hideBg, backgroundColor, hideLogo }) => {
   const theme = useOrganizationTheme()
 
   const formContent = (
     <Flex flex={1} column>
-      {theme.logoURL 
-        ? (
-          <Flex alignItems="center" justifyContent={"center"} style={{ maxHeight: LOGO_HEIGHT, marginTop: 10 }}>
-            <img src={theme.logoURL} alt={theme.name} style={{ maxHeight: LOGO_HEIGHT, maxWidth: 225 }} /> {/* todo: replace with something that resolves better for native */}          
-          </Flex>
-        )
-        : (
-          <Typography style={{ fontSize: 22, marginTop: 10, textAlign: 'center', fontWeight: 600 }}>
-            {theme.name}
-          </Typography>
-        )
+      {hideLogo
+        ? null
+        : theme.logoURL 
+          ? (
+            <Flex alignItems="center" justifyContent={"center"} style={{ maxHeight: LOGO_HEIGHT, marginTop: 10 }}>
+              <img src={theme.logoURL} alt={theme.name} style={{ maxHeight: LOGO_HEIGHT, maxWidth: 225 }} /> {/* todo: replace with something that resolves better for native */}          
+            </Flex>
+          )
+          : (
+            <Typography style={{ fontSize: 22, marginTop: 10, textAlign: 'center', fontWeight: 600 }}>
+              {theme.name}
+            </Typography>
+          )
       }
       {children}
     </Flex>
@@ -481,7 +484,9 @@ const TellescopeFormWithContext: typeof TellescopeForm = (props) => {
   const theme = useOrganizationTheme()
 
   return (
-    <TellescopeFormContainer style={props.style} dontAddContext hideBg={props.hideBg} backgroundColor={props.backgroundColor}>
+    <TellescopeFormContainer style={props.style} dontAddContext hideBg={props.hideBg} backgroundColor={props.backgroundColor}
+      hideLogo={props?.customization?.hideLogo}
+    >
       {props.submitted 
         ? <ThanksMessage {...props} showRestartAtEnd={props?.customization?.showRestartAtEnd} /> 
         : (<TellescopeSingleQuestionFlow {...props} theme={theme} />)

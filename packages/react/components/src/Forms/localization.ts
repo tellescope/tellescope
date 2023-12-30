@@ -6,7 +6,7 @@ export const form_display_text_for_language = (form: Form | undefined, text: str
   if (form.language === 'Spanish') {
     if (text === 'First Name') { return "Nombre" }
     if (text === 'Last Name')  { return "Apellido" }
-    if (text === 'Date of Birth')  { return "Cumpleaños" }
+    if (text === 'Date of Birth (MM-DD-YYYY)')  { return "Cumpleaños (MM-DD-AAAA)" }
     if (text === 'Email')  { return "Correo Electrónico" }
     if (text === 'Phone')  { return "Número Celular" }
     if (text === 'State')  { return "Estado" }

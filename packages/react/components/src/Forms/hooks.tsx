@@ -4,7 +4,7 @@ import { ChangeHandler, FormFieldNode } from "./types"
 import { DatabaseRecord, FormField, FormResponse } from "@tellescope/types-client"
 import { phoneValidator } from "@tellescope/validation"
 import { FileBlob, Indexable } from "@tellescope/types-utilities"
-import { FormCustomization, FormResponseAnswerAddress, FormResponseAnswerFileValue, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, OrganizationTheme, PreviousFormCompoundLogic, PreviousFormFieldType } from "@tellescope/types-models"
+import { CompoundFilter, FormCustomization, FormResponseAnswerAddress, FormResponseAnswerFileValue, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, OrganizationTheme, PreviousFormCompoundLogic, PreviousFormFieldType } from "@tellescope/types-models"
 import { WithTheme, contact_is_valid, useFileUpload, useFormFields, useFormResponses, useResolvedSession, value_is_loaded } from "../index"
 import ReactGA from "react-ga4";
 
@@ -79,6 +79,36 @@ export const loopDetected = (edges: (BasicEdge & { id: string })[], startId: str
   return false
 }
 
+export const default_label_for_compound_logic = (f: CompoundFilter<string>): string => {
+  try {
+    if (f.$and) {
+      return `[${f.$and.map(default_label_for_compound_logic).join(' AND ')}]`
+    }
+    if (f.$or) {
+      return `(${f.$or.map(default_label_for_compound_logic).join(' OR ')})`
+    }
+    if (f.condition) {
+      if (typeof f.condition === 'string') return f.condition
+      if (typeof f.condition === 'object') {
+        const key = Object.keys(f.condition).pop()
+        if (!key) return ''
+        if (key === '$exists') return ''
+  
+        const value = f.condition[key]
+        if (typeof value !== 'string') return ''
+  
+        return value
+      }
+    }
+  } catch(err) {
+    console.error(err)
+    return ''
+  }
+  
+
+  return ''
+}
+
 export const COMPOUND_LOGIC_LABEL_SENTINEL = "___compound___"
 export const useGraphForFormFields = (fields: FormField[]) => {
   const edges = [] as {
@@ -101,7 +131,7 @@ export const useGraphForFormFields = (fields: FormField[]) => {
             parent.type === 'previousEquals' 
               ? parent.info.equals // if adding text, make sure that the edge editor is able to remove it first
           : parent.type === 'compoundLogic'
-              ? (parent.info.label || 'Advanced Logic')
+              ? (parent.info.label || default_label_for_compound_logic(parent.info.condition)) // 'Advanced Logic')
               : "Default"
           ),
         })

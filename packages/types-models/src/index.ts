@@ -1158,6 +1158,7 @@ export type FormCustomization = {
   publicLabelPrefix?: string,
   hideProgressBar?: boolean,
   showRestartAtEnd?: boolean,
+  hideLogo?: boolean,
 }
 export interface Form_readonly extends ClientRecord {
   numFields: number,
