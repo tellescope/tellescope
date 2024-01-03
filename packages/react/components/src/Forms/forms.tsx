@@ -414,7 +414,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
           {showSubmit 
             ? (
               <LoadingButton onClick={handleSubmit} 
-                disabled={!!validationMessage}
+                disabled={!!validationMessage || currentValue.field?.options?.disableNext === true}
                 submitText={form_display_text_for_language(form, "Submit")}
                 submittingText={
                   submittingStatus === 'uploading-files' 

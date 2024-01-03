@@ -213,6 +213,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   themeColor?: string;
   themeColorSecondary?: string
   customPortalURL?: string,
+  customPortalURLs?: string[],
   customProviderURL?: string,
   customTermsOfService?: string,
   customPrivacyPolicy?: string,
@@ -1103,6 +1104,8 @@ export type FormFieldOptions = FormFieldValidation & {
   },
   useDatePicker?: boolean,
   sharedIntakeFields?: string[],
+  disableGoBack?: boolean,
+  disableNext?: boolean,
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
@@ -1159,6 +1162,7 @@ export type FormCustomization = {
   hideProgressBar?: boolean,
   showRestartAtEnd?: boolean,
   hideLogo?: boolean,
+  multiPagePublicQuestions?: boolean,
 }
 export interface Form_readonly extends ClientRecord {
   numFields: number,

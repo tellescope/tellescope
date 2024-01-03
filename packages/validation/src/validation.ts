@@ -2652,6 +2652,8 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   }, { isOptional: true, emptyOk: true }),
   useDatePicker: booleanValidatorOptional,
   sharedIntakeFields: listOfStringsValidatorOptionalOrEmptyOk,
+  disableGoBack: booleanValidatorOptional,
+  disableNext: booleanValidatorOptional,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -4001,6 +4003,7 @@ export const formCustomizationValidator = objectValidator<Form['customization']>
   hideProgressBar: booleanValidatorOptional,
   hideLogo: booleanValidatorOptional,
   showRestartAtEnd: booleanValidatorOptional,
+  multiPagePublicQuestions: booleanValidatorOptional,
 })
 
 export const languageValidator = objectValidator<Language>({

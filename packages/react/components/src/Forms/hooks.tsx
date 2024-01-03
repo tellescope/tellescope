@@ -1063,8 +1063,9 @@ export const useTellescopeForm = ({ customization, carePlanId, context, ga4measu
   }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses])
 
   const isPreviousDisabled = useCallback(() => (
-    prevFieldStackRef.current.length === 0
-  ), [prevFieldStackRef])
+      prevFieldStackRef.current.length === 0 
+   || activeField?.value?.options?.disableGoBack === true
+  ), [prevFieldStackRef, activeField?.value?.options?.disableGoBack])
 
   const goToPreviousField = useCallback(() => {
     if (isPreviousDisabled()) return
