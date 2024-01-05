@@ -45,6 +45,7 @@ export const ResponseAnswer = ({ answer: a, printing, onImageClick } : {
           )}
          </div>
         )
+      : a.value === '_question_group' ? <></>
       : a.type === 'ranking'
         ? <ol style={{ margin: 0 }}>
             {a.value.map((t, i) => 

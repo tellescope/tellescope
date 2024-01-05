@@ -2412,6 +2412,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     info: objectValidator<CreateCarePlanAutomationAction['info']>({ 
       title: stringValidator1000, 
       htmlDescription: stringValidator100000EmptyOkay, 
+      hideRemainingTicketsProgress: booleanValidatorOptional,
     }, { emptyOk: false }),
   }),
   completeCarePlan: objectValidator<CompleteCarePlanAutomationAction>({
@@ -4004,6 +4005,7 @@ export const formCustomizationValidator = objectValidator<Form['customization']>
   hideLogo: booleanValidatorOptional,
   showRestartAtEnd: booleanValidatorOptional,
   multiPagePublicQuestions: booleanValidatorOptional,
+  hideBg: booleanValidatorOptional,
 })
 
 export const languageValidator = objectValidator<Language>({

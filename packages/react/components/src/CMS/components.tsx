@@ -8,11 +8,10 @@ import {
 
 export const PDFBlockUI = ({ info }: PDFBlockUIProps) => {
   // support secure links
-  const loadedImage = useFileForSecureName({ secureName: info.link })
-
+  const loadedImage = useFileForSecureName({ secureName: info.link, preferInBrowser: true })
   if (!loadedImage) return null 
 
-  return <PdfViewer url={loadedImage} />
+  return <PdfViewer url={loadedImage} height={750} />
 
   return (
     <HoverPaper style={{ padding: 15, width: '100%' }} 

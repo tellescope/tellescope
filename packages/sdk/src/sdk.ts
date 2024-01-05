@@ -72,6 +72,7 @@ export interface LoadFunctionArguments <T> {
   analyticsQuery?: AnalyticsQuery,
   search?: SearchOptions,
   ids?: string[],
+  returnCount?: boolean,
 }
 
 export type LoadFunction<T> = (o?: LoadFunctionArguments<T>) => Promise<T[]>

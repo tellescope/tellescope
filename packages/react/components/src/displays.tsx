@@ -22,8 +22,10 @@ export const useFileForSecureName = ({
   onError,
   cacheKey=secureName,
   onLoad,
+  preferInBrowser,
 }: { secureName: string, onError?: APIErrorHandler, cacheKey?: string,
   onLoad?: (f: LoadedFile) => void, 
+  preferInBrowser?: boolean,
 }) => {
   const session = useResolvedSession()
   const [loadedImages, setLoadedImages] = useState<{ uri: string, cacheKey: string, name: string }[]>([])
@@ -37,7 +39,7 @@ export const useFileForSecureName = ({
     if (fetchRef.current[cacheKey]) return // already fetching
     fetchRef.current[cacheKey] = true
 
-    session?.api.files.file_download_URL({ secureName })
+    session?.api.files.file_download_URL({ secureName, preferInBrowser })
     .then(({ downloadURL, name }) => {
       onLoad?.({ downloadURL, name })
 
@@ -55,7 +57,7 @@ export const useFileForSecureName = ({
       if (onError) onError?.(err)
       else console.warn("Error getting url for DisplayPicture", err)
     })
-  }, [cacheKey, fetchRef, secureName, loadedImages, onError, session, onLoad])
+  }, [cacheKey, fetchRef, secureName, loadedImages, onError, session, onLoad, preferInBrowser])
 
   return (
     secureName.startsWith('http') 

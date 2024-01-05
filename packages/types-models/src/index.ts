@@ -1124,6 +1124,7 @@ export interface FormField_required {
 }
 export interface FormField_updatesDisabled {}
 export interface FormField extends FormField_readonly, FormField_required, FormField_updatesDisabled {
+  placeholder ?: string,
   isOptional  ?: boolean,
   description ?: string,
   htmlDescription?: string,
@@ -1163,6 +1164,7 @@ export type FormCustomization = {
   showRestartAtEnd?: boolean,
   hideLogo?: boolean,
   multiPagePublicQuestions?: boolean,
+  hideBg?: boolean,
 }
 export interface Form_readonly extends ClientRecord {
   numFields: number,
@@ -1948,7 +1950,7 @@ export type ZendeskCreateTicketAutomationAction = AutomationActionBuilder<'zende
   templateId: string,
   defaultSenderId: string,
 }>
-export type CreateCarePlanAutomationAction = AutomationActionBuilder<'createCarePlan', { title: string, htmlDescription?: string }>
+export type CreateCarePlanAutomationAction = AutomationActionBuilder<'createCarePlan', { title: string, htmlDescription?: string, hideRemainingTicketsProgress?: boolean }>
 export type CompleteCarePlanAutomationAction = AutomationActionBuilder<'completeCarePlan', {}>
 export type ZusSyncAutomationAction = AutomationActionBuilder<'zusSync', {}>
 
@@ -2316,6 +2318,7 @@ export interface CarePlan extends CarePlan_readonly, CarePlan_required, CarePlan
   eventIds?: string[],
   journeyId?: string,
   completedAt?: Date | '',
+  hideRemainingTicketsProgress?: boolean,
 }
 
 export type TypedField = { type?: string, field?: string, }

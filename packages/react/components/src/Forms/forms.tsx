@@ -53,7 +53,7 @@ const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ chil
   )
   if (hideBg) {
     return (
-      <Flex flex={1} alignItems="flex-start" justifyContent="center" style={style}>
+      <Flex flex={1} alignItems="center" justifyContent="center" style={style}>
       <Flex flex={1} style={{ padding: 20, maxWidth: 650, minWidth: 250, minHeight: 475 }}>
         {formContent}
       </Flex>
@@ -484,7 +484,9 @@ const TellescopeFormWithContext: typeof TellescopeForm = (props) => {
   const theme = useOrganizationTheme()
 
   return (
-    <TellescopeFormContainer style={props.style} dontAddContext hideBg={props.hideBg} backgroundColor={props.backgroundColor}
+    <TellescopeFormContainer style={props.style} dontAddContext 
+      hideBg={props.hideBg || props.form?.customization?.hideBg} 
+      backgroundColor={props.backgroundColor}
       hideLogo={props?.customization?.hideLogo}
     >
       {props.submitted 

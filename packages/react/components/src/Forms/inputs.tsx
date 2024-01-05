@@ -1,6 +1,6 @@
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import axios from "axios"
-import { Autocomplete, Box, Button, Checkbox, Divider, FormControl, FormControlLabel, FormLabel, Grid, InputLabel, MenuItem, Radio, RadioGroup, Select, TextField, TextFieldProps, Typography } from "@mui/material"
+import { Autocomplete, Box, Button, Checkbox, Divider, FormControl, FormControlLabel, FormLabel, Grid, InputLabel, MenuItem, Radio, RadioGroup, Select, SxProps, TextField, TextFieldProps, Typography } from "@mui/material"
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { PRIMARY_HEX, RELATIONSHIP_TYPES } from "@tellescope/constants"
@@ -38,7 +38,7 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 import { loadStripe } from '@stripe/stripe-js'; 
 import { CheckCircleOutline, Delete, Edit } from "@mui/icons-material"
 
-export const PdfViewer = ({ url } : { url: string }) => {
+export const PdfViewer = ({ url, height=420 } : { url: string, height?: number }) => {
   // const [numPages, setNumPages] = useState<number>();
   // const [page, setPage] = useState(1);
   
@@ -93,7 +93,7 @@ export const PdfViewer = ({ url } : { url: string }) => {
         title="PDF Viewer"  
         style={{ 
           border: 'none',
-          height: 420,
+          height,
           width: '100%',
           marginBottom: '5px'
         }}
@@ -417,30 +417,30 @@ export const DateStringInput = ({ field, value, onChange, ...props }: FormInputP
 }
 export const StringInput = ({ field, value, form, onChange, ...props }: FormInputProps<'string'>) => (
   <AutoFocusTextField {...props} required={!field.isOptional} fullWidth value={value} onChange={e => onChange(e.target.value, field.id)} 
-    placeholder={form_display_text_for_language(form, "Answer here...", '')} 
+    placeholder={field.placeholder || form_display_text_for_language(form, "Answer here...", '')} 
   />
 )
 export const StringLongInput = ({ field, value, onChange, form, ...props }: FormInputProps<'string'>) => (
   <AutoFocusTextField {...props} multiline minRows={3} maxRows={8} required={!field.isOptional} fullWidth value={value} onChange={e => onChange(e.target.value, field.id)}  
-    placeholder={form_display_text_for_language(form, "Answer here...", '')} 
+    placeholder={field.placeholder || form_display_text_for_language(form, "Answer here...", '')} 
   />
 )
 
 export const PhoneInput = ({ field, value, onChange, form, ...props }: FormInputProps<'phone'>) => (
   <AutoFocusTextField {...props} required={!field.isOptional} fullWidth value={value} onChange={e => onChange(e.target.value, field.id)} 
-    placeholder={form_display_text_for_language(form, "Enter phone...", '')}
+    placeholder={field.placeholder || form_display_text_for_language(form, "Enter phone...", '')}
   />
 )
 
 export const EmailInput = ({ field, value, onChange, form, ...props }: FormInputProps<'email'>) => (
   <AutoFocusTextField {...props} required={!field.isOptional} fullWidth type="email" value={value} onChange={e => onChange(e.target.value, field.id)} 
-    placeholder={form_display_text_for_language(form, "Enter email...", '')}
+    placeholder={field.placeholder || form_display_text_for_language(form, "Enter email...", '')}
   />
 )
 
 export const NumberInput = ({ field, value, onChange, form, ...props }: FormInputProps<'number'>) => (
   <AutoFocusTextField {...props} required={!field.isOptional} fullWidth type="number" value={value} onChange={e => onChange(parseInt(e.target.value), field.id)}  
-    placeholder={form_display_text_for_language(form, "Enter a number...", '')}
+    placeholder={field.placeholder || form_display_text_for_language(form, "Enter a number...", '')}
   />
 )
 
@@ -885,6 +885,16 @@ export const FilesInput = ({ value, onChange, field, existingFileName }: FormInp
   ) 
 }
 
+const multipleChoiceItemSx: SxProps = {
+  border: '1px solid #888888',
+  borderRadius: 2.5,
+  mb: 0.5,
+  cursor: 'pointer',
+  '&:hover': {
+    backgroundColor: '#f0f0f0',
+  },
+}
+
 export const MultipleChoiceInput = ({ field, value: _value, onChange }: FormInputProps<'multiple_choice'>) => {
   const value = typeof _value === 'string' ? [_value] : _value // if loading existingResponses, allows them to be a string
   const { choices, radio, other } = field.options as MultipleChoiceOptions
@@ -897,7 +907,7 @@ export const MultipleChoiceInput = ({ field, value: _value, onChange }: FormInpu
     <Grid container alignItems="center">
       {radio
         ? (
-          <FormControl>
+          <FormControl fullWidth>
             <FormLabel id={`radio-group-${field.id}-label`}>Select One</FormLabel>
             <RadioGroup
               aria-labelledby={`radio-group-${field.id}-label`}
@@ -906,6 +916,8 @@ export const MultipleChoiceInput = ({ field, value: _value, onChange }: FormInpu
             >
             {(choices ?? []).map((c, i) => 
               <FormControlLabel key={i} color="primary" label={c}
+                sx={multipleChoiceItemSx}
+                style={{ marginLeft: '0px' }} // fixes alignment with Select One text
                 checked={!!value?.includes(c) && c !== otherString} // coerce to boolean to keep as controlled input
                 onChange={() => onChange(
                   (
@@ -923,36 +935,39 @@ export const MultipleChoiceInput = ({ field, value: _value, onChange }: FormInpu
                   ),
                   field.id,
                 )} 
-                control={<Radio />}  
+                control={<Radio />}
               />
             )} 
             </RadioGroup>
           </FormControl>
         ) : (
           (choices ?? []).map((c, i) => (
-            <Grid item xs={12} key={i}>
+            <Grid xs={12} key={i}  
+              onClick={() => onChange(
+                (
+                  value?.includes(c)
+                    ? (
+                      radio 
+                        ? []
+                        : value.filter(v => v !== c)
+                    )
+                    : (
+                      radio
+                        ? [c]
+                        : [...(value ?? []), c]
+                    )
+                ),
+                field.id,
+              )}
+            >
+            <Grid container alignItems="center" sx={multipleChoiceItemSx}>
               <Checkbox
                 color="primary"
                 checked={!!value?.includes(c) && c !== otherString} // coerce to boolean to keep as controlled input
-                onClick={() => onChange(
-                  (
-                    value?.includes(c)
-                      ? (
-                        radio 
-                          ? []
-                          : value.filter(v => v !== c)
-                      )
-                      : (
-                        radio
-                          ? [c]
-                          : [...(value ?? []), c]
-                      )
-                  ),
-                  field.id,
-                )}
                 inputProps={{ 'aria-label': 'primary checkbox' }}
               />
               <Typography component="span"> {c} </Typography>
+            </Grid>
             </Grid>
           ))
         )

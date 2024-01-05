@@ -3384,6 +3384,7 @@ export const schema: SchemaV1 = build_schema({
         examples: ["Text"],
       }, 
       headerText: { validator: stringValidator250 },
+      placeholder: { validator: stringValidator },
       type: {
         validator: formFieldTypeValidator,
         examples: ['number'],
@@ -5218,6 +5219,7 @@ export const schema: SchemaV1 = build_schema({
       journeyId: { validator: mongoIdStringValidator },
       completedAt: { validator: dateOptionalOrEmptyStringValidator },
       htmlDescription: { validator: stringValidator100000EmptyOkay },
+      hideRemainingTicketsProgress: { validator: booleanValidator },
     },
   }, 
   role_based_access_permissions: {
@@ -5592,6 +5594,8 @@ export const schema: SchemaV1 = build_schema({
       hiddenBy: { validator: idStringToDateValidator },
       ticketIds: { validator: listOfStringsValidatorEmptyOk },
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+
+      callDurationInSeconds: { validator: numberValidator, readonly: true },
     },
   },
   analytics_frames: {
