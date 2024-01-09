@@ -1000,8 +1000,8 @@ export const MultipleChoiceInput = ({ field, value: _value, onChange }: FormInpu
       {other &&
         <Grid item xs={12}>
           <TextField // className={classes.textField}
-            InputProps={defaultInputProps}
-            style={{ marginLeft: 10 }}
+            InputProps={{ sx: { borderRadius: 2.5 }}} // match Checkbox, not default styles
+            sx={{ width: `calc(100% - 15px)` }}
             size="small"
             aria-label="Other"
             value={otherString} 
