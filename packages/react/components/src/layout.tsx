@@ -70,6 +70,7 @@ export interface Flex_T {
   justifyContent?: CSSProperties['justifyContent'] & ViewStyle['justifyContent'],
   alignSelf?: CSSProperties['alignSelf'] & ViewStyle['alignSelf'],
   component?: "div" | 'span',
+  id?: string,
 }
 
 interface Flex_Web extends Flex_T, Styled, ClickableWeb {
@@ -143,13 +144,13 @@ export const Flex = (props: Flex_Web) => {
   }
 
   if (props.component === 'span') return (
-    <span style={style} onClick={props.onClick ?? props.onPress}>
+    <span style={style} id={props.id} onClick={props.onClick ?? props.onPress}>
       {children}
     </span>
   )
 
   return (
-    <div style={style} onClick={props.onClick ?? props.onPress}>
+    <div style={style} id={props.id} onClick={props.onClick ?? props.onPress}>
       {children}
     </div>
   )

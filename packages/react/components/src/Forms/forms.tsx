@@ -1,12 +1,13 @@
-import React, { useCallback, useEffect } from "react"
-import { Button, Flex, LoadingButton, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
+import React, { useCallback, useEffect, useMemo } from "react"
+import { Button, Flex, LabeledIconButton, LoadingButton, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
 import { AddressInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, FileInput, FilesInput, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
-import { remove_script_tags } from "@tellescope/utilities"
+import { remove_script_tags, truncate_string } from "@tellescope/utilities"
+import { Divider } from "@mui/material"
 
 export const TellescopeFormContainer = ({ businessId, organizationIds, ...props } : { 
   businessId?: string, 
@@ -142,7 +143,7 @@ export const QuestionForField = ({
   if (!value) return null
   return ( 
     // margin leaves room for error message in Question Group
-    <Flex column flex={1} style={{ marginBottom: 25 }}> 
+    <Flex column flex={1} style={{ marginBottom: 25 }} id={field.id}> 
       <Typography component="h4" style={{ 
         fontSize: 22, 
         marginTop: 15, // ensures PDF display doesn't push description into overlap with logo / title at top of form
@@ -764,6 +765,25 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
     })
   }, [isPreview, onSuccess, submit])
 
+  const errors = useMemo(() => {
+    const es: { id: string, title: string, error: string }[] = []
+    
+    try { 
+      list.forEach(field => {
+        const error = validateField(field)
+        if (error && typeof error === 'string') es.push({
+          id: field.id,
+          title: field.title,
+          error,
+        })
+      })
+    } catch(err) {
+      console.error(err)
+    }
+
+    return es
+  }, [list, validateField])
+
   return (
     <Flex flex={1} column>
       {submitted 
@@ -841,6 +861,40 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
         <Typography color="error" style={{ alignText: 'center', marginTop: 3 }}>
           {submitErrorMessage}
         </Typography>
+
+        {errors.length > 0 &&
+          <>
+          <Divider flexItem sx={{ my: 1 }} />
+
+          <Flex alignItems="center" wrap="nowrap">
+            <Typography noWrap style={{ width: 200 }}>
+              Question
+            </Typography>
+            <Typography noWrap style={{  }}>
+              Error
+            </Typography>
+          </Flex>
+          </>
+        }
+        {errors.map(e => (
+          <Flex key={e.id} alignItems="center" wrap="nowrap">
+            <Typography noWrap style={{ width: 200, textDecoration: 'underline', cursor: 'pointer' }} 
+              onClick={() => {
+                try {
+                  document.getElementById(e.id)?.scrollIntoView({ behavior: 'smooth' });
+                } catch(err) {
+                  console.error(err)
+                }
+              }}
+            >
+              {truncate_string(e.title, { length: 50 })}
+            </Typography>
+
+            <Typography noWrap color="error" style={{  }}>
+              {e.error}
+            </Typography>
+          </Flex>
+        ))}
         </>
       )}
     </Flex>

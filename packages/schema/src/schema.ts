@@ -803,7 +803,7 @@ export type CustomActions = {
     update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
   },
   automation_triggers: {
-    trigger_events: CustomAction<{ triggers: { enduserId: string, automationTriggerId: string }[] }, { }>, 
+    trigger_events: CustomAction<{ triggers: { enduserId: string, automationTriggerId: string, journeyContext?: JourneyContext }[] }, { }>, 
   },
   tickets: {
     close_ticket: CustomAction<{ ticketId: string, closedForReason?: string }, { updated: Ticket, generated?: Ticket }>,
@@ -5818,9 +5818,10 @@ export const schema: SchemaV1 = build_schema({
         description: "Triggers a list of events for endusers",
         parameters: { 
           triggers: {
-            validator: listValidator(objectValidator<{ enduserId: string, automationTriggerId: string }>({
+            validator: listValidator(objectValidator<{ enduserId: string, automationTriggerId: string, journeyContext?: JourneyContext }>({
               automationTriggerId: mongoIdStringRequired,
               enduserId: mongoIdStringRequired,
+              journeyContext: optionalAnyObjectValidator,
             })),
             required: true,
           }

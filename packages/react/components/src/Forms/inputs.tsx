@@ -38,6 +38,11 @@ import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-
 import { loadStripe } from '@stripe/stripe-js'; 
 import { CheckCircleOutline, Delete, Edit } from "@mui/icons-material"
 
+export const defaultInputProps: { sx: SxProps } = { sx: { 
+  borderRadius: 4,
+  // boxShadow: '2px 2px 2px #00000033',
+} } 
+
 export const PdfViewer = ({ url, height=420 } : { url: string, height?: number }) => {
   // const [numPages, setNumPages] = useState<number>();
   // const [page, setPage] = useState(1);
@@ -222,7 +227,11 @@ export const RankingInput = ({ field, value, onChange }: FormInputProps<'ranking
   )
 }
 
-const CustomDateInput = forwardRef((props: TextFieldProps, ref) => <TextField fullWidth inputRef={ref} {...props} />)
+const CustomDateInput = forwardRef((props: TextFieldProps, ref) => (
+  <TextField InputProps={defaultInputProps}
+    fullWidth inputRef={ref} {...props} 
+  />
+))
 export const DateInput = ({ 
   field, value, onChange, placement='top', ...props 
 } : {
@@ -309,6 +318,7 @@ export const TableInput = ({ field, value=[], onChange, ...props }: FormInputPro
               {v.type === 'Text'
                 ? (
                   <TextField label={v.label} size="small" fullWidth
+                    InputProps={defaultInputProps}
                     value={row.find((c, _i) => columnIndex === _i)?.entry} 
                     onChange={e => handleChange(i, columnIndex, { label: v.label, entry: e.target.value })}
                   />
@@ -324,6 +334,7 @@ export const TableInput = ({ field, value=[], onChange, ...props }: FormInputPro
                   <FormControl size="small" fullWidth>
                     <InputLabel id="demo-select-small">{v.label}</InputLabel>
                     <Select label={v.label} size="small"
+                      sx={defaultInputProps.sx}
                       value={row.find((c, _i) => columnIndex === _i)?.entry} 
                       onChange={e => handleChange(i, columnIndex, { label: v.label, entry: e.target.value })}
                     >
@@ -360,10 +371,14 @@ export const TableInput = ({ field, value=[], onChange, ...props }: FormInputPro
 }
 
 export const AutoFocusTextField = (props: TextFieldProps) => (
-  <TextField {...props} />
+  <TextField InputProps={defaultInputProps} {...props} />
 )
 
-const CustomDateStringInput = forwardRef((props: TextFieldProps, ref) => <TextField fullWidth inputRef={ref} {...props} />)
+const CustomDateStringInput = forwardRef((props: TextFieldProps, ref) => (
+  <TextField InputProps={defaultInputProps}
+    fullWidth inputRef={ref} {...props} 
+  />
+))
 export const DateStringInput = ({ field, value, onChange, ...props }: FormInputProps<'string'>) => {
   const inputRef = useRef(null);
 
@@ -455,7 +470,9 @@ const StringSelector = ({ options, value, onChange, ...props } : {
 }) => (
   <FormControl fullWidth size={props.size}>
     <InputLabel>{props.label}</InputLabel>
-    <Select {...props} value={value} onChange={e => onChange(e.target.value)} fullWidth>
+    <Select {...props} value={value} onChange={e => onChange(e.target.value)} fullWidth
+      sx={defaultInputProps.sx}
+    >
     {options.map((o, i) => (
       <MenuItem value={o} key={o || i}>{o}</MenuItem>
     ))}
@@ -505,7 +522,7 @@ export const TimeInput = ({ field, value, onChange, ...props }: FormInputProps<'
 }
 
 export const AddressInput = ({ field, value, onChange, ...props }: FormInputProps<'Address'>) => (
-  <Grid container direction="column" spacing={2}>
+  <Grid container direction="column" spacing={2} sx={{ mt: 0 }}>
     <Grid item>
     <AutoFocusTextField {...props} size="small" label="Address Line 1" required={!field.isOptional} fullWidth 
       value={value?.addressLineOne ?? ''} 
@@ -522,6 +539,7 @@ export const AddressInput = ({ field, value, onChange, ...props }: FormInputProp
 
     <Grid item>
     <TextField {...props} size="small" label="Address Line 2" required={false} fullWidth 
+      InputProps={defaultInputProps}
       value={value?.addressLineTwo ?? ''} 
       placeholder="Address Line 2" 
       onChange={e => 
@@ -538,6 +556,7 @@ export const AddressInput = ({ field, value, onChange, ...props }: FormInputProp
     <Grid container alignItems="center" justifyContent={"space-between"} spacing={1}>
       <Grid item sx={{ width: "calc(100% - 275px)"}}>
         <TextField {...props} size="small" label="City" required={!field.isOptional} 
+          InputProps={defaultInputProps}
           fullWidth
           value={value?.city ?? ''} 
           placeholder="City" 
@@ -563,13 +582,18 @@ export const AddressInput = ({ field, value, onChange, ...props }: FormInputProp
             }, 
             field.id
           )}
-          renderInput={(params) => <TextField {...params} size={'small'} label={"State"} required={!field.isOptional}  />}
+          renderInput={(params) => (
+            <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
+              size={'small'} label={"State"} required={!field.isOptional}  
+            />
+          )}
           {...props}
         />
       </Grid>
 
       <Grid item>
         <TextField {...props} size="small" label="ZIP Code" required={!field.isOptional} 
+          InputProps={defaultInputProps}
           sx={{ width: 150 }}
           value={value?.zipCode ?? ''} 
           placeholder="ZIP Code" 
@@ -651,6 +675,7 @@ export const SignatureInput = ({ value, field, autoFocus=true, onChange }: FormI
           value={value?.fullName} 
           placeholder="Full Name" variant="outlined" 
           onChange={e => handleNameChange(e.target.value)}
+          InputProps={defaultInputProps}
         />
         <Typography color="primary" style={{ fontSize: 15, marginTop: 2 }}> 
           Enter your legal full name to complete the signature
@@ -975,6 +1000,7 @@ export const MultipleChoiceInput = ({ field, value: _value, onChange }: FormInpu
       {other &&
         <Grid item xs={12}>
           <TextField // className={classes.textField}
+            InputProps={defaultInputProps}
             style={{ marginLeft: 10 }}
             size="small"
             aria-label="Other"
@@ -1185,6 +1211,7 @@ export const DropdownInput = ({ field, value, onChange }: FormInputProps<'Dropdo
       onInputChange={(e, value) => setTyping(value)}
       renderInput={params => 
         <TextField {...params}
+          InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
           onChange={e => (
             (field.options?.radio && field.options.other)
               ? onChange(e.target.value ? [e.target.value] : [], field.id)
@@ -1369,7 +1396,7 @@ export const DatabaseSelectInput = ({ field, value, onChange, onDatabaseSelect, 
           field.id,
         )
       }}
-      renderInput={params => <TextField {...params} />}
+      renderInput={params => <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }} />}
     />
   )
 }
@@ -1578,7 +1605,7 @@ export const MedicationsInput = ({ field, value, onChange }: FormInputProps<'Med
               )
             }}
             renderInput={params => 
-              <TextField {...params} required={!field.isOptional} label="Search" size="small" fullWidth />
+              <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }} required={!field.isOptional} label="Search" size="small" fullWidth />
             }
           /> 
           </Grid>
@@ -1622,7 +1649,7 @@ export const MedicationsInput = ({ field, value, onChange }: FormInputProps<'Med
                   )
                 }}
                 renderInput={params => 
-                  <TextField {...params} required={!field.isOptional} label="Drug Select" size="small" fullWidth />
+                  <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }} required={!field.isOptional} label="Drug Select" size="small" fullWidth />
                 }
               /> 
             </Grid>
@@ -1631,6 +1658,7 @@ export const MedicationsInput = ({ field, value, onChange }: FormInputProps<'Med
           {v.displayTerm && (v.drugName === "Unknown" || !v.drugName) && 
             <Grid item sx={{ mt: 1 }}>
               <TextField label='Other Drug' fullWidth size="small" required
+                InputProps={defaultInputProps}
                 value={value?.find((v, _i) => _i === i)?.otherDrug ?? ''}
                 onChange={e => (
                   onChange(
@@ -1657,6 +1685,7 @@ export const MedicationsInput = ({ field, value, onChange }: FormInputProps<'Med
                   Units (e.g. capsule, table, puff) per dose?
                 </Typography>
                 <TextField type="number" size="small" fullWidth
+                  InputProps={defaultInputProps}
                   value={v.dosage?.quantity}
                   onChange={e => 
                     onChange(
@@ -1708,6 +1737,7 @@ export const MedicationsInput = ({ field, value, onChange }: FormInputProps<'Med
           {v.displayTerm &&
             <Grid item sx={{ mt: 1.25 }}>
               <TextField label="Reason for taking medication" size="small" fullWidth
+                InputProps={defaultInputProps}
                 value={v.reasonForTaking ?? ''} 
                 onChange={e => 
                   onChange(
@@ -1804,12 +1834,14 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
         <Grid container alignItems="center" wrap="nowrap" spacing={1}>
           <Grid item xs={4}>
             <TextField label="First Name" size="small" fullWidth
+              InputProps={defaultInputProps}
               value={fname} onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, fname: e.target.value } : v), field.id)}
             />
           </Grid>
 
           <Grid item xs={4}>
             <TextField label="Last Name" size="small" fullWidth
+              InputProps={defaultInputProps}
               value={lname} onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, lname: e.target.value } : v), field.id)}
             />
           </Grid>
@@ -1833,12 +1865,14 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
 
           <Grid item xs={4}>
             <TextField label="Email" size="small" fullWidth type="email"
+              InputProps={defaultInputProps}
               value={email} onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, email: e.target.value } : v), field.id)}
             />
           </Grid>
 
           <Grid item xs={4}>
             <TextField label="Phone Number" size="small" fullWidth
+              InputProps={defaultInputProps}
               value={phone} onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, phone: e.target.value } : v), field.id)}
             />
           </Grid>
@@ -1854,6 +1888,7 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
             {type === 'Text'
                 ? (
                   <TextField label={label} size="small" fullWidth
+                    InputProps={defaultInputProps}
                     value={fields[label] as string || ''} 
                     onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, fields: { ...fields, [label]: e.target.value} } : v), field.id)}
                   />
@@ -1869,6 +1904,7 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
                     <FormControl size="small" fullWidth>
                       <InputLabel id="demo-select-small">{label}</InputLabel>
                       <Select label={label} size="small"
+                        sx={defaultInputProps.sx}
                         value={fields[label] as string || ''} 
                         onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, fields: { ...fields, [label]: e.target.value } } : v), field.id)}
                       >
