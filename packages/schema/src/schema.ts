@@ -590,13 +590,23 @@ export type CustomActions = {
       range?: DateRange, 
       customTypeId?: string,
       groupBy?: string,
+      includeCalendarEventTemplateIds?: string[],
     }, { count: number, grouped?: { _id: string, count: number }[] }>,
     get_enduser_statistics_by_submitter: CustomAction<{ 
       enduserFields?: { field: string, value: string }[],
       formIds?: string[],
       range?: DateRange, 
       customTypeId?: string,
+      includeCalendarEventTemplateIds?: string[],
     }, { count: number, grouped: { _id: string, count: number }[] }>,
+    get_related_forms_report: CustomAction<{ 
+      formIds?: string[],
+      submittedAtRange?: DateRange, 
+      childSubmittedAtRange?: DateRange, 
+      answers?: string[],
+    }, 
+    { report: Report }
+    >,
   },
   journeys: {
     // update_state: CustomAction<{ updates: Partial<JourneyState>, id: string, name: string }, { updated: Journey }>,
@@ -776,7 +786,8 @@ export type CustomActions = {
     generate_zoom_meeting: CustomAction<{ calendarEventId: string, userId: string }, { updatedEvent: CalendarEvent }>, 
     change_zoom_host: CustomAction<{ calendarEventId: string, userId: string }, { updatedEvent: CalendarEvent }>, 
     download_ics_file: CustomAction<{ calendarEventId: string, attendeeId?: string, attendeeType?: SessionType }, { }>,
-    get_report: CustomAction<{ range?: DateRange, }, { report: Report }>,
+    get_report: CustomAction<{ range?: DateRange, groupBy?: string, templateIds?: string[] }, { report: Report }>,
+    get_enduser_report: CustomAction<{ range?: DateRange, groupBy?: string, templateIds?: string[], enduserGroupBy?: string }, { report: Report }>,
   },
   organizations: {
     create_and_join: CustomAction<{ name: string, subdomain: string }, { authToken: string, user: User, organization: Organization }>, 
@@ -3602,6 +3613,21 @@ export const schema: SchemaV1 = build_schema({
           report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
         },
       },
+      get_related_forms_report: {
+        op: "custom", access: 'read', method: "all", // backwards compatible for GET but supports post for larger data posting
+        name: 'Related Forms Report',
+        path: '/form-responses/related-forms-report',
+        description: "Builds a report on related forms (parent-child)",
+        parameters: {
+          formIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+          submittedAtRange: { validator: dateRangeOptionalValidator },
+          childSubmittedAtRange: { validator: dateRangeOptionalValidator },
+          answers: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+        },
+        returns: {
+          report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
+        },
+      },
       get_enduser_statistics: {
         op: "custom", access: 'read', method: "get",
         name: 'Get Enduser Statistics',
@@ -3615,6 +3641,7 @@ export const schema: SchemaV1 = build_schema({
             validator: listValidatorEmptyOk(objectValidator<{ field: string, value: string }>({ field: stringValidator, value: stringValidator })) 
           },
           groupBy: { validator: stringValidator },
+          includeCalendarEventTemplateIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
         },
         returns: {
           count: { validator: numberValidator, required: true },
@@ -3633,6 +3660,7 @@ export const schema: SchemaV1 = build_schema({
           enduserFields: { 
             validator: listValidatorEmptyOk(objectValidator<{ field: string, value: string }>({ field: stringValidator, value: stringValidator })) 
           },
+          includeCalendarEventTemplateIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
         },
         returns: {
           count: { validator: numberValidator, required: true },
@@ -3959,6 +3987,23 @@ export const schema: SchemaV1 = build_schema({
         description: "Builds a report",
         parameters: {
           range: { validator: dateRangeOptionalValidator },
+          templateIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+          groupBy: { validator: stringValidator },
+        },
+        returns: {
+          report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
+        },
+      },
+      get_enduser_report: {
+        op: "custom", access: 'read', method: "all",
+        name: 'Report',
+        path: '/calendar-events/enduser-report',
+        description: "Builds a report",
+        parameters: {
+          range: { validator: dateRangeOptionalValidator },
+          templateIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+          groupBy: { validator: stringValidator },
+          enduserGroupBy: { validator: stringValidator },
         },
         returns: {
           report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }

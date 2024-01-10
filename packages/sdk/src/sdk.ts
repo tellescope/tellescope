@@ -340,6 +340,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     get_report: (args: extractFields<CustomActions['form_responses']['get_report']['parameters']>) => (
       Promise<extractFields<CustomActions['form_responses']['get_report']['returns']>>
     ),
+    get_related_forms_report: (args: extractFields<CustomActions['form_responses']['get_related_forms_report']['parameters']>) => (
+      Promise<extractFields<CustomActions['form_responses']['get_related_forms_report']['returns']>>
+    ),
     get_report_as_post: (args: extractFields<CustomActions['form_responses']['get_report']['parameters']>) => (
       Promise<extractFields<CustomActions['form_responses']['get_report']['returns']>>
     ),
@@ -527,6 +530,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     get_report: (args: extractFields<CustomActions['calendar_events']['get_report']['parameters']>) => (
       Promise<extractFields<CustomActions['calendar_events']['get_report']['returns']>>
     ),
+    get_enduser_report: (args: extractFields<CustomActions['calendar_events']['get_enduser_report']['parameters']>) => (
+      Promise<extractFields<CustomActions['calendar_events']['get_enduser_report']['returns']>>
+    ),
     // get_appointment_availability: (args: extractFields<CustomActions['calendar_events']['get_appointment_availability']['parameters']>) => (
     //   Promise<extractFields<CustomActions['calendar_events']['get_appointment_availability']['returns']>>
     // ),
@@ -667,6 +673,7 @@ export class Session extends SessionManager {
     queries.form_responses.get_report = a => this._POST(`/v1/${schema.form_responses.customActions.get_report.path}`, a)
     queries.form_responses.get_enduser_statistics = a => this._GET(`/v1/${schema.form_responses.customActions.get_enduser_statistics.path}`, a)
     queries.form_responses.get_enduser_statistics_by_submitter = a => this._GET(`/v1/${schema.form_responses.customActions.get_enduser_statistics_by_submitter.path}`, a)
+    queries.form_responses.get_related_forms_report = a => this._POST(`/v1/${schema.form_responses.customActions.get_related_forms_report.path}`, a)
     
     // need arraybuffer response type, see tests.ts
     // queries.form_responses.generate_pdf = (args) => (
@@ -731,6 +738,7 @@ export class Session extends SessionManager {
     queries.calendar_events.generate_zoom_meeting = a => this._POST(`/v1/${schema.calendar_events.customActions.generate_zoom_meeting.path}`, a)
     queries.calendar_events.change_zoom_host = a => this._POST(`/v1/${schema.calendar_events.customActions.change_zoom_host.path}`, a)
     queries.calendar_events.get_report = a => this._POST(`/v1${schema.calendar_events.customActions.get_report.path}`, a)
+    queries.calendar_events.get_enduser_report = a => this._POST(`/v1${schema.calendar_events.customActions.get_enduser_report.path}`, a)
 
     queries.phone_calls.authenticate_calling = a => this._POST(`/v1${schema.phone_calls.customActions.authenticate_calling.path}`, a)
     queries.phone_calls.get_report = a => this._GET(`/v1/${schema.phone_calls.customActions.get_report.path}`, a)
