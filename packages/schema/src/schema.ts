@@ -604,6 +604,7 @@ export type CustomActions = {
       submittedAtRange?: DateRange, 
       childSubmittedAtRange?: DateRange, 
       answers?: string[],
+      groupBy?: string,
     }, 
     { report: Report }
     >,
@@ -787,7 +788,7 @@ export type CustomActions = {
     change_zoom_host: CustomAction<{ calendarEventId: string, userId: string }, { updatedEvent: CalendarEvent }>, 
     download_ics_file: CustomAction<{ calendarEventId: string, attendeeId?: string, attendeeType?: SessionType }, { }>,
     get_report: CustomAction<{ range?: DateRange, groupBy?: string, templateIds?: string[] }, { report: Report }>,
-    get_enduser_report: CustomAction<{ range?: DateRange, groupBy?: string, templateIds?: string[], enduserGroupBy?: string }, { report: Report }>,
+    get_enduser_report: CustomAction<{ range?: DateRange, groupBy?: string, countDuplicates?: boolean, templateIds?: string[], enduserGroupBy?: string }, { report: Report }>,
   },
   organizations: {
     create_and_join: CustomAction<{ name: string, subdomain: string }, { authToken: string, user: User, organization: Organization }>, 
@@ -3623,13 +3624,14 @@ export const schema: SchemaV1 = build_schema({
           submittedAtRange: { validator: dateRangeOptionalValidator },
           childSubmittedAtRange: { validator: dateRangeOptionalValidator },
           answers: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+          groupBy: { validator: stringValidator },
         },
         returns: {
           report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
         },
       },
       get_enduser_statistics: {
-        op: "custom", access: 'read', method: "get",
+        op: "custom", access: 'read', method: "all",
         name: 'Get Enduser Statistics',
         path: '/form-responses/enduser-statistics',
         description: "Get statistics on the number of *unique* endusers who have submitted forms",
@@ -3649,7 +3651,7 @@ export const schema: SchemaV1 = build_schema({
         },
       },
       get_enduser_statistics_by_submitter: {
-        op: "custom", access: 'read', method: "get",
+        op: "custom", access: 'read', method: "all",
         name: 'Get Enduser Statistics By Submitter',
         path: '/form-responses/enduser-statistics-by-submitter',
         description: "Get statistics on the number of *unique* endusers who have submitted forms, grouped by form submitter ID",
@@ -4004,6 +4006,7 @@ export const schema: SchemaV1 = build_schema({
           templateIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
           groupBy: { validator: stringValidator },
           enduserGroupBy: { validator: stringValidator },
+          countDuplicates: { validator: booleanValidatorOptional },
         },
         returns: {
           report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
