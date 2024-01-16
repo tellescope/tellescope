@@ -15,6 +15,8 @@ import {
   CreateTicketAssignmentStrategy,
   FormResponseValue,
   ModelName,
+  RoundRobinAssignmentInfo,
+  User,
 } from "@tellescope/types-models"
 
 import {
@@ -30,7 +32,7 @@ import {
 } from "@tellescope/validation"
 
 import { Session, APIQuery, EnduserSession } from "../sdk"
-import {  } from "@tellescope/utilities"
+import { weighted_round_robin } from "@tellescope/utilities"
 import { DEFAULT_OPERATIONS, PLACEHOLDER_ID } from "@tellescope/constants"
 import { 
   schema, 
@@ -5788,6 +5790,8 @@ const TRACK_OPEN_IMAGE = Buffer.from(
 );
 
 const validate_schema = () => {
+  log_header("Validate Schema")
+
   const endpoints = new Set<string>([])
 
   let modelName = undefined! as ModelName
@@ -5815,6 +5819,169 @@ const validate_schema = () => {
   }
 }
 
+const test_weighted_round_robin = async () => {
+  log_header("Test validate_weighted_round_robin")
+
+  const testUsers: Pick<User, 'id' | 'ticketAssignmentPriority'>[] = [
+    { id: '0', ticketAssignmentPriority: undefined }, // will default to 5
+    { id: '1', ticketAssignmentPriority: 1 },
+    { id: '2', ticketAssignmentPriority: 2 },
+    { id: '3', ticketAssignmentPriority: 3 },
+  ]
+  const userIds = testUsers.map(u => u.id)
+  const testAssignments: RoundRobinAssignmentInfo[] = testUsers.map((u, i) => ({ 
+    id: i.toString(),
+    key: 'test',
+    timestamp: Date.now() - 1000,
+    userId: u.id,
+  }))
+
+  await async_test(
+    `Both empty`, 
+    async () => weighted_round_robin({ assignments: [], users: [] }),
+    { onResult: r => r.selected === undefined }
+  )
+  await async_test(
+    `Single user, empty assignment`, 
+    async () => weighted_round_robin({ assignments: [], users: [testUsers[0]] }),
+    { onResult: r => r.selected === testUsers[0].id }
+  )
+  await async_test(
+    `Both singletons`, 
+    async () => weighted_round_robin({ assignments: [testAssignments[0]], users: [testUsers[0]] }),
+    { onResult: r => r.selected === testUsers[0].id }
+  )
+
+  const run_assignment_simulation = ({
+    iterations,
+    expectedSelections,
+    users=testUsers,
+    title=`Simulation ${iterations}`,
+  } : {
+    expectedSelections: string[],
+    iterations: number,
+    users?: typeof testUsers,
+    title?: string,
+  }) => {
+    const assignments: RoundRobinAssignmentInfo[] = []
+    const selections: (string | undefined)[] = []
+
+    for (let i = 0; i < iterations; i++) {
+      if (assignments.length !== i) {
+        throw new Error("Invariant Violation: assignment not saved in history")
+      }
+
+      const { selected } = weighted_round_robin({ assignments, users })
+      selections.push(selected)
+
+      const assignment: RoundRobinAssignmentInfo = { 
+        id: i.toString(),
+        userId: selected || '',
+        key: 'test',
+        timestamp: i, // simply ensures increasing timestamps per assignment
+      }
+
+      // ensure that assignment order doesn't matter (e.g. weighted_round_robin sorts internally)
+      if (i % 2 === 0) {
+        assignments.push(assignment) // add to back
+      } else {
+        assignments.unshift(assignment) // add to front
+      }
+    }
+
+    assert(objects_equivalent(selections, expectedSelections), title + '\n' + JSON.stringify({ expected: expectedSelections, got: selections }, null, 2), title)
+  }
+
+  run_assignment_simulation({ expectedSelections: [], iterations: 0 })
+  run_assignment_simulation({ expectedSelections: [userIds[0]], iterations: 1 })
+  run_assignment_simulation({ expectedSelections: [userIds[0], userIds[1]], iterations: 2 })
+  run_assignment_simulation({ expectedSelections: [userIds[0], userIds[1], userIds[2]], iterations: 3 })
+  run_assignment_simulation({ expectedSelections: [userIds[0], userIds[1], userIds[2], userIds[3]], iterations: 4 })
+  run_assignment_simulation({ iterations: 5,
+    expectedSelections: [
+      userIds[0], userIds[1], userIds[2], userIds[3],
+      userIds[0],
+    ], 
+  })
+  run_assignment_simulation({ iterations: 6, expectedSelections: [
+    userIds[0], userIds[1], userIds[2], userIds[3],
+    userIds[0], userIds[2],
+  ]})
+  run_assignment_simulation({ iterations: 7, expectedSelections: [
+      userIds[0], userIds[1], userIds[2], userIds[3],
+      userIds[0], userIds[2], userIds[3],
+  ]})
+  run_assignment_simulation({ iterations: 8, expectedSelections: [
+      userIds[0], userIds[1], userIds[2], userIds[3],
+      userIds[0], userIds[2], userIds[3],
+      userIds[0], 
+  ]})
+  run_assignment_simulation({ iterations: 9,
+    expectedSelections: [
+      userIds[0], userIds[1], userIds[2], userIds[3],
+      userIds[0], userIds[2], userIds[3],
+      userIds[0], userIds[3],
+    ], 
+  })
+  run_assignment_simulation({ iterations: 10,
+    expectedSelections: [
+      userIds[0], userIds[1], userIds[2], userIds[3],
+      userIds[0], userIds[2], userIds[3],
+      userIds[0], userIds[3],
+      userIds[0], 
+    ], 
+  })
+  run_assignment_simulation({ iterations: 11,
+    expectedSelections: [
+      userIds[0], userIds[1], userIds[2], userIds[3],
+      userIds[0], userIds[2], userIds[3],
+      userIds[0], userIds[3],
+      userIds[0], 
+      userIds[0], 
+    ], 
+  })
+  run_assignment_simulation({ iterations: 12,
+    expectedSelections: [
+      userIds[0], userIds[1], userIds[2], userIds[3],
+      userIds[0], userIds[2], userIds[3],
+      userIds[0], userIds[3],
+      userIds[0], 
+      userIds[0], 
+      userIds[0], 
+    ], 
+  })
+  run_assignment_simulation({ iterations: 13,
+    expectedSelections: [
+      userIds[0], userIds[1], userIds[2], userIds[3],
+      userIds[0], userIds[2], userIds[3],
+      userIds[0], userIds[3],
+      userIds[0], 
+      userIds[0], 
+      userIds[0], userIds[1],
+    ], 
+  })
+  run_assignment_simulation({ iterations: 14,
+    expectedSelections: [
+      userIds[0], userIds[1], userIds[2], userIds[3],
+      userIds[0], userIds[2], userIds[3],
+      userIds[0], userIds[3],
+      userIds[0], 
+      userIds[0], 
+      userIds[0], userIds[1], userIds[2],
+    ], 
+  })
+  run_assignment_simulation({ iterations: 15,
+    expectedSelections: [
+      userIds[0], userIds[1], userIds[2], userIds[3],
+      userIds[0], userIds[2], userIds[3],
+      userIds[0], userIds[3],
+      userIds[0], 
+      userIds[0], 
+      userIds[0], userIds[1], userIds[2], userIds[3],
+    ], 
+  })
+}
+
 (async () => {
   log_header("API")
 
@@ -5825,6 +5992,8 @@ const validate_schema = () => {
   ) 
 
   try {
+    await test_weighted_round_robin()
+
     await validate_schema()
 
     await Promise.all([

@@ -1,5 +1,5 @@
 import { ObjectId } from "bson"
-import { CalendarEvent, CompoundFilter, Enduser, EnduserRelationship, FormResponseValue, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, TableInputCell, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus } from "@tellescope/types-models"
+import { CalendarEvent, CompoundFilter, Enduser, EnduserRelationship, FormResponseValue, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus } from "@tellescope/types-models"
 import { ADMIN_ROLE, get_inverse_relationship_type } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 
@@ -1364,4 +1364,66 @@ export const responses_satisfy_conditions = (responses: FormResponseValue[], con
   }
 
   return true
+}
+
+export const weighted_round_robin = ({ assignments: _assignments, users: _users } : {
+  assignments: RoundRobinAssignmentInfo[], 
+  users: Pick<User, 'id' | 'ticketAssignmentPriority'>[], 
+}): ({ selected?: string }) => {
+  if (!_users.length) {
+    return { selected: undefined }
+  }
+  if (_users.length === 1) {
+    return { selected: _users[0].id }
+  }
+
+  // ensure default value set (5) with max of 10
+  const users = _users.map(u => ({
+    id: u.id,
+    ticketAssignmentPriority: Math.min(u.ticketAssignmentPriority || 5, 10),
+  }))
+  const windowSize = users.reduce((t, u) => t + u.ticketAssignmentPriority, 0)
+ 
+  // descending, with newest timestamp at [0], oldest timestamp at [assignments.length - 1]
+  const assignments = (
+    [..._assignments] // sort a deep copy to defend against bad input 
+    .sort((a1, a2) => a2.timestamp - a1.timestamp)
+    .filter((a, i) => users.find(u => u.id === a.userId) && i < windowSize - 1) // pigeonhole to ensure 1 available user
+  )
+
+  const capacityForUser = {} as Record<string, number>
+
+  for (const user of users) {
+    capacityForUser[user.id] = user.ticketAssignmentPriority
+  }
+  for (const a of assignments) {
+    if (!capacityForUser[a.userId]) continue
+    capacityForUser[a.userId] -= 1
+  }
+
+  // find user with capacity who has gone the longest without a ticket assignment
+  const delayScores = {} as Record<string, number>
+  for (let i = 0; i < users.length; i++) {
+    const delayIndex = assignments.findIndex(a => a.userId === users[i].id)
+    delayScores[users[i].id] = delayIndex === -1 ? assignments.length : delayIndex 
+  }
+  const usersSorted = [...users].sort((u1, u2) => delayScores[u2.id] - delayScores[u1.id])
+  for (const user of usersSorted) {
+    if (capacityForUser[user.id] !== undefined && capacityForUser[user.id] > 0) { 
+      return { selected: user.id }
+    }
+  }
+
+  // for (let i = assignments.length -1; i >= 0; i--) {
+  //   const a = assignments[i]
+  //   const user = users.find(u => u.id === a.userId)
+  //   if (!user) { continue }
+
+  //   if (capacityForUser[user.id] !== undefined && capacityForUser[user.id] > 0) { 
+  //     return { selected: user.id }
+  //   }
+  //   // return { selected: user.id }
+  // }
+    
+  return { selected: undefined }
 }

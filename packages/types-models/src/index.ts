@@ -951,6 +951,13 @@ export type TicketSnooze = {
   until: Date,
 }
 
+export type RoundRobinAssignmentInfo = {
+  id: string,
+  key: string,
+  timestamp: number,
+  userId: string,
+}
+
 export interface Ticket_readonly extends ClientRecord {
   source?: string,
   externalId?: string,
@@ -963,6 +970,7 @@ export interface Ticket_updatesDisabled {}
 export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updatesDisabled {
   queueId?: string,
   dequeuedAt?: Date | '',
+  dequeuedFrom?: string, // for reporting later without affecting access permissions
   enduserId?: string;
   closedAt?: Date | '';
   closedBy?: string,
