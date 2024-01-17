@@ -192,6 +192,12 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
     update: NO_ACCESS,
     delete: NO_ACCESS,
   },
+  group_mms_conversations: {
+    create: ALL_ACCESS, // allow for creating self-assigned objects
+    read:   ASSIGNED_ACCESS, // only by inclusion in userIds should it be accessible by default
+    update: ASSIGNED_ACCESS,
+    delete: NO_ACCESS,
+  },
   enduser_custom_types: READ_ONLY_ALL,
   superbill_providers: READ_ONLY_ALL,
   superbills: ASSIGNED_AND_DEFAULT_ACCESS,
@@ -297,6 +303,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
+  group_mms_conversations: FULL_ACCESS,
   ticket_queues: FULL_ACCESS,
   phone_trees: FULL_ACCESS,
   configurations: FULL_ACCESS,

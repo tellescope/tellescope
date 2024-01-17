@@ -5782,6 +5782,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   ticket_threads: NO_TEST,
   ticket_thread_comments: NO_TEST,
   configurations: NO_TEST,
+  group_mms_conversations: NO_TEST,
 };
 
 const TRACK_OPEN_IMAGE = Buffer.from(

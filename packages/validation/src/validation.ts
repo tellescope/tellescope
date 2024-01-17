@@ -250,6 +250,7 @@ import {
   FormResponseAnswerRelatedContacts,
   AssignToQueueInfo,
   PreviousFormCompoundLogic,
+  GroupMMSMessage,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -3380,12 +3381,14 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   ticket_threads: accessPermissionValidator,
   configurations: accessPermissionValidator,
   ticket_queues: accessPermissionValidator,
+  group_mms_conversations: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
 })
 
 export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
+  group_mms_conversations: accessPermissionValidator,
   enduser_custom_types: numberValidatorOptional,
   referral_providers: numberValidatorOptional,
   superbill_providers: numberValidatorOptional,
@@ -4089,3 +4092,10 @@ export const isDateString = (_s='') => {
   
   return true
 }
+
+export const mmsMessageValidator = objectValidator<GroupMMSMessage>({
+  message: stringValidator1000,
+  sender: mongoIdStringRequired,
+  timestamp: nonNegNumberValidator,
+})
+export const mmsMessagesValidator = listValidator(mmsMessageValidator)

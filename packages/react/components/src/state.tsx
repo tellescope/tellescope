@@ -78,6 +78,7 @@ import {
   AutomatedAction,
   Configuration,
   TicketQueue,
+  GroupMMSConversation,
 } from "@tellescope/types-client"
 
 import {
@@ -306,6 +307,7 @@ const phoneTreesSlice = createSliceForList<PhoneTree, 'phone_trees'>('phone_tree
 const tableViewsSlice = createSliceForList<TableView, 'table_views'>('table_views')
 const emailSyncDenialsSlice = createSliceForList<EmailSyncDenial, 'email_sync_denials'>('email_sync_denials')
 const automatedActionsSlice = createSliceForList<AutomatedAction, 'automated_actions'>('automated_actions')
+const groupMMSConversationsSlice = createSliceForList<GroupMMSConversation, 'group_mms_conversations'>('group_mms_conversations')
 
 const enduserObservationsSlice = createSliceForList<EnduserObservation, 'enduser_observations'>('enduser_observations')
 const forumsSlice = createSliceForList<Forum, 'forums'>('forums')
@@ -397,6 +399,7 @@ export const sharedConfig = {
     email_sync_denials: emailSyncDenialsSlice.reducer,
     ticket_threads: ticketThreadsSlice.reducer,
     ticket_thread_comments: ticketThreadCommentsSlice.reducer,
+    group_mms_conversations: groupMMSConversationsSlice.reducer,
   },
 }
 
@@ -1061,6 +1064,26 @@ export const useEngagementEvents = (options={} as HookOptions<EngagementEvent>) 
     },
   )
 }
+
+export const useGroupMMSConversations = (options={} as HookOptions<GroupMMSConversation>) => {
+  const session = useSession() 
+
+  return useListStateHook('group_mms_conversations', useTypedSelector(s => s.group_mms_conversations), session, groupMMSConversationsSlice,
+    { 
+      loadQuery: session.api.group_mms_conversations.getSome,
+      findOne: session.api.group_mms_conversations.getOne,
+      findByIds: session.api.group_mms_conversations.getByIds,
+      addOne: session.api.group_mms_conversations.createOne,
+      addSome: session.api.group_mms_conversations.createSome,
+      deleteOne: session.api.group_mms_conversations.deleteOne,
+      updateOne: session.api.group_mms_conversations.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
+
 export const useEnduserProfileViews = (options={} as HookOptions<EnduserProfileView>) => {
   const session = useSession() 
 

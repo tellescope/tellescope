@@ -2,11 +2,11 @@ import React, { useCallback, useEffect, useMemo } from "react"
 import { Button, Flex, LabeledIconButton, LoadingButton, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
-import { AddressInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, FileInput, FilesInput, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput } from "./inputs"
+import { AddressInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, FileInput, FilesInput, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
-import { remove_script_tags, truncate_string } from "@tellescope/utilities"
+import { formatted_date, objects_equivalent, remove_script_tags, truncate_string } from "@tellescope/utilities"
 import { Divider } from "@mui/material"
 
 export const TellescopeFormContainer = ({ businessId, organizationIds, ...props } : { 
@@ -406,7 +406,9 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
         <Flex alignItems={'center'} justifyContent="space-between">
           {!isPreviousDisabled()
             ? (
-              <Button variant="outlined" disabled={isPreviousDisabled()} onClick={goToPreviousField}>
+              <Button variant="outlined" disabled={isPreviousDisabled()} onClick={goToPreviousField}
+                style={defaultButtonStyles}
+              >
                 {form_display_text_for_language(form, "Previous")}
               </Button>
             )
@@ -422,13 +424,15 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
                     ? 'Uploading files...'
                     : "Submitting..."
                 } 
-                style={{ minWidth: 150, width: '50%', maxWidth: 250 }}
+                style={{ ...defaultButtonStyles, minWidth: 150, width: '50%', maxWidth: 250 }}
                 // @ts-ignore
                 color={theme.themeColor ?? PRIMARY_HEX}
               />
             )
             : (
-              <Button variant="contained" disabled={isNextDisabled()} onClick={goToNextField} style={{ width: 100 }}>
+              <Button variant="contained" disabled={isNextDisabled()} onClick={goToNextField} 
+                style={{ ...defaultButtonStyles, width: 100 }}
+              >
                 {form_display_text_for_language(form, "Next")}
               </Button>
             )
@@ -472,7 +476,7 @@ const ThanksMessage = ({
       )
     }
     {showRestartAtEnd && window.localStorage[`ts_form_url`] &&
-      <Button variant="outlined" style={{ maxWidth: 200, marginTop: 25, alignSelf: 'center' }}
+      <Button variant="outlined" style={{ ...defaultButtonStyles, maxWidth: 200, marginTop: 25, alignSelf: 'center' }}
         onClick={() => window.location.href = window.localStorage[`ts_form_url`]}
       >
         Submit Again
@@ -705,7 +709,12 @@ export const Description = ({ field, color="primary", style } : { field: FormFie
   )
 }
 
-export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFormProps & Styled & { updating?: boolean, isInternalNote?: boolean }> = ({
+export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFormProps & Styled & { 
+  updating?: boolean, 
+  isInternalNote?: boolean,
+  submittedAt?: Date,
+  updatedAt?: Date,
+}> = ({
   customInputs, 
   submitErrorMessage,
   onAddFile,
@@ -747,6 +756,9 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
 
   handleDatabaseSelect,
 
+  submittedAt,
+  updatedAt,
+
   ...props 
 }) => {
   const list = useListForFormFields(fields, responses)
@@ -784,6 +796,19 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
     return es
   }, [list, validateField])
 
+  let updatesDisabled = true
+  for (const r of responses ?? []) {
+    const match = existingResponses?.find(_r => _r.fieldId === r.fieldId)
+    if (!match) {
+      updatesDisabled = false
+      break;
+    }
+    if (!objects_equivalent(r.answer, match.answer)) {
+      updatesDisabled = false
+      break;
+    }
+  }
+
   return (
     <Flex flex={1} column>
       {submitted 
@@ -818,15 +843,27 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
           {updating
             ? (
               <Flex flex={1} column>
-              <UpdateResponse 
-                {...props} fields={fields} existingResponses={existingResponses}
-                includedFieldIds={includedFieldIds}
-                // style={{ width: 200, marginRight: 5, height: 42 }}
-                formId={fields[0].formId}
-                responses={responses}
-                selectedFiles={selectedFiles}
-                onSuccess={onSuccess}
-              />
+                <UpdateResponse 
+                  {...props} fields={fields} existingResponses={existingResponses}
+                  includedFieldIds={includedFieldIds}
+                  // style={{ width: 200, marginRight: 5, height: 42 }}
+                  formId={fields[0].formId}
+                  responses={responses}
+                  selectedFiles={selectedFiles}
+                  onSuccess={onSuccess}
+                  disabled={updatesDisabled}
+                />
+
+                {submittedAt &&
+                  <Typography style={{ marginTop: 5 }}>
+                    Originally Submitted: {formatted_date(new Date(submittedAt))}
+                  </Typography>
+                }
+                {updatedAt &&
+                  <Typography>
+                    Last Updated: {formatted_date(new Date(updatedAt))}
+                  </Typography>
+                }
               </Flex>
             ) : (
               <>

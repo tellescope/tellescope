@@ -41,7 +41,10 @@ import { CheckCircleOutline, Delete, Edit } from "@mui/icons-material"
 export const defaultInputProps: { sx: SxProps } = { sx: { 
   borderRadius: 4,
   // boxShadow: '2px 2px 2px #00000033',
-} } 
+}} 
+export const defaultButtonStyles: React.CSSProperties = {
+  borderRadius: '10px',
+}
 
 export const PdfViewer = ({ url, height=420 } : { url: string, height?: number }) => {
   // const [numPages, setNumPages] = useState<number>();
@@ -912,6 +915,7 @@ export const FilesInput = ({ value, onChange, field, existingFileName }: FormInp
 
 const multipleChoiceItemSx: SxProps = {
   border: '1px solid #888888',
+  py: 0.25,
   borderRadius: 2.5,
   mb: 0.5,
   cursor: 'pointer',
@@ -985,7 +989,7 @@ export const MultipleChoiceInput = ({ field, value: _value, onChange }: FormInpu
                 field.id,
               )}
             >
-            <Grid container alignItems="center" sx={multipleChoiceItemSx}>
+            <Grid container alignItems="center" wrap="nowrap" sx={multipleChoiceItemSx}>
               <Checkbox
                 color="primary"
                 checked={!!value?.includes(c) && c !== otherString} // coerce to boolean to keep as controlled input
@@ -1001,7 +1005,7 @@ export const MultipleChoiceInput = ({ field, value: _value, onChange }: FormInpu
         <Grid item xs={12}>
           <TextField // className={classes.textField}
             InputProps={{ sx: { borderRadius: 2.5 }}} // match Checkbox, not default styles
-            sx={{ width: `calc(100% - 15px)` }}
+            sx={{ width: radio ? `calc(100% - 15px)` : '100%' }}
             size="small"
             aria-label="Other"
             value={otherString} 
@@ -1009,7 +1013,6 @@ export const MultipleChoiceInput = ({ field, value: _value, onChange }: FormInpu
             // onClick={() => !otherChecked && handleOtherChecked()} // allow click to enable when disabled
             onChange={e => {
               enteringOtherStringRef.current = e.target.value
-
               onChange(
                 (
                   radio 

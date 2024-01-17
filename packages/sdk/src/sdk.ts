@@ -193,6 +193,7 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   ticket_thread_comments: defaultQueries(s, 'ticket_thread_comments'), 
   configurations: defaultQueries(s, 'configurations'), 
   ticket_queues: defaultQueries(s, 'ticket_queues'), 
+  group_mms_conversations: defaultQueries(s, 'group_mms_conversations'), 
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {

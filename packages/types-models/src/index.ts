@@ -1575,6 +1575,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   externalId?: string,
   templateId?: string,
   carePlanId?: string,
+  carePlanNote?: string,
   enduserTasks?: EnduserTaskForEvent[],
   enduserFormResponses?: EnduserFormResponseForEvent[],
   sharedContentIds?: string[],
@@ -1698,6 +1699,8 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   carePlanForms?: string[],
   carePlanContent?: string[],
   carePlanFiles?: string[]
+
+  apiOnly?: boolean,
 }
 
 export interface AppointmentLocation_readonly extends ClientRecord {}
@@ -2376,6 +2379,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
   ticketIds?: string[],
   tags?: string[],
   inputs?: string[],
+  answeredAt?: Date,
 }
 
 export type AnalyticsQueryResultValue = {
@@ -2961,7 +2965,29 @@ export interface TicketQueue extends TicketQueue_readonly, TicketQueue_required,
 
 }
 
+export type GroupMMSMessage = {
+  message: string,
+  sender: string,
+  timestamp: number,
+}
+
+// lots of readonly as we use custom endpoint to create and send messages
+export interface GroupMMSConversation_readonly extends ClientRecord {
+  externalId: string,
+  phoneNumber: string,
+  messages: GroupMMSMessage[],
+  title: string,
+  userIds: string[],
+  enduserIds: string[],
+}
+export interface GroupMMSConversation_updatesDisabled {}
+export interface GroupMMSConversation_required {
+}
+export interface GroupMMSConversation extends GroupMMSConversation_readonly, GroupMMSConversation_required, GroupMMSConversation_updatesDisabled {
+}
+
 export type ModelForName_required = {
+  group_mms_conversations: GroupMMSConversation_required,
   ticket_queues: TicketQueue_required,
   ticket_threads: TicketThread_required,
   ticket_thread_comments: TicketThreadComment_required,
@@ -3032,6 +3058,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  group_mms_conversations: GroupMMSConversation_readonly,
   ticket_queues: TicketQueue_readonly,
   configurations: Configuration_readonly,
   ticket_threads: TicketThread_readonly,
@@ -3102,6 +3129,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  group_mms_conversations: GroupMMSConversation_updatesDisabled,
   ticket_queues: TicketQueue_updatesDisabled,
   configurations: Configuration_updatesDisabled,
   ticket_threads: TicketThread_updatesDisabled,
@@ -3172,6 +3200,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly {
+  group_mms_conversations: GroupMMSConversation,
   ticket_queues: TicketQueue,
   configurations: Configuration,
   ticket_threads: TicketThread,
@@ -3252,6 +3281,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  group_mms_conversations: true,
   ticket_queues: true,
   configurations: true,
   ticket_thread_comments: true,

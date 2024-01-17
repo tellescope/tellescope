@@ -80,6 +80,7 @@ import {
   EnduserMedication,
   DatabaseRecord as DatabaseRecordClient,
   Ticket,
+  GroupMMSConversation,
 } from "@tellescope/types-client"
 
 import {
@@ -258,6 +259,7 @@ import {
   listOfStringsWithQualifierValidator,
   listOfStringsWithQualifierValidatorOptional,
   stringValidator100000OptionalEmptyOkay,
+  mmsMessagesValidator,
 } from "@tellescope/validation"
 
 import {
@@ -834,7 +836,22 @@ export type CustomActions = {
       { productIds: string[] }, 
       { customerId: string, clientSecret: string, publishableKey: string, stripeAccount: string, businessName: string }
     >,
-  }
+  },
+  group_mms_conversations: {
+    start_conversation: CustomAction<{ 
+      message: string,
+      sender: string,
+      enduserIds: string[],
+      userIds: string[],
+      phoneNumber: string,
+      title: string,
+    }, { conversation: GroupMMSConversation }>,
+    send_message: CustomAction<{ 
+      conversationId: string,
+      message: string,
+      sender: string,
+    }, { conversation: GroupMMSConversation }>,
+  },
 } 
 
 export type PublicActions = {
@@ -4116,6 +4133,7 @@ export const schema: SchemaV1 = build_schema({
           onDependencyDelete: 'setNull',
         }]
       },
+      carePlanNote: { validator: stringValidator5000EmptyOkay },
       attendees: { 
         validator: listOfUserIndentitiesValidator,
         initializer: () => [],
@@ -4203,6 +4221,7 @@ export const schema: SchemaV1 = build_schema({
       carePlanTasks: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       videoIntegration: { validator: videoIntegrationTypesValidator },
       color: { validator: stringValidator1000 },
+      apiOnly: { validator: booleanValidator },
     }
   },
   calendar_event_RSVPs: {
@@ -5560,7 +5579,13 @@ export const schema: SchemaV1 = build_schema({
     }
   },
   phone_calls: {
-    info: {},
+    info: {
+      description: (
+`{ "isVoicemail": true } indicates that an inbound call was not answered, but not necessarily that a full voicemail was left
+If a voicemail is left, it is indicated by recordingURI, transcription, or recordingDurationInSeconds        
+`
+      )
+    },
     constraints: {
       unique: [], 
       relationship: [],
@@ -6355,6 +6380,61 @@ export const schema: SchemaV1 = build_schema({
       ...BuiltInFields, 
       title: { validator: stringValidator, required: true, examples: ['Title']},
       userIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] },
+    },
+  },
+  group_mms_conversations: {
+    info: {},
+    constraints: { 
+      unique: [], relationship: [], 
+      access: [
+        { type: 'filter', field: 'userIds' }, 
+      ]
+    },
+    defaultActions: { read: {}, readMany: {}, update: {}, delete: {} },
+    customActions: {
+      start_conversation: {
+        op: "custom", access: 'create', method: "post", 
+        adminOnly: true,
+        name: 'Start Conversation',
+        path: '/group-mms-conversations/start-conversation',
+        description: "Creates a new conversation and sends the initial message",
+        parameters: { 
+          message: { validator: stringValidator, required: true },
+          sender: { validator: mongoIdStringRequired, required: true },
+          enduserIds: { validator: listOfMongoIdStringValidator, required: true },
+          userIds: { validator: listOfMongoIdStringValidator, required: true },
+          phoneNumber: { validator: phoneValidator, required: true },
+          title: { validator: stringValidator, required: true },
+        },
+        returns: { 
+          conversation: { validator: 'group_mms_conversations' as any },
+        } 
+      },
+      send_message: {
+        op: "custom", access: 'create', method: "post", 
+        adminOnly: true,
+        name: 'Send Message',
+        path: '/group-mms-conversations/send-message',
+        description: "Sends a new message in an existing conversation",
+        parameters: { 
+          message: { validator: stringValidator, required: true },
+          sender: { validator: mongoIdStringRequired, required: true },
+          conversationId: { validator: mongoIdStringRequired, required: true },
+        },
+        returns: { 
+          conversation: { validator: 'group_mms_conversations' as any },
+        } 
+      },
+    },
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      userIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] },
+      enduserIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] },
+      externalId: { validator: stringValidator, readonly: true }, 
+      phoneNumber: { validator: stringValidator, readonly: true }, 
+      title: { validator: stringValidator, readonly: true }, 
+      messages: { validator: mmsMessagesValidator, readonly: true },
     },
   },
 })

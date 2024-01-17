@@ -77,6 +77,7 @@ export type TicketThread = ServerModelForName['ticket_threads']
 export type TicketThreadComment = ServerModelForName['ticket_thread_comments']
 export type Configuration = ServerModelForName['configurations']
 export type TicketQueue = ServerModelForName['ticket_queues']
+export type GroupMMSConversation = ServerModelForName['group_mms_conversations']
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']
