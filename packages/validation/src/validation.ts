@@ -251,6 +251,8 @@ import {
   AssignToQueueInfo,
   PreviousFormCompoundLogic,
   GroupMMSMessage,
+  GroupMMSUserState,
+  ImageAttachment,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -3080,6 +3082,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     tags: listOfStringsValidatorOptionalOrEmptyOk,
     transcribeCallInboundPlayback: stringValidatorOptionalEmptyOkay,
     sendSMSOnZoomStart: booleanValidatorOptional,
+    enableGroupMMS: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -4093,9 +4096,21 @@ export const isDateString = (_s='') => {
   return true
 }
 
+export const imageAttachmentValidator = objectValidator<ImageAttachment>({
+  type: stringValidator,
+  url: stringValidator,
+})
+
 export const mmsMessageValidator = objectValidator<GroupMMSMessage>({
   message: stringValidator1000,
   sender: mongoIdStringRequired,
   timestamp: nonNegNumberValidator,
+  images: listValidatorOptionalOrEmptyOk(imageAttachmentValidator),
 })
 export const mmsMessagesValidator = listValidator(mmsMessageValidator)
+
+export const groupMMSUserStateValidator = objectValidator<GroupMMSUserState>({
+  numUnread: nonNegNumberValidator,
+  id: stringValidator,
+})
+export const groupMMSUserStatesValidator = listValidatorOptionalOrEmptyOk(groupMMSUserStateValidator)

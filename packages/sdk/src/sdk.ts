@@ -581,6 +581,14 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
       Promise<extractFields<CustomActions['products']['prepare_stripe_checkout']['returns']>>
     ),
   },
+  group_mms_conversations: {
+    start_conversation: (args: extractFields<CustomActions['group_mms_conversations']['start_conversation']['parameters']>) => (
+      Promise<extractFields<CustomActions['group_mms_conversations']['start_conversation']['returns']>>
+    ),
+    send_message: (args: extractFields<CustomActions['group_mms_conversations']['send_message']['parameters']>) => (
+      Promise<extractFields<CustomActions['group_mms_conversations']['send_message']['returns']>>
+    ),
+  },
 }
 
 // session info that's currently required/used on front-end but not part of base user model
@@ -771,6 +779,9 @@ export class Session extends SessionManager {
     queries.sms_messages.send_message_to_number = a => this._POST(`/v1/${schema.sms_messages.customActions.send_message_to_number.path}`, a)
 
     queries.products.prepare_stripe_checkout = args => this._POST(`/v1${schema.products.customActions.prepare_stripe_checkout.path}`, args)
+
+    queries.group_mms_conversations.start_conversation = args => this._POST(`/v1${schema.group_mms_conversations.customActions.start_conversation.path}`, args)
+    queries.group_mms_conversations.send_message = args => this._POST(`/v1${schema.group_mms_conversations.customActions.send_message.path}`, args)
 
     this.api = queries
   }

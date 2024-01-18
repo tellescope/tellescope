@@ -148,6 +148,7 @@ export type OrganizationSettings = {
     transcribeCalls?: boolean,
     transcribeCallInboundPlayback?: string,
     sendSMSOnZoomStart?: boolean,
+    enableGroupMMS?: boolean,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
@@ -234,6 +235,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedZendesk?: boolean,
   hasConnectedZus?: boolean,
   hasTicketQueues?: boolean,
+  vitalTeamId?: string,
   zendeskSettings?: { priorityGroups?: string[], resolutionFieldId?: string, resolutionFieldOptions?: string[] }
   replyToAllEmails?: string,
   forwardAllIncomingEmailsTo?: string,
@@ -1249,6 +1251,7 @@ export interface Integration extends Integration_readonly, Integration_required,
   syncUnrecognizedSenders?: boolean,
   calendars?: string[],
   environment?: string,
+  webhooksSecret?: string,
 }
 
 export type BuildDatabaseRecordField <K extends string, V, O> = { type: K, value: V, options: O & { width?: string } }
@@ -2965,10 +2968,20 @@ export interface TicketQueue extends TicketQueue_readonly, TicketQueue_required,
 
 }
 
+export type ImageAttachment = {
+  url: string,
+  type: string,
+}
 export type GroupMMSMessage = {
   message: string,
   sender: string,
   timestamp: number,
+  images?: ImageAttachment[]
+}
+
+export type GroupMMSUserState = {
+  id: string,
+  numUnread: number,
 }
 
 // lots of readonly as we use custom endpoint to create and send messages
@@ -2979,6 +2992,10 @@ export interface GroupMMSConversation_readonly extends ClientRecord {
   title: string,
   userIds: string[],
   enduserIds: string[],
+  userStates: GroupMMSUserState[],
+  pinnedAt?: Date | '',
+  tags?: string[]
+  suggestedReply?: string,
 }
 export interface GroupMMSConversation_updatesDisabled {}
 export interface GroupMMSConversation_required {

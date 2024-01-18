@@ -260,6 +260,7 @@ import {
   listOfStringsWithQualifierValidatorOptional,
   stringValidator100000OptionalEmptyOkay,
   mmsMessagesValidator,
+  groupMMSUserStatesValidator,
 } from "@tellescope/validation"
 
 import {
@@ -630,7 +631,7 @@ export type CustomActions = {
     add_to_journey: CustomAction<{ enduserIds: string[], journeyId: string, automationStepId?: string, journeyContext?: JourneyContext, throttle?: boolean, source?: string }, { }>, 
     remove_from_journey: CustomAction<{ enduserIds: string[], journeyId: string }, { }>, 
     merge: CustomAction<{ sourceEnduserId: string, destinationEnduserId: string, }, { }>, 
-    push: CustomAction<{ enduserId: string }, { fullscriptRedirectURL?: string }>,
+    push: CustomAction<{ enduserId: string, destinations?: string[] }, { fullscriptRedirectURL?: string, vital_user_id?: string }>,
     bulk_update: CustomAction<
       { ids: string[], fields?: CustomFields, pushTags?: string[], replaceTags?: string[], customTypeId?: string }, 
       { updated: Enduser[] }
@@ -722,7 +723,7 @@ export type CustomActions = {
     generate_google_auth_url: CustomAction<{ }, { authUrl: string, }>, 
     disconnect_google_integration: CustomAction<{}, {}>,
     generate_oauth2_auth_url: CustomAction<{ integration: IntegrationsTitleType }, { authUrl: string, }>, 
-    add_api_key_integration: CustomAction<{ API_KEY: string, integration: string, fields?: Record<string, string> }, { }>, 
+    add_api_key_integration: CustomAction<{ API_KEY: string, integration: string, externalId?: string, webhooksSecret?: string, environment?: string, fields?: Record<string, string> }, { }>, 
     remove_api_key_integration: CustomAction<{ integration: string }, { }>, 
     disconnect_oauth2_integration: CustomAction<{ integration: IntegrationsTitleType }, {}>,
     refresh_oauth2_session: CustomAction<{ title: string }, { access_token: string, expiry_date: number }>, 
@@ -1268,9 +1269,11 @@ export const schema: SchemaV1 = build_schema({
         description: "Pushes (upserts) using some integrations, like Photon Health",
         parameters: {
           enduserId: { validator: mongoIdStringValidator, required: true },
+          destinations: { validator: listOfStringsValidatorOptionalOrEmptyOk, },
         },
         returns: {
           fullscriptRedirectURL: { validator: stringValidator },
+          vital_user_id: { validator: stringValidator },
         },
       },
       bulk_update: {
@@ -1700,6 +1703,9 @@ export const schema: SchemaV1 = build_schema({
         parameters: {
           API_KEY: { validator: stringValidator, required: true },
           integration: { validator: stringValidator, required: true },
+          environment: { validator: stringValidator },
+          externalId: { validator: stringValidator },
+          webhooksSecret: { validator: stringValidator },
           fields: { validator: objectAnyFieldsAnyValuesValidator as any },
         },
         returns: { }
@@ -3768,7 +3774,7 @@ export const schema: SchemaV1 = build_schema({
         op: "custom", access: 'create', method: "post",
         name: 'Configure Webhooks (Admin Only)',
         path: '/configure-webhooks',
-        description: "DEPRECATED: Sets the URL, secret, and initial subscriptions for your organization. Your secret must exceed 15 characters and should be generated randomly.",
+        description: "Sets the URL, secret, and initial subscriptions for your organization. Your secret must exceed 15 characters and should be generated randomly. This endpoint ensures duplicate webhook records aren't created.",
         parameters: { 
           url: { validator: urlValidator, required: true },
           secret: { validator: stringValidator5000, required: true },
@@ -6435,6 +6441,9 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       phoneNumber: { validator: stringValidator, readonly: true }, 
       title: { validator: stringValidator, readonly: true }, 
       messages: { validator: mmsMessagesValidator, readonly: true },
+      userStates: { validator: groupMMSUserStatesValidator },
+      tags: { validator: listOfStringsValidatorEmptyOk },
+      suggestedReply: { validator: stringValidator5000EmptyOkay },
     },
   },
 })
