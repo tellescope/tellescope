@@ -5293,6 +5293,7 @@ export const schema: SchemaV1 = build_schema({
       completedAt: { validator: dateOptionalOrEmptyStringValidator },
       htmlDescription: { validator: stringValidator100000EmptyOkay },
       hideRemainingTicketsProgress: { validator: booleanValidator },
+      highlightedEnduserFields: { validator: listOfStringsValidatorOptionalOrEmptyOk },
     },
   }, 
   role_based_access_permissions: {
@@ -6444,6 +6445,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       userStates: { validator: groupMMSUserStatesValidator },
       tags: { validator: listOfStringsValidatorEmptyOk },
       suggestedReply: { validator: stringValidator5000EmptyOkay },
+      hiddenBy: { validator: idStringToDateValidator },
     },
   },
 })

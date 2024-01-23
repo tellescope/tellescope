@@ -1964,7 +1964,12 @@ export type ZendeskCreateTicketAutomationAction = AutomationActionBuilder<'zende
   templateId: string,
   defaultSenderId: string,
 }>
-export type CreateCarePlanAutomationAction = AutomationActionBuilder<'createCarePlan', { title: string, htmlDescription?: string, hideRemainingTicketsProgress?: boolean }>
+export type CreateCarePlanAutomationAction = AutomationActionBuilder<'createCarePlan', { 
+  title: string, 
+  htmlDescription?: string, 
+  hideRemainingTicketsProgress?: boolean 
+  highlightedEnduserFields?: string[],
+}>
 export type CompleteCarePlanAutomationAction = AutomationActionBuilder<'completeCarePlan', {}>
 export type ZusSyncAutomationAction = AutomationActionBuilder<'zusSync', {}>
 
@@ -2333,6 +2338,7 @@ export interface CarePlan extends CarePlan_readonly, CarePlan_required, CarePlan
   journeyId?: string,
   completedAt?: Date | '',
   hideRemainingTicketsProgress?: boolean,
+  highlightedEnduserFields?: string[],
 }
 
 export type TypedField = { type?: string, field?: string, }
@@ -2996,6 +3002,7 @@ export interface GroupMMSConversation_readonly extends ClientRecord {
   pinnedAt?: Date | '',
   tags?: string[]
   suggestedReply?: string,
+  hiddenBy?: { [index: string] : Date | '' };
 }
 export interface GroupMMSConversation_updatesDisabled {}
 export interface GroupMMSConversation_required {

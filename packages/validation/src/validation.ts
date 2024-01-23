@@ -2416,6 +2416,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       title: stringValidator1000, 
       htmlDescription: stringValidator100000EmptyOkay, 
       hideRemainingTicketsProgress: booleanValidatorOptional,
+      highlightedEnduserFields: listOfStringsValidatorOptionalOrEmptyOk,
     }, { emptyOk: false }),
   }),
   completeCarePlan: objectValidator<CompleteCarePlanAutomationAction>({
