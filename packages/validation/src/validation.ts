@@ -3087,6 +3087,8 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
+    disableSnooze: booleanValidatorOptional,
+    showCommunications: booleanValidatorOptional,
   }, { isOptional: true }),
   calendar: objectValidator<OrganizationSettings['calendar']>({
     dayStart: objectValidator<Required<OrganizationSettings>['calendar']['dayStart']>({

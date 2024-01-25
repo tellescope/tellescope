@@ -363,6 +363,11 @@ export const isDateString = (_s='') => {
     return false
   }
 
+  const [mm, dd] = s.split('-').map(v => parseInt(v)) // dont use shorthand map(parseInt), causes radix mess
+
+  if (mm === 0 || mm > 12) return false
+  if (dd === 0 || dd > 31) return false
+
   // this seems to have inconsistent behavior in some mobile browsers, leave out for now
   // // ensure mm-dd-yyyy is actually valid
   // const [mm,dd,yyyy] = s.split('-').map(v => parseInt(v)) // don't shorthand, for radix argument of parseInt gets messed up

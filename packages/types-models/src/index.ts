@@ -152,6 +152,8 @@ export type OrganizationSettings = {
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
+    disableSnooze?: boolean,
+    showCommunications?: boolean,
   },
   calendar?: {
     dayStart?: {
@@ -242,6 +244,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   numCustomTypes?: number,
   ticketThreadsEnabled?: boolean, // zendesk enabled
   _groupChatsEnabled?: boolean,
+  allowCreateSuborganizations?: boolean,
   // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {
@@ -410,6 +413,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   DEA?: string,
   voicemailPlayback?: PhonePlayback | {},
   mfa?: MFASettings,
+  skills?: string[];
 }
 
 export type Preference = 'email' | 'sms' | 'call' | 'chat'
@@ -2036,6 +2040,7 @@ export interface AutomationStep extends AutomationStep_readonly, AutomationStep_
   journeyId: string,
   flowchartUI?: FlowchartUI,
   continueOnError?: boolean,
+  tags?: string[],
 }
 
 export type RelatedRecord = { type: string, id: string, creator?: string, environment?: string }
@@ -2291,7 +2296,7 @@ export interface AutomatedAction_required {
   action: AutomationAction,
   status: AutomatedActionStatus,
   cancelReason?: number,
-  // cancelConditions: CancelCondition[] // already included as part of the event
+  cancelConditions?: CancelCondition[] // only currently in use as part of the event
   processAfter: number,
   errorMessage?: string,
   enduserConditions?: Record<any, any>,
@@ -2401,6 +2406,7 @@ export type AnalyticsQueryResultValue = {
 }
 export type AnalyticsQueryResult = { 
   count?: number, // for simple queries
+  percentage?: string,
   values?: AnalyticsQueryResultValue[] // for group or longitudinal queries
 }
 export type DateRange = { from?: Date | '', to?: Date | '' }

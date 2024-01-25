@@ -722,7 +722,7 @@ export type CustomActions = {
   integrations: {
     generate_google_auth_url: CustomAction<{ }, { authUrl: string, }>, 
     disconnect_google_integration: CustomAction<{}, {}>,
-    generate_oauth2_auth_url: CustomAction<{ integration: IntegrationsTitleType }, { authUrl: string, }>, 
+    generate_oauth2_auth_url: CustomAction<{ integration: IntegrationsTitleType }, { authUrl: string, state: string }>, 
     add_api_key_integration: CustomAction<{ API_KEY: string, integration: string, externalId?: string, webhooksSecret?: string, environment?: string, fields?: Record<string, string> }, { }>, 
     remove_api_key_integration: CustomAction<{ integration: string }, { }>, 
     disconnect_oauth2_integration: CustomAction<{ integration: IntegrationsTitleType }, {}>,
@@ -1601,7 +1601,7 @@ export const schema: SchemaV1 = build_schema({
         op: 'custom', access: 'delete', method: 'post',
         path: '/disconnect-oauth2-integration',
         name: 'Disconnects an integration with Square',
-        refresh_oauth2_sessiondescription: "", 
+        description: "", 
         parameters: { integration: { validator: integrationTitleValidator }},
         returns: {}
       },
@@ -2179,7 +2179,6 @@ export const schema: SchemaV1 = build_schema({
       inbound: {
         validator: booleanValidator,
         initializer: () => false,
-        readOnly: true,
       },
       newThread: {
         validator: booleanValidator,
@@ -2739,7 +2738,7 @@ export const schema: SchemaV1 = build_schema({
         updatesDisabled: true, // allow it to be set on creation by admin via API to streamline SSO support
         validator: booleanValidator,
       },
-      hashedPassword: {
+      hashedPass: {
         validator: stringValidator,
         readonly: true, // update via separate password reset function
         redactions: ['enduser'],
@@ -3485,7 +3484,6 @@ export const schema: SchemaV1 = build_schema({
       },
       openedAt: {
         validator: dateValidator,
-        readOnly: true,
       },
       publicSubmit: { validator: booleanValidator },
       submittedBy: { validator: stringValidator250 },
@@ -5118,7 +5116,6 @@ export const schema: SchemaV1 = build_schema({
           resolutionFieldOptions: listOfStringsValidatorOptionalOrEmptyOk,
         })
       },
-      zusIsConnected: { validator: booleanValidator },
       hasTicketQueues: { validator: booleanValidator },
     },
   },
@@ -5705,7 +5702,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         },
         returns: { 
           count: { validator: nonNegNumberValidator },
-          percentage: { validator: nonNegNumberValidator },
+          percentage: { validator: stringValidator },
           values: { validator: analyticsQueryResultsValidator },
         } 
       },
@@ -6126,8 +6123,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       eligibilityCriteria: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       activeRelationshipStatus: { validator: stringValidator100 },
       acceptingReferralsStatus: { validator: stringValidator100 },
-      inPersonServiceStatusStatus: { validator: stringValidator100 },
-      virtualServiceStatusStatus: { validator: stringValidator100 },
+      inPersonServiceStatus: { validator: stringValidator100 },
+      virtualServiceStatus: { validator: stringValidator100 },
     }
   },
   enduser_medications: {
