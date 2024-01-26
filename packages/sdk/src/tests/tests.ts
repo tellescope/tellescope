@@ -4144,7 +4144,6 @@ export const self_serve_appointment_booking_tests = async () => {
       if (!(user1block1_ET && user2block1_PT)) return false // should be slots for both users
 
       if (user2block1_PT.startTimeInMS - user1block1_ET.startTimeInMS !== 1000 * 60 * 60 * 3) {
-        console.log(user1block1_ET.startTimeInMS, user2block1_PT.startTimeInMS, user1block1_ET.startTimeInMS - user2block1_PT.startTimeInMS)
         return false // difference should be three hours, since same availability in different timezones
       }
 
@@ -4167,6 +4166,8 @@ export const self_serve_appointment_booking_tests = async () => {
       fields: "Test",
     }
   })).createdEvent
+  assert(bookedAppointment.attendees.length === 2, 'did not get 2 attendees', '2 attendees fo non-multi-event')
+
   await async_test(
     'double-booking prevented',
     () => enduserSDK.api.calendar_events.book_appointment({
@@ -4215,6 +4216,86 @@ export const self_serve_appointment_booking_tests = async () => {
     handleAnyError
   )
 
+  // test 'multi' flag for booking multiple providers for a given patient
+  await sdk.api.users.updateOne(sdk.userInfo.id, { 
+    weeklyAvailabilities: [
+      { 
+        dayOfWeekStartingSundayIndexedByZero,
+        startTimeInMinutes: 60 * 12, // noon,
+        endTimeInMinutes: 60 * 13, // 1pm,
+      },
+    ],
+    timezone: 'America/New_York',
+  }, {
+    replaceObjectFields: true,
+  })
+  await sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { 
+    weeklyAvailabilities: [
+      { 
+        dayOfWeekStartingSundayIndexedByZero, // sunday
+        startTimeInMinutes: 60 * 12, // noon,
+        endTimeInMinutes: 60 * 14, // 2pm,
+      },
+    ],
+    timezone: 'America/New_York',
+  }, {
+    replaceObjectFields: true,
+  })
+
+  const multiSlots = await enduserSDK.api.calendar_events.get_appointment_availability({
+    calendarEventTemplateId: event30min.id,
+    from: new Date(Date.now()),
+    to: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000),
+    multi: true,
+    userIds: [sdk.userInfo.id, sdkNonAdmin.userInfo.id]
+  })
+  
+  assert(multiSlots.availabilityBlocks.length === 2, 'expected 2 slots', 'multi slots are intersection of availability')
+
+  const bookedMultiAppointment = (await enduserSDK.api.calendar_events.book_appointment({
+    calendarEventTemplateId: event30min.id,
+    startTime: new Date(multiSlots.availabilityBlocks[0].startTimeInMS),
+    userId: sdk.userInfo.id, 
+    otherUserIds: [sdkNonAdmin.userInfo.id]
+  })).createdEvent
+  assert(
+    (
+      bookedMultiAppointment.attendees.length === 3 
+      && bookedMultiAppointment.attendees.filter(a => a.type === 'enduser').length === 1
+    ),
+    'did not get valid attendees', 
+    'Multi attendees fo multi-event'
+  )
+
+  await async_test(
+    'booking against conflict prevented 1 user',
+    () => enduserSDK.api.calendar_events.book_appointment({
+      calendarEventTemplateId: event30min.id,
+      startTime: new Date(multiSlots.availabilityBlocks[0].startTimeInMS),
+      userId: sdk.userInfo.id, 
+    }),
+    handleAnyError
+  )
+  await async_test(
+    'booking against conflict prevented other user',
+    () => enduserSDK.api.calendar_events.book_appointment({
+      calendarEventTemplateId: event30min.id,
+      startTime: new Date(multiSlots.availabilityBlocks[0].startTimeInMS),
+      userId: sdkNonAdmin.userInfo.id, 
+    }),
+    handleAnyError
+  )
+  await async_test(
+    'booking against conflict prevented 2 users',
+    () => enduserSDK.api.calendar_events.book_appointment({
+      calendarEventTemplateId: event30min.id,
+      startTime: new Date(multiSlots.availabilityBlocks[0].startTimeInMS),
+      userId: sdk.userInfo.id, 
+      otherUserIds: [sdkNonAdmin.userInfo.id],
+    }),
+    handleAnyError
+  )
+
   await Promise.all([
     sdk.api.endusers.deleteOne(e1.id),
     sdk.api.endusers.deleteOne(e2.id),
@@ -4222,6 +4303,7 @@ export const self_serve_appointment_booking_tests = async () => {
     sdk.api.calendar_event_templates.deleteOne(event15min.id),
     sdk.api.calendar_events.deleteOne(bookedAppointment.id),
     sdk.api.calendar_events.deleteOne(conflict.id),
+    sdk.api.calendar_events.deleteOne(bookedMultiAppointment.id),
   ])
 }
 
@@ -6023,6 +6105,7 @@ const test_weighted_round_robin = async () => {
     await mfa_tests()
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await self_serve_appointment_booking_tests()
     await alternate_phones_tests()
     await ticket_queue_tests()
     await no_chained_triggers_tests()
@@ -6038,7 +6121,6 @@ const test_weighted_round_robin = async () => {
     await remove_from_journey_on_incoming_comms_tests()
     await rate_limit_tests()
     await merge_enduser_tests()
-    await self_serve_appointment_booking_tests()
     await auto_reply_tests()
     await sub_organization_enduser_tests()
     await sub_organization_tests()

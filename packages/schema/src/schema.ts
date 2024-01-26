@@ -770,11 +770,13 @@ export type CustomActions = {
       businessId?: string, // for accessing while unauthenticated
       userId?: string, 
       userIds?: string[],
+      multi?: boolean,
     }, { 
       availabilityBlocks: BaseAvailabilityBlock[],
     }>,
     book_appointment: CustomAction<{ 
       userId: string, startTime: Date, calendarEventTemplateId: string, 
+      otherUserIds?: string[],
       token?: string,
       locationId?: string,
       bookingPageId?: string,
@@ -3915,6 +3917,7 @@ export const schema: SchemaV1 = build_schema({
           from: { validator: dateValidator, required: true },
           locationId: { validator: mongoIdStringValidator },
           restrictedByState: { validator: booleanValidator },
+          multi: { validator: booleanValidator },
           to: { validator: dateValidator },
           limit: { validator: nonNegNumberValidator },
           businessId: { validator: mongoIdStringValidator }, // required for unauthenticated access
@@ -3933,6 +3936,7 @@ export const schema: SchemaV1 = build_schema({
         parameters: {  
           calendarEventTemplateId: { validator: mongoIdStringValidator, required: true }, 
           userId: { validator: mongoIdStringValidator, required: true },
+          otherUserIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
           startTime: { validator: dateValidator, required: true },
           locationId: { validator: mongoIdStringValidator },
           rescheduledCalendarEventId: { validator: mongoIdStringValidator },
