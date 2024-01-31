@@ -2648,6 +2648,12 @@ export interface BackgroundError extends BackgroundError_readonly, BackgroundErr
   enduserId?: string,
 }
 
+export type SortingField = {
+  field: string,
+  ascending: boolean,
+  type: 'date' | 'number' | 'string',
+}
+
 export interface EnduserView_readonly extends ClientRecord {}
 export interface EnduserView_required {
   title: string,
@@ -2660,6 +2666,7 @@ export interface EnduserView extends EnduserView_readonly, EnduserView_required,
   hideProfileLink?: boolean,
   customTypeId?: string,
   filter?: Indexable,
+  sort?: SortingField[]
   style?: {
     [index: string]: {
       width?: number,

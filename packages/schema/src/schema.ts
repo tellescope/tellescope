@@ -261,6 +261,7 @@ import {
   stringValidator100000OptionalEmptyOkay,
   mmsMessagesValidator,
   groupMMSUserStatesValidator,
+  sortingFieldsValidator,
 } from "@tellescope/validation"
 
 import {
@@ -5832,6 +5833,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       hideProfileLink: { validator: booleanValidator },
       customTypeId: { validator: mongoIdStringValidator },
       style: { validator: objectAnyFieldsAnyValuesValidator as any },
+      sort: { validator: sortingFieldsValidator },
     }
   },
   enduser_profile_views: {

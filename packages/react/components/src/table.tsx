@@ -38,6 +38,7 @@ import { PRIMARY_HEX } from "@tellescope/constants"
 
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import { Autocomplete } from "@mui/material"
+import { SortingField } from "@tellescope/types-models"
 // import DragHandleIcon from '@mui/icons-material/DragHandle';
 
 const LIGHT_GRAY = "#fafafa"
@@ -685,6 +686,7 @@ export interface TableProps<T extends Item> extends WithTitle, WithHeader<T>, Wi
   }
   virtualization?: ScrollingListProps<T>['virtualization'],
   onExport?: (v: { data: (string | number)[][], labels: string[] }) => void,
+  sort?: SortingField[],
 }
 export const Table = <T extends Item>({
   items,
@@ -733,6 +735,8 @@ export const Table = <T extends Item>({
   onReorder,
   virtualization,
   onExport,
+
+  sort,
 }: TableProps<T> & Styled) => {
   const sortingStorageKey = memoryId ?? '' + 'sorting'
   const cachedSortString = read_local_storage(sortingStorageKey)
@@ -800,6 +804,34 @@ export const Table = <T extends Item>({
         (item1.index ?? -1) - (item2.index ?? -1)
       ))
     }
+
+    for (const s of (sort || [])) {
+      items.sort((itemA, itemB) => {
+        try {
+          const a = itemA[s.field as keyof typeof itemA]
+          const b = itemB[s.field as keyof typeof itemA]
+
+          const comparison = (
+            (s.type === 'number' && typeof a === 'number' && typeof b === 'number')
+              ? a - b
+          : (s.type === 'string' && typeof a === 'string' && typeof b === 'string') 
+              ? a.localeCompare(b)
+          : (
+                s.type === 'date' 
+              && (typeof a === 'string' || typeof a === 'number') 
+              && (typeof b === 'string' || typeof b === 'number') 
+            )
+              ? new Date(a).getTime() - new Date(b).getTime()
+              : 0
+          )
+
+          return comparison * (s.ascending ? 1 : -1)
+        } catch(err) {
+          return 0
+        }
+      })
+    }
+
     for (const s of sorting) {
       items.sort((itemA, itemB) => {
         const field = fields.find(f => f.label === s.field)
@@ -820,7 +852,7 @@ export const Table = <T extends Item>({
       })
     }
     return items
-  }, [sorting, fields])
+  }, [sorting, fields, sort])
 
   const paginated = _paginated ?? pageOptions.paginated !== false // default to true
   const { ...paginationProps } = usePagination({ 

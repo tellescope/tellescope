@@ -253,6 +253,7 @@ import {
   GroupMMSMessage,
   GroupMMSUserState,
   ImageAttachment,
+  SortingField,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -4117,3 +4118,10 @@ export const groupMMSUserStateValidator = objectValidator<GroupMMSUserState>({
   id: stringValidator,
 })
 export const groupMMSUserStatesValidator = listValidatorOptionalOrEmptyOk(groupMMSUserStateValidator)
+
+const sortingFieldValidator = objectValidator<SortingField>({
+  ascending: booleanValidator,
+  field: stringValidator1000,
+  type: exactMatchValidator<SortingField['type']>(['date', 'number', 'string'])
+})
+export const sortingFieldsValidator = listValidatorEmptyOk(sortingFieldValidator)
