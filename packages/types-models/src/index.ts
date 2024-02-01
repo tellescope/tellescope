@@ -149,6 +149,7 @@ export type OrganizationSettings = {
     transcribeCallInboundPlayback?: string,
     sendSMSOnZoomStart?: boolean,
     enableGroupMMS?: boolean,
+    enableAccessTags?: boolean,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
@@ -326,6 +327,7 @@ export interface UserSession extends Session, OrganizationLimits { // User joine
   uiRestrictions?: UserUIRestrictions
   dashboardView?: CustomDashboardView,
   hasTicketQueues?: boolean,
+  eat?: boolean, // enableAccessTags
 }
 
 export type StateCredentialInfo = {
@@ -531,6 +533,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   note?: string,
   mfa?: MFASettings,
   lastZendeskSyncAt?: Date,
+  accessTags?: string[],
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
 }

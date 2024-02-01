@@ -3085,6 +3085,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     transcribeCallInboundPlayback: stringValidatorOptionalEmptyOkay,
     sendSMSOnZoomStart: booleanValidatorOptional,
     enableGroupMMS: booleanValidatorOptional,
+    enableAccessTags: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,

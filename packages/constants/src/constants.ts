@@ -28,6 +28,7 @@ export const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
   mname: "Middle Name",
   externalId: "External ID",
   relationships: "Relationships",
+  accessTags: "Access Tags",
 } satisfies { [K in keyof Enduser]?: string }
 
 export const READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME = {

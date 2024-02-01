@@ -634,7 +634,7 @@ export type CustomActions = {
     merge: CustomAction<{ sourceEnduserId: string, destinationEnduserId: string, }, { }>, 
     push: CustomAction<{ enduserId: string, destinations?: string[] }, { fullscriptRedirectURL?: string, vital_user_id?: string }>,
     bulk_update: CustomAction<
-      { ids: string[], fields?: CustomFields, pushTags?: string[], replaceTags?: string[], customTypeId?: string }, 
+      { ids: string[], fields?: CustomFields, pushTags?: string[], replaceTags?: string[], updateAccessTags?: boolean, customTypeId?: string }, 
       { updated: Enduser[] }
     >,
     bulk_assignment: CustomAction<
@@ -1082,6 +1082,10 @@ export const schema: SchemaV1 = build_schema({
         redactions: ['enduser'],
         validator: listOfStringsValidatorEmptyOk,
       },
+      accessTags: { 
+        redactions: ['enduser'],
+        validator: listOfStringsValidatorEmptyOk,
+      },
       unredactedTags: {
         validator: listOfStringsValidatorEmptyOk,
       },
@@ -1290,6 +1294,7 @@ export const schema: SchemaV1 = build_schema({
           pushTags: { validator: listOfStringsValidator },
           replaceTags: { validator: listOfStringsValidator },
           customTypeId: { validator: stringValidator },
+          updateAccessTags: { validator: booleanValidator },
         },
         returns: {
           updated: { validator: 'endusers' as any },

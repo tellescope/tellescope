@@ -4220,7 +4220,7 @@ export const self_serve_appointment_booking_tests = async () => {
   await sdk.api.users.updateOne(sdk.userInfo.id, { 
     weeklyAvailabilities: [
       { 
-        dayOfWeekStartingSundayIndexedByZero,
+        dayOfWeekStartingSundayIndexedByZero: 0,
         startTimeInMinutes: 60 * 12, // noon,
         endTimeInMinutes: 60 * 13, // 1pm,
       },
@@ -4232,7 +4232,7 @@ export const self_serve_appointment_booking_tests = async () => {
   await sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { 
     weeklyAvailabilities: [
       { 
-        dayOfWeekStartingSundayIndexedByZero, // sunday
+        dayOfWeekStartingSundayIndexedByZero: 0,
         startTimeInMinutes: 60 * 12, // noon,
         endTimeInMinutes: 60 * 14, // 2pm,
       },
@@ -4245,7 +4245,7 @@ export const self_serve_appointment_booking_tests = async () => {
   const multiSlots = await enduserSDK.api.calendar_events.get_appointment_availability({
     calendarEventTemplateId: event30min.id,
     from: new Date(Date.now()),
-    to: new Date(Date.now() + 8 * 24 * 60 * 60 * 1000),
+    to: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     multi: true,
     userIds: [sdk.userInfo.id, sdkNonAdmin.userInfo.id]
   })
@@ -6065,6 +6065,128 @@ const test_weighted_round_robin = async () => {
   })
 }
 
+const enduser_access_tags_tests = async () => {
+  log_header("enduser_access_tags_tests")
+
+  const matchTag = 'Access'
+  const dontMatchTag = 'No Access'
+
+  const matchEnduser = await sdk.api.endusers.createOne({ accessTags: [matchTag]})
+  const matchMultiTagEnduser = await sdk.api.endusers.createOne({ accessTags: [matchTag, dontMatchTag]})
+  const dontMatchEnduser = await sdk.api.endusers.createOne({ accessTags: [dontMatchTag]})
+  const matchTicket = await sdk.api.tickets.createOne({ enduserId: matchEnduser.id, title: 'ticket' })
+  const dontMatchTicket = await sdk.api.tickets.createOne({ enduserId: dontMatchEnduser.id, title: 'ticket' })
+
+  // start with disabled setting an no tags on non-admin
+  await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: [] }, { replaceObjectFields: true })
+  await sdk.api.organizations.updateOne(sdkNonAdmin.userInfo.businessId, { 
+    settings: { endusers: { enableAccessTags: false } }
+  })
+  await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword) // ensure enableAccessTags setting stored correctly on jwt
+  await async_test(`Setting disabled, no tags, list`, sdkNonAdmin.api.endusers.getSome, { onResult: r => r.length === 0 })
+  await async_test(`Setting disabled, matchEnduser`, () => sdkNonAdmin.api.endusers.getOne(matchEnduser.id), handleAnyError)
+  await async_test(`Setting disabled, dontMatchEnduser`, () => sdkNonAdmin.api.endusers.getOne(dontMatchEnduser.id), handleAnyError)
+  await async_test(`Setting disabled, no tags, tickets`, sdkNonAdmin.api.tickets.getSome, { onResult: r => r.length === 0 })
+  await async_test(`Setting disabled, matchEnduser ticket`, () => sdkNonAdmin.api.tickets.getOne(matchTicket.id), handleAnyError)
+  await async_test(`Setting disabled, dontMatchEnduser ticket`, () => sdkNonAdmin.api.tickets.getOne(dontMatchTicket.id), handleAnyError)
+  await async_test(
+    `tickets filter enduser valid`, 
+    () => sdkNonAdmin.api.tickets.getSome({ filter: { enduserId: matchEnduser.id }}), { 
+    onResult: r => r.length === 0
+  })
+  await async_test(
+    `tickets filter enduser invalid`, 
+    () => sdkNonAdmin.api.tickets.getSome({ filter: { enduserId: dontMatchEnduser.id }}), { 
+    onResult: r => r.length === 0
+  })
+
+
+  // enable setting, disable tags
+  await sdk.api.organizations.updateOne(sdkNonAdmin.userInfo.businessId, { 
+    settings: { endusers: { enableAccessTags: true } }
+  })
+  await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword) // ensure enableAccessTags setting stored correctly on jwt
+  await async_test(`enable setting, disable tags`, sdkNonAdmin.api.endusers.getSome, { onResult: r => r.length === 0 })
+  await async_test(`enable setting, matchEnduser`, () => sdkNonAdmin.api.endusers.getOne(matchEnduser.id), handleAnyError)
+  await async_test(`enable setting, dontMatchEnduser`, () => sdkNonAdmin.api.endusers.getOne(dontMatchEnduser.id), handleAnyError)
+  await async_test(`enable setting, no tags, tickets`, sdkNonAdmin.api.tickets.getSome, { onResult: r => r.length === 0 })
+  await async_test(`enable setting, matchEnduser ticket`, () => sdkNonAdmin.api.tickets.getOne(matchTicket.id), handleAnyError)
+  await async_test(`enable setting, dontMatchEnduser ticket`, () => sdkNonAdmin.api.tickets.getOne(dontMatchTicket.id), handleAnyError)
+  await async_test(
+    `tickets filter enduser valid`, 
+    () => sdkNonAdmin.api.tickets.getSome({ filter: { enduserId: matchEnduser.id }}), { 
+    onResult: r => r.length === 0
+  })
+  await async_test(
+    `tickets filter enduser invalid`, 
+    () => sdkNonAdmin.api.tickets.getSome({ filter: { enduserId: dontMatchEnduser.id }}), { 
+    onResult: r => r.length === 0
+  })
+
+
+  // disable setting, enable tags
+  await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: [matchTag] }, { replaceObjectFields: true })
+  await sdk.api.organizations.updateOne(sdkNonAdmin.userInfo.businessId, { 
+    settings: { endusers: { enableAccessTags: false } }
+  })
+  await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword) // ensure enableAccessTags setting stored correctly on jwt
+  await async_test(`disable setting, enable tags`, sdkNonAdmin.api.endusers.getSome, { onResult: r => r.length === 0 })
+  await async_test(`disable setting, matchEnduser`, () => sdkNonAdmin.api.endusers.getOne(matchEnduser.id), handleAnyError)
+  await async_test(`disable setting, dontMatchEnduser`, () => sdkNonAdmin.api.endusers.getOne(dontMatchEnduser.id), handleAnyError)
+  await async_test(`disable setting, enable tags, tickets`, sdkNonAdmin.api.tickets.getSome, { onResult: r => r.length === 0 })
+  await async_test(`disable setting, matchEnduser ticket`, () => sdkNonAdmin.api.tickets.getOne(matchTicket.id), handleAnyError)
+  await async_test(`disable setting, dontMatchEnduser ticket`, () => sdkNonAdmin.api.tickets.getOne(dontMatchTicket.id), handleAnyError)
+  await async_test(
+    `tickets filter enduser valid`, 
+    () => sdkNonAdmin.api.tickets.getSome({ filter: { enduserId: matchEnduser.id }}), { 
+    onResult: r => r.length === 0
+  })
+  await async_test(
+    `tickets filter enduser invalid`, 
+    () => sdkNonAdmin.api.tickets.getSome({ filter: { enduserId: dontMatchEnduser.id }}), { 
+    onResult: r => r.length === 0
+  })
+
+
+  // enabled setting AND tags (keeps tags enabled)
+  await sdk.api.organizations.updateOne(sdkNonAdmin.userInfo.businessId, { 
+    settings: { endusers: { enableAccessTags: true } }
+  })
+  await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword) // ensure enableAccessTags setting stored correctly on jwt
+  await async_test(`Access by tag with setting works`, sdkNonAdmin.api.endusers.getSome, {
+    onResult: r => r.length === 2 && !r.find(e => e.id === dontMatchEnduser.id) 
+  })
+  await async_test(`access matchEnduser`, () => sdkNonAdmin.api.endusers.getOne(matchEnduser.id), passOnAnyResult)
+  await async_test(`access dontMatchEnduser bad`, () => sdkNonAdmin.api.endusers.getOne(dontMatchEnduser.id), handleAnyError)
+  await async_test(`access setting, no tags, tickets`, sdkNonAdmin.api.tickets.getSome, { 
+    onResult: r => r.length === 1 && !r.find(t => t.id === dontMatchTicket.id) 
+  })
+  await async_test(`access, matchEnduser ticket`, () => sdkNonAdmin.api.tickets.getOne(matchTicket.id), passOnAnyResult)
+  await async_test(`access, dontMatchEnduser ticket`, () => sdkNonAdmin.api.tickets.getOne(dontMatchTicket.id), handleAnyError)
+  await async_test(
+    `tickets filter enduser valid`, 
+    () => sdkNonAdmin.api.tickets.getSome({ filter: { enduserId: matchEnduser.id }}), { 
+    onResult: r => r.length === 1
+  })
+  await async_test(
+    `tickets filter enduser invalid`, 
+    () => sdkNonAdmin.api.tickets.getSome({ filter: { enduserId: dontMatchEnduser.id }}), { 
+    onResult: r => r.length === 0
+  })
+
+  // cleanup
+  await sdk.api.organizations.updateOne(sdkNonAdmin.userInfo.businessId, { 
+    settings: { endusers: { enableAccessTags: false } }
+  })
+  await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: [] }, { replaceObjectFields: true })
+  await sdkNonAdmin.refresh_session()
+  await Promise.all([
+    sdk.api.endusers.deleteOne(matchEnduser.id),
+    sdk.api.endusers.deleteOne(matchMultiTagEnduser.id),
+    sdk.api.endusers.deleteOne(dontMatchEnduser.id),
+  ])
+}
+
 (async () => {
   log_header("API")
 
@@ -6105,6 +6227,7 @@ const test_weighted_round_robin = async () => {
     await mfa_tests()
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await enduser_access_tags_tests()
     await self_serve_appointment_booking_tests()
     await alternate_phones_tests()
     await ticket_queue_tests()
