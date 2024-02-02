@@ -6174,6 +6174,19 @@ const enduser_access_tags_tests = async () => {
     onResult: r => r.length === 0
   })
 
+  await async_test(`Non-admin can't update tags`, 
+    () => sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: ['new tag'] }), 
+    handleAnyError
+  )
+  await async_test(`Non-admin can't update tags (with other updates)`, 
+    () => sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: ['new tag'], bio: '' }), 
+    handleAnyError
+  )
+  await async_test(`Non-admin can update other fields`, 
+    () => sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { bio: '' }), 
+    passOnAnyResult
+  )
+
   // cleanup
   await sdk.api.organizations.updateOne(sdkNonAdmin.userInfo.businessId, { 
     settings: { endusers: { enableAccessTags: false } }
@@ -6184,6 +6197,78 @@ const enduser_access_tags_tests = async () => {
     sdk.api.endusers.deleteOne(matchEnduser.id),
     sdk.api.endusers.deleteOne(matchMultiTagEnduser.id),
     sdk.api.endusers.deleteOne(dontMatchEnduser.id),
+  ])
+}
+
+const unique_strings_tests = async () => {
+  log_header("unique_strings test")
+
+  const e = await sdk.api.endusers.createOne({ assignedTo: ['1', '2', '2', '1', '3']})
+  await async_test(`Duplicate care team assignments are prevented`, 
+    () => sdk.api.endusers.getOne(e.id), 
+    { onResult: e => e.assignedTo?.length === 3 && e.assignedTo.includes('1') && e.assignedTo.includes('2') && e.assignedTo.includes('3' )}
+  )
+
+  // attempt to push duplicates of each
+  await sdk.api.endusers.updateOne(e.id, { assignedTo: ['1', '2', '3'] }, { replaceObjectFields: false })
+  await async_test(`Duplicate care team assignments are prevented (update)`, 
+    () => sdk.api.endusers.getOne(e.id), 
+    { onResult: e => e.assignedTo?.length === 3 && e.assignedTo.includes('1') && e.assignedTo.includes('2') && e.assignedTo.includes('3' )}
+  )
+
+  // validate setting empty is allowed
+  await async_test(`Setting empty is still allowed`, 
+    () =>  sdk.api.endusers.updateOne(e.id, { assignedTo: [] }, { replaceObjectFields: true }),
+    passOnAnyResult
+  )
+
+  return await Promise.all([
+    sdk.api.endusers.deleteOne(e.id),
+  ])
+}
+
+const marketing_email_unsubscribe_tests = async () => {
+  log_header("marketing_email_unsubscribe_tests")
+
+  const e = await sdk.api.endusers.createOne({ email: 'test@tellescope.com' })
+  await async_test(
+    `Non-marketing email good`,
+    () => sdk.api.emails.createOne({ logOnly: true, subject: '', enduserId: e.id, textContent: '', HTMLContent: '' }), 
+    passOnAnyResult
+  )
+  await async_test(
+    `Marketing email good when subscribed`,
+    () => sdk.api.emails.createOne({ logOnly: true, isMarketing: true, subject: '', enduserId: e.id, textContent: '', HTMLContent: '' }), 
+    passOnAnyResult
+  )
+
+  // attempt to push duplicates of each
+  await sdk.GET('/v1/unsubscribe', { enduserId: e.id })
+  await async_test(
+    `GET /v1/unsubscribe works`,
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => e.unsubscribedFromMarketing === true }
+  )
+
+  await async_test(
+    `Non-marketing email good`,
+    () => sdk.api.emails.createOne({ logOnly: true, subject: '', enduserId: e.id, textContent: '', HTMLContent: '' }), 
+    passOnAnyResult
+  )
+  await async_test(
+    `Marketing email bad when unsubscribed`,
+    () => sdk.api.emails.createOne({ logOnly: true, isMarketing: true, subject: '', enduserId: e.id, textContent: '', HTMLContent: '' }), 
+    handleAnyError
+  )
+  await async_test(
+    `Marketing email bad when unsubscribed (bulk)`,
+    () => sdk.api.emails.createSome([{ logOnly: true, isMarketing: true, subject: '', enduserId: e.id, textContent: '', HTMLContent: '' }]), 
+    handleAnyError
+  )
+
+
+  return await Promise.all([
+    sdk.api.endusers.deleteOne(e.id),
   ])
 }
 
@@ -6227,6 +6312,8 @@ const enduser_access_tags_tests = async () => {
     await mfa_tests()
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await marketing_email_unsubscribe_tests()
+    await unique_strings_tests()
     await enduser_access_tags_tests()
     await self_serve_appointment_booking_tests()
     await alternate_phones_tests()

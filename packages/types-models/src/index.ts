@@ -534,6 +534,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   mfa?: MFASettings,
   lastZendeskSyncAt?: Date,
   accessTags?: string[],
+  unsubscribedFromMarketing?: boolean,
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
 }
@@ -789,6 +790,7 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
   suggestedReply?: string,
   tags?: string[],
   batchId?: string,
+  isMarketing?: boolean,
   // sentAt: string, // only outgoing
 }
 
@@ -920,6 +922,7 @@ export interface MessageTemplate extends MessageTemplate_readonly, MessageTempla
   editorState?: string
   mode?: MessageTemplateMode,
   embeddingHash?: string,
+  isMarketing?: boolean,
 }
 
 export interface File_readonly extends ClientRecord {
@@ -2731,6 +2734,7 @@ export type AutomationTriggerEvents = {
     titles?: string[],
   }, {}>,
   'On Birthday': AutomationTriggerEventBuilder<"On Birthday", { minutes: number }, {}>,
+  'Has Not Engaged': AutomationTriggerEventBuilder<"Has Not Engaged", { intervalInMS: number }, {}>,
 }
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents
 export type AutomationTriggerEvent = AutomationTriggerEvents[AutomationTriggerEventType]

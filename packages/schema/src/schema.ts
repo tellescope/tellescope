@@ -262,6 +262,7 @@ import {
   mmsMessagesValidator,
   groupMMSUserStatesValidator,
   sortingFieldsValidator,
+  listOfUniqueStringsValidatorEmptyOk,
 } from "@tellescope/validation"
 
 import {
@@ -409,6 +410,8 @@ export type extractModelType<Type> = Type extends Model<infer T, infer N> ? T : 
 export type Schema = {
   [N in keyof ServerModelForName]: Model<ServerModelForName[N], ModelName>
 }
+
+export const UNIQUE_LIST_FIELDS = ['assignedTo']
 
 const sideEffects = {
   handleJourneyStateChange: {
@@ -1018,6 +1021,7 @@ export const schema: SchemaV1 = build_schema({
         examples: ['test@tellescope.com'],
         redactions: ['enduser'],
       },
+      unsubscribedFromMarketing: { validator: booleanValidator },
       alternateEmails: { validator: listValidatorOptionalOrEmptyOk(emailValidator) },
       alternatePhones: { validator: listOfStringsValidatorEmptyOk  },
       emailConsent: { 
@@ -1102,7 +1106,7 @@ export const schema: SchemaV1 = build_schema({
       },
       assignedTo: { 
         redactions: ['enduser'],
-        validator: listOfStringsValidatorEmptyOk,
+        validator: listOfUniqueStringsValidatorEmptyOk,
       },
       unread: { 
         redactions: ['enduser'],
@@ -1903,14 +1907,19 @@ export const schema: SchemaV1 = build_schema({
       relationship: [
         {
           explanation: "Email and email consent must be set for enduser",
-          evaluate: ({ enduserId, logOnly }, deps, _, method) => {
+          evaluate: ({ enduserId, logOnly, isMarketing }, deps, _, method) => {
+            const e = deps[enduserId ?? ''] as Enduser
+
+            // include before logOnly return for test-coverage purposes
+            if (isMarketing && e.unsubscribedFromMarketing) return "Unsubscribed from marketing"
+
             if (logOnly === true) return
             if (method === 'update') return
 
-            const e = deps[enduserId ?? ''] as Enduser
             if (!e) return // not in cache, permit by default, likely during an update
             if (!e?.email) return "Missing email"
             // if (!e?.emailConsent) return "Missing email consent"
+
           }
         }
       ],
@@ -2025,6 +2034,7 @@ export const schema: SchemaV1 = build_schema({
       suggestedReply: { validator: stringValidator5000EmptyOkay },
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       batchId: { validator: stringValidator250 }, 
+      isMarketing: { validator: booleanValidator },
     }, 
     customActions: {
       sync_integrations: {
@@ -2455,7 +2465,19 @@ export const schema: SchemaV1 = build_schema({
 
             return "Only admin users can update others' profiles"
           }
-        }, {
+        }, 
+        {
+          explanation: "Only admin users can update tags when accessTags is enabled",
+          evaluate: ({ _id }, _, session, method, { updates } ) => {
+            if (session.type === 'user' && !session.eat) return // accessTags is not enabled
+            if ((session as UserSession)?.roles?.includes('Admin')) return
+            if (method === 'create') return
+            if (!updates?.tags) return
+
+            return "Only admin users can update tags when accessTags is enabled"
+          }
+        }, 
+        {
           explanation: "Only admin users can update user roles",
           evaluate: ({ roles }, _, session, method, { updates }) => {
             if ((session as UserSession)?.roles?.includes('Admin')) return // admin can do this
@@ -2884,6 +2906,7 @@ export const schema: SchemaV1 = build_schema({
       mode: {
         validator: messageTemplateModeValidator,
       },
+      isMarketing: { validator: booleanValidator },
     },
   },
   files: {

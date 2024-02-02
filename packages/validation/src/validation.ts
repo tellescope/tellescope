@@ -313,6 +313,7 @@ export interface ValidatorOptions {
   isBoolean?: boolean;
   errorMessage?: string;
   trim?: boolean;
+  unique?: boolean, // should list contain uniques
 }  
 export interface ValidatorOptionsForValue extends ValidatorOptions {
   listOf?: false;
@@ -360,6 +361,7 @@ export const build_validator: BuildValidator_T = (escapeFunction, options={} as 
     shouldTruncate, isOptional, toLower,
     emptyStringOk, emptyListOk, nullOk,
     isObject, isNumber, listOf, isBoolean,
+    unique,
   } = options
 
   const minLength = options.minLength || 0
@@ -406,6 +408,9 @@ export const build_validator: BuildValidator_T = (escapeFunction, options={} as 
     }
 
     let values = listOf && Array.isArray(fieldValue) ? fieldValue.filter(a => !!a) : [fieldValue]
+    if (listOf && unique && Array.isArray(values)) {
+      values = Array.from(new Set(values))
+    }
     let escapedValues = []
 
     if (values.length > 1000) throw new Error("Arrays should not contain more than 1000 elements")
@@ -906,11 +911,23 @@ export const listValidatorOptionalOrEmptyOk = <T>(b: ValidatorDefinition<T>, o?:
   getExample: () => [b.getExample()],
   getType: () => [b.getExample()],
 })
+export const listValidatorUnique = <T>(b: ValidatorDefinition<T>, _o?: ValidatorOptions | ValidatorOptionsForList): ValidatorDefinition<T[]> => ({
+  validate: o => build_validator(b.validate(o as any), { ..._o, ...o, listOf: true, unique: true }),
+  getExample: () => [b.getExample()],
+  getType: () => [b.getExample()],
+})
+export const listValidatorUniqueEmptyOkay = <T>(b: ValidatorDefinition<T>, _o?: ValidatorOptions | ValidatorOptionsForList): ValidatorDefinition<T[]> => ({
+  validate: o => build_validator(b.validate(o as any), { ..._o, ...o, listOf: true, unique: true, emptyListOk: true }),
+  getExample: () => [b.getExample()],
+  getType: () => [b.getExample()],
+})
 
 export const listOfStringsValidator = listValidator(stringValidator) 
 export const listOfStringsValidatorOptionalOrEmptyOk = listValidatorOptionalOrEmptyOk(stringValidator) 
 export const listOfStringsValidatorEmptyOk = listValidatorEmptyOk(stringValidator) 
 export const listOfObjectAnyFieldsAnyValuesValidator = listValidator(objectAnyFieldsAnyValuesValidator)
+
+export const listOfUniqueStringsValidatorEmptyOk = listValidatorUniqueEmptyOkay(stringValidator) 
 
 export const booleanValidatorBuilder: ValidatorBuilder<boolean> = (defaults) => ({
   validate: (options={}) => build_validator(
@@ -3139,6 +3156,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "No Recent Appointment": true,
   "Medication Added": true,
   "On Birthday": true,
+  "Has Not Engaged": true,
 }
 export const AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES) as AutomationTriggerEventType[]
 
@@ -3206,6 +3224,13 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['On Birthday']),
     info: objectValidator<AutomationTriggerEvents['On Birthday']['info']>({
       minutes: nonNegNumberValidator,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Has Not Engaged": objectValidator<AutomationTriggerEvents["Has Not Engaged"]>({
+    type: exactMatchValidator(['Has Not Engaged']),
+    info: objectValidator<AutomationTriggerEvents['Has Not Engaged']['info']>({
+      intervalInMS: nonNegNumberValidator,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
