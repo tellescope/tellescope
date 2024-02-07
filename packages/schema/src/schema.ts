@@ -843,6 +843,7 @@ export type CustomActions = {
       { productIds: string[] }, 
       { customerId: string, clientSecret: string, publishableKey: string, stripeAccount: string, businessName: string }
     >,
+    get_stripe_portal_session: CustomAction<{ return_url: string }, { url: string }>
   },
   group_mms_conversations: {
     start_conversation: CustomAction<{ 
@@ -5496,9 +5497,23 @@ export const schema: SchemaV1 = build_schema({
           businessName: { validator: stringValidator, required: true },
         },
       }, 
+      get_stripe_portal_session: {
+        op: "custom", access: 'read', method: "get", 
+        name: 'Get Stripe Portal Session (Enduser Only)',
+        path: '/products/stripe-portal-session',
+        description: "Prepares a Stripe checkout process",
+        parameters: { 
+          return_url: { validator: stringValidator, required: true },
+        },
+        returns: {
+          url: { validator: stringValidator, required: true },
+        },
+      }, 
     },
     enduserActions: {
-      prepare_stripe_checkout: {}, read: {}, readMany: {}, 
+      read: {}, readMany: {}, 
+      prepare_stripe_checkout: {}, 
+      get_stripe_portal_session: {},
     },
     fields: {
       ...BuiltInFields, 
@@ -5577,6 +5592,7 @@ export const schema: SchemaV1 = build_schema({
       source: { validator: stringValidatorOptional },
       externalId: { validator: stringValidator },
       cptCode: { validator: billingCodeValidatorOptional },
+      notes: { validator: stringValidator5000EmptyOkay },
     }
   },
   purchase_credits: {

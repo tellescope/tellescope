@@ -103,6 +103,11 @@ export interface InternalBusinessRecord {
 }
 
 
+export interface StripeCustomIntegration extends InternalBusinessRecord {
+  publicKey: string,
+  secretKey: string,
+}
+
 
 // can expose as public record later
 export interface WebhookLog extends InternalBusinessRecord, EnduserEngagementTimestamps {

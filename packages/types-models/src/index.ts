@@ -195,6 +195,7 @@ export interface Organization_readonly extends ClientRecord {
   twilioNumbers?: string[];
   stripeAccountId?: string;
   stripeIsConnected?: boolean;
+  hasCustomStripe?: boolean; // non-Connect integration
   photon?: {
     organizationId: string,
     clientId: string,
@@ -471,6 +472,7 @@ export interface Enduser_readonly extends UserActivityInfo, ClientRecord, Enduse
   recentMessagePreview?: string;
   hashedPassword: string;
   stripeCustomerId?: string,
+  customStripeCustomerId?: string,
   stripeSubscription?: StripeSubscription,
   _dateOfBirth?: Date,
   _age?: number,
@@ -1661,6 +1663,7 @@ export interface Purchase extends Purchase_readonly, Purchase_required, Purchase
   productIds?: string[],
   externalId?: string,
   cptCode?: BillingCode,
+  notes?: string,
 }
 
 type BuildPurchaseCreditInfo <T, I> = { type: T, info: I }
