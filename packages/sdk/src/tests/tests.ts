@@ -10,6 +10,7 @@ import {
   UserDisplayInfo,
 } from "@tellescope/types-client"
 import { 
+  CompoundFilter,
   CreateTicketActionInfo,
   CreateTicketAssignmentStrategies,
   CreateTicketAssignmentStrategy,
@@ -32,7 +33,7 @@ import {
 } from "@tellescope/validation"
 
 import { Session, APIQuery, EnduserSession } from "../sdk"
-import { weighted_round_robin } from "@tellescope/utilities"
+import { FORM_LOGIC_CALCULATED_FIELDS, responses_satisfy_conditions, weighted_round_robin } from "@tellescope/utilities"
 import { DEFAULT_OPERATIONS, PLACEHOLDER_ID } from "@tellescope/constants"
 import { 
   schema, 
@@ -53,6 +54,7 @@ import {
 } from "@tellescope/utilities"
 
 import fs from "fs"
+import { response } from "express";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
@@ -6070,12 +6072,13 @@ const enduser_access_tags_tests = async () => {
 
   const matchTag = 'Access'
   const dontMatchTag = 'No Access'
+  const ticketTitle = 'ticket'
 
   const matchEnduser = await sdk.api.endusers.createOne({ accessTags: [matchTag]})
   const matchMultiTagEnduser = await sdk.api.endusers.createOne({ accessTags: [matchTag, dontMatchTag]})
   const dontMatchEnduser = await sdk.api.endusers.createOne({ accessTags: [dontMatchTag]})
-  const matchTicket = await sdk.api.tickets.createOne({ enduserId: matchEnduser.id, title: 'ticket' })
-  const dontMatchTicket = await sdk.api.tickets.createOne({ enduserId: dontMatchEnduser.id, title: 'ticket' })
+  const matchTicket = await sdk.api.tickets.createOne({ enduserId: matchEnduser.id, title: ticketTitle })
+  const dontMatchTicket = await sdk.api.tickets.createOne({ enduserId: dontMatchEnduser.id, title: ticketTitle })
 
   // start with disabled setting an no tags on non-admin
   await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: [] }, { replaceObjectFields: true })
@@ -6087,6 +6090,10 @@ const enduser_access_tags_tests = async () => {
   await async_test(`Setting disabled, matchEnduser`, () => sdkNonAdmin.api.endusers.getOne(matchEnduser.id), handleAnyError)
   await async_test(`Setting disabled, dontMatchEnduser`, () => sdkNonAdmin.api.endusers.getOne(dontMatchEnduser.id), handleAnyError)
   await async_test(`Setting disabled, no tags, tickets`, sdkNonAdmin.api.tickets.getSome, { onResult: r => r.length === 0 })
+  await async_test(`Setting disabled, no tags, tickets search`, 
+    () => sdkNonAdmin.api.tickets.getSome({ search: { query: ticketTitle }}), 
+    { onResult: r => r.length === 0 }
+  )
   await async_test(`Setting disabled, matchEnduser ticket`, () => sdkNonAdmin.api.tickets.getOne(matchTicket.id), handleAnyError)
   await async_test(`Setting disabled, dontMatchEnduser ticket`, () => sdkNonAdmin.api.tickets.getOne(dontMatchTicket.id), handleAnyError)
   await async_test(
@@ -6110,6 +6117,10 @@ const enduser_access_tags_tests = async () => {
   await async_test(`enable setting, matchEnduser`, () => sdkNonAdmin.api.endusers.getOne(matchEnduser.id), handleAnyError)
   await async_test(`enable setting, dontMatchEnduser`, () => sdkNonAdmin.api.endusers.getOne(dontMatchEnduser.id), handleAnyError)
   await async_test(`enable setting, no tags, tickets`, sdkNonAdmin.api.tickets.getSome, { onResult: r => r.length === 0 })
+  await async_test(`enable setting, no tags, tickets search`, 
+    () => sdkNonAdmin.api.tickets.getSome({ search: { query: ticketTitle }}), 
+    { onResult: r => r.length === 0 }
+  )
   await async_test(`enable setting, matchEnduser ticket`, () => sdkNonAdmin.api.tickets.getOne(matchTicket.id), handleAnyError)
   await async_test(`enable setting, dontMatchEnduser ticket`, () => sdkNonAdmin.api.tickets.getOne(dontMatchTicket.id), handleAnyError)
   await async_test(
@@ -6134,6 +6145,10 @@ const enduser_access_tags_tests = async () => {
   await async_test(`disable setting, matchEnduser`, () => sdkNonAdmin.api.endusers.getOne(matchEnduser.id), handleAnyError)
   await async_test(`disable setting, dontMatchEnduser`, () => sdkNonAdmin.api.endusers.getOne(dontMatchEnduser.id), handleAnyError)
   await async_test(`disable setting, enable tags, tickets`, sdkNonAdmin.api.tickets.getSome, { onResult: r => r.length === 0 })
+  await async_test(`disable setting, no tags, tickets search`, 
+    () => sdkNonAdmin.api.tickets.getSome({ search: { query: ticketTitle }}), 
+    { onResult: r => r.length === 0 }
+  )
   await async_test(`disable setting, matchEnduser ticket`, () => sdkNonAdmin.api.tickets.getOne(matchTicket.id), handleAnyError)
   await async_test(`disable setting, dontMatchEnduser ticket`, () => sdkNonAdmin.api.tickets.getOne(dontMatchTicket.id), handleAnyError)
   await async_test(
@@ -6158,9 +6173,13 @@ const enduser_access_tags_tests = async () => {
   })
   await async_test(`access matchEnduser`, () => sdkNonAdmin.api.endusers.getOne(matchEnduser.id), passOnAnyResult)
   await async_test(`access dontMatchEnduser bad`, () => sdkNonAdmin.api.endusers.getOne(dontMatchEnduser.id), handleAnyError)
-  await async_test(`access setting, no tags, tickets`, sdkNonAdmin.api.tickets.getSome, { 
+  await async_test(`access setting, tickets`, sdkNonAdmin.api.tickets.getSome, { 
     onResult: r => r.length === 1 && !r.find(t => t.id === dontMatchTicket.id) 
   })
+  await async_test(`access setting tickets search`, 
+    () => sdkNonAdmin.api.tickets.getSome({ search: { query: ticketTitle }}), 
+    { onResult: r => r.length === 1 }
+  )
   await async_test(`access, matchEnduser ticket`, () => sdkNonAdmin.api.tickets.getOne(matchTicket.id), passOnAnyResult)
   await async_test(`access, dontMatchEnduser ticket`, () => sdkNonAdmin.api.tickets.getOne(dontMatchTicket.id), handleAnyError)
   await async_test(
@@ -6272,6 +6291,76 @@ const marketing_email_unsubscribe_tests = async () => {
   ])
 }
 
+export const form_conditional_logic_tests = async () => {
+  log_header("Form Conditional Logic Tests")
+
+  const responses: FormResponseValue[] = [
+    {
+      fieldId: "0",
+      answer: { type: 'string', value: 'hello' },
+      fieldTitle: '',
+    },
+    {
+      fieldId: "0list",
+      answer: { type: 'multiple_choice', value: ['hello'] },
+      fieldTitle: '',
+    },
+    {
+      fieldId: "1",
+      answer: { type: 'string', value: '' },
+      fieldTitle: '',
+    },
+    {
+      fieldId: "2",
+      answer: { type: 'multiple_choice', value: [''] },
+      fieldTitle: '',
+    },
+    {
+      fieldId: "3",
+      answer: { type: 'number', value: 73 },
+      fieldTitle: '',
+      computedValueKey: 'Height',
+    },
+    {
+      fieldId: "4",
+      answer: { type: 'number', value: 190 },
+      fieldTitle: '',
+      computedValueKey: 'Weight',
+    },
+  ]
+  
+  let i = 0
+  const run_conditional_form_test = (conditions: CompoundFilter<string>, expected: boolean, title=`Test ${++i}`) => {
+    assert(
+      responses_satisfy_conditions(responses, conditions) === expected,
+      `Failed condition:\n${JSON.stringify(conditions, null, 2)}`,
+      title,
+    )
+  }
+
+  run_conditional_form_test({ $and: [{ condition: { '0': { $contains: 'hel'} } }] }, true)
+  run_conditional_form_test({ $and: [{ condition: { '0': { $contains: 'hello'} } }] }, true)
+  run_conditional_form_test({ $and: [{ condition: { '0': { $contains: 'hllo'} } }] }, false)
+  run_conditional_form_test({ $and: [{ condition: { '0list': { $contains: 'hel'} } }] }, true)
+  run_conditional_form_test({ $and: [{ condition: { '0list': { $contains: 'hello'} } }] }, true)
+  run_conditional_form_test({ $and: [{ condition: { '0list': { $contains: 'hllo'} } }] }, false)
+  run_conditional_form_test({ $and: [{ condition: { '1': '' } }] }, true)
+  run_conditional_form_test({ $and: [{ condition: { '1': { $exists: true } } }] }, false)
+  run_conditional_form_test({ $and: [{ condition: { '1': { $exists: false } } }] }, true)
+  run_conditional_form_test({ $and: [{ condition: { '2': '' } }] }, true)
+  run_conditional_form_test({ $and: [{ condition: { '2': { $exists: true } } }] }, true)
+  run_conditional_form_test({ $and: [{ condition: { '2': { $exists: false } } }] }, false)
+  run_conditional_form_test({ $and: [{ condition: { '3': { $gt: 72 } } }] }, true)
+  run_conditional_form_test({ $and: [{ condition: { '3': { $gt: 73 } } }] }, false)
+  run_conditional_form_test({ $and: [{ condition: { '3': { $gt: 74 } } }] }, false)
+  run_conditional_form_test({ $and: [{ condition: { '3': { $lt: 72 } } }] }, false)
+  run_conditional_form_test({ $and: [{ condition: { '3': { $lt: 73 } } }] }, false)
+  run_conditional_form_test({ $and: [{ condition: { '3': { $lt: 74 } } }] }, true)
+  run_conditional_form_test({ $and: [{ condition: { [FORM_LOGIC_CALCULATED_FIELDS[0]]: { $exists: true } } }] }, true)
+  run_conditional_form_test({ $and: [{ condition: { [FORM_LOGIC_CALCULATED_FIELDS[0]]: { $gt: 25 } } }] }, true)
+  run_conditional_form_test({ $and: [{ condition: { [FORM_LOGIC_CALCULATED_FIELDS[0]]: { $lt: 25 } } }] }, false)
+}
+
 (async () => {
   log_header("API")
 
@@ -6282,6 +6371,8 @@ const marketing_email_unsubscribe_tests = async () => {
   ) 
 
   try {
+    form_conditional_logic_tests()
+
     await test_weighted_round_robin()
 
     await validate_schema()
@@ -6312,9 +6403,9 @@ const marketing_email_unsubscribe_tests = async () => {
     await mfa_tests()
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await enduser_access_tags_tests()
     await marketing_email_unsubscribe_tests()
     await unique_strings_tests()
-    await enduser_access_tags_tests()
     await self_serve_appointment_booking_tests()
     await alternate_phones_tests()
     await ticket_queue_tests()

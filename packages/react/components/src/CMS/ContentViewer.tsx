@@ -130,3 +130,62 @@ export const ArticleViewer = ({
     </Grid>
   )
 }
+
+export const html_for_article = (article: ManagedContentRecord, options?: { rootWidth?: number }) => {
+  const rootWidth = options?.rootWidth || 400
+  
+  const content = (
+    (article.blocks ?? [])
+    .map((block, i) => 
+        block.type === 'h1' ? (
+          `<h1>${block.info.text}</h1>`
+        )
+      : block.type === 'h2' ? (
+          `<h2>${block.info.text}</h2>`
+        )
+      : block.type === 'html' ? (
+        `<div>${remove_script_tags(remove_script_tags(block.info.html))}</div>`
+        ) 
+      : block.type === 'image' ? (
+          // wrap with div to supporting centering later 
+          `<div style="">
+            <img src="${block.info.link}" alt={''} style="max-width: ${block.info.maxWidth || '100%'}; max-height: ${block.info.maxHeight || undefined}; height: ${block.info.height || undefined}; width: ${block.info.width || undefined};" />
+          </div>`
+        )
+      : block.type === 'youtube' ? (
+          `<iframe width="${rootWidth}" 
+            height="${rootWidth * 315 / 560}"
+            title="${`YouTube video player ${i}`}"
+            allowFullScreen
+            src="${correct_youtube_link_for_embed(block.info.link)}"
+            style="margin-top: 12; margin-bottom: 12"
+          >
+          </iframe>`
+        )
+      : block.type === 'iframe' ? (
+          `<iframe width="${rootWidth}" allowFullScreen
+            height="${rootWidth * (block.info.height || 315) / (block.info.width || 560)}"
+            title="${block.info.name ?? `embedded link ${i}`}"
+            src="${block.info.link}"
+            style="margin-top: 12; margin-bottom: 12"
+          >
+          </iframe> `
+        )
+      : block.type === 'pdf' ? (
+          `<iframe width="${rootWidth}" allowFullScreen
+            height="500"
+            title="${block.info.name ?? `embedded pdf ${i}`}"
+            src="${block.info.link}"
+            style="margin-top: 12; margin-bottom: 12"
+          >
+          </iframe>`
+        )
+      : '' as never 
+    )
+    .join('<br />')
+  )
+
+  return (
+    `<div>${content}</div>`
+  )
+}

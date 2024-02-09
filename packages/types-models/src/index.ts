@@ -57,6 +57,18 @@ export type BasicFilter<T extends string> = {
     | {
       $exists: boolean,
     } 
+    | {
+      $gt: number,
+    }
+    | {
+      $lt: number,
+    } 
+    | {
+      $contains: string | number
+    } 
+    | {
+      $doesNotContain: string | number
+    } 
   )
 }
 
@@ -113,6 +125,7 @@ export type CustomEnduserFields = {
   "Text": BuildCustomEnduserField<'Text', { }>,
   "Multiple Text": BuildCustomEnduserField<'Multiple Text', { }>,
   "Date": BuildCustomEnduserField<'Date', { }>,
+  "File": BuildCustomEnduserField<'File', { }>,
   'Auto Detect': BuildCustomEnduserField<'Auto Detect', { }>,
   "Table": BuildCustomEnduserField<"Table", { columns: TableInputChoice[] }>
 }
@@ -523,6 +536,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   city?: string,
   state?: string,
   zipCode?: string,
+  zipPlusFour?: string,
   lastAutoreplySentAt?: Date,
   unsubscribedFromPortalChatNotifications?: boolean,
   triggeredEvents?: Record<string, number>
@@ -949,6 +963,7 @@ export interface File extends File_readonly, File_required, File_updatesDisabled
   pushedToClientPortal?: boolean,
   hiddenFromEnduser?: boolean,
   source?: string,
+  isCalledOut?: boolean,
 }
 
 
@@ -1148,6 +1163,7 @@ export interface FormField_updatesDisabled {}
 export interface FormField extends FormField_readonly, FormField_required, FormField_updatesDisabled {
   placeholder ?: string,
   isOptional  ?: boolean,
+  fullZIP     ?: boolean,
   description ?: string,
   htmlDescription?: string,
   headerText  ?: string,
@@ -1341,6 +1357,7 @@ export type FormResponseAnswerAddress = FormResponseValueAnswerBuilder<'Address'
   addressLineTwo?: string,
   city: string,
   zipCode: string,
+  zipPlusFour?: string,
   state: string,
 }>
 export type DatabaseSelectResponse = {
@@ -1439,6 +1456,7 @@ export type FormResponseValue = {
   sharedWithEnduser?: boolean,
   isCalledOut?: boolean,
   isHighlightedOnTimeline?: boolean,
+  computedValueKey?: 'Height' | 'Weight',
 }
 
 export type AnswerForType = {
@@ -2713,6 +2731,7 @@ export type AutomationTriggerActions = {
   "Remove From Journey": AutomationTriggerActionBuilder<'Remove From Journey', { journeyId: string }>,
   "Remove From All Journeys": AutomationTriggerActionBuilder<'Remove From All Journeys', { }>,
   "Add Tags": AutomationTriggerActionBuilder<'Add Tags', { tags: string[] }>,
+  "Add Access Tags": AutomationTriggerActionBuilder<'Add Access Tags', { tags: string[] }>,
   "Move To Step": AutomationTriggerActionBuilder<'Move To Step', { }>, // journeyId and automationStepId stored as part of trigger for better dependency deletion
   "Assign Care Team": AutomationTriggerActionBuilder<'Assign Care Team', { 
     tags: ListOfStringsWithQualifier
@@ -2765,6 +2784,7 @@ export type Address = {
   city: string,
   state: string,
   zipCode: string,
+  zipPlusFour?: string,
 }
 
 type SuperbillProviderInfoRequired = {

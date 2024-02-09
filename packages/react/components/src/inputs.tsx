@@ -106,9 +106,10 @@ interface UseFileUploaderOptions {
   publicRead?: boolean,
   publicName?: string,
   source?: string,
+  isCalledOut?: boolean,
 }
 export const useFileUpload = (o={} as UseFileUploaderOptions) => {
-  const { enduserId, publicRead, publicName, source } = o
+  const { enduserId, publicRead, publicName, source, isCalledOut } = o
   const session = useResolvedSession()
   const [, { addLocalElement }] = useFiles({ dontFetch: true })
 
@@ -117,7 +118,7 @@ export const useFileUpload = (o={} as UseFileUploaderOptions) => {
   const handleUpload: FileUploadHandler = useCallback(async (details, file) => {
     setUploading(true)
     try {
-      const createdFile = await session.prepare_and_upload_file({ ...details, publicName, enduserId, publicRead, source }, file);
+      const createdFile = await session.prepare_and_upload_file({ ...details, publicName, enduserId, publicRead, source, isCalledOut }, file);
       addLocalElement(createdFile)
       return createdFile
     } catch(err) {
@@ -125,7 +126,7 @@ export const useFileUpload = (o={} as UseFileUploaderOptions) => {
     } finally {
       setUploading(false)
     }
-  }, [session, setUploading])
+  }, [session, setUploading, isCalledOut])
 
   return {
     handleUpload,

@@ -1,15 +1,14 @@
 import React from "react"
-import { Checkbox, Divider, FormControlLabel, Grid, Typography } from "@mui/material"
+import { Divider, Grid, Typography } from "@mui/material"
 import { Enduser, FormResponse } from "@tellescope/types-client"
 import { form_response_value_to_string, getOrgnizationLogoURL, user_display_name } from "@tellescope/utilities"
 import { DownloadFileIconButton, LabeledIconButton, SecureImage, useEndusers, useOrganization, useResolvedSession, useSession, useUsers, value_is_loaded } from "../index"
 import CloseIcon from '@mui/icons-material/Close';
 import { DatabaseSelectResponse, FormResponseAnswerAddress, FormResponseValueAnswer } from "@tellescope/types-models"
 import { Image } from "../layout"
-import { QUESTION_GROUP_VALUE_PLACEHOLDER } from "@tellescope/constants"
 
 const answerStyles: React.CSSProperties = {
-  width: '200px',
+  width: '375px',
   borderBottom: '1px solid black',
 }
 

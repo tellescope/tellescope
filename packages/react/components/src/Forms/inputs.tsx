@@ -457,7 +457,8 @@ export const EmailInput = ({ field, value, onChange, form, ...props }: FormInput
 )
 
 export const NumberInput = ({ field, value, onChange, form, ...props }: FormInputProps<'number'>) => (
-  <AutoFocusTextField {...props} required={!field.isOptional} fullWidth type="number" value={value} onChange={e => onChange(parseInt(e.target.value), field.id)}  
+  <AutoFocusTextField {...props} required={!field.isOptional} fullWidth type="number" value={value} 
+    onChange={e => onChange(parseInt(e.target.value), field.id)}  
     placeholder={field.placeholder || form_display_text_for_language(form, "Enter a number...", '')}
   />
 )
@@ -556,7 +557,7 @@ export const AddressInput = ({ field, value, onChange, ...props }: FormInputProp
     </Grid>
 
     <Grid item>
-    <Grid container alignItems="center" justifyContent={"space-between"} spacing={1}>
+    <Grid container wrap="nowrap" alignItems="center" justifyContent={"space-between"} spacing={1}>
       <Grid item sx={{ width: "calc(100% - 275px)"}}>
         <TextField {...props} size="small" label="City" required={!field.isOptional} 
           InputProps={defaultInputProps}
@@ -597,7 +598,7 @@ export const AddressInput = ({ field, value, onChange, ...props }: FormInputProp
       <Grid item>
         <TextField {...props} size="small" label="ZIP Code" required={!field.isOptional} 
           InputProps={defaultInputProps}
-          sx={{ width: 150 }}
+          sx={{ width: 120 }}
           value={value?.zipCode ?? ''} 
           placeholder="ZIP Code" 
           onChange={e => 
@@ -609,6 +610,25 @@ export const AddressInput = ({ field, value, onChange, ...props }: FormInputProp
           )} 
         />
       </Grid>
+
+      {field.fullZIP &&
+        <Grid item>
+          <TextField {...props} size="small" label="ZIP+4" required={!field.isOptional && field.fullZIP} 
+            InputProps={defaultInputProps}
+            sx={{ width: 80 }}
+            value={value?.zipPlusFour ?? ''} 
+            placeholder="ZIP + 4" 
+            onChange={e => 
+              onChange({
+                ...value as any,
+                zipPlusFour: e.target.value ?? '',
+              }, 
+              field.id
+            )} 
+          />
+        </Grid>
+      }
+
     </Grid>
     </Grid>
   </Grid>

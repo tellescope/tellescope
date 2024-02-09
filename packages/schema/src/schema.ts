@@ -530,6 +530,7 @@ export type CustomActions = {
       publicRead?: boolean,
       publicName?: string,
       source?: string,
+      isCalledOut?: boolean,
     }, 
       { presignedUpload: object, file: File }
     >,
@@ -551,7 +552,7 @@ export type CustomActions = {
         carePlanId?: string,
         context?: string,
       }, 
-      { accessCode: string, url: string, response: FormResponse,  }>
+      { accessCode: string, url: string, response: FormResponse, fullURL: string }>
     ,
     submit_form_response: CustomAction<
       { 
@@ -1143,6 +1144,7 @@ export const schema: SchemaV1 = build_schema({
       city: { validator: stringValidator5000EmptyOkay },
       state: { validator: stateValidator },
       zipCode: { validator: stringValidator25000EmptyOkay },
+      zipPlusFour: { validator: stringValidator100 },
       timezone: { validator: timezoneValidator },
       humanReadableId: { validator: stringValidator100 },
       displayName: { validator: stringValidator250 }, // intentionally not redacted for other endusers
@@ -2939,6 +2941,7 @@ export const schema: SchemaV1 = build_schema({
       hideFromEnduserPortal: { validator: booleanValidator }, // enduser self-hide
       pushedToClientPortal: { validator: booleanValidator }, // user push
       hiddenFromEnduser: { validator: booleanValidator }, // user hide
+      isCalledOut: { validator: booleanValidator },
     },
     customActions: {
       prepare_file_upload: {
@@ -2960,6 +2963,7 @@ export const schema: SchemaV1 = build_schema({
             required: true
           },
           publicRead: { validator: booleanValidator },
+          isCalledOut: { validator: booleanValidator },
           publicName: { validator: stringValidator5000 },
           enduserId: { 
             validator: mongoIdStringValidator ,
@@ -3465,6 +3469,7 @@ export const schema: SchemaV1 = build_schema({
       htmlDescription: { validator: stringValidator5000EmptyOkay }, 
       intakeField: { validator: stringValidator5000EmptyOkay }, // todo: ensure built-ins are ignored
       isOptional: { validator: booleanValidator },
+      fullZIP: { validator: booleanValidator },
       isInGroup: { validator: booleanValidator },
       externalId: { validator: stringValidator100 },
       sharedWithEnduser: { validator: booleanValidator },
@@ -3566,7 +3571,8 @@ export const schema: SchemaV1 = build_schema({
         returns: {
           accessCode: { validator: stringValidator250, required: true },
           url: { validator: stringValidator250, required: true },
-          response: { validator: 'form_response' as any, required: true }
+          response: { validator: 'form_response' as any, required: true },
+          fullURL: { validator: stringValidator250, required: true },
         },
       },
       generate_pdf: {

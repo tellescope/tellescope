@@ -1306,21 +1306,21 @@ export const useEnduserCustomTypes = (options={} as HookOptions<EnduserCustomTyp
 
 export const useChatRooms = (options={} as HookOptions<ChatRoom>) => {
   const session = useResolvedSession()
-  const dispatch = useTellescopeDispatch()
+  // const dispatch = useTellescopeDispatch()
   const rooms = useTypedSelector(s => s.chat_rooms)
 
-  const onUpdate = useCallback((updated: ({ id: string | number } & Partial<ChatRoom>)[]) => {
-    for (const u of updated) {
-      // fetch updated display info if enduserIds or userIds have changed
-      if (!(value_is_loaded(rooms) && rooms.value.find(v => v.id === u.id && v.updatedAt === u.updatedAt))) {
-        session.api.chat_rooms.display_info({ id: u.id })
-        .then(({ id, display_info }) => {
-          dispatch(chatRoomDisplayInfoslice.actions.update({ value: { id, updates: display_info }}))
-        })
-        .catch(e => console.error('Error fetching chatRoomDisplayInfo in useChatRooms onUpdate', e))
-      }
-    }
-  }, [session, dispatch])
+  // const onUpdate = useCallback((updated: ({ id: string | number } & Partial<ChatRoom>)[]) => {
+  //   for (const u of updated) {
+  //     // fetch updated display info if enduserIds or userIds have changed
+  //     if (!(value_is_loaded(rooms) && rooms.value.find(v => v.id === u.id && v.updatedAt === u.updatedAt))) {
+  //       session.api.chat_rooms.display_info({ id: u.id })
+  //       .then(({ id, display_info }) => {
+  //         dispatch(chatRoomDisplayInfoslice.actions.update({ value: { id, updates: display_info }}))
+  //       })
+  //       .catch(e => console.error('Error fetching chatRoomDisplayInfo in useChatRooms onUpdate', e))
+  //     }
+  //   }
+  // }, [session, dispatch])
 
   return useListStateHook('chat_rooms', rooms, session, chatRoomsSlice,
     { 
@@ -1333,7 +1333,7 @@ export const useChatRooms = (options={} as HookOptions<ChatRoom>) => {
       updateOne: session.api.chat_rooms.updateOne,
     },
     { 
-      onUpdate, 
+      // onUpdate, 
       ...options,
     },
   )

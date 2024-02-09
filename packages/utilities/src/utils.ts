@@ -1,5 +1,5 @@
 import { ObjectId } from "bson"
-import { CalendarEvent, CompoundFilter, Enduser, EnduserRelationship, FormResponseValue, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus } from "@tellescope/types-models"
+import { CalendarEvent, CompoundFilter, Enduser, EnduserRelationship, FormResponseAnswerNumber, FormResponseValue, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus } from "@tellescope/types-models"
 import { ADMIN_ROLE, get_inverse_relationship_type } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 
@@ -1284,6 +1284,9 @@ export const batch_array = <T>(array: T[], size: number) => {
   return batches
 }
 
+// don't change order without updating responses_satisfy_conditions calculations
+export const FORM_LOGIC_CALCULATED_FIELDS = ['Calculated: BMI']
+
 // keep consistent with convert_form_logic_to_filter logic in analytics.ts
 export const responses_satisfy_conditions = (responses: FormResponseValue[], conditions: CompoundFilter<string>): boolean => {
   const key = Object.keys(conditions)[0] as '$and' | '$or' | 'condition' | 'string' // string is form id
@@ -1306,11 +1309,30 @@ export const responses_satisfy_conditions = (responses: FormResponseValue[], con
 
     return false
   } else if (key === 'condition') {
-    const fieldId = Object.keys(conditions[key] as object)[0]
-    const answer = responses.find(r => r.fieldId === fieldId)?.answer
+    const fieldIdOrCalculated = Object.keys(conditions[key] as object)[0]
+    const answer = (
+      fieldIdOrCalculated === FORM_LOGIC_CALCULATED_FIELDS[0]
+        ? (() => {
+          const h = responses.find(r => r.answer.type === 'number' && r.answer.value && r.computedValueKey === 'Height')?.answer
+          const w = responses.find(r => r.answer.type === 'number' && r.answer.value && r.computedValueKey === 'Weight')?.answer
+
+          const height = h?.type === 'number' && h.value ? h.value : undefined
+          const weight = w?.type === 'number' && w.value ? w?.value : undefined
+
+          if (!(height && weight)) return undefined
+
+          const BMI: FormResponseAnswerNumber = {
+            type: 'number',
+            value: 703 * weight / (height * height)
+          }
+
+          return BMI
+        })()
+        : responses.find(r => r.fieldId === fieldIdOrCalculated)?.answer
+    )
     if (!answer) return false
 
-    const comparison = (conditions[key] as Indexable)[fieldId]
+    const comparison = (conditions[key] as Indexable)[fieldIdOrCalculated]
     if (typeof comparison === 'string') {
       if (answer.type === 'Database Select' && answer.value?.length) {
         return (
@@ -1324,10 +1346,19 @@ export const responses_satisfy_conditions = (responses: FormResponseValue[], con
           : answer.value === comparison
       )
     } else {
-      const condition = Object.keys(comparison)[0] as '$exists' | '$contains' | '$doesNotContain' | '$range'
+      const condition = Object.keys(comparison)[0] as '$exists' | '$contains' | '$doesNotContain' | '$range' | '$lt' | '$gt'
       const conditionValue = comparison[condition]
 
-      if (condition === '$exists') {
+      if (condition === '$lt' || condition === '$gt') {
+        const number = parseInt(conditionValue)  
+        const answerNumber = answer.value as number
+        if (isNaN(number)) return false
+        if (typeof answerNumber !== 'number') return false
+
+        if (condition === '$lt') { return answerNumber < number }
+        if (condition === '$gt') { return answerNumber > number }
+      }
+      else if (condition === '$exists') {
         return (
              answer.value !== undefined
           && answer.value !== null

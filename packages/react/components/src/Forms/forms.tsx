@@ -145,8 +145,9 @@ export const QuestionForField = ({
     // margin leaves room for error message in Question Group
     <Flex column flex={1} style={{ marginBottom: 25 }} id={field.id}> 
       <Typography component="h4" style={{ 
-        fontSize: 22, 
         marginTop: 15, // ensures PDF display doesn't push description into overlap with logo / title at top of form
+        fontSize: field.type === 'Question Group' ? 22 : 20, 
+        fontWeight: field.type === 'Question Group' ? 'bold' : undefined,
       }}>
         {field.title}{!(field.isOptional || field.type === 'description' || field.type === 'Question Group') ? '*' : ''}
       </Typography>

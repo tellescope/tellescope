@@ -1722,6 +1722,7 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
       city: stringValidator1000Optional,
       state: stateValidatorOptional,
       zipCode: stringValidator1000Optional,
+      zipPlusFour: stringValidator1000Optional,
     }, { emptyOk: true, isOptional: true })
   }),
   "Table Input": objectValidator<FormResponseAnswerTable>({
@@ -1870,6 +1871,7 @@ export const formResponseValidator = objectValidator<FormResponseValue>({
   sharedWithEnduser: booleanValidatorOptional,
   isCalledOut: booleanValidatorOptional,
   isHighlightedOnTimeline: booleanValidatorOptional,
+  computedValueKey: stringValidatorOptional,
 })
 export const formResponsesValidator = listValidator(formResponseValidator)
 
@@ -2765,6 +2767,7 @@ export const addressValidator = objectValidator<SuperbillProvider['address']>({
   lineOne: stringValidator,
   lineTwo: stringValidatorOptional,
   zipCode: stringValidator100,
+  zipPlusFour: stringValidator1000Optional,
 })
 export const addressOptionalValidator = objectValidator<SuperbillProvider['address']>({
   city: stringValidatorOptional,
@@ -2772,6 +2775,7 @@ export const addressOptionalValidator = objectValidator<SuperbillProvider['addre
   lineOne: stringValidatorOptional,
   lineTwo: stringValidatorOptional,
   zipCode: stringValidator1000Optional,
+  zipPlusFour: stringValidator1000Optional,
 }, { isOptional: true, emptyOk: true })
 
 const _DATABASE_RECORD_FIELD_TYPES: { [K in DatabaseRecordFieldType]: any } = {
@@ -3002,6 +3006,7 @@ const _CUSTOM_ENDUSER_FIELD_TYPES: { [K in CustomEnduserFieldType]: any } = {
   "Date": true,
   "Auto Detect": true,
   Table: true,
+  File: true,
 }
 export const CUSTOM_ENDUSER_FIELD_TYPES = Object.keys(_CUSTOM_ENDUSER_FIELD_TYPES) as CustomEnduserFieldType[]
 export const customEnduserFieldTypeValidator = exactMatchValidator<CustomEnduserFieldType>(CUSTOM_ENDUSER_FIELD_TYPES)
@@ -3041,6 +3046,13 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
   }), 
   Text: objectValidator<CustomEnduserFields['Text']>({
     type: exactMatchValidator(['Text']),
+    info: optionalEmptyObjectValidator,
+    field: stringValidator,
+    required: booleanValidatorOptional,
+    hiddenFromProfile: booleanValidatorOptional,
+  }), 
+  File: objectValidator<CustomEnduserFields['File']>({
+    type: exactMatchValidator(['File']),
     info: optionalEmptyObjectValidator,
     field: stringValidator,
     required: booleanValidatorOptional,
@@ -3241,6 +3253,7 @@ const _AUTOMATION_TRIGGER_ACTION_TYPES: { [K in AutomationTriggerActionType]: an
   "Remove From Journey": true,
   "Move To Step": true,
   "Add Tags": true,
+  "Add Access Tags": true,
   "Assign Care Team": true,
   "Remove From All Journeys": true
 }
@@ -3269,7 +3282,13 @@ export const automationTriggerActionValidator = orValidator<{ [K in AutomationTr
     info: objectValidator<AutomationTriggerActions['Add Tags']['info']>({
       tags: listOfStringsValidator,
     }),
-  }), 
+  }),
+  "Add Access Tags": objectValidator<AutomationTriggerActions["Add Access Tags"]>({
+    type: exactMatchValidator(['Add Access Tags']),
+    info: objectValidator<AutomationTriggerActions['Add Access Tags']['info']>({
+      tags: listOfStringsValidator,
+    }),
+  }),
   "Assign Care Team": objectValidator<AutomationTriggerActions["Assign Care Team"]>({
     type: exactMatchValidator(['Assign Care Team']),
     info: objectValidator<AutomationTriggerActions['Assign Care Team']['info']>({

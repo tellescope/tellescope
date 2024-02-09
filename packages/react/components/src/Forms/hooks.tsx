@@ -95,6 +95,16 @@ export const default_label_for_compound_logic = (f: CompoundFilter<string>): str
         if (key === '$exists') return ''
   
         const value = f.condition[key]
+        if (value && typeof value === 'object') {
+          const objectKey = Object.keys(value)[0]
+          if (objectKey === '$gt') {
+            return `${key} Greater Than ${value[objectKey as keyof typeof value]}`
+          }
+          if (objectKey === '$lt') {
+            return `${key} Less Than ${value[objectKey as keyof typeof value]}`
+          }
+        }
+
         if (typeof value !== 'string') return ''
   
         return value
@@ -1046,7 +1056,7 @@ export const useTellescopeForm = ({ customization, carePlanId, context, ga4measu
     if (isNextDisabled()) return
     if (!currentValue) return
 
-    if (currentValue?.answer?.type !== 'file' && currentValue?.answer?.type !== 'files') {
+    if (currentValue?.answer?.type !== 'file' && currentValue?.answer?.type !== 'files' && (formResponseId || accessCode)) {
       session.api.form_responses.save_field_response({
         accessCode,
         formResponseId,
@@ -1085,6 +1095,8 @@ export const useTellescopeForm = ({ customization, carePlanId, context, ga4measu
   }, [isPreviousDisabled, updateInclusion, prevFieldStackRef])
 
   const onFieldChange: ChangeHandler<any> = useCallback((value: FormResponseValueAnswer['value'], fieldId: string, touched=true) => {
+    const field = fields.find(f => f.id === fieldId)
+
     setResponses(rs => rs.map(r => r.fieldId !== fieldId ? r : ({
       ...r,
       touched,
@@ -1094,11 +1106,18 @@ export const useTellescopeForm = ({ customization, carePlanId, context, ga4measu
         ...r.answer,
         value: value as any,
       },
+      computedValueKey: (
+        field?.intakeField === 'height' && typeof value === 'number'
+          ? 'Height'
+      : field?.intakeField === 'weight' && typeof value === 'number'
+          ? 'Weight'
+          : undefined
+      )
     })))
 
     // ensure stripe payment is stored as saved immediately
     const stripeField = fields.find(f => f.id === fieldId && f.type === 'Stripe')
-    if (stripeField && typeof value === 'string') {
+    if (stripeField && typeof value === 'string' && (formResponseId || accessCode)) {
       session.api.form_responses.save_field_response({
         accessCode,
         formResponseId,
