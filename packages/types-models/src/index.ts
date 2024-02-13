@@ -313,6 +313,7 @@ export interface EnduserSession extends Session, Enduser {
 // potentially large fields, like 'fields' and 'availability' should be left out to prevent large JWT
 export interface UserSession extends Session, OrganizationLimits { // User joined with organization, access, and other details
   type: "user";
+  source?: "api_key",
   id: string,
   email: string,
   businessId: string,

@@ -5006,6 +5006,16 @@ const mfa_tests = async () => {
     () => sdkMfaApiKey.api.endusers.deleteOne(enduser.id),
     passOnAnyResult
   ) 
+  
+  sdkMfa.setAuthToken((await sdkMfaApiKey.api.users.generate_auth_token({ email: mfaEmail })).authToken)
+
+  // test usage and cleanup
+  const e = await sdkMfa.api.endusers.createOne({ fname: 'will work'})
+  await async_test(
+    "API-key generated token does not require MFA",
+    () => sdkMfa.api.endusers.deleteOne(e.id),
+    passOnAnyResult
+  ) 
 }
 
 const nextReminderInMS_tests = async () => {

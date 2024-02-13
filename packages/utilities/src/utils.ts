@@ -1287,6 +1287,15 @@ export const batch_array = <T>(array: T[], size: number) => {
 // don't change order without updating responses_satisfy_conditions calculations
 export const FORM_LOGIC_CALCULATED_FIELDS = ['Calculated: BMI']
 
+export const calculate_bmi = (e: Pick<Enduser, 'height' | 'weight'>) => {
+  const height = parseInt(e.height?.value || '0')
+  const weight = parseInt(e.weight?.value || '0')
+  if (!height) return -1
+  if (!weight) return -1
+
+  return (703 * weight / (height * height))
+}
+
 // keep consistent with convert_form_logic_to_filter logic in analytics.ts
 export const responses_satisfy_conditions = (responses: FormResponseValue[], conditions: CompoundFilter<string>): boolean => {
   const key = Object.keys(conditions)[0] as '$and' | '$or' | 'condition' | 'string' // string is form id

@@ -816,6 +816,15 @@ export const useTellescopeForm = ({ customization, carePlanId, context, ga4measu
       if (!isZIPString(value.answer.value?.zipCode)) {
         return "Enter a valid ZIP code"
       }
+      if (!value.answer.value?.zipPlusFour && field.fullZIP) {
+        return "ZIP+4 is required"
+      }
+      if (value.answer.value?.zipPlusFour) {
+        const zipPlus4 = value.answer.value?.zipPlusFour || ''
+        if (zipPlus4.length !== 4 || !/\d{4}$/.test(zipPlus4)) {
+          return "ZIP+4 must be 4 digits"
+        }
+      }
     }
 
     // string type is validated by being non-empty, file is already validated
