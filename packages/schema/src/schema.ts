@@ -5157,6 +5157,7 @@ export const schema: SchemaV1 = build_schema({
         })
       },
       hasTicketQueues: { validator: booleanValidator },
+      customAutoreplyMessage: { validator: stringValidator1000 },
     },
   },
   databases: {
