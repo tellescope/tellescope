@@ -8,6 +8,7 @@ import {
   ClientModelForName,
   ClientModelForName_required,
   UserDisplayInfo,
+  Ticket,
 } from "@tellescope/types-client"
 import { 
   CompoundFilter,
@@ -6371,6 +6372,145 @@ export const form_conditional_logic_tests = async () => {
   run_conditional_form_test({ $and: [{ condition: { [FORM_LOGIC_CALCULATED_FIELDS[0]]: { $lt: 25 } } }] }, false)
 }
 
+export const ticket_reminder_tests = async () => {
+  log_header("Ticket Reminder Tests")
+
+  const toDelete: Ticket[] = []
+
+  const dueDateInMS = Date.now() + 1000 * 60 * 60 * 24
+  const title = 't'
+
+  const LEEWAY = 200
+  const withLeeway = (source: number | undefined, target: number) => (
+    source !== undefined && ((source - LEEWAY) < target || (source + LEEWAY) > target)
+  )
+
+  await async_test(
+    `No reminders`,
+    () => sdk.api.tickets.createOne({ title }),
+    { onResult: t => { toDelete.push(t); return t.nextReminderInMS === -1 }}
+  )
+  await async_test(
+    `Empty reminders`,
+    () => sdk.api.tickets.createOne({ title, reminders: [] }),
+    { onResult: t => { toDelete.push(t); return t.nextReminderInMS === -1 }}
+  )
+  await async_test(
+    `No due date`,
+    () => sdk.api.tickets.createOne({ title, reminders: [{ msBeforeDueDate: 0, didRemind: true }] }),
+    { onResult: t => { toDelete.push(t); return t.nextReminderInMS === -1 }}
+  )
+  await async_test(
+    `One reminder`,
+    () => sdk.api.tickets.createOne({ title, dueDateInMS, reminders: [{ msBeforeDueDate: 0, didRemind: true }] }),
+    { onResult: t => { toDelete.push(t); return withLeeway(t.dueDateInMS, dueDateInMS - Date.now()) }}
+  )
+
+  const tToUpdate = await sdk.api.tickets.createOne({ title, reminders: [{ msBeforeDueDate: 0, didRemind: true }] })
+  toDelete.push(tToUpdate)
+  assert(tToUpdate.nextReminderInMS === -1, 'bad cache', 'update ticket starts with no nextReminderInMS')
+
+  await sdk.api.tickets.updateOne(tToUpdate.id, { dueDateInMS })
+  await async_test(
+    `Setting due date sets nextReminderInMS`,
+    () => pollForResults(
+      () => sdk.api.tickets.getOne(tToUpdate.id),
+      t => withLeeway(t.dueDateInMS, dueDateInMS - Date.now()),
+      25,
+      10,
+    ),
+    passOnAnyResult
+  )  
+  
+  await sdk.api.tickets.updateOne(tToUpdate.id, { dueDateInMS: '' as any })
+  await async_test(
+    `Unsetting due date sets nextReminderInMS`,
+    () => pollForResults(
+      () => sdk.api.tickets.getOne(tToUpdate.id),
+      t => t.nextReminderInMS === -1,
+      25,
+      10,
+    ),
+    passOnAnyResult
+  )  
+
+  await sdk.api.tickets.updateOne(tToUpdate.id, { dueDateInMS, reminders: [
+    { msBeforeDueDate: 0 },
+    { msBeforeDueDate: 1000 },
+    { msBeforeDueDate: 7000 },
+    { msBeforeDueDate: 5000 },
+    { msBeforeDueDate: 9000, didRemind: false },
+  ] })
+  await async_test(
+    `Correct reminder picked when multiple due date sets nextReminderInMS`,
+    () => pollForResults(
+      () => sdk.api.tickets.getOne(tToUpdate.id),
+      t => withLeeway(t.dueDateInMS, dueDateInMS - Date.now() - 7000),
+      25,
+      10,
+    ),
+    passOnAnyResult
+  )  
+
+  // test actual reminders without setting owner to avoid email notifications
+  const tToRemind = await sdk.api.tickets.createOne({ 
+    title, 
+    dueDateInMS,
+    reminders: [
+      { msBeforeDueDate: dueDateInMS - Date.now() }, // should remind right away
+      { msBeforeDueDate: dueDateInMS - Date.now() + 5000 }, // should then remind after 3 sec
+    ] 
+  })
+  toDelete.push(tToRemind)
+
+  await async_test(
+    `Reminder processed right away`,
+    () => pollForResults(
+      () => sdk.api.tickets.getOne(tToRemind.id),
+      t => (
+           t.reminders?.[0]?.didRemind === true 
+        && t.nextReminderInMS !== -1
+        && t.reminders?.filter(r => r.didRemind)?.length === 1
+      ),
+      100,
+      50,
+    ),
+    passOnAnyResult
+  )  
+  await async_test(
+    `Delayed reminder not processed yet`,
+    () => sdk.api.tickets.getOne(tToRemind.id),
+    {
+      onResult: (
+        t => (
+            t.reminders?.[0]?.didRemind === true 
+          && t.nextReminderInMS !== -1
+          && t.reminders?.filter(r => r.didRemind)?.length === 1
+        )
+      )
+    } 
+  )  
+  await async_test(
+    `Reminder processed after delay`,
+    () => pollForResults(
+      () => sdk.api.tickets.getOne(tToRemind.id),
+      t => (
+           t.reminders?.[0]?.didRemind === true 
+        && t.nextReminderInMS === -1
+        && t.reminders?.[1]?.didRemind === true 
+        && t.reminders?.filter(r => r.didRemind)?.length === 2
+      ),
+      100,
+      50,
+    ),
+    passOnAnyResult
+  )  
+
+  // cleanup
+  await Promise.all(toDelete.map(t => sdk.api.tickets.deleteOne(t.id)))
+}
+
+
 (async () => {
   log_header("API")
 
@@ -6413,6 +6553,7 @@ export const form_conditional_logic_tests = async () => {
     await mfa_tests()
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await ticket_reminder_tests()
     await enduser_access_tags_tests()
     await marketing_email_unsubscribe_tests()
     await unique_strings_tests()

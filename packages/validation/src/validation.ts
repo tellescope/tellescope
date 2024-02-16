@@ -254,6 +254,7 @@ import {
   GroupMMSUserState,
   ImageAttachment,
   SortingField,
+  TicketReminder,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -2271,6 +2272,11 @@ export const automationConditionValidator = orValidator<{ [K in AutomationCondit
 })
 export const listOfAutomationConditionsValidator = listValidatorEmptyOk(automationConditionValidator)
 
+export const ticketReminderValidator = objectValidator<TicketReminder>({
+  msBeforeDueDate: numberValidator,
+  didRemind: booleanValidatorOptional,
+})
+
 export const ticketActionValidator = orValidator<{ [K in TicketActionType]: TicketAction & { type: K } } >({
   "Complete Form": objectValidator<TicketActions['Complete Form']>({
     type: exactMatchValidator(['Complete Form']),
@@ -2370,6 +2376,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       dueDateOffsetInMS: numberValidatorOptional,
       closeOnFinishedActions: booleanValidatorOptional,
       requireConfirmation: booleanValidatorOptional,
+      reminders: listValidatorOptionalOrEmptyOk(ticketReminderValidator),
     }, { emptyOk: false }),
   }),
   sendWebhook: objectValidator<SendWebhookAutomationAction>({

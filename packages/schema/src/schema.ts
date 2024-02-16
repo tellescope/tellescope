@@ -263,6 +263,7 @@ import {
   groupMMSUserStatesValidator,
   sortingFieldsValidator,
   listOfUniqueStringsValidatorEmptyOk,
+  ticketReminderValidator,
 } from "@tellescope/validation"
 
 import {
@@ -272,6 +273,17 @@ import {
   ENDUSER_SESSION_TYPE,
   USER_SESSION_TYPE,
 } from "@tellescope/constants"
+
+export const get_next_reminder_timestamp_for_ticket = ({ dueDateInMS, reminders } : Pick<Ticket, 'dueDateInMS' | 'reminders'>): number => {
+  if (!dueDateInMS) return -1
+
+  const pending = reminders?.filter(r => !r.didRemind)
+  if (!pending?.length) return -1
+
+  const maxMsBeforeStartTime = Math.max(...pending.map(p => p.msBeforeDueDate))
+
+  return dueDateInMS - maxMsBeforeStartTime 
+}
 
 export type RelationshipConstraintOptions<T> = {
   updates?: Partial<T>
@@ -798,7 +810,7 @@ export type CustomActions = {
     change_zoom_host: CustomAction<{ calendarEventId: string, userId: string }, { updatedEvent: CalendarEvent }>, 
     download_ics_file: CustomAction<{ calendarEventId: string, attendeeId?: string, attendeeType?: SessionType }, { }>,
     get_report: CustomAction<{ range?: DateRange, groupBy?: string, templateIds?: string[] }, { report: Report }>,
-    get_enduser_report: CustomAction<{ range?: DateRange, groupBy?: string, countDuplicates?: boolean, templateIds?: string[], enduserGroupBy?: string }, { report: Report }>,
+    get_enduser_report: CustomAction<{ range?: DateRange, groupBy?: string, countDuplicates?: boolean, templateIds?: string[], enduserGroupBy?: string, enduserFields: Record<string, any> }, { report: Report }>,
   },
   organizations: {
     create_and_join: CustomAction<{ name: string, subdomain: string }, { authToken: string, user: User, organization: Organization }>, 
@@ -818,6 +830,7 @@ export type CustomActions = {
       createdRange?: DateRange,
       updatedRange?: DateRange,
     }, AnalyticsQueryResult>, 
+    get_custom_report: CustomAction<{ key: string, lastId?: string, limit?: number }, { report: any }>, 
   },
   managed_content_records: {
     generate_embedding: CustomAction<{ id: string }, { updated: ManagedContentRecord }>, 
@@ -3141,6 +3154,12 @@ export const schema: SchemaV1 = build_schema({
       snoozes: { validator: ticketSnoozesValidator },
       requireConfirmation: { validator: booleanValidator },
       queueId: { validator: mongoIdStringValidator }, // required for worker to be able to add ticket to queue
+      reminders: { validator: listValidatorEmptyOk(ticketReminderValidator) }, // expose at least for testing
+      nextReminderInMS: {
+        validator: numberValidator,
+        readonly: true,
+        initializer: get_next_reminder_timestamp_for_ticket,
+      },
     }
   },
   meetings: {
@@ -4068,6 +4087,7 @@ export const schema: SchemaV1 = build_schema({
           groupBy: { validator: stringValidator },
           enduserGroupBy: { validator: stringValidator },
           countDuplicates: { validator: booleanValidatorOptional },
+          enduserFields: { validator: objectAnyFieldsAnyValuesValidator },
         },
         returns: {
           report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
@@ -5761,6 +5781,18 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           percentage: { validator: stringValidator },
           values: { validator: analyticsQueryResultsValidator },
         } 
+      },
+      get_custom_report: {
+        op: "custom", access: 'read', method: "get", 
+        name: 'Get custom report',
+        path: '/analytics/custom-report',
+        description: "For customized analytics reporting, pre-configured by the Tellescope team for a given organization",
+        parameters: { 
+          key: { validator: stringValidator, required: true },
+          lastId: { validator: stringValidator },
+          limit: { validator: numberValidator },
+        },
+        returns: { report: { validator: objectAnyFieldsAnyValuesValidator, required: true } }
       },
     },
     enduserActions: { },

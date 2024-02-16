@@ -5,6 +5,7 @@ import {
   EnduserEngagementTimestamps,
   JourneyContext,
   AccessPermissions,
+  ModelName,
 } from "@tellescope/types-models"
 
 export type ObjectId = import('mongodb').ObjectId
@@ -232,4 +233,12 @@ export interface MFACode extends InternalBusinessRecord {
   hashedCode: string,
   userId: string,
   expiresAt?: Date, // will not expire by TTL index if left blank
+}
+
+export interface CustomAggregation extends InternalBusinessRecord {
+  key: string,
+  modelName: ModelName,
+  filter: any,
+  aggregation: any[],
+  cacheDurationInSeconds?: number,
 }

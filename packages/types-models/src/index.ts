@@ -260,6 +260,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   ticketThreadsEnabled?: boolean, // zendesk enabled
   _groupChatsEnabled?: boolean,
   allowCreateSuborganizations?: boolean,
+  allowCallerId?: boolean, // should require manual enablement by Tellescope team after explicit carve-out in BAA with customer
   // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {
@@ -988,10 +989,15 @@ export type RoundRobinAssignmentInfo = {
   userId: string,
 }
 
+export type TicketReminder = { 
+  msBeforeDueDate: number,
+  didRemind?: boolean,
+}
 export interface Ticket_readonly extends ClientRecord {
   source?: string,
   externalId?: string,
   references?: RelatedRecord[] // internal, for storing built-in integrations info
+  nextReminderInMS?: number,
 }
 export interface Ticket_required {
   title: string;
@@ -1035,6 +1041,7 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
   timeToCloseInMS?: number,
   snoozes?: TicketSnooze[],
   requireConfirmation?: boolean,
+  reminders?: TicketReminder[],
 }
 
 export type AttendeeInfo = {
@@ -1972,6 +1979,7 @@ export type CreateTicketActionInfo = {
   closeOnFinishedActions?: boolean,
   dueDateOffsetInMS?: number,
   requireConfirmation?: boolean,
+  reminders?: TicketReminder[],
 }
 
 export type SendEmailAutomationAction = AutomationActionBuilder<'sendEmail', AutomationForMessage>
