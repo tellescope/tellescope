@@ -81,6 +81,7 @@ import {
   DatabaseRecord as DatabaseRecordClient,
   Ticket,
   GroupMMSConversation,
+  EnduserOrder,
 } from "@tellescope/types-client"
 
 import {
@@ -509,6 +510,31 @@ export type AutoreplyInfo = {
   userId?: string,
 }
 
+export type VitalLabTest = {
+  "id": string,
+  "name": "Lipids Panel",
+  "description": "Cholesterol test",
+  "sample_type": "dried blood spot",
+  "method": "testkit" | "walk_in_test" | "at_home_phlebotomy",
+  "price": number, // usd
+  status: "active" | "pending_approval" | "inactive",
+  "is_active": true, // deprecated in favor of status
+  "lab"?: {
+    "slug": "USSL",
+    "name": "US Specialty Lab",
+    "first_line_address": "123 Main St",
+    "city": "New York",
+    "zipcode": "10001"
+  },
+  "markers"?: [
+    {
+      "name": "Thyroid Stimulating Hormone",
+      "slug": "tsh",
+      "description": ""
+    }
+  ]
+}
+
 export type CustomActions = {
   availability_blocks: {
     update_order: CustomAction<{ indexUpdates: IndexUpdate[] }, { }>,
@@ -823,6 +849,8 @@ export type CustomActions = {
       range?: DateRange, 
       enduserFilter?: Record<string, any>,
     }, { report: Report }>,
+    upgrade_to_conference: CustomAction<{ id: string }, { }>,
+    add_conference_attendees: CustomAction<{ conferenceId: string, enduserId?: string, byClientId?: string[], byPhone?: string[] }, { }>,
   },
   analytics_frames: {
     get_result_for_query: CustomAction<{ 
@@ -873,6 +901,14 @@ export type CustomActions = {
       message: string,
       sender: string,
     }, { conversation: GroupMMSConversation }>,
+  },
+  enduser_orders: {
+    get_available_tests: CustomAction<{ zipCode?: string }, { tests: VitalLabTest[] }>,
+    create_lab_order: CustomAction<{ 
+      enduserId: string,
+      labTestId: string,
+      physicianUserId?: string,
+    }, { order: EnduserOrder }>,
   },
 } 
 
@@ -5700,6 +5736,29 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
         },
       },
+      upgrade_to_conference: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Upgrade to Conference',
+        path: '/phone-calls/upgrade-to-conference',
+        description: "Upgrades a live inbound call to a conference call",
+        parameters: {
+          id: { validator: stringValidator100, required: true },
+        },
+        returns: {},
+      },
+      add_conference_attendees: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Upgrade to Conference',
+        path: '/phone-calls/add-conference-attendees',
+        description: "Upgrades a live inbound call to a conference call",
+        parameters: {
+          conferenceId: { validator: stringValidator100, required: true },
+          enduserId: { validator: mongoIdStringValidator },
+          byClientId: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+          byPhone: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+        },
+        returns: {},
+      },
       // can be done in front-end
       // send_digits: {
       //   op: "custom", access: 'create', method: "post", 
@@ -6487,7 +6546,6 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     customActions: {
       start_conversation: {
         op: "custom", access: 'create', method: "post", 
-        adminOnly: true,
         name: 'Start Conversation',
         path: '/group-mms-conversations/start-conversation',
         description: "Creates a new conversation and sends the initial message",
@@ -6505,7 +6563,6 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       },
       send_message: {
         op: "custom", access: 'create', method: "post", 
-        adminOnly: true,
         name: 'Send Message',
         path: '/group-mms-conversations/send-message',
         description: "Sends a new message in an existing conversation",
@@ -6533,6 +6590,64 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       suggestedReply: { validator: stringValidator5000EmptyOkay },
       hiddenBy: { validator: idStringToDateValidator },
     },
+  },
+  enduser_orders: {
+    info: {
+      description: 'Lab orders, currently for use with Vital integration only'
+    },
+    constraints: { 
+      unique: [], relationship: [], 
+      access: [{ type: 'filter', field: 'userId' }]
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {
+      get_available_tests: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Get Available Tests',
+        path: '/enduser-orders/get-available-tests',
+        description: "Gets available tests (Vital). If zipCode is provided, filters by availability.",
+        parameters: { 
+          zipCode: { validator: stringValidator } 
+        },
+        returns: { 
+          tests: { validator: listValidatorOptionalOrEmptyOk(objectAnyFieldsAnyValuesValidator) as any, required: true },
+        } 
+      },
+      create_lab_order: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Create Lab Order (Vital)',
+        path: '/enduser-orders/create-lab-order',
+        description: "Creates a lab order via Vital",
+        parameters: { 
+          enduserId: { validator: mongoIdStringValidator, required: true },
+          labTestId: { validator: stringValidator, required: true },
+          physicianUserId: { validator: mongoIdStringValidator },
+        },
+        returns: { 
+          order: { validator: 'enduser_order' as any, required: true },
+        } 
+      },
+    },
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      externalId: { validator: stringValidator100, examples: ['externalId'], required: true },
+      source: { validator: stringValidator100, examples: ['source'], required: true },
+      enduserId: { 
+        validator: mongoIdStringValidator,
+        examples: [PLACEHOLDER_ID],
+        required: true,
+        dependencies: [{
+          dependsOn: ['endusers'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+      userId: { validator: mongoIdStringValidator },
+      title: { validator: stringValidator, required: true, examples: ['title'] },
+      status: { validator: stringValidator, required: true, examples: ['status'] },
+    }
   },
 })
 

@@ -194,6 +194,7 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   configurations: defaultQueries(s, 'configurations'), 
   ticket_queues: defaultQueries(s, 'ticket_queues'), 
   group_mms_conversations: defaultQueries(s, 'group_mms_conversations'), 
+  enduser_orders: defaultQueries(s, 'enduser_orders'), 
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
@@ -213,6 +214,14 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
     get_journey_statistics: (args: extractFields<CustomActions['journeys']['get_journey_statistics']['parameters']>) => (
       Promise<extractFields<CustomActions['journeys']['get_journey_statistics']['returns']>>
+    ),
+  },
+  enduser_orders: {
+    get_available_tests: (args: extractFields<CustomActions['enduser_orders']['get_available_tests']['parameters']>) => (
+      Promise<extractFields<CustomActions['enduser_orders']['get_available_tests']['returns']>>
+    ),
+    create_lab_order: (args: extractFields<CustomActions['enduser_orders']['create_lab_order']['parameters']>) => (
+      Promise<extractFields<CustomActions['enduser_orders']['create_lab_order']['returns']>>
     ),
   },
   forms: {
@@ -476,6 +485,12 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     get_report: (args: extractFields<CustomActions['phone_calls']['get_report']['parameters']>) => (
       Promise<extractFields<CustomActions['phone_calls']['get_report']['returns']>>
     ),
+    upgrade_to_conference: (args: extractFields<CustomActions['phone_calls']['upgrade_to_conference']['parameters']>) => (
+      Promise<extractFields<CustomActions['phone_calls']['upgrade_to_conference']['returns']>>
+    ),
+    add_conference_attendees: (args: extractFields<CustomActions['phone_calls']['add_conference_attendees']['parameters']>) => (
+      Promise<extractFields<CustomActions['phone_calls']['add_conference_attendees']['returns']>>
+    ),
   },
   sms_messages: {
     send_message_to_number: (args: extractFields<CustomActions['sms_messages']['send_message_to_number']['parameters']>) => (
@@ -637,6 +652,9 @@ export class Session extends SessionManager {
     )
     queries.journeys.get_journey_statistics = a => this._GET(`/v1${schema.journeys.customActions.get_journey_statistics.path}`, a)
 
+    queries.enduser_orders.get_available_tests = a => this._GET(`/v1${schema.enduser_orders.customActions.get_available_tests.path}`, a)
+    queries.enduser_orders.create_lab_order = a => this._POST(`/v1${schema.enduser_orders.customActions.create_lab_order.path}`, a)
+
     queries.endusers.set_password = args => this._POST(`/v1/set-enduser-password`, args)
     queries.endusers.add_to_journey = a => this._POST(`/v1${schema.endusers.customActions.add_to_journey.path}`, a)
     queries.endusers.remove_from_journey = a => this._POST(`/v1${schema.endusers.customActions.remove_from_journey.path}`, a)
@@ -752,8 +770,10 @@ export class Session extends SessionManager {
     queries.calendar_events.get_report = a => this._POST(`/v1${schema.calendar_events.customActions.get_report.path}`, a)
     queries.calendar_events.get_enduser_report = a => this._POST(`/v1${schema.calendar_events.customActions.get_enduser_report.path}`, a)
 
-    queries.phone_calls.authenticate_calling = a => this._POST(`/v1${schema.phone_calls.customActions.authenticate_calling.path}`, a)
     queries.phone_calls.get_report = a => this._GET(`/v1/${schema.phone_calls.customActions.get_report.path}`, a)
+    queries.phone_calls.authenticate_calling = a => this._POST(`/v1${schema.phone_calls.customActions.authenticate_calling.path}`, a)
+    queries.phone_calls.upgrade_to_conference = a => this._POST(`/v1${schema.phone_calls.customActions.upgrade_to_conference.path}`, a)
+    queries.phone_calls.add_conference_attendees = a => this._POST(`/v1${schema.phone_calls.customActions.add_conference_attendees.path}`, a)
 
     queries.templates.get_templated_message = a => this._POST(`/v1/${schema.templates.customActions.get_templated_message.path}`, a)
     queries.templates.get_suggested_reply = a => this._POST(`/v1/${schema.templates.customActions.get_suggested_reply.path}`, a)

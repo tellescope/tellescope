@@ -117,6 +117,7 @@ export const PHOTON_TITLE = "Photon Health"
 export const VITAL_TITLE = "Vital"
 export const ELATION_TITLE = "Elation"
 export const ZUS_TITLE = "Zus"
+export const CANVAS_TITLE = "Canvas"
 export const ZENDESK_INTEGRATIONS_TITLE = "Zendesk"
 export const ZENDESK_REDIRECT_URI_ENDING = "/zendesk-oauth2-verify"
 export const FULLSCRIPT_INTEGRATIONS_TITLE = "Fullscript"
@@ -197,6 +198,12 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
   group_mms_conversations: {
     create: ALL_ACCESS, // allow for creating self-assigned objects
     read:   ASSIGNED_ACCESS, // only by inclusion in userIds should it be accessible by default
+    update: ASSIGNED_ACCESS,
+    delete: NO_ACCESS,
+  },
+  enduser_orders: {
+    create: ALL_ACCESS, // allow for creating self-assigned objects
+    read:   ASSIGNED_ACCESS, 
     update: ASSIGNED_ACCESS,
     delete: NO_ACCESS,
   },
@@ -305,6 +312,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
+  enduser_orders: FULL_ACCESS,
   group_mms_conversations: FULL_ACCESS,
   ticket_queues: FULL_ACCESS,
   phone_trees: FULL_ACCESS,

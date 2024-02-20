@@ -79,6 +79,7 @@ export type TicketThreadComment = ServerModelForName['ticket_thread_comments']
 export type Configuration = ServerModelForName['configurations']
 export type TicketQueue = ServerModelForName['ticket_queues']
 export type GroupMMSConversation = ServerModelForName['group_mms_conversations']
+export type EnduserOrder = ServerModelForName['enduser_orders']
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']
@@ -241,4 +242,7 @@ export interface CustomAggregation extends InternalBusinessRecord {
   filter: any,
   aggregation: any[],
   cacheDurationInSeconds?: number,
+}
+export interface ConferenceFlags extends InternalBusinessRecord {
+  conferenceId: string,
 }

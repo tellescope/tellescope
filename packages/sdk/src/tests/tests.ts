@@ -5811,6 +5811,7 @@ export const alternate_phones_tests = async () => {
 
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
+  enduser_orders: NO_TEST,
   ticket_queues: NO_TEST,
   phone_trees: NO_TEST,
   enduser_medications: NO_TEST,
@@ -6472,8 +6473,8 @@ export const ticket_reminder_tests = async () => {
         && t.nextReminderInMS !== -1
         && t.reminders?.filter(r => r.didRemind)?.length === 1
       ),
-      100,
-      50,
+      25,
+      200,
     ),
     passOnAnyResult
   )  

@@ -79,6 +79,7 @@ import {
   Configuration,
   TicketQueue,
   GroupMMSConversation,
+  EnduserOrder,
 } from "@tellescope/types-client"
 
 import {
@@ -326,6 +327,7 @@ const ticketThreadsSlice = createSliceForList<TicketThread, 'ticket_threads'>('t
 const ticketThreadCommentsSlice = createSliceForList<TicketThreadComment, 'ticket_thread_comments'>('ticket_thread_comments')
 const configurationsSlice = createSliceForList<Configuration, 'configurations'>('configurations')
 const ticketQueuesSlice = createSliceForList<TicketQueue, 'ticket_queues'>('ticket_queues')
+const enduserOrdersSlice = createSliceForList<EnduserOrder, 'enduser_orders'>('enduser_orders')
 
 const roleBasedAccessPermissionsSlice = createSliceForList<RoleBasedAccessPermission, 'role_based_access_permissions'>('role_based_access_permissions')
 
@@ -400,6 +402,7 @@ export const sharedConfig = {
     ticket_threads: ticketThreadsSlice.reducer,
     ticket_thread_comments: ticketThreadCommentsSlice.reducer,
     group_mms_conversations: groupMMSConversationsSlice.reducer,
+    enduser_orders: enduserOrdersSlice.reducer,
   },
 }
 
@@ -1005,6 +1008,22 @@ export const useEnduserMedications = (options={} as HookOptions<EnduserMedicatio
     { 
       ...options,
     },
+  )
+}
+export const useEnduserOrders = (options={} as HookOptions<EnduserOrder>) => {
+  const session = useResolvedSession()
+  return useListStateHook(
+    'enduser_orders', useTypedSelector(s => s.enduser_orders), session, enduserOrdersSlice, 
+    { 
+      loadQuery: session.api.enduser_orders.getSome,
+      findOne: session.api.enduser_orders.getOne,
+      findByIds: session.api.enduser_orders.getByIds,
+      addOne: session.api.enduser_orders.createOne,
+      addSome: session.api.enduser_orders.createSome,
+      deleteOne: session.api.enduser_orders.deleteOne,
+      updateOne: session.api.enduser_orders.updateOne,
+    }, 
+    {...options}
   )
 }
 

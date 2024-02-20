@@ -251,6 +251,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedIterable?: boolean,
   hasConnectedZendesk?: boolean,
   hasConnectedZus?: boolean,
+  hasConnectedCanvas?: boolean,
   hasTicketQueues?: boolean,
   vitalTeamId?: string,
   zendeskSettings?: { priorityGroups?: string[], resolutionFieldId?: string, resolutionFieldOptions?: string[] }
@@ -2415,6 +2416,8 @@ export interface PhoneCall_readonly extends ClientRecord {
   recordingId?: string,
   recordingDurationInSeconds?: number,
   transcriptionId?: string,
+  conferenceId?: string,
+  conferenceAttendees?: string[],
 }
 export interface PhoneCall_required {}
 export interface PhoneCall_updatesDisabled {}
@@ -2458,6 +2461,7 @@ export type AnalyticsQueryInfoForType = {
   "Tickets": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },  
   "Emails": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },  
   "SMS Messages": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },
+  "Medications": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },
   "Phone Calls": { 
     Total:  AnalyticsQueryInfoBuilder<'Total', undefined>,
     Duration:  AnalyticsQueryInfoBuilder<'Duration', undefined>,
@@ -2504,6 +2508,7 @@ export type AnalyticsQueryFilterForType = {
   "Phone Calls": { },
   "SMS Messages": { },
   Emails: { },
+  Medications: { },
 }
 
 export type EnduserGrouping = {
@@ -2544,6 +2549,10 @@ export type AnalyticsQueryGroupingForType = {
     // Cost?: boolean,
     /* by joining on Endusers */
   } & EnduserGrouping & { Enduser: string },
+  "Medications": { 
+    // Cost?: boolean,
+    /* by joining on Endusers */
+  } & EnduserGrouping & { Enduser: string },
 }
 
 type DefaultRangeKey = 'Created At' | 'Updated At'
@@ -2557,6 +2566,7 @@ export type AnalyticsQueryRangeKeyForType = {
   "Phone Calls": DefaultRangeKey,
   "SMS Messages": DefaultRangeKey,
   "Emails": DefaultRangeKey,
+  "Medications": DefaultRangeKey,
 }
 
 export type AnalyticsQueryRangeInterval = 'Daily' | 'Weekly' | 'Monthly'
@@ -2636,6 +2646,13 @@ export type AnalyticsQueryForType = {
     AnalyticsQueryGroupingForType['SMS Messages'],
     AnalyticsQueryRangeKeyForType['SMS Messages']
   >,
+  "Medications": AnalyticsQueryBuilder<
+    "Medications", 
+    AnalyticsQueryInfoForType['Medications'][keyof AnalyticsQueryInfoForType['Medications']],
+    AnalyticsQueryFilterForType['Medications'],
+    AnalyticsQueryGroupingForType['Medications'],
+    AnalyticsQueryRangeKeyForType['Medications']
+  >,
 }
 export type AnalyticsQueryType = keyof AnalyticsQueryForType
 export type AnalyticsQuery = AnalyticsQueryForType[AnalyticsQueryType]
@@ -2650,6 +2667,7 @@ export const resource_to_modelName: { [K in AnalyticsQueryType] : ModelName } = 
   "Phone Calls": 'phone_calls',
   "SMS Messages": 'sms_messages',
   Emails: "emails",
+  Medications: "enduser_medications",
 }
 
 export type AnalyticsQueryOptions = {
@@ -3022,9 +3040,29 @@ export interface TicketQueue_required {
   title: string,
   userIds: string[]
 }
-export interface TicketQueue extends TicketQueue_readonly, TicketQueue_required, TicketQueue_updatesDisabled {
+export interface TicketQueue extends TicketQueue_readonly, TicketQueue_required, TicketQueue_updatesDisabled {}
 
+export interface EnduserOrder_readonly extends ClientRecord {}
+export interface EnduserOrder_updatesDisabled {}
+export interface EnduserOrder_required {}
+export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_required, EnduserOrder_updatesDisabled {
+  externalId: string,
+  source: string,
+  title: string,
+  status: string,
+  enduserId: string,
+  userId?: string,
 }
+
+export interface TicketQueue_readonly extends ClientRecord {
+  count?: number,
+}
+export interface TicketQueue_updatesDisabled {}
+export interface TicketQueue_required {
+  title: string,
+  userIds: string[]
+}
+export interface TicketQueue extends TicketQueue_readonly, TicketQueue_required, TicketQueue_updatesDisabled {}
 
 export type ImageAttachment = {
   url: string,
@@ -3063,6 +3101,7 @@ export interface GroupMMSConversation extends GroupMMSConversation_readonly, Gro
 }
 
 export type ModelForName_required = {
+  enduser_orders: EnduserOrder_required,
   group_mms_conversations: GroupMMSConversation_required,
   ticket_queues: TicketQueue_required,
   ticket_threads: TicketThread_required,
@@ -3134,6 +3173,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  enduser_orders: EnduserOrder_readonly,
   group_mms_conversations: GroupMMSConversation_readonly,
   ticket_queues: TicketQueue_readonly,
   configurations: Configuration_readonly,
@@ -3205,6 +3245,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  enduser_orders: EnduserOrder_updatesDisabled,
   group_mms_conversations: GroupMMSConversation_updatesDisabled,
   ticket_queues: TicketQueue_updatesDisabled,
   configurations: Configuration_updatesDisabled,
@@ -3276,6 +3317,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly {
+  enduser_orders: EnduserOrder,
   group_mms_conversations: GroupMMSConversation,
   ticket_queues: TicketQueue,
   configurations: Configuration,
@@ -3357,6 +3399,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  enduser_orders: true,
   group_mms_conversations: true,
   ticket_queues: true,
   configurations: true,

@@ -287,6 +287,7 @@ import {
 import { 
   ALL_ACCESS,
   ASSIGNED_ACCESS,
+  CANVAS_TITLE,
   DEFAULT_ACCESS,
   ENDUSER_FIELD_TYPES,
   FULLSCRIPT_INTEGRATIONS_TITLE,
@@ -3441,6 +3442,7 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   configurations: accessPermissionValidator,
   ticket_queues: accessPermissionValidator,
   group_mms_conversations: accessPermissionValidator,
+  enduser_orders: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
@@ -3514,6 +3516,7 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   ticket_thread_comments: numberValidatorOptional,
   configurations: numberValidatorOptional,
   ticket_queues: numberValidatorOptional,
+  enduser_orders: numberValidatorOptional,
 }, { emptyOk: true })
 
 const _LOGIN_FLOW_RESULTS = {
@@ -3581,6 +3584,7 @@ export type IntegrationsTitleType = (
 | typeof ZENDESK_INTEGRATIONS_TITLE
 | typeof FULLSCRIPT_INTEGRATIONS_TITLE
 | typeof ZUS_TITLE
+| typeof CANVAS_TITLE
 )
 export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleType>([
   SQUARE_INTEGRATIONS_TITLE,
@@ -3590,6 +3594,7 @@ export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleTy
   ZENDESK_INTEGRATIONS_TITLE,
   FULLSCRIPT_INTEGRATIONS_TITLE,
   ZUS_TITLE,
+  CANVAS_TITLE,
 ])
 
 const _VIDEO_INTEGRATION_TYPES: { [K in VideoIntegrationType]: any} = {
@@ -3879,6 +3884,28 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       key: exactMatchValidator<AnalyticsQueryRangeKeyForType['SMS Messages']>(['Created At', 'Updated At']),
     }, { isOptional: true, emptyOk: true })
   }), 
+  "Medications": objectValidator<AnalyticsQueryForType['Medications']>({
+    resource: exactMatchValidator<'Medications'>(['Medications']),
+    filter: objectValidator<AnalyticsQueryFilterForType['Medications']>({ }, { isOptional: true, emptyOk: true }),
+    info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Medications']]: AnalyticsQueryInfoForType['Medications'][K] }>({
+      "Total": objectValidator<AnalyticsQueryInfoForType['Medications']['Total']>({
+        method: exactMatchValidator<"Total">(['Total']),
+        parameters: optionalEmptyObjectValidator,
+      }),
+    }),
+    grouping: objectValidator<AnalyticsQueryGroupingForType['Medications']>({
+      Enduser: booleanValidatorOptional,
+      Gender: booleanValidatorOptional,
+      "Assigned To": booleanValidatorOptional,
+      Field: stringValidatorOptionalEmptyOkay,
+      Tags: booleanValidatorOptional,
+      Age: booleanValidatorOptional,
+    }, { isOptional: true, emptyOk: true }),
+    range: objectValidator<AnalyticsQueryRange<any>>({
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Medications']>(['Created At', 'Updated At']),
+    }, { isOptional: true, emptyOk: true })
+  }), 
 })
 export const analyticsQueriesValidatorOptional = listValidatorOptionalOrEmptyOk(analyticsQueryValidator)
 
@@ -3898,6 +3925,7 @@ const _ANALYTICS_QUERY_TYPES: { [K in AnalyticsQueryType]: any } = {
   "Phone Calls": true,
   "SMS Messages": true,
   Emails: true,
+  Medications: true,
 }
 export const ANALYTICS_QUERY_TYPES = Object.keys(_ANALYTICS_QUERY_TYPES) as AnalyticsQueryType[]
 export const analyticsQueryTypeValidator = exactMatchValidator<AnalyticsQueryType>(ANALYTICS_QUERY_TYPES)
