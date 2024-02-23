@@ -254,6 +254,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedCanvas?: boolean,
   hasTicketQueues?: boolean,
   vitalTeamId?: string,
+  altVitalTeamIds?: { teamId: string, label: string }[],
   zendeskSettings?: { priorityGroups?: string[], resolutionFieldId?: string, resolutionFieldOptions?: string[] }
   replyToAllEmails?: string,
   forwardAllIncomingEmailsTo?: string,
@@ -474,12 +475,59 @@ export type ScheduledJourney = {
 }
 
 export type EnduserRelationship = {
-  type: 'Parent' | 'Child' | 'Spouse' | 'Sibling' | 'Relates To' | 'Grandparent' | 'Grandchild' | 'Caregiver' | 'Caretaker' | 'Care Recipient'
+  type: 'Parent' | 'Child' | 'Spouse' | 'Partner' | 'Sibling' | 'Relates To' | 'Grandparent' | 'Grandchild' | 'Caregiver' | 'Caretaker' | 'Care Recipient'
   id: string,
 }
 export type Language = {
   displayName: string,
   iso6391: string,
+}
+
+
+export type InsuranceRelationship = (
+  "Spouse" |
+  "Grandfather or Grandmother" |
+  "Grandson or Grandaughter" |
+  "Nephew or Niece" |
+  "Foster Child" |
+  "Ward of the Court" |
+  "Stepson or Stepdaughter" |
+  "Self" |
+  "Child" |
+  "Employee" |
+  "Unknown" |
+  "Handicapped/Dependent" |
+  "Sponsored Dependent" |
+  "Dependent of Minor Dependent" |
+  "Significant Other" |
+  "Mother" |
+  "Father" |
+  "Emancipated Minor" |
+  "Organ Donor" |
+  "Cadaver Donor" |
+  "Injured Plaintiff" |
+  "Child Where Insured Has No Financial Responsibility" |
+  "Life Partner" |
+  "Other Relationship"
+)
+
+export type EnduserInsurance = {
+  memberId?: string,
+  payerId?: string,
+  payerName?: string,
+  cardFront?: string,
+  cardBack?: string,
+  eligible?: boolean,
+  eligibilityRanAt?: Date,
+  canvasId?: string,
+  relationship?: InsuranceRelationship,
+  relationshipDetails?: {
+    fname?: string,
+    lname?: string,
+    phone?: string,
+    email?: string,
+    address?: Partial<Address>,
+  }
 }
 
 export type TellescopeGender = "Male" | "Female" | "Other" | "Unknown"
@@ -554,6 +602,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   lastZendeskSyncAt?: Date,
   accessTags?: string[],
   unsubscribedFromMarketing?: boolean,
+  insurance?: EnduserInsurance,
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
 }
@@ -1086,7 +1135,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
 }
 
 export type FormFieldLiteralType = 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time'
-export type FormFieldComplexType = "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts"
+export type FormFieldComplexType = "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance"
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
 
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic'
@@ -1406,6 +1455,7 @@ export type FormResponseAnswerStripe = FormResponseValueAnswerBuilder<'Stripe', 
 export type FormResponseAnswerDatabaseSelect = FormResponseValueAnswerBuilder<'Database Select', DatabaseSelectResponse[]>
 export type FormResponseAnswerMedications = FormResponseValueAnswerBuilder<'Medications', MedicationResponse[]>
 export type FormResponseAnswerRelatedContacts = FormResponseValueAnswerBuilder<'Related Contacts', Partial<Enduser>[]>
+export type FormResponseAnswerInsurance = FormResponseValueAnswerBuilder<'Insurance', Partial<EnduserInsurance>>
 
 export type FormResponseAnswerSignatureValue = {
   fullName: string,
@@ -1453,6 +1503,7 @@ export type FormResponseValueAnswer = (
   | FormResponseAnswerDatabaseSelect
   | FormResponseAnswerMedications
   | FormResponseAnswerRelatedContacts
+  | FormResponseAnswerInsurance
 )
 
 export type FormResponseValue = {
@@ -1490,6 +1541,7 @@ export type AnswerForType = {
   'Database Select': FormResponseAnswerDatabaseSelect['value']
   'Medications': FormResponseAnswerMedications['value']
   'Related Contacts': FormResponseAnswerRelatedContacts['value']
+  'Insurance': FormResponseAnswerInsurance['value']
 }
 
 export interface FormResponse_readonly extends ClientRecord {
@@ -2525,6 +2577,7 @@ export type AnalyticsQueryGroupingForType = {
     Type: boolean,
   },
   "Form Responses": {
+    "Public Identifier"?: boolean,
     /* by joining on Endusers */
   } & EnduserGrouping & { Enduser: string },
   "Purchases": { 
@@ -2542,7 +2595,7 @@ export type AnalyticsQueryGroupingForType = {
     /* by joining on Endusers */
   } & EnduserGrouping & { Enduser: string },
   "SMS Messages": { 
-    // Cost?: boolean,
+    Score?: boolean,
     /* by joining on Endusers */
   } & EnduserGrouping & { Enduser: string },
   "Emails": { 

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo } from "react"
 import { Button, Flex, LabeledIconButton, LoadingButton, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
-import { AddressInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, FileInput, FilesInput, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
+import { AddressInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, FileInput, FilesInput, InsuranceInput, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
@@ -137,6 +137,7 @@ export const QuestionForField = ({
   const DatabaseSelect = customInputs?.['Database Select'] ?? DatabaseSelectInput
   const Medications = customInputs?.['Medications'] ?? MedicationsInput
   const RelatedContacts = customInputs?.['Related Contacts'] ?? RelatedContactsInput
+  const Insurance = customInputs?.['Insurance'] ?? InsuranceInput
 
   const validationMessage = validateField(field)
 
@@ -220,6 +221,9 @@ export const QuestionForField = ({
         )
         : field.type === 'Medications' ? (
           <Medications field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Medications'>} form={form}/>
+        )
+        : field.type === 'Insurance' ? (
+          <Insurance field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Insurance'>} form={form}/>
         )
         : field.type === 'rating' ? (
           <Rating field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'rating'>} form={form}/>

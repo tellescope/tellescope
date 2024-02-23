@@ -265,6 +265,7 @@ import {
   sortingFieldsValidator,
   listOfUniqueStringsValidatorEmptyOk,
   ticketReminderValidator,
+  insuranceOptionalValidator,
 } from "@tellescope/validation"
 
 import {
@@ -903,11 +904,12 @@ export type CustomActions = {
     }, { conversation: GroupMMSConversation }>,
   },
   enduser_orders: {
-    get_available_tests: CustomAction<{ zipCode?: string }, { tests: VitalLabTest[] }>,
+    get_available_tests: CustomAction<{ zipCode?: string, teamId?: string }, { tests: VitalLabTest[] }>,
     create_lab_order: CustomAction<{ 
       enduserId: string,
       labTestId: string,
       physicianUserId?: string,
+      teamId?: string, // for picking from multiple vital integrations
     }, { order: EnduserOrder }>,
   },
 } 
@@ -1210,6 +1212,7 @@ export const schema: SchemaV1 = build_schema({
       markedReadAt: { validator: dateOptionalOrEmptyStringValidator },
       markedUnreadAt: { validator: dateOptionalOrEmptyStringValidator },
       note: { validator: stringValidator25000EmptyOkay },
+      insurance: { validator: insuranceOptionalValidator },
       // recentMessagePreview: { 
       //   validator: stringValidator,
       // },
@@ -1610,7 +1613,7 @@ export const schema: SchemaV1 = build_schema({
   integrations: {
     info: {},
     constraints: { 
-      unique: [['title', 'creator']], relationship: [], access: [{ type: CREATOR_ONLY_ACCESS }] 
+      unique: [], relationship: [], access: [{ type: CREATOR_ONLY_ACCESS }] 
     },
     defaultActions: DEFAULT_OPERATIONS,
     fields: {
@@ -1635,6 +1638,7 @@ export const schema: SchemaV1 = build_schema({
       syncUnrecognizedSenders: { validator: booleanValidator },
       calendars: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       environment: { validator: stringValidator100 },
+      webhooksSecret: { validator: stringValidator },
     },
     customActions: {
       generate_google_auth_url: {
@@ -5214,6 +5218,10 @@ export const schema: SchemaV1 = build_schema({
       },
       hasTicketQueues: { validator: booleanValidator },
       customAutoreplyMessage: { validator: stringValidator1000 },
+      altVitalTeamIds: { validator: listValidatorEmptyOk(objectValidator<{ teamId: string, label: string }>({
+        teamId: stringValidator100,
+        label: stringValidator100,
+      })) },
     },
   },
   databases: {
@@ -6607,7 +6615,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         path: '/enduser-orders/get-available-tests',
         description: "Gets available tests (Vital). If zipCode is provided, filters by availability.",
         parameters: { 
-          zipCode: { validator: stringValidator } 
+          zipCode: { validator: stringValidator }, 
+          teamId: { validator: stringValidator } 
         },
         returns: { 
           tests: { validator: listValidatorOptionalOrEmptyOk(objectAnyFieldsAnyValuesValidator) as any, required: true },
@@ -6622,6 +6631,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           enduserId: { validator: mongoIdStringValidator, required: true },
           labTestId: { validator: stringValidator, required: true },
           physicianUserId: { validator: mongoIdStringValidator },
+          teamId: { validator: stringValidator },
         },
         returns: { 
           order: { validator: 'enduser_order' as any, required: true },

@@ -2,7 +2,7 @@ import {
   Operation,
 } from "@tellescope/types-utilities"
 import {
-  AccessAction, AccessForResource, AccessPermissions, AccessType, Enduser, EnduserRelationship, FormFieldType,
+  AccessAction, AccessForResource, AccessPermissions, AccessType, Enduser, EnduserRelationship, FormFieldType, InsuranceRelationship,
 } from "@tellescope/types-models"
 
 export type EnduserField = keyof Pick<Enduser, 'email' | 'phone' | 'fname' | 'lname' | 'dateOfBirth' | 'height' | 'weight'>
@@ -52,8 +52,9 @@ export const ENDUSER_FIELD_TYPES = {
   'dateOfBirth': 'dateString',
   'height': 'number',
   'weight': 'number',
-  'Address': 'Address'
-}  as { [K in EnduserField] : FormFieldType}
+  'Address': 'Address',
+  'Insurance': "Insurance",
+}  as { [K in EnduserField | 'Insurance'] : FormFieldType}
 
 export const PRIMARY_HEX = "#1564bf"
 export const SECONDARY_HEX = "#1c4378"
@@ -426,6 +427,7 @@ export const RELATIONSHIP_TYPES = [
   'Child',
   'Sibling',
   'Spouse',
+  "Partner",
   'Grandparent',
   'Grandchild',
   'Relates To'
@@ -440,6 +442,8 @@ export const get_inverse_relationship_type = (type: EnduserRelationship['type'])
     ? 'Sibling'
 : type === 'Spouse'
     ? 'Spouse'
+: type === 'Partner'
+    ? 'Partner'
 : type === 'Care Recipient'
     ? 'Caregiver'
 : type === 'Caregiver'
@@ -452,3 +456,33 @@ export const get_inverse_relationship_type = (type: EnduserRelationship['type'])
     ? 'Grandparent'
     : 'Relates To'
 )
+
+// maps to HIPAA Individual Relationship Codes (source https://med.noridianmedicare.com/web/jea/topics/claim-submission/patient-relationship-codes)
+export const INSURANCE_RELATIONSHIPS_TO_CODE: { [K in InsuranceRelationship]: number | string } = {
+  Spouse: 1,
+  "Grandfather or Grandmother": 4,
+  "Grandson or Grandaughter": 5,
+  "Nephew or Niece": 7,
+  "Foster Child": 10,
+  "Ward of the Court": 15,
+  "Stepson or Stepdaughter": 17,
+  "Self": 18,
+  "Child": 19,
+  "Employee": 20,
+  "Unknown": 21,
+  "Handicapped/Dependent": 22,
+  "Sponsored Dependent": 23,
+  "Dependent of Minor Dependent": 24,
+  "Significant Other": 29,
+  Mother: 32,
+  Father: 33,
+  "Emancipated Minor"	: 36,
+  "Organ Donor": 39,
+  "Cadaver Donor": 40,
+  "Injured Plaintiff": 41,
+  "Child Where Insured Has No Financial Responsibility": 43,
+  "Life Partner": 53,
+  "Other Relationship": "G8",
+}
+
+export const INSURANCE_RELATIONSHIPS = Object.keys(INSURANCE_RELATIONSHIPS_TO_CODE) as InsuranceRelationship[]

@@ -255,6 +255,9 @@ import {
   ImageAttachment,
   SortingField,
   TicketReminder,
+  EnduserInsurance,
+  InsuranceRelationship,
+  FormResponseAnswerInsurance,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -291,6 +294,7 @@ import {
   DEFAULT_ACCESS,
   ENDUSER_FIELD_TYPES,
   FULLSCRIPT_INTEGRATIONS_TITLE,
+  INSURANCE_RELATIONSHIPS,
   NO_ACCESS,
   OUTLOOK_INTEGRATIONS_TITLE,
   SQUARE_INTEGRATIONS_TITLE,
@@ -1410,12 +1414,14 @@ const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
   "Database Select": '',
   Medications: '',
   "Related Contacts": "",
+  'Insurance': '',
 }
 export const FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES) as FormFieldType[]
 export const formFieldTypeValidator = exactMatchValidator<FormFieldType>(FORM_FIELD_TYPES)
 
 export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' | 'phoneNumber']: (value?: FormResponseValueAnswer[keyof FormResponseValueAnswer], options?: any, isOptional?: boolean) => any } = {
   'Related Contacts': objectAnyFieldsAnyValuesValidator.validate(),
+  'Insurance': objectAnyFieldsAnyValuesValidator.validate(),
   'Address': objectAnyFieldsAnyValuesValidator.validate(),
   'Database Select': objectAnyFieldsAnyValuesValidator.validate(),
   'Time': stringValidator.validate({ maxLength: 100 }),
@@ -1704,11 +1710,51 @@ const isFormField = (f: JSONType, fieldOptions={ forUpdate: false }) => {
   return field
 }
 
+export const addressValidator = objectValidator<SuperbillProvider['address']>({
+  city: stringValidator,
+  state: stateValidator,
+  lineOne: stringValidator,
+  lineTwo: stringValidatorOptional,
+  zipCode: stringValidator100,
+  zipPlusFour: stringValidator1000Optional,
+})
+export const addressOptionalValidator = objectValidator<SuperbillProvider['address']>({
+  city: stringValidatorOptional,
+  state: stateValidatorOptional,
+  lineOne: stringValidatorOptional,
+  lineTwo: stringValidatorOptional,
+  zipCode: stringValidator1000Optional,
+  zipPlusFour: stringValidator1000Optional,
+}, { isOptional: true, emptyOk: true })
+
+export const insuranceOptionalValidator = objectValidator<EnduserInsurance>({
+  memberId: stringValidatorOptional,
+  payerId: stringValidatorOptional,
+  payerName: stringValidatorOptional,
+  cardFront: stringValidatorOptional,
+  cardBack: stringValidatorOptional,
+  relationship: exactMatchValidator(INSURANCE_RELATIONSHIPS),
+  canvasId: stringValidatorOptional,
+  eligible: booleanValidatorOptional,
+  eligibilityRanAt: dateValidatorOptional,
+  relationshipDetails: objectValidator<EnduserInsurance['relationshipDetails']>({
+    address: addressOptionalValidator,
+    fname: stringValidatorOptional,
+    lname: stringValidatorOptional,
+    email: emailValidatorOptional,
+    phone: phoneValidatorOptional,
+  }, { isOptional: true, emptyOk: true })
+}, { isOptional: true, emptyOk: true })
+
 // validate optional vs not at endpoint-level
 export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: FormResponseValueAnswer & { type: K } } >({
   "Related Contacts": objectValidator<FormResponseAnswerRelatedContacts>({
     type: exactMatchValidator(['Related Contacts']),
     value: listValidatorOptionalOrEmptyOk(objectAnyFieldsAnyValuesValidator),
+  }),
+  "Insurance": objectValidator<FormResponseAnswerInsurance>({
+    type: exactMatchValidator(['Insurance']),
+    value: insuranceOptionalValidator,
   }),
   "Question Group": objectValidator<FormResponseAnswerGroup>({
     type: exactMatchValidator(['Question Group']),
@@ -2769,23 +2815,6 @@ export const is_block_type = (type: any): type is BlockType => BLOCK_TYPES.inclu
 
 export const blocksValidator = listValidatorEmptyOk(blockValidator)
 
-export const addressValidator = objectValidator<SuperbillProvider['address']>({
-  city: stringValidator,
-  state: stateValidator,
-  lineOne: stringValidator,
-  lineTwo: stringValidatorOptional,
-  zipCode: stringValidator100,
-  zipPlusFour: stringValidator1000Optional,
-})
-export const addressOptionalValidator = objectValidator<SuperbillProvider['address']>({
-  city: stringValidatorOptional,
-  state: stateValidatorOptional,
-  lineOne: stringValidatorOptional,
-  lineTwo: stringValidatorOptional,
-  zipCode: stringValidator1000Optional,
-  zipPlusFour: stringValidator1000Optional,
-}, { isOptional: true, emptyOk: true })
-
 const _DATABASE_RECORD_FIELD_TYPES: { [K in DatabaseRecordFieldType]: any } = {
   Text: '',
   "Text Long": '',
@@ -3735,6 +3764,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       }),
     }),
     grouping: objectValidator<AnalyticsQueryGroupingForType['Form Responses']>({
+      "Public Identifier": booleanValidatorOptional,
       Enduser: booleanValidatorOptional,
       Gender: booleanValidatorOptional,
       "Assigned To": booleanValidatorOptional,
@@ -3872,6 +3902,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       }),
     }),
     grouping: objectValidator<AnalyticsQueryGroupingForType['SMS Messages']>({
+      Score: booleanValidatorOptional,
       Enduser: booleanValidatorOptional,
       Gender: booleanValidatorOptional,
       "Assigned To": booleanValidatorOptional,

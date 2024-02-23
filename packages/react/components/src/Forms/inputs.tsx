@@ -3,9 +3,9 @@ import axios from "axios"
 import { Autocomplete, Box, Button, Checkbox, Divider, FormControl, FormControlLabel, FormLabel, Grid, InputLabel, MenuItem, Radio, RadioGroup, Select, SxProps, TextField, TextFieldProps, Typography } from "@mui/material"
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
-import { PRIMARY_HEX, RELATIONSHIP_TYPES } from "@tellescope/constants"
+import { INSURANCE_RELATIONSHIPS, PRIMARY_HEX, RELATIONSHIP_TYPES } from "@tellescope/constants"
 import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, first_letter_capitalized, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, truncate_string, user_display_name } from "@tellescope/utilities"
-import { Enduser, EnduserRelationship, FormResponseValue, MultipleChoiceOptions } from "@tellescope/types-models"
+import { Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MultipleChoiceOptions } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -463,6 +463,210 @@ export const NumberInput = ({ field, value, onChange, form, ...props }: FormInpu
   />
 )
 
+export const InsuranceInput = ({ field, value, onChange, form, ...props }: FormInputProps<'Insurance'>) => {
+  // todo: load payers dynamically from EHR or RCM source of truth, add to payers list
+  const [payers] = useState([{ id: 'other', name: 'Other' }])
+  return (
+    <Grid container spacing={2} sx={{ mt: '0' }}>
+      <Grid item xs={12} sm={6}>
+        <StringSelector options={payers.map(p => p.name)} size="small" label="Insurer"
+          value={value?.payerName || ''} 
+          onChange={name => {
+            const payer = payers.find(p => p.name === name)
+            if (!payer) return
+
+            onChange({ ...value, payerId: payer.id, payerName: payer.name }, field.id)
+          }}
+        />
+      </Grid>
+      <Grid item xs={12} sm={6}>
+      <AutoFocusTextField {...props} required={!field.isOptional} fullWidth value={value?.memberId ?? ''} 
+        onChange={e => onChange({ ...value, memberId: e.target.value }, field.id)}  
+        placeholder={form_display_text_for_language(form, "Member ID", '')}
+        size="small"
+      />
+      </Grid>
+
+      <Grid item xs={12}>
+        <StringSelector size="small" label="Relationship to Policy Owner"
+          options={INSURANCE_RELATIONSHIPS.sort((x, y) => x.localeCompare(y))}
+          value={value?.relationship || 'Self'} 
+          onChange={relationship => 
+            onChange({ ...value, relationship: relationship as InsuranceRelationship || 'Self' }, field.id)
+          }
+        />
+      </Grid>
+
+      {(value?.relationship || 'Self') !== 'Self' &&
+      <>
+        <Grid item xs={12}>
+          <Typography sx={{ fontWeight: 'bold' }}>Policy Owner Details</Typography>
+        </Grid>
+
+        <Grid item xs={6}>
+          <TextField label="First Name" size="small" InputProps={defaultInputProps} fullWidth
+            value={value?.relationshipDetails?.fname || ''} 
+            onChange={e => 
+              onChange({ 
+                ...value, 
+                relationshipDetails: { ...value?.relationshipDetails, fname: e.target.value }
+              }, field.id)
+            }
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <TextField label="Last Name" size="small" InputProps={defaultInputProps} fullWidth
+            value={value?.relationshipDetails?.lname || ''} 
+            onChange={e => 
+              onChange({ 
+                ...value, 
+                relationshipDetails: { ...value?.relationshipDetails, lname: e.target.value }
+              }, field.id)
+            }
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <TextField label="Email" type="email" size="small" InputProps={defaultInputProps} fullWidth
+            value={value?.relationshipDetails?.email || ''} 
+            onChange={e => 
+              onChange({ 
+                ...value, 
+                relationshipDetails: { ...value?.relationshipDetails, email: e.target.value }
+              }, field.id)
+            }
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <TextField label="Cell Phone" size="small" InputProps={defaultInputProps} fullWidth
+            value={value?.relationshipDetails?.phone || ''} 
+            onChange={e => 
+              onChange({ 
+                ...value, 
+                relationshipDetails: { ...value?.relationshipDetails, phone: e.target.value }
+              }, field.id)
+            }
+          />
+        </Grid>
+
+        <Grid item xs={12}>
+          <AddressInput field={field} value={{
+            addressLineOne: value?.relationshipDetails?.address?.lineOne || '',
+            addressLineTwo: value?.relationshipDetails?.address?.lineTwo || '',
+            city: value?.relationshipDetails?.address?.city || '',
+            state: value?.relationshipDetails?.address?.state || '',
+            zipCode: value?.relationshipDetails?.address?.zipCode || '',
+          }} 
+            onChange={v => {
+              const { addressLineOne='', addressLineTwo='', ...address } = v || {}
+              onChange({ 
+                ...value, 
+                relationshipDetails: { 
+                  ...value?.relationshipDetails, 
+                  address: {
+                    lineOne: addressLineOne,
+                    lineTwo: addressLineTwo,
+                    ...address,
+                  },
+                }
+              }, field.id)
+            }}
+          />
+        </Grid>
+
+        {/* <Grid item xs={6}>
+          <TextField label="Address"
+            value={value?.relationshipDetails?.address?.lineOne || ''} 
+            onChange={e => 
+              onChange({ 
+                ...value, 
+                relationshipDetails: { 
+                  ...value?.relationshipDetails, 
+                  address: {
+                    ...value?.relationshipDetails?.address,
+                    lineOne: e.target.value
+                  }
+                }
+              }, field.id)
+            }
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <TextField label="Line Two"
+            value={value?.relationshipDetails?.address?.lineTwo || ''} 
+            onChange={e => 
+              onChange({ 
+                ...value, 
+                relationshipDetails: { 
+                  ...value?.relationshipDetails, 
+                  address: {
+                    ...value?.relationshipDetails?.address,
+                    lineTwo: e.target.value
+                  }
+                }
+              }, field.id)
+            }
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <TextField label="City"
+            value={value?.relationshipDetails?.address?.city || ''} 
+            onChange={e => 
+              onChange({ 
+                ...value, 
+                relationshipDetails: { 
+                  ...value?.relationshipDetails, 
+                  address: {
+                    ...value?.relationshipDetails?.address,
+                    city: e.target.value
+                  }
+                }
+              }, field.id)
+            }
+          />
+        </Grid>
+        <Grid item xs={2}>
+          <TextField label="State"
+            value={value?.relationshipDetails?.address?.state || ''} 
+            onChange={e => 
+              onChange({ 
+                ...value, 
+                relationshipDetails: { 
+                  ...value?.relationshipDetails, 
+                  address: {
+                    ...value?.relationshipDetails?.address,
+                    state: e.target.value
+                  }
+                }
+              }, field.id)
+            }
+          />
+        </Grid>
+
+        <Grid item xs={4}> 
+          <Autocomplete value={value?.state}
+            options={VALID_STATES}
+            sx={{ width: 100 }}
+            disablePortal
+            onChange={(e, v) => v && 
+              onChange({
+                ...value as any,
+                state: v ?? '',
+              }, 
+              field.id
+            )}
+            renderInput={(params) => (
+              <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
+                size={'small'} label={"State"} required={!field.isOptional}  
+              />
+            )}
+            {...props}
+          />
+        </Grid> */}
+      </>
+      }
+    </Grid>
+  )
+}
 
 
 const StringSelector = ({ options, value, onChange, ...props } : {
