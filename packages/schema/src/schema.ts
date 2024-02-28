@@ -852,6 +852,7 @@ export type CustomActions = {
     }, { report: Report }>,
     upgrade_to_conference: CustomAction<{ id: string }, { }>,
     add_conference_attendees: CustomAction<{ conferenceId: string, enduserId?: string, byClientId?: string[], byPhone?: string[] }, { }>,
+    end_conference: CustomAction<{ id: string }, { }>,
   },
   analytics_frames: {
     get_result_for_query: CustomAction<{ 
@@ -2617,7 +2618,7 @@ export const schema: SchemaV1 = build_schema({
       },
       refresh_session: {
         op: "custom", access: 'update', method: "post",
-        name: 'Refresh enduser authentication',
+        name: 'Refresh user authentication',
         path: '/refresh-session',
         description: "When called by an authenticated user, generates a new session",
         parameters: { },
@@ -5764,6 +5765,16 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           enduserId: { validator: mongoIdStringValidator },
           byClientId: { validator: listOfStringsValidatorOptionalOrEmptyOk },
           byPhone: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+        },
+        returns: {},
+      },
+      end_conference: {
+        op: "custom", access: 'update', method: "post",
+        name: 'End Conference',
+        path: '/phone-calls/end-conference',
+        description: "Ends an active conference call for all participants",
+        parameters: {
+          id: { validator: stringValidator100, required: true },
         },
         returns: {},
       },

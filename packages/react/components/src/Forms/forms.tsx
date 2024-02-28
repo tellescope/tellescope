@@ -223,7 +223,12 @@ export const QuestionForField = ({
           <Medications field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Medications'>} form={form}/>
         )
         : field.type === 'Insurance' ? (
-          <Insurance field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Insurance'>} form={form}/>
+          <Insurance field={field} value={value.answer.value as any} form={form}
+            onChange={(v, fieldId) => (onFieldChange as ChangeHandler<'Insurance'>)({
+              ...v,
+              relationship: v?.relationship || 'Self', // make sure relationship is initialized to self if input is provided
+            }, fieldId)}
+          />
         )
         : field.type === 'rating' ? (
           <Rating field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'rating'>} form={form}/>

@@ -13,6 +13,7 @@ import { ChatAttachment } from "@tellescope/types-models";
 
 export interface HTMLMessageProps {
   html: string,
+  color?: string,
 }
 export const HTMLMessage = ({ html } : HTMLMessageProps) => (
   <div style={{ padding: 2 }}

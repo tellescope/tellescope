@@ -18,7 +18,7 @@ import { HTMLMessageProps } from './components';
 import { remove_script_tags } from '@tellescope/utilities';
 import RenderHtml from 'react-native-render-html';
 
-export const HTMLMessage = ({ html: htmlUnprocessed } : HTMLMessageProps) => {
+export const HTMLMessage = ({ html: htmlUnprocessed, color="white" } : HTMLMessageProps) => {
   const html = (
     htmlUnprocessed.endsWith('<br/>')
       ? htmlUnprocessed.substring(0, htmlUnprocessed.length - 5)
@@ -39,11 +39,11 @@ export const HTMLMessage = ({ html: htmlUnprocessed } : HTMLMessageProps) => {
       }}
       tagsStyles={{
         'body': {
-          color: 'white',
+          color,
         },
         'a': {
-          color: 'white',
-          textDecorationColor: 'white', // underline color in the link
+          color,
+          textDecorationColor: color, // underline color in the link
         }
       }}
     />

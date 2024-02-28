@@ -163,6 +163,7 @@ export type OrganizationSettings = {
     sendSMSOnZoomStart?: boolean,
     enableGroupMMS?: boolean,
     enableAccessTags?: boolean,
+    flaggedFileText?: string,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
@@ -859,6 +860,7 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
   tags?: string[],
   batchId?: string,
   isMarketing?: boolean,
+  destination?: string[],
   // sentAt: string, // only outgoing
 }
 
@@ -2033,6 +2035,7 @@ export type CreateTicketActionInfo = {
   dueDateOffsetInMS?: number,
   requireConfirmation?: boolean,
   reminders?: TicketReminder[],
+  priority?: number,
 }
 
 export type SendEmailAutomationAction = AutomationActionBuilder<'sendEmail', AutomationForMessage>
@@ -2445,6 +2448,7 @@ export type UserUIRestrictions = {
   disableUnstructuredNotes?: boolean,
   hiddenFields?: TypedField[],
   disabledFields?: TypedField[],
+  hideCareplan?: boolean,
 }
 
 export interface RoleBasedAccessPermission_readonly extends ClientRecord {}
@@ -2811,6 +2815,7 @@ export type AutomationTriggerActions = {
   "Remove From Journey": AutomationTriggerActionBuilder<'Remove From Journey', { journeyId: string }>,
   "Remove From All Journeys": AutomationTriggerActionBuilder<'Remove From All Journeys', { }>,
   "Add Tags": AutomationTriggerActionBuilder<'Add Tags', { tags: string[] }>,
+  "Remove Tags": AutomationTriggerActionBuilder<'Remove Tags', { tags: string[] }>,
   "Add Access Tags": AutomationTriggerActionBuilder<'Add Access Tags', { tags: string[] }>,
   "Move To Step": AutomationTriggerActionBuilder<'Move To Step', { }>, // journeyId and automationStepId stored as part of trigger for better dependency deletion
   "Assign Care Team": AutomationTriggerActionBuilder<'Assign Care Team', { 

@@ -2,12 +2,13 @@ import React, { useEffect, useCallback, useMemo, useState, useRef, memo } from "
 import { Indexable, ScoreFilter } from "@tellescope/types-utilities"
 import { objects_equivalent, read_local_storage, safeJSONParse, update_local_storage, user_display_name, wait } from "@tellescope/utilities"
 import { LoadFunction, LoadFunctionArguments } from "@tellescope/sdk"
-import { UNSEARCHABLE_FIELDS } from "@tellescope/constants"
+import { ALL_ACCESS, UNSEARCHABLE_FIELDS } from "@tellescope/constants"
 import { SearchAPIProps, useSearchAPI } from "./hooks"
 import { TextFieldProps } from "./mui"
 import { AutomationTrigger, CalendarEventTemplate, Database, DatabaseRecord, Enduser, File, Form, Forum, Journey, ManagedContentRecord, ReferralProvider, Template, Ticket, User, UserNotification } from "@tellescope/types-client"
 import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, LoadingLinear, ScrollingList, SearchTextInput, Typography, useAutomationTriggers, useCalendarEventTemplates, useDatabaseRecords, useDatabases, useEndusers, useFiles, useForms, useForums, useJourneys, useManagedContentRecords, useNotifications, useReferralProviders, useResolvedSession, useSession, useTemplates, useTickets, useUsers, value_is_loaded } from "."
 import { SxProps } from "@mui/material"
+import { AccessPermissions } from "@tellescope/types-models"
 
 /* FILTER / SEARCH */
 export const filter_setter_for_key = <T,>(key: string, setFilters: React.Dispatch<React.SetStateAction<Filters<T>>>) => (
@@ -376,7 +377,9 @@ export const EnduserSearch = (props: Omit<GenericSearchProps<Enduser>, 'filterKe
   const [usersLoading, { findById: findUser }] = useUsers() 
 
   // wait for users to load, so that a saved query is able to match attachSearchableFields
-  if (!value_is_loaded(usersLoading)) return null
+  // only wait when users have ALL_ACCESS to ensures users can actually load
+  console.log(((session.userInfo as any)?.access as AccessPermissions)?.users?.read === ALL_ACCESS)
+  if (((session.userInfo as any)?.access as AccessPermissions)?.users?.read === ALL_ACCESS && !value_is_loaded(usersLoading)) return null
   return (
     <ModelSearchInput filterKey="endusers" {...props} 
       searchAPI={session.api.endusers.getSome}

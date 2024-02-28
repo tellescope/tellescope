@@ -544,7 +544,7 @@ export const useTellescopeForm = ({ customization, carePlanId, context, ga4measu
         type: f.type,
         value: (
           existing_response_if_compatible(existingResponses, f) ?? (
-            (f.type === 'Address' || f.type === 'file' || f.type === 'signature' || f.type === 'multiple_choice' || f.type === 'Dropdown' || f.type === 'Table Input' || f.type === 'Database Select' || f.type === 'Medications')
+            (f.type === 'Insurance' || f.type === 'Address' || f.type === 'file' || f.type === 'signature' || f.type === 'multiple_choice' || f.type === 'Dropdown' || f.type === 'Table Input' || f.type === 'Database Select' || f.type === 'Medications')
               ? undefined  
                 : f.type === 'Question Group'
                   ? f.options?.subFields

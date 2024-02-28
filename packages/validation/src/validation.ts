@@ -1733,7 +1733,7 @@ export const insuranceOptionalValidator = objectValidator<EnduserInsurance>({
   payerName: stringValidatorOptional,
   cardFront: stringValidatorOptional,
   cardBack: stringValidatorOptional,
-  relationship: exactMatchValidator(INSURANCE_RELATIONSHIPS),
+  relationship: exactMatchValidatorOptional(INSURANCE_RELATIONSHIPS),
   canvasId: stringValidatorOptional,
   eligible: booleanValidatorOptional,
   eligibilityRanAt: dateValidatorOptional,
@@ -2424,6 +2424,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       closeOnFinishedActions: booleanValidatorOptional,
       requireConfirmation: booleanValidatorOptional,
       reminders: listValidatorOptionalOrEmptyOk(ticketReminderValidator),
+      priority: numberValidatorOptional,
     }, { emptyOk: false }),
   }),
   sendWebhook: objectValidator<SendWebhookAutomationAction>({
@@ -3152,6 +3153,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     sendSMSOnZoomStart: booleanValidatorOptional,
     enableGroupMMS: booleanValidatorOptional,
     enableAccessTags: booleanValidatorOptional,
+    flaggedFileText: stringValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -3290,9 +3292,10 @@ const _AUTOMATION_TRIGGER_ACTION_TYPES: { [K in AutomationTriggerActionType]: an
   "Remove From Journey": true,
   "Move To Step": true,
   "Add Tags": true,
+  "Remove Tags": true,
   "Add Access Tags": true,
   "Assign Care Team": true,
-  "Remove From All Journeys": true
+  "Remove From All Journeys": true,
 }
 export const AUTOMATION_TRIGGER_ACTION_TYPES = Object.keys(_AUTOMATION_TRIGGER_ACTION_TYPES) as AutomationTriggerActionType[]
 
@@ -3317,6 +3320,12 @@ export const automationTriggerActionValidator = orValidator<{ [K in AutomationTr
   "Add Tags": objectValidator<AutomationTriggerActions["Add Tags"]>({
     type: exactMatchValidator(['Add Tags']),
     info: objectValidator<AutomationTriggerActions['Add Tags']['info']>({
+      tags: listOfStringsValidator,
+    }),
+  }),
+  "Remove Tags": objectValidator<AutomationTriggerActions["Remove Tags"]>({
+    type: exactMatchValidator(['Remove Tags']),
+    info: objectValidator<AutomationTriggerActions['Remove Tags']['info']>({
       tags: listOfStringsValidator,
     }),
   }),
@@ -3977,6 +3986,7 @@ export const userUIRestrictionsValidator = objectValidator<UserUIRestrictions>({
   hideEnduserChat: booleanValidatorOptional,
   disableTicketDueDate: booleanValidatorOptional,
   disableUnstructuredNotes: booleanValidatorOptional,
+  hideCareplan: booleanValidatorOptional,
   hiddenFields: listValidatorOptionalOrEmptyOk(objectValidator<TypedField>({
     field: stringValidator,
     type: mongoIdStringOptional,
