@@ -16,6 +16,7 @@ import {
   UserIdentity,
   SessionType,
 } from "@tellescope/types-utilities"
+import * as Utilities from "@tellescope/utilities" // suppresses error on BuiltInFields
 import {
   WEBHOOK_MODELS,
 

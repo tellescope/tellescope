@@ -1,4 +1,4 @@
-import { ObjectId } from "bson"
+import { ObjectId } from "@tellescope/utilities"
 
 import {
   CUD as CUDType,

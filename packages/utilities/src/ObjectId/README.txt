@@ -1,0 +1,1 @@
+This code is a subset of the bson 5.0.0 npm package that avoids a build issue with top-level await

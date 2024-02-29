@@ -9,6 +9,7 @@
   "references": [
     { "path": "../constants" },
     { "path": "../validation" },
+    { "path": "../utilities" },
     { "path": "../types-models" },
     { "path": "../types-client" },
     { "path": "../types-server" }

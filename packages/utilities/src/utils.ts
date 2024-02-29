@@ -1,7 +1,9 @@
-import { ObjectId } from "bson"
 import { CalendarEvent, CompoundFilter, Enduser, EnduserRelationship, FormResponseAnswerNumber, FormResponseValue, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus } from "@tellescope/types-models"
 import { ADMIN_ROLE, get_inverse_relationship_type } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
+
+import { ObjectId } from "./ObjectId/objectid";
+export { ObjectId }
 
 export type Indexable<T=any> = { [index: string]: T }
 
