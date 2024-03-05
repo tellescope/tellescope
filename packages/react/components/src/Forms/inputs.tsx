@@ -460,6 +460,19 @@ export const NumberInput = ({ field, value, onChange, form, ...props }: FormInpu
   <AutoFocusTextField {...props} required={!field.isOptional} fullWidth type="number" value={value} 
     onChange={e => onChange(parseInt(e.target.value), field.id)}  
     placeholder={field.placeholder || form_display_text_for_language(form, "Enter a number...", '')}
+    sx={{
+      '& input[type=number]': {
+        '-moz-appearance': 'textfield'
+      },
+      '& input[type=number]::-webkit-outer-spin-button': {
+          '-webkit-appearance': 'none',
+          margin: 0
+      },
+      '& input[type=number]::-webkit-inner-spin-button': {
+          '-webkit-appearance': 'none',
+          margin: 0
+      }
+    }}
   />
 )
 
@@ -1373,7 +1386,11 @@ const StripeForm = ({ businessName, onSuccess, field, cost } : { businessName: s
 
       {cost > 0 && 
         <Typography sx={{ mt: 0.5 }}>
-          You will be charged ${(cost / 100).toFixed(2)} {field.options?.chargeImmediately ? '' : 'on form submission'}
+        {
+          field.options?.customPriceMessage
+            ? field.options.customPriceMessage.replaceAll('{{PRICE}}', (cost / 100).toFixed(2))
+            : `You will be charged ${(cost / 100).toFixed(2)} ${field.options?.chargeImmediately ? '' : 'on form submission'}`
+        }
         </Typography>
       }
 

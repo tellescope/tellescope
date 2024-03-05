@@ -258,6 +258,7 @@ import {
   EnduserInsurance,
   InsuranceRelationship,
   FormResponseAnswerInsurance,
+  CanvasConsentCategory,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -927,10 +928,16 @@ export const listValidatorUniqueEmptyOkay = <T>(b: ValidatorDefinition<T>, _o?: 
   getExample: () => [b.getExample()],
   getType: () => [b.getExample()],
 })
+export const listValidatorUniqueOptionalEmptyOkay = <T>(b: ValidatorDefinition<T>, _o?: ValidatorOptions | ValidatorOptionsForList): ValidatorDefinition<T[]> => ({
+  validate: o => build_validator(b.validate(o as any), { ..._o, ...o, listOf: true, unique: true, emptyListOk: true, isOptional: true }),
+  getExample: () => [b.getExample()],
+  getType: () => [b.getExample()],
+})
 
 export const listOfStringsValidator = listValidator(stringValidator) 
 export const listOfStringsValidatorOptionalOrEmptyOk = listValidatorOptionalOrEmptyOk(stringValidator) 
 export const listOfStringsValidatorEmptyOk = listValidatorEmptyOk(stringValidator) 
+export const listOfStringsValidatorUniqueOptionalOrEmptyOkay = listValidatorUniqueOptionalEmptyOkay(stringValidator)
 export const listOfObjectAnyFieldsAnyValuesValidator = listValidator(objectAnyFieldsAnyValuesValidator)
 
 export const listOfUniqueStringsValidatorEmptyOk = listValidatorUniqueEmptyOkay(stringValidator) 
@@ -2734,6 +2741,12 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   sharedIntakeFields: listOfStringsValidatorOptionalOrEmptyOk,
   disableGoBack: booleanValidatorOptional,
   disableNext: booleanValidatorOptional,
+  canvasConsentCategory: objectValidator<CanvasConsentCategory>({
+    code: stringValidator,
+    display: stringValidator,
+    system: stringValidator,
+  }, { isOptional: true, emptyOk: true }),
+  customPriceMessage: stringValidatorOptional,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -2960,6 +2973,7 @@ export const portalBlockValidator = orValidator<{ [K in PortalBlockType]: Portal
     type: exactMatchValidator(['careTeam']),
     info: objectValidator<PortalBlockForType['careTeam']['info']>({
       title: stringValidator,
+      roles: listOfStringsValidatorOptionalOrEmptyOk,
       // members: listValidatorEmptyOk(
       //   objectValidator<CareTeamMemberPortalCustomizationInfo>({
       //     title: stringValidator(),
@@ -3296,6 +3310,7 @@ const _AUTOMATION_TRIGGER_ACTION_TYPES: { [K in AutomationTriggerActionType]: an
   "Add Access Tags": true,
   "Assign Care Team": true,
   "Remove From All Journeys": true,
+  "Canvas: Add Patient": true,
 }
 export const AUTOMATION_TRIGGER_ACTION_TYPES = Object.keys(_AUTOMATION_TRIGGER_ACTION_TYPES) as AutomationTriggerActionType[]
 
@@ -3343,6 +3358,10 @@ export const automationTriggerActionValidator = orValidator<{ [K in AutomationTr
   }), 
   "Remove From All Journeys": objectValidator<AutomationTriggerActions["Remove From All Journeys"]>({
     type: exactMatchValidator(['Remove From All Journeys']),
+    info: optionalEmptyObjectValidator,
+  }), 
+  "Canvas: Add Patient": objectValidator<AutomationTriggerActions["Canvas: Add Patient"]>({
+    type: exactMatchValidator(['Canvas: Add Patient']),
     info: optionalEmptyObjectValidator,
   }), 
 })
@@ -4104,10 +4123,25 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
       playback: phonePlaybackValidator,
     }),
   }),
+  "Play Message": objectValidator<PhoneTreeActions["Play Message"]>({
+    type: exactMatchValidator(['Play Message']),
+    info: objectValidator<PhoneTreeActions["Play Message"]['info']>({
+      playback: phonePlaybackValidator,
+    }),
+  }),
   "Dial Users": objectValidator<PhoneTreeActions["Dial Users"]>({
     type: exactMatchValidator(['Dial Users']),
     info: objectValidator<PhoneTreeActions["Dial Users"]['info']>({
       userIds: listOfMongoIdStringValidatorEmptyOk,
+      playback: phonePlaybackValidatorOptional,
+    }),
+  }),
+  "Route Call": objectValidator<PhoneTreeActions["Route Call"]>({
+    type: exactMatchValidator(['Route Call']),
+    info: objectValidator<PhoneTreeActions["Route Call"]['info']>({
+      byCareTeam: booleanValidatorOptional,
+      byRole: stringValidatorOptional, 
+      byTags: listOfStringsWithQualifierValidatorOptional,
       playback: phonePlaybackValidatorOptional,
     }),
   }),

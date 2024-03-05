@@ -155,8 +155,25 @@ const setup_tests = async () => {
     'authToken refresh'
   ) 
 
+  await async_test(
+    'role change by non-admin prevented (admin)', 
+    () => sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Admin'] }, { replaceObjectFields: true }),
+    handleAnyError
+  )
+  await async_test(
+    'role change by non-admin prevented (non-admin)', 
+    () => sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Not Admin'] }, { replaceObjectFields: true }),
+    handleAnyError
+  )
+  // would assign default non-admin role, which could grant additional permissions than currently-defined non-admin role, should block
+  await async_test(
+    'role change by non-admin prevented (empty)', 
+    () => sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [] }, { replaceObjectFields: true }),
+    handleAnyError
+  )
+
   // ensure that going to "Non-Admin" triggers a role change
-  await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Test'] }, { replaceObjectFields: true }),
+  await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Test'] }, { replaceObjectFields: true })
   
   await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)
   await async_test('non admin authenticated', sdkNonAdmin.test_authenticated, { expectedResult: 'Authenticated!' })
@@ -6234,17 +6251,23 @@ const enduser_access_tags_tests = async () => {
 const unique_strings_tests = async () => {
   log_header("unique_strings test")
 
-  const e = await sdk.api.endusers.createOne({ assignedTo: ['1', '2', '2', '1', '3']})
+  const e = await sdk.api.endusers.createOne({ assignedTo: ['1', '2', '2', '1', '3'], tags: ['1', '2', '2', '1', '3'] })
   await async_test(`Duplicate care team assignments are prevented`, 
     () => sdk.api.endusers.getOne(e.id), 
-    { onResult: e => e.assignedTo?.length === 3 && e.assignedTo.includes('1') && e.assignedTo.includes('2') && e.assignedTo.includes('3' )}
+    { onResult: e => 
+      e.assignedTo?.length === 3 && e.assignedTo.includes('1') && e.assignedTo.includes('2') && e.assignedTo.includes('3' )
+      && e.tags?.length === 3 && e.tags.includes('1') && e.tags.includes('2') && e.tags.includes('3' )
+    }
   )
 
   // attempt to push duplicates of each
-  await sdk.api.endusers.updateOne(e.id, { assignedTo: ['1', '2', '3'] }, { replaceObjectFields: false })
+  await sdk.api.endusers.updateOne(e.id, { assignedTo: ['1', '2', '3'], tags: ['1', '2', '3'] }, { replaceObjectFields: false })
   await async_test(`Duplicate care team assignments are prevented (update)`, 
     () => sdk.api.endusers.getOne(e.id), 
-    { onResult: e => e.assignedTo?.length === 3 && e.assignedTo.includes('1') && e.assignedTo.includes('2') && e.assignedTo.includes('3' )}
+    { onResult: e => 
+      e.assignedTo?.length === 3 && e.assignedTo.includes('1') && e.assignedTo.includes('2') && e.assignedTo.includes('3' )
+      && e.tags?.length === 3 && e.tags.includes('1') && e.tags.includes('2') && e.tags.includes('3' )
+    }
   )
 
   // validate setting empty is allowed

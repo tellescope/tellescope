@@ -422,6 +422,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   pushNotificationIosTokens?: string[],
   pushNotificationDestinations?: string[],
   drChronoId?: string,
+  canvasId?: string,
   zoomId?: string,
   zendeskId?: number,
   tags?: string[],
@@ -1179,6 +1180,11 @@ export type FormFieldValidation = {
   repeat?: boolean,
 
 }
+export type CanvasConsentCategory = {
+  system: string,
+  code: string,
+  display: string,
+}
 export type FormFieldOptions = FormFieldValidation & {
   tableChoices?: TableInputChoice[],  
   choices?: string[];
@@ -1187,6 +1193,7 @@ export type FormFieldOptions = FormFieldValidation & {
   radio?: boolean; // absent indicates not radio
   other?: boolean; // include an 'other' option
   pdfAttachment?: string,
+  canvasConsentCategory?: CanvasConsentCategory,
   subFields?: FormSubField[],
   validFileTypes?: string[], // should be human readable files where the lower-case version is included in a filetype, e.g. Image, Video, PDF
   signatureUrl?: string,
@@ -1203,6 +1210,7 @@ export type FormFieldOptions = FormFieldValidation & {
   sharedIntakeFields?: string[],
   disableGoBack?: boolean,
   disableNext?: boolean,
+  customPriceMessage?: string,
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
@@ -2274,6 +2282,7 @@ export type CareTeamMemberPortalCustomizationInfo = {
 export type PortalBlockForType = {
   careTeam: BuildPortalBlockInfo<'careTeam', { 
     title: string,
+    roles?: string[],
     // members: CareTeamMemberPortalCustomizationInfo[],
   }>,
   carePlan: BuildPortalBlockInfo<'carePlan', {}>,
@@ -2821,6 +2830,7 @@ export type AutomationTriggerActions = {
   "Assign Care Team": AutomationTriggerActionBuilder<'Assign Care Team', { 
     tags: ListOfStringsWithQualifier
   }>, 
+  "Canvas: Add Patient": AutomationTriggerActionBuilder<'Canvas: Add Patient', { }>, 
 }
 export type AutomationTriggerActionType = keyof AutomationTriggerActions
 export type AutomationTriggerAction = AutomationTriggerActions[AutomationTriggerActionType]
@@ -2973,7 +2983,9 @@ export type PhoneTreeActions = {
   // 'Play': PhoneTreeActionBuilder<"Play", { playback: PhonePlayback }>
   'Gather': PhoneTreeActionBuilder<"Gather", { digits: boolean, speech: boolean, playback: PhonePlayback }>
   'Voicemail': PhoneTreeActionBuilder<"Voicemail", { playback: PhonePlayback }>
+  'Play Message': PhoneTreeActionBuilder<"Play Message", { playback: PhonePlayback }>
   'Dial Users': PhoneTreeActionBuilder<"Dial Users", { userIds: string[], playback?: Partial<PhonePlayback> }>
+  'Route Call': PhoneTreeActionBuilder<"Route Call", { byCareTeam?: boolean, byRole?: string, byTags?: ListOfStringsWithQualifier, playback?: Partial<PhonePlayback> }>
 }
 export type PhoneTreeActionType = keyof PhoneTreeActions 
 export type PhoneTreeAction = PhoneTreeActions[PhoneTreeActionType]

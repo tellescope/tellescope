@@ -1065,7 +1065,22 @@ export const useTellescopeForm = ({ customization, carePlanId, context, ga4measu
     if (isNextDisabled()) return
     if (!currentValue) return
 
-    if (currentValue?.answer?.type !== 'file' && currentValue?.answer?.type !== 'files' && (formResponseId || accessCode)) {
+    if (currentValue.answer.type === 'Question Group') {
+      const responsesToSave = (
+        (currentValue.field.options?.subFields || [])
+        .map(({ id }) => responses.find(f => f.fieldId === id)!)
+        .filter(f => f && f?.answer.type !== 'file' && f?.answer.type !== 'files')
+      )
+      if (responsesToSave.length) {
+        session.api.form_responses.save_field_response({
+          accessCode,
+          formResponseId,
+          responses: responsesToSave,
+        })
+        .catch(console.error)
+      }
+    } 
+    else if (currentValue?.answer?.type !== 'file' && currentValue?.answer?.type !== 'files' && (formResponseId || accessCode)) {
       session.api.form_responses.save_field_response({
         accessCode,
         formResponseId,

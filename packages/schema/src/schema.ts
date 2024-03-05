@@ -267,6 +267,7 @@ import {
   listOfUniqueStringsValidatorEmptyOk,
   ticketReminderValidator,
   insuranceOptionalValidator,
+  listOfStringsValidatorUniqueOptionalOrEmptyOkay,
 } from "@tellescope/validation"
 
 import {
@@ -426,7 +427,7 @@ export type Schema = {
   [N in keyof ServerModelForName]: Model<ServerModelForName[N], ModelName>
 }
 
-export const UNIQUE_LIST_FIELDS = ['assignedTo']
+export const UNIQUE_LIST_FIELDS = ['assignedTo', 'tags']
 
 const sideEffects = {
   handleJourneyStateChange: {
@@ -601,7 +602,7 @@ export type CustomActions = {
       }, 
       { formResponse: FormResponse }
     >,
-    save_field_response: CustomAction<{ formResponseId?: string, accessCode?: string, response: FormResponseValue }, { }>,
+    save_field_response: CustomAction<{ formResponseId?: string, accessCode?: string, response?: FormResponseValue, responses?: FormResponseValue[] }, { }>,
     info_for_access_code: CustomAction<{ accessCode: string }, {
       form: Form, 
       fields: FormField[], 
@@ -836,7 +837,7 @@ export type CustomActions = {
     stripe_details: CustomAction<{ }, { stripe?: StripeCheckoutInfo }>,
     generate_zoom_meeting: CustomAction<{ calendarEventId: string, userId: string }, { updatedEvent: CalendarEvent }>, 
     change_zoom_host: CustomAction<{ calendarEventId: string, userId: string }, { updatedEvent: CalendarEvent }>, 
-    download_ics_file: CustomAction<{ calendarEventId: string, attendeeId?: string, attendeeType?: SessionType }, { }>,
+    download_ics_file: CustomAction<{ calendarEventId: string, attendeeId?: string, attendeeType?: SessionType, excludeAttendee?: boolean }, { }>,
     get_report: CustomAction<{ range?: DateRange, groupBy?: string, templateIds?: string[] }, { report: Report }>,
     get_enduser_report: CustomAction<{ range?: DateRange, groupBy?: string, countDuplicates?: boolean, templateIds?: string[], enduserGroupBy?: string, enduserFields: Record<string, any> }, { report: Report }>,
   },
@@ -874,7 +875,7 @@ export type CustomActions = {
   tickets: {
     close_ticket: CustomAction<{ ticketId: string, closedForReason?: string }, { updated: Ticket, generated?: Ticket }>,
     update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
-    get_report: CustomAction<{ title?: string, titles?: string[], userId?: string, range?: DateRange }, { report: TicketsReport }>,
+    get_report: CustomAction<{ title?: string, titles?: string[], userId?: string, range?: DateRange, groupByOwnerAndTitle?: boolean }, { report: TicketsReport }>,
     assign_from_queue: CustomAction<{ ticketId: string }, { ticket: Ticket }>,
   },
   appointment_booking_pages: {
@@ -1139,7 +1140,7 @@ export const schema: SchemaV1 = build_schema({
       scheduledJourneys: { validator: scheduledJourneysValidator },
       tags: { 
         redactions: ['enduser'],
-        validator: listOfStringsValidatorEmptyOk,
+        validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
       },
       accessTags: { 
         redactions: ['enduser'],
@@ -2540,7 +2541,7 @@ export const schema: SchemaV1 = build_schema({
           evaluate: ({ roles }, _, session, method, { updates }) => {
             if ((session as UserSession)?.roles?.includes('Admin')) return // admin can do this
             if (method === 'create') return // create already admin restricted
-            if (!updates?.roles) return // roles not provided
+            if (!updates?.roles) return // roles not provided (empty array is blocked by validator)
 
             return "Only admin users can update others' profiles"
           }
@@ -2814,8 +2815,9 @@ export const schema: SchemaV1 = build_schema({
         readonly: true,
       },
       roles: {
-        validator: listOfStringsValidator,
-        redactions: ['enduser'],
+        validator: listOfStringsValidator, // important that this doesn't allow empty roles (would grant default permissions which may be higher)
+        // unredacted March 1, 2024 -- useful for filtering scheduling and/or care team display for enduser by role
+        // redactions: ['enduser'],
       },
       acknowledgedIntegrations: { validator: dateValidator },
       disableIncomingPhoneCalls: { validator: booleanValidator },
@@ -2855,7 +2857,7 @@ export const schema: SchemaV1 = build_schema({
       autoReplyEnabled: { validator: booleanValidatorOptional },
       pushNotificationIosTokens: { validator: listOfStringsValidatorEmptyOk },
       callRouting: { validator: userCallRoutingBehaviorValidator },
-      tags: { validator: listOfStringsValidatorOptionalOrEmptyOk }, 
+      tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, 
       emailSignature: { validator: stringValidator1000 },
       disableTicketAutoAssignment: { validator: booleanValidator },
       ticketAssignmentPriority: { validator: nonNegNumberValidator },
@@ -3111,6 +3113,7 @@ export const schema: SchemaV1 = build_schema({
           title: { validator: stringValidator25000 },
           titles: { validator: listOfStringsValidatorEmptyOk },
           range: { validator: dateRangeOptionalValidator },
+          groupByOwnerAndTitle: { validator: booleanValidator },
         },
         returns: {
           report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
@@ -3665,7 +3668,8 @@ export const schema: SchemaV1 = build_schema({
         parameters: { 
           formResponseId: { validator: mongoIdStringValidator },
           accessCode: { validator: stringValidator250 },
-          response: { validator: formResponseValidator, required: true },
+          response: { validator: formResponseValidator },
+          responses: { validator: listValidatorOptionalOrEmptyOk(formResponseValidator) },
         },
         returns: {
           formResponse: 'form response' as any,
@@ -4101,6 +4105,7 @@ export const schema: SchemaV1 = build_schema({
           calendarEventId: { validator: mongoIdStringValidator, required: true },
           attendeeId: { validator: stringValidator },
           attendeeType: { validator: sessionTypeValidator },
+          excludeAttendee: { validator: booleanValidator },
         },
         returns: { },
       },
