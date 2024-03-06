@@ -5,6 +5,7 @@ import { ErrorOptions, useHandleError } from "./errors";
 
 import {
   ClickableWeb,
+  LinearProgress,
   Styled,
 } from "./mui"
 import { DragDropContext, Draggable, DropResult, Droppable } from "react-beautiful-dnd";
@@ -12,6 +13,7 @@ import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 
 import { FixedSizeList } from 'react-window';
 import { usePageWidth } from "./CMS";
+import { LoadMoreOptions } from "./state";
 
 export const IN_REACT_WEB = true
 
@@ -279,7 +281,7 @@ export interface ScrollingListProps <T extends { id: string | number }> extends 
   titleStyle?: React.CSSProperties,
   itemContainerStyle?: React.CSSProperties,
   doneLoading?: () => boolean,
-  loadMore?: () => Promise<void>,
+  loadMore?: (options?: LoadMoreOptions<T>) => Promise<void>,
   TitleComponent?: TitleComponentType,
   titleActionsComponent?: React.ReactNode,
   noWrap?: boolean,
@@ -291,6 +293,7 @@ export interface ScrollingListProps <T extends { id: string | number }> extends 
     virtualize?: boolean,
     hideHorizontalScroll?: boolean,
   }
+  loadMoreOptions?: LoadMoreOptions<T>,
 }
 export const ScrollingList = <T extends { id: string | number }>({
   title,
@@ -309,11 +312,13 @@ export const ScrollingList = <T extends { id: string | number }>({
   header,
   itemContainerStyle,
   virtualization,
+  loadMoreOptions,
 } : ScrollingListProps<T> & { noParentScroll?: boolean, }) => {
   const width = usePageWidth()
   const fetchRef = useRef(0)
   const titleStyleWithDefaults = { fontSize: 20, fontWeight: 'bold', marginBottom: 3, ...titleStyle }
   const rowHeight = virtualization?.rowHeight ?? 40
+  const [loading, setLoading] = useState(false)
 
   return (
     <Grid container direction="column" 
@@ -386,7 +391,8 @@ export const ScrollingList = <T extends { id: string | number }>({
                 }
                 if (doneLoading?.() || !loadMore) return
 
-                loadMore()
+                setLoading(true)
+                loadMore(loadMoreOptions).finally(() => setLoading(false))
               }}
             >
               {({ data, index, style }) => (
@@ -401,6 +407,7 @@ export const ScrollingList = <T extends { id: string | number }>({
           ))
         )
       }
+      {loading && <LinearProgress style={{ position: 'relative', bottom: 3, minHeight: 7 }} />}
       </div>
     </Grid>
   )
@@ -461,6 +468,7 @@ export const DraggableList = <T extends { id: string | number }>({
   loadMore,
   maxWidth,
   minHeight, maxHeight,
+  loadMoreOptions,
 } : ScrollingListProps<T> & {
   onReorder?: (updated: { id: string, index: number }[]) => any,
 }) => {
@@ -470,6 +478,7 @@ export const DraggableList = <T extends { id: string | number }>({
   
   const [items, setItems] = useState(_items)
   const [updating, setUpdating] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   useEffect(() => {
     setItems(_items)
@@ -626,7 +635,8 @@ export const DraggableList = <T extends { id: string | number }>({
                   }
                   if (doneLoading?.() || !loadMore) return
 
-                  loadMore()
+                  setLoading(true)
+                  loadMore(loadMoreOptions).finally(() => setLoading(false))
                 }}
               >
                 {Row}
@@ -634,6 +644,7 @@ export const DraggableList = <T extends { id: string | number }>({
             )}
           </Droppable>
         </DragDropContext>
+      {loading && <LinearProgress style={{ position: 'relative', bottom: 3, minHeight: 7 }} />}
       </div>
     </Grid>
   )

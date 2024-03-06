@@ -2582,13 +2582,14 @@ export type EnduserGrouping = {
   "Assigned To"?: boolean,
   Tags?: boolean,
   Age?: boolean,
+  State?: string,
 }
 
 export type AnalyticsQueryGroupingForType = {
   "Endusers": EnduserGrouping,  
   "Calendar Events": {
     Type: boolean,
-  },
+  } & EnduserGrouping & { Enduser: string },
   "Form Responses": {
     "Public Identifier"?: boolean,
     /* by joining on Endusers */

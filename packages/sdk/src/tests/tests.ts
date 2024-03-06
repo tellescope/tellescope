@@ -6534,6 +6534,45 @@ export const ticket_reminder_tests = async () => {
   await Promise.all(toDelete.map(t => sdk.api.tickets.deleteOne(t.id)))
 }
 
+const bulk_read_tests = async () => {
+  log_header("Bulk Read (ID-lookup) Tests")
+
+  const numEndusers = 101
+  const endusers = (
+    await sdk.api.endusers.createSome(
+      Array.from(Array(numEndusers).keys()).map(() => 0).map(() => ({ }))
+    )
+  ).created
+
+  await async_test(
+    "bulk id lookup isn't limited to 100 (default for backend)",
+    () => sdk.api.endusers.getByIds({ ids: endusers.map(e => e.id )}),
+    { onResult: result => (
+         result.matches.length === numEndusers 
+      && result.matches.filter(e => endusers.find(_e => _e.id === e.id)).length === result.matches.length
+    )}
+  ) 
+
+  await async_test(
+    "bulk id lookup limited to 1000 (success)",
+    () => sdk.api.endusers.getByIds({ ids: Array.from(Array(1000).keys()).map(() => endusers[0].id) }),
+    passOnAnyResult
+  ) 
+  await async_test(
+    "bulk id lookup limited to 1000",
+    () => sdk.api.endusers.getByIds({ ids: Array.from(Array(1001).keys()).map(() => endusers[0].id) }),
+    { 
+      shouldError: true,
+      onError: e => e.message === 'Error parsing field ids: Arrays should not contain more than 1000 elements'
+    }
+  ) 
+
+  // cleanup
+  for (const e of endusers) {
+    await sdk.api.endusers.deleteOne(e.id)
+  }
+}
+
 
 (async () => {
   log_header("API")
@@ -6577,6 +6616,7 @@ export const ticket_reminder_tests = async () => {
     await mfa_tests()
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await bulk_read_tests()
     await ticket_reminder_tests()
     await enduser_access_tags_tests()
     await marketing_email_unsubscribe_tests()

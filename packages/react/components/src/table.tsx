@@ -30,7 +30,7 @@ import {
   ScrollingListProps,
   WithHover,
 } from "./layout"
-import { LoadMoreFunctions } from "./state"
+import { LoadMoreFunctions, LoadMoreOptions } from "./state"
 import { read_local_storage, update_local_storage } from "@tellescope/utilities"
 
 import Draggable from 'react-draggable'; // The default
@@ -509,7 +509,9 @@ export const usePagination = <T,>({ paginated=true, items, pageMemoryId, pageSiz
   }
 }
 
-export interface TableFooterProps <T> extends Styled, HorizontalPadded, Partial<LoadMoreFunctions<T>>, ReturnType<typeof usePagination> {}
+export interface TableFooterProps <T> extends Styled, HorizontalPadded, Partial<LoadMoreFunctions<T>>, ReturnType<typeof usePagination> {
+  loadMoreOptions?: LoadMoreOptions<T>,
+}
 export const TableFooter = <T,>({ horizontalPadding, style, previousDisabled, nextDisabled, selectedPage, numPages, goToNext, goToPrevious } : TableFooterProps<T>) => {
   return (
     <Flex flex={1} alignItems="center"
@@ -549,7 +551,7 @@ const resolve_middle_page_numbers = (selectedPage: number, numPages: number): [u
 }
 
 const FOOTER_BUTTON_SIZE = 30
-export const TableFooterNumbered = <T,>({ horizontalPadding, loadMore, doneLoading, style, previousDisabled, nextDisabled, selectedPage, numPages, goToNext, goToPrevious, goToPage } : TableFooterProps<T>) => {
+export const TableFooterNumbered = <T,>({ horizontalPadding, loadMore, loadMoreOptions, doneLoading, style, previousDisabled, nextDisabled, selectedPage, numPages, goToNext, goToPrevious, goToPage } : TableFooterProps<T>) => {
   const [middleLeft, middle, middleRight] = resolve_middle_page_numbers(selectedPage, numPages)
 
   const buttonProps = { 
@@ -571,8 +573,8 @@ export const TableFooterNumbered = <T,>({ horizontalPadding, loadMore, doneLoadi
     if (doneLoading()) return
     if (!nextDisabled) return // return if not on last page
 
-    loadMore()
-  }, [loadMore, nextDisabled, doneLoading])
+    loadMore(loadMoreOptions)
+  }, [loadMore, nextDisabled, doneLoading, loadMoreOptions])
 
 
   return (
@@ -687,6 +689,7 @@ export interface TableProps<T extends Item> extends WithTitle, WithHeader<T>, Wi
   virtualization?: ScrollingListProps<T>['virtualization'],
   onExport?: (v: { data: (string | number)[][], labels: string[] }) => void,
   sort?: SortingField[],
+  loadMoreOptions?: LoadMoreOptions<T>,
 }
 export const Table = <T extends Item>({
   items,
@@ -703,6 +706,7 @@ export const Table = <T extends Item>({
   onPress,
   loadMore,
   doneLoading,
+  loadMoreOptions,
   // onClearFilter,
   filterCounts,
 
@@ -984,6 +988,7 @@ export const Table = <T extends Item>({
         // handle load when scroll to bottom, when table not paginated
         doneLoading={!paginated ? doneLoading : undefined} 
         loadMore={!paginated ? loadMore : undefined}
+        loadMoreOptions={loadMoreOptions}
 
         // renderProps={{ horizontalPadding }}
         emptyText={emptyComponent ?? (
@@ -1022,7 +1027,7 @@ export const Table = <T extends Item>({
       } />
 
       {paginated && FooterComponent && items.length > 0 && // avoid displaying footer / unnecessary border when no items
-        <FooterComponent doneLoading={doneLoading} loadMore={loadMore} {...paginationProps } {...pageOptions} horizontalPadding={horizontalPadding}/>
+        <FooterComponent doneLoading={doneLoading} loadMore={loadMore} loadMoreOptions={loadMoreOptions} {...paginationProps } {...pageOptions} horizontalPadding={horizontalPadding}/>
       }
     </Flex>
   )

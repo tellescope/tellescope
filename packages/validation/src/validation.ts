@@ -3745,6 +3745,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Field: stringValidatorOptionalEmptyOkay,
       Tags: booleanValidatorOptional,
       Age: booleanValidatorOptional,
+      State: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
@@ -3770,6 +3771,13 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
     }),
     grouping: objectValidator<AnalyticsQueryGroupingForType['Calendar Events']>({
       Type: booleanValidatorOptional,
+      Enduser: booleanValidatorOptional,
+      Gender: booleanValidatorOptional,
+      "Assigned To": booleanValidatorOptional,
+      Field: stringValidatorOptionalEmptyOkay,
+      Tags: booleanValidatorOptional,
+      Age: booleanValidatorOptional,
+      State: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
@@ -3799,6 +3807,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Field: stringValidatorOptionalEmptyOkay,
       Tags: booleanValidatorOptional,
       Age: booleanValidatorOptional,
+      State: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
@@ -3822,6 +3831,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Field: stringValidatorOptionalEmptyOkay,
       Tags: booleanValidatorOptional,
       Age: booleanValidatorOptional,
+      State: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
@@ -3844,6 +3854,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Field: stringValidatorOptionalEmptyOkay,
       Tags: booleanValidatorOptional,
       Age: booleanValidatorOptional,
+      State: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
@@ -3866,6 +3877,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Field: stringValidatorOptionalEmptyOkay,
       Tags: booleanValidatorOptional,
       Age: booleanValidatorOptional,
+      State: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
@@ -3888,6 +3900,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Field: stringValidatorOptionalEmptyOkay,
       Tags: booleanValidatorOptional,
       Age: booleanValidatorOptional,
+      State: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
@@ -3914,6 +3927,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Field: stringValidatorOptionalEmptyOkay,
       Tags: booleanValidatorOptional,
       Age: booleanValidatorOptional,
+      State: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
@@ -3937,6 +3951,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Field: stringValidatorOptionalEmptyOkay,
       Tags: booleanValidatorOptional,
       Age: booleanValidatorOptional,
+      State: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
@@ -3958,7 +3973,8 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       "Assigned To": booleanValidatorOptional,
       Field: stringValidatorOptionalEmptyOkay,
       Tags: booleanValidatorOptional,
-      Age: booleanValidatorOptional,
+      Age: booleanValidatorOptional, 
+      State: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),

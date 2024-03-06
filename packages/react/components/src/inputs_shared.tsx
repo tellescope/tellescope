@@ -645,6 +645,7 @@ export interface UserAndEnduserSelectorProps {
   initialSelected?: string[]
   buttonText?: string,
   filter?: (e: Enduser | User) => boolean,
+  limitToUsers?: User[],
 }
 export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserSelectorProps> = ({
   titleInput,
@@ -662,10 +663,13 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
   buttonText="Create",
   filter,
   radio,
+  limitToUsers,
 }) => {
   const session = useResolvedSession()
   const [endusersLoading, { loadMore: loadMoreEndusers, doneLoading: doneLoadingEndusers }] = useEndusers()
-  const [usersLoading, { loadMore: loadMoreUsers, doneLoading: doneLoadingUsers }] = useUsers()
+  const [usersLoading, { loadMore: loadMoreUsers, doneLoading: doneLoadingUsers }] = useUsers({
+    dontFetch: !!limitToUsers
+  })
 
   const doneLoading = useCallback(() => 
     (excludeUsers || doneLoadingUsers()) && (excludeEndusers || doneLoadingEndusers()), 
@@ -703,9 +707,17 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
 
     onSelect?.({ users: usersSelected, endusers: endusersSelected })
   }, [onSelect, selected])
+
+  const users = (
+    limitToUsers 
+      ? limitToUsers 
+      : value_is_loaded(usersLoading)
+        ? usersLoading.value 
+        : []
+  )
   
   return (
-    <LoadingData data={{ endusers: endusersLoading, users: usersLoading }} render={({ users, endusers }) => {
+    <LoadingData data={{ endusers: endusersLoading }} render={({ endusers }) => {
       const itemsUnfiltered = [...excludeUsers ? [] : users, ... excludeEndusers ? [] : endusers].filter(i => !hiddenIds?.includes(i.id))
       const items = applyFilters(
         filter

@@ -239,8 +239,8 @@ export interface MFACode extends InternalBusinessRecord {
 export interface CustomAggregation extends InternalBusinessRecord {
   key: string,
   modelName: ModelName,
-  filter: any,
-  aggregation: any[],
+  filter: string, // json stringified
+  aggregation: string, // json stringified
   cacheDurationInSeconds?: number,
 }
 export interface ConferenceFlags extends InternalBusinessRecord {

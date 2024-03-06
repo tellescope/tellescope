@@ -656,11 +656,14 @@ export interface CreateChatRoomProps extends Omit<UserAndEnduserSelectorProps, '
   onError?: (e: APIError) => void,
   roomTitle?: string,
   roomType?: ChatRoom['type'],
+  aboutEnduserId?: string,
+  limitToUsers?: User[],
 }
 export const CreateChatRoom = ({ 
   roomTitle: defaultRoomTitle = "Group Chat", 
   onSuccess, onError, 
   roomType,
+  aboutEnduserId,
   ...props 
 } : CreateChatRoomProps) => {
   const [, { createElement: createRoom }] = useChatRooms({ dontFetch: true })
@@ -675,12 +678,13 @@ export const CreateChatRoom = ({
       userIds,
       title: roomTitle,
       type: roomType,
+      ...aboutEnduserId ? { aboutEnduserId } : {},
     })
     .then(r => {
       onSuccess?.(r)
     })
     .catch(onError)
-  }, [createRoom, roomTitle, onSuccess, onError])
+  }, [createRoom, roomTitle, onSuccess, onError, aboutEnduserId])
   
   return (
     <UserAndEnduserSelector {...props} onSelect={handleCreateRoom} 

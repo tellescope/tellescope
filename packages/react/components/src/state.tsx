@@ -1,6 +1,6 @@
 import React, { useCallback, useContext, useEffect, createContext, useRef, useState } from 'react'
 
-import { TypedUseSelectorHook, createDispatchHook, createSelectorHook, ReactReduxContextValue, Provider } from 'react-redux'
+import { TypedUseSelectorHook, createDispatchHook, createSelectorHook, ReactReduxContextValue, Provider, batch } from 'react-redux'
 import { createSlice, configureStore,  createAction, Action, EnhancedStore, PayloadAction, Slice } from '@reduxjs/toolkit'
  
 import {
@@ -461,7 +461,7 @@ export type AddOptions = {
   replaceIfMatch?: boolean,
 }
 
-interface LoadMoreOptions <T> {
+export interface LoadMoreOptions <T> {
   key?: string,
   limit?: number,
   filter?: ReadFilter<T> | undefined
@@ -473,6 +473,7 @@ export interface LoadMoreFunctions<T> {
 }
 
 const DEFAULT_FETCH_LIMIT = 500
+const BULK_READ_DEFAULT_LIMIT = 1000 // 1000 is max
 const DONE_LOADING_TOKEN = 'doneLoading'
 
 export type UpdateElement <T,> = (id: string, e: Partial<T>, o?: CustomUpdateOptions) => Promise<T>
@@ -630,10 +631,13 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
       setFetched('findById' + modelName + id, true) // prevent multiple API calls
 
       if (options?.batch) {
-        if (batchRef.current.fetching) {
-          batchRef.current.nextBatch.push(id.toString()) // fetch in next batch if currently fetching
-        } else {
-          batchRef.current.ids.push(id.toString())
+        // ensure duplicate ids are not provided
+        if (!batchRef.current.nextBatch.includes(id.toString()) && !batchRef.current.ids.includes(id.toString())) {
+          if (batchRef.current.fetching) {
+            batchRef.current.nextBatch.push(id.toString()) // fetch in next batch if currently fetching
+          } else {
+            batchRef.current.ids.push(id.toString())
+          }
         }
       } else {
         findOne?.(id.toString())
@@ -661,9 +665,14 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
       if (batchRef.current.fetching) return // already fetching
       if (batchRef.current.ids.length === 0) return
 
+      // can only load max of 1000, ensure other ids are included in nextBatch
+      if (batchRef.current.ids.length > BULK_READ_DEFAULT_LIMIT) {
+        batchRef.current.nextBatch.unshift(...batchRef.current.ids.slice(BULK_READ_DEFAULT_LIMIT))
+      }
+
       batchRef.current.fetching = true
       findByIds({
-        ids: batchRef.current.ids,
+        ids: batchRef.current.ids.slice(0, BULK_READ_DEFAULT_LIMIT), // ensure limited to 1000 entries
       })
       .then(({ matches }) => {
         if (matches.length) { 
@@ -864,7 +873,7 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     const key = loadOptions?.key ?? 'id' 
     if (key !== 'id') console.warn("Unrecognized key provided")
 
-    const limit = options?.limit ?? DEFAULT_FETCH_LIMIT
+    const limit = loadOptions?.limit ?? options?.limit ?? DEFAULT_FETCH_LIMIT
     return toLoadedData(() => loadQuery({ 
       // lastId: !options?.filter ? oldestRecord?.id?.toString() : undefined,  // don't provide a lastId when there's a filter, filter could include that on its own
       lastId,
