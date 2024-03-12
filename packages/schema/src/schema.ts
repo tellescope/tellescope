@@ -806,6 +806,7 @@ export type CustomActions = {
       timestamp: string,
     }>, 
     deliver_via_iterable: CustomAction<{ recipientEmail: string, campaignId: string }, {}>,
+    send_with_template: CustomAction<{ enduserId: string, senderId: string, templateId: string }, { email: Email }>,
   },
   calendar_events: {
     get_events_for_user: CustomAction<{ userId: string, from: Date, to?: Date, limit?: number }, { events: CalendarEvent[] }>, 
@@ -2139,6 +2140,18 @@ export const schema: SchemaV1 = build_schema({
           campaignId: { validator: stringValidator, required: true },
         },
         returns: { } 
+      },
+      send_with_template: {
+        op: "custom", access: 'create', method: "post", 
+        name: 'Send Email via Template',
+        path: '/emails/send-with-template',
+        description: "Sends an email for a specific template on behalf of a user (senderId is user.id)",
+        parameters: { 
+          enduserId: { validator: mongoIdStringValidator },
+          senderId: { validator: mongoIdStringValidator },
+          templateId: { validator: mongoIdStringValidator },
+        },
+        returns: { email: { validator: 'email' as any } } 
       },
     },
   },

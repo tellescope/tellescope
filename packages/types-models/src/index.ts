@@ -1353,6 +1353,8 @@ export interface Integration extends Integration_readonly, Integration_required,
 export type BuildDatabaseRecordField <K extends string, V, O> = { type: K, value: V, options: O & { width?: string } }
 export type DatabaseRecordFieldsInfo = {
   Text: BuildDatabaseRecordField<'Text', string, { }>
+  Email: BuildDatabaseRecordField<'Email', string, { }>
+  Phone: BuildDatabaseRecordField<'Phone', string, { }>
   'Text Long': BuildDatabaseRecordField<'Text Long', string, { }>,
   'Text List': BuildDatabaseRecordField<'Text List', string[], { }>,
   'Number': BuildDatabaseRecordField<'Number', number | '', { }>,
@@ -1374,6 +1376,7 @@ export type DatabaseRecordFields = {
   [K in DatabaseRecordFieldType] : {
     type: K,
     label: string,
+    required?: boolean,
     hideFromTable?: boolean,
     options?: DatabaseRecordFieldsInfo[K]['options']
   }
@@ -1631,6 +1634,7 @@ type BuildCalendarEventReminderInfo <T, I> = { type: T, info: I, msBeforeStartTi
 export type CalendarEventReminderInfoForType = {
   "webhook": BuildCalendarEventReminderInfo<'webhook', {}>,
   "add-to-journey": BuildCalendarEventReminderInfo<'add-to-journey', { journeyId: string }>,
+  "Remove From Journey": BuildCalendarEventReminderInfo<'Remove From Journey', { journeyId: string }>,
   "user-notification": BuildCalendarEventReminderInfo<'user-notification', CalendarEventReminderNotificationInfo>,
   "enduser-notification": BuildCalendarEventReminderInfo<'enduser-notification', CalendarEventReminderNotificationInfo>,
   "create-ticket": BuildCalendarEventReminderInfo<'create-ticket', { title: string }>,

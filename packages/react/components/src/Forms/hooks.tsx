@@ -1089,6 +1089,7 @@ export const useTellescopeForm = ({ customization, carePlanId, context, ga4measu
       .catch(console.error)
     }
 
+    try { window.scrollTo({ top: 0 }) } catch(err) {} // scroll to top if needed
     setActiveField(activeField => {
       let newField = getNextField(activeField, currentValue, responses)
 
@@ -1113,6 +1114,7 @@ export const useTellescopeForm = ({ customization, carePlanId, context, ga4measu
 
     const previous = prevFieldStackRef.current.pop()
     if (previous) { 
+      try { window.scrollTo({ top: 0 }) } catch(err) {} // scroll to top if needed
       setActiveField(previous)
       setCurrentPageIndex(i => i - 1)
     }

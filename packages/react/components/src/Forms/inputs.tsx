@@ -1388,8 +1388,8 @@ const StripeForm = ({ businessName, onSuccess, field, cost } : { businessName: s
         <Typography sx={{ mt: 0.5 }}>
         {
           field.options?.customPriceMessage
-            ? field.options.customPriceMessage.replaceAll('{{PRICE}}', (cost / 100).toFixed(2))
-            : `You will be charged ${(cost / 100).toFixed(2)} ${field.options?.chargeImmediately ? '' : 'on form submission'}`
+            ? field.options.customPriceMessage.replaceAll('{{PRICE}}', `$${(cost / 100).toFixed(2)}`)
+            : `You will be charged $${(cost / 100).toFixed(2)} ${field.options?.chargeImmediately ? '' : 'on form submission'}`
         }
         </Typography>
       }

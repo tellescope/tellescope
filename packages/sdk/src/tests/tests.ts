@@ -6573,6 +6573,28 @@ const bulk_read_tests = async () => {
   }
 }
 
+const test_send_with_template = async () => {
+  log_header("test_send_with_template")
+
+  const [enduser, template] = await Promise.all([
+    sdk.api.endusers.createOne({ email: 'sebass192@gmail.com' }),
+    sdk.api.templates.createOne({ message: 'Text Message', subject: "test_send_with_template", title: 'test_send_with_template', html: "HTML Message" }),
+  ])
+
+  await async_test(
+    "send with template",
+    () => sdk.api.emails.send_with_template({
+      enduserId: enduser.id, templateId: template.id, senderId: sdk.userInfo.id,
+    }),
+    { onResult: ({ email }) => !!email.id && email.enduserId === enduser.id && email.templateId === template.id }
+  ) 
+
+  await wait(undefined, 3000)
+  await Promise.all([
+    sdk.api.endusers.deleteOne(enduser.id),
+    sdk.api.templates.deleteOne(template.id),
+  ])
+}
 
 (async () => {
   log_header("API")
@@ -6616,6 +6638,7 @@ const bulk_read_tests = async () => {
     await mfa_tests()
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    // await test_send_with_template()
     await bulk_read_tests()
     await ticket_reminder_tests()
     await enduser_access_tags_tests()

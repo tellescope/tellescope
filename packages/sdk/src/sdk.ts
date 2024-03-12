@@ -532,6 +532,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     deliver_via_iterable: (args: extractFields<CustomActions['emails']['deliver_via_iterable']['parameters']>) => (
       Promise<extractFields<CustomActions['emails']['deliver_via_iterable']['returns']>>
     ),
+    send_with_template: (args: extractFields<CustomActions['emails']['send_with_template']['parameters']>) => (
+      Promise<extractFields<CustomActions['emails']['send_with_template']['returns']>>
+    ),
   },
   calendar_events: {
     get_events_for_user: (args: extractFields<CustomActions['calendar_events']['get_events_for_user']['parameters']>) => (
@@ -764,6 +767,7 @@ export class Session extends SessionManager {
     queries.emails.sync_integrations = a => this._POST(`/v1/${schema.emails.customActions.sync_integrations.path}`, a)
     queries.emails.deliver_via_outlook = a => this._POST(`/v1/${schema.emails.customActions.deliver_via_outlook.path}`, a)
     queries.emails.deliver_via_iterable = a => this._POST(`/v1/${schema.emails.customActions.deliver_via_iterable.path}`, a)
+    queries.emails.send_with_template = a => this._POST(`/v1/${schema.emails.customActions.send_with_template.path}`, a)
     
     queries.calendar_events.get_events_for_user = a => this._GET(`/v1/${schema.calendar_events.customActions.get_events_for_user.path}`, a)
     queries.calendar_events.load_events = a => this._GET(`/v1/${schema.calendar_events.customActions.load_events.path}`, a)

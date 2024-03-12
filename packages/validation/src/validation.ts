@@ -1035,8 +1035,8 @@ export const nameValidator: ValidatorDefinition<string> = {
     name => {
       if (typeof name !== 'string') throw new Error('Expecting string value')
 
-      // allow special characters, foreign language characters, accents, etc.
-      name = name.substring(0, 100) // escape_name(name)  
+      // need to explicitly trim here, trim: true not currently working (mar 7, 2024)
+      name = name.trim().substring(0, 100) // escape_name(name)  
       if (!name) throw new Error("Invalid name")
 
       return first_letter_capitalized(name) 
@@ -2112,6 +2112,11 @@ export const listOfStringsWithQualifierValidatorOptional = objectValidator<ListO
   values: listOfStringsValidator,
 }, { isOptional: true })
 
+export const listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay = objectValidator<ListOfStringsWithQualifier>({
+  qualifier: listQueryQualifiersValidator,
+  values: listOfStringsValidatorEmptyOk,
+}, { isOptional: true })
+
 const _AUTOMATION_ENDUSER_STATUS: { [K in AutomatedActionStatus]: any } = {
   active: '',
   finished: '',
@@ -2189,6 +2194,13 @@ export const calendarEventReminderValidator = orValidator<{ [K in CalendarEventR
       journeyId: mongoIdStringRequired,
     }),
     type: exactMatchValidator<'add-to-journey'>(['add-to-journey']), 
+    ...sharedReminderValidators, 
+  }),
+  'Remove From Journey': objectValidator<CalendarEventReminderInfoForType['Remove From Journey']>({
+    info: objectValidator<CalendarEventReminderInfoForType['Remove From Journey']['info']>({
+      journeyId: mongoIdStringRequired,
+    }),
+    type: exactMatchValidator<'Remove From Journey'>(['Remove From Journey']), 
     ...sharedReminderValidators, 
   }),
   "enduser-notification": objectValidator<CalendarEventReminderInfoForType['enduser-notification']>({
@@ -2836,6 +2848,8 @@ const _DATABASE_RECORD_FIELD_TYPES: { [K in DatabaseRecordFieldType]: any } = {
   Number: '',
   Address: '',
   'Multiple Select': '',
+  Email: '',
+  Phone: '',
 }
 export const DATABASE_RECORD_FIELD_TYPES = Object.keys(_DATABASE_RECORD_FIELD_TYPES) as DatabaseRecordFieldType[]
 export const databaseRecordFieldTypeValidator = exactMatchValidator<DatabaseRecordFieldType>(DATABASE_RECORD_FIELD_TYPES)
@@ -2846,7 +2860,26 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     type: exactMatchValidator(['Text']),
     label: stringValidator250,
     hideFromTable: booleanValidatorOptional,
+    required: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Text']['options']>({
+      width: stringValidatorOptionalEmptyOkay,
+    }, { isOptional: true, emptyOk: true }),
+  }), 
+  Email: objectValidator<DatabaseRecordFields['Email']>({
+    type: exactMatchValidator(['Email']),
+    label: stringValidator250,
+    hideFromTable: booleanValidatorOptional,
+    required: booleanValidatorOptional,
+    options: objectValidator<DatabaseRecordFields['Email']['options']>({
+      width: stringValidatorOptionalEmptyOkay,
+    }, { isOptional: true, emptyOk: true }),
+  }), 
+  Phone: objectValidator<DatabaseRecordFields['Phone']>({
+    type: exactMatchValidator(['Phone']),
+    label: stringValidator250,
+    hideFromTable: booleanValidatorOptional,
+    required: booleanValidatorOptional,
+    options: objectValidator<DatabaseRecordFields['Phone']['options']>({
       width: stringValidatorOptionalEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
   }), 
@@ -2854,6 +2887,7 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     type: exactMatchValidator(['Text Long']),
     label: stringValidator250,
     hideFromTable: booleanValidatorOptional,
+    required: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Text Long']['options']>({
       width: stringValidatorOptionalEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
@@ -2862,6 +2896,7 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     type: exactMatchValidator(['Text List']),
     label: stringValidator250,
     hideFromTable: booleanValidatorOptional,
+    required: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Text List']['options']>({
       width: stringValidatorOptionalEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
@@ -2870,6 +2905,7 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     type: exactMatchValidator(['Number']),
     label: stringValidator250,
     hideFromTable: booleanValidatorOptional,
+    required: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Number']['options']>({
       width: stringValidatorOptionalEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
@@ -2878,6 +2914,7 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     type: exactMatchValidator(['Address']),
     label: stringValidator250,
     hideFromTable: booleanValidatorOptional,
+    required: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Address']['options']>({
       width: stringValidatorOptionalEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
@@ -2886,6 +2923,7 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     type: exactMatchValidator(['Multiple Select']),
     label: stringValidator250,
     hideFromTable: booleanValidatorOptional,
+    required: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Multiple Select']['options']>({
       width: stringValidatorOptionalEmptyOkay,
       options: listOfStringsValidatorEmptyOk,
@@ -2899,6 +2937,16 @@ export const databaseRecordValueValidator = orValidator<{ [K in DatabaseRecordFi
   Text: objectValidator<DatabaseRecordValues['Text']>({
     type: exactMatchValidator(['Text']),
     value: stringValidator5000OptionalEmptyOkay,
+    label: stringValidator250,
+  }), 
+  Phone: objectValidator<DatabaseRecordValues['Phone']>({
+    type: exactMatchValidator(['Phone']),
+    value: phoneValidatorOptional,
+    label: stringValidator250,
+  }), 
+  Email: objectValidator<DatabaseRecordValues['Email']>({
+    type: exactMatchValidator(['Email']),
+    value: emailValidatorOptional,
     label: stringValidator250,
   }), 
   'Text Long': objectValidator<DatabaseRecordValues['Text Long']>({
@@ -4157,7 +4205,7 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
     info: objectValidator<PhoneTreeActions["Route Call"]['info']>({
       byCareTeam: booleanValidatorOptional,
       byRole: stringValidatorOptional, 
-      byTags: listOfStringsWithQualifierValidatorOptional,
+      byTags: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
       playback: phonePlaybackValidatorOptional,
     }),
   }),
