@@ -429,6 +429,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
   },
   integrations: {
+    load_payers: (args: extractFields<CustomActions['integrations']['load_payers']['parameters']>) => (
+      Promise<extractFields<CustomActions['integrations']['load_payers']['returns']>>
+    ),
     generate_google_auth_url: (args: extractFields<CustomActions['integrations']['generate_google_auth_url']['parameters']>) => (
       Promise<extractFields<CustomActions['integrations']['generate_google_auth_url']['returns']>>
     ),
@@ -747,6 +750,7 @@ export class Session extends SessionManager {
     queries.organizations.create_suborganization = a => this._POST(`/v1/${schema.organizations.customActions.create_suborganization.path}`, a)
     queries.organizations.create_and_join = a => this._POST(`/v1${schema.organizations.customActions.create_and_join.path}`, a)
  
+    queries.integrations.load_payers = args => this._GET(`/v1${schema.integrations.customActions.load_payers.path}`, args)
     queries.integrations.generate_google_auth_url = a => this._POST(`/v1/${schema.integrations.customActions.generate_google_auth_url.path}`, a)
     queries.integrations.disconnect_google_integration = a => this._POST(`/v1/${schema.integrations.customActions.disconnect_google_integration.path}`, a)
     queries.integrations.refresh_oauth2_session = a => this._POST(`/v1/${schema.integrations.customActions.refresh_oauth2_session.path}`, a)

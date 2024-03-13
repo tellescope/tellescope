@@ -712,6 +712,34 @@ export const useTellescopeForm = ({ customization, carePlanId, context, ga4measu
     if (!value) return "Value not provided"
     if (!file) return "File not provided"
 
+    if (value.answer.type === 'Insurance') {
+      if (value.answer.value?.relationshipDetails?.dateOfBirth && !isDateString(value.answer.value.relationshipDetails.dateOfBirth)) {
+        return "Enter date of birth in MM-DD-YYYY format"
+      }
+      if (field.isOptional) return null
+
+      if (!value.answer.value?.payerName) {
+        return "Insurer is required"
+      }
+      if (!value.answer.value?.memberId) {
+        return "Member ID is required"
+      }
+
+      // assumes Self by default when left blank
+      if (value.answer.value?.relationship && value.answer.value?.relationship !== 'Self' && !value.answer.value?.relationshipDetails?.fname) {
+        return "First name is required"
+      }
+      if (value.answer.value?.relationship && value.answer.value?.relationship !== 'Self' && !value.answer.value?.relationshipDetails?.lname) {
+        return "Last name is required"
+      }
+      if (value.answer.value?.relationship && value.answer.value?.relationship !== 'Self' && !value.answer.value?.relationshipDetails?.gender) {
+        return "Gender is required"
+      }
+      if (value.answer.value?.relationship && value.answer.value?.relationship !== 'Self' && !value.answer.value?.relationshipDetails?.dateOfBirth) {
+        return "Date of birth is required"
+      }
+    }
+
     // even when optional, name is required when signed is checked
     if (value.answer.type === 'signature' && value.answer.value?.signed && !value.answer.value.fullName) {
       return "Please enter your full name"

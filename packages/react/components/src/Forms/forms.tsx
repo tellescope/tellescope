@@ -150,7 +150,7 @@ export const QuestionForField = ({
         fontSize: field.type === 'Question Group' ? 22 : 20, 
         fontWeight: field.type === 'Question Group' ? 'bold' : undefined,
       }}>
-        {field.title}{!(field.isOptional || field.type === 'description' || field.type === 'Question Group') ? '*' : ''}
+        {field.title}{!(field.isOptional || field.type === 'description' || field.type === 'Question Group' || field.type === 'Insurance') ? '*' : ''}
       </Typography>
 
       <Description field={field} style={{ fontSize: 16 }} />

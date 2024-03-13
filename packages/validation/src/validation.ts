@@ -1734,9 +1734,19 @@ export const addressOptionalValidator = objectValidator<SuperbillProvider['addre
   zipPlusFour: stringValidator1000Optional,
 }, { isOptional: true, emptyOk: true })
 
+const _TELLESCOPE_GENDER: { [K in TellescopeGender]: any} = {
+  Female: '',
+  Male: '',
+  Other: '',
+  Unknown: '',
+} 
+export const TELLESCOPE_GENDER = Object.keys(_TELLESCOPE_GENDER) as TellescopeGender[]
+export const tellescopeGenderValidator = exactMatchValidator<TellescopeGender>(TELLESCOPE_GENDER)
+export const tellescopeGenderOptionalValidator = exactMatchValidatorOptional<TellescopeGender | ''>([...TELLESCOPE_GENDER, ''])
+
 export const insuranceOptionalValidator = objectValidator<EnduserInsurance>({
   memberId: stringValidatorOptional,
-  payerId: stringValidatorOptional,
+  payerId: stringValidatorOptional, // required for Candid encounter
   payerName: stringValidatorOptional,
   cardFront: stringValidatorOptional,
   cardBack: stringValidatorOptional,
@@ -1745,11 +1755,11 @@ export const insuranceOptionalValidator = objectValidator<EnduserInsurance>({
   eligible: booleanValidatorOptional,
   eligibilityRanAt: dateValidatorOptional,
   relationshipDetails: objectValidator<EnduserInsurance['relationshipDetails']>({
-    address: addressOptionalValidator,
-    fname: stringValidatorOptional,
-    lname: stringValidatorOptional,
-    email: emailValidatorOptional,
-    phone: phoneValidatorOptional,
+    // address: addressOptionalValidator, // optional for Candid
+    fname: stringValidatorOptional, // required for Canvas/Candid
+    lname: stringValidatorOptional, // required for Canvas/Candid
+    gender: tellescopeGenderOptionalValidator, // required for Canvas/Candid
+    dateOfBirth: stringValidatorOptional, // required for Canvas, optional for Candid
   }, { isOptional: true, emptyOk: true })
 }, { isOptional: true, emptyOk: true })
 
@@ -2759,6 +2769,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
     system: stringValidator,
   }, { isOptional: true, emptyOk: true }),
   customPriceMessage: stringValidatorOptional,
+  billingProvider: stringValidatorOptional,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -3633,16 +3644,6 @@ const _LOGIN_FLOW_RESULTS = {
 export type LoginFlowResult = keyof typeof _LOGIN_FLOW_RESULTS
 export const LOGIN_FLOW_RESULTS = Object.keys(_LOGIN_FLOW_RESULTS) as LoginFlowResult[]
 export const loginFlowResultValidator = exactMatchValidator<LoginFlowResult>(LOGIN_FLOW_RESULTS)
-
-const _TELLESCOPE_GENDER: { [K in TellescopeGender]: any} = {
-  Female: '',
-  Male: '',
-  Other: '',
-  Unknown: '',
-} 
-export const TELLESCOPE_GENDER = Object.keys(_TELLESCOPE_GENDER) as TellescopeGender[]
-export const tellescopeGenderValidator = exactMatchValidator<TellescopeGender>(TELLESCOPE_GENDER)
-export const tellescopeGenderOptionalValidator = exactMatchValidatorOptional<TellescopeGender | ''>([...TELLESCOPE_GENDER, ''])
 
 export const appointmentTermsValidator = listValidatorEmptyOk(objectValidator<AppointmentTerm>({
   link: stringValidator5000,

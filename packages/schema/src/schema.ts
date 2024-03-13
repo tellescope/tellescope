@@ -766,6 +766,7 @@ export type CustomActions = {
     unlike_post: CustomAction<{ postId: string, forumId: string }, { }>,
   },
   integrations: {
+    load_payers: CustomAction<{ query?: string, }, { choices: { name: string, id: string } [] }>,
     generate_google_auth_url: CustomAction<{ }, { authUrl: string, }>, 
     disconnect_google_integration: CustomAction<{}, {}>,
     generate_oauth2_auth_url: CustomAction<{ integration: IntegrationsTitleType }, { authUrl: string, state: string }>, 
@@ -818,6 +819,7 @@ export type CustomActions = {
       userId?: string, 
       userIds?: string[],
       multi?: boolean,
+      intervalInMinutes?: number,
     }, { 
       availabilityBlocks: BaseAvailabilityBlock[],
     }>,
@@ -832,6 +834,7 @@ export type CustomActions = {
       timezone?: Timezone,
       fields?: Record<any, any>
       customerId?: string,
+      intervalInMinutes?: number,
     }, { 
       createdEvent: CalendarEvent,
     }>,
@@ -1807,6 +1810,21 @@ export const schema: SchemaV1 = build_schema({
         description: "", 
         parameters: { },
         returns: { }
+      },
+      load_payers: {
+        op: "custom", access: 'read', method: "get",
+        path: '/integrations/load-payers',
+        name: 'Load Payers',
+        description: "Loads insurer options for Insurance question type, pulling from integrations like Canvas/Candid",
+        parameters: { 
+          query: { validator: stringValidator },
+        },
+        returns: {
+          choices: { 
+            validator: listValidator(objectValidator<{ name: string, id: string }>({ name: stringValidator, id: stringValidator})),
+            required: true,
+          }
+        },
       },
     }
   },
@@ -4037,6 +4055,7 @@ export const schema: SchemaV1 = build_schema({
           businessId: { validator: mongoIdStringValidator }, // required for unauthenticated access
           userId: { validator: mongoIdStringValidator }, // required for unauthenticated access
           userIds: { validator: listOfMongoIdStringValidatorEmptyOk }, // required for unauthenticated access
+          intervalInMinutes: { validator: nonNegNumberValidator },
         },
         returns: { 
           availabilityBlocks: { validator: baseAvailabilityBlocksValidator, required: true }
@@ -4060,6 +4079,7 @@ export const schema: SchemaV1 = build_schema({
           fields: { validator: objectAnyFieldsAnyValuesValidator },
           token: { validator: stringValidator },
           customerId: { validator: stringValidator100 },
+          intervalInMinutes: { validator: nonNegNumberValidator },
         },
         returns: { 
           createdEvent: { validator: 'calenar_event' as any },

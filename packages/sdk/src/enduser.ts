@@ -101,6 +101,9 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
     load_choices_from_database: (args: extractFields<CustomActions['form_fields']['load_choices_from_database']['parameters']>) => (
       Promise<extractFields<CustomActions['form_fields']['load_choices_from_database']['returns']>>
     ),
+    // load_payers: (args: extractFields<CustomActions['form_fields']['load_payers']['parameters']>) => (
+    //   Promise<extractFields<CustomActions['form_fields']['load_payers']['returns']>>
+    // ),
   },
   form_responses: {
     save_field_response: (args: extractFields<CustomActions['form_responses']['save_field_response']['parameters']>) => (
@@ -278,6 +281,7 @@ export class EnduserSession extends Session {
     }
 
     this.api.form_fields.load_choices_from_database = args => this._GET(`/v1${schema.form_fields.customActions.load_choices_from_database.path}`, args)
+    // this.api.form_fields.load_payers = args => this._GET(`/v1${schema.form_fields.customActions.load_payers.path}`, args)
 
     this.api.form_responses.prepare_form_response   = args => this._POST(`/v1${schema.form_responses.customActions.prepare_form_response.path}`, args)
     this.api.form_responses.session_for_public_form = args => this._POST(`/v1${schema.form_responses.publicActions.session_for_public_form.path}`, args)

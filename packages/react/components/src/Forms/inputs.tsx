@@ -3,9 +3,9 @@ import axios from "axios"
 import { Autocomplete, Box, Button, Checkbox, Divider, FormControl, FormControlLabel, FormLabel, Grid, InputLabel, MenuItem, Radio, RadioGroup, Select, SxProps, TextField, TextFieldProps, Typography } from "@mui/material"
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
-import { INSURANCE_RELATIONSHIPS, PRIMARY_HEX, RELATIONSHIP_TYPES } from "@tellescope/constants"
+import { INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
 import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, first_letter_capitalized, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, truncate_string, user_display_name } from "@tellescope/utilities"
-import { Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MultipleChoiceOptions } from "@tellescope/types-models"
+import { Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MultipleChoiceOptions, TellescopeGender } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -477,32 +477,55 @@ export const NumberInput = ({ field, value, onChange, form, ...props }: FormInpu
 )
 
 export const InsuranceInput = ({ field, value, onChange, form, ...props }: FormInputProps<'Insurance'>) => {
-  // todo: load payers dynamically from EHR or RCM source of truth, add to payers list
-  const [payers] = useState([{ id: 'other', name: 'Other' }])
+  const session = useResolvedSession()
+
+  const [payers, setPayers] = useState<{ id: string, name: string }[]>([])
+
+  const loadRef = useRef(false) // so session changes don't cause
+  useEffect(() => {
+    if (loadRef.current) return
+    loadRef.current = true
+
+    // just load all at once, should be reasonably performant compared to paging
+    session.api.form_fields.load_choices_from_database({ fieldId: field.id, limit: 10000 })
+    .then(({ choices }) => setPayers(choices.map(c => ({
+      id: c.values.find(v => v.label === 'id')?.value?.toString() || '',
+      name: c.values.find(v => v.label === 'name')?.value?.toString() || '',
+    }))))
+    .catch(console.error)
+  }, [session])
+
   return (
     <Grid container spacing={2} sx={{ mt: '0' }}>
       <Grid item xs={12} sm={6}>
-        <StringSelector options={payers.map(p => p.name)} size="small" label="Insurer"
-          value={value?.payerName || ''} 
-          onChange={name => {
-            const payer = payers.find(p => p.name === name)
-            if (!payer) return
-
-            onChange({ ...value, payerId: payer.id, payerName: payer.name }, field.id)
-          }}
-        />
+      <Autocomplete freeSolo options={payers.map(p => p.name)}
+        value={value?.payerName}
+        onChange={(e, v) => onChange({ 
+          ...value, 
+          payerName: v || '',
+          payerId: payers.find(p => p.name === v)?.id || '',
+        }, field.id)}  
+        renderInput={(params) => (
+          <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
+            required={!field.isOptional} size="small"  label="Insurer"
+          />
+        )}
+      />
       </Grid>
       <Grid item xs={12} sm={6}>
-      <AutoFocusTextField {...props} required={!field.isOptional} fullWidth value={value?.memberId ?? ''} 
+      <TextField InputProps={defaultInputProps} required={!field.isOptional} fullWidth value={value?.memberId ?? ''} 
         onChange={e => onChange({ ...value, memberId: e.target.value }, field.id)}  
-        placeholder={form_display_text_for_language(form, "Member ID", '')}
+        label={form_display_text_for_language(form, "Member ID", '')}
         size="small"
       />
       </Grid>
 
       <Grid item xs={12}>
         <StringSelector size="small" label="Relationship to Policy Owner"
-          options={INSURANCE_RELATIONSHIPS.sort((x, y) => x.localeCompare(y))}
+          options={
+            (field.options?.billingProvider === 'Canvas' ? INSURANCE_RELATIONSHIPS_CANVAS : INSURANCE_RELATIONSHIPS)
+            .sort((x, y) => x.localeCompare(y))
+          }
           value={value?.relationship || 'Self'} 
           onChange={relationship => 
             onChange({ ...value, relationship: relationship as InsuranceRelationship || 'Self' }, field.id)
@@ -519,6 +542,7 @@ export const InsuranceInput = ({ field, value, onChange, form, ...props }: FormI
         <Grid item xs={6}>
           <TextField label="First Name" size="small" InputProps={defaultInputProps} fullWidth
             value={value?.relationshipDetails?.fname || ''} 
+            required={!field.isOptional}
             onChange={e => 
               onChange({ 
                 ...value, 
@@ -530,6 +554,7 @@ export const InsuranceInput = ({ field, value, onChange, form, ...props }: FormI
         <Grid item xs={6}>
           <TextField label="Last Name" size="small" InputProps={defaultInputProps} fullWidth
             value={value?.relationshipDetails?.lname || ''} 
+            required={!field.isOptional}
             onChange={e => 
               onChange({ 
                 ...value, 
@@ -539,6 +564,35 @@ export const InsuranceInput = ({ field, value, onChange, form, ...props }: FormI
           />
         </Grid>
         <Grid item xs={6}>
+          <StringSelector options={TELLESCOPE_GENDERS} size="small" label="Gender"
+            value={value?.relationshipDetails?.gender || ''} 
+            required={!field.isOptional}
+            onChange={v => 
+              onChange({ 
+                ...value, 
+                relationshipDetails: { ...value?.relationshipDetails, gender: v as TellescopeGender }
+              }, field.id)
+            }
+          />
+        </Grid>
+        <Grid item xs={6}>
+          <DateStringInput size="small" label="Date of Birth"
+            field={{
+              ...field,
+              isOptional: field.isOptional || field.options?.billingProvider === 'Candid'
+            }} 
+            value={value?.relationshipDetails?.dateOfBirth || ''} 
+            onChange={dateOfBirth => 
+              onChange({ 
+                ...value, 
+                relationshipDetails: { ...value?.relationshipDetails, dateOfBirth }
+              }, field.id)
+            }
+          />
+        </Grid>
+
+
+        {/* <Grid item xs={6}>
           <TextField label="Email" type="email" size="small" InputProps={defaultInputProps} fullWidth
             value={value?.relationshipDetails?.email || ''} 
             onChange={e => 
@@ -584,7 +638,7 @@ export const InsuranceInput = ({ field, value, onChange, form, ...props }: FormI
               }, field.id)
             }}
           />
-        </Grid>
+        </Grid> */}
 
         {/* <Grid item xs={6}>
           <TextField label="Address"
@@ -682,14 +736,15 @@ export const InsuranceInput = ({ field, value, onChange, form, ...props }: FormI
 }
 
 
-const StringSelector = ({ options, value, onChange, ...props } : {
+const StringSelector = ({ options, value, onChange, required, ...props } : {
   options: string[]
   value: string,
   onChange: (v: string) => void,
   label?: string,
   size?: "small",
+  required?: boolean,
 }) => (
-  <FormControl fullWidth size={props.size}>
+  <FormControl fullWidth size={props.size} required={required}>
     <InputLabel>{props.label}</InputLabel>
     <Select {...props} value={value} onChange={e => onChange(e.target.value)} fullWidth
       sx={defaultInputProps.sx}

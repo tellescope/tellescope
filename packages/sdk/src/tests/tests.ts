@@ -4148,6 +4148,28 @@ export const self_serve_appointment_booking_tests = async () => {
     { onResult: r => r.availabilityBlocks.length === 2 }, // 1 providers with 1 hour availability for 30 minute meetings
   )
   await async_test(
+    '30 minute slots for state restriction with 15 min interval',
+    () => enduserSDK.api.calendar_events.get_appointment_availability({
+      calendarEventTemplateId: event30min.id,
+      from: new Date(Date.now() - 10000),
+      to: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+      restrictedByState: true,
+      intervalInMinutes: 15,
+    }),
+    { onResult: r => r.availabilityBlocks.length === 3 }, // 1 providers with 1 hour availability for 30 minute meetings
+  )
+  await async_test(
+    '30 minute slots for state restriction with 10 min interval',
+    () => enduserSDK.api.calendar_events.get_appointment_availability({
+      calendarEventTemplateId: event30min.id,
+      from: new Date(Date.now() - 10000),
+      to: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+      restrictedByState: true,
+      intervalInMinutes: 10,
+    }),
+    { onResult: r => r.availabilityBlocks.length === 4 }, // 1 providers with 1 hour availability for 30 minute meetings
+  )
+  await async_test(
     '30 minute slots for no state restrictions',
     () => enduserSDK.api.calendar_events.get_appointment_availability({
       calendarEventTemplateId: event30min.id,
@@ -6639,12 +6661,12 @@ const test_send_with_template = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     // await test_send_with_template()
+    await self_serve_appointment_booking_tests()
     await bulk_read_tests()
     await ticket_reminder_tests()
     await enduser_access_tags_tests()
     await marketing_email_unsubscribe_tests()
     await unique_strings_tests()
-    await self_serve_appointment_booking_tests()
     await alternate_phones_tests()
     await ticket_queue_tests()
     await no_chained_triggers_tests()

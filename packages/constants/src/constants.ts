@@ -2,7 +2,7 @@ import {
   Operation,
 } from "@tellescope/types-utilities"
 import {
-  AccessAction, AccessForResource, AccessPermissions, AccessType, Enduser, EnduserRelationship, FormFieldType, InsuranceRelationship,
+  AccessAction, AccessForResource, AccessPermissions, AccessType, Enduser, EnduserRelationship, FormFieldType, InsuranceRelationship, TellescopeGender,
 } from "@tellescope/types-models"
 
 export type EnduserField = keyof Pick<Enduser, 'email' | 'phone' | 'fname' | 'lname' | 'dateOfBirth' | 'height' | 'weight'>
@@ -119,6 +119,7 @@ export const VITAL_TITLE = "Vital"
 export const ELATION_TITLE = "Elation"
 export const ZUS_TITLE = "Zus"
 export const CANVAS_TITLE = "Canvas"
+export const CANDID_TITLE = "Candid"
 export const ZENDESK_INTEGRATIONS_TITLE = "Zendesk"
 export const ZENDESK_REDIRECT_URI_ENDING = "/zendesk-oauth2-verify"
 export const FULLSCRIPT_INTEGRATIONS_TITLE = "Fullscript"
@@ -486,3 +487,14 @@ export const INSURANCE_RELATIONSHIPS_TO_CODE: { [K in InsuranceRelationship]: nu
 }
 
 export const INSURANCE_RELATIONSHIPS = Object.keys(INSURANCE_RELATIONSHIPS_TO_CODE) as InsuranceRelationship[]
+
+export const INSURANCE_RELATIONSHIPS_CANVAS_MAPPING: { [K in InsuranceRelationship]?: string } = {
+  'Child': 'child',
+  Spouse: 'spouse',
+  "Other Relationship": 'other',
+  Self: "self",
+  "Injured Plaintiff": 'injured'
+}
+export const INSURANCE_RELATIONSHIPS_CANVAS = Object.keys(INSURANCE_RELATIONSHIPS_CANVAS_MAPPING) as InsuranceRelationship[]
+
+export const TELLESCOPE_GENDERS: TellescopeGender[] = ["Female", "Male", 'Other', 'Unknown']

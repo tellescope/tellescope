@@ -526,9 +526,11 @@ export type EnduserInsurance = {
   relationshipDetails?: {
     fname?: string,
     lname?: string,
-    phone?: string,
-    email?: string,
-    address?: Partial<Address>,
+    gender?: TellescopeGender,
+    dateOfBirth?: string,
+    // address?: Partial<Address>, // optional for candid
+    // phone?: string, // not needed yet
+    // email?: string, // not needed yet
   }
 }
 
@@ -1211,6 +1213,7 @@ export type FormFieldOptions = FormFieldValidation & {
   disableGoBack?: boolean,
   disableNext?: boolean,
   customPriceMessage?: string,
+  billingProvider?: 'Canvas' | "Candid" | string,
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
