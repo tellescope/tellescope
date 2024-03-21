@@ -140,6 +140,8 @@ const setup_tests = async () => {
     { expectedResult: 'Authenticated!' }
   )
 
+
+
   await sdk.logout()
   await async_test<string, string>('test_authenticated - (logout invalidates jwt)', sdk.test_authenticated, { shouldError: true, onError: e => e === 'Unauthenticated' })
   await sdk.authenticate(email, password)
@@ -4085,8 +4087,10 @@ export const self_serve_appointment_booking_tests = async () => {
 
   const e1 = await sdk.api.endusers.createOne({ email: 'sebass+ny@tellescope.com', state: 'NY' }) 
   const e2 = await sdk.api.endusers.createOne({ email: 'sebass+ca@tellescope.com', state: 'CA' })
+  const e3 = await sdk.api.endusers.createOne({ email: 'sebass+3@tellescope.com' })
   await sdk.api.endusers.set_password({ id: e1.id, password })
   await sdk.api.endusers.set_password({ id: e2.id, password })
+  await sdk.api.endusers.set_password({ id: e3.id, password })
   
   const event15min = await sdk.api.calendar_event_templates.createOne({ 
     title: 'test 2', durationInMinutes: 15,
@@ -4097,6 +4101,12 @@ export const self_serve_appointment_booking_tests = async () => {
     title: 'test 1', durationInMinutes: 30,
     confirmationEmailDisabled: true,
     confirmationSMSDisabled: true,
+  })
+  const event30minGroup = await sdk.api.calendar_event_templates.createOne({ 
+    title: 'test group', durationInMinutes: 30,
+    confirmationEmailDisabled: true,
+    confirmationSMSDisabled: true,
+    enduserAttendeeLimit: 2, 
   })
 
   // ensure it doesn't match current day, to avoid errors on testing
@@ -4134,6 +4144,12 @@ export const self_serve_appointment_booking_tests = async () => {
   }, {
     replaceObjectFields: true,
   })
+
+  const enduserSDK2 = new EnduserSession({ host, businessId })
+  await enduserSDK2.authenticate('sebass+ca@tellescope.com', password).catch(console.error) 
+
+  const enduserSDK3 = new EnduserSession({ host, businessId })
+  await enduserSDK3.authenticate('sebass+3@tellescope.com', password).catch(console.error) 
 
   // NY Enduser Tests
   await enduserSDK.authenticate('sebass+ny@tellescope.com', password).catch(console.error) 
@@ -4258,6 +4274,78 @@ export const self_serve_appointment_booking_tests = async () => {
     handleAnyError
   )
 
+  // test group bookings
+  await sdk.api.calendar_events.updateOne(conflict.id, { enduserAttendeeLimit: 2 })
+  await async_test(
+    '[group booking] different event type conflict as group still blocks availability',
+    () => enduserSDK.api.calendar_events.get_appointment_availability({
+      calendarEventTemplateId: event30minGroup.id,
+      from: new Date(Date.now() - 10000),
+      to: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+    }),
+    {  onResult: r => r.availabilityBlocks.length === 2 }, 
+  )
+  await sdk.api.calendar_events.deleteOne(conflict.id)
+  await async_test(
+    '[group booking] availability',
+    () => enduserSDK.api.calendar_events.get_appointment_availability({
+      calendarEventTemplateId: event30minGroup.id,
+      from: new Date(Date.now() - 10000),
+      to: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+    }),
+    {  onResult: r => r.availabilityBlocks.length === 3 }, 
+  )
+  const groupEvent = (await enduserSDK.api.calendar_events.book_appointment({
+    calendarEventTemplateId: event30minGroup.id,
+    startTime: new Date(nySlots.availabilityBlocks[1].startTimeInMS),
+    userId: nySlots.availabilityBlocks[1].userId, 
+  })).createdEvent
+  await async_test(
+    '[group booking] more booking allowed',
+    () => enduserSDK.api.calendar_events.get_appointment_availability({
+      calendarEventTemplateId: event30minGroup.id,
+      from: new Date(Date.now() - 10000),
+      to: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+    }),
+    {  onResult: r => r.availabilityBlocks.length === 3 }, 
+  )
+  await async_test(
+    '[group booking] prevent double-book same-enduser',
+    () => enduserSDK.api.calendar_events.book_appointment({
+      calendarEventTemplateId: event30minGroup.id,
+      startTime: new Date(nySlots.availabilityBlocks[1].startTimeInMS),
+      userId: nySlots.availabilityBlocks[1].userId, 
+    }),
+    handleAnyError
+  )
+  await async_test(
+    '[group booking] allow other enduser to book',
+    () => enduserSDK2.api.calendar_events.book_appointment({
+      calendarEventTemplateId: event30minGroup.id,
+      startTime: new Date(nySlots.availabilityBlocks[1].startTimeInMS),
+      userId: nySlots.availabilityBlocks[1].userId, 
+    }),
+    passOnAnyResult
+  )
+  await async_test(
+    '[group booking] no more booking allowed',
+    () => enduserSDK.api.calendar_events.get_appointment_availability({
+      calendarEventTemplateId: event30minGroup.id,
+      from: new Date(Date.now() - 10000),
+      to: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+    }),
+    {  onResult: r => r.availabilityBlocks.length === 2 }, 
+  )
+  await async_test(
+    '[group booking] other enduser cant book over capacity',
+    () => enduserSDK3.api.calendar_events.book_appointment({
+      calendarEventTemplateId: event30minGroup.id,
+      startTime: new Date(nySlots.availabilityBlocks[1].startTimeInMS),
+      userId: nySlots.availabilityBlocks[1].userId, 
+    }),
+    handleAnyError
+  )
+
   // test 'multi' flag for booking multiple providers for a given patient
   await sdk.api.users.updateOne(sdk.userInfo.id, { 
     weeklyAvailabilities: [
@@ -4341,11 +4429,13 @@ export const self_serve_appointment_booking_tests = async () => {
   await Promise.all([
     sdk.api.endusers.deleteOne(e1.id),
     sdk.api.endusers.deleteOne(e2.id),
+    sdk.api.endusers.deleteOne(e3.id),
     sdk.api.calendar_event_templates.deleteOne(event30min.id),
+    sdk.api.calendar_event_templates.deleteOne(event30minGroup.id),
     sdk.api.calendar_event_templates.deleteOne(event15min.id),
     sdk.api.calendar_events.deleteOne(bookedAppointment.id),
-    sdk.api.calendar_events.deleteOne(conflict.id),
     sdk.api.calendar_events.deleteOne(bookedMultiAppointment.id),
+    sdk.api.calendar_events.deleteOne(groupEvent.id),
   ])
 }
 
@@ -5850,6 +5940,7 @@ export const alternate_phones_tests = async () => {
 
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
+  enduser_encounters: NO_TEST,
   enduser_orders: NO_TEST,
   ticket_queues: NO_TEST,
   phone_trees: NO_TEST,
@@ -6618,6 +6709,185 @@ const test_send_with_template = async () => {
   ])
 }
 
+const delete_user_tests = async () => {
+  log_header("Delete user tests")
+  // delete if previous test failed and user still exists
+  const existing = await sdk.api.users.getSome({ filter: { email: 'deleteme@tellescope.com'}})
+  if (existing[0]?.email === 'deleteme@tellescope.com') {
+    await sdk.api.users.deleteOne(existing[0].id)
+  }
+
+  const u = await sdk.api.users.createOne({ email: 'deleteme@tellescope.com', verifiedEmail: true })  
+
+  const { authToken } = await sdk.api.users.generate_auth_token({ id: u.id })
+  const createdUserSDK = new Session({ host, authToken })
+
+  await async_test(
+    "Authenticated",
+    createdUserSDK.test_authenticated,
+    passOnAnyResult
+  )  
+
+  await sdk.api.users.deleteOne(u.id)
+  await wait(undefined, 250)
+  await async_test(
+    "De-authenticated after deletion",
+    createdUserSDK.test_authenticated,
+    handleAnyError
+  )  
+
+  const enduser = await sdk.api.endusers.createOne({ })
+  const { authToken: enduserAuthToken } = await sdk.api.endusers.generate_auth_token({ id: enduser.id })
+  const enduserSDK = new EnduserSession({ host, businessId, authToken: enduserAuthToken })
+
+  await async_test(
+    "Enduser Authenticated",
+    () => enduserSDK.api.endusers.getSome(),
+    passOnAnyResult
+  )  
+
+  await sdk.api.endusers.deleteOne(enduser.id)
+  await wait(undefined, 250)
+  await async_test(
+    "Enduser De-authenticated after deletion",
+    () => enduserSDK.api.endusers.getSome(),
+    handleAnyError
+  )  
+}
+
+const sdkMfaApiKeyUserId = '6525a43e1e75f0350d62afc4'
+const lockout_tests = async () => {
+  log_header("Lockout tests")
+
+  await async_test(
+    "API Key is authenticated",
+    sdkMfaApiKey.test_authenticated,
+    passOnAnyResult,
+  )
+  await async_test(
+    "API Key lock to future date",
+    () => sdk.api.users.updateOne(sdkMfaApiKeyUserId, { lockedOutUntil: 0 }),
+    passOnAnyResult
+  )
+  await wait(undefined, 250)
+  await async_test(
+    "API Key is de-authenticated when locked",
+    sdkMfaApiKey.test_authenticated,
+    handleAnyError,
+  )
+  await async_test(
+    "API Key unlock to -1",
+    () => sdk.api.users.updateOne(sdkMfaApiKeyUserId, { lockedOutUntil: -1 }),
+    passOnAnyResult
+  )
+  await async_test(
+    "API Key is authenticated",
+    sdkMfaApiKey.test_authenticated,
+    passOnAnyResult,
+  )
+
+  const nonAdminId = sdkNonAdmin.userInfo.id
+  await async_test(
+    "users cannot update own lock status",
+    () => sdk.api.users.updateOne(sdk.userInfo.id, { lockedOutUntil: -1 }),
+    handleAnyError,
+  )
+  await async_test(
+    "non-admin can't lock out others",
+    () => sdkNonAdmin.api.users.updateOne(sdk.userInfo.id, { lockedOutUntil: Date.now() }),
+    handleAnyError
+  )
+  await async_test(
+    "non-admin is authenticated",
+    sdkNonAdmin.test_authenticated,
+    passOnAnyResult,
+  )
+  await async_test(
+    "admin unlock to -1",
+    () => sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: -1 }),
+    passOnAnyResult,
+  )
+  await async_test(
+    "non-admin is authenticated (-1)",
+    sdkNonAdmin.test_authenticated,
+    passOnAnyResult,
+  )
+  await async_test(
+    "admin lock to past date",
+    () => sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: Date.now() - 1000 }),
+    passOnAnyResult, 
+  )
+  await async_test(
+    "non-admin is authenticated (past date)",
+    sdkNonAdmin.test_authenticated,
+    passOnAnyResult,
+  )
+
+  await async_test(
+    "admin lock to 0 (indefinite)",
+    () => sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: 0 }),
+    passOnAnyResult
+  )
+  await wait(undefined, 250)
+  await async_test(
+    "non-admin is de-authenticated when locked to 0",
+    sdkNonAdmin.test_authenticated,
+    handleAnyError,
+  )
+  await async_test(
+    "non-admin can't authenciate when locked to 0",
+    () => sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword),
+    handleAnyError,
+  )
+  await async_test(
+    "admin unlock to -1",
+    () => sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: -1 }),
+    passOnAnyResult
+  )
+  await async_test(
+    "non-admin can re authenciate when locked to 0",
+    () => sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword),
+    passOnAnyResult,
+  )
+  await async_test(
+    "non-admin is authenticated",
+    sdkNonAdmin.test_authenticated,
+    passOnAnyResult,
+  )
+
+  await async_test(
+    "admin lock to future date",
+    () => sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: Date.now() + 10000 }),
+    passOnAnyResult
+  )
+  await wait(undefined, 250)
+  await async_test(
+    "non-admin is de-authenticated when locked to future date",
+    sdkNonAdmin.test_authenticated,
+    handleAnyError,
+  )
+  await async_test(
+    "non-admin can't authenciate when locked to future date",
+    () => sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword),
+    handleAnyError,
+  )
+  await async_test(
+    "admin unlock to -1",
+    () => sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: -1 }),
+    passOnAnyResult
+  )
+  await async_test(
+    "non-admin can re authenciate when locked to future date",
+    () => sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword),
+    passOnAnyResult,
+  )
+  await async_test(
+    "non-admin is authenticated",
+    sdkNonAdmin.test_authenticated,
+    passOnAnyResult,
+  )
+}
+
 (async () => {
   log_header("API")
 
@@ -6660,8 +6930,10 @@ const test_send_with_template = async () => {
     await mfa_tests()
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
-    // await test_send_with_template()
+    await lockout_tests()
     await self_serve_appointment_booking_tests()
+    await delete_user_tests()
+    // await test_send_with_template()
     await bulk_read_tests()
     await ticket_reminder_tests()
     await enduser_access_tags_tests()

@@ -259,6 +259,9 @@ import {
   InsuranceRelationship,
   FormResponseAnswerInsurance,
   CanvasConsentCategory,
+  DiagnosisTypes,
+  DiagnosisType,
+  Diagnosis,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -291,10 +294,12 @@ import {
 import { 
   ALL_ACCESS,
   ASSIGNED_ACCESS,
+  CANDID_TITLE,
   CANVAS_TITLE,
   DEFAULT_ACCESS,
   ENDUSER_FIELD_TYPES,
   FULLSCRIPT_INTEGRATIONS_TITLE,
+  GOGO_MEDS_TITLE,
   INSURANCE_RELATIONSHIPS,
   NO_ACCESS,
   OUTLOOK_INTEGRATIONS_TITLE,
@@ -1751,9 +1756,12 @@ export const insuranceOptionalValidator = objectValidator<EnduserInsurance>({
   cardFront: stringValidatorOptional,
   cardBack: stringValidatorOptional,
   relationship: exactMatchValidatorOptional(INSURANCE_RELATIONSHIPS),
-  canvasId: stringValidatorOptional,
-  eligible: booleanValidatorOptional,
+  coverageId: stringValidatorOptional,
+  requestId: stringValidatorOptional,
+  eligibility: stringValidatorOptional,
+  // eligible: booleanValidatorOptional,
   eligibilityRanAt: dateValidatorOptional,
+  status: stringValidatorOptional,
   relationshipDetails: objectValidator<EnduserInsurance['relationshipDetails']>({
     // address: addressOptionalValidator, // optional for Candid
     fname: stringValidatorOptional, // required for Canvas/Candid
@@ -3227,6 +3235,8 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     enableGroupMMS: booleanValidatorOptional,
     enableAccessTags: booleanValidatorOptional,
     flaggedFileText: stringValidatorOptional,
+    defaultPhoneNumber: stringValidatorOptional,
+    showBulkFormInput: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -3559,6 +3569,7 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   ticket_queues: accessPermissionValidator,
   group_mms_conversations: accessPermissionValidator,
   enduser_orders: accessPermissionValidator,
+  enduser_encounters: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
@@ -3633,6 +3644,7 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   configurations: numberValidatorOptional,
   ticket_queues: numberValidatorOptional,
   enduser_orders: numberValidatorOptional,
+  enduser_encounters: numberValidatorOptional,
 }, { emptyOk: true })
 
 const _LOGIN_FLOW_RESULTS = {
@@ -3691,6 +3703,8 @@ export type IntegrationsTitleType = (
 | typeof FULLSCRIPT_INTEGRATIONS_TITLE
 | typeof ZUS_TITLE
 | typeof CANVAS_TITLE
+| typeof CANDID_TITLE
+| typeof GOGO_MEDS_TITLE
 )
 export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleType>([
   SQUARE_INTEGRATIONS_TITLE,
@@ -3701,6 +3715,8 @@ export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleTy
   FULLSCRIPT_INTEGRATIONS_TITLE,
   ZUS_TITLE,
   CANVAS_TITLE,
+  CANDID_TITLE,
+  GOGO_MEDS_TITLE
 ])
 
 const _VIDEO_INTEGRATION_TYPES: { [K in VideoIntegrationType]: any} = {
@@ -4345,3 +4361,24 @@ const sortingFieldValidator = objectValidator<SortingField>({
   type: exactMatchValidator<SortingField['type']>(['date', 'number', 'string'])
 })
 export const sortingFieldsValidator = listValidatorEmptyOk(sortingFieldValidator)
+
+const _DIAGNOSIS_TYPES: { [K in keyof DiagnosisTypes]: any } = {
+  ABF: '',
+  ABJ: '',
+  ABK: '',
+  APR: '',
+  BF: '',
+  BJ: '',
+  BK: '',
+  DR: '',
+  LOI: '',
+  PR: '',
+}
+export const DIAGNOSIS_TYPES = Object.keys(_DIAGNOSIS_TYPES) as DiagnosisType[]
+export const diagnosisTypeValidator = exactMatchValidator<DiagnosisType>(DIAGNOSIS_TYPES)
+
+export const diagnosisValidator = objectValidator<Diagnosis>({
+  type: diagnosisTypeValidator,
+  code: stringValidator,
+})
+export const diagnosesValidator = listValidator(diagnosisValidator)

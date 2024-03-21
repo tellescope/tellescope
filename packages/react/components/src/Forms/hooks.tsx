@@ -959,7 +959,7 @@ export const useTellescopeForm = ({ customization, carePlanId, context, ga4measu
     return responsesToSubmit
   }, [responses])
 
-  const submit = useCallback(async (options?: { onSuccess?: (r: FormResponse) => void, includedFieldIds?: string[] }) => {
+  const submit = useCallback(async (options?: { onSuccess?: (r: FormResponse) => void, includedFieldIds?: string[], otherEnduserIds?: string[], onBulkErrors?: (errors: { enduserId: string, message: string }[]) => void }) => {
     setSubmitErrorMessage('')
     const hasFile = selectedFiles.find(f => !!f.blobs?.length) !== undefined
 
@@ -1028,44 +1028,61 @@ export const useTellescopeForm = ({ customization, carePlanId, context, ga4measu
         }
       }
 
-      const { formResponse } = await session.api.form_responses.submit_form_response({ 
-        accessCode : (
-          accessCode 
-          || (await (
-            session as any as Session).api.form_responses.prepare_form_response({ 
-              formId, enduserId, isInternalNote, title: formTitle,
-              parentResponseId, rootResponseId,
-
-              // @ts-ignore
-              carePlanId, 
-              // @ts-ignore
-              context,
-            })
-          ).accessCode
-        ),
-        responses: [
-          ...responsesToSubmit,
-           // include existing responses in case previously saved as draft
-          ...(existingResponses ?? []).filter(r => !responsesToSubmit.find(_r => r.fieldId === _r.fieldId)),
-        ],
-        automationStepId,
-        customerId,
-        productIds: responsesToSubmit.flatMap(r => r.field?.options?.productIds ?? []),
-      })
-
-      if (ga4measurementId) {
-        ReactGA.event({
-          category: `form_${formResponse.formId}`,
-          action: "Form Submitted",
-          label: "Form Submitted",
-          transport: "beacon", 
-          value: 2,
-        });
+      const errors: { enduserId: string, message: string }[] = []
+      for (const eId of [enduserId, ...(options?.otherEnduserIds ?? [])]) {
+        try {
+          const { formResponse } = await session.api.form_responses.submit_form_response({ 
+            accessCode : (
+              accessCode 
+              || (await (
+                session as any as Session).api.form_responses.prepare_form_response({ 
+                  formId, enduserId: eId, isInternalNote, title: formTitle,
+                  parentResponseId, rootResponseId,
+    
+                  // @ts-ignore
+                  carePlanId, 
+                  // @ts-ignore
+                  context,
+                })
+              ).accessCode
+            ),
+            responses: [
+              ...responsesToSubmit,
+              // include existing responses in case previously saved as draft
+              ...(existingResponses ?? []).filter(r => !responsesToSubmit.find(_r => r.fieldId === _r.fieldId)),
+            ],
+            automationStepId,
+            customerId,
+            productIds: responsesToSubmit.flatMap(r => r.field?.options?.productIds ?? []),
+          })
+          if (!options?.otherEnduserIds?.length) { // only track for signle submission
+            if (ga4measurementId) {
+              ReactGA.event({
+                category: `form_${formResponse.formId}`,
+                action: "Form Submitted",
+                label: "Form Submitted",
+                transport: "beacon", 
+                value: 2,
+              });
+            }
+            updateLocalFormResponse(formResponse.id, formResponse)
+            options?.onSuccess?.(formResponse)
+          } else {
+            if (eId === options.otherEnduserIds[options.otherEnduserIds.length -1]) {
+              updateLocalFormResponse(formResponse.id, formResponse)
+              options?.onSuccess?.(formResponse)
+            }
+          }
+        } catch(err: any) {
+          if (options?.onBulkErrors) { // only track for signle submission
+            errors.push({ enduserId: eId, message: err?.message || err?.toString() })
+          }
+        }
+      }
+      if (errors.length) {
+        options?.onBulkErrors?.(errors)
       }
       
-      updateLocalFormResponse(formResponse.id, formResponse)
-      options?.onSuccess?.(formResponse)
-
       if (submitRedirectURL) {
         (window?.top ?? window).location.href = submitRedirectURL;
       }

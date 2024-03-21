@@ -37,6 +37,12 @@ import {
   useMeetingStatus,
   MeetingStatus,
   ContentShareControl,
+  VideoInputBackgroundBlurControl,
+  BackgroundBlurProvider,
+  // CameraSelection,
+  // BackgroundReplacementProvider,
+  // useVideoInputs,
+  // useBackgroundReplacement,
   // useRemoteVideoTileState,
   // useContentShareControls, // screen sharing
 } from 'amazon-chime-sdk-component-library-react';
@@ -52,7 +58,7 @@ import {
   StartVideoCallReturnType,
   JoinVideoCallProps,
 } from "./video_shared"
-import { ConsoleLogger, DefaultDeviceController, Logger, LogLevel } from "amazon-chime-sdk-js";
+import { ConsoleLogger, DefaultDeviceController, isVideoTransformDevice, Logger, LogLevel, MeetingSessionConfiguration } from "amazon-chime-sdk-js";
 
 import { useCalendarEvents } from "@tellescope/react-components"
 import { useCurrentCallContext } from "./index"
@@ -98,7 +104,11 @@ export const useStartAndJoinMeetingForCalendarEvent = (calendarEventId: string) 
 
     setMeeting(meeting as any)
 
-    await meetingManager.join({ meetingInfo: meeting, attendeeInfo: host.info }); // Use the join API to create a meeting session
+    const meetingSessionConfiguration = new MeetingSessionConfiguration(
+      meeting,
+      host.info,
+    );
+    await meetingManager.join(meetingSessionConfiguration); // Use the join API to create a meeting session
     await meetingManager.start(); // At this point you can let users setup their devices, or start the session immediately
 
     setMeeting(meeting.Meeting)
@@ -134,11 +144,12 @@ export const useJoinMeeting = () => {
         return
       }      
     }
-    
-    await meetingManager.join({ 
-      meetingInfo: meeting.meetingInfo, 
-      attendeeInfo,
-    }); // Use the join API to create a meeting session
+
+    const meetingSessionConfiguration = new MeetingSessionConfiguration(
+      meeting.meetingInfo,
+      attendeeInfo
+    );
+    await meetingManager.join(meetingSessionConfiguration); // Use the join API to create a meeting session
     await meetingManager.start(); // At this point you can let users setup their devices, or start the session immediately
 
     setMeeting(meeting.meetingInfo.Meeting)
@@ -183,13 +194,44 @@ const WithContext = ({ children } : { children: React.ReactNode }) => {
     </CurrentCallContext.Provider>
   )
 }
+
+// const load_image_blob = async () => (
+//   (await fetch('https://pathtoimage.jpeg')).blob()
+// )
+
+// export const WithVideo = ({ children }: VideoProps) => {
+//   const [imageBlob, setImageBlob] = useState<Blob>()
+
+//   useEffect(() => {
+//     load_image_blob()
+//     .then(setImageBlob)
+//     .catch(console.error)
+//   }, [])
+
+//   return (
+//     <ThemeProvider theme={darkTheme}>
+//     <BackgroundBlurProvider>
+//     <BackgroundReplacementProvider options={{ imageBlob }}>
+//     <MeetingProvider>
+//     <WithContext>
+//       {children}
+//     </WithContext>
+//     </MeetingProvider>
+//     </BackgroundReplacementProvider>
+//     </BackgroundBlurProvider>
+//     </ThemeProvider>
+//   )
+// }
+
 export const WithVideo = ({ children }: VideoProps) => (
   <ThemeProvider theme={darkTheme}>
+  <BackgroundBlurProvider>
   <MeetingProvider>
   <WithContext>
     {children}
   </WithContext>
   </MeetingProvider>
+  </BackgroundBlurProvider>
   </ThemeProvider>
 )
 
@@ -206,7 +248,11 @@ export const useStartVideoCall = (): StartVideoCallReturnType  => {
     try {
       const { id, meeting, host } = await session.api.meetings.start_meeting({ attendees: initialAttendees })
 
-      await meetingManager.join({ meetingInfo: meeting, attendeeInfo: host.info }); // Use the join API to create a meeting session
+      const meetingSessionConfiguration = new MeetingSessionConfiguration(
+        meeting,
+        host.info
+      );
+      await meetingManager.join(meetingSessionConfiguration); // Use the join API to create a meeting session
       await meetingManager.start(); // At this point you can let users setup their devices, or start the session immediately
 
       setMeeting(meeting.Meeting)
@@ -258,14 +304,19 @@ export const useJoinVideoCall = (props?: JoinVideoCallProps): JoinVideoCallRetur
     }
     if (!meetingInfo || typeof meetingInfo === 'string' || !attendeeInfo) return
 
-    await meetingManager.join({ meetingInfo, attendeeInfo }); // Use the join API to create a meeting session
+    
+    const meetingSessionConfiguration = new MeetingSessionConfiguration(
+      meetingInfo,
+      attendeeInfo
+    );
+    await meetingManager.join(meetingSessionConfiguration); // Use the join API to create a meeting session
     await meetingManager.start(); // At this point you can let users setup their devices, or start the session immediately
     setMeeting(meetingInfo.Meeting)
   }
 
   const leaveMeeting = () => {
     if (meetingManager.audioVideo) {
-      meetingManager.audioVideo.chooseVideoInputDevice(null);
+      meetingManager.audioVideo.stop()
 
       // Stop local video tile (stops sharing the video tile in the meeting)
       meetingManager.audioVideo.stopLocalVideoTile();
@@ -348,12 +399,13 @@ export const LocalPreview = ({ style=defaultPreviewStyle }: Styled) => {
     deviceController.listVideoInputDevices()
     .then(deviceList => {
       //Choose video device
-      deviceController.chooseVideoInputDevice(deviceList[0].deviceId)
+      deviceController.startVideoInput(deviceList[0].deviceId)
       .then(() => {
-        //Start video preview
-        deviceController.startVideoPreviewForVideoInput(videoElement); 
-      }).catch(console.error)
-    }).catch(console.error)
+        deviceController.startVideoPreviewForVideoInput(videoElement)
+      })
+      .catch(console.error)
+    })
+    .catch(console.error)
 
     // disconnect camera 
     return () => {
@@ -361,7 +413,11 @@ export const LocalPreview = ({ style=defaultPreviewStyle }: Styled) => {
     }
   }, [])
 
-  return <video id={PREVIEW_ELEMENT_ID} style={style}/>
+  return (
+    <>
+    <video id={PREVIEW_ELEMENT_ID} style={style}/>
+    </>
+  )
 }
 export { VideoTileGrid }
 
@@ -373,3 +429,57 @@ export const VideoCallNative: React.JSXElementConstructor<VideoCallNativeProps> 
 export const ScreenShareIcon = () => (
   <ContentShareControl iconTitle="Screen Share" label="Share Screen" />
 )
+
+export const BlurToggleIcon = () => (
+  <VideoInputBackgroundBlurControl />
+)
+
+// export const ToggleBackgroundImageButton = () => {
+//   const meetingManager = useMeetingManager();
+//   const { selectedDevice } = useVideoInputs();
+//   const [isVideoTransformCheckBoxOn, setisVideoTransformCheckBoxOn] =
+//     useState(false);
+//   const {
+//     isBackgroundReplacementSupported,
+//     createBackgroundReplacementDevice,
+//   } = useBackgroundReplacement();
+
+//   useEffect(() => {
+//     async function toggleBackgroundReplacement() {
+//       try {
+//         let current = selectedDevice;
+//         if (isVideoTransformCheckBoxOn) {
+//           current = await createBackgroundReplacementDevice(selectedDevice as any);
+//         } else {
+//           if (isVideoTransformDevice(selectedDevice)) {
+//             let intrinsicDevice = await selectedDevice.intrinsicDevice();
+//             selectedDevice.stop();
+//             current = intrinsicDevice;
+//           }
+//         }
+//         await meetingManager.startVideoInputDevice(current!);
+//       } catch (error) {
+//         // Handle device selection failure here
+//         console.error('Failed to toggle BackgroundReplacement');
+//       }
+//     }
+
+//     toggleBackgroundReplacement();
+//   }, [isVideoTransformCheckBoxOn]);
+
+//   const onClick = () => {
+//     setisVideoTransformCheckBoxOn((current) => !current);
+//   };
+
+//   return (
+//     <div>
+//       {isBackgroundReplacementSupported && (
+//         <button onClick={onClick}>
+//           {isVideoTransformDevice(selectedDevice)
+//             ? 'Background Replacement Enabled'
+//             : 'Enable Background Replacement'}
+//         </button>
+//       )}
+//     </div>
+//   );
+// };

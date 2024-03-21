@@ -160,10 +160,12 @@ export type OrganizationSettings = {
     recordCalls?: boolean,
     transcribeCalls?: boolean,
     transcribeCallInboundPlayback?: string,
+    defaultPhoneNumber?: string,
     sendSMSOnZoomStart?: boolean,
     enableGroupMMS?: boolean,
     enableAccessTags?: boolean,
     flaggedFileText?: string,
+    showBulkFormInput?: boolean,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
@@ -253,6 +255,9 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedZendesk?: boolean,
   hasConnectedZus?: boolean,
   hasConnectedCanvas?: boolean,
+  hasConnectedCandid?: boolean,
+  hasConnectedGoGoMeds?: boolean,
+  hasConfiguredZoom?: boolean,
   hasTicketQueues?: boolean,
   vitalTeamId?: string,
   altVitalTeamIds?: { teamId: string, label: string }[],
@@ -264,6 +269,10 @@ export interface Organization extends Organization_readonly, Organization_requir
   _groupChatsEnabled?: boolean,
   allowCreateSuborganizations?: boolean,
   allowCallerId?: boolean, // should require manual enablement by Tellescope team after explicit carve-out in BAA with customer
+  billingOrganizationName?: string,
+  billingOrganizationNPI?: string,
+  billingOrganizationTaxId?: string,
+  billingOrganizationAddress?: Address,
   // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {
@@ -347,6 +356,7 @@ export interface UserSession extends Session, OrganizationLimits { // User joine
   dashboardView?: CustomDashboardView,
   hasTicketQueues?: boolean,
   eat?: boolean, // enableAccessTags
+  lockedOutUntil?: number,
 }
 
 export type StateCredentialInfo = {
@@ -436,6 +446,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   voicemailPlayback?: PhonePlayback | {},
   mfa?: MFASettings,
   skills?: string[];
+  lockedOutUntil?: number, // -1 => not locked out, 0 => locked out indefinitely, > 0 => locked out until unix time in MS
 }
 
 export type Preference = 'email' | 'sms' | 'call' | 'chat'
@@ -519,9 +530,12 @@ export type EnduserInsurance = {
   payerName?: string,
   cardFront?: string,
   cardBack?: string,
-  eligible?: boolean,
+  // eligible?: boolean,
+  eligibility?: string,
+  status?: string,
   eligibilityRanAt?: Date,
-  canvasId?: string,
+  coverageId?: string,
+  requestId?: string,
   relationship?: InsuranceRelationship,
   relationshipDetails?: {
     fname?: string,
@@ -732,7 +746,7 @@ export type ReportQuery = {
   createdAtBuckets?: Date[],
 }
 export type ReportQueries = Record<string, ReportQuery>
-export type Report = Record<string, { count: number, _id: null | string | string[] }[]>
+export type Report = Record<string, { count: number, _id: null | string | string[], ids?: string[] }[]>
 
 export type FormResponsesReportQuery = ReportQuery & {
   submittedAtRange?: DateRange,
@@ -1715,6 +1729,9 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   internalNotes?: string,
   hiddenFromPortal?: boolean,
   nextReminderInMS?: number | null,
+  enduserAttendeeLimit?: number,
+  bufferStartMinutes?: number,
+  bufferEndMinutes?: number,
   // isAllDay?: boolean,
 }
 
@@ -1812,7 +1829,11 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   carePlanContent?: string[],
   carePlanFiles?: string[]
 
+  enduserAttendeeLimit?: number,
+
   apiOnly?: boolean,
+  bufferStartMinutes?: number,
+  bufferEndMinutes?: number,
 }
 
 export interface AppointmentLocation_readonly extends ClientRecord {}
@@ -1847,6 +1868,7 @@ export interface AppointmentBookingPage extends AppointmentBookingPage_readonly,
   secondaryColor?: string,
   backgroundColor?: string,
   terms?: AppointmentTerm[],
+  topLogo?: string,
   intakeTitle?: string,
   intakeDescription?: string,
   thankYouRedirectURL?: string,
@@ -2761,6 +2783,8 @@ export interface AnalyticsFrame extends
 {
   parentFrame?: string,
   type?: AnalyticsFrameType,
+  groupMin?: number | '',
+  groupMax?: number | '',
 }
 
 
@@ -3130,6 +3154,42 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
   status: string,
   enduserId: string,
   userId?: string,
+  error?: string,
+}
+
+export const DIAGNOSIS_TYPE_MAPPING = {
+  "ABF": "ICD-10",
+  "ABJ": "ICD-10 Admitting Diagnosis",
+  "ABK": "ICD-10 Principal Diagnosis",
+  "APR": "ICD-10 Patient Reason for Visit",
+  "BF": "ICD-9 Diagnosis",
+  "BJ": "ICD-9 Admitting Diagnosis",
+  "BK": "ICD-9 Principal Diagnosis",
+  "PR": "ICD-9 Patient Reason for Visit",
+  "DR": "Diagnosis Related Group (DRG)",
+  "LOI": "LOINC<190>",
+}
+export type DiagnosisTypes = typeof DIAGNOSIS_TYPE_MAPPING
+export type DiagnosisType = keyof DiagnosisTypes
+export type Diagnosis = {
+  type: keyof DiagnosisTypes,
+  code: string,
+}
+export interface EnduserEncounter_readonly extends ClientRecord {
+  externalId?: string,
+  integration?: 'Candid',
+}
+export interface EnduserEncounter_updatesDisabled {}
+export interface EnduserEncounter_required {}
+export interface EnduserEncounter extends EnduserEncounter_readonly, EnduserEncounter_required, EnduserEncounter_updatesDisabled {
+  title: string,
+  enduserId: string,
+  providerUserId: string,
+  dateOfService: string,
+  diagnoses: Diagnosis[],
+  authorizedRelease: boolean, // Whether this patient has authorized the release of medical information for billing purpose.
+  placeOfServiceCode: string,
+  error?: string, // e.g. for errors with push to Candid
 }
 
 export interface TicketQueue_readonly extends ClientRecord {
@@ -3166,6 +3226,7 @@ export interface GroupMMSConversation_readonly extends ClientRecord {
   title: string,
   userIds: string[],
   enduserIds: string[],
+  destinations: string[],
   userStates: GroupMMSUserState[],
   pinnedAt?: Date | '',
   tags?: string[]
@@ -3179,6 +3240,7 @@ export interface GroupMMSConversation extends GroupMMSConversation_readonly, Gro
 }
 
 export type ModelForName_required = {
+  enduser_encounters: EnduserEncounter_required,
   enduser_orders: EnduserOrder_required,
   group_mms_conversations: GroupMMSConversation_required,
   ticket_queues: TicketQueue_required,
@@ -3251,6 +3313,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  enduser_encounters: EnduserEncounter_readonly,
   enduser_orders: EnduserOrder_readonly,
   group_mms_conversations: GroupMMSConversation_readonly,
   ticket_queues: TicketQueue_readonly,
@@ -3323,6 +3386,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  enduser_encounters: EnduserEncounter_updatesDisabled,
   enduser_orders: EnduserOrder_updatesDisabled,
   group_mms_conversations: GroupMMSConversation_updatesDisabled,
   ticket_queues: TicketQueue_updatesDisabled,
@@ -3395,6 +3459,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly {
+  enduser_encounters: EnduserEncounter,
   enduser_orders: EnduserOrder,
   group_mms_conversations: GroupMMSConversation,
   ticket_queues: TicketQueue,
@@ -3477,6 +3542,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  enduser_encounters: true,
   enduser_orders: true,
   group_mms_conversations: true,
   ticket_queues: true,
@@ -4256,3 +4322,38 @@ export type ChatGPTMessage = ExternalChatGPTMessage | {
   content: string,
 }
 export type ChatGPTModel ='gpt-3.5-turbo' | 'gpt4'
+
+export type CanvasBenefit = {
+  type: { text: string },
+  allowedMoney?: { value: number }, // for Co-Payment type
+  allowedString?: { value: `${string}%` }, // for Co-Insurance type
+  usedMoney?: { value: number }, // for Out of Pocket (Stop Loss)
+}
+
+export type CanvasEligibility = {
+  coverage: { reference: string, type: "Coverage" },
+  item?: {
+    name?: string,
+    network?: {
+      coding: { system: string, code: string, display: string }[],
+      text: string,
+    },
+    unit?: {
+      coding: { system: string, code: string, display: string }[],
+      text: string,
+    },
+    benefit: CanvasBenefit[],
+  }[]
+}
+
+// simplified, removes fields we can always provide or can infer
+export type GoGoMedsPet = {
+  PetName: string,
+  PetTypeId: number, // 1 dog, 2 cat, 3 other
+  OtherPetType?: string,
+  PetWeight: string, // numberic, string length 5 max, ounces?
+  Gender: "M" | "F" | "U" | "P",
+  AllergyText?: string,
+  MedicalConditionText?: string,
+  CurrentMedications?: string,
+}

@@ -724,6 +724,8 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
   isInternalNote?: boolean,
   submittedAt?: Date,
   updatedAt?: Date,
+  otherEnduserIds?: string[],
+  onBulkErrors?: (errors: { enduserId: string, message: string }[]) => void,
 }> = ({
   customInputs, 
   submitErrorMessage,
@@ -769,6 +771,8 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
   submittedAt,
   updatedAt,
 
+  otherEnduserIds,
+  onBulkErrors,
   ...props 
 }) => {
   const list = useListForFormFields(fields, responses)
@@ -784,8 +788,9 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
     await submit({ 
       onSuccess, 
       includedFieldIds, /* ensures all answers are included and in the correct order */ 
+      otherEnduserIds, onBulkErrors,
     })
-  }, [isPreview, onSuccess, submit])
+  }, [isPreview, onSuccess, submit, otherEnduserIds, onBulkErrors])
 
   const errors = useMemo(() => {
     const es: { id: string, title: string, error: string }[] = []

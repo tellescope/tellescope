@@ -812,8 +812,9 @@ export const Table = <T extends Item>({
     for (const s of (sort || [])) {
       items.sort((itemA, itemB) => {
         try {
-          const a = itemA[s.field as keyof typeof itemA]
-          const b = itemB[s.field as keyof typeof itemA]
+          const field = fields.find(f => f.label === s.field)
+          const a = itemA[s.field as keyof typeof itemA] || field?.getSortValue?.(itemA)
+          const b = itemB[s.field as keyof typeof itemA] || field?.getSortValue?.(itemB)
 
           const comparison = (
             (s.type === 'number' && typeof a === 'number' && typeof b === 'number')

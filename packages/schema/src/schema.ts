@@ -58,6 +58,7 @@ import {
   FormResponsesReportQueries,
   PhoneCallsReportQueries,
   ListOfStringsWithQualifier,
+  GoGoMedsPet,
 } from "@tellescope/types-models"
 
 import {
@@ -83,6 +84,7 @@ import {
   Ticket,
   GroupMMSConversation,
   EnduserOrder,
+  EnduserEncounter,
 } from "@tellescope/types-client"
 
 import {
@@ -268,6 +270,7 @@ import {
   ticketReminderValidator,
   insuranceOptionalValidator,
   listOfStringsValidatorUniqueOptionalOrEmptyOkay,
+  diagnosesValidator,
 } from "@tellescope/validation"
 
 import {
@@ -276,6 +279,7 @@ import {
   PLACEHOLDER_ID,
   ENDUSER_SESSION_TYPE,
   USER_SESSION_TYPE,
+  CANDID_TITLE,
 } from "@tellescope/constants"
 
 export const get_next_reminder_timestamp_for_ticket = ({ dueDateInMS, reminders } : Pick<Ticket, 'dueDateInMS' | 'reminders'>): number => {
@@ -630,6 +634,7 @@ export type CustomActions = {
       range?: DateRange, 
       enduserFilter?: Record<string, any>,
       submittedOnly?: boolean,
+      includeIds?: boolean,
     }, 
     { report: Report }
     >,
@@ -665,6 +670,7 @@ export type CustomActions = {
     get_journey_statistics: CustomAction<{ journeyId: string }, { statistics: JourneyStatistics }>,
   },
   endusers: {
+    check_eligibility: CustomAction<{ id: string, integration?: string, clearinghouse?: string, }, { enduser: Enduser }>,
     set_password: CustomAction<{ id: string, password: string }, { }>,
     is_authenticated: CustomAction<
       { id?: string, authToken: string }, 
@@ -766,7 +772,7 @@ export type CustomActions = {
     unlike_post: CustomAction<{ postId: string, forumId: string }, { }>,
   },
   integrations: {
-    load_payers: CustomAction<{ query?: string, }, { choices: { name: string, id: string } [] }>,
+    load_payers: CustomAction<{ integration?: string, query?: string, offset?: number, limit?: number, next_page_token?: string }, { next_page_token?: string, choices: { name: string, id: string } [] }>,
     generate_google_auth_url: CustomAction<{ }, { authUrl: string, }>, 
     disconnect_google_integration: CustomAction<{}, {}>,
     generate_oauth2_auth_url: CustomAction<{ integration: IntegrationsTitleType }, { authUrl: string, state: string }>, 
@@ -798,6 +804,7 @@ export type CustomActions = {
       apiKeyEmail: string,
     }, {  }>, 
     disconnect_zendesk: CustomAction<{}, {}>,
+    update_zoom: CustomAction<{ clientId?: string, clientSecret?: string }, { }>,
   },
   emails: {
     sync_integrations: CustomAction<{ enduserEmail: string, allUsers?: boolean }, { newEmails: Email[] }>,
@@ -880,6 +887,7 @@ export type CustomActions = {
     close_ticket: CustomAction<{ ticketId: string, closedForReason?: string }, { updated: Ticket, generated?: Ticket }>,
     update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
     get_report: CustomAction<{ title?: string, titles?: string[], userId?: string, range?: DateRange, groupByOwnerAndTitle?: boolean }, { report: TicketsReport }>,
+    get_distribution_report: CustomAction<{  range?: DateRange }, { report: Report[keyof Report] }>,
     assign_from_queue: CustomAction<{ ticketId: string }, { ticket: Ticket }>,
   },
   appointment_booking_pages: {
@@ -918,6 +926,14 @@ export type CustomActions = {
       physicianUserId?: string,
       teamId?: string, // for picking from multiple vital integrations
     }, { order: EnduserOrder }>,
+    create_go_go_meds_order: CustomAction<{ 
+      enduserId: string,
+      PrescriptionImage: string,
+      title?: string,
+    } & GoGoMedsPet, { order: EnduserOrder }>,
+  },
+  enduser_encounters: {
+    create_candid_encounter: CustomAction<{ encounterId: string }, { encounter: EnduserEncounter }>,
   },
 } 
 
@@ -963,6 +979,7 @@ export type PublicActions = {
       publicIdentifier?: string,
       state?: string,
       customTypeId?: string,
+      skipMatch?: boolean,
       // organizationIds?: string[]
     }, { accessCode: string, authToken: string, url: string, path: string }>,
   },
@@ -1225,6 +1242,20 @@ export const schema: SchemaV1 = build_schema({
       // },
     }, 
     customActions: {
+      check_eligibility: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Check Eligibility',
+        path: '/endusers/check-eligibility',
+        description: "Checks insurance eligibility via Candid or Canvas integration",
+        parameters: { 
+          id: { validator: mongoIdStringValidator, required: true },
+          integration: { validator: stringValidator },
+          clearinghouse: { validator: stringValidator },
+        },
+        returns: { 
+          enduser: { validator: 'enduser' as any },
+        } 
+      },
       add_to_journey: {
         op: "custom", access: 'update', method: "post",
         name: 'Add to journey',
@@ -1648,6 +1679,18 @@ export const schema: SchemaV1 = build_schema({
       webhooksSecret: { validator: stringValidator },
     },
     customActions: {
+      update_zoom: {
+        adminOnly: true,
+        op: 'custom', access: 'create', method: 'post',
+        path: '/integrations/zoom-configuration',
+        name: 'Creates (include clientId, clientSecret) or removes a Zoom configuration',
+        description: "", 
+        parameters: {
+          clientId: { validator: stringValidator },
+          clientSecret: { validator: stringValidator },
+        },
+        returns: { }
+      },
       generate_google_auth_url: {
         op: 'custom', access: 'create', method: 'post',
         path: '/generate-google-auth-url',
@@ -1817,13 +1860,18 @@ export const schema: SchemaV1 = build_schema({
         name: 'Load Payers',
         description: "Loads insurer options for Insurance question type, pulling from integrations like Canvas/Candid",
         parameters: { 
+          integration: { validator: stringValidator },
+          offset: { validator: nonNegNumberValidator },
+          limit: { validator: nonNegNumberValidator },
           query: { validator: stringValidator },
+          next_page_token: { validator: stringValidator },
         },
         returns: {
           choices: { 
             validator: listValidator(objectValidator<{ name: string, id: string }>({ name: stringValidator, id: stringValidator})),
             required: true,
-          }
+          },
+          next_page_token: { validator: stringValidator }
         },
       },
     }
@@ -2576,7 +2624,21 @@ export const schema: SchemaV1 = build_schema({
 
             return "Only admin users can update others' profiles"
           }
-        }, {
+        }, 
+        {
+          explanation: "Only admin users can update user lockouts",
+          evaluate: ({ _id }, _, session, method, { updates }) => {
+            if (updates?.lockedOutUntil !== undefined && session.id === _id?.toString()) {
+              return "Users cannot update own lock status"
+            }
+            if ((session as UserSession)?.roles?.includes('Admin')) return // admin can do this
+            if (method === 'create') return // create already admin restricted
+            if (updates?.lockedOutUntil === undefined) return // not provided
+
+            return "Only admin users can update user lockouts"
+          }
+        }, 
+        {
           explanation: "User organizationIds are readonly",
           evaluate: ({ }, _, session, method, { updates }) => {
             if (method === 'create') return // only concerned with updates
@@ -2898,6 +2960,7 @@ export const schema: SchemaV1 = build_schema({
       NPI: { validator: stringValidatorOptionalEmptyOkay },
       DEA: { validator: stringValidatorOptionalEmptyOkay },
       voicemailPlayback: { validator: phonePlaybackValidatorOptional },
+      lockedOutUntil: { validator: numberValidator },
     }
   },
   templates: {
@@ -3145,6 +3208,18 @@ export const schema: SchemaV1 = build_schema({
           titles: { validator: listOfStringsValidatorEmptyOk },
           range: { validator: dateRangeOptionalValidator },
           groupByOwnerAndTitle: { validator: booleanValidator },
+        },
+        returns: {
+          report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
+        },
+      },
+      get_distribution_report: {
+        op: "custom", access: 'read', method: "all",
+        name: 'Get Report',
+        path: '/tickets/distribution-report',
+        description: "Gets aggregate data for a report on ticket distributions",
+        parameters: { 
+          range: { validator: dateRangeOptionalValidator },
         },
         returns: {
           report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
@@ -3764,6 +3839,7 @@ export const schema: SchemaV1 = build_schema({
           range: { validator: dateRangeOptionalValidator },
           enduserFilter: { validator: objectAnyFieldsAnyValuesValidator },
           submittedOnly: { validator: booleanValidatorOptional },
+          includeIds: { validator: booleanValidator },
         },
         returns: {
           report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
@@ -3842,6 +3918,7 @@ export const schema: SchemaV1 = build_schema({
           publicIdentifier: { validator: stringValidator },
           state: { validator: stateValidator },
           customTypeId: { validator: stringValidator },
+          skipMatch: { validator: booleanValidator },
         },
         returns: {
           accessCode: { validator: stringValidator250, required: true },
@@ -4318,6 +4395,9 @@ export const schema: SchemaV1 = build_schema({
       copiedFrom: { validator: mongoIdStringValidator },
       internalNotes: { validator: stringValidator5000EmptyOkay },
       hiddenFromPortal: { validator: booleanValidatorOptional },
+      enduserAttendeeLimit: { validator: numberValidator },
+      bufferEndMinutes: { validator: numberValidator },
+      bufferStartMinutes: { validator: numberValidator },
       // isAllDay: { validator: booleanValidator },
     }
   },
@@ -4366,6 +4446,9 @@ export const schema: SchemaV1 = build_schema({
       videoIntegration: { validator: videoIntegrationTypesValidator },
       color: { validator: stringValidator1000 },
       apiOnly: { validator: booleanValidator },
+      enduserAttendeeLimit: { validator: numberValidator },
+      bufferEndMinutes: { validator: numberValidator },
+      bufferStartMinutes: { validator: numberValidator },
     }
   },
   calendar_event_RSVPs: {
@@ -5262,6 +5345,10 @@ export const schema: SchemaV1 = build_schema({
         teamId: stringValidator100,
         label: stringValidator100,
       })) },
+      billingOrganizationName: { validator: stringValidator },
+      billingOrganizationNPI: { validator: stringValidator },
+      billingOrganizationTaxId: { validator: stringValidator },
+      billingOrganizationAddress: { validator: addressValidator },
     },
   },
   databases: {
@@ -5556,7 +5643,7 @@ export const schema: SchemaV1 = build_schema({
       hoursBeforeBookingAllowed: { validator: numberValidatorOptional },
       limitedToCareTeam: { validator: booleanValidator },
       limitedByState: { validator: booleanValidator },
-
+      topLogo: { validator: stringValidator },
       // defer to template
       // productIds: { validator: listOfStringsValidator },
     }
@@ -5943,7 +6030,9 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           onDependencyDelete: 'delete',
         }]
       },
-      type: { validator: analyticsFrameTypeValidator }
+      type: { validator: analyticsFrameTypeValidator },
+      groupMin: { validator: nonNegNumberValidator },
+      groupMax: { validator: nonNegNumberValidator },
     },
   },
   availability_blocks: {
@@ -6641,6 +6730,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       enduserIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] },
       externalId: { validator: stringValidator, readonly: true }, 
       phoneNumber: { validator: stringValidator, readonly: true }, 
+      destinations: { validator: listOfStringsValidator, readonly: true }, 
       title: { validator: stringValidator, readonly: true }, 
       messages: { validator: mmsMessagesValidator, readonly: true },
       userStates: { validator: groupMMSUserStatesValidator },
@@ -6648,6 +6738,53 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       suggestedReply: { validator: stringValidator5000EmptyOkay },
       hiddenBy: { validator: idStringToDateValidator },
     },
+  },
+  enduser_encounters: {
+    info: {
+      description: 'Encounters, currently for use with Candid integration only'
+    },
+    constraints: { 
+      unique: [], relationship: [], 
+      access: [{ type: 'filter', field: 'providerUserId' }]
+    },
+    defaultActions: { create: {}, read: {}, readMany: {}, delete: {} },
+    customActions: {
+      create_candid_encounter: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Create Encounter With Candid',
+        path: '/enduser-encounters/create-candid-encounter',
+        description: "Creates an Encounter in Candid",
+        parameters: { 
+          encounterId: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: { 
+          encounter: { validator: 'enduser_encounter' as any, required: true },
+        } 
+      },
+    },
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      externalId: { validator: stringValidator100, examples: ['externalId'], readonly: true },
+      title: { validator: stringValidator, examples: ['Title'], required: true },
+      integration: { validator: exactMatchValidator<typeof CANDID_TITLE>([CANDID_TITLE]), examples: [CANDID_TITLE], readonly: true },
+      enduserId: { 
+        validator: mongoIdStringValidator,
+        examples: [PLACEHOLDER_ID],
+        required: true,
+        dependencies: [{
+          dependsOn: ['endusers'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+      providerUserId: { validator: mongoIdStringValidator, required: true, examples: [PLACEHOLDER_ID] },
+      authorizedRelease: { validator: booleanValidator, required: true, examples: [true] },
+      dateOfService: { validator: stringValidator, required: true, examples: ['MM-DD-YYYY'] },
+      diagnoses: { validator: diagnosesValidator, required: true, examples: [[{ type: 'LOI', code: "CODE_HERE" }]]},
+      placeOfServiceCode: { validator: stringValidator, required: true, examples: ['02', '11'] },
+    }
   },
   enduser_orders: {
     info: {
@@ -6682,6 +6819,28 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           labTestId: { validator: stringValidator, required: true },
           physicianUserId: { validator: mongoIdStringValidator },
           teamId: { validator: stringValidator },
+        },
+        returns: { 
+          order: { validator: 'enduser_order' as any, required: true },
+        } 
+      },
+      create_go_go_meds_order: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Create Prescription Vet Order (GoGoMeds)',
+        path: '/enduser-orders/create-gogomeds-order',
+        description: "Creates a vet order via GoGoMeds",
+        parameters: { 
+          enduserId: { validator: mongoIdStringValidator, required: true },
+          PrescriptionImage: { validator: stringValidator, required: true },
+          title: { validator: stringValidator },
+          PetName: { validator: stringValidator, required: true },
+          PetTypeId: { validator: numberValidator, required: true },
+          OtherPetType: { validator: stringValidator },
+          PetWeight: { validator: stringValidator },
+          AllergyText: { validator: stringValidator },
+          CurrentMedications: { validator: stringValidator },
+          Gender: { validator: stringValidator as any, required: true },
+          MedicalConditionText: { validator: stringValidator },
         },
         returns: { 
           order: { validator: 'enduser_order' as any, required: true },

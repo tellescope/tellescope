@@ -1469,3 +1469,65 @@ export const weighted_round_robin = ({ assignments: _assignments, users: _users 
     
   return { selected: undefined }
 }
+
+export const validate_insurance_for_eligibility = (enduser: Pick<Enduser, 'insurance'>) => {
+  if (!enduser.insurance) { return "Insurance not set" }
+  if (!enduser.insurance.payerName) { return "Payer name not set" }
+  if (!enduser.insurance.payerId) { return "Payer id not set" }
+  if (!enduser.insurance.memberId) { return "Member id not set" }
+  if (!enduser.insurance.relationship) { return "Subscriber relationship set" }
+  if (enduser.insurance.relationship !== 'Self') {
+    if (!enduser.insurance.relationshipDetails?.fname) { return "Subscriber first name not set" }
+    if (!enduser.insurance.relationshipDetails?.lname) { return "Subscriber last name not set" } 
+    if (!enduser.insurance.relationshipDetails?.gender) { return "Subscriber gender not set" } 
+  }
+}
+
+export const validate_organization_for_candid = (organization?: Omit<Organization, 'id'> | null) => {
+  if (!organization) return "Organization is required"
+  if (!organization.billingOrganizationName) return "Billing organization name is required"
+  if (!organization.billingOrganizationNPI) return "Billing organization NPI is required"
+  if (!organization.billingOrganizationTaxId) return "Billing organization Tax ID is required"
+
+  if (!organization.billingOrganizationAddress?.lineOne) return "Billing organization address is required (Line One)"
+  if (!organization.billingOrganizationAddress?.city) return "Billing organization address is required (City)"
+  if (!organization.billingOrganizationAddress?.state) return "Billing organization address is required (State)"
+  if (!organization.billingOrganizationAddress?.zipCode) return "Billing organization address is required (ZIP)"
+  if (!organization.billingOrganizationAddress?.zipPlusFour) return "Billing organization address is required (ZIP+4)"
+}
+export const validate_provider_for_candid = (user?: Omit<User, 'id'> | null) => {
+  if (!user) return "User is required"
+  if (!user.fname)  return "User first name is required"
+  if (!user.lname)  return "User last name is required"
+  if (!user.NPI)    return "User NPI is required"
+}
+export const validate_enduser_for_candid = (enduser?: Omit<Enduser, 'id'> | null) => {
+  if (!enduser) return "Enduser is required"
+  if (!enduser.fname) return "First name is required"
+  if (!enduser.lname) return "Last name is required"
+  if (!enduser.dateOfBirth) return "Date of birth is required"
+  if (!enduser.gender) return "Gender is required"
+
+  if (!enduser.addressLineOne) return "Address is required (Line One)"
+  if (!enduser.city) return "Address is required (City)"
+  if (!enduser.state) return "Address is required (State)"
+  if (!enduser.zipCode) return "Address is required (ZIP)"
+}
+
+export const json_error_string = (s: string) => {
+  try {
+    return JSON.stringify(JSON.parse(s), null, 2)
+  } catch(err) { return s }
+}
+
+export const validate_enduser_for_gogo = (enduser?: Omit<Enduser, 'id'> | null) => {
+  if (!enduser) return "Enduser is required"
+  if (!enduser.fname) return "First name is required"
+  if (!enduser.lname) return "Last name is required"
+  if (!enduser.phone) return "Phone is required"
+
+  if (!enduser.addressLineOne) return "Address is required (Line One)"
+  if (!enduser.city) return "Address is required (City)"
+  if (!enduser.state) return "Address is required (State)"
+  if (!enduser.zipCode) return "Address is required (ZIP)"
+}

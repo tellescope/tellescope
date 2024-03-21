@@ -366,62 +366,59 @@ export class Session {
   }
 
   authenticate_socket = () => { 
-    if (this.userInfo.requiresMFA) return
-    if (this.lastSocketConnection + 2500 > Date.now()) return
-    this.lastSocketConnection = Date.now()
+    // if (this.userInfo.requiresMFA) return
+    // if (this.lastSocketConnection + 2500 > Date.now()) return
+    // this.lastSocketConnection = Date.now()
 
-    if (this.enableSocketLogging) console.log('authenticating socket')
+    // if (this.enableSocketLogging) console.log('authenticating socket')
 
-    this.initialize_socket()
-    if (!this.socket) {
-      console.warn("failed to initialize_socket")
-      return
-    }
+    // this.initialize_socket()
+    // if (!this.socket) {
+    //   console.warn("failed to initialize_socket")
+    //   return
+    // }
 
-    this.socket.removeAllListeners()
+    // this.socket.removeAllListeners()
 
-    this.socket.on('ping', () => {
-      if (this.enableSocketLogging) { this.socket_log("pong") }
-    })
+    // this.socket.on('ping', () => {
+    //   if (this.enableSocketLogging) { this.socket_log("pong") }
+    // })
 
-    // handle events which are sent when handlers may be off
-    this.socket?.onAny((e, v)=> {
-      if (this.handlers[e] && v) {
-        this.handlers[e](v)
-      } else if (Array.isArray(v)) {
-        if (!this.loadedSocketEvents[e]) {
-          this.loadedSocketEvents[e] = []
-        }
-        this.loadedSocketEvents[e].push(...v)
-      }
-    })
+    // // handle events which are sent when handlers may be off
+    // this.socket?.onAny((e, v)=> {
+    //   if (this.handlers[e] && v) {
+    //     this.handlers[e](v)
+    //   } else if (Array.isArray(v)) {
+    //     if (!this.loadedSocketEvents[e]) {
+    //       this.loadedSocketEvents[e] = []
+    //     }
+    //     this.loadedSocketEvents[e].push(...v)
+    //   }
+    // })
 
-    this.socket.on('connect', () => {
-      if (this.enableSocketLogging) { this.socket_log(`connect, authenticated=${this.socketAuthenticated}`) }
-    })
+    // this.socket.on('connect', () => {
+    //   if (this.enableSocketLogging) { this.socket_log(`connect, authenticated=${this.socketAuthenticated}`) }
+    // })
 
-    this.socket.on('disconnect', () => { 
-      this.socketAuthenticated = false 
-      if (this.enableSocketLogging) { this.socket_log("disconnect") }
-    })
-    this.socket.on('authenticated', () => { 
-      this.socketAuthenticated = true 
-      // if (this.enableSocketLogging) { 
-      this.socket_log("authenticated") 
-      // }
-    })
-    this.socket.on('error', (error: any) => {
-      console.warn('socket error: ', error)
-    })
-    this.socket.on('connect_error', (error: any) => {
-      console.warn('connect_error: ', error)
-      // setTimeout(() => {
-      //   this.socket?.connect()
-      // })
-    })
-
-    // no longer necessary
-    // this.socket.emit('authenticate', this.authToken)
+    // this.socket.on('disconnect', () => { 
+    //   this.socketAuthenticated = false 
+    //   if (this.enableSocketLogging) { this.socket_log("disconnect") }
+    // })
+    // this.socket.on('authenticated', () => { 
+    //   this.socketAuthenticated = true 
+    //   // if (this.enableSocketLogging) { 
+    //   this.socket_log("authenticated") 
+    //   // }
+    // })
+    // this.socket.on('error', (error: any) => {
+    //   console.warn('socket error: ', error)
+    // })
+    // this.socket.on('connect_error', (error: any) => {
+    //   console.warn('connect_error: ', error)
+    //   // setTimeout(() => {
+    //   //   this.socket?.connect()
+    //   // })
+    // })
   }
 
   /** @deprecated */

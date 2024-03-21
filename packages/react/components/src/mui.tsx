@@ -296,8 +296,9 @@ export interface TooltipProps extends Styled {
   children: React.ReactElement;
   enterDelay?: number;
   enterNextDelay?: number,
+  tooltipSx?: SxProps,
 }
-export const Tooltip = ({ label, placement, arrow=true, open, style, children, enterDelay, enterNextDelay=enterDelay, ...props } : TooltipProps) => {
+export const Tooltip = ({ tooltipSx, label, placement, arrow=true, open, style, children, enterDelay, enterNextDelay=enterDelay, ...props } : TooltipProps) => {
   return (
     <MuiTooltip title={label} placement={placement} arrow={arrow} open={open}
       enterDelay={enterDelay} enterNextDelay={enterNextDelay}
@@ -308,6 +309,7 @@ export const Tooltip = ({ label, placement, arrow=true, open, style, children, e
         ...placement === 'right' ? { right: 5 } : {},
       }}
       {...props}
+      componentsProps={{ tooltip: { sx: tooltipSx } }}
     >
       {/* Wrap with span for hover to work properly, avoid forcing breaks with div */}
       <span style={style}>

@@ -1,7 +1,7 @@
 import React from "react"
 import { Divider, Grid, Typography } from "@mui/material"
 import { Enduser, FormResponse } from "@tellescope/types-client"
-import { form_response_value_to_string, getOrgnizationLogoURL, user_display_name } from "@tellescope/utilities"
+import { form_response_value_to_string, formatted_date, getOrgnizationLogoURL, user_display_name } from "@tellescope/utilities"
 import { DownloadFileIconButton, LabeledIconButton, SecureImage, useEndusers, useOrganization, useResolvedSession, useSession, useUsers, value_is_loaded } from "../index"
 import CloseIcon from '@mui/icons-material/Close';
 import { DatabaseSelectResponse, FormResponseAnswerAddress, FormResponseValueAnswer } from "@tellescope/types-models"
@@ -250,6 +250,15 @@ export const FormResponseView = ({ enduser, onClose, hideHeader, response, id, p
           }
         </Typography>
       }
+
+      {
+        <div style={{ textAlign: 'center', paddingBottom: 4 }}>
+        <i>
+          {formatted_date(new Date(response.submittedAt || response.createdAt))}
+        </i>
+        </div>
+      }
+
 
       <Divider flexItem style={{ marginTop: 2, marginBottom: 12 }} />
 

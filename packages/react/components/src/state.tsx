@@ -80,6 +80,7 @@ import {
   TicketQueue,
   GroupMMSConversation,
   EnduserOrder,
+  EnduserEncounter,
 } from "@tellescope/types-client"
 
 import {
@@ -328,6 +329,7 @@ const ticketThreadCommentsSlice = createSliceForList<TicketThreadComment, 'ticke
 const configurationsSlice = createSliceForList<Configuration, 'configurations'>('configurations')
 const ticketQueuesSlice = createSliceForList<TicketQueue, 'ticket_queues'>('ticket_queues')
 const enduserOrdersSlice = createSliceForList<EnduserOrder, 'enduser_orders'>('enduser_orders')
+const enduserEncountersSlice = createSliceForList<EnduserEncounter, 'enduser_encounters'>('enduser_encounters')
 
 const roleBasedAccessPermissionsSlice = createSliceForList<RoleBasedAccessPermission, 'role_based_access_permissions'>('role_based_access_permissions')
 
@@ -403,6 +405,7 @@ export const sharedConfig = {
     ticket_thread_comments: ticketThreadCommentsSlice.reducer,
     group_mms_conversations: groupMMSConversationsSlice.reducer,
     enduser_orders: enduserOrdersSlice.reducer,
+    enduser_encounters: enduserEncountersSlice.reducer,
   },
 }
 
@@ -1031,6 +1034,22 @@ export const useEnduserOrders = (options={} as HookOptions<EnduserOrder>) => {
       addSome: session.api.enduser_orders.createSome,
       deleteOne: session.api.enduser_orders.deleteOne,
       updateOne: session.api.enduser_orders.updateOne,
+    }, 
+    {...options}
+  )
+}
+export const useEnduserEncounters = (options={} as HookOptions<EnduserEncounter>) => {
+  const session = useSession()
+  return useListStateHook(
+    'enduser_encounters', useTypedSelector(s => s.enduser_encounters), session, enduserEncountersSlice, 
+    { 
+      loadQuery: session.api.enduser_encounters.getSome,
+      findOne: session.api.enduser_encounters.getOne,
+      findByIds: session.api.enduser_encounters.getByIds,
+      addOne: session.api.enduser_encounters.createOne,
+      addSome: session.api.enduser_encounters.createSome,
+      deleteOne: session.api.enduser_encounters.deleteOne,
+      updateOne: session.api.enduser_encounters.updateOne,
     }, 
     {...options}
   )

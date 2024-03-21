@@ -499,12 +499,17 @@ export const InsuranceInput = ({ field, value, onChange, form, ...props }: FormI
     <Grid container spacing={2} sx={{ mt: '0' }}>
       <Grid item xs={12} sm={6}>
       <Autocomplete freeSolo options={payers.map(p => p.name)}
-        value={value?.payerName}
+        value={value?.payerName || ''}
         onChange={(e, v) => onChange({ 
           ...value, 
           payerName: v || '',
           payerId: payers.find(p => p.name === v)?.id || '',
         }, field.id)}  
+        onInputChange={(e, v) => onChange({ 
+          ...value, 
+          payerName: v || '',
+          payerId: payers.find(p => p.name === v)?.id || '',
+        }, field.id)}
         renderInput={(params) => (
           <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
             required={!field.isOptional} size="small"  label="Insurer"

@@ -195,6 +195,7 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   ticket_queues: defaultQueries(s, 'ticket_queues'), 
   group_mms_conversations: defaultQueries(s, 'group_mms_conversations'), 
   enduser_orders: defaultQueries(s, 'enduser_orders'), 
+  enduser_encounters: defaultQueries(s, 'enduser_encounters'), 
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
@@ -223,6 +224,14 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     create_lab_order: (args: extractFields<CustomActions['enduser_orders']['create_lab_order']['parameters']>) => (
       Promise<extractFields<CustomActions['enduser_orders']['create_lab_order']['returns']>>
     ),
+    create_go_go_meds_order: (args: extractFields<CustomActions['enduser_orders']['create_go_go_meds_order']['parameters']>) => (
+      Promise<extractFields<CustomActions['enduser_orders']['create_go_go_meds_order']['returns']>>
+    ),
+  },
+  enduser_encounters: {
+    create_candid_encounter: (args: extractFields<CustomActions['enduser_encounters']['create_candid_encounter']['parameters']>) => (
+      Promise<extractFields<CustomActions['enduser_encounters']['create_candid_encounter']['returns']>>
+    ),
   },
   forms: {
     get_form_statistics: (args: extractFields<CustomActions['forms']['get_form_statistics']['parameters']>) => (
@@ -230,6 +239,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
   },
   endusers: {
+    check_eligibility: (args: extractFields<CustomActions['endusers']['check_eligibility']['parameters']>) => (
+      Promise<extractFields<CustomActions['endusers']['check_eligibility']['returns']>>
+    ),
     set_password: (args: { id: string, password: string }) => Promise<void>,
     is_authenticated: (args: { id?: string, authToken: string }) => Promise<{ isAuthenticated: boolean, enduser: Enduser }>
     generate_auth_token: (args: extractFields<CustomActions['endusers']['generate_auth_token']['parameters']>) => (
@@ -429,6 +441,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
   },
   integrations: {
+    update_zoom: (args: extractFields<CustomActions['integrations']['update_zoom']['parameters']>) => (
+      Promise<extractFields<CustomActions['integrations']['update_zoom']['returns']>>
+    ),
     load_payers: (args: extractFields<CustomActions['integrations']['load_payers']['parameters']>) => (
       Promise<extractFields<CustomActions['integrations']['load_payers']['returns']>>
     ),
@@ -594,6 +609,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     get_report: (args: extractFields<CustomActions['tickets']['get_report']['parameters']>) => (
       Promise<extractFields<CustomActions['tickets']['get_report']['returns']>>
     ),
+    get_distribution_report: (args: extractFields<CustomActions['tickets']['get_distribution_report']['parameters']>) => (
+      Promise<extractFields<CustomActions['tickets']['get_distribution_report']['returns']>>
+    ),
     close_ticket: (args: extractFields<CustomActions['tickets']['close_ticket']['parameters']>) => (
       Promise<extractFields<CustomActions['tickets']['close_ticket']['returns']>>
     ),
@@ -663,6 +681,7 @@ export class Session extends SessionManager {
 
     queries.enduser_orders.get_available_tests = a => this._GET(`/v1${schema.enduser_orders.customActions.get_available_tests.path}`, a)
     queries.enduser_orders.create_lab_order = a => this._POST(`/v1${schema.enduser_orders.customActions.create_lab_order.path}`, a)
+    queries.enduser_orders.create_go_go_meds_order = a => this._POST(`/v1${schema.enduser_orders.customActions.create_go_go_meds_order.path}`, a)
 
     queries.endusers.set_password = args => this._POST(`/v1/set-enduser-password`, args)
     queries.endusers.add_to_journey = a => this._POST(`/v1${schema.endusers.customActions.add_to_journey.path}`, a)
@@ -678,6 +697,7 @@ export class Session extends SessionManager {
     queries.endusers.get_engagement_statistics_by_userId = a => this._GET(`/v1/${schema.endusers.customActions.get_engagement_statistics_by_userId.path}`, a)
     queries.endusers.sync_zendesk = a => this._POST(`/v1${schema.endusers.customActions.sync_zendesk.path}`, a)
     queries.endusers.get_journeys_report = a => this._POST(`/v1${schema.endusers.customActions.get_journeys_report.path}`, a)
+    queries.endusers.check_eligibility = a => this._POST(`/v1${schema.endusers.customActions.check_eligibility.path}`, a)
 
     queries.users.display_names = () => this._GET<{}, { fname: string, lname: string, id: string }[]>(`/v1/user-display-names`)
     queries.users.register = (args) => this._POST(`/v1${schema.users.publicActions.register.path}`, args)
@@ -750,6 +770,7 @@ export class Session extends SessionManager {
     queries.organizations.create_suborganization = a => this._POST(`/v1/${schema.organizations.customActions.create_suborganization.path}`, a)
     queries.organizations.create_and_join = a => this._POST(`/v1${schema.organizations.customActions.create_and_join.path}`, a)
  
+    queries.integrations.update_zoom = args => this._POST(`/v1${schema.integrations.customActions.update_zoom.path}`, args)
     queries.integrations.load_payers = args => this._GET(`/v1${schema.integrations.customActions.load_payers.path}`, args)
     queries.integrations.generate_google_auth_url = a => this._POST(`/v1/${schema.integrations.customActions.generate_google_auth_url.path}`, a)
     queries.integrations.disconnect_google_integration = a => this._POST(`/v1/${schema.integrations.customActions.disconnect_google_integration.path}`, a)
@@ -808,6 +829,7 @@ export class Session extends SessionManager {
     queries.tickets.update_indexes = a => this._PATCH(`/v1/${schema.tickets.customActions.update_indexes.path}`, a)
     queries.tickets.assign_from_queue = a => this._PATCH(`/v1/${schema.tickets.customActions.assign_from_queue.path}`, a)
     queries.tickets.get_report = a => this._POST(`/v1/${schema.tickets.customActions.get_report.path}`, a)
+    queries.tickets.get_distribution_report = a => this._POST(`/v1/${schema.tickets.customActions.get_distribution_report.path}`, a)
     queries.tickets.close_ticket = a => this._POST(`/v1/${schema.tickets.customActions.close_ticket.path}`, a)
 
     queries.appointment_booking_pages.generate_access_token = a => this._POST(`/v1/${schema.appointment_booking_pages.customActions.generate_access_token.path}`, a)
@@ -818,6 +840,8 @@ export class Session extends SessionManager {
 
     queries.group_mms_conversations.start_conversation = args => this._POST(`/v1${schema.group_mms_conversations.customActions.start_conversation.path}`, args)
     queries.group_mms_conversations.send_message = args => this._POST(`/v1${schema.group_mms_conversations.customActions.send_message.path}`, args)
+
+    queries.enduser_encounters.create_candid_encounter = args => this._POST(`/v1${schema.enduser_encounters.customActions.create_candid_encounter.path}`, args)
 
     this.api = queries
   }

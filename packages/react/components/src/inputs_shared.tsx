@@ -64,7 +64,6 @@ export const useFilters = <T,>(args?: { memoryId?: string, initialFilters?: Filt
     if (didReloadRef.current) return
     didReloadRef.current = true
 
-    console.log('reloading filters')
     setFilters(
       initialFilters || (
         (memoryId && deserialize)
@@ -378,7 +377,6 @@ export const EnduserSearch = (props: Omit<GenericSearchProps<Enduser>, 'filterKe
 
   // wait for users to load, so that a saved query is able to match attachSearchableFields
   // only wait when users have ALL_ACCESS to ensures users can actually load
-  console.log(((session.userInfo as any)?.access as AccessPermissions)?.users?.read === ALL_ACCESS)
   if (((session.userInfo as any)?.access as AccessPermissions)?.users?.read === ALL_ACCESS && !value_is_loaded(usersLoading)) return null
   return (
     <ModelSearchInput filterKey="endusers" {...props} 

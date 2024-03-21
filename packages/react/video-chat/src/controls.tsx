@@ -16,7 +16,7 @@ import {
 } from "@tellescope/react-components"
 import { CurrentCallContext } from "./video_shared"
 import { useStartVideoCall } from "./video"
-import { ScreenShareIcon, useJoinVideoCall } from "."
+import { BlurToggleIcon, ScreenShareIcon, useJoinVideoCall } from "."
 
 const DEFAULT_BUTTON_SIZE = 30
 interface ButtonProps {
@@ -82,8 +82,9 @@ interface ControlbarProps {
   size?: number,
   showEndMeeting?: boolean,
   showScreenShare?: boolean,
+  showBlurToggle?: boolean,
 }
-export const ControlBar = ({ onLeave, style, spacing=15, size, showEndMeeting, showScreenShare, } : ControlbarProps & LeaveMeetingProps & Styled) => {
+export const ControlBar = ({ onLeave, style, spacing=15, size, showEndMeeting, showScreenShare, showBlurToggle } : ControlbarProps & LeaveMeetingProps & Styled) => {
   const { isHost } = React.useContext(CurrentCallContext)
   const itemStyle = { marginLeft: spacing, marginRight: spacing }
 
@@ -109,9 +110,18 @@ export const ControlBar = ({ onLeave, style, spacing=15, size, showEndMeeting, s
             </Flex>
           </Flex>
         }
-        <Flex style={itemStyle}>
-          <VideoToggle size={size}/>
-        </Flex>
+        {showBlurToggle &&
+          <Flex column justifyContent="center" style={itemStyle}>
+            <Flex>
+              <BlurToggleIcon />
+            </Flex>
+          </Flex>
+        }
+        {!showBlurToggle && // blur toggle also provides toggle video controls
+          <Flex style={itemStyle}>
+            <VideoToggle size={size}/>
+          </Flex>
+        }
         <Flex style={itemStyle}>
           <MicrophoneToggle size={size}/>
         </Flex>
