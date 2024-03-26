@@ -18,6 +18,7 @@ import {
   UserUIRestrictions,
   ModelName,
   CustomDashboardView,
+  DataSyncRecord,
 } from "@tellescope/types-models"
 
 import {
@@ -928,6 +929,8 @@ export class Session extends SessionManager {
   reset_db = () => this.POST('/reset-demo')
   test_online = () => this.GET<{}, string>('/v1')
   test_authenticated = () => this.GET<{}, string>('/v1/test-authenticated')
+
+  sync = (a: { from: Date }) => this.GET<typeof a, { results: Pick<DataSyncRecord, 'modelName' | 'recordId' | 'data'>[] }>('/v1/data-sync', a)
 }
 
 export { SessionOptions }

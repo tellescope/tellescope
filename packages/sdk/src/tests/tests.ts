@@ -140,7 +140,43 @@ const setup_tests = async () => {
     { expectedResult: 'Authenticated!' }
   )
 
+  // login rate limit tests
+  const badSDK = new Session({ host });
+  await badSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)
+  await badSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)
+  await badSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)
+  await badSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)
+  await badSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)
+  await async_test(
+    'login rate limited', 
+    () => badSDK.authenticate('bademail@tellescope.com', 'badpassword@tellescope.com'),
+    { shouldError: true, onError: e => e.message === 'Too many login attempts' }
+  )
+  await async_test(
+    'login not rate limited for other user', 
+    () => sdk.authenticate(email, password),
+    passOnAnyResult
+  )
 
+  const badEnduserSDK = new EnduserSession({ host, businessId });
+  await badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)
+  await badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)
+  await badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)
+  await badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)
+  await badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)
+  await async_test(
+    'login rate limited', 
+    () => badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword@tellescope.com'),
+    { shouldError: true, onError: e => e.message === 'Too many login attempts' }
+  )
+  await async_test(
+    'login not rate limited for other enduser', 
+    () => badEnduserSDK.authenticate('otherbademail@tellescope.com', 'badpassword@tellescope.com'),
+    { shouldError: true, onError: e => e.message !== 'Too many login attempts' }
+  )
+
+  // prevent additional login throttling
+  await async_test('reset_db', () => sdk.reset_db(), passOnVoid)
 
   await sdk.logout()
   await async_test<string, string>('test_authenticated - (logout invalidates jwt)', sdk.test_authenticated, { shouldError: true, onError: e => e === 'Unauthenticated' })
@@ -321,8 +357,11 @@ const sub_organization_enduser_tests = async() => {
   log_header("Sub Organizations (Enduser-Facing Tests)")
 
   await enduserSDK.register({ email: 'root@tellescope.com', password })
+  await wait(undefined, 1000) // avoid rate limiting error
   await subEnduserSDK.register({ email: 'sub@tellescope.com', password })
+  await wait(undefined, 1000) // avoid rate limiting error
   await enduserSDK.authenticate('root@tellescope.com', password)
+  await wait(undefined, 1000) // avoid rate limiting error
   await subEnduserSDK.authenticate('sub@tellescope.com', password)
 
   assert(!enduserSDK.userInfo.organizationIds?.length, 'bad root organizationIds', 'root auth org ids')
@@ -6044,6 +6083,8 @@ const validate_schema = () => {
       endpoints.add(path)
     }
   }
+
+  console.log("Schema validated")
 }
 
 const test_weighted_round_robin = async () => {
@@ -6609,8 +6650,8 @@ export const ticket_reminder_tests = async () => {
         && t.nextReminderInMS !== -1
         && t.reminders?.filter(r => r.didRemind)?.length === 1
       ),
-      25,
-      200,
+      10,
+      500,
     ),
     passOnAnyResult
   )  
@@ -6888,6 +6929,218 @@ const lockout_tests = async () => {
   )
 }
 
+const sync_tests = async () => {
+  log_header("Data Sync")
+
+  const from = new Date()
+
+  await async_test(
+    "No new records, admin",
+    () => sdk.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
+  await async_test(
+    "No new records, non-admin",
+    () => sdkNonAdmin.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
+
+  const e = await sdk.api.endusers.createOne({ })
+  await wait(undefined, 100)
+  await async_test(
+    "Enduser create, admin",
+    () => sdk.sync({ from }),
+    { onResult: ({ results }) => (
+      results.length === 1 
+      && results[0].modelName === 'endusers' 
+      && results[0].recordId === e.id 
+      && results[0].data.includes(e.id) 
+      && JSON.parse(results[0].data) // tests no error throwing
+    )},
+  )
+  await async_test(
+    "Enduser create, non-admin",
+    () => sdkNonAdmin.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
+  await async_test(
+    "Enduser create, sub organization",
+    () => sdkSub.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
+
+  await sdk.api.endusers.updateOne(e.id, { fname: "UPDATE_TEST"})
+  await wait(undefined, 100)
+  await async_test(
+    "Enduser update, admin",
+    () => sdk.sync({ from }),
+    { onResult: ({ results }) => (
+      results.length === 1 
+      && results[0].modelName === 'endusers' 
+      && results[0].recordId === e.id 
+      && results[0].data.includes("UPDATE_TEST") 
+    )},
+  )
+  await async_test(
+    "Enduser update, non-admin",
+    () => sdkNonAdmin.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
+  await async_test(
+    "Enduser update, sub organization",
+    () => sdkSub.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
+
+  const t = await sdk.api.tickets.createOne({ title: 'access test'  })
+  await wait(undefined, 100)
+  await async_test(
+    "Non-admin can't access ticket",
+    () => sdkNonAdmin.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
+
+  // creates a user notification which increments count/index
+  sdk.api.tickets.updateOne(t.id, { owner: sdkNonAdmin.userInfo.id  })
+  await wait(undefined, 100)
+
+  await async_test(
+    "Non-admin can access tickets on assignment",
+    () => sdkNonAdmin.sync({ from }),
+    { onResult: ({ results }) => results.length === 2 },
+  )
+  sdk.api.tickets.updateOne(t.id, { owner: ''  })
+  await wait(undefined, 100)
+  await async_test(
+    "Non-admin can't access tickets on unassignment",
+    () => sdkNonAdmin.sync({ from }),
+    { onResult: ({ results }) => results.length === 1 }, // still includes user notification
+  )
+
+  await sdk.api.endusers.updateOne(e.id, { assignedTo: [sdkNonAdmin.userInfo.id] }, { replaceObjectFields: true })
+  await wait(undefined, 100)
+  await async_test(
+    "Enduser update non-admin assignment, can access",
+    () => sdkNonAdmin.sync({ from }),
+    { onResult: ({ results }) => results.length === 2 }, // enduser and ticket user notification
+  )
+
+  sdk.api.tickets.updateOne(t.id, { owner: '', enduserId: e.id  })
+  await wait(undefined, 100)
+  await async_test(
+    "Non-admin can access ticket (and enduser) after enduser assignment",
+    () => sdkNonAdmin.sync({ from }),
+    { onResult: ({ results }) => results.length === 3 },
+  )
+
+  await sdk.api.endusers.updateOne(e.id, { assignedTo: [] }, { replaceObjectFields: true })
+  await wait(undefined, 100)
+  await async_test(
+    "Enduser update non-admin assignment, revoked access to enduser and ticket",
+    () => sdkNonAdmin.sync({ from }),
+    { onResult: ({ results }) => results.length === 1 }, // still has user notification
+  )
+  
+  // enduser, ticket, and ticket assignment user_notification created
+  await sdk.api.endusers.deleteOne(e.id)
+  await wait(undefined, 100)
+  await async_test(
+    "Enduser delete, admin",
+    () => sdk.sync({ from }),
+    { onResult: ({ results }) => (
+      results.length === 3 
+      && results[0].modelName === 'endusers' 
+      && results[0].recordId === e.id 
+      && results[0].data === 'deleted' 
+    )},
+  )
+  await async_test(
+    "Enduser delete, non-admin",
+    () => sdkNonAdmin.sync({ from }),
+    { onResult: ({ results }) => results.length === 1 }, // still includes user notification
+  )
+  await async_test(
+    "Enduser delete, sub organization",
+    () => sdkSub.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
+  
+  // bulk create test coverage
+  const [e2] = (await sdk.api.endusers.createSome([{ }])).created
+  await wait(undefined, 100)
+  await async_test(
+    "Bulk Enduser create, admin",
+    () => sdk.sync({ from }),
+    { onResult: ({ results }) => (
+      results.length === 4 
+      && results[0].modelName === 'endusers' 
+      && results[0].recordId === e2.id 
+      && results[0].data.includes(e2.id) 
+      && JSON.parse(results[0].data) // tests no error throwing
+    )},
+  )
+  await async_test(
+    "Bulk Enduser create, non-admin",
+    () => sdkNonAdmin.sync({ from }),
+    { onResult: ({ results }) => results.length === 1 }, // still includes user notification
+  )
+  await async_test(
+    "Bulk Enduser create, sub organization",
+    () => sdkSub.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
+
+  await sdk.api.endusers.deleteOne(e2.id)
+  await wait(undefined, 100)
+  await async_test(
+    "Bulk Enduser delete, admin",
+    () => sdk.sync({ from }),
+    { onResult: ({ results }) => (
+      results.length === 4 
+      && results[0].modelName === 'endusers' 
+      && results[0].recordId === e2.id 
+      && results[0].data === 'deleted' 
+    )},
+  )
+  await async_test(
+    "Bulk Enduser delete, non-admin",
+    () => sdkNonAdmin.sync({ from }),
+    { onResult: ({ results }) => results.length === 1 }, // still includes user notification
+  )
+  await async_test(
+    "Bulk Enduser delete, sub organization",
+    () => sdkSub.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
+}
+
+// to cover potential vulernabilities with enduser public register endpoint
+const register_as_enduser_tests = async () => {
+  log_header("Register as Enduser")
+
+  await async_test(
+    "Enduser register",
+    () => enduserSDK.register({ email: 'test@tellescope.com', password: 'testpassWord12345!' }),
+    passOnAnyResult
+  )
+  await async_test(
+    "Enduser register (rate limited)",
+    () => enduserSDK.register({ email: 'test@tellescope.com', password: 'testpassWord12345!' }),
+    { shouldError: true, onError: e => e.message === "Too many requests" }
+  )
+  await wait(undefined, 1000)
+  await async_test(
+    "Enduser duplicate register (same response, no ability to enumerate contacts)",
+    () => enduserSDK.register({ email: 'test@tellescope.com', password: 'testpassWord12345!' }),
+    passOnAnyResult
+  )
+
+  const enduser = await sdk.api.endusers.getOne({ email: 'test@tellescope.com'})
+  if (enduser) {
+    await sdk.api.endusers.deleteOne(enduser.id)
+  }
+}
+
 (async () => {
   log_header("API")
 
@@ -6911,6 +7164,7 @@ const lockout_tests = async () => {
       sdkSubSub.authenticate(subSubUserEmail, password),
       sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword),
     ]) 
+    console.log("Authentication done")
 
     // console.log(JSON.stringify(await sdk.bulk_load({ load: [{ model: 'users' }]}), null, 2))
  
@@ -6930,6 +7184,8 @@ const lockout_tests = async () => {
     await mfa_tests()
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await register_as_enduser_tests()
+    await sync_tests()
     await lockout_tests()
     await self_serve_appointment_booking_tests()
     await delete_user_tests()

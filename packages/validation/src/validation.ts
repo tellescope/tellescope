@@ -2624,6 +2624,7 @@ export const portalSettingsValidator = objectValidator<PortalSettings>({
     registerGraphic: stringValidator1000Optional,
     registerTitle: stringValidator1000Optional,
     hideRegister: booleanValidatorOptional,
+    dontPromptSetPassword: booleanValidatorOptional,
   }, { isOptional: true, emptyOk: true, }),
   communication: objectValidator<PortalSettings['communication']>({
     allowEnduserInitiatedChat: booleanValidatorOptional,

@@ -81,6 +81,7 @@ import {
   GroupMMSConversation,
   EnduserOrder,
   EnduserEncounter,
+  ClientModelForName,
 } from "@tellescope/types-client"
 
 import {
@@ -95,7 +96,7 @@ import {
 } from '@tellescope/sdk'
 import { value_is_loaded } from './loading'
 import { matches_organization, objects_equivalent } from '@tellescope/utilities'
-import { ModelName, ReadFilter, SortBy } from '@tellescope/types-models'
+import { Model, ModelName, ReadFilter, SortBy } from '@tellescope/types-models'
 
 const RESET_CACHE_TYPE = "cache/reset" as const
 export const resetStateAction = createAction(RESET_CACHE_TYPE)
@@ -430,9 +431,11 @@ const useTellescopeDispatch = createDispatchHook(TellescopeStoreContext)
 
 export const UserProvider = (props: { children: React.ReactNode }) => (
   <WithFetchContext>
+  <WithDataSync>
   <Provider store={_store} context={TellescopeStoreContext}>
     {props.children}
   </Provider>
+  </WithDataSync>
   </WithFetchContext>
 )
 
@@ -474,6 +477,102 @@ export interface LoadMoreFunctions<T> {
   loadMore: (options?: LoadMoreOptions<T>) => Promise<void>;
   doneLoading: (id?: string) => boolean,
 }
+
+let DEFAULT_SYNC_INTERVAL_IN_MS = 30000
+export const FAST_SYNC_INTERVAL = 5000
+try {
+  // enable fast-sync for local testing to make development easier and to catch sync issues faster
+  if (window.location.origin.includes(":3001")) {
+    DEFAULT_SYNC_INTERVAL_IN_MS = FAST_SYNC_INTERVAL
+  }
+} catch(err) { console.error(err) }
+
+export const useDataSync____internal = () => {
+  const session = useSession()
+  const lastFetch = React.useRef(new Date())
+  const loadTimings = React.useRef({ } as { [index: string]: number })
+  const loaded = React.useRef({ } as { [K in string]?: ClientModelForName[keyof ClientModelForName][] })
+  const deleted = React.useRef({ } as { [K in string]?: string[] })
+  const handlers = React.useRef({ } as { [K in string]?: () => void })
+
+  useEffect(() => {
+    if (!session.authToken) return
+
+    const i = setInterval(() => {
+      const pollDurationInMS = Math.min(DEFAULT_SYNC_INTERVAL_IN_MS, ...Object.values(loadTimings.current).filter(v => v > 999))
+
+      if (lastFetch.current.getTime() + pollDurationInMS > Date.now()) {
+        return
+      }
+
+      session.sync({ from: lastFetch.current }).then(({ results }) => {
+        for (const r of results) {
+          if (r.data === 'deleted') {
+            if (!deleted.current[r.modelName]) {
+              deleted.current[r.modelName] = [] 
+            }
+            deleted.current[r.modelName]!.push(r.recordId)
+          } else {
+            if (!loaded.current[r.modelName]) {
+              loaded.current[r.modelName] = [] 
+            }
+            try {
+              loaded.current[r.modelName]!.push(JSON.parse(r.data))
+            } catch(err) {
+              console.error(err)
+            }
+          }
+        }
+      })
+      .then(() => {
+        for (const handler of Object.values(handlers.current)) {
+          handler?.()
+        }
+      })
+      .catch(console.error)
+
+      lastFetch.current = new Date()
+    }, 1000)
+
+    return () => { clearInterval(i) }
+  }, [session])
+
+  const getLoaded = useCallback(<T extends string>(modelName: T) => loaded.current[modelName] || [], [])
+  const getDeleted = useCallback(<T extends string>(modelName: T) => deleted.current[modelName] || [], [])
+
+  const popLoaded = useCallback(<T extends string>(modelName: T) => {
+    const toReturn = loaded.current[modelName] || []
+    loaded.current[modelName] = []
+    return toReturn
+  }, [])
+  const popDeleted = useCallback(<T extends string>(modelName: T) => {
+    const toReturn = deleted.current[modelName] || []
+    deleted.current[modelName] = []
+    return toReturn
+  }, [])
+
+  const setLoadTiming = useCallback((key: string, loadTimeInMS: number) => {
+    loadTimings.current[key] = loadTimeInMS
+  }, [])
+
+  const setHandler = useCallback((key: string, handler: undefined | (() => void)) => {
+    handlers.current[key] = handler
+  }, [])
+
+  return {
+    setLoadTiming, 
+    setHandler,
+    getLoaded, getDeleted,
+    popLoaded, popDeleted,
+  }
+}
+const SyncContext = React.createContext({ } as ReturnType<typeof useDataSync____internal>)
+export const WithDataSync = ({ children } : { children: React.ReactNode }) => (
+  <SyncContext.Provider value={useDataSync____internal()}>
+    {children}
+  </SyncContext.Provider>
+)
+export const useSyncContext = () => useContext(SyncContext)
 
 const DEFAULT_FETCH_LIMIT = 500
 const BULK_READ_DEFAULT_LIMIT = 1000 // 1000 is max
@@ -528,6 +627,7 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
   } & HookOptions<T>
 ): ListStateReturnType<T, ADD> => 
 {
+  const { setHandler, popDeleted, popLoaded } = useSyncContext() ?? {}
   const { loadQuery, findOne, findByIds, addOne, addSome, updateOne, deleteOne } = apiCalls
   if (options?.refetchInMS !== undefined && options.refetchInMS < 5000) {
     throw new Error("refetchInMS must be greater than 5000")
@@ -610,6 +710,25 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     await deleteOne(id)
     removeLocalElement(id)
   }, [removeLocalElement, deleteOne])
+
+  useEffect(() => {
+    // context not provided
+    if (!setHandler) return
+
+    setHandler(modelName, () => {
+      if (state.status !== LoadingStatus.Loaded) return
+      
+      const deleted = popDeleted(modelName)
+      const loaded = popLoaded(modelName)
+
+      if (deleted?.length) {
+        removeLocalElements(deleted)
+      }
+      if (loaded?.length) {
+        addLocalElements(loaded as any, { replaceIfMatch: true })
+      }
+    })
+  }, [state.status, setHandler, addLocalElements, removeLocalElements, popDeleted, popLoaded])
 
   const findById: ListUpdateMethods<T, ADD>['findById'] = useCallback((id, options) => {
     if (!id) return undefined

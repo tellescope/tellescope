@@ -108,6 +108,7 @@ export type PortalSettings = {
     registerDescription?: string,
     registerGraphic?: string,
     hideRegister?: boolean,
+    dontPromptSetPassword?: boolean,
   },
   communication?: {
     allowEnduserInitiatedChat?: boolean,
@@ -273,6 +274,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   billingOrganizationNPI?: string,
   billingOrganizationTaxId?: string,
   billingOrganizationAddress?: Address,
+  videoCallBackgroundImage?: string,
   // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {
@@ -4356,4 +4358,15 @@ export type GoGoMedsPet = {
   AllergyText?: string,
   MedicalConditionText?: string,
   CurrentMedications?: string,
+}
+
+export type DataSyncRecord = {
+  businessId: string,
+  organizationIds: string[],
+  timestamp: Date,
+  modelName: ModelName,
+  recordId: string,
+  data: 'deleted' | string, // when not deleted, stringified JSON
+  userIds: string[], // Default access
+  enduserIds: string[], // Assigned access
 }

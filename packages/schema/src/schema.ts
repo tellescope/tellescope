@@ -5349,6 +5349,7 @@ export const schema: SchemaV1 = build_schema({
       billingOrganizationNPI: { validator: stringValidator },
       billingOrganizationTaxId: { validator: stringValidator },
       billingOrganizationAddress: { validator: addressValidator },
+      videoCallBackgroundImage: { validator: stringValidator },
     },
   },
   databases: {

@@ -38,11 +38,9 @@ import {
   MeetingStatus,
   ContentShareControl,
   VideoInputBackgroundBlurControl,
-  BackgroundBlurProvider,
   // CameraSelection,
-  // BackgroundReplacementProvider,
-  // useVideoInputs,
-  // useBackgroundReplacement,
+  useVideoInputs,
+  useBackgroundReplacement,
   // useRemoteVideoTileState,
   // useContentShareControls, // screen sharing
 } from 'amazon-chime-sdk-component-library-react';
@@ -210,7 +208,6 @@ const WithContext = ({ children } : { children: React.ReactNode }) => {
 
 //   return (
 //     <ThemeProvider theme={darkTheme}>
-//     <BackgroundBlurProvider>
 //     <BackgroundReplacementProvider options={{ imageBlob }}>
 //     <MeetingProvider>
 //     <WithContext>
@@ -218,20 +215,17 @@ const WithContext = ({ children } : { children: React.ReactNode }) => {
 //     </WithContext>
 //     </MeetingProvider>
 //     </BackgroundReplacementProvider>
-//     </BackgroundBlurProvider>
 //     </ThemeProvider>
 //   )
 // }
 
 export const WithVideo = ({ children }: VideoProps) => (
   <ThemeProvider theme={darkTheme}>
-  <BackgroundBlurProvider>
   <MeetingProvider>
   <WithContext>
     {children}
   </WithContext>
   </MeetingProvider>
-  </BackgroundBlurProvider>
   </ThemeProvider>
 )
 
@@ -434,52 +428,48 @@ export const BlurToggleIcon = () => (
   <VideoInputBackgroundBlurControl />
 )
 
-// export const ToggleBackgroundImageButton = () => {
-//   const meetingManager = useMeetingManager();
-//   const { selectedDevice } = useVideoInputs();
-//   const [isVideoTransformCheckBoxOn, setisVideoTransformCheckBoxOn] =
-//     useState(false);
-//   const {
-//     isBackgroundReplacementSupported,
-//     createBackgroundReplacementDevice,
-//   } = useBackgroundReplacement();
+export const ToggleBackgroundImageButton = () => {
+  const meetingManager = useMeetingManager();
+  const { selectedDevice } = useVideoInputs();
+  const [isVideoTransformCheckBoxOn, setisVideoTransformCheckBoxOn] = useState(false);
+  const { isBackgroundReplacementSupported, createBackgroundReplacementDevice } = useBackgroundReplacement();
 
-//   useEffect(() => {
-//     async function toggleBackgroundReplacement() {
-//       try {
-//         let current = selectedDevice;
-//         if (isVideoTransformCheckBoxOn) {
-//           current = await createBackgroundReplacementDevice(selectedDevice as any);
-//         } else {
-//           if (isVideoTransformDevice(selectedDevice)) {
-//             let intrinsicDevice = await selectedDevice.intrinsicDevice();
-//             selectedDevice.stop();
-//             current = intrinsicDevice;
-//           }
-//         }
-//         await meetingManager.startVideoInputDevice(current!);
-//       } catch (error) {
-//         // Handle device selection failure here
-//         console.error('Failed to toggle BackgroundReplacement');
-//       }
-//     }
+  useEffect(() => {
+    async function toggleBackgroundReplacement() {
+      try {
+        let current = selectedDevice;
+        if (isVideoTransformCheckBoxOn) {
+          current = await createBackgroundReplacementDevice(selectedDevice as any);
+        } else {
+          if (isVideoTransformDevice(selectedDevice)) {
+            let intrinsicDevice = await selectedDevice.intrinsicDevice();
+            selectedDevice.stop();
+            current = intrinsicDevice;
+          }
+        }
+        await meetingManager.startVideoInputDevice(current!);
+      } catch (error) {
+        // Handle device selection failure here
+        console.error('Failed to toggle BackgroundReplacement');
+      }
+    }
 
-//     toggleBackgroundReplacement();
-//   }, [isVideoTransformCheckBoxOn]);
+    toggleBackgroundReplacement();
+  }, [isVideoTransformCheckBoxOn]);
 
-//   const onClick = () => {
-//     setisVideoTransformCheckBoxOn((current) => !current);
-//   };
+  const onClick = () => {
+    setisVideoTransformCheckBoxOn((current) => !current);
+  };
 
-//   return (
-//     <div>
-//       {isBackgroundReplacementSupported && (
-//         <button onClick={onClick}>
-//           {isVideoTransformDevice(selectedDevice)
-//             ? 'Background Replacement Enabled'
-//             : 'Enable Background Replacement'}
-//         </button>
-//       )}
-//     </div>
-//   );
-// };
+  return (
+    <div>
+      {isBackgroundReplacementSupported && (
+        <button onClick={onClick}>
+          {isVideoTransformDevice(selectedDevice)
+            ? 'Background Replacement Enabled'
+            : 'Enable Background Replacement'}
+        </button>
+      )}
+    </div>
+  );
+};
