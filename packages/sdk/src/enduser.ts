@@ -88,6 +88,15 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
     unsubscribe: (args: extractFields<PublicActions['endusers']['unsubscribe']['parameters']>) => (
       Promise<extractFields<PublicActions['endusers']['unsubscribe']['returns']>>
     ),
+    get_otp_methods: (args: extractFields<PublicActions['endusers']['get_otp_methods']['parameters']>) => (
+      Promise<extractFields<PublicActions['endusers']['get_otp_methods']['returns']>>
+    ),
+    send_otp: (args: extractFields<PublicActions['endusers']['send_otp']['parameters']>) => (
+      Promise<extractFields<PublicActions['endusers']['send_otp']['returns']>>
+    ),
+    verify_otp: (args: extractFields<PublicActions['endusers']['verify_otp']['parameters']>) => (
+      Promise<extractFields<PublicActions['endusers']['verify_otp']['returns']>>
+    ),
   },
   users: {
     display_info: () => Promise<UserDisplayInfo[]>
@@ -266,6 +275,9 @@ export class EnduserSession extends Session {
 
     this.api.endusers.logout = () => this._POST('/v1/logout-enduser')
     this.api.endusers.unsubscribe = a => this._POST(`/v1${schema.endusers.publicActions.unsubscribe.path}`, a)
+    this.api.endusers.get_otp_methods = a => this._GET(`/v1${schema.endusers.publicActions.get_otp_methods.path}`, a)
+    this.api.endusers.send_otp = a => this._POST(`/v1${schema.endusers.publicActions.send_otp.path}`, a)
+    this.api.endusers.verify_otp = a => this._POST(`/v1${schema.endusers.publicActions.verify_otp.path}`, a)
     this.api.endusers.current_session_info = () => this._GET(`/v1${schema.endusers.customActions.current_session_info.path}`)
     this.api.endusers.add_to_journey = a => this._POST(`/v1${schema.endusers.customActions.add_to_journey.path}`, a)
     this.api.endusers.set_password = a => this._POST(`/v1${schema.endusers.customActions.set_password.path}`, a)
@@ -393,8 +405,8 @@ export class EnduserSession extends Session {
     )
   )
 
-  refresh_session = async () => {
-    const { enduser, authToken } = await this.POST<{}, { enduser: Enduser } & { authToken: string }>('/v1/refresh-enduser-session')
+  refresh_session = async (args?: { invalidatePreviousToken?: boolean }) => {
+    const { enduser, authToken } = await this.POST<typeof args, { enduser: Enduser } & { authToken: string }>('/v1/refresh-enduser-session', args)
     return this.handle_new_session({ authToken, enduser })
   }
 
@@ -410,4 +422,6 @@ export class EnduserSession extends Session {
     this.clearState()
     return this.api.endusers.logout()
   }
+
+  test_authenticated = () => this.GET<{}, string>('/v1/test-authenticated')
 }

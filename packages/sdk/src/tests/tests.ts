@@ -3325,6 +3325,23 @@ const search_tests = async () => {
 
   const e1 = await sdk.api.endusers.createOne({ email: 'e1_search@tellescope.com', fname: 'JoHn', lname: "strauss" })
   const e2 = await sdk.api.endusers.createOne({ email: 'e2_search@tellescope.com', fname: 'sebastian', lname: "coates" })
+
+  await async_test(
+    `Search error message`,
+    () => sdk.api.endusers.getSome({ search: "alert(1)" as any }),
+    { 
+      shouldError: true, 
+      onError: e => !e.message.includes('script') && e.message.startsWith("Error parsing field search: Expecting an object but got alert(1)")
+    },
+  )  
+  await async_test(
+    `Search error does not return script tags `,
+    () => sdk.api.endusers.getSome({ search: "<script>alert(1)</script>" as any }),
+    { 
+      shouldError: true, 
+      onError: e => !e.message.includes('script') && e.message.startsWith("Error parsing field search: Expecting an object but got")
+    },
+  )  
   
   await async_test(
     `Search full fname case insensitive`,
@@ -6968,6 +6985,11 @@ const sync_tests = async () => {
     () => sdkSub.sync({ from }),
     { onResult: ({ results }) => results.length === 0 },
   )
+  await async_test(
+    "Other organization",
+    () => sdkOther.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
 
   await sdk.api.endusers.updateOne(e.id, { fname: "UPDATE_TEST"})
   await wait(undefined, 100)
@@ -6989,6 +7011,11 @@ const sync_tests = async () => {
   await async_test(
     "Enduser update, sub organization",
     () => sdkSub.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
+  await async_test(
+    "Other organization",
+    () => sdkOther.sync({ from }),
     { onResult: ({ results }) => results.length === 0 },
   )
 
@@ -7064,6 +7091,11 @@ const sync_tests = async () => {
     () => sdkSub.sync({ from }),
     { onResult: ({ results }) => results.length === 0 },
   )
+  await async_test(
+    "Other organization",
+    () => sdkOther.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
   
   // bulk create test coverage
   const [e2] = (await sdk.api.endusers.createSome([{ }])).created
@@ -7089,6 +7121,11 @@ const sync_tests = async () => {
     () => sdkSub.sync({ from }),
     { onResult: ({ results }) => results.length === 0 },
   )
+  await async_test(
+    "Other organization",
+    () => sdkOther.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
 
   await sdk.api.endusers.deleteOne(e2.id)
   await wait(undefined, 100)
@@ -7110,6 +7147,11 @@ const sync_tests = async () => {
   await async_test(
     "Bulk Enduser delete, sub organization",
     () => sdkSub.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
+  await async_test(
+    "Other organization",
+    () => sdkOther.sync({ from }),
     { onResult: ({ results }) => results.length === 0 },
   )
 }

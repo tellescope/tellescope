@@ -676,7 +676,7 @@ export type CustomActions = {
       { id?: string, authToken: string }, 
       { isAuthenticated: true, enduser: Enduser } | { isAuthenticated: false, enduser: null }
     >,
-    refresh_session: CustomAction<{}, { enduser: Enduser, authToken: string }>,
+    refresh_session: CustomAction<{ invalidatePreviousToken?: boolean }, { enduser: Enduser, authToken: string }>,
     generate_auth_token: CustomAction<{ id?: string, phone?: string, email?: string, externalId?: string, durationInSeconds?: number }, { authToken: string, enduser: Enduser }>,
     logout: CustomAction<{ }, { }>,
     current_session_info: CustomAction<{ }, { enduser: Enduser }>,
@@ -952,6 +952,9 @@ export type PublicActions = {
     reset_password: CustomAction<{ resetToken: string, newPassword: string, businessId: string, organizationIds?: string[] }, { }>,
     begin_login_flow: CustomAction<{ email?: string, phone?: string, businessId: string, organizationIds?: string[] }, { result: LoginFlowResult, email?: string }>,
     unsubscribe: CustomAction<{ enduserId: string, unsubscribeFrom: string[] }, { }>,
+    get_otp_methods: CustomAction<{ token: string }, { methods: string[] }>,
+    send_otp: CustomAction<{ token: string, method: string }, { }>,
+    verify_otp: CustomAction<{ token: string, code: string }, { authToken: string, enduser: Enduser }>,
   },
   users: {
     login: CustomAction<{ email: string, password: string, expirationInSeconds?: number }, { user: User, authToken: string }>,
@@ -1312,7 +1315,9 @@ export const schema: SchemaV1 = build_schema({
         name: 'Refresh enduser authentication',
         path: '/refresh-enduser-session',
         description: "When called by an authenticated enduser, generates a new session",
-        parameters: { },
+        parameters: { 
+          invalidatePreviousToken: { validator: booleanValidator }, 
+        },
         enduserOnly: true,
         returns: { 
           authToken: { validator: stringValidator, required: true }, 
@@ -1579,6 +1584,43 @@ export const schema: SchemaV1 = build_schema({
           unsubscribeFrom: { validator: listOfStringsValidator, required: true },
         },
         returns: { },
+      }, 
+      get_otp_methods: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Get OTP Methods',
+        path: '/endusers/otp-methods',
+        description: "Gets a list of possible OTP methods (e.g. email or sms) to refresh a given enduser session token",
+        parameters: { 
+          token: { validator: stringValidator, required: true },
+        },
+        returns: { 
+          methods: { validator: listOfStringsValidator, required: true },
+        },
+      }, 
+      send_otp: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Send OTP Code',
+        path: '/endusers/send-otp-code',
+        description: "Sends a otp code for a given method (e.g. email or sms)",
+        parameters: { 
+          token: { validator: stringValidator, required: true },
+          method: { validator: stringValidator, required: true },
+        },
+        returns: { },
+      }, 
+      verify_otp: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Verify Code',
+        path: '/endusers/verify-otp-code',
+        description: "For a valid OTP code, returns an enduser session",
+        parameters: { 
+          token: { validator: stringValidator, required: true },
+          code: { validator: stringValidator, required: true },
+        },
+        returns: { 
+          authToken: { validator: stringValidator, required: true },
+          enduser: { validator: 'enduser' as any, required: true },
+        },
       }, 
     },
   },

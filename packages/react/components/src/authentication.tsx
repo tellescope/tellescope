@@ -128,7 +128,7 @@ export const useSessionContext = () => useContext(SessionContext)
 interface EnduserSessionContext_T {
   enduserSession: EnduserSession,
   logout: () => Promise<void>,
-  refresh: () => Promise<void>,
+  refresh: (args?: { invalidatePreviousToken?: boolean }) => Promise<void>,
   // setEnduserSession: React.Dispatch<React.SetStateAction<EnduserSession>>
   updateUserInfo: (updates: Parameters<EnduserSession['api']['endusers']['updateOne']>[1], options?: Parameters<EnduserSession['api']['endusers']['updateOne']>[2]) => Promise<void>,
   updateLocalSessionInfo: (u: Partial<Enduser>, authToken?: string) => void
@@ -152,8 +152,8 @@ export const WithEnduserSession = (p : { children: React.ReactNode, sessionOptio
     }))
   }
 
-  const refresh = async () => {
-    const { authToken, enduser } = await enduserSession.refresh_session()
+  const refresh = async (args?: { invalidatePreviousToken?: boolean }) => {
+    const { authToken, enduser } = await enduserSession.refresh_session(args)
     updateLocalSessionInfo(enduser, authToken)
   }
 
@@ -188,6 +188,7 @@ export const useSession = (o={} as SessionHookOptions) => {
 
   return session ?? null
 }
+export { EnduserSession }
 export const useEnduserSession = (o={} as SessionHookOptions): EnduserSession => {
   const { enduserSession } = useContext(EnduserSessionContext)
   if (!enduserSession && o.throwIfMissingContext !== false) { 

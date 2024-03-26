@@ -1,4 +1,4 @@
-import { ObjectId } from "@tellescope/utilities"
+import { ObjectId, remove_script_tags } from "@tellescope/utilities"
 
 import {
   CUD as CUDType,
@@ -362,6 +362,12 @@ export type InputValues <T> = { [K in keyof T]: JSONType }
 export type InputValidation<T> = { [K in keyof T]: ValidatorDefinition }
 export type InputValidationOld<T> = { [K in keyof T]: EscapeFunction }
 
+const escape_fieldValue = (f: any) => (
+  typeof f === 'string'
+    ? remove_script_tags(f)
+    : f
+)
+
 export const MAX_FILE_SIZE = 1000000000 // 1gb megabytes in bytes
 const DEFAULT_MAX_LENGTH = 50000
 type BuildValidator_T = {
@@ -385,7 +391,7 @@ export const build_validator: BuildValidator_T = (escapeFunction, options={} as 
     if (isOptional && fieldValue === null && !nullOk) return undefined
     if (nullOk && fieldValue === null) return null
     if ((emptyStringOk || isOptional) && fieldValue === '') return ''
-    if (!emptyStringOk && fieldValue === '') throw `Expecting non-empty string but got ${fieldValue}`
+    if (!emptyStringOk && fieldValue === '') throw `Expecting non-empty string but got ${escape_fieldValue(fieldValue)}`
     if (isObject && typeof fieldValue !== 'object') {
       try {
         if (typeof fieldValue !== 'string') throw ''
@@ -398,7 +404,7 @@ export const build_validator: BuildValidator_T = (escapeFunction, options={} as 
         }
 
       } catch(err) {
-        throw `Expecting an object but got ${fieldValue}`
+        throw `Expecting an object but got ${escape_fieldValue(fieldValue)}`
       }
     }
     if (isNumber && fieldValue === 0) return 0 // avoid falsey issues later
@@ -408,7 +414,7 @@ export const build_validator: BuildValidator_T = (escapeFunction, options={} as 
     }
 
     // asserts for listOf === true, that fieldValue typed as array
-    if (listOf && !Array.isArray(fieldValue)) throw `Expecting a list of values but got ${fieldValue}`
+    if (listOf && !Array.isArray(fieldValue)) throw `Expecting a list of values but got ${escape_fieldValue(fieldValue)}`
 
     if (listOf && (fieldValue as JSONType[])?.length === 0) {
       if (emptyListOk) return []
