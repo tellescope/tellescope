@@ -262,6 +262,7 @@ import {
   DiagnosisTypes,
   DiagnosisType,
   Diagnosis,
+  FormResponseAnswerAppointmentBooking,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -1062,7 +1063,7 @@ export const emailValidator: ValidatorDefinition<string> = {
   validate: (options={}) => build_validator(
     (email) => {
       if (typeof email !== 'string') throw new Error('Expecting string value')
-      if (!isEmail(email)) { throw new Error(options.errorMessage || "Invalid email") }
+      if (!isEmail(email)) { throw new Error(options.errorMessage || `Invalid email: ${escape_fieldValue(email)}`) }
 
       return email.toLowerCase()
     }, 
@@ -1075,7 +1076,7 @@ export const emailValidatorOptional: ValidatorDefinition<string> = {
   validate: (options={}) => build_validator(
     (email) => {
       if (typeof email !== 'string') throw new Error('Expecting string value')
-      if (!isEmail(email)) { throw new Error(options.errorMessage || "Invalid email") }
+      if (!isEmail(email)) { throw new Error(options.errorMessage || `Invalid email: ${escape_fieldValue(email)}`) }
 
       return email.toLowerCase()
     }, 
@@ -1089,7 +1090,7 @@ export const emailValidatorEmptyOkay: ValidatorDefinition<string> = {
   validate: (options={}) => build_validator(
     (email) => {
       if (typeof email !== 'string') throw new Error('Expecting string value')
-      if (!isEmail(email)) { throw new Error(options.errorMessage || "Invalid email") }
+      if (!isEmail(email)) { throw new Error(options.errorMessage || `Invalid email: ${escape_fieldValue(email)}`) }
 
       return email.toLowerCase()
     }, 
@@ -1409,6 +1410,7 @@ const DEFAULT_ENDUSER_FIELDS = [
 // }
 
 const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
+  "Appointment Booking": '',
   email: '',
   file: '',
   files: '',
@@ -1438,6 +1440,7 @@ export const FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES) as FormFieldType[
 export const formFieldTypeValidator = exactMatchValidator<FormFieldType>(FORM_FIELD_TYPES)
 
 export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' | 'phoneNumber']: (value?: FormResponseValueAnswer[keyof FormResponseValueAnswer], options?: any, isOptional?: boolean) => any } = {
+  'Appointment Booking': stringValidator.validate({ maxLength: 100 }),
   'Related Contacts': objectAnyFieldsAnyValuesValidator.validate(),
   'Insurance': objectAnyFieldsAnyValuesValidator.validate(),
   'Address': objectAnyFieldsAnyValuesValidator.validate(),
@@ -1779,6 +1782,10 @@ export const insuranceOptionalValidator = objectValidator<EnduserInsurance>({
 
 // validate optional vs not at endpoint-level
 export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: FormResponseValueAnswer & { type: K } } >({
+  "Appointment Booking": objectValidator<FormResponseAnswerAppointmentBooking>({
+    type: exactMatchValidator(['Appointment Booking']),
+    value: stringValidator,
+  }),
   "Related Contacts": objectValidator<FormResponseAnswerRelatedContacts>({
     type: exactMatchValidator(['Related Contacts']),
     value: listValidatorOptionalOrEmptyOk(objectAnyFieldsAnyValuesValidator),
@@ -2750,6 +2757,7 @@ export const tableInputChoiceValidator = orValidator<{ [K in TableInputChoiceTyp
 })
 
 export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
+  bookingPageId: stringValidatorOptional,
   tableChoices: listValidatorOptionalOrEmptyOk(tableInputChoiceValidator),
   choices: listOfStringsValidatorOptionalOrEmptyOk,
   from: numberValidatorOptional,

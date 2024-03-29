@@ -1351,6 +1351,14 @@ export const responses_satisfy_conditions = (responses: FormResponseValue[], con
         )
       }
 
+      if (answer.type === 'Address') {
+        return (
+           comparison === answer.value?.state
+        || comparison === answer.value?.zipCode
+        || comparison === answer.value?.city
+        )
+      }
+
       return (
         Array.isArray(answer.value)
           ? (answer.value as string[]).includes(comparison)

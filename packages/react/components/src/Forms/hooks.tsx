@@ -218,13 +218,22 @@ export const getNextField = (activeField: FormFieldNode, currentValue: Response,
 
   return (
     activeField.children.find(c => c.value.previousFields.find(p => 
-        p.type === 'previousEquals' 
-    && p.info.fieldId === currentValue.fieldId
-    && (
-      ((currentValue.answer.type === 'multiple_choice' || currentValue.answer.type === 'Dropdown') 
-    && currentValue.answer.value?.includes(p.info.equals))
-    || p.info.equals === currentValue.answer.value
-    )
+      p.type === 'previousEquals' 
+      && p.info.fieldId === currentValue.fieldId
+      && (
+        (
+          (currentValue.answer.type === 'multiple_choice' || currentValue.answer.type === 'Dropdown') 
+          && currentValue.answer.value?.includes(p.info.equals)
+        )
+        || (p.info.equals === currentValue.answer.value)
+        || (
+          currentValue.answer.type === 'Address' && (
+            p.info.equals === currentValue.answer.value?.state
+            || p.info.equals === currentValue.answer.value?.zipCode
+            || p.info.equals === currentValue.answer.value?.city
+          )
+        )
+      )
   ))
   ) || (
     activeField
@@ -474,6 +483,7 @@ export const useTellescopeForm = ({ customization, carePlanId, context, ga4measu
   const formId = root.value.formId
 
   const session = useResolvedSession()
+  const sessionType = session.type
   const { handleUpload } = useFileUpload({ enduserId: session.type === 'enduser' ? session.userInfo.id : enduserId })
   const [, { updateElement: updateFormResponse, updateLocalElement: updateLocalFormResponse }] = useFormResponses({ dontFetch: true })
 
@@ -780,7 +790,7 @@ export const useTellescopeForm = ({ customization, carePlanId, context, ga4measu
       }
     }
 
-    if (field.isOptional) {
+    if (field.isOptional || (sessionType === 'user' && field.type === 'Appointment Booking')) {
       return null 
     }
 
@@ -899,7 +909,7 @@ export const useTellescopeForm = ({ customization, carePlanId, context, ga4measu
     } 
 
     return null
-  }, [responses, selectedFiles, currentValue, activeField, repeats])
+  }, [responses, selectedFiles, currentValue, activeField, repeats, sessionType])
 
   // nested Question Group fields are disabled, so it's safe to avoid recursion multiple times
   const validateField = useCallback((field: FormField) => {
@@ -1187,21 +1197,21 @@ export const useTellescopeForm = ({ customization, carePlanId, context, ga4measu
     })))
 
     // ensure stripe payment is stored as saved immediately
-    const stripeField = fields.find(f => f.id === fieldId && f.type === 'Stripe')
-    if (stripeField && typeof value === 'string' && (formResponseId || accessCode)) {
+    const saveField = fields.find(f => f.id === fieldId && (f.type === 'Stripe' || f.type === 'Appointment Booking'))
+    if (saveField && typeof value === 'string' && (formResponseId || accessCode)) {
       session.api.form_responses.save_field_response({
         accessCode,
         formResponseId,
         response: {
           answer: {
-            type: 'Stripe',
+            type: saveField.type as "Stripe" | "Appointment Booking",
             value,
           },
-          fieldId: stripeField.id,
-          fieldTitle: stripeField.title,
-          externalId: stripeField.externalId,
-          fieldDescription: stripeField.description,
-          fieldHtmlDescription: stripeField.htmlDescription,
+          fieldId: saveField.id,
+          fieldTitle: saveField.title,
+          externalId: saveField.externalId,
+          fieldDescription: saveField.description,
+          fieldHtmlDescription: saveField.htmlDescription,
         },
       })
       .catch(console.error)

@@ -271,6 +271,7 @@ import {
   insuranceOptionalValidator,
   listOfStringsValidatorUniqueOptionalOrEmptyOkay,
   diagnosesValidator,
+  stateValidatorOptional,
 } from "@tellescope/validation"
 
 import {
@@ -542,6 +543,9 @@ export type VitalLabTest = {
   ]
 }
 
+type BookingInfoEnduserFields = {
+  state?: string,
+}
 export type CustomActions = {
   availability_blocks: {
     update_order: CustomAction<{ indexUpdates: IndexUpdate[] }, { }>,
@@ -583,6 +587,7 @@ export type CustomActions = {
   },
   form_fields: {
     load_choices_from_database: CustomAction<{ fieldId: string, lastId?: string, limit?: number, }, { choices: DatabaseRecordClient[] }>,
+    booking_info: CustomAction<{ bookingPageId: string, enduserFields?: BookingInfoEnduserFields }, { bookingURL: string, warningMessage?: string }>,
   },
   forms: {
     get_form_statistics: CustomAction<{ formId: string, range?: DateRange }, { statistics: FormStatistics }>,
@@ -723,7 +728,7 @@ export type CustomActions = {
   },
   users: {
     display_info: CustomAction<{ }, { fname: string, lname: string, id: string }[]>,
-    refresh_session: CustomAction<{}, { user: UserSession, authToken: string }>,
+    refresh_session: CustomAction<{ invalidatePreviousToken?: boolean }, { user: UserSession, authToken: string }>,
     generate_auth_token: CustomAction<{ id?: string, phone?: string, email?: string, externalId?: string, durationInSeconds?: number }, { 
       authToken: string, 
       enduser?: Enduser,
@@ -2758,7 +2763,9 @@ export const schema: SchemaV1 = build_schema({
         name: 'Refresh user authentication',
         path: '/refresh-session',
         description: "When called by an authenticated user, generates a new session",
-        parameters: { },
+        parameters: { 
+          invalidatePreviousToken: { validator: booleanValidator }, 
+        },
         returns: { 
           authToken: { validator: stringValidator, required: true }, 
           enduser: { validator:  'user' }, 
@@ -3643,8 +3650,26 @@ export const schema: SchemaV1 = build_schema({
           choices: { validator: 'database_records' as any, required: true }
         },
       },
+      booking_info: {
+        op: "custom", access: 'read', method: "get",
+        path: '/form-fields/booking-info',
+        name: 'Load Appointment Booking Info',
+        description: "Loads necessary information for rendering an Appointment Booking field",
+        parameters: { 
+          bookingPageId: { validator: mongoIdStringValidator, required: true },
+          enduserFields: {
+            validator: objectValidator<BookingInfoEnduserFields>({
+              state: stateValidatorOptional,
+            }, { isOptional: true, emptyOk: true })
+          }
+        },
+        returns: {
+          warningMessage: { validator: stringValidator },
+          bookingURL: { validator: stringValidator, required: true },
+        },
+      },
     },
-    enduserActions: { read: {}, readMany: {}, load_choices_from_database: {} },
+    enduserActions: { read: {}, readMany: {}, load_choices_from_database: {}, booking_info: {} },
     fields: {
       ...BuiltInFields, 
       formId: {

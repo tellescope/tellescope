@@ -38,10 +38,11 @@ import {
   EnduserSessionContext,
   SessionContext,
 } from "./authentication"
-import { Button, IconModal, TextField, TextFieldProps, LabeledIconButtonProps, LoadingButton, Modal, SecureImage, SubmitButton, useFiles, useModalIconButton, useUsers, useSession,  } from "."
+import { Button, IconModal, TextField, TextFieldProps, LabeledIconButtonProps, LoadingButton, Modal, SecureImage, SubmitButton, useFiles, useModalIconButton, useUsers, useSession, IconButton,  } from "."
 import { Grid, InputAdornment } from "@mui/material"
 import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
+import CloseIcon from '@mui/icons-material/Close';
 
 export {
   FileBlob,
@@ -358,6 +359,18 @@ export const SearchTextInput = ({ onChange, ...props } : TextFieldProps) => (
         <InputAdornment position="start">
           <SearchIcon color={props.value ? 'primary' : undefined} />
         </InputAdornment>
+      ),
+      endAdornment: (
+        (props.value && onChange) ? (
+          <InputAdornment position="end">
+            <IconButton>
+            <CloseIcon color={props.value ? 'primary' : undefined} 
+              onClick={() => onChange('')}
+            />
+            </IconButton>
+          </InputAdornment>
+        ) 
+        : undefined
       ),
     }}
     {...props}

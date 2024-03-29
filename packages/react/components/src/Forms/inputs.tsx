@@ -12,7 +12,7 @@ import LinearProgress from '@mui/material/LinearProgress';
 
 import DatePicker from "react-datepicker";
 import { datepickerCSS } from "./css/react-datepicker" // avoids build issue with RN
-import { CancelIcon, FileBlob, IconButton, LabeledIconButton, Styled, form_display_text_for_language, isDateString, useProducts, useResolvedSession } from ".."
+import { CancelIcon, FileBlob, IconButton, LabeledIconButton, LoadingButton, Styled, form_display_text_for_language, isDateString, useProducts, useResolvedSession } from ".."
 import { DatabaseRecord, FormField } from "@tellescope/types-client"
 import { css } from '@emotion/css'
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
@@ -2278,6 +2278,121 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
         }}>
           Add Contact
         </Button>
+      </Grid>
+    </Grid>
+  )
+}
+
+export const AppointmentBookingInput = ({ field, value, onChange, form, responses, ...props }: FormInputProps<'Appointment Booking'>) => {
+  const session = useResolvedSession()
+
+  const [loaded, setLoaded] = useState<Awaited<ReturnType<typeof session['api']['form_fields']['booking_info']>>>()
+  const [error, setError] = useState('')
+  const [acknowledgedWarning, setAcknowledgedWarning] = useState(false)
+
+  const bookingPageId = field?.options?.bookingPageId
+
+  const addressQuestion = useMemo(() => responses?.find(r => {
+    if (r.answer.type !== 'Address') return false
+    if (r.field.intakeField !== 'Address') return false
+
+    return true
+  }), [responses])
+  const state = useMemo(() => (
+    addressQuestion?.answer?.type === 'Address' ? addressQuestion?.answer?.value?.state : undefined
+  ), [addressQuestion])
+
+  const loadBookingInfo = useCallback(() => {
+    if (!bookingPageId) return
+
+    setError('')
+    session.api.form_fields.booking_info({ 
+      bookingPageId,
+      enduserFields: { state }
+    })
+    .then(setLoaded)
+    .catch(e => setError(e?.message || e?.toString() || 'Error loading appointment details'))
+  }, [bookingPageId, session, state])
+
+  const fetchRef = useRef(false)
+  useEffect(() => {
+    if (value) return
+    if (!bookingPageId) return
+    if (fetchRef.current) return
+    fetchRef.current = true
+
+    loadBookingInfo()
+  }, [bookingPageId, loadBookingInfo, value])
+
+  useEffect(() => {
+    const handleMessage = (m: MessageEvent) => {
+      if (m?.data?.type === 'Booking Success' && typeof m?.data?.bookedEventId === 'string') {
+        onChange(m.data.bookedEventId, field.id)
+      }
+    }
+
+    window.addEventListener('message', handleMessage)
+    return () => { window.removeEventListener('message', handleMessage) }
+  }, [field?.id, onChange, acknowledgedWarning, value])
+
+  console.log(loaded?.bookingURL)
+  if (value) {
+    return (
+      <Grid container alignItems="center" wrap="nowrap">
+        <CheckCircleOutline color="success" />
+
+        <Typography sx={{ ml: 1, fontSize: 20 }}>
+          Your appointment has been booked
+        </Typography>
+      </Grid>
+    )
+  }
+  if (!bookingPageId) {
+    return <Typography>No booking page specified</Typography>
+  }
+  if (error) {
+    return (
+      <Grid container direction="column" spacing={1}>
+        <Grid item>
+          <Typography color="error">Error: {error}</Typography>
+        </Grid>
+
+        <Grid item>
+          <LoadingButton disabled={!bookingPageId} style={{ maxWidth: 300 }}
+            variant="contained" onClick={loadBookingInfo}
+            submitText="Try Again" submittingText="Loading..."
+          />
+        </Grid>
+      </Grid>
+    )
+  }  
+  if (!loaded?.bookingURL) {
+    return <LinearProgress />
+  }
+  return (
+    <Grid container direction="column" spacing={1} sx={{ mt: 1 }}>
+      {loaded.warningMessage &&
+        <Grid item>
+          <Typography color="error" sx={{ fontSize: 20, fontWeight: 'bold' }}>
+            {loaded.warningMessage}
+          </Typography>
+        </Grid>
+      }
+
+      <Grid item>
+      {(!loaded.warningMessage || acknowledgedWarning)
+        ? (
+          <iframe title="Appointment Booking Embed" 
+            src={loaded.bookingURL}
+            style={{ border: 'none', width: '100%', height: 750 }}
+          />
+        )
+        : (
+          <Button variant="outlined" onClick={() => setAcknowledgedWarning(true)}>
+            Show Booking Page Preview
+          </Button>
+        )
+      }
       </Grid>
     </Grid>
   )

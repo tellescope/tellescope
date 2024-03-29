@@ -7211,6 +7211,13 @@ const register_as_enduser_tests = async () => {
     // console.log(JSON.stringify(await sdk.bulk_load({ load: [{ model: 'users' }]}), null, 2))
  
     await async_test(
+      "email validation error message",
+      // @ts-ignore
+      () => sdk.api.endusers.createOne({ email: 'not-an-email' }),
+      { shouldError: true, onError: e => e.message === 'Error parsing field email: Invalid email: not-an-email' }
+    ) 
+
+    await async_test(
       "count exists",
       // @ts-ignore
       () => sdk.api.endusers.getSome({ returnCount: true }),

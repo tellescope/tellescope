@@ -337,6 +337,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     load_choices_from_database: (args: extractFields<CustomActions['form_fields']['load_choices_from_database']['parameters']>) => (
       Promise<extractFields<CustomActions['form_fields']['load_choices_from_database']['returns']>>
     ),
+    booking_info: (args: extractFields<CustomActions['form_fields']['booking_info']['parameters']>) => (
+      Promise<extractFields<CustomActions['form_fields']['booking_info']['returns']>>
+    ),
   },
   form_responses: {
     submit_form_response: (args: extractFields<CustomActions['form_responses']['submit_form_response']['parameters']>) => (
@@ -723,6 +726,7 @@ export class Session extends SessionManager {
     queries.forms.get_form_statistics = args => this._GET(`/v1${schema.forms.customActions.get_form_statistics.path}`, args)
 
     queries.form_fields.load_choices_from_database = args => this._GET(`/v1${schema.form_fields.customActions.load_choices_from_database.path}`, args)
+    queries.form_fields.booking_info = args => this._GET(`/v1${schema.form_fields.customActions.booking_info.path}`, args)
 
     queries.form_responses.prepare_form_response = (args) => this._POST(`/v1${schema.form_responses.customActions.prepare_form_response.path}`, args)
     queries.form_responses.submit_form_response = (args) => this._PATCH(`/v1${schema.form_responses.customActions.submit_form_response.path}`, args)
@@ -884,8 +888,8 @@ export class Session extends SessionManager {
     return { authToken, ...userInfo }
   }
 
-  refresh_session = async () => {
-    const { user, authToken } = await this.POST<{}, { user: UserSession } & { authToken: string }>('/v1/refresh-session')
+  refresh_session = async (args?: { invalidatePreviousToken?: boolean }) => {
+    const { user, authToken } = await this.POST<typeof args, { user: UserSession } & { authToken: string }>('/v1/refresh-session', args)
     this.handle_new_session({ ...user, authToken })
     return { user, authToken }
   }

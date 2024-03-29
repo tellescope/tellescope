@@ -349,6 +349,7 @@ export interface UserSession extends Session, OrganizationLimits { // User joine
   access: AccessPermissions;
   orgName: string;
   orgTwilioNumber: string;
+  defaultTwilioNumber?: string;
   ticketThreadsEnabled?: boolean, // zendesk enabled
   fromEmail?: string,
   verifiedEmail: boolean;
@@ -1156,7 +1157,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
 }
 
 export type FormFieldLiteralType = 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time'
-export type FormFieldComplexType = "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance"
+export type FormFieldComplexType = "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance"
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
 
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic'
@@ -1230,6 +1231,7 @@ export type FormFieldOptions = FormFieldValidation & {
   disableNext?: boolean,
   customPriceMessage?: string,
   billingProvider?: 'Canvas' | "Candid" | string,
+  bookingPageId?: string,
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
@@ -1487,6 +1489,7 @@ export type FormResponseAnswerStripe = FormResponseValueAnswerBuilder<'Stripe', 
 export type FormResponseAnswerDatabaseSelect = FormResponseValueAnswerBuilder<'Database Select', DatabaseSelectResponse[]>
 export type FormResponseAnswerMedications = FormResponseValueAnswerBuilder<'Medications', MedicationResponse[]>
 export type FormResponseAnswerRelatedContacts = FormResponseValueAnswerBuilder<'Related Contacts', Partial<Enduser>[]>
+export type FormResponseAnswerAppointmentBooking = FormResponseValueAnswerBuilder<'Appointment Booking', string>
 export type FormResponseAnswerInsurance = FormResponseValueAnswerBuilder<'Insurance', Partial<EnduserInsurance>>
 
 export type FormResponseAnswerSignatureValue = {
@@ -1536,6 +1539,7 @@ export type FormResponseValueAnswer = (
   | FormResponseAnswerMedications
   | FormResponseAnswerRelatedContacts
   | FormResponseAnswerInsurance
+  | FormResponseAnswerAppointmentBooking
 )
 
 export type FormResponseValue = {
@@ -1574,6 +1578,7 @@ export type AnswerForType = {
   'Medications': FormResponseAnswerMedications['value']
   'Related Contacts': FormResponseAnswerRelatedContacts['value']
   'Insurance': FormResponseAnswerInsurance['value']
+  'Appointment Booking': FormResponseAnswerAppointmentBooking['value']
 }
 
 export interface FormResponse_readonly extends ClientRecord {

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo } from "react"
 import { Button, Flex, LabeledIconButton, LoadingButton, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
-import { AddressInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, FileInput, FilesInput, InsuranceInput, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
+import { AddressInput, AppointmentBookingInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, FileInput, FilesInput, InsuranceInput, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
@@ -138,6 +138,7 @@ export const QuestionForField = ({
   const Medications = customInputs?.['Medications'] ?? MedicationsInput
   const RelatedContacts = customInputs?.['Related Contacts'] ?? RelatedContactsInput
   const Insurance = customInputs?.['Insurance'] ?? InsuranceInput
+  const AppointmentBooking = customInputs?.['Appointment Booking'] ?? AppointmentBookingInput
 
   const validationMessage = validateField(field)
 
@@ -185,6 +186,9 @@ export const QuestionForField = ({
         )
         : field.type === 'string' ? (
           <String field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} form={form} />
+        )
+        : field.type === 'Appointment Booking' ? (
+          <AppointmentBooking responses={responses} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'Appointment Booking'>} form={form} />
         )
         : field.type === 'Stripe' ? (
           <Stripe field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} setCustomerId={setCustomerId} form={form} />
