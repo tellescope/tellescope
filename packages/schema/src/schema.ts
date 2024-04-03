@@ -59,6 +59,7 @@ import {
   PhoneCallsReportQueries,
   ListOfStringsWithQualifier,
   GoGoMedsPet,
+  InsuranceType,
 } from "@tellescope/types-models"
 
 import {
@@ -272,6 +273,7 @@ import {
   listOfStringsValidatorUniqueOptionalOrEmptyOkay,
   diagnosesValidator,
   stateValidatorOptional,
+  canvasCodingValidator,
 } from "@tellescope/validation"
 
 import {
@@ -675,7 +677,9 @@ export type CustomActions = {
     get_journey_statistics: CustomAction<{ journeyId: string }, { statistics: JourneyStatistics }>,
   },
   endusers: {
-    check_eligibility: CustomAction<{ id: string, integration?: string, clearinghouse?: string, }, { enduser: Enduser }>,
+    check_eligibility: CustomAction<{ 
+      id: string, integration?: string, clearinghouse?: string, insuranceType?: InsuranceType,
+    }, { enduser: Enduser }>,
     set_password: CustomAction<{ id: string, password: string }, { }>,
     is_authenticated: CustomAction<
       { id?: string, authToken: string }, 
@@ -877,6 +881,7 @@ export type CustomActions = {
       query: AnalyticsQuery,
       createdRange?: DateRange,
       updatedRange?: DateRange,
+      groupByCareTeam?: boolean,
     }, AnalyticsQueryResult>, 
     get_custom_report: CustomAction<{ key: string, lastId?: string, limit?: number }, { report: any }>, 
   },
@@ -1245,6 +1250,7 @@ export const schema: SchemaV1 = build_schema({
       markedUnreadAt: { validator: dateOptionalOrEmptyStringValidator },
       note: { validator: stringValidator25000EmptyOkay },
       insurance: { validator: insuranceOptionalValidator },
+      insuranceSecondary: { validator: insuranceOptionalValidator },
       // recentMessagePreview: { 
       //   validator: stringValidator,
       // },
@@ -1259,6 +1265,7 @@ export const schema: SchemaV1 = build_schema({
           id: { validator: mongoIdStringValidator, required: true },
           integration: { validator: stringValidator },
           clearinghouse: { validator: stringValidator },
+          insuranceType: { validator: exactMatchValidator<InsuranceType>(['Primary', 'Secondary']) },
         },
         returns: { 
           enduser: { validator: 'enduser' as any },
@@ -4465,6 +4472,7 @@ export const schema: SchemaV1 = build_schema({
       enduserAttendeeLimit: { validator: numberValidator },
       bufferEndMinutes: { validator: numberValidator },
       bufferStartMinutes: { validator: numberValidator },
+      canvasCoding: { validator: canvasCodingValidator },
       // isAllDay: { validator: booleanValidator },
     }
   },
@@ -4516,6 +4524,7 @@ export const schema: SchemaV1 = build_schema({
       enduserAttendeeLimit: { validator: numberValidator },
       bufferEndMinutes: { validator: numberValidator },
       bufferStartMinutes: { validator: numberValidator },
+      canvasCoding: { validator: canvasCodingValidator },
     }
   },
   calendar_event_RSVPs: {
@@ -6047,6 +6056,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           query: { validator: analyticsQueryValidator, required: true },
           createdRange: { validator: dateRangeValidator },
           updatedRange: { validator: dateRangeValidator },
+          groupByCareTeam: { validator: booleanValidator },
         },
         returns: { 
           count: { validator: nonNegNumberValidator },
@@ -6101,6 +6111,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       type: { validator: analyticsFrameTypeValidator },
       groupMin: { validator: nonNegNumberValidator },
       groupMax: { validator: nonNegNumberValidator },
+      groupByCareTeam: { validator: booleanValidator },
     },
   },
   availability_blocks: {

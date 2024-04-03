@@ -144,10 +144,10 @@ export const useUserForId = (userId: string) => {
   return value_is_loaded(usersLoading) ? usersLoading.value.find(u => u.id === userId) : undefined
 } 
 
-export const DisplayPictureForSelf = () => {
+export const DisplayPictureForSelf = (props: Styled) => {
   const user = useResolvedSession().userInfo
 
-  return <DisplayPicture user={user} />
+  return <DisplayPicture user={user} {...props} />
 }
 
 export const DisplayPictureForEnduser = ({ id, ...props } : Omit<DisplayPictureProps, 'user'> & { id: string } ) => {

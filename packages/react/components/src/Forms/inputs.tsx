@@ -1006,7 +1006,7 @@ export async function convertHEIC (file: FileBlob | string){
   return url
 };
 
-const value_is_image = (f?: FileBlob)=> f?.type?.includes('image')
+const value_is_image = (f?: { type?: string })=> f?.type?.includes('image')
 export const FileInput = ({ value, onChange, field, existingFileName }: FormInputProps<'file'> & { existingFileName?: string }) => {
   const [error, setError] = useState('')
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
@@ -1035,7 +1035,12 @@ export const FileInput = ({ value, onChange, field, existingFileName }: FormInpu
       convertHEIC(value).then(setPreview).catch(console.error)
       return
     }
-    setPreview(URL.createObjectURL(value))
+
+    try {
+      setPreview(URL.createObjectURL(value))
+    } catch(err) {
+      console.error(err)
+    }
   }, [value])
 
   // console.log(document.createElement('input').capture )
@@ -1095,6 +1100,15 @@ export const FileInput = ({ value, onChange, field, existingFileName }: FormInpu
   ) 
 }
 
+export const safe_create_url = (file: any) => {
+  try {
+    return URL.createObjectURL(file)
+  } catch(err) {
+    console.error('safe_create_url error:', err)
+    return null
+  }
+}
+
 export const FilesInput = ({ value, onChange, field, existingFileName }: FormInputProps<'files'> & { existingFileName?: string }) => {
   const [error, setError] = useState('')
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
@@ -1115,10 +1129,11 @@ export const FilesInput = ({ value, onChange, field, existingFileName }: FormInp
     ),
   })
 
-  // const previews = useMemo(() => (
-  //   // @ts-ignore
-  //   value?.filter(value_is_image).map(URL.createObjectURL)
-  // ), [value])
+  const previews = useMemo(() => (
+    (value ?? []).map(v => {
+      return value_is_image(v) ? safe_create_url(v) : null
+    })
+  ), [value])
 
   return (
     <Grid container direction="column">
@@ -1178,11 +1193,10 @@ export const FilesInput = ({ value, onChange, field, existingFileName }: FormInp
             {file.name}
           </Typography>
 
-          {file.type?.includes('image') &&
+          {file.type?.includes('image') && previews[i] &&
             <Grid item>
                <img 
-                // @ts-ignore
-                src={URL.createObjectURL(file)} 
+                src={previews[i]!} 
                 style={{ maxWidth: '45%', maxHeight: 80, height: '100%' }}
               />
             </Grid>

@@ -263,6 +263,7 @@ import {
   DiagnosisType,
   Diagnosis,
   FormResponseAnswerAppointmentBooking,
+  CanvasCoding,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -3289,6 +3290,9 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
       }))
     }, { isOptional: true, emptyOk: true, }),
   }, { isOptional: true, emptyOk: true, }),
+  users: objectValidator<OrganizationSettings['users']>({
+    sessionDurationInHours: numberValidatorOptional,
+  }, { isOptional: true, emptyOk: true, }),
 })
 
 export const calendarEventPortalSettingsValidator = objectValidator<CalendarEventPortalSettings>({
@@ -3748,6 +3752,7 @@ export const analyticsQueryResultsValidator = listValidator(objectValidator<Anal
   value: numberValidator,
   numerator: numberValidatorOptional,
   denominator: numberValidatorOptional,
+  userId: mongoIdStringOptional,
 }))
 
 export const scheduledJourneysValidator = listValidatorOptionalOrEmptyOk(objectValidator<ScheduledJourney>({
@@ -4397,3 +4402,9 @@ export const diagnosisValidator = objectValidator<Diagnosis>({
   code: stringValidator,
 })
 export const diagnosesValidator = listValidator(diagnosisValidator)
+
+export const canvasCodingValidator = objectValidator<CanvasCoding>({
+  code: stringValidator,
+  display: stringValidator,
+  system: stringValidator,
+}, { })

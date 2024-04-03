@@ -196,6 +196,9 @@ export type OrganizationSettings = {
     },
     templateRequired?: boolean,
     locationRequired?: boolean,
+  },
+  users?: {
+    sessionDurationInHours?: number,
   }
 }
 
@@ -360,6 +363,7 @@ export interface UserSession extends Session, OrganizationLimits { // User joine
   hasTicketQueues?: boolean,
   eat?: boolean, // enableAccessTags
   lockedOutUntil?: number,
+  duration?: number,
 }
 
 export type StateCredentialInfo = {
@@ -624,6 +628,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   accessTags?: string[],
   unsubscribedFromMarketing?: boolean,
   insurance?: EnduserInsurance,
+  insuranceSecondary?: EnduserInsurance,
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
 }
@@ -922,6 +927,7 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
   enduserPhoneNumber?: string,
   tags?: string[],
   batchId?: string,
+  replyToTemplateId?: string,
   // usingPublicNumber?: boolean, // flagged on outgoing messages from public number
   // sentAt: string, // only outgoing
 }
@@ -1199,11 +1205,12 @@ export type FormFieldValidation = {
   repeat?: boolean,
 
 }
-export type CanvasConsentCategory = {
+export type CanvasCoding = {
   system: string,
   code: string,
   display: string,
 }
+export interface CanvasConsentCategory extends CanvasCoding {}
 export type FormFieldOptions = FormFieldValidation & {
   tableChoices?: TableInputChoice[],  
   choices?: string[];
@@ -1739,6 +1746,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   enduserAttendeeLimit?: number,
   bufferStartMinutes?: number,
   bufferEndMinutes?: number,
+  canvasCoding?: CanvasCoding,
   // isAllDay?: boolean,
 }
 
@@ -1841,6 +1849,8 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   apiOnly?: boolean,
   bufferStartMinutes?: number,
   bufferEndMinutes?: number,
+
+  canvasCoding?: CanvasCoding,
 }
 
 export interface AppointmentLocation_readonly extends ClientRecord {}
@@ -2543,6 +2553,7 @@ export type AnalyticsQueryResultValue = {
   value: number,
   numerator?: number,
   denominator?: number,
+  userId?: string,
 }
 export type AnalyticsQueryResult = { 
   count?: number, // for simple queries
@@ -2776,6 +2787,7 @@ export const resource_to_modelName: { [K in AnalyticsQueryType] : ModelName } = 
 export type AnalyticsQueryOptions = {
   createdRange?: DateRange,
   updatedRange?: DateRange,
+  groupByCareTeam?: boolean, // supports multi-grouping for both care team and a normal field
 }
 
 export type AnalyticsFrameType = 'Percentage'
@@ -2783,6 +2795,7 @@ export interface AnalyticsFrame_readonly extends ClientRecord {}
 export interface AnalyticsFrame_required {
   title: string,
   query: AnalyticsQuery,
+  groupByCareTeam?: boolean, // supports multi-grouping for both care team and a normal field
 }
 export interface AnalyticsFrame_updatesDisabled {}
 export interface AnalyticsFrame extends 
@@ -4375,3 +4388,5 @@ export type DataSyncRecord = {
   userIds: string[], // Default access
   enduserIds: string[], // Assigned access
 }
+
+export type InsuranceType = "Primary" | "Secondary"

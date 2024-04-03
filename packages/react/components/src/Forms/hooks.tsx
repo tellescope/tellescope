@@ -189,7 +189,9 @@ export const useTreeForFormFields = (_fields: FormField[]) => {
   return nodesForId[fields.find(s => s.previousFields.find(p => p.type === 'root'))?.id ?? '']
 }
 
-export const getNextField = (activeField: FormFieldNode, currentValue: Response, responses: FormResponseValue[]) => {
+export const getNextField = (activeField: FormFieldNode, currentValue: Response, responses: FormResponseValue[], options?: {
+  urlLogicValue?: string,
+}) => {
   if (activeField.children.length === 0) {
     return
   } 
@@ -207,7 +209,7 @@ export const getNextField = (activeField: FormFieldNode, currentValue: Response,
     )
 
     for (const { node, logic } of advancedLogic) {
-      if (responses_satisfy_conditions(responses, logic.info.condition)) {
+      if (responses_satisfy_conditions(responses, logic.info.condition, options)) {
         return node 
       }
     }
@@ -244,7 +246,9 @@ export const getNextField = (activeField: FormFieldNode, currentValue: Response,
   )
 }
 
-export const useListForFormFields = (fields: FormField[], responses: Response[]) => {
+export const useListForFormFields = (fields: FormField[], responses: Response[], options?: {
+  urlLogicValue?: string
+}) => {
   const list: FormField[] = []
 
   const root = fields.find(f => f.previousFields.find(p => p.type === 'root'))
@@ -273,6 +277,7 @@ export const useListForFormFields = (fields: FormField[], responses: Response[])
       }, 
       currentValue,
       responses,
+      options,
     )
     if (!nextField) break;
 
@@ -324,6 +329,7 @@ interface UseTellescopeFormOptions {
   parentResponseId?: string,
   carePlanId?: string,
   context?: string,
+  urlLogicValue?: string,
 }
 
 const OrganizationThemeContext = createContext(null as any as { 
@@ -472,7 +478,7 @@ const shouldCallout = (field: FormField | undefined, value: FormResponseValueAns
 
 export type Response = FormResponseValue & { touched: boolean, includeInSubmit: boolean, field: FormField }
 export type FileResponse = { fieldId: string, fieldTitle: string, blobs?: FileBlob[] }
-export const useTellescopeForm = ({ customization, carePlanId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL }: UseTellescopeFormOptions) => {
+export const useTellescopeForm = ({ urlLogicValue, customization, carePlanId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL }: UseTellescopeFormOptions) => {
   const { amPm, hoursAmPm, minutes } = get_time_values(new Date())
 
   const root = useTreeForFormFields(fields)
@@ -1146,7 +1152,7 @@ export const useTellescopeForm = ({ customization, carePlanId, context, ga4measu
 
     try { window.scrollTo({ top: 0 }) } catch(err) {} // scroll to top if needed
     setActiveField(activeField => {
-      let newField = getNextField(activeField, currentValue, responses)
+      let newField = getNextField(activeField, currentValue, responses, { urlLogicValue })
 
       if (newField !== undefined) {
         prevFieldStackRef.current.push(activeField)
@@ -1155,7 +1161,7 @@ export const useTellescopeForm = ({ customization, carePlanId, context, ga4measu
       
       return newField || activeField
     })
-  }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses])
+  }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, urlLogicValue])
 
   const isPreviousDisabled = useCallback(() => (
       prevFieldStackRef.current.length === 0 

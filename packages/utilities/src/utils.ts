@@ -1,4 +1,4 @@
-import { CalendarEvent, CompoundFilter, Enduser, EnduserRelationship, FormResponseAnswerNumber, FormResponseValue, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus } from "@tellescope/types-models"
+import { CalendarEvent, CompoundFilter, Enduser, EnduserRelationship, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus } from "@tellescope/types-models"
 import { ADMIN_ROLE, get_inverse_relationship_type } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 
@@ -1268,7 +1268,14 @@ export const get_next_reminder_timestamp = ({ startTimeInMS, reminders } : Pick<
   return startTimeInMS - maxMsBeforeStartTime 
 }
 
-export const capture_is_supported = () => document.createElement('input').capture !== undefined
+export const capture_is_supported = () => {
+  try {
+    return document.createElement('input').capture !== undefined
+  } catch(err) {
+    console.error(err)
+    return false
+  }
+}
 
 export const batch_array = <T>(array: T[], size: number) => {
   const batches: T[][] = []
@@ -1288,6 +1295,7 @@ export const batch_array = <T>(array: T[], size: number) => {
 
 // don't change order without updating responses_satisfy_conditions calculations
 export const FORM_LOGIC_CALCULATED_FIELDS = ['Calculated: BMI']
+export const FORM_LOGIC_URL_PARAMETER = 'URL Logic Parameter'
 
 export const calculate_bmi = (e: Pick<Enduser, 'height' | 'weight'>) => {
   const height = parseInt(e.height?.value || '0')
@@ -1299,12 +1307,14 @@ export const calculate_bmi = (e: Pick<Enduser, 'height' | 'weight'>) => {
 }
 
 // keep consistent with convert_form_logic_to_filter logic in analytics.ts
-export const responses_satisfy_conditions = (responses: FormResponseValue[], conditions: CompoundFilter<string>): boolean => {
+export const responses_satisfy_conditions = (responses: FormResponseValue[], conditions: CompoundFilter<string>, options?: {
+  urlLogicValue?: string,
+}): boolean => {
   const key = Object.keys(conditions)[0] as '$and' | '$or' | 'condition' | 'string' // string is form id
   if (key === '$and') {
     const andConditions = conditions[key] as CompoundFilter<string>[]
     for (const c of andConditions) {
-      if (!responses_satisfy_conditions(responses, c)) {
+      if (!responses_satisfy_conditions(responses, c, options)) {
         return false
       }
     }
@@ -1313,7 +1323,7 @@ export const responses_satisfy_conditions = (responses: FormResponseValue[], con
   } else if (key === '$or') {
     const orConditions = conditions[key] as CompoundFilter<string>[]
     for (const c of orConditions) {
-      if (responses_satisfy_conditions(responses, c)) {
+      if (responses_satisfy_conditions(responses, c, options)) {
         return true
       }
     }
@@ -1339,6 +1349,8 @@ export const responses_satisfy_conditions = (responses: FormResponseValue[], con
 
           return BMI
         })()
+      : fieldIdOrCalculated === FORM_LOGIC_URL_PARAMETER
+        ? { type: 'string', value: options?.urlLogicValue || '' } as FormResponseAnswerString
         : responses.find(r => r.fieldId === fieldIdOrCalculated)?.answer
     )
     if (!answer) return false
@@ -1538,4 +1550,19 @@ export const validate_enduser_for_gogo = (enduser?: Omit<Enduser, 'id'> | null) 
   if (!enduser.city) return "Address is required (City)"
   if (!enduser.state) return "Address is required (State)"
   if (!enduser.zipCode) return "Address is required (ZIP)"
+}
+
+// https://stackoverflow.com/questions/38552003/how-to-decode-jwt-token-in-javascript-without-using-a-library
+export const decodeJWT = <T extends { exp: number }>(jwt: string): T | null => {
+  try {
+    var base64Url = jwt.split('.')[1];
+    var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+
+    return JSON.parse(jsonPayload);
+  } catch(err) {
+    return null
+  }
 }
