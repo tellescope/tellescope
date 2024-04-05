@@ -3,8 +3,6 @@ import {
   ModelForName_required,
   RecordInfo,
   EnduserEngagementTimestamps,
-  JourneyContext,
-  AccessPermissions,
   ModelName,
 } from "@tellescope/types-models"
 
@@ -18,7 +16,6 @@ export type ServerModelForName = ToServerModels<ModelForName>
 export type ServerModelForName_required = ToServerModels<ModelForName_required>
 
 export type EnduserMedication = ServerModelForName['enduser_medications']
-export type ReferralProvider = ServerModelForName['referral_providers']
 export type AvailabilityBlock = ServerModelForName['availability_blocks']
 export type AppointmentBookingPage = ServerModelForName['appointment_booking_pages']
 export type APIKey = ServerModelForName['api_keys']

@@ -5,8 +5,8 @@ import { LoadFunction, LoadFunctionArguments } from "@tellescope/sdk"
 import { ALL_ACCESS, UNSEARCHABLE_FIELDS } from "@tellescope/constants"
 import { SearchAPIProps, useSearchAPI } from "./hooks"
 import { TextFieldProps } from "./mui"
-import { AutomationTrigger, CalendarEventTemplate, Database, DatabaseRecord, Enduser, File, Form, Forum, Journey, ManagedContentRecord, ReferralProvider, Template, Ticket, User, UserNotification } from "@tellescope/types-client"
-import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, LoadingLinear, ScrollingList, SearchTextInput, Typography, useAutomationTriggers, useCalendarEventTemplates, useDatabaseRecords, useDatabases, useEndusers, useFiles, useForms, useForums, useJourneys, useManagedContentRecords, useNotifications, useReferralProviders, useResolvedSession, useSession, useTemplates, useTickets, useUsers, value_is_loaded } from "."
+import { AutomationTrigger, CalendarEventTemplate, Database, DatabaseRecord, Enduser, File, Form, Forum, Journey, ManagedContentRecord, Template, Ticket, User, UserNotification } from "@tellescope/types-client"
+import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, LoadingLinear, ScrollingList, SearchTextInput, Typography, useAutomationTriggers, useCalendarEventTemplates, useDatabaseRecords, useDatabases, useEndusers, useFiles, useForms, useForums, useJourneys, useManagedContentRecords, useNotifications, useResolvedSession, useSession, useTemplates, useTickets, useUsers, value_is_loaded } from "."
 import { SxProps } from "@mui/material"
 import { AccessPermissions } from "@tellescope/types-models"
 
@@ -472,17 +472,6 @@ export const NotificationSearch = (props: Omit<GenericSearchProps<UserNotificati
   return (
     <ModelSearchInput filterKey="notifications-search" {...props} 
       searchAPI={session.api.user_notifications.getSome}
-      onLoad={addLocalElements}
-    />
-  )
-}
-
-export const ReferralProviderSearch = (props: Omit<GenericSearchProps<ReferralProvider>, 'filterKey'> & { filterKey?: string }) => {
-  const session = useSession()
-  const [, { addLocalElements }] = useReferralProviders()
-  return (
-    <ModelSearchInput filterKey="referral-provider-search" {...props} 
-      searchAPI={session.api.referral_providers.getSome}
       onLoad={addLocalElements}
     />
   )

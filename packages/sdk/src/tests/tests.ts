@@ -716,7 +716,6 @@ const run_generated_tests = async <N extends ModelName>({ queries, model, name, 
   || name === 'phone_calls'
   || name === 'analytics_frames'
   || name === 'superbills'
-  || name === 'referral_providers'
   || name === 'webhooks'
   || name === 'automated_actions' // might process in background and cause false failure
   ) return 
@@ -6057,7 +6056,6 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   superbill_providers: NO_TEST,
   superbills: NO_TEST,
   enduser_profile_views: NO_TEST,
-  referral_providers: NO_TEST,
   enduser_custom_types: NO_TEST,
   table_views: NO_TEST,
   email_sync_denials: NO_TEST,

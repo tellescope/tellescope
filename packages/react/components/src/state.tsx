@@ -66,7 +66,6 @@ import {
   SuperbillProvider,
   Superbill,
   EnduserProfileView,
-  ReferralProvider,
   EnduserMedication,
   PhoneTree,
   EnduserCustomType,
@@ -322,7 +321,6 @@ const postLikesSlice = createSliceForList<PostLike, 'post_likes'>('post_likes')
 const commentLikesSlice = createSliceForList<CommentLike, 'comment_likes'>('comment_likes')
 const organizationsSlice = createSliceForList<Organization, 'organizations'>('organizations')
 const availabilityBlocksSlice = createSliceForList<AvailabilityBlock, 'availability_blocks'>('availability_blocks')
-const referralProvidersSlice = createSliceForList<ReferralProvider, 'referral_providers'>('referral_providers')
 const enduserMedicationsSlice = createSliceForList<EnduserMedication, 'enduser_medications'>('enduser_medications')
 const enduserCustomTypesSlice = createSliceForList<EnduserCustomType, 'enduser_custom_types'>('enduser_custom_types')
 const ticketThreadsSlice = createSliceForList<TicketThread, 'ticket_threads'>('ticket_threads')
@@ -396,7 +394,6 @@ export const sharedConfig = {
     superbills: superbillsSlice.reducer,
     superbill_providers: superbillProvidersSlice.reducer,
     enduser_profile_views: enduserProfileViewsSlice.reducer,
-    referral_providers: referralProvidersSlice.reducer,
     enduser_medications: enduserMedicationsSlice.reducer,
     enduser_custom_types: enduserCustomTypesSlice.reducer,
     user_logs: userLogsSlice.reducer,
@@ -1171,25 +1168,6 @@ export const useEnduserEncounters = (options={} as HookOptions<EnduserEncounter>
       updateOne: session.api.enduser_encounters.updateOne,
     }, 
     {...options}
-  )
-}
-
-export const useReferralProviders = (options={} as HookOptions<ReferralProvider>) => {
-  const session = useResolvedSession()
-
-  return useListStateHook('referral_providers', useTypedSelector(s => s.referral_providers), session, referralProvidersSlice,
-    { 
-      loadQuery: session.api.referral_providers.getSome,
-      findOne: session.api.referral_providers.getOne,
-      findByIds: session.api.referral_providers.getByIds,
-      addOne: session.api.referral_providers.createOne,
-      addSome: session.api.referral_providers.createSome,
-      deleteOne: session.api.referral_providers.deleteOne,
-      updateOne: session.api.referral_providers.updateOne,
-    },
-    { 
-      ...options,
-    },
   )
 }
 

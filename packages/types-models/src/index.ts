@@ -629,6 +629,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   unsubscribedFromMarketing?: boolean,
   insurance?: EnduserInsurance,
   insuranceSecondary?: EnduserInsurance,
+  bookingNotes?: { bookingPageId: string, note: string }[]
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
 }
@@ -1626,6 +1627,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   lockedAt?: Date | '',
   carePlanId?: string,
   context?: string,
+  calendarEventId?: string,
 }
 
 export interface WebHook_readonly extends ClientRecord {}
@@ -2504,6 +2506,7 @@ export type UserUIRestrictions = {
   hiddenFields?: TypedField[],
   disabledFields?: TypedField[],
   hideCareplan?: boolean,
+  hideUnsubmittedForms?: boolean,
 }
 
 export interface RoleBasedAccessPermission_readonly extends ClientRecord {}
@@ -2834,6 +2837,7 @@ export interface EnduserView_required {
 export interface EnduserView_updatesDisabled {}
 export interface EnduserView extends EnduserView_readonly, EnduserView_required, EnduserView_updatesDisabled {
   defaultForRole?: string,
+  hideFromRoles?: string[],
   defaultForUserIds?: string[],
   hideProfileLink?: boolean,
   customTypeId?: string,
@@ -2953,35 +2957,6 @@ export interface SuperbillProvider_updatesDisabled {}
 export interface SuperbillProvider extends SuperbillProviderInfo, SuperbillProvider_readonly, SuperbillProvider_required, SuperbillProvider_updatesDisabled {}
 
 export type Insurance = { name: string }
-
-export interface ReferralProvider_readonly extends ClientRecord {}
-export interface ReferralProvider_required {}
-export interface ReferralProvider_updatesDisabled {}
-export interface ReferralProvider extends ReferralProvider_readonly, ReferralProvider_required, ReferralProvider_updatesDisabled {
-  fname?: string,
-  lname?: string,
-  description?: string,
-  activeRelationshipStatus?: string,
-  acceptingReferralsStatus?: string,
-  inPersonServiceStatus?: string,
-  virtualServiceStatus?: string,
-  services?: string[],
-  locations?: string[],
-  languages?: string[],
-  eligibilityCriteria?: string[],
-  organizationName: string,
-  clinicName: string,
-  types: string[],
-  acceptedInsurance?: Insurance[],  
-  address?: Address,
-  phone?: string, 
-  phoneExtension?: string,
-  email?: string,
-  website?: string,
-  bookingLink?: string,
-  notes?: string,
-  uninsuredDescription?: string,
-}
 
 export type BillingCode = {
   code: number,
@@ -3268,7 +3243,6 @@ export type ModelForName_required = {
   ticket_thread_comments: TicketThreadComment_required,
   enduser_custom_types: EnduserCustomType_required,
   phone_trees: PhoneTree_required,
-  referral_providers: ReferralProvider_required,
   superbill_providers: SuperbillProvider_required,
   superbills: Superbill_required,
   automation_triggers: AutomationTrigger_required,
@@ -3343,7 +3317,6 @@ export interface ModelForName_readonly {
   enduser_custom_types: EnduserCustomType_readonly,
   phone_trees: PhoneTree_readonly,
   enduser_medications: EnduserMedication_readonly,
-  referral_providers: ReferralProvider_readonly,
   superbill_providers: SuperbillProvider_readonly,
   superbills: Superbill_readonly,
   automation_triggers: AutomationTrigger_readonly,
@@ -3416,7 +3389,6 @@ export interface ModelForName_updatesDisabled {
   enduser_custom_types: EnduserCustomType_updatesDisabled,
   phone_trees: PhoneTree_updatesDisabled,
   enduser_medications: EnduserMedication_updatesDisabled,
-  referral_providers: ReferralProvider_updatesDisabled,
   superbill_providers: SuperbillProvider_updatesDisabled,
   superbills: Superbill_updatesDisabled,
   automation_triggers: AutomationTrigger_updatesDisabled,
@@ -3489,7 +3461,6 @@ export interface ModelForName extends ModelForName_required, ModelForName_readon
   enduser_custom_types: EnduserCustomType,
   phone_trees: PhoneTree,
   enduser_medications: EnduserMedication,
-  referral_providers: ReferralProvider,
   superbill_providers: SuperbillProvider,
   superbills: Superbill,
   automation_triggers: AutomationTrigger,
@@ -3571,7 +3542,6 @@ export const modelNameChecker: { [K in ModelName] : true } = {
   ticket_threads: true,
   enduser_custom_types: true,
   phone_trees: true,
-  referral_providers: true,
   enduser_medications: true,
   superbill_providers: true,
   superbills: true,

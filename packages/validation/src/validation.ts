@@ -3577,7 +3577,6 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   enduser_views: accessPermissionValidator,
   automation_triggers: accessPermissionValidator,
   enduser_profile_views: accessPermissionValidator,
-  referral_providers: accessPermissionValidator,
   enduser_medications: accessPermissionValidator,
   phone_trees: accessPermissionValidator,
   table_views: accessPermissionValidator,
@@ -3597,7 +3596,6 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
 export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   group_mms_conversations: accessPermissionValidator,
   enduser_custom_types: numberValidatorOptional,
-  referral_providers: numberValidatorOptional,
   superbill_providers: numberValidatorOptional,
   superbills: numberValidatorOptional,
   automation_triggers: numberValidatorOptional,
@@ -4115,6 +4113,7 @@ export const userUIRestrictionsValidator = objectValidator<UserUIRestrictions>({
     field: stringValidator,
     type: mongoIdStringOptional,
   })),
+  hideUnsubmittedForms: booleanValidatorOptional,
 }, { emptyOk: true })
 
 const externalChatGPTMessageValidator = objectValidator<ExternalChatGPTMessage>({

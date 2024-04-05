@@ -328,6 +328,7 @@ interface UseTellescopeFormOptions {
   rootResponseId?: string,
   parentResponseId?: string,
   carePlanId?: string,
+  calendarEventId?: string,
   context?: string,
   urlLogicValue?: string,
 }
@@ -478,7 +479,7 @@ const shouldCallout = (field: FormField | undefined, value: FormResponseValueAns
 
 export type Response = FormResponseValue & { touched: boolean, includeInSubmit: boolean, field: FormField }
 export type FileResponse = { fieldId: string, fieldTitle: string, blobs?: FileBlob[] }
-export const useTellescopeForm = ({ urlLogicValue, customization, carePlanId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL }: UseTellescopeFormOptions) => {
+export const useTellescopeForm = ({ urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL }: UseTellescopeFormOptions) => {
   const { amPm, hoursAmPm, minutes } = get_time_values(new Date())
 
   const root = useTreeForFormFields(fields)
@@ -1055,10 +1056,9 @@ export const useTellescopeForm = ({ urlLogicValue, customization, carePlanId, co
                   formId, enduserId: eId, isInternalNote, title: formTitle,
                   parentResponseId, rootResponseId,
     
-                  // @ts-ignore
                   carePlanId, 
-                  // @ts-ignore
                   context,
+                  calendarEventId,
                 })
               ).accessCode
             ),
@@ -1108,7 +1108,7 @@ export const useTellescopeForm = ({ urlLogicValue, customization, carePlanId, co
     } finally {
       setSubmittingStatus(undefined)
     }
-  }, [accessCode, automationStepId, enduserId, responses, selectedFiles, session, handleUpload, existingResponses, ga4measurementId, rootResponseId, parentResponseId])
+  }, [accessCode, automationStepId, enduserId, responses, selectedFiles, session, handleUpload, existingResponses, ga4measurementId, rootResponseId, parentResponseId, calendarEventId])
 
   const isNextDisabled = useCallback(() => {
     if (activeField.children.length === 0) {

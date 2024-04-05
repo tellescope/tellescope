@@ -49,7 +49,6 @@ type EnduserAccessibleModels = (
   | 'purchases'
   | 'purchase_credits'
   | 'appointment_locations'
-  | 'referral_providers'
   | 'enduser_medications'
   | 'ticket_threads'
   | 'ticket_thread_comments'
@@ -245,7 +244,6 @@ const loadDefaultQueries = (s: EnduserSession): { [K in EnduserAccessibleModels]
   purchase_credits: defaultQueries(s, 'purchase_credits'),
   purchases: defaultQueries(s, 'purchases'),
   appointment_locations: defaultQueries(s, 'appointment_locations'),
-  referral_providers: defaultQueries(s, 'referral_providers'),
   enduser_medications: defaultQueries(s, 'enduser_medications'),
   ticket_threads: defaultQueries(s, 'ticket_threads'), 
   ticket_thread_comments: defaultQueries(s, 'ticket_thread_comments'), 

@@ -106,6 +106,7 @@ export const DIALPAD_INTEGRATIONS_TITLE = "DialPad"
 export const DIALPAD_REDIRECT_URI_ENDING = "/dialpad-oauth2-verify"
 export const OUTLOOK_INTEGRATIONS_TITLE = "Outlook"
 export const OUTLOOK_REDIRECT_URI_ENDING = "/outlook-oauth2-verify"
+export const MICROSOFT_OIDC_URI_ENDING = "/microsoft-oidc-verify"
 export const ZOHO_TITLE = "Zoho"
 export const ZOHO_URI_ENDING = "/zoho-oauth2-verify"
 export const ZOOM_TITLE = "Zoom"
@@ -309,7 +310,6 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
   },
   background_errors: INACCESSIBLE,
   enduser_views: READ_ONLY_ALL,
-  referral_providers: READ_ONLY_ALL,
   table_views: READ_ONLY_ALL,
   email_sync_denials: {
     read: ALL_ACCESS,
@@ -328,7 +328,6 @@ export const ADMIN_PERMISSIONS: AccessPermissions = {
   ticket_queues: FULL_ACCESS,
   phone_trees: FULL_ACCESS,
   configurations: FULL_ACCESS,
-  referral_providers: FULL_ACCESS,
   superbill_providers: FULL_ACCESS,
   superbills: FULL_ACCESS,
   automation_triggers: FULL_ACCESS,

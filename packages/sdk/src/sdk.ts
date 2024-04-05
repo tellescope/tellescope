@@ -184,7 +184,6 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   superbill_providers: defaultQueries(s, 'superbill_providers'),
   superbills: defaultQueries(s, 'superbills'), 
   enduser_profile_views: defaultQueries(s, 'enduser_profile_views'), 
-  referral_providers: defaultQueries(s, 'referral_providers'), 
   enduser_medications: defaultQueries(s, 'enduser_medications'), 
   phone_trees: defaultQueries(s, 'phone_trees'), 
   enduser_custom_types: defaultQueries(s, 'enduser_custom_types'), 
@@ -232,6 +231,11 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
   enduser_encounters: {
     create_candid_encounter: (args: extractFields<CustomActions['enduser_encounters']['create_candid_encounter']['parameters']>) => (
       Promise<extractFields<CustomActions['enduser_encounters']['create_candid_encounter']['returns']>>
+    ),
+  },
+  purchases: {
+    charge_card_on_file: (args: extractFields<CustomActions['purchases']['charge_card_on_file']['parameters']>) => (
+      Promise<extractFields<CustomActions['purchases']['charge_card_on_file']['returns']>>
     ),
   },
   forms: {
@@ -283,6 +287,12 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
   },
   users: {
+    begin_sso: (args: extractFields<PublicActions['users']['begin_sso']['parameters']>) => (
+      Promise<extractFields<PublicActions['users']['begin_sso']['returns']>>
+    ),
+    complete_sso: (args: extractFields<PublicActions['users']['complete_sso']['parameters']>) => (
+      Promise<extractFields<PublicActions['users']['complete_sso']['returns']>>
+    ),
     display_names: () => Promise<{ fname: string, lname: string, id: string }[]>,
     submit_email_verification: (args: extractFields<PublicActions['users']['submit_email_verification']['parameters']>) => (
       Promise<extractFields<PublicActions['users']['submit_email_verification']['returns']>>
@@ -324,6 +334,7 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     get_engagement_report: (args: extractFields<CustomActions['users']['get_engagement_report']['parameters']>) => (
       Promise<extractFields<CustomActions['users']['get_engagement_report']['returns']>>
     ),
+
   },
   files: {
     prepare_file_upload: (args: extractFields<CustomActions['files']['prepare_file_upload']['parameters']>) => (
@@ -704,6 +715,8 @@ export class Session extends SessionManager {
     queries.endusers.check_eligibility = a => this._POST(`/v1${schema.endusers.customActions.check_eligibility.path}`, a)
 
     queries.users.display_names = () => this._GET<{}, { fname: string, lname: string, id: string }[]>(`/v1/user-display-names`)
+    queries.users.begin_sso = a => this._POST(`/v1/${schema.users.publicActions.begin_sso.path}`, a)
+    queries.users.complete_sso = a => this._POST(`/v1/${schema.users.publicActions.complete_sso.path}`, a)
     queries.users.register = (args) => this._POST(`/v1${schema.users.publicActions.register.path}`, args)
     queries.users.login = (args) => this._POST(`/v1${schema.users.publicActions.login.path}`, args)
     queries.users.login_with_google = (args) => this._POST(`/v1${schema.users.publicActions.login_with_google.path}`, args)
@@ -840,6 +853,8 @@ export class Session extends SessionManager {
     queries.appointment_booking_pages.generate_access_token = a => this._POST(`/v1/${schema.appointment_booking_pages.customActions.generate_access_token.path}`, a)
 
     queries.sms_messages.send_message_to_number = a => this._POST(`/v1/${schema.sms_messages.customActions.send_message_to_number.path}`, a)
+
+    queries.purchases.charge_card_on_file = a => this._POST(`/v1/${schema.purchases.customActions.charge_card_on_file.path}`, a)
 
     queries.products.prepare_stripe_checkout = args => this._POST(`/v1${schema.products.customActions.prepare_stripe_checkout.path}`, args)
 
