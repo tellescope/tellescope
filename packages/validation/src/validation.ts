@@ -2794,6 +2794,8 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   }, { isOptional: true, emptyOk: true }),
   customPriceMessage: stringValidatorOptional,
   billingProvider: stringValidatorOptional,
+  addressFields: listOfStringsValidatorOptionalOrEmptyOk,
+  autoAdvance: booleanValidatorOptional,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -3253,6 +3255,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     flaggedFileText: stringValidatorOptional,
     defaultPhoneNumber: stringValidatorOptional,
     showBulkFormInput: booleanValidatorOptional,
+    autofillSignature: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -4019,7 +4022,10 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
   }), 
   "SMS Messages": objectValidator<AnalyticsQueryForType['SMS Messages']>({
     resource: exactMatchValidator<'SMS Messages'>(['SMS Messages']),
-    filter: objectValidator<AnalyticsQueryFilterForType['SMS Messages']>({ }, { isOptional: true, emptyOk: true }),
+    filter: objectValidator<AnalyticsQueryFilterForType['SMS Messages']>({ 
+      direction: stringValidatorOptional,
+      messages: listOfStringsValidatorOptionalOrEmptyOk,
+    }, { isOptional: true, emptyOk: true }),
     info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['SMS Messages']]: AnalyticsQueryInfoForType['SMS Messages'][K] }>({
       "Total": objectValidator<AnalyticsQueryInfoForType['SMS Messages']['Total']>({
         method: exactMatchValidator<"Total">(['Total']),
@@ -4063,6 +4069,31 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
       key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Medications']>(['Created At', 'Updated At']),
     }, { isOptional: true, emptyOk: true })
+  }),
+  "Files": objectValidator<AnalyticsQueryForType['Files']>({
+    resource: exactMatchValidator<'Files'>(['Files']),
+    filter: objectValidator<AnalyticsQueryFilterForType['Files']>({ 
+      names: listOfStringsValidatorOptionalOrEmptyOk,
+    }, { isOptional: true, emptyOk: true }),
+    info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Files']]: AnalyticsQueryInfoForType['Files'][K] }>({
+      "Total": objectValidator<AnalyticsQueryInfoForType['Files']['Total']>({
+        method: exactMatchValidator<"Total">(['Total']),
+        parameters: optionalEmptyObjectValidator,
+      }),
+    }),
+    grouping: objectValidator<AnalyticsQueryGroupingForType['Files']>({
+      Enduser: booleanValidatorOptional,
+      Gender: booleanValidatorOptional,
+      "Assigned To": booleanValidatorOptional,
+      Field: stringValidatorOptionalEmptyOkay,
+      Tags: booleanValidatorOptional,
+      Age: booleanValidatorOptional, 
+      State: booleanValidatorOptional,
+    }, { isOptional: true, emptyOk: true }),
+    range: objectValidator<AnalyticsQueryRange<any>>({
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Files']>(['Created At', 'Updated At']),
+    }, { isOptional: true, emptyOk: true })
   }), 
 })
 export const analyticsQueriesValidatorOptional = listValidatorOptionalOrEmptyOk(analyticsQueryValidator)
@@ -4084,6 +4115,7 @@ const _ANALYTICS_QUERY_TYPES: { [K in AnalyticsQueryType]: any } = {
   "SMS Messages": true,
   Emails: true,
   Medications: true,
+  Files: true,
 }
 export const ANALYTICS_QUERY_TYPES = Object.keys(_ANALYTICS_QUERY_TYPES) as AnalyticsQueryType[]
 export const analyticsQueryTypeValidator = exactMatchValidator<AnalyticsQueryType>(ANALYTICS_QUERY_TYPES)
@@ -4242,6 +4274,7 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
       byCareTeam: booleanValidatorOptional,
       byRole: stringValidatorOptional, 
       byTags: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
+      prePlayback: phonePlaybackValidatorOptional,
       playback: phonePlaybackValidatorOptional,
     }),
   }),

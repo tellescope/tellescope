@@ -149,6 +149,11 @@ export interface ZohoConfig extends InternalBusinessRecord, EnduserEngagementTim
   secret: string,
 }
 
+export interface OIDCSession {
+  userId: string,
+  sessionId: string,
+}
+
 export interface TwilioConfig extends InternalBusinessRecord, EnduserEngagementTimestamps {
   accountSid: string,
   authToken: string,

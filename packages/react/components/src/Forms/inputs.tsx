@@ -803,112 +803,134 @@ export const TimeInput = ({ field, value, onChange, ...props }: FormInputProps<'
 }
 
 export const AddressInput = ({ field, value, onChange, ...props }: FormInputProps<'Address'>) => (
-  <Grid container direction="column" spacing={2} sx={{ mt: 0 }}>
-    <Grid item>
-    <AutoFocusTextField {...props} size="small" label="Address Line 1" required={!field.isOptional} fullWidth 
-      value={value?.addressLineOne ?? ''} 
-      placeholder="Address Line 1" 
-      onChange={e => 
-        onChange({
-          ...value as any,
-          addressLineOne: e.target.value ?? '',
-        }, 
-        field.id
-      )} 
-    />
-    </Grid>
-
-    <Grid item>
-    <TextField {...props} size="small" label="Address Line 2" required={false} fullWidth 
-      InputProps={defaultInputProps}
-      value={value?.addressLineTwo ?? ''} 
-      placeholder="Address Line 2" 
-      onChange={e => 
-        onChange({
-          ...value as any,
-          addressLineTwo: e.target.value ?? '',
-        }, 
-        field.id
-      )} 
-    />
-    </Grid>
-
-    <Grid item>
-    <Grid container wrap="nowrap" alignItems="center" justifyContent={"space-between"} spacing={1}>
-      <Grid item sx={{ width: "calc(100% - 275px)"}}>
-        <TextField {...props} size="small" label="City" required={!field.isOptional} 
-          InputProps={defaultInputProps}
-          fullWidth
-          value={value?.city ?? ''} 
-          placeholder="City" 
-          onChange={e => 
-            onChange({
-              ...value as any,
-              city: e.target.value ?? '',
-            }, 
-            field.id
-          )} 
-        />
+  // state only
+  field.options?.addressFields?.includes('state')
+    ? (
+      <Autocomplete value={value?.state} options={VALID_STATES}
+        disablePortal
+        onChange={(e, v) => v && 
+          onChange({
+            ...value as any,
+            state: v ?? '',
+          }, 
+          field.id
+        )}
+        renderInput={(params) => (
+          <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
+            size={'small'} label={"State"} required={!field.isOptional}  
+          />
+        )}
+        {...props}
+      />
+    )
+    : (
+    <Grid container direction="column" spacing={2} sx={{ mt: 0 }}>
+      <Grid item>
+      <AutoFocusTextField {...props} size="small" label="Address Line 1" required={!field.isOptional} fullWidth 
+        value={value?.addressLineOne ?? ''} 
+        placeholder="Address Line 1" 
+        onChange={e => 
+          onChange({
+            ...value as any,
+            addressLineOne: e.target.value ?? '',
+          }, 
+          field.id
+        )} 
+      />
       </Grid>
 
       <Grid item>
-        <Autocomplete value={value?.state}
-          options={VALID_STATES}
-          sx={{ width: 100 }}
-          disablePortal
-          onChange={(e, v) => v && 
-            onChange({
-              ...value as any,
-              state: v ?? '',
-            }, 
-            field.id
-          )}
-          renderInput={(params) => (
-            <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
-              size={'small'} label={"State"} required={!field.isOptional}  
-            />
-          )}
-          {...props}
-        />
+      <TextField {...props} size="small" label="Address Line 2" required={false} fullWidth 
+        InputProps={defaultInputProps}
+        value={value?.addressLineTwo ?? ''} 
+        placeholder="Address Line 2" 
+        onChange={e => 
+          onChange({
+            ...value as any,
+            addressLineTwo: e.target.value ?? '',
+          }, 
+          field.id
+        )} 
+      />
       </Grid>
 
       <Grid item>
-        <TextField {...props} size="small" label="ZIP Code" required={!field.isOptional} 
-          InputProps={defaultInputProps}
-          sx={{ width: 120 }}
-          value={value?.zipCode ?? ''} 
-          placeholder="ZIP Code" 
-          onChange={e => 
-            onChange({
-              ...value as any,
-              zipCode: e.target.value ?? '',
-            }, 
-            field.id
-          )} 
-        />
-      </Grid>
-
-      {field.fullZIP &&
-        <Grid item>
-          <TextField {...props} size="small" label="ZIP+4" required={!field.isOptional && field.fullZIP} 
+      <Grid container wrap="nowrap" alignItems="center" justifyContent={"space-between"} spacing={1}>
+        <Grid item sx={{ width: "calc(100% - 275px)"}}>
+          <TextField {...props} size="small" label="City" required={!field.isOptional} 
             InputProps={defaultInputProps}
-            sx={{ width: 80 }}
-            value={value?.zipPlusFour ?? ''} 
-            placeholder="ZIP + 4" 
+            fullWidth
+            value={value?.city ?? ''} 
+            placeholder="City" 
             onChange={e => 
               onChange({
                 ...value as any,
-                zipPlusFour: e.target.value ?? '',
+                city: e.target.value ?? '',
               }, 
               field.id
             )} 
           />
         </Grid>
-      }
 
+        <Grid item>
+          <Autocomplete value={value?.state}
+            options={VALID_STATES}
+            sx={{ width: 100 }}
+            disablePortal
+            onChange={(e, v) => v && 
+              onChange({
+                ...value as any,
+                state: v ?? '',
+              }, 
+              field.id
+            )}
+            renderInput={(params) => (
+              <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
+                size={'small'} label={"State"} required={!field.isOptional}  
+              />
+            )}
+            {...props}
+          />
+        </Grid>
+
+        <Grid item>
+          <TextField {...props} size="small" label="ZIP Code" required={!field.isOptional} 
+            InputProps={defaultInputProps}
+            sx={{ width: 120 }}
+            value={value?.zipCode ?? ''} 
+            placeholder="ZIP Code" 
+            onChange={e => 
+              onChange({
+                ...value as any,
+                zipCode: e.target.value ?? '',
+              }, 
+              field.id
+            )} 
+          />
+        </Grid>
+
+        {field.fullZIP &&
+          <Grid item>
+            <TextField {...props} size="small" label="ZIP+4" required={!field.isOptional && field.fullZIP} 
+              InputProps={defaultInputProps}
+              sx={{ width: 80 }}
+              value={value?.zipPlusFour ?? ''} 
+              placeholder="ZIP + 4" 
+              onChange={e => 
+                onChange({
+                  ...value as any,
+                  zipPlusFour: e.target.value ?? '',
+                }, 
+                field.id
+              )} 
+            />
+          </Grid>
+        }
+
+      </Grid>
+      </Grid>
     </Grid>
-    </Grid>
-  </Grid>
+  )
 )
 
 export const SignatureInput = ({ value, field, autoFocus=true, onChange }: FormInputProps<'signature'>) => {
@@ -2349,7 +2371,6 @@ export const AppointmentBookingInput = ({ field, value, onChange, form, response
     return () => { window.removeEventListener('message', handleMessage) }
   }, [field?.id, onChange, acknowledgedWarning, value])
 
-  console.log(loaded?.bookingURL)
   if (value) {
     return (
       <Grid container alignItems="center" wrap="nowrap">

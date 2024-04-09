@@ -9,7 +9,7 @@ import { WithTheme, contact_is_valid, useFileUpload, useFormFields, useFormRespo
 import ReactGA from "react-ga4";
 
 import isEmail from "validator/lib/isEmail"
-import { getLocalTimezone, get_time_values, object_is_empty, responses_satisfy_conditions } from "@tellescope/utilities"
+import { field_can_autoadvance, getLocalTimezone, get_time_values, object_is_empty, responses_satisfy_conditions } from "@tellescope/utilities"
 
 export const useFlattenedTree = (root?: FormFieldNode) => {
   const flat: FormField[] = []
@@ -846,25 +846,27 @@ export const useTellescopeForm = ({ urlLogicValue, customization, carePlanId, ca
     // remaining values exist and need to be validated by type
 
     if (value.answer.type === 'Address') {
-      if (!value.answer.value.addressLineOne) {
+      const stateOnly = field.options?.addressFields?.includes('state')
+
+      if (!value.answer.value.addressLineOne && !stateOnly) {
         return "Address Line 1 is required"
       }
-      if (!value.answer.value.city) {
+      if (!value.answer.value.city && !stateOnly) {
         return "City is required"
       }
       if (!value.answer.value.state) {
         return "State is required"
       }
-      if (!value.answer.value.zipCode) {
+      if (!value.answer.value.zipCode && !stateOnly) {
         return "ZIP code is required"
       }
-      if (!isZIPString(value.answer.value?.zipCode)) {
+      if (!isZIPString(value.answer.value?.zipCode) && !stateOnly) {
         return "Enter a valid ZIP code"
       }
-      if (!value.answer.value?.zipPlusFour && field.fullZIP) {
+      if (!value.answer.value?.zipPlusFour && field.fullZIP && !stateOnly) {
         return "ZIP+4 is required"
       }
-      if (value.answer.value?.zipPlusFour) {
+      if (value.answer.value?.zipPlusFour && !stateOnly) {
         const zipPlus4 = value.answer.value?.zipPlusFour || ''
         if (zipPlus4.length !== 4 || !/\d{4}$/.test(zipPlus4)) {
           return "ZIP+4 must be 4 digits"
@@ -1122,6 +1124,7 @@ export const useTellescopeForm = ({ urlLogicValue, customization, carePlanId, ca
     return false
   }, [activeField, validateField])
 
+  const autoAdvanceRef = useRef(false)
   const goToNextField = useCallback(() => {
     if (isNextDisabled()) return
     if (!currentValue) return
@@ -1154,7 +1157,8 @@ export const useTellescopeForm = ({ urlLogicValue, customization, carePlanId, ca
     setActiveField(activeField => {
       let newField = getNextField(activeField, currentValue, responses, { urlLogicValue })
 
-      if (newField !== undefined) {
+      // when autoadvancing, prevent adding duplicates by checking whether already on stack
+      if (newField !== undefined && !prevFieldStackRef.current.find(v => v.value.id === activeField?.value.id)) {
         prevFieldStackRef.current.push(activeField)
         setCurrentPageIndex(i => i + 1)
       }
@@ -1162,6 +1166,16 @@ export const useTellescopeForm = ({ urlLogicValue, customization, carePlanId, ca
       return newField || activeField
     })
   }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, urlLogicValue])
+
+  useEffect(() => {
+    if (!autoAdvanceRef.current) return
+    autoAdvanceRef.current = false
+
+    // add slight delay so it's obvious which answer was selected before proceeding
+    const t = setTimeout(goToNextField, 250)
+
+    return () => { clearTimeout(t) }
+  }, [responses, goToNextField])
 
   const isPreviousDisabled = useCallback(() => (
       prevFieldStackRef.current.length === 0 
@@ -1221,6 +1235,10 @@ export const useTellescopeForm = ({ urlLogicValue, customization, carePlanId, ca
         },
       })
       .catch(console.error)
+    }
+
+    if (field?.options?.autoAdvance && field_can_autoadvance(field)) {
+      autoAdvanceRef.current = true
     }
   }, [fields])
 

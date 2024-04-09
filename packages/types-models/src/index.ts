@@ -167,6 +167,7 @@ export type OrganizationSettings = {
     enableAccessTags?: boolean,
     flaggedFileText?: string,
     showBulkFormInput?: boolean,
+    autofillSignature?: boolean,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
@@ -1240,6 +1241,8 @@ export type FormFieldOptions = FormFieldValidation & {
   customPriceMessage?: string,
   billingProvider?: 'Canvas' | "Candid" | string,
   bookingPageId?: string,
+  addressFields?: string[], // supports specifying just 'state', for now
+  autoAdvance?: boolean,
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
@@ -2575,6 +2578,7 @@ export type AnalyticsQueryInfoForType = {
   "Purchase Credits": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },  
   "Tickets": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },  
   "Emails": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },  
+  "Files": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },  
   "SMS Messages": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },
   "Medications": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },
   "Phone Calls": { 
@@ -2621,9 +2625,15 @@ export type AnalyticsQueryFilterForType = {
   "Purchase Credits": { },
   "Tickets": { },
   "Phone Calls": { },
-  "SMS Messages": { },
+  "SMS Messages": { 
+    direction?: string,
+    messages?: string[],
+  },
   Emails: { },
   Medications: { },
+  Files: { 
+    names?: string[],
+  },
 }
 
 export type EnduserGrouping = {
@@ -2642,34 +2652,19 @@ export type AnalyticsQueryGroupingForType = {
   } & EnduserGrouping & { Enduser: string },
   "Form Responses": {
     "Public Identifier"?: boolean,
-    /* by joining on Endusers */
   } & EnduserGrouping & { Enduser: string },
   "Purchases": { 
     Cost?: boolean,
-    /* by joining on Endusers */
   } & EnduserGrouping & { Enduser: string },
-  "Purchase Credits": { 
-    /* by joining on Endusers */
-  } & EnduserGrouping & { Enduser: string },
-  "Tickets": { 
-    /* by joining on Endusers */
-  } & EnduserGrouping & { Enduser: string },
-  "Phone Calls": { 
-    // Cost?: boolean,
-    /* by joining on Endusers */
-  } & EnduserGrouping & { Enduser: string },
+  "Purchase Credits": {} & EnduserGrouping & { Enduser: string },
+  "Tickets": {} & EnduserGrouping & { Enduser: string },
+  "Phone Calls": {} & EnduserGrouping & { Enduser: string },
   "SMS Messages": { 
     Score?: boolean,
-    /* by joining on Endusers */
   } & EnduserGrouping & { Enduser: string },
-  "Emails": { 
-    // Cost?: boolean,
-    /* by joining on Endusers */
-  } & EnduserGrouping & { Enduser: string },
-  "Medications": { 
-    // Cost?: boolean,
-    /* by joining on Endusers */
-  } & EnduserGrouping & { Enduser: string },
+  "Emails": {} & EnduserGrouping & { Enduser: string },
+  "Medications": {} & EnduserGrouping & { Enduser: string },
+  "Files": {} & EnduserGrouping & { Enduser: string },
 }
 
 type DefaultRangeKey = 'Created At' | 'Updated At'
@@ -2684,6 +2679,7 @@ export type AnalyticsQueryRangeKeyForType = {
   "SMS Messages": DefaultRangeKey,
   "Emails": DefaultRangeKey,
   "Medications": DefaultRangeKey,
+  "Files": DefaultRangeKey,
 }
 
 export type AnalyticsQueryRangeInterval = 'Daily' | 'Weekly' | 'Monthly'
@@ -2770,6 +2766,13 @@ export type AnalyticsQueryForType = {
     AnalyticsQueryGroupingForType['Medications'],
     AnalyticsQueryRangeKeyForType['Medications']
   >,
+  "Files": AnalyticsQueryBuilder<
+    "Files", 
+    AnalyticsQueryInfoForType['Files'][keyof AnalyticsQueryInfoForType['Files']],
+    AnalyticsQueryFilterForType['Files'],
+    AnalyticsQueryGroupingForType['Files'],
+    AnalyticsQueryRangeKeyForType['Files']
+  >,
 }
 export type AnalyticsQueryType = keyof AnalyticsQueryForType
 export type AnalyticsQuery = AnalyticsQueryForType[AnalyticsQueryType]
@@ -2785,6 +2788,7 @@ export const resource_to_modelName: { [K in AnalyticsQueryType] : ModelName } = 
   "SMS Messages": 'sms_messages',
   Emails: "emails",
   Medications: "enduser_medications",
+  Files: "files",
 }
 
 export type AnalyticsQueryOptions = {
@@ -3012,7 +3016,13 @@ export type PhoneTreeActions = {
   'Voicemail': PhoneTreeActionBuilder<"Voicemail", { playback: PhonePlayback }>
   'Play Message': PhoneTreeActionBuilder<"Play Message", { playback: PhonePlayback }>
   'Dial Users': PhoneTreeActionBuilder<"Dial Users", { userIds: string[], playback?: Partial<PhonePlayback> }>
-  'Route Call': PhoneTreeActionBuilder<"Route Call", { byCareTeam?: boolean, byRole?: string, byTags?: ListOfStringsWithQualifier, playback?: Partial<PhonePlayback> }>
+  'Route Call': PhoneTreeActionBuilder<"Route Call", { 
+    prePlayback?: Partial<PhonePlayback>,
+    byCareTeam?: boolean, 
+    byRole?: string, 
+    byTags?: ListOfStringsWithQualifier, 
+    playback?: Partial<PhonePlayback>,
+  }>
 }
 export type PhoneTreeActionType = keyof PhoneTreeActions 
 export type PhoneTreeAction = PhoneTreeActions[PhoneTreeActionType]
