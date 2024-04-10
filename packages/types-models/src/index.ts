@@ -455,6 +455,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   mfa?: MFASettings,
   skills?: string[];
   lockedOutUntil?: number, // -1 => not locked out, 0 => locked out indefinitely, > 0 => locked out until unix time in MS
+  elationUserId?: number,
 }
 
 export type Preference = 'email' | 'sms' | 'call' | 'chat'
@@ -1341,6 +1342,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   lockResponsesOnSubmission?: boolean,
   tags?: string[]
   language?: string,
+  isNonVisitElationNote?: boolean,
 }
 
 
@@ -2550,6 +2552,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
   tags?: string[],
   inputs?: string[],
   answeredAt?: Date,
+  recordingCancelledAt?: Date,
 }
 
 export type AnalyticsQueryResultValue = {
@@ -3533,7 +3536,7 @@ export interface ModelForName extends ModelForName_required, ModelForName_readon
 export type ModelName = keyof ModelForName
 export type Model = ModelForName[keyof ModelForName]
 
-export type ConfiguredSessionInfo = { username: string, orgEmail: string, fname: string, lname: string }
+export type ConfiguredSessionInfo = { username: string, orgEmail: string, fname?: string, lname?: string }
 export type ConfiguredSession = UserSession & ConfiguredSessionInfo
 
 export interface UserActivityInfo {

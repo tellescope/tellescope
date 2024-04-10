@@ -513,7 +513,6 @@ export const form_response_value_to_string = (value: FormResponseValueAnswer['va
     
     const value = anyValue[0]
     if (value?.text && value?.recordId) { // DatabaseSelect repsonse
-      console.log(anyValue)
       return (
         anyValue.map(row => (row.text || 'No response provided')).join(', ')
       )

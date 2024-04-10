@@ -435,7 +435,7 @@ export type Schema = {
   [N in keyof ServerModelForName]: Model<ServerModelForName[N], ModelName>
 }
 
-export const UNIQUE_LIST_FIELDS = ['assignedTo', 'tags']
+export const UNIQUE_LIST_FIELDS = ['assignedTo', 'tags', 'closeReasons']
 
 const sideEffects = {
   handleJourneyStateChange: {
@@ -877,6 +877,7 @@ export type CustomActions = {
     upgrade_to_conference: CustomAction<{ id: string }, { }>,
     add_conference_attendees: CustomAction<{ conferenceId: string, enduserId?: string, byClientId?: string[], byPhone?: string[] }, { }>,
     end_conference: CustomAction<{ id: string }, { }>,
+    cancel_recording: CustomAction<{ enduserId: string }, { }>,
   },
   analytics_frames: {
     get_result_for_query: CustomAction<{ 
@@ -1353,7 +1354,7 @@ export const schema: SchemaV1 = build_schema({
         } as any // todo: add enduser eventually, when validator defined
       },
       generate_auth_token: {
-        op: "custom", access: 'create', method: "get",
+        op: "custom", access: 'read', method: "get",
         name: 'Generate authToken',
         path: '/generate-enduser-auth-token',
         description: "Generates an authToken for use by an enduser. Useful for integrating a 3rd-party authentication process or creating a session for an enduser without a set password in Tellescope.",
@@ -3360,7 +3361,7 @@ export const schema: SchemaV1 = build_schema({
         validator: mongoIdStringValidator,
       },
       closedForReason: { validator: stringValidator },
-      closeReasons: { validator: listOfStringsValidatorEmptyOk },
+      closeReasons: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       closedBy: { validator: mongoIdStringValidator },
       chatRoomId: {
         validator: mongoIdStringValidator,
@@ -3669,6 +3670,7 @@ export const schema: SchemaV1 = build_schema({
       lockResponsesOnSubmission: { validator: booleanValidatorOptional },
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       language: { validator: stringValidator },
+      isNonVisitElationNote: { validator: booleanValidator },
     }
   },
   form_fields: {
@@ -6037,6 +6039,16 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         description: "Ends an active conference call for all participants",
         parameters: {
           id: { validator: stringValidator100, required: true },
+        },
+        returns: {},
+      },
+      cancel_recording: {
+        op: "custom", access: 'update', method: "post",
+        name: 'End Conference',
+        path: '/phone-calls/cancel-recording',
+        description: "Stops recording an active phone call",
+        parameters: {
+          enduserId: { validator: mongoIdStringValidator, required: true },
         },
         returns: {},
       },

@@ -7181,6 +7181,29 @@ const register_as_enduser_tests = async () => {
   }
 }
 
+const close_reasons_no_duplicates_tests = async () => {
+  log_header("Close reasons no duplicates")
+  
+  const tNone = await sdk.api.tickets.createOne({ title: '1'})
+  const tDuplicates = await sdk.api.tickets.createOne({ title: '1', 'closeReasons': ["1", "2", "1"]})
+  assert(tDuplicates.closeReasons?.length === 2, 'closeReasons not unique on create', 'closeReasons are unique on create') 
+  const updated = await sdk.api.tickets.updateOne(tDuplicates.id, { closeReasons: ['1', '2', '3'] })
+  assert(updated.closeReasons?.length === 3, 'closeReasons not unique on update', 'closeReasons are unique on update') 
+
+  await async_test(
+    "Filters duplicates before validating length too long",
+    () => sdk.api.tickets.updateOne(tDuplicates.id, { 
+      closeReasons: '1,'.repeat(1500).split(','),
+    }),
+    passOnAnyResult
+  )
+
+  await Promise.all([
+    sdk.api.tickets.deleteOne(tNone.id),
+    sdk.api.tickets.deleteOne(tDuplicates.id),
+  ])
+}
+
 (async () => {
   log_header("API")
 
@@ -7231,6 +7254,7 @@ const register_as_enduser_tests = async () => {
     await mfa_tests()
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await close_reasons_no_duplicates_tests()
     await register_as_enduser_tests()
     await sync_tests()
     await lockout_tests()
