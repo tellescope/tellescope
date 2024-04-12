@@ -78,6 +78,8 @@ export type TicketQueue = ServerModelForName['ticket_queues']
 export type GroupMMSConversation = ServerModelForName['group_mms_conversations']
 export type EnduserOrder = ServerModelForName['enduser_orders']
 export type EnduserEncounter = ServerModelForName['enduser_encounters']
+export type VitalConfiguration = ServerModelForName['vital_configurations']
+
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']

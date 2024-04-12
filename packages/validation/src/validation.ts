@@ -264,6 +264,9 @@ import {
   Diagnosis,
   FormResponseAnswerAppointmentBooking,
   CanvasCoding,
+  VitalConfigurationRange,
+  VitalComparisons,
+  PagerDutyCreateIncidentAutomationAction,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -305,6 +308,7 @@ import {
   INSURANCE_RELATIONSHIPS,
   NO_ACCESS,
   OUTLOOK_INTEGRATIONS_TITLE,
+  PAGER_DUTY_TITLE,
   SQUARE_INTEGRATIONS_TITLE,
   ZENDESK_INTEGRATIONS_TITLE,
   ZOHO_TITLE,
@@ -862,6 +866,13 @@ export const stringValidator1000Optional: ValidatorDefinition<string> = {
 export const stringValidator5000: ValidatorDefinition<string> = {
   validate: (o={}) => build_validator(
     escapeString(o), { ...o, maxLength: 5000, listOf: false  } 
+  ),
+  getExample: getExampleString,
+  getType: getTypeString,
+}
+export const stringValidator20000ptional: ValidatorDefinition<string> = {
+  validate: (o={}) => build_validator(
+    escapeString(o), { ...o, maxLength: 20000, listOf: false, isOptional: true, emptyStringOk: true,  } 
   ),
   getExample: getExampleString,
   getType: getTypeString,
@@ -1453,8 +1464,10 @@ export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' 
   'description': g => '',
   'Table Input': (g) => Array.isArray(g) ? g : [],
   'Question Group': (g) => Array.isArray(g) ? g : [],
-  'string': stringValidator.validate({ maxLength: 1000, emptyStringOk: true, errorMessage: "Response must not exceed 1000 characters" }),
-  'stringLong': stringValidator.validate({ maxLength: 10000, emptyStringOk: true, errorMessage: "Response must not exceed 10000 characters" }),
+  // need to keep consistent with other validation
+  'string': stringValidator.validate({ maxLength: 5000, emptyStringOk: true, errorMessage: "Response must not exceed 5000 characters" }),
+  'stringLong': stringValidator.validate({ maxLength: 20000, emptyStringOk: true, errorMessage: "Response must not exceed 20000 characters" }),
+
   'number': numberValidator.validate({ errorMessage: "Response must be a number" }),
   'email': emailValidator.validate(),
 
@@ -1853,9 +1866,10 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
     type: exactMatchValidator(['Stripe']),
     value: stringValidator1000Optional,
   }),
+  // need to keep consistent with other validation
   stringLong: objectValidator<FormResponseAnswerStringLong>({
     type: exactMatchValidator(['stringLong']),
-    value: stringValidator5000Optional,
+    value: stringValidator20000ptional,
   }),
   date: objectValidator<FormResponseAnswerDate>({
     type: exactMatchValidator(['date']),
@@ -2190,6 +2204,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   iterableCustomEvent: '',
   zendeskCreateTicket: '',
   zusSync: '',
+  pagerDutyCreateIncident: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -2552,6 +2567,14 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
   zusSync: objectValidator<ZusSyncAutomationAction>({
     type: exactMatchValidator(['zusSync']),
     info: objectValidator<ZusSyncAutomationAction['info']>({ }, { emptyOk: true }),
+  }),
+  pagerDutyCreateIncident: objectValidator<PagerDutyCreateIncidentAutomationAction>({
+    type: exactMatchValidator(['pagerDutyCreateIncident']),
+    info: objectValidator<PagerDutyCreateIncidentAutomationAction['info']>({
+      title: stringValidator,
+      type: stringValidator,
+      serviceId: stringValidator,
+     }),
   }),
 })
 
@@ -3256,6 +3279,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     defaultPhoneNumber: stringValidatorOptional,
     showBulkFormInput: booleanValidatorOptional,
     autofillSignature: booleanValidatorOptional,
+    showFullVitalsTab: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -3302,6 +3326,31 @@ export const calendarEventPortalSettingsValidator = objectValidator<CalendarEven
   hideUsers: booleanValidatorOptional,
 })
 
+export const vitalComparisonValidator = orValidator({
+  "Less Than": objectValidator<VitalComparisons['Less Than']>({
+    type: exactMatchValidator(['Less Than']),      
+    value: numberValidator,
+  }),
+  "Greater Than": objectValidator<VitalComparisons['Greater Than']>({
+    type: exactMatchValidator(['Greater Than']),      
+    value: numberValidator,
+  }),
+  "Between": objectValidator<VitalComparisons['Between']>({
+    type: exactMatchValidator(['Between']),      
+    value: objectValidator<VitalComparisons['Between']['value']>({
+      lower: numberValidator,
+      upper: numberValidator,
+    }),
+  }),
+})
+
+export const vitalConfigurationRangeValidator = objectValidator<VitalConfigurationRange>({
+  classification: stringValidator100,
+  trendIntervalInMS: numberValidatorOptional,
+  comparison: vitalComparisonValidator,
+})
+export const vitalConfigurationRangesValidator = listValidator(vitalConfigurationRangeValidator)
+
 const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any } = {
   "Form Submitted": true,
   "Form Unsubmitted": true,
@@ -3313,6 +3362,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Medication Added": true,
   "On Birthday": true,
   "Has Not Engaged": true,
+  "Vital Count": true,
 }
 export const AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES) as AutomationTriggerEventType[]
 
@@ -3387,6 +3437,16 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['Has Not Engaged']),
     info: objectValidator<AutomationTriggerEvents['Has Not Engaged']['info']>({
       intervalInMS: nonNegNumberValidator,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Vital Count": objectValidator<AutomationTriggerEvents["Vital Count"]>({
+    type: exactMatchValidator(['Vital Count']),
+    info: objectValidator<AutomationTriggerEvents['Vital Count']['info']>({
+      minutes: nonNegNumberValidator,
+      units: listOfStringsValidatorEmptyOk,
+      comparison: vitalComparisonValidator,
+      periodInMS: numberValidator,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -3591,6 +3651,7 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   group_mms_conversations: accessPermissionValidator,
   enduser_orders: accessPermissionValidator,
   enduser_encounters: accessPermissionValidator,
+  vital_configurations: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
@@ -3665,6 +3726,7 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   ticket_queues: numberValidatorOptional,
   enduser_orders: numberValidatorOptional,
   enduser_encounters: numberValidatorOptional,
+  vital_configurations: numberValidatorOptional,
 }, { emptyOk: true })
 
 const _LOGIN_FLOW_RESULTS = {
@@ -3725,6 +3787,7 @@ export type IntegrationsTitleType = (
 | typeof CANVAS_TITLE
 | typeof CANDID_TITLE
 | typeof GOGO_MEDS_TITLE
+| typeof PAGER_DUTY_TITLE
 )
 export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleType>([
   SQUARE_INTEGRATIONS_TITLE,
@@ -3736,7 +3799,8 @@ export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleTy
   ZUS_TITLE,
   CANVAS_TITLE,
   CANDID_TITLE,
-  GOGO_MEDS_TITLE
+  GOGO_MEDS_TITLE,
+  PAGER_DUTY_TITLE,
 ])
 
 const _VIDEO_INTEGRATION_TYPES: { [K in VideoIntegrationType]: any} = {

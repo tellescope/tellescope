@@ -275,6 +275,7 @@ import {
   diagnosesValidator,
   stateValidatorOptional,
   canvasCodingValidator,
+  vitalConfigurationRangesValidator,
 } from "@tellescope/validation"
 
 import {
@@ -901,7 +902,7 @@ export type CustomActions = {
     update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
     get_report: CustomAction<{ title?: string, titles?: string[], userId?: string, range?: DateRange, groupByOwnerAndTitle?: boolean }, { report: TicketsReport }>,
     get_distribution_report: CustomAction<{  range?: DateRange }, { report: Report[keyof Report] }>,
-    assign_from_queue: CustomAction<{ ticketId: string }, { ticket: Ticket }>,
+    assign_from_queue: CustomAction<{ ticketId?: string, queueId?: string }, { ticket: Ticket }>,
   },
   appointment_booking_pages: {
     generate_access_token: CustomAction<{ expiresAt: Date, bookingPageId?: string }, { token: string }>,
@@ -2232,6 +2233,7 @@ export const schema: SchemaV1 = build_schema({
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       batchId: { validator: stringValidator250 }, 
       isMarketing: { validator: booleanValidator },
+      assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
     }, 
     customActions: {
       sync_integrations: {
@@ -2439,6 +2441,7 @@ export const schema: SchemaV1 = build_schema({
       enduserPhoneNumber: { validator: phoneValidator },
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       batchId: { validator: stringValidator250 }, 
+      assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
     }, 
   },
   chat_rooms: {
@@ -2453,6 +2456,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields,
+      assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       title: {
         validator: stringValidator100,
       },
@@ -3278,12 +3282,14 @@ export const schema: SchemaV1 = build_schema({
         op: "custom", access: 'update', method: "patch",
         name: 'Assign From Queue',
         path: '/tickets/assign-from-queue',
-        description: "Takes a ticket from a queue and assigns to the caller of this endpoint",
+        description: "Takes a specific ticket (or next available) from a queue and assigns to the caller of this endpoint",
         parameters: { 
-          ticketId: { validator: mongoIdStringValidator, required: true },
+          ticketId: { validator: mongoIdStringValidator },
+          queueId: { validator: mongoIdStringValidator },
         },
         returns: {
           ticket: { validator: 'ticket' as any, required: true },
+
         },
       },
       update_indexes: {
@@ -4895,6 +4901,7 @@ export const schema: SchemaV1 = build_schema({
       type: { validator: stringValidator },
       notes: { validator: stringValidator },
       recordedAt: { validator: dateValidator },
+      timestamp: { validator: dateValidator, initializer: () => new Date() },
     }
   },
   managed_content_records: {
@@ -6099,6 +6106,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       hiddenBy: { validator: idStringToDateValidator },
       ticketIds: { validator: listOfStringsValidatorEmptyOk },
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
 
       callDurationInSeconds: { validator: numberValidator, readonly: true },
     },
@@ -6709,6 +6717,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       subject: { validator: stringValidator1000 },
       pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
       group: { validator: stringValidator250 },
+      assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
     }
   },
   ticket_thread_comments: {
@@ -6835,6 +6844,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       tags: { validator: listOfStringsValidatorEmptyOk },
       suggestedReply: { validator: stringValidator5000EmptyOkay },
       hiddenBy: { validator: idStringToDateValidator },
+      assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
     },
   },
   enduser_encounters: {
@@ -6965,6 +6975,34 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       title: { validator: stringValidator, required: true, examples: ['title'] },
       status: { validator: stringValidator, required: true, examples: ['status'] },
     }
+  },
+  vital_configurations: {
+    info: {},
+    constraints: { 
+      unique: ['title'], relationship: [], 
+      access: []  
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      title: { validator: stringValidator, required: true, examples: ['Title'] },
+      unit: { validator: stringValidator100, required: true, examples: ['lb'] },
+      ranges: { 
+        validator: vitalConfigurationRangesValidator, 
+        required: true, 
+        examples: [
+          [{
+            classification: "High",
+            comparison: {
+              type: 'Less Than',
+              value: 5,
+            }
+          }]
+        ] 
+      },
+    },
   },
 })
 

@@ -5875,6 +5875,12 @@ export const ticket_queue_tests = async () => {
 
   const enduser = await sdk.api.endusers.createOne({ fname: 'ticket' })
 
+  await async_test(
+    `Ticket queue empty on general pull`, 
+    () => sdk.api.tickets.assign_from_queue({ queueId: queue.id }),
+    { shouldError: true, onError: e => e.message === "Queue is empty" },
+  )
+
   const ticket = await sdk.api.tickets.createOne({ title: 'ticket in queue', queueId: queue.id, enduserId: enduser.id })
   const ticketUnshared = await sdk.api.tickets.createOne({ title: 'ticket no access', queueId: queueUnshared.id })
 
@@ -5946,22 +5952,29 @@ export const ticket_queue_tests = async () => {
     passOnAnyResult
   )
   await async_test(
-    `Queue caches number of tickets on assignment`, 
-    () => pollForResults(
-      () => sdkNonAdmin.api.endusers.getOne(enduser.id),
-      e => !!e.assignedTo?.includes(sdkNonAdmin.userInfo.id),
-      50,
-      10
-    ),
-    passOnAnyResult
+    `Added to care team after queue pull`, 
+    () => sdkNonAdmin.api.endusers.getOne(enduser.id),
+    { onResult: e => !!e.assignedTo?.includes(sdkNonAdmin.userInfo.id) }
   )
 
-
+  const ticketToPull = await sdk.api.tickets.createOne({ title: 'ticket to pull without id', queueId: queue.id })
+  await async_test(
+    `Ticket queue general pull`, 
+    () => sdk.api.tickets.assign_from_queue({ queueId: queue.id }),
+    { onResult: r => r.ticket.id === ticketToPull.id },
+  )
+  await async_test(
+    `Ticket queue empty on general pull again`, 
+    () => sdk.api.tickets.assign_from_queue({ queueId: queue.id }),
+    { shouldError: true, onError: e => e.message === "Queue is empty" },
+  )
+ 
   await Promise.all([
     sdk.api.ticket_queues.deleteOne(queue.id),
     sdk.api.ticket_queues.deleteOne(queueUnshared.id),
     sdk.api.endusers.deleteOne(enduser.id), // cleans up ticket
     sdk.api.tickets.deleteOne(ticketUnshared.id),
+    sdk.api.tickets.deleteOne(ticketToPull.id),
   ])
 }
 
@@ -5995,6 +6008,7 @@ export const alternate_phones_tests = async () => {
 
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
+  vital_configurations: NO_TEST,
   enduser_encounters: NO_TEST,
   enduser_orders: NO_TEST,
   ticket_queues: NO_TEST,
@@ -7254,9 +7268,10 @@ const close_reasons_no_duplicates_tests = async () => {
     await mfa_tests()
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await sync_tests() // should come directly after setup to avoid extra sync values
+    await ticket_queue_tests()
     await close_reasons_no_duplicates_tests()
     await register_as_enduser_tests()
-    await sync_tests()
     await lockout_tests()
     await self_serve_appointment_booking_tests()
     await delete_user_tests()
@@ -7267,7 +7282,6 @@ const close_reasons_no_duplicates_tests = async () => {
     await marketing_email_unsubscribe_tests()
     await unique_strings_tests()
     await alternate_phones_tests()
-    await ticket_queue_tests()
     await no_chained_triggers_tests()
     await field_equals_trigger_tests()
     await test_ticket_automation_assignment_and_optimization()

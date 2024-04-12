@@ -81,6 +81,7 @@ import {
   EnduserOrder,
   EnduserEncounter,
   ClientModelForName,
+  VitalConfiguration,
 } from "@tellescope/types-client"
 
 import {
@@ -329,6 +330,7 @@ const configurationsSlice = createSliceForList<Configuration, 'configurations'>(
 const ticketQueuesSlice = createSliceForList<TicketQueue, 'ticket_queues'>('ticket_queues')
 const enduserOrdersSlice = createSliceForList<EnduserOrder, 'enduser_orders'>('enduser_orders')
 const enduserEncountersSlice = createSliceForList<EnduserEncounter, 'enduser_encounters'>('enduser_encounters')
+const vitalConfigurationsSlice = createSliceForList<VitalConfiguration, 'vital_configurations'>('vital_configurations')
 
 const roleBasedAccessPermissionsSlice = createSliceForList<RoleBasedAccessPermission, 'role_based_access_permissions'>('role_based_access_permissions')
 
@@ -404,6 +406,7 @@ export const sharedConfig = {
     group_mms_conversations: groupMMSConversationsSlice.reducer,
     enduser_orders: enduserOrdersSlice.reducer,
     enduser_encounters: enduserEncountersSlice.reducer,
+    vital_configurations: vitalConfigurationsSlice.reducer,
   },
 }
 
@@ -1166,6 +1169,22 @@ export const useEnduserEncounters = (options={} as HookOptions<EnduserEncounter>
       addSome: session.api.enduser_encounters.createSome,
       deleteOne: session.api.enduser_encounters.deleteOne,
       updateOne: session.api.enduser_encounters.updateOne,
+    }, 
+    {...options}
+  )
+}
+export const useVitalConfigurations = (options={} as HookOptions<VitalConfiguration>) => {
+  const session = useSession()
+  return useListStateHook(
+    'vital_configurations', useTypedSelector(s => s.vital_configurations), session, vitalConfigurationsSlice, 
+    { 
+      loadQuery: session.api.vital_configurations.getSome,
+      findOne: session.api.vital_configurations.getOne,
+      findByIds: session.api.vital_configurations.getByIds,
+      addOne: session.api.vital_configurations.createOne,
+      addSome: session.api.vital_configurations.createSome,
+      deleteOne: session.api.vital_configurations.deleteOne,
+      updateOne: session.api.vital_configurations.updateOne,
     }, 
     {...options}
   )

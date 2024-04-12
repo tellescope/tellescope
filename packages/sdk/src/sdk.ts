@@ -199,6 +199,7 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   group_mms_conversations: defaultQueries(s, 'group_mms_conversations'), 
   enduser_orders: defaultQueries(s, 'enduser_orders'), 
   enduser_encounters: defaultQueries(s, 'enduser_encounters'), 
+  vital_configurations: defaultQueries(s, 'vital_configurations'), 
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {

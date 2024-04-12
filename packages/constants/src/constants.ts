@@ -98,6 +98,7 @@ export const QUESTION_GROUP_VALUE_PLACEHOLDER = "_question_group"
 export const MM_DD_YYYY_REGEX = /[0-1][0-9]-[0-3][0-9]-[1-2][0-9][0-9][0-9]/
 
 export const GOOGLE_INTEGRATIONS_TITLE = "Google"
+export const PAGER_DUTY_TITLE = "Pager Duty"
 export const DR_CHRONO_INTEGRATIONS_TITLE = "Dr. Chrono"
 export const DR_CHRONO_REDIRECT_URI_ENDING = "/dr-chrono-oauth2-verify"
 export const SQUARE_INTEGRATIONS_TITLE = "Square"
@@ -218,6 +219,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
     update: ASSIGNED_ACCESS,
     delete: NO_ACCESS,
   },
+  vital_configurations: READ_ONLY_ALL,
   enduser_custom_types: READ_ONLY_ALL,
   superbill_providers: READ_ONLY_ALL,
   superbills: ASSIGNED_AND_DEFAULT_ACCESS,
@@ -322,6 +324,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
+  vital_configurations: FULL_ACCESS,
   enduser_encounters: FULL_ACCESS,
   enduser_orders: FULL_ACCESS,
   group_mms_conversations: FULL_ACCESS,
@@ -507,3 +510,5 @@ export const INSURANCE_RELATIONSHIPS_CANVAS_MAPPING: { [K in InsuranceRelationsh
 export const INSURANCE_RELATIONSHIPS_CANVAS = Object.keys(INSURANCE_RELATIONSHIPS_CANVAS_MAPPING) as InsuranceRelationship[]
 
 export const TELLESCOPE_GENDERS: TellescopeGender[] = ["Female", "Male", 'Other', 'Unknown']
+
+export const VITAL_RANGE_CLASSIFICATIONS = ['Target','High','Low','Very High','Very Low','Critical High','Critical Low']

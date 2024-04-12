@@ -795,6 +795,13 @@ export const useTellescopeForm = ({ urlLogicValue, customization, carePlanId, ca
           return `Answers must match`
         }
       }
+
+      if (value.answer.type === 'string' && (value.answer.value || '').length >= 5000) {
+        return `Must be under 5000 characters, got ${value.answer.value?.length}`
+      }
+      if (value.answer.type === 'stringLong' && (value.answer.value || '').length >= 20000) {
+        return `Must be under 20000 characters, got ${value.answer.value?.length}`
+      }
     }
 
     if (field.isOptional || (sessionType === 'user' && field.type === 'Appointment Booking')) {

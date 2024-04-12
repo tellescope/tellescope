@@ -1,4 +1,4 @@
-import { CalendarEvent, CompoundFilter, Enduser, EnduserRelationship, FormField, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus } from "@tellescope/types-models"
+import { CalendarEvent, CompoundFilter, Enduser, EnduserRelationship, FormField, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison } from "@tellescope/types-models"
 import { ADMIN_ROLE, get_inverse_relationship_type } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 
@@ -1569,6 +1569,14 @@ export const decodeJWT = <T extends { exp: number }>(jwt: string): T | null => {
 export const field_can_autoadvance = ({ type, options } : Pick<FormField, 'type' | 'options'>) => {
   if (type === 'multiple_choice' && options?.radio) return true
   if (type === 'Dropdown' && options?.radio) return true
+
+  return false
+}
+
+export const satisfies_vital_comparison = (comparison: VitalComparison, value: number) => {
+  if (comparison.type === 'Less Than') { return value < comparison.value }
+  if (comparison.type === 'Greater Than') { return value > comparison.value }
+  if (comparison.type === 'Between') { return value >= comparison.value.lower && value <= comparison.value.upper }
 
   return false
 }

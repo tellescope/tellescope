@@ -168,6 +168,7 @@ export type OrganizationSettings = {
     flaggedFileText?: string,
     showBulkFormInput?: boolean,
     autofillSignature?: boolean,
+    showFullVitalsTab?: boolean,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
@@ -262,6 +263,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedCanvas?: boolean,
   hasConnectedCandid?: boolean,
   hasConnectedGoGoMeds?: boolean,
+  hasConnectedPagerDuty?: boolean,
   hasConfiguredZoom?: boolean,
   hasTicketQueues?: boolean,
   vitalTeamId?: string,
@@ -889,6 +891,7 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
   batchId?: string,
   isMarketing?: boolean,
   destination?: string[],
+  assignedTo?: string[],
   // sentAt: string, // only outgoing
 }
 
@@ -931,6 +934,7 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
   tags?: string[],
   batchId?: string,
   replyToTemplateId?: string,
+  assignedTo?: string[],
   // usingPublicNumber?: boolean, // flagged on outgoing messages from public number
   // sentAt: string, // only outgoing
 }
@@ -966,6 +970,7 @@ export interface ChatRoom extends ChatRoom_readonly, ChatRoom_required, ChatRoom
   pinnedAt?: Date | '',
   fields?: Indexable<string | CustomField>,
   suggestedReply?: string,
+  assignedTo?: string[],
 }
 
 export type ChatAttachmentType = 'image' | 'video' | 'file' | string 
@@ -2129,6 +2134,7 @@ export type CreateCarePlanAutomationAction = AutomationActionBuilder<'createCare
 }>
 export type CompleteCarePlanAutomationAction = AutomationActionBuilder<'completeCarePlan', {}>
 export type ZusSyncAutomationAction = AutomationActionBuilder<'zusSync', {}>
+export type PagerDutyCreateIncidentAutomationAction = AutomationActionBuilder<'pagerDutyCreateIncident', { type: string, title: string, serviceId: string }>
 
 export type IterableFieldsMapping = {
   iterable: string,
@@ -2177,6 +2183,7 @@ export type AutomationActionForType = {
   'createCarePlan': CreateCarePlanAutomationAction,
   'completeCarePlan': CompleteCarePlanAutomationAction,
   'zusSync': ZusSyncAutomationAction,
+  'pagerDutyCreateIncident': PagerDutyCreateIncidentAutomationAction,
 }
 export type AutomationActionType = keyof AutomationActionForType
 export type AutomationAction = AutomationActionForType[AutomationActionType]
@@ -2236,6 +2243,7 @@ export interface EnduserObservation_required {
 export interface EnduserObservation_updatesDisabled {}
 export interface EnduserObservation extends EnduserObservation_readonly, EnduserObservation_required, EnduserObservation_updatesDisabled {
   recordedAt?: Date,
+  timestamp: Date,
   code?: string,
   type?: string,
   source?: string, // who generated this (e.g. self-reported vs lab work)
@@ -2553,6 +2561,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
   inputs?: string[],
   answeredAt?: Date,
   recordingCancelledAt?: Date,
+  assignedTo?: string[],
 }
 
 export type AnalyticsQueryResultValue = {
@@ -2915,6 +2924,11 @@ export type AutomationTriggerEvents = {
   }, {}>,
   'On Birthday': AutomationTriggerEventBuilder<"On Birthday", { minutes: number }, {}>,
   'Has Not Engaged': AutomationTriggerEventBuilder<"Has Not Engaged", { intervalInMS: number }, {}>,
+  'Vital Count': AutomationTriggerEventBuilder<"Vital Count", { 
+    units?: string[], minutes: number,
+    comparison: VitalComparison,
+    periodInMS: number,
+  }, {}>,
 }
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents
 export type AutomationTriggerEvent = AutomationTriggerEvents[AutomationTriggerEventType]
@@ -3098,6 +3112,7 @@ export interface TicketThread extends TicketThread_readonly, TicketThread_requir
   subject: string,
   closedAt?: Date | '',
   pinnedAt?: Date | '',
+  assignedTo?: string[],
 }
 
 export interface TicketThreadComment_readonly extends ClientRecord {
@@ -3131,7 +3146,7 @@ export interface TicketThreadComment extends TicketThreadComment_readonly, Ticke
     transcription?: string,
   },
   hiddenBy?: { [index: string] : Date | '' };
-  ticketIds?: string[],
+  ticketIds?: string[], 
 }
 
 export interface Configuration_readonly extends ClientRecord {}
@@ -3240,6 +3255,7 @@ export interface GroupMMSConversation_readonly extends ClientRecord {
   tags?: string[]
   suggestedReply?: string,
   hiddenBy?: { [index: string] : Date | '' };
+  assignedTo?: string[],
 }
 export interface GroupMMSConversation_updatesDisabled {}
 export interface GroupMMSConversation_required {
@@ -3247,7 +3263,31 @@ export interface GroupMMSConversation_required {
 export interface GroupMMSConversation extends GroupMMSConversation_readonly, GroupMMSConversation_required, GroupMMSConversation_updatesDisabled {
 }
 
+export type VitalComparisons = {
+  'Less Than': { type: "Less Than", value: number },
+  'Greater Than': { type: "Greater Than", value: number },
+  'Between': { type: "Between", value: { lower: number, upper: number, } }, // BOTH INCLUSIVE
+}
+export type VitalComparisonType = keyof VitalComparisons
+export type VitalComparison = VitalComparisons[VitalComparisonType]
+
+export type VitalConfigurationRange = {
+  classification: string, 
+  comparison: VitalComparison,
+  trendIntervalInMS: number, // negative numbers or 0 indicate no trend
+}
+
+export interface VitalConfiguration_readonly extends ClientRecord { }
+export interface VitalConfiguration_required {}
+export interface VitalConfiguration_updatesDisabled {}
+export interface VitalConfiguration extends VitalConfiguration_readonly, VitalConfiguration_required, VitalConfiguration_updatesDisabled {
+  title: string,
+  unit: string,
+  ranges: VitalConfigurationRange[],
+}
+
 export type ModelForName_required = {
+  vital_configurations: VitalConfiguration_required,
   enduser_encounters: EnduserEncounter_required,
   enduser_orders: EnduserOrder_required,
   group_mms_conversations: GroupMMSConversation_required,
@@ -3320,6 +3360,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  vital_configurations: VitalConfiguration_readonly,
   enduser_encounters: EnduserEncounter_readonly,
   enduser_orders: EnduserOrder_readonly,
   group_mms_conversations: GroupMMSConversation_readonly,
@@ -3392,6 +3433,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  vital_configurations: VitalConfiguration_updatesDisabled,
   enduser_encounters: EnduserEncounter_updatesDisabled,
   enduser_orders: EnduserOrder_updatesDisabled,
   group_mms_conversations: GroupMMSConversation_updatesDisabled,
@@ -3464,6 +3506,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly {
+  vital_configurations: VitalConfiguration,
   enduser_encounters: EnduserEncounter,
   enduser_orders: EnduserOrder,
   group_mms_conversations: GroupMMSConversation,
@@ -3546,6 +3589,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  vital_configurations: true,
   enduser_encounters: true,
   enduser_orders: true,
   group_mms_conversations: true,
