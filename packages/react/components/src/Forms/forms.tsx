@@ -946,7 +946,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
               {truncate_string(e.title, { length: 50 })}
             </Typography>
 
-            <Typography noWrap color="error" style={{  }}>
+            <Typography color="error" style={{ width: 300 }}>
               {e.error}
             </Typography>
           </Flex>

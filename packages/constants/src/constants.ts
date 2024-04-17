@@ -30,6 +30,7 @@ export const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
   relationships: "Relationships",
   accessTags: "Access Tags",
   unsubscribedFromMarketing: "Unsubscribed From Marketing",
+  unsubscribedFromPhones: "Unsubscribed From Phone Numbers",
 } satisfies { [K in keyof Enduser]?: string }
 
 export const READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
@@ -99,6 +100,7 @@ export const MM_DD_YYYY_REGEX = /[0-1][0-9]-[0-3][0-9]-[1-2][0-9][0-9][0-9]/
 
 export const GOOGLE_INTEGRATIONS_TITLE = "Google"
 export const PAGER_DUTY_TITLE = "Pager Duty"
+export const SMART_METER_TITLE = "Smart Meter"
 export const DR_CHRONO_INTEGRATIONS_TITLE = "Dr. Chrono"
 export const DR_CHRONO_REDIRECT_URI_ENDING = "/dr-chrono-oauth2-verify"
 export const SQUARE_INTEGRATIONS_TITLE = "Square"
@@ -511,4 +513,5 @@ export const INSURANCE_RELATIONSHIPS_CANVAS = Object.keys(INSURANCE_RELATIONSHIP
 
 export const TELLESCOPE_GENDERS: TellescopeGender[] = ["Female", "Male", 'Other', 'Unknown']
 
+export const VITAL_UNITS = ["DBP", "BPM", "LB", "O2 Sat%", "SBP"]
 export const VITAL_RANGE_CLASSIFICATIONS = ['Target','High','Low','Very High','Very Low','Critical High','Critical Low']

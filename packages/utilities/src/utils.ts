@@ -1580,3 +1580,5 @@ export const satisfies_vital_comparison = (comparison: VitalComparison, value: n
 
   return false
 }
+
+export const SMS_UNSUBSCRIBE_KEYWORDS = ['stop', 'stopall', 'unsubscribe', 'end', 'quit', 'cancel']

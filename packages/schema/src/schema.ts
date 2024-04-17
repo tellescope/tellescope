@@ -1028,6 +1028,8 @@ export type PublicActions = {
         appointmentBookingPageId: string, 
         businessId: string,
         userId?: string,
+        restrictedByState?: boolean,
+        userTags?: string[],
       }, 
       { 
         appointmentBookingPage: AppointmentBookingPageClient,
@@ -1036,6 +1038,7 @@ export type PublicActions = {
         products: Product[],
         userDisplayName?: string,
         userAvatar?: string,
+        users?: UserClient[],
       }
     >,
   },
@@ -4416,6 +4419,7 @@ export const schema: SchemaV1 = build_schema({
           appointmentBookingPageId: { validator: mongoIdStringValidator, required: true },
           businessId: { validator: mongoIdStringValidator, required: true }, // organizationIds can be pulled from the corresponding appointment
           userId: { validator: mongoIdStringValidator }, 
+          userTags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
         },
         returns: {
           appointmentBookingPage: { validator: 'appointment_booking_page' as any, required: true },
@@ -4423,7 +4427,8 @@ export const schema: SchemaV1 = build_schema({
           locations: { validator: 'appointment_locations' as any, required: true },
           products: { validator: 'products' as any, required: true },
           userDisplayName: { validator: stringValidator },
-          userAvatar: { validator: stringValidator }
+          userAvatar: { validator: stringValidator },
+          users: { validator: "users" as any },
         },
       }
     },
@@ -4577,6 +4582,7 @@ export const schema: SchemaV1 = build_schema({
       bufferEndMinutes: { validator: numberValidator },
       bufferStartMinutes: { validator: numberValidator },
       canvasCoding: { validator: canvasCodingValidator },
+      tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
     }
   },
   calendar_event_RSVPs: {

@@ -264,6 +264,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedCandid?: boolean,
   hasConnectedGoGoMeds?: boolean,
   hasConnectedPagerDuty?: boolean,
+  hasConnectedSmartMeter?: boolean,
   hasConfiguredZoom?: boolean,
   hasTicketQueues?: boolean,
   vitalTeamId?: string,
@@ -631,6 +632,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   lastZendeskSyncAt?: Date,
   accessTags?: string[],
   unsubscribedFromMarketing?: boolean,
+  unsubscribedFromPhones?: string[],
   insurance?: EnduserInsurance,
   insuranceSecondary?: EnduserInsurance,
   bookingNotes?: { bookingPageId: string, note: string }[]
@@ -1247,6 +1249,7 @@ export type FormFieldOptions = FormFieldValidation & {
   customPriceMessage?: string,
   billingProvider?: 'Canvas' | "Candid" | string,
   bookingPageId?: string,
+  userTags?: string[],
   addressFields?: string[], // supports specifying just 'state', for now
   autoAdvance?: boolean,
 }
@@ -1863,6 +1866,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   bufferEndMinutes?: number,
 
   canvasCoding?: CanvasCoding,
+  tags?: string[]
 }
 
 export interface AppointmentLocation_readonly extends ClientRecord {}
@@ -1974,7 +1978,24 @@ export interface AutomationForForm { formId: string }
 export interface WithFormId { formId: string }
 export interface WithAutomationStepId { automationStepId: string }
 export interface AutomationForTemplate { templateId: string }
-export interface AutomationForSender { senderId: string }
+
+export type SenderAssignmentStrategies = {
+  'Care Team Primary': {
+    type: 'Care Team Primary',
+    info: {}, 
+  },
+  'Default': {
+    type: 'Default',
+    info: {}, 
+  },
+}
+export type SenderAssignmentStrategyType = keyof SenderAssignmentStrategies
+export type SenderAssignmentStrategy = SenderAssignmentStrategies[SenderAssignmentStrategyType]
+
+export interface AutomationForSender { 
+  assignment?: SenderAssignmentStrategy,
+  senderId: string // default sender
+}
 export interface AutomationForFormRequest extends AutomationForForm, AutomationForSender { channel?: CommunicationsChannel }
 export interface AutomationForMessage extends AutomationForTemplate, AutomationForSender {}
 export interface AutomationForWebhook { message: string }
@@ -2928,6 +2949,10 @@ export type AutomationTriggerEvents = {
     units?: string[], minutes: number,
     comparison: VitalComparison,
     periodInMS: number,
+  }, {}>,
+  'Vital Update': AutomationTriggerEventBuilder<"Vital Update", { 
+    configurationIds: string[],
+    classifications:  string[], 
   }, {}>,
 }
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents

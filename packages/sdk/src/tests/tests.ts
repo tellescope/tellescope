@@ -9,6 +9,8 @@ import {
   ClientModelForName_required,
   UserDisplayInfo,
   Ticket,
+  VitalConfiguration,
+  EnduserObservation,
 } from "@tellescope/types-client"
 import { 
   CompoundFilter,
@@ -5363,7 +5365,7 @@ const nextReminderInMS_tests = async () => {
   ])
 }
 
-const pollForResults = async <T>(f: () => Promise<T>, evaluate: (r: T) => boolean, intervalInMS=500, iterations=20) => {
+const pollForResults = async <T>(f: () => Promise<T>, evaluate: (r: T) => boolean, intervalInMS=500, iterations=20, shouldError=false) => {
   let lastResult = undefined as any
   for (let i = 0; i < iterations; i++) {
     await wait(undefined, intervalInMS)
@@ -5371,6 +5373,8 @@ const pollForResults = async <T>(f: () => Promise<T>, evaluate: (r: T) => boolea
     lastResult = result
     if (evaluate(result)) return result
   }
+
+  if (shouldError) return lastResult
 
   console.log(lastResult)
   throw new Error("failed pollForResults")
@@ -7000,7 +7004,7 @@ const sync_tests = async () => {
   await async_test(
     "Other organization",
     () => sdkOther.sync({ from }),
-    { onResult: ({ results }) => results.length === 0 },
+    { onResult: ({ results }) => results.filter(e => e.modelName === 'endusers' && e.data !== 'deleted').length === 0 },
   )
 
   await sdk.api.endusers.updateOne(e.id, { fname: "UPDATE_TEST"})
@@ -7028,7 +7032,7 @@ const sync_tests = async () => {
   await async_test(
     "Other organization",
     () => sdkOther.sync({ from }),
-    { onResult: ({ results }) => results.length === 0 },
+    { onResult: ({ results }) => results.filter(e => e.modelName === 'endusers' && e.data !== 'deleted').length === 0 },
   )
 
   const t = await sdk.api.tickets.createOne({ title: 'access test'  })
@@ -7106,7 +7110,7 @@ const sync_tests = async () => {
   await async_test(
     "Other organization",
     () => sdkOther.sync({ from }),
-    { onResult: ({ results }) => results.length === 0 },
+    { onResult: ({ results }) => results.filter(e => e.modelName === 'endusers' && e.data !== 'deleted').length === 0 },
   )
   
   // bulk create test coverage
@@ -7136,7 +7140,7 @@ const sync_tests = async () => {
   await async_test(
     "Other organization",
     () => sdkOther.sync({ from }),
-    { onResult: ({ results }) => results.length === 0 },
+    { onResult: ({ results }) => results.filter(e => e.modelName === 'endusers' && e.data !== 'deleted').length === 0 },
   )
 
   await sdk.api.endusers.deleteOne(e2.id)
@@ -7164,7 +7168,7 @@ const sync_tests = async () => {
   await async_test(
     "Other organization",
     () => sdkOther.sync({ from }),
-    { onResult: ({ results }) => results.length === 0 },
+    { onResult: ({ results }) => results.filter(e => e.modelName === 'endusers' && e.data !== 'deleted').length === 0 },
   )
 }
 
@@ -7218,6 +7222,481 @@ const close_reasons_no_duplicates_tests = async () => {
   ])
 }
 
+const vital_trigger_tests = async () => {
+  log_header("Vital Update Trigger")
+ 
+  const runTriggerTest = async ({
+    configurations: _configurations,
+    triggers: _triggers,
+    shouldTrigger,
+    vitals,
+    title,
+  } : {
+    configurations: Pick<VitalConfiguration, 'unit' | 'ranges'>[]
+    triggers: { configurationIndexes: number[], classifications: string[] }[],
+    vitals: (Pick<EnduserObservation, 'measurement'> & Pick<Partial<EnduserObservation>, | 'timestamp'>)[],
+    shouldTrigger: boolean,
+    title: string,
+  }) => {
+    const e = await sdk.api.endusers.createOne({ })
+    const configurations = (
+      await sdk.api.vital_configurations.createSome(_configurations.map((c, i) => ({
+        title: `configuration ${i}`,
+        ...c,
+      })))
+    ).created
+
+    const triggers = (
+      await sdk.api.automation_triggers.createSome(_triggers.map((t, i) => ({
+        title: `trigger ${i}`,
+        status: 'Active', 
+        event: {
+          type: "Vital Update",
+          info: {
+            classifications: t.classifications,
+            configurationIds: configurations.filter((_, i) => t.configurationIndexes.includes(i)).map(c => c.id),
+          }
+        },
+        action: {
+          type: 'Add Tags',
+          info: { tags: ['Triggered'] },
+        },
+      })))
+    ).created
+
+    await sdk.api.enduser_observations.createSome(vitals.map(v => ({
+      ...v,
+      category: 'vital-signs',
+      enduserId: e.id,
+      status: 'registered',
+    })))
+
+    await async_test(
+      title,
+      () => pollForResults(
+        () => sdk.api.endusers.getOne(e.id),
+        e => !!e.tags?.includes("Triggered"),
+        50,
+        10,
+        !shouldTrigger
+      ),
+      passOnAnyResult,
+    )  
+
+    await Promise.all([
+      sdk.api.endusers.deleteOne(e.id),
+      ...configurations.map(c => sdk.api.vital_configurations.deleteOne(c.id)),
+      ...triggers.map(t => sdk.api.automation_triggers.deleteOne(t.id)),
+    ])
+  }
+
+  const timestamp_for_day_offset = (day: number) => new Date(Date.now() - 1000 * 60 * 60 * 24 * day)
+
+  await runTriggerTest({
+    title: "Basic Passing Test (Less Than Sucess)",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 2 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 1 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Less Than Fail",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 1 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 1 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Greater Than Success",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 0 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 1 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Greater Than Fail",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 0 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 0 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Between Low Bound",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Between', value: { lower: 0, upper: 1 } }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 0 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Between Upper Bound",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Between', value: { lower: 0, upper: 1 } }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 1 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Between Middle",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Between', value: { lower: 0, upper: 2 } }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 1 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Between Below Low Bound",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Between', value: { lower: 0, upper: 1 } }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: -1 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Between Above Upper Bound",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Between', value: { lower: 0, upper: 1 } }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 2 },
+      timestamp: new Date(),
+    }]
+  })
+
+  await runTriggerTest({
+    title: "Mismatch Unit",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'DIFFERENT',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 200 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 1 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Mismatch Classification",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 200 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['High'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 1 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Multiple Configurations (Classifications)",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [
+        { classification: 'Target', comparison: { type: 'Less Than', value: 200 }, trendIntervalInMS: 0 }, 
+        { classification: 'High', comparison: { type: 'Less Than', value: 100 }, trendIntervalInMS: 0 }, 
+      ],
+    }],
+    triggers: [{ classifications: ['High'], configurationIndexes: [0,1] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 1 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Multiple Configurations (Comparisons)",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [
+        { classification: 'Target', comparison: { type: 'Less Than', value: 0 }, trendIntervalInMS: 0 }, 
+        { classification: 'High', comparison: { type: 'Less Than', value: 100 }, trendIntervalInMS: 0 }, 
+      ],
+    }],
+    triggers: [{ classifications: ['High'], configurationIndexes: [0,1] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 1 },
+      timestamp: new Date(),
+    }]
+  })
+
+  await runTriggerTest({
+    title: "Multiple vitals, 0 passes",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 200 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { measurement: { unit: 'LB', value: 500 }, timestamp: new Date() },
+      { measurement: { unit: 'LB', value: 1000 }, timestamp: new Date(Date.now() - 100) },
+      { measurement: { unit: 'LB', value: 250 }, timestamp: new Date(Date.now() - 250)  },
+    ]
+  })
+  await runTriggerTest({
+    title: "Multiple vitals, 1 passes",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 200 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { measurement: { unit: 'LB', value: 500 }, timestamp: new Date() },
+      { measurement: { unit: 'LB', value: 1 }, timestamp: new Date(Date.now() - 100) },
+      { measurement: { unit: 'LB', value: 250 }, timestamp: new Date(Date.now() - 250)  },
+    ]
+  })
+  await runTriggerTest({
+    title: "Multiple vitals, multiple pass",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 200 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { measurement: { unit: 'LB', value: 1 }, timestamp: new Date() },
+      { measurement: { unit: 'LB', value: 2 }, timestamp: new Date(Date.now() - 100) },
+      { measurement: { unit: 'LB', value: 3 }, timestamp: new Date(Date.now() - 250)  },
+    ]
+  })
+
+  // trend tests
+  await runTriggerTest({
+    title: "Singleton trend should not work",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 200 }, trendIntervalInMS: 1000 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 1 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "2-point trend passing",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 1 }, trendIntervalInMS: 1000 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { measurement: { unit: 'LB', value: 1 }, timestamp: new Date() },
+      { measurement: { unit: 'LB', value: 1 }, timestamp: new Date(new Date().getTime() - 999) },
+    ]
+  })
+  await runTriggerTest({
+    title: "2-point trend failing for difference too small",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 1 }, trendIntervalInMS: 1000 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { measurement: { unit: 'LB', value: 1 }, timestamp: new Date() },
+      { measurement: { unit: 'LB', value: 0 }, timestamp: new Date(new Date().getTime() - 999) },
+    ]
+  })
+  await runTriggerTest({
+    title: "2-point trend failing for point out of time range",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 5 }, trendIntervalInMS: 1000 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { measurement: { unit: 'LB', value: 1 }, timestamp: new Date() },
+      { measurement: { unit: 'LB', value: 0 }, timestamp: new Date(new Date().getTime() - 1001) },
+    ]
+  })
+  await runTriggerTest({
+    title: "3-point trend passing (1 point of out range)",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 2 }, trendIntervalInMS: 1000 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { measurement: { unit: 'LB', value: 2 }, timestamp: new Date() },
+      { measurement: { unit: 'LB', value: 1 }, timestamp: new Date(new Date().getTime() - 100) },
+      { measurement: { unit: 'LB', value: 0 }, timestamp: new Date(new Date().getTime() - 1001) },
+    ]
+  })
+  await runTriggerTest({
+    title: "3-point trend passing (1 point wrong unit)",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 2 }, trendIntervalInMS: 1000 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { measurement: { unit: 'LB', value: 2 }, timestamp: new Date() },
+      { measurement: { unit: 'LB', value: 1 }, timestamp: new Date(new Date().getTime() - 100) },
+      { measurement: { unit: 'OTHER', value: 0 }, timestamp: new Date(new Date().getTime() - 200) },
+    ]
+  })
+  await runTriggerTest({
+    title: "3-point trend failing (1 point of out range)",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 2 }, trendIntervalInMS: 1000 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { measurement: { unit: 'LB', value: 2 }, timestamp: new Date() },
+      { measurement: { unit: 'LB', value: 0 }, timestamp: new Date(new Date().getTime() - 100) },
+      { measurement: { unit: 'LB', value: 1 }, timestamp: new Date(new Date().getTime() - 1001) },
+    ]
+  })
+  await runTriggerTest({
+    title: "3-point trend failing (1 point wrong unit)",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 2 }, trendIntervalInMS: 1000 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { measurement: { unit: 'LB', value: 2 }, timestamp: new Date() },
+      { measurement: { unit: 'LB', value: 0 }, timestamp: new Date(new Date().getTime() - 100) },
+      { measurement: { unit: 'OTHER', value: 1 }, timestamp: new Date(new Date().getTime() - 200) },
+    ]
+  })
+  await runTriggerTest({
+    title: "multiple trend passing",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 1000 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { measurement: { unit: 'LB', value: 3 }, timestamp: new Date() },
+      { measurement: { unit: 'LB', value: 2 }, timestamp: new Date(new Date().getTime() - 100) },
+      { measurement: { unit: 'LB', value: 1 }, timestamp: new Date(new Date().getTime() - 200) },
+    ]
+  })
+  await runTriggerTest({
+    title: "multiple trend failing (not enough)",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 1000 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { measurement: { unit: 'LB', value: 2 }, timestamp: new Date() },
+      { measurement: { unit: 'LB', value: 2 }, timestamp: new Date(new Date().getTime() - 100) },
+      { measurement: { unit: 'LB', value: 1 }, timestamp: new Date(new Date().getTime() - 200) },
+    ]
+  })
+  await runTriggerTest({
+    title: "multiple trend failing (wrong order)",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 1000 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { measurement: { unit: 'LB', value: 1 }, timestamp: new Date() },
+      { measurement: { unit: 'LB', value: 2 }, timestamp: new Date(new Date().getTime() - 100) },
+      { measurement: { unit: 'LB', value: 3 }, timestamp: new Date(new Date().getTime() - 200) },
+    ]
+  })
+  await runTriggerTest({
+    title: "multiple trend failing (not enough, and wrong order)",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 1000 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { measurement: { unit: 'LB', value: 1 }, timestamp: new Date() },
+      { measurement: { unit: 'LB', value: 2 }, timestamp: new Date(new Date().getTime() - 100) },
+      { measurement: { unit: 'LB', value: 2 }, timestamp: new Date(new Date().getTime() - 200) },
+    ]
+  })
+  await runTriggerTest({
+    title: "multiple trend failing (lots)",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 1000 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { measurement: { unit: 'LB', value: 1 }, timestamp: new Date() },
+      { measurement: { unit: 'LB', value: 2 }, timestamp: new Date(new Date().getTime() - 100) },
+      { measurement: { unit: 'LB', value: 2 }, timestamp: new Date(new Date().getTime() - 200) },
+      { measurement: { unit: 'LB', value: 1 }, timestamp: new Date(new Date().getTime() - 300) },
+      { measurement: { unit: 'LB', value: 1 }, timestamp: new Date(new Date().getTime() - 400) },
+      { measurement: { unit: 'LB', value: 2 }, timestamp: new Date(new Date().getTime() - 500) },
+      { measurement: { unit: 'LB', value: 1 }, timestamp: new Date(new Date().getTime() - 600) },
+    ]
+  })
+}
+
 (async () => {
   log_header("API")
 
@@ -7269,6 +7748,7 @@ const close_reasons_no_duplicates_tests = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await vital_trigger_tests()
     await ticket_queue_tests()
     await close_reasons_no_duplicates_tests()
     await register_as_enduser_tests()

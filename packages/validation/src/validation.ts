@@ -267,6 +267,9 @@ import {
   VitalConfigurationRange,
   VitalComparisons,
   PagerDutyCreateIncidentAutomationAction,
+  SenderAssignmentStrategyType,
+  SenderAssignmentStrategy,
+  SenderAssignmentStrategies,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -309,6 +312,7 @@ import {
   NO_ACCESS,
   OUTLOOK_INTEGRATIONS_TITLE,
   PAGER_DUTY_TITLE,
+  SMART_METER_TITLE,
   SQUARE_INTEGRATIONS_TITLE,
   ZENDESK_INTEGRATIONS_TITLE,
   ZOHO_TITLE,
@@ -2407,6 +2411,25 @@ export const ticketActionValidator = orValidator<{ [K in TicketActionType]: Tick
 })
 export const ticketActionsValidator = listValidatorOptionalOrEmptyOk(ticketActionValidator)
 
+export const senderAssignmentStrategyValidatorOptional = orValidator<{ 
+  [K in SenderAssignmentStrategyType]: SenderAssignmentStrategy
+}>({
+  'Care Team Primary': objectValidator<SenderAssignmentStrategies['Care Team Primary']>({ 
+    type: exactMatchValidator<'Care Team Primary'>(['Care Team Primary']),
+    info: objectValidator<object>({}, { emptyOk: true }),
+  }),
+  'Default': objectValidator<SenderAssignmentStrategies['Default']>({ 
+    type: exactMatchValidator<'Default'>(['Default']),
+    info: objectValidator<object>({}, { emptyOk: true }),
+  }),
+}, { isOptional: true })
+
+export const automationForMessageValidator = objectValidator<AutomationForMessage>({ 
+  senderId: mongoIdStringRequired, 
+  templateId: mongoIdStringRequired,
+  assignment: senderAssignmentStrategyValidatorOptional,
+}, { emptyOk: false })
+
 export const automationActionValidator = orValidator<{ [K in AutomationActionType]: AutomationAction & { type: K } } >({
   setEnduserStatus: objectValidator<SetEnduserStatusAutomationAction>({
     type: exactMatchValidator(['setEnduserStatus']),
@@ -2414,11 +2437,11 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
   }),
   sendEmail: objectValidator<SendEmailAutomationAction>({
     type: exactMatchValidator(['sendEmail']),
-    info: objectValidator<AutomationForMessage>({ senderId: mongoIdStringRequired, templateId: mongoIdStringRequired }, { emptyOk: false }),
+    info: automationForMessageValidator
   }),
   sendSMS: objectValidator<SendSMSAutomationAction>({
     type: exactMatchValidator(['sendSMS']),
-    info: objectValidator<AutomationForMessage>({ senderId: mongoIdStringRequired, templateId: mongoIdStringRequired }, { emptyOk: false }),
+    info: automationForMessageValidator,
   }),
   notifyTeam: objectValidator<NotifyTeamAutomationAction>({
     type: exactMatchValidator(['notifyTeam']),
@@ -2437,6 +2460,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       senderId: mongoIdStringRequired, 
       formId: mongoIdStringRequired,
       channel: communicationsChannelValidatorOptional,
+      assignment: senderAssignmentStrategyValidatorOptional,
     }, { emptyOk: false }),
   }),
   shareContent: objectValidator<ShareContentAutomationAction>({
@@ -2819,6 +2843,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   billingProvider: stringValidatorOptional,
   addressFields: listOfStringsValidatorOptionalOrEmptyOk,
   autoAdvance: booleanValidatorOptional,
+  userTags: listOfStringsValidatorOptionalOrEmptyOk,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -3363,6 +3388,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "On Birthday": true,
   "Has Not Engaged": true,
   "Vital Count": true,
+  'Vital Update': true,
 }
 export const AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES) as AutomationTriggerEventType[]
 
@@ -3447,6 +3473,14 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
       units: listOfStringsValidatorEmptyOk,
       comparison: vitalComparisonValidator,
       periodInMS: numberValidator,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Vital Update": objectValidator<AutomationTriggerEvents["Vital Update"]>({
+    type: exactMatchValidator(['Vital Update']),
+    info: objectValidator<AutomationTriggerEvents['Vital Update']['info']>({
+      configurationIds: listOfMongoIdStringValidator,
+      classifications: listOfStringsValidator,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -3788,6 +3822,7 @@ export type IntegrationsTitleType = (
 | typeof CANDID_TITLE
 | typeof GOGO_MEDS_TITLE
 | typeof PAGER_DUTY_TITLE
+| typeof SMART_METER_TITLE
 )
 export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleType>([
   SQUARE_INTEGRATIONS_TITLE,
@@ -3801,6 +3836,7 @@ export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleTy
   CANDID_TITLE,
   GOGO_MEDS_TITLE,
   PAGER_DUTY_TITLE,
+  SMART_METER_TITLE,
 ])
 
 const _VIDEO_INTEGRATION_TYPES: { [K in VideoIntegrationType]: any} = {

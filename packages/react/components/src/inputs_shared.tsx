@@ -327,6 +327,8 @@ export interface GenericSearchProps <T> extends FilterComponent<T> {
   size?: TextFieldProps['size'],
   sx?: SxProps,
   attachSearchableFields?: (v: T) => Indexable | undefined,
+  dontFetch?: boolean,
+  autoFocus?: boolean,
 }
 interface ModelSearchProps<T> extends GenericSearchProps<T>, SearchAPIProps<T> {}
 export const ModelSearchInput = <T,>({ 
@@ -567,9 +569,9 @@ export const EnduserOrUserSearch = (props: Omit<GenericSearchProps<Enduser | Use
   )
 }
 
-export const ContentSearch = (props: Omit<GenericSearchProps<ManagedContentRecord>, 'filterKey'> & { filterKey?: string }) => {
+export const ContentSearch = ({ dontFetch, ...props }: Omit<GenericSearchProps<ManagedContentRecord>, 'filterKey'> & { filterKey?: string }) => {
   const session = useResolvedSession()
-  const [, { addLocalElements }] = useManagedContentRecords()
+  const [, { addLocalElements }] = useManagedContentRecords({ dontFetch })
   return (
     <ModelSearchInput filterKey="managed_content_records" {...props} 
       searchAPI={session.api.managed_content_records.getSome}

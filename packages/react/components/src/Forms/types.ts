@@ -19,6 +19,7 @@ export interface FormInputProps<K extends keyof AnswerForType> {
   fullWidth?: boolean,
   onDatabaseSelect?: (r: DatabaseRecord) => void,
   responses?: Response[]
+  title?: string,
 }
 
 export type FormInputs = { 

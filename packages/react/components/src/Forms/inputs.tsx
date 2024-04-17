@@ -320,14 +320,14 @@ export const TableInput = ({ field, value=[], onChange, ...props }: FormInputPro
             <Grid item key={v.label} sx={{ width }}>
               {v.type === 'Text'
                 ? (
-                  <TextField label={v.label} size="small" fullWidth
+                  <TextField label={v.label} size="small" fullWidth title={v.label}
                     InputProps={defaultInputProps}
                     value={row.find((c, _i) => columnIndex === _i)?.entry} 
                     onChange={e => handleChange(i, columnIndex, { label: v.label, entry: e.target.value })}
                   />
                 )
               : v.type === 'Date' ? (
-                <DateStringInput label={v.label} size="small" fullWidth
+                <DateStringInput label={v.label} size="small" fullWidth title={v.label}
                   field={field}
                   value={row.find((c, _i) => columnIndex === _i)?.entry} 
                   onChange={(entry='') => handleChange(i, columnIndex, { label: v.label, entry })}
@@ -336,7 +336,7 @@ export const TableInput = ({ field, value=[], onChange, ...props }: FormInputPro
               : v.type === 'Select' ? (
                   <FormControl size="small" fullWidth>
                     <InputLabel id="demo-select-small">{v.label}</InputLabel>
-                    <Select label={v.label} size="small"
+                    <Select label={v.label} size="small" title={v.label}
                       sx={defaultInputProps.sx}
                       value={row.find((c, _i) => columnIndex === _i)?.entry} 
                       onChange={e => handleChange(i, columnIndex, { label: v.label, entry: e.target.value })}
@@ -2404,6 +2404,12 @@ export const AppointmentBookingInput = ({ field, value, onChange, form, response
   if (!loaded?.bookingURL) {
     return <LinearProgress />
   }
+
+  let bookingURL = loaded.bookingURL
+  if (field.options?.userTags?.length) {
+    bookingURL += `&userTags=${field.options.userTags.join(',')}`
+  }
+  
   return (
     <Grid container direction="column" spacing={1} sx={{ mt: 1 }}>
       {loaded.warningMessage &&
@@ -2418,7 +2424,7 @@ export const AppointmentBookingInput = ({ field, value, onChange, form, response
       {(!loaded.warningMessage || acknowledgedWarning)
         ? (
           <iframe title="Appointment Booking Embed" 
-            src={loaded.bookingURL}
+            src={bookingURL}
             style={{ border: 'none', width: '100%', height: 750 }}
           />
         )
