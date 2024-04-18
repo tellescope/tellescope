@@ -69,6 +69,7 @@ export interface LoadFunctionArguments <T> {
   sortBy?: SortBy,
   from?: Date | number,
   to?: Date,
+  fromToField?: string,
   fromUpdated?: Date,
   toUpdated?: Date,
   threadKey?: string, 
@@ -231,6 +232,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     create_go_go_meds_order: (args: extractFields<CustomActions['enduser_orders']['create_go_go_meds_order']['parameters']>) => (
       Promise<extractFields<CustomActions['enduser_orders']['create_go_go_meds_order']['returns']>>
     ),
+    create_smart_meter_order: (args: extractFields<CustomActions['enduser_orders']['create_smart_meter_order']['parameters']>) => (
+      Promise<extractFields<CustomActions['enduser_orders']['create_smart_meter_order']['returns']>>
+    ),
   },
   enduser_encounters: {
     create_candid_encounter: (args: extractFields<CustomActions['enduser_encounters']['create_candid_encounter']['parameters']>) => (
@@ -245,6 +249,11 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
   forms: {
     get_form_statistics: (args: extractFields<CustomActions['forms']['get_form_statistics']['parameters']>) => (
       Promise<extractFields<CustomActions['forms']['get_form_statistics']['returns']>>
+    ),
+  },
+  enduser_observations: {
+    load: (args: extractFields<CustomActions['enduser_observations']['load']['parameters']>) => (
+      Promise<extractFields<CustomActions['enduser_observations']['load']['returns']>>
     ),
   },
   endusers: {
@@ -462,6 +471,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
   integrations: {
     update_zoom: (args: extractFields<CustomActions['integrations']['update_zoom']['parameters']>) => (
       Promise<extractFields<CustomActions['integrations']['update_zoom']['returns']>>
+    ),
+    proxy_read: (args: extractFields<CustomActions['integrations']['proxy_read']['parameters']>) => (
+      Promise<extractFields<CustomActions['integrations']['proxy_read']['returns']>>
     ),
     load_payers: (args: extractFields<CustomActions['integrations']['load_payers']['parameters']>) => (
       Promise<extractFields<CustomActions['integrations']['load_payers']['returns']>>
@@ -704,6 +716,7 @@ export class Session extends SessionManager {
     queries.enduser_orders.get_available_tests = a => this._GET(`/v1${schema.enduser_orders.customActions.get_available_tests.path}`, a)
     queries.enduser_orders.create_lab_order = a => this._POST(`/v1${schema.enduser_orders.customActions.create_lab_order.path}`, a)
     queries.enduser_orders.create_go_go_meds_order = a => this._POST(`/v1${schema.enduser_orders.customActions.create_go_go_meds_order.path}`, a)
+    queries.enduser_orders.create_smart_meter_order = a => this._POST(`/v1${schema.enduser_orders.customActions.create_smart_meter_order.path}`, a)
 
     queries.endusers.set_password = args => this._POST(`/v1/set-enduser-password`, args)
     queries.endusers.add_to_journey = a => this._POST(`/v1${schema.endusers.customActions.add_to_journey.path}`, a)
@@ -797,6 +810,7 @@ export class Session extends SessionManager {
  
     queries.integrations.update_zoom = args => this._POST(`/v1${schema.integrations.customActions.update_zoom.path}`, args)
     queries.integrations.load_payers = args => this._GET(`/v1${schema.integrations.customActions.load_payers.path}`, args)
+    queries.integrations.proxy_read = args => this._GET(`/v1${schema.integrations.customActions.proxy_read.path}`, args)
     queries.integrations.generate_google_auth_url = a => this._POST(`/v1/${schema.integrations.customActions.generate_google_auth_url.path}`, a)
     queries.integrations.disconnect_google_integration = a => this._POST(`/v1/${schema.integrations.customActions.disconnect_google_integration.path}`, a)
     queries.integrations.refresh_oauth2_session = a => this._POST(`/v1/${schema.integrations.customActions.refresh_oauth2_session.path}`, a)
@@ -870,6 +884,8 @@ export class Session extends SessionManager {
     queries.group_mms_conversations.send_message = args => this._POST(`/v1${schema.group_mms_conversations.customActions.send_message.path}`, args)
 
     queries.enduser_encounters.create_candid_encounter = args => this._POST(`/v1${schema.enduser_encounters.customActions.create_candid_encounter.path}`, args)
+
+    queries.enduser_observations.load = args => this._GET(`/v1${schema.enduser_observations.customActions.load.path}`, args)
 
     this.api = queries
   }

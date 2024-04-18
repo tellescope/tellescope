@@ -407,15 +407,15 @@ export const PORTAL_DEFAULT_LOGIN_DESCRIPTION = "Log in to your account."
 export const PORTAL_DEFAULT_REGISTER_TITLE = "Getting Started"
 export const PORTAL_DEFAULT_REGISTER_DESCRIPTION = "Let's create your account."
 
-export const CPT_CODES: { code: number, label: string }[] = [
-  { code: 76641, label: 'ULTRASOUND BREAST COMPLETE' },
-  { code: 76642, label: 'ULTRASOUND BREAST LIMITED' },
-  { code: 99202, label: "Video call, new patient, up to 20 mins" },
-  { code: 99203, label: "Video call, new patient, longer than 20 mins" },
-  { code: 99211, label: "Video call, established patient" },
-  { code: 99441, label: "Phone call (up to 10 mins) with patient" },
-  { code: 99442, label: "Phone call (11-20 mins) with patient" },
-  { code: 99421, label: "Async digital evaluation 5-10 mins" },
+export const CPT_CODES: { code: string, label: string }[] = [
+  { code: "76641", label: 'ULTRASOUND BREAST COMPLETE' },
+  { code: "76642", label: 'ULTRASOUND BREAST LIMITED' },
+  { code: "99202", label: "Video call, new patient, up to 20 mins" },
+  { code: "99203", label: "Video call, new patient, longer than 20 mins" },
+  { code: "99211", label: "Video call, established patient" },
+  { code: "99441", label: "Phone call (up to 10 mins) with patient" },
+  { code: "99442", label: "Phone call (11-20 mins) with patient" },
+  { code: "99421", label: "Async digital evaluation 5-10 mins" },
 ]
 
 export const HELPDESK_TICKET_CLOSE_REASONS = [
@@ -513,5 +513,14 @@ export const INSURANCE_RELATIONSHIPS_CANVAS = Object.keys(INSURANCE_RELATIONSHIP
 
 export const TELLESCOPE_GENDERS: TellescopeGender[] = ["Female", "Male", 'Other', 'Unknown']
 
-export const VITAL_UNITS = ["DBP", "BPM", "LB", "O2 Sat%", "SBP"]
 export const VITAL_RANGE_CLASSIFICATIONS = ['Target','High','Low','Very High','Very Low','Critical High','Critical Low']
+export const VITAL_UNITS_INFO: Record<string, { label: string }> = {
+  "DBP": { label: "Diastolic Blood Pressure" },
+  "BPM": { label: "Heart Rate BPM" },
+  "LB": { label: "Weight in Pounds" },
+  "O2 Sat%": { label: "Blood Oxygen Saturation %" },
+  "SBP": { label: "Systolic Blood Pressure" },
+  "mmol/L": { label: "Blood Glucose (mmol/L)" },
+  "A1C": { label: "A1C" },
+}
+export const VITAL_UNITS = Object.keys(VITAL_UNITS_INFO)

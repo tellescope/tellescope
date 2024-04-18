@@ -1,4 +1,4 @@
-import { CalendarEvent, CompoundFilter, Enduser, EnduserRelationship, FormField, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison } from "@tellescope/types-models"
+import { CalendarEvent, CompoundFilter, Enduser, EnduserObservation, EnduserRelationship, FormField, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
 import { ADMIN_ROLE, get_inverse_relationship_type } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 
@@ -1551,6 +1551,17 @@ export const validate_enduser_for_gogo = (enduser?: Omit<Enduser, 'id'> | null) 
   if (!enduser.zipCode) return "Address is required (ZIP)"
 }
 
+export const validate_enduser_for_smart_meter = (enduser?: Omit<Enduser, 'id'> | null) => {
+  if (!enduser) return "Enduser is required"
+  if (!enduser.fname) return "First name is required"
+  if (!enduser.lname) return "Last name is required"
+
+  if (!enduser.addressLineOne) return "Address is required (Line One)"
+  if (!enduser.city) return "Address is required (City)"
+  if (!enduser.state) return "Address is required (State)"
+  if (!enduser.zipCode) return "Address is required (ZIP)"
+}
+
 // https://stackoverflow.com/questions/38552003/how-to-decode-jwt-token-in-javascript-without-using-a-library
 export const decodeJWT = <T extends { exp: number }>(jwt: string): T | null => {
   try {
@@ -1582,3 +1593,22 @@ export const satisfies_vital_comparison = (comparison: VitalComparison, value: n
 }
 
 export const SMS_UNSUBSCRIBE_KEYWORDS = ['stop', 'stopall', 'unsubscribe', 'end', 'quit', 'cancel']
+
+export const classification_for_vital = (vital: Pick<EnduserObservation, 'measurement'>, configurations: VitalConfiguration[]) => {
+  const configuration = configurations.find(c => c.unit === vital.measurement.unit)
+  if (!configuration) return ''
+
+  return configuration.ranges.find(r => satisfies_vital_comparison(r.comparison, vital.measurement.value))?.classification || ''
+}
+
+// ,'High','Low','Very High','Very Low','Critical High','Critical Low'
+export const color_for_classification = (c: string, ifNoMatch?: string) => (
+  c === 'Target' ? '#44cc4466'
+: c === 'Low' ? '#cccc4466'
+: c === 'High' ? '#cccc4466'
+: c === 'Very High' ? '#cc444466'
+: c === 'Very Low' ? '#cc444466'
+: c === 'Critical High' ? 'violet'
+: c === 'Critical Low' ? 'violet'
+: ifNoMatch
+)

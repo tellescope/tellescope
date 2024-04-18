@@ -636,6 +636,10 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   insurance?: EnduserInsurance,
   insuranceSecondary?: EnduserInsurance,
   bookingNotes?: { bookingPageId: string, note: string }[]
+  devices?: {
+    title: string,
+    id: string,
+  }[]
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
 }
@@ -2156,6 +2160,11 @@ export type CreateCarePlanAutomationAction = AutomationActionBuilder<'createCare
 export type CompleteCarePlanAutomationAction = AutomationActionBuilder<'completeCarePlan', {}>
 export type ZusSyncAutomationAction = AutomationActionBuilder<'zusSync', {}>
 export type PagerDutyCreateIncidentAutomationAction = AutomationActionBuilder<'pagerDutyCreateIncident', { type: string, title: string, serviceId: string }>
+export type SmartMeterOrderLineItem = { quantity: number, sku: string }
+export type SmartMeterPlaceOrderAutomationAction = AutomationActionBuilder<'smartMeterPlaceOrder', { 
+  lines: SmartMeterOrderLineItem[],
+  shipping?: string,
+}>
 
 export type IterableFieldsMapping = {
   iterable: string,
@@ -2205,6 +2214,7 @@ export type AutomationActionForType = {
   'completeCarePlan': CompleteCarePlanAutomationAction,
   'zusSync': ZusSyncAutomationAction,
   'pagerDutyCreateIncident': PagerDutyCreateIncidentAutomationAction,
+  'smartMeterPlaceOrder': SmartMeterPlaceOrderAutomationAction,
 }
 export type AutomationActionType = keyof AutomationActionForType
 export type AutomationAction = AutomationActionForType[AutomationActionType]
@@ -2269,6 +2279,8 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
   type?: string,
   source?: string, // who generated this (e.g. self-reported vs lab work)
   notes?: string,
+  externalId?: string,
+  deviceId?: string,
 }
 
 export type BlockType = 'h1' | 'h2' | 'html' | 'image' | 'youtube' | 'pdf' | 'iframe'
@@ -3005,7 +3017,7 @@ export interface SuperbillProvider extends SuperbillProviderInfo, SuperbillProvi
 export type Insurance = { name: string }
 
 export type BillingCode = {
-  code: number,
+  code: number | string,
   label: string,
 }
 
@@ -3203,6 +3215,10 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
   enduserId: string,
   userId?: string,
   error?: string,
+  items?: {
+    title: string,
+    tracking?: string,
+  }[],
 }
 
 export const DIAGNOSIS_TYPE_MAPPING = {

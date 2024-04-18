@@ -60,6 +60,7 @@ import {
   ListOfStringsWithQualifier,
   GoGoMedsPet,
   InsuranceType,
+  SmartMeterOrderLineItem,
 } from "@tellescope/types-models"
 
 import {
@@ -76,6 +77,7 @@ import {
   CalendarEvent,
   Organization,
   User as UserClient,
+  EnduserObservation as EnduserObservationClient,
   AppointmentLocation,
   CalendarEventTemplate,
   Product,
@@ -276,6 +278,7 @@ import {
   stateValidatorOptional,
   canvasCodingValidator,
   vitalConfigurationRangesValidator,
+  smartMeterLinesValidator,
 } from "@tellescope/validation"
 
 import {
@@ -817,6 +820,7 @@ export type CustomActions = {
     }, {  }>, 
     disconnect_zendesk: CustomAction<{}, {}>,
     update_zoom: CustomAction<{ clientId?: string, clientSecret?: string }, { }>,
+    proxy_read: CustomAction<{ integration: string, type: string }, { data: any }>,
   },
   emails: {
     sync_integrations: CustomAction<{ enduserEmail: string, allUsers?: boolean }, { newEmails: Email[] }>,
@@ -907,6 +911,9 @@ export type CustomActions = {
   appointment_booking_pages: {
     generate_access_token: CustomAction<{ expiresAt: Date, bookingPageId?: string }, { token: string }>,
   },
+  enduser_observations: {
+    load: CustomAction<{ from: Date, to: Date, enduserId: string }, { observations: EnduserObservationClient[] }>,
+  },
   sms_messages: {
     send_message_to_number: CustomAction<{ message: string, to: string }, { enduser: Enduser }>,
   },
@@ -940,6 +947,7 @@ export type CustomActions = {
   },
   enduser_orders: {
     get_available_tests: CustomAction<{ zipCode?: string, teamId?: string }, { tests: VitalLabTest[] }>,
+    create_smart_meter_order: CustomAction<{ enduserId: string, lines: SmartMeterOrderLineItem[], shipping?: string }, { order: EnduserOrder }>,
     create_lab_order: CustomAction<{ 
       enduserId: string,
       labTestId: string,
@@ -1765,6 +1773,19 @@ export const schema: SchemaV1 = build_schema({
           clientSecret: { validator: stringValidator },
         },
         returns: { }
+      },
+      proxy_read: {
+        op: 'custom', access: 'read', method: 'get',
+        path: '/integrations/proxy-read',
+        name: 'Proxies a request for a given integration and returns the result',
+        description: "", 
+        parameters: {
+          integration: { validator: stringValidator, required: true },
+          type: { validator: stringValidator, required: true },
+        },
+        returns: { 
+          data: { validator: optionalAnyObjectValidator, required: true },
+        }
       },
       generate_google_auth_url: {
         op: 'custom', access: 'create', method: 'post',
@@ -4869,7 +4890,22 @@ export const schema: SchemaV1 = build_schema({
       relationship: [],
     },
     defaultActions: DEFAULT_OPERATIONS,
-    customActions: { },
+    customActions: { 
+      load: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Send Team Email Notification',
+        path: '/enduser-observations/load',
+        description: "Loads all observations between a given time period for an Enduser, including id, timestamp, measurement, and source",
+        parameters: { 
+          enduserId: { validator: mongoIdStringValidator, required: true },
+          from: { validator: dateValidator, required: true },
+          to: { validator: dateValidator, required: true },
+        },
+        returns: {
+          observations: { validator: 'enduser_observations' as any, required: true },
+        },
+      },
+    },
     enduserActions: { create: {}, createMany: {}, read: {}, readMany: {} },
     fields: {
       ...BuiltInFields, 
@@ -6902,7 +6938,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
   },
   enduser_orders: {
     info: {
-      description: 'Lab orders, currently for use with Vital integration only'
+      description: 'Lab, medication, and device orders'
     },
     constraints: { 
       unique: [], relationship: [], 
@@ -6921,6 +6957,20 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         },
         returns: { 
           tests: { validator: listValidatorOptionalOrEmptyOk(objectAnyFieldsAnyValuesValidator) as any, required: true },
+        } 
+      },
+      create_smart_meter_order: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Place Smart Meter Order',
+        path: '/enduser-orders/create-smart-meter-order',
+        description: "Creates a Smart Meter Order",
+        parameters: { 
+          enduserId: { validator: mongoIdStringValidator, required: true },
+          lines: { validator: smartMeterLinesValidator, required: true },
+          shipping: { validator: stringValidator },
+        },
+        returns: { 
+          order: { validator: 'enduser_order' as any, required: true },
         } 
       },
       create_lab_order: {

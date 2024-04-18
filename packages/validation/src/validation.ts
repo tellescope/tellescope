@@ -270,6 +270,8 @@ import {
   SenderAssignmentStrategyType,
   SenderAssignmentStrategy,
   SenderAssignmentStrategies,
+  SmartMeterPlaceOrderAutomationAction,
+  SmartMeterOrderLineItem,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -2209,6 +2211,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   zendeskCreateTicket: '',
   zusSync: '',
   pagerDutyCreateIncident: '',
+  smartMeterPlaceOrder: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -2424,6 +2427,11 @@ export const senderAssignmentStrategyValidatorOptional = orValidator<{
   }),
 }, { isOptional: true })
 
+export const smartMeterLinesValidator = listValidator(objectValidator<SmartMeterOrderLineItem>({
+  quantity: nonNegNumberValidator,
+  sku: stringValidator,
+}))
+
 export const automationForMessageValidator = objectValidator<AutomationForMessage>({ 
   senderId: mongoIdStringRequired, 
   templateId: mongoIdStringRequired,
@@ -2598,6 +2606,13 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       title: stringValidator,
       type: stringValidator,
       serviceId: stringValidator,
+     }),
+  }),
+  smartMeterPlaceOrder: objectValidator<SmartMeterPlaceOrderAutomationAction>({
+    type: exactMatchValidator(['smartMeterPlaceOrder']),
+    info: objectValidator<SmartMeterPlaceOrderAutomationAction['info']>({
+      lines: smartMeterLinesValidator,
+      shipping: stringValidator100,
      }),
   }),
 })
@@ -3582,7 +3597,7 @@ export const superbillProviderInfoValidator = objectValidator<SuperbillProviderI
   taxId: stringValidator,
 })
 export const billingCodeValidator = objectValidator<SuperbillLineItem['billingCode']>({
-  code: numberValidator, 
+  code: numberOrStringValidatorOptional, 
   label: stringValidator,
 })
 export const billingCodeValidatorOptional = objectValidator<SuperbillLineItem['billingCode']>({
