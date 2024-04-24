@@ -1,20 +1,14 @@
-import React, { useCallback, useContext, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useContext, useState } from "react"
 import { useDropzone } from 'react-dropzone'
 
 import {
-  APIError,
   FileBlob,
   FileDetails,
-  Filter,
-  Indexable,
   ReactNativeFile,
 } from "@tellescope/types-utilities"
 
 import {
-  Enduser,
   File as FileClientType,
-  ManagedContentRecord,
-  User,
 } from "@tellescope/types-client"
 
 import { 
@@ -38,7 +32,7 @@ import {
   EnduserSessionContext,
   SessionContext,
 } from "./authentication"
-import { Button, IconModal, TextField, TextFieldProps, LabeledIconButtonProps, LoadingButton, Modal, SecureImage, SubmitButton, useFiles, useModalIconButton, useUsers, useSession, IconButton,  } from "."
+import { Button, IconModal, TextField, TextFieldProps, LabeledIconButtonProps, LoadingButton, Modal, SecureImage, useFiles, useModalIconButton, useUsers, useSession, IconButton,  } from "."
 import { Grid, InputAdornment } from "@mui/material"
 import DeleteIcon from '@mui/icons-material/Delete';
 import SearchIcon from '@mui/icons-material/Search';
@@ -268,19 +262,17 @@ export const ConfirmationScreen = <T,>({
 
   const [submitting, setSubmitting] = useState(false)
 
-  const handleConfirm = () => {
+  const handleConfirm = () => (
     action()
     .then(onSuccess)
     .finally(() => {
       setSubmitting(false)
     })
-  }
+  )
 
   return (
     <Modal open={true} setOpen={o => !o && onCancel()}>
-    <Form onSubmit={handleConfirm} style={{ width: '100%', ...style }}>
-
-    <Grid container direction="column">
+    <Grid container direction="column" sx={{ width: 500 }}>
       <Typography style={{ fontSize: 25, marginBottom: 5 }}>
         {title}
       </Typography>
@@ -310,7 +302,7 @@ export const ConfirmationScreen = <T,>({
         </Grid>
 
         <Grid item xs={4}>
-          <SubmitButton
+          <LoadingButton onClick={handleConfirm}
             submitting={submitting} disabled={typeToConfirm !== text} 
             submitText={confirmText}
             submittingText={loadingText}
@@ -318,8 +310,6 @@ export const ConfirmationScreen = <T,>({
         </Grid>
       </Grid>
     </Grid>
-
-    </Form>
     </Modal>
   )
 }

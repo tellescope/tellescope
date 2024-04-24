@@ -1622,14 +1622,24 @@ const useDatabaseChoices = ({ databaseId='', field } : { databaseId?: string, fi
 }
 
 
-const label_for_database_record = (field: FormField, record?: DatabaseRecord) => !record ? '' : (
-  (record.values.find(v => v.label === field.options?.databaseLabel)?.value?.toString() ?? '')
-  + (
-    field.options?.databaseLabels?.length
-      ? ` (${field.options.databaseLabels!.map(l => record.values.find(v => v.label === l)?.value?.toString()).join(', ')})`
-      : ''
-  ) 
-)
+const label_for_database_record = (field: FormField, record?: DatabaseRecord) => {
+  if (!record) return ''
+
+  const addedLabels = (
+    (field.options?.databaseLabels || [])
+    .map(l => record.values.find(v => v.label === l)?.value?.toString())
+    .filter(v => v?.trim())
+  ) as string[]
+
+  return (
+    (record.values.find(v => v.label === field.options?.databaseLabel)?.value?.toString() ?? '')
+    + (
+      addedLabels.length
+        ? ` (${addedLabels.join(', ')})`
+        : ''
+    ) 
+  )
+}
 
 export const DatabaseSelectInput = ({ field, value, onChange, onDatabaseSelect, responses }: FormInputProps<'Database Select'> & {
   responses: FormResponseValue[],

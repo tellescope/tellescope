@@ -158,6 +158,7 @@ export type OrganizationSettings = {
     autoReplyEnabled?: boolean,
     tags?: string[],
     showFreeNote?: boolean,
+    canDeleteFreeNote?: boolean,
     recordCalls?: boolean,
     transcribeCalls?: boolean,
     transcribeCallInboundPlayback?: string,
@@ -380,6 +381,7 @@ export type WeeklyAvailability = {
   dayOfWeekStartingSundayIndexedByZero: number,
   startTimeInMinutes: number,
   endTimeInMinutes: number,
+  intervalInMinutes?: number,
   active?: DateRange,
   locationId?: string,
   validTemplateIds?: string[],
@@ -1134,6 +1136,7 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
   snoozes?: TicketSnooze[],
   requireConfirmation?: boolean,
   reminders?: TicketReminder[],
+  preserveContext?: boolean,
 }
 
 export type AttendeeInfo = {
@@ -1394,6 +1397,8 @@ export interface Integration extends Integration_readonly, Integration_required,
   calendars?: string[],
   environment?: string,
   webhooksSecret?: string,
+  calendarOnly?: boolean, // for specifying separate calendar-only gmail integration
+  shouldCreateNotifications?: boolean, // for indicating users should receive email notifications
 }
 
 export type BuildDatabaseRecordField <K extends string, V, O> = { type: K, value: V, options: O & { width?: string } }
@@ -1424,6 +1429,7 @@ export type DatabaseRecordFields = {
     label: string,
     required?: boolean,
     hideFromTable?: boolean,
+    wrap?: string, 
     options?: DatabaseRecordFieldsInfo[K]['options']
   }
 }
@@ -2025,6 +2031,7 @@ export type AfterActionEventInfo = {
   delayInMS: number, // the real delay (much easier for DB queries)
   delay: number, // for displaying in editor
   unit: UnitOfTime, // for displaying in editor
+  officeHoursOnly?: boolean,
   cancelConditions?: CancelCondition[]
 }
 export type TicketCompletedEventInfo = {
@@ -2127,6 +2134,7 @@ export type CreateTicketActionInfo = {
   requireConfirmation?: boolean,
   reminders?: TicketReminder[],
   priority?: number,
+  preserveContext?: boolean
 }
 
 export type SendEmailAutomationAction = AutomationActionBuilder<'sendEmail', AutomationForMessage>
@@ -2281,6 +2289,7 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
   notes?: string,
   externalId?: string,
   deviceId?: string,
+  references?: RelatedRecord[],
 }
 
 export type BlockType = 'h1' | 'h2' | 'html' | 'image' | 'youtube' | 'pdf' | 'iframe'
@@ -2493,6 +2502,7 @@ export interface AutomatedAction_required {
   cancelReason?: number,
   cancelConditions?: CancelCondition[] // only currently in use as part of the event
   processAfter: number,
+  didDelayForOutOfOffice?: boolean,
   errorMessage?: string,
   enduserConditions?: Record<any, any>,
 }
@@ -2895,6 +2905,7 @@ export interface EnduserView extends EnduserView_readonly, EnduserView_required,
   style?: {
     [index: string]: {
       width?: number,
+      wrap?: string,
     }
   },
 }
@@ -2966,6 +2977,7 @@ export type AutomationTriggerEvents = {
     configurationIds: string[],
     classifications:  string[], 
   }, {}>,
+  'SMS Reply': AutomationTriggerEventBuilder<"SMS Reply", { templateIds: string[] }, {}>,
 }
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents
 export type AutomationTriggerEvent = AutomationTriggerEvents[AutomationTriggerEventType]
@@ -3108,6 +3120,7 @@ export type TableViewColumn = {
   field: string,
   type?: string,
   width?: number | '',
+  wrap?: string,
 }
 
 export interface TableView_readonly extends ClientRecord {}
@@ -3219,6 +3232,7 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
     title: string,
     tracking?: string,
   }[],
+  tracking?: string,
 }
 
 export const DIAGNOSIS_TYPE_MAPPING = {
@@ -3723,6 +3737,7 @@ export type JourneyContext = {
   calendarEventId?: string,
   formResponseId?: string,
   purchaseId?: string,
+  templateId?: string,
 }
 
 // https://gist.github.com/aviflax/a4093965be1cd008f172/ 

@@ -235,6 +235,11 @@ export const getNextField = (activeField: FormFieldNode, currentValue: Response,
             || p.info.equals === currentValue.answer.value?.city
           )
         )
+        || (
+          currentValue.answer.type === 'Database Select' && (
+            currentValue.answer.value?.find(v => v.text === p.info.equals)
+          )
+        )
       )
   ))
   ) || (

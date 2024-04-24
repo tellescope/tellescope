@@ -1,6 +1,7 @@
-import { CalendarEvent, CompoundFilter, Enduser, EnduserObservation, EnduserRelationship, FormField, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
+import { AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserObservation, EnduserRelationship, FormField, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
 import { ADMIN_ROLE, get_inverse_relationship_type } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
+import { DateTime } from "luxon"
 
 import { ObjectId } from "./ObjectId/objectid";
 export { ObjectId }
@@ -1612,3 +1613,33 @@ export const color_for_classification = (c: string, ifNoMatch?: string) => (
 : c === 'Critical Low' ? 'violet'
 : ifNoMatch
 )
+
+export const is_out_of_office = (
+  blocks: Pick<AvailabilityBlock, 'dayOfWeekStartingSundayIndexedByZero' | 'startTimeInMinutes' | 'endTimeInMinutes' | 'active'>[], 
+  date = new Date(),
+  zone = 'America/New_York' as Timezone
+) => {
+  if (blocks.length === 0) return false
+
+  const nowInTimezone = DateTime.fromJSDate(date, { zone })
+  const nowMinutes = nowInTimezone.minute + 60 * nowInTimezone.hour
+  const nowDay = ( // convert to zero indexing by Sunday
+    nowInTimezone.weekday === 7  // Get the day of the week. 1 is Monday and 7 is Sunday
+      ? 0
+      : nowInTimezone.weekday
+  )
+
+  for (const block of blocks) {
+    if (block.active?.to && (new Date(block.active.to).getTime() < Date.now())) continue // ends before now
+    if (block.active?.from && (new Date(block.active.from).getTime() > Date.now())) continue // starts after now
+
+    if (nowDay !== block.dayOfWeekStartingSundayIndexedByZero) continue // different day
+
+    // same day, and within the availability window
+    if (nowMinutes > block.startTimeInMinutes && nowMinutes < block.endTimeInMinutes) {
+      return false
+    }
+  }
+
+  return true
+}

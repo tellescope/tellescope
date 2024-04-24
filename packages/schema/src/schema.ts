@@ -788,7 +788,7 @@ export type CustomActions = {
   },
   integrations: {
     load_payers: CustomAction<{ integration?: string, query?: string, offset?: number, limit?: number, next_page_token?: string }, { next_page_token?: string, choices: { name: string, id: string } [] }>,
-    generate_google_auth_url: CustomAction<{ }, { authUrl: string, }>, 
+    generate_google_auth_url: CustomAction<{ calendarOnly?: boolean }, { authUrl: string, }>, 
     disconnect_google_integration: CustomAction<{}, {}>,
     generate_oauth2_auth_url: CustomAction<{ integration: IntegrationsTitleType }, { authUrl: string, state: string }>, 
     add_api_key_integration: CustomAction<{ API_KEY: string, integration: string, externalId?: string, webhooksSecret?: string, environment?: string, fields?: Record<string, string> }, { }>, 
@@ -883,6 +883,7 @@ export type CustomActions = {
     add_conference_attendees: CustomAction<{ conferenceId: string, enduserId?: string, byClientId?: string[], byPhone?: string[] }, { }>,
     end_conference: CustomAction<{ id: string }, { }>,
     cancel_recording: CustomAction<{ enduserId: string }, { }>,
+    delete_recordings: CustomAction<{ callIds: string[] }, { }>,
   },
   analytics_frames: {
     get_result_for_query: CustomAction<{ 
@@ -1760,6 +1761,7 @@ export const schema: SchemaV1 = build_schema({
       calendars: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       environment: { validator: stringValidator100 },
       webhooksSecret: { validator: stringValidator },
+      shouldCreateNotifications: { validator: booleanValidator },
     },
     customActions: {
       update_zoom: {
@@ -1791,7 +1793,10 @@ export const schema: SchemaV1 = build_schema({
         op: 'custom', access: 'create', method: 'post',
         path: '/generate-google-auth-url',
         name: 'Generates a link to create a Google integration with Tellescope',
-        description: "", parameters: {},
+        description: "", 
+        parameters: {
+          calendarOnly: { validator: booleanValidatorOptional },
+        },
         returns: { authUrl: { validator: stringValidator, required: true }, }
       },
       disconnect_google_integration: {
@@ -6098,6 +6103,16 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         description: "Stops recording an active phone call",
         parameters: {
           enduserId: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: {},
+      },
+      delete_recordings: {
+        op: "custom", access: 'update', method: "post", adminOnly: true,
+        name: 'Delete Recordings',
+        path: '/phone-calls/delete-recordings',
+        description: "Deletes all call recordings in Twilio from a certain date",
+        parameters: {
+          callIds: { validator: listOfMongoIdStringValidator, required: true },
         },
         returns: {},
       },

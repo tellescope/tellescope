@@ -1273,6 +1273,11 @@ export const phoneValidator: ValidatorDefinition<string> = {
               : escaped.length === 10   ? '+1' + escaped // assume US country code for now
                                         : "+"  + escaped // assume country code provided, but missing leading +
 
+      // phone numbers from Gambia, which is not supported by isMobilePhone
+      if (escaped.length === 11 && escaped.startsWith('+220') && /[0-9]$/.test(escaped.substring(1))) {
+        return escaped
+      }
+
       if (!isMobilePhone(escaped, 'any', { strictMode: true })) {
         throw `Invalid phone number: ${phone}`
       }
@@ -1295,6 +1300,11 @@ export const phoneValidatorOptional: ValidatorDefinition<string> = {
       escaped = escaped.startsWith('+') ? escaped
               : escaped.length === 10   ? '+1' + escaped // assume US country code for now
                                         : "+"  + escaped // assume country code provided, but missing leading +
+
+      // phone numbers from Gambia, which is not supported by isMobilePhone
+      if (escaped.length === 11 && escaped.startsWith('+220') && /[0-9]$/.test(escaped.substring(1))) {
+        return escaped
+      }
 
       if (!isMobilePhone(escaped, 'any', { strictMode: true })) {
         throw `Invalid phone number: ${phone}`
@@ -2319,6 +2329,7 @@ const delayValidation = {
   delay: nonNegNumberValidator, // for UI only
   unit: UnitOfTimeValidator, // for UI only
   cancelConditions: cancelConditionsValidatorOptional,
+  officeHoursOnly: booleanValidatorOptional,
 }
 
 export const automationEventValidator = orValidator<{ [K in AutomationEventType]: AutomationEvent & { type: K } } >({
@@ -2523,6 +2534,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       requireConfirmation: booleanValidatorOptional,
       reminders: listValidatorOptionalOrEmptyOk(ticketReminderValidator),
       priority: numberValidatorOptional,
+      preserveContext: booleanValidatorOptional,
     }, { emptyOk: false }),
   }),
   sendWebhook: objectValidator<SendWebhookAutomationAction>({
@@ -2621,6 +2633,7 @@ export const journeyContextValidator = objectValidator<JourneyContext>({
   calendarEventId: mongoIdStringOptional,
   formResponseId: mongoIdStringOptional,
   purchaseId: mongoIdStringOptional,
+  templateId: mongoIdStringOptional,
 })
 
 export const relatedRecordValidator = objectValidator<RelatedRecord>({
@@ -2960,6 +2973,7 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     type: exactMatchValidator(['Text']),
     label: stringValidator250,
     hideFromTable: booleanValidatorOptional,
+    wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Text']['options']>({
       width: stringValidatorOptionalEmptyOkay,
@@ -2969,6 +2983,7 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     type: exactMatchValidator(['Email']),
     label: stringValidator250,
     hideFromTable: booleanValidatorOptional,
+    wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Email']['options']>({
       width: stringValidatorOptionalEmptyOkay,
@@ -2978,6 +2993,7 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     type: exactMatchValidator(['Phone']),
     label: stringValidator250,
     hideFromTable: booleanValidatorOptional,
+    wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Phone']['options']>({
       width: stringValidatorOptionalEmptyOkay,
@@ -2987,6 +3003,7 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     type: exactMatchValidator(['Text Long']),
     label: stringValidator250,
     hideFromTable: booleanValidatorOptional,
+    wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Text Long']['options']>({
       width: stringValidatorOptionalEmptyOkay,
@@ -2996,6 +3013,7 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     type: exactMatchValidator(['Text List']),
     label: stringValidator250,
     hideFromTable: booleanValidatorOptional,
+    wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Text List']['options']>({
       width: stringValidatorOptionalEmptyOkay,
@@ -3005,6 +3023,7 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     type: exactMatchValidator(['Number']),
     label: stringValidator250,
     hideFromTable: booleanValidatorOptional,
+    wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Number']['options']>({
       width: stringValidatorOptionalEmptyOkay,
@@ -3014,6 +3033,7 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     type: exactMatchValidator(['Address']),
     label: stringValidator250,
     hideFromTable: booleanValidatorOptional,
+    wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Address']['options']>({
       width: stringValidatorOptionalEmptyOkay,
@@ -3023,6 +3043,7 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     type: exactMatchValidator(['Multiple Select']),
     label: stringValidator250,
     hideFromTable: booleanValidatorOptional,
+    wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Multiple Select']['options']>({
       width: stringValidatorOptionalEmptyOkay,
@@ -3189,6 +3210,7 @@ export const weeklyAvailabilityValidator = objectValidator<WeeklyAvailability>({
   locationId: mongoIdStringOptional,
   active: dateRangeOptionalValidator,
   validTemplateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+  intervalInMinutes: numberValidatorOptional,
 })
 export const weeklyAvailabilitiesValidator = listValidatorEmptyOk(weeklyAvailabilityValidator)
 
@@ -3308,6 +3330,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     recordCalls: booleanValidatorOptional,
     transcribeCalls: booleanValidatorOptional,
     showFreeNote: booleanValidatorOptional,
+    canDeleteFreeNote: booleanValidatorOptional,
     customFields: customEnduserFieldsValidatorOptionalOrEmpty,
     builtinFields: buildInFieldsValidator,
     tags: listOfStringsValidatorOptionalOrEmptyOk,
@@ -3404,6 +3427,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Has Not Engaged": true,
   "Vital Count": true,
   'Vital Update': true,
+  "SMS Reply": true,
 }
 export const AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES) as AutomationTriggerEventType[]
 
@@ -3496,6 +3520,13 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     info: objectValidator<AutomationTriggerEvents['Vital Update']['info']>({
       configurationIds: listOfMongoIdStringValidator,
       classifications: listOfStringsValidator,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "SMS Reply": objectValidator<AutomationTriggerEvents["SMS Reply"]>({
+    type: exactMatchValidator(['SMS Reply']),
+    info: objectValidator<AutomationTriggerEvents['SMS Reply']['info']>({
+      templateIds: listOfMongoIdStringValidator,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -4430,6 +4461,7 @@ export const tableViewColumnsValidator = listValidatorEmptyOk(objectValidator<Ta
   field: stringValidator100,
   width: numberValidatorOptional,
   type: stringValidatorOptionalEmptyOkay,
+  wrap: stringValidatorOptional,
 }))
 
 export const formFieldCalloutConditionsValidator = listValidatorOptionalOrEmptyOk(objectValidator<FormFieldCalloutCondition>({

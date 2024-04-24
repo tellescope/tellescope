@@ -7744,6 +7744,13 @@ const vital_trigger_tests = async () => {
       { shouldError: true, onError: e => { return e?.message === 'Could not find a record for the given id' } }
     ) 
 
+    await async_test(
+      "Support phone numbers from Gambia",
+      () => sdk.api.endusers.createOne({ phone: "+2201231234" }),
+      { onResult: (e => !!sdk.api.endusers.deleteOne(e.id)) },
+    ) 
+
+
     await mfa_tests()
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
