@@ -283,6 +283,8 @@ export interface Organization extends Organization_readonly, Organization_requir
   billingOrganizationTaxId?: string,
   billingOrganizationAddress?: Address,
   videoCallBackgroundImage?: string,
+  sendToVoicemailOOO?: boolean
+  outOfOfficeVoicemail?: PhonePlayback
   // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {
@@ -1227,6 +1229,10 @@ export type CanvasCoding = {
   code: string,
   display: string,
 }
+export type FormFieldFeedback = {
+  ifEquals: string,
+  display: string,
+}
 export interface CanvasConsentCategory extends CanvasCoding {}
 export type FormFieldOptions = FormFieldValidation & {
   tableChoices?: TableInputChoice[],  
@@ -1291,6 +1297,7 @@ export interface FormField extends FormField_readonly, FormField_required, FormF
   sharedWithEnduser?: boolean,
   prepopulateFromFields?: boolean,
   calloutConditions?: FormFieldCalloutCondition[],
+  feedback?: FormFieldFeedback[],
   highlightOnTimeline?: boolean,
   prepopulateFromDatabase?: {
     databaseId?: string,
@@ -1399,6 +1406,7 @@ export interface Integration extends Integration_readonly, Integration_required,
   webhooksSecret?: string,
   calendarOnly?: boolean, // for specifying separate calendar-only gmail integration
   shouldCreateNotifications?: boolean, // for indicating users should receive email notifications
+  disableEnduserAutoSync?: boolean,
 }
 
 export type BuildDatabaseRecordField <K extends string, V, O> = { type: K, value: V, options: O & { width?: string } }
@@ -2737,7 +2745,7 @@ export type AnalyticsQueryRangeKeyForType = {
   "Files": DefaultRangeKey,
 }
 
-export type AnalyticsQueryRangeInterval = 'Daily' | 'Weekly' | 'Monthly'
+export type AnalyticsQueryRangeInterval = 'Hourly' | 'Daily' | 'Weekly' | 'Monthly'
 export type AnalyticsQueryRange <R> = {
   interval: AnalyticsQueryRangeInterval,
   key: R, 

@@ -635,6 +635,7 @@ export interface UserAndEnduserSelectorProps {
   buttonText?: string,
   filter?: (e: Enduser | User) => boolean,
   limitToUsers?: User[],
+  dontIncludeSelf: boolean,
 }
 export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserSelectorProps> = ({
   titleInput,
@@ -653,6 +654,7 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
   filter,
   radio,
   limitToUsers,
+  dontIncludeSelf
 }) => {
   const session = useResolvedSession()
   const [endusersLoading, { loadMore: loadMoreEndusers, doneLoading: doneLoadingEndusers }] = useEndusers()
@@ -688,14 +690,16 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
     const usersSelected = users.filter(u => selected.includes(u.id))
     const endusersSelected = endusers.filter(e => selected.includes(e.id))
     
-    if (session.type === 'enduser' && !endusersSelected.find(e => e.id === session.userInfo.id)) {
-      endusersSelected.push(session.userInfo as any)
-    } else if (session.type === 'user' && !usersSelected.find(e => e.id === session.userInfo.id)) {
-      usersSelected.push(session.userInfo as any)
+    if (!dontIncludeSelf) {
+      if (session.type === 'enduser' && !endusersSelected.find(e => e.id === session.userInfo.id)) {
+        endusersSelected.push(session.userInfo as any)
+      } else if (session.type === 'user' && !usersSelected.find(e => e.id === session.userInfo.id)) {
+        usersSelected.push(session.userInfo as any)
+      }
     }
-
+    
     onSelect?.({ users: usersSelected, endusers: endusersSelected })
-  }, [onSelect, selected])
+  }, [onSelect, selected, dontIncludeSelf])
 
   const users = (
     limitToUsers 

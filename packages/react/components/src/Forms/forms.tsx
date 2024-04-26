@@ -142,6 +142,15 @@ export const QuestionForField = ({
 
   const validationMessage = validateField(field)
 
+  const feedback = useMemo(() => (
+    (field.feedback || [])
+    .filter(({ display, ifEquals }) => (
+      ifEquals === value.answer.value
+      || (Array.isArray(value.answer.value) && value.answer.value.includes(ifEquals as any))
+    ))
+    .map(v => v.display)
+  ), [field.feedback, value])
+
   if (!value) return null
   return ( 
     // margin leaves room for error message in Question Group
@@ -155,6 +164,16 @@ export const QuestionForField = ({
       </Typography>
 
       <Description field={field} style={{ fontSize: 16 }} />
+
+      {feedback.length > 0 && 
+        <Flex column style={{ marginBottom: 11, marginTop: 3, }}>
+          {feedback.map((f, i) => (
+            <Typography key={i} color="error" style={{ fontSize: 20 }}>
+              {f}
+            </Typography>
+          ))} 
+        </Flex>
+      }
 
       {
         field.type === 'file' ? (

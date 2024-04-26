@@ -218,6 +218,12 @@ export const getTemplatedData = (text: string) => {
     if (field.startsWith('link')) { return { id: fileId, displayName: field.substring(5) } }
     throw Error(`Unrecognized template field: ${value}`)
   } 
+  if (value.startsWith('content')) {
+    const [_, fileId, field] = value.split('.')
+
+    if (field.startsWith('link')) { return { id: fileId, displayName: field.substring(5) } }
+    throw Error(`Unrecognized template field: ${value}`)
+  } 
   if (value.startsWith('portal.')) {
     const [_, action, pageWithText] = value.split('.')
 
@@ -238,6 +244,7 @@ type ToTemplateString <T> = (data: T) => string
 export const build_link_string: ToTemplateString<{ url: string, displayName: string }> = d => `{${d.url}}[${d.displayName}]`
 export const build_form_link_string: ToTemplateString<{ id: string, displayName: string }> = d => `{{forms.${d.id}.link:${d.displayName}}}`
 export const build_file_link_string: ToTemplateString<{ id: string, displayName: string }> = d => `{{files.${d.id}.link:${d.displayName}}}`
+export const build_content_link_string: ToTemplateString<{ id: string, displayName: string }> = d => `{{content.${d.id}.link:${d.displayName}}}`
 export const build_portal_link_string: ToTemplateString<{ page: string, displayName: string }> = d => `{{portal.link.${d.page}:${d.displayName}}}`
 
 export const to_absolute_url = (link : string) => link.startsWith('http') ? link : '//' + link // ensure absolute url 
@@ -329,6 +336,11 @@ export const formatted_date = (date: Date): string => {
     return ''
   }
   return `${month} ${dayOfMonth} ${year}, ${hoursAmPm}:${minutes}${amPm}`
+}
+
+export const formatted_date_hh_mm = (date: Date) => {
+  const { minutes, hoursAmPm, amPm,  } = get_time_values(date)
+  return `${hoursAmPm}:${minutes}${amPm}`
 }
 
 export const yyyy_mm_dd = (date: Date): string => {

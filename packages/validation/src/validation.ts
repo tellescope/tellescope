@@ -272,6 +272,7 @@ import {
   SenderAssignmentStrategies,
   SmartMeterPlaceOrderAutomationAction,
   SmartMeterOrderLineItem,
+  FormFieldFeedback,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -2832,6 +2833,11 @@ export const tableInputChoiceValidator = orValidator<{ [K in TableInputChoiceTyp
   }),
 })
 
+export const formFieldFeedbackValidator = objectValidator<FormFieldFeedback>({
+  ifEquals: stringValidator,
+  display: stringValidator,
+})
+
 export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   bookingPageId: stringValidatorOptional,
   tableChoices: listValidatorOptionalOrEmptyOk(tableInputChoiceValidator),
@@ -3092,7 +3098,7 @@ export const databaseRecordValueValidator = orValidator<{ [K in DatabaseRecordFi
   }), 
   'Multiple Select': objectValidator<DatabaseRecordValues['Multiple Select']>({
     type: exactMatchValidator(['Multiple Select']),
-    value: listOfStringsValidatorEmptyOk,
+    value: listOfStringsValidatorOptionalOrEmptyOk,
     label: stringValidator250,
   }), 
 })
@@ -3980,7 +3986,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       State: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
-      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
       key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Endusers']>(['Created At', 'Updated At']),
     }, { isOptional: true, emptyOk: true })
   }), 
@@ -4012,7 +4018,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       State: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
-      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
       key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Calendar Events']>(['Created At', 'Updated At']),
     }, { isOptional: true, emptyOk: true })
   }), 
@@ -4042,7 +4048,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       State: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
-      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
       key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Form Responses']>(['Created At', 'Updated At']),
     }, { isOptional: true, emptyOk: true })
   }), 
@@ -4066,7 +4072,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       State: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
-      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
       key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Calendar Events']>(['Created At', 'Updated At']),
     }, { isOptional: true, emptyOk: true })
   }), 
@@ -4089,7 +4095,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       State: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
-      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
       key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Purchase Credits']>(['Created At', 'Updated At']),
     }, { isOptional: true, emptyOk: true })
   }), 
@@ -4112,7 +4118,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       State: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
-      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
       key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Tickets']>(['Created At', 'Updated At']),
     }, { isOptional: true, emptyOk: true })
   }), 
@@ -4135,7 +4141,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       State: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
-      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
       key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Emails']>(['Created At', 'Updated At']),
     }, { isOptional: true, emptyOk: true })
   }), 
@@ -4162,7 +4168,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       State: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
-      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
       key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Phone Calls']>(['Created At', 'Updated At']),
     }, { isOptional: true, emptyOk: true })
   }), 
@@ -4189,7 +4195,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       State: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
-      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
       key: exactMatchValidator<AnalyticsQueryRangeKeyForType['SMS Messages']>(['Created At', 'Updated At']),
     }, { isOptional: true, emptyOk: true })
   }), 
@@ -4212,7 +4218,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       State: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
-      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
       key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Medications']>(['Created At', 'Updated At']),
     }, { isOptional: true, emptyOk: true })
   }),
@@ -4237,7 +4243,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       State: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
-      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly']),
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
       key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Files']>(['Created At', 'Updated At']),
     }, { isOptional: true, emptyOk: true })
   }), 

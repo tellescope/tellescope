@@ -89,6 +89,7 @@ import {
   EnduserOrder,
   EnduserEncounter,
   Purchase,
+  Integration,
 } from "@tellescope/types-client"
 
 import {
@@ -279,6 +280,8 @@ import {
   canvasCodingValidator,
   vitalConfigurationRangesValidator,
   smartMeterLinesValidator,
+  formFieldFeedbackValidator,
+  phonePlaybackValidator,
 } from "@tellescope/validation"
 
 import {
@@ -809,7 +812,7 @@ export type CustomActions = {
       clientId: string, 
       clientSecret: string,
       environment?: string
-    }, {  }>, 
+    }, { integration: Integration }>, 
     disconnect_elation: CustomAction<{  }, { }>, 
     connect_zendesk: CustomAction<{ 
       subdomain: string,
@@ -1762,6 +1765,7 @@ export const schema: SchemaV1 = build_schema({
       environment: { validator: stringValidator100 },
       webhooksSecret: { validator: stringValidator },
       shouldCreateNotifications: { validator: booleanValidator },
+      disableEnduserAutoSync: { validator: booleanValidator },
     },
     customActions: {
       update_zoom: {
@@ -1882,7 +1886,7 @@ export const schema: SchemaV1 = build_schema({
           clientSecret: { validator: stringValidator100, required: true },
           environment: { validator: stringValidator },
         },
-        returns: { }
+        returns: { integration: { validator: 'integration' as any, required: true } }
       },
       disconnect_elation: {
         op: 'custom', access: 'create', method: 'post', adminOnly: true,
@@ -3806,6 +3810,7 @@ export const schema: SchemaV1 = build_schema({
           overwrite: booleanValidatorOptional,
         }, { isOptional: true, emptyOk: true })
       },
+      feedback: { validator: listValidatorOptionalOrEmptyOk(formFieldFeedbackValidator) },
     }
   },
   form_responses: {
@@ -5526,6 +5531,8 @@ export const schema: SchemaV1 = build_schema({
       billingOrganizationTaxId: { validator: stringValidator },
       billingOrganizationAddress: { validator: addressValidator },
       videoCallBackgroundImage: { validator: stringValidator },
+      sendToVoicemailOOO: { validator: booleanValidator },
+      outOfOfficeVoicemail: { validator: phonePlaybackValidator },
     },
   },
   databases: {
