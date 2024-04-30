@@ -6956,6 +6956,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       dateOfService: { validator: stringValidator, required: true, examples: ['MM-DD-YYYY'] },
       diagnoses: { validator: diagnosesValidator, required: true, examples: [[{ type: 'LOI', code: "CODE_HERE" }]]},
       placeOfServiceCode: { validator: stringValidator, required: true, examples: ['02', '11'] },
+      billingProviderAddress: { validator: addressValidator },
+      serviceFacilityAddress: { validator: addressValidator },
     }
   },
   enduser_orders: {

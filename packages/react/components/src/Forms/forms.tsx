@@ -17,6 +17,7 @@ export const TellescopeFormContainer = ({ businessId, organizationIds, ...props 
   hideBg?: boolean,
   backgroundColor?: string,
   hideLogo?: boolean,
+  logoHeight?: number,
 } & Styled) => {
   // if context already is provided, no need to duplicate
   if (props.dontAddContext) return (
@@ -30,7 +31,7 @@ export const TellescopeFormContainer = ({ businessId, organizationIds, ...props 
   )
 }
 
-const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ children, style, hideBg, backgroundColor, hideLogo }) => {
+const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ children, style, hideBg, backgroundColor, hideLogo, logoHeight }) => {
   const theme = useOrganizationTheme()
 
   const formContent = (
@@ -39,8 +40,8 @@ const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ chil
         ? null
         : theme.logoURL 
           ? (
-            <Flex alignItems="center" justifyContent={"center"} style={{ maxHeight: LOGO_HEIGHT, marginTop: 10 }}>
-              <img src={theme.logoURL} alt={theme.name} style={{ maxHeight: LOGO_HEIGHT, maxWidth: 225 }} /> {/* todo: replace with something that resolves better for native */}          
+            <Flex alignItems="center" justifyContent={"center"} style={{ maxHeight: logoHeight || LOGO_HEIGHT, marginTop: 10 }}>
+              <img src={theme.logoURL} alt={theme.name} style={{ maxHeight: logoHeight || LOGO_HEIGHT, maxWidth: 225 }} /> {/* todo: replace with something that resolves better for native */}          
             </Flex>
           )
           : (

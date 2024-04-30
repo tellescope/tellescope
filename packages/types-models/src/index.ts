@@ -1320,6 +1320,7 @@ export type FormType = 'note' | 'enduserFacing'
 export type FormCustomization = {
   publicFormHTMLDescription?: string,
   publicFormSubmitHTMLDescription?: string,
+  logoHeight?: number,
   publicLabelPrefix?: string,
   hideProgressBar?: boolean,
   showRestartAtEnd?: boolean,
@@ -2382,7 +2383,7 @@ export interface ManagedContentRecordAssignment_required {
 export interface ManagedContentRecordAssignment_updatesDisabled {}
 export interface ManagedContentRecordAssignment extends ManagedContentRecordAssignment_readonly, ManagedContentRecordAssignment_required, ManagedContentRecordAssignment_updatesDisabled {}
 
-export type PortalPage = "Home" | "Care Plan" | "Documents" | "Education" | "Community" | "Communications" | "Appointment Booking"
+export type PortalPage = "Home" | "Care Plan" | "Documents" | "Education" | "My Events" |  "Community" | "Communications" | "Appointment Booking"
 
 type BuildPortalBlockInfo <T, I> = { type: T, info: I }
 
@@ -2425,6 +2426,7 @@ export const DEFAULT_PATIENT_PORTAL_BOTTOM_NAVIGATION_POSITIONS: { [K in PortalP
   Community: MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION, // ensure community is disabled by default
   "Care Plan": MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION,
   "Appointment Booking": MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION,
+  "My Events": MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION,
 }
 
 export interface Forum_readonly extends ClientRecord {}
@@ -3243,6 +3245,11 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
   tracking?: string,
 }
 
+export type CandidProcedureCode = {
+  code: string,
+  quantity: number,
+  units: 'MJ' | 'UN',
+}
 export const DIAGNOSIS_TYPE_MAPPING = {
   "ABF": "ICD-10",
   "ABJ": "ICD-10 Admitting Diagnosis",
@@ -3260,6 +3267,7 @@ export type DiagnosisType = keyof DiagnosisTypes
 export type Diagnosis = {
   type: keyof DiagnosisTypes,
   code: string,
+  procedureCodes?: CandidProcedureCode[],
 }
 export interface EnduserEncounter_readonly extends ClientRecord {
   externalId?: string,
@@ -3275,6 +3283,9 @@ export interface EnduserEncounter extends EnduserEncounter_readonly, EnduserEnco
   diagnoses: Diagnosis[],
   authorizedRelease: boolean, // Whether this patient has authorized the release of medical information for billing purpose.
   placeOfServiceCode: string,
+  billingProviderAddress?: Address,
+  serviceFacilityAddress?: Address, // could also collect rendering provider address, but it's typically the same as service facility address
+
   error?: string, // e.g. for errors with push to Candid
 }
 

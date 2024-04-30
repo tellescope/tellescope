@@ -273,6 +273,7 @@ import {
   SmartMeterPlaceOrderAutomationAction,
   SmartMeterOrderLineItem,
   FormFieldFeedback,
+  CandidProcedureCode,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -3119,6 +3120,7 @@ const _PORTAL_PAGES: { [K in PortalPage]: any } = {
   Home: true,
   Community: true,
   Communications: true,
+  "My Events": true,
 }
 export const PORTAL_PAGES = Object.keys(_PORTAL_PAGES) as PortalPage[]
 export const portalPageValidator = exactMatchValidator<PortalPage>(PORTAL_PAGES)
@@ -4455,6 +4457,7 @@ export const formCustomizationValidator = objectValidator<Form['customization']>
   hideLogo: booleanValidatorOptional,
   showRestartAtEnd: booleanValidatorOptional,
   multiPagePublicQuestions: booleanValidatorOptional,
+  logoHeight: numberValidatorOptional,
   hideBg: booleanValidatorOptional,
 })
 
@@ -4582,9 +4585,15 @@ const _DIAGNOSIS_TYPES: { [K in keyof DiagnosisTypes]: any } = {
 export const DIAGNOSIS_TYPES = Object.keys(_DIAGNOSIS_TYPES) as DiagnosisType[]
 export const diagnosisTypeValidator = exactMatchValidator<DiagnosisType>(DIAGNOSIS_TYPES)
 
+export const candidProcedureCodeValidator = objectValidator<CandidProcedureCode>({
+  code: stringValidator,
+  quantity: numberValidator,
+  units: exactMatchValidator(["MJ", "UN"]),
+})
 export const diagnosisValidator = objectValidator<Diagnosis>({
   type: diagnosisTypeValidator,
   code: stringValidator,
+  procedureCodes: listValidatorOptionalOrEmptyOk(candidProcedureCodeValidator),
 })
 export const diagnosesValidator = listValidator(diagnosisValidator)
 
