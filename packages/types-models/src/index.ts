@@ -209,6 +209,11 @@ export type OrganizationLimits = {
     [K in ModelName]?: number
 }
 
+export type BasicWebhook = {
+  label: string,
+  url: string,
+}
+
 export interface Organization_readonly extends ClientRecord {
   subscriptionExpiresAt: Date;
   subscriptionPeriod: number;
@@ -285,6 +290,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   videoCallBackgroundImage?: string,
   sendToVoicemailOOO?: boolean
   outOfOfficeVoicemail?: PhonePlayback
+  enduserProfileWebhooks?: BasicWebhook[],
   // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {
@@ -385,7 +391,8 @@ export type WeeklyAvailability = {
   endTimeInMinutes: number,
   intervalInMinutes?: number,
   active?: DateRange,
-  locationId?: string,
+  locationId?: string, // deprecated
+  locationIds?: string[],
   validTemplateIds?: string[],
 }
 export type NotificationPreference = {
@@ -1139,6 +1146,7 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
   requireConfirmation?: boolean,
   reminders?: TicketReminder[],
   preserveContext?: boolean,
+  phoneCallId?: string,
 }
 
 export type AttendeeInfo = {
@@ -1781,6 +1789,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   bufferStartMinutes?: number,
   bufferEndMinutes?: number,
   canvasCoding?: CanvasCoding,
+  canvasLocationId?: string,
   // isAllDay?: boolean,
 }
 
@@ -1899,6 +1908,7 @@ export interface AppointmentLocation extends AppointmentLocation_readonly, Appoi
   state?: string,
   phone?: string,
   timezone?: Timezone,
+  canvasLocationId?: string,
 }
 
 export type AppointmentTerm = {
@@ -2299,6 +2309,9 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
   externalId?: string,
   deviceId?: string,
   references?: RelatedRecord[],
+  reviewedAt?: Date,
+  reviewedBy?: string,
+  classifications?: { configurationId: string, classification: string }[]
 }
 
 export type BlockType = 'h1' | 'h2' | 'html' | 'image' | 'youtube' | 'pdf' | 'iframe'
@@ -3016,6 +3029,7 @@ export type Address = {
   state: string,
   zipCode: string,
   zipPlusFour?: string,
+  title?: string,
 }
 
 type SuperbillProviderInfoRequired = {
@@ -3225,7 +3239,11 @@ export interface TicketQueue_required {
   title: string,
   userIds: string[]
 }
-export interface TicketQueue extends TicketQueue_readonly, TicketQueue_required, TicketQueue_updatesDisabled {}
+export interface TicketQueue extends TicketQueue_readonly, TicketQueue_required, TicketQueue_updatesDisabled {
+  type?: string,
+  defaultFromNumber?: string,
+  enduserFields?: string[],
+}
 
 export interface EnduserOrder_readonly extends ClientRecord {}
 export interface EnduserOrder_updatesDisabled {}

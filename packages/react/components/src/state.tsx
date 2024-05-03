@@ -1823,17 +1823,7 @@ export const useManagedContentRecordAssignments = (options={} as HookOptions<Man
 export const useAssignedManagedContentRecords = () => {
   const session = useEnduserSession()
   
-  // todo: combine queries with an or filter when implemented
-  const [, { filtered }] = useManagedContentRecords({ loadFilter: { 
-    assignmentType: 'All',
-  }})
-  useManagedContentRecords({ loadFilter: { 
-    assignmentType: 'Manual',
-  }})
-  useManagedContentRecords({ loadFilter: { 
-    assignmentType: 'By Tags',
-    tags: { _all: session.userInfo.tags ?? [] }
-  }})
+  const [, { filtered }] = useManagedContentRecords()
   const [eventsLoading] = useCalendarEvents()
 
   const [assignmentsLoading] = useManagedContentRecordAssignments()
@@ -1849,7 +1839,7 @@ export const useAssignedManagedContentRecords = () => {
     || (
         r.assignmentType === 'By Tags' 
     &&  r.tags?.length 
-    &&  r.tags.filter(t => session.userInfo.tags?.includes(t)).length === r.tags.length
+    &&  !!r.tags.find(t => session.userInfo.tags?.includes(t))
     ) 
     || (
         r.assignmentType === 'Manual' 

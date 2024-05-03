@@ -274,6 +274,7 @@ import {
   SmartMeterOrderLineItem,
   FormFieldFeedback,
   CandidProcedureCode,
+  BasicWebhook,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -1770,6 +1771,7 @@ export const addressValidator = objectValidator<SuperbillProvider['address']>({
   lineTwo: stringValidatorOptional,
   zipCode: stringValidator100,
   zipPlusFour: stringValidator1000Optional,
+  title: stringValidator1000Optional,
 })
 export const addressOptionalValidator = objectValidator<SuperbillProvider['address']>({
   city: stringValidatorOptional,
@@ -1778,6 +1780,7 @@ export const addressOptionalValidator = objectValidator<SuperbillProvider['addre
   lineTwo: stringValidatorOptional,
   zipCode: stringValidator1000Optional,
   zipPlusFour: stringValidator1000Optional,
+  title: stringValidator1000Optional,
 }, { isOptional: true, emptyOk: true })
 
 const _TELLESCOPE_GENDER: { [K in TellescopeGender]: any} = {
@@ -3216,6 +3219,7 @@ export const weeklyAvailabilityValidator = objectValidator<WeeklyAvailability>({
   endTimeInMinutes: nonNegNumberValidator,
   startTimeInMinutes: nonNegNumberValidator,
   locationId: mongoIdStringOptional,
+  locationIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
   active: dateRangeOptionalValidator,
   validTemplateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
   intervalInMinutes: numberValidatorOptional,
@@ -4602,3 +4606,9 @@ export const canvasCodingValidator = objectValidator<CanvasCoding>({
   display: stringValidator,
   system: stringValidator,
 }, { })
+
+const enduserProfileWebhookValidator = objectValidator<BasicWebhook>({
+  label: stringValidator,
+  url: stringValidator,
+})
+export const enduserProfileWebhooksValidator = listValidatorEmptyOk(enduserProfileWebhookValidator)

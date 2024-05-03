@@ -206,7 +206,7 @@ export const TableHeader = <T extends Item>({
     }}>
       {selectable && 
         <Flex style={checkboxStyle}>
-          <Checkbox  checked={allSelected} onChange={setAllSelected} />
+          {setAllSelected ? <Checkbox checked={allSelected} onChange={setAllSelected} /> : <Flex style={{ width: 42 }} />}
         </Flex>
       }
       <Flex flex={1} wrap="nowrap">

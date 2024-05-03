@@ -255,6 +255,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     load: (args: extractFields<CustomActions['enduser_observations']['load']['parameters']>) => (
       Promise<extractFields<CustomActions['enduser_observations']['load']['returns']>>
     ),
+    acknowledge: (args: extractFields<CustomActions['enduser_observations']['acknowledge']['parameters']>) => (
+      Promise<extractFields<CustomActions['enduser_observations']['acknowledge']['returns']>>
+    ),
   },
   endusers: {
     check_eligibility: (args: extractFields<CustomActions['endusers']['check_eligibility']['parameters']>) => (
@@ -890,6 +893,7 @@ export class Session extends SessionManager {
     queries.enduser_encounters.create_candid_encounter = args => this._POST(`/v1${schema.enduser_encounters.customActions.create_candid_encounter.path}`, args)
 
     queries.enduser_observations.load = args => this._GET(`/v1${schema.enduser_observations.customActions.load.path}`, args)
+    queries.enduser_observations.acknowledge = args => this._POST(`/v1${schema.enduser_observations.customActions.acknowledge.path}`, args)
 
     this.api = queries
   }

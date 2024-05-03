@@ -574,7 +574,9 @@ export const useTellescopeForm = ({ urlLogicValue, customization, carePlanId, ca
                     ? f.options?.choices
                     : f.type === 'Time'
                       ? `${`${hoursAmPm < 10 ? '0' : ''}${hoursAmPm}`}:${minutes} ${amPm.toUpperCase()} ${getLocalTimezone()}`
-                      : '' as any // null flag that the response was not filled out
+                      : f.type === 'rating'
+                        ? (f.options?.from || 1)
+                        : '' as any // null flag that the response was not filled out
           )
         ),
       },

@@ -7290,8 +7290,6 @@ const vital_trigger_tests = async () => {
     ])
   }
 
-  const timestamp_for_day_offset = (day: number) => new Date(Date.now() - 1000 * 60 * 60 * 24 * day)
-
   await runTriggerTest({
     title: "Basic Passing Test (Less Than Sucess)",
     shouldTrigger: true,
@@ -7437,8 +7435,24 @@ const vital_trigger_tests = async () => {
     }]
   })
   await runTriggerTest({
-    title: "Multiple Configurations (Classifications)",
+    title: "Multiple Configurations, first considered works",
     shouldTrigger: true,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [
+        { classification: 'High', comparison: { type: 'Less Than', value: 100 }, trendIntervalInMS: 0 }, 
+        { classification: 'Target', comparison: { type: 'Less Than', value: 200 }, trendIntervalInMS: 0 }, 
+      ],
+    }],
+    triggers: [{ classifications: ['High'], configurationIndexes: [0,1] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 1 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Multiple Configurations, first considered fails",
+    shouldTrigger: false,
     configurations: [{ 
       unit: 'LB',
       ranges: [

@@ -125,18 +125,11 @@ export const RatingInput = ({ field, value, onChange }: FormInputProps<'rating'>
     marks.push({ value: i, label: i })
   }
 
-  const initRef = useRef(false)
-  useEffect(() => {
-    if (initRef.current) return
-    initRef.current = true
-
-    onChange(Math.ceil((to - from) / 2), field.id)
-  }, [onChange])
-
   return (
     <Slider min={from} max={to} step={1} marks={marks}
       valueLabelDisplay="off"
-      value={value ?? Math.ceil((to - from) / 2)} onChange={(e, v) => onChange(v as number, field.id)}
+      value={value} 
+      onChange={(e, v) => onChange(v as number, field.id)}
     />
   )
 }

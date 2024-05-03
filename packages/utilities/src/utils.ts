@@ -1607,11 +1607,17 @@ export const satisfies_vital_comparison = (comparison: VitalComparison, value: n
 
 export const SMS_UNSUBSCRIBE_KEYWORDS = ['stop', 'stopall', 'unsubscribe', 'end', 'quit', 'cancel']
 
-export const classification_for_vital = (vital: Pick<EnduserObservation, 'measurement'>, configurations: VitalConfiguration[]) => {
-  const configuration = configurations.find(c => c.unit === vital.measurement.unit)
-  if (!configuration) return ''
+export const classification_for_vital = (v: Pick<EnduserObservation, 'measurement' | 'classifications'>, configurations: VitalConfiguration[]) => {
+  const classification = (
+    v.classifications?.length === 1 ? v.classifications[0].classification
+    : (
+      v.classifications
+        ?.find(c => configurations.find(_c => _c.id === c.configurationId))
+        ?.classification
+    )
+  )
 
-  return configuration.ranges.find(r => satisfies_vital_comparison(r.comparison, vital.measurement.value))?.classification || ''
+  return classification || ''
 }
 
 // ,'High','Low','Very High','Very Low','Critical High','Critical Low'

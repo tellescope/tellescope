@@ -90,6 +90,7 @@ import {
   EnduserEncounter,
   Purchase,
   Integration,
+  TicketQueue,
 } from "@tellescope/types-client"
 
 import {
@@ -282,6 +283,7 @@ import {
   smartMeterLinesValidator,
   formFieldFeedbackValidator,
   phonePlaybackValidator,
+  enduserProfileWebhooksValidator,
 } from "@tellescope/validation"
 
 import {
@@ -910,13 +912,14 @@ export type CustomActions = {
     update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
     get_report: CustomAction<{ title?: string, titles?: string[], userId?: string, range?: DateRange, groupByOwnerAndTitle?: boolean }, { report: TicketsReport }>,
     get_distribution_report: CustomAction<{  range?: DateRange }, { report: Report[keyof Report] }>,
-    assign_from_queue: CustomAction<{ ticketId?: string, queueId?: string }, { ticket: Ticket }>,
+    assign_from_queue: CustomAction<{ ticketId?: string, queueId?: string }, { ticket: Ticket, queue: TicketQueue, enduser: Enduser }>,
   },
   appointment_booking_pages: {
     generate_access_token: CustomAction<{ expiresAt: Date, bookingPageId?: string }, { token: string }>,
   },
   enduser_observations: {
     load: CustomAction<{ from: Date, to: Date, enduserId: string }, { observations: EnduserObservationClient[] }>,
+    acknowledge: CustomAction<{ ids: string[] }, { }>,
   },
   sms_messages: {
     send_message_to_number: CustomAction<{ message: string, to: string }, { enduser: Enduser }>,
@@ -1283,7 +1286,13 @@ export const schema: SchemaV1 = build_schema({
           bookingPageId: mongoIdStringRequired,
           note: stringValidator5000EmptyOkay,
         }))
-      }
+      },
+      devices: {
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ title: string, id: string }>({
+          title: stringValidatorOptional,
+          id: stringValidatorOptional,
+        }))
+      },
       // recentMessagePreview: { 
       //   validator: stringValidator,
       // },
@@ -3322,7 +3331,8 @@ export const schema: SchemaV1 = build_schema({
         },
         returns: {
           ticket: { validator: 'ticket' as any, required: true },
-
+          queue: { validator: 'ticket_queue' as any, required: true },
+          enduser: { validator: 'enduser' as any, required: true },
         },
       },
       update_indexes: {
@@ -4903,7 +4913,7 @@ export const schema: SchemaV1 = build_schema({
     customActions: { 
       load: {
         op: "custom", access: 'read', method: "get",
-        name: 'Send Team Email Notification',
+        name: 'Load Enduser Observations (Vitals)',
         path: '/enduser-observations/load',
         description: "Loads all observations between a given time period for an Enduser, including id, timestamp, measurement, and source",
         parameters: { 
@@ -4914,6 +4924,16 @@ export const schema: SchemaV1 = build_schema({
         returns: {
           observations: { validator: 'enduser_observations' as any, required: true },
         },
+      },
+      acknowledge: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Acknowledge Observations (Vitals)',
+        path: '/enduser-observations/acknowledge',
+        description: "Bulk acknowledge (mark reviewed) EnduserObservations",
+        parameters: { 
+          ids: { validator: listOfMongoIdStringValidator, required: true },
+        },
+        returns: { },
       },
     },
     enduserActions: { create: {}, createMany: {}, read: {}, readMany: {} },
@@ -5533,6 +5553,7 @@ export const schema: SchemaV1 = build_schema({
       videoCallBackgroundImage: { validator: stringValidator },
       sendToVoicemailOOO: { validator: booleanValidator },
       outOfOfficeVoicemail: { validator: phonePlaybackValidator },
+      enduserProfileWebhooks: { validator: enduserProfileWebhooksValidator },
     },
   },
   databases: {
@@ -5853,6 +5874,7 @@ export const schema: SchemaV1 = build_schema({
       phone: { validator: stringValidator }, // phoneValidator assumes cell phone and strips formatting, this should not
       state: { validator: stateValidator },
       timezone: { validator: timezoneValidator },
+      canvasLocationId: { validator: stringValidator1000 },
     }
   },
   products: {
@@ -6850,6 +6872,9 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       ...BuiltInFields, 
       title: { validator: stringValidator, required: true, examples: ['Title']},
       userIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] },
+      type: { validator: stringValidator100 },
+      defaultFromNumber: { validator: stringValidatorOptional },
+      enduserFields: { validator: listOfStringsValidatorOptionalOrEmptyOk },
     },
   },
   group_mms_conversations: {
