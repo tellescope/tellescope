@@ -119,7 +119,14 @@ export type PortalSettings = {
 
 export type WithLinkOpenTrackingIds = { linkOpenTrackingIds: string[] }
 
-type BuildCustomEnduserField <T, I> = { type: T, info: I, field: string, required?: boolean, hiddenFromProfile?: boolean }
+type BuildCustomEnduserField <T, I> = { 
+  type: T,
+  info: I,
+  field: string,
+  required?: boolean,
+  hiddenFromProfile?: boolean,
+  requireConfirmation?: boolean,
+}
 export type CustomEnduserFields = {
   "Select": BuildCustomEnduserField<'Select', { options: string[], other?: boolean }>,
   "Multiple Select": BuildCustomEnduserField<'Multiple Select', { options: string[] }>,
@@ -212,6 +219,7 @@ export type OrganizationLimits = {
 export type BasicWebhook = {
   label: string,
   url: string,
+  method?: 'Link' | 'POST'
 }
 
 export interface Organization_readonly extends ClientRecord {
@@ -291,6 +299,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   sendToVoicemailOOO?: boolean
   outOfOfficeVoicemail?: PhonePlayback
   enduserProfileWebhooks?: BasicWebhook[],
+  showCommunity?: boolean,
   // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {
@@ -650,7 +659,8 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   devices?: {
     title: string,
     id: string,
-  }[]
+  }[],
+  salesforceId?: string,
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
 }
@@ -952,6 +962,7 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
   batchId?: string,
   replyToTemplateId?: string,
   assignedTo?: string[],
+  templatedMessage?: string,
   // usingPublicNumber?: boolean, // flagged on outgoing messages from public number
   // sentAt: string, // only outgoing
 }
@@ -1366,6 +1377,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   productIds?: string[],
   submitRedirectURL?: string,
   publicFormIdRedirect?: string,
+  publicShowLanguage?: boolean,
   customization?: FormCustomization,
   disabled?: boolean,
   disableAutomaticIntegrationPush?: boolean,
@@ -2982,7 +2994,7 @@ export type AutomationTriggerEvents = {
   'Purchase Made': AutomationTriggerEventBuilder<"Purchase Made", { }, {}>,
   'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", { }, {}>,
   'Field Equals': AutomationTriggerEventBuilder<"Field Equals", { field: string, value: string }, { }>,
-  'Appointment Created': AutomationTriggerEventBuilder<"Appointment Created", { }, {}>,
+  'Appointment Created': AutomationTriggerEventBuilder<"Appointment Created", { titles?: string[] }, {}>,
   'Medication Added': AutomationTriggerEventBuilder<"Medication Added", { titles: string[] }, {}>,
   'No Recent Appointment': AutomationTriggerEventBuilder<"No Recent Appointment", { 
     intervalInMS: number, 

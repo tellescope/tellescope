@@ -552,10 +552,19 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     delete_recordings: (args: extractFields<CustomActions['phone_calls']['delete_recordings']['parameters']>) => (
       Promise<extractFields<CustomActions['phone_calls']['delete_recordings']['returns']>>
     ),
+    get_number_report: (args: extractFields<CustomActions['phone_calls']['get_number_report']['parameters']>) => (
+      Promise<extractFields<CustomActions['phone_calls']['get_number_report']['returns']>>
+    ),
   },
   sms_messages: {
     send_message_to_number: (args: extractFields<CustomActions['sms_messages']['send_message_to_number']['parameters']>) => (
       Promise<extractFields<CustomActions['sms_messages']['send_message_to_number']['returns']>>
+    ),
+    get_number_report: (args: extractFields<CustomActions['sms_messages']['get_number_report']['parameters']>) => (
+      Promise<extractFields<CustomActions['sms_messages']['get_number_report']['returns']>>
+    ),
+    get_template_report: (args: extractFields<CustomActions['sms_messages']['get_template_report']['parameters']>) => (
+      Promise<extractFields<CustomActions['sms_messages']['get_template_report']['returns']>>
     ),
   },
   templates: {
@@ -854,6 +863,7 @@ export class Session extends SessionManager {
     queries.phone_calls.end_conference = a => this._POST(`/v1${schema.phone_calls.customActions.end_conference.path}`, a)
     queries.phone_calls.cancel_recording = a => this._POST(`/v1${schema.phone_calls.customActions.cancel_recording.path}`, a)
     queries.phone_calls.delete_recordings = a => this._POST(`/v1${schema.phone_calls.customActions.delete_recordings.path}`, a)
+    queries.phone_calls.get_number_report = a => this._GET(`/v1${schema.phone_calls.customActions.get_number_report.path}`, a)
 
     queries.templates.get_templated_message = a => this._POST(`/v1/${schema.templates.customActions.get_templated_message.path}`, a)
     queries.templates.get_suggested_reply = a => this._POST(`/v1/${schema.templates.customActions.get_suggested_reply.path}`, a)
@@ -882,6 +892,8 @@ export class Session extends SessionManager {
     queries.appointment_booking_pages.generate_access_token = a => this._POST(`/v1/${schema.appointment_booking_pages.customActions.generate_access_token.path}`, a)
 
     queries.sms_messages.send_message_to_number = a => this._POST(`/v1/${schema.sms_messages.customActions.send_message_to_number.path}`, a)
+    queries.sms_messages.get_number_report = a => this._GET(`/v1/${schema.sms_messages.customActions.get_number_report.path}`, a)
+    queries.sms_messages.get_template_report = a => this._GET(`/v1/${schema.sms_messages.customActions.get_template_report.path}`, a)
 
     queries.purchases.charge_card_on_file = a => this._POST(`/v1/${schema.purchases.customActions.charge_card_on_file.path}`, a)
 

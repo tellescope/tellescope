@@ -19,6 +19,7 @@ import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import heic2any from "heic2any"
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
+import LanguageIcon from '@mui/icons-material/Language';
 
 // import { pdfjs, Document, Page } from 'react-pdf';
 
@@ -37,6 +38,24 @@ import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js'; 
 import { CheckCircleOutline, Delete, Edit } from "@mui/icons-material"
+
+export const LanguageSelect = ({ value, ...props }: { value: string, onChange: (s: string) => void}) => (
+  <Grid container alignItems="center" justifyContent={"center"} wrap="nowrap" spacing={1}>
+    <Grid item>
+      <LanguageIcon color="primary" />
+    </Grid>
+
+    <Grid item style={{ width: 150 }}>
+      <StringSelector {...props} options={["English", "Español"]} size="small" 
+        value={value === 'Spanish' ? 'Español' : value}
+        label={
+          (value === 'Español' || value === 'Spanish') ? 'Idioma' 
+            : "Language"
+        }
+      />
+    </Grid>
+  </Grid>
+)
 
 export const defaultInputProps: { sx: SxProps } = { sx: { 
   borderRadius: 4,

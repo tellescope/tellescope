@@ -151,6 +151,15 @@ export interface ZohoConfig extends InternalBusinessRecord, EnduserEngagementTim
   secret: string,
 }
 
+export interface SalesforceConfig extends InternalBusinessRecord, EnduserEngagementTimestamps {
+  url: string,
+  clientId: string,
+  clientSecret: string,
+  username: string,
+  password: string,
+  secret: string,
+}
+
 export interface OIDCSession {
   userId: string,
   sessionId: string,

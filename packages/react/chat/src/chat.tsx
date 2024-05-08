@@ -188,6 +188,7 @@ export const Message = ({
       && <MessageAttachments message={message} chatUserId={chatUserId} imageDimensions={imageDimensions} />
   )
 
+  console.log(message.message, message.html)
   const messageComponent = IN_REACT_WEB ? (
     <Flex column flex={1}>
       <Typography component="div" style={{ 
@@ -195,10 +196,7 @@ export const Message = ({
         ...textBGStyle, 
         marginBottom: attachments ? '4px' : undefined,
       }}>
-        {message.html
-          ? <HTMLMessage html={message.html} />
-          : message.message
-        }
+        <HTMLMessage html={message.html || message.message.split('\n').join('<br/>')} />
       </Typography>
       {attachments}
     </Flex>

@@ -61,6 +61,7 @@ import {
   GoGoMedsPet,
   InsuranceType,
   SmartMeterOrderLineItem,
+  PhoneCallsReport,
 } from "@tellescope/types-models"
 
 import {
@@ -884,6 +885,7 @@ export type CustomActions = {
       range?: DateRange, 
       enduserFilter?: Record<string, any>,
     }, { report: Report }>,
+    get_number_report: CustomAction<{ range?: DateRange }, { report: PhoneCallsReport }>,
     upgrade_to_conference: CustomAction<{ id: string }, { }>,
     add_conference_attendees: CustomAction<{ conferenceId: string, enduserId?: string, byClientId?: string[], byPhone?: string[] }, { }>,
     end_conference: CustomAction<{ id: string }, { }>,
@@ -923,6 +925,8 @@ export type CustomActions = {
   },
   sms_messages: {
     send_message_to_number: CustomAction<{ message: string, to: string }, { enduser: Enduser }>,
+    get_number_report: CustomAction<{ range?: DateRange }, { report: PhoneCallsReport }>,
+    get_template_report: CustomAction<{ range?: DateRange }, { report: Report }>,
   },
   products: {
     prepare_stripe_checkout: CustomAction<
@@ -1750,6 +1754,7 @@ export const schema: SchemaV1 = build_schema({
       unique: [], relationship: [], access: [{ type: CREATOR_ONLY_ACCESS }] 
     },
     defaultActions: DEFAULT_OPERATIONS,
+    enduserActions: { proxy_read: {} },
     fields: {
       ...BuiltInFields,
       title: {
@@ -2357,6 +2362,30 @@ export const schema: SchemaV1 = build_schema({
       },
     },
     customActions: {
+      get_number_report: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Number Report',
+        path: '/sms-messages/number-report',
+        description: "Builds a report showing sms details by organization and user phone numbers",
+        parameters: {
+          range: { validator: dateRangeOptionalValidator },
+        },
+        returns: {
+          report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
+        },
+      },
+      get_template_report: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Template Report',
+        path: '/sms-messages/template-report',
+        description: "Builds a report showing sms details by template",
+        parameters: {
+          range: { validator: dateRangeOptionalValidator },
+        },
+        returns: {
+          report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
+        },
+      },
       send_message_to_number: {
         op: "custom", access: 'create', method: "post",
         name: 'Send Message to Number',
@@ -3720,6 +3749,7 @@ export const schema: SchemaV1 = build_schema({
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       language: { validator: stringValidator },
       isNonVisitElationNote: { validator: booleanValidator },
+      publicShowLanguage: { validator: booleanValidator },
     }
   },
   form_fields: {
@@ -5554,6 +5584,7 @@ export const schema: SchemaV1 = build_schema({
       sendToVoicemailOOO: { validator: booleanValidator },
       outOfOfficeVoicemail: { validator: phonePlaybackValidator },
       enduserProfileWebhooks: { validator: enduserProfileWebhooksValidator },
+      showCommunity: { validator: booleanValidator },
     },
   },
   databases: {
@@ -6087,6 +6118,18 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           queries: { validator: phoneCallsReportQueriesValidator, required: true },
           range: { validator: dateRangeOptionalValidator },
           enduserFilter: { validator: objectAnyFieldsAnyValuesValidator },
+        },
+        returns: {
+          report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
+        },
+      },
+      get_number_report: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Number Report',
+        path: '/phone-calls/number-report',
+        description: "Builds a report showing call details by organization and user phone numbers",
+        parameters: {
+          range: { validator: dateRangeOptionalValidator },
         },
         returns: {
           report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }

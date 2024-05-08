@@ -1836,15 +1836,12 @@ export const useAssignedManagedContentRecords = () => {
   const recordsLoading = filtered(r => 
       r.assignmentType === 'All'
     || r.enduserId === session.userInfo.id
+    || !!assignmentsLoading.value.find(e => e.contentId === r.id)
     || (
         r.assignmentType === 'By Tags' 
     &&  r.tags?.length 
     &&  !!r.tags.find(t => session.userInfo.tags?.includes(t))
     ) 
-    || (
-        r.assignmentType === 'Manual' 
-      && !!assignmentsLoading.value.find(e => e.contentId === r.id)
-    )
     || (
        value_is_loaded(eventsLoading)
     && !!eventsLoading.value.find(e => e.sharedContentIds?.includes(r.id))

@@ -125,7 +125,8 @@ export type TableField <T> = {
   flex?: boolean,
   // sortType?: SortType,
   getSortValue?: (v: T) => string | number,
-  getFilterValue?: (v: T) => string,
+  getFilterValue?: (v: T) => string | (string[]),
+  filterSuggestions?: string[],
   filterIsActive?: boolean,
   filterComponent?: React.ReactNode,
   allowWidthAdjustment?: boolean,
@@ -880,7 +881,9 @@ export const Table = <T extends Item>({
         const { query } = localFilters[i] ?? {}
         if (!query) continue
 
-        if (!getFilterValue(v).toLowerCase().includes(query.toLowerCase())) {
+        const filterValueOrValues = getFilterValue(v)
+        const filterValues = Array.isArray(filterValueOrValues) ? filterValueOrValues : [filterValueOrValues]
+        if (!filterValues.find(v => v === query)) {
           return false
         }
       }
@@ -904,13 +907,13 @@ export const Table = <T extends Item>({
   const filterSuggestions: Record<string, string[]> = useMemo(() => {
     const suggestions: Record<string, string[]> = {}
 
-    for (const { key, getFilterValue } of fields) {
+    for (const { key, getFilterValue, filterSuggestions=[] } of fields) {
       if (!getFilterValue) {
         suggestions[key.toString()] = []
         continue
       }
 
-      suggestions[key.toString()] = Array.from(new Set(sorted.map(getFilterValue)))
+      suggestions[key.toString()] = Array.from(new Set([...filterSuggestions, ...sorted.flatMap(getFilterValue)]))
     }
 
     return suggestions

@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useMemo } from "react"
-import { Button, Flex, LabeledIconButton, LoadingButton, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
+import { Button, Flex, LoadingButton, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
-import { AddressInput, AppointmentBookingInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, FileInput, FilesInput, InsuranceInput, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
+import { AddressInput, AppointmentBookingInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, FileInput, FilesInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
@@ -18,6 +18,8 @@ export const TellescopeFormContainer = ({ businessId, organizationIds, ...props 
   backgroundColor?: string,
   hideLogo?: boolean,
   logoHeight?: number,
+  language?: string,
+  onChangeLanguage?: (l: string) => void,
 } & Styled) => {
   // if context already is provided, no need to duplicate
   if (props.dontAddContext) return (
@@ -31,7 +33,7 @@ export const TellescopeFormContainer = ({ businessId, organizationIds, ...props 
   )
 }
 
-const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ children, style, hideBg, backgroundColor, hideLogo, logoHeight }) => {
+const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ children, language, onChangeLanguage, style, hideBg, backgroundColor, hideLogo, logoHeight }) => {
   const theme = useOrganizationTheme()
 
   const formContent = (
@@ -49,6 +51,11 @@ const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ chil
               {theme.name}
             </Typography>
           )
+      }
+      {language && onChangeLanguage && 
+        <Flex style={{ marginTop: 22 }}>
+          <LanguageSelect value={language} onChange={onChangeLanguage} />
+        </Flex>
       }
       {children}
     </Flex>

@@ -3268,6 +3268,7 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     field: stringValidator,
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
+    requireConfirmation: booleanValidatorOptional,
   }), 
   "Multiple Select": objectValidator<CustomEnduserFields['Multiple Select']>({
     type: exactMatchValidator(['Multiple Select']),
@@ -3277,6 +3278,7 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     field: stringValidator,
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
+    requireConfirmation: booleanValidatorOptional,
   }), 
   Text: objectValidator<CustomEnduserFields['Text']>({
     type: exactMatchValidator(['Text']),
@@ -3284,6 +3286,7 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     field: stringValidator,
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
+    requireConfirmation: booleanValidatorOptional,
   }), 
   File: objectValidator<CustomEnduserFields['File']>({
     type: exactMatchValidator(['File']),
@@ -3291,6 +3294,7 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     field: stringValidator,
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
+    requireConfirmation: booleanValidatorOptional,
   }), 
   "Multiple Text": objectValidator<CustomEnduserFields["Multiple Text"]>({
     type: exactMatchValidator(["Multiple Text"]),
@@ -3298,6 +3302,7 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     field: stringValidator,
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
+    requireConfirmation: booleanValidatorOptional,
   }), 
   Date: objectValidator<CustomEnduserFields['Date']>({
     type: exactMatchValidator(['Date']),
@@ -3305,6 +3310,7 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     field: stringValidator,
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
+    requireConfirmation: booleanValidatorOptional,
   }), 
   "Auto Detect": objectValidator<CustomEnduserFields["Auto Detect"]>({
     type: exactMatchValidator(["Auto Detect"]),
@@ -3312,6 +3318,7 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     field: stringValidator,
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
+    requireConfirmation: booleanValidatorOptional,
   }), 
   "Table": objectValidator<CustomEnduserFields["Table"]>({
     type: exactMatchValidator(["Table"]),
@@ -3321,6 +3328,7 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     field: stringValidator,
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
+    requireConfirmation: booleanValidatorOptional,
   }), 
 })
 export const customEnduserFieldsValidatorOptionalOrEmpty = listValidatorOptionalOrEmptyOk(customEnduserFieldValidator)
@@ -3493,7 +3501,9 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
   }), 
   "Appointment Created": objectValidator<AutomationTriggerEvents["Appointment Created"]>({
     type: exactMatchValidator(['Appointment Created']),
-    info: optionalEmptyObjectValidator,
+    info: objectValidator<AutomationTriggerEvents['Appointment Created']['info']>({
+      titles: listOfStringsValidatorOptionalOrEmptyOk,
+    }),
     conditions: optionalEmptyObjectValidator,
   }), 
   "Medication Added": objectValidator<AutomationTriggerEvents["Medication Added"]>({
@@ -4610,5 +4620,6 @@ export const canvasCodingValidator = objectValidator<CanvasCoding>({
 const enduserProfileWebhookValidator = objectValidator<BasicWebhook>({
   label: stringValidator,
   url: stringValidator,
+  method: exactMatchValidator(['Link', 'POST'], { isOptional: true })
 })
 export const enduserProfileWebhooksValidator = listValidatorEmptyOk(enduserProfileWebhookValidator)
