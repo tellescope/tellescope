@@ -3363,6 +3363,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     showBulkFormInput: booleanValidatorOptional,
     autofillSignature: booleanValidatorOptional,
     showFullVitalsTab: booleanValidatorOptional,
+    canMoveCalls: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,

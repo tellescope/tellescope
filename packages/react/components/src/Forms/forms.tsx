@@ -92,6 +92,7 @@ export interface TellescopeFormProps extends ReturnType<typeof useTellescopeForm
   backgroundColor?: string,
   rootResponseId?: string,
   parentResponseId?: string,
+  downloadComponent?: React.ReactNode,
 }
 
 const LOGO_HEIGHT = 40
@@ -501,10 +502,12 @@ const ThanksMessage = ({
   thanksMessage, 
   htmlThanksMessage,
   showRestartAtEnd,
+  downloadComponent,
 } : { 
   thanksMessage?: string, 
   htmlThanksMessage?: string,
   showRestartAtEnd?: boolean,
+  downloadComponent?: React.ReactNode,
 }) => (
   <Flex column>
     {htmlThanksMessage
@@ -515,6 +518,11 @@ const ThanksMessage = ({
       ) : (
         <Typography style={{ marginTop: 25, alignSelf: 'center' }}>{thanksMessage || DEFAULT_THANKS_MESSAGE}</Typography>
       )
+    }
+    {downloadComponent &&
+      <Flex justifyContent="center" style={{ marginTop: 15, marginBottom: 15 }}>
+        {downloadComponent}
+      </Flex>
     }
     {showRestartAtEnd && window.localStorage[`ts_form_url`] &&
       <Button variant="outlined" style={{ ...defaultButtonStyles, maxWidth: 200, marginTop: 25, alignSelf: 'center' }}

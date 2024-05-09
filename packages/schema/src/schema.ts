@@ -1780,6 +1780,7 @@ export const schema: SchemaV1 = build_schema({
       webhooksSecret: { validator: stringValidator },
       shouldCreateNotifications: { validator: booleanValidator },
       disableEnduserAutoSync: { validator: booleanValidator },
+      redactExternalEvents: { validator: booleanValidator },
     },
     customActions: {
       update_zoom: {
@@ -3750,6 +3751,7 @@ export const schema: SchemaV1 = build_schema({
       language: { validator: stringValidator },
       isNonVisitElationNote: { validator: booleanValidator },
       publicShowLanguage: { validator: booleanValidator },
+      publicShowDownload: { validator: booleanValidator },
     }
   },
   form_fields: {
@@ -5585,6 +5587,12 @@ export const schema: SchemaV1 = build_schema({
       outOfOfficeVoicemail: { validator: phonePlaybackValidator },
       enduserProfileWebhooks: { validator: enduserProfileWebhooksValidator },
       showCommunity: { validator: booleanValidator },
+      phoneLabels: { 
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ label: string, number: string }>({
+          label: stringValidator100,
+          number: stringValidator100,
+        }))
+      }
     },
   },
   databases: {

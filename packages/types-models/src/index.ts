@@ -177,6 +177,7 @@ export type OrganizationSettings = {
     showBulkFormInput?: boolean,
     autofillSignature?: boolean,
     showFullVitalsTab?: boolean,
+    canMoveCalls?: boolean,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
@@ -300,6 +301,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   outOfOfficeVoicemail?: PhonePlayback
   enduserProfileWebhooks?: BasicWebhook[],
   showCommunity?: boolean,
+  phoneLabels?: { number: string, label: string }[];
   // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {
@@ -1378,6 +1380,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   submitRedirectURL?: string,
   publicFormIdRedirect?: string,
   publicShowLanguage?: boolean,
+  publicShowDownload?: boolean,
   customization?: FormCustomization,
   disabled?: boolean,
   disableAutomaticIntegrationPush?: boolean,
@@ -1428,6 +1431,7 @@ export interface Integration extends Integration_readonly, Integration_required,
   calendarOnly?: boolean, // for specifying separate calendar-only gmail integration
   shouldCreateNotifications?: boolean, // for indicating users should receive email notifications
   disableEnduserAutoSync?: boolean,
+  redactExternalEvents?: boolean,
 }
 
 export type BuildDatabaseRecordField <K extends string, V, O> = { type: K, value: V, options: O & { width?: string } }
@@ -1656,6 +1660,14 @@ export interface FormResponse_required {
   submittedAt?: Date,
   accessCode?: string,
   userEmail?: string,
+  // as of May 8,2024, also store other intake information as part of form
+  phone?: string,
+  fname?: string,
+  lname?: string,
+  state?: string,
+  dateOfBirth?: string,
+  gender?: string,
+  customTypeId?: string,
 }
 export interface FormResponse_updatesDisabled {
   submissionExpiresAt?: number,
