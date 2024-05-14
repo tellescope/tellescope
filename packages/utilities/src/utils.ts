@@ -704,6 +704,13 @@ export const age_for_dob_mmddyyyy = (mmddyyyy: string) => {
   return actualAge
 }
 
+export const get_enduser_field_value_for_key = (enduser: Omit<Enduser, 'id'>, key: string) => {
+  if (key === 'insurance.payerName') return enduser?.insurance?.payerName
+  if (key === 'insuranceSecondary.payerName') return enduser?.insuranceSecondary?.payerName
+
+  return enduser?.[key as keyof typeof enduser] as any
+}
+
 export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Enduser, 'id'>, conditions: Record<string, any>) => (
   evaluate_conditional_logic(
     conditions, 
@@ -759,7 +766,7 @@ export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Endu
             const vDate = new Date(v)
             if (isNaN(vDate.getTime())) return false
 
-            const eDateField = (enduser.fields?.[key] ?? enduser?.[key as keyof typeof enduser])         
+            const eDateField = enduser.fields?.[key] ?? get_enduser_field_value_for_key(enduser, key)
             if (!eDateField) return false
             if (typeof eDateField !== 'string') return false
 
@@ -777,7 +784,7 @@ export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Endu
           }
 
           if (k === '$contains' || k === '$doesNotContain') {
-            const enduserValue = (enduser.fields?.[key] ?? enduser?.[key as keyof typeof enduser])
+            const enduserValue = (enduser.fields?.[key] ?? get_enduser_field_value_for_key(enduser, key))
             const contains = (
               Array.isArray(enduserValue)
                 ? !!enduserValue.find((ev: string) => typeof ev === 'string' && ev.includes(v))
@@ -793,7 +800,7 @@ export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Endu
           }
 
           if (k === '$isSet' || k === '$isNotSet') {
-            const enduserValue = (enduser.fields?.[key] ?? enduser?.[key as keyof typeof enduser])
+            const enduserValue = (enduser.fields?.[key] ?? get_enduser_field_value_for_key(enduser, key))
             const isSet = (
               Array.isArray(enduserValue)
                 ? enduserValue.length > 0
@@ -805,7 +812,7 @@ export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Endu
 
           // should negate the typeof value === 'string' (defaults to $equals) condition
           if (k === '$ne') {
-            const enduserValue = (enduser.fields?.[key] ?? enduser?.[key as keyof typeof enduser])
+            const enduserValue = (enduser.fields?.[key] ?? get_enduser_field_value_for_key(enduser, key))
             return !(
               enduserValue === v 
               || (
@@ -818,13 +825,13 @@ export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Endu
         })()
       : typeof value === 'string'
           ? (
-            (enduser.fields?.[key] ?? enduser?.[key as keyof typeof enduser]) === value
+            (enduser.fields?.[key] ?? get_enduser_field_value_for_key(enduser, key)) === value
             || (
               Array.isArray(enduser.fields?.[key]) 
               && (enduser?.fields?.[key] as string[]).includes(value)
             )
             || (
-              Array.isArray(enduser?.[key as keyof typeof enduser]) 
+              Array.isArray(get_enduser_field_value_for_key(enduser, key)) 
               && (enduser[key as keyof typeof enduser] as string[]).includes(value)
             ) 
             )

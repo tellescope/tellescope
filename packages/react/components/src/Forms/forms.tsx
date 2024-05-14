@@ -4,7 +4,7 @@ import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrga
 import { ChangeHandler, FormInputs } from "./types"
 import { AddressInput, AppointmentBookingInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, FileInput, FilesInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
-import { FormResponse, FormField, Form } from "@tellescope/types-client"
+import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
 import { formatted_date, objects_equivalent, remove_script_tags, truncate_string } from "@tellescope/utilities"
 import { Divider } from "@mui/material"
@@ -93,6 +93,7 @@ export interface TellescopeFormProps extends ReturnType<typeof useTellescopeForm
   rootResponseId?: string,
   parentResponseId?: string,
   downloadComponent?: React.ReactNode,
+  enduser?: Partial<Enduser>
 }
 
 const LOGO_HEIGHT = 40
@@ -118,6 +119,7 @@ export const QuestionForField = ({
   onRepeatsChange,
   setCustomerId,
   handleDatabaseSelect,
+  enduser,
 } : {
   form?: Form,
   repeats: Record<string, string | number>,
@@ -126,7 +128,7 @@ export const QuestionForField = ({
   file: FileResponse,
   field: FormField,
   setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>
-} & Pick<TellescopeFormProps, 'handleDatabaseSelect' | 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField'>) => {
+} & Pick<TellescopeFormProps, 'enduser' | 'handleDatabaseSelect' | 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField'>) => {
   const String = customInputs?.['string'] ?? StringInput
   const StringLong = customInputs?.['stringLong'] ?? StringLongInput
   const Email = customInputs?.['email'] ?? EmailInput
@@ -237,7 +239,7 @@ export const QuestionForField = ({
           <ResolvedDateInput field={field} value={value.answer.value ? new Date(value.answer.value as string | Date) : undefined} onChange={onFieldChange as ChangeHandler<'date'>} form={form} />
         )
         : field.type === 'signature' ? (
-          <Signature field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'signature'>} form={form}/>
+          <Signature enduser={enduser} field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'signature'>} form={form}/>
         )
         : field.type === 'multiple_choice' ? (
           <MultipleChoice field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'multiple_choice'>} form={form}/>
@@ -256,6 +258,7 @@ export const QuestionForField = ({
         )
         : field.type === 'Insurance' ? (
           <Insurance field={field} value={value.answer.value as any} form={form}
+            enduser={enduser} responses={responses} // for filtering insurers by state
             onChange={(v, fieldId) => (onFieldChange as ChangeHandler<'Insurance'>)({
               ...v,
               relationship: v?.relationship || 'Self', // make sure relationship is initialized to self if input is provided
@@ -288,6 +291,7 @@ export const QuestionForField = ({
             return (
               <Flex key={id} flex={1}>
                 <QuestionForField customInputs={customInputs} field={match} fields={fields} handleDatabaseSelect={handleDatabaseSelect}
+                  enduser={enduser}
                   form={form}
                   repeats={repeats} onRepeatsChange={onRepeatsChange} setCustomerId={setCustomerId}
                   value={value} file={file} 
@@ -373,6 +377,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
 
   setCustomerId,
   customization,
+  enduser,
 }) => {
   const beforeunloadHandler = React.useCallback((e: BeforeUnloadEvent) => {
     try {
@@ -433,6 +438,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
           <Flex flex={1} justifyContent={"center"} column>
             <Flex style={inputStyle}>
               <QuestionForField form={form} fields={fields} field={activeField.value} 
+                enduser={enduser}
                 handleDatabaseSelect={handleDatabaseSelect}
                 setCustomerId={setCustomerId}
                 repeats={repeats} onRepeatsChange={setRepeats}
@@ -812,6 +818,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
 
   otherEnduserIds,
   onBulkErrors,
+  enduser,
   ...props 
 }) => {
   const list = useListForFormFields(fields, responses)
@@ -880,6 +887,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
             <Flex key={activeField.id} style={{ marginBottom: 5 }}>
               <Flex column flex={1}>
                 <QuestionForField fields={fields} field={activeField} handleDatabaseSelect={handleDatabaseSelect}
+                  enduser={enduser}
                   repeats={repeats} onRepeatsChange={setRepeats} setCustomerId={setCustomerId}
                   value={value} file={file} 
                   customInputs={customInputs}

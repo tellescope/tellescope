@@ -275,6 +275,8 @@ import {
   FormFieldFeedback,
   CandidProcedureCode,
   BasicWebhook,
+  RemoveEnduserTagsAutomationAction,
+  HealthieSyncAutomationAction,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -2219,6 +2221,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   shareContent: '',
   notifyTeam: '',
   addEnduserTags: '',
+  removeEnduserTags: '',
   addToJourney: '',
   removeFromJourney: '',
   iterableSendEmail: '',
@@ -2227,6 +2230,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   zusSync: '',
   pagerDutyCreateIncident: '',
   smartMeterPlaceOrder: '',
+  healthieSync: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -2521,6 +2525,10 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
             queueId: mongoIdStringRequired,
           }),
         }),
+        'Recently-Booked Appointment Host': objectValidator<CreateTicketAssignmentStrategy>({ 
+          type: exactMatchValidator<'Recently-Booked Appointment Host'>(['Recently-Booked Appointment Host']),
+          info: objectValidator<object>({}, { emptyOk: true }),
+        }),
         'default': objectValidator<CreateTicketAssignmentStrategy>({ 
           type: exactMatchValidator<'default'>(['default']),
           info: objectValidator<object>({}, { emptyOk: true }),
@@ -2559,6 +2567,12 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
   addEnduserTags: objectValidator<AddEnduserTagsAutomationAction>({
     type: exactMatchValidator(['addEnduserTags']),
     info: objectValidator<AddEnduserTagsAutomationAction['info']>({ 
+      tags: listOfStringsValidator, 
+    }, { emptyOk: false }),
+  }),
+  removeEnduserTags: objectValidator<RemoveEnduserTagsAutomationAction>({
+    type: exactMatchValidator(['removeEnduserTags']),
+    info: objectValidator<RemoveEnduserTagsAutomationAction['info']>({ 
       tags: listOfStringsValidator, 
     }, { emptyOk: false }),
   }),
@@ -2631,6 +2645,10 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       lines: smartMeterLinesValidator,
       shipping: stringValidator100,
      }),
+  }),
+  healthieSync: objectValidator<HealthieSyncAutomationAction>({
+    type: exactMatchValidator(['healthieSync']),
+    info: objectValidator<HealthieSyncAutomationAction['info']>({ }, { emptyOk: true }),
   }),
 })
 
@@ -2882,6 +2900,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   addressFields: listOfStringsValidatorOptionalOrEmptyOk,
   autoAdvance: booleanValidatorOptional,
   userTags: listOfStringsValidatorOptionalOrEmptyOk,
+  prefillSignature: booleanValidatorOptional,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -3364,6 +3383,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     autofillSignature: booleanValidatorOptional,
     showFullVitalsTab: booleanValidatorOptional,
     canMoveCalls: booleanValidatorOptional,
+    showDeleteCallRecordingOnTimeline: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -3550,6 +3570,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['SMS Reply']),
     info: objectValidator<AutomationTriggerEvents['SMS Reply']['info']>({
       templateIds: listOfMongoIdStringValidator,
+      replyKeywords: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 

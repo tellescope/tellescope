@@ -797,7 +797,7 @@ export type CustomActions = {
     generate_google_auth_url: CustomAction<{ calendarOnly?: boolean }, { authUrl: string, }>, 
     disconnect_google_integration: CustomAction<{}, {}>,
     generate_oauth2_auth_url: CustomAction<{ integration: IntegrationsTitleType }, { authUrl: string, state: string }>, 
-    add_api_key_integration: CustomAction<{ API_KEY: string, integration: string, externalId?: string, webhooksSecret?: string, environment?: string, fields?: Record<string, string> }, { }>, 
+    add_api_key_integration: CustomAction<{ API_KEY: string, integration: string, externalId?: string, webhooksSecret?: string, environment?: string, fields?: Record<string, string> }, { integration: Integration }>, 
     remove_api_key_integration: CustomAction<{ integration: string }, { }>, 
     disconnect_oauth2_integration: CustomAction<{ integration: IntegrationsTitleType }, {}>,
     refresh_oauth2_session: CustomAction<{ title: string }, { access_token: string, expiry_date: number }>, 
@@ -1780,6 +1780,7 @@ export const schema: SchemaV1 = build_schema({
       webhooksSecret: { validator: stringValidator },
       shouldCreateNotifications: { validator: booleanValidator },
       disableEnduserAutoSync: { validator: booleanValidator },
+      disableTicketAutoSync: { validator: booleanValidator },
       redactExternalEvents: { validator: booleanValidator },
     },
     customActions: {
@@ -1946,7 +1947,7 @@ export const schema: SchemaV1 = build_schema({
           webhooksSecret: { validator: stringValidator },
           fields: { validator: objectAnyFieldsAnyValuesValidator as any },
         },
-        returns: { }
+        returns: { integration: { validator: 'integration' as any } }
       },
       remove_api_key_integration: {
         op: 'custom', access: 'delete', method: 'delete',
@@ -6187,7 +6188,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         returns: {},
       },
       delete_recordings: {
-        op: "custom", access: 'update', method: "post", adminOnly: true,
+        op: "custom", access: 'delete', method: "post",
         name: 'Delete Recordings',
         path: '/phone-calls/delete-recordings',
         description: "Deletes all call recordings in Twilio from a certain date",

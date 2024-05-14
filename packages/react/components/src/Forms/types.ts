@@ -1,5 +1,5 @@
 import { AnswerForType } from "@tellescope/types-models";
-import { DatabaseRecord, Form, FormField } from "@tellescope/types-client";
+import { DatabaseRecord, Enduser, Form, FormField } from "@tellescope/types-client";
 import { FileBlob, TreeNode } from "@tellescope/types-utilities";
 import { JSXElementConstructor } from "react";
 import { Response } from "./hooks";
@@ -20,6 +20,7 @@ export interface FormInputProps<K extends keyof AnswerForType> {
   onDatabaseSelect?: (r: DatabaseRecord) => void,
   responses?: Response[]
   title?: string,
+  enduser?: Partial<Enduser>
 }
 
 export type FormInputs = { 

@@ -510,6 +510,12 @@ export const useTellescopeForm = ({ urlLogicValue, customization, carePlanId, ca
 
   const gaEventRef = useRef({} as Record<string, boolean>)
 
+  useEffect(() => {
+    try {
+      window.location.hash = activeField.value.id
+    } catch(err) {}
+  }, [activeField])
+
   const getNumberOfRemainingPages: (field?: FormField, explored?: string[]) => number = useCallback((field=activeField.value, explored=[]) => {
     // prevents recursing on an already explored node (there shouldn't be loops anyway, but just in case)
     if (explored.includes(field.id)) return 0

@@ -169,6 +169,7 @@ export type OrganizationSettings = {
     recordCalls?: boolean,
     transcribeCalls?: boolean,
     transcribeCallInboundPlayback?: string,
+    showDeleteCallRecordingOnTimeline?: boolean,
     defaultPhoneNumber?: string,
     sendSMSOnZoomStart?: boolean,
     enableGroupMMS?: boolean,
@@ -1286,6 +1287,7 @@ export type FormFieldOptions = FormFieldValidation & {
   userTags?: string[],
   addressFields?: string[], // supports specifying just 'state', for now
   autoAdvance?: boolean,
+  prefillSignature?: boolean,
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
@@ -1431,6 +1433,7 @@ export interface Integration extends Integration_readonly, Integration_required,
   calendarOnly?: boolean, // for specifying separate calendar-only gmail integration
   shouldCreateNotifications?: boolean, // for indicating users should receive email notifications
   disableEnduserAutoSync?: boolean,
+  disableTicketAutoSync?: boolean,
   redactExternalEvents?: boolean,
 }
 
@@ -1666,7 +1669,7 @@ export interface FormResponse_required {
   lname?: string,
   state?: string,
   dateOfBirth?: string,
-  gender?: string,
+  gender?: TellescopeGender,
   customTypeId?: string,
 }
 export interface FormResponse_updatesDisabled {
@@ -2153,6 +2156,10 @@ export type CreateTicketAssignmentStrategies = {
     type: 'queue',
     info: AssignToQueueInfo, 
   },
+  'Recently-Booked Appointment Host': {
+    type: 'Recently-Booked Appointment Host',
+    info: {}, 
+  },
   'default': {
     type: 'default',
     info: {}, 
@@ -2195,6 +2202,7 @@ export type ShareContentAutomationAction = AutomationActionBuilder<'shareContent
   managedContentRecordIds: string[],
 }>
 export type AddEnduserTagsAutomationAction = AutomationActionBuilder<'addEnduserTags', { tags: string[] }>
+export type RemoveEnduserTagsAutomationAction = AutomationActionBuilder<'removeEnduserTags', { tags: string[] }>
 export type AddToJourneyAutomationAction = AutomationActionBuilder<'addToJourney', { journeyId: string }>
 export type RemoveFromJourneyAutomationAction = AutomationActionBuilder<'removeFromJourney', { journeyId: string }>
 export type IterableSendEmailAutomationAction = AutomationActionBuilder<'iterableSendEmail', { campaignId: string }>
@@ -2216,6 +2224,7 @@ export type SmartMeterPlaceOrderAutomationAction = AutomationActionBuilder<'smar
   lines: SmartMeterOrderLineItem[],
   shipping?: string,
 }>
+export type HealthieSyncAutomationAction = AutomationActionBuilder<'healthieSync', {}>
 
 export type IterableFieldsMapping = {
   iterable: string,
@@ -2256,6 +2265,7 @@ export type AutomationActionForType = {
   'shareContent': ShareContentAutomationAction,
   'notifyTeam': NotifyTeamAutomationAction,
   'addEnduserTags': AddEnduserTagsAutomationAction,
+  'removeEnduserTags': RemoveEnduserTagsAutomationAction,
   'addToJourney': AddToJourneyAutomationAction,
   'removeFromJourney': RemoveFromJourneyAutomationAction,
   'iterableSendEmail': IterableSendEmailAutomationAction,
@@ -2266,6 +2276,7 @@ export type AutomationActionForType = {
   'zusSync': ZusSyncAutomationAction,
   'pagerDutyCreateIncident': PagerDutyCreateIncidentAutomationAction,
   'smartMeterPlaceOrder': SmartMeterPlaceOrderAutomationAction,
+  'healthieSync': HealthieSyncAutomationAction,
 }
 export type AutomationActionType = keyof AutomationActionForType
 export type AutomationAction = AutomationActionForType[AutomationActionType]
@@ -3024,7 +3035,7 @@ export type AutomationTriggerEvents = {
     configurationIds: string[],
     classifications:  string[], 
   }, {}>,
-  'SMS Reply': AutomationTriggerEventBuilder<"SMS Reply", { templateIds: string[] }, {}>,
+  'SMS Reply': AutomationTriggerEventBuilder<"SMS Reply", { templateIds: string[], replyKeywords?: string[] }, {}>,
 }
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents
 export type AutomationTriggerEvent = AutomationTriggerEvents[AutomationTriggerEventType]

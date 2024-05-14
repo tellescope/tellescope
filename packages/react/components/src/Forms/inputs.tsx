@@ -4,7 +4,7 @@ import { Autocomplete, Box, Button, Checkbox, Divider, FormControl, FormControlL
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
-import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, first_letter_capitalized, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, truncate_string, user_display_name } from "@tellescope/utilities"
+import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, truncate_string, user_display_name } from "@tellescope/utilities"
 import { Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MultipleChoiceOptions, TellescopeGender } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
@@ -488,10 +488,23 @@ export const NumberInput = ({ field, value, onChange, form, ...props }: FormInpu
   />
 )
 
-export const InsuranceInput = ({ field, value, onChange, form, ...props }: FormInputProps<'Insurance'>) => {
+export const InsuranceInput = ({ field, value, onChange, form, responses, enduser, ...props }: FormInputProps<'Insurance'>) => {
   const session = useResolvedSession()
 
   const [payers, setPayers] = useState<{ id: string, name: string }[]>([])
+
+  const addressQuestion = useMemo(() => responses?.find(r => {
+    if (r.answer.type !== 'Address') return false
+    if (r.field.intakeField !== 'Address') return false
+
+    return true
+  }), [responses])
+
+  const state = useMemo(() => (
+    enduser?.state || (
+      addressQuestion?.answer?.type === 'Address' ? addressQuestion?.answer?.value?.state : undefined
+    )
+  ), [enduser?.state, addressQuestion])
 
   const loadRef = useRef(false) // so session changes don't cause
   useEffect(() => {
@@ -500,12 +513,17 @@ export const InsuranceInput = ({ field, value, onChange, form, ...props }: FormI
 
     // just load all at once, should be reasonably performant compared to paging
     session.api.form_fields.load_choices_from_database({ fieldId: field.id, limit: 10000 })
-    .then(({ choices }) => setPayers(choices.map(c => ({
-      id: c.values.find(v => v.label === 'id')?.value?.toString() || '',
-      name: c.values.find(v => v.label === 'name')?.value?.toString() || '',
-    }))))
+    .then(({ choices }) => setPayers(
+      choices
+      .map(c => ({
+        id: c.values.find(v => v.label === 'id')?.value?.toString() || '',
+        name: c.values.find(v => v.label === 'name')?.value?.toString() || '',
+        state: c.values.find(v => v.label?.trim()?.toLowerCase() === 'state')?.value?.toString() || '',
+      }))
+      .filter(c => !c.state || !state || (c.state === state))
+    ))
     .catch(console.error)
-  }, [session])
+  }, [session, state])
 
   return (
     <Grid container spacing={2} sx={{ mt: '0' }}>
@@ -867,8 +885,8 @@ export const AddressInput = ({ field, value, onChange, ...props }: FormInputProp
       </Grid>
 
       <Grid item>
-      <Grid container wrap="nowrap" alignItems="center" justifyContent={"space-between"} spacing={1}>
-        <Grid item sx={{ width: "calc(100% - 275px)"}}>
+      <Grid container alignItems="center" justifyContent={"space-between"} spacing={1}>
+        <Grid item xs={12} sm={field.fullZIP ? 5 : 6}>
           <TextField {...props} size="small" label="City" required={!field.isOptional} 
             InputProps={defaultInputProps}
             fullWidth
@@ -884,10 +902,9 @@ export const AddressInput = ({ field, value, onChange, ...props }: FormInputProp
           />
         </Grid>
 
-        <Grid item>
-          <Autocomplete value={value?.state}
+        <Grid item xs={field.fullZIP ? 4 : 6} sm={field.fullZIP ? 2 : 3}>
+          <Autocomplete value={value?.state} fullWidth
             options={VALID_STATES}
-            sx={{ width: 100 }}
             disablePortal
             onChange={(e, v) => v && 
               onChange({
@@ -905,10 +922,9 @@ export const AddressInput = ({ field, value, onChange, ...props }: FormInputProp
           />
         </Grid>
 
-        <Grid item>
+        <Grid item xs={field.fullZIP ? 5 : 6} sm={field.fullZIP ? 2 : 3}>
           <TextField {...props} size="small" label="ZIP Code" required={!field.isOptional} 
-            InputProps={defaultInputProps}
-            sx={{ width: 120 }}
+            InputProps={defaultInputProps} fullWidth
             value={value?.zipCode ?? ''} 
             placeholder="ZIP Code" 
             onChange={e => 
@@ -922,10 +938,9 @@ export const AddressInput = ({ field, value, onChange, ...props }: FormInputProp
         </Grid>
 
         {field.fullZIP &&
-          <Grid item>
+          <Grid item xs={3}>
             <TextField {...props} size="small" label="ZIP+4" required={!field.isOptional && field.fullZIP} 
               InputProps={defaultInputProps}
-              sx={{ width: 80 }}
               value={value?.zipPlusFour ?? ''} 
               placeholder="ZIP + 4" 
               onChange={e => 
@@ -945,13 +960,19 @@ export const AddressInput = ({ field, value, onChange, ...props }: FormInputProp
   )
 )
 
-export const SignatureInput = ({ value, field, autoFocus=true, onChange }: FormInputProps<'signature'>) => {
+export const SignatureInput = ({ value, field, autoFocus=true, enduser, onChange }: FormInputProps<'signature'>) => {
+  const prefill = (
+    field.options?.prefillSignature && enduser?.fname && enduser.lname
+      ? `${enduser.fname} ${enduser.lname}`
+      : undefined
+  )
+
   const handleConsentChange = () => {
     const newConsent = !value?.signed
 
     onChange({
       pdfAttachment: field.options?.pdfAttachment,
-      fullName: value?.fullName ?? '',
+      fullName: value?.fullName ?? prefill ?? '',
       signed: newConsent,
       url: field.options?.signatureUrl,
     }, field.id)
@@ -1007,7 +1028,7 @@ export const SignatureInput = ({ value, field, autoFocus=true, onChange }: FormI
           size="small"
           aria-label="Full Name"
           value={value?.fullName} 
-          placeholder="Full Name" variant="outlined" 
+          placeholder={prefill || "Full Name"} variant="outlined" 
           onChange={e => handleNameChange(e.target.value)}
           InputProps={defaultInputProps}
         />
@@ -1293,23 +1314,9 @@ export const MultipleChoiceInput = ({ field, value: _value, onChange }: FormInpu
                 sx={multipleChoiceItemSx}
                 style={{ marginLeft: '0px' }} // fixes alignment with Select One text
                 checked={!!value?.includes(c) && c !== otherString} // coerce to boolean to keep as controlled input
-                onChange={() => onChange(
-                  (
-                    value?.includes(c)
-                      ? (
-                        radio 
-                          ? []
-                          : value.filter(v => v !== c)
-                      )
-                      : (
-                        radio
-                          ? [c]
-                          : [...(value ?? []), c]
-                      )
-                  ),
-                  field.id,
-                )} 
-                control={<Radio />}
+                control={
+                  <Radio onClick={() => onChange(value?.includes(c) ? [] : [c], field.id)}  />
+                }
               />
             )} 
             </RadioGroup>
@@ -2347,6 +2354,7 @@ export const AppointmentBookingInput = ({ field, value, onChange, form, response
   const [loaded, setLoaded] = useState<Awaited<ReturnType<typeof session['api']['form_fields']['booking_info']>>>()
   const [error, setError] = useState('')
   const [acknowledgedWarning, setAcknowledgedWarning] = useState(false)
+  const [height, setHeight] = useState(450)
 
   const bookingPageId = field?.options?.bookingPageId
 
@@ -2386,6 +2394,12 @@ export const AppointmentBookingInput = ({ field, value, onChange, form, response
     const handleMessage = (m: MessageEvent) => {
       if (m?.data?.type === 'Booking Success' && typeof m?.data?.bookedEventId === 'string') {
         onChange(m.data.bookedEventId, field.id)
+      }
+      if (m?.data?.type === 'CalendarPicker') {
+        setHeight(750)
+      }
+      if (m?.data?.type === 'UsersPicker') {
+        setHeight(450)
       }
     }
 
@@ -2429,9 +2443,27 @@ export const AppointmentBookingInput = ({ field, value, onChange, form, response
 
   let bookingURL = loaded.bookingURL
   if (field.options?.userTags?.length) {
-    bookingURL += `&userTags=${field.options.userTags.join(',')}`
+    bookingURL += `&userTags=${
+      field.options.userTags
+      .map(t => {
+        // set dynamic tags if found
+        if (t.startsWith("{{field.") && t.endsWith(".value}}")) {
+          const fieldId = t.replace('{{field.', '').replace(".value}}", '')
+
+          const answer = responses?.find(r => r.fieldId === fieldId)?.answer
+          if (!answer?.value) return t
+
+          if (answer.type === 'Insurance') {
+            return answer.value.payerName || ''
+          }
+          return form_response_value_to_string(answer)
+        }
+        return t
+      })
+      .join(',')
+    }`
   }
-  
+
   return (
     <Grid container direction="column" spacing={1} sx={{ mt: 1 }}>
       {loaded.warningMessage &&
@@ -2447,7 +2479,7 @@ export const AppointmentBookingInput = ({ field, value, onChange, form, response
         ? (
           <iframe title="Appointment Booking Embed" 
             src={bookingURL}
-            style={{ border: 'none', width: '100%', height: 750 }}
+            style={{ border: 'none', width: '100%', height }}
           />
         )
         : (
