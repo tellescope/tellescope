@@ -303,6 +303,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   enduserProfileWebhooks?: BasicWebhook[],
   showCommunity?: boolean,
   phoneLabels?: { number: string, label: string }[];
+  mfaxAccountId?: string,
   // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {
@@ -2346,7 +2347,9 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
   references?: RelatedRecord[],
   reviewedAt?: Date,
   reviewedBy?: string,
+  statusChangedBy?: string, // when updating code (e.g. to cancelled or entered-in-error), track who made that change
   classifications?: { configurationId: string, classification: string }[]
+  beforeMeal?: boolean,
 }
 
 export type BlockType = 'h1' | 'h2' | 'html' | 'image' | 'youtube' | 'pdf' | 'iframe'
@@ -3036,6 +3039,10 @@ export type AutomationTriggerEvents = {
     classifications:  string[], 
   }, {}>,
   'SMS Reply': AutomationTriggerEventBuilder<"SMS Reply", { templateIds: string[], replyKeywords?: string[] }, {}>,
+  'Order Status Equals': AutomationTriggerEventBuilder<"Order Status Equals", { 
+    source: string, 
+    status: string 
+  }, { }>,
 }
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents
 export type AutomationTriggerEvent = AutomationTriggerEvents[AutomationTriggerEventType]
@@ -3810,6 +3817,7 @@ export type JourneyContext = {
   formResponseId?: string,
   purchaseId?: string,
   templateId?: string,
+  orderId?: string,
 }
 
 // https://gist.github.com/aviflax/a4093965be1cd008f172/ 

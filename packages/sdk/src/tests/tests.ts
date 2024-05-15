@@ -7555,7 +7555,7 @@ const vital_trigger_tests = async () => {
   })
   await runTriggerTest({
     title: "2-point trend failing for difference too small",
-    shouldTrigger: true,
+    shouldTrigger: false,
     configurations: [{ 
       unit: 'LB',
       ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 1 }, trendIntervalInMS: 1000 }, ],

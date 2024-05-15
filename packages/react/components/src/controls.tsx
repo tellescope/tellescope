@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 // import DefaultIcon from '@mui/icons-material/Info';
 
@@ -19,7 +19,6 @@ import {
   Flex,
 } from "./layout"
 import { useResolvedSession, ModalProps } from './index';
-import { Box } from '@mui/material';
 
 export interface WithOffset {
   offsetX?: number,
@@ -206,9 +205,10 @@ interface DownloadButton {
   color?: "primary" | "white"
   Icon?: typeof DownloadIcon
   label?: string,
+  preferInBrowser?: boolean,
 }
 
-export const DownloadFileIconButton = ({ publicURL, secureName, label="Download File", Icon=DownloadIcon, onDownload, onError, ...props }: DownloadButton) => {
+export const DownloadFileIconButton = ({ preferInBrowser, publicURL, secureName, label="Download File", Icon=DownloadIcon, onDownload, onError, ...props }: DownloadButton) => {
   const session = useResolvedSession()
   const [downloadURL, setDownloadURL] = useState(publicURL ?? '')
 
@@ -222,7 +222,7 @@ export const DownloadFileIconButton = ({ publicURL, secureName, label="Download 
         try {
           if (!secureName) return
 
-          const { downloadURL } = await session.api.files.file_download_URL({ secureName })
+          const { downloadURL } = await session.api.files.file_download_URL({ secureName, preferInBrowser })
           setDownloadURL(downloadURL)
           onDownload(downloadURL)
         } catch(err: any) { onError?.(err?.message ?? '') }          

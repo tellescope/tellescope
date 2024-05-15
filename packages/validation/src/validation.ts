@@ -316,6 +316,7 @@ import {
   FULLSCRIPT_INTEGRATIONS_TITLE,
   GOGO_MEDS_TITLE,
   INSURANCE_RELATIONSHIPS,
+  MFAX_TITLE,
   NO_ACCESS,
   OUTLOOK_INTEGRATIONS_TITLE,
   PAGER_DUTY_TITLE,
@@ -2657,6 +2658,7 @@ export const journeyContextValidator = objectValidator<JourneyContext>({
   formResponseId: mongoIdStringOptional,
   purchaseId: mongoIdStringOptional,
   templateId: mongoIdStringOptional,
+  orderId: mongoIdStringOptional,
 })
 
 export const relatedRecordValidator = objectValidator<RelatedRecord>({
@@ -3469,6 +3471,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Vital Count": true,
   'Vital Update': true,
   "SMS Reply": true,
+  "Order Status Equals": true,
 }
 export const AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES) as AutomationTriggerEventType[]
 
@@ -3571,6 +3574,14 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     info: objectValidator<AutomationTriggerEvents['SMS Reply']['info']>({
       templateIds: listOfMongoIdStringValidator,
       replyKeywords: listOfStringsValidatorOptionalOrEmptyOk,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Order Status Equals": objectValidator<AutomationTriggerEvents["Order Status Equals"]>({
+    type: exactMatchValidator(['Order Status Equals']),
+    info: objectValidator<AutomationTriggerEvents['Order Status Equals']['info']>({
+      source: stringValidator100,
+      status: stringValidator100,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -3913,6 +3924,7 @@ export type IntegrationsTitleType = (
 | typeof GOGO_MEDS_TITLE
 | typeof PAGER_DUTY_TITLE
 | typeof SMART_METER_TITLE
+| typeof MFAX_TITLE
 )
 export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleType>([
   SQUARE_INTEGRATIONS_TITLE,
@@ -3927,6 +3939,7 @@ export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleTy
   GOGO_MEDS_TITLE,
   PAGER_DUTY_TITLE,
   SMART_METER_TITLE,
+  MFAX_TITLE,
 ])
 
 const _VIDEO_INTEGRATION_TYPES: { [K in VideoIntegrationType]: any} = {

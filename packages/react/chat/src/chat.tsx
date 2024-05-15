@@ -188,7 +188,6 @@ export const Message = ({
       && <MessageAttachments message={message} chatUserId={chatUserId} imageDimensions={imageDimensions} />
   )
 
-  console.log(message.message, message.html)
   const messageComponent = IN_REACT_WEB ? (
     <Flex column flex={1}>
       <Typography component="div" style={{ 
@@ -441,7 +440,7 @@ export const Messages = ({
       }
        
       return (
-        <List items={sorted} 
+        <List items={sorted} scrollToBottom
           style={style} render={(message) => (
             <Message message={message} imageDimensions={imageDimensions} 
               showDate={showDateForMessage[message.id]?.showDate} 

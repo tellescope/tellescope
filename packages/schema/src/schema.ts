@@ -5007,6 +5007,8 @@ export const schema: SchemaV1 = build_schema({
       notes: { validator: stringValidator },
       recordedAt: { validator: dateValidator },
       timestamp: { validator: dateValidator, initializer: () => new Date() },
+      statusChangedBy: { validator: mongoIdStringValidator },
+      beforeMeal: { validator: booleanValidator },
     }
   },
   managed_content_records: {

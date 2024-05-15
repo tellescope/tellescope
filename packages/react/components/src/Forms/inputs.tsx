@@ -21,20 +21,6 @@ import heic2any from "heic2any"
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import LanguageIcon from '@mui/icons-material/Language';
 
-// import { pdfjs, Document, Page } from 'react-pdf';
-
-// try {
-//   pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-//     'pdfjs-dist/build/pdf.worker.min.js',
-//     import.meta.url,
-//   ).toString();
-// } catch(err) {
-//   console.error(err)
-// }
-// try {
-//   pdfjs.GlobalWorkerOptions.workerSrc = `//unpkg.com/pdfjs-dist@${pdfjs.version}/build/pdf.worker.min.js`;
-// } catch(err) { console.error(err) }
-
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js'; 
 import { CheckCircleOutline, Delete, Edit } from "@mui/icons-material"

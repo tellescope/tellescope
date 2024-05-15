@@ -249,12 +249,20 @@ export interface List_T <T extends Item, P={}> extends ListOptions<T, P>, WithHo
   onClick?: (item: T) => void;
   onPress?: (item: T) => void;
   reverse?: boolean,
+  scrollToBottom?: boolean,
 }
-export const List = <T extends Item, P={}>({ items, hoveredColor, notHoveredColor, emptyComponent, render, renderProps, onClick, reverse, style, rowStyle, }: List_T<T> & Styled) => {
+export const List = <T extends Item, P={}>({ scrollToBottom, items, hoveredColor, notHoveredColor, emptyComponent, render, renderProps, onClick, reverse, style, rowStyle, }: List_T<T> & Styled) => {
+  const scrollRef = useRef<HTMLDivElement>(null)
   if (items.length === 0 && emptyComponent) return emptyComponent
+
+  useEffect(() => {
+    if (!scrollToBottom) return
+    
+    scrollRef.current?.scroll?.({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
+  }, [scrollToBottom, items.length])
   
   return (
-    <div style={{ overflowY: 'auto', ...style }}>
+    <div style={{ overflowY: 'auto', ...style }} ref={scrollRef}>
     <Flex flex={1} column reverse={reverse}>
       {items.map((item, i) => 
         hoveredColor 
