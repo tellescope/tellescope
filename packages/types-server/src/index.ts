@@ -79,7 +79,7 @@ export type GroupMMSConversation = ServerModelForName['group_mms_conversations']
 export type EnduserOrder = ServerModelForName['enduser_orders']
 export type EnduserEncounter = ServerModelForName['enduser_encounters']
 export type VitalConfiguration = ServerModelForName['vital_configurations']
-
+export type BlockedPhone = ServerModelForName['blocked_phones']
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']
@@ -209,7 +209,7 @@ export interface AccessToken extends InternalBusinessRecord {
 }
 
 export interface DelayedEvent extends InternalBusinessRecord {
-  type: 'sessionTimeout' | 'sync' | 'daily-sync' | 'delayed-message' | 'delayed-journey',
+  type: 'sessionTimeout' | 'sync' | 'daily-sync' | 'delayed-message' | 'delayed-journey' | 'athena-sync',
   triggerAt: number,
   fields: object,
   userId?: string,

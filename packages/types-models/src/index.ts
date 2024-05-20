@@ -37,11 +37,11 @@ export type IndexUpdate = {
   index: number,
 }
 
-export type Filters = { _exists: boolean, _gt: number, _gte: number, _lt: number, _lte: number, _all: any[], _in: any[] } 
+export type Filters = { _exists: boolean, _gt: number, _gte: number, _lt: number, _lte: number, _all: any[], _in: any[], _nin: any[], _ne: any } 
 export type ExistsFilter = { _exists: boolean }
 export type FilterType = Filters
 export type FilterKey = keyof Filters
-export const FilterKeys = ['_exists', '_gt', '_gte', '_lt', '_lte', '_all'] as const
+export const FilterKeys = ['_exists', '_gt', '_gte', '_lt', '_lte', '_all', "_ne", "_nin"] as const
 export type ReadFilter<T> = { [K in keyof T]?: T[K] | Partial<FilterType> }
 
 export type FlowchartUI = {
@@ -184,6 +184,7 @@ export type OrganizationSettings = {
     defaultJourneyDueDateOffsetInMS?: number | '',
     disableSnooze?: boolean,
     showCommunications?: boolean,
+    showJourneys?: boolean,
   },
   calendar?: {
     dayStart?: {
@@ -222,6 +223,20 @@ export type BasicWebhook = {
   label: string,
   url: string,
   method?: 'Link' | 'POST'
+}
+
+export type SyncDirection = "Bidirectional" | "From Tellescope" | "To Tellescope"
+export type FieldSync = {
+  field: string,
+  externalField: string,
+  direction: SyncDirection, 
+}
+
+export type AthenaSubscription = {
+  // make sure to update validator if adding new types here
+  type: 'patients',
+  frequencyInMinutes: number,
+  lastSyncedAt: Date,
 }
 
 export interface Organization_readonly extends ClientRecord {
@@ -281,6 +296,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedGoGoMeds?: boolean,
   hasConnectedPagerDuty?: boolean,
   hasConnectedSmartMeter?: boolean,
+  hasConnectedAthena?: boolean,
   hasConfiguredZoom?: boolean,
   hasTicketQueues?: boolean,
   vitalTeamId?: string,
@@ -304,6 +320,9 @@ export interface Organization extends Organization_readonly, Organization_requir
   showCommunity?: boolean,
   phoneLabels?: { number: string, label: string }[];
   mfaxAccountId?: string,
+  athenaFieldsSync?: FieldSync[]
+  athenaSubscriptions?: AthenaSubscription[],
+  fieldsToAdminNote?: string[],
   // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {
@@ -1087,7 +1106,7 @@ export interface File extends File_readonly, File_required, File_updatesDisabled
 }
 
 
-export type TicketActionBuilder <T, I> = { type: T, info: I, completedAt?: Date | '' }
+export type TicketActionBuilder <T, I> = { type: T, info: I, optional?: boolean, completedAt?: Date | '' }
 export type TicketActions = {
   "Complete Form": TicketActionBuilder<'Complete Form', { formId: string, formResponseId?: string }>,
   "Create Prescription": TicketActionBuilder<'Create Prescription', { }>,
@@ -1285,7 +1304,10 @@ export type FormFieldOptions = FormFieldValidation & {
   customPriceMessage?: string,
   billingProvider?: 'Canvas' | "Candid" | string,
   bookingPageId?: string,
-  userTags?: string[],
+  userTags?: string[], // for user(s) selection by tags
+  userFilterTags?: string[], 
+
+  requirePredefinedInsurer?: boolean,
   addressFields?: string[], // supports specifying just 'state', for now
   autoAdvance?: boolean,
   prefillSignature?: boolean,
@@ -1425,6 +1447,7 @@ export interface Integration_required {}
 export interface Integration_updatesDisabled {}
 export interface Integration extends Integration_readonly, Integration_required, Integration_updatesDisabled {
   title: string,
+  tenantId?: string, // e.g. for athena health practice id which doesn't fit in authentication
   authentication: IntegrationAuthentication,
   emailDisabled?: boolean, 
   syncUnrecognizedSenders?: boolean,
@@ -2226,6 +2249,7 @@ export type SmartMeterPlaceOrderAutomationAction = AutomationActionBuilder<'smar
   shipping?: string,
 }>
 export type HealthieSyncAutomationAction = AutomationActionBuilder<'healthieSync', {}>
+export type CompleteTicketsAutomationAction = AutomationActionBuilder<'completeTickets', { journeyIds?: string[] }>
 
 export type IterableFieldsMapping = {
   iterable: string,
@@ -2278,6 +2302,7 @@ export type AutomationActionForType = {
   'pagerDutyCreateIncident': PagerDutyCreateIncidentAutomationAction,
   'smartMeterPlaceOrder': SmartMeterPlaceOrderAutomationAction,
   'healthieSync': HealthieSyncAutomationAction,
+  'completeTickets': CompleteTicketsAutomationAction,
 }
 export type AutomationActionType = keyof AutomationActionForType
 export type AutomationAction = AutomationActionForType[AutomationActionType]
@@ -3420,8 +3445,16 @@ export interface VitalConfiguration extends VitalConfiguration_readonly, VitalCo
   ranges: VitalConfigurationRange[],
 }
 
+export interface BlockedPhone_readonly extends ClientRecord { }
+export interface BlockedPhone_required {}
+export interface BlockedPhone_updatesDisabled {}
+export interface BlockedPhone extends BlockedPhone_readonly, BlockedPhone_required, BlockedPhone_updatesDisabled {
+  phone: string,
+}
+
 export type ModelForName_required = {
   vital_configurations: VitalConfiguration_required,
+  blocked_phones: BlockedPhone_required,
   enduser_encounters: EnduserEncounter_required,
   enduser_orders: EnduserOrder_required,
   group_mms_conversations: GroupMMSConversation_required,
@@ -3494,6 +3527,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  blocked_phones: BlockedPhone_readonly,
   vital_configurations: VitalConfiguration_readonly,
   enduser_encounters: EnduserEncounter_readonly,
   enduser_orders: EnduserOrder_readonly,
@@ -3567,6 +3601,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  blocked_phones: BlockedPhone_updatesDisabled,
   vital_configurations: VitalConfiguration_updatesDisabled,
   enduser_encounters: EnduserEncounter_updatesDisabled,
   enduser_orders: EnduserOrder_updatesDisabled,
@@ -3640,6 +3675,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly {
+  blocked_phones: BlockedPhone,
   vital_configurations: VitalConfiguration,
   enduser_encounters: EnduserEncounter,
   enduser_orders: EnduserOrder,
@@ -3723,6 +3759,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  blocked_phones: true,
   vital_configurations: true,
   enduser_encounters: true,
   enduser_orders: true,

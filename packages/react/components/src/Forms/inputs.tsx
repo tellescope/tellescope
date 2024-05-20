@@ -514,14 +514,14 @@ export const InsuranceInput = ({ field, value, onChange, form, responses, enduse
   return (
     <Grid container spacing={2} sx={{ mt: '0' }}>
       <Grid item xs={12} sm={6}>
-      <Autocomplete freeSolo options={payers.map(p => p.name)}
+      <Autocomplete freeSolo={!field.options?.requirePredefinedInsurer} options={payers.map(p => p.name)}
         value={value?.payerName || ''}
         onChange={(e, v) => onChange({ 
           ...value, 
           payerName: v || '',
           payerId: payers.find(p => p.name === v)?.id || '',
         }, field.id)}  
-        onInputChange={(e, v) => onChange({ 
+        onInputChange={field.options?.requirePredefinedInsurer ? undefined : (e, v) => onChange({ 
           ...value, 
           payerName: v || '',
           payerId: payers.find(p => p.name === v)?.id || '',
@@ -2334,13 +2334,14 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
   )
 }
 
-export const AppointmentBookingInput = ({ field, value, onChange, form, responses, ...props }: FormInputProps<'Appointment Booking'>) => {
+export const AppointmentBookingInput = ({ field, value, onChange, form, responses, goToPreviousField, isPreviousDisabled, ...props }: FormInputProps<'Appointment Booking'>) => {
   const session = useResolvedSession()
 
   const [loaded, setLoaded] = useState<Awaited<ReturnType<typeof session['api']['form_fields']['booking_info']>>>()
   const [error, setError] = useState('')
   const [acknowledgedWarning, setAcknowledgedWarning] = useState(false)
   const [height, setHeight] = useState(450)
+  const [confirming, setConfirming] = useState(false)
 
   const bookingPageId = field?.options?.bookingPageId
 
@@ -2386,6 +2387,11 @@ export const AppointmentBookingInput = ({ field, value, onChange, form, response
       }
       if (m?.data?.type === 'UsersPicker') {
         setHeight(450)
+      }
+      if (m?.data?.type === 'Confirmation') {
+        setConfirming(true)
+      } else {
+        setConfirming(false)
       }
     }
 
@@ -2449,9 +2455,39 @@ export const AppointmentBookingInput = ({ field, value, onChange, form, response
       .join(',')
     }`
   }
+  if (field.options?.userFilterTags?.length) {
+    bookingURL += `&userFilterTags=${
+      field.options.userFilterTags
+      .map(t => {
+        // set dynamic tags if found
+        if (t.startsWith("{{field.") && t.endsWith(".value}}")) {
+          const fieldId = t.replace('{{field.', '').replace(".value}}", '')
+
+          const answer = responses?.find(r => r.fieldId === fieldId)?.answer
+          if (!answer?.value) return t
+
+          if (answer.type === 'Insurance') {
+            return answer.value.payerName || ''
+          }
+          return form_response_value_to_string(answer)
+        }
+        return t
+      })
+      .join(',')
+    }`
+  }
 
   return (
     <Grid container direction="column" spacing={1} sx={{ mt: 1 }}>
+      {/* When skipping user selection, include a back button at the top for clearer navigation on mobile */}
+      {!!field.options?.userFilterTags?.length && !field.options.userTags?.length && !isPreviousDisabled?.() && !confirming &&
+        <Grid item alignSelf="flex-start" >
+        <Button variant="outlined" onClick={goToPreviousField} sx={{ height: 25, p: 0.5, px: 1 }}>
+          Back
+        </Button>
+        </Grid>
+      }
+
       {loaded.warningMessage &&
         <Grid item>
           <Typography color="error" sx={{ fontSize: 20, fontWeight: 'bold' }}>

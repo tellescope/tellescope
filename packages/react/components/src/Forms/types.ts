@@ -21,6 +21,8 @@ export interface FormInputProps<K extends keyof AnswerForType> {
   responses?: Response[]
   title?: string,
   enduser?: Partial<Enduser>
+  goToPreviousField?: () => void, 
+  isPreviousDisabled?: () => boolean,
 }
 
 export type FormInputs = { 

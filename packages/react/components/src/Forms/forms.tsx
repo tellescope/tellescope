@@ -120,6 +120,8 @@ export const QuestionForField = ({
   setCustomerId,
   handleDatabaseSelect,
   enduser,
+  goToPreviousField,
+  isPreviousDisabled,
 } : {
   form?: Form,
   repeats: Record<string, string | number>,
@@ -128,7 +130,7 @@ export const QuestionForField = ({
   file: FileResponse,
   field: FormField,
   setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>
-} & Pick<TellescopeFormProps, 'enduser' | 'handleDatabaseSelect' | 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField'>) => {
+} & Pick<TellescopeFormProps, 'isPreviousDisabled' | 'goToPreviousField' | 'enduser' | 'handleDatabaseSelect' | 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField'>) => {
   const String = customInputs?.['string'] ?? StringInput
   const StringLong = customInputs?.['stringLong'] ?? StringLongInput
   const Email = customInputs?.['email'] ?? EmailInput
@@ -218,7 +220,7 @@ export const QuestionForField = ({
           <String field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} form={form} />
         )
         : field.type === 'Appointment Booking' ? (
-          <AppointmentBooking responses={responses} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'Appointment Booking'>} form={form} />
+          <AppointmentBooking goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled} responses={responses} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'Appointment Booking'>} form={form} />
         )
         : field.type === 'Stripe' ? (
           <Stripe field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} setCustomerId={setCustomerId} form={form} />
@@ -291,7 +293,7 @@ export const QuestionForField = ({
             return (
               <Flex key={id} flex={1}>
                 <QuestionForField customInputs={customInputs} field={match} fields={fields} handleDatabaseSelect={handleDatabaseSelect}
-                  enduser={enduser}
+                  enduser={enduser} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled}
                   form={form}
                   repeats={repeats} onRepeatsChange={onRepeatsChange} setCustomerId={setCustomerId}
                   value={value} file={file} 
@@ -438,7 +440,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
           <Flex flex={1} justifyContent={"center"} column>
             <Flex style={inputStyle}>
               <QuestionForField form={form} fields={fields} field={activeField.value} 
-                enduser={enduser}
+                enduser={enduser} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled}
                 handleDatabaseSelect={handleDatabaseSelect}
                 setCustomerId={setCustomerId}
                 repeats={repeats} onRepeatsChange={setRepeats}
@@ -887,7 +889,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
             <Flex key={activeField.id} style={{ marginBottom: 5 }}>
               <Flex column flex={1}>
                 <QuestionForField fields={fields} field={activeField} handleDatabaseSelect={handleDatabaseSelect}
-                  enduser={enduser}
+                  enduser={enduser} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled}
                   repeats={repeats} onRepeatsChange={setRepeats} setCustomerId={setCustomerId}
                   value={value} file={file} 
                   customInputs={customInputs}

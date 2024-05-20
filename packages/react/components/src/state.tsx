@@ -82,6 +82,7 @@ import {
   EnduserEncounter,
   ClientModelForName,
   VitalConfiguration,
+  BlockedPhone,
 } from "@tellescope/types-client"
 
 import {
@@ -311,6 +312,7 @@ const tableViewsSlice = createSliceForList<TableView, 'table_views'>('table_view
 const emailSyncDenialsSlice = createSliceForList<EmailSyncDenial, 'email_sync_denials'>('email_sync_denials')
 const automatedActionsSlice = createSliceForList<AutomatedAction, 'automated_actions'>('automated_actions')
 const groupMMSConversationsSlice = createSliceForList<GroupMMSConversation, 'group_mms_conversations'>('group_mms_conversations')
+const blockedPhonesSlice = createSliceForList<BlockedPhone, 'blocked_phones'>('blocked_phones')
 
 const enduserObservationsSlice = createSliceForList<EnduserObservation, 'enduser_observations'>('enduser_observations')
 const forumsSlice = createSliceForList<Forum, 'forums'>('forums')
@@ -407,6 +409,7 @@ export const sharedConfig = {
     enduser_orders: enduserOrdersSlice.reducer,
     enduser_encounters: enduserEncountersSlice.reducer,
     vital_configurations: vitalConfigurationsSlice.reducer,
+    blocked_phones: blockedPhonesSlice.reducer,
   },
 }
 
@@ -2364,6 +2367,25 @@ export const usePurchaseCredits = (options={} as HookOptions<PurchaseCredit>) =>
     { 
       ...options,
     },
+  )
+}
+
+export const useBlockedPhones = (options={} as HookOptions<BlockedPhone>) => {
+  const session = useSession()
+
+  return useListStateHook('blocked_phones', useTypedSelector(s => s.blocked_phones), session, blockedPhonesSlice,
+    { 
+      loadQuery: session.api.blocked_phones.getSome,
+      findOne: session.api.blocked_phones.getOne,
+      findByIds: session.api.blocked_phones.getByIds,
+      addOne: session.api.blocked_phones.createOne,
+      addSome: session.api.blocked_phones.createSome,
+      deleteOne: session.api.blocked_phones.deleteOne,
+      updateOne: session.api.blocked_phones.updateOne,
+    },
+    {
+      ...options,
+    }
   )
 }
 

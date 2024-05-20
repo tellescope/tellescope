@@ -201,6 +201,7 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   enduser_orders: defaultQueries(s, 'enduser_orders'), 
   enduser_encounters: defaultQueries(s, 'enduser_encounters'), 
   vital_configurations: defaultQueries(s, 'vital_configurations'), 
+  blocked_phones: defaultQueries(s, 'blocked_phones'),
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
@@ -457,6 +458,12 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
   },
   organizations: {
+    add_athena_subscription: (args: extractFields<CustomActions['organizations']['add_athena_subscription']['parameters']>) => (
+      Promise<extractFields<CustomActions['organizations']['add_athena_subscription']['returns']>>
+    ),
+    sync_athena_subscription: (args: extractFields<CustomActions['organizations']['sync_athena_subscription']['parameters']>) => (
+      Promise<extractFields<CustomActions['organizations']['sync_athena_subscription']['returns']>>
+    ),
     get_theme: (args: extractFields<PublicActions['organizations']['get_theme']['parameters']>) => (
       Promise<extractFields<PublicActions['organizations']['get_theme']['returns']>>
     ),
@@ -822,6 +829,8 @@ export class Session extends SessionManager {
     queries.organizations.get_theme = a => this._GET(`/v1/${schema.organizations.publicActions.get_theme.path}`, a)
     queries.organizations.create_suborganization = a => this._POST(`/v1/${schema.organizations.customActions.create_suborganization.path}`, a)
     queries.organizations.create_and_join = a => this._POST(`/v1${schema.organizations.customActions.create_and_join.path}`, a)
+    queries.organizations.add_athena_subscription = a => this._POST(`/v1${schema.organizations.customActions.add_athena_subscription.path}`, a)
+    queries.organizations.sync_athena_subscription = a => this._POST(`/v1${schema.organizations.customActions.sync_athena_subscription.path}`, a)
  
     queries.integrations.update_zoom = args => this._POST(`/v1${schema.integrations.customActions.update_zoom.path}`, args)
     queries.integrations.load_payers = args => this._GET(`/v1${schema.integrations.customActions.load_payers.path}`, args)

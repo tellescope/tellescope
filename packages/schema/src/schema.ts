@@ -62,6 +62,7 @@ import {
   InsuranceType,
   SmartMeterOrderLineItem,
   PhoneCallsReport,
+  AthenaSubscription,
 } from "@tellescope/types-models"
 
 import {
@@ -285,6 +286,9 @@ import {
   formFieldFeedbackValidator,
   phonePlaybackValidator,
   enduserProfileWebhooksValidator,
+  fieldsSyncValidator,
+  athenaSubscriptionTypeValidator,
+  athenaSubscriptionsValidator,
 } from "@tellescope/validation"
 
 import {
@@ -877,6 +881,8 @@ export type CustomActions = {
   organizations: {
     create_and_join: CustomAction<{ name: string, subdomain: string }, { authToken: string, user: User, organization: Organization }>, 
     create_suborganization: CustomAction<{ name: string, subdomain: string }, { created: Organization }>, 
+    add_athena_subscription: CustomAction<{ type: AthenaSubscription['type'], frequency: number }, { organization: Organization }>, 
+    sync_athena_subscription: CustomAction<{ type: AthenaSubscription['type'] }, { }>, 
   },
   phone_calls: {
     authenticate_calling: CustomAction<{ os?: "ios" | "android", type?: UserCallRoutingBehavior }, { accessToken: string, identity: string }>, 
@@ -1049,6 +1055,7 @@ export type PublicActions = {
         userId?: string,
         restrictedByState?: boolean,
         userTags?: string[],
+        userFilterTags?: string[],
       }, 
       { 
         appointmentBookingPage: AppointmentBookingPageClient,
@@ -4494,6 +4501,7 @@ export const schema: SchemaV1 = build_schema({
           businessId: { validator: mongoIdStringValidator, required: true }, // organizationIds can be pulled from the corresponding appointment
           userId: { validator: mongoIdStringValidator }, 
           userTags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+          userFilterTags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
         },
         returns: {
           appointmentBookingPage: { validator: 'appointment_booking_page' as any, required: true },
@@ -4604,6 +4612,7 @@ export const schema: SchemaV1 = build_schema({
       bufferEndMinutes: { validator: numberValidator },
       bufferStartMinutes: { validator: numberValidator },
       canvasCoding: { validator: canvasCodingValidator },
+      canvasLocationId: { validator: stringValidator100 },
       // isAllDay: { validator: booleanValidator },
     }
   },
@@ -5519,6 +5528,31 @@ export const schema: SchemaV1 = build_schema({
           user: { validator: 'user' as any, required: true },
         } 
       },
+      add_athena_subscription: {
+        op: "custom", access: 'create', method: "post", 
+        adminOnly: true,
+        name: 'Add Athena Subscription',
+        path: '/organizations/athena-subscription', 
+        description: "Creates an Athena subscription",
+        parameters: { 
+          type: { validator: athenaSubscriptionTypeValidator, required: true },
+          frequency: { validator: nonNegNumberValidator, required: true },
+        },
+        returns: { 
+          organization: { validator: 'organization' as any },
+        } 
+      },
+      sync_athena_subscription: {
+        op: "custom", access: 'create', method: "post", 
+        adminOnly: true,
+        name: 'Sync Athena Subscription',
+        path: '/organizations/sync-athena-subscription', 
+        description: "Syncs an Athena subscription",
+        parameters: { 
+          type: { validator: athenaSubscriptionTypeValidator, required: true },
+        },
+        returns: { } 
+      },
     },
     enduserActions: { },
     publicActions: {
@@ -5595,7 +5629,9 @@ export const schema: SchemaV1 = build_schema({
           label: stringValidator100,
           number: stringValidator100,
         }))
-      }
+      },
+      athenaFieldsSync: { validator: fieldsSyncValidator },
+      fieldsToAdminNote: { validator: listOfStringsValidatorOptionalOrEmptyOk },
     },
   },
   databases: {
@@ -7161,6 +7197,20 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           }]
         ] 
       },
+    },
+  },
+  blocked_phones: {
+    info: {},
+    constraints: { 
+      unique: ['phone'], relationship: [], 
+      access: []  
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      phone: { validator: stringValidator, required: true, examples: ['+15555555555'] },
     },
   },
 })

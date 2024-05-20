@@ -127,6 +127,7 @@ export const CANVAS_TITLE = "Canvas"
 export const MFAX_TITLE = "mFax"
 export const CANDID_TITLE = "Candid"
 export const GOGO_MEDS_TITLE = "GoGoMeds"
+export const ATHENA_TITLE = "athenahealth"
 export const ZENDESK_INTEGRATIONS_TITLE = "Zendesk"
 export const ZENDESK_REDIRECT_URI_ENDING = "/zendesk-oauth2-verify"
 export const FULLSCRIPT_INTEGRATIONS_TITLE = "Fullscript"
@@ -221,6 +222,12 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
     read:   ASSIGNED_ACCESS, 
     update: ASSIGNED_ACCESS,
     delete: NO_ACCESS,
+  },
+  blocked_phones: {
+    create: ALL_ACCESS, // allow for creating self-assigned objects
+    read:   DEFAULT_ACCESS, 
+    update: DEFAULT_ACCESS,
+    delete: DEFAULT_ACCESS,
   },
   vital_configurations: READ_ONLY_ALL,
   enduser_custom_types: READ_ONLY_ALL,
@@ -327,6 +334,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
+  blocked_phones: FULL_ACCESS,
   vital_configurations: FULL_ACCESS,
   enduser_encounters: FULL_ACCESS,
   enduser_orders: FULL_ACCESS,

@@ -75,6 +75,7 @@ export type GroupMMSConversation = ClientModelForName['group_mms_conversations']
 export type EnduserOrder = ClientModelForName['enduser_orders']
 export type EnduserEncounter = ClientModelForName['enduser_encounters']
 export type VitalConfiguration = ClientModelForName['vital_configurations']
+export type BlockedPhone = ClientModelForName['blocked_phones']
 
 export type Forum = ClientModelForName['forums']
 export type ForumPost = ClientModelForName['forum_posts']

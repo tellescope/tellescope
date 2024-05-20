@@ -277,6 +277,10 @@ import {
   BasicWebhook,
   RemoveEnduserTagsAutomationAction,
   HealthieSyncAutomationAction,
+  SyncDirection,
+  FieldSync,
+  AthenaSubscription,
+  CompleteTicketsAutomationAction,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -309,6 +313,7 @@ import {
 import { 
   ALL_ACCESS,
   ASSIGNED_ACCESS,
+  ATHENA_TITLE,
   CANDID_TITLE,
   CANVAS_TITLE,
   DEFAULT_ACCESS,
@@ -554,6 +559,8 @@ export const filterCommandsValidator: EscapeBuilder<FilterType> = (o={}) => buil
     if (value._lte && typeof value._gt === 'number' ) return { _lte: value._lte }
     if (value._all && Array.isArray(value._all)) return { _all: value._all }
     if (value._in && Array.isArray(value._in)) return { _in: value._in }
+    if (value._nin && Array.isArray(value._nin)) return { _nin: value._nin }
+    if (value._ne) return { _ne: value._ne }
     
     if (Object.keys(value).find(k => k.startsWith('$'))) { // ignore any $ injections
       throw new Error(`Unknown filter value ${JSON.stringify(value)}`)
@@ -578,6 +585,10 @@ export const convertCommand = (key: string, value: any) => {
     return { $all: value }
   } else if (key === '_in') {
     return { $in: value }
+  } else if (key === '_nin') {
+    return { $nin: value }
+  } else if (key === '_ne') {
+    return { $ne: value }
   }
 
   return null
@@ -2232,6 +2243,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   pagerDutyCreateIncident: '',
   smartMeterPlaceOrder: '',
   healthieSync: '',
+  completeTickets: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -2426,11 +2438,13 @@ export const ticketActionValidator = orValidator<{ [K in TicketActionType]: Tick
       formResponseId: mongoIdStringOptional, 
     }, { emptyOk: false }),
     completedAt: dateOptionalOrEmptyStringValidator,
+    optional: booleanValidatorOptional,
   }),
   "Create Prescription": objectValidator<TicketActions['Create Prescription']>({
     type: exactMatchValidator(['Create Prescription']),
     info: objectValidator<TicketActions['Create Prescription']['info']>({}, { emptyOk: true, isOptional: true }),
     completedAt: dateOptionalOrEmptyStringValidator,
+    optional: booleanValidatorOptional,
   }),
 })
 export const ticketActionsValidator = listValidatorOptionalOrEmptyOk(ticketActionValidator)
@@ -2650,6 +2664,12 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
   healthieSync: objectValidator<HealthieSyncAutomationAction>({
     type: exactMatchValidator(['healthieSync']),
     info: objectValidator<HealthieSyncAutomationAction['info']>({ }, { emptyOk: true }),
+  }),
+  completeTickets: objectValidator<CompleteTicketsAutomationAction>({
+    type: exactMatchValidator(['completeTickets']),
+    info: objectValidator<CompleteTicketsAutomationAction['info']>({
+      journeyIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+    }),
   }),
 })
 
@@ -2902,7 +2922,9 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   addressFields: listOfStringsValidatorOptionalOrEmptyOk,
   autoAdvance: booleanValidatorOptional,
   userTags: listOfStringsValidatorOptionalOrEmptyOk,
+  userFilterTags: listOfStringsValidatorOptionalOrEmptyOk,
   prefillSignature: booleanValidatorOptional,
+  requirePredefinedInsurer: booleanValidatorOptional,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -3391,6 +3413,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
     disableSnooze: booleanValidatorOptional,
     showCommunications: booleanValidatorOptional,
+    showJourneys: booleanValidatorOptional,
   }, { isOptional: true }),
   calendar: objectValidator<OrganizationSettings['calendar']>({
     dayStart: objectValidator<Required<OrganizationSettings>['calendar']['dayStart']>({
@@ -3787,6 +3810,7 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   enduser_orders: accessPermissionValidator,
   enduser_encounters: accessPermissionValidator,
   vital_configurations: accessPermissionValidator,
+  blocked_phones: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
@@ -3862,6 +3886,7 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   enduser_orders: numberValidatorOptional,
   enduser_encounters: numberValidatorOptional,
   vital_configurations: numberValidatorOptional,
+  blocked_phones: numberValidatorOptional,
 }, { emptyOk: true })
 
 const _LOGIN_FLOW_RESULTS = {
@@ -3925,6 +3950,7 @@ export type IntegrationsTitleType = (
 | typeof PAGER_DUTY_TITLE
 | typeof SMART_METER_TITLE
 | typeof MFAX_TITLE
+| typeof ATHENA_TITLE
 )
 export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleType>([
   SQUARE_INTEGRATIONS_TITLE,
@@ -3940,6 +3966,7 @@ export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleTy
   PAGER_DUTY_TITLE,
   SMART_METER_TITLE,
   MFAX_TITLE,
+  ATHENA_TITLE,
 ])
 
 const _VIDEO_INTEGRATION_TYPES: { [K in VideoIntegrationType]: any} = {
@@ -4658,3 +4685,19 @@ const enduserProfileWebhookValidator = objectValidator<BasicWebhook>({
   method: exactMatchValidator(['Link', 'POST'], { isOptional: true })
 })
 export const enduserProfileWebhooksValidator = listValidatorEmptyOk(enduserProfileWebhookValidator)
+
+export const syncDirectionValidator = exactMatchValidator<SyncDirection>(['Bidirectional', 'From Tellescope', 'To Tellescope'])
+export const fieldSyncValidator = objectValidator<FieldSync>({
+  field: stringValidator100,
+  externalField: stringValidator100,
+  direction: syncDirectionValidator,
+})
+export const fieldsSyncValidator = listValidatorEmptyOk(fieldSyncValidator)
+
+export const athenaSubscriptionTypeValidator = exactMatchValidator<AthenaSubscription['type']>(['patients'])
+export const athenaSubscriptionValidator = objectValidator<AthenaSubscription>({
+  type: athenaSubscriptionTypeValidator,
+  frequencyInMinutes: nonNegNumberValidator,
+  lastSyncedAt: dateValidator,
+})
+export const athenaSubscriptionsValidator = listValidatorEmptyOk(athenaSubscriptionValidator)
