@@ -323,6 +323,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
   background_errors: INACCESSIBLE,
   enduser_views: READ_ONLY_ALL,
   table_views: READ_ONLY_ALL,
+  prescription_routes: READ_ONLY_ALL,
   email_sync_denials: {
     read: ALL_ACCESS,
     create: ALL_ACCESS,
@@ -334,6 +335,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
+  prescription_routes: FULL_ACCESS,
   blocked_phones: FULL_ACCESS,
   vital_configurations: FULL_ACCESS,
   enduser_encounters: FULL_ACCESS,

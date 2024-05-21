@@ -5927,6 +5927,7 @@ export const schema: SchemaV1 = build_schema({
       limitedToCareTeam: { validator: booleanValidator },
       limitedByState: { validator: booleanValidator },
       topLogo: { validator: stringValidator },
+      requireLocationSelection: { validator: booleanValidator },
       // defer to template
       // productIds: { validator: listOfStringsValidator },
     }
@@ -7211,6 +7212,23 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     fields: {
       ...BuiltInFields, 
       phone: { validator: stringValidator, required: true, examples: ['+15555555555'] },
+    },
+  },
+  prescription_routes: {
+    info: {},
+    constraints: { 
+      unique: [], relationship: [], 
+      access: []  
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      title: { validator: stringValidator, required: true, examples: ['Title'] },
+      state: { validator: stateValidator, required: true, examples: ['CA'] }, 
+      templateIds: { validator: listOfStringsValidator, required: true, examples: [['tmp_01GZMD9Q71W7T44812351V9QZN']] },
+      pharmacyId: { validator: stringValidator },
     },
   },
 })

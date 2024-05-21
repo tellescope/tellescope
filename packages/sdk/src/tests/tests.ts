@@ -6082,6 +6082,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   configurations: NO_TEST,
   group_mms_conversations: NO_TEST,
   blocked_phones: NO_TEST,
+  prescription_routes: NO_TEST,
 };
 
 const TRACK_OPEN_IMAGE = Buffer.from(

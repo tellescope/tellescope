@@ -3811,12 +3811,14 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   enduser_encounters: accessPermissionValidator,
   vital_configurations: accessPermissionValidator,
   blocked_phones: accessPermissionValidator,
+  prescription_routes: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
 })
 
 export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
+  prescription_routes: accessPermissionValidator,
   group_mms_conversations: accessPermissionValidator,
   enduser_custom_types: numberValidatorOptional,
   superbill_providers: numberValidatorOptional,

@@ -80,6 +80,7 @@ export type EnduserOrder = ServerModelForName['enduser_orders']
 export type EnduserEncounter = ServerModelForName['enduser_encounters']
 export type VitalConfiguration = ServerModelForName['vital_configurations']
 export type BlockedPhone = ServerModelForName['blocked_phones']
+export type PrescriptionRoute = ServerModelForName['prescription_routes']
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']

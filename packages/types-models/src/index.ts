@@ -1994,6 +1994,7 @@ export interface AppointmentBookingPage extends AppointmentBookingPage_readonly,
   hoursBeforeBookingAllowed?: number | '',
   limitedToCareTeam?: boolean,
   limitedByState?: boolean,
+  requireLocationSelection?: boolean,
   // productIds?: string[], // defer to specific template
 }
 
@@ -3452,7 +3453,18 @@ export interface BlockedPhone extends BlockedPhone_readonly, BlockedPhone_requir
   phone: string,
 }
 
+export interface PrescriptionRoute_readonly extends ClientRecord { }
+export interface PrescriptionRoute_required {}
+export interface PrescriptionRoute_updatesDisabled {}
+export interface PrescriptionRoute extends PrescriptionRoute_readonly, PrescriptionRoute_required, PrescriptionRoute_updatesDisabled {
+  title: string,
+  state: string,
+  templateIds: string[],
+  pharmacyId?: string,
+}
+
 export type ModelForName_required = {
+  prescription_routes: PrescriptionRoute_required,
   vital_configurations: VitalConfiguration_required,
   blocked_phones: BlockedPhone_required,
   enduser_encounters: EnduserEncounter_required,
@@ -3527,6 +3539,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  prescription_routes: PrescriptionRoute_readonly,
   blocked_phones: BlockedPhone_readonly,
   vital_configurations: VitalConfiguration_readonly,
   enduser_encounters: EnduserEncounter_readonly,
@@ -3601,6 +3614,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  prescription_routes: PrescriptionRoute_updatesDisabled,
   blocked_phones: BlockedPhone_updatesDisabled,
   vital_configurations: VitalConfiguration_updatesDisabled,
   enduser_encounters: EnduserEncounter_updatesDisabled,
@@ -3675,6 +3689,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly {
+  prescription_routes: PrescriptionRoute,
   blocked_phones: BlockedPhone,
   vital_configurations: VitalConfiguration,
   enduser_encounters: EnduserEncounter,
@@ -3759,6 +3774,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  prescription_routes: true,
   blocked_phones: true,
   vital_configurations: true,
   enduser_encounters: true,

@@ -83,6 +83,7 @@ import {
   ClientModelForName,
   VitalConfiguration,
   BlockedPhone,
+  PrescriptionRoute,
 } from "@tellescope/types-client"
 
 import {
@@ -313,6 +314,7 @@ const emailSyncDenialsSlice = createSliceForList<EmailSyncDenial, 'email_sync_de
 const automatedActionsSlice = createSliceForList<AutomatedAction, 'automated_actions'>('automated_actions')
 const groupMMSConversationsSlice = createSliceForList<GroupMMSConversation, 'group_mms_conversations'>('group_mms_conversations')
 const blockedPhonesSlice = createSliceForList<BlockedPhone, 'blocked_phones'>('blocked_phones')
+const prescriptionRoutesSlice = createSliceForList<PrescriptionRoute, 'prescription_routes'>('prescription_routes')
 
 const enduserObservationsSlice = createSliceForList<EnduserObservation, 'enduser_observations'>('enduser_observations')
 const forumsSlice = createSliceForList<Forum, 'forums'>('forums')
@@ -410,6 +412,7 @@ export const sharedConfig = {
     enduser_encounters: enduserEncountersSlice.reducer,
     vital_configurations: vitalConfigurationsSlice.reducer,
     blocked_phones: blockedPhonesSlice.reducer,
+    prescription_routes: prescriptionRoutesSlice.reducer,
   },
 }
 
@@ -481,14 +484,11 @@ export interface LoadMoreFunctions<T> {
   doneLoading: (id?: string) => boolean,
 }
 
-let DEFAULT_SYNC_INTERVAL_IN_MS = 30000
-export const FAST_SYNC_INTERVAL = 5000
-try {
-  // enable fast-sync for local testing to make development easier and to catch sync issues faster
-  if (window.location.origin.includes(":3001")) {
-    DEFAULT_SYNC_INTERVAL_IN_MS = FAST_SYNC_INTERVAL
-  }
-} catch(err) { console.error(err) }
+export const INACTIVE_SYNC_INTERVAL_IN_MS = 30000
+export const DEFAULT_SYNC_INTERVAL_IN_MS  = 20000
+export const FAST_SYNC_INTERVAL           = 5000
+
+export const lastActiveForSync = { at: new Date(0), hasFocus: true }
 
 export const useDataSync____internal = () => {
   const session = useSession()
@@ -499,10 +499,39 @@ export const useDataSync____internal = () => {
   const handlers = React.useRef({ } as { [K in string]?: () => void })
 
   useEffect(() => {
+    try {
+      // not compatible with React Native
+      if (typeof window === 'undefined') { return }
+
+      const onMouseMove = () => { lastActiveForSync.at = new Date() }
+      window.addEventListener('mousemove', onMouseMove)
+
+      const onFocus = () => { lastActiveForSync.hasFocus = true }
+      window.addEventListener('focus', onFocus)
+
+      const onBlur = () => { lastActiveForSync.hasFocus = false }
+      window.addEventListener('blur', onBlur)
+
+      return () => { 
+        window.removeEventListener('mousemove', onMouseMove);
+        window.removeEventListener('focus', onFocus);
+        window.removeEventListener('blur', onBlur);
+      }
+    } catch(err) {
+      console.error(err)
+    }
+  }, [])
+
+  useEffect(() => {
     if (!session.authToken) return
 
     const i = setInterval(() => {
-      const pollDurationInMS = Math.min(DEFAULT_SYNC_INTERVAL_IN_MS, ...Object.values(loadTimings.current).filter(v => v > 999))
+      const isActive = lastActiveForSync.hasFocus && lastActiveForSync.at.getTime() > (Date.now() - 1000 * 15)
+
+      const pollDurationInMS = Math.min(
+        isActive ? DEFAULT_SYNC_INTERVAL_IN_MS : INACTIVE_SYNC_INTERVAL_IN_MS, 
+        ...Object.values(loadTimings.current).filter(v => v > 999)
+      )
 
       if (lastFetch.current.getTime() + pollDurationInMS > Date.now()) {
         return
@@ -2382,6 +2411,25 @@ export const useBlockedPhones = (options={} as HookOptions<BlockedPhone>) => {
       addSome: session.api.blocked_phones.createSome,
       deleteOne: session.api.blocked_phones.deleteOne,
       updateOne: session.api.blocked_phones.updateOne,
+    },
+    {
+      ...options,
+    }
+  )
+}
+
+export const usePrescriptionRoutes = (options={} as HookOptions<PrescriptionRoute>) => {
+  const session = useSession()
+
+  return useListStateHook('prescription_routes', useTypedSelector(s => s.prescription_routes), session, prescriptionRoutesSlice,
+    { 
+      loadQuery: session.api.prescription_routes.getSome,
+      findOne: session.api.prescription_routes.getOne,
+      findByIds: session.api.prescription_routes.getByIds,
+      addOne: session.api.prescription_routes.createOne,
+      addSome: session.api.prescription_routes.createSome,
+      deleteOne: session.api.prescription_routes.deleteOne,
+      updateOne: session.api.prescription_routes.updateOne,
     },
     {
       ...options,
