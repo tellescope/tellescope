@@ -3408,6 +3408,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     showFullVitalsTab: booleanValidatorOptional,
     canMoveCalls: booleanValidatorOptional,
     showDeleteCallRecordingOnTimeline: booleanValidatorOptional,
+    inboxRepliesMarkRead: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,

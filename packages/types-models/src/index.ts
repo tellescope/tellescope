@@ -179,6 +179,7 @@ export type OrganizationSettings = {
     autofillSignature?: boolean,
     showFullVitalsTab?: boolean,
     canMoveCalls?: boolean,
+    inboxRepliesMarkRead?: boolean,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
@@ -502,6 +503,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   skills?: string[];
   lockedOutUntil?: number, // -1 => not locked out, 0 => locked out indefinitely, > 0 => locked out until unix time in MS
   elationUserId?: number,
+  iOSBadgeCount?: number,
 }
 
 export type Preference = 'email' | 'sms' | 'call' | 'chat'
@@ -1058,6 +1060,7 @@ export interface ChatMessage extends ChatMessage_readonly, ChatMessage_required,
   timestamp?: Date,
   ticketIds?: string[],
   tags?: string[],
+  mentions?: string[],
   userId?: string,
   enduserId?: string,
 }
@@ -1181,6 +1184,7 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
   reminders?: TicketReminder[],
   preserveContext?: boolean,
   phoneCallId?: string,
+  calendarEventId?: string,
 }
 
 export type AttendeeInfo = {

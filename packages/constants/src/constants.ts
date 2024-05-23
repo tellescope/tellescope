@@ -484,10 +484,10 @@ export const get_inverse_relationship_type = (type: EnduserRelationship['type'])
 
 // maps to HIPAA Individual Relationship Codes (source https://med.noridianmedicare.com/web/jea/topics/claim-submission/patient-relationship-codes)
 export const INSURANCE_RELATIONSHIPS_TO_CODE: { [K in InsuranceRelationship]: number | string } = {
-  Spouse: 1,
-  "Grandfather or Grandmother": 4,
-  "Grandson or Grandaughter": 5,
-  "Nephew or Niece": 7,
+  Spouse: "01",
+  "Grandfather or Grandmother": "04",
+  "Grandson or Grandaughter": "05",
+  "Nephew or Niece": "07",
   "Foster Child": 10,
   "Ward of the Court": 15,
   "Stepson or Stepdaughter": 17,
@@ -531,7 +531,7 @@ export const VITAL_UNITS_INFO: Record<string, { label: string }> = {
   "LB": { label: "Weight in Pounds" },
   "O2 Sat%": { label: "Blood Oxygen Saturation %" },
   "SBP": { label: "Systolic Blood Pressure" },
-  "mmol/L": { label: "Blood Glucose (mmol/L)" },
+  "mg/dL": { label: "Blood Glucose (mg/dL)" },
   "A1C": { label: "A1C" },
 }
 export const VITAL_UNITS = Object.keys(VITAL_UNITS_INFO)

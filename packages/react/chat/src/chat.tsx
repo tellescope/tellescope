@@ -173,6 +173,9 @@ export const Message = ({
       if (sentTextColor) {
         textBGStyle.color = sentTextColor;
       }
+    } else if (message.mentions?.includes(chatUserId)) {
+      textBGStyle.backgroundColor = '#f6b139';
+      textBGStyle.color = 'white';
     } else {
       if (receivedBgColor) {
         textBGStyle.backgroundColor = receivedBgColor;

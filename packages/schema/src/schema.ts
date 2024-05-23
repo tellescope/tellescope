@@ -1304,6 +1304,7 @@ export const schema: SchemaV1 = build_schema({
           id: stringValidatorOptional,
         }))
       },
+      references: { validator: listOfRelatedRecordsValidator, readonly: true },
       // recentMessagePreview: { 
       //   validator: stringValidator,
       // },
@@ -2430,12 +2431,12 @@ export const schema: SchemaV1 = build_schema({
         },
         {
           explanation: "Phone number and phone consent must be set for enduser",
-          evaluate: ({ enduserId, logOnly }, deps, _) => {
+          evaluate: ({ enduserPhoneNumber, enduserId, logOnly }, deps, _) => {
             if (logOnly === true) return
 
             const e = deps[enduserId ?? ''] as Enduser
             if (!e) return // not in cache, permit by default, likely during an update
-            if (!e.phone) return "Missing phone"
+            if (!e.phone && !enduserPhoneNumber) return "Missing phone"
             // if (!e.phoneConsent) return "Missing phone consent"
           }
         },
@@ -2730,7 +2731,8 @@ export const schema: SchemaV1 = build_schema({
       enduserId: { 
         validator: mongoIdStringOptional, 
         initializer: (_, s) => s.type === 'enduser' ? s.id : undefined
-      }
+      },
+      mentions: { validator: listOfMongoIdStringValidatorEmptyOk },
     },
   },
   users: {
@@ -3143,6 +3145,7 @@ export const schema: SchemaV1 = build_schema({
       DEA: { validator: stringValidatorOptionalEmptyOkay },
       voicemailPlayback: { validator: phonePlaybackValidatorOptional },
       lockedOutUntil: { validator: numberValidator },
+      iOSBadgeCount: { validator: nonNegNumberValidator },
     }
   },
   templates: {
@@ -3497,6 +3500,8 @@ export const schema: SchemaV1 = build_schema({
         readonly: true,
         initializer: get_next_reminder_timestamp_for_ticket,
       },
+      references: { validator: listOfRelatedRecordsValidator, readonly: true },
+      calendarEventId: { validator: mongoIdStringValidator },
     }
   },
   meetings: {
@@ -3921,6 +3926,7 @@ export const schema: SchemaV1 = build_schema({
       carePlanId: { validator: mongoIdStringValidator },
       context: { validator: stringValidator1000 },
       calendarEventId: { validator: mongoIdStringValidator },
+      references: { validator: listOfRelatedRecordsValidator, readonly: true },
     },
     defaultActions: DEFAULT_OPERATIONS,
     enduserActions: { 
@@ -4613,6 +4619,7 @@ export const schema: SchemaV1 = build_schema({
       bufferStartMinutes: { validator: numberValidator },
       canvasCoding: { validator: canvasCodingValidator },
       canvasLocationId: { validator: stringValidator100 },
+      references: { validator: listOfRelatedRecordsValidator, readonly: true },
       // isAllDay: { validator: booleanValidator },
     }
   },
@@ -5018,6 +5025,7 @@ export const schema: SchemaV1 = build_schema({
       timestamp: { validator: dateValidator, initializer: () => new Date() },
       statusChangedBy: { validator: mongoIdStringValidator },
       beforeMeal: { validator: booleanValidator },
+      references: { validator: listOfRelatedRecordsValidator, readonly: true },
     }
   },
   managed_content_records: {
@@ -6754,6 +6762,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       source: { validator: stringValidator1000Optional },
       externalId: { validator: stringValidator250 },  
       notes: { validator: stringValidator },  
+      references: { validator: listOfRelatedRecordsValidator, readonly: true },
     }
   },
   phone_trees: {
@@ -6895,6 +6904,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
       group: { validator: stringValidator250 },
       assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      references: { validator: listOfRelatedRecordsValidator, readonly: true },
     }
   },
   ticket_thread_comments: {
@@ -6934,6 +6944,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       hiddenBy: { validator: idStringToDateValidator },
       ticketIds: { validator: listOfStringsValidatorEmptyOk },
       group: { validator: stringValidator250 },
+      references: { validator: listOfRelatedRecordsValidator, readonly: true },
     }
   },
   configurations: {
