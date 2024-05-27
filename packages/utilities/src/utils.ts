@@ -1313,7 +1313,7 @@ export const batch_array = <T>(array: T[], size: number) => {
 }
 
 // don't change order without updating responses_satisfy_conditions calculations
-export const FORM_LOGIC_CALCULATED_FIELDS = ['Calculated: BMI']
+export const FORM_LOGIC_CALCULATED_FIELDS = ['Calculated: BMI', 'Calculated: Age']
 export const FORM_LOGIC_URL_PARAMETER = 'URL Logic Parameter'
 
 export const calculate_bmi = (e: Pick<Enduser, 'height' | 'weight'>) => {
@@ -1351,7 +1351,7 @@ export const responses_satisfy_conditions = (responses: FormResponseValue[], con
   } else if (key === 'condition') {
     const fieldIdOrCalculated = Object.keys(conditions[key] as object)[0]
     const answer = (
-      fieldIdOrCalculated === FORM_LOGIC_CALCULATED_FIELDS[0]
+      fieldIdOrCalculated === FORM_LOGIC_CALCULATED_FIELDS[0] // bmi
         ? (() => {
           const h = responses.find(r => r.answer.type === 'number' && r.answer.value && r.computedValueKey === 'Height')?.answer
           const w = responses.find(r => r.answer.type === 'number' && r.answer.value && r.computedValueKey === 'Weight')?.answer
@@ -1367,6 +1367,25 @@ export const responses_satisfy_conditions = (responses: FormResponseValue[], con
           }
 
           return BMI
+        })()
+      : fieldIdOrCalculated === FORM_LOGIC_CALCULATED_FIELDS[1] // age
+        ? (() => {
+          const dob = responses.find(r => r.answer.type === 'dateString' && r.answer.value && r.computedValueKey === 'Date of Birth')?.answer?.value?.toString()
+          if (!dob) return undefined
+
+          try {
+            const age = age_for_dob_mmddyyyy(dob)
+            if (typeof age !== 'number') return undefined
+
+            const Age: FormResponseAnswerNumber = {
+              type: 'number',
+              value: age
+            }
+
+            return Age
+          } catch(err) {
+            console.error(err)
+          }
         })()
       : fieldIdOrCalculated === FORM_LOGIC_URL_PARAMETER
         ? { type: 'string', value: options?.urlLogicValue || '' } as FormResponseAnswerString

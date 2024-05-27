@@ -604,7 +604,7 @@ export type CustomActions = {
   },
   form_fields: {
     load_choices_from_database: CustomAction<{ fieldId: string, lastId?: string, limit?: number, }, { choices: DatabaseRecordClient[] }>,
-    booking_info: CustomAction<{ bookingPageId: string, enduserFields?: BookingInfoEnduserFields }, { bookingURL: string, warningMessage?: string }>,
+    booking_info: CustomAction<{ bookingPageId: string, enduserId?: string, enduserFields?: BookingInfoEnduserFields }, { bookingURL: string, warningMessage?: string }>,
   },
   forms: {
     get_form_statistics: CustomAction<{ formId: string, range?: DateRange }, { statistics: FormStatistics }>,
@@ -684,6 +684,12 @@ export type CustomActions = {
       groupBy?: string,
     }, 
     { report: Report }
+    >,
+    get_distribution_report: CustomAction<{ 
+        formIds: string[],
+        submittedAtRange?: DateRange, 
+      }, 
+      { report: Report }
     >,
   },
   journeys: {
@@ -881,7 +887,7 @@ export type CustomActions = {
   organizations: {
     create_and_join: CustomAction<{ name: string, subdomain: string }, { authToken: string, user: User, organization: Organization }>, 
     create_suborganization: CustomAction<{ name: string, subdomain: string }, { created: Organization }>, 
-    add_athena_subscription: CustomAction<{ type: AthenaSubscription['type'], frequency: number }, { organization: Organization }>, 
+    add_athena_subscription: CustomAction<{ startAt?: Date, type: AthenaSubscription['type'], frequency: number, daily?: boolean }, { organization: Organization }>, 
     sync_athena_subscription: CustomAction<{ type: AthenaSubscription['type'] }, { }>, 
   },
   phone_calls: {
@@ -3146,6 +3152,7 @@ export const schema: SchemaV1 = build_schema({
       voicemailPlayback: { validator: phonePlaybackValidatorOptional },
       lockedOutUntil: { validator: numberValidator },
       iOSBadgeCount: { validator: nonNegNumberValidator },
+      availableFromNumbers: { validator: listOfStringsValidatorEmptyOk },
     }
   },
   templates: {
@@ -3801,6 +3808,7 @@ export const schema: SchemaV1 = build_schema({
         name: 'Load Appointment Booking Info',
         description: "Loads necessary information for rendering an Appointment Booking field",
         parameters: { 
+          enduserId: { validator: mongoIdStringValidator },
           bookingPageId: { validator: mongoIdStringValidator, required: true },
           enduserFields: {
             validator: objectValidator<BookingInfoEnduserFields>({
@@ -4114,6 +4122,19 @@ export const schema: SchemaV1 = build_schema({
         returns: {
           count: { validator: numberValidator, required: true },
           grouped: { validator: objectAnyFieldsAnyValuesValidator as any, },
+        },
+      },
+      get_distribution_report: {
+        op: "custom", access: 'read', method: "all",
+        name: 'Get Distribution of Answers for Forms',
+        path: '/form-responses/distribution-report',
+        description: "Get statistics on the number of *unique* endusers who have submitted forms, grouped by form submitter ID",
+        parameters: {
+          formIds: { validator: listOfStringsValidatorOptionalOrEmptyOk, required: true },
+          submittedAtRange: { validator: dateRangeOptionalValidator, required: true },
+        },
+        returns: {
+          report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
         },
       },
     },
@@ -5543,8 +5564,9 @@ export const schema: SchemaV1 = build_schema({
         path: '/organizations/athena-subscription', 
         description: "Creates an Athena subscription",
         parameters: { 
+          startAt: { validator: dateValidator },
           type: { validator: athenaSubscriptionTypeValidator, required: true },
-          frequency: { validator: nonNegNumberValidator, required: true },
+          frequency: { validator: nonNegNumberValidator, required: true }, 
         },
         returns: { 
           organization: { validator: 'organization' as any },

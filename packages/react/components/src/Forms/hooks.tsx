@@ -1232,6 +1232,8 @@ export const useTellescopeForm = ({ urlLogicValue, customization, carePlanId, ca
           ? 'Height'
       : field?.intakeField === 'weight' && typeof value === 'number'
           ? 'Weight'
+      : field?.intakeField === 'dateOfBirth' && r.answer.type === 'dateString'
+          ? 'Date of Birth'
           : undefined
       )
     })))

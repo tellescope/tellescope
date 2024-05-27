@@ -20,6 +20,7 @@ export interface FormInputProps<K extends keyof AnswerForType> {
   onDatabaseSelect?: (r: DatabaseRecord) => void,
   responses?: Response[]
   title?: string,
+  enduserId?: string,
   enduser?: Partial<Enduser>
   goToPreviousField?: () => void, 
   isPreviousDisabled?: () => boolean,

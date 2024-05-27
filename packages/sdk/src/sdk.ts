@@ -407,6 +407,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     get_enduser_statistics_by_submitter: (args: extractFields<CustomActions['form_responses']['get_enduser_statistics_by_submitter']['parameters']>) => (
       Promise<extractFields<CustomActions['form_responses']['get_enduser_statistics_by_submitter']['returns']>>
     ),
+    get_distribution_report: (args: extractFields<CustomActions['form_responses']['get_distribution_report']['parameters']>) => (
+      Promise<extractFields<CustomActions['form_responses']['get_distribution_report']['returns']>>
+    ),
   },
   meetings: {
     start_meeting: (args?: extractFields<CustomActions['meetings']['start_meeting']['parameters']>) => (
@@ -794,6 +797,7 @@ export class Session extends SessionManager {
     queries.form_responses.get_enduser_statistics = a => this._POST(`/v1/${schema.form_responses.customActions.get_enduser_statistics.path}`, a)
     queries.form_responses.get_enduser_statistics_by_submitter = a => this._POST(`/v1/${schema.form_responses.customActions.get_enduser_statistics_by_submitter.path}`, a)
     queries.form_responses.get_related_forms_report = a => this._POST(`/v1/${schema.form_responses.customActions.get_related_forms_report.path}`, a)
+    queries.form_responses.get_distribution_report = a => this._POST(`/v1/${schema.form_responses.customActions.get_distribution_report.path}`, a)
     
     // need arraybuffer response type, see tests.ts
     // queries.form_responses.generate_pdf = (args) => (

@@ -483,13 +483,14 @@ export const InsuranceInput = ({ field, value, onChange, form, responses, enduse
     if (r.answer.type !== 'Address') return false
     if (r.field.intakeField !== 'Address') return false
 
+    // make sure state is actually defined (in case of multiple address questions, where 1+ are blank)
+    if (!r.answer.value?.state) return false
+
     return true
   }), [responses])
 
   const state = useMemo(() => (
-    enduser?.state || (
-      addressQuestion?.answer?.type === 'Address' ? addressQuestion?.answer?.value?.state : undefined
-    )
+    (addressQuestion?.answer?.type === 'Address' ? addressQuestion?.answer?.value?.state : undefined) || enduser?.state
   ), [enduser?.state, addressQuestion])
 
   const loadRef = useRef(false) // so session changes don't cause
@@ -822,7 +823,8 @@ export const AddressInput = ({ field, value, onChange, ...props }: FormInputProp
   // state only
   field.options?.addressFields?.includes('state')
     ? (
-      <Autocomplete value={value?.state} options={VALID_STATES}
+      <Autocomplete value={value?.state} 
+        options={field.options?.validStates?.length ? field.options.validStates : VALID_STATES}
         disablePortal
         onChange={(e, v) => v && 
           onChange({
@@ -890,7 +892,7 @@ export const AddressInput = ({ field, value, onChange, ...props }: FormInputProp
 
         <Grid item xs={field.fullZIP ? 4 : 6} sm={field.fullZIP ? 2 : 3}>
           <Autocomplete value={value?.state} fullWidth
-            options={VALID_STATES}
+            options={field.options?.validStates?.length ? field.options.validStates : VALID_STATES}
             disablePortal
             onChange={(e, v) => v && 
               onChange({
@@ -2334,7 +2336,7 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
   )
 }
 
-export const AppointmentBookingInput = ({ field, value, onChange, form, responses, goToPreviousField, isPreviousDisabled, ...props }: FormInputProps<'Appointment Booking'>) => {
+export const AppointmentBookingInput = ({ field, value, onChange, form, responses, goToPreviousField, isPreviousDisabled, enduserId, ...props }: FormInputProps<'Appointment Booking'>) => {
   const session = useResolvedSession()
 
   const [loaded, setLoaded] = useState<Awaited<ReturnType<typeof session['api']['form_fields']['booking_info']>>>()
@@ -2349,6 +2351,9 @@ export const AppointmentBookingInput = ({ field, value, onChange, form, response
     if (r.answer.type !== 'Address') return false
     if (r.field.intakeField !== 'Address') return false
 
+    // make sure state is actually defined (in case of multiple address questions, where 1+ are blank)
+    if (!r.answer.value?.state) return false
+
     return true
   }), [responses])
   const state = useMemo(() => (
@@ -2360,12 +2365,13 @@ export const AppointmentBookingInput = ({ field, value, onChange, form, response
 
     setError('')
     session.api.form_fields.booking_info({ 
+      enduserId,
       bookingPageId,
       enduserFields: { state }
     })
     .then(setLoaded)
     .catch(e => setError(e?.message || e?.toString() || 'Error loading appointment details'))
-  }, [bookingPageId, session, state])
+  }, [enduserId, bookingPageId, session, state])
 
   const fetchRef = useRef(false)
   useEffect(() => {

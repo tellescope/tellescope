@@ -410,6 +410,7 @@ export interface UserSession extends Session, OrganizationLimits { // User joine
   eat?: boolean, // enableAccessTags
   lockedOutUntil?: number,
   duration?: number,
+  availablePhoneNumbers: string[],
 }
 
 export type StateCredentialInfo = {
@@ -483,6 +484,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   weeklyAvailabilities?: WeeklyAvailability[],
   autoReplyEnabled?: boolean,
   twilioNumber?: string;
+  availableFromNumbers?: string[],
   hashedPass?: string,
   pushNotificationIosTokens?: string[],
   pushNotificationDestinations?: string[],
@@ -1313,6 +1315,7 @@ export type FormFieldOptions = FormFieldValidation & {
 
   requirePredefinedInsurer?: boolean,
   addressFields?: string[], // supports specifying just 'state', for now
+  validStates?: string[],
   autoAdvance?: boolean,
   prefillSignature?: boolean,
 }
@@ -1647,7 +1650,7 @@ export type FormResponseValue = {
   sharedWithEnduser?: boolean,
   isCalledOut?: boolean,
   isHighlightedOnTimeline?: boolean,
-  computedValueKey?: 'Height' | 'Weight',
+  computedValueKey?: 'Height' | 'Weight' | 'Date of Birth',
 }
 
 export type AnswerForType = {
@@ -2803,7 +2806,7 @@ export type AnalyticsQueryGroupingForType = {
     Cost?: boolean,
   } & EnduserGrouping & { Enduser: string },
   "Purchase Credits": {} & EnduserGrouping & { Enduser: string },
-  "Tickets": {} & EnduserGrouping & { Enduser: string },
+  "Tickets": { Owner: boolean } & EnduserGrouping & { Enduser: string },
   "Phone Calls": {} & EnduserGrouping & { Enduser: string },
   "SMS Messages": { 
     Score?: boolean,
@@ -2817,16 +2820,17 @@ type DefaultRangeKey = 'Created At' | 'Updated At'
 export type AnalyticsQueryRangeKeyForType = {
   "Endusers": DefaultRangeKey,// | 'Last Active At',
   "Calendar Events": DefaultRangeKey,
-  "Form Responses": DefaultRangeKey,
+  "Form Responses": DefaultRangeKey | "Submitted At",
   "Purchases": DefaultRangeKey,
   "Purchase Credits": DefaultRangeKey,
-  "Tickets": DefaultRangeKey,
+  "Tickets": DefaultRangeKey | "Closed At",
   "Phone Calls": DefaultRangeKey,
   "SMS Messages": DefaultRangeKey,
   "Emails": DefaultRangeKey,
   "Medications": DefaultRangeKey,
   "Files": DefaultRangeKey,
 }
+export type RangeKey = DefaultRangeKey | 'Submitted At' | "Closed At"
 
 export type AnalyticsQueryRangeInterval = 'Hourly' | 'Daily' | 'Weekly' | 'Monthly'
 export type AnalyticsQueryRange <R> = {

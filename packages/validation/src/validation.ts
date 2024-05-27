@@ -2920,6 +2920,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   customPriceMessage: stringValidatorOptional,
   billingProvider: stringValidatorOptional,
   addressFields: listOfStringsValidatorOptionalOrEmptyOk,
+  validStates: listOfStringsValidatorOptionalOrEmptyOk,
   autoAdvance: booleanValidatorOptional,
   userTags: listOfStringsValidatorOptionalOrEmptyOk,
   userFilterTags: listOfStringsValidatorOptionalOrEmptyOk,
@@ -4130,7 +4131,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
-      key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Form Responses']>(['Created At', 'Updated At']),
+      key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Form Responses']>(['Created At', 'Updated At', 'Submitted At']),
     }, { isOptional: true, emptyOk: true })
   }), 
   "Purchases": objectValidator<AnalyticsQueryForType['Purchases']>({
@@ -4190,6 +4191,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       }),
     }),
     grouping: objectValidator<AnalyticsQueryGroupingForType['Tickets']>({
+      Owner: booleanValidatorOptional,
       Enduser: booleanValidatorOptional,
       Gender: booleanValidatorOptional,
       "Assigned To": booleanValidatorOptional,
@@ -4200,7 +4202,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
-      key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Tickets']>(['Created At', 'Updated At']),
+      key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Tickets']>(['Created At', 'Updated At', 'Closed At']),
     }, { isOptional: true, emptyOk: true })
   }), 
   "Emails": objectValidator<AnalyticsQueryForType['Emails']>({

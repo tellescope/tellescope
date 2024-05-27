@@ -2539,7 +2539,7 @@ export const useCalendarEventsForUser = (options={} as HookOptions<CalendarEvent
     loadedRef.current[key] = Date.now()
 
     fetchEvents(options)
-    .then(addLocalElements)
+    .then(es => addLocalElements(es, { replaceIfMatch: true }))
     .catch(console.error)
   }, [session, loadedRef, fetchEvents, addLocalElements])
 
