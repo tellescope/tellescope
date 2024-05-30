@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react"
 import { Session } from "@tellescope/sdk"
 import { ChangeHandler, FormFieldNode } from "./types"
-import { DatabaseRecord, FormField, FormResponse } from "@tellescope/types-client"
+import { DatabaseRecord, Form, FormField, FormResponse } from "@tellescope/types-client"
 import { phoneValidator } from "@tellescope/validation"
 import { FileBlob, Indexable } from "@tellescope/types-utilities"
 import { CompoundFilter, FormCustomization, FormResponseAnswerAddress, FormResponseAnswerFileValue, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, OrganizationTheme, PreviousFormCompoundLogic, PreviousFormFieldType } from "@tellescope/types-models"
@@ -191,6 +191,8 @@ export const useTreeForFormFields = (_fields: FormField[]) => {
 
 export const getNextField = (activeField: FormFieldNode, currentValue: Response, responses: FormResponseValue[], options?: {
   urlLogicValue?: string,
+  form?: Form,
+  activeResponses?: FormResponseValue[], // current and previous answers (not future answers)
 }) => {
   if (activeField.children.length === 0) {
     return
@@ -252,7 +254,8 @@ export const getNextField = (activeField: FormFieldNode, currentValue: Response,
 }
 
 export const useListForFormFields = (fields: FormField[], responses: Response[], options?: {
-  urlLogicValue?: string
+  urlLogicValue?: string,
+  form?: Form,
 }) => {
   const list: FormField[] = []
 
@@ -282,7 +285,10 @@ export const useListForFormFields = (fields: FormField[], responses: Response[],
       }, 
       currentValue,
       responses,
-      options,
+      {
+        ...options,
+        activeResponses: responses.filter(r => r.fieldId === currentValue.fieldId || list.find(l => l.id === r.fieldId))
+      },
     )
     if (!nextField) break;
 
@@ -322,6 +328,7 @@ interface UseTellescopeFormOptions {
   enduserId: string,
   accessCode: string,
   automationStepId?: string,
+  form?: Form,
   fields: FormField[],
   existingResponses?: FormResponse['responses'],
   formResponseId?: string,
@@ -484,7 +491,7 @@ const shouldCallout = (field: FormField | undefined, value: FormResponseValueAns
 
 export type Response = FormResponseValue & { touched: boolean, includeInSubmit: boolean, field: FormField }
 export type FileResponse = { fieldId: string, fieldTitle: string, blobs?: FileBlob[] }
-export const useTellescopeForm = ({ urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL }: UseTellescopeFormOptions) => {
+export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL }: UseTellescopeFormOptions) => {
   const { amPm, hoursAmPm, minutes } = get_time_values(new Date())
 
   const root = useTreeForFormFields(fields)
@@ -1175,7 +1182,11 @@ export const useTellescopeForm = ({ urlLogicValue, customization, carePlanId, ca
 
     try { window.scrollTo({ top: 0 }) } catch(err) {} // scroll to top if needed
     setActiveField(activeField => {
-      let newField = getNextField(activeField, currentValue, responses, { urlLogicValue })
+      let newField = getNextField(activeField, currentValue, responses, { 
+        urlLogicValue, 
+        form,
+        activeResponses: responses.filter(r => r.includeInSubmit) 
+      })
 
       // when autoadvancing, prevent adding duplicates by checking whether already on stack
       if (newField !== undefined && !prevFieldStackRef.current.find(v => v.value.id === activeField?.value.id)) {
@@ -1185,7 +1196,7 @@ export const useTellescopeForm = ({ urlLogicValue, customization, carePlanId, ca
       
       return newField || activeField
     })
-  }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, urlLogicValue])
+  }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, urlLogicValue, form])
 
   useEffect(() => {
     if (!autoAdvanceRef.current) return

@@ -863,7 +863,7 @@ export const Table = <T extends Item>({
   const paginated = _paginated ?? pageOptions.paginated !== false // default to true
   const { ...paginationProps } = usePagination({ 
     items, ...pageOptions,
-    applySorting: (sorting.length || onReorder) ? applySorting : undefined // don't sort when sorting is empty, way more efficient with time/memory
+    applySorting: (sort?.length || sorting.length || onReorder) ? applySorting : undefined // don't sort when sorting is empty, way more efficient with time/memory
   })
   RowComponent = RowComponent ?? TableRow // don't allow to be undefined 
 

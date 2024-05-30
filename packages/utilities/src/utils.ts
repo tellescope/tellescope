@@ -1,4 +1,4 @@
-import { AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserObservation, EnduserRelationship, FormField, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
+import { AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserObservation, EnduserRelationship, Form, FormField, FormResponse, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
 import { ADMIN_ROLE, get_inverse_relationship_type } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 import { DateTime } from "luxon"
@@ -1312,8 +1312,56 @@ export const batch_array = <T>(array: T[], size: number) => {
   return batches
 }
 
+export const calculate_form_scoring = ({
+  response,
+  form, 
+}: {
+  response: Pick<FormResponse, 'responses'>,
+  form: Pick<Form, 'scoring'>,
+}) => {
+  if (!form.scoring?.length) return
+
+  const scores: Record<string, number> = {}
+
+  for (const scoreCondition of form.scoring) {
+    const r = response.responses.find(
+      r => r.fieldId === scoreCondition.fieldId
+        && (
+          r.answer.type !== 'multiple_choice'
+        || (
+          Array.isArray(r.answer.value)
+        && typeof scoreCondition.response === 'string'
+        && r.answer.value.includes(scoreCondition.response)
+        )
+        )
+    )
+    if (!r) continue
+
+    if (scores[scoreCondition.title] === undefined) {
+      scores[scoreCondition.title] = 0
+    }
+
+    if (r.answer.type === 'multiple_choice' && typeof scoreCondition.score === 'number') {
+      scores[scoreCondition.title] += scoreCondition.score
+    } else if (typeof r.answer.value === 'number') {
+      scores[scoreCondition.title] += r.answer.value
+    }
+  }
+  if (object_is_empty(scores)) return
+
+  const scoresList = [] as { title: string, value: number }[]
+  for (const title in scores) {
+    scoresList.push({
+      title,
+      value: scores[title]
+    })
+  }
+
+  return scoresList
+}
+
 // don't change order without updating responses_satisfy_conditions calculations
-export const FORM_LOGIC_CALCULATED_FIELDS = ['Calculated: BMI', 'Calculated: Age']
+export const FORM_LOGIC_CALCULATED_FIELDS = ['Calculated: BMI', 'Calculated: Age', 'Calculated: Score']
 export const FORM_LOGIC_URL_PARAMETER = 'URL Logic Parameter'
 
 export const calculate_bmi = (e: Pick<Enduser, 'height' | 'weight'>) => {
@@ -1328,6 +1376,8 @@ export const calculate_bmi = (e: Pick<Enduser, 'height' | 'weight'>) => {
 // keep consistent with convert_form_logic_to_filter logic in analytics.ts
 export const responses_satisfy_conditions = (responses: FormResponseValue[], conditions: CompoundFilter<string>, options?: {
   urlLogicValue?: string,
+  form?: Form, // required for calculating scoring
+  activeResponses?: FormResponseValue[], // current and previous answers (not future answers)
 }): boolean => {
   const key = Object.keys(conditions)[0] as '$and' | '$or' | 'condition' | 'string' // string is form id
   if (key === '$and') {
@@ -1386,6 +1436,21 @@ export const responses_satisfy_conditions = (responses: FormResponseValue[], con
           } catch(err) {
             console.error(err)
           }
+        })()
+      : fieldIdOrCalculated === FORM_LOGIC_CALCULATED_FIELDS[2] // score
+        ? (() => {
+          const form = options?.form
+          if (!form) return undefined
+
+          const scores = calculate_form_scoring({ response: { responses: options.activeResponses || responses }, form })
+          if (!scores?.length) return  
+
+          const Score: FormResponseAnswerNumber = {
+            type: 'number',
+            value: scores[0].value,
+          }
+
+          return Score 
         })()
       : fieldIdOrCalculated === FORM_LOGIC_URL_PARAMETER
         ? { type: 'string', value: options?.urlLogicValue || '' } as FormResponseAnswerString

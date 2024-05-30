@@ -10,9 +10,7 @@ import {
 import {
   WEBHOOK_MODELS,
   WebhookSupportedModel, 
-
   FilterType,
-
   CustomField,
   Preference,
   JourneyState,
@@ -73,7 +71,6 @@ import {
   CreateTicketAssignmentStrategy,
   CreateTicketAssignmentStrategyType,
   TicketCompletedEventInfo,
-  FormResponse,
   FormResponseValueAnswer,
   PreviousFormField,
   PreviousFormFieldAfterInfo,
@@ -232,9 +229,7 @@ import {
   TableViewColumn,
   FormFieldCalloutCondition,
   FormFieldCalloutConditionComparison,
-  EndusersReportQueries,
   EnduserReportQuery,
-  ReportQuery,
   FormResponsesReportQuery,
   PhoneCallsReportQuery,
   TypedField,
@@ -256,7 +251,6 @@ import {
   SortingField,
   TicketReminder,
   EnduserInsurance,
-  InsuranceRelationship,
   FormResponseAnswerInsurance,
   CanvasConsentCategory,
   DiagnosisTypes,
@@ -278,7 +272,7 @@ import {
   RemoveEnduserTagsAutomationAction,
   HealthieSyncAutomationAction,
   SyncDirection,
-  FieldSync,
+  AthenaFieldSync,
   AthenaSubscription,
   CompleteTicketsAutomationAction,
 } from "@tellescope/types-models"
@@ -2446,6 +2440,15 @@ export const ticketActionValidator = orValidator<{ [K in TicketActionType]: Tick
     completedAt: dateOptionalOrEmptyStringValidator,
     optional: booleanValidatorOptional,
   }),
+  "Send SMS": objectValidator<TicketActions['Send SMS']>({
+    type: exactMatchValidator(['Send SMS']),
+    info: objectValidator<TicketActions['Send SMS']['info']>({ 
+      templateId: mongoIdStringRequired,
+      smsId: mongoIdStringOptional, 
+    }, { emptyOk: false }),
+    completedAt: dateOptionalOrEmptyStringValidator,
+    optional: booleanValidatorOptional,
+  }),
 })
 export const ticketActionsValidator = listValidatorOptionalOrEmptyOk(ticketActionValidator)
 
@@ -2477,14 +2480,17 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
   setEnduserStatus: objectValidator<SetEnduserStatusAutomationAction>({
     type: exactMatchValidator(['setEnduserStatus']),
     info: objectValidator<SetEnduserStatusInfo>({ status: stringValidator250 }, { emptyOk: false }),
+    continueOnError: booleanValidatorOptional,
   }),
   sendEmail: objectValidator<SendEmailAutomationAction>({
     type: exactMatchValidator(['sendEmail']),
-    info: automationForMessageValidator
+    info: automationForMessageValidator,
+    continueOnError: booleanValidatorOptional,
   }),
   sendSMS: objectValidator<SendSMSAutomationAction>({
     type: exactMatchValidator(['sendSMS']),
     info: automationForMessageValidator,
+    continueOnError: booleanValidatorOptional,
   }),
   notifyTeam: objectValidator<NotifyTeamAutomationAction>({
     type: exactMatchValidator(['notifyTeam']),
@@ -2496,6 +2502,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       }, 
       { emptyOk: false }
     ),
+    continueOnError: booleanValidatorOptional,
   }),
   sendForm: objectValidator<SendFormAutomationAction>({
     type: exactMatchValidator(['sendForm']),
@@ -2505,14 +2512,17 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       channel: communicationsChannelValidatorOptional,
       assignment: senderAssignmentStrategyValidatorOptional,
     }, { emptyOk: false }),
+    continueOnError: booleanValidatorOptional,
   }),
   shareContent: objectValidator<ShareContentAutomationAction>({
     type: exactMatchValidator(['shareContent']),
     info: objectValidator<ShareContentAutomationAction['info']>({ 
       managedContentRecordIds: listOfMongoIdStringValidator, 
     }, { emptyOk: false }),
+    continueOnError: booleanValidatorOptional,
   }),
   createTicket: objectValidator<CreateTicketAutomationAction>({
+    continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['createTicket']),
     info: objectValidator<CreateTicketActionInfo>({ 
       title: stringValidator1000,
@@ -2566,10 +2576,12 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     }, { emptyOk: false }),
   }),
   sendWebhook: objectValidator<SendWebhookAutomationAction>({
+    continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['sendWebhook']),
     info: objectValidator<AutomationForWebhook>({ message: stringValidator5000 }, { emptyOk: false }),
   }),
   setEnduserFields: objectValidator<SetEnduserFieldsAutomationAction>({
+    continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['setEnduserFields']),
     info: objectValidator<SetEnduserFieldsAutomationAction['info']>({ 
       fields: listValidator(objectValidator<EnduserFieldSetter>({
@@ -2580,36 +2592,42 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     }, { emptyOk: false }),
   }),
   addEnduserTags: objectValidator<AddEnduserTagsAutomationAction>({
+    continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['addEnduserTags']),
     info: objectValidator<AddEnduserTagsAutomationAction['info']>({ 
       tags: listOfStringsValidator, 
     }, { emptyOk: false }),
   }),
   removeEnduserTags: objectValidator<RemoveEnduserTagsAutomationAction>({
+    continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['removeEnduserTags']),
     info: objectValidator<RemoveEnduserTagsAutomationAction['info']>({ 
       tags: listOfStringsValidator, 
     }, { emptyOk: false }),
   }),
   addToJourney: objectValidator<AddToJourneyAutomationAction>({
+    continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['addToJourney']),
     info: objectValidator<AddToJourneyAutomationAction['info']>({ 
       journeyId: mongoIdStringRequired, 
     }, { emptyOk: false }),
   }),
   removeFromJourney: objectValidator<RemoveFromJourneyAutomationAction>({
+    continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['removeFromJourney']),
     info: objectValidator<RemoveFromJourneyAutomationAction['info']>({ 
       journeyId: mongoIdStringRequired, 
     }, { emptyOk: false }),
   }),
   iterableSendEmail: objectValidator<IterableSendEmailAutomationAction>({
+    continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['iterableSendEmail']),
     info: objectValidator<IterableSendEmailAutomationAction['info']>({ 
       campaignId: stringValidator, 
     }, { emptyOk: false }),
   }),
   iterableCustomEvent: objectValidator<IterableCustomEventAutomationAction>({
+    continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['iterableCustomEvent']),
     info: objectValidator<IterableCustomEventAutomationAction['info']>({ 
       eventName: stringValidator, 
@@ -2623,6 +2641,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     }, { emptyOk: false }),
   }),
   zendeskCreateTicket: objectValidator<ZendeskCreateTicketAutomationAction>({
+    continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['zendeskCreateTicket']),
     info: objectValidator<ZendeskCreateTicketAutomationAction['info']>({ 
       templateId: mongoIdStringRequired, 
@@ -2630,6 +2649,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     }, { emptyOk: false }),
   }),
   createCarePlan: objectValidator<CreateCarePlanAutomationAction>({
+    continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['createCarePlan']),
     info: objectValidator<CreateCarePlanAutomationAction['info']>({ 
       title: stringValidator1000, 
@@ -2639,14 +2659,17 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     }, { emptyOk: false }),
   }),
   completeCarePlan: objectValidator<CompleteCarePlanAutomationAction>({
+    continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['completeCarePlan']),
     info: objectValidator<CompleteCarePlanAutomationAction['info']>({ }, { emptyOk: true }),
   }), 
   zusSync: objectValidator<ZusSyncAutomationAction>({
+    continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['zusSync']),
     info: objectValidator<ZusSyncAutomationAction['info']>({ }, { emptyOk: true }),
   }),
   pagerDutyCreateIncident: objectValidator<PagerDutyCreateIncidentAutomationAction>({
+    continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['pagerDutyCreateIncident']),
     info: objectValidator<PagerDutyCreateIncidentAutomationAction['info']>({
       title: stringValidator,
@@ -2655,6 +2678,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
      }),
   }),
   smartMeterPlaceOrder: objectValidator<SmartMeterPlaceOrderAutomationAction>({
+    continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['smartMeterPlaceOrder']),
     info: objectValidator<SmartMeterPlaceOrderAutomationAction['info']>({
       lines: smartMeterLinesValidator,
@@ -2662,10 +2686,12 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
      }),
   }),
   healthieSync: objectValidator<HealthieSyncAutomationAction>({
+    continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['healthieSync']),
     info: objectValidator<HealthieSyncAutomationAction['info']>({ }, { emptyOk: true }),
   }),
   completeTickets: objectValidator<CompleteTicketsAutomationAction>({
+    continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['completeTickets']),
     info: objectValidator<CompleteTicketsAutomationAction['info']>({
       journeyIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
@@ -2679,6 +2705,7 @@ export const journeyContextValidator = objectValidator<JourneyContext>({
   purchaseId: mongoIdStringOptional,
   templateId: mongoIdStringOptional,
   orderId: mongoIdStringOptional,
+  observationId: mongoIdStringOptional,
 })
 
 export const relatedRecordValidator = objectValidator<RelatedRecord>({
@@ -2910,6 +2937,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   }, { isOptional: true, emptyOk: true }),
   useDatePicker: booleanValidatorOptional,
   sharedIntakeFields: listOfStringsValidatorOptionalOrEmptyOk,
+  copyResponse: booleanValidatorOptional,
   disableGoBack: booleanValidatorOptional,
   disableNext: booleanValidatorOptional,
   canvasConsentCategory: objectValidator<CanvasConsentCategory>({
@@ -4692,9 +4720,15 @@ const enduserProfileWebhookValidator = objectValidator<BasicWebhook>({
 export const enduserProfileWebhooksValidator = listValidatorEmptyOk(enduserProfileWebhookValidator)
 
 export const syncDirectionValidator = exactMatchValidator<SyncDirection>(['Bidirectional', 'From Tellescope', 'To Tellescope'])
-export const fieldSyncValidator = objectValidator<FieldSync>({
+export const fieldSyncValidator = objectValidator<AthenaFieldSync>({
   field: stringValidator100,
-  externalField: stringValidator100,
+  externalField: objectValidator<AthenaFieldSync['externalField']>({
+    id: stringValidator100,
+    options: listValidatorOptionalOrEmptyOk(objectValidator<{ id: string, value: string }>({
+      id: stringValidator,
+      value: stringValidator,
+    }))
+  }),
   direction: syncDirectionValidator,
 })
 export const fieldsSyncValidator = listValidatorEmptyOk(fieldSyncValidator)

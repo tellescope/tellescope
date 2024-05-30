@@ -3509,6 +3509,7 @@ export const schema: SchemaV1 = build_schema({
       },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
       calendarEventId: { validator: mongoIdStringValidator },
+      observationId: { validator: mongoIdStringValidator },
     }
   },
   meetings: {
@@ -3772,6 +3773,8 @@ export const schema: SchemaV1 = build_schema({
       isNonVisitElationNote: { validator: booleanValidator },
       publicShowLanguage: { validator: booleanValidator },
       publicShowDownload: { validator: booleanValidator },
+      canvasId: { validator: stringValidator100 },
+      canvasQuestionId: { validator: stringValidator100 },
     }
   },
   form_fields: {
@@ -4794,7 +4797,7 @@ export const schema: SchemaV1 = build_schema({
       },
       conditions: { validator: listOfAutomationConditionsValidator },
       flowchartUI: { validator: flowchartUIValidator },
-      continueOnError: { validator: booleanValidator },
+      continueOnError: { validator: booleanValidator }, // currently unused, keep in action instead
       enduserConditions: { validator: optionalAnyObjectValidator },
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
     }
@@ -5661,6 +5664,7 @@ export const schema: SchemaV1 = build_schema({
         }))
       },
       athenaFieldsSync: { validator: fieldsSyncValidator },
+      athenaDepartmentIds: { validator: listOfStringsValidatorEmptyOk },
       fieldsToAdminNote: { validator: listOfStringsValidatorOptionalOrEmptyOk },
     },
   },
@@ -6162,7 +6166,9 @@ export const schema: SchemaV1 = build_schema({
   phone_calls: {
     info: {
       description: (
-`{ "isVoicemail": true } indicates that an inbound call was not answered, but not necessarily that a full voicemail was left
+`"to" and "from" represent phone numbers. To represent the caller and callee, set userId and enduserId.
+
+{ "isVoicemail": true } indicates that an inbound call was not answered, but not necessarily that a full voicemail was left
 If a voicemail is left, it is indicated by recordingURI, transcription, or recordingDurationInSeconds        
 `
       )
@@ -6293,15 +6299,15 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           onDependencyDelete: 'delete',
         }]
       },
-      inbound: { validator: booleanValidator, readonly: true, required: true },
-      externalId: { validator: stringValidator100, readonly: true, },
-      to: { validator: stringValidator100, readonly: true, },
-      from: { validator: stringValidator100, readonly: true, },
-      isVoicemail: { validator: booleanValidator, readonly: true },
-      recordingURI: { validator: stringValidator1000, readonly: true, },
-      recordingId: { validator: stringValidator100, readonly: true, },
-      transcriptionId: { validator: stringValidator100, readonly: true, },
-      recordingDurationInSeconds: { validator: nonNegNumberValidator, readonly: true, },
+      inbound: { validator: booleanValidator, required: true, examples: [true] },
+      externalId: { validator: stringValidator100 },
+      to: { validator: stringValidator100 },
+      from: { validator: stringValidator100 },
+      isVoicemail: { validator: booleanValidator },
+      recordingURI: { validator: stringValidator1000 },
+      recordingId: { validator: stringValidator100 },
+      transcriptionId: { validator: stringValidator100 },
+      recordingDurationInSeconds: { validator: nonNegNumberValidator },
 
       transcription: { validator: stringValidator25000 },
       note: { validator: stringValidator5000EmptyOkay },
@@ -6315,7 +6321,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
 
-      callDurationInSeconds: { validator: numberValidator, readonly: true },
+      callDurationInSeconds: { validator: numberValidator },
+      timestamp: { validator: dateValidator },
     },
   },
   analytics_frames: {

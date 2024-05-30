@@ -227,9 +227,12 @@ export type BasicWebhook = {
 }
 
 export type SyncDirection = "Bidirectional" | "From Tellescope" | "To Tellescope"
-export type FieldSync = {
+export type AthenaFieldSync = {
   field: string,
-  externalField: string,
+  externalField: {
+    id: string,
+    options: { id: string, value: string }[]
+  },
   direction: SyncDirection, 
 }
 
@@ -321,8 +324,9 @@ export interface Organization extends Organization_readonly, Organization_requir
   showCommunity?: boolean,
   phoneLabels?: { number: string, label: string }[];
   mfaxAccountId?: string,
-  athenaFieldsSync?: FieldSync[]
+  athenaFieldsSync?: AthenaFieldSync[]
   athenaSubscriptions?: AthenaSubscription[],
+  athenaDepartmentIds?: string[],
   fieldsToAdminNote?: string[],
   // _AIEnabled?: boolean,
 }
@@ -1115,6 +1119,7 @@ export type TicketActionBuilder <T, I> = { type: T, info: I, optional?: boolean,
 export type TicketActions = {
   "Complete Form": TicketActionBuilder<'Complete Form', { formId: string, formResponseId?: string }>,
   "Create Prescription": TicketActionBuilder<'Create Prescription', { }>,
+  "Send SMS": TicketActionBuilder<'Send SMS', { templateId: string, smsId?: string }>,
 }
 export type TicketActionType = keyof TicketActions
 export type TicketAction = TicketActions[TicketActionType]
@@ -1187,6 +1192,7 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
   preserveContext?: boolean,
   phoneCallId?: string,
   calendarEventId?: string,
+  observationId?: string,
 }
 
 export type AttendeeInfo = {
@@ -1305,6 +1311,7 @@ export type FormFieldOptions = FormFieldValidation & {
   },
   useDatePicker?: boolean,
   sharedIntakeFields?: string[],
+  copyResponse?: boolean, // copy to related contacts when created
   disableGoBack?: boolean,
   disableNext?: boolean,
   customPriceMessage?: string,
@@ -1421,6 +1428,8 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   tags?: string[]
   language?: string,
   isNonVisitElationNote?: boolean,
+  canvasId?: string,
+  canvasQuestionId?: string,
 }
 
 
@@ -1726,6 +1735,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   carePlanId?: string,
   context?: string,
   calendarEventId?: string,
+  copiedFrom?: string,
 }
 
 export interface WebHook_readonly extends ClientRecord {}
@@ -2161,6 +2171,7 @@ export type SetEnduserStatusInfo = { status: string }
 interface AutomationActionBuilder <T extends string, V extends object> {
   type: T,
   info: V,
+  continueOnError?: boolean,
 }
 
 export type AssignToQueueInfo = {
@@ -2669,6 +2680,10 @@ export interface RoleBasedAccessPermission_updatesDisabled {}
 export interface RoleBasedAccessPermission extends RoleBasedAccessPermission_readonly, RoleBasedAccessPermission_required, RoleBasedAccessPermission_updatesDisabled {}
 
 export interface PhoneCall_readonly extends ClientRecord {
+}
+export interface PhoneCall_required {}
+export interface PhoneCall_updatesDisabled {}
+export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, PhoneCall_updatesDisabled {
   enduserId: string,
   externalId: string,
   from: string,
@@ -2682,10 +2697,6 @@ export interface PhoneCall_readonly extends ClientRecord {
   transcriptionId?: string,
   conferenceId?: string,
   conferenceAttendees?: string[],
-}
-export interface PhoneCall_required {}
-export interface PhoneCall_updatesDisabled {}
-export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, PhoneCall_updatesDisabled {
   unread?: boolean,
   transcription?: string,
   note?: string,
@@ -2699,6 +2710,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
   answeredAt?: Date,
   recordingCancelledAt?: Date,
   assignedTo?: string[],
+  timestamp?: Date,
 }
 
 export type AnalyticsQueryResultValue = {
@@ -3879,6 +3891,7 @@ export type JourneyContext = {
   purchaseId?: string,
   templateId?: string,
   orderId?: string,
+  observationId?: string,
 }
 
 // https://gist.github.com/aviflax/a4093965be1cd008f172/ 
