@@ -328,6 +328,10 @@ export interface Organization extends Organization_readonly, Organization_requir
   athenaSubscriptions?: AthenaSubscription[],
   athenaDepartmentIds?: string[],
   fieldsToAdminNote?: string[],
+  canvasMessageSync?: {
+    id: string,
+    questionId: string,
+  }
   // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {
@@ -950,6 +954,7 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
   isMarketing?: boolean,
   destination?: string[],
   assignedTo?: string[],
+  canvasId?: string,
   // sentAt: string, // only outgoing
 }
 
@@ -994,6 +999,7 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
   replyToTemplateId?: string,
   assignedTo?: string[],
   templatedMessage?: string,
+  canvasId?: string,
   // usingPublicNumber?: boolean, // flagged on outgoing messages from public number
   // sentAt: string, // only outgoing
 }
@@ -1069,6 +1075,7 @@ export interface ChatMessage extends ChatMessage_readonly, ChatMessage_required,
   mentions?: string[],
   userId?: string,
   enduserId?: string,
+  canvasId?: string,
 }
 
 export type MessageTemplateType = 'enduser' | 'Reply' | 'team'  // default to 'enduser'
@@ -2596,6 +2603,8 @@ export interface AutomatedAction_readonly extends ClientRecord {
   journeyContext?: JourneyContext
   source?: string,
   triggerId?: string,
+  lockedAt?: number,
+  lockId?: string,
 }
 export interface AutomatedAction_required {
   enduserId: string,

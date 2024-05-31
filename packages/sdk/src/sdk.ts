@@ -462,6 +462,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
   },
   organizations: {
+    sync_note_to_canvas: (args: extractFields<CustomActions['organizations']['sync_note_to_canvas']['parameters']>) => (
+      Promise<extractFields<CustomActions['organizations']['sync_note_to_canvas']['returns']>>
+    ),
     add_athena_subscription: (args: extractFields<CustomActions['organizations']['add_athena_subscription']['parameters']>) => (
       Promise<extractFields<CustomActions['organizations']['add_athena_subscription']['returns']>>
     ),
@@ -836,6 +839,7 @@ export class Session extends SessionManager {
     queries.organizations.create_and_join = a => this._POST(`/v1${schema.organizations.customActions.create_and_join.path}`, a)
     queries.organizations.add_athena_subscription = a => this._POST(`/v1${schema.organizations.customActions.add_athena_subscription.path}`, a)
     queries.organizations.sync_athena_subscription = a => this._POST(`/v1${schema.organizations.customActions.sync_athena_subscription.path}`, a)
+    queries.organizations.sync_note_to_canvas = a => this._POST(`/v1${schema.organizations.customActions.sync_note_to_canvas.path}`, a)
  
     queries.integrations.update_zoom = args => this._POST(`/v1${schema.integrations.customActions.update_zoom.path}`, args)
     queries.integrations.load_payers = args => this._GET(`/v1${schema.integrations.customActions.load_payers.path}`, args)

@@ -485,7 +485,7 @@ export interface LoadMoreFunctions<T> {
 }
 
 export const INACTIVE_SYNC_INTERVAL_IN_MS = 30000
-export const DEFAULT_SYNC_INTERVAL_IN_MS  = 20000
+export const DEFAULT_SYNC_INTERVAL_IN_MS  = 15000
 export const FAST_SYNC_INTERVAL           = 5000
 
 export const lastActiveForSync = { at: new Date(0), hasFocus: true }

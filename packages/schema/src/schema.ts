@@ -889,6 +889,7 @@ export type CustomActions = {
     create_suborganization: CustomAction<{ name: string, subdomain: string }, { created: Organization }>, 
     add_athena_subscription: CustomAction<{ startAt?: Date, type: AthenaSubscription['type'], frequency: number, daily?: boolean }, { organization: Organization }>, 
     sync_athena_subscription: CustomAction<{ type: AthenaSubscription['type'] }, { }>, 
+    sync_note_to_canvas: CustomAction<{ enduserId: string, note: string }, { canvasId: string }>, 
   },
   phone_calls: {
     authenticate_calling: CustomAction<{ os?: "ios" | "android", type?: UserCallRoutingBehavior }, { accessToken: string, identity: string }>, 
@@ -2297,6 +2298,7 @@ export const schema: SchemaV1 = build_schema({
       batchId: { validator: stringValidator250 }, 
       isMarketing: { validator: booleanValidator },
       assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      canvasId: { validator: stringValidator100 },
     }, 
     customActions: {
       sync_integrations: {
@@ -2529,6 +2531,7 @@ export const schema: SchemaV1 = build_schema({
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       batchId: { validator: stringValidator250 }, 
       assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      canvasId: { validator: stringValidator100 },
     }, 
   },
   chat_rooms: {
@@ -2739,6 +2742,7 @@ export const schema: SchemaV1 = build_schema({
         initializer: (_, s) => s.type === 'enduser' ? s.id : undefined
       },
       mentions: { validator: listOfMongoIdStringValidatorEmptyOk },
+      canvasId: { validator: stringValidator100 },
     },
   },
   users: {
@@ -5586,6 +5590,20 @@ export const schema: SchemaV1 = build_schema({
         },
         returns: { } 
       },
+      sync_note_to_canvas: { // dictate by organization read, since notes can come from any model (e.g. sms, email, chat, etc.)
+        op: "custom", access: 'read', method: "post", 
+        adminOnly: true,
+        name: 'Push Canvas Note',
+        path: '/organizations/sync-note-to-canvas', 
+        description: "Syncs a text note to canvas using questionnaire details in canvasMessageSync",
+        parameters: { 
+          enduserId: { validator: mongoIdStringValidator, required: true },
+          note: { validator: stringValidator25000, required: true },
+        },
+        returns: { 
+          canvasId: { validator: stringValidator100, required: true }
+        } 
+      },
     },
     enduserActions: { },
     publicActions: {
@@ -5666,6 +5684,12 @@ export const schema: SchemaV1 = build_schema({
       athenaFieldsSync: { validator: fieldsSyncValidator },
       athenaDepartmentIds: { validator: listOfStringsValidatorEmptyOk },
       fieldsToAdminNote: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      canvasMessageSync: {
+        validator: objectValidator<{ id: string, questionId: string }>({
+          id: stringValidator100,
+          questionId: stringValidator100,
+        })
+      },
     },
   },
   databases: {
