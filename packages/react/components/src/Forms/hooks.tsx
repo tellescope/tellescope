@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react"
 import { Session } from "@tellescope/sdk"
 import { ChangeHandler, FormFieldNode } from "./types"
-import { DatabaseRecord, Form, FormField, FormResponse } from "@tellescope/types-client"
+import { DatabaseRecord, Enduser, Form, FormField, FormResponse } from "@tellescope/types-client"
 import { phoneValidator } from "@tellescope/validation"
 import { FileBlob, Indexable } from "@tellescope/types-utilities"
 import { CompoundFilter, FormCustomization, FormResponseAnswerAddress, FormResponseAnswerFileValue, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, OrganizationTheme, PreviousFormCompoundLogic, PreviousFormFieldType } from "@tellescope/types-models"
@@ -191,6 +191,7 @@ export const useTreeForFormFields = (_fields: FormField[]) => {
 
 export const getNextField = (activeField: FormFieldNode, currentValue: Response, responses: FormResponseValue[], options?: {
   urlLogicValue?: string,
+  dateOfBirth?: string,
   form?: Form,
   activeResponses?: FormResponseValue[], // current and previous answers (not future answers)
 }) => {
@@ -254,6 +255,7 @@ export const getNextField = (activeField: FormFieldNode, currentValue: Response,
 }
 
 export const useListForFormFields = (fields: FormField[], responses: Response[], options?: {
+  dateOfBirth?: string,
   urlLogicValue?: string,
   form?: Form,
 }) => {
@@ -343,6 +345,7 @@ interface UseTellescopeFormOptions {
   calendarEventId?: string,
   context?: string,
   urlLogicValue?: string,
+  enduser?: Partial<Enduser>,
 }
 
 const OrganizationThemeContext = createContext(null as any as { 
@@ -491,7 +494,7 @@ const shouldCallout = (field: FormField | undefined, value: FormResponseValueAns
 
 export type Response = FormResponseValue & { touched: boolean, includeInSubmit: boolean, field: FormField }
 export type FileResponse = { fieldId: string, fieldTitle: string, blobs?: FileBlob[] }
-export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL }: UseTellescopeFormOptions) => {
+export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL,enduser }: UseTellescopeFormOptions) => {
   const { amPm, hoursAmPm, minutes } = get_time_values(new Date())
 
   const root = useTreeForFormFields(fields)
@@ -1185,7 +1188,8 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
       let newField = getNextField(activeField, currentValue, responses, { 
         urlLogicValue, 
         form,
-        activeResponses: responses.filter(r => r.includeInSubmit) 
+        activeResponses: responses.filter(r => r.includeInSubmit),
+        dateOfBirth: enduser?.dateOfBirth,
       })
 
       // when autoadvancing, prevent adding duplicates by checking whether already on stack
@@ -1196,7 +1200,7 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
       
       return newField || activeField
     })
-  }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, urlLogicValue, form])
+  }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, urlLogicValue, form, enduser?.dateOfBirth])
 
   useEffect(() => {
     if (!autoAdvanceRef.current) return

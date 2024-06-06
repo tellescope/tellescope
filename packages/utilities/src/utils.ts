@@ -1375,6 +1375,7 @@ export const calculate_bmi = (e: Pick<Enduser, 'height' | 'weight'>) => {
 
 // keep consistent with convert_form_logic_to_filter logic in analytics.ts
 export const responses_satisfy_conditions = (responses: FormResponseValue[], conditions: CompoundFilter<string>, options?: {
+  dateOfBirth?: string,
   urlLogicValue?: string,
   form?: Form, // required for calculating scoring
   activeResponses?: FormResponseValue[], // current and previous answers (not future answers)
@@ -1420,7 +1421,7 @@ export const responses_satisfy_conditions = (responses: FormResponseValue[], con
         })()
       : fieldIdOrCalculated === FORM_LOGIC_CALCULATED_FIELDS[1] // age
         ? (() => {
-          const dob = responses.find(r => r.answer.type === 'dateString' && r.answer.value && r.computedValueKey === 'Date of Birth')?.answer?.value?.toString()
+          const dob = options?.dateOfBirth || responses.find(r => r.answer.type === 'dateString' && r.answer.value && r.computedValueKey === 'Date of Birth')?.answer?.value?.toString()
           if (!dob) return undefined
 
           try {

@@ -1313,7 +1313,9 @@ export const schema: SchemaV1 = build_schema({
           id: stringValidatorOptional,
         }))
       },
-      references: { validator: listOfRelatedRecordsValidator, readonly: true },
+      references: { validator: listOfRelatedRecordsValidator, updatesDisabled: true },
+      athenaDepartmentId: { validator: stringValidator100 },
+      athenaPracticeId: { validator: stringValidator100 },
       // recentMessagePreview: { 
       //   validator: stringValidator,
       // },

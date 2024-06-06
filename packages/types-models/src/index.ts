@@ -627,12 +627,13 @@ export interface Enduser_readonly extends UserActivityInfo, ClientRecord, Enduse
   _dateOfBirth?: Date,
   _age?: number,
   // _ageDecade?: number,
-  references?: RelatedRecord[],
   mergedIds?: string[],
   _updateKey?: string,
 } 
 export interface Enduser_required {}
-export interface Enduser_updatesDisabled {}
+export interface Enduser_updatesDisabled {
+  references?: RelatedRecord[],
+}
 export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_updatesDisabled {
   unsubscribePhone?: boolean; // on AWS STOP reply
   externalId?: string;
@@ -697,6 +698,8 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
     id: string,
   }[],
   salesforceId?: string,
+  athenaPracticeId?: string,
+  athenaDepartmentId?: string,
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
 }
