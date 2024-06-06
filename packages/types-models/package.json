@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/types-models",
-  "version": "1.89.1",
+  "version": "1.91.0",
   "description": "Models used in Tellescope across the stack",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",

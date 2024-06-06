@@ -5,6 +5,7 @@ import {
   ObjectId,
   ModelName,
   User,
+  VitalConfiguration,
 } from "@tellescope/types-server"
 import {
   ErrorInfo,
@@ -289,6 +290,7 @@ import {
   fieldsSyncValidator,
   athenaSubscriptionTypeValidator,
   athenaSubscriptionsValidator,
+  dateValidatorOptional,
 } from "@tellescope/validation"
 
 import {
@@ -711,7 +713,7 @@ export type CustomActions = {
     generate_auth_token: CustomAction<{ id?: string, phone?: string, email?: string, externalId?: string, durationInSeconds?: number }, { authToken: string, enduser: Enduser }>,
     logout: CustomAction<{ }, { }>,
     current_session_info: CustomAction<{ }, { enduser: Enduser }>,
-    add_to_journey: CustomAction<{ enduserIds: string[], journeyId: string, automationStepId?: string, journeyContext?: JourneyContext, throttle?: boolean, source?: string }, { }>, 
+    add_to_journey: CustomAction<{ enduserIds: string[], journeyId: string, startAt?: Date, automationStepId?: string, journeyContext?: JourneyContext, throttle?: boolean, source?: string }, { }>, 
     remove_from_journey: CustomAction<{ enduserIds: string[], journeyId: string }, { }>, 
     merge: CustomAction<{ sourceEnduserId: string, destinationEnduserId: string, }, { }>, 
     push: CustomAction<{ enduserId: string, destinations?: string[] }, { fullscriptRedirectURL?: string, vital_user_id?: string }>,
@@ -1344,6 +1346,7 @@ export const schema: SchemaV1 = build_schema({
           journeyContext: { validator: journeyContextValidator },
           throttle: { validator: booleanValidatorOptional },
           source: { validator: stringValidatorOptional },
+          startAt: { validator: dateValidatorOptional },
         },
         returns: { } 
       },
@@ -7089,6 +7092,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       suggestedReply: { validator: stringValidator5000EmptyOkay },
       hiddenBy: { validator: idStringToDateValidator },
       assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
     },
   },
   enduser_encounters: {
@@ -7262,6 +7266,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           }]
         ] 
       },
+      mealStatus: { validator: exactMatchValidator<Required<VitalConfiguration>['mealStatus']>(['Any', 'Before', 'After']) },
     },
   },
   blocked_phones: {

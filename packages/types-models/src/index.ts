@@ -234,6 +234,7 @@ export type AthenaFieldSync = {
     options: { id: string, value: string }[]
   },
   direction: SyncDirection, 
+  dateFormat?: string,
 }
 
 export type AthenaSubscription = {
@@ -525,7 +526,7 @@ export type CustomField  = string | number | object | {
 export type CustomFields = Indexable<boolean | null | string | CustomField>;
 
 export type GenericQuantityWithUnit = {
-  value: string,
+  value: number | string,
   unit: string,
 }
 
@@ -2605,6 +2606,7 @@ export interface AutomatedAction_readonly extends ClientRecord {
   triggerId?: string,
   lockedAt?: number,
   lockId?: string,
+  lockCount?: number,
 }
 export interface AutomatedAction_required {
   enduserId: string,
@@ -2677,6 +2679,7 @@ export type UserUIRestrictions = {
   disabledFields?: TypedField[],
   hideCareplan?: boolean,
   hideUnsubmittedForms?: boolean,
+  hideMergeEndusers?: boolean,
 }
 
 export interface RoleBasedAccessPermission_readonly extends ClientRecord {}
@@ -3098,6 +3101,10 @@ export type AutomationTriggerEvents = {
     source: string, 
     status: string 
   }, { }>,
+  'Missed Call': AutomationTriggerEventBuilder<"Missed Call", { 
+    phoneNumbers?: string[], 
+    inputs?: string[], 
+  }, {}>,
 }
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents
 export type AutomationTriggerEvent = AutomationTriggerEvents[AutomationTriggerEventType]
@@ -3463,7 +3470,8 @@ export type VitalComparison = VitalComparisons[VitalComparisonType]
 export type VitalConfigurationRange = {
   classification: string, 
   comparison: VitalComparison,
-  trendIntervalInMS: number, // negative numbers or 0 indicate no trend
+  trendIntervalInMS?: number, // negative numbers or 0 indicate no trend
+  deviationFromProfileWeight?: boolean, // trend from enduser.weight
 }
 
 export interface VitalConfiguration_readonly extends ClientRecord { }
@@ -3473,6 +3481,7 @@ export interface VitalConfiguration extends VitalConfiguration_readonly, VitalCo
   title: string,
   unit: string,
   ranges: VitalConfigurationRange[],
+  mealStatus?: "Before" | "After" | "Any",
 }
 
 export interface BlockedPhone_readonly extends ClientRecord { }
@@ -3901,6 +3910,7 @@ export type JourneyContext = {
   templateId?: string,
   orderId?: string,
   observationId?: string,
+  phoneCallId?: string,
 }
 
 // https://gist.github.com/aviflax/a4093965be1cd008f172/ 

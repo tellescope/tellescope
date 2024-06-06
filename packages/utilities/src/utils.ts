@@ -1365,8 +1365,8 @@ export const FORM_LOGIC_CALCULATED_FIELDS = ['Calculated: BMI', 'Calculated: Age
 export const FORM_LOGIC_URL_PARAMETER = 'URL Logic Parameter'
 
 export const calculate_bmi = (e: Pick<Enduser, 'height' | 'weight'>) => {
-  const height = parseInt(e.height?.value || '0')
-  const weight = parseInt(e.weight?.value || '0')
+  const height = typeof e.height?.value === 'number' ? e.height.value : parseInt(e.height?.value || '0')
+  const weight = typeof e.weight?.value === 'number' ? e.weight.value : parseInt(e.weight?.value || '0')
   if (!height) return -1
   if (!weight) return -1
 

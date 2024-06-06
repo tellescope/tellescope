@@ -2706,6 +2706,7 @@ export const journeyContextValidator = objectValidator<JourneyContext>({
   templateId: mongoIdStringOptional,
   orderId: mongoIdStringOptional,
   observationId: mongoIdStringOptional,
+  phoneCallId: mongoIdStringOptional,
 })
 
 export const relatedRecordValidator = objectValidator<RelatedRecord>({
@@ -3507,6 +3508,7 @@ export const vitalConfigurationRangeValidator = objectValidator<VitalConfigurati
   classification: stringValidator100,
   trendIntervalInMS: numberValidatorOptional,
   comparison: vitalComparisonValidator,
+  deviationFromProfileWeight: booleanValidatorOptional,
 })
 export const vitalConfigurationRangesValidator = listValidator(vitalConfigurationRangeValidator)
 
@@ -3525,6 +3527,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   'Vital Update': true,
   "SMS Reply": true,
   "Order Status Equals": true,
+  "Missed Call": true,
 }
 export const AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES) as AutomationTriggerEventType[]
 
@@ -3635,6 +3638,14 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     info: objectValidator<AutomationTriggerEvents['Order Status Equals']['info']>({
       source: stringValidator100,
       status: stringValidator100,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Missed Call": objectValidator<AutomationTriggerEvents["Missed Call"]>({
+    type: exactMatchValidator(['Missed Call']),
+    info: objectValidator<AutomationTriggerEvents['Missed Call']['info']>({
+      inputs: listOfStringsValidatorOptionalOrEmptyOk,
+      phoneNumbers: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -4409,6 +4420,7 @@ export const userUIRestrictionsValidator = objectValidator<UserUIRestrictions>({
     type: mongoIdStringOptional,
   })),
   hideUnsubmittedForms: booleanValidatorOptional,
+  hideMergeEndusers: booleanValidatorOptional,
 }, { emptyOk: true })
 
 const externalChatGPTMessageValidator = objectValidator<ExternalChatGPTMessage>({
@@ -4730,6 +4742,7 @@ export const fieldSyncValidator = objectValidator<AthenaFieldSync>({
     }))
   }),
   direction: syncDirectionValidator,
+  dateFormat: stringValidatorOptional,
 })
 export const fieldsSyncValidator = listValidatorEmptyOk(fieldSyncValidator)
 

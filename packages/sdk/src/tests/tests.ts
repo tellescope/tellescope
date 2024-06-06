@@ -7234,13 +7234,13 @@ const vital_trigger_tests = async () => {
     vitals,
     title,
   } : {
-    configurations: Pick<VitalConfiguration, 'unit' | 'ranges'>[]
+    configurations: Pick<VitalConfiguration, 'mealStatus' | 'unit' | 'ranges'>[]
     triggers: { configurationIndexes: number[], classifications: string[] }[],
-    vitals: (Pick<EnduserObservation, 'measurement'> & Pick<Partial<EnduserObservation>, | 'timestamp'>)[],
+    vitals: (Pick<EnduserObservation, 'measurement'> & Pick<Partial<EnduserObservation>, | 'timestamp' | 'beforeMeal'>)[],
     shouldTrigger: boolean,
     title: string,
   }) => {
-    const e = await sdk.api.endusers.createOne({ })
+    const e = await sdk.api.endusers.createOne({ weight: { unit: 'LB', value: 180 } })
     const configurations = (
       await sdk.api.vital_configurations.createSome(_configurations.map((c, i) => ({
         title: `configuration ${i}`,
@@ -7291,6 +7291,293 @@ const vital_trigger_tests = async () => {
       ...triggers.map(t => sdk.api.automation_triggers.deleteOne(t.id)),
     ])
   }
+
+  await runTriggerTest({
+    title: "Any Meal Passing (Unset)",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'mg/dL',
+      // no meal status
+      // mealStatus: 'Before', 
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'mg/dL', value: 100 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Any Meal Passing (Unset) [Before]",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'mg/dL',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      beforeMeal: true,
+      measurement: { unit: 'mg/dL', value: 100 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Any Meal Passing (Unset) [After]",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'mg/dL',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      beforeMeal: false,
+      measurement: { unit: 'mg/dL', value: 100 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Any Meal Passing",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'mg/dL',
+      mealStatus: 'Any', 
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'mg/dL', value: 100 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Before Meal Passing",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'mg/dL',
+      mealStatus: 'Before',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      beforeMeal: true,
+      measurement: { unit: 'mg/dL', value: 100 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Before Meal Failing (omitted)",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'mg/dL',
+      mealStatus: 'Before',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'mg/dL', value: 100 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Before Meal Failing",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'mg/dL',
+      mealStatus: 'Before',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      beforeMeal: false,
+      measurement: { unit: 'mg/dL', value: 100 },
+      timestamp: new Date(),
+    }]
+  })
+
+  await runTriggerTest({
+    title: "After Meal Passing",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'mg/dL',
+      mealStatus: 'After',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      beforeMeal: false,
+      measurement: { unit: 'mg/dL', value: 100 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "After Meal Failing (omitted)",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'mg/dL',
+      mealStatus: 'After',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'mg/dL', value: 100 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "After Meal Failing",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'mg/dL',
+      mealStatus: 'After',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      beforeMeal: true,
+      measurement: { unit: 'mg/dL', value: 100 },
+      timestamp: new Date(),
+    }]
+  })
+
+  await runTriggerTest({
+    title: "Before meal trend passing",
+    shouldTrigger: true,
+    configurations: [{ 
+      mealStatus: 'Before',
+      unit: 'mg/dL',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 1 }, trendIntervalInMS: 1000 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { beforeMeal: true,  measurement: { unit: 'mg/dL', value: 1 }, timestamp: new Date() },
+      { beforeMeal: true, measurement: { unit: 'mg/dL', value: 1 }, timestamp: new Date(new Date().getTime() - 999) },
+    ]
+  })
+  await runTriggerTest({
+    title: "Before meal trend failing, undefined",
+    shouldTrigger: false,
+    configurations: [{ 
+      mealStatus: 'Before',
+      unit: 'mg/dL',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 1 }, trendIntervalInMS: 1000 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { measurement: { unit: 'mg/dL', value: 1 }, timestamp: new Date() },
+      { measurement: { unit: 'mg/dL', value: 1 }, timestamp: new Date(new Date().getTime() - 999) },
+    ]
+  })
+  await runTriggerTest({
+    title: "Before meal trend failing",
+    shouldTrigger: false,
+    configurations: [{ 
+      mealStatus: 'Before',
+      unit: 'mg/dL',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 1 }, trendIntervalInMS: 1000 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { beforeMeal: false, measurement: { unit: 'mg/dL', value: 1 }, timestamp: new Date() },
+      { beforeMeal: false, measurement: { unit: 'mg/dL', value: 1 }, timestamp: new Date(new Date().getTime() - 999) },
+    ]
+  })
+
+
+  await runTriggerTest({
+    title: "After meal trend passing",
+    shouldTrigger: true,
+    configurations: [{ 
+      mealStatus: 'After',
+      unit: 'mg/dL',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 1 }, trendIntervalInMS: 1000 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { beforeMeal: false,  measurement: { unit: 'mg/dL', value: 1 }, timestamp: new Date() },
+      { beforeMeal: false, measurement: { unit: 'mg/dL', value: 1 }, timestamp: new Date(new Date().getTime() - 999) },
+    ]
+  })
+  await runTriggerTest({
+    title: "After meal trend failing, undefined",
+    shouldTrigger: false,
+    configurations: [{ 
+      mealStatus: 'After',
+      unit: 'mg/dL',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 1 }, trendIntervalInMS: 1000 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { measurement: { unit: 'mg/dL', value: 1 }, timestamp: new Date() },
+      { measurement: { unit: 'mg/dL', value: 1 }, timestamp: new Date(new Date().getTime() - 999) },
+    ]
+  })
+  await runTriggerTest({
+    title: "After meal trend failing",
+    shouldTrigger: false,
+    configurations: [{ 
+      mealStatus: 'After',
+      unit: 'mg/dL',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 1 }, trendIntervalInMS: 1000 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { beforeMeal: true, measurement: { unit: 'mg/dL', value: 1 }, timestamp: new Date() },
+      { beforeMeal: true, measurement: { unit: 'mg/dL', value: 1 }, timestamp: new Date(new Date().getTime() - 999) },
+    ]
+  })
+
+  await runTriggerTest({
+    title: "Weight Trend from Profile (positive, not enough)",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, deviationFromProfileWeight: true, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 180 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Weight Trend from Profile (negative, not enough)",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: -1 }, deviationFromProfileWeight: true, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 180 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Weight Trend from Profile",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, deviationFromProfileWeight: true, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 182 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Weight Trend from Profile (negative)",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: -1 }, deviationFromProfileWeight: true, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 178 },
+      timestamp: new Date(),
+    }]
+  })
 
   await runTriggerTest({
     title: "Basic Passing Test (Less Than Sucess)",
@@ -7553,6 +7840,32 @@ const vital_trigger_tests = async () => {
     vitals: [
       { measurement: { unit: 'LB', value: 1 }, timestamp: new Date() },
       { measurement: { unit: 'LB', value: 1 }, timestamp: new Date(new Date().getTime() - 999) },
+    ]
+  })
+  await runTriggerTest({
+    title: "2-point trend passing (negative)",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: -1 }, trendIntervalInMS: 1000 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { measurement: { unit: 'LB', value: 1 }, timestamp: new Date() },
+      { measurement: { unit: 'LB', value: 10 }, timestamp: new Date(new Date().getTime() - 999) },
+    ]
+  })
+  await runTriggerTest({
+    title: "2-point trend failing (negative)",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: -1 }, trendIntervalInMS: 1000 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [
+      { measurement: { unit: 'LB', value: 1 }, timestamp: new Date() },
+      { measurement: { unit: 'LB', value: 2 }, timestamp: new Date(new Date().getTime() - 999) },
     ]
   })
   await runTriggerTest({

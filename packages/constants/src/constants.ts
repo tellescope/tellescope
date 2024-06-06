@@ -535,3 +535,5 @@ export const VITAL_UNITS_INFO: Record<string, { label: string }> = {
   "A1C": { label: "A1C" },
 }
 export const VITAL_UNITS = Object.keys(VITAL_UNITS_INFO)
+
+export const WEIGHT_UNITS = ['LB']

@@ -503,8 +503,8 @@ export const InsuranceInput = ({ field, value, onChange, form, responses, enduse
     .then(({ choices }) => setPayers(
       choices
       .map(c => ({
-        id: c.values.find(v => v.label === 'id')?.value?.toString() || '',
-        name: c.values.find(v => v.label === 'name')?.value?.toString() || '',
+        id: c.values.find(v => v.label?.trim()?.toLowerCase() === 'id')?.value?.toString() || '',
+        name: c.values.find(v => v.label?.trim()?.toLowerCase() === 'name')?.value?.toString() || '',
         state: c.values.find(v => v.label?.trim()?.toLowerCase() === 'state')?.value?.toString() || '',
       }))
       .filter(c => !c.state || !state || (c.state === state))
@@ -1648,13 +1648,30 @@ const label_for_database_record = (field: FormField, record?: DatabaseRecord) =>
   )
 }
 
-export const DatabaseSelectInput = ({ field, value, onChange, onDatabaseSelect, responses }: FormInputProps<'Database Select'> & {
+export const DatabaseSelectInput = ({ field, value: _value, onChange, onDatabaseSelect, responses }: FormInputProps<'Database Select'> & {
   responses: FormResponseValue[],
 }) => {
   const { choices, doneLoading } = useDatabaseChoices({ 
     databaseId: field.options?.databaseId,
     field,
   })
+
+  const value = React.useMemo(() => {
+    try {
+      // if the value is a string (some single answer that was save), make sure we coerce to array
+      const __value = typeof _value === 'string' ? [_value] : _value
+      return (
+        (__value?.map(v => 
+          choices.find(c => 
+            c.id === v.recordId || (typeof v === 'string' && label_for_database_record(field, c) === v)
+          )
+        )?.filter(v => v!) ?? []) as DatabaseRecord[]
+      )
+    } catch(err) {
+      console.error('Error resolving database answers for _value', err)
+      return []
+    }
+  }, [_value, choices, field])
 
   const filterResponse = useMemo(() => (
     field.options?.databaseFilter?.fieldId
@@ -1729,9 +1746,7 @@ export const DatabaseSelectInput = ({ field, value, onChange, onDatabaseSelect, 
           ? ''
           : label_for_database_record(field, o)
       )}
-      value={
-        (value?.map(v => choices.find(c => c.id === v.recordId))?.filter(v => v!) ?? []) as DatabaseRecord[]
-      }
+      value={value}
       onChange={(_, v) => {
         if (v.length && onDatabaseSelect) {
           onDatabaseSelect(v[0])
@@ -2443,7 +2458,7 @@ export const AppointmentBookingInput = ({ field, value, onChange, form, response
   if (field.options?.userTags?.length) {
     bookingURL += `&userTags=${
       field.options.userTags
-      .map(t => {
+      .flatMap(t => {
         // set dynamic tags if found
         if (t.startsWith("{{field.") && t.endsWith(".value}}")) {
           const fieldId = t.replace('{{field.', '').replace(".value}}", '')
@@ -2454,7 +2469,10 @@ export const AppointmentBookingInput = ({ field, value, onChange, form, response
           if (answer.type === 'Insurance') {
             return answer.value.payerName || ''
           }
-          return form_response_value_to_string(answer)
+          if (Array.isArray(answer.value) && typeof answer.value?.[0] === 'string') {
+            return answer.value as string[]
+          }
+          return form_response_value_to_string(answer.value)
         }
         return t
       })
@@ -2464,7 +2482,7 @@ export const AppointmentBookingInput = ({ field, value, onChange, form, response
   if (field.options?.userFilterTags?.length) {
     bookingURL += `&userFilterTags=${
       field.options.userFilterTags
-      .map(t => {
+      .flatMap(t => {
         // set dynamic tags if found
         if (t.startsWith("{{field.") && t.endsWith(".value}}")) {
           const fieldId = t.replace('{{field.', '').replace(".value}}", '')
@@ -2475,7 +2493,10 @@ export const AppointmentBookingInput = ({ field, value, onChange, form, response
           if (answer.type === 'Insurance') {
             return answer.value.payerName || ''
           }
-          return form_response_value_to_string(answer)
+          if (Array.isArray(answer.value) && typeof answer.value?.[0] === 'string') {
+            return answer.value as string[]
+          }
+          return form_response_value_to_string(answer.value)
         }
         return t
       })
@@ -2483,6 +2504,7 @@ export const AppointmentBookingInput = ({ field, value, onChange, form, response
     }`
   }
 
+  console.log(bookingURL)
   return (
     <Grid container direction="column" spacing={1} sx={{ mt: 1 }}>
       {/* When skipping user selection, include a back button at the top for clearer navigation on mobile */}
