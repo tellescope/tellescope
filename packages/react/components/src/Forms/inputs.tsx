@@ -477,7 +477,7 @@ export const NumberInput = ({ field, value, onChange, form, ...props }: FormInpu
 export const InsuranceInput = ({ field, value, onChange, form, responses, enduser, ...props }: FormInputProps<'Insurance'>) => {
   const session = useResolvedSession()
 
-  const [payers, setPayers] = useState<{ id: string, name: string }[]>([])
+  const [payers, setPayers] = useState<{ id: string, name: string, type?: string, state?: string }[]>([])
 
   const addressQuestion = useMemo(() => responses?.find(r => {
     if (r.answer.type !== 'Address') return false
@@ -506,6 +506,7 @@ export const InsuranceInput = ({ field, value, onChange, form, responses, enduse
         id: c.values.find(v => v.label?.trim()?.toLowerCase() === 'id')?.value?.toString() || '',
         name: c.values.find(v => v.label?.trim()?.toLowerCase() === 'name')?.value?.toString() || '',
         state: c.values.find(v => v.label?.trim()?.toLowerCase() === 'state')?.value?.toString() || '',
+        type: c.values.find(v => v.label?.trim()?.toLowerCase() === 'type')?.value?.toString() || '',
       }))
       .filter(c => !c.state || !state || (c.state === state))
     ))
@@ -521,11 +522,13 @@ export const InsuranceInput = ({ field, value, onChange, form, responses, enduse
           ...value, 
           payerName: v || '',
           payerId: payers.find(p => p.name === v)?.id || '',
+          payerType: payers.find(p => p.name === v)?.type || '',
         }, field.id)}  
         onInputChange={field.options?.requirePredefinedInsurer ? undefined : (e, v) => onChange({ 
           ...value, 
           payerName: v || '',
           payerId: payers.find(p => p.name === v)?.id || '',
+          payerType: payers.find(p => p.name === v)?.type || '',
         }, field.id)}
         renderInput={(params) => (
           <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}

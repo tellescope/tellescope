@@ -753,6 +753,7 @@ export type CustomActions = {
     }, { count: number, grouped: { _id: string, count: number }[] }>,
     sync_zendesk: CustomAction<{ enduserId: string }, { }>,
     get_journeys_report: CustomAction<{ }, { report: Record<string, any> }>,
+    dosespot: CustomAction<{ enduserId: string }, { link: string }>,
   },
   users: {
     display_info: CustomAction<{ }, { fname: string, lname: string, id: string }[]>,
@@ -809,7 +810,7 @@ export type CustomActions = {
     generate_google_auth_url: CustomAction<{ calendarOnly?: boolean }, { authUrl: string, }>, 
     disconnect_google_integration: CustomAction<{}, {}>,
     generate_oauth2_auth_url: CustomAction<{ integration: IntegrationsTitleType }, { authUrl: string, state: string }>, 
-    add_api_key_integration: CustomAction<{ API_KEY: string, integration: string, externalId?: string, webhooksSecret?: string, environment?: string, fields?: Record<string, string> }, { integration: Integration }>, 
+    add_api_key_integration: CustomAction<{ API_KEY: string, integration: string, externalId?: string, webhooksSecret?: string, environment?: string, fields?: Record<string, string>, scope?: string }, { integration: Integration }>, 
     remove_api_key_integration: CustomAction<{ integration: string }, { }>, 
     disconnect_oauth2_integration: CustomAction<{ integration: IntegrationsTitleType }, {}>,
     refresh_oauth2_session: CustomAction<{ title: string }, { access_token: string, expiry_date: number }>, 
@@ -1573,6 +1574,14 @@ export const schema: SchemaV1 = build_schema({
           report: { validator: objectAnyFieldsAnyValuesValidator, required: true }
         }
       },
+      dosespot: {
+        op: 'custom', access: 'read', method: 'post', 
+        path: '/endusers/dosespot',
+        name: 'Open in DoseSpot',
+        description: "Upserts patient to DoseSpot and opens a deep-link in DoseSpot", 
+        parameters: { enduserId: { validator: mongoIdStringValidator } },
+        returns: { link: { validator: stringValidator } }
+      },
     },
     publicActions: {
       begin_login_flow: {
@@ -1799,8 +1808,8 @@ export const schema: SchemaV1 = build_schema({
       environment: { validator: stringValidator100 },
       webhooksSecret: { validator: stringValidator },
       shouldCreateNotifications: { validator: booleanValidator },
-      disableEnduserAutoSync: { validator: booleanValidator },
       disableTicketAutoSync: { validator: booleanValidator },
+      enableEnduserUpdateSync: { validator: booleanValidator },
       redactExternalEvents: { validator: booleanValidator },
     },
     customActions: {
@@ -1966,6 +1975,7 @@ export const schema: SchemaV1 = build_schema({
           externalId: { validator: stringValidator },
           webhooksSecret: { validator: stringValidator },
           fields: { validator: objectAnyFieldsAnyValuesValidator as any },
+          scope: { validator: stringValidator },
         },
         returns: { integration: { validator: 'integration' as any } }
       },
@@ -2070,7 +2080,7 @@ export const schema: SchemaV1 = build_schema({
         initializer: j => (j.defaultState || j.states?.[0]?.name || 'New'),
       },
       description: {
-        validator: stringValidator100,
+        validator: stringValidator1000,
       },
       states: {
         validator: journeyStatesValidator,
@@ -3162,6 +3172,7 @@ export const schema: SchemaV1 = build_schema({
       lockedOutUntil: { validator: numberValidator },
       iOSBadgeCount: { validator: nonNegNumberValidator },
       availableFromNumbers: { validator: listOfStringsValidatorEmptyOk },
+      doseSpotUserId: { validator: stringValidator100 },
     }
   },
   templates: {
@@ -3263,6 +3274,9 @@ export const schema: SchemaV1 = build_schema({
         validator: messageTemplateModeValidator,
       },
       isMarketing: { validator: booleanValidator },
+      hideFromCompose: { validator: booleanValidator },
+      forChannels: { validator: listOfStringsValidatorEmptyOk }, 
+      forRoles: { validator: listOfStringsValidatorEmptyOk }, 
     },
   },
   files: {
@@ -5126,7 +5140,7 @@ export const schema: SchemaV1 = build_schema({
       ...BuiltInFields, 
       slug: { validator: stringValidator250 },
       title: {
-        validator: stringValidator100,
+        validator: stringValidator1000,
         required: true,
         examples: ["Template Name"],
       },
@@ -5687,7 +5701,12 @@ export const schema: SchemaV1 = build_schema({
         }))
       },
       athenaFieldsSync: { validator: fieldsSyncValidator },
-      athenaDepartmentIds: { validator: listOfStringsValidatorEmptyOk },
+      athenaDepartments: { 
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ id: string, timezone: Timezone }>({
+          id: stringValidator100,
+          timezone: timezoneValidator,
+        }))
+      },
       fieldsToAdminNote: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       canvasMessageSync: {
         validator: objectValidator<{ id: string, questionId: string }>({

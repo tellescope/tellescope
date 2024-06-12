@@ -311,6 +311,7 @@ import {
   CANDID_TITLE,
   CANVAS_TITLE,
   DEFAULT_ACCESS,
+  DOSESPOT_TITLE,
   ENDUSER_FIELD_TYPES,
   FULLSCRIPT_INTEGRATIONS_TITLE,
   GOGO_MEDS_TITLE,
@@ -1820,7 +1821,8 @@ export const insuranceOptionalValidator = objectValidator<EnduserInsurance>({
     lname: stringValidatorOptional, // required for Canvas/Candid
     gender: tellescopeGenderOptionalValidator, // required for Canvas/Candid
     dateOfBirth: stringValidatorOptional, // required for Canvas, optional for Candid
-  }, { isOptional: true, emptyOk: true })
+  }, { isOptional: true, emptyOk: true }),
+  payerType: stringValidatorOptional,
 }, { isOptional: true, emptyOk: true })
 
 // validate optional vs not at endpoint-level
@@ -2374,6 +2376,9 @@ export const automationEventValidator = orValidator<{ [K in AutomationEventType]
         field: stringValidator,
         before: booleanValidatorOptional,
       }, { isOptional: true, emptyOk: true, }),
+      eventCondition: objectValidator<AfterActionAutomationEvent['info']['eventCondition']>({
+        before: booleanValidatorOptional,
+      }, { isOptional: true, emptyOk: true }),
     }, { emptyOk: false }),
   }),
   formUnsubmitted: objectValidator<FormUnsubmittedEvent>({
@@ -2910,10 +2915,17 @@ export const formFieldFeedbackValidator = objectValidator<FormFieldFeedback>({
   display: stringValidator,
 })
 
+export const canvasCodingValidator = objectValidator<CanvasCoding>({
+  code: stringValidator,
+  display: stringValidator,
+  system: stringValidator,
+}, { })
+
 export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   bookingPageId: stringValidatorOptional,
   tableChoices: listValidatorOptionalOrEmptyOk(tableInputChoiceValidator),
   choices: listOfStringsValidatorOptionalOrEmptyOk,
+  canvasCodings: listValidatorOptionalOrEmptyOk(canvasCodingValidator),
   from: numberValidatorOptional,
   to: numberValidatorOptional,
   other: booleanValidatorOptional,
@@ -3518,6 +3530,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Purchase Made": true,
   "Appointment No-Showed": true,
   "Appointment Created": true,
+  "Appointment Completed": true,
   "Field Equals": true,
   "No Recent Appointment": true,
   "Medication Added": true,
@@ -3582,6 +3595,13 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
   "Appointment Created": objectValidator<AutomationTriggerEvents["Appointment Created"]>({
     type: exactMatchValidator(['Appointment Created']),
     info: objectValidator<AutomationTriggerEvents['Appointment Created']['info']>({
+      titles: listOfStringsValidatorOptionalOrEmptyOk,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Appointment Completed": objectValidator<AutomationTriggerEvents["Appointment Completed"]>({
+    type: exactMatchValidator(['Appointment Completed']),
+    info: objectValidator<AutomationTriggerEvents['Appointment Completed']['info']>({
       titles: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
@@ -3994,6 +4014,7 @@ export type IntegrationsTitleType = (
 | typeof SMART_METER_TITLE
 | typeof MFAX_TITLE
 | typeof ATHENA_TITLE
+| typeof DOSESPOT_TITLE
 )
 export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleType>([
   SQUARE_INTEGRATIONS_TITLE,
@@ -4010,6 +4031,7 @@ export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleTy
   SMART_METER_TITLE,
   MFAX_TITLE,
   ATHENA_TITLE,
+  DOSESPOT_TITLE,
 ])
 
 const _VIDEO_INTEGRATION_TYPES: { [K in VideoIntegrationType]: any} = {
@@ -4718,12 +4740,6 @@ export const diagnosisValidator = objectValidator<Diagnosis>({
 })
 export const diagnosesValidator = listValidator(diagnosisValidator)
 
-export const canvasCodingValidator = objectValidator<CanvasCoding>({
-  code: stringValidator,
-  display: stringValidator,
-  system: stringValidator,
-}, { })
-
 const enduserProfileWebhookValidator = objectValidator<BasicWebhook>({
   label: stringValidator,
   url: stringValidator,
@@ -4746,7 +4762,7 @@ export const fieldSyncValidator = objectValidator<AthenaFieldSync>({
 })
 export const fieldsSyncValidator = listValidatorEmptyOk(fieldSyncValidator)
 
-export const athenaSubscriptionTypeValidator = exactMatchValidator<AthenaSubscription['type']>(['patients'])
+export const athenaSubscriptionTypeValidator = exactMatchValidator<AthenaSubscription['type']>(['patients', 'appointments', 'orders', 'chart/healthhistory/problems'])
 export const athenaSubscriptionValidator = objectValidator<AthenaSubscription>({
   type: athenaSubscriptionTypeValidator,
   frequencyInMinutes: nonNegNumberValidator,

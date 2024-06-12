@@ -1667,6 +1667,29 @@ export const validate_enduser_for_smart_meter = (enduser?: Omit<Enduser, 'id'> |
   if (!enduser.zipCode) return "Address is required (ZIP)"
 }
 
+export const validate_enduser_for_dose_spot = (enduser?: Omit<Enduser, 'id'> | null) => {
+  if (!enduser) return "Enduser is required"
+  
+  if (!enduser.fname) return "First name is required"
+  if (!enduser.lname) return "Last name is required"
+
+  if (!enduser.gender) return "Gender is required"
+  if (!enduser.dateOfBirth) return "Date of Birth is required"
+
+  if (!enduser.addressLineOne) return "Address is required (Line One)"
+  if (!enduser.city) return "Address is required (City)"
+  if (!enduser.state) return "Address is required (State)"
+  if (!enduser.zipCode) return "Address is required (ZIP)"
+
+  if (!enduser.phone) return "Phone is required"
+
+  const age = age_for_dob_mmddyyyy(enduser.dateOfBirth)
+  if (typeof age === 'number' && age < 19) {
+    if (!enduser.height?.value) return "Height is required for patients under 19"
+    if (!enduser.weight?.value) return "Weight is required for patients under 19"
+  }
+}
+
 // https://stackoverflow.com/questions/38552003/how-to-decode-jwt-token-in-javascript-without-using-a-library
 export const decodeJWT = <T extends { exp: number }>(jwt: string): T | null => {
   try {

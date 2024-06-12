@@ -262,6 +262,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
   },
   endusers: {
+    dosespot: (args: extractFields<CustomActions['endusers']['dosespot']['parameters']>) => (
+      Promise<extractFields<CustomActions['endusers']['dosespot']['returns']>>
+    ),
     check_eligibility: (args: extractFields<CustomActions['endusers']['check_eligibility']['parameters']>) => (
       Promise<extractFields<CustomActions['endusers']['check_eligibility']['returns']>>
     ),
@@ -762,6 +765,7 @@ export class Session extends SessionManager {
     queries.endusers.sync_zendesk = a => this._POST(`/v1${schema.endusers.customActions.sync_zendesk.path}`, a)
     queries.endusers.get_journeys_report = a => this._POST(`/v1${schema.endusers.customActions.get_journeys_report.path}`, a)
     queries.endusers.check_eligibility = a => this._POST(`/v1${schema.endusers.customActions.check_eligibility.path}`, a)
+    queries.endusers.dosespot = a => this._POST(`/v1${schema.endusers.customActions.dosespot.path}`, a)
 
     queries.users.display_names = () => this._GET<{}, { fname: string, lname: string, id: string }[]>(`/v1/user-display-names`)
     queries.users.begin_sso = a => this._POST(`/v1/${schema.users.publicActions.begin_sso.path}`, a)

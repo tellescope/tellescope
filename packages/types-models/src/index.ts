@@ -239,7 +239,7 @@ export type AthenaFieldSync = {
 
 export type AthenaSubscription = {
   // make sure to update validator if adding new types here
-  type: 'patients',
+  type: 'patients' | 'appointments' | 'orders' | 'chart/healthhistory/problems',
   frequencyInMinutes: number,
   lastSyncedAt: Date,
 }
@@ -327,12 +327,13 @@ export interface Organization extends Organization_readonly, Organization_requir
   mfaxAccountId?: string,
   athenaFieldsSync?: AthenaFieldSync[]
   athenaSubscriptions?: AthenaSubscription[],
-  athenaDepartmentIds?: string[],
+  athenaDepartments?: { id: string, timezone: Timezone }[],
   fieldsToAdminNote?: string[],
   canvasMessageSync?: {
     id: string,
     questionId: string,
-  }
+  },
+  dosespotClinics?: { id: string, name: string }[],
   // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {
@@ -419,6 +420,7 @@ export interface UserSession extends Session, OrganizationLimits { // User joine
   eat?: boolean, // enableAccessTags
   lockedOutUntil?: number,
   duration?: number,
+  doseSpotUserId?: string,
   availablePhoneNumbers: string[],
 }
 
@@ -515,6 +517,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   lockedOutUntil?: number, // -1 => not locked out, 0 => locked out indefinitely, > 0 => locked out until unix time in MS
   elationUserId?: number,
   iOSBadgeCount?: number,
+  doseSpotUserId?: string,
 }
 
 export type Preference = 'email' | 'sms' | 'call' | 'chat'
@@ -613,7 +616,8 @@ export type EnduserInsurance = {
     // address?: Partial<Address>, // optional for candid
     // phone?: string, // not needed yet
     // email?: string, // not needed yet
-  }
+  },
+  payerType?: string, // for Healthie
 }
 
 export type TellescopeGender = "Male" | "Female" | "Other" | "Unknown"
@@ -1098,6 +1102,9 @@ export interface MessageTemplate extends MessageTemplate_readonly, MessageTempla
   mode?: MessageTemplateMode,
   embeddingHash?: string,
   isMarketing?: boolean,
+  forChannels?: string[],
+  forRoles?: string[],
+  hideFromCompose?: boolean,
 }
 
 export interface File_readonly extends ClientRecord {
@@ -1302,6 +1309,7 @@ export interface CanvasConsentCategory extends CanvasCoding {}
 export type FormFieldOptions = FormFieldValidation & {
   tableChoices?: TableInputChoice[],  
   choices?: string[];
+  canvasCodings?: CanvasCoding[],
   from?: number,
   to?: number,
   radio?: boolean; // absent indicates not radio
@@ -1869,6 +1877,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   bufferEndMinutes?: number,
   canvasCoding?: CanvasCoding,
   canvasLocationId?: string,
+  completedAt?: Date | '',
   // isAllDay?: boolean,
 }
 
@@ -2147,6 +2156,9 @@ export type AfterActionAutomationEvent = AutomationEventBuilder<'afterAction', A
   }
   fieldCondition?: {
     field: string,
+    before?: boolean,
+  }
+  eventCondition?: {
     before?: boolean,
   }
 }> 
@@ -2610,6 +2622,7 @@ export interface AutomatedAction_readonly extends ClientRecord {
   lockedAt?: number,
   lockId?: string,
   lockCount?: number,
+  processedAt?: Date,
 }
 export interface AutomatedAction_required {
   enduserId: string,
@@ -3082,6 +3095,7 @@ export type AutomationTriggerEvents = {
   'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", { }, {}>,
   'Field Equals': AutomationTriggerEventBuilder<"Field Equals", { field: string, value: string }, { }>,
   'Appointment Created': AutomationTriggerEventBuilder<"Appointment Created", { titles?: string[] }, {}>,
+  'Appointment Completed': AutomationTriggerEventBuilder<"Appointment Completed", { titles?: string[] }, {}>,
   'Medication Added': AutomationTriggerEventBuilder<"Medication Added", { titles: string[] }, {}>,
   'No Recent Appointment': AutomationTriggerEventBuilder<"No Recent Appointment", { 
     intervalInMS: number, 
