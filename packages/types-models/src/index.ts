@@ -186,6 +186,7 @@ export type OrganizationSettings = {
     disableSnooze?: boolean,
     showCommunications?: boolean,
     showJourneys?: boolean,
+    requireDueDate?: boolean,
   },
   calendar?: {
     dayStart?: {
@@ -518,6 +519,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   elationUserId?: number,
   iOSBadgeCount?: number,
   doseSpotUserId?: string,
+  url?: string,
 }
 
 export type Preference = 'email' | 'sms' | 'call' | 'chat'
@@ -618,6 +620,7 @@ export type EnduserInsurance = {
     // email?: string, // not needed yet
   },
   payerType?: string, // for Healthie
+  groupNumber?: string,
 }
 
 export type TellescopeGender = "Male" | "Female" | "Other" | "Unknown"
@@ -1330,6 +1333,7 @@ export type FormFieldOptions = FormFieldValidation & {
   },
   useDatePicker?: boolean,
   sharedIntakeFields?: string[],
+  hiddenDefaultFields?: string[],
   copyResponse?: boolean, // copy to related contacts when created
   disableGoBack?: boolean,
   disableNext?: boolean,
@@ -1344,6 +1348,7 @@ export type FormFieldOptions = FormFieldValidation & {
   validStates?: string[],
   autoAdvance?: boolean,
   prefillSignature?: boolean,
+  includeGroupNumber?: boolean,
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
@@ -1486,6 +1491,7 @@ export interface Integration extends Integration_readonly, Integration_required,
   authentication: IntegrationAuthentication,
   emailDisabled?: boolean, 
   syncUnrecognizedSenders?: boolean,
+  createEndusersForUnrecognizedSenders?: boolean,
   calendars?: string[],
   environment?: string,
   webhooksSecret?: string,
@@ -3096,6 +3102,8 @@ export type AutomationTriggerEvents = {
   'Field Equals': AutomationTriggerEventBuilder<"Field Equals", { field: string, value: string }, { }>,
   'Appointment Created': AutomationTriggerEventBuilder<"Appointment Created", { titles?: string[] }, {}>,
   'Appointment Completed': AutomationTriggerEventBuilder<"Appointment Completed", { titles?: string[] }, {}>,
+  'Appointment Cancelled': AutomationTriggerEventBuilder<"Appointment Cancelled", { titles?: string[] }, {}>,
+  'Appointment Rescheduled': AutomationTriggerEventBuilder<"Appointment Rescheduled", { titles?: string[] }, {}>,
   'Medication Added': AutomationTriggerEventBuilder<"Medication Added", { titles: string[] }, {}>,
   'No Recent Appointment': AutomationTriggerEventBuilder<"No Recent Appointment", { 
     intervalInMS: number, 
@@ -3122,6 +3130,8 @@ export type AutomationTriggerEvents = {
     phoneNumbers?: string[], 
     inputs?: string[], 
   }, {}>,
+  'Order Created': AutomationTriggerEventBuilder<"Order Created", { titles?: string[] }, {}>,
+  'Problem Created': AutomationTriggerEventBuilder<"Problem Created", { titles?: string[] }, {}>,
 }
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents
 export type AutomationTriggerEvent = AutomationTriggerEvents[AutomationTriggerEventType]
@@ -3373,6 +3383,7 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
   externalId: string,
   source: string,
   title: string,
+  description?: string,
   status: string,
   enduserId: string,
   userId?: string,
@@ -3382,6 +3393,19 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
     tracking?: string,
   }[],
   tracking?: string,
+}
+
+export interface EnduserProblem_readonly extends ClientRecord {}
+export interface EnduserProblem_updatesDisabled {}
+export interface EnduserProblem_required {}
+export interface EnduserProblem extends EnduserProblem_readonly, EnduserProblem_required, EnduserProblem_updatesDisabled {
+  externalId?: string,
+  source?: string,
+  title: string,
+  enduserId: string,
+  code?: string,
+  codeset?: string,
+  references?: RelatedRecord[],
 }
 
 export type CandidProcedureCode = {
@@ -3516,9 +3540,12 @@ export interface PrescriptionRoute extends PrescriptionRoute_readonly, Prescript
   state: string,
   templateIds: string[],
   pharmacyId?: string,
+  pharmacyLabel?: string,
+  tags?: string[],
 }
 
 export type ModelForName_required = {
+  enduser_problems: EnduserProblem_required,
   prescription_routes: PrescriptionRoute_required,
   vital_configurations: VitalConfiguration_required,
   blocked_phones: BlockedPhone_required,
@@ -3594,6 +3621,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  enduser_problems: EnduserProblem_readonly,
   prescription_routes: PrescriptionRoute_readonly,
   blocked_phones: BlockedPhone_readonly,
   vital_configurations: VitalConfiguration_readonly,
@@ -3669,6 +3697,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  enduser_problems: EnduserProblem_updatesDisabled,
   prescription_routes: PrescriptionRoute_updatesDisabled,
   blocked_phones: BlockedPhone_updatesDisabled,
   vital_configurations: VitalConfiguration_updatesDisabled,
@@ -3744,6 +3773,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly {
+  enduser_problems: EnduserProblem,
   prescription_routes: PrescriptionRoute,
   blocked_phones: BlockedPhone,
   vital_configurations: VitalConfiguration,
@@ -3829,6 +3859,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  enduser_problems: true,
   prescription_routes: true,
   blocked_phones: true,
   vital_configurations: true,

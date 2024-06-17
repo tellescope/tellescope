@@ -839,7 +839,7 @@ export type CustomActions = {
     }, {  }>, 
     disconnect_zendesk: CustomAction<{}, {}>,
     update_zoom: CustomAction<{ clientId?: string, clientSecret?: string }, { }>,
-    proxy_read: CustomAction<{ integration: string, type: string }, { data: any }>,
+    proxy_read: CustomAction<{ integration: string, type: string, id?: string, query?: string }, { data: any }>,
   },
   emails: {
     sync_integrations: CustomAction<{ enduserEmail: string, allUsers?: boolean }, { newEmails: Email[] }>,
@@ -1804,6 +1804,7 @@ export const schema: SchemaV1 = build_schema({
       lastSync: { validator: nonNegNumberValidator },
       emailDisabled: { validator: booleanValidator },
       syncUnrecognizedSenders: { validator: booleanValidator },
+      createEndusersForUnrecognizedSenders: { validator: booleanValidator },
       calendars: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       environment: { validator: stringValidator100 },
       webhooksSecret: { validator: stringValidator },
@@ -1833,6 +1834,8 @@ export const schema: SchemaV1 = build_schema({
         parameters: {
           integration: { validator: stringValidator, required: true },
           type: { validator: stringValidator, required: true },
+          id: { validator: stringValidator },
+          query: { validator: stringValidator },
         },
         returns: { 
           data: { validator: optionalAnyObjectValidator, required: true },
@@ -3173,6 +3176,7 @@ export const schema: SchemaV1 = build_schema({
       iOSBadgeCount: { validator: nonNegNumberValidator },
       availableFromNumbers: { validator: listOfStringsValidatorEmptyOk },
       doseSpotUserId: { validator: stringValidator100 },
+      url: { validator: stringValidator1000 },
     }
   },
   templates: {
@@ -4667,6 +4671,7 @@ export const schema: SchemaV1 = build_schema({
       canvasCoding: { validator: canvasCodingValidator },
       canvasLocationId: { validator: stringValidator100 },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
+      completedAt: { validator: dateValidatorOptional },
       // isAllDay: { validator: booleanValidator },
     }
   },
@@ -7259,6 +7264,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       userId: { validator: mongoIdStringValidator },
       title: { validator: stringValidator, required: true, examples: ['title'] },
       status: { validator: stringValidator, required: true, examples: ['status'] },
+      description: { validator: stringValidator1000 },
     }
   },
   vital_configurations: {
@@ -7307,7 +7313,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
   prescription_routes: {
     info: {},
     constraints: { 
-      unique: [], relationship: [], 
+      unique: [['state', 'templateIds', 'pharmacyId']], relationship: [], 
       access: []  
     },
     defaultActions: DEFAULT_OPERATIONS,
@@ -7319,7 +7325,41 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       state: { validator: stateValidator, required: true, examples: ['CA'] }, 
       templateIds: { validator: listOfStringsValidator, required: true, examples: [['tmp_01GZMD9Q71W7T44812351V9QZN']] },
       pharmacyId: { validator: stringValidator },
+      pharmacyLabel: { validator: stringValidator },
+      tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, 
     },
+  },
+  enduser_problems: {
+    info: {
+      description: 'Problems'
+    },
+    constraints: { 
+      unique: [], relationship: [], 
+      access: []
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      externalId: { validator: stringValidator100, examples: ['externalId'] },
+      source: { validator: stringValidator100, examples: ['source'] },
+      enduserId: { 
+        validator: mongoIdStringValidator,
+        examples: [PLACEHOLDER_ID],
+        required: true,
+        dependencies: [{
+          dependsOn: ['endusers'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+      title: { validator: stringValidator, required: true, examples: ['title'] },
+      code: { validator: stringValidator100 },
+      codeset: { validator: stringValidator100 },
+      references: { validator: listOfRelatedRecordsValidator, updatesDisabled: true },
+    }
   },
 })
 

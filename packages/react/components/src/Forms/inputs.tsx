@@ -545,6 +545,16 @@ export const InsuranceInput = ({ field, value, onChange, form, responses, enduse
       />
       </Grid>
 
+      {field.options?.includeGroupNumber &&
+        <Grid item xs={12}>
+          <TextField InputProps={defaultInputProps} fullWidth value={value?.groupNumber ?? ''} 
+            onChange={e => onChange({ ...value, groupNumber: e.target.value }, field.id)}  
+            label={form_display_text_for_language(form, "Group Number", '')}
+            size="small"
+          />
+        </Grid>
+      }
+
       <Grid item xs={12}>
         <StringSelector size="small" label="Relationship to Policy Owner"
           options={
@@ -2207,19 +2217,23 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
       <Grid container direction="column" spacing={1}>
         <Grid item>
         <Grid container alignItems="center" wrap="nowrap" spacing={1}>
-          <Grid item xs={4}>
-            <TextField label="First Name" size="small" fullWidth
-              InputProps={defaultInputProps}
-              value={fname} onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, fname: e.target.value } : v), field.id)}
-            />
-          </Grid>
+          {!field.options?.hiddenDefaultFields?.includes('First Name') &&  
+            <Grid item xs={4}>
+              <TextField label="First Name" size="small" fullWidth
+                InputProps={defaultInputProps}
+                value={fname} onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, fname: e.target.value } : v), field.id)}
+              />
+            </Grid>
+          }
 
+          {!field.options?.hiddenDefaultFields?.includes('Last Name') &&  
           <Grid item xs={4}>
             <TextField label="Last Name" size="small" fullWidth
               InputProps={defaultInputProps}
               value={lname} onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, lname: e.target.value } : v), field.id)}
             />
           </Grid>
+          }
 
           <Grid item xs={4}>
             <StringSelector options={RELATIONSHIP_TYPES} label="Relationship" size="small"
@@ -2232,25 +2246,31 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
 
         <Grid item>
         <Grid container alignItems="center" wrap="nowrap" spacing={1}>
+          {!field.options?.hiddenDefaultFields?.includes('Date of Birth') &&  
           <Grid item xs={4}>
             <DateStringInput value={dateOfBirth} field={{ ...field, isOptional: true }} size="small" label="Date of Birth"
               onChange={dateOfBirth => onChange(value.map((v, i) => i === editing ? { ...v, dateOfBirth } : v), field.id)}
             />
           </Grid>
+          }
 
+          {!field.options?.hiddenDefaultFields?.includes('Email') &&  
           <Grid item xs={4}>
             <TextField label="Email" size="small" fullWidth type="email"
               InputProps={defaultInputProps}
               value={email} onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, email: e.target.value } : v), field.id)}
             />
           </Grid>
+          }
 
+          {!field.options?.hiddenDefaultFields?.includes('Phone Number') &&  
           <Grid item xs={4}>
             <TextField label="Phone Number" size="small" fullWidth
               InputProps={defaultInputProps}
               value={phone} onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, phone: e.target.value } : v), field.id)}
             />
           </Grid>
+          }
         </Grid>
         </Grid>
 

@@ -243,6 +243,11 @@ export const getNextField = (activeField: FormFieldNode, currentValue: Response,
             currentValue.answer.value?.find(v => v.text === p.info.equals)
           )
         )
+        || (
+          currentValue.answer.type === 'Insurance' && (
+            currentValue.answer.value?.payerName === p.info.equals
+          )
+        )
       )
   ))
   ) || (

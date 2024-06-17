@@ -1823,6 +1823,7 @@ export const insuranceOptionalValidator = objectValidator<EnduserInsurance>({
     dateOfBirth: stringValidatorOptional, // required for Canvas, optional for Candid
   }, { isOptional: true, emptyOk: true }),
   payerType: stringValidatorOptional,
+  groupNumber: stringValidatorOptional,
 }, { isOptional: true, emptyOk: true })
 
 // validate optional vs not at endpoint-level
@@ -2950,6 +2951,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   }, { isOptional: true, emptyOk: true }),
   useDatePicker: booleanValidatorOptional,
   sharedIntakeFields: listOfStringsValidatorOptionalOrEmptyOk,
+  hiddenDefaultFields: listOfStringsValidatorOptionalOrEmptyOk,
   copyResponse: booleanValidatorOptional,
   disableGoBack: booleanValidatorOptional,
   disableNext: booleanValidatorOptional,
@@ -2967,6 +2969,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   userFilterTags: listOfStringsValidatorOptionalOrEmptyOk,
   prefillSignature: booleanValidatorOptional,
   requirePredefinedInsurer: booleanValidatorOptional,
+  includeGroupNumber: booleanValidatorOptional,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -3457,6 +3460,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     disableSnooze: booleanValidatorOptional,
     showCommunications: booleanValidatorOptional,
     showJourneys: booleanValidatorOptional,
+    requireDueDate: booleanValidatorOptional,
   }, { isOptional: true }),
   calendar: objectValidator<OrganizationSettings['calendar']>({
     dayStart: objectValidator<Required<OrganizationSettings>['calendar']['dayStart']>({
@@ -3530,7 +3534,9 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Purchase Made": true,
   "Appointment No-Showed": true,
   "Appointment Created": true,
+  "Appointment Cancelled": true,
   "Appointment Completed": true,
+  "Appointment Rescheduled": true,
   "Field Equals": true,
   "No Recent Appointment": true,
   "Medication Added": true,
@@ -3541,6 +3547,8 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "SMS Reply": true,
   "Order Status Equals": true,
   "Missed Call": true,
+  "Order Created": true,
+  "Problem Created": true,
 }
 export const AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES) as AutomationTriggerEventType[]
 
@@ -3606,6 +3614,20 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
+  "Appointment Cancelled": objectValidator<AutomationTriggerEvents["Appointment Cancelled"]>({
+    type: exactMatchValidator(['Appointment Cancelled']),
+    info: objectValidator<AutomationTriggerEvents['Appointment Cancelled']['info']>({
+      titles: listOfStringsValidatorOptionalOrEmptyOk,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Appointment Rescheduled": objectValidator<AutomationTriggerEvents["Appointment Rescheduled"]>({
+    type: exactMatchValidator(['Appointment Rescheduled']),
+    info: objectValidator<AutomationTriggerEvents['Appointment Rescheduled']['info']>({
+      titles: listOfStringsValidatorOptionalOrEmptyOk,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
   "Medication Added": objectValidator<AutomationTriggerEvents["Medication Added"]>({
     type: exactMatchValidator(['Medication Added']),
     info: objectValidator<AutomationTriggerEvents['Medication Added']['info']>({
@@ -3666,6 +3688,20 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     info: objectValidator<AutomationTriggerEvents['Missed Call']['info']>({
       inputs: listOfStringsValidatorOptionalOrEmptyOk,
       phoneNumbers: listOfStringsValidatorOptionalOrEmptyOk,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Order Created": objectValidator<AutomationTriggerEvents["Order Created"]>({
+    type: exactMatchValidator(['Order Created']),
+    info: objectValidator<AutomationTriggerEvents['Order Created']['info']>({
+      titles: listOfStringsValidatorOptionalOrEmptyOk,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Problem Created": objectValidator<AutomationTriggerEvents["Problem Created"]>({
+    type: exactMatchValidator(['Problem Created']),
+    info: objectValidator<AutomationTriggerEvents['Problem Created']['info']>({
+      titles: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -3873,12 +3909,14 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   vital_configurations: accessPermissionValidator,
   blocked_phones: accessPermissionValidator,
   prescription_routes: accessPermissionValidator,
+  enduser_problems: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
 })
 
 export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
+  enduser_problems: accessPermissionValidator,
   prescription_routes: accessPermissionValidator,
   group_mms_conversations: accessPermissionValidator,
   enduser_custom_types: numberValidatorOptional,

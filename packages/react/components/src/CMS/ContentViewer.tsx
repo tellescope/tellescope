@@ -58,7 +58,10 @@ export const ArticleViewer = ({
   }, [rootRef.current?.offsetWidth, pageWidth]) // refresh on page width change
 
   if (!article.blocks?.length) {
-    if (article.htmlContent) {
+    if (article.type === 'PDF' && article.attachments?.[0]?.secureName) {
+      return <PDFBlockUI info={{ link: article.attachments[0].secureName }} />
+    }
+    else if (article.htmlContent) {
       return (
         <div style={style} dangerouslySetInnerHTML={{
           __html: remove_script_tags(article.htmlContent)

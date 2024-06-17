@@ -288,6 +288,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
     delete: ASSIGNED_ACCESS,
   },
   enduser_observations: ASSIGNED_AND_DEFAULT_ACCESS,
+  enduser_problems: ASSIGNED_AND_DEFAULT_ACCESS,
   forum_posts: ASSIGNED_AND_DEFAULT_ACCESS,
   forums: ASSIGNED_AND_DEFAULT_ACCESS,
   managed_content_records: ASSIGNED_AND_DEFAULT_ACCESS,
@@ -336,6 +337,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
+  enduser_problems: FULL_ACCESS,
   prescription_routes: FULL_ACCESS,
   blocked_phones: FULL_ACCESS,
   vital_configurations: FULL_ACCESS,

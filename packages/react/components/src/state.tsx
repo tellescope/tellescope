@@ -84,6 +84,7 @@ import {
   VitalConfiguration,
   BlockedPhone,
   PrescriptionRoute,
+  EnduserProblem,
 } from "@tellescope/types-client"
 
 import {
@@ -315,6 +316,7 @@ const automatedActionsSlice = createSliceForList<AutomatedAction, 'automated_act
 const groupMMSConversationsSlice = createSliceForList<GroupMMSConversation, 'group_mms_conversations'>('group_mms_conversations')
 const blockedPhonesSlice = createSliceForList<BlockedPhone, 'blocked_phones'>('blocked_phones')
 const prescriptionRoutesSlice = createSliceForList<PrescriptionRoute, 'prescription_routes'>('prescription_routes')
+const enduserProblemsSlice = createSliceForList<EnduserProblem, 'enduser_problems'>('enduser_problems')
 
 const enduserObservationsSlice = createSliceForList<EnduserObservation, 'enduser_observations'>('enduser_observations')
 const forumsSlice = createSliceForList<Forum, 'forums'>('forums')
@@ -413,6 +415,7 @@ export const sharedConfig = {
     vital_configurations: vitalConfigurationsSlice.reducer,
     blocked_phones: blockedPhonesSlice.reducer,
     prescription_routes: prescriptionRoutesSlice.reducer,
+    enduser_problems: enduserProblemsSlice.reducer,
   },
 }
 
@@ -1155,6 +1158,24 @@ export const useUserAndEnduserDisplayInfo = () => {
   return displayInfo
 }
 
+export const useEnduserProblems = (options={} as HookOptions<EnduserProblem>) => {
+  const session = useResolvedSession()
+
+  return useListStateHook('enduser_problems', useTypedSelector(s => s.enduser_problems), session, enduserProblemsSlice,
+    { 
+      loadQuery: session.api.enduser_problems.getSome,
+      findOne: session.api.enduser_problems.getOne,
+      findByIds: session.api.enduser_problems.getByIds,
+      addOne: session.api.enduser_problems.createOne,
+      addSome: session.api.enduser_problems.createSome,
+      deleteOne: session.api.enduser_problems.deleteOne,
+      updateOne: session.api.enduser_problems.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
 export const useEnduserMedications = (options={} as HookOptions<EnduserMedication>) => {
   const session = useResolvedSession()
 

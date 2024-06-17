@@ -6012,6 +6012,7 @@ export const alternate_phones_tests = async () => {
 
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
+  enduser_problems: NO_TEST,
   vital_configurations: NO_TEST,
   enduser_encounters: NO_TEST,
   enduser_orders: NO_TEST,

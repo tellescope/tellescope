@@ -1467,6 +1467,10 @@ export const responses_satisfy_conditions = (responses: FormResponseValue[], con
         )
       }
 
+      if (answer.type === 'Insurance') {
+        return answer.value?.payerName === comparison
+      }
+
       if (answer.type === 'Address') {
         return (
            comparison === answer.value?.state

@@ -203,6 +203,7 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   vital_configurations: defaultQueries(s, 'vital_configurations'), 
   blocked_phones: defaultQueries(s, 'blocked_phones'),
   prescription_routes: defaultQueries(s, 'prescription_routes'),
+  enduser_problems: defaultQueries(s, 'enduser_problems'),
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
