@@ -2088,6 +2088,20 @@ export const MedicationsInput = ({ field, value, onChange }: FormInputProps<'Med
                       field.id,
                     )
                   }
+                  // hide arrows for number input, which continue to increase after initial press
+                  sx={{
+                    '& input[type=number]': {
+                      '-moz-appearance': 'textfield'
+                    },
+                    '& input[type=number]::-webkit-outer-spin-button': {
+                        '-webkit-appearance': 'none',
+                        margin: 0
+                    },
+                    '& input[type=number]::-webkit-inner-spin-button': {
+                        '-webkit-appearance': 'none',
+                        margin: 0
+                    }
+                  }}
                 /> 
               </Grid>
 

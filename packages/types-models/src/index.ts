@@ -167,8 +167,9 @@ export type OrganizationSettings = {
     showFreeNote?: boolean,
     canDeleteFreeNote?: boolean,
     recordCalls?: boolean,
+    recordCallAudioPlayback?: string, 
     transcribeCalls?: boolean,
-    transcribeCallInboundPlayback?: string,
+    transcribeCallInboundPlayback?: string, // should be 'recordCall' but too late
     showDeleteCallRecordingOnTimeline?: boolean,
     defaultPhoneNumber?: string,
     sendSMSOnZoomStart?: boolean,
@@ -321,6 +322,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   billingOrganizationAddress?: Address,
   videoCallBackgroundImage?: string,
   sendToVoicemailOOO?: boolean
+  onCallUserIds?: string[],
   outOfOfficeVoicemail?: PhonePlayback
   enduserProfileWebhooks?: BasicWebhook[],
   showCommunity?: boolean,
@@ -335,6 +337,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     questionId: string,
   },
   dosespotClinics?: { id: string, name: string }[],
+  enforceMFA?: boolean,
   // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {
@@ -520,6 +523,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   iOSBadgeCount?: number,
   doseSpotUserId?: string,
   url?: string,
+  requiresMFAConfiguration?: boolean,
 }
 
 export type Preference = 'email' | 'sms' | 'call' | 'chat'
@@ -561,7 +565,13 @@ export type ScheduledJourney = {
 }
 
 export type EnduserRelationship = {
-  type: 'Parent' | 'Child' | 'Spouse' | 'Partner' | 'Sibling' | 'Relates To' | 'Grandparent' | 'Grandchild' | 'Caregiver' | 'Caretaker' | 'Care Recipient'
+  type: (
+    'Parent' | 'Child' | 'Spouse' | 'Partner' | 'Sibling' | 'Grandparent' | 'Grandchild'
+    | 'Caregiver' | 'Caretaker' | 'Care Recipient'
+    | 'Power of Attorney' | 'Power of Attorney For'
+    | "Emergency Contact"  | "Emergency Contact For"
+    | 'Relates To' 
+  )
   id: string,
 }
 export type Language = {
@@ -1107,7 +1117,9 @@ export interface MessageTemplate extends MessageTemplate_readonly, MessageTempla
   isMarketing?: boolean,
   forChannels?: string[],
   forRoles?: string[],
+  forEntityTypes?: string[],
   hideFromCompose?: boolean,
+  tags?: string[],
 }
 
 export interface File_readonly extends ClientRecord {
@@ -1988,7 +2000,8 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   bufferEndMinutes?: number,
 
   canvasCoding?: CanvasCoding,
-  tags?: string[]
+  tags?: string[],
+  matchToHealthieTemplate?: boolean,
 }
 
 export interface AppointmentLocation_readonly extends ClientRecord {}
@@ -2298,6 +2311,7 @@ export type SmartMeterPlaceOrderAutomationAction = AutomationActionBuilder<'smar
 }>
 export type HealthieSyncAutomationAction = AutomationActionBuilder<'healthieSync', {}>
 export type CompleteTicketsAutomationAction = AutomationActionBuilder<'completeTickets', { journeyIds?: string[] }>
+export type ChangeContactTypeAutomationAction = AutomationActionBuilder<'changeContactType', { type: string }>
 
 export type IterableFieldsMapping = {
   iterable: string,
@@ -2351,6 +2365,7 @@ export type AutomationActionForType = {
   'smartMeterPlaceOrder': SmartMeterPlaceOrderAutomationAction,
   'healthieSync': HealthieSyncAutomationAction,
   'completeTickets': CompleteTicketsAutomationAction,
+  'changeContactType': ChangeContactTypeAutomationAction,
 }
 export type AutomationActionType = keyof AutomationActionForType
 export type AutomationAction = AutomationActionForType[AutomationActionType]
@@ -3058,6 +3073,11 @@ export type EnduserProfileViewBlocks = {
     fields: string[],
     displayFields?: { field: string, display: string }[],
   }>,
+  "Form Responses": EnduserProfileViewBlockBuilder<"Form Responses", { 
+    title: string, 
+    formId: string,
+    fieldIds: string[],
+  }>,
 }
 export type EnduserProfileViewBlockType = keyof EnduserProfileViewBlocks
 export type EnduserProfileViewBlock = EnduserProfileViewBlocks[EnduserProfileViewBlockType]
@@ -3132,6 +3152,8 @@ export type AutomationTriggerEvents = {
   }, {}>,
   'Order Created': AutomationTriggerEventBuilder<"Order Created", { titles?: string[] }, {}>,
   'Problem Created': AutomationTriggerEventBuilder<"Problem Created", { titles?: string[] }, {}>,
+  'Message Delivery Failure': AutomationTriggerEventBuilder<"Message Delivery Failure", { }, {}>,
+  'Incoming Message (No Care Team)': AutomationTriggerEventBuilder<"Incoming Message (No Care Team)", { }, {}>,
 }
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents
 export type AutomationTriggerEvent = AutomationTriggerEvents[AutomationTriggerEventType]
@@ -3235,7 +3257,7 @@ export type PhoneTreeActions = {
   // 'Play': PhoneTreeActionBuilder<"Play", { playback: PhonePlayback }>
   'Gather': PhoneTreeActionBuilder<"Gather", { digits: boolean, speech: boolean, playback: PhonePlayback }>
   'Voicemail': PhoneTreeActionBuilder<"Voicemail", { playback: PhonePlayback }>
-  'Play Message': PhoneTreeActionBuilder<"Play Message", { playback: PhonePlayback }>
+  'Play Message': PhoneTreeActionBuilder<"Play Message", { playback: PhonePlayback, journeyId?: string }>
   'Dial Users': PhoneTreeActionBuilder<"Dial Users", { userIds: string[], playback?: Partial<PhonePlayback> }>
   'Route Call': PhoneTreeActionBuilder<"Route Call", { 
     prePlayback?: Partial<PhonePlayback>,
@@ -3544,7 +3566,17 @@ export interface PrescriptionRoute extends PrescriptionRoute_readonly, Prescript
   tags?: string[],
 }
 
+export interface FlowchartNote_readonly extends ClientRecord { }
+export interface FlowchartNote_required {}
+export interface FlowchartNote_updatesDisabled {}
+export interface FlowchartNote extends FlowchartNote_readonly, FlowchartNote_required, FlowchartNote_updatesDisabled {
+  flowchartId: string,
+  note: string,
+  flowchartUI?: FlowchartUI,
+}
+
 export type ModelForName_required = {
+  flowchart_notes: FlowchartNote_required,
   enduser_problems: EnduserProblem_required,
   prescription_routes: PrescriptionRoute_required,
   vital_configurations: VitalConfiguration_required,
@@ -3621,6 +3653,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  flowchart_notes: FlowchartNote_readonly,
   enduser_problems: EnduserProblem_readonly,
   prescription_routes: PrescriptionRoute_readonly,
   blocked_phones: BlockedPhone_readonly,
@@ -3697,6 +3730,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  flowchart_notes: FlowchartNote_updatesDisabled,
   enduser_problems: EnduserProblem_updatesDisabled,
   prescription_routes: PrescriptionRoute_updatesDisabled,
   blocked_phones: BlockedPhone_updatesDisabled,
@@ -3773,6 +3807,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly {
+  flowchart_notes: FlowchartNote,
   enduser_problems: EnduserProblem,
   prescription_routes: PrescriptionRoute,
   blocked_phones: BlockedPhone,
@@ -3859,6 +3894,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  flowchart_notes: true,
   enduser_problems: true,
   prescription_routes: true,
   blocked_phones: true,
@@ -3959,6 +3995,7 @@ export type JourneyContext = {
   orderId?: string,
   observationId?: string,
   phoneCallId?: string,
+  smsId?: string,
 }
 
 // https://gist.github.com/aviflax/a4093965be1cd008f172/ 

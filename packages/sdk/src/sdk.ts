@@ -204,6 +204,7 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   blocked_phones: defaultQueries(s, 'blocked_phones'),
   prescription_routes: defaultQueries(s, 'prescription_routes'),
   enduser_problems: defaultQueries(s, 'enduser_problems'),
+  flowchart_notes: defaultQueries(s, 'flowchart_notes'),
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {

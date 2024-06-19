@@ -275,6 +275,7 @@ import {
   AthenaFieldSync,
   AthenaSubscription,
   CompleteTicketsAutomationAction,
+  ChangeContactTypeAutomationAction,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -1279,6 +1280,7 @@ export const phoneValidator: ValidatorDefinition<string> = {
       if (typeof phone !== "string") throw new Error(`Expecting phone to be string but got ${phone}`)
 
       let escaped = escape_phone_number(phone) 
+      if (escaped === '311') return escaped
       if (escaped.length < 10) throw new Error(`Phone number must be at least 10 digits`)
 
       escaped = escaped.startsWith('+') ? escaped
@@ -1307,6 +1309,7 @@ export const phoneValidatorOptional: ValidatorDefinition<string> = {
       if (typeof phone !== "string") throw new Error(`Expecting phone to be string but got ${phone}`)
 
       let escaped = escape_phone_number(phone) 
+      if (escaped === '311') return escaped
       if (escaped.length < 10) throw new Error(`Phone number must be at least 10 digits`)
 
       escaped = escaped.startsWith('+') ? escaped
@@ -2241,6 +2244,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   smartMeterPlaceOrder: '',
   healthieSync: '',
   completeTickets: '',
+  changeContactType: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -2703,6 +2707,13 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       journeyIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
     }),
   }),
+  changeContactType: objectValidator<ChangeContactTypeAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['changeContactType']),
+    info: objectValidator<ChangeContactTypeAutomationAction['info']>({
+      type: stringValidatorOptional, // can be empty string for default contact type or id for others
+    }),
+  }),
 })
 
 export const journeyContextValidator = objectValidator<JourneyContext>({
@@ -2713,6 +2724,7 @@ export const journeyContextValidator = objectValidator<JourneyContext>({
   orderId: mongoIdStringOptional,
   observationId: mongoIdStringOptional,
   phoneCallId: mongoIdStringOptional,
+  smsId: mongoIdStringOptional,
 })
 
 export const relatedRecordValidator = objectValidator<RelatedRecord>({
@@ -3454,6 +3466,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     canMoveCalls: booleanValidatorOptional,
     showDeleteCallRecordingOnTimeline: booleanValidatorOptional,
     inboxRepliesMarkRead: booleanValidatorOptional,
+    recordCallAudioPlayback: stringValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -3549,6 +3562,8 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Missed Call": true,
   "Order Created": true,
   "Problem Created": true,
+  "Message Delivery Failure": true,
+  "Incoming Message (No Care Team)": true,
 }
 export const AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES) as AutomationTriggerEventType[]
 
@@ -3592,6 +3607,16 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
   }), 
   "Purchase Made": objectValidator<AutomationTriggerEvents["Purchase Made"]>({
     type: exactMatchValidator(['Purchase Made']),
+    info: optionalEmptyObjectValidator,
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Message Delivery Failure": objectValidator<AutomationTriggerEvents["Message Delivery Failure"]>({
+    type: exactMatchValidator(['Message Delivery Failure']),
+    info: optionalEmptyObjectValidator,
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Incoming Message (No Care Team)": objectValidator<AutomationTriggerEvents["Incoming Message (No Care Team)"]>({
+    type: exactMatchValidator(['Incoming Message (No Care Team)']),
     info: optionalEmptyObjectValidator,
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -3910,6 +3935,7 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   blocked_phones: accessPermissionValidator,
   prescription_routes: accessPermissionValidator,
   enduser_problems: accessPermissionValidator,
+  flowchart_notes: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
@@ -3988,6 +4014,7 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   enduser_encounters: numberValidatorOptional,
   vital_configurations: numberValidatorOptional,
   blocked_phones: numberValidatorOptional,
+  flowchart_notes: numberValidatorOptional,
 }, { emptyOk: true })
 
 const _LOGIN_FLOW_RESULTS = {
@@ -4508,6 +4535,15 @@ export const enduserProfileViewBlockValidator = orValidator<{ [K in EnduserProfi
       )
     }),
   }), 
+  "Form Responses": objectValidator<EnduserProfileViewBlocks["Form Responses"]>({
+    ...sharedEnduserProfileViewBlockFields,
+    type: exactMatchValidator(['Form Responses']),
+    info: objectValidator<EnduserProfileViewBlocks['Form Responses']['info']>({
+      title: stringValidator100,
+      formId: mongoIdStringRequired,
+      fieldIds: listOfMongoIdStringValidatorEmptyOk,
+    }),
+  }), 
 })
 export const enduserProfileViewBlocksValidator = listValidator(enduserProfileViewBlockValidator)
 
@@ -4594,6 +4630,7 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
     type: exactMatchValidator(['Play Message']),
     info: objectValidator<PhoneTreeActions["Play Message"]['info']>({
       playback: phonePlaybackValidator,
+      journeyId: mongoIdStringOptional,
     }),
   }),
   "Dial Users": objectValidator<PhoneTreeActions["Dial Users"]>({

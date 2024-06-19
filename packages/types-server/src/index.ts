@@ -82,6 +82,7 @@ export type VitalConfiguration = ServerModelForName['vital_configurations']
 export type BlockedPhone = ServerModelForName['blocked_phones']
 export type PrescriptionRoute = ServerModelForName['prescription_routes']
 export type EnduserProblem = ServerModelForName['enduser_problems']
+export type FlowchartNote = ServerModelForName['flowchart_notes']
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']

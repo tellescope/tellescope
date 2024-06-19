@@ -1218,7 +1218,7 @@ const chat_room_tests = async () => {
   let roomWithMessage = await sdk.api.chat_rooms.getOne(room.id)
   assert(roomWithMessage.numMessages === 1, 'num mesages no update', 'num messages on send message')
   assert((roomWithMessage?.recentMessageSentAt ?? 0) > Date.now() - 1000, 'recent message timestamp bad', 'recent message timestamp')
-  assert(roomWithMessage?.infoForUser?.[userId]?.unreadCount === undefined, 'bad unread count for user', 'unread count for user')
+  assert(!roomWithMessage?.infoForUser?.[userId]?.unreadCount, 'bad unread count for user', 'unread count for user')
   assert(roomWithMessage?.infoForUser?.[enduserSDK.userInfo.id]?.unreadCount === 1, 'bad unread count for enduser', 'unread count for enduser')
 
   roomWithMessage = await sdk.api.chat_rooms.updateOne(roomWithMessage.id, { infoForUser: { [userId]: { unreadCount: 0 }}})
@@ -6012,6 +6012,7 @@ export const alternate_phones_tests = async () => {
 
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
+  flowchart_notes: NO_TEST,
   enduser_problems: NO_TEST,
   vital_configurations: NO_TEST,
   enduser_encounters: NO_TEST,
@@ -8051,6 +8052,22 @@ const vital_trigger_tests = async () => {
       sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword),
     ]) 
     console.log("Authentication done")
+
+    await async_test(
+      "Uniqueness violation redacts sensitive existing record details",
+      () => sdk.api.users.createOne({ email }),
+      { 
+        shouldError: true, 
+        onError: e => (
+          e.message === "Uniqueness Violation"
+        && Object.keys((e.info as any)?.[0]?.conflictingFields).length === 1
+        && (e.info as any)?.[0]?.conflictingFields.email === email
+        && Object.keys((e.info as any)?.[0]?.existingRecord).length === 2 // only _id and businessId should be exposed
+        && (e.info as any)?.[0]?.existingRecord?._id
+        && (e.info as any)?.[0]?.existingRecord?.businessId
+        )
+      }
+    )
 
     // console.log(JSON.stringify(await sdk.bulk_load({ load: [{ model: 'users' }]}), null, 2))
  

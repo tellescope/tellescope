@@ -85,6 +85,7 @@ import {
   BlockedPhone,
   PrescriptionRoute,
   EnduserProblem,
+  FlowchartNote,
 } from "@tellescope/types-client"
 
 import {
@@ -337,6 +338,7 @@ const ticketQueuesSlice = createSliceForList<TicketQueue, 'ticket_queues'>('tick
 const enduserOrdersSlice = createSliceForList<EnduserOrder, 'enduser_orders'>('enduser_orders')
 const enduserEncountersSlice = createSliceForList<EnduserEncounter, 'enduser_encounters'>('enduser_encounters')
 const vitalConfigurationsSlice = createSliceForList<VitalConfiguration, 'vital_configurations'>('vital_configurations')
+const flowchartNotesSlice = createSliceForList<FlowchartNote, 'flowchart_notes'>('flowchart_notes')
 
 const roleBasedAccessPermissionsSlice = createSliceForList<RoleBasedAccessPermission, 'role_based_access_permissions'>('role_based_access_permissions')
 
@@ -416,6 +418,7 @@ export const sharedConfig = {
     blocked_phones: blockedPhonesSlice.reducer,
     prescription_routes: prescriptionRoutesSlice.reducer,
     enduser_problems: enduserProblemsSlice.reducer,
+    flowchart_notes: flowchartNotesSlice.reducer,
   },
 }
 
@@ -1206,6 +1209,22 @@ export const useEnduserOrders = (options={} as HookOptions<EnduserOrder>) => {
       addSome: session.api.enduser_orders.createSome,
       deleteOne: session.api.enduser_orders.deleteOne,
       updateOne: session.api.enduser_orders.updateOne,
+    }, 
+    {...options}
+  )
+}
+export const useFlowchartNotes = (options={} as HookOptions<FlowchartNote>) => {
+  const session = useSession()
+  return useListStateHook(
+    'flowchart_notes', useTypedSelector(s => s.flowchart_notes), session, flowchartNotesSlice, 
+    { 
+      loadQuery: session.api.flowchart_notes.getSome,
+      findOne: session.api.flowchart_notes.getOne,
+      findByIds: session.api.flowchart_notes.getByIds,
+      addOne: session.api.flowchart_notes.createOne,
+      addSome: session.api.flowchart_notes.createSome,
+      deleteOne: session.api.flowchart_notes.deleteOne,
+      updateOne: session.api.flowchart_notes.updateOne,
     }, 
     {...options}
   )

@@ -334,9 +334,16 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
   },
   ticket_threads: ASSIGNED_AND_DEFAULT_ACCESS_ALL_CREATE,
   ticket_thread_comments: ASSIGNED_AND_DEFAULT_ACCESS_ALL_CREATE,
+  flowchart_notes: {
+    read: ALL_ACCESS,
+    create: ALL_ACCESS,
+    update: ASSIGNED_ACCESS, // only update ones they created
+    delete: NO_ACCESS,
+  },
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
+  flowchart_notes: FULL_ACCESS,
   enduser_problems: FULL_ACCESS,
   prescription_routes: FULL_ACCESS,
   blocked_phones: FULL_ACCESS,
@@ -458,7 +465,11 @@ export const RELATIONSHIP_TYPES = [
   "Partner",
   'Grandparent',
   'Grandchild',
-  'Relates To'
+  'Power of Attorney',
+  'Power of Attorney For',
+  'Emergency Contact',
+  'Emergency Contact For',
+  'Relates To',
 ] satisfies EnduserRelationship['type'][]
 
 export const get_inverse_relationship_type = (type: EnduserRelationship['type']): EnduserRelationship['type'] => (
@@ -482,6 +493,14 @@ export const get_inverse_relationship_type = (type: EnduserRelationship['type'])
     ? 'Grandchild'
 : type === 'Grandchild'
     ? 'Grandparent'
+: type === 'Power of Attorney'
+    ? 'Power of Attorney For'
+: type === 'Power of Attorney For'
+    ? 'Power of Attorney'
+: type === 'Emergency Contact'
+    ? 'Emergency Contact For'
+: type === 'Emergency Contact For'
+    ? 'Emergency Contact'
     : 'Relates To'
 )
 

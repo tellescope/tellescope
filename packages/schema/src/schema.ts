@@ -2369,9 +2369,9 @@ export const schema: SchemaV1 = build_schema({
         path: '/emails/send-with-template',
         description: "Sends an email for a specific template on behalf of a user (senderId is user.id)",
         parameters: { 
-          enduserId: { validator: mongoIdStringValidator },
-          senderId: { validator: mongoIdStringValidator },
-          templateId: { validator: mongoIdStringValidator },
+          enduserId: { validator: mongoIdStringValidator, required: true },
+          senderId: { validator: mongoIdStringValidator, required: true },
+          templateId: { validator: mongoIdStringValidator, required: true },
         },
         returns: { email: { validator: 'email' as any } } 
       },
@@ -3281,6 +3281,8 @@ export const schema: SchemaV1 = build_schema({
       hideFromCompose: { validator: booleanValidator },
       forChannels: { validator: listOfStringsValidatorEmptyOk }, 
       forRoles: { validator: listOfStringsValidatorEmptyOk }, 
+      forEntityTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, 
+      tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, 
     },
   },
   files: {
@@ -4725,6 +4727,7 @@ export const schema: SchemaV1 = build_schema({
       bufferStartMinutes: { validator: numberValidator },
       canvasCoding: { validator: canvasCodingValidator },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      matchToHealthieTemplate: { validator: booleanValidator },
     }
   },
   calendar_event_RSVPs: {
@@ -5074,6 +5077,7 @@ export const schema: SchemaV1 = build_schema({
       type: { validator: stringValidator },
       notes: { validator: stringValidator },
       recordedAt: { validator: dateValidator },
+      reviewedAt: { validator: dateValidatorOptional },
       timestamp: { validator: dateValidator, initializer: () => new Date() },
       statusChangedBy: { validator: mongoIdStringValidator },
       beforeMeal: { validator: booleanValidator },
@@ -5696,6 +5700,7 @@ export const schema: SchemaV1 = build_schema({
       billingOrganizationAddress: { validator: addressValidator },
       videoCallBackgroundImage: { validator: stringValidator },
       sendToVoicemailOOO: { validator: booleanValidator },
+      onCallUserIds: { validator: listOfUniqueStringsValidatorEmptyOk },
       outOfOfficeVoicemail: { validator: phonePlaybackValidator },
       enduserProfileWebhooks: { validator: enduserProfileWebhooksValidator },
       showCommunity: { validator: booleanValidator },
@@ -5719,6 +5724,7 @@ export const schema: SchemaV1 = build_schema({
           questionId: stringValidator100,
         })
       },
+      enforceMFA: { validator: booleanValidator },
     },
   },
   databases: {
@@ -7359,6 +7365,24 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       code: { validator: stringValidator100 },
       codeset: { validator: stringValidator100 },
       references: { validator: listOfRelatedRecordsValidator, updatesDisabled: true },
+    }
+  },
+  flowchart_notes: {
+    info: {
+      description: ''
+    },
+    constraints: { 
+      unique: [], relationship: [], 
+      access: []
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      flowchartId: { validator: stringValidator100, required: true, examples: ['externalId'] },
+      note: { validator: stringValidator5000, required: true, examples: ['Note'] },
+      flowchartUI: { validator: flowchartUIValidator },
     }
   },
 })
