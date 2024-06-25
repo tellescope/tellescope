@@ -891,7 +891,7 @@ export type CustomActions = {
     create_and_join: CustomAction<{ name: string, subdomain: string }, { authToken: string, user: User, organization: Organization }>, 
     create_suborganization: CustomAction<{ name: string, subdomain: string }, { created: Organization }>, 
     add_athena_subscription: CustomAction<{ startAt?: Date, type: AthenaSubscription['type'], frequency: number, daily?: boolean }, { organization: Organization }>, 
-    sync_athena_subscription: CustomAction<{ type: AthenaSubscription['type'] }, { }>, 
+    sync_athena_subscription: CustomAction<{ type: AthenaSubscription['type'], backgroundTaskId?: string, enduserId?: string }, { }>, 
     sync_note_to_canvas: CustomAction<{ enduserId: string, note: string }, { canvasId: string }>, 
   },
   phone_calls: {
@@ -5615,6 +5615,8 @@ export const schema: SchemaV1 = build_schema({
         description: "Syncs an Athena subscription",
         parameters: { 
           type: { validator: athenaSubscriptionTypeValidator, required: true },
+          backgroundTaskId: { validator: mongoIdStringOptional, },
+          enduserId: { validator: mongoIdStringOptional, },
         },
         returns: { } 
       },

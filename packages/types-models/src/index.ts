@@ -241,7 +241,7 @@ export type AthenaFieldSync = {
 
 export type AthenaSubscription = {
   // make sure to update validator if adding new types here
-  type: 'patients' | 'appointments' | 'orders' | 'chart/healthhistory/problems',
+  type: 'patients' | 'appointments' | 'orders' | 'chart/healthhistory/problems' | 'obepisode',
   frequencyInMinutes: number,
   lastSyncedAt: Date,
 }
@@ -1512,6 +1512,10 @@ export interface Integration extends Integration_readonly, Integration_required,
   disableEnduserAutoSync?: boolean,
   disableTicketAutoSync?: boolean,
   redactExternalEvents?: boolean,
+  fhirClientId?: string,
+  fhirClientSecret?: string,
+  fhirAccessToken?: string,
+  fhirExpiryDate?: number,
 }
 
 export type BuildDatabaseRecordField <K extends string, V, O> = { type: K, value: V, options: O & { width?: string } }
@@ -3105,7 +3109,8 @@ export type AutomationTriggerActions = {
   "Add Access Tags": AutomationTriggerActionBuilder<'Add Access Tags', { tags: string[] }>,
   "Move To Step": AutomationTriggerActionBuilder<'Move To Step', { }>, // journeyId and automationStepId stored as part of trigger for better dependency deletion
   "Assign Care Team": AutomationTriggerActionBuilder<'Assign Care Team', { 
-    tags: ListOfStringsWithQualifier
+    tags: ListOfStringsWithQualifier,
+    limitToOneUser?: boolean,
   }>, 
   "Canvas: Add Patient": AutomationTriggerActionBuilder<'Canvas: Add Patient', { }>, 
 }
@@ -3154,6 +3159,7 @@ export type AutomationTriggerEvents = {
   'Problem Created': AutomationTriggerEventBuilder<"Problem Created", { titles?: string[] }, {}>,
   'Message Delivery Failure': AutomationTriggerEventBuilder<"Message Delivery Failure", { }, {}>,
   'Incoming Message (No Care Team)': AutomationTriggerEventBuilder<"Incoming Message (No Care Team)", { }, {}>,
+  'Pregnancy Ended': AutomationTriggerEventBuilder<"Pregnancy Ended", { reason?: string }, {}>,
 }
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents
 export type AutomationTriggerEvent = AutomationTriggerEvents[AutomationTriggerEventType]

@@ -2729,7 +2729,7 @@ export const journeyContextValidator = objectValidator<JourneyContext>({
 
 export const relatedRecordValidator = objectValidator<RelatedRecord>({
   type: stringValidator100,
-  id: mongoIdStringRequired,
+  id: stringValidator100,
   creator: mongoIdStringOptional,
   environment: stringValidatorOptional,
 })
@@ -3564,6 +3564,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Problem Created": true,
   "Message Delivery Failure": true,
   "Incoming Message (No Care Team)": true,
+  "Pregnancy Ended": true,
 }
 export const AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES) as AutomationTriggerEventType[]
 
@@ -3730,6 +3731,13 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
+  "Pregnancy Ended": objectValidator<AutomationTriggerEvents["Pregnancy Ended"]>({
+    type: exactMatchValidator(['Pregnancy Ended']),
+    info: objectValidator<AutomationTriggerEvents['Pregnancy Ended']['info']>({
+      reason: stringValidatorOptional,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
 })
 
 const _AUTOMATION_TRIGGER_ACTION_TYPES: { [K in AutomationTriggerActionType]: any } = {
@@ -3785,6 +3793,7 @@ export const automationTriggerActionValidator = orValidator<{ [K in AutomationTr
     type: exactMatchValidator(['Assign Care Team']),
     info: objectValidator<AutomationTriggerActions['Assign Care Team']['info']>({
       tags: listOfStringsWithQualifierValidator,
+      limitToOneUser: booleanValidatorOptional,
     }),
   }), 
   "Remove From All Journeys": objectValidator<AutomationTriggerActions["Remove From All Journeys"]>({
@@ -4837,7 +4846,7 @@ export const fieldSyncValidator = objectValidator<AthenaFieldSync>({
 })
 export const fieldsSyncValidator = listValidatorEmptyOk(fieldSyncValidator)
 
-export const athenaSubscriptionTypeValidator = exactMatchValidator<AthenaSubscription['type']>(['patients', 'appointments', 'orders', 'chart/healthhistory/problems'])
+export const athenaSubscriptionTypeValidator = exactMatchValidator<AthenaSubscription['type']>(['patients', 'appointments', 'orders', 'chart/healthhistory/problems', 'obepisode'])
 export const athenaSubscriptionValidator = objectValidator<AthenaSubscription>({
   type: athenaSubscriptionTypeValidator,
   frequencyInMinutes: nonNegNumberValidator,

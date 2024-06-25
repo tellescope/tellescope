@@ -4758,8 +4758,8 @@ const merge_enduser_tests = async () => {
   log_header("Merge Endusers")
 
   const [source, destination, otherEnduser] = (await sdk.api.endusers.createSome([
-    { email: 'source@tellescope.com', fname: 'source', lname: 'enduser' },
-    { email: 'destination@tellescope.com'},
+    { email: 'source@tellescope.com', fname: 'source', lname: 'enduser', references: [{ type: '2', id: '2.2' }, { type: '3', id: '3.2' }] },
+    { email: 'destination@tellescope.com', references: [{ type: '1', id: '1' }, { type: '2', id: '2' }] },
     { email: 'other@tellescope.com'},
   ])).created
 
@@ -4800,6 +4800,9 @@ const merge_enduser_tests = async () => {
          e.email === destination.email
       && e.fname === source.fname
       && e.lname === source.lname
+      && e.references?.find(r => r.type === '1')?.id === '1'
+      && e.references?.find(r => r.type === '2')?.id === '2'
+      && e.references?.find(r => r.type === '3')?.id === '3.2'
     )}
   )
     
@@ -8102,6 +8105,7 @@ const vital_trigger_tests = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await merge_enduser_tests()
     await vital_trigger_tests()
     await ticket_queue_tests()
     await close_reasons_no_duplicates_tests()
@@ -8128,7 +8132,6 @@ const vital_trigger_tests = async () => {
     await pdf_generation()
     await remove_from_journey_on_incoming_comms_tests()
     await rate_limit_tests()
-    await merge_enduser_tests()
     await auto_reply_tests()
     await sub_organization_enduser_tests()
     await sub_organization_tests()
