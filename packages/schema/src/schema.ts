@@ -702,7 +702,7 @@ export type CustomActions = {
   },
   endusers: {
     check_eligibility: CustomAction<{ 
-      id: string, integration?: string, clearinghouse?: string, insuranceType?: InsuranceType,
+      id: string, integration?: string, clearinghouse?: string, insuranceType?: InsuranceType, reCheck?: boolean,
     }, { enduser: Enduser }>,
     set_password: CustomAction<{ id: string, password: string }, { }>,
     is_authenticated: CustomAction<
@@ -1332,6 +1332,7 @@ export const schema: SchemaV1 = build_schema({
           integration: { validator: stringValidator },
           clearinghouse: { validator: stringValidator },
           insuranceType: { validator: exactMatchValidator<InsuranceType>(['Primary', 'Secondary']) },
+          reCheck: { validator: booleanValidatorOptional },
         },
         returns: { 
           enduser: { validator: 'enduser' as any },
@@ -2821,6 +2822,16 @@ export const schema: SchemaV1 = build_schema({
             if (updates?.lockedOutUntil === undefined) return // not provided
 
             return "Only admin users can update user lockouts"
+          }
+        }, 
+        {
+          explanation: "Only admin users can update doseSpotUserId",
+          evaluate: ({ roles }, _, session, method, { updates }) => {
+            if ((session as UserSession)?.roles?.includes('Admin')) return // admin can do this
+            if (method === 'create') return // create already admin restricted
+            if (!updates?.doseSpotUserId) return // doseSpotUserId not provided
+
+            return "Only admin users can update doseSpotUserId"
           }
         }, 
         {

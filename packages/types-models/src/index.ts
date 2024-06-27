@@ -892,7 +892,7 @@ export type EndusersReportQueries = Record<string, EnduserReportQuery>
 export type EndusersReport = Report
 
 export type JourneyStatistics = {
-  steps: Record<string, { count: number, opens?: number }>,
+  steps: Record<string, { count: number, opens?: number, clicked?: number }>,
 }
 
 export type FormStatistics = {
@@ -1269,7 +1269,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
 }
 
 export type FormFieldLiteralType = 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time'
-export type FormFieldComplexType = "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance"
+export type FormFieldComplexType = "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance"
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
 
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic'
@@ -1639,6 +1639,7 @@ export type FormResponseAnswerMedications = FormResponseValueAnswerBuilder<'Medi
 export type FormResponseAnswerRelatedContacts = FormResponseValueAnswerBuilder<'Related Contacts', Partial<Enduser>[]>
 export type FormResponseAnswerAppointmentBooking = FormResponseValueAnswerBuilder<'Appointment Booking', string>
 export type FormResponseAnswerInsurance = FormResponseValueAnswerBuilder<'Insurance', Partial<EnduserInsurance>>
+export type FormResponseAnswerHeight = FormResponseValueAnswerBuilder<'Height', { feet: number, inches: number }>
 
 export type FormResponseAnswerSignatureValue = {
   fullName: string,
@@ -1688,6 +1689,7 @@ export type FormResponseValueAnswer = (
   | FormResponseAnswerRelatedContacts
   | FormResponseAnswerInsurance
   | FormResponseAnswerAppointmentBooking
+  | FormResponseAnswerHeight
 )
 
 export type FormResponseValue = {
@@ -1727,6 +1729,7 @@ export type AnswerForType = {
   'Related Contacts': FormResponseAnswerRelatedContacts['value']
   'Insurance': FormResponseAnswerInsurance['value']
   'Appointment Booking': FormResponseAnswerAppointmentBooking['value']
+  'Height': FormResponseAnswerHeight['value']
 }
 
 export interface FormResponse_readonly extends ClientRecord {
@@ -3246,7 +3249,7 @@ export interface Superbill extends Superbill_readonly, Superbill_required, Super
 export type PhoneTreeEventBuilder <T, V> = { parentId: string, type: T, info: V }
 export type PhoneTreeEvents = {
   'Start': PhoneTreeEventBuilder<'Start', {}>,
-  'On Gather': PhoneTreeEventBuilder<'On Gather', { digits?: string, transcription?: string }>,
+  'On Gather': PhoneTreeEventBuilder<'On Gather', { digits?: string, transcription?: string, handleNoInput?: boolean }>,
 }
 export type PhoneTreeEventType = keyof PhoneTreeEvents
 export type PhoneTreeEvent = PhoneTreeEvents[PhoneTreeEventType]
@@ -3272,6 +3275,7 @@ export type PhoneTreeActions = {
     byTags?: ListOfStringsWithQualifier, 
     playback?: Partial<PhonePlayback>,
   }>
+  'Forward Call': PhoneTreeActionBuilder<"Forward Call", { to: string }>
 }
 export type PhoneTreeActionType = keyof PhoneTreeActions 
 export type PhoneTreeAction = PhoneTreeActions[PhoneTreeActionType]
@@ -3458,6 +3462,7 @@ export type DiagnosisType = keyof DiagnosisTypes
 export type Diagnosis = {
   type: keyof DiagnosisTypes,
   code: string,
+  modifiers?: string[],
   procedureCodes?: CandidProcedureCode[],
 }
 export interface EnduserEncounter_readonly extends ClientRecord {
@@ -3476,7 +3481,7 @@ export interface EnduserEncounter extends EnduserEncounter_readonly, EnduserEnco
   placeOfServiceCode: string,
   billingProviderAddress?: Address,
   serviceFacilityAddress?: Address, // could also collect rendering provider address, but it's typically the same as service facility address
-
+  modifiers?: string[],
   error?: string, // e.g. for errors with push to Candid
 }
 

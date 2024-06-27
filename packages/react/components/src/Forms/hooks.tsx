@@ -600,7 +600,7 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
                         : '' as any // null flag that the response was not filled out
           )
         ),
-      },
+      } as FormResponseValueAnswer,
       field: f,
     }))
   ), [fields, existingResponses])
@@ -668,7 +668,10 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
           return r
         }
 
-        const databaseValue = databaseRecord.values.find(v => v.label === field.prepopulateFromDatabase?.field)
+        const databaseValue = databaseRecord.values.find(v => 
+          v.label === field.prepopulateFromDatabase?.field
+        && databaseRecord?.databaseId === field.prepopulateFromDatabase?.databaseId
+        )
         if (!databaseValue?.value) return r
 
         if (databaseValue.type === 'Address') {
@@ -834,6 +837,15 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
 
     if (field.isOptional || (sessionType === 'user' && field.type === 'Appointment Booking')) {
       return null 
+    }
+
+    if (value.answer.type === 'Height') {
+      if (typeof value.answer.value?.feet !== 'number' || isNaN(value.answer.value?.feet)) {
+        return "Feet must be provided"
+      }
+      if (typeof value.answer.value?.inches !== 'number' || isNaN(value.answer.value?.inches)) {
+        return "Inches must be provided (enter 0 for no inches)"
+      }
     }
 
     if (value.answer.type === 'Related Contacts') {

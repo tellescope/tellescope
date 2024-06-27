@@ -276,6 +276,7 @@ import {
   AthenaSubscription,
   CompleteTicketsAutomationAction,
   ChangeContactTypeAutomationAction,
+  FormResponseAnswerHeight,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -1478,6 +1479,7 @@ const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
   Medications: '',
   "Related Contacts": "",
   'Insurance': '',
+  Height: '',
 }
 export const FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES) as FormFieldType[]
 export const formFieldTypeValidator = exactMatchValidator<FormFieldType>(FORM_FIELD_TYPES)
@@ -1488,6 +1490,7 @@ export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' 
   'Insurance': objectAnyFieldsAnyValuesValidator.validate(),
   'Address': objectAnyFieldsAnyValuesValidator.validate(),
   'Database Select': objectAnyFieldsAnyValuesValidator.validate(),
+  'Height': objectAnyFieldsAnyValuesValidator.validate(),
   'Time': stringValidator.validate({ maxLength: 100 }),
   'Stripe': stringValidator.validate({ maxLength: 100 }),
   'Medications': listValidator(objectAnyFieldsAnyValuesValidator).validate(),
@@ -1831,6 +1834,13 @@ export const insuranceOptionalValidator = objectValidator<EnduserInsurance>({
 
 // validate optional vs not at endpoint-level
 export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: FormResponseValueAnswer & { type: K } } >({
+  Height: objectValidator<FormResponseAnswerHeight>({
+    type: exactMatchValidator(['Height']),
+    value: objectValidator<FormResponseAnswerHeight['value']>({
+      feet: numberValidatorOptional,
+      inches: numberValidatorOptional,
+    }),
+  }),
   "Appointment Booking": objectValidator<FormResponseAnswerAppointmentBooking>({
     type: exactMatchValidator(['Appointment Booking']),
     value: stringValidator,
@@ -4573,6 +4583,7 @@ export const phoneTreeEventValidator = orValidator<{ [K in PhoneTreeEventType]: 
     info: objectValidator<PhoneTreeEvents["On Gather"]['info']>({
       digits: stringValidatorOptional,
       transcription: stringValidatorOptional,
+      handleNoInput: booleanValidatorOptional,
     }),
   }), 
 })
@@ -4657,6 +4668,12 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
       byTags: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
       prePlayback: phonePlaybackValidatorOptional,
       playback: phonePlaybackValidatorOptional,
+    }),
+  }),
+  "Forward Call": objectValidator<PhoneTreeActions["Forward Call"]>({
+    type: exactMatchValidator(['Forward Call']),
+    info: objectValidator<PhoneTreeActions["Forward Call"]['info']>({
+      to: phoneValidator,
     }),
   }),
 })
@@ -4821,6 +4838,7 @@ export const diagnosisValidator = objectValidator<Diagnosis>({
   type: diagnosisTypeValidator,
   code: stringValidator,
   procedureCodes: listValidatorOptionalOrEmptyOk(candidProcedureCodeValidator),
+  modifiers: listOfStringsValidatorOptionalOrEmptyOk,
 })
 export const diagnosesValidator = listValidator(diagnosisValidator)
 

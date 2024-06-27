@@ -2579,3 +2579,20 @@ export const AppointmentBookingInput = ({ field, value, onChange, form, response
     </Grid>
   )
 }
+
+export const HeightInput = ({ field, value={} as any, onChange, ...props }: FormInputProps<'Height'>) => (
+  <Grid container alignItems='center' wrap="nowrap" spacing={1} style={{ marginTop: 5 }}>
+    <Grid item sx={{ width: '100%' }}>
+      <TextField fullWidth size="small" label="Feet" type="number"
+        value={value?.feet || ''} 
+        onChange={e => onChange({ ...value, feet: parseInt(e.target.value) }, field.id)}
+      />
+    </Grid>
+    <Grid item sx={{ width: '100%' }}>
+      <TextField fullWidth size="small" label="Inches" type="number"
+        value={value?.inches || ''}
+        onChange={e => onChange({ ...value, inches: parseInt(e.target.value) }, field.id)}
+      />
+    </Grid>
+  </Grid>
+)
