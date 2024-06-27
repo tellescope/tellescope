@@ -7398,6 +7398,20 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       flowchartUI: { validator: flowchartUIValidator },
     }
   },
+  webhook_logs: {
+    info: { description: '' },
+    constraints: { unique: [], relationship: [], access: [] },
+    defaultActions: { readMany: { } },
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields,
+      payload: { validator: objectAnyFieldsAnyValuesValidator },
+      response: { validator: objectAnyFieldsAnyValuesValidator },
+      responseCode: { validator: numberValidator },
+      url: { validator: stringValidator },
+    }
+  },
 })
 
 // export type SchemaType = typeof schema

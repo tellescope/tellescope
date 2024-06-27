@@ -205,6 +205,7 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   prescription_routes: defaultQueries(s, 'prescription_routes'),
   enduser_problems: defaultQueries(s, 'enduser_problems'),
   flowchart_notes: defaultQueries(s, 'flowchart_notes'),
+  webhook_logs: defaultQueries(s, 'webhook_logs'),
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {

@@ -3955,12 +3955,14 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   prescription_routes: accessPermissionValidator,
   enduser_problems: accessPermissionValidator,
   flowchart_notes: accessPermissionValidator,
+  webhook_logs: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
 })
 
 export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
+  webhook_logs: accessPermissionValidator,
   enduser_problems: accessPermissionValidator,
   prescription_routes: accessPermissionValidator,
   group_mms_conversations: accessPermissionValidator,

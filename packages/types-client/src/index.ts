@@ -79,6 +79,7 @@ export type BlockedPhone = ClientModelForName['blocked_phones']
 export type PrescriptionRoute = ClientModelForName['prescription_routes']
 export type EnduserProblem = ClientModelForName['enduser_problems']
 export type FlowchartNote = ClientModelForName['flowchart_notes']
+export type WebhookLog = ClientModelForName['webhook_logs']
 
 export type Forum = ClientModelForName['forums']
 export type ForumPost = ClientModelForName['forum_posts']

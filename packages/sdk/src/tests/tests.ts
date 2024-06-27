@@ -6015,6 +6015,7 @@ export const alternate_phones_tests = async () => {
 
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
+  webhook_logs: NO_TEST,
   flowchart_notes: NO_TEST,
   enduser_problems: NO_TEST,
   vital_configurations: NO_TEST,

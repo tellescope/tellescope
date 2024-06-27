@@ -201,6 +201,7 @@ export const READ_ONLY_DEFAULT: AccessForResource = {
 }
 
 export const PROVIDER_PERMISSIONS: AccessPermissions = {
+  webhook_logs: INACCESSIBLE,
   ticket_queues: {
     create: NO_ACCESS, // allow for creating self-assigned objects
     read:   DEFAULT_ACCESS, // only by inclusion in userIds should it be accessible by default
@@ -344,6 +345,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
+  webhook_logs: READ_ONLY_ALL,
   flowchart_notes: FULL_ACCESS,
   enduser_problems: FULL_ACCESS,
   prescription_routes: FULL_ACCESS,

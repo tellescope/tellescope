@@ -83,6 +83,7 @@ export type BlockedPhone = ServerModelForName['blocked_phones']
 export type PrescriptionRoute = ServerModelForName['prescription_routes']
 export type EnduserProblem = ServerModelForName['enduser_problems']
 export type FlowchartNote = ServerModelForName['flowchart_notes']
+export type WebhookLog = ServerModelForName['webhook_logs']
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']
@@ -113,14 +114,6 @@ export interface StripeCustomIntegration extends InternalBusinessRecord {
   secretKey: string,
 }
 
-
-// can expose as public record later
-export interface WebhookLog extends InternalBusinessRecord, EnduserEngagementTimestamps {
-  url: string,
-  payload: object,
-  responseCode: string | number,
-  response: string | object,
-}
 
 export interface IgnoreWebhookFlag extends InternalBusinessRecord, EnduserEngagementTimestamps {
   type: string,
@@ -214,7 +207,7 @@ export interface AccessToken extends InternalBusinessRecord {
 export interface DelayedEvent extends InternalBusinessRecord {
   type: 'sessionTimeout' | 'sync' | 'daily-sync' | 'delayed-message' | 'delayed-journey' | 'athena-sync',
   triggerAt: number,
-  fields: object,
+  fields: Record<string, any>,
   userId?: string,
 }
 export interface SessionTimeoutEvent extends DelayedEvent {

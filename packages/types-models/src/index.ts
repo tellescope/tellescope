@@ -3586,7 +3586,18 @@ export interface FlowchartNote extends FlowchartNote_readonly, FlowchartNote_req
   flowchartUI?: FlowchartUI,
 }
 
+export interface WebhookLog_readonly extends ClientRecord { 
+  url: string,
+  payload: object,
+  responseCode: string | number,
+  response: string | object,
+}
+export interface WebhookLog_required {}
+export interface WebhookLog_updatesDisabled {}
+export interface WebhookLog extends WebhookLog_readonly, WebhookLog_required, WebhookLog_updatesDisabled {}
+
 export type ModelForName_required = {
+  webhook_logs: WebhookLog_required,
   flowchart_notes: FlowchartNote_required,
   enduser_problems: EnduserProblem_required,
   prescription_routes: PrescriptionRoute_required,
@@ -3664,6 +3675,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  webhook_logs: WebhookLog_readonly,
   flowchart_notes: FlowchartNote_readonly,
   enduser_problems: EnduserProblem_readonly,
   prescription_routes: PrescriptionRoute_readonly,
@@ -3741,6 +3753,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  webhook_logs: WebhookLog_updatesDisabled,
   flowchart_notes: FlowchartNote_updatesDisabled,
   enduser_problems: EnduserProblem_updatesDisabled,
   prescription_routes: PrescriptionRoute_updatesDisabled,
@@ -3817,7 +3830,8 @@ export interface ModelForName_updatesDisabled {
 }
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
-export interface ModelForName extends ModelForName_required, ModelForName_readonly {
+export interface ModelForName extends ModelForName_required, ModelForName_readonly { 
+  webhook_logs: WebhookLog,
   flowchart_notes: FlowchartNote,
   enduser_problems: EnduserProblem,
   prescription_routes: PrescriptionRoute,
@@ -3905,6 +3919,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  webhook_logs: true,
   flowchart_notes: true,
   enduser_problems: true,
   prescription_routes: true,
