@@ -9,7 +9,7 @@ import { WithTheme, contact_is_valid, useFileUpload, useFormFields, useFormRespo
 import ReactGA from "react-ga4";
 
 import isEmail from "validator/lib/isEmail"
-import { field_can_autoadvance, getLocalTimezone, get_time_values, object_is_empty, responses_satisfy_conditions } from "@tellescope/utilities"
+import { append_current_utm_params, field_can_autoadvance, getLocalTimezone, get_time_values, object_is_empty, responses_satisfy_conditions } from "@tellescope/utilities"
 
 export const useFlattenedTree = (root?: FormFieldNode) => {
   const flat: FormField[] = []
@@ -1149,7 +1149,7 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
       }
       
       if (submitRedirectURL) {
-        (window?.top ?? window).location.href = submitRedirectURL;
+        (window?.top ?? window).location.href = append_current_utm_params(submitRedirectURL);
       }
     } catch(err: any) {
       console.error(err)

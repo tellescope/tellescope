@@ -1780,3 +1780,35 @@ export const is_out_of_office = (
 
   return true
 }
+
+export const append_current_utm_params = (targetURL: string) => {
+  try {
+    const params = new URL(window.location.href).searchParams
+    const utmParams = {} as Record<string, string>
+
+    params.forEach((value, key) => {
+      if (key.toLowerCase().startsWith('utm_')) {
+        utmParams[key] = value
+      }
+    })
+    
+    if (object_is_empty(utmParams)) { return targetURL }
+
+    let modifiedURL = targetURL
+    if (!modifiedURL.includes('?')) {
+      modifiedURL += '?'
+    }
+    else if (!modifiedURL.endsWith('&')) {
+      modifiedURL += '&'
+    }
+    for (const param in utmParams) {
+      modifiedURL += `${param}=${utmParams[param]}&`
+    }
+
+    return modifiedURL
+  } catch(err) {
+    console.error(err)
+  };
+
+  return targetURL
+}
