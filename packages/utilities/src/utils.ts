@@ -1812,3 +1812,16 @@ export const append_current_utm_params = (targetURL: string) => {
 
   return targetURL
 }
+
+export const replace_tag_template_values_for_enduser = (tags: string[], enduser: Omit<Enduser, 'id'>) => (
+  tags.map(t => {
+    if (t.startsWith('{{') && t.endsWith('}}')) {
+      const tagField = (t.split('{{enduser.').pop() || '').replace("}}", '')
+      if (tagField === 'hashedPassword') return t
+
+      return enduser.fields?.[tagField]?.toString() || enduser?.[tagField as keyof typeof enduser]?.toString() || t
+    }
+
+    return t
+  })
+)

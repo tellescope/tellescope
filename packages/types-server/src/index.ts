@@ -205,7 +205,7 @@ export interface AccessToken extends InternalBusinessRecord {
 }
 
 export interface DelayedEvent extends InternalBusinessRecord {
-  type: 'sessionTimeout' | 'sync' | 'daily-sync' | 'delayed-message' | 'delayed-journey' | 'athena-sync',
+  type: 'sessionTimeout' | 'sync' | 'daily-sync' | 'delayed-message' | 'delayed-journey' | 'athena-sync' | 'trigger',
   triggerAt: number,
   fields: Record<string, any>,
   userId?: string,
