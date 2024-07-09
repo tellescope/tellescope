@@ -100,6 +100,7 @@ const checkboxStyle: React.CSSProperties = {
 
 type LocalFilter = {
   query: string,
+  values?: string[],
 }
 
 // export type SortType = 'infer'
@@ -126,6 +127,7 @@ export type TableField <T> = {
   // sortType?: SortType,
   getSortValue?: (v: T) => string | number,
   getFilterValue?: (v: T) => string | (string[]),
+  filterType?: 'multi',
   filterSuggestions?: string[],
   filterIsActive?: boolean,
   filterComponent?: React.ReactNode,
@@ -171,32 +173,50 @@ export const TableHeader = <T extends Item>({
   return (
     <>
     <Modal open={openFilter !== -1} setOpen={o => !o && setOpenFilter(-1)} >
-    {fields[openFilter]?.filterComponent ||
-      <Flex flex={1} justifyContent="center">
-        <Autocomplete size={'small'}
-          disablePortal 
-          options={filterSuggestions?.[fields[openFilter]?.key?.toString()] || []}
-          freeSolo autoSelect // allow any input and select it on change
-          onChange={(e, _query) => {
-            const query = _query || ''
-
-            // if (reason === 'selectOption' && onSelect) {
-            //   return onSelect(v)
-            // }
-
-            setLocalFilters(fs => fs.map((f, i) => i === openFilter ? { query } : f))
-          }}
-          value={localFilters[openFilter]?.query ?? ''}
-          renderInput={(params) => 
-            <TextField {...params} autoFocus label={"Filter"} size={'small'} 
-              style={{ width: 400 }}
-              value={localFilters[openFilter]?.query ?? ''}
-              // onKeyUp={e => e.which === 13 && onEnterPress?.()}
+    {fields[openFilter]?.filterComponent 
+      || (
+        <Flex flex={1} justifyContent="center">
+        {fields[openFilter]?.filterType === 'multi'
+          ? (
+            <Autocomplete size={'small'}
+              disablePortal multiple
+              options={filterSuggestions?.[fields[openFilter]?.key?.toString()] || []}
+              freeSolo autoSelect // allow any input and select it on change
+              onChange={(e, values=[]) => {
+                setLocalFilters(fs => fs.map((f, i) => i === openFilter ? { query: '', values } : f))
+              }}
+              value={localFilters[openFilter]?.values ?? []}
+              renderInput={(params) => 
+                <TextField {...params} autoFocus label={"Filter"} size={'small'} 
+                  style={{ width: 400 }}
+                  value={localFilters[openFilter]?.query ?? ''}
+                  // onKeyUp={e => e.which === 13 && onEnterPress?.()}
+                />
+              }
             />
-          }
-        />
-      </Flex>  
-    }
+          ) : (
+            <Autocomplete size={'small'}
+              disablePortal
+              options={filterSuggestions?.[fields[openFilter]?.key?.toString()] || []}
+              freeSolo autoSelect // allow any input and select it on change
+              onChange={(e, _query) => {
+                const query = _query || ''
+
+                setLocalFilters(fs => fs.map((f, i) => i === openFilter ? { query } : f))
+              }}
+              value={localFilters[openFilter]?.query ?? ''}
+              renderInput={(params) => 
+                <TextField {...params} autoFocus label={"Filter"} size={'small'} 
+                  style={{ width: 400 }}
+                  value={localFilters[openFilter]?.query ?? ''}
+                  // onKeyUp={e => e.which === 13 && onEnterPress?.()}
+                />
+              }
+            />
+          )
+        }
+        </Flex>  
+      )}
     </Modal>
 
     <Flex alignItems="center" style={{ 
@@ -283,8 +303,8 @@ export const TableHeader = <T extends Item>({
                   <LabeledIconButton size={22} offsetX={getSortValue ? -7 : -4}
                     label="Filter" 
                     disabled={openFilter !== -1}
-                    color={localFilters[i]?.query ? "primary" : 'inherit'}
-                    Icon={localFilters[i]?.query ? FilterActiveIcon : FilterIcon}
+                    color={(localFilters[i]?.query || !!localFilters?.[i]?.values?.length) ? "primary" : 'inherit'}
+                    Icon={(localFilters[i]?.query || !!localFilters?.[i]?.values?.length) ? FilterActiveIcon : FilterIcon}
                     onClick={() => setOpenFilter(i)}
                   />
                 }
@@ -757,7 +777,8 @@ export const Table = <T extends Item>({
   const keyString = fields.map(f => f.key).join('')
   const [localFilters, setLocalFilters] = useState<LocalFilter[]>(
     fields.map((_, i) => ({ 
-      query: loadedFilter[i]?.query || ''
+      query: loadedFilter[i]?.query || '',
+      values: loadedFilter[i]?.values || [],
     }))
   )
 
@@ -768,7 +789,8 @@ export const Table = <T extends Item>({
   useEffect(() => {
     const updated = (
       fields.map((_, i) => ({ 
-        query: loadedFilter[i]?.query || ''
+        query: loadedFilter[i]?.query || '',
+        values: loadedFilter[i]?.values || [],
       }))
     ) 
     setLocalFilters(updated)
@@ -870,21 +892,32 @@ export const Table = <T extends Item>({
   const sorted = useMemo(() => paginationProps.mapSelectedItems(i => i), [paginationProps.mapSelectedItems])
 
   const filtered = useMemo(() => {
-    if (!localFilters.find(f => f?.query)) return sorted
+    if (!localFilters.find(f => f?.query || f?.values?.length)) return sorted
     if (!fields.find(f => f.getSortValue)) return sorted
 
     return sorted.filter(v => {
       for (let i=0; i < fields.length; i++) {
-        const { getFilterValue } = fields[i]
+        const { getFilterValue, filterType } = fields[i]
         if (!getFilterValue) continue
 
-        const { query } = localFilters[i] ?? {}
-        if (!query) continue
+        const { query, values } = localFilters[i] ?? {}
 
-        const filterValueOrValues = getFilterValue(v)
-        const filterValues = Array.isArray(filterValueOrValues) ? filterValueOrValues : [filterValueOrValues]
-        if (!filterValues.find(v => v === query)) {
-          return false
+        if (filterType === 'multi') {
+          if (!values?.length) continue
+
+          const filterValueOrValues = getFilterValue(v)
+          const filterValues = Array.isArray(filterValueOrValues) ? filterValueOrValues : [filterValueOrValues]
+          if (!filterValues.find(v => values.includes(v))) {
+            return false
+          }
+        } else {
+          if (!query) continue
+
+          const filterValueOrValues = getFilterValue(v)
+          const filterValues = Array.isArray(filterValueOrValues) ? filterValueOrValues : [filterValueOrValues]
+          if (!filterValues.find(v => v === query)) {
+            return false
+          }  
         }
       }
 
@@ -965,7 +998,15 @@ export const Table = <T extends Item>({
         maxWidth={maxWidth}
         virtualization={virtualization}
         header={fields && HeaderComponent && fields.length > 0 && (items.length > 0 || headerFilterIsActive) && (
-          <HeaderComponent selectable={selectable} allSelected={allSelected} setAllSelected={setAllSelected}
+          <HeaderComponent selectable={selectable} allSelected={allSelected} 
+            setAllSelected={v =>  {
+              setAllSelected?.(v)
+              if (v) {
+                setSelected?.(filtered.map(v => v.id.toString()))
+              } else {
+                setSelected?.([])
+              }
+            }}
             fields={fields} horizontalPadding={horizontalPadding} fontSize={headerFontSize}
             widthOffsets={widthOffsets} setWidthOffsets={setWidthOffsets}
             sorting={sorting} setSorting={setSorting} 

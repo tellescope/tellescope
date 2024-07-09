@@ -7242,7 +7242,7 @@ const vital_trigger_tests = async () => {
   } : {
     configurations: Pick<VitalConfiguration, 'mealStatus' | 'unit' | 'ranges'>[]
     triggers: { configurationIndexes: number[], classifications: string[] }[],
-    vitals: (Pick<EnduserObservation, 'measurement'> & Pick<Partial<EnduserObservation>, | 'timestamp' | 'beforeMeal'>)[],
+    vitals: (Pick<EnduserObservation, 'measurement'> & Pick<Partial<EnduserObservation>, | 'timestamp' | 'beforeMeal' | 'dontTrigger'>)[],
     shouldTrigger: boolean,
     title: string,
   }) => {
@@ -7283,10 +7283,13 @@ const vital_trigger_tests = async () => {
       title,
       () => pollForResults(
         () => sdk.api.endusers.getOne(e.id),
-        e => !!e.tags?.includes("Triggered"),
+        e => {
+          // console.log(title, e.tags, (!!e.tags?.includes("Triggered")) === shouldTrigger)
+          return (!!e.tags?.includes("Triggered")) === shouldTrigger
+        },
         50,
         10,
-        !shouldTrigger
+        shouldTrigger
       ),
       passOnAnyResult,
     )  
@@ -7297,6 +7300,21 @@ const vital_trigger_tests = async () => {
       ...triggers.map(t => sdk.api.automation_triggers.deleteOne(t.id)),
     ])
   }
+
+  await runTriggerTest({
+    title: "Basic Passing Test (dontTrigger)",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 2 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 1 },
+      timestamp: new Date(),
+      dontTrigger: true,
+    }]
+  })
 
   await runTriggerTest({
     title: "Any Meal Passing (Unset)",
@@ -7554,7 +7572,7 @@ const vital_trigger_tests = async () => {
     }],
     triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
     vitals: [{
-      measurement: { unit: 'LB', value: 180 },
+      measurement: { unit: 'LB', value: 175 },
       timestamp: new Date(),
     }]
   })

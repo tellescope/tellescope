@@ -304,6 +304,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedPagerDuty?: boolean,
   hasConnectedSmartMeter?: boolean,
   hasConnectedAthena?: boolean,
+  hasConnectedDocsumo?: boolean,
   hasConfiguredZoom?: boolean,
   hasTicketQueues?: boolean,
   vitalTeamId?: string,
@@ -954,6 +955,7 @@ export interface Email_updatesDisabled {
   userId: string; // not actually required on create
 }
 export interface Email extends Email_required, Email_readonly, Email_updatesDisabled, TextCommunication {
+  isAutoreply?: boolean,
   replyTo?: string | null;  
   isBounce?: boolean,
   via?: string,
@@ -1002,6 +1004,7 @@ export interface SMSMessage_updatesDisabled {
   logOnly?: boolean,
 }
 export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SMSMessage_updatesDisabled, TextCommunication, WithLinkOpenTrackingIds {
+  isAutoreply?: boolean,
   userId?: string, // defaults to self, but should allow future options to send as other user
   readBy?: { [index: string] : Date };
   hiddenBy?: { [index: string] : Date | '' };
@@ -1097,6 +1100,7 @@ export interface ChatMessage extends ChatMessage_readonly, ChatMessage_required,
   userId?: string,
   enduserId?: string,
   canvasId?: string,
+  isAutoreply?: boolean,
 }
 
 export type MessageTemplateType = 'enduser' | 'Reply' | 'team'  // default to 'enduser'
@@ -1145,6 +1149,9 @@ export interface File extends File_readonly, File_required, File_updatesDisabled
   hiddenFromEnduser?: boolean,
   source?: string,
   isCalledOut?: boolean,
+  // ocrResult?: string,
+  ocrType?: string,
+  references?: RelatedRecord[] // internal, for storing built-in integrations info
 }
 
 
@@ -1226,6 +1233,7 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
   phoneCallId?: string,
   calendarEventId?: string,
   observationId?: string,
+  tags?: string[],
 }
 
 export type AttendeeInfo = {
@@ -1361,6 +1369,7 @@ export type FormFieldOptions = FormFieldValidation & {
   autoAdvance?: boolean,
   prefillSignature?: boolean,
   includeGroupNumber?: boolean,
+  holdAppointmentMinutes?: number,
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
@@ -1444,6 +1453,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   intakePhone?: 'required' | 'optional' | 'hidden',
   intakeDateOfBirth?: 'required' | 'optional' | 'hidden',
   intakeState?: 'required' | 'optional' | 'hidden',
+  intakeGender?: 'required' | 'optional' | 'hidden',
   thanksMessage?: string,
   htmlThanksMessage?: string,
   type?: FormType,
@@ -1903,6 +1913,8 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   canvasCoding?: CanvasCoding,
   canvasLocationId?: string,
   completedAt?: Date | '',
+  holdUntil?: Date,
+  holdFormResponseId?: string,
   // isAllDay?: boolean,
 }
 
@@ -2276,7 +2288,8 @@ export type CreateTicketActionInfo = {
   requireConfirmation?: boolean,
   reminders?: TicketReminder[],
   priority?: number,
-  preserveContext?: boolean
+  preserveContext?: boolean,
+  tags?: string[],
 }
 
 export type SendEmailAutomationAction = AutomationActionBuilder<'sendEmail', AutomationForMessage>
@@ -2445,6 +2458,7 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
   statusChangedBy?: string, // when updating code (e.g. to cancelled or entered-in-error), track who made that change
   classifications?: { configurationId: string, classification: string }[]
   beforeMeal?: boolean,
+  dontTrigger?: boolean,
 }
 
 export type BlockType = 'h1' | 'h2' | 'html' | 'image' | 'youtube' | 'pdf' | 'iframe'
@@ -2859,6 +2873,7 @@ export type EnduserGrouping = {
   "Assigned To"?: boolean,
   Tags?: boolean,
   Age?: boolean,
+  Phone?: boolean,
   State?: string,
 }
 
@@ -3073,7 +3088,7 @@ export interface EnduserView extends EnduserView_readonly, EnduserView_required,
   },
 }
 
-export type EnduserProfileViewBlockBuilder <T, I> = { type: T, info: I, width?: string }
+export type EnduserProfileViewBlockBuilder <T, I> = { type: T, info: I, width?: string, maxHeight?: number }
 export type EnduserProfileViewBlocks = {
   "Field Group": EnduserProfileViewBlockBuilder<"Field Group", { 
     title: string, 
@@ -3116,6 +3131,7 @@ export type AutomationTriggerActions = {
     limitToOneUser?: boolean,
   }>, 
   "Canvas: Add Patient": AutomationTriggerActionBuilder<'Canvas: Add Patient', { }>, 
+  "Zus: Delete Enrollment": AutomationTriggerActionBuilder<'Zus: Delete Enrollment', { packageId: string }>, 
 }
 export type AutomationTriggerActionType = keyof AutomationTriggerActions
 export type AutomationTriggerAction = AutomationTriggerActions[AutomationTriggerActionType]
@@ -3161,7 +3177,7 @@ export type AutomationTriggerEvents = {
   'Order Created': AutomationTriggerEventBuilder<"Order Created", { titles?: string[] }, {}>,
   'Problem Created': AutomationTriggerEventBuilder<"Problem Created", { titles?: string[] }, {}>,
   'Message Delivery Failure': AutomationTriggerEventBuilder<"Message Delivery Failure", { }, {}>,
-  'Incoming Message (No Care Team)': AutomationTriggerEventBuilder<"Incoming Message (No Care Team)", { }, {}>,
+  'Incoming Message': AutomationTriggerEventBuilder<"Incoming Message", { noCareTeam?: boolean, destinations?: string[], channels?: string[],  }, {}>,
   'Pregnancy Ended': AutomationTriggerEventBuilder<"Pregnancy Ended", { reason?: string }, {}>,
 }
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents

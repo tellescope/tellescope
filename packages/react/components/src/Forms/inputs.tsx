@@ -397,7 +397,7 @@ export const DateStringInput = ({ field, value, onChange, ...props }: FormInputP
             (value && isDateString(value))
               ? new Date(
                   new Date(MM_DD_YYYY_to_YYYY_MM_DD(value)).getTime()
-                + (new Date().getTimezoneOffset() * 60 * 1000)
+                + ((new Date().getTimezoneOffset() + 60) * 60 * 1000) // additional hour (60 minutes) needs to be added for date to line up properly
               )
               : undefined
           }
@@ -2388,7 +2388,7 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
   )
 }
 
-export const AppointmentBookingInput = ({ field, value, onChange, form, responses, goToPreviousField, isPreviousDisabled, enduserId, ...props }: FormInputProps<'Appointment Booking'>) => {
+export const AppointmentBookingInput = ({ formResponseId, field, value, onChange, form, responses, goToPreviousField, isPreviousDisabled, enduserId, ...props }: FormInputProps<'Appointment Booking'>) => {
   const session = useResolvedSession()
 
   const [loaded, setLoaded] = useState<Awaited<ReturnType<typeof session['api']['form_fields']['booking_info']>>>()
@@ -2540,8 +2540,11 @@ export const AppointmentBookingInput = ({ field, value, onChange, form, response
       .join(',')
     }`
   }
+  if (field.options?.holdAppointmentMinutes && formResponseId) {
+    bookingURL += `&formResponseId=${formResponseId}`
+    bookingURL += `&holdAppointmentMinutes=${field.options.holdAppointmentMinutes}`
+  }
 
-  console.log(bookingURL)
   return (
     <Grid container direction="column" spacing={1} sx={{ mt: 1 }}>
       {/* When skipping user selection, include a back button at the top for clearer navigation on mobile */}

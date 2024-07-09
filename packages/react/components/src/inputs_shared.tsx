@@ -294,6 +294,7 @@ export const performBulkAction = async <T extends { id: string }, R> ({
 export interface BulkActionProps <T>{
   allSelected?: boolean,
   selected?: string[],
+  customTypeId?: string,
   // apiFilter?: LoadFunctionArguments<T> | null,
   applyFilters: (v: T[]) => T[],
   onSuccess?: (loaded: T[]) => void,

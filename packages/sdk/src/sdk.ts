@@ -367,6 +367,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     file_download_URL: (args: extractFields<CustomActions['files']['file_download_URL']['parameters']>) => (
       Promise<extractFields<CustomActions['files']['file_download_URL']['returns']>>
     ),
+    run_ocr: (args: extractFields<CustomActions['files']['run_ocr']['parameters']>) => (
+      Promise<extractFields<CustomActions['files']['run_ocr']['returns']>>
+    ),
   },
   form_fields: {
     load_choices_from_database: (args: extractFields<CustomActions['form_fields']['load_choices_from_database']['parameters']>) => (
@@ -816,6 +819,7 @@ export class Session extends SessionManager {
 
     queries.files.prepare_file_upload = (args) => this._POST(`/v1/prepare-file-upload`, args)
     queries.files.file_download_URL = a => this._GET('/v1/file-download-URL', a)
+    queries.files.run_ocr = a => this._POST(`/v1${schema.files.customActions.run_ocr.path}`, a)
 
     queries.chat_rooms.join_room = a => this._POST('/v1/join-chat-room', a)
     queries.chat_rooms.display_info = a => this._GET(`/v1${schema.chat_rooms.customActions.display_info.path}`, a)

@@ -1825,3 +1825,41 @@ export const replace_tag_template_values_for_enduser = (tags: string[], enduser:
     return t
   })
 )
+
+export const replace_enduser_template_values = (s: string, enduser: Omit<Enduser, 'id'>) => {
+  let i = 0
+  let start = 0
+  let templates = [] as { match: string, replacement: string }[]
+  while (i < 100) {
+    i++
+
+    start = s.indexOf('{{enduser.', start)
+    if (start === -1) break;
+
+    const end = s.indexOf('}}', start)
+    if (end === -1) break;
+
+    const match = s.substring(start, end + 2) // +2 accounts for '}}' 
+    templates.push({
+      match,
+      replacement: replace_tag_template_values_for_enduser([match], enduser)[0],
+    }) 
+
+    start = end + 2
+  }
+
+  let replaced = s.toString()
+  for (const { match, replacement } of templates) {
+    replaced = replaced.replace(match, replacement)
+  }
+
+  return replaced
+}
+
+export const display_time_for_seconds = (seconds?: number) => (
+  !seconds 
+    ? ''
+    : seconds > 60
+      ? ` (${Math.floor(seconds / 60)} Minutes)`
+      : ` (${seconds} Seconds)`
+)

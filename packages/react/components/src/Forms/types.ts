@@ -24,6 +24,7 @@ export interface FormInputProps<K extends keyof AnswerForType> {
   enduser?: Partial<Enduser>
   goToPreviousField?: () => void, 
   isPreviousDisabled?: () => boolean,
+  formResponseId?: string,
 }
 
 export type FormInputs = { 

@@ -64,6 +64,7 @@ import {
   SmartMeterOrderLineItem,
   PhoneCallsReport,
   AthenaSubscription,
+  TellescopeGender,
 } from "@tellescope/types-models"
 
 import {
@@ -302,8 +303,9 @@ import {
   CANDID_TITLE,
 } from "@tellescope/constants"
 
-export const get_next_reminder_timestamp_for_ticket = ({ dueDateInMS, reminders } : Pick<Ticket, 'dueDateInMS' | 'reminders'>): number => {
+export const get_next_reminder_timestamp_for_ticket = ({ dueDateInMS, reminders, closedAt } : Pick<Ticket, 'dueDateInMS' | 'reminders' | 'closedAt'>): number => {
   if (!dueDateInMS) return -1
+  if (closedAt) return -1
 
   const pending = reminders?.filter(r => !r.didRemind)
   if (!pending?.length) return -1
@@ -603,6 +605,7 @@ export type CustomActions = {
       { presignedUpload: object, file: File }
     >,
     file_download_URL: CustomAction<{ secureName: string, preferInBrowser?: boolean, }, { downloadURL: string, name: string }>,
+    run_ocr: CustomAction<{ id: string, type: string }, { file: File }>,
   },
   form_fields: {
     load_choices_from_database: CustomAction<{ fieldId: string, lastId?: string, limit?: number, }, { choices: DatabaseRecordClient[] }>,
@@ -697,7 +700,7 @@ export type CustomActions = {
   journeys: {
     // update_state: CustomAction<{ updates: Partial<JourneyState>, id: string, name: string }, { updated: Journey }>,
     delete_states: CustomAction<{ id: string, states: string[] }, { updated: Journey }>,
-    handle_incoming_communication: CustomAction<{ enduserId: string, channel?: string, messageId?: string, }, { }>,
+    handle_incoming_communication: CustomAction<{ enduserId: string, channel?: string, messageId?: string, destination?: string }, { }>,
     get_journey_statistics: CustomAction<{ journeyId: string }, { statistics: JourneyStatistics }>,
   },
   endusers: {
@@ -877,6 +880,8 @@ export type CustomActions = {
       fields?: Record<any, any>
       customerId?: string,
       intervalInMinutes?: number,
+      holdUntil?: Date,
+      holdFormResponseId?: string,
     }, { 
       createdEvent: CalendarEvent,
     }>,
@@ -1034,6 +1039,7 @@ export type PublicActions = {
       email?: string, 
       phone?: string, 
       dateOfBirth?: string,
+      gender?: TellescopeGender,
       formId: string, 
       businessId: string,
       publicIdentifier?: string,
@@ -1810,8 +1816,8 @@ export const schema: SchemaV1 = build_schema({
       environment: { validator: stringValidator100 },
       webhooksSecret: { validator: stringValidator },
       shouldCreateNotifications: { validator: booleanValidator },
+      disableEnduserAutoSync: { validator: booleanValidator },
       disableTicketAutoSync: { validator: booleanValidator },
-      enableEnduserUpdateSync: { validator: booleanValidator },
       redactExternalEvents: { validator: booleanValidator },
     },
     customActions: {
@@ -2152,6 +2158,7 @@ export const schema: SchemaV1 = build_schema({
         parameters: { 
           enduserId: { validator: mongoIdStringValidator, required: true },
           channel: { validator: stringValidator },
+          destination: { validator: stringValidator },
           messageId: { validator: mongoIdStringOptional },
         },
         returns: { },
@@ -3383,6 +3390,19 @@ export const schema: SchemaV1 = build_schema({
           name: { validator: stringValidator100, required: true },
         },
       },
+      run_ocr: {
+        op: "custom", access: 'read', method: "post",
+        name: 'Run OCR (Docsumo)',
+        path: '/files/ocr',
+        description: "Runs optical character recognition on a document (currently Docsumo when integrated)",
+        parameters: { 
+          id: { validator: mongoIdStringRequired, required: true },
+          type: { validator: stringValidator100, required: true },
+        },
+        returns: { 
+          file: { validator: 'file' as any, required: true },
+        },
+      },
     },
   },
   tickets: {
@@ -3550,6 +3570,8 @@ export const schema: SchemaV1 = build_schema({
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
       calendarEventId: { validator: mongoIdStringValidator },
       observationId: { validator: mongoIdStringValidator },
+      phoneCallId: { validator: mongoIdStringValidator },
+      tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
     }
   },
   meetings: {
@@ -3793,6 +3815,7 @@ export const schema: SchemaV1 = build_schema({
       intakeEmailHidden: { validator: booleanValidator },
       intakeDateOfBirth: { validator: intakeDateOfBirthValidator },
       intakeState: { validator: intakeDateOfBirthValidator },
+      intakeGender: { validator: intakeDateOfBirthValidator },
       thanksMessage: { validator: stringValidator5000EmptyOkay },
       htmlThanksMessage: { validator: stringValidator5000EmptyOkay },
       type: { validator: formTypeValidator },
@@ -4195,6 +4218,7 @@ export const schema: SchemaV1 = build_schema({
           phone: { validator: phoneValidator },
           fname: { validator: nameValidator },
           lname: { validator: nameValidator },
+          gender: { validator: tellescopeGenderValidator },
           publicIdentifier: { validator: stringValidator },
           state: { validator: stateValidator },
           customTypeId: { validator: stringValidator },
@@ -4437,6 +4461,8 @@ export const schema: SchemaV1 = build_schema({
           token: { validator: stringValidator },
           customerId: { validator: stringValidator100 },
           intervalInMinutes: { validator: nonNegNumberValidator },
+          holdUntil: { validator: dateValidator },
+          holdFormResponseId: { validator: mongoIdStringValidator },
         },
         returns: { 
           createdEvent: { validator: 'calenar_event' as any },
@@ -5024,7 +5050,19 @@ export const schema: SchemaV1 = build_schema({
       unique: [], 
       relationship: [],
     },
-    defaultActions: DEFAULT_OPERATIONS,
+    defaultActions: {
+      ...DEFAULT_OPERATIONS,
+      create: {
+        warnings: [
+          `"timestamp" is the datetime displayed in the Tellescope UI for Vitals, and defaults to the submission datetime with a precision of milliseconds. A "createdAt" timestamp is tracked automatically with a precision of seconds. "recordedAt" can be used to store another datetime but is not required and not exposed in our UI.`,
+        ],
+      },
+      createMany: {
+        warnings: [
+          `"timestamp" is the datetime displayed in the Tellescope UI for Vitals, and defaults to the submission datetime with a precision of milliseconds. A "createdAt" timestamp is tracked automatically with a precision of seconds. "recordedAt" can be used to store another datetime but is not required and not exposed in our UI.`,
+        ],
+      }
+    },
     customActions: { 
       load: {
         op: "custom", access: 'read', method: "get",
@@ -5092,6 +5130,7 @@ export const schema: SchemaV1 = build_schema({
       timestamp: { validator: dateValidator, initializer: () => new Date() },
       statusChangedBy: { validator: mongoIdStringValidator },
       beforeMeal: { validator: booleanValidator },
+      dontTrigger: { validator: booleanValidator },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
     }
   },

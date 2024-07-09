@@ -313,6 +313,7 @@ import {
   CANDID_TITLE,
   CANVAS_TITLE,
   DEFAULT_ACCESS,
+  DOCSUMO_TITLE,
   DOSESPOT_TITLE,
   ENDUSER_FIELD_TYPES,
   FULLSCRIPT_INTEGRATIONS_TITLE,
@@ -2593,6 +2594,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       reminders: listValidatorOptionalOrEmptyOk(ticketReminderValidator),
       priority: numberValidatorOptional,
       preserveContext: booleanValidatorOptional,
+      tags: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
     }, { emptyOk: false }),
   }),
   sendWebhook: objectValidator<SendWebhookAutomationAction>({
@@ -2992,6 +2994,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   prefillSignature: booleanValidatorOptional,
   requirePredefinedInsurer: booleanValidatorOptional,
   includeGroupNumber: booleanValidatorOptional,
+  holdAppointmentMinutes: numberValidatorOptional,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -3573,7 +3576,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Order Created": true,
   "Problem Created": true,
   "Message Delivery Failure": true,
-  "Incoming Message (No Care Team)": true,
+  "Incoming Message": true,
   "Pregnancy Ended": true,
 }
 export const AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES) as AutomationTriggerEventType[]
@@ -3626,9 +3629,13 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     info: optionalEmptyObjectValidator,
     conditions: optionalEmptyObjectValidator,
   }), 
-  "Incoming Message (No Care Team)": objectValidator<AutomationTriggerEvents["Incoming Message (No Care Team)"]>({
-    type: exactMatchValidator(['Incoming Message (No Care Team)']),
-    info: optionalEmptyObjectValidator,
+  "Incoming Message": objectValidator<AutomationTriggerEvents["Incoming Message"]>({
+    type: exactMatchValidator(['Incoming Message']),
+    info: objectValidator<AutomationTriggerEvents['Incoming Message']['info']>({
+      noCareTeam: booleanValidatorOptional,
+      destinations: listOfStringsValidatorOptionalOrEmptyOk,
+      channels: listOfStringsValidatorOptionalOrEmptyOk,
+    }),
     conditions: optionalEmptyObjectValidator,
   }), 
   "Appointment No-Showed": objectValidator<AutomationTriggerEvents["Appointment No-Showed"]>({
@@ -3760,6 +3767,7 @@ const _AUTOMATION_TRIGGER_ACTION_TYPES: { [K in AutomationTriggerActionType]: an
   "Assign Care Team": true,
   "Remove From All Journeys": true,
   "Canvas: Add Patient": true,
+  "Zus: Delete Enrollment": true,
 }
 export const AUTOMATION_TRIGGER_ACTION_TYPES = Object.keys(_AUTOMATION_TRIGGER_ACTION_TYPES) as AutomationTriggerActionType[]
 
@@ -3813,6 +3821,12 @@ export const automationTriggerActionValidator = orValidator<{ [K in AutomationTr
   "Canvas: Add Patient": objectValidator<AutomationTriggerActions["Canvas: Add Patient"]>({
     type: exactMatchValidator(['Canvas: Add Patient']),
     info: optionalEmptyObjectValidator,
+  }), 
+  "Zus: Delete Enrollment": objectValidator<AutomationTriggerActions["Zus: Delete Enrollment"]>({
+    type: exactMatchValidator(['Zus: Delete Enrollment']),
+    info: objectValidator<AutomationTriggerActions['Zus: Delete Enrollment']['info']>({
+      packageId: stringValidator100,
+    }),
   }), 
 })
 
@@ -4101,6 +4115,7 @@ export type IntegrationsTitleType = (
 | typeof MFAX_TITLE
 | typeof ATHENA_TITLE
 | typeof DOSESPOT_TITLE
+| typeof DOCSUMO_TITLE
 )
 export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleType>([
   SQUARE_INTEGRATIONS_TITLE,
@@ -4118,6 +4133,7 @@ export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleTy
   MFAX_TITLE,
   ATHENA_TITLE,
   DOSESPOT_TITLE,
+  DOCSUMO_TITLE,
 ])
 
 const _VIDEO_INTEGRATION_TYPES: { [K in VideoIntegrationType]: any} = {
@@ -4213,6 +4229,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Tags: booleanValidatorOptional,
       Age: booleanValidatorOptional,
       State: booleanValidatorOptional,
+      Phone: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
@@ -4245,6 +4262,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Tags: booleanValidatorOptional,
       Age: booleanValidatorOptional,
       State: booleanValidatorOptional,
+      Phone: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
@@ -4275,6 +4293,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Tags: booleanValidatorOptional,
       Age: booleanValidatorOptional,
       State: booleanValidatorOptional,
+      Phone: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
@@ -4299,6 +4318,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Tags: booleanValidatorOptional,
       Age: booleanValidatorOptional,
       State: booleanValidatorOptional,
+      Phone: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
@@ -4322,6 +4342,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Tags: booleanValidatorOptional,
       Age: booleanValidatorOptional,
       State: booleanValidatorOptional,
+      Phone: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
@@ -4346,6 +4367,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Tags: booleanValidatorOptional,
       Age: booleanValidatorOptional,
       State: booleanValidatorOptional,
+      Phone: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
@@ -4369,6 +4391,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Tags: booleanValidatorOptional,
       Age: booleanValidatorOptional,
       State: booleanValidatorOptional,
+      Phone: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
@@ -4396,6 +4419,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Tags: booleanValidatorOptional,
       Age: booleanValidatorOptional,
       State: booleanValidatorOptional,
+      Phone: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
@@ -4423,6 +4447,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Tags: booleanValidatorOptional,
       Age: booleanValidatorOptional,
       State: booleanValidatorOptional,
+      Phone: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
@@ -4446,6 +4471,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Tags: booleanValidatorOptional,
       Age: booleanValidatorOptional, 
       State: booleanValidatorOptional,
+      Phone: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
@@ -4471,6 +4497,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Tags: booleanValidatorOptional,
       Age: booleanValidatorOptional, 
       State: booleanValidatorOptional,
+      Phone: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
@@ -4539,6 +4566,7 @@ export const externalChatGPTMessagesValidator = listValidator(externalChatGPTMes
 
 export const sharedEnduserProfileViewBlockFields = {
   width: stringValidator1000Optional,
+  maxHeight: numberValidatorOptional,
 }
 
 export const enduserProfileViewBlockValidator = orValidator<{ [K in EnduserProfileViewBlockType]: EnduserProfileViewBlocks[K] } >({
