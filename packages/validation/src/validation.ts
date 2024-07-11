@@ -2947,6 +2947,7 @@ export const canvasCodingValidator = objectValidator<CanvasCoding>({
 }, { })
 
 export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
+  default: stringValidatorOptional,
   bookingPageId: stringValidatorOptional,
   tableChoices: listValidatorOptionalOrEmptyOk(tableInputChoiceValidator),
   choices: listOfStringsValidatorOptionalOrEmptyOk,

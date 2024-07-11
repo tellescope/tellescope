@@ -1323,6 +1323,7 @@ export const schema: SchemaV1 = build_schema({
       references: { validator: listOfRelatedRecordsValidator, updatesDisabled: true },
       athenaDepartmentId: { validator: stringValidator100 },
       athenaPracticeId: { validator: stringValidator100 },
+      salesforceId: { validator: stringValidator100 },
       // recentMessagePreview: { 
       //   validator: stringValidator,
       // },
@@ -6099,6 +6100,7 @@ export const schema: SchemaV1 = build_schema({
       state: { validator: stateValidator },
       timezone: { validator: timezoneValidator },
       canvasLocationId: { validator: stringValidator1000 },
+      healthieContactType: { validator: stringValidator100 },
     }
   },
   products: {

@@ -1330,6 +1330,7 @@ export type FormFieldFeedback = {
 }
 export interface CanvasConsentCategory extends CanvasCoding {}
 export type FormFieldOptions = FormFieldValidation & {
+  default?: string,
   tableChoices?: TableInputChoice[],  
   choices?: string[];
   canvasCodings?: CanvasCoding[],
@@ -2035,6 +2036,7 @@ export interface AppointmentLocation extends AppointmentLocation_readonly, Appoi
   phone?: string,
   timezone?: Timezone,
   canvasLocationId?: string,
+  healthieContactType?: string,
 }
 
 export type AppointmentTerm = {

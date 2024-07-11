@@ -596,7 +596,11 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
                     : f.type === 'Time'
                       ? `${`${hoursAmPm < 10 ? '0' : ''}${hoursAmPm}`}:${minutes} ${amPm.toUpperCase()} ${getLocalTimezone()}`
                       : f.type === 'rating'
-                        ? (f.options?.from || 1)
+                        ? (
+                            (f.options?.default && !isNaN(parseInt(f.options.default)))
+                              ? parseInt(f.options.default)
+                              : (f.options?.from || 1)
+                          )
                         : '' as any // null flag that the response was not filled out
           )
         ),
