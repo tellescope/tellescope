@@ -87,6 +87,7 @@ import {
   EnduserProblem,
   FlowchartNote,
   WebhookLog,
+  FormGroup,
 } from "@tellescope/types-client"
 
 import {
@@ -341,6 +342,7 @@ const enduserEncountersSlice = createSliceForList<EnduserEncounter, 'enduser_enc
 const vitalConfigurationsSlice = createSliceForList<VitalConfiguration, 'vital_configurations'>('vital_configurations')
 const flowchartNotesSlice = createSliceForList<FlowchartNote, 'flowchart_notes'>('flowchart_notes')
 const webhookLogsSlice = createSliceForList<WebhookLog, 'webhook_logs'>('webhook_logs')
+const formGroupsSlice = createSliceForList<FormGroup, 'form_groups'>('form_groups')
 
 const roleBasedAccessPermissionsSlice = createSliceForList<RoleBasedAccessPermission, 'role_based_access_permissions'>('role_based_access_permissions')
 
@@ -422,6 +424,7 @@ export const sharedConfig = {
     enduser_problems: enduserProblemsSlice.reducer,
     flowchart_notes: flowchartNotesSlice.reducer,
     webhook_logs: webhookLogsSlice.reducer,
+    form_groups: formGroupsSlice.reducer,
   },
 }
 
@@ -1228,6 +1231,22 @@ export const useWebhookLogs = (options={} as HookOptions<WebhookLog>) => {
       addSome: session.api.webhook_logs.createSome,
       deleteOne: session.api.webhook_logs.deleteOne,
       updateOne: session.api.webhook_logs.updateOne,
+    }, 
+    {...options}
+  )
+}
+export const useFormGroups = (options={} as HookOptions<FormGroup>) => {
+  const session = useSession()
+  return useListStateHook(
+    'form_groups', useTypedSelector(s => s.form_groups), session, formGroupsSlice, 
+    { 
+      loadQuery: session.api.form_groups.getSome,
+      findOne: session.api.form_groups.getOne,
+      findByIds: session.api.form_groups.getByIds,
+      addOne: session.api.form_groups.createOne,
+      addSome: session.api.form_groups.createSome,
+      deleteOne: session.api.form_groups.deleteOne,
+      updateOne: session.api.form_groups.updateOne,
     }, 
     {...options}
   )

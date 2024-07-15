@@ -136,7 +136,24 @@ export const ZENDESK_REDIRECT_URI_ENDING = "/zendesk-oauth2-verify"
 export const FULLSCRIPT_INTEGRATIONS_TITLE = "Fullscript"
 export const FULLSCRIPT_REDIRECT_URI_ENDING = "/fullscript-oauth2-verify"
 
-export const ORGANIZATION_WIDE_INTEGRATIONS = [OPENAI_TITLE]
+export const ORGANIZATION_WIDE_INTEGRATIONS = [
+  OPENAI_TITLE, 
+  ATHENA_TITLE, 
+  DOSESPOT_TITLE, 
+  DOCSUMO_TITLE, 
+  ZUS_TITLE, 
+  ELATION_TITLE, 
+  HEALTHIE_TITLE,
+  CANVAS_TITLE,
+  PAGER_DUTY_TITLE,
+  SMART_METER_TITLE,
+  ITERABLE_TITLE,
+  CANDID_TITLE,
+  GOGO_MEDS_TITLE,
+  PHOTON_TITLE,
+  MFAX_TITLE,
+  MEDPLUM_TITLE,
+]
 
 export const ONE_MINUTE_IN_MS = 1000 * 60
 export const ONE_HOUR_IN_MS   = 60 * ONE_MINUTE_IN_MS // 1hr
@@ -253,6 +270,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
   engagement_events: ASSIGNED_AND_DEFAULT_ACCESS,
   files: ASSIGNED_AND_DEFAULT_ACCESS, 
   forms: READ_ONLY_ALL,
+  form_groups: READ_ONLY_ALL,
   form_fields: READ_ONLY_ALL,
   form_responses: ASSIGNED_AND_DEFAULT_ACCESS, 
   journeys: READ_ONLY_ALL,
@@ -347,6 +365,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
   webhook_logs: READ_ONLY_ALL,
+  form_groups: FULL_ACCESS,
   flowchart_notes: FULL_ACCESS,
   enduser_problems: FULL_ACCESS,
   prescription_routes: FULL_ACCESS,
@@ -942,4 +961,14 @@ export const CANDID_MODIFIERS = [
   "UG",
   "UH",
   "UJ",
+]
+
+export const DAYS_OF_WEEK_STARTING_SUNDAY = [
+  "Sunday",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday", 
+  "Friday", 
+  "Saturday",
 ]

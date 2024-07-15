@@ -1161,6 +1161,8 @@ export const numberValidatorBuilder: ValidatorBuilder<number, { lower: number, u
 export const nonNegNumberValidator = numberValidatorBuilder({ lower: 0, upper: 10000000000000 }) // max is 2286 in UTC MS
 export const numberValidator = numberValidatorBuilder({ lower: -10000000000000, upper: 10000000000000 }) // max is 2286 in UTC MS
 export const numberValidatorOptional = numberValidatorBuilder({ lower: -10000000000000, upper: 10000000000000, isOptional: true, emptyStringOk: true }) // max is 2286 in UTC MS
+export const listOfNumbersValidatorUniqueOptionalOrEmptyOkay = listValidatorUniqueOptionalEmptyOkay(numberValidator)
+
 export const fileSizeValidator = numberValidatorBuilder({ lower: 0, upper: MAX_FILE_SIZE })
 
 export const numberOrStringValidatorEmptyOkay = orValidator({
@@ -2589,6 +2591,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       htmlDescription: stringValidator100000OptionalEmptyOkay, // keep consistent with validator on Tickets model
       actions: ticketActionsValidator,
       dueDateOffsetInMS: numberValidatorOptional,
+      skipDaysOfWeekForDueDate: listOfNumbersValidatorUniqueOptionalOrEmptyOkay,
       closeOnFinishedActions: booleanValidatorOptional,
       requireConfirmation: booleanValidatorOptional,
       reminders: listValidatorOptionalOrEmptyOk(ticketReminderValidator),
@@ -2737,6 +2740,8 @@ export const journeyContextValidator = objectValidator<JourneyContext>({
   observationId: mongoIdStringOptional,
   phoneCallId: mongoIdStringOptional,
   smsId: mongoIdStringOptional,
+  formGroupId: mongoIdStringOptional,
+  publicIdentifier: stringValidatorOptional,
 })
 
 export const relatedRecordValidator = objectValidator<RelatedRecord>({
@@ -3579,6 +3584,8 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Message Delivery Failure": true,
   "Incoming Message": true,
   "Pregnancy Ended": true,
+  "Form Group Completed": true,
+  "Form Group Incomplete": true,
 }
 export const AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES) as AutomationTriggerEventType[]
 
@@ -3753,6 +3760,21 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['Pregnancy Ended']),
     info: objectValidator<AutomationTriggerEvents['Pregnancy Ended']['info']>({
       reason: stringValidatorOptional,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Form Group Completed": objectValidator<AutomationTriggerEvents["Form Group Completed"]>({
+    type: exactMatchValidator(['Form Group Completed']),
+    info: objectValidator<AutomationTriggerEvents['Form Group Completed']['info']>({
+      groupId: mongoIdStringRequired,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Form Group Incomplete": objectValidator<AutomationTriggerEvents["Form Group Incomplete"]>({
+    type: exactMatchValidator(['Form Group Incomplete']),
+    info: objectValidator<AutomationTriggerEvents['Form Group Incomplete']['info']>({
+      groupId: mongoIdStringRequired,
+      intervalInMS: nonNegNumberValidator,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -3971,6 +3993,7 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   enduser_problems: accessPermissionValidator,
   flowchart_notes: accessPermissionValidator,
   webhook_logs: accessPermissionValidator,
+  form_groups: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
@@ -4051,6 +4074,7 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   vital_configurations: numberValidatorOptional,
   blocked_phones: numberValidatorOptional,
   flowchart_notes: numberValidatorOptional,
+  form_groups: numberValidatorOptional,
 }, { emptyOk: true })
 
 const _LOGIN_FLOW_RESULTS = {

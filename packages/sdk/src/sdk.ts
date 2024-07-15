@@ -132,6 +132,7 @@ export const defaultQueries = <N extends keyof ClientModelForName>(
 }
 
 const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : APIQuery<K> } => ({
+  form_groups: defaultQueries(s, 'form_groups'),
   automation_triggers: defaultQueries(s, 'automation_triggers'),
   availability_blocks: defaultQueries(s, 'availability_blocks'),
   analytics_frames: defaultQueries(s, 'analytics_frames'),

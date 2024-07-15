@@ -504,8 +504,18 @@ export const is_table_input_response = (v: any): v is TableInputCell[][] => (
   !!(Array.isArray(v) && Array.isArray(v[0]) && v[0][0].label)
 )
 
-export const form_response_value_to_string = (value: FormResponseValueAnswer['value'] | string | boolean | number | null | undefined | object): string => {
+export const form_response_value_to_string = (value: FormResponseValueAnswer['value'] | string | boolean | number | null | undefined | object, options?: { convertISODate?: boolean }): string => {
   if (value === null || value === undefined) return ''
+
+  const maybeDate = (
+    (options?.convertISODate && typeof value === 'string')
+      ? is_full_iso_string_heuristic(value) 
+      : undefined
+  )
+  if (maybeDate) {
+    return formatted_date(maybeDate)
+  }
+
   if (typeof value === 'string') return value
   if (typeof value === 'number' || typeof value === 'boolean') return value.toString()
 
@@ -1863,3 +1873,34 @@ export const display_time_for_seconds = (seconds?: number) => (
       ? ` (${Math.floor(seconds / 60)} Minutes)`
       : ` (${seconds} Seconds)`
 )
+
+
+export const is_full_iso_string_heuristic = (d: string): Date | undefined => {
+  try {
+    if (d.length < 12) return // don't consider simple YYYY-MM-DD (10 characters) dates
+    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+      return 
+    }
+
+    const asDate = new Date(d)
+    return !isNaN(asDate.getTime()) ? asDate : undefined
+  } catch(err) {
+    return
+  }
+}
+
+export const skip_due_date_as_needed = (toSkip?: number[]) => (dueDateInMS?: number) => {
+  if (!dueDateInMS) return dueDateInMS
+  if (!toSkip?.length) return dueDateInMS
+
+  let adjusted = dueDateInMS
+  for (let i = 0; i < 7; i++) { // limit to 7 iterations
+    if (toSkip.includes(new Date(adjusted).getDay())) {
+      adjusted += 1000 * 60 * 60 * 24
+    } else {
+      break;
+    }
+  }
+
+  return adjusted
+}

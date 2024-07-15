@@ -747,12 +747,14 @@ export type CustomActions = {
       range?: DateRange, 
       customTypeId?: string,
       groupBy?: string,
+      includeLinkClicks?: boolean,
     }, { count: number, grouped?: { _id: string, count: number }[] }>,
     get_engagement_statistics_by_userId: CustomAction<{ 
       enduserFields?: { field: string, value: string }[],
       formIds?: string[],
       range?: DateRange, 
       customTypeId?: string,
+      includeLinkClicks?: boolean,
     }, { count: number, grouped: { _id: string, count: number }[] }>,
     sync_zendesk: CustomAction<{ enduserId: string }, { }>,
     get_journeys_report: CustomAction<{ }, { report: Record<string, any> }>,
@@ -797,7 +799,7 @@ export type CustomActions = {
     configure: CustomAction<{ url: string, secret: string, subscriptions?: WebhookSubscriptionsType }, { }>,
     update: CustomAction<{ url?: string, secret?: string, subscriptionUpdates?: WebhookSubscriptionsType }, { }>,
     get_configuration: CustomAction<{ }, { url?: string, subscriptions?: WebhookSubscriptionsType }>,
-    send_automation_webhook: CustomAction<{ message: string, enduserId: string }, { }>,
+    send_automation_webhook: CustomAction<{ message: string, enduserId: string, context?: JourneyContext }, { }>,
     send_calendar_event_reminder_webhook: CustomAction<{ id: string }, { }>,
   },
   user_notifications: {
@@ -1540,6 +1542,7 @@ export const schema: SchemaV1 = build_schema({
             validator: listValidatorEmptyOk(objectValidator<{ field: string, value: string }>({ field: stringValidator, value: stringValidator })) 
           },
           groupBy: { validator: stringValidator },
+          includeLinkClicks: { validator: booleanValidator },
         },
         returns: {
           count: { validator: numberValidator, required: true },
@@ -1558,6 +1561,7 @@ export const schema: SchemaV1 = build_schema({
           enduserFields: { 
             validator: listValidatorEmptyOk(objectValidator<{ field: string, value: string }>({ field: stringValidator, value: stringValidator })) 
           },
+          includeLinkClicks: { validator: booleanValidator },
         },
         returns: {
           count: { validator: numberValidator, required: true },
@@ -4002,6 +4006,9 @@ export const schema: SchemaV1 = build_schema({
       context: { validator: stringValidator1000 },
       calendarEventId: { validator: mongoIdStringValidator },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
+      groupId: { validator: mongoIdStringValidator },
+      instanceId: { validator: stringValidator100 },
+      groupPosition: { validator: nonNegNumberValidator },
     },
     defaultActions: DEFAULT_OPERATIONS,
     enduserActions: { 
@@ -4327,6 +4334,7 @@ export const schema: SchemaV1 = build_schema({
         parameters: { 
           message: { validator: stringValidator5000, required: true },
           enduserId: { validator: mongoIdStringValidator }, // can make required after initial updates to ensure worker uses this
+          context: { validator: journeyContextValidator },
         },
         returns: {},
       },
@@ -5778,6 +5786,7 @@ export const schema: SchemaV1 = build_schema({
         })
       },
       enforceMFA: { validator: booleanValidator },
+      replyToEnduserTransactionalEmails: { validator: emailValidator },
     },
   },
   databases: {
@@ -7330,7 +7339,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
   vital_configurations: {
     info: {},
     constraints: { 
-      unique: ['title'], relationship: [], 
+      unique: [], relationship: [], 
       access: []  
     },
     defaultActions: DEFAULT_OPERATIONS,
@@ -7354,6 +7363,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         ] 
       },
       mealStatus: { validator: exactMatchValidator<Required<VitalConfiguration>['mealStatus']>(['Any', 'Before', 'After']) },
+      originalConfigurationId: { validator: mongoIdStringValidator },
+      enduserId: { validator: mongoIdStringValidator },
     },
   },
   blocked_phones: {
@@ -7451,6 +7462,18 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       response: { validator: objectAnyFieldsAnyValuesValidator },
       responseCode: { validator: numberValidator },
       url: { validator: stringValidator },
+    }
+  },
+  form_groups: {
+    info: { description: '' },
+    constraints: { unique: ['title'], relationship: [], access: [] },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields,
+      title: { validator: stringValidator, required: true, examples: ['Title'] },
+      formIds: { validator: listOfMongoIdStringValidator, required: true, examples: [[PLACEHOLDER_ID]] },
     }
   },
 })

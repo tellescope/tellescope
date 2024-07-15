@@ -5,8 +5,8 @@ import { LoadFunction, LoadFunctionArguments } from "@tellescope/sdk"
 import { ALL_ACCESS, UNSEARCHABLE_FIELDS } from "@tellescope/constants"
 import { SearchAPIProps, useSearchAPI } from "./hooks"
 import { TextFieldProps } from "./mui"
-import { AutomationTrigger, CalendarEventTemplate, Database, DatabaseRecord, Enduser, File, Form, Forum, Journey, ManagedContentRecord, PrescriptionRoute, Template, Ticket, User, UserNotification } from "@tellescope/types-client"
-import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, LoadingLinear, ScrollingList, SearchTextInput, Typography, useAutomationTriggers, useCalendarEventTemplates, useDatabaseRecords, useDatabases, useEndusers, useFiles, useForms, useForums, useJourneys, useManagedContentRecords, useNotifications, usePrescriptionRoutes, useResolvedSession, useSession, useTemplates, useTickets, useUsers, value_is_loaded } from "."
+import { AutomationTrigger, CalendarEventTemplate, Database, DatabaseRecord, Enduser, File, Form, FormGroup, Forum, Journey, ManagedContentRecord, PrescriptionRoute, Template, Ticket, User, UserNotification } from "@tellescope/types-client"
+import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, LoadingLinear, ScrollingList, SearchTextInput, Typography, useAutomationTriggers, useCalendarEventTemplates, useDatabaseRecords, useDatabases, useEndusers, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useNotifications, usePrescriptionRoutes, useResolvedSession, useSession, useTemplates, useTickets, useUsers, value_is_loaded } from "."
 import { SxProps } from "@mui/material"
 import { AccessPermissions } from "@tellescope/types-models"
 
@@ -498,6 +498,17 @@ export const FormSearch = (props: Omit<GenericSearchProps<Form>, 'filterKey'> & 
   return (
     <ModelSearchInput filterKey="form-search" {...props} 
       searchAPI={session.api.forms.getSome}
+      onLoad={addLocalElements}
+    />
+  )
+}
+
+export const FormGroupSearch = (props: Omit<GenericSearchProps<FormGroup>, 'filterKey'> & { filterKey?: string }) => {
+  const session = useSession()
+  const [, { addLocalElements }] = useFormGroups()
+  return (
+    <ModelSearchInput filterKey="form-group-search" {...props} 
+      searchAPI={session.api.form_groups.getSome}
       onLoad={addLocalElements}
     />
   )

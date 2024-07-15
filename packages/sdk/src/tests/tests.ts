@@ -4758,8 +4758,8 @@ const merge_enduser_tests = async () => {
   log_header("Merge Endusers")
 
   const [source, destination, otherEnduser] = (await sdk.api.endusers.createSome([
-    { email: 'source@tellescope.com', fname: 'source', lname: 'enduser', references: [{ type: '2', id: '2.2' }, { type: '3', id: '3.2' }] },
-    { email: 'destination@tellescope.com', references: [{ type: '1', id: '1' }, { type: '2', id: '2' }] },
+    { email: 'source@tellescope.com', fname: 'source', lname: 'enduser', references: [{ type: '2', id: '2.2' }, { type: '3', id: '3.2' }, { type: '4', id: '4.2'}] },
+    { email: 'destination@tellescope.com', source: '4', externalId: "4", references: [{ type: '1', id: '1' }, { type: '2', id: '2' }] },
     { email: 'other@tellescope.com'},
   ])).created
 
@@ -4800,9 +4800,11 @@ const merge_enduser_tests = async () => {
          e.email === destination.email
       && e.fname === source.fname
       && e.lname === source.lname
+      && e.source === '4' && e.externalId === '4' // should prevent 4 from syncing to references at all
       && e.references?.find(r => r.type === '1')?.id === '1'
       && e.references?.find(r => r.type === '2')?.id === '2'
       && e.references?.find(r => r.type === '3')?.id === '3.2'
+      && !e.references?.find(r => r.type === '4')?.id 
     )}
   )
     
@@ -6015,6 +6017,7 @@ export const alternate_phones_tests = async () => {
 
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
+  form_groups: NO_TEST,
   webhook_logs: NO_TEST,
   flowchart_notes: NO_TEST,
   enduser_problems: NO_TEST,
@@ -7237,22 +7240,40 @@ const vital_trigger_tests = async () => {
     configurations: _configurations,
     triggers: _triggers,
     shouldTrigger,
+    otherEnduserShouldTrigger,
     vitals,
     title,
+    enduserConfigurations: _enduserConfigurations,
   } : {
     configurations: Pick<VitalConfiguration, 'mealStatus' | 'unit' | 'ranges'>[]
     triggers: { configurationIndexes: number[], classifications: string[] }[],
     vitals: (Pick<EnduserObservation, 'measurement'> & Pick<Partial<EnduserObservation>, | 'timestamp' | 'beforeMeal' | 'dontTrigger'>)[],
     shouldTrigger: boolean,
+    otherEnduserShouldTrigger?: boolean,
     title: string,
+    enduserConfigurations?: Pick<VitalConfiguration, 'mealStatus' | 'unit' | 'ranges'>[]
   }) => {
     const e = await sdk.api.endusers.createOne({ weight: { unit: 'LB', value: 180 } })
+    const e2 = await sdk.api.endusers.createOne({ weight: { unit: 'LB', value: 180 } })
     const configurations = (
       await sdk.api.vital_configurations.createSome(_configurations.map((c, i) => ({
         title: `configuration ${i}`,
         ...c,
       })))
     ).created
+
+    const enduserConfigurations = (
+      _enduserConfigurations?.length
+        ? (
+          await sdk.api.vital_configurations.createSome(_enduserConfigurations.map((c, i) => ({
+            title: `enduser configuration ${i}`,
+            enduserId: e.id,
+            originalConfigurationId: configurations[i].id,
+            ...c,
+          })))
+        ).created
+        : []
+    )
 
     const triggers = (
       await sdk.api.automation_triggers.createSome(_triggers.map((t, i) => ({
@@ -7294,9 +7315,28 @@ const vital_trigger_tests = async () => {
       passOnAnyResult,
     )  
 
+    if (enduserConfigurations.length) {
+      await async_test(
+        title + ' other enduser',
+        () => pollForResults(
+          () => sdk.api.endusers.getOne(e2.id),
+          e => {
+            // console.log(title, e.tags, (!!e.tags?.includes("Triggered")) === shouldTrigger)
+            return (!!e.tags?.includes("Triggered")) === otherEnduserShouldTrigger 
+          },
+          50,
+          10,
+          otherEnduserShouldTrigger 
+        ),
+        passOnAnyResult,
+      )  
+    }
+
     await Promise.all([
       sdk.api.endusers.deleteOne(e.id),
+      sdk.api.endusers.deleteOne(e2.id),
       ...configurations.map(c => sdk.api.vital_configurations.deleteOne(c.id)),
+      ...enduserConfigurations.map(c => sdk.api.vital_configurations.deleteOne(c.id)),
       ...triggers.map(t => sdk.api.automation_triggers.deleteOne(t.id)),
     ])
   }
@@ -7313,6 +7353,79 @@ const vital_trigger_tests = async () => {
       measurement: { unit: 'LB', value: 1 },
       timestamp: new Date(),
       dontTrigger: true,
+    }]
+  })
+
+  await runTriggerTest({
+    title: "Enduser Specific trigger",
+    shouldTrigger: true,
+    otherEnduserShouldTrigger: false,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 0 }, trendIntervalInMS: 0 }, ],
+    }],
+    enduserConfigurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 2 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 1 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Enduser Specific trigger (both)",
+    shouldTrigger: true,
+    otherEnduserShouldTrigger: true,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 2 }, trendIntervalInMS: 0 }, ],
+    }],
+    enduserConfigurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 2 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 1 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Enduser Specific dont trigger",
+    shouldTrigger: false,
+    otherEnduserShouldTrigger: true,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 2 }, trendIntervalInMS: 0 }, ],
+    }],
+    enduserConfigurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 0 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 1 },
+      timestamp: new Date(),
+    }]
+  })
+  await runTriggerTest({
+    title: "Enduser Specific dont trigger (both)",
+    shouldTrigger: false,
+    otherEnduserShouldTrigger: false,
+    configurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 0 }, trendIntervalInMS: 0 }, ],
+    }],
+    enduserConfigurations: [{ 
+      unit: 'LB',
+      ranges: [{ classification: 'Target', comparison: { type: 'Less Than', value: 0 }, trendIntervalInMS: 0 }, ],
+    }],
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'LB', value: 1 },
+      timestamp: new Date(),
     }]
   })
 

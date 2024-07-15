@@ -311,6 +311,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   altVitalTeamIds?: { teamId: string, label: string }[],
   zendeskSettings?: { priorityGroups?: string[], resolutionFieldId?: string, resolutionFieldOptions?: string[] }
   replyToAllEmails?: string,
+  replyToEnduserTransactionalEmails?: string,
   forwardAllIncomingEmailsTo?: string,
   numCustomTypes?: number,
   ticketThreadsEnabled?: boolean, // zendesk enabled
@@ -1479,6 +1480,13 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   canvasQuestionId?: string,
 }
 
+export interface FormGroup_readonly extends ClientRecord {}
+export interface FormGroup_required {}
+export interface FormGroup_updatesDisabled {}
+export interface FormGroup extends FormGroup_readonly, FormGroup_required, FormGroup_updatesDisabled {
+  title: string,
+  formIds: string[],
+}
 
 export type OAuth2AuthenticationFields = {
   access_token: string,
@@ -1791,6 +1799,9 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   context?: string,
   calendarEventId?: string,
   copiedFrom?: string,
+  groupId?: string,
+  groupInstance?: string,
+  groupPosition?: number,
 }
 
 export interface WebHook_readonly extends ClientRecord {}
@@ -2287,6 +2298,7 @@ export type CreateTicketActionInfo = {
   actions?: TicketAction[],
   closeOnFinishedActions?: boolean,
   dueDateOffsetInMS?: number,
+  skipDaysOfWeekForDueDate?: number[], // following JS convention of Sunday = 0 
   requireConfirmation?: boolean,
   reminders?: TicketReminder[],
   priority?: number,
@@ -3181,6 +3193,8 @@ export type AutomationTriggerEvents = {
   'Message Delivery Failure': AutomationTriggerEventBuilder<"Message Delivery Failure", { }, {}>,
   'Incoming Message': AutomationTriggerEventBuilder<"Incoming Message", { noCareTeam?: boolean, destinations?: string[], channels?: string[],  }, {}>,
   'Pregnancy Ended': AutomationTriggerEventBuilder<"Pregnancy Ended", { reason?: string }, {}>,
+  'Form Group Completed': AutomationTriggerEventBuilder<"Form Group Completed", { groupId: string }, {}>,
+  'Form Group Incomplete': AutomationTriggerEventBuilder<"Form Group Incomplete", { groupId: string, intervalInMS: number }, {}>,
 }
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents
 export type AutomationTriggerEvent = AutomationTriggerEvents[AutomationTriggerEventType]
@@ -3574,6 +3588,8 @@ export interface VitalConfiguration extends VitalConfiguration_readonly, VitalCo
   unit: string,
   ranges: VitalConfigurationRange[],
   mealStatus?: "Before" | "After" | "Any",
+  originalConfigurationId?: string, // for linking to another configuration
+  enduserId?: string, // for specifying an enduser for a new configuration
 }
 
 export interface BlockedPhone_readonly extends ClientRecord { }
@@ -3615,6 +3631,7 @@ export interface WebhookLog_updatesDisabled {}
 export interface WebhookLog extends WebhookLog_readonly, WebhookLog_required, WebhookLog_updatesDisabled {}
 
 export type ModelForName_required = {
+  form_groups: FormGroup_required,
   webhook_logs: WebhookLog_required,
   flowchart_notes: FlowchartNote_required,
   enduser_problems: EnduserProblem_required,
@@ -3693,6 +3710,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  form_groups: FormGroup_readonly,
   webhook_logs: WebhookLog_readonly,
   flowchart_notes: FlowchartNote_readonly,
   enduser_problems: EnduserProblem_readonly,
@@ -3771,6 +3789,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  form_groups: FormGroup_updatesDisabled,
   webhook_logs: WebhookLog_updatesDisabled,
   flowchart_notes: FlowchartNote_updatesDisabled,
   enduser_problems: EnduserProblem_updatesDisabled,
@@ -3849,6 +3868,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly { 
+  form_groups: FormGroup,
   webhook_logs: WebhookLog,
   flowchart_notes: FlowchartNote,
   enduser_problems: EnduserProblem,
@@ -3937,6 +3957,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  form_groups: true,
   webhook_logs: true,
   flowchart_notes: true,
   enduser_problems: true,
@@ -4040,6 +4061,8 @@ export type JourneyContext = {
   observationId?: string,
   phoneCallId?: string,
   smsId?: string,
+  formGroupId?: string,
+  publicIdentifier?: string,
 }
 
 // https://gist.github.com/aviflax/a4093965be1cd008f172/ 
