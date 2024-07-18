@@ -474,6 +474,8 @@ export interface User_updatesDisabled {
   verifiedEmail: boolean,
 }
 export interface User extends User_required, User_readonly, User_updatesDisabled {
+  termsSigned?: Date,
+  termsVersion?: string,
   externalId?: string,
   phone?: string;
   fname?: string;
@@ -669,6 +671,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   fname? : string;
   mname? : string;
   lname? : string;
+  suffix?: string;
   journeys?: Indexable<string>;
   scheduledJourneys?: ScheduledJourney[],
   tags? : string[];
@@ -719,6 +722,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   salesforceId?: string,
   athenaPracticeId?: string,
   athenaDepartmentId?: string,
+  vitalTriggersDisabled?: boolean,
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
 }
@@ -1372,6 +1376,7 @@ export type FormFieldOptions = FormFieldValidation & {
   prefillSignature?: boolean,
   includeGroupNumber?: boolean,
   holdAppointmentMinutes?: number,
+  rangeStepSize?: number,
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
@@ -1530,6 +1535,7 @@ export interface Integration extends Integration_readonly, Integration_required,
   shouldCreateNotifications?: boolean, // for indicating users should receive email notifications
   disableEnduserAutoSync?: boolean,
   disableTicketAutoSync?: boolean,
+  pushCalendarDetails?: boolean,
   redactExternalEvents?: boolean,
   fhirClientId?: string,
   fhirClientSecret?: string,
@@ -2277,6 +2283,10 @@ export type CreateTicketAssignmentStrategies = {
     type: 'Recently-Booked Appointment Host',
     info: {}, 
   },
+  'Form Submitter for Journey Trigger': {
+    type: 'Form Submitter for Journey Trigger',
+    info: {}, 
+  },
   'default': {
     type: 'default',
     info: {}, 
@@ -2868,7 +2878,10 @@ export type AnalyticsQueryFilterForType = {
   }
   "Purchases": { },
   "Purchase Credits": { },
-  "Tickets": { },
+  "Tickets": { 
+    titles?: string[],
+    closeReasons?: string[],
+  },
   "Phone Calls": { },
   "SMS Messages": { 
     direction?: string,
@@ -2903,7 +2916,11 @@ export type AnalyticsQueryGroupingForType = {
     Cost?: boolean,
   } & EnduserGrouping & { Enduser: string },
   "Purchase Credits": {} & EnduserGrouping & { Enduser: string },
-  "Tickets": { Owner: boolean } & EnduserGrouping & { Enduser: string },
+  "Tickets": { 
+    Owner?: boolean,
+    Title?: boolean,
+    Outcome?: boolean,
+  } & EnduserGrouping & { Enduser: string },
   "Phone Calls": {} & EnduserGrouping & { Enduser: string },
   "SMS Messages": { 
     Score?: boolean,
@@ -3153,7 +3170,12 @@ export type AutomationTriggerAction = AutomationTriggerActions[AutomationTrigger
 export type AutomationTriggerEventBuilder <T, I, C> = { type: T, info: I, conditions?: C }
 
 export type AutomationTriggerEvents = {
-  'Form Submitted': AutomationTriggerEventBuilder<"Form Submitted", { formId: string, submitterType?: SessionType | 'Anyone', publicIdentifier?: string }, {}>,
+  'Form Submitted': AutomationTriggerEventBuilder<"Form Submitted", { 
+    formId: string, 
+    submitterType?: SessionType | 'Anyone', 
+    publicIdentifier?: string,
+    hasExpiredEvent?: boolean,
+  }, {}>,
   'Form Unsubmitted': AutomationTriggerEventBuilder<"Form Unsubmitted", { formId: string, intervalInMS: number }, {}>,
   'Purchase Made': AutomationTriggerEventBuilder<"Purchase Made", { }, {}>,
   'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", { }, {}>,
@@ -3404,6 +3426,7 @@ export interface TicketThreadComment_required {
 export interface TicketThreadComment_updatesDisabled {}
 export interface TicketThreadComment extends TicketThreadComment_readonly, TicketThreadComment_required, TicketThreadComment_updatesDisabled {
   userId?: string,
+  userDisplayName?: string,
   type?: string,
   attachments?: ChatAttachment[]
   voice?: {

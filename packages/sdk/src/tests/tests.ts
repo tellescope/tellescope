@@ -36,7 +36,7 @@ import {
 } from "@tellescope/validation"
 
 import { Session, APIQuery, EnduserSession } from "../sdk"
-import { FORM_LOGIC_CALCULATED_FIELDS, responses_satisfy_conditions, weighted_round_robin } from "@tellescope/utilities"
+import { FORM_LOGIC_CALCULATED_FIELDS, get_flattened_fields, responses_satisfy_conditions, weighted_round_robin } from "@tellescope/utilities"
 import { DEFAULT_OPERATIONS, PLACEHOLDER_ID } from "@tellescope/constants"
 import { 
   schema, 
@@ -8178,6 +8178,14 @@ const vital_trigger_tests = async () => {
     await test_weighted_round_robin()
 
     await validate_schema()
+
+    const fields = get_flattened_fields([
+      { otherField: '', insurance: { payerName: '' }, },
+      { insurance: { payerName: '' }, },
+      { insurance: {}, insuranceSecondary: {}, },
+      { insurance: {}, insuranceSecondary: { memberId: '' }, },
+    ])
+    assert(objects_equivalent(fields, ['otherField', 'insurance.payerName', 'insuranceSecondary.memberId']), 'flattened object fields fail', 'flattened object fields')
 
     await Promise.all([
       sdk.authenticate(email, password),

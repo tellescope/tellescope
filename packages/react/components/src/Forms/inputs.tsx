@@ -125,14 +125,20 @@ export const RatingInput = ({ field, value, onChange }: FormInputProps<'rating'>
   const from = field?.options?.from ?? 1 // allow 0
   const to   = field?.options?.to   ?? 10 // allow 0
 
-  const marks = []
-  for (let i=from; i<=to; i++) {
-    marks.push({ value: i, label: i })
+  const step = field.options?.rangeStepSize || 1
+  const allMarks = []
+  for (let i=from; i<=to; i+=(step)) {
+    allMarks.push({ value: i, label: i })
+  }
+
+  let marks = [...allMarks]
+  while (marks.length > 25) {
+    marks = marks.filter((_, i) => i%2 === 0)
   }
 
   return (
-    <Slider min={from} max={to} step={1} marks={marks}
-      valueLabelDisplay="off"
+    <Slider min={from} max={to} step={step} marks={marks}
+      valueLabelDisplay={marks.length < allMarks.length ? 'auto' : "off"} 
       value={value} 
       onChange={(e, v) => onChange(v as number, field.id)}
     />

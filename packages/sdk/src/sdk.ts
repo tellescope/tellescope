@@ -347,6 +347,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     configure_inbox: (args: extractFields<CustomActions['users']['configure_inbox']['parameters']>) => (
       Promise<extractFields<CustomActions['users']['configure_inbox']['returns']>>
     ),
+    consent: (args: extractFields<CustomActions['users']['consent']['parameters']>) => (
+      Promise<extractFields<CustomActions['users']['consent']['returns']>>
+    ),
     configure_MFA: (args: extractFields<CustomActions['users']['configure_MFA']['parameters']>) => (
       Promise<extractFields<CustomActions['users']['configure_MFA']['returns']>>
     ),
@@ -787,6 +790,7 @@ export class Session extends SessionManager {
     queries.users.send_invitation_to_existing = args => this._POST(`/v1/${schema.users.customActions.send_invitation_to_existing.path}`, args) 
     queries.users.invite_user = a => this._POST(`/v1/${schema.users.customActions.invite_user.path}`, a)
     queries.users.configure_inbox = a => this._POST(`/v1/${schema.users.customActions.configure_inbox.path}`, a)
+    queries.users.consent = a => this._PATCH(`/v1/${schema.users.customActions.consent.path}`, a)
     queries.users.get_engagement_report = a => this._GET(`/v1/${schema.users.customActions.get_engagement_report.path}`, a)
 
     queries.users.configure_MFA = a => this._POST(`/v1/${schema.users.customActions.configure_MFA.path}`, a)

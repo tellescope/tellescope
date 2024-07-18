@@ -668,6 +668,7 @@ export type CustomActions = {
     >,
     get_enduser_statistics: CustomAction<{ 
       enduserFields?: { field: string, value: string }[],
+      endusersFilter?: any,
       formIds?: string[],
       range?: DateRange, 
       customTypeId?: string,
@@ -676,6 +677,7 @@ export type CustomActions = {
     }, { count: number, grouped?: { _id: string, count: number }[] }>,
     get_enduser_statistics_by_submitter: CustomAction<{ 
       enduserFields?: { field: string, value: string }[],
+      endusersFilter?: any,
       formIds?: string[],
       range?: DateRange, 
       customTypeId?: string,
@@ -743,6 +745,7 @@ export type CustomActions = {
     }, { report: EndusersReport }>,
     get_engagement_statistics: CustomAction<{ 
       enduserFields?: { field: string, value: string }[],
+      endusersFilter?: any,
       formIds?: string[],
       range?: DateRange, 
       customTypeId?: string,
@@ -751,6 +754,7 @@ export type CustomActions = {
     }, { count: number, grouped?: { _id: string, count: number }[] }>,
     get_engagement_statistics_by_userId: CustomAction<{ 
       enduserFields?: { field: string, value: string }[],
+      endusersFilter?: any,
       formIds?: string[],
       range?: DateRange, 
       customTypeId?: string,
@@ -778,6 +782,7 @@ export type CustomActions = {
     generate_MFA_challenge: CustomAction<{ method: string }, { }>,
     submit_MFA_challenge: CustomAction<{ code: string }, { authToken: string, user: UserSession }>,
     get_engagement_report: CustomAction<{ range?: DateRange }, { report: Record<string, any> }>,
+    consent: CustomAction<{ termsVersion: string, }, { user: User, authToken: string }>,
   },
   chat_rooms: {
     join_room: CustomAction<{ id: string }, { room: ChatRoom }>,
@@ -943,7 +948,12 @@ export type CustomActions = {
     generate_access_token: CustomAction<{ expiresAt: Date, bookingPageId?: string }, { token: string }>,
   },
   enduser_observations: {
-    load: CustomAction<{ from: Date, to: Date, enduserId: string }, { observations: EnduserObservationClient[] }>,
+    load: CustomAction<{ 
+      from: Date, to: Date, 
+      enduserId?: string,
+      careTeam?: string[],
+      unreviewed?: boolean,
+    }, { observations: EnduserObservationClient[] }>,
     acknowledge: CustomAction<{ ids: string[] }, { }>,
   },
   sms_messages: {
@@ -1171,8 +1181,8 @@ export const schema: SchemaV1 = build_schema({
         redactions: ['enduser'],
       },
       unsubscribedFromMarketing: { validator: booleanValidator },
-      alternateEmails: { validator: listValidatorOptionalOrEmptyOk(emailValidator) },
-      alternatePhones: { validator: listOfStringsValidatorEmptyOk  },
+      alternateEmails: { validator: listValidatorOptionalOrEmptyOk(emailValidator), redactions: ['enduser'] },
+      alternatePhones: { validator: listOfStringsValidatorEmptyOk, redactions: ['enduser'] },
       emailConsent: { 
         validator: booleanValidator,
         examples: BOOLEAN_EXAMPLES,
@@ -1207,6 +1217,10 @@ export const schema: SchemaV1 = build_schema({
       mname: { validator: nameValidator, redactions: ['enduser'], },
       lname: { 
         validator: nameValidator,
+        redactions: ['enduser'],
+      },
+      suffix: { 
+        validator: stringValidator100,
         redactions: ['enduser'],
       },
       dateOfBirth: { 
@@ -1282,16 +1296,16 @@ export const schema: SchemaV1 = build_schema({
           },
         ]
       },
-      gender: { validator: tellescopeGenderValidator },
-      height: { validator: genericUnitWithQuantityValidator },
-      weight: { validator: genericUnitWithQuantityValidator },
+      gender: { validator: tellescopeGenderValidator, redactions: ['enduser'] },
+      height: { validator: genericUnitWithQuantityValidator, redactions: ['enduser'] },
+      weight: { validator: genericUnitWithQuantityValidator, redactions: ['enduser'] },
       source: { validator: stringValidator1000Optional },
-      addressLineOne: { validator: stringValidator5000EmptyOkay },
-      addressLineTwo: { validator: stringValidator5000EmptyOkay },
-      city: { validator: stringValidator5000EmptyOkay },
-      state: { validator: stateValidator },
-      zipCode: { validator: stringValidator25000EmptyOkay },
-      zipPlusFour: { validator: stringValidator100 },
+      addressLineOne: { validator: stringValidator5000EmptyOkay, redactions: ['enduser'] },
+      addressLineTwo: { validator: stringValidator5000EmptyOkay, redactions: ['enduser'] },
+      city: { validator: stringValidator5000EmptyOkay, redactions: ['enduser'] },
+      state: { validator: stateValidator, redactions: ['enduser'] },
+      zipCode: { validator: stringValidator25000EmptyOkay, redactions: ['enduser'] },
+      zipPlusFour: { validator: stringValidator100, redactions: ['enduser'] },
       timezone: { validator: timezoneValidator },
       humanReadableId: { validator: stringValidator100 },
       displayName: { validator: stringValidator250 }, // intentionally not redacted for other endusers
@@ -1307,25 +1321,28 @@ export const schema: SchemaV1 = build_schema({
       },
       markedReadAt: { validator: dateOptionalOrEmptyStringValidator },
       markedUnreadAt: { validator: dateOptionalOrEmptyStringValidator },
-      note: { validator: stringValidator25000EmptyOkay },
-      insurance: { validator: insuranceOptionalValidator },
-      insuranceSecondary: { validator: insuranceOptionalValidator },
+      note: { validator: stringValidator25000EmptyOkay, redactions: ['enduser'] },
+      insurance: { validator: insuranceOptionalValidator, redactions: ['enduser'] },
+      insuranceSecondary: { validator: insuranceOptionalValidator, redactions: ['enduser'] },
       bookingNotes: {
         validator: listValidatorOptionalOrEmptyOk(objectValidator<{ bookingPageId: string, note: string }>({
           bookingPageId: mongoIdStringRequired,
           note: stringValidator5000EmptyOkay,
-        }))
+        })),
+        redactions: ['enduser'],
       },
       devices: {
         validator: listValidatorOptionalOrEmptyOk(objectValidator<{ title: string, id: string }>({
           title: stringValidatorOptional,
           id: stringValidatorOptional,
-        }))
+        })),
+        redactions: ['enduser'],
       },
       references: { validator: listOfRelatedRecordsValidator, updatesDisabled: true },
       athenaDepartmentId: { validator: stringValidator100 },
       athenaPracticeId: { validator: stringValidator100 },
       salesforceId: { validator: stringValidator100 },
+      vitalTriggersDisabled: { validator: booleanValidator },
       // recentMessagePreview: { 
       //   validator: stringValidator,
       // },
@@ -1541,6 +1558,7 @@ export const schema: SchemaV1 = build_schema({
           enduserFields: { 
             validator: listValidatorEmptyOk(objectValidator<{ field: string, value: string }>({ field: stringValidator, value: stringValidator })) 
           },
+          endusersFilter: { validator: objectAnyFieldsAnyValuesValidator },
           groupBy: { validator: stringValidator },
           includeLinkClicks: { validator: booleanValidator },
         },
@@ -1561,6 +1579,7 @@ export const schema: SchemaV1 = build_schema({
           enduserFields: { 
             validator: listValidatorEmptyOk(objectValidator<{ field: string, value: string }>({ field: stringValidator, value: stringValidator })) 
           },
+          endusersFilter: { validator: objectAnyFieldsAnyValuesValidator },
           includeLinkClicks: { validator: booleanValidator },
         },
         returns: {
@@ -1824,6 +1843,7 @@ export const schema: SchemaV1 = build_schema({
       disableEnduserAutoSync: { validator: booleanValidator },
       disableTicketAutoSync: { validator: booleanValidator },
       redactExternalEvents: { validator: booleanValidator },
+      pushCalendarDetails: { validator: booleanValidator },
     },
     customActions: {
       update_zoom: {
@@ -2988,6 +3008,19 @@ export const schema: SchemaV1 = build_schema({
           username: { validator: subdomainValidator, required: true },
           fname: { validator: nameValidator, required: true },
           lname: { validator: nameValidator, required: true },
+        },
+        returns: { 
+          authToken: { validator: stringValidator, required: true },
+          user: { validator: 'user' as any, required: true },
+        },
+      },
+      consent: {
+        op: "custom", access: 'update', method: "patch",
+        name: 'Consent to ToS / Privacy Policy',
+        path: '/users/consent',
+        description: "Stores consents",
+        parameters: { 
+          termsVersion: { validator: stringValidator, required: true }
         },
         returns: { 
           authToken: { validator: stringValidator, required: true },
@@ -4171,6 +4204,7 @@ export const schema: SchemaV1 = build_schema({
           enduserFields: { 
             validator: listValidatorEmptyOk(objectValidator<{ field: string, value: string }>({ field: stringValidator, value: stringValidator })) 
           },
+          endusersFilter: { validator: objectAnyFieldsAnyValuesValidator },
           groupBy: { validator: stringValidator },
           includeCalendarEventTemplateIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
         },
@@ -4191,6 +4225,7 @@ export const schema: SchemaV1 = build_schema({
           enduserFields: { 
             validator: listValidatorEmptyOk(objectValidator<{ field: string, value: string }>({ field: stringValidator, value: stringValidator })) 
           },
+          endusersFilter: { validator: objectAnyFieldsAnyValuesValidator },
           includeCalendarEventTemplateIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
         },
         returns: {
@@ -5079,9 +5114,11 @@ export const schema: SchemaV1 = build_schema({
         path: '/enduser-observations/load',
         description: "Loads all observations between a given time period for an Enduser, including id, timestamp, measurement, and source",
         parameters: { 
-          enduserId: { validator: mongoIdStringValidator, required: true },
           from: { validator: dateValidator, required: true },
           to: { validator: dateValidator, required: true },
+          enduserId: { validator: mongoIdStringValidator },
+          careTeam: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+          unreviewed: { validator: booleanValidator },
         },
         returns: {
           observations: { validator: 'enduser_observations' as any, required: true },
@@ -7096,6 +7133,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       ticketIds: { validator: listOfStringsValidatorEmptyOk },
       group: { validator: stringValidator250 },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
+      userDisplayName: { validator: stringValidator250 },
     }
   },
   configurations: {

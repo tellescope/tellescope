@@ -2577,6 +2577,10 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
           type: exactMatchValidator<'Recently-Booked Appointment Host'>(['Recently-Booked Appointment Host']),
           info: objectValidator<object>({}, { emptyOk: true }),
         }),
+        'Form Submitter for Journey Trigger': objectValidator<CreateTicketAssignmentStrategy>({ 
+          type: exactMatchValidator<'Form Submitter for Journey Trigger'>(['Form Submitter for Journey Trigger']),
+          info: objectValidator<object>({}, { emptyOk: true }),
+        }),
         'default': objectValidator<CreateTicketAssignmentStrategy>({ 
           type: exactMatchValidator<'default'>(['default']),
           info: objectValidator<object>({}, { emptyOk: true }),
@@ -3001,6 +3005,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   requirePredefinedInsurer: booleanValidatorOptional,
   includeGroupNumber: booleanValidatorOptional,
   holdAppointmentMinutes: numberValidatorOptional,
+  rangeStepSize: nonNegNumberValidator,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -3596,6 +3601,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
       formId: mongoIdStringRequired,
       publicIdentifier: stringValidatorOptionalEmptyOkay,
       submitterType: sessionTypeOrAnyoneValidatorOptional,
+      hasExpiredEvent: booleanValidatorOptional,
     }),
     conditions: orValidator({
       optional: optionalAnyObjectValidator,
@@ -4376,7 +4382,10 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
   }), 
   "Tickets": objectValidator<AnalyticsQueryForType['Tickets']>({
     resource: exactMatchValidator<'Tickets'>(['Tickets']),
-    filter: objectValidator<AnalyticsQueryFilterForType['Tickets']>({ }, { isOptional: true, emptyOk: true }),
+    filter: objectValidator<AnalyticsQueryFilterForType['Tickets']>({ 
+      closeReasons: listOfStringsValidatorOptionalOrEmptyOk,
+      titles: listOfStringsValidatorOptionalOrEmptyOk,
+    }, { isOptional: true, emptyOk: true }),
     info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Tickets']]: AnalyticsQueryInfoForType['Tickets'][K] }>({
       "Total": objectValidator<AnalyticsQueryInfoForType['Tickets']['Total']>({
         method: exactMatchValidator<"Total">(['Total']),
@@ -4385,6 +4394,8 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
     }),
     grouping: objectValidator<AnalyticsQueryGroupingForType['Tickets']>({
       Owner: booleanValidatorOptional,
+      Outcome: booleanValidatorOptional,
+      Title: booleanValidatorOptional,
       Enduser: booleanValidatorOptional,
       Gender: booleanValidatorOptional,
       "Assigned To": booleanValidatorOptional,

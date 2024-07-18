@@ -1904,3 +1904,53 @@ export const skip_due_date_as_needed = (toSkip?: number[]) => (dueDateInMS?: num
 
   return adjusted
 }
+
+export const get_flattened_fields = <T extends object>(objects: T[], options?: { includeObjectRoot?: boolean, ignore?: (keyof T & string)[], maxDepth?: number, depth?: number }): string[] => {
+  const { ignore=[], maxDepth=5, depth=0, includeObjectRoot } = options ?? {}
+  const fields: string[] = []
+
+  if (depth > maxDepth) { return fields }
+
+  for (const o of objects) {
+    if (!o || typeof o !== 'object' || Array.isArray(o)) continue
+
+    for (const rootField in o) {
+      if (ignore.includes(rootField)) continue
+
+      const value = o[rootField]      
+      if (!value || typeof value !== 'object' || Array.isArray(value)) {
+        fields.push(rootField)
+        continue
+      }
+
+      const field = rootField
+
+      // captures root field of object fields
+      if (includeObjectRoot) {
+        if (!fields.includes(field)) {
+          fields.push(field)
+        }
+      }
+
+      // don't include root on nested fields
+      const nestedFields = get_flattened_fields([value], { ...options, includeObjectRoot: false, ignore: [], depth: depth + 1 })
+      for (const nestedField of nestedFields) {
+        const toAdd = `${field}.${nestedField}`
+        if (fields.includes(toAdd)) continue
+
+        fields.push(toAdd)
+      }
+    }
+  }
+
+  return fields
+}
+
+export const value_for_dotted_key = (v: any, key: string) => {
+  let value = v
+  const keys = key.split('.')
+  for (const k of keys) {
+    value = value?.[k]
+  }
+  return value
+}
