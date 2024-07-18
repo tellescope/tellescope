@@ -3005,7 +3005,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   requirePredefinedInsurer: booleanValidatorOptional,
   includeGroupNumber: booleanValidatorOptional,
   holdAppointmentMinutes: numberValidatorOptional,
-  rangeStepSize: nonNegNumberValidator,
+  rangeStepSize: numberValidatorOptional,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
