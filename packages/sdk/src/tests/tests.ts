@@ -5977,6 +5977,60 @@ export const ticket_queue_tests = async () => {
     () => sdk.api.tickets.assign_from_queue({ queueId: queue.id }),
     { shouldError: true, onError: e => e.message === "Queue is empty" },
   )
+
+  const stateTicket = await sdk.api.tickets.createOne({ title: 'ticket in queue', queueId: queue.id, enduserId: enduser.id, restrictByState: 'AK' })
+  await sdk.api.users.updateOne(sdk.userInfo.id, { credentialedStates: [] }, { replaceObjectFields: true })
+  await async_test(
+    `Ticket queue empty for no state match`, 
+    () => sdk.api.tickets.assign_from_queue({ queueId: queue.id }),
+    { shouldError: true, onError: e => e.message === "Queue is empty" },
+  )
+  await sdk.api.users.updateOne(sdk.userInfo.id, { credentialedStates: [{ state: 'AK' }] })
+  await async_test(
+    `Ticket restricted by state`, 
+    () => sdk.api.tickets.assign_from_queue({ queueId: queue.id }),
+    { onResult: r => r.ticket.id === stateTicket.id },
+  )
+
+  const allTagsTicket = await sdk.api.tickets.createOne({ title: 'all tags', queueId: queue.id, enduserId: enduser.id, restrictByTagsQualifier: 'All Of', restrictByTags: ['A', 'B'] })
+  await sdk.api.users.updateOne(sdk.userInfo.id, { tags: [] }, { replaceObjectFields: true })
+  await async_test(
+    `Ticket queue empty for no tags match`, 
+    () => sdk.api.tickets.assign_from_queue({ queueId: queue.id }),
+    { shouldError: true, onError: e => e.message === "Queue is empty" },
+  )
+  await sdk.api.users.updateOne(sdk.userInfo.id, { tags: ['A'] }, { replaceObjectFields: true })
+  await async_test(
+    `Ticket queue empty for partial tags match`, 
+    () => sdk.api.tickets.assign_from_queue({ queueId: queue.id }),
+    { shouldError: true, onError: e => e.message === "Queue is empty" },
+  )
+  await sdk.api.users.updateOne(sdk.userInfo.id, { tags: ['A', 'B'] }, { replaceObjectFields: true })
+  await async_test(
+    `Ticket by all of tags`, 
+    () => sdk.api.tickets.assign_from_queue({ queueId: queue.id }),
+    { onResult: r => r.ticket.id === allTagsTicket.id },
+  )
+
+  const oneTagTicket = await sdk.api.tickets.createOne({ title: 'one tag', queueId: queue.id, enduserId: enduser.id, restrictByTagsQualifier: 'One Of', restrictByTags: ['A', 'B'] })
+  await sdk.api.users.updateOne(sdk.userInfo.id, { tags: [] }, { replaceObjectFields: true })
+  await async_test(
+    `Ticket queue empty for no tags match`, 
+    () => sdk.api.tickets.assign_from_queue({ queueId: queue.id }),
+    { shouldError: true, onError: e => e.message === "Queue is empty" },
+  )
+  await sdk.api.users.updateOne(sdk.userInfo.id, { tags: ['C'] }, { replaceObjectFields: true })
+  await async_test(
+    `Ticket queue empty for no tags match`, 
+    () => sdk.api.tickets.assign_from_queue({ queueId: queue.id }),
+    { shouldError: true, onError: e => e.message === "Queue is empty" },
+  )
+  await sdk.api.users.updateOne(sdk.userInfo.id, { tags: ['A'] }, { replaceObjectFields: true })
+  await async_test(
+    `Ticket by all of tags`, 
+    () => sdk.api.tickets.assign_from_queue({ queueId: queue.id }),
+    { onResult: r => r.ticket.id === oneTagTicket.id },
+  )
  
   await Promise.all([
     sdk.api.ticket_queues.deleteOne(queue.id),
@@ -8245,9 +8299,9 @@ const vital_trigger_tests = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await ticket_queue_tests()
     await merge_enduser_tests()
     await vital_trigger_tests()
-    await ticket_queue_tests()
     await close_reasons_no_duplicates_tests()
     await register_as_enduser_tests()
     await lockout_tests()

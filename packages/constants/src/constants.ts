@@ -972,3 +972,5 @@ export const DAYS_OF_WEEK_STARTING_SUNDAY = [
   "Friday", 
   "Saturday",
 ]
+
+export const CURRENT_POLICY_VERION = "v2.0"

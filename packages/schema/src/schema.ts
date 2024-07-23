@@ -292,6 +292,7 @@ import {
   athenaSubscriptionTypeValidator,
   athenaSubscriptionsValidator,
   dateValidatorOptional,
+  listQueryQualifiersValidator,
 } from "@tellescope/validation"
 
 import {
@@ -1332,9 +1333,10 @@ export const schema: SchemaV1 = build_schema({
         redactions: ['enduser'],
       },
       devices: {
-        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ title: string, id: string }>({
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ title: string, id: string, disabled?: boolean }>({
           title: stringValidatorOptional,
           id: stringValidatorOptional,
+          disabled: booleanValidatorOptional,
         })),
         redactions: ['enduser'],
       },
@@ -2350,6 +2352,7 @@ export const schema: SchemaV1 = build_schema({
       isMarketing: { validator: booleanValidator },
       assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       canvasId: { validator: stringValidator100 },
+      discussionRoomId: { validator: mongoIdStringValidator },
     }, 
     customActions: {
       sync_integrations: {
@@ -2583,6 +2586,7 @@ export const schema: SchemaV1 = build_schema({
       batchId: { validator: stringValidator250 }, 
       assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       canvasId: { validator: stringValidator100 },
+      discussionRoomId: { validator: mongoIdStringValidator },
     }, 
   },
   chat_rooms: {
@@ -2665,6 +2669,7 @@ export const schema: SchemaV1 = build_schema({
       pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
       fields: { validator: fieldsValidator },
       suggestedReply: { validator: stringValidator5000EmptyOkay },
+      discussionRoomId: { validator: mongoIdStringValidator },
     },
     defaultActions: DEFAULT_OPERATIONS,
     enduserActions: { create: {}, read: {}, readMany: {}, display_info: {}, mark_read: {} },
@@ -3231,6 +3236,7 @@ export const schema: SchemaV1 = build_schema({
       lockedOutUntil: { validator: numberValidator },
       iOSBadgeCount: { validator: nonNegNumberValidator },
       availableFromNumbers: { validator: listOfStringsValidatorEmptyOk },
+      availableFromEmails: { validator: listOfStringsValidatorEmptyOk },
       doseSpotUserId: { validator: stringValidator100 },
       url: { validator: stringValidator1000 },
     }
@@ -3610,6 +3616,9 @@ export const schema: SchemaV1 = build_schema({
       observationId: { validator: mongoIdStringValidator },
       phoneCallId: { validator: mongoIdStringValidator },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      restrictByState: { validator: stateValidator },
+      restrictByTags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      restrictByTagsQualifier: { validator: listQueryQualifiersValidator },
     }
   },
   meetings: {
@@ -3948,7 +3957,7 @@ export const schema: SchemaV1 = build_schema({
         examples: ["Text"],
       }, 
       headerText: { validator: stringValidator250 },
-      placeholder: { validator: stringValidator },
+      placeholder: { validator: stringValidatorOptional },
       type: {
         validator: formFieldTypeValidator,
         examples: ['number'],
@@ -5824,6 +5833,8 @@ export const schema: SchemaV1 = build_schema({
       },
       enforceMFA: { validator: booleanValidator },
       replyToEnduserTransactionalEmails: { validator: emailValidator },
+      customTermsOfService: { validator: stringValidator },
+      customPrivacyPolicy: { validator: stringValidator },
     },
   },
   databases: {
@@ -5888,7 +5899,8 @@ export const schema: SchemaV1 = build_schema({
     info: {},
     constraints: {
       unique: [
-        'page' // prevents duplicate customizations for the same page (may need to combine with a version number / draft status later to allow drafting)
+        // no longer unique, to support custom iframe pages
+        // 'page' // prevents duplicate customizations for the same page (may need to combine with a version number / draft status later to allow drafting)
       ], 
       relationship: [
         {
@@ -5911,7 +5923,7 @@ export const schema: SchemaV1 = build_schema({
         examples: ['Example Title']
       },
       page: {
-        validator: portalPageValidator,
+        validator: stringValidator100,
         required: true,
         examples: ['Home']
       },
@@ -5923,6 +5935,9 @@ export const schema: SchemaV1 = build_schema({
       disabled: { validator: booleanValidator },
       mobileBottomNavigationPosition: { validator: nonNegNumberValidator },
       headerImageURL: { validator: stringValidator1000 },
+      iframeURL: { validator: stringValidator1000 },
+      iconURL: { validator: stringValidator1000 },
+      activeIconURL: { validator: stringValidator1000 },
     },
   }, 
   enduser_tasks: {

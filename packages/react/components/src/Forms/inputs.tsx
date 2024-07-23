@@ -2605,3 +2605,38 @@ export const HeightInput = ({ field, value={} as any, onChange, ...props }: Form
     </Grid>
   </Grid>
 )
+
+export const RedirectInput = ({ formResponseId, field, submit, value={} as any, onChange, ...props }: FormInputProps<'Redirect'>) => {
+  const session = useResolvedSession()
+
+  useEffect(() => {
+    if (session.type === 'user') { return }
+    if (!field.options?.redirectFormId) { return }
+
+    session.api.form_responses.prepare_form_response({
+      enduserId: session.userInfo.id,
+      formId: field.options.redirectFormId,
+      rootResponseId: formResponseId,
+      parentResponseId: formResponseId,
+    })
+    .then(({ url }) => (
+      // we should still redirect even if submission fails
+      submit?.() 
+      .catch(console.error)
+      .finally(() => {
+        window.location.replace(url)
+      })
+    ))
+    .catch(console.error)
+  }, [session])
+
+  if (session.type === 'user') {
+    return (
+      <Typography>
+        Redirect is for patient-facing forms only
+      </Typography>
+    )
+  }
+
+  return null
+}

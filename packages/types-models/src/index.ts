@@ -114,7 +114,7 @@ export type PortalSettings = {
     allowEnduserInitiatedChat?: boolean,
     enduserInitiatedChatDefaultSubject?: string,
     sendEmailNotificationsToEnduser?: boolean,
-  }
+  },
 }
 
 export type WithLinkOpenTrackingIds = { linkOpenTrackingIds: string[] }
@@ -163,6 +163,7 @@ export type OrganizationSettings = {
     customFields?: CustomEnduserField[],
     disableAdhocFields?: boolean,
     autoReplyEnabled?: boolean,
+    disableAutoreplyForCustomEntities?: boolean,
     tags?: string[],
     showFreeNote?: boolean,
     canDeleteFreeNote?: boolean,
@@ -428,6 +429,7 @@ export interface UserSession extends Session, OrganizationLimits { // User joine
   duration?: number,
   doseSpotUserId?: string,
   availablePhoneNumbers: string[],
+  availableFromEmails: string[],
 }
 
 export type StateCredentialInfo = {
@@ -504,6 +506,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   autoReplyEnabled?: boolean,
   twilioNumber?: string;
   availableFromNumbers?: string[],
+  availableFromEmails?: string[],
   hashedPass?: string,
   pushNotificationIosTokens?: string[],
   pushNotificationDestinations?: string[],
@@ -718,6 +721,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   devices?: {
     title: string,
     id: string,
+    disabled?: boolean,
   }[],
   salesforceId?: string,
   athenaPracticeId?: string,
@@ -983,6 +987,7 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
   destination?: string[],
   assignedTo?: string[],
   canvasId?: string,
+  discussionRoomId?: string,
   // sentAt: string, // only outgoing
 }
 
@@ -1029,6 +1034,7 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
   assignedTo?: string[],
   templatedMessage?: string,
   canvasId?: string,
+  discussionRoomId?: string,
   // usingPublicNumber?: boolean, // flagged on outgoing messages from public number
   // sentAt: string, // only outgoing
 }
@@ -1065,6 +1071,7 @@ export interface ChatRoom extends ChatRoom_readonly, ChatRoom_required, ChatRoom
   fields?: Indexable<string | CustomField>,
   suggestedReply?: string,
   assignedTo?: string[],
+  discussionRoomId?: string,
 }
 
 export type ChatAttachmentType = 'image' | 'video' | 'file' | string 
@@ -1183,6 +1190,7 @@ export type RoundRobinAssignmentInfo = {
 
 export type TicketReminder = { 
   msBeforeDueDate: number,
+  queueId?: string,
   didRemind?: boolean,
 }
 export interface Ticket_readonly extends ClientRecord {
@@ -1239,6 +1247,9 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
   calendarEventId?: string,
   observationId?: string,
   tags?: string[],
+  restrictByState?: string,
+  restrictByTags?: string[],
+  restrictByTagsQualifier?: ListQueryQualifier,
 }
 
 export type AttendeeInfo = {
@@ -1282,7 +1293,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
 }
 
 export type FormFieldLiteralType = 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time'
-export type FormFieldComplexType = "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance"
+export type FormFieldComplexType = "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance"
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
 
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic'
@@ -1377,6 +1388,7 @@ export type FormFieldOptions = FormFieldValidation & {
   includeGroupNumber?: boolean,
   holdAppointmentMinutes?: number,
   rangeStepSize?: number,
+  redirectFormId?: string,
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
@@ -1627,8 +1639,8 @@ export type FormResponseAnswerAddress = FormResponseValueAnswerBuilder<'Address'
 }>
 export type DatabaseSelectResponse = {
   text: string,
-  databaseId: string,
-  recordId: string,
+  databaseId?: string,
+  recordId?: string,
 }
 export type MedicationResponse = {
   displayTerm: string,
@@ -1665,6 +1677,7 @@ export type FormResponseAnswerRelatedContacts = FormResponseValueAnswerBuilder<'
 export type FormResponseAnswerAppointmentBooking = FormResponseValueAnswerBuilder<'Appointment Booking', string>
 export type FormResponseAnswerInsurance = FormResponseValueAnswerBuilder<'Insurance', Partial<EnduserInsurance>>
 export type FormResponseAnswerHeight = FormResponseValueAnswerBuilder<'Height', { feet: number, inches: number }>
+export type FormResponseAnswerRedirect = FormResponseValueAnswerBuilder<'Redirect', string>
 
 export type FormResponseAnswerSignatureValue = {
   fullName: string,
@@ -1715,6 +1728,7 @@ export type FormResponseValueAnswer = (
   | FormResponseAnswerInsurance
   | FormResponseAnswerAppointmentBooking
   | FormResponseAnswerHeight
+  | FormResponseAnswerRedirect
 )
 
 export type FormResponseValue = {
@@ -1755,6 +1769,7 @@ export type AnswerForType = {
   'Insurance': FormResponseAnswerInsurance['value']
   'Appointment Booking': FormResponseAnswerAppointmentBooking['value']
   'Height': FormResponseAnswerHeight['value']
+  'Redirect': FormResponseAnswerRedirect['value']
 }
 
 export interface FormResponse_readonly extends ClientRecord {
@@ -2591,7 +2606,7 @@ export type PortalBlock = PortalBlockForType[PortalBlockType]
 
 export interface PortalCustomization_readonly extends ClientRecord { }
 export interface PortalCustomization_required {
-  page: PortalPage,
+  page: PortalPage | string,
 }
 export interface PortalCustomization_updatesDisabled {}
 export interface PortalCustomization extends PortalCustomization_readonly, PortalCustomization_required, PortalCustomization_updatesDisabled {
@@ -2600,6 +2615,9 @@ export interface PortalCustomization extends PortalCustomization_readonly, Porta
   disabled?: boolean,
   mobileBottomNavigationPosition?: number,
   headerImageURL?: string,
+  iframeURL?: string,
+  iconURL?: string,
+  activeIconURL?: string,
 }
 export const MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION = 1000
 export const DEFAULT_PATIENT_PORTAL_BOTTOM_NAVIGATION_POSITIONS: { [K in PortalPage]: number } = {

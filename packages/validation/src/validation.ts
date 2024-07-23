@@ -277,6 +277,7 @@ import {
   CompleteTicketsAutomationAction,
   ChangeContactTypeAutomationAction,
   FormResponseAnswerHeight,
+  FormResponseAnswerRedirect,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -612,6 +613,7 @@ interface ObjectOptions {
   emptyOk?: boolean,
   isOptional?: boolean,
   throwOnUnrecognizedField?: boolean,
+  inputModifier?: (i: any) => any,
 }
 
 export const objectValidatorOld = <T extends object>(i: InputValidationOld<Required<T>>, objectOptions={ emptyOk: true } as ObjectOptions): EscapeBuilder<T>  => (o={}) => build_validator(
@@ -675,7 +677,8 @@ const typeObject = (fields: InputValidation<any>) => {
 
 export const objectValidator = <T extends object | undefined>(i: InputValidation<Required<T>>, objectOptions={ emptyOk: true } as ObjectOptions): ValidatorDefinition<T>  => ({
   validate: (o={}) => build_validator(
-    (object: any) => {
+    (_object: any) => {
+      const object = objectOptions.inputModifier?.(_object) || _object
       const emptyOk = objectOptions.emptyOk ?? true
       // const isOptional = !!objectOptions.isOptional || o.isOptional
       const validated = {} as T
@@ -1483,12 +1486,14 @@ const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
   "Related Contacts": "",
   'Insurance': '',
   Height: '',
+  Redirect: '',
 }
 export const FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES) as FormFieldType[]
 export const formFieldTypeValidator = exactMatchValidator<FormFieldType>(FORM_FIELD_TYPES)
 
 export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' | 'phoneNumber']: (value?: FormResponseValueAnswer[keyof FormResponseValueAnswer], options?: any, isOptional?: boolean) => any } = {
   'Appointment Booking': stringValidator.validate({ maxLength: 100 }),
+  'Redirect': stringValidator.validate({ maxLength: 100 }),
   'Related Contacts': objectAnyFieldsAnyValuesValidator.validate(),
   'Insurance': objectAnyFieldsAnyValuesValidator.validate(),
   'Address': objectAnyFieldsAnyValuesValidator.validate(),
@@ -1848,6 +1853,10 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
     type: exactMatchValidator(['Appointment Booking']),
     value: stringValidator,
   }),
+  "Redirect": objectValidator<FormResponseAnswerRedirect>({
+    type: exactMatchValidator(['Redirect']),
+    value: stringValidator,
+  }),
   "Related Contacts": objectValidator<FormResponseAnswerRelatedContacts>({
     type: exactMatchValidator(['Related Contacts']),
     value: listValidatorOptionalOrEmptyOk(objectAnyFieldsAnyValuesValidator),
@@ -1969,11 +1978,22 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
     type: exactMatchValidator(['Database Select']),
     value: listValidatorOptionalOrEmptyOk(
       objectValidator<DatabaseSelectResponse>({
-        recordId: mongoIdStringRequired,
-        databaseId: mongoIdStringRequired,
+        recordId: mongoIdStringOptional,
+        databaseId: mongoIdStringOptional,
         text: stringValidator25000,
       }, { emptyOk: false, isOptional: true })
     ),
+  }, {
+    inputModifier: (o => {
+      if (typeof o?.value === 'string') {
+        return { ...o, value: [{ text: o.value }] }
+      }
+      if (Array.isArray(o?.value) && typeof o?.value?.[0] === 'string') {
+        return { ...o, value: o.value.map((text: string) => ({ text })) }
+      }
+
+      return o
+    })  
   }),
   "Medications": objectValidator<FormResponseAnswerMedications>({
     type: exactMatchValidator(['Medications']),
@@ -2445,6 +2465,7 @@ export const listOfAutomationConditionsValidator = listValidatorEmptyOk(automati
 export const ticketReminderValidator = objectValidator<TicketReminder>({
   msBeforeDueDate: numberValidator,
   didRemind: booleanValidatorOptional,
+  queueId: mongoIdStringOptional,
 })
 
 export const ticketActionValidator = orValidator<{ [K in TicketActionType]: TicketAction & { type: K } } >({
@@ -3006,6 +3027,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   includeGroupNumber: booleanValidatorOptional,
   holdAppointmentMinutes: numberValidatorOptional,
   rangeStepSize: numberValidatorOptional,
+  redirectFormId: mongoIdStringOptional,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -3491,6 +3513,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     showDeleteCallRecordingOnTimeline: booleanValidatorOptional,
     inboxRepliesMarkRead: booleanValidatorOptional,
     recordCallAudioPlayback: stringValidatorOptional,
+    disableAutoreplyForCustomEntities: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,

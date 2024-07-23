@@ -424,7 +424,7 @@ export const Messages = ({
 
   return (
     <LoadingLinear data={messages} render={_messages => {
-      const sorted = _messages.sort((m1, m2) => new Date(m1.createdAt).getTime() - new Date(m2.createdAt).getTime())
+      const sorted = _messages.sort((m1, m2) => new Date(m1.timestamp || m1.createdAt).getTime() - new Date(m2.timestamp || m2.createdAt).getTime())
       
       let lastDate = 0
       let previousSender = ''

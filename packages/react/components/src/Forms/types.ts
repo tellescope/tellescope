@@ -25,6 +25,7 @@ export interface FormInputProps<K extends keyof AnswerForType> {
   goToPreviousField?: () => void, 
   isPreviousDisabled?: () => boolean,
   formResponseId?: string,
+  submit?: () => Promise<void>,
 }
 
 export type FormInputs = { 

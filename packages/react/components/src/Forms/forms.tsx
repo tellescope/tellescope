@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo } from "react"
 import { Button, Flex, LoadingButton, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
-import { AddressInput, AppointmentBookingInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, FileInput, FilesInput, HeightInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
+import { AddressInput, AppointmentBookingInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, FileInput, FilesInput, HeightInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
@@ -124,6 +124,7 @@ export const QuestionForField = ({
   isPreviousDisabled,
   enduserId,
   formResponseId,
+  submit,
 } : {
   form?: Form,
   repeats: Record<string, string | number>,
@@ -132,7 +133,7 @@ export const QuestionForField = ({
   file: FileResponse,
   field: FormField,
   setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>
-} & Pick<TellescopeFormProps, "formResponseId" | 'enduserId' | 'isPreviousDisabled' | 'goToPreviousField' | 'enduser' | 'handleDatabaseSelect' | 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField'>) => {
+} & Pick<TellescopeFormProps, "submit" | "formResponseId" | 'enduserId' | 'isPreviousDisabled' | 'goToPreviousField' | 'enduser' | 'handleDatabaseSelect' | 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField'>) => {
   const String = customInputs?.['string'] ?? StringInput
   const StringLong = customInputs?.['stringLong'] ?? StringLongInput
   const Email = customInputs?.['email'] ?? EmailInput
@@ -155,6 +156,7 @@ export const QuestionForField = ({
   const Insurance = customInputs?.['Insurance'] ?? InsuranceInput
   const AppointmentBooking = customInputs?.['Appointment Booking'] ?? AppointmentBookingInput
   const Height = customInputs?.['Height'] ?? HeightInput
+  const Redirect = customInputs?.['Redirect'] ?? RedirectInput
 
   const validationMessage = validateField(field)
 
@@ -171,13 +173,15 @@ export const QuestionForField = ({
   return ( 
     // margin leaves room for error message in Question Group
     <Flex column flex={1} style={{ marginBottom: 25 }} id={field.id}> 
-      <Typography component="h4" style={{ 
-        marginTop: 15, // ensures PDF display doesn't push description into overlap with logo / title at top of form
-        fontSize: field.type === 'Question Group' ? 22 : 20, 
-        fontWeight: field.type === 'Question Group' ? 'bold' : undefined,
-      }}>
-        {field.title}{!(field.isOptional || field.type === 'description' || field.type === 'Question Group' || field.type === 'Insurance') ? '*' : ''}
-      </Typography>
+      {field.type !== 'Redirect' && 
+        <Typography component="h4" style={{ 
+          marginTop: 15, // ensures PDF display doesn't push description into overlap with logo / title at top of form
+          fontSize: field.type === 'Question Group' ? 22 : 20, 
+          fontWeight: field.type === 'Question Group' ? 'bold' : undefined,
+        }}>
+          {field.title}{!(field.isOptional || field.type === 'description' || field.type === 'Question Group' || field.type === 'Insurance') ? '*' : ''}
+        </Typography>
+      }
 
       <Description field={field} style={{ fontSize: 16 }} />
 
@@ -218,6 +222,9 @@ export const QuestionForField = ({
         )
         : field.type === 'Height' ? (
           <Height field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
+        )
+        : field.type === 'Redirect' ? (
+          <Redirect submit={submit} field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'Related Contacts' ? (
           <RelatedContacts field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
@@ -300,7 +307,7 @@ export const QuestionForField = ({
               <Flex key={id} flex={1}>
                 <QuestionForField customInputs={customInputs} field={match} fields={fields} handleDatabaseSelect={handleDatabaseSelect}
                   enduser={enduser} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled}
-                  form={form} formResponseId={formResponseId}
+                  form={form} formResponseId={formResponseId} submit={submit}
                   repeats={repeats} onRepeatsChange={onRepeatsChange} setCustomerId={setCustomerId}
                   value={value} file={file} 
                   onAddFile={onAddFile} onFieldChange={onFieldChange}
@@ -399,9 +406,12 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
   }, [])
 
   useEffect(() => {
+    // ensure redirect question doesn't trip this alert
+    if (activeField.value.type === 'Redirect') { return }
+
     window.addEventListener('beforeunload', beforeunloadHandler)
     return () => { window.removeEventListener('beforeunload', beforeunloadHandler) }
-  }, [beforeunloadHandler])
+  }, [beforeunloadHandler, activeField])
 
   const handleSubmit = useCallback(async () => {
     // submission may trigger a redirect, so don't block with warning message
@@ -447,7 +457,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
         <Flex column flex={1}>
           <Flex flex={1} justifyContent={"center"} column>
             <Flex style={inputStyle}>
-              <QuestionForField form={form} fields={fields} field={activeField.value} 
+              <QuestionForField form={form} fields={fields} field={activeField.value} submit={submit}
                 enduserId={enduserId} formResponseId={formResponseId}
                 enduser={enduser} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled}
                 handleDatabaseSelect={handleDatabaseSelect}
@@ -898,7 +908,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
             <Flex key={activeField.id} style={{ marginBottom: 5 }}>
               <Flex column flex={1}>
                 <QuestionForField fields={fields} field={activeField} handleDatabaseSelect={handleDatabaseSelect}
-                  enduserId={props.enduserId} formResponseId={props.formResponseId}
+                  enduserId={props.enduserId} formResponseId={props.formResponseId} submit={submit}
                   enduser={enduser} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled}
                   repeats={repeats} onRepeatsChange={setRepeats} setCustomerId={setCustomerId}
                   value={value} file={file} 

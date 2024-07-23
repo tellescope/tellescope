@@ -1,4 +1,4 @@
-import { AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserObservation, EnduserRelationship, Form, FormField, FormResponse, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
+import { AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserObservation, EnduserRelationship, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
 import { ADMIN_ROLE, get_inverse_relationship_type } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 import { DateTime } from "luxon"
@@ -1954,3 +1954,68 @@ export const value_for_dotted_key = (v: any, key: string) => {
   }
   return value
 }
+
+export const INVALID_PREPOPULATION_TYPES: FormFieldType[] = [
+  'file', // won't have file data for re-upload
+  'files', // won't have file data for re-upload
+  'description',
+  'Question Group', // unnecessary
+  'Stripe', // can't prepopulate this
+
+  // now supported
+  // "Address", // split into different patient fields and non-trivial to pre-load  
+]
+
+export const get_prepopulated_responses = (fields: FormField[], enduser: Enduser) => (
+  fields
+  .filter(v => (
+    v.prepopulateFromFields && !INVALID_PREPOPULATION_TYPES.includes(v.type) && v.intakeField 
+    && (
+      (v.intakeField === 'Address' && 
+        (enduser.addressLineOne || enduser.addressLineTwo || enduser.zipCode || enduser.city || enduser.zipCode || enduser.state)
+      )
+    || (v.intakeField === 'insurance.details' && enduser.insurance)
+    || (v.intakeField === 'insuranceSecondary.details' && enduser.insuranceSecondary)
+    || (enduser?.[v.intakeField as keyof typeof enduser] || enduser?.fields?.[v.intakeField])
+    )
+  ))
+  .map(v => ({
+    fieldId: v.id,
+    fieldTitle: v.title,
+    externalId: v.externalId,
+    fieldDescription: v.description,
+    fieldHtmlDescription: v.htmlDescription,
+    sharedWithEnduser: v.sharedWithEnduser,
+    answer: (v.type === 'Address' && v.intakeField === 'Address')
+      ? {
+        type: 'Address',
+        value: {
+          addressLineOne : enduser.addressLineOne || '',
+          addressLineTwo: enduser.addressLineTwo || '',
+          city: enduser.city || '',
+          state: enduser.state || '',
+          zipCode: enduser.zipCode || '',
+          zipPlusFour: enduser.zipPlusFour || '',
+        }
+      }
+    : (v.type === 'Insurance' && v.intakeField === 'insurance.details')
+      ? {
+        type: 'Insurance',
+        value: enduser.insurance,
+      }
+    : (v.type === 'Insurance' && v.intakeField === 'insuranceSecondary.details')
+      ? {
+        type: 'Insurance',
+        value: enduser.insuranceSecondary,
+      }
+    : (v.type === 'Database Select' && typeof (enduser?.[v.intakeField as keyof typeof enduser] || enduser?.fields?.[v.intakeField!]) === 'string')
+      ? {
+        type: "Database Select",
+        value: [(enduser?.[v.intakeField as keyof typeof enduser] || enduser?.fields?.[v.intakeField!])]
+      }
+    : {
+      type: v.type,
+      value: (enduser?.[v.intakeField as keyof typeof enduser] || enduser?.fields?.[v.intakeField!])
+    } as any
+  }))
+)
