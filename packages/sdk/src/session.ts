@@ -214,12 +214,15 @@ export class Session {
     } catch(err) { throw await this.errorHandler(err) }
   }
 
-  GET = async <A,R=void>(endpoint: string, params?: A, authenticated=true) => {
+  GET = async <A,R=void>(endpoint: string, params?: A, authenticated=true, options?: { responseType?: 'arraybuffer' }) => {
     try {
       return (await axios.get(
         this.host + endpoint, 
-        { params: { ...params, ...this.getAuthInfo(authenticated)  }, 
-        headers: this.config.headers })
+        { 
+          params: { ...params, ...this.getAuthInfo(authenticated)  }, 
+          headers: this.config.headers,
+          ...options,
+        })
       ).data as R
     } catch(err) { throw await this.errorHandler(err) }
   }

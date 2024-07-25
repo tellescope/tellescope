@@ -6,7 +6,7 @@ import { AddressInput, AppointmentBookingInput, DatabaseSelectInput, DateInput, 
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
-import { formatted_date, objects_equivalent, remove_script_tags, truncate_string } from "@tellescope/utilities"
+import { field_can_autosubmit, formatted_date, objects_equivalent, remove_script_tags, truncate_string } from "@tellescope/utilities"
 import { Divider } from "@mui/material"
 
 export const TellescopeFormContainer = ({ businessId, organizationIds, ...props } : { 
@@ -425,6 +425,16 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
 
     await submit({ onSuccess })
   }, [isPreview, onSuccess, submit, beforeunloadHandler])
+
+  useEffect(() => {
+    if (!activeField.value.options?.autoSubmit) {
+      return  
+    }
+
+    if (responses.find(r => r.fieldId === activeField.value.id && field_can_autosubmit(activeField.value) && r.answer.value)) {
+      handleSubmit()
+    }
+  }, [handleSubmit, responses, activeField])
 
   const validationMessage = validateField(activeField.value)
 

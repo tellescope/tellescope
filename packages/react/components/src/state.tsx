@@ -842,7 +842,7 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
       })
       .then(({ matches }) => {
         if (matches.length) { 
-          addLocalElements(matches)
+          addLocalElements(matches, { replaceIfMatch: true })
           options?.onBulkRead?.(matches) 
         }
       })
@@ -857,7 +857,7 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
         // allow next fetch
         batchRef.current.fetching = false
       })
-    }, 250)
+    }, 333)
 
     return () => { clearInterval(i) }
   }, [findByIds, addLocalElements, options?.onBulkRead])
@@ -2592,6 +2592,7 @@ export const usePrescriptionRoutes = (options={} as HookOptions<PrescriptionRout
 // includes internal and integrated events
 interface LoadEventOptions {
   userId?: string,
+  userIds?: string[],
   from?: Date,
   limit?: number
 }
@@ -2603,6 +2604,7 @@ export const useCalendarEventsForUser = (options={} as HookOptions<CalendarEvent
     return (await 
       session.api.calendar_events.get_events_for_user({
         userId: calledOptions?.userId ?? options?.userId ?? session.userInfo.id,
+        userIds: calledOptions?.userIds,
         limit: calledOptions?.limit ?? options?.limit,
         from: calledOptions?.from ?? options?.from ?? new Date(),
       })

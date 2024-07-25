@@ -631,6 +631,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
   },
   calendar_events: {
+    download_ics_file: (args: extractFields<CustomActions['calendar_events']['download_ics_file']['parameters']>) => (
+      Promise<extractFields<CustomActions['calendar_events']['download_ics_file']['returns']>>
+    ),
     get_events_for_user: (args: extractFields<CustomActions['calendar_events']['get_events_for_user']['parameters']>) => (
       Promise<extractFields<CustomActions['calendar_events']['get_events_for_user']['returns']>>
     ),
@@ -889,6 +892,7 @@ export class Session extends SessionManager {
     queries.calendar_events.change_zoom_host = a => this._POST(`/v1/${schema.calendar_events.customActions.change_zoom_host.path}`, a)
     queries.calendar_events.get_report = a => this._POST(`/v1${schema.calendar_events.customActions.get_report.path}`, a)
     queries.calendar_events.get_enduser_report = a => this._POST(`/v1${schema.calendar_events.customActions.get_enduser_report.path}`, a)
+    queries.calendar_events.download_ics_file = a => this._GET(`/v1${schema.calendar_events.customActions.download_ics_file.path}`, a, true, { responseType: 'arraybuffer' })
 
     queries.phone_calls.get_report = a => this._GET(`/v1/${schema.phone_calls.customActions.get_report.path}`, a)
     queries.phone_calls.authenticate_calling = a => this._POST(`/v1${schema.phone_calls.customActions.authenticate_calling.path}`, a)
@@ -954,9 +958,9 @@ export class Session extends SessionManager {
     return await this.POST<A,R>(endpoint, args, authenticated, o)
   }
 
-  _GET = async <A,R=void>(endpoint: string, params?: A, authenticated=true) => {
+  _GET = async <A,R=void>(endpoint: string, params?: A, authenticated=true, options?: { responseType?: 'arraybuffer' }) => {
     await this.refresh_session_if_expiring_soon()
-    return await this.GET<A,R>(endpoint, params, authenticated)
+    return await this.GET<A,R>(endpoint, params, authenticated, options)
   }
 
   _PATCH = async <A,R=void>(endpoint: string, params?: A, authenticated=true) => {

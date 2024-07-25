@@ -17,7 +17,7 @@ export interface FormInputProps<K extends keyof AnswerForType> {
   size?: 'small',
   label?: string,
   fullWidth?: boolean,
-  onDatabaseSelect?: (r: DatabaseRecord) => void,
+  onDatabaseSelect?: (r: DatabaseRecord[]) => void,
   responses?: Response[]
   title?: string,
   enduserId?: string,

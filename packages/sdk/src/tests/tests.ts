@@ -8299,13 +8299,13 @@ const vital_trigger_tests = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await self_serve_appointment_booking_tests()
     await ticket_queue_tests()
     await merge_enduser_tests()
     await vital_trigger_tests()
     await close_reasons_no_duplicates_tests()
     await register_as_enduser_tests()
     await lockout_tests()
-    await self_serve_appointment_booking_tests()
     await delete_user_tests()
     // await test_send_with_template()
     await bulk_read_tests()

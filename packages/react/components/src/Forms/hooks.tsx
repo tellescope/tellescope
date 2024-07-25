@@ -9,7 +9,7 @@ import { WithTheme, contact_is_valid, useFileUpload, useFormFields, useFormRespo
 import ReactGA from "react-ga4";
 
 import isEmail from "validator/lib/isEmail"
-import { append_current_utm_params, field_can_autoadvance, getLocalTimezone, get_time_values, object_is_empty, responses_satisfy_conditions } from "@tellescope/utilities"
+import { append_current_utm_params, field_can_autoadvance, field_can_autosubmit, getLocalTimezone, get_time_values, object_is_empty, responses_satisfy_conditions } from "@tellescope/utilities"
 
 export const useFlattenedTree = (root?: FormFieldNode) => {
   const flat: FormField[] = []
@@ -644,7 +644,7 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
     selectedFiles.find(f => f.fieldId === activeField.value.id)
   )
 
-  const handleDatabaseSelect = useCallback((databaseRecord: DatabaseRecord) => {
+  const handleDatabaseSelect = useCallback((databaseRecords: DatabaseRecord[]) => {
     try {
       // no need to update if there's no prepopulation
       if (!fields?.find(f => f.prepopulateFromDatabase?.databaseId && f.prepopulateFromDatabase?.field)) return
@@ -672,62 +672,61 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
           return r
         }
 
-        const databaseValue = databaseRecord.values.find(v => 
-          v.label === field.prepopulateFromDatabase?.field
-        && databaseRecord?.databaseId === field.prepopulateFromDatabase?.databaseId
+        const databaseValues = (
+          databaseRecords
+          .map(r => (
+            (r.values || []).find(v => (
+                v.label === field.prepopulateFromDatabase?.field
+              && databaseRecords[0]?.databaseId === field.prepopulateFromDatabase?.databaseId
+            ))!
+          ))
+          .filter(v => v)
         )
-        if (!databaseValue?.value) return r
+        if (databaseValues.length === 0) return r
 
-        if (databaseValue.type === 'Address') {
-          if (r.answer.type !== 'Address') return r
+        const stringValues: string[] = []
+        for (const databaseValue of databaseValues) {
+          if (databaseValue.type === 'Address') {
+            if (r.answer.type !== 'Address') return r
+  
+            return {
+              ...r,
+              answer: {
+                ...r.answer,
+                value: {
+                  ...databaseValue.value,
+                  addressLineOne: databaseValue.value?.lineOne || '',
+                  addressLineTwo: databaseValue.value?.lineTwo || '',
+                }
+              } as FormResponseAnswerAddress
+            }
+          }
 
+          if (r.answer.type === 'string' || r.answer.type === 'stringLong') {
+            if (
+              (databaseValue.type === 'Text' || databaseValue.type === 'Text Long')
+              && databaseValue.value
+            ) {
+              stringValues.push(databaseValue.value)
+            }
+            if (databaseValue.type === 'Number' && typeof databaseValue.value === 'number') {
+              stringValues.push((databaseValue.value || '').toString())
+            }
+            if (databaseValue.type === 'Multiple Select' || databaseValue.type === 'Text List' ) {
+              if ((databaseValue.value || []).length) {
+                stringValues.push((databaseValue.value || []).join(", "))
+              }
+            }
+          }
+        }
+        if (stringValues.length && (r.answer.type === 'string' || r.answer.type === 'stringLong')) {
           return {
             ...r,
             answer: {
               ...r.answer,
-              value: {
-                ...databaseValue.value,
-                addressLineOne: databaseValue.value?.lineOne || '',
-                addressLineTwo: databaseValue.value?.lineTwo || '',
-              }
-            } as FormResponseAnswerAddress
-          }
-        }
-
-        if (r.answer.type === 'string' || r.answer.type === 'stringLong') {
-          if (
-               databaseValue.type === 'Text'
-            || databaseValue.type === 'Text Long'
-          ) {
-            return {
-              ...r,
-              answer: {
-                ...r.answer,
-                value: databaseValue.value || ''
-              } as FormResponseAnswerString
+              value: stringValues.join(' \n\n')
             }
-          }
-          if (databaseValue.type === 'Number') {
-            return {
-              ...r,
-              answer: {
-                ...r.answer,
-                value: (databaseValue.value || '').toString()
-              } as FormResponseAnswerString
-            }
-          }
-          if (
-            databaseValue.type === 'Multiple Select' 
-            || databaseValue.type === 'Text List' 
-          ) {
-            return {
-              ...r,
-              answer: {
-                ...r.answer,
-                value: (databaseValue.value || []).join(", ")
-              } as FormResponseAnswerString
-            }
-          }
+          } 
         }
 
         return r
@@ -1254,6 +1253,10 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
   const onFieldChange: ChangeHandler<any> = useCallback((value: FormResponseValueAnswer['value'], fieldId: string, touched=true) => {
     const field = fields.find(f => f.id === fieldId)
 
+    if (field?.options?.autoAdvance && field_can_autoadvance(field)) {
+      autoAdvanceRef.current = true
+    }
+
     setResponses(rs => rs.map(r => r.fieldId !== fieldId ? r : ({
       ...r,
       touched,
@@ -1293,10 +1296,6 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
         },
       })
       .catch(console.error)
-    }
-
-    if (field?.options?.autoAdvance && field_can_autoadvance(field)) {
-      autoAdvanceRef.current = true
     }
   }, [fields])
 

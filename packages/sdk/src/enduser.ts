@@ -186,6 +186,9 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
     details_for_appointment_booking_page: (args: extractFields<PublicActions['calendar_events']['details_for_appointment_booking_page']['parameters']>) => (
       Promise<extractFields<PublicActions['calendar_events']['details_for_appointment_booking_page']['returns']>>
     ),
+    download_ics_file: (args: extractFields<CustomActions['calendar_events']['download_ics_file']['parameters']>) => (
+      Promise<extractFields<CustomActions['calendar_events']['download_ics_file']['returns']>>
+    ),
   },
   managed_content_records: {
     search: (args: extractFields<CustomActions['managed_content_records']['search']['parameters']>) => (
@@ -272,6 +275,7 @@ export class EnduserSession extends Session {
     this.api.calendar_events.session_for_public_appointment_booking = a => this._POST(`/v1${schema.calendar_events.publicActions.session_for_public_appointment_booking.path}`, a)
     this.api.calendar_events.details_for_appointment_booking_page = a => this._GET(`/v1${schema.calendar_events.publicActions.details_for_appointment_booking_page.path}`, a)
     this.api.calendar_events.stripe_details = a => this._GET(`/v1${schema.calendar_events.customActions.stripe_details.path}`, a)
+    this.api.calendar_events.download_ics_file = a => this._GET(`/v1${schema.calendar_events.customActions.download_ics_file.path}`, a, true, { responseType: 'arraybuffer' })
 
     this.api.chat_rooms.display_info = a => this._GET(`/v1${schema.chat_rooms.customActions.display_info.path}`, a)
     this.api.chat_rooms.mark_read = a => this._POST(`/v1${schema.chat_rooms.customActions.mark_read.path}`, a)
@@ -335,9 +339,9 @@ export class EnduserSession extends Session {
     return await this.POST<A,R>(endpoint, args, authenticated)
   }
 
-  _GET = async <A,R=void>(endpoint: string, params?: A, authenticated=true) => {
+  _GET = async <A,R=void>(endpoint: string, params?: A, authenticated=true, options?: { responseType?: 'arraybuffer' }) => {
     await this.refresh_session_if_expiring_soon()
-    return await this.GET<A,R>(endpoint, params, authenticated)
+    return await this.GET<A,R>(endpoint, params, authenticated, options)
   }
 
   _PATCH = async <A,R=void>(endpoint: string, params?: A, authenticated=true) => {

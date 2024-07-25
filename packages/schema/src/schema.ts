@@ -609,7 +609,7 @@ export type CustomActions = {
     run_ocr: CustomAction<{ id: string, type: string }, { file: File }>,
   },
   form_fields: {
-    load_choices_from_database: CustomAction<{ fieldId: string, lastId?: string, limit?: number, }, { choices: DatabaseRecordClient[] }>,
+    load_choices_from_database: CustomAction<{ fieldId: string, lastId?: string, limit?: number, databaseId?: string }, { choices: DatabaseRecordClient[] }>,
     booking_info: CustomAction<{ bookingPageId: string, enduserId?: string, enduserFields?: BookingInfoEnduserFields }, { bookingURL: string, warningMessage?: string }>,
   },
   forms: {
@@ -724,7 +724,7 @@ export type CustomActions = {
     merge: CustomAction<{ sourceEnduserId: string, destinationEnduserId: string, }, { }>, 
     push: CustomAction<{ enduserId: string, destinations?: string[] }, { fullscriptRedirectURL?: string, vital_user_id?: string }>,
     bulk_update: CustomAction<
-      { ids: string[], fields?: CustomFields, pushTags?: string[], replaceTags?: string[], updateAccessTags?: boolean, customTypeId?: string }, 
+      { ids: string[], state?: string, fields?: CustomFields, pushTags?: string[], replaceTags?: string[], updateAccessTags?: boolean, customTypeId?: string }, 
       { updated: Enduser[] }
     >,
     bulk_assignment: CustomAction<
@@ -863,7 +863,7 @@ export type CustomActions = {
     send_with_template: CustomAction<{ enduserId: string, senderId: string, templateId: string }, { email: Email }>,
   },
   calendar_events: {
-    get_events_for_user: CustomAction<{ userId: string, from: Date, to?: Date, limit?: number }, { events: CalendarEvent[] }>, 
+    get_events_for_user: CustomAction<{ userId: string, from: Date, userIds?: string[], to?: Date, limit?: number }, { events: CalendarEvent[] }>, 
     load_events: CustomAction<{ userIds: string[], from: Date, to: Date, limit?: number, external?: boolean }, { events: CalendarEvent[] }>, 
     generate_meeting_link: CustomAction<{ eventId: string, enduserId: string }, { link: string }>, 
     get_appointment_availability: CustomAction<{ 
@@ -943,7 +943,7 @@ export type CustomActions = {
     update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
     get_report: CustomAction<{ title?: string, titles?: string[], userId?: string, range?: DateRange, groupByOwnerAndTitle?: boolean }, { report: TicketsReport }>,
     get_distribution_report: CustomAction<{  range?: DateRange }, { report: Report[keyof Report] }>,
-    assign_from_queue: CustomAction<{ ticketId?: string, queueId?: string }, { ticket: Ticket, queue: TicketQueue, enduser: Enduser }>,
+    assign_from_queue: CustomAction<{ userId?: string, ticketId?: string, queueId?: string }, { ticket: Ticket, queue: TicketQueue, enduser: Enduser }>,
   },
   appointment_booking_pages: {
     generate_access_token: CustomAction<{ expiresAt: Date, bookingPageId?: string }, { token: string }>,
@@ -1505,6 +1505,7 @@ export const schema: SchemaV1 = build_schema({
           replaceTags: { validator: listOfStringsValidator },
           customTypeId: { validator: stringValidator },
           updateAccessTags: { validator: booleanValidator },
+          state: { validator: stateValidator },
         },
         returns: {
           updated: { validator: 'endusers' as any },
@@ -3478,6 +3479,7 @@ export const schema: SchemaV1 = build_schema({
         path: '/tickets/assign-from-queue',
         description: "Takes a specific ticket (or next available) from a queue and assigns to the caller of this endpoint",
         parameters: { 
+          userId: { validator: mongoIdStringValidator },
           ticketId: { validator: mongoIdStringValidator },
           queueId: { validator: mongoIdStringValidator },
         },
@@ -3910,6 +3912,7 @@ export const schema: SchemaV1 = build_schema({
           fieldId: { validator: mongoIdStringValidator, required: true },
           limit: { validator: nonNegNumberValidator, required: false },
           lastId: { validator: mongoIdStringValidator, required: false },
+          databaseId: { validator: mongoIdStringValidator, required: false },
         },
         returns: {
           choices: { validator: 'database_records' as any, required: true }
@@ -4434,6 +4437,7 @@ export const schema: SchemaV1 = build_schema({
         parameters: { 
           userId: { validator: mongoIdStringValidator, required: true },
           from: { validator: dateValidator, required: true },
+          userIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
           to: { validator: dateValidator },
           limit: { validator: nonNegNumberValidator },
         },

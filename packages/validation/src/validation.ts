@@ -3020,6 +3020,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   addressFields: listOfStringsValidatorOptionalOrEmptyOk,
   validStates: listOfStringsValidatorOptionalOrEmptyOk,
   autoAdvance: booleanValidatorOptional,
+  autoSubmit: booleanValidatorOptional,
   userTags: listOfStringsValidatorOptionalOrEmptyOk,
   userFilterTags: listOfStringsValidatorOptionalOrEmptyOk,
   prefillSignature: booleanValidatorOptional,
@@ -4615,6 +4616,7 @@ export const userUIRestrictionsValidator = objectValidator<UserUIRestrictions>({
   })),
   hideUnsubmittedForms: booleanValidatorOptional,
   hideMergeEndusers: booleanValidatorOptional,
+  hideQueuedTicketsViewer: booleanValidatorOptional,
 }, { emptyOk: true })
 
 const externalChatGPTMessageValidator = objectValidator<ExternalChatGPTMessage>({

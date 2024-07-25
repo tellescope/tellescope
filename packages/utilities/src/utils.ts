@@ -201,7 +201,7 @@ export const getTemplatedData = (text: string) => {
   const badValue = (reason='') => { throw Error(`Unrecognized template field: ${value}${reason && ` (${reason})`}`) }
 
   if (value === undefined) return badValue()
-  if (value.startsWith('forms')) {
+  if (value.startsWith('forms') || value.startsWith('form_groups')) {
     const [_, formId, _field, ...rest] = value.split('.')
     const field = _field + (
       rest.length 
@@ -243,6 +243,7 @@ export const getTemplatedData = (text: string) => {
 type ToTemplateString <T> = (data: T) => string
 export const build_link_string: ToTemplateString<{ url: string, displayName: string }> = d => `{${d.url}}[${d.displayName}]`
 export const build_form_link_string: ToTemplateString<{ id: string, displayName: string }> = d => `{{forms.${d.id}.link:${d.displayName}}}`
+export const build_form_group_link_string: ToTemplateString<{ id: string, displayName: string }> = d => `{{form_groups.${d.id}.link:${d.displayName}}}`
 export const build_file_link_string: ToTemplateString<{ id: string, displayName: string }> = d => `{{files.${d.id}.link:${d.displayName}}}`
 export const build_content_link_string: ToTemplateString<{ id: string, displayName: string }> = d => `{{content.${d.id}.link:${d.displayName}}}`
 export const build_portal_link_string: ToTemplateString<{ page: string, displayName: string }> = d => `{{portal.link.${d.page}:${d.displayName}}}`
@@ -1722,6 +1723,14 @@ export const decodeJWT = <T extends { exp: number }>(jwt: string): T | null => {
 export const field_can_autoadvance = ({ type, options } : Pick<FormField, 'type' | 'options'>) => {
   if (type === 'multiple_choice' && options?.radio) return true
   if (type === 'Dropdown' && options?.radio) return true
+  if (type === 'Appointment Booking') return true
+  if (type === 'Stripe') return true
+
+  return false
+}
+export const field_can_autosubmit = ({ type, options } : Pick<FormField, 'type' | 'options'>) => {
+  if (type === 'Appointment Booking') return true
+  if (type === 'Stripe') return true
 
   return false
 }
@@ -2019,3 +2028,25 @@ export const get_prepopulated_responses = (fields: FormField[], enduser: Enduser
     } as any
   }))
 )
+
+export const downloadFile = (data: Uint8Array | Blob | Buffer | string, options : { name?: string, dataIsURL?: boolean, type?: string}) => {
+  let { name, type } = options
+  name = name || "download.txt"
+  type = type || "octet/stream"
+
+  let a = document.createElement("a");
+  document.body.appendChild(a);
+  a.style.display = "none"
+
+  const blob = new Blob([data], {type});
+  const url = (
+    (options.dataIsURL && typeof data === 'string')
+      ? data
+      : window.URL.createObjectURL(blob)
+  )
+  
+  a.href = url;
+  a.download = name;
+  a.click();
+  window.URL.revokeObjectURL(url);
+}

@@ -1384,6 +1384,7 @@ export type FormFieldOptions = FormFieldValidation & {
   addressFields?: string[], // supports specifying just 'state', for now
   validStates?: string[],
   autoAdvance?: boolean,
+  autoSubmit?: boolean,
   prefillSignature?: boolean,
   includeGroupNumber?: boolean,
   holdAppointmentMinutes?: number,
@@ -2780,6 +2781,7 @@ export type UserUIRestrictions = {
   hideCareplan?: boolean,
   hideUnsubmittedForms?: boolean,
   hideMergeEndusers?: boolean,
+  hideQueuedTicketsViewer?: boolean,
 }
 
 export interface RoleBasedAccessPermission_readonly extends ClientRecord {}

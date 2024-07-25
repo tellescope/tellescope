@@ -4,7 +4,7 @@ import { Autocomplete, Box, Button, Checkbox, Divider, FormControl, FormControlL
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
-import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, truncate_string, user_display_name } from "@tellescope/utilities"
+import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, truncate_string, user_display_name } from "@tellescope/utilities"
 import { Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MultipleChoiceOptions, TellescopeGender } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
@@ -13,7 +13,7 @@ import LinearProgress from '@mui/material/LinearProgress';
 import DatePicker from "react-datepicker";
 import { datepickerCSS } from "./css/react-datepicker" // avoids build issue with RN
 import { CancelIcon, FileBlob, IconButton, LabeledIconButton, LoadingButton, Styled, form_display_text_for_language, isDateString, useProducts, useResolvedSession } from ".."
-import { DatabaseRecord, FormField } from "@tellescope/types-client"
+import { CalendarEvent, DatabaseRecord, FormField } from "@tellescope/types-client"
 import { css } from '@emotion/css'
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
@@ -1621,6 +1621,7 @@ const useDatabaseChoices = ({ databaseId='', field } : { databaseId?: string, fi
       fieldId: field.id,
       lastId,
       limit: LOAD_CHOICES_LIMIT,
+      databaseId, // doesn't do anything now, but avoids cache hit when editing to change databaseId for same field
     })
     .then(({ choices: newChoices }) => {
       choicesForDatabase[databaseId] = {
@@ -1768,7 +1769,7 @@ export const DatabaseSelectInput = ({ field, value: _value, onChange, onDatabase
       value={value}
       onChange={(_, v) => {
         if (v.length && onDatabaseSelect) {
-          onDatabaseSelect(v[0])
+          onDatabaseSelect(v)
         }
         return onChange(
           (
@@ -2405,6 +2406,18 @@ export const AppointmentBookingInput = ({ formResponseId, field, value, onChange
 
   const bookingPageId = field?.options?.bookingPageId
 
+
+  const downloadICS = useCallback(async (event : Pick<CalendarEvent, 'id'>) => {
+    try {
+      downloadFile(
+        await session.api.calendar_events.download_ics_file({ calendarEventId: event.id, excludeAttendee: true }) as any, 
+        { name: "event.ics", dataIsURL: true, type: 'text/calendar'}
+      )
+    } catch(err) {
+      console.error(err)
+    }
+  }, [session])
+
   const addressQuestion = useMemo(() => responses?.find(r => {
     if (r.answer.type !== 'Address') return false
     if (r.field.intakeField !== 'Address') return false
@@ -2465,12 +2478,23 @@ export const AppointmentBookingInput = ({ formResponseId, field, value, onChange
 
   if (value) {
     return (
-      <Grid container alignItems="center" wrap="nowrap">
-        <CheckCircleOutline color="success" />
+      <Grid container direction="column" spacing={1}>
+        <Grid item>
+        <Grid container alignItems="center" wrap="nowrap">
+          <CheckCircleOutline color="success" />
 
-        <Typography sx={{ ml: 1, fontSize: 20 }}>
-          Your appointment has been booked
-        </Typography>
+          <Typography sx={{ ml: 1, fontSize: 20 }}>
+            Your appointment has been booked
+          </Typography>
+        </Grid>
+        </Grid>
+
+        <Grid item sx={{ maxWidth: 250 }}>
+          <LoadingButton variant="contained" style={{ maxWidth: 250 }}
+            submitText="Add to Calendar" submittingText="Downloading..."
+            onClick={() => downloadICS({ id: value })}
+          />
+        </Grid>
       </Grid>
     )
   }
@@ -2609,12 +2633,17 @@ export const HeightInput = ({ field, value={} as any, onChange, ...props }: Form
 export const RedirectInput = ({ formResponseId, field, submit, value={} as any, onChange, ...props }: FormInputProps<'Redirect'>) => {
   const session = useResolvedSession()
 
+  let eId = ''
+  try {
+    eId = new URL(window.location.href).searchParams.get('eId') || ''
+  } catch(err) {}
+
   useEffect(() => {
     if (session.type === 'user') { return }
     if (!field.options?.redirectFormId) { return }
 
     session.api.form_responses.prepare_form_response({
-      enduserId: session.userInfo.id,
+      enduserId: session.userInfo.id || eId,
       formId: field.options.redirectFormId,
       rootResponseId: formResponseId,
       parentResponseId: formResponseId,
