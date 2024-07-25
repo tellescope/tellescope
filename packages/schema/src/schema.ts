@@ -6166,6 +6166,7 @@ export const schema: SchemaV1 = build_schema({
       timezone: { validator: timezoneValidator },
       canvasLocationId: { validator: stringValidator1000 },
       healthieContactType: { validator: stringValidator100 },
+      healthieLocationId: { validator: stringValidator100 },
     }
   },
   products: {

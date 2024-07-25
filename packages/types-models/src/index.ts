@@ -2070,6 +2070,7 @@ export interface AppointmentLocation extends AppointmentLocation_readonly, Appoi
   timezone?: Timezone,
   canvasLocationId?: string,
   healthieContactType?: string,
+  healthieLocationId?: string,
 }
 
 export type AppointmentTerm = {
