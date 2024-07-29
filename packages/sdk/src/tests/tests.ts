@@ -8217,6 +8217,17 @@ const vital_trigger_tests = async () => {
   })
 }
 
+const superadmin_tests = async () => {
+  log_header("Superadmin Tests")
+
+
+  await async_test(
+    "switch tenant is limited",
+    () => sdk.change_tenant({ all: true }),
+    handleAnyError
+  ) 
+}
+
 (async () => {
   log_header("API")
 
@@ -8299,6 +8310,7 @@ const vital_trigger_tests = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await superadmin_tests()
     await self_serve_appointment_booking_tests()
     await ticket_queue_tests()
     await merge_enduser_tests()

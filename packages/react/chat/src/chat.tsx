@@ -50,6 +50,7 @@ import {
 import {
   ActivityOptions,
   formatted_date,
+  truncate_string,
   user_display_name, user_is_active,
 } from "@tellescope/utilities"
 
@@ -163,6 +164,8 @@ export const Message = ({
   const textBGStyle = { ...message.senderId === chatUserId ? sentMessageStyle : receivedMessageStyle }
   const textStyle = { ...message.senderId === chatUserId ? sentMessageTextStyle : receivedMessageTextStyle }
 
+  const quote = message?.quote?.join(' \n')
+
   if (!message.message) {
     textBGStyle.backgroundColor = undefined
   } else {
@@ -200,6 +203,17 @@ export const Message = ({
       }}>
         <HTMLMessage html={message.html || message.message.split('\n').join('<br/>')} />
       </Typography>
+      {quote && 
+        <Typography title={`Quoting: ${quote}`} 
+          style={{ 
+            ...textStyle, ...textBGStyle,
+            backgroundColor: undefined, color: 'black',
+            borderLeft: '1px solid black', borderRadius: 0, borderWidth: 2, marginTop: 2, paddingTop: 1, paddingBottom: 1,
+          }}
+        >
+          {truncate_string(quote, { length: 75, showEllipsis: true })}
+        </Typography>
+      }
       {attachments}
     </Flex>
   ) : (

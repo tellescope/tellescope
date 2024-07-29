@@ -293,6 +293,7 @@ import {
   athenaSubscriptionsValidator,
   dateValidatorOptional,
   listQueryQualifiersValidator,
+  stringValidator5000OptionalEmptyOkay,
 } from "@tellescope/validation"
 
 import {
@@ -2800,6 +2801,7 @@ export const schema: SchemaV1 = build_schema({
       },
       mentions: { validator: listOfMongoIdStringValidatorEmptyOk },
       canvasId: { validator: stringValidator100 },
+      quote: { validator: listValidatorOptionalOrEmptyOk(stringValidator5000OptionalEmptyOkay) },
     },
   },
   users: {
@@ -5811,6 +5813,7 @@ export const schema: SchemaV1 = build_schema({
       billingOrganizationAddress: { validator: addressValidator },
       videoCallBackgroundImage: { validator: stringValidator },
       sendToVoicemailOOO: { validator: booleanValidator },
+      forwardingOOONumber: { validator: phoneValidator },
       onCallUserIds: { validator: listOfUniqueStringsValidatorEmptyOk },
       outOfOfficeVoicemail: { validator: phonePlaybackValidator },
       enduserProfileWebhooks: { validator: enduserProfileWebhooksValidator },

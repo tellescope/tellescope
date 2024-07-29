@@ -93,7 +93,9 @@ export interface TellescopeFormProps extends ReturnType<typeof useTellescopeForm
   rootResponseId?: string,
   parentResponseId?: string,
   downloadComponent?: React.ReactNode,
-  enduser?: Partial<Enduser>
+  enduser?: Partial<Enduser>,
+  groupId?: string,
+  groupInstance?: string,
 }
 
 const LOGO_HEIGHT = 40
@@ -125,6 +127,8 @@ export const QuestionForField = ({
   enduserId,
   formResponseId,
   submit,
+  groupId,
+  groupInstance,
 } : {
   form?: Form,
   repeats: Record<string, string | number>,
@@ -132,8 +136,8 @@ export const QuestionForField = ({
   value: Response,
   file: FileResponse,
   field: FormField,
-  setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>
-} & Pick<TellescopeFormProps, "submit" | "formResponseId" | 'enduserId' | 'isPreviousDisabled' | 'goToPreviousField' | 'enduser' | 'handleDatabaseSelect' | 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField'>) => {
+  setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>,
+} & Pick<TellescopeFormProps, "groupId" | "groupInstance" | "submit" | "formResponseId" | 'enduserId' | 'isPreviousDisabled' | 'goToPreviousField' | 'enduser' | 'handleDatabaseSelect' | 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField'>) => {
   const String = customInputs?.['string'] ?? StringInput
   const StringLong = customInputs?.['stringLong'] ?? StringLongInput
   const Email = customInputs?.['email'] ?? EmailInput
@@ -224,7 +228,7 @@ export const QuestionForField = ({
           <Height field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'Redirect' ? (
-          <Redirect submit={submit} field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
+          <Redirect groupId={groupId} groupInsance={groupInstance} submit={submit} field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'Related Contacts' ? (
           <RelatedContacts field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
@@ -305,7 +309,7 @@ export const QuestionForField = ({
 
             return (
               <Flex key={id} flex={1}>
-                <QuestionForField customInputs={customInputs} field={match} fields={fields} handleDatabaseSelect={handleDatabaseSelect}
+                <QuestionForField groupId={groupId} groupInstance={groupInstance} customInputs={customInputs} field={match} fields={fields} handleDatabaseSelect={handleDatabaseSelect}
                   enduser={enduser} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled}
                   form={form} formResponseId={formResponseId} submit={submit}
                   repeats={repeats} onRepeatsChange={onRepeatsChange} setCustomerId={setCustomerId}
@@ -395,6 +399,8 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
   enduserId,
   enduser,
   formResponseId,
+  groupId,
+  groupInstance,
 }) => {
   const beforeunloadHandler = React.useCallback((e: BeforeUnloadEvent) => {
     try {
@@ -478,6 +484,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
                 onAddFile={onAddFile} onFieldChange={onFieldChange}
                 responses={responses} selectedFiles={selectedFiles}
                 validateField={validateField}
+                groupId={groupId} groupInstance={groupInstance}
               />
             </Flex>
         </Flex>
@@ -850,6 +857,8 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
   otherEnduserIds,
   onBulkErrors,
   enduser,
+  groupId,
+  groupInstance,
   ...props 
 }) => {
   const list = useListForFormFields(fields, responses, { form: props.form })
@@ -926,6 +935,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
                   onAddFile={onAddFile} onFieldChange={onFieldChange}
                   responses={responses} selectedFiles={selectedFiles}
                   validateField={validateField}
+                  groupId={groupId} groupInstance={groupInstance}
                 />
               </Flex>
             </Flex>

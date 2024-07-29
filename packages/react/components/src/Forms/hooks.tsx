@@ -525,6 +525,11 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
 
   const gaEventRef = useRef({} as Record<string, boolean>)
 
+  let goBackURL = ''
+  try {
+    goBackURL = new URL(window.location.href).searchParams.get('back') || ''
+  } catch(err) {}
+
   useEffect(() => {
     try {
       window.location.hash = activeField.value.id
@@ -1150,7 +1155,9 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
       if (errors.length) {
         options?.onBulkErrors?.(errors)
       }
-      
+      if (goBackURL) {
+        (window?.top ?? window).location.href = append_current_utm_params(goBackURL);
+      }
       if (submitRedirectURL) {
         (window?.top ?? window).location.href = append_current_utm_params(submitRedirectURL);
       }
@@ -1160,7 +1167,7 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
     } finally {
       setSubmittingStatus(undefined)
     }
-  }, [accessCode, automationStepId, enduserId, responses, selectedFiles, session, handleUpload, existingResponses, ga4measurementId, rootResponseId, parentResponseId, calendarEventId])
+  }, [accessCode, automationStepId, enduserId, responses, selectedFiles, session, handleUpload, existingResponses, ga4measurementId, rootResponseId, parentResponseId, calendarEventId, goBackURL])
 
   const isNextDisabled = useCallback(() => {
     if (activeField.children.length === 0) {

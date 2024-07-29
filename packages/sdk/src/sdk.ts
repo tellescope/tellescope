@@ -985,6 +985,12 @@ export class Session extends SessionManager {
     return { authToken, ...userInfo }
   }
 
+  change_tenant = async (args?: { all?: boolean, businessId?: string }) => {
+    const { user, authToken } = await this.GET<typeof args, { user: UserSession } & { authToken: string }>('/v1/switch-tenant', args)
+    this.handle_new_session({ ...user, authToken })
+    return { user, authToken }
+  }
+
   refresh_session = async (args?: { invalidatePreviousToken?: boolean }) => {
     const { user, authToken } = await this.POST<typeof args, { user: UserSession } & { authToken: string }>('/v1/refresh-session', args)
     this.handle_new_session({ ...user, authToken })

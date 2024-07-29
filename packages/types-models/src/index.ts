@@ -325,6 +325,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   billingOrganizationAddress?: Address,
   videoCallBackgroundImage?: string,
   sendToVoicemailOOO?: boolean
+  forwardingOOONumber?: string,
   onCallUserIds?: string[],
   outOfOfficeVoicemail?: PhonePlayback
   enduserProfileWebhooks?: BasicWebhook[],
@@ -430,6 +431,7 @@ export interface UserSession extends Session, OrganizationLimits { // User joine
   doseSpotUserId?: string,
   availablePhoneNumbers: string[],
   availableFromEmails: string[],
+  isa?: boolean,
 }
 
 export type StateCredentialInfo = {
@@ -468,6 +470,7 @@ export interface User_readonly extends ClientRecord {
   orgEmail?: string;
   lastActive?: Date;
   lastLogout?: Date;
+  isa?: boolean,
 }
 export interface User_required {  
   email: string;
@@ -1113,6 +1116,7 @@ export interface ChatMessage extends ChatMessage_readonly, ChatMessage_required,
   enduserId?: string,
   canvasId?: string,
   isAutoreply?: boolean,
+  quote?: string[],
 }
 
 export type MessageTemplateType = 'enduser' | 'Reply' | 'team'  // default to 'enduser'

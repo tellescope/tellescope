@@ -5,8 +5,8 @@ import { LoadFunction, LoadFunctionArguments } from "@tellescope/sdk"
 import { ALL_ACCESS, UNSEARCHABLE_FIELDS } from "@tellescope/constants"
 import { SearchAPIProps, useSearchAPI } from "./hooks"
 import { TextFieldProps } from "./mui"
-import { AutomationTrigger, CalendarEventTemplate, Database, DatabaseRecord, Enduser, File, Form, FormGroup, Forum, Journey, ManagedContentRecord, PrescriptionRoute, Template, Ticket, User, UserNotification } from "@tellescope/types-client"
-import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, LoadingLinear, ScrollingList, SearchTextInput, Typography, useAutomationTriggers, useCalendarEventTemplates, useDatabaseRecords, useDatabases, useEndusers, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useNotifications, usePrescriptionRoutes, useResolvedSession, useSession, useTemplates, useTickets, useUsers, value_is_loaded } from "."
+import { AutomationTrigger, CalendarEventTemplate, ChatRoom, Database, DatabaseRecord, Enduser, File, Form, FormGroup, Forum, Journey, ManagedContentRecord, PrescriptionRoute, Template, Ticket, User, UserNotification } from "@tellescope/types-client"
+import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, LoadingLinear, ScrollingList, SearchTextInput, Typography, useAutomationTriggers, useCalendarEventTemplates, useChatRooms, useDatabaseRecords, useDatabases, useEndusers, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useNotifications, usePrescriptionRoutes, useResolvedSession, useSession, useTemplates, useTickets, useUsers, value_is_loaded } from "."
 import { SxProps } from "@mui/material"
 import { AccessPermissions } from "@tellescope/types-models"
 
@@ -265,11 +265,15 @@ export const performBulkAction = async <T extends { id: string }, R> ({
 
     loaded.push(...matches)
 
-    const { successCount: _successCount, error, ...result } = await processBatch(applyFilters(matches))
-    results.push(result)
-    if (_successCount) { successCount += _successCount }
-    if (error) { errors.push(error) }
+    const toProcess = applyFilters(matches)
 
+    if (toProcess.length) {
+      const { successCount: _successCount, error, ...result } = await processBatch(toProcess)
+      results.push(result)
+      if (_successCount) { successCount += _successCount }
+      if (error) { errors.push(error) }
+    }
+    
     if (matches.length < batchSize) {
       break
     }
@@ -314,6 +318,7 @@ export interface Filters<T> {
 export interface FilterComponentWithDefaultKey<T> {
   filters: Filters<T>,
   setFilters: React.Dispatch<React.SetStateAction<Filters<T>>>,
+  onKeyDown?: (e: { code: string }) => void,
 }
 // can include a version with an optional key, but make sure to use it in all cases when it's possibly passed as a prop (don't just use a string literal as default)
 export interface FilterComponent<T> extends FilterComponentWithDefaultKey<T> {
@@ -397,6 +402,52 @@ export const EnduserSearch = (props: Omit<GenericSearchProps<Enduser>, 'filterKe
         })
 
         return toJoin
+      }}
+    />
+  )
+}
+
+export const CHAT_ROOM_SEARCH = 'chat-room-search'
+export const ChatRoomSearch = (props: Omit<GenericSearchProps<ChatRoom>, 'filterKey'> & { filterKey?: string }) => {
+  const session = useResolvedSession()
+  const [, { addLocalElements }] = useChatRooms()
+  const [usersLoading, { findById: findUser }] = useUsers() 
+  const [endusersLoading, { findById: findEnduser }] = useEndusers()
+
+  // wait for users/endusers to load, so that a saved query is able to match attachSearchableFields
+  if (!value_is_loaded(usersLoading)) return null
+  if (!value_is_loaded(endusersLoading)) return null
+  return (
+    <ModelSearchInput filterKey={TICKET_SEARCH_FILTER_KEY} {...props} 
+      searchAPI={session.api.chat_rooms.getSome}
+      onLoad={addLocalElements}
+      attachSearchableFields={r => {
+        const users = (r.userIds || []).map(r => findUser(r, { batch: true })!).filter(u => u)
+        const endusers = (r.enduserIds || []).map(r => findEnduser(r, { batch: true })!).filter(e => e)
+
+        const fields = {} as Record<string, string>
+        let i = 0
+        for (const user of users) {
+          i ++
+          fields[`user_fname${i}`] = user.fname || '';
+          fields[`user_lname${i}`] = user.lname || '';
+          fields[`user_fullname${i}`] = `${user.fname} ${user.lname}`;
+          fields[`user_email${i}`] = user.email || '';
+        }
+
+        i = 0
+        for (const enduser of endusers) {
+          i ++
+          fields[`enduser_fname${i}`] = enduser.fname || '';
+          fields[`enduser_lname${i}`] = enduser.lname || '';
+          fields[`enduser_fullname${i}`] = `${enduser.fname} ${enduser.lname}`;
+          fields[`enduser_email${i}`] = enduser.email || '';
+          if (enduser.tags?.length) {
+            fields[`tags${i}`] = enduser.tags.join(',')
+          }
+        }
+    
+        return fields
       }}
     />
   )

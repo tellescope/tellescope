@@ -262,6 +262,7 @@ export type TypographyProps = {
   style?: any, // todo: universal style
   component?: 'span' | 'p' | 'div' | 'h1' | 'h2' | 'h3' | 'h4' | 'h5',
   noWrap?: boolean,
+  title?: string,
 } & Clickable
 export const Typography = ({ children, onClick, onPress, component='span', ...props}: TypographyProps & ClickableWeb) => {
   return <MuiTypography onClick={onClick ?? onPress} component={component} {...props}>{children}</MuiTypography>

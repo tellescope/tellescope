@@ -2630,7 +2630,7 @@ export const HeightInput = ({ field, value={} as any, onChange, ...props }: Form
   </Grid>
 )
 
-export const RedirectInput = ({ formResponseId, field, submit, value={} as any, onChange, ...props }: FormInputProps<'Redirect'>) => {
+export const RedirectInput = ({ groupId, groupInsance, formResponseId, field, submit, value={} as any, onChange, ...props }: FormInputProps<'Redirect'>) => {
   const session = useResolvedSession()
 
   let eId = ''
@@ -2648,12 +2648,22 @@ export const RedirectInput = ({ formResponseId, field, submit, value={} as any, 
       rootResponseId: formResponseId,
       parentResponseId: formResponseId,
     })
-    .then(({ url }) => (
+    .then(({ fullURL }) => (
       // we should still redirect even if submission fails
       submit?.() 
       .catch(console.error)
       .finally(() => {
-        window.location.replace(url)
+        // if accessing form group in portal
+        if (window.location.href.includes('/documents') && groupId && groupInsance) {
+          const toRedirect = `${window.location.origin}/documents?groupId=${groupId}&groupInstance=${groupInsance}`
+          if (fullURL.endsWith('&')) {
+            window.location.replace(fullURL + `back=${toRedirect}&`)
+          } else {
+            window.location.replace(fullURL + `&back=${toRedirect}`) 
+          }
+        } else {
+          window.location.replace(fullURL)
+        }
       })
     ))
     .catch(console.error)

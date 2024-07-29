@@ -408,7 +408,6 @@ export const build_validator: BuildValidator_T = (escapeFunction, options={} as 
   const maxLength = options.maxLength || DEFAULT_MAX_LENGTH
 
   return (fieldValue: JSONType) => {
-    // console.log(fieldValue)
     if (isOptional && fieldValue === undefined) return undefined
     if (isOptional && fieldValue === null && !nullOk) return undefined
     if (nullOk && fieldValue === null) return null
@@ -447,7 +446,7 @@ export const build_validator: BuildValidator_T = (escapeFunction, options={} as 
       fieldValue = fieldValue.toLowerCase()
     }
 
-    let values = listOf && Array.isArray(fieldValue) ? fieldValue.filter(a => !!a) : [fieldValue]
+    let values = listOf && Array.isArray(fieldValue) ? fieldValue.filter(a => !!a || (a === 0 && isNumber)) : [fieldValue]
     if (listOf && unique && Array.isArray(values)) {
       values = Array.from(new Set(values))
     }
@@ -1164,7 +1163,7 @@ export const numberValidatorBuilder: ValidatorBuilder<number, { lower: number, u
 export const nonNegNumberValidator = numberValidatorBuilder({ lower: 0, upper: 10000000000000 }) // max is 2286 in UTC MS
 export const numberValidator = numberValidatorBuilder({ lower: -10000000000000, upper: 10000000000000 }) // max is 2286 in UTC MS
 export const numberValidatorOptional = numberValidatorBuilder({ lower: -10000000000000, upper: 10000000000000, isOptional: true, emptyStringOk: true }) // max is 2286 in UTC MS
-export const listOfNumbersValidatorUniqueOptionalOrEmptyOkay = listValidatorUniqueOptionalEmptyOkay(numberValidator)
+export const listOfNumbersValidatorUniqueOptionalOrEmptyOkay = listValidatorUniqueOptionalEmptyOkay(numberValidator, { isNumber: true })
 
 export const fileSizeValidator = numberValidatorBuilder({ lower: 0, upper: MAX_FILE_SIZE })
 
