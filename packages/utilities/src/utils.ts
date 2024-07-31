@@ -1964,6 +1964,21 @@ export const value_for_dotted_key = (v: any, key: string) => {
   return value
 }
 
+export const add_value_for_dotted_key = (_object: Record<any, any>, field: string, value: any) => {
+  const keys = field.split('.')
+
+  let object = _object
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i]
+    console.log(object, key)
+    if (i === keys.length - 1) {
+      object[key] = value
+      continue
+    }
+    object = object[key]
+  }
+}
+
 export const INVALID_PREPOPULATION_TYPES: FormFieldType[] = [
   'file', // won't have file data for re-upload
   'files', // won't have file data for re-upload

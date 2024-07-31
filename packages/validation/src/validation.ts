@@ -278,6 +278,8 @@ import {
   ChangeContactTypeAutomationAction,
   FormResponseAnswerHeight,
   FormResponseAnswerRedirect,
+  CustomDashboardViewBlockType,
+  BlockContentLink,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -3093,6 +3095,12 @@ export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K 
       maxWidth: numberValidatorOptional,
     }),
   }),
+  "content-link": objectValidator<BlockContentLink>({
+    type: exactMatchValidator(["content-link"]),
+    info: objectValidator<BlockContentLink['info']>({
+      recordId: mongoIdStringRequired,
+    }),
+  }),
 })
 
 const _BLOCK_TYPES: { [K in BlockType]: any } = {
@@ -3103,6 +3111,7 @@ const _BLOCK_TYPES: { [K in BlockType]: any } = {
   pdf: '',
   youtube: '',
   iframe: '',
+  "content-link": '',
 }
 export const BLOCK_TYPES = Object.keys(_BLOCK_TYPES) as BlockType[]
 export const blockTypeValidator = exactMatchValidator<BlockType>(BLOCK_TYPES)
@@ -3549,7 +3558,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
   dashboard: objectValidator<OrganizationSettings['dashboard']>({
     view: objectValidator<Required<OrganizationSettings>['dashboard']['view']>({
       blocks: listValidatorOptionalOrEmptyOk(objectValidator<CustomDashboardViewBlock>({
-        type: exactMatchValidator(['Inbox', 'Tickets']),
+        type: exactMatchValidator<CustomDashboardViewBlockType>(['Inbox', 'Tickets', 'Team Chats', 'Upcoming Events']),
       }))
     }, { isOptional: true, emptyOk: true, }),
   }, { isOptional: true, emptyOk: true, }),

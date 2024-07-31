@@ -763,10 +763,10 @@ export const Table = <T extends Item>({
 
   sort,
 }: TableProps<T> & Styled) => {
-  const sortingStorageKey = memoryId ?? '' + 'sorting'
+  const sortingStorageKey = (memoryId ?? '') + 'sorting'
   const cachedSortString = read_local_storage(sortingStorageKey)
 
-  const localFilterStorageKey = memoryId ?? '' + 'localfilter'
+  const localFilterStorageKey = (memoryId ?? '') + 'localfilter'
   const cachedLocalFilterString = read_local_storage(localFilterStorageKey)
 
   let loadedFilter: LocalFilter[] = [];

@@ -4770,6 +4770,7 @@ export const schema: SchemaV1 = build_schema({
       canvasLocationId: { validator: stringValidator100 },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
       completedAt: { validator: dateValidatorOptional },
+      tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       // isAllDay: { validator: booleanValidator },
     }
   },
@@ -5664,6 +5665,16 @@ export const schema: SchemaV1 = build_schema({
             } else if (original.creator !== session.id) {
               return "Only creator can set initial owner"
             }
+          }
+        },
+        {
+          explanation: 'Subscription date and period cannot be updated',
+          evaluate: (updated, lookup, session, type, options) => {
+            if (type !== 'update') return // not updating
+            if (!(options.updates?.subscriptionExpiresAt || options.updates?.subscriptionPeriod)) return // not changing
+
+            if (session.type === 'enduser') return "User only"
+            if (!session.isa) return "Not allowed"
           }
         },
       ],

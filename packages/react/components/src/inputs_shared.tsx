@@ -5,8 +5,8 @@ import { LoadFunction, LoadFunctionArguments } from "@tellescope/sdk"
 import { ALL_ACCESS, UNSEARCHABLE_FIELDS } from "@tellescope/constants"
 import { SearchAPIProps, useSearchAPI } from "./hooks"
 import { TextFieldProps } from "./mui"
-import { AutomationTrigger, CalendarEventTemplate, ChatRoom, Database, DatabaseRecord, Enduser, File, Form, FormGroup, Forum, Journey, ManagedContentRecord, PrescriptionRoute, Template, Ticket, User, UserNotification } from "@tellescope/types-client"
-import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, LoadingLinear, ScrollingList, SearchTextInput, Typography, useAutomationTriggers, useCalendarEventTemplates, useChatRooms, useDatabaseRecords, useDatabases, useEndusers, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useNotifications, usePrescriptionRoutes, useResolvedSession, useSession, useTemplates, useTickets, useUsers, value_is_loaded } from "."
+import { AutomationTrigger, CalendarEventTemplate, ChatRoom, Database, DatabaseRecord, Enduser, File, Form, FormGroup, Forum, Journey, ManagedContentRecord, Organization, PrescriptionRoute, Template, Ticket, User, UserNotification } from "@tellescope/types-client"
+import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, LoadingLinear, ScrollingList, SearchTextInput, Typography, useAutomationTriggers, useCalendarEventTemplates, useChatRooms, useDatabaseRecords, useDatabases, useEndusers, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useNotifications, useOrganization, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useTemplates, useTickets, useUsers, value_is_loaded } from "."
 import { SxProps } from "@mui/material"
 import { AccessPermissions } from "@tellescope/types-models"
 
@@ -615,6 +615,17 @@ export const UserSearch = (props: Omit<GenericSearchProps<User>, 'filterKey'> & 
   return (
     <ModelSearchInput filterKey="users" {...props} 
       searchAPI={session.api.users.getSome}
+      onLoad={addLocalElements}
+    />
+  )
+}
+
+export const OrganizationSearch = (props: Omit<GenericSearchProps<Organization>, 'filterKey'> & { filterKey?: string }) => {
+  const session = useSession()
+  const [, { addLocalElements }] = useOrganizations()
+  return (
+    <ModelSearchInput filterKey="organizations" {...props} 
+      searchAPI={session.api.organizations.getSome}
       onLoad={addLocalElements}
     />
   )

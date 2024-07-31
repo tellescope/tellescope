@@ -1,9 +1,10 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { ManagedContentRecord } from "@tellescope/types-client"
 import { remove_script_tags } from "@tellescope/utilities"
-import { Grid, Typography } from "@mui/material"
+import { Button, Grid, Typography } from "@mui/material"
 import { PDFBlockUI } from "./components"
 import { css } from "@emotion/css"
+import { useManagedContentRecords } from "../state"
 
 export const usePageHeight = () => {
   const [height, setHeight] = useState(window.innerHeight)
@@ -39,6 +40,7 @@ export const ArticleViewer = ({
   spacing=2,
   style,
   iframeWidthAdjustment=0,
+  onLinkClick,
 } : {
   article: ManagedContentRecord 
   spacing?: number,
@@ -46,16 +48,34 @@ export const ArticleViewer = ({
   width?: React.CSSProperties['width'], 
   maxWidth?: React.CSSProperties['width'],
   iframeWidthAdjustment?: number,
+  onLinkClick?: (r: ManagedContentRecord) => void,
 }) => {
+  const [, { findById }] = useManagedContentRecords({ dontFetch: true })
   const _style: React.CSSProperties = { ...style, width, maxWidth }
   const pageWidth = usePageWidth()
 
   const rootRef = useRef<HTMLDivElement | null>(null)
   const [rootWidth, setRootWidth] = useState(0)
+  const [history, setHistory] = useState<ManagedContentRecord[]>([])
 
   useLayoutEffect(() => {
     setRootWidth((rootRef.current?.offsetWidth ?? 0) + iframeWidthAdjustment)
   }, [rootRef.current?.offsetWidth, pageWidth]) // refresh on page width change
+
+  if (history.length > 0 ) {
+    return (
+      <Grid container>
+        {history.length > 0 &&
+          <Grid item sx={{ mb: 1 }}>
+            <Button variant="contained" onClick={() => setHistory(history.slice(0, history.length - 1))}>
+              Back to Previous Article
+            </Button>
+          </Grid>
+        }
+        <ArticleViewer article={history[history.length - 1] || article} onLinkClick={r => setHistory(h => [...h, r])} />
+      </Grid> 
+    )
+  }
 
   if (!article.blocks?.length) {
     if (article.type === 'PDF' && article.attachments?.[0]?.secureName) {
@@ -125,6 +145,22 @@ export const ArticleViewer = ({
             )
           : block.type === 'pdf' ? (
               <PDFBlockUI info={block.info} />
+            )
+          : (block.type === 'content-link' && block.info.recordId && findById(block.info.recordId, { batch: true })) ? (
+              <Typography sx={{ cursor: 'pointer', textDecoration: 'underline' }}
+                onClick={() => {
+                  const r = findById(block.info.recordId)
+                  if (r) {
+                    if (onLinkClick) {
+                      onLinkClick(r)
+                    } else {
+                      setHistory(h => [...h, r])
+                    }
+                  }
+                }}
+              >
+                {findById(block.info.recordId)?.title || 'Loading...'}
+              </Typography>
             )
           : null as never
           }

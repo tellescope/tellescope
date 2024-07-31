@@ -57,9 +57,11 @@ type BasicEdge = {
   target: string,
 }
 
-export const loopDetected = (edges: (BasicEdge & { id: string })[], startId: string): boolean => {
-  const startEdge = edges.find(e => e.source === startId)
-  const processed = [startEdge?.id ?? '']
+// only need to consider a newly added edge if run on every newly added edge
+export const loopDetected = (edges: (BasicEdge & { id: string })[], startId: string, endId: string): boolean => {
+  const startEdge = edges.find(e => e.source === startId && e.target === endId)
+
+  const processed: string[] = []
   const processing = [startEdge]
 
   while (processing.length) {
@@ -75,7 +77,7 @@ export const loopDetected = (edges: (BasicEdge & { id: string })[], startId: str
       processed.push(adjacentEdge.id)
     }
   }
-
+  
   return false
 }
 

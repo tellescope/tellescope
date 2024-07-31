@@ -250,7 +250,12 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
     update: DEFAULT_ACCESS,
     delete: DEFAULT_ACCESS,
   },
-  vital_configurations: READ_ONLY_ALL,
+  vital_configurations: {
+    create: ALL_ACCESS, // allow for creating self-assigned objects
+    read:   ALL_ACCESS, // need to be able to read global settings to create enduser-specific settings 
+    update: ASSIGNED_ACCESS, // only allows updating enduser-specific settings when they can access the enduser, but not global settings
+    delete: NO_ACCESS,
+  },
   enduser_custom_types: READ_ONLY_ALL,
   superbill_providers: READ_ONLY_ALL,
   superbills: ASSIGNED_AND_DEFAULT_ACCESS,
