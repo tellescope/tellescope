@@ -179,10 +179,14 @@ export const filter_for_query = <T,>(query: string, getAdditionalFields?: (v: T)
     // heuristic for high priority matching against full name
     if (record?.fname && record?.lname) {
       const fullName = `${record.fname} ${record.lname}`.toLowerCase()
-      if (fullName.startsWith(queryLC)) {
-        score += 25
-      } else if (fullName === queryLC) {
+      if (fullName === queryLC) {
         score += 50 
+      }
+      else if (fullName.startsWith(queryLC)) {
+        score += 25
+      } 
+      else if (fullName.includes(queryLC) && queryLC.length > 3) {
+        score += 10
       }
     }
 

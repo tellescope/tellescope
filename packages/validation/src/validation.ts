@@ -764,7 +764,7 @@ export const listOfObjectsValidator = <T extends object>(i: InputValidation<Requ
 
 export const objectAnyFieldsValidator = <T>(valueValidator?: ValidatorDefinition<T>): ValidatorDefinition<Indexable<T>> => ({
   validate: (o={}) => build_validator(
-    (object: any) => {
+    (object={} as any) => {
       if (!is_object(object)) { throw new Error("Expected a non-null object by got ${object}") }
 
       const validated = {} as Indexable
@@ -787,7 +787,7 @@ export const objectAnyFieldsValidator = <T>(valueValidator?: ValidatorDefinition
       }
 
       return validated
-    }, { ...o, isObject: true, listOf: false }
+    }, { ...o, isObject: true, listOf: false, isOptional: true }
   ),
   getExample: () => `{ "key": ${valueValidator?.getExample?.() ?? '"value"'} }`,
   getType: () => `{ "key": ${valueValidator?.getType?.() ?? 'string'} }`,
@@ -4827,6 +4827,8 @@ export const endusersReportQueriesValidator = objectAnyFieldsValidator(objectVal
   range: dateRangeOptionalValidator,
   activeSince: dateOptionalOrEmptyStringValidator,
   fields: listValidatorOptionalOrEmptyOk(objectValidator<{ field: string, value: string }>({ field: stringValidator, value: stringValidator })),
+  mmddyyyyRangeField: stringValidatorOptional,
+  filter: objectAnyFieldsAnyValuesValidator,
   // hasSubmittedForms: objectValidator<EnduserReportQuery['hasSubmittedForms']>({
   //   formIds: listOfStringsValidatorOptionalOrEmptyOk,
   //   range: dateRangeOptionalValidator,
@@ -4862,12 +4864,14 @@ export const formResponsesReportQueriesValidator = objectAnyFieldsValidator(obje
   submittedAtRange: dateRangeOptionalValidator,
   answers: listOfStringsValidatorOptionalOrEmptyOk,
   submittedAtBuckets: listValidatorOptionalOrEmptyOk(dateValidator),
+  mmddyyyyRangeField: stringValidatorOptional,
   createdAtBuckets: listValidatorOptionalOrEmptyOk(dateValidator),
 }))
 export const phoneCallsReportQueriesValidator = objectAnyFieldsValidator(objectValidator<PhoneCallsReportQuery>({
   groupBy: stringValidatorOptional,
   range: dateRangeOptionalValidator,
   createdAtBuckets: listValidatorOptionalOrEmptyOk(dateValidator),
+  mmddyyyyRangeField: stringValidatorOptional,
 }))
 
 // duped in react components, forms, hooks

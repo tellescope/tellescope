@@ -344,9 +344,14 @@ export const formatted_date_hh_mm = (date: Date) => {
   return `${hoursAmPm}:${minutes}${amPm}`
 }
 
+/** @deprecated uses month name instead of number */ 
 export const yyyy_mm_dd = (date: Date): string => {
   const { dayOfMonth, month, year } = get_time_values(date)
   return `${year}-${month}-${dayOfMonth}`
+}
+export const yyyy_mm_dd_numeric = (date: Date): string => {
+  const { dayOfMonth, monthNumber, year } = get_time_values(date)
+  return `${year}-${monthNumber}-${dayOfMonth}`
 }
 export const mm_dd_yyyy = (date: Date): string => {
   const { dayOfMonth, monthNumber, year } = get_time_values(date)
@@ -1970,7 +1975,6 @@ export const add_value_for_dotted_key = (_object: Record<any, any>, field: strin
   let object = _object
   for (let i = 0; i < keys.length; i++) {
     const key = keys[i]
-    console.log(object, key)
     if (i === keys.length - 1) {
       object[key] = value
       continue

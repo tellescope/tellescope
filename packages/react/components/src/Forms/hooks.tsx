@@ -1035,7 +1035,7 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
     return responsesToSubmit
   }, [responses])
 
-  const submit = useCallback(async (options?: { onSuccess?: (r: FormResponse) => void, includedFieldIds?: string[], otherEnduserIds?: string[], onBulkErrors?: (errors: { enduserId: string, message: string }[]) => void }) => {
+  const submit = useCallback(async (options?: { onPreRedirect?: () => void, onFileUploadsDone?: () => void, onSuccess?: (r: FormResponse) => void, includedFieldIds?: string[], otherEnduserIds?: string[], onBulkErrors?: (errors: { enduserId: string, message: string }[]) => void }) => {
     setSubmitErrorMessage('')
     const hasFile = selectedFiles.find(f => !!f.blobs?.length) !== undefined
 
@@ -1082,6 +1082,8 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
         setSubmittingStatus(undefined)
       }
     }
+
+    options?.onFileUploadsDone?.()
 
     if (!accessCode && session.type === 'enduser') throw new Error('enduser session without accessCode')
     try {
@@ -1157,6 +1159,9 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
       if (errors.length) {
         options?.onBulkErrors?.(errors)
       }
+
+      options?.onPreRedirect?.()
+
       if (goBackURL) {
         (window?.top ?? window).location.href = append_current_utm_params(goBackURL);
       }

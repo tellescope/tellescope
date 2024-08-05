@@ -5415,7 +5415,7 @@ const test_ticket_automation_assignment_and_optimization = async () => {
     testDelayedChild?: boolean,
   }) => {
 
-    const e = enduser || await sdk.api.endusers.createOne({ assignedTo, journeys: { [journey.id]: '' } })
+    const e = enduser || await sdk.api.endusers.createOne({ assignedTo, journeys: { [journey.id]: '' }, fields: { Tag: "tag3"} })
 
     const step = await sdk.api.automation_steps.createOne({
       action: { type: 'createTicket', info: { ...info, title: 'background ticket' } },
@@ -5571,7 +5571,7 @@ const test_ticket_automation_assignment_and_optimization = async () => {
   await testForegroundTicket({ 
     assignedTo: [],
     info: { 
-      assignmentStrategy: { type: 'by-tags', info: { qualifier: 'One Of', values: ['tag3']} } , 
+      assignmentStrategy: { type: 'by-tags', info: { qualifier: 'One Of', values: ['{{enduser.Tag}}']} } , 
       defaultAssignee: sdk.userInfo.id 
     },
     validOwners: [sdkNonAdmin.userInfo.id],
@@ -5590,7 +5590,7 @@ const test_ticket_automation_assignment_and_optimization = async () => {
     validOwners: string[],
     enduser?: Enduser,
   }) => {
-    const e = enduser || await sdk.api.endusers.createOne({ assignedTo })
+    const e = enduser || await sdk.api.endusers.createOne({ assignedTo, fields: { Tag: 'tag3' } })
     await sdk.api.automated_actions.createOne({
       action: { type: 'createTicket', info: { ...info, title: 'background ticket' } },
       automationStepId: PLACEHOLDER_ID,
@@ -5693,7 +5693,7 @@ const test_ticket_automation_assignment_and_optimization = async () => {
   await testBackgroundTicket({ 
     assignedTo: [],
     info: { 
-      assignmentStrategy: { type: 'by-tags', info: { qualifier: 'One Of', values: ['tag3']} } , 
+      assignmentStrategy: { type: 'by-tags', info: { qualifier: 'One Of', values: ['{{enduser.Tag}}']} } , 
       defaultAssignee: sdk.userInfo.id 
     },
     validOwners: [sdkNonAdmin.userInfo.id],
@@ -8310,6 +8310,7 @@ const superadmin_tests = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await test_ticket_automation_assignment_and_optimization()
     await superadmin_tests()
     await self_serve_appointment_booking_tests()
     await ticket_queue_tests()
@@ -8328,7 +8329,6 @@ const superadmin_tests = async () => {
     await alternate_phones_tests()
     await no_chained_triggers_tests()
     await field_equals_trigger_tests()
-    await test_ticket_automation_assignment_and_optimization()
     await role_based_access_tests()
     await automation_trigger_tests()
     await enduser_session_tests()

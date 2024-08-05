@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useMemo } from "react"
-import { Button, Flex, LoadingButton, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
+import React, { useCallback, useEffect, useMemo, useState } from "react"
+import { Button, CircularProgress, Flex, LoadingButton, Modal, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
 import { AddressInput, AppointmentBookingInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, FileInput, FilesInput, HeightInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
@@ -411,6 +411,8 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
     return ''
   }, [])
 
+  const [uploading, setUploading] = useState(false)
+
   useEffect(() => {
     // ensure redirect question doesn't trip this alert
     if (activeField.value.type === 'Redirect') { return }
@@ -419,17 +421,21 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
     return () => { window.removeEventListener('beforeunload', beforeunloadHandler) }
   }, [beforeunloadHandler, activeField])
 
-  const handleSubmit = useCallback(async () => {
-    // submission may trigger a redirect, so don't block with warning message
-    try {
-      window.removeEventListener('beforeunload', beforeunloadHandler) 
-    } catch(err) {}
-
+  const handleSubmit = useCallback(async (options?: { onFileUploadsDone?: () => void }) => {
     if (isPreview) {
       return onSuccess?.({} as any)
     } 
 
-    await submit({ onSuccess })
+    await submit({ 
+      onSuccess,
+      ...options,
+      onPreRedirect: () => {
+        // submission may trigger a redirect, so don't block with warning message
+        try {
+          window.removeEventListener('beforeunload', beforeunloadHandler) 
+        } catch(err) {}
+      }
+    })
   }, [isPreview, onSuccess, submit, beforeunloadHandler])
 
   useEffect(() => {
@@ -500,9 +506,28 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
             )
             : <Flex />
           }
+          {uploading &&
+            <Modal open setOpen={() => undefined}>
+              <Flex style={{  }} justifyContent="center">
+                <Typography style={{ fontSize: 20, width: 250, fontWeight: 'bold', textAlign: 'center' }}>
+                  Uploading files... 
+                </Typography>
+
+                <CircularProgress size={75} style={{ marginTop: 10, marginBottom: 10 }} />
+
+                <Typography style={{ fontSize: 20, width: 250, fontWeight: 'bold', textAlign: 'center' }}>
+                  Please stay on this page until your submission is complete!
+                </Typography>
+              </Flex>
+            </Modal>
+          }
           {showSubmit 
             ? (
-              <LoadingButton onClick={handleSubmit} 
+              <LoadingButton 
+                onClick={() => {
+                  setUploading(!!selectedFiles.find(r => !!r.blobs?.length))
+                  return handleSubmit({ onFileUploadsDone: () => setUploading(false) })
+                }} 
                 disabled={!!validationMessage || currentValue.field?.options?.disableNext === true}
                 submitText={form_display_text_for_language(form, "Submit")}
                 submittingText={

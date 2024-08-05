@@ -854,6 +854,7 @@ export type ReportQuery = {
   range?: DateRange,
   groupBy?: string,
   createdAtBuckets?: Date[],
+  mmddyyyyRangeField?: string,
 }
 export type ReportQueries = Record<string, ReportQuery>
 export type Report = Record<string, { count: number, _id: null | string | string[], ids?: string[] }[]>
@@ -873,6 +874,7 @@ export type PhoneCallsReport = Record<string, { count: number, callDurationInSec
 export type EnduserReportQuery = ReportQuery & {
   activeSince?: Date,
   fields?: { field: string, value: string }[]
+  filter?: any,
   // hasSubmittedForms?: {
   //   formIds?: string[],
   //   range?: DateRange,
@@ -2097,6 +2099,9 @@ export interface AppointmentBookingPage extends AppointmentBookingPage_readonly,
   primaryColor?: string,
   secondaryColor?: string,
   backgroundColor?: string,
+  fontFamily?: string,
+  fontFace?: string,
+  fontURL?: string,
   terms?: AppointmentTerm[],
   topLogo?: string,
   intakeTitle?: string,

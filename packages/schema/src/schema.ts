@@ -691,6 +691,7 @@ export type CustomActions = {
       childSubmittedAtRange?: DateRange, 
       answers?: string[],
       groupBy?: string,
+      enduserFilter?: any,
     }, 
     { report: Report }
     >,
@@ -744,6 +745,7 @@ export type CustomActions = {
       activeSince?: Date,
       fields?: { field: string, value: string }[],
       range?: DateRange, 
+      // mmddyyyyRangeField?: string,
     }, { report: EndusersReport }>,
     get_engagement_statistics: CustomAction<{ 
       enduserFields?: { field: string, value: string }[],
@@ -1542,6 +1544,7 @@ export const schema: SchemaV1 = build_schema({
           activeSince: { validator: dateValidator, },
           customTypeId: { validator: stringValidator100 }, // don't limit to objectId, allow 'All' to not filter, otherwise filter by default to patients
           range: { validator: dateRangeOptionalValidator },
+          // mmddyyyyRangeField: { validator: stringValidator },
           fields: { 
             validator: listValidatorEmptyOk(objectValidator<{ field: string, value: string }>({ field: stringValidator, value: stringValidator })) 
           }
@@ -4201,6 +4204,7 @@ export const schema: SchemaV1 = build_schema({
           childSubmittedAtRange: { validator: dateRangeOptionalValidator },
           answers: { validator: listOfStringsValidatorOptionalOrEmptyOk },
           groupBy: { validator: stringValidator },
+          enduserFilter: { validator: objectAnyFieldsAnyValuesValidator },
         },
         returns: {
           report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
@@ -5671,7 +5675,7 @@ export const schema: SchemaV1 = build_schema({
           explanation: 'Subscription date and period cannot be updated',
           evaluate: (updated, lookup, session, type, options) => {
             if (type !== 'update') return // not updating
-            if (!(options.updates?.subscriptionExpiresAt || options.updates?.subscriptionPeriod)) return // not changing
+            if (!(options.updates?.subscriptionExpiresAt || options.updates?.subscriptionPeriod || options.updates?.allowCreateSuborganizations)) return // not changing
 
             if (session.type === 'enduser') return "User only"
             if (!session.isa) return "Not allowed"
@@ -5853,6 +5857,7 @@ export const schema: SchemaV1 = build_schema({
       replyToEnduserTransactionalEmails: { validator: emailValidator },
       customTermsOfService: { validator: stringValidator },
       customPrivacyPolicy: { validator: stringValidator },
+      allowCreateSuborganizations: { validator: booleanValidator },
     },
   },
   databases: {
@@ -6153,6 +6158,9 @@ export const schema: SchemaV1 = build_schema({
       limitedByState: { validator: booleanValidator },
       topLogo: { validator: stringValidator },
       requireLocationSelection: { validator: booleanValidator },
+      fontFace: { validator: stringValidator },
+      fontFamily: { validator: stringValidator5000EmptyOkay },
+      fontURL: { validator: stringValidator },
       // defer to template
       // productIds: { validator: listOfStringsValidator },
     }
