@@ -105,6 +105,8 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
     prepare_file_upload: (args: FileDetails & { publicRead?: boolean, publicName?: string, }) => Promise<{ presignedUpload: S3PresignedPost, file: File }>,
     file_download_URL: (args: extractFields<CustomActions['files']['file_download_URL']['parameters']>) => 
                           Promise<extractFields<CustomActions['files']['file_download_URL']['returns']>>,
+    confirm_file_upload: (args: extractFields<CustomActions['files']['confirm_file_upload']['parameters']>) => 
+                          Promise<extractFields<CustomActions['files']['confirm_file_upload']['returns']>>,
   },
   form_fields: {
     load_choices_from_database: (args: extractFields<CustomActions['form_fields']['load_choices_from_database']['parameters']>) => (
@@ -312,6 +314,7 @@ export class EnduserSession extends Session {
 
     // files have defaultQueries
     this.api.files.prepare_file_upload = a => this._POST(`/v1/prepare-file-upload`, a)
+    this.api.files.confirm_file_upload = args => this._POST(`/v1${schema.files.customActions.confirm_file_upload.path}`, args)
     this.api.files.file_download_URL = a => this._GET('/v1/file-download-URL', a)
 
     this.api.post_likes.createOne = args => this._POST(`/v1${schema.post_likes.customActions.create.path}`, args)
@@ -358,6 +361,9 @@ export class EnduserSession extends Session {
     const { name, size, type, enduserId, publicName, publicRead, source } = details
     const { presignedUpload, file: createdFile } = await this.api.files.prepare_file_upload({ name, size, type, enduserId, publicRead, publicName, source })
     await this.UPLOAD(presignedUpload, file)
+
+    this.api.files.confirm_file_upload({ id: createdFile.id }).catch(console.error)
+
     return createdFile
   }
 

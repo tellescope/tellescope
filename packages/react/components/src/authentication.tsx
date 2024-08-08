@@ -50,7 +50,7 @@ interface SessionContext_T {
   session: UserSession,
   updateCount: number,
   logout: () => Promise<void>,
-  refresh: () => Promise<void>,
+  refresh: (options?: { invalidatePreviousToken?: boolean }) => Promise<void>,
   // setSession: React.Dispatch<React.SetStateAction<Session>>
   updateUserInfo: (updates: Parameters<Session['api']['users']['updateOne']>[1], options?: Parameters<Session['api']['users']['updateOne']>[2]) => Promise<User>,
   updateLocalSessionInfo: (u: Partial<User>, authToken?: string) => void
@@ -74,13 +74,13 @@ export const WithSession = (p : { children: React.ReactNode, sessionOptions?: Us
     setUpdateCount(u => u+1)
   }
 
-  const refresh = async () => {
+  const refresh = async (options?: { invalidatePreviousToken?: boolean }) => {
     if (!session.authToken) return // refresh will fail
     if (session.userInfo?.requiresMFA) return // refresh will fail
 
     // console.log('refreshing session')
 
-    await session.refresh_session()
+    await session.refresh_session({ invalidatePreviousToken: options?.invalidatePreviousToken })
     .then(({ authToken, user }) => updateLocalSessionInfo(user, authToken))
     .catch(e => console.error('error refreshing', e))
   }

@@ -608,6 +608,7 @@ export type CustomActions = {
     >,
     file_download_URL: CustomAction<{ secureName: string, preferInBrowser?: boolean, }, { downloadURL: string, name: string }>,
     run_ocr: CustomAction<{ id: string, type: string }, { file: File }>,
+    confirm_file_upload: CustomAction<{ id: string }, { }>,
   },
   form_fields: {
     load_choices_from_database: CustomAction<{ fieldId: string, lastId?: string, limit?: number, databaseId?: string }, { choices: DatabaseRecordClient[] }>,
@@ -1850,6 +1851,7 @@ export const schema: SchemaV1 = build_schema({
       disableEnduserAutoSync: { validator: booleanValidator },
       disableTicketAutoSync: { validator: booleanValidator },
       redactExternalEvents: { validator: booleanValidator },
+      syncEnduserFiles: { validator: booleanValidator },
       pushCalendarDetails: { validator: booleanValidator },
     },
     customActions: {
@@ -3357,7 +3359,7 @@ export const schema: SchemaV1 = build_schema({
     info: {},
     constraints: { unique: [], relationship: [] },
     defaultActions: { read: {}, readMany: {}, update: {}, delete: {} },
-    enduserActions: { prepare_file_upload: {}, file_download_URL: {}, read: {}, readMany: {}, delete: {}, update: { } /* allow to hide from client side */ },
+    enduserActions: { prepare_file_upload: {}, confirm_file_upload: {}, file_download_URL: {}, read: {}, readMany: {}, delete: {}, update: { } /* allow to hide from client side */ },
     fields: {
       ...BuiltInFields, 
       name: {
@@ -3452,6 +3454,16 @@ export const schema: SchemaV1 = build_schema({
         returns: { 
           file: { validator: 'file' as any, required: true },
         },
+      },
+      confirm_file_upload: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Confirm File Upload',
+        path: '/files/confirm-upload',
+        description: "Triggers file create side effects / webhooks to be called after client-side upload is complete",
+        parameters: { 
+          id: { validator: mongoIdStringRequired, required: true },
+        },
+        returns: { },
       },
     },
   },
@@ -4763,6 +4775,7 @@ export const schema: SchemaV1 = build_schema({
       source: { validator: stringValidator },
       videoIntegration: { validator: videoIntegrationTypesValidator },
       videoURL: { validator: stringValidator },
+      externalVideoURL: { validator: stringValidator },
       timezone: { validator: timezoneValidator},
       copiedFrom: { validator: mongoIdStringValidator },
       internalNotes: { validator: stringValidator5000EmptyOkay },
@@ -4775,6 +4788,12 @@ export const schema: SchemaV1 = build_schema({
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
       completedAt: { validator: dateValidatorOptional },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      cancelledGroupAttendees: {
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ id: string, at: Date }>({
+          id: mongoIdStringRequired,
+          at: dateValidator,
+        }))
+      }
       // isAllDay: { validator: booleanValidator },
     }
   },

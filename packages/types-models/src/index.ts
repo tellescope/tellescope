@@ -1155,6 +1155,7 @@ export interface File_readonly extends ClientRecord {
   source?: string
   externalId?: string,
   timestamp?: Date,
+  confirmedAt?: Date,
 }
 export interface File_required {
   name: string;
@@ -1555,6 +1556,7 @@ export interface Integration extends Integration_readonly, Integration_required,
   shouldCreateNotifications?: boolean, // for indicating users should receive email notifications
   disableEnduserAutoSync?: boolean,
   disableTicketAutoSync?: boolean,
+  syncEnduserFiles?: boolean,
   pushCalendarDetails?: boolean,
   redactExternalEvents?: boolean,
   fhirClientId?: string,
@@ -1940,7 +1942,8 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   portalSettings?: CalendarEventPortalSettings,
   isEphemeral?: boolean,
   videoIntegration?: VideoIntegrationType,
-  videoURL?: string,
+  videoURL?: string, // for storing built-in video links (e.g. with our direct Zoom integration)
+  externalVideoURL?: string, // for join links provided by integrations like Healthie
   videoHostUserId?: string, // so we know which integration to use for updating / deleting the event
   timezone?: Timezone
   copiedFrom?: string,
@@ -1957,6 +1960,10 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   holdUntil?: Date,
   holdFormResponseId?: string,
   tags?: string[],
+  cancelledGroupAttendees?: {
+    id: string,
+    at: Date,
+  }[],
   // isAllDay?: boolean,
 }
 
@@ -3338,6 +3345,8 @@ export type PhoneTreeEventBuilder <T, V> = { parentId: string, type: T, info: V 
 export type PhoneTreeEvents = {
   'Start': PhoneTreeEventBuilder<'Start', {}>,
   'On Gather': PhoneTreeEventBuilder<'On Gather', { digits?: string, transcription?: string, handleNoInput?: boolean }>,
+  'If True': PhoneTreeEventBuilder<'If True', { }>,
+  'If False': PhoneTreeEventBuilder<'If False', { }>,
 }
 export type PhoneTreeEventType = keyof PhoneTreeEvents
 export type PhoneTreeEvent = PhoneTreeEvents[PhoneTreeEventType]
@@ -3364,6 +3373,10 @@ export type PhoneTreeActions = {
     playback?: Partial<PhonePlayback>,
   }>
   'Forward Call': PhoneTreeActionBuilder<"Forward Call", { to: string }>
+  'Conditional Split': PhoneTreeActionBuilder<"Conditional Split", { 
+    timezone?: Timezone,
+    weeklyAvailabilities?: WeeklyAvailability[],
+  }>
 }
 export type PhoneTreeActionType = keyof PhoneTreeActions 
 export type PhoneTreeAction = PhoneTreeActions[PhoneTreeActionType]
@@ -3514,6 +3527,8 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
     tracking?: string,
   }[],
   tracking?: string,
+  instructions?: string,
+  shippedDate?: string,
 }
 
 export interface EnduserProblem_readonly extends ClientRecord {}

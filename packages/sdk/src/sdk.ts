@@ -78,6 +78,7 @@ export interface LoadFunctionArguments <T> {
   search?: SearchOptions,
   ids?: string[],
   returnCount?: boolean,
+  mdbFilter?: any,
 }
 
 export type LoadFunction<T> = (o?: LoadFunctionArguments<T>) => Promise<T[]>
@@ -91,7 +92,7 @@ export interface APIQuery<
 {
   createOne: (t: CREATE & { sharedWithOrganizations?: string[][] }) => Promise<T>;
   createSome: (ts: CREATE[]) => Promise<{ created: T[], errors: object[] }>;
-  getOne: (argument: string | ReadFilter<T>) => Promise<T>;
+  getOne: (argument: string | ReadFilter<T>, mdbFilter?: any) => Promise<T>;
   getSome: LoadFunction<T>;
   getByIds: ({ ids } : { ids: string[] }) => Promise<{ matches: T[] }>;
   updateOne: (id: string, updates: UPDATE, options?: CustomUpdateOptions) => Promise<T>;
@@ -122,8 +123,11 @@ export const defaultQueries = <N extends keyof ClientModelForName>(
   return {
     createOne: o => s._POST(`/v1/${singularName}`, o),
     createSome: os => s._POST(`/v1/${safeName}`, { create: os }),
-    getOne: (argument) => typeof argument === 'string' ? s._GET(`/v1/${singularName}/${argument}`)
-                                                       : s._GET(`/v1/${singularName}`, { filter: argument }),
+    getOne: (argument, mdbFilter) => (
+      (typeof argument === 'string' && argument !== '')
+        ? s._GET(`/v1/${singularName}/${argument}`)
+        : s._GET(`/v1/${singularName}`, { filter: argument, mdbFilter })
+    ),
     getSome: (o) => s._GET(`/v1/${safeName}`, o),
     getByIds: (o) => s._POST(`/v1/${safeName}/bulk-read`, o),
     updateOne: (id, updates, options) => s._PATCH(`/v1/${singularName}/${id}`, { updates, options }),
@@ -367,6 +371,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
   files: {
     prepare_file_upload: (args: extractFields<CustomActions['files']['prepare_file_upload']['parameters']>) => (
       Promise<extractFields<CustomActions['files']['prepare_file_upload']['returns']>>
+    ),
+    confirm_file_upload: (args: extractFields<CustomActions['files']['confirm_file_upload']['parameters']>) => (
+      Promise<extractFields<CustomActions['files']['confirm_file_upload']['returns']>>
     ),
     file_download_URL: (args: extractFields<CustomActions['files']['file_download_URL']['parameters']>) => (
       Promise<extractFields<CustomActions['files']['file_download_URL']['returns']>>
@@ -826,6 +833,7 @@ export class Session extends SessionManager {
     // )
 
     queries.files.prepare_file_upload = (args) => this._POST(`/v1/prepare-file-upload`, args)
+    queries.files.confirm_file_upload = a => this._POST(`/v1${schema.files.customActions.confirm_file_upload.path}`, a)
     queries.files.file_download_URL = a => this._GET('/v1/file-download-URL', a)
     queries.files.run_ocr = a => this._POST(`/v1${schema.files.customActions.run_ocr.path}`, a)
 
@@ -1030,6 +1038,9 @@ export class Session extends SessionManager {
     const { name, size, type, enduserId, publicRead, publicName, source, isCalledOut } = details
     const { presignedUpload, file: createdFile } = await this.api.files.prepare_file_upload({ name, size, type, enduserId, publicRead, publicName, source, isCalledOut })
     await this.UPLOAD(presignedUpload as any, file)
+
+    this.api.files.confirm_file_upload({ id: createdFile.id }).catch(console.error)
+
     return createdFile
   }
 

@@ -3382,6 +3382,7 @@ export const weeklyAvailabilityValidator = objectValidator<WeeklyAvailability>({
 export const weeklyAvailabilitiesValidator = listValidatorEmptyOk(weeklyAvailabilityValidator)
 
 export const timezoneValidator = exactMatchValidator<Timezone>(Object.keys(TIMEZONE_MAP) as Timezone[])
+export const timezoneValidatorOptional = exactMatchValidator<Timezone>(Object.keys(TIMEZONE_MAP) as Timezone[], { isOptional: true })
 
 export const accessValidator = exactMatchValidator<AccessType>([
   ALL_ACCESS, DEFAULT_ACCESS, ASSIGNED_ACCESS, NO_ACCESS,
@@ -4685,6 +4686,16 @@ export const phoneTreeEventValidator = orValidator<{ [K in PhoneTreeEventType]: 
       handleNoInput: booleanValidatorOptional,
     }),
   }), 
+  "If True": objectValidator<PhoneTreeEvents["If True"]>({
+    type: exactMatchValidator(['If True']),
+    info: optionalEmptyObjectValidator,
+    parentId: stringValidator1000Optional,
+  }), 
+  "If False": objectValidator<PhoneTreeEvents["If False"]>({
+    type: exactMatchValidator(['If False']),
+    info: optionalEmptyObjectValidator,
+    parentId: stringValidator1000Optional,
+  }), 
 })
 export const phoneTreeEventsValidator = listValidatorEmptyOk(phoneTreeEventValidator)
 
@@ -4773,6 +4784,13 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
     type: exactMatchValidator(['Forward Call']),
     info: objectValidator<PhoneTreeActions["Forward Call"]['info']>({
       to: phoneValidator,
+    }),
+  }),
+  "Conditional Split": objectValidator<PhoneTreeActions["Conditional Split"]>({
+    type: exactMatchValidator(['Conditional Split']),
+    info: objectValidator<PhoneTreeActions["Conditional Split"]['info']>({
+      weeklyAvailabilities: weeklyAvailabilitiesValidator,
+      timezone: timezoneValidatorOptional,
     }),
   }),
 })

@@ -8220,12 +8220,65 @@ const vital_trigger_tests = async () => {
 const superadmin_tests = async () => {
   log_header("Superadmin Tests")
 
-
   await async_test(
     "switch tenant is limited",
     () => sdk.change_tenant({ all: true }),
     handleAnyError
   ) 
+}
+
+const mdb_filter_tests = async () => {
+  log_header("MongoDB Filter Tests")
+
+  const enduser = await sdk.api.endusers.createOne({ 
+    fname: 'Test',
+    lname: 'Testson',
+    tags: ["tag1", "tag2"],
+    fields: { custom: 1, nested: { custom: 2 } },
+  })
+  const otherEnduser = await sdk.api.endusers.createOne({ 
+    fname: 'Other',
+    lname: 'Enduser',
+    tags: ["tag1", "tag2"],
+    fields: { custom: 1, nested: { custom: 2 } },
+  })
+
+
+  await async_test(
+    "$and",
+    () => sdk.api.endusers.getOne('', { $and: [{ fname: 'Test' }, { lname: 'Testson' }, { 'fields.custom': 1 }, { 'fields.nested.custom' : 2 } ] }),
+    { onResult: e => e.id === enduser.id }
+  ) 
+  await async_test(
+    "$and (list)",
+    () => sdk.api.endusers.getSome({ mdbFilter: { $and: [{ fname: 'Test' }, { lname: 'Testson' }, { 'fields.custom': 1 }, { 'fields.nested.custom' : 2 }] } }),
+    { onResult: e => e.length === 1 && e[0].id === enduser.id }
+  ) 
+  await async_test(
+    "$and no match",
+    () => sdk.api.endusers.getOne('', { $and: [{ fname: 'Not Test' }, { lname: 'Testson' }] }),
+    handleAnyError
+  ) 
+  await async_test(
+    "$and no match (list)",
+    () => sdk.api.endusers.getSome({ mdbFilter: { $and: [{ fname: 'Not Test' }, { lname: 'Testson' }] } }),
+    { onResult: e => e.length === 0 }
+  ) 
+  await async_test(
+    "bad query",
+    () => sdk.api.endusers.getOne('', { $bad: 'query' }),
+    { shouldError: true, onError: e => e.message === `unknown top level operator: $bad. If you have a field name that starts with a '$' symbol, consider using $getField or $setField.` }
+  ) 
+  await async_test(
+    "bad query (list)",
+    () => sdk.api.endusers.getSome({ mdbFilter: { $bad: 'query' } }),
+    { shouldError: true, onError: e => e.message === `unknown top level operator: $bad. If you have a field name that starts with a '$' symbol, consider using $getField or $setField.` }
+  ) 
+
+  return Promise.all([
+    sdk.api.endusers.deleteOne(enduser.id),
+    sdk.api.endusers.deleteOne(otherEnduser.id),
+  ])
 }
 
 (async () => {
@@ -8310,6 +8363,7 @@ const superadmin_tests = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await mdb_filter_tests()
     await test_ticket_automation_assignment_and_optimization()
     await superadmin_tests()
     await self_serve_appointment_booking_tests()
