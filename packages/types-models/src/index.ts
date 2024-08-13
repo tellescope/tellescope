@@ -472,6 +472,7 @@ export interface User_readonly extends ClientRecord {
   lastActive?: Date;
   lastLogout?: Date;
   isa?: boolean,
+  passwordLastChangedAt?: Date,
 }
 export interface User_required {  
   email: string;
@@ -657,6 +658,7 @@ export interface Enduser_readonly extends UserActivityInfo, ClientRecord, Enduse
   // _ageDecade?: number,
   mergedIds?: string[],
   _updateKey?: string,
+  passwordLastChangedAt?: Date,
 } 
 export interface Enduser_required {}
 export interface Enduser_updatesDisabled {
@@ -968,6 +970,7 @@ export interface Email_updatesDisabled {
   logOnly?: boolean,
   timestamp?: Date,
   userId: string; // not actually required on create
+  journeyId?: string,
 }
 export interface Email extends Email_required, Email_readonly, Email_updatesDisabled, TextCommunication {
   isAutoreply?: boolean,
@@ -983,6 +986,7 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
   syncedAt?: Date, // helps to indicate whether an outbound email was sent via Tellescope or Synced back from external source
   cc?: string[],
   fromEmailOverride?: string,
+  scheduledFromEmail?: string,
   ticketIds?: string[],
   alternateToAddress?: string,
   hiddenBy?: { [index: string] : Date | '' };
@@ -1018,6 +1022,7 @@ export interface SMSMessage_updatesDisabled {
   inbound: boolean, 
   newThread: boolean, 
   logOnly?: boolean,
+  journeyId?: string,
 }
 export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SMSMessage_updatesDisabled, TextCommunication, WithLinkOpenTrackingIds {
   isAutoreply?: boolean,
@@ -1301,7 +1306,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
 }
 
 export type FormFieldLiteralType = 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time'
-export type FormFieldComplexType = "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance"
+export type FormFieldComplexType = "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance"
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
 
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic'
@@ -1379,6 +1384,7 @@ export type FormFieldOptions = FormFieldValidation & {
   useDatePicker?: boolean,
   sharedIntakeFields?: string[],
   hiddenDefaultFields?: string[],
+  customTypeId?: string,
   copyResponse?: boolean, // copy to related contacts when created
   disableGoBack?: boolean,
   disableNext?: boolean,
@@ -1702,6 +1708,7 @@ export type FormResponseAnswerMultipleChoiceValue = string[]
 export type FormResponseAnswerMultipleChoice = FormResponseValueAnswerBuilder<'multiple_choice', FormResponseAnswerMultipleChoiceValue>
 export type FormResponseAnswerDropdown = FormResponseValueAnswerBuilder<'Dropdown', FormResponseAnswerMultipleChoiceValue>
 export type FormResponseAnswerRanking = FormResponseValueAnswerBuilder<'ranking', FormResponseAnswerMultipleChoiceValue>
+export type FormResponseAnswerHiddenValue = FormResponseValueAnswerBuilder<'Hidden Value', string>
 
 export type FormResponseAnswerFileValue = {
   secureName: string,
@@ -1739,6 +1746,7 @@ export type FormResponseValueAnswer = (
   | FormResponseAnswerAppointmentBooking
   | FormResponseAnswerHeight
   | FormResponseAnswerRedirect
+  | FormResponseAnswerHiddenValue
 )
 
 export type FormResponseValue = {
@@ -1747,6 +1755,7 @@ export type FormResponseValue = {
   fieldDescription?: string,
   fieldHtmlDescription?: string,
   answer: FormResponseValueAnswer,
+  answerIsHTML?: boolean,
   externalId?: string,
   sharedWithEnduser?: boolean,
   isCalledOut?: boolean,
@@ -1780,6 +1789,7 @@ export type AnswerForType = {
   'Appointment Booking': FormResponseAnswerAppointmentBooking['value']
   'Height': FormResponseAnswerHeight['value']
   'Redirect': FormResponseAnswerRedirect['value']
+  'Hidden Value': FormResponseAnswerHiddenValue['value']
 }
 
 export interface FormResponse_readonly extends ClientRecord {
@@ -1964,6 +1974,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
     id: string,
     at: Date,
   }[],
+  useUserURL?: boolean,
   // isAllDay?: boolean,
 }
 
@@ -2070,6 +2081,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   canvasCoding?: CanvasCoding,
   tags?: string[],
   matchToHealthieTemplate?: boolean,
+  useUserURL?: boolean,
 }
 
 export interface AppointmentLocation_readonly extends ClientRecord {}

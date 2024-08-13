@@ -1,7 +1,7 @@
 import React from "react"
 import { Divider, Grid, Typography } from "@mui/material"
 import { Enduser, FormResponse } from "@tellescope/types-client"
-import { form_response_value_to_string, formatted_date, getOrgnizationLogoURL, user_display_name } from "@tellescope/utilities"
+import { form_response_value_to_string, formatted_date, getOrgnizationLogoURL, remove_script_tags, user_display_name } from "@tellescope/utilities"
 import { DownloadFileIconButton, LabeledIconButton, SecureImage, useEndusers, useOrganization, useResolvedSession, useSession, useUsers, value_is_loaded } from "../index"
 import CloseIcon from '@mui/icons-material/Close';
 import { DatabaseSelectResponse, FormResponseAnswerAddress, FormResponseValueAnswer } from "@tellescope/types-models"
@@ -291,8 +291,11 @@ export const FormResponseView = ({ enduser, onClose, hideHeader, response, id, p
               <div style={{ }}>
                 {showAnswerInline && r.answer.type !== 'Question Group' 
                 && !(typeof r.answer.value === 'string' && r.answer.value.includes('{TELLESCOPE')) // hidden field for matching, not to display
-                &&
-                  <ResponseAnswer answer={r.answer} printing={printing} />
+                && (
+                  (r.answerIsHTML && typeof r.answer.value === 'string') 
+                    ? <div dangerouslySetInnerHTML={{ __html: remove_script_tags(r.answer.value) }} />
+                    : <ResponseAnswer answer={r.answer} printing={printing} />
+                )
                 }
               </div>
             </div>

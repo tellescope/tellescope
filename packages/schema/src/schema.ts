@@ -2360,6 +2360,7 @@ export const schema: SchemaV1 = build_schema({
       assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       canvasId: { validator: stringValidator100 },
       discussionRoomId: { validator: mongoIdStringValidator },
+      journeyId: { validator: mongoIdStringValidator },
     }, 
     customActions: {
       sync_integrations: {
@@ -2594,6 +2595,7 @@ export const schema: SchemaV1 = build_schema({
       assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       canvasId: { validator: stringValidator100 },
       discussionRoomId: { validator: mongoIdStringValidator },
+      journeyId: { validator: mongoIdStringValidator },
     }, 
   },
   chat_rooms: {
@@ -4793,7 +4795,8 @@ export const schema: SchemaV1 = build_schema({
           id: mongoIdStringRequired,
           at: dateValidator,
         }))
-      }
+      },
+      useUserURL: { validator: booleanValidator },
       // isAllDay: { validator: booleanValidator },
     }
   },
@@ -4848,6 +4851,7 @@ export const schema: SchemaV1 = build_schema({
       canvasCoding: { validator: canvasCodingValidator },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       matchToHealthieTemplate: { validator: booleanValidator },
+      useUserURL: { validator: booleanValidator },
     }
   },
   calendar_event_RSVPs: {

@@ -1143,10 +1143,12 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
               });
             }
             updateLocalFormResponse(formResponse.id, formResponse)
+            options?.onPreRedirect?.() // in case redirect on success
             options?.onSuccess?.(formResponse)
           } else {
             if (eId === options.otherEnduserIds[options.otherEnduserIds.length -1]) {
               updateLocalFormResponse(formResponse.id, formResponse)
+              options?.onPreRedirect?.() // in case redirect on success
               options?.onSuccess?.(formResponse)
             }
           }
@@ -1160,7 +1162,6 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
         options?.onBulkErrors?.(errors)
       }
 
-      options?.onPreRedirect?.()
 
       if (goBackURL) {
         (window?.top ?? window).location.href = append_current_utm_params(goBackURL);
@@ -1190,8 +1191,8 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
 
   const autoAdvanceRef = useRef(false)
   const goToNextField = useCallback(() => {
-    if (isNextDisabled()) return
     if (!currentValue) return
+    if (isNextDisabled() && currentValue?.answer.type !== 'Hidden Value') return
 
     if (currentValue.answer.type === 'Question Group') {
       const responsesToSave = (

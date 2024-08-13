@@ -2220,7 +2220,7 @@ export const contact_is_valid = (e: Partial<Enduser>) => {
     }
   } 
   if (e.dateOfBirth && !isDateString(e.dateOfBirth)) {
-    return "Date of birth is invalid"
+    return "Date of birth should be MM-DD-YYYY"
   }
 }
 
@@ -2269,7 +2269,7 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
         <Grid container alignItems="center" wrap="nowrap" spacing={1}>
           {!field.options?.hiddenDefaultFields?.includes('Date of Birth') &&  
           <Grid item xs={4}>
-            <DateStringInput value={dateOfBirth} field={{ ...field, isOptional: true }} size="small" label="Date of Birth"
+            <DateStringInput value={dateOfBirth} field={{ ...field, isOptional: true }} size="small" label="Date of Birth (MM-DD-YYYY)"
               onChange={dateOfBirth => onChange(value.map((v, i) => i === editing ? { ...v, dateOfBirth } : v), field.id)}
             />
           </Grid>
@@ -2678,4 +2678,22 @@ export const RedirectInput = ({ groupId, groupInsance, formResponseId, field, su
   }
 
   return null
+}
+
+export const HiddenValueInput = ({ goToNextField, goToPreviousField, field, value, onChange, form, ...props }: FormInputProps<'email'>) => {
+  let lastRef = useRef(0)
+  useEffect(() => {
+    if (lastRef.current > Date.now() - 1000) return
+    lastRef.current = Date.now()
+
+    if (value) {
+      onChange('', field.id)
+      goToPreviousField?.()
+    } else {
+      onChange(field.title, field.id)
+      goToNextField?.()
+    }
+  }, [value, onChange, field, goToNextField, goToPreviousField])
+
+  return <></>
 }

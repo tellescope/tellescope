@@ -280,6 +280,7 @@ import {
   FormResponseAnswerRedirect,
   CustomDashboardViewBlockType,
   BlockContentLink,
+  FormResponseAnswerHiddenValue,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -1488,11 +1489,13 @@ const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
   'Insurance': '',
   Height: '',
   Redirect: '',
+  'Hidden Value': '',
 }
 export const FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES) as FormFieldType[]
 export const formFieldTypeValidator = exactMatchValidator<FormFieldType>(FORM_FIELD_TYPES)
 
 export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' | 'phoneNumber']: (value?: FormResponseValueAnswer[keyof FormResponseValueAnswer], options?: any, isOptional?: boolean) => any } = {
+  "Hidden Value": stringValidator.validate({ maxLength: 5000 }),
   'Appointment Booking': stringValidator.validate({ maxLength: 100 }),
   'Redirect': stringValidator.validate({ maxLength: 100 }),
   'Related Contacts': objectAnyFieldsAnyValuesValidator.validate(),
@@ -1920,6 +1923,10 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
     type: exactMatchValidator(['Time']),
     value: stringValidator1000Optional,
   }),
+  "Hidden Value": objectValidator<FormResponseAnswerHiddenValue>({
+    type: exactMatchValidator(['Hidden Value']),
+    value: stringValidator1000Optional,
+  }),
   Stripe: objectValidator<FormResponseAnswerStripe>({
     type: exactMatchValidator(['Stripe']),
     value: stringValidator1000Optional,
@@ -2037,6 +2044,7 @@ export const formResponseValidator = objectValidator<FormResponseValue>({
   fieldDescription: stringValidator5000Optional,
   fieldHtmlDescription: stringValidator5000Optional,
   answer: formResponseAnswerValidator,
+  answerIsHTML: booleanValidatorOptional,
   externalId: stringValidatorOptional,
   sharedWithEnduser: booleanValidatorOptional,
   isCalledOut: booleanValidatorOptional,
@@ -3030,6 +3038,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   holdAppointmentMinutes: numberValidatorOptional,
   rangeStepSize: numberValidatorOptional,
   redirectFormId: mongoIdStringOptional,
+  customTypeId: mongoIdStringOptional,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({

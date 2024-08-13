@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { Button, CircularProgress, Flex, LoadingButton, Modal, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
-import { AddressInput, AppointmentBookingInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, FileInput, FilesInput, HeightInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
+import { AddressInput, AppointmentBookingInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
@@ -129,6 +129,7 @@ export const QuestionForField = ({
   submit,
   groupId,
   groupInstance,
+  goToNextField,
 } : {
   form?: Form,
   repeats: Record<string, string | number>,
@@ -137,7 +138,7 @@ export const QuestionForField = ({
   file: FileResponse,
   field: FormField,
   setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>,
-} & Pick<TellescopeFormProps, "groupId" | "groupInstance" | "submit" | "formResponseId" | 'enduserId' | 'isPreviousDisabled' | 'goToPreviousField' | 'enduser' | 'handleDatabaseSelect' | 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField'>) => {
+} & Pick<TellescopeFormProps, "goToNextField" | "groupId" | "groupInstance" | "submit" | "formResponseId" | 'enduserId' | 'isPreviousDisabled' | 'goToPreviousField' | 'enduser' | 'handleDatabaseSelect' | 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField'>) => {
   const String = customInputs?.['string'] ?? StringInput
   const StringLong = customInputs?.['stringLong'] ?? StringLongInput
   const Email = customInputs?.['email'] ?? EmailInput
@@ -161,6 +162,7 @@ export const QuestionForField = ({
   const AppointmentBooking = customInputs?.['Appointment Booking'] ?? AppointmentBookingInput
   const Height = customInputs?.['Height'] ?? HeightInput
   const Redirect = customInputs?.['Redirect'] ?? RedirectInput
+  const HiddenValue = customInputs?.['Hidden Value'] ?? HiddenValueInput
 
   const validationMessage = validateField(field)
 
@@ -220,6 +222,9 @@ export const QuestionForField = ({
         )
         : field.type === 'dateString' ? (
           <DateStringInput field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} form={form} />
+        )
+        : field.type === 'Hidden Value' ? (
+          <HiddenValue goToNextField={goToNextField} goToPreviousField={goToPreviousField} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'Address' ? (
           <Address field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
@@ -310,7 +315,7 @@ export const QuestionForField = ({
             return (
               <Flex key={id} flex={1}>
                 <QuestionForField groupId={groupId} groupInstance={groupInstance} customInputs={customInputs} field={match} fields={fields} handleDatabaseSelect={handleDatabaseSelect}
-                  enduser={enduser} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled}
+                  enduser={enduser} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled} goToNextField={goToNextField}
                   form={form} formResponseId={formResponseId} submit={submit}
                   repeats={repeats} onRepeatsChange={onRepeatsChange} setCustomerId={setCustomerId}
                   value={value} file={file} 
@@ -481,7 +486,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
             <Flex style={inputStyle}>
               <QuestionForField form={form} fields={fields} field={activeField.value} submit={submit}
                 enduserId={enduserId} formResponseId={formResponseId}
-                enduser={enduser} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled}
+                enduser={enduser} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled} goToNextField={goToNextField}
                 handleDatabaseSelect={handleDatabaseSelect}
                 setCustomerId={setCustomerId}
                 repeats={repeats} onRepeatsChange={setRepeats}
@@ -953,7 +958,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
               <Flex column flex={1}>
                 <QuestionForField fields={fields} field={activeField} handleDatabaseSelect={handleDatabaseSelect}
                   enduserId={props.enduserId} formResponseId={props.formResponseId} submit={submit}
-                  enduser={enduser} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled}
+                  enduser={enduser} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled} goToNextField={goToNextField}
                   repeats={repeats} onRepeatsChange={setRepeats} setCustomerId={setCustomerId}
                   value={value} file={file} 
                   customInputs={customInputs}

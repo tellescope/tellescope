@@ -23,6 +23,7 @@ export interface FormInputProps<K extends keyof AnswerForType> {
   enduserId?: string,
   enduser?: Partial<Enduser>
   goToPreviousField?: () => void, 
+  goToNextField?: () => void, 
   isPreviousDisabled?: () => boolean,
   formResponseId?: string,
   submit?: () => Promise<void>,
