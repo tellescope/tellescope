@@ -3359,6 +3359,7 @@ export type PhoneTreeEvents = {
   'On Gather': PhoneTreeEventBuilder<'On Gather', { digits?: string, transcription?: string, handleNoInput?: boolean }>,
   'If True': PhoneTreeEventBuilder<'If True', { }>,
   'If False': PhoneTreeEventBuilder<'If False', { }>,
+  'If No Users Match': PhoneTreeEventBuilder<'If No Users Match', { }>,
 }
 export type PhoneTreeEventType = keyof PhoneTreeEvents
 export type PhoneTreeEvent = PhoneTreeEvents[PhoneTreeEventType]

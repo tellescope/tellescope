@@ -4940,28 +4940,42 @@ const handleRateLimitError = { shouldError: true, onError: (e: { message: string
 const rate_limit_tests = async () => {
   log_header("Rate Limits")
 
-  const [e1, e2] = (await sdk.api.endusers.createSome([
-    { fname: '1', email: 'e1@tellescope.com', phone: '+15555555555' },
-    { fname: '2', email: 'e2@tellescope.com', phone: '+15555555555' },
+  // these fields indicate messages won't be sent even without logOnly: true
+  const [e1, e2, e3] = (await sdk.api.endusers.createSome([
+    { fname: '1', email: 'dontsend@tellescope.com', phone: '+15555555555' },
+    { fname: '2', email: 'dontsend2@tellescope.com', phone: '+15555555555' },
+    { fname: 'Logonly', email: 'dontsend3@tellescope.com', phone: '+15555555555' },
   ])).created
 
   await async_test(
     "Same template email rate limit 1-per-minute",
     () => sdk.api.emails.createSome([
-      { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: PLACEHOLDER_ID },
-      { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: PLACEHOLDER_ID },
+      { enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: PLACEHOLDER_ID },
+      { enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: PLACEHOLDER_ID },
     ]),
     handleRateLimitError
   )
 
   // these should work, as 1 each is safe
   const [email1, email2] = (await sdk.api.emails.createSome([
-    { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: PLACEHOLDER_ID },
-    { logOnly: true, enduserId: e2.id, subject: 'ratelimit', textContent: 'rate limit', templateId: PLACEHOLDER_ID },
+    { enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: PLACEHOLDER_ID },
+    { enduserId: e2.id, subject: 'ratelimit', textContent: 'rate limit', templateId: PLACEHOLDER_ID },
   ])).created
   // already has 1 created 
   await async_test(
     "Same enduser rate limit 5 per 5 seconds",
+    () => sdk.api.emails.createSome([
+      { enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', },
+      { enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', },
+      { enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', },
+      { enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', },
+      { enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit' },
+    ]),
+    handleRateLimitError
+  )
+
+  await async_test(
+    "Same enduser rate limit 5 per 5 seconds not for log only",
     () => sdk.api.emails.createSome([
       { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', },
       { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', },
@@ -4969,63 +4983,104 @@ const rate_limit_tests = async () => {
       { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', },
       { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit' },
     ]),
-    handleRateLimitError
+    passOnAnyResult
   )
 
   await wait(undefined, 2500) // give it some time before trying again, to ensure still blocked after 2.5 < 60 seconds
   await async_test(
     "Same template email rate limit 1-per-minute after creating",
     () => sdk.api.emails.createOne({
-      logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: PLACEHOLDER_ID
+      enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: PLACEHOLDER_ID
     }),
     handleRateLimitError
+  )
+  await async_test(
+    "Same template email rate limit 1-per-minute not for logOnly 1",
+    () => sdk.api.emails.createOne({
+      logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: PLACEHOLDER_ID
+    }),
+    passOnAnyResult
+  )
+  await async_test(
+    "Same template email rate limit 1-per-minute not for logOnly 2",
+    () => sdk.api.emails.createOne({
+      logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: PLACEHOLDER_ID
+    }),
+    passOnAnyResult
   )
 
 
   await async_test(
     "Same template sms rate limit 1-per-minute",
     () => sdk.api.sms_messages.createSome([
-      { logOnly: true, enduserId: e1.id, templateId: PLACEHOLDER_ID, message: 'hi' },
-      { logOnly: true, enduserId: e1.id, templateId: PLACEHOLDER_ID, message: 'hi' },
+      { enduserId: e1.id, templateId: PLACEHOLDER_ID, message: 'hi' },
+      { enduserId: e1.id, templateId: PLACEHOLDER_ID, message: 'hi' },
     ]),
     handleRateLimitError
   )
 
   // these should work, as 1 each is safe
   const [sms1, sms2] = (await sdk.api.sms_messages.createSome([
-    { logOnly: true, enduserId: e1.id, templateId: PLACEHOLDER_ID, message: 'hi' },
-    { logOnly: true, enduserId: e2.id, templateId: PLACEHOLDER_ID, message: 'hi' },
+    { enduserId: e1.id, templateId: PLACEHOLDER_ID, message: 'hi' },
+    { enduserId: e2.id, templateId: PLACEHOLDER_ID, message: 'hi' },
   ])).created
   // already has 1 created, so 3 new should error (4 > 3)
   await async_test(
     "Same enduser sms rate limit 3 per 3 seconds",
     () => sdk.api.sms_messages.createSome([
-      { logOnly: true, enduserId: e1.id, message: 'hi' },
-      { logOnly: true, enduserId: e1.id, message: 'hi' },
-      { logOnly: true, enduserId: e1.id, message: 'hi' },
+      { enduserId: e1.id, message: 'hi' },
+      { enduserId: e1.id, message: 'hi' },
+      { enduserId: e1.id, message: 'hi' },
     ]),
     handleRateLimitError
+  )
+
+  await async_test(
+    "Same enduser sms rate limit not applied on logOnly 3 per 3 seconds",
+    () => sdk.api.sms_messages.createSome([
+      { logOnly: true, enduserId: e3.id, message: 'hi' },
+      { logOnly: true, enduserId: e3.id, message: 'hi' },
+      { logOnly: true, enduserId: e3.id, message: 'hi' },
+      { logOnly: true, enduserId: e3.id, message: 'hi' },
+      { logOnly: true, enduserId: e3.id, message: 'hi' },
+    ]),
+    passOnAnyResult
   )
 
   await wait(undefined, 2500) // give it some time before trying again, to ensure still blocked after 2.5 < 60 seconds
   await async_test(
     "Same template sms rate limit 1-per-minute after creating",
     () => sdk.api.sms_messages.createOne({ 
-      logOnly: true, enduserId: e2.id, templateId: PLACEHOLDER_ID, message: 'hi' 
+      enduserId: e2.id, templateId: PLACEHOLDER_ID, message: 'hi' 
     }),
     handleRateLimitError
+  )
+  await async_test(
+    "Same template sms rate limit 1-per-minute logonly does not apply 1",
+    () => sdk.api.sms_messages.createOne({ 
+      logOnly: true, enduserId: e2.id, templateId: PLACEHOLDER_ID, message: 'hi' 
+    }),
+    passOnAnyResult
+  )
+  await async_test(
+    "Same template sms rate limit 1-per-minute logonly does not apply 2",
+    () => sdk.api.sms_messages.createOne({ 
+      logOnly: true, enduserId: e2.id, templateId: PLACEHOLDER_ID, message: 'hi' 
+    }),
+    passOnAnyResult
   )
 
   // these should work, as they do not have the same template
   const [email3, email4, email5] = (await sdk.api.emails.createSome([
-    { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit' },
-    { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit' },
-    { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit' },
+    { enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit' },
+    { enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit' },
+    { enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit' },
   ])).created
  
   await Promise.all([
     sdk.api.endusers.deleteOne(e1.id),
     sdk.api.endusers.deleteOne(e2.id),
+    sdk.api.endusers.deleteOne(e3.id),
     sdk.api.emails.deleteOne(email1.id),
     sdk.api.emails.deleteOne(email2.id),
     sdk.api.emails.deleteOne(email3.id),
@@ -8363,6 +8418,7 @@ const mdb_filter_tests = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await rate_limit_tests()
     await mdb_filter_tests()
     await test_ticket_automation_assignment_and_optimization()
     await superadmin_tests()
@@ -8391,7 +8447,6 @@ const mdb_filter_tests = async () => {
     await wait_for_trigger_tests()
     await pdf_generation()
     await remove_from_journey_on_incoming_comms_tests()
-    await rate_limit_tests()
     await auto_reply_tests()
     await sub_organization_enduser_tests()
     await sub_organization_tests()
