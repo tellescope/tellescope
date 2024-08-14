@@ -947,7 +947,7 @@ export type CustomActions = {
     update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
     get_report: CustomAction<{ title?: string, titles?: string[], userId?: string, range?: DateRange, groupByOwnerAndTitle?: boolean }, { report: TicketsReport }>,
     get_distribution_report: CustomAction<{  range?: DateRange }, { report: Report[keyof Report] }>,
-    assign_from_queue: CustomAction<{ userId?: string, ticketId?: string, queueId?: string }, { ticket: Ticket, queue: TicketQueue, enduser: Enduser }>,
+    assign_from_queue: CustomAction<{ userId?: string, ticketId?: string, queueId?: string, overrideRestrictions?: boolean, }, { ticket: Ticket, queue: TicketQueue, enduser: Enduser }>,
   },
   appointment_booking_pages: {
     generate_access_token: CustomAction<{ expiresAt: Date, bookingPageId?: string }, { token: string }>,
@@ -3501,6 +3501,7 @@ export const schema: SchemaV1 = build_schema({
           userId: { validator: mongoIdStringValidator },
           ticketId: { validator: mongoIdStringValidator },
           queueId: { validator: mongoIdStringValidator },
+          overrideRestrictions: { validator: booleanValidator },
         },
         returns: {
           ticket: { validator: 'ticket' as any, required: true },

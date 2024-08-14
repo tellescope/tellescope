@@ -398,6 +398,8 @@ export const TableRow = <T extends Item>({
   setSelected,
   fontSize=14, 
   widthOffsets,
+  allowUnselectItemsAfterSelectAll,
+  setAllSelected,
 } : TableRowProps<T>) => (
   <WithHover hoveredColor={hoveredColor ?? GRAY} notHoveredColor={notHoveredColor} disabled={!hover} flex>
     <Flex flex={1} alignItems="center"
@@ -411,9 +413,14 @@ export const TableRow = <T extends Item>({
     >
       {selectable && setSelected &&
         <Flex style={checkboxStyle}>
-        <Checkbox disabled={allSelected} 
+        <Checkbox disabled={allSelected && !allowUnselectItemsAfterSelectAll} 
           checked={allSelected || selected?.includes(item.id.toString())}
           onChange={() => {
+            // if allowUnselectItemsAfterSelectAll, checking box should disable all selected
+            if (allSelected) {
+              setAllSelected?.(false) 
+            }
+
             setSelected(
               selected?.includes(item.id.toString())
                 ? selected.filter(s => s !== item.id.toString())
@@ -658,6 +665,7 @@ export interface SelectionProps {
   setSelected: (s: string[]) => void,
   allSelected: boolean,
   setAllSelected: (b: boolean) => void,
+  allowUnselectItemsAfterSelectAll: boolean,
 }
 export type SelectionPropsOptional = Partial<SelectionProps>
 
@@ -750,6 +758,7 @@ export const Table = <T extends Item>({
   setSelected,
   allSelected,
   setAllSelected,
+  allowUnselectItemsAfterSelectAll,
 
   noWrap,
   maxWidth,
@@ -998,7 +1007,7 @@ export const Table = <T extends Item>({
         maxWidth={maxWidth}
         virtualization={virtualization}
         header={fields && HeaderComponent && fields.length > 0 && (items.length > 0 || headerFilterIsActive) && (
-          <HeaderComponent selectable={selectable} allSelected={allSelected} 
+          <HeaderComponent selectable={selectable} allSelected={allSelected} allowUnselectItemsAfterSelectAll={allowUnselectItemsAfterSelectAll}
             setAllSelected={v =>  {
               setAllSelected?.(v)
               if (v) {
@@ -1046,7 +1055,7 @@ export const Table = <T extends Item>({
         }
         Item={({ item, index }) => ( // index within this list, e.g. a single page
           <RowComponent widthOffsets={widthOffsets}
-            selectable={selectable} selected={selected} setSelected={setSelected} allSelected={allSelected}
+            selectable={selectable} selected={selected} setSelected={setSelected} allSelected={allSelected} setAllSelected={setAllSelected} allowUnselectItemsAfterSelectAll={allowUnselectItemsAfterSelectAll}
             key={item.id} item={item} 
             indices={{ 
               // selectedPage indexed by zero
