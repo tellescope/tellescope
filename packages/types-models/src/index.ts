@@ -342,6 +342,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     questionId: string,
   },
   dosespotClinics?: { id: string, name: string }[],
+  answersSyncToPortal?: { id: string, questions: string[] }[]
   enforceMFA?: boolean,
   // _AIEnabled?: boolean,
 }
@@ -1569,6 +1570,7 @@ export interface Integration extends Integration_readonly, Integration_required,
   fhirClientSecret?: string,
   fhirAccessToken?: string,
   fhirExpiryDate?: number,
+  defaultAttendeeId?: string,
 }
 
 export type BuildDatabaseRecordField <K extends string, V, O> = { type: K, value: V, options: O & { width?: string } }

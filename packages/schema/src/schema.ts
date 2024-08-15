@@ -1853,6 +1853,7 @@ export const schema: SchemaV1 = build_schema({
       redactExternalEvents: { validator: booleanValidator },
       syncEnduserFiles: { validator: booleanValidator },
       pushCalendarDetails: { validator: booleanValidator },
+      defaultAttendeeId: { validator: mongoIdStringValidator },
     },
     customActions: {
       update_zoom: {
@@ -5882,6 +5883,12 @@ export const schema: SchemaV1 = build_schema({
       customTermsOfService: { validator: stringValidator },
       customPrivacyPolicy: { validator: stringValidator },
       allowCreateSuborganizations: { validator: booleanValidator },
+      answersSyncToPortal: { 
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ id: string, questions: string[] }>({
+          id: stringValidator100,
+          questions: listValidatorEmptyOk(stringValidator1000),
+        }))
+      },
     },
   },
   databases: {
