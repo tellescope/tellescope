@@ -3908,6 +3908,7 @@ export const schema: SchemaV1 = build_schema({
       publicShowDownload: { validator: booleanValidator },
       canvasId: { validator: stringValidator100 },
       canvasQuestionId: { validator: stringValidator100 },
+      syncToOLH: { validator: booleanValidator }, 
     }
   },
   form_fields: {
@@ -5889,6 +5890,7 @@ export const schema: SchemaV1 = build_schema({
           questions: listValidatorEmptyOk(stringValidator1000),
         }))
       },
+      externalFormIdsToSync: { validator: listOfStringsValidatorOptionalOrEmptyOk },
     },
   },
   databases: {
@@ -6220,6 +6222,7 @@ export const schema: SchemaV1 = build_schema({
       canvasLocationId: { validator: stringValidator1000 },
       healthieContactType: { validator: stringValidator100 },
       healthieLocationId: { validator: stringValidator100 },
+      healthieUseZoom: { validator: booleanValidator },
     }
   },
   products: {
@@ -7070,6 +7073,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       },
       testEnduserIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       enduserCondition: { validator: phoneTreeEnduserConditionValidator },
+      bypassOOO: { validator: booleanValidator },
     }
   },
   enduser_custom_types: {

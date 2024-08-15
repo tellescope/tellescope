@@ -343,6 +343,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   },
   dosespotClinics?: { id: string, name: string }[],
   answersSyncToPortal?: { id: string, questions: string[] }[]
+  externalFormIdsToSync?: string[],
   enforceMFA?: boolean,
   // _AIEnabled?: boolean,
 }
@@ -1511,6 +1512,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   isNonVisitElationNote?: boolean,
   canvasId?: string,
   canvasQuestionId?: string,
+  syncToOLH?: boolean,
 }
 
 export interface FormGroup_readonly extends ClientRecord {}
@@ -2100,6 +2102,7 @@ export interface AppointmentLocation extends AppointmentLocation_readonly, Appoi
   canvasLocationId?: string,
   healthieContactType?: string,
   healthieLocationId?: string,
+  healthieUseZoom?: boolean,
 }
 
 export type AppointmentTerm = {
@@ -3417,6 +3420,7 @@ export interface PhoneTree_updatesDisabled {}
 export interface PhoneTree extends PhoneTree_readonly, PhoneTree_required, PhoneTree_updatesDisabled {
   testEnduserIds?: string[],
   enduserCondition?: PhoneTreeEnduserCondition,
+  bypassOOO?: boolean,
 }
 
 export type TableViewColumn = {
