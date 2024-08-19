@@ -2601,6 +2601,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
           type: exactMatchValidator<'queue'>(['queue']),
           info: objectValidator<AssignToQueueInfo>({
             queueId: mongoIdStringRequired,
+            tags: listOfStringsWithQualifierValidatorOptional,
           }),
         }),
         'Recently-Booked Appointment Host': objectValidator<CreateTicketAssignmentStrategy>({ 
@@ -4270,6 +4271,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
         key: stringValidator1000,
         value: stringValidator5000EmptyOkay,
         range: dateRangeOptionalValidator, 
+        operator: stringValidatorOptional,
       })),
       "Submitted Forms": objectValidator<AnalyticsQueryFilterForType['Endusers']['Submitted Forms']>({
         qualifier: listQueryQualifiersValidator,

@@ -4483,6 +4483,63 @@ export const self_serve_appointment_booking_tests = async () => {
     handleAnyError
   )
 
+  const conflict2 = await sdk.api.calendar_events.createOne({ 
+    title: 'conflict', 
+    startTimeInMS: nySlots.availabilityBlocks[0].startTimeInMS,
+    durationInMinutes: nySlots.availabilityBlocks[0].durationInMinutes,
+  })
+  await sdk.api.calendar_events.updateOne(conflict2.id, { bufferEndMinutes: 30 })
+  await async_test(
+    'Event buffer end prevents booking',
+    () => enduserSDK.api.calendar_events.book_appointment({
+      calendarEventTemplateId: event30min.id,
+      startTime: new Date(nySlots.availabilityBlocks[1].startTimeInMS),
+      userId: nySlots.availabilityBlocks[1].userId, 
+    }),
+    handleAnyError
+  )
+  await sdk.api.calendar_events.updateOne(conflict2.id, { bufferEndMinutes: 0 })
+  await sdk.api.calendar_event_templates.updateOne(event30min.id, { bufferStartMinutes: 30 })
+  await async_test(
+    'Template buffer start prevents booking',
+    () => enduserSDK.api.calendar_events.book_appointment({
+      calendarEventTemplateId: event30min.id,
+      startTime: new Date(nySlots.availabilityBlocks[1].startTimeInMS),
+      userId: nySlots.availabilityBlocks[1].userId, 
+    }),
+    handleAnyError
+  )
+
+  await sdk.api.calendar_event_templates.updateOne(event30min.id, { bufferStartMinutes: 0 })
+  await sdk.api.calendar_events.deleteOne(conflict2.id)
+
+  const conflict3 = await sdk.api.calendar_events.createOne({ 
+    title: 'conflict', 
+    startTimeInMS: nySlots.availabilityBlocks[1].startTimeInMS,
+    durationInMinutes: nySlots.availabilityBlocks[1].durationInMinutes,
+  })
+  await sdk.api.calendar_events.updateOne(conflict3.id, { bufferStartMinutes: 30 })
+  await async_test(
+    'Event buffer start prevents booking',
+    () => enduserSDK.api.calendar_events.book_appointment({
+      calendarEventTemplateId: event30min.id,
+      startTime: new Date(nySlots.availabilityBlocks[0].startTimeInMS),
+      userId: nySlots.availabilityBlocks[0].userId, 
+    }),
+    handleAnyError
+  )
+  await sdk.api.calendar_events.updateOne(conflict3.id, { bufferStartMinutes: 0 })
+  await sdk.api.calendar_event_templates.updateOne(event30min.id, { bufferEndMinutes: 30 })
+  await async_test(
+    'Template buffer end prevents booking',
+    () => enduserSDK.api.calendar_events.book_appointment({
+      calendarEventTemplateId: event30min.id,
+      startTime: new Date(nySlots.availabilityBlocks[0].startTimeInMS),
+      userId: nySlots.availabilityBlocks[0].userId, 
+    }),
+    handleAnyError
+  )
+
   await Promise.all([
     sdk.api.endusers.deleteOne(e1.id),
     sdk.api.endusers.deleteOne(e2.id),
@@ -4493,6 +4550,7 @@ export const self_serve_appointment_booking_tests = async () => {
     sdk.api.calendar_events.deleteOne(bookedAppointment.id),
     sdk.api.calendar_events.deleteOne(bookedMultiAppointment.id),
     sdk.api.calendar_events.deleteOne(groupEvent.id),
+    sdk.api.calendar_events.deleteOne(conflict3.id),
   ])
 }
 
@@ -5884,7 +5942,7 @@ export const no_chained_triggers_tests = async () => {
     },
     action: {
       type: 'Add Tags',
-      info: { tags: ['t1'] }
+      info: { tags: ['t1', '{{enduser.fname}}'] }
     }
   })
 
@@ -5911,7 +5969,7 @@ export const no_chained_triggers_tests = async () => {
   await async_test(
     `Trigger not activated by other trigger update`, 
     () => sdk.api.endusers.getOne(enduser.id),
-    { onResult: e => !!(!e.tags?.includes('t2') && e.tags?.includes('t1')) },
+    { onResult: e => !!(!e.tags?.includes('t2') && e.tags?.includes('t1') && e.tags?.includes('Trigger')) },
   )
 
   // should cover both triggers now, which results in adding only the second tag
@@ -8418,11 +8476,12 @@ const mdb_filter_tests = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await self_serve_appointment_booking_tests()
+    await no_chained_triggers_tests()
     await rate_limit_tests()
     await mdb_filter_tests()
     await test_ticket_automation_assignment_and_optimization()
     await superadmin_tests()
-    await self_serve_appointment_booking_tests()
     await ticket_queue_tests()
     await merge_enduser_tests()
     await vital_trigger_tests()
@@ -8437,7 +8496,6 @@ const mdb_filter_tests = async () => {
     await marketing_email_unsubscribe_tests()
     await unique_strings_tests()
     await alternate_phones_tests()
-    await no_chained_triggers_tests()
     await field_equals_trigger_tests()
     await role_based_access_tests()
     await automation_trigger_tests()

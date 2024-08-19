@@ -1897,6 +1897,22 @@ const useMedications = () => {
   }
 }
 
+const filterOptions = (options: string[], { inputValue } : { inputValue: string }) => (
+  (
+    inputValue
+      ? (
+        options
+        .filter(o => o.toLowerCase().includes(inputValue.toLowerCase()))
+        // show shorter matches first (tends to promote exact match and simpler medications)
+        .sort((v1, v2) => v1.length - v2.length)
+        // .reverse()
+      ) : (
+        options
+      )
+  )
+  .slice(0, 100) // dramatic performance improvement (when not virtualized) to show a subset like this
+)
+
 export const MedicationsInput = ({ field, value, onChange }: FormInputProps<'Medications'>) => {
   const { displayTerms, doneLoading, getCodesForDrug, getDrugsForDisplayTerm } = useMedications()
   const [drugs, setDrugs] = useState<Record<string, Drug[]>>({})
@@ -1926,19 +1942,6 @@ export const MedicationsInput = ({ field, value, onChange }: FormInputProps<'Med
   //   })
   //   .catch(console.error)
   // }, [value, getDrugsForDisplayTerm])
-
-  const filterOptions = useCallback((options: string[], { inputValue } : { inputValue: string }) => (
-    inputValue
-      ? (
-        options
-        .filter(o => o.toLowerCase().includes(inputValue.toLowerCase()))
-        // show shorter matches first (tends to promote exact match and simpler medications)
-        .sort((v1, v2) => v1.length - v2.length)
-        // .reverse()
-      ) : (
-        options
-      )
-  ), [])
 
   return (
     <Grid container direction="column" sx={{ mt: 2 }}>

@@ -1490,6 +1490,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   intakeDateOfBirth?: 'required' | 'optional' | 'hidden',
   intakeState?: 'required' | 'optional' | 'hidden',
   intakeGender?: 'required' | 'optional' | 'hidden',
+  intakeGenderIsSex?: boolean,
   thanksMessage?: string,
   htmlThanksMessage?: string,
   type?: FormType,
@@ -2308,6 +2309,7 @@ interface AutomationActionBuilder <T extends string, V extends object> {
 
 export type AssignToQueueInfo = {
   queueId: string,
+  tags?: ListOfStringsWithQualifier,
 }
 
 export type CreateTicketAssignmentStrategies = {
@@ -2912,7 +2914,7 @@ export type AnalyticsQueryFilterForType = {
       formIds: string[],
       formResponseCondition?: CompoundFilter<string>,
     }, 
-    fields?: { key: string, value: string, range?: DateRange | '' }[],
+    fields?: { key: string, value: string, operator?: string, range?: DateRange | '' }[],
     gender?: TellescopeGender,
     assignedTo?: {
       qualifier: ListQueryQualifier,

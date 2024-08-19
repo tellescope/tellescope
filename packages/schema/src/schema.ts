@@ -3886,6 +3886,7 @@ export const schema: SchemaV1 = build_schema({
       intakeDateOfBirth: { validator: intakeDateOfBirthValidator },
       intakeState: { validator: intakeDateOfBirthValidator },
       intakeGender: { validator: intakeDateOfBirthValidator },
+      intakeGenderIsSex: { validator: booleanValidator },
       thanksMessage: { validator: stringValidator5000EmptyOkay },
       htmlThanksMessage: { validator: stringValidator5000EmptyOkay },
       type: { validator: formTypeValidator },

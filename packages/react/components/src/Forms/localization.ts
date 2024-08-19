@@ -11,6 +11,9 @@ export const form_display_text_for_language = (form: Pick<Form, 'language'> | un
       return "Email"
       // return "Correo Electrónico" 
     }
+    if (text === 'Gender')  { return "Género" }
+    if (text === 'Sex at Birth')  { return "Sexo" }
+
     if (text === 'Phone')  { return "Número Celular" }
     if (text === 'State')  { return "Estado" }
 
