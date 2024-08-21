@@ -2050,6 +2050,7 @@ export const formResponseValidator = objectValidator<FormResponseValue>({
   isCalledOut: booleanValidatorOptional,
   isHighlightedOnTimeline: booleanValidatorOptional,
   computedValueKey: stringValidatorOptional,
+  disabled: booleanValidatorOptional,
 })
 export const formResponsesValidator = listValidator(formResponseValidator)
 
@@ -2878,6 +2879,7 @@ export const organizationThemeValidator = objectValidator<OrganizationTheme>({
   organizationIds: listOfStringsValidatorOptionalOrEmptyOk,
   customPrivacyPolicy: stringValidatorOptional,
   customTermsOfService: stringValidatorOptional,
+  requireCustomTermsOnMagicLink: booleanValidatorOptional,
 })
 
 const _MANAGED_CONTENT_RECORD_TYPES: { [K in ManagedContentRecordType]: any } = {

@@ -284,6 +284,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   customProviderURL?: string,
   customTermsOfService?: string,
   customPrivacyPolicy?: string,
+  requireCustomTermsOnMagicLink?: boolean,
   settings?: OrganizationSettings,
   portalSettings?: PortalSettings,
   enduserDisplayName?: string,
@@ -345,6 +346,10 @@ export interface Organization extends Organization_readonly, Organization_requir
   answersSyncToPortal?: { id: string, questions: string[] }[]
   externalFormIdsToSync?: string[],
   enforceMFA?: boolean,
+  analyticsIframes?: {
+    title: string,
+    iframeURL: string,
+  }[]
   // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {
@@ -360,6 +365,7 @@ export type OrganizationTheme = {
   portalSettings?: PortalSettings,
   customTermsOfService?: string,
   customPrivacyPolicy?: string,
+  requireCustomTermsOnMagicLink?: boolean,
 }
 
 
@@ -467,6 +473,8 @@ export type UserCallRoutingBehavior = (
 
 export type MFASettings = { email?: boolean }
 
+export type LabeledField = { field: string, value: string }
+
 export interface User_readonly extends ClientRecord {
   organization?: string 
   username?: string;
@@ -538,6 +546,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   doseSpotUserId?: string,
   url?: string,
   requiresMFAConfiguration?: boolean,
+  templateFields?: LabeledField[]
 }
 
 export type Preference = 'email' | 'sms' | 'call' | 'chat'
@@ -784,6 +793,8 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
     frequency?: string,
   },
   notes?: string,
+  pharmacyName?: string,
+  orderStatus?: string,
 }
 
 export interface APIKey_readonly extends ClientRecord { 
@@ -944,6 +955,7 @@ export interface Journey extends Journey_readonly, Journey_required, Journey_upd
 export interface TextCommunication extends WithLinkOpenTrackingIds {
   automationStepId?: string, 
   templateId?: string,
+  calendarEventId?: string,
 }
 
 export type EmailEncoding = '' | 'base64'
@@ -1437,6 +1449,7 @@ export interface FormField extends FormField_readonly, FormField_required, FormF
   externalId?: string,
   sharedWithEnduser?: boolean,
   prepopulateFromFields?: boolean,
+  disabledWhenPrepopulated?: boolean,
   calloutConditions?: FormFieldCalloutCondition[],
   feedback?: FormFieldFeedback[],
   highlightOnTimeline?: boolean,
@@ -1764,6 +1777,7 @@ export type FormResponseValue = {
   externalId?: string,
   sharedWithEnduser?: boolean,
   isCalledOut?: boolean,
+  disabled?: boolean,
   isHighlightedOnTimeline?: boolean,
   computedValueKey?: 'Height' | 'Weight' | 'Date of Birth',
 }
@@ -1980,6 +1994,8 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
     at: Date,
   }[],
   useUserURL?: boolean,
+  healthieZoomStartURL?: string,
+  healthieZoomJoinURL?: string,
   // isAllDay?: boolean,
 }
 

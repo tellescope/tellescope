@@ -23,12 +23,15 @@ export const AddressDisplay = ({ value } : { value: Required<FormResponseAnswerA
   </Grid>
 ) 
 
-export const ResponseAnswer = ({ answer: a, printing, onImageClick } : { 
+export const ResponseAnswer = ({ isHTML, answer: a, printing, onImageClick } : { 
   answer: FormResponseValueAnswer, 
   printing?: boolean,
   onImageClick?: (args: { src: string }) => void,
+  isHTML?: boolean,
 }) => (
-  a.value 
+(isHTML  && typeof a.value === 'string') 
+  ? <div dangerouslySetInnerHTML={{ __html: remove_script_tags(a.value) }} />
+  : a.value 
     ? (
     <Typography component="div">
       {(a.type === 'multiple_choice' || a.type === 'Database Select')

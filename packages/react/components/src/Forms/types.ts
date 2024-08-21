@@ -29,6 +29,7 @@ export interface FormInputProps<K extends keyof AnswerForType> {
   submit?: () => Promise<void>,
   groupId?: string,
   groupInsance?: string,
+  disabled?: boolean,
 }
 
 export type FormInputs = { 

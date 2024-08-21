@@ -9,7 +9,7 @@ import { WithTheme, contact_is_valid, useFileUpload, useFormFields, useFormRespo
 import ReactGA from "react-ga4";
 
 import isEmail from "validator/lib/isEmail"
-import { append_current_utm_params, field_can_autoadvance, field_can_autosubmit, getLocalTimezone, get_time_values, object_is_empty, responses_satisfy_conditions } from "@tellescope/utilities"
+import { append_current_utm_params, field_can_autoadvance, getLocalTimezone, get_time_values, object_is_empty, responses_satisfy_conditions } from "@tellescope/utilities"
 
 export const useFlattenedTree = (root?: FormFieldNode) => {
   const flat: FormField[] = []
@@ -590,6 +590,7 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
       sharedWithEnduser: f.sharedWithEnduser,
       isCalledOut: existingResponses?.find(r => r.fieldId === f.id)?.isCalledOut,
       isHighlightedOnTimeline: existingResponses?.find(r => r.fieldId === f.id)?.isHighlightedOnTimeline,
+      disabled: !!(existingResponses?.find(r => r.fieldId === f.id)?.answer?.value && f.disabledWhenPrepopulated),
       answer: { 
         type: f.type,
         value: (

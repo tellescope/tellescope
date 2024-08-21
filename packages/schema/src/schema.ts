@@ -65,6 +65,7 @@ import {
   PhoneCallsReport,
   AthenaSubscription,
   TellescopeGender,
+  LabeledField,
 } from "@tellescope/types-models"
 
 import {
@@ -612,7 +613,7 @@ export type CustomActions = {
   },
   form_fields: {
     load_choices_from_database: CustomAction<{ fieldId: string, lastId?: string, limit?: number, databaseId?: string }, { choices: DatabaseRecordClient[] }>,
-    booking_info: CustomAction<{ bookingPageId: string, enduserId?: string, enduserFields?: BookingInfoEnduserFields }, { bookingURL: string, warningMessage?: string }>,
+    booking_info: CustomAction<{ bookingPageId: string, enduserId?: string, enduserFields?: BookingInfoEnduserFields }, { bookingURL: string, warningMessage?: string, entropy: string, }>,
   },
   forms: {
     get_form_statistics: CustomAction<{ formId: string, range?: DateRange }, { statistics: FormStatistics }>,
@@ -786,7 +787,7 @@ export type CustomActions = {
     configure_MFA: CustomAction<{  }, { recoveryCodes: string[], authToken: string, user: UserSession }>,
     generate_MFA_challenge: CustomAction<{ method: string }, { }>,
     submit_MFA_challenge: CustomAction<{ code: string }, { authToken: string, user: UserSession }>,
-    get_engagement_report: CustomAction<{ range?: DateRange }, { report: Record<string, any> }>,
+    get_engagement_report: CustomAction<{ range?: DateRange, excludeAutomated?: boolean }, { report: Record<string, any> }>,
     consent: CustomAction<{ termsVersion: string, }, { user: User, authToken: string }>,
   },
   chat_rooms: {
@@ -2362,6 +2363,7 @@ export const schema: SchemaV1 = build_schema({
       canvasId: { validator: stringValidator100 },
       discussionRoomId: { validator: mongoIdStringValidator },
       journeyId: { validator: mongoIdStringValidator },
+      calendarEventId: { validator: mongoIdStringValidator },
     }, 
     customActions: {
       sync_integrations: {
@@ -2597,6 +2599,7 @@ export const schema: SchemaV1 = build_schema({
       canvasId: { validator: stringValidator100 },
       discussionRoomId: { validator: mongoIdStringValidator },
       journeyId: { validator: mongoIdStringValidator },
+      calendarEventId: { validator: mongoIdStringValidator },
     }, 
   },
   chat_rooms: {
@@ -3010,6 +3013,7 @@ export const schema: SchemaV1 = build_schema({
         description: "Gets a report on engagement by care team",
         parameters: {
           range: { validator: dateRangeOptionalValidator },
+          excludeAutomated: { validator: booleanValidator },
         },
         returns: { 
           report: { validator: objectAnyFieldsAnyValuesValidator, required: true },
@@ -3250,6 +3254,12 @@ export const schema: SchemaV1 = build_schema({
       availableFromEmails: { validator: listOfStringsValidatorEmptyOk },
       doseSpotUserId: { validator: stringValidator100 },
       url: { validator: stringValidator1000 },
+      templateFields: {
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<LabeledField>({
+          field: stringValidator100,
+          value: stringValidator5000,
+        }))
+      }
     }
   },
   templates: {
@@ -3958,6 +3968,7 @@ export const schema: SchemaV1 = build_schema({
         returns: {
           warningMessage: { validator: stringValidator },
           bookingURL: { validator: stringValidator, required: true },
+          entropy: { validator: stringValidator, required: true },
         },
       },
     },
@@ -4012,6 +4023,7 @@ export const schema: SchemaV1 = build_schema({
           overwrite: booleanValidatorOptional,
         }, { isOptional: true, emptyOk: true })
       },
+      disabledWhenPrepopulated: { validator: booleanValidator },
       feedback: { validator: listValidatorOptionalOrEmptyOk(formFieldFeedbackValidator) },
     }
   },
@@ -5884,6 +5896,7 @@ export const schema: SchemaV1 = build_schema({
       replyToEnduserTransactionalEmails: { validator: emailValidator },
       customTermsOfService: { validator: stringValidator },
       customPrivacyPolicy: { validator: stringValidator },
+      requireCustomTermsOnMagicLink: { validator: booleanValidator },
       allowCreateSuborganizations: { validator: booleanValidator },
       answersSyncToPortal: { 
         validator: listValidatorOptionalOrEmptyOk(objectValidator<{ id: string, questions: string[] }>({
@@ -5892,6 +5905,12 @@ export const schema: SchemaV1 = build_schema({
         }))
       },
       externalFormIdsToSync: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      analyticsIframes: { 
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ iframeURL: string, title: string }>({
+          title: stringValidator1000,
+          iframeURL: stringValidator1000,
+        }))
+      },
     },
   },
   databases: {
@@ -7028,6 +7047,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       externalId: { validator: stringValidator250 },  
       notes: { validator: stringValidator },  
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
+      orderStatus: { validator: stringValidator1000 },
+      pharmacyName: { validator: stringValidator1000 },
     }
   },
   phone_trees: {

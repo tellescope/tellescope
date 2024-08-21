@@ -2459,7 +2459,12 @@ export const AppointmentBookingInput = ({ formResponseId, field, value, onChange
 
   useEffect(() => {
     const handleMessage = (m: MessageEvent) => {
-      if (m?.data?.type === 'Booking Success' && typeof m?.data?.bookedEventId === 'string') {
+      // entropy to separate from other booking pages rendered on the same screen
+      if (
+        m?.data?.type === 'Booking Success' 
+        && typeof m?.data?.bookedEventId === 'string' 
+        && (!m?.data?.entropy || m?.data?.entropy === loaded?.entropy)
+      ) {
         onChange(m.data.bookedEventId, field.id)
       }
       if (m?.data?.type === 'CalendarPicker') {
@@ -2477,7 +2482,7 @@ export const AppointmentBookingInput = ({ formResponseId, field, value, onChange
 
     window.addEventListener('message', handleMessage)
     return () => { window.removeEventListener('message', handleMessage) }
-  }, [field?.id, onChange, acknowledgedWarning, value])
+  }, [field?.id, onChange, acknowledgedWarning, value, loaded?.entropy])
 
   if (value) {
     return (

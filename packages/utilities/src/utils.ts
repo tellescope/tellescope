@@ -1505,6 +1505,21 @@ export const responses_satisfy_conditions = (responses: FormResponseValue[], con
       const conditionValue = comparison[condition]
 
       if (condition === '$lt' || condition === '$gt') {
+        if (conditionValue === '$now') {
+          if (answer.type === 'date' && answer.value) {
+            const number = Date.now()
+            const answerNumber = new Date(answer.value).getTime()
+            if (condition === '$lt') { return answerNumber < number }
+            if (condition === '$gt') { return answerNumber > number }
+          }
+          if (answer.type === 'dateString' && answer.value) {
+            const number = new Date(MM_DD_YYYY_to_YYYY_MM_DD(mm_dd_yyyy(new Date()))).getTime()
+            const answerNumber = new Date(MM_DD_YYYY_to_YYYY_MM_DD(answer.value)).getTime()
+            if (condition === '$lt') { return answerNumber < number }
+            if (condition === '$gt') { return answerNumber > number }
+          }
+        }
+
         const number = parseInt(conditionValue)  
         const answerNumber = answer.value as number
         if (isNaN(number)) return false

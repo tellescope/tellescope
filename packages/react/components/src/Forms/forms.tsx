@@ -221,16 +221,16 @@ export const QuestionForField = ({
           />
         )
         : field.type === 'dateString' ? (
-          <DateStringInput field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} form={form} />
+          <DateStringInput field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} form={form} />
         )
         : field.type === 'Hidden Value' ? (
           <HiddenValue goToNextField={goToNextField} goToPreviousField={goToPreviousField} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'Address' ? (
-          <Address field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
+          <Address field={field} disabled={value.disabled} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'Height' ? (
-          <Height field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
+          <Height field={field} disabled={value.disabled} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'Redirect' ? (
           <Redirect groupId={groupId} groupInsance={groupInstance} submit={submit} field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
@@ -239,7 +239,7 @@ export const QuestionForField = ({
           <RelatedContacts field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'string' ? (
-          <String field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} form={form} />
+          <String field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} form={form} />
         )
         : field.type === 'Appointment Booking' ? (
           <AppointmentBooking formResponseId={formResponseId} enduserId={enduserId} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled} responses={responses} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'Appointment Booking'>} form={form} />
@@ -248,19 +248,19 @@ export const QuestionForField = ({
           <Stripe field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} setCustomerId={setCustomerId} form={form} />
         )
         : field.type === 'stringLong' ? (
-          <StringLong field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string' | 'stringLong'>} form={form} />
+          <StringLong field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string' | 'stringLong'>} form={form} />
         )
         : field.type === 'email' ? (
-          <Email field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'email'>} form={form} />
+          <Email field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'email'>} form={form} />
         )
         : field.type === 'number' ? (
-          <Number field={field} value={value.answer.value as number} onChange={onFieldChange as ChangeHandler<'number'>} form={form} />
+          <Number field={field} disabled={value.disabled} value={value.answer.value as number} onChange={onFieldChange as ChangeHandler<'number'>} form={form} />
         )
         : field.type === 'phone' ? (
-          <Phone field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'phone'>} form={form} />
+          <Phone field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'phone'>} form={form} />
         )
         : field.type === 'date' ? (
-          <ResolvedDateInput field={field} value={value.answer.value ? new Date(value.answer.value as string | Date) : undefined} onChange={onFieldChange as ChangeHandler<'date'>} form={form} />
+          <ResolvedDateInput field={field} disabled={value.disabled} value={value.answer.value ? new Date(value.answer.value as string | Date) : undefined} onChange={onFieldChange as ChangeHandler<'date'>} form={form} />
         )
         : field.type === 'signature' ? (
           <Signature enduser={enduser} field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'signature'>} form={form}/>
