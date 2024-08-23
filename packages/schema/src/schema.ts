@@ -5714,7 +5714,7 @@ export const schema: SchemaV1 = build_schema({
           explanation: 'Subscription date and period cannot be updated',
           evaluate: (updated, lookup, session, type, options) => {
             if (type !== 'update') return // not updating
-            if (!(options.updates?.subscriptionExpiresAt || options.updates?.subscriptionPeriod || options.updates?.allowCreateSuborganizations)) return // not changing
+            if (!(options.updates?.subscriptionExpiresAt || options.updates?.subscriptionPeriod || options.updates?.allowCreateSuborganizations || options.updates?.customPortalURLs || options.updates?.subdomains)) return // not changing
 
             if (session.type === 'enduser') return "User only"
             if (!session.isa) return "Not allowed"
@@ -5844,6 +5844,8 @@ export const schema: SchemaV1 = build_schema({
       themeColorSecondary: { validator: stringValidator100 },
       enduserDisplayName: { validator: stringValidator100 },
       customPortalURL: { validator: stringValidator250 },
+      customPortalURLs: { validator: listOfStringsValidator },
+      subdomains: { validator: listOfStringsValidator },
       portalSettings: { validator: portalSettingsValidator },
       settings: { validator: organizationSettingsValidator },
       timezone: { validator: timezoneValidator },
@@ -7385,6 +7387,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       access: [{ type: 'filter', field: 'userId' }]
     },
     defaultActions: DEFAULT_OPERATIONS,
+    enduserActions: { read: {}, readMany: {} },
     customActions: {
       get_available_tests: {
         op: "custom", access: 'read', method: "get",
@@ -7451,7 +7454,6 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         } 
       },
     },
-    enduserActions: {},
     fields: {
       ...BuiltInFields, 
       externalId: { validator: stringValidator100, examples: ['externalId'], required: true },
@@ -7611,6 +7613,24 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       ...BuiltInFields,
       title: { validator: stringValidator, required: true, examples: ['Title'] },
       formIds: { validator: listOfMongoIdStringValidator, required: true, examples: [[PLACEHOLDER_ID]] },
+    }
+  },
+  portal_brandings: {
+    info: { description: '' },
+    constraints: { unique: [], relationship: [], access: [] },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields,
+      title: { validator: stringValidator, required: true, examples: ['Title'] },
+      enduserField: { validator: stringValidator, required: true, examples: ['Title'] },
+      enduserValue: { validator: stringValidator, required: true, examples: ['Title'] },
+      primary: { validator: stringValidator },
+      secondary: { validator: stringValidator },
+      logoURL: { validator: stringValidator },
+      subdomain: { validator: stringValidator },
+      customPortalURL: { validator: stringValidator },
     }
   },
 })

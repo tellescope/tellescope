@@ -220,6 +220,7 @@ export const READ_ONLY_DEFAULT: AccessForResource = {
 }
 
 export const PROVIDER_PERMISSIONS: AccessPermissions = {
+  portal_brandings: INACCESSIBLE,
   webhook_logs: INACCESSIBLE,
   ticket_queues: {
     create: NO_ACCESS, // allow for creating self-assigned objects
@@ -370,6 +371,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
+  portal_brandings: FULL_ACCESS,
   webhook_logs: READ_ONLY_ALL,
   form_groups: FULL_ACCESS,
   flowchart_notes: FULL_ACCESS,

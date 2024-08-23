@@ -88,6 +88,7 @@ import {
   FlowchartNote,
   WebhookLog,
   FormGroup,
+  PortalBranding,
 } from "@tellescope/types-client"
 
 import {
@@ -343,6 +344,7 @@ const vitalConfigurationsSlice = createSliceForList<VitalConfiguration, 'vital_c
 const flowchartNotesSlice = createSliceForList<FlowchartNote, 'flowchart_notes'>('flowchart_notes')
 const webhookLogsSlice = createSliceForList<WebhookLog, 'webhook_logs'>('webhook_logs')
 const formGroupsSlice = createSliceForList<FormGroup, 'form_groups'>('form_groups')
+const portalBrandingsSlice = createSliceForList<PortalBranding, 'portal_brandings'>('portal_brandings')
 
 const roleBasedAccessPermissionsSlice = createSliceForList<RoleBasedAccessPermission, 'role_based_access_permissions'>('role_based_access_permissions')
 
@@ -425,6 +427,7 @@ export const sharedConfig = {
     flowchart_notes: flowchartNotesSlice.reducer,
     webhook_logs: webhookLogsSlice.reducer,
     form_groups: formGroupsSlice.reducer,
+    portal_brandings: portalBrandingsSlice.reducer,
   },
 }
 
@@ -1167,6 +1170,24 @@ export const useUserAndEnduserDisplayInfo = () => {
   return displayInfo
 }
 
+export const usePortalBrandings = (options={} as HookOptions<PortalBranding>) => {
+  const session = useSession()
+
+  return useListStateHook('portal_brandings', useTypedSelector(s => s.portal_brandings), session, portalBrandingsSlice,
+    { 
+      loadQuery: session.api.portal_brandings.getSome,
+      findOne: session.api.portal_brandings.getOne,
+      findByIds: session.api.portal_brandings.getByIds,
+      addOne: session.api.portal_brandings.createOne,
+      addSome: session.api.portal_brandings.createSome,
+      deleteOne: session.api.portal_brandings.deleteOne,
+      updateOne: session.api.portal_brandings.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
 export const useEnduserProblems = (options={} as HookOptions<EnduserProblem>) => {
   const session = useResolvedSession()
 

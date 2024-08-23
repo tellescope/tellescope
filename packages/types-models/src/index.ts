@@ -271,6 +271,7 @@ export interface Organization_updatesDisabled {
   subdomain: string;
 }
 export interface Organization extends Organization_readonly, Organization_required, Organization_updatesDisabled {
+  subdomains?: string[],
   owner?: string,
   timezone?: Timezone,
   roles?: string[];
@@ -2639,7 +2640,7 @@ export interface ManagedContentRecordAssignment_required {
 export interface ManagedContentRecordAssignment_updatesDisabled {}
 export interface ManagedContentRecordAssignment extends ManagedContentRecordAssignment_readonly, ManagedContentRecordAssignment_required, ManagedContentRecordAssignment_updatesDisabled {}
 
-export type PortalPage = "Home" | "Care Plan" | "Documents" | "Education" | "My Events" |  "Community" | "Communications" | "Appointment Booking"
+export type PortalPage = "Home" | "Care Plan" | "Documents" | "Education" | "My Events" |  "Community" | "Communications" | "Appointment Booking" | "Orders"
 
 type BuildPortalBlockInfo <T, I> = { type: T, info: I }
 
@@ -2686,6 +2687,7 @@ export const DEFAULT_PATIENT_PORTAL_BOTTOM_NAVIGATION_POSITIONS: { [K in PortalP
   "Care Plan": MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION,
   "Appointment Booking": MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION,
   "My Events": MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION,
+  "Orders": MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION,
 }
 
 export interface Forum_readonly extends ClientRecord {}
@@ -3729,6 +3731,21 @@ export interface FlowchartNote extends FlowchartNote_readonly, FlowchartNote_req
   flowchartUI?: FlowchartUI,
 }
 
+export interface PortalBranding_readonly extends ClientRecord { }
+export interface PortalBranding_required {
+  title: string,
+  enduserField: string,
+  enduserValue: string,
+}
+export interface PortalBranding_updatesDisabled {}
+export interface PortalBranding extends PortalBranding_readonly, PortalBranding_required, PortalBranding_updatesDisabled {
+  primary?: string,
+  secondary?: string,
+  logoURL?: string,
+  subdomain?: string,
+  customPortalURL?: string,
+}
+
 export interface WebhookLog_readonly extends ClientRecord { 
   url: string,
   payload: object,
@@ -3740,6 +3757,7 @@ export interface WebhookLog_updatesDisabled {}
 export interface WebhookLog extends WebhookLog_readonly, WebhookLog_required, WebhookLog_updatesDisabled {}
 
 export type ModelForName_required = {
+  portal_brandings: PortalBranding_required
   form_groups: FormGroup_required,
   webhook_logs: WebhookLog_required,
   flowchart_notes: FlowchartNote_required,
@@ -3819,6 +3837,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  portal_brandings: PortalBranding_readonly,
   form_groups: FormGroup_readonly,
   webhook_logs: WebhookLog_readonly,
   flowchart_notes: FlowchartNote_readonly,
@@ -3898,6 +3917,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  portal_brandings: PortalBranding_updatesDisabled,
   form_groups: FormGroup_updatesDisabled,
   webhook_logs: WebhookLog_updatesDisabled,
   flowchart_notes: FlowchartNote_updatesDisabled,
@@ -3977,6 +3997,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly { 
+  portal_brandings: PortalBranding,
   form_groups: FormGroup,
   webhook_logs: WebhookLog,
   flowchart_notes: FlowchartNote,
@@ -4066,6 +4087,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  portal_brandings: true,
   form_groups: true,
   webhook_logs: true,
   flowchart_notes: true,

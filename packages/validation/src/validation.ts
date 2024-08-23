@@ -3291,6 +3291,7 @@ const _PORTAL_PAGES: { [K in PortalPage]: any } = {
   Community: true,
   Communications: true,
   "My Events": true,
+  Orders: true,
 }
 export const PORTAL_PAGES = Object.keys(_PORTAL_PAGES) as PortalPage[]
 export const portalPageValidator = exactMatchValidator<PortalPage>(PORTAL_PAGES)
@@ -4045,6 +4046,7 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   flowchart_notes: accessPermissionValidator,
   webhook_logs: accessPermissionValidator,
   form_groups: accessPermissionValidator,
+  portal_brandings: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
@@ -4126,6 +4128,7 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   blocked_phones: numberValidatorOptional,
   flowchart_notes: numberValidatorOptional,
   form_groups: numberValidatorOptional,
+  portal_brandings: numberValidatorOptional,
 }, { emptyOk: true })
 
 const _LOGIN_FLOW_RESULTS = {

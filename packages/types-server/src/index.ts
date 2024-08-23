@@ -85,6 +85,7 @@ export type EnduserProblem = ServerModelForName['enduser_problems']
 export type FlowchartNote = ServerModelForName['flowchart_notes']
 export type WebhookLog = ServerModelForName['webhook_logs']
 export type FormGroup = ServerModelForName['form_groups']
+export type PortalBranding = ServerModelForName['portal_brandings']
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']
