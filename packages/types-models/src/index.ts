@@ -1824,6 +1824,7 @@ export interface FormResponse_required {
   responses: FormResponseValue[],
   publicSubmit?: boolean,
   submittedBy?: string,
+  submittedByIsPlaceholder?: boolean,
   submittedAt?: Date,
   accessCode?: string,
   userEmail?: string,

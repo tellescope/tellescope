@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/utilities",
-  "version": "1.115.0",
+  "version": "1.116.0",
   "description": "Shared JS code for common actions across API and browser",
   "main": "./lib/cjs/utils.js",
   "module": "./lib/esm/utils.js",
@@ -23,11 +23,13 @@
   },
   "homepage": "https://github.com/tellescope-os/tellescope#readme",
   "dependencies": {
-    "@tellescope/constants": "^1.115.0",
-    "@tellescope/types-models": "^1.115.0",
+    "@tellescope/constants": "^1.116.0",
+    "@tellescope/types-models": "^1.116.0",
+    "luxon": "3.1.0",
     "sanitize-html": "^2.10.0"
   },
   "devDependencies": {
+    "@types/luxon": "^3.0.2",
     "@types/sanitize-html": "^2.9.0",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",

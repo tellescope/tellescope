@@ -375,6 +375,7 @@ export type Dependency <T=DatabaseRecord> = {
 
 export type RedactionReason = (
   'enduser' // endusers can't access this field
+  | 'all' // no one (including admins) can access to this field
 )
 
 export type ModelFieldInfo <T, R> = {
@@ -1214,7 +1215,7 @@ export const schema: SchemaV1 = build_schema({
       hashedPassword: {
         validator: stringValidator100,
         readonly: true,
-        redactions: ['enduser'], // todo: add more redactions
+        redactions: ['all'], // todo: add more redactions
       },
       fname: { 
         validator: nameValidator,
@@ -3259,7 +3260,8 @@ export const schema: SchemaV1 = build_schema({
           field: stringValidator100,
           value: stringValidator5000,
         }))
-      }
+      },
+      canvasId: { validator: stringValidator100 },
     }
   },
   templates: {
@@ -4066,6 +4068,7 @@ export const schema: SchemaV1 = build_schema({
       },
       publicSubmit: { validator: booleanValidator },
       submittedBy: { validator: stringValidator250 },
+      submittedByIsPlaceholder: { validator: booleanValidator },
       accessCode: { validator: stringValidator250 },
       userEmail: { validator: emailValidator },
       submittedAt: { validator: dateValidator },

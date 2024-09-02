@@ -1963,10 +1963,20 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
   multiple_choice: objectValidator<FormResponseAnswerMultipleChoice>({
     type: exactMatchValidator(['multiple_choice']),
     value: listOfStringsValidatorOptionalOrEmptyOk,
+  }, {
+    inputModifier: (o => {
+      if (typeof o?.value === 'string') { return { ...o, value: [o.value] } }
+      return o
+    })
   }),
   Dropdown: objectValidator<FormResponseAnswerDropdown>({
     type: exactMatchValidator(['Dropdown']),
     value: listOfStringsValidatorOptionalOrEmptyOk,
+  }, {
+    inputModifier: (o => {
+      if (typeof o?.value === 'string') { return { ...o, value: [o.value] } }
+      return o
+    })
   }),
   ranking: objectValidator<FormResponseAnswerRanking>({
     type: exactMatchValidator(['ranking']),

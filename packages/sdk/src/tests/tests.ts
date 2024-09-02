@@ -37,7 +37,7 @@ import {
 
 import { Session, APIQuery, EnduserSession } from "../sdk"
 import { FORM_LOGIC_CALCULATED_FIELDS, get_flattened_fields, responses_satisfy_conditions, weighted_round_robin } from "@tellescope/utilities"
-import { DEFAULT_OPERATIONS, PLACEHOLDER_ID } from "@tellescope/constants"
+import { DEFAULT_OPERATIONS, PLACEHOLDER_ID, ZOOM_TITLE } from "@tellescope/constants"
 import { 
   schema, 
   Model, 
@@ -3769,8 +3769,8 @@ const community_tests = async () => {
   ])
 }
 
-const enduser_redaction_tests = async () => {
-  log_header("Enduser Redaction")
+const redaction_tests = async () => {
+  log_header("Redaction")
 
   const enduser = await sdk.api.endusers.createOne({ email })
   const enduserOther = await sdk.api.endusers.createOne({ email: 'otherenduser@tellescope.com' })
@@ -3778,11 +3778,15 @@ const enduser_redaction_tests = async () => {
   await enduserSDK.authenticate(email, password).catch(console.error)  
 
   const endusers = await enduserSDK.api.endusers.getSome()
+  const forUser  = await sdk.api.endusers.getSome()
   assert(endusers.length > 0, "enduser can't fetch others", "enduser get others successful")
 
   const redactedFields = (
     Object.keys(schema.endusers.fields)
-    .filter(f => schema.endusers.fields[f as keyof typeof schema.endusers.fields]?.redactions?.includes('enduser'))
+    .filter(f => 
+       schema.endusers.fields[f as keyof typeof schema.endusers.fields]?.redactions?.includes('enduser')
+    || schema.endusers.fields[f as keyof typeof schema.endusers.fields]?.redactions?.includes('all')
+    )
   )
   assert(redactedFields.length > 0, 'no redacted fields', 'redacted fields exists')
 
@@ -3792,9 +3796,55 @@ const enduser_redaction_tests = async () => {
     'data correctly redacted',
   )
 
+  assert(
+    !forUser.find(u => u.hashedPassword),
+    'got redacted data',
+    'hashed password redacted, even for admin user',
+  )
+
+  const zoomIntegration = await sdk.api.integrations.createOne({
+    title: ZOOM_TITLE,
+    authentication: {
+      type: 'oauth2',
+      info: {
+        access_token: 'token',
+        expiry_date: new Date().getTime(),
+        refresh_token: 'refresh_token',
+        scope: '',
+        token_type: 'Bearer',
+      }
+    }
+  })
+  const notZoomIntegration = await sdk.api.integrations.createOne({
+    title: "Not Zoom",
+    authentication: {
+      type: 'oauth2',
+      info: {
+        access_token: 'token',
+        expiry_date: new Date().getTime(),
+        refresh_token: 'refresh_token',
+        scope: '',
+        token_type: 'Bearer',
+      }
+    }
+  })
+
+  await async_test(
+    'Zoom integration redacts authentication info',
+    () => sdk.api.integrations.getOne(zoomIntegration),
+    { onResult: i => !i.authentication},
+  )
+  await async_test(
+    'Generic integration includes authentication info (for now, while used in front-end for some integrations like Zendesk)',
+    () => sdk.api.integrations.getOne(notZoomIntegration),
+    { onResult: i => !!i.authentication},
+  )
+
   await Promise.all([
     sdk.api.endusers.deleteOne(enduser.id),
     sdk.api.endusers.deleteOne(enduserOther.id),
+    sdk.api.integrations.deleteOne(zoomIntegration.id),
+    sdk.api.integrations.deleteOne(notZoomIntegration.id),
   ])
 }
 
@@ -4310,6 +4360,7 @@ export const self_serve_appointment_booking_tests = async () => {
     title: 'conflict', 
     startTimeInMS: nySlots.availabilityBlocks[1].startTimeInMS,
     durationInMinutes: nySlots.availabilityBlocks[1].durationInMinutes,
+    attendees: [{ type: 'user', id: sdk.userInfo.id }]
   })
   await async_test(
     '30 minute slots for state restriction with 2 overlapping conflict',
@@ -4487,6 +4538,7 @@ export const self_serve_appointment_booking_tests = async () => {
     title: 'conflict', 
     startTimeInMS: nySlots.availabilityBlocks[0].startTimeInMS,
     durationInMinutes: nySlots.availabilityBlocks[0].durationInMinutes,
+    attendees: [{ type: 'user', id: sdk.userInfo.id }]
   })
   await sdk.api.calendar_events.updateOne(conflict2.id, { bufferEndMinutes: 30 })
   await async_test(
@@ -4517,6 +4569,7 @@ export const self_serve_appointment_booking_tests = async () => {
     title: 'conflict', 
     startTimeInMS: nySlots.availabilityBlocks[1].startTimeInMS,
     durationInMinutes: nySlots.availabilityBlocks[1].durationInMinutes,
+    attendees: [{ type: 'user', id: sdk.userInfo.id }]
   })
   await sdk.api.calendar_events.updateOne(conflict3.id, { bufferStartMinutes: 30 })
   await async_test(
@@ -8477,6 +8530,7 @@ const mdb_filter_tests = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await redaction_tests()
     await self_serve_appointment_booking_tests()
     await no_chained_triggers_tests()
     await rate_limit_tests()
@@ -8518,7 +8572,6 @@ const mdb_filter_tests = async () => {
     await updatesTests()
     await threadKeyTests()
     await enduserAccessTests()
-    await enduser_redaction_tests()
   } catch(err: any) {
     console.error("Failed during custom test")
     if (err.message && err.info) {
