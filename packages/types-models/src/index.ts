@@ -3386,6 +3386,7 @@ export type PhoneTreeEvents = {
   'If True': PhoneTreeEventBuilder<'If True', { }>,
   'If False': PhoneTreeEventBuilder<'If False', { }>,
   'If No Users Match': PhoneTreeEventBuilder<'If No Users Match', { }>,
+  'If No Users Answer': PhoneTreeEventBuilder<'If No Users Answer', { }>,
 }
 export type PhoneTreeEventType = keyof PhoneTreeEvents
 export type PhoneTreeEvent = PhoneTreeEvents[PhoneTreeEventType]
@@ -3403,13 +3404,14 @@ export type PhoneTreeActions = {
   'Gather': PhoneTreeActionBuilder<"Gather", { digits: boolean, speech: boolean, playback: PhonePlayback }>
   'Voicemail': PhoneTreeActionBuilder<"Voicemail", { playback: PhonePlayback }>
   'Play Message': PhoneTreeActionBuilder<"Play Message", { playback: PhonePlayback, journeyId?: string }>
-  'Dial Users': PhoneTreeActionBuilder<"Dial Users", { userIds: string[], playback?: Partial<PhonePlayback> }>
+  'Dial Users': PhoneTreeActionBuilder<"Dial Users", { userIds: string[], playback?: Partial<PhonePlayback>, duration?: number }>
   'Route Call': PhoneTreeActionBuilder<"Route Call", { 
     prePlayback?: Partial<PhonePlayback>,
     byCareTeam?: boolean, 
     byRole?: string, 
     byTags?: ListOfStringsWithQualifier, 
     playback?: Partial<PhonePlayback>,
+    duration?: number,
   }>
   'Forward Call': PhoneTreeActionBuilder<"Forward Call", { to: string }>
   'Conditional Split': PhoneTreeActionBuilder<"Conditional Split", { 

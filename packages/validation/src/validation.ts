@@ -4727,6 +4727,11 @@ export const phoneTreeEventValidator = orValidator<{ [K in PhoneTreeEventType]: 
     info: optionalEmptyObjectValidator,
     parentId: stringValidator1000Optional,
   }), 
+  "If No Users Answer": objectValidator<PhoneTreeEvents["If No Users Answer"]>({
+    type: exactMatchValidator(['If No Users Answer']),
+    info: optionalEmptyObjectValidator,
+    parentId: stringValidator1000Optional,
+  }), 
 })
 export const phoneTreeEventsValidator = listValidatorEmptyOk(phoneTreeEventValidator)
 
@@ -4799,6 +4804,7 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
     info: objectValidator<PhoneTreeActions["Dial Users"]['info']>({
       userIds: listOfMongoIdStringValidatorEmptyOk,
       playback: phonePlaybackValidatorOptional,
+      duration: numberValidatorOptional,
     }),
   }),
   "Route Call": objectValidator<PhoneTreeActions["Route Call"]>({
@@ -4809,6 +4815,7 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
       byTags: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
       prePlayback: phonePlaybackValidatorOptional,
       playback: phonePlaybackValidatorOptional,
+      duration: numberValidatorOptional,
     }),
   }),
   "Forward Call": objectValidator<PhoneTreeActions["Forward Call"]>({
