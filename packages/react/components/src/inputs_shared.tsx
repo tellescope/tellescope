@@ -244,10 +244,12 @@ export const performBulkAction = async <T extends { id: string }, R> ({
   onSuccess,
   fetchBatch,
   batchSize=100, 
+  dontAlert,
 } : BulkActionProps<T> & {
   batchSize?: number,
   fetchBatch: LoadFunction<T>,
   processBatch: (matches: T[]) => Promise<R & { error?: string, successCount?: number }>,
+  dontAlert?: boolean,
 }) => {
   if (!(selected || allSelected)) throw new Error("One of allSelected or selected is required")
   if (batchSize <= 0) throw new Error("batchSize must be at least 1")
@@ -285,7 +287,7 @@ export const performBulkAction = async <T extends { id: string }, R> ({
     args.lastId = matches[matches.length - 1].id
   }
 
-  if (successCount || errors.length) {
+  if (!dontAlert && (successCount || errors.length)) {
     alert(
 `Success Count: ${successCount}${errors.length ? `\nErrors: ${errors.join('\n')}` : ''}`
 )

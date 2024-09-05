@@ -2159,6 +2159,7 @@ export interface AppointmentBookingPage extends AppointmentBookingPage_readonly,
   hoursBeforeBookingAllowed?: number | '',
   limitedToCareTeam?: boolean,
   limitedByState?: boolean,
+  limitedByTagsPortal?: string[],
   requireLocationSelection?: boolean,
   // productIds?: string[], // defer to specific template
 }

@@ -1858,7 +1858,11 @@ export const replace_tag_template_values_for_enduser = (tags: string[], enduser:
       const tagField = (t.split('{{enduser.').pop() || '').replace("}}", '')
       if (tagField === 'hashedPassword') return t
 
-      return enduser.fields?.[tagField]?.toString() || enduser?.[tagField as keyof typeof enduser]?.toString() || t
+      return (
+           enduser.fields?.[tagField]?.toString() 
+        || get_enduser_field_value_for_key(enduser, tagField)?.toString() // accounts for dotted fields like insurance.payerName
+        || t
+      )
     }
 
     return t

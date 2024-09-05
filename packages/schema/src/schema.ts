@@ -6214,6 +6214,7 @@ export const schema: SchemaV1 = build_schema({
       hoursBeforeBookingAllowed: { validator: numberValidatorOptional },
       limitedToCareTeam: { validator: booleanValidator },
       limitedByState: { validator: booleanValidator },
+      limitedByTagsPortal: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       topLogo: { validator: stringValidator },
       requireLocationSelection: { validator: booleanValidator },
       fontFace: { validator: stringValidator },

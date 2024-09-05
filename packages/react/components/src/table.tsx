@@ -997,7 +997,7 @@ export const Table = <T extends Item>({
             textAlign: 'center', textDecoration: 'underline',
           }} 
         >
-          Showing {filterCounts.filtered} of {filterCounts.total} due to active filters
+          Showing {filterCounts.filtered} of {filterCounts.total} loaded records due to filters
         </Typography>
       }
 
