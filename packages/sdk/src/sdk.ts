@@ -663,9 +663,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     get_enduser_report: (args: extractFields<CustomActions['calendar_events']['get_enduser_report']['parameters']>) => (
       Promise<extractFields<CustomActions['calendar_events']['get_enduser_report']['returns']>>
     ),
-    // get_appointment_availability: (args: extractFields<CustomActions['calendar_events']['get_appointment_availability']['parameters']>) => (
-    //   Promise<extractFields<CustomActions['calendar_events']['get_appointment_availability']['returns']>>
-    // ),
+    get_appointment_availability: (args: extractFields<CustomActions['calendar_events']['get_appointment_availability']['parameters']>) => (
+      Promise<extractFields<CustomActions['calendar_events']['get_appointment_availability']['returns']>>
+    ),
   },
   managed_content_records: {
     load_unauthenticated: (args: extractFields<PublicActions['managed_content_records']['load_unauthenticated']['parameters']>) => (
@@ -901,7 +901,11 @@ export class Session extends SessionManager {
     queries.calendar_events.change_zoom_host = a => this._POST(`/v1/${schema.calendar_events.customActions.change_zoom_host.path}`, a)
     queries.calendar_events.get_report = a => this._POST(`/v1${schema.calendar_events.customActions.get_report.path}`, a)
     queries.calendar_events.get_enduser_report = a => this._POST(`/v1${schema.calendar_events.customActions.get_enduser_report.path}`, a)
+    queries.calendar_events.get_appointment_availability = a => this._GET(`/v1${schema.calendar_events.customActions.get_appointment_availability.path}`, a)
+
+    // this returns an array buffer, avoid using for copy + paste
     queries.calendar_events.download_ics_file = a => this._GET(`/v1${schema.calendar_events.customActions.download_ics_file.path}`, a, true, { responseType: 'arraybuffer' })
+    // 
 
     queries.phone_calls.get_report = a => this._GET(`/v1/${schema.phone_calls.customActions.get_report.path}`, a)
     queries.phone_calls.authenticate_calling = a => this._POST(`/v1${schema.phone_calls.customActions.authenticate_calling.path}`, a)

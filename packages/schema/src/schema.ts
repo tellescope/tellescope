@@ -879,6 +879,7 @@ export type CustomActions = {
       userIds?: string[],
       multi?: boolean,
       intervalInMinutes?: number,
+      state?: string,
     }, { 
       availabilityBlocks: BaseAvailabilityBlock[],
     }>,
@@ -4519,13 +4520,16 @@ export const schema: SchemaV1 = build_schema({
         path: '/calendar-availability',
         description: "Gets availability blocks for different users based on their internal and external calendars",
         warnings: [
-          "The limit parameter indicates the number of future calendar event conflicts to look up when determining availability. This defaults to a high value (500) and should only be reduced with caution."
+          "The limit parameter indicates the number of future calendar event conflicts to look up when determining availability. This defaults to a high value (500) and should only be reduced with caution.",
+          "If restrictedByState, and authenticated as an enduser, state will be pulled from the enduser automatically. If state is not defined, will result in a 400 error",
+          "If restrictedByState, and authenticated as a user (e.g. by API Key), you can provide state as a parameter",
         ],
         parameters: {  
           calendarEventTemplateId: { validator: mongoIdStringValidator, required: true },
           from: { validator: dateValidator, required: true },
           locationId: { validator: mongoIdStringValidator },
           restrictedByState: { validator: booleanValidator },
+          state: { validator: stateValidator },
           multi: { validator: booleanValidator },
           to: { validator: dateValidator },
           limit: { validator: nonNegNumberValidator },

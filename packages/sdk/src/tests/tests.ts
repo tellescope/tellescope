@@ -4271,6 +4271,17 @@ export const self_serve_appointment_booking_tests = async () => {
     { onResult: r => r.availabilityBlocks.length === 2 }, // 1 providers with 1 hour availability for 30 minute meetings
   )
   await async_test(
+    '30 minute slots for state restriction (called as user)',
+    () => sdk.api.calendar_events.get_appointment_availability({
+      calendarEventTemplateId: event30min.id,
+      from: new Date(Date.now() - 10000),
+      to: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+      restrictedByState: true,
+      state: "NY", // same state as enduserSDK
+    }),
+    { onResult: r => r.availabilityBlocks.length === 2 }, // 1 providers with 1 hour availability for 30 minute meetings
+  )
+  await async_test(
     '30 minute slots for state restriction with 15 min interval',
     () => enduserSDK.api.calendar_events.get_appointment_availability({
       calendarEventTemplateId: event30min.id,
