@@ -295,6 +295,7 @@ import {
   dateValidatorOptional,
   listQueryQualifiersValidator,
   stringValidator5000OptionalEmptyOkay,
+  labeledFieldsValidator,
 } from "@tellescope/validation"
 
 import {
@@ -636,6 +637,7 @@ export type CustomActions = {
       { 
         accessCode: string, responses: FormResponseValue[], 
         automationStepId?: string, customerId?: string, productIds?: string[],
+        utm?: LabeledField[],
       }, 
       { formResponse: FormResponse }
     >,
@@ -712,6 +714,7 @@ export type CustomActions = {
     get_journey_statistics: CustomAction<{ journeyId: string }, { statistics: JourneyStatistics }>,
   },
   endusers: {
+    add_to_healthie_course: CustomAction<{ id: string, courseId: string }, { }>,
     check_eligibility: CustomAction<{ 
       id: string, integration?: string, clearinghouse?: string, insuranceType?: InsuranceType, reCheck?: boolean,
     }, { enduser: Enduser }>,
@@ -1357,6 +1360,17 @@ export const schema: SchemaV1 = build_schema({
       // },
     }, 
     customActions: {
+      add_to_healthie_course: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Add to Healthie Course (Program)',
+        path: '/endusers/add-to-healthie-course',
+        description: "Proxy for updateCourse mutation to add Enduser to Healthie Course",
+        parameters: { 
+          id: { validator: mongoIdStringValidator, required: true },
+          courseId: { validator: stringValidator100, required: true },
+        },
+        returns: {},
+      }, 
       check_eligibility: {
         op: "custom", access: 'update', method: "post",
         name: 'Check Eligibility',
@@ -4174,6 +4188,7 @@ export const schema: SchemaV1 = build_schema({
           automationStepId: { validator: mongoIdStringValidator },
           customerId: { validator: stringValidator },
           productIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+          utm: { validator: labeledFieldsValidator },
         },
         returns: {
           formResponse: 'form response' as any,
@@ -4820,6 +4835,7 @@ export const schema: SchemaV1 = build_schema({
         }))
       },
       useUserURL: { validator: booleanValidator },
+      instructions: { validator: stringValidator5000EmptyOkay },
       // isAllDay: { validator: booleanValidator },
     }
   },
@@ -4875,6 +4891,7 @@ export const schema: SchemaV1 = build_schema({
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       matchToHealthieTemplate: { validator: booleanValidator },
       useUserURL: { validator: booleanValidator },
+      instructions: { validator: stringValidator5000EmptyOkay },
     }
   },
   calendar_event_RSVPs: {
@@ -6245,6 +6262,7 @@ export const schema: SchemaV1 = build_schema({
         examples: ["Appointment Booking Title"]
       },
       address: { validator: stringValidator1000 },
+      city: { validator: stringValidator },
       zipCode: { validator: stringValidator1000 },
       phone: { validator: stringValidator }, // phoneValidator assumes cell phone and strips formatting, this should not
       state: { validator: stateValidator },
@@ -6253,6 +6271,7 @@ export const schema: SchemaV1 = build_schema({
       healthieContactType: { validator: stringValidator100 },
       healthieLocationId: { validator: stringValidator100 },
       healthieUseZoom: { validator: booleanValidator },
+      instructions: { validator: stringValidator5000EmptyOkay },
     }
   },
   products: {

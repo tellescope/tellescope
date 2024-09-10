@@ -102,7 +102,7 @@ import {
   EnduserSession,
 } from '@tellescope/sdk'
 import { value_is_loaded } from './loading'
-import { matches_organization, objects_equivalent } from '@tellescope/utilities'
+import { matches_organization, object_is_empty, objects_equivalent } from '@tellescope/utilities'
 import { Model, ModelName, ReadFilter, SortBy } from '@tellescope/types-models'
 
 const RESET_CACHE_TYPE = "cache/reset" as const
@@ -946,7 +946,8 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
   const load = useCallback((force: boolean, loadOptions?: HookOptions<T> & { reloading?: boolean }) => {
     if (cantRead) return;
 
-    const loadFilter = loadOptions?.loadFilter ?? options?.loadFilter
+    const _loadFilter = loadOptions?.loadFilter ?? options?.loadFilter
+    const loadFilter = (_loadFilter && object_is_empty(_loadFilter)) ? undefined : _loadFilter
     const sort = loadOptions?.sort ?? options?.sort
     const sortBy = loadOptions?.sortBy ?? options?.sortBy
 

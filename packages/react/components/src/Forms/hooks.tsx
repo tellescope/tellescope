@@ -9,7 +9,7 @@ import { WithTheme, contact_is_valid, useFileUpload, useFormFields, useFormRespo
 import ReactGA from "react-ga4";
 
 import isEmail from "validator/lib/isEmail"
-import { append_current_utm_params, field_can_autoadvance, getLocalTimezone, get_time_values, object_is_empty, responses_satisfy_conditions } from "@tellescope/utilities"
+import { append_current_utm_params, field_can_autoadvance, getLocalTimezone, get_time_values, get_utm_params, object_is_empty, responses_satisfy_conditions } from "@tellescope/utilities"
 
 export const useFlattenedTree = (root?: FormFieldNode) => {
   const flat: FormField[] = []
@@ -591,6 +591,16 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
       isCalledOut: existingResponses?.find(r => r.fieldId === f.id)?.isCalledOut,
       isHighlightedOnTimeline: existingResponses?.find(r => r.fieldId === f.id)?.isHighlightedOnTimeline,
       disabled: !!(existingResponses?.find(r => r.fieldId === f.id)?.answer?.value && f.disabledWhenPrepopulated),
+      // keep consistent with onFieldChange
+      computedValueKey: (
+        f?.intakeField === 'height' && typeof existingResponses?.find(r => r.fieldId === f.id)?.answer?.value
+          ? 'Height'
+      : f?.intakeField === 'weight' && typeof existingResponses?.find(r => r.fieldId === f.id)?.answer?.value === 'number'
+          ? 'Weight'
+      : f?.intakeField === 'dateOfBirth' && existingResponses?.find(r => r.fieldId === f.id)?.answer?.type === 'dateString'
+          ? 'Date of Birth'
+          : undefined
+      ) as any,  
       answer: { 
         type: f.type,
         value: (
@@ -1132,6 +1142,7 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
             automationStepId,
             customerId,
             productIds: responsesToSubmit.flatMap(r => r.field?.options?.productIds ?? []),
+            utm: get_utm_params(),
           })
           if (!options?.otherEnduserIds?.length) { // only track for signle submission
             if (ga4measurementId) {
@@ -1282,6 +1293,7 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
         ...r.answer,
         value: value as any,
       },
+      // keep consistent with initialize existing responses
       computedValueKey: (
         field?.intakeField === 'height' && typeof value === 'number'
           ? 'Height'

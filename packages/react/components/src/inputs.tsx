@@ -251,11 +251,15 @@ interface ConfirmationScreenProps <T>{
   typeToConfirm?: string; 
   confirmText?: string;
   loadingText?: string
+  customConfirmationComponent?: React.ReactNode,
+  disabled?: boolean,
 }
 export const ConfirmationScreen = <T,>({ 
   action, onCancel, onSuccess, typeToConfirm='', 
   title="Confirmation", description='',
   confirmText='Confirm', loadingText="Loading", 
+  customConfirmationComponent,
+  disabled,
   style,
 } : ConfirmationScreenProps<T> & Styled) => {
   const [text, setText] = useState('')
@@ -285,6 +289,8 @@ export const ConfirmationScreen = <T,>({
         </Grid>
       }
 
+      {customConfirmationComponent && <Grid item>{customConfirmationComponent}</Grid>}
+
       {typeToConfirm &&
         <Grid item>
           <TextField variant="outlined" type="text" fullWidth
@@ -303,7 +309,7 @@ export const ConfirmationScreen = <T,>({
 
         <Grid item xs={4}>
           <LoadingButton onClick={handleConfirm}
-            submitting={submitting} disabled={typeToConfirm !== text} 
+            submitting={submitting} disabled={disabled || typeToConfirm !== text} 
             submitText={confirmText}
             submittingText={loadingText}
           />

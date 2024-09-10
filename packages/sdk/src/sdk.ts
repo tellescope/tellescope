@@ -271,6 +271,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
   },
   endusers: {
+    add_to_healthie_course: (args: extractFields<CustomActions['endusers']['add_to_healthie_course']['parameters']>) => (
+      Promise<extractFields<CustomActions['endusers']['add_to_healthie_course']['returns']>>
+    ),
     dosespot: (args: extractFields<CustomActions['endusers']['dosespot']['parameters']>) => (
       Promise<extractFields<CustomActions['endusers']['dosespot']['returns']>>
     ),
@@ -772,6 +775,7 @@ export class Session extends SessionManager {
     queries.enduser_orders.create_smart_meter_order = a => this._POST(`/v1${schema.enduser_orders.customActions.create_smart_meter_order.path}`, a)
 
     queries.endusers.set_password = args => this._POST(`/v1/set-enduser-password`, args)
+    queries.endusers.add_to_healthie_course = a => this._POST(`/v1${schema.endusers.customActions.add_to_healthie_course.path}`, a)
     queries.endusers.add_to_journey = a => this._POST(`/v1${schema.endusers.customActions.add_to_journey.path}`, a)
     queries.endusers.remove_from_journey = a => this._POST(`/v1${schema.endusers.customActions.remove_from_journey.path}`, a)
     queries.endusers.is_authenticated = ({id, authToken}) => this._GET(`/v1/enduser-is-authenticated`, { id, authToken })

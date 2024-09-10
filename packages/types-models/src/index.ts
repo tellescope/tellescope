@@ -1419,6 +1419,7 @@ export type FormFieldOptions = FormFieldValidation & {
   holdAppointmentMinutes?: number,
   rangeStepSize?: number,
   redirectFormId?: string,
+  groupPadding?: number,
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
@@ -1864,6 +1865,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   groupId?: string,
   groupInstance?: string,
   groupPosition?: number,
+  utm?: LabeledField[],
 }
 
 export interface WebHook_readonly extends ClientRecord {}
@@ -1998,6 +2000,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   useUserURL?: boolean,
   healthieZoomStartURL?: string,
   healthieZoomJoinURL?: string,
+  instructions?: string,
   // isAllDay?: boolean,
 }
 
@@ -2105,6 +2108,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   tags?: string[],
   matchToHealthieTemplate?: boolean,
   useUserURL?: boolean,
+  instructions?: string,
 }
 
 export interface AppointmentLocation_readonly extends ClientRecord {}
@@ -2114,6 +2118,7 @@ export interface AppointmentLocation_required {
 export interface AppointmentLocation_updatesDisabled {}
 export interface AppointmentLocation extends AppointmentLocation_readonly, AppointmentLocation_required, AppointmentLocation_updatesDisabled {
   address?: string,
+  city?: string,
   zipCode?: string,
   state?: string,
   phone?: string,
@@ -2122,6 +2127,7 @@ export interface AppointmentLocation extends AppointmentLocation_readonly, Appoi
   healthieContactType?: string,
   healthieLocationId?: string,
   healthieUseZoom?: boolean,
+  instructions?: string,
 }
 
 export type AppointmentTerm = {
@@ -2427,6 +2433,7 @@ export type SmartMeterPlaceOrderAutomationAction = AutomationActionBuilder<'smar
   shipping?: string,
 }>
 export type HealthieSyncAutomationAction = AutomationActionBuilder<'healthieSync', {}>
+export type HealthieAddToCourseAutomationAction = AutomationActionBuilder<'healthieAddToCourse', { courseId: string }>
 export type CompleteTicketsAutomationAction = AutomationActionBuilder<'completeTickets', { journeyIds?: string[] }>
 export type ChangeContactTypeAutomationAction = AutomationActionBuilder<'changeContactType', { type: string }>
 
@@ -2481,6 +2488,7 @@ export type AutomationActionForType = {
   'pagerDutyCreateIncident': PagerDutyCreateIncidentAutomationAction,
   'smartMeterPlaceOrder': SmartMeterPlaceOrderAutomationAction,
   'healthieSync': HealthieSyncAutomationAction,
+  healthieAddToCourse: HealthieAddToCourseAutomationAction,
   'completeTickets': CompleteTicketsAutomationAction,
   'changeContactType': ChangeContactTypeAutomationAction,
 }
@@ -3551,6 +3559,7 @@ export interface TicketQueue extends TicketQueue_readonly, TicketQueue_required,
   type?: string,
   defaultFromNumber?: string,
   enduserFields?: string[],
+  lastRefreshedCountAt?: Date,
 }
 
 export interface EnduserOrder_readonly extends ClientRecord {}

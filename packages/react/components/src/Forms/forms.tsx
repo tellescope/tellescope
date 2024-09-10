@@ -130,7 +130,9 @@ export const QuestionForField = ({
   groupId,
   groupInstance,
   goToNextField,
+  spacing,
 } : {
+  spacing?: number,
   form?: Form,
   repeats: Record<string, string | number>,
   onRepeatsChange: (v: Record<string, string | number>) => void,
@@ -178,7 +180,7 @@ export const QuestionForField = ({
   if (!value) return null
   return ( 
     // margin leaves room for error message in Question Group
-    <Flex column flex={1} style={{ marginBottom: 25 }} id={field.id}> 
+    <Flex column flex={1} style={{ marginBottom: spacing ?? 25 }} id={field.id}> 
       {field.type !== 'Redirect' && 
         <Typography component="h4" style={{ 
           marginTop: 15, // ensures PDF display doesn't push description into overlap with logo / title at top of form
@@ -322,6 +324,7 @@ export const QuestionForField = ({
                   onAddFile={onAddFile} onFieldChange={onFieldChange}
                   responses={responses} selectedFiles={selectedFiles}
                   validateField={validateField} enduserId={enduserId}
+                  spacing={field.options?.groupPadding}
                 />
               </Flex>
             )

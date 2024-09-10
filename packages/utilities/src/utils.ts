@@ -1,4 +1,4 @@
-import { AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserObservation, EnduserRelationship, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
+import { AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserObservation, EnduserRelationship, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, LabeledField, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
 import { ADMIN_ROLE, get_inverse_relationship_type } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 import { DateTime } from "luxon"
@@ -1820,6 +1820,19 @@ export const is_out_of_office = (
   return true
 }
 
+export const get_utm_params = () => {
+  const params = new URL(window.location.href).searchParams
+  const utmParams: LabeledField[] = []
+
+  params.forEach((value, field) => {
+    if (field.toLowerCase().startsWith('utm_')) {
+      utmParams.push({ field, value  })
+    }
+  })
+
+  return utmParams
+}
+
 export const append_current_utm_params = (targetURL: string) => {
   try {
     const params = new URL(window.location.href).searchParams
@@ -1830,6 +1843,7 @@ export const append_current_utm_params = (targetURL: string) => {
         utmParams[key] = value
       }
     })
+    console.log(params, utmParams)
     
     if (object_is_empty(utmParams)) { return targetURL }
 

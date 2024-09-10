@@ -281,6 +281,8 @@ import {
   CustomDashboardViewBlockType,
   BlockContentLink,
   FormResponseAnswerHiddenValue,
+  HealthieAddToCourseAutomationAction,
+  LabeledField,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -553,15 +555,16 @@ export const filterCommandsValidator: EscapeBuilder<FilterType> = (o={}) => buil
   (value: any) => {
     if (!is_object(value)) { throw new Error("Expecting object value for FilterType") }
     
-    if (value._exists && typeof value._exists === 'boolean' ) return { _exists: value._exists }
-    if (value._gt && typeof value._gt === 'number' ) return { _gt: value._gt }
-    if (value._gte && typeof value._gte === 'number' ) return { _gte: value._gte }
-    if (value._lt && typeof value._lt === 'number' ) return { _lt: value._lt }
-    if (value._lte && typeof value._gt === 'number' ) return { _lte: value._lte }
-    if (value._all && Array.isArray(value._all)) return { _all: value._all }
-    if (value._in && Array.isArray(value._in)) return { _in: value._in }
-    if (value._nin && Array.isArray(value._nin)) return { _nin: value._nin }
-    if (value._ne) return { _ne: value._ne }
+    // this incorrectly prevents multiple combinations (e.g. gt and lt)
+    // if (value._exists && typeof value._exists === 'boolean' ) return { _exists: value._exists }
+    // if (value._gt && typeof value._gt === 'number' ) return { _gt: value._gt }
+    // if (value._gte && typeof value._gte === 'number' ) return { _gte: value._gte }
+    // if (value._lt && typeof value._lt === 'number' ) return { _lt: value._lt }
+    // if (value._lte && typeof value._gt === 'number' ) return { _lte: value._lte }
+    // if (value._all && Array.isArray(value._all)) return { _all: value._all }
+    // if (value._in && Array.isArray(value._in)) return { _in: value._in }
+    // if (value._nin && Array.isArray(value._nin)) return { _nin: value._nin }
+    // if (value._ne) return { _ne: value._ne }
     
     if (Object.keys(value).find(k => k.startsWith('$'))) { // ignore any $ injections
       throw new Error(`Unknown filter value ${JSON.stringify(value)}`)
@@ -600,12 +603,14 @@ export const convertCommands = (operators: Indexable<any>) => {
 
   for (const field in operators) {
     const value = operators[field] as FilterType
-    const key = Object.keys(value)[0]
+    const keys = Object.keys(value)
 
-    const converted = convertCommand(key, value[key as keyof typeof value])
-    if (converted) {
-      filterOperators[field] = converted
-    }
+    for (const key of keys) {
+      const converted = convertCommand(key, value[key as keyof typeof value])
+      if (converted) {
+        filterOperators[field] = { ...filterOperators[field], ...converted }
+      }
+    } 
   }
 
   return filterOperators
@@ -1496,7 +1501,7 @@ export const formFieldTypeValidator = exactMatchValidator<FormFieldType>(FORM_FI
 
 export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' | 'phoneNumber']: (value?: FormResponseValueAnswer[keyof FormResponseValueAnswer], options?: any, isOptional?: boolean) => any } = {
   "Hidden Value": stringValidator.validate({ maxLength: 5000 }),
-  'Appointment Booking': stringValidator.validate({ maxLength: 100 }),
+  'Appointment Booking': stringValidator.validate({ maxLength: 100, isOptional: true }),
   'Redirect': stringValidator.validate({ maxLength: 100 }),
   'Related Contacts': objectAnyFieldsAnyValuesValidator.validate(),
   'Insurance': objectAnyFieldsAnyValuesValidator.validate(),
@@ -1855,7 +1860,7 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
   }),
   "Appointment Booking": objectValidator<FormResponseAnswerAppointmentBooking>({
     type: exactMatchValidator(['Appointment Booking']),
-    value: stringValidator,
+    value: stringValidatorOptional,
   }),
   "Redirect": objectValidator<FormResponseAnswerRedirect>({
     type: exactMatchValidator(['Redirect']),
@@ -2296,6 +2301,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   pagerDutyCreateIncident: '',
   smartMeterPlaceOrder: '',
   healthieSync: '',
+  healthieAddToCourse: '',
   completeTickets: '',
   changeContactType: '',
 }
@@ -2761,6 +2767,11 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     type: exactMatchValidator(['healthieSync']),
     info: objectValidator<HealthieSyncAutomationAction['info']>({ }, { emptyOk: true }),
   }),
+  healthieAddToCourse: objectValidator<HealthieAddToCourseAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['healthieAddToCourse']),
+    info: objectValidator<HealthieAddToCourseAutomationAction['info']>({ courseId: stringValidator100 }),
+  }),
   completeTickets: objectValidator<CompleteTicketsAutomationAction>({
     continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['completeTickets']),
@@ -3052,6 +3063,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   rangeStepSize: numberValidatorOptional,
   redirectFormId: mongoIdStringOptional,
   customTypeId: mongoIdStringOptional,
+  groupPadding: numberValidatorOptional,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -5030,3 +5042,8 @@ export const athenaSubscriptionValidator = objectValidator<AthenaSubscription>({
   lastSyncedAt: dateValidator,
 })
 export const athenaSubscriptionsValidator = listValidatorEmptyOk(athenaSubscriptionValidator)
+
+export const labeledFieldsValidator = listValidatorOptionalOrEmptyOk(objectValidator<LabeledField>({
+  field: stringValidator100,
+  value: stringValidator5000,
+}))
