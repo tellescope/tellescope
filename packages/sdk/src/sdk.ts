@@ -458,6 +458,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     mark_read: (args: extractFields<CustomActions['chat_rooms']['mark_read']['parameters']>) => (
       Promise<extractFields<CustomActions['chat_rooms']['mark_read']['returns']>>
     ),
+    send_healthie_chat: (args: extractFields<CustomActions['chat_rooms']['send_healthie_chat']['parameters']>) => (
+      Promise<extractFields<CustomActions['chat_rooms']['send_healthie_chat']['returns']>>
+    ),
     display_info: (args: extractFields<CustomActions['chat_rooms']['display_info']['parameters']>) => 
                     Promise<extractFields<CustomActions['chat_rooms']['display_info']['returns']>>,
   },
@@ -845,6 +848,7 @@ export class Session extends SessionManager {
     queries.chat_rooms.join_room = a => this._POST('/v1/join-chat-room', a)
     queries.chat_rooms.display_info = a => this._GET(`/v1${schema.chat_rooms.customActions.display_info.path}`, a)
     queries.chat_rooms.mark_read = a => this._POST(`/v1${schema.chat_rooms.customActions.mark_read.path}`, a)
+    queries.chat_rooms.send_healthie_chat = a => this._POST(`/v1${schema.chat_rooms.customActions.send_healthie_chat.path}`, a)
 
     queries.meetings.start_meeting = a => this._POST('/v1/start-meeting', a)
     queries.meetings.end_meeting = a => this._POST('/v1/end-meeting', a)

@@ -66,6 +66,7 @@ import {
   AthenaSubscription,
   TellescopeGender,
   LabeledField,
+  HealthieSendChatAutomationAction,
 } from "@tellescope/types-models"
 
 import {
@@ -798,6 +799,7 @@ export type CustomActions = {
     join_room: CustomAction<{ id: string }, { room: ChatRoom }>,
     display_info: CustomAction<{ id: string }, { id: string, display_info: { [index: string]: UserDisplayInfo } }>,
     mark_read: CustomAction<{ id: string }, { updated: ChatRoom }>,
+    send_healthie_chat: CustomAction<HealthieSendChatAutomationAction['info'] & { enduserId: string }, { room: ChatRoom }>,
   },
   meetings: {
     start_meeting: CustomAction<{ attendees?: UserIdentity[], publicRead?: boolean }, { id: string, meeting: { Meeting: MeetingInfo }, host: Attendee }>, 
@@ -900,6 +902,7 @@ export type CustomActions = {
       intervalInMinutes?: number,
       holdUntil?: Date,
       holdFormResponseId?: string,
+      reason?: string,
     }, { 
       createdEvent: CalendarEvent,
     }>,
@@ -1182,6 +1185,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields,   
+      healthie_dietitian_id: { validator: stringValidator100 },
       externalId: {
         validator: stringValidator250,
         examples: ['addfed3e-ddea-415b-b52b-df820c944dbb'],
@@ -1871,6 +1875,7 @@ export const schema: SchemaV1 = build_schema({
       syncEnduserFiles: { validator: booleanValidator },
       pushCalendarDetails: { validator: booleanValidator },
       defaultAttendeeId: { validator: mongoIdStringValidator },
+      sendEmailOnSync: { validator: booleanValidator },
     },
     customActions: {
       update_zoom: {
@@ -2557,7 +2562,8 @@ export const schema: SchemaV1 = build_schema({
         validator: mongoIdStringValidator,
         required: true,
         examples: [PLACEHOLDER_ID],
-        updatesDisabled: true,
+        // allow updates to support moving across profiles
+        // updatesDisabled: true
         dependencies: [{
           dependsOn: ['endusers'],
           dependencyField: '_id',
@@ -2699,6 +2705,9 @@ export const schema: SchemaV1 = build_schema({
       fields: { validator: fieldsValidator },
       suggestedReply: { validator: stringValidator5000EmptyOkay },
       discussionRoomId: { validator: mongoIdStringValidator },
+      identifier: { validator: stringValidator100 },
+      externalId: { validator: stringValidator100 },
+      source: { validator: stringValidator100 },
     },
     defaultActions: DEFAULT_OPERATIONS,
     enduserActions: { create: {}, read: {}, readMany: {}, display_info: {}, mark_read: {} },
@@ -2733,6 +2742,21 @@ export const schema: SchemaV1 = build_schema({
           display_info: { validator: meetingDisplayInfoValidator, required: true },
           id: { validator: mongoIdStringValidator },
         } 
+      },
+      send_healthie_chat: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Send Healthie Chat',
+        path: '/chat-rooms/send-healthie-chat',
+        description: "Marks the conversation read by the authenticated user",
+        parameters: { 
+          identifier: { validator: stringValidator100, required: true },
+          templateId: { validator: mongoIdStringRequired, required: true },
+          includeCareTeam: { validator: booleanValidator, required: true },
+          enduserId: { validator: mongoIdStringRequired, required: true },
+        },
+        returns: { 
+          room: { validator:  'Room' }, 
+        } as any // add room eventually, when validator defined
       },
     },
   },
@@ -4578,6 +4602,7 @@ export const schema: SchemaV1 = build_schema({
           intervalInMinutes: { validator: nonNegNumberValidator },
           holdUntil: { validator: dateValidator },
           holdFormResponseId: { validator: mongoIdStringValidator },
+          reason: { validator: stringValidator5000 },
         },
         returns: { 
           createdEvent: { validator: 'calenar_event' as any },
@@ -4836,6 +4861,7 @@ export const schema: SchemaV1 = build_schema({
       },
       useUserURL: { validator: booleanValidator },
       instructions: { validator: stringValidator5000EmptyOkay },
+      reason: { validator: stringValidator5000 },
       // isAllDay: { validator: booleanValidator },
     }
   },
@@ -6241,6 +6267,7 @@ export const schema: SchemaV1 = build_schema({
       fontFace: { validator: stringValidator },
       fontFamily: { validator: stringValidator5000EmptyOkay },
       fontURL: { validator: stringValidator },
+      collectReason: { validator: exactMatchValidator<Required<AppointmentBookingPageClient>['collectReason']>(['Do Not Collect', 'Optional', 'Required'])}
       // defer to template
       // productIds: { validator: listOfStringsValidator },
     }

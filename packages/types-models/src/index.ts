@@ -182,6 +182,7 @@ export type OrganizationSettings = {
     autofillSignature?: boolean,
     showFullVitalsTab?: boolean,
     canMoveCalls?: boolean,
+    canMoveSMS?: boolean,
     inboxRepliesMarkRead?: boolean,
   },
   tickets?: {
@@ -677,6 +678,7 @@ export interface Enduser_updatesDisabled {
   references?: RelatedRecord[],
 }
 export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_updatesDisabled {
+  healthie_dietitian_id?: string,
   unsubscribePhone?: boolean; // on AWS STOP reply
   externalId?: string;
   humanReadableId?: string;
@@ -1098,6 +1100,10 @@ export interface ChatRoom extends ChatRoom_readonly, ChatRoom_required, ChatRoom
   suggestedReply?: string,
   assignedTo?: string[],
   discussionRoomId?: string,
+  identifier?: string,
+  source?: string,
+  externalId?: string,
+  references?: RelatedRecord[] // internal, for storing built-in integrations info
 }
 
 export type ChatAttachmentType = 'image' | 'video' | 'file' | string 
@@ -1140,6 +1146,7 @@ export interface ChatMessage extends ChatMessage_readonly, ChatMessage_required,
   canvasId?: string,
   isAutoreply?: boolean,
   quote?: string[],
+  references?: RelatedRecord[] // internal, for storing built-in integrations info
 }
 
 export type MessageTemplateType = 'enduser' | 'Reply' | 'team'  // default to 'enduser'
@@ -1419,7 +1426,9 @@ export type FormFieldOptions = FormFieldValidation & {
   holdAppointmentMinutes?: number,
   rangeStepSize?: number,
   redirectFormId?: string,
+  redirectExternalUrl?: string,
   groupPadding?: number,
+  saveIntakeOnPartial?: boolean,
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
@@ -1589,6 +1598,7 @@ export interface Integration extends Integration_readonly, Integration_required,
   fhirAccessToken?: string,
   fhirExpiryDate?: number,
   defaultAttendeeId?: string,
+  sendEmailOnSync?: boolean,
 }
 
 export type BuildDatabaseRecordField <K extends string, V, O> = { type: K, value: V, options: O & { width?: string } }
@@ -1939,6 +1949,7 @@ export interface CalendarEvent_required {
 }
 export interface CalendarEvent_updatesDisabled {}
 export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_required, CalendarEvent_updatesDisabled {
+  reason?: string,
   attendees: UserIdentity[],
   color?: string,
   enableVideoCall?: boolean,
@@ -2167,6 +2178,7 @@ export interface AppointmentBookingPage extends AppointmentBookingPage_readonly,
   limitedByState?: boolean,
   limitedByTagsPortal?: string[],
   requireLocationSelection?: boolean,
+  collectReason?: "Do Not Collect" | 'Optional' | 'Required'
   // productIds?: string[], // defer to specific template
 }
 
@@ -2434,6 +2446,7 @@ export type SmartMeterPlaceOrderAutomationAction = AutomationActionBuilder<'smar
 }>
 export type HealthieSyncAutomationAction = AutomationActionBuilder<'healthieSync', {}>
 export type HealthieAddToCourseAutomationAction = AutomationActionBuilder<'healthieAddToCourse', { courseId: string }>
+export type HealthieSendChatAutomationAction = AutomationActionBuilder<'healthieSendChat', { templateId: string, identifier: string, includeCareTeam?: boolean }>
 export type CompleteTicketsAutomationAction = AutomationActionBuilder<'completeTickets', { journeyIds?: string[] }>
 export type ChangeContactTypeAutomationAction = AutomationActionBuilder<'changeContactType', { type: string }>
 
@@ -2489,6 +2502,7 @@ export type AutomationActionForType = {
   'smartMeterPlaceOrder': SmartMeterPlaceOrderAutomationAction,
   'healthieSync': HealthieSyncAutomationAction,
   healthieAddToCourse: HealthieAddToCourseAutomationAction,
+  healthieSendChat: HealthieSendChatAutomationAction,
   'completeTickets': CompleteTicketsAutomationAction,
   'changeContactType': ChangeContactTypeAutomationAction,
 }
@@ -3266,7 +3280,7 @@ export type AutomationTriggerEvents = {
   }, {}>,
   'Form Unsubmitted': AutomationTriggerEventBuilder<"Form Unsubmitted", { formId: string, intervalInMS: number }, {}>,
   'Purchase Made': AutomationTriggerEventBuilder<"Purchase Made", { }, {}>,
-  'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", { }, {}>,
+  'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", { titles?: string[], templateIds?: string[] }, { }>,
   'Field Equals': AutomationTriggerEventBuilder<"Field Equals", { field: string, value: string }, { }>,
   'Appointment Created': AutomationTriggerEventBuilder<"Appointment Created", { titles?: string[] }, {}>,
   'Appointment Completed': AutomationTriggerEventBuilder<"Appointment Completed", { titles?: string[] }, {}>,

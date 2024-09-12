@@ -4,7 +4,7 @@ import { Autocomplete, Box, Button, Checkbox, Divider, FormControl, FormControlL
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
-import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, truncate_string, user_display_name } from "@tellescope/utilities"
+import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, truncate_string, user_display_name } from "@tellescope/utilities"
 import { Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MultipleChoiceOptions, TellescopeGender } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
@@ -2648,6 +2648,19 @@ export const RedirectInput = ({ groupId, groupInsance, formResponseId, field, su
 
   useEffect(() => {
     if (session.type === 'user') { return }
+
+    if (field.options?.redirectExternalUrl) { 
+      submit?.() 
+      .finally(() => {
+        if (!field.options?.redirectExternalUrl) { return }
+
+        window.location.href = replace_enduser_template_values(field.options.redirectExternalUrl, session.userInfo as any)
+      })
+      .catch(console.error)
+      
+      return 
+    }
+
     if (!field.options?.redirectFormId) { return }
 
     session.api.form_responses.prepare_form_response({

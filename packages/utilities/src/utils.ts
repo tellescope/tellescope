@@ -1,4 +1,4 @@
-import { AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserObservation, EnduserRelationship, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, LabeledField, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
+import { AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserObservation, EnduserRelationship, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, LabeledField, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, TIMEZONES, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
 import { ADMIN_ROLE, get_inverse_relationship_type } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 import { DateTime } from "luxon"
@@ -2102,3 +2102,5 @@ export const downloadFile = (data: Uint8Array | Blob | Buffer | string, options 
   a.click();
   window.URL.revokeObjectURL(url);
 }
+
+export const is_timezone = (value: any): value is Timezone => (typeof value === 'string' && TIMEZONES.includes(value as Timezone))

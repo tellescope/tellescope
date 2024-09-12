@@ -283,6 +283,7 @@ import {
   FormResponseAnswerHiddenValue,
   HealthieAddToCourseAutomationAction,
   LabeledField,
+  HealthieSendChatAutomationAction,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -2302,6 +2303,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   smartMeterPlaceOrder: '',
   healthieSync: '',
   healthieAddToCourse: '',
+  healthieSendChat: '',
   completeTickets: '',
   changeContactType: '',
 }
@@ -2772,6 +2774,15 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     type: exactMatchValidator(['healthieAddToCourse']),
     info: objectValidator<HealthieAddToCourseAutomationAction['info']>({ courseId: stringValidator100 }),
   }),
+  healthieSendChat: objectValidator<HealthieSendChatAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['healthieSendChat']),
+    info: objectValidator<HealthieSendChatAutomationAction['info']>({ 
+      templateId: mongoIdStringRequired,
+      identifier: stringValidator100,
+      includeCareTeam: booleanValidatorOptional,
+    }),
+  }),
   completeTickets: objectValidator<CompleteTicketsAutomationAction>({
     continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['completeTickets']),
@@ -3062,8 +3073,10 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   holdAppointmentMinutes: numberValidatorOptional,
   rangeStepSize: numberValidatorOptional,
   redirectFormId: mongoIdStringOptional,
+  redirectExternalUrl: stringValidatorOptional,
   customTypeId: mongoIdStringOptional,
   groupPadding: numberValidatorOptional,
+  saveIntakeOnPartial: booleanValidatorOptional,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -3555,6 +3568,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     autofillSignature: booleanValidatorOptional,
     showFullVitalsTab: booleanValidatorOptional,
     canMoveCalls: booleanValidatorOptional,
+    canMoveSMS: booleanValidatorOptional,
     showDeleteCallRecordingOnTimeline: booleanValidatorOptional,
     inboxRepliesMarkRead: booleanValidatorOptional,
     recordCallAudioPlayback: stringValidatorOptional,
@@ -3722,7 +3736,10 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
   }), 
   "Appointment No-Showed": objectValidator<AutomationTriggerEvents["Appointment No-Showed"]>({
     type: exactMatchValidator(['Appointment No-Showed']),
-    info: optionalEmptyObjectValidator,
+    info: objectValidator<AutomationTriggerEvents['Appointment No-Showed']['info']>({
+      titles: listOfStringsValidatorOptionalOrEmptyOk,
+      templateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+    }),
     conditions: optionalEmptyObjectValidator,
   }), 
   "Appointment Created": objectValidator<AutomationTriggerEvents["Appointment Created"]>({
