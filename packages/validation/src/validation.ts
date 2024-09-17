@@ -284,6 +284,10 @@ import {
   HealthieAddToCourseAutomationAction,
   LabeledField,
   HealthieSendChatAutomationAction,
+  ZusPullAutomationAction,
+  FieldMapping,
+  ActiveCampaignSyncAutomationAction,
+  AnalyticsFrameGroupingCategory,
 } from "@tellescope/types-models"
 import {
   UserDisplayInfo,
@@ -314,6 +318,7 @@ import {
   to_object_id,
 } from "@tellescope/utilities"
 import { 
+  ACTIVE_CAMPAIGN_TITLE,
   ALL_ACCESS,
   ASSIGNED_ACCESS,
   ATHENA_TITLE,
@@ -870,8 +875,8 @@ export const stringValidator100: ValidatorDefinition<string> = {
   validate: (o={}) => build_validator(
     escapeString(o), { ...o, maxLength: 100, listOf: false  } 
   ),
-  getExample: () => getExampleString,
-  getType: () => getTypeString
+  getExample: getExampleString,
+  getType: getTypeString
 }
 
 export const stringValidator250: ValidatorDefinition<string> = {
@@ -2299,6 +2304,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   iterableCustomEvent: '',
   zendeskCreateTicket: '',
   zusSync: '',
+  zusPull: '',
   pagerDutyCreateIncident: '',
   smartMeterPlaceOrder: '',
   healthieSync: '',
@@ -2306,6 +2312,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   healthieSendChat: '',
   completeTickets: '',
   changeContactType: '',
+  activeCampaignSync: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -2517,6 +2524,15 @@ export const ticketActionValidator = orValidator<{ [K in TicketActionType]: Tick
     info: objectValidator<TicketActions['Send SMS']['info']>({ 
       templateId: mongoIdStringRequired,
       smsId: mongoIdStringOptional, 
+    }, { emptyOk: false }),
+    completedAt: dateOptionalOrEmptyStringValidator,
+    optional: booleanValidatorOptional,
+  }),
+  "Send Email": objectValidator<TicketActions['Send Email']>({
+    type: exactMatchValidator(['Send Email']),
+    info: objectValidator<TicketActions['Send Email']['info']>({ 
+      templateId: mongoIdStringRequired,
+      emailId: mongoIdStringOptional, 
     }, { emptyOk: false }),
     completedAt: dateOptionalOrEmptyStringValidator,
     optional: booleanValidatorOptional,
@@ -2747,6 +2763,11 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     type: exactMatchValidator(['zusSync']),
     info: objectValidator<ZusSyncAutomationAction['info']>({ }, { emptyOk: true }),
   }),
+  zusPull: objectValidator<ZusPullAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['zusPull']),
+    info: objectValidator<ZusPullAutomationAction['info']>({ }, { emptyOk: true }),
+  }),
   pagerDutyCreateIncident: objectValidator<PagerDutyCreateIncidentAutomationAction>({
     continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['pagerDutyCreateIncident']),
@@ -2796,6 +2817,11 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     info: objectValidator<ChangeContactTypeAutomationAction['info']>({
       type: stringValidatorOptional, // can be empty string for default contact type or id for others
     }),
+  }),
+  activeCampaignSync: objectValidator<ActiveCampaignSyncAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['activeCampaignSync']),
+    info: objectValidator<ActiveCampaignSyncAutomationAction['info']>({ }, { emptyOk: true }),
   }),
 })
 
@@ -3445,6 +3471,7 @@ const _CUSTOM_ENDUSER_FIELD_TYPES: { [K in CustomEnduserFieldType]: any } = {
   "Auto Detect": true,
   Table: true,
   File: true,
+  Number: true,
 }
 export const CUSTOM_ENDUSER_FIELD_TYPES = Object.keys(_CUSTOM_ENDUSER_FIELD_TYPES) as CustomEnduserFieldType[]
 export const customEnduserFieldTypeValidator = exactMatchValidator<CustomEnduserFieldType>(CUSTOM_ENDUSER_FIELD_TYPES)
@@ -3486,6 +3513,14 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
   }), 
   Text: objectValidator<CustomEnduserFields['Text']>({
     type: exactMatchValidator(['Text']),
+    info: optionalEmptyObjectValidator,
+    field: stringValidator,
+    required: booleanValidatorOptional,
+    hiddenFromProfile: booleanValidatorOptional,
+    requireConfirmation: booleanValidatorOptional,
+  }), 
+  Number: objectValidator<CustomEnduserFields['Number']>({
+    type: exactMatchValidator(['Number']),
     info: optionalEmptyObjectValidator,
     field: stringValidator,
     required: booleanValidatorOptional,
@@ -4234,6 +4269,7 @@ export type IntegrationsTitleType = (
 | typeof ATHENA_TITLE
 | typeof DOSESPOT_TITLE
 | typeof DOCSUMO_TITLE
+| typeof ACTIVE_CAMPAIGN_TITLE
 )
 export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleType>([
   SQUARE_INTEGRATIONS_TITLE,
@@ -4252,6 +4288,7 @@ export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleTy
   ATHENA_TITLE,
   DOSESPOT_TITLE,
   DOCSUMO_TITLE,
+  ACTIVE_CAMPAIGN_TITLE,
 ])
 
 const _VIDEO_INTEGRATION_TYPES: { [K in VideoIntegrationType]: any} = {
@@ -4718,6 +4755,13 @@ export const enduserProfileViewBlockValidator = orValidator<{ [K in EnduserProfi
       fieldIds: listOfMongoIdStringValidatorEmptyOk,
     }),
   }), 
+  "Zus Encounters": objectValidator<EnduserProfileViewBlocks["Zus Encounters"]>({
+    ...sharedEnduserProfileViewBlockFields,
+    type: exactMatchValidator(['Zus Encounters']),
+    info: objectValidator<EnduserProfileViewBlocks['Zus Encounters']['info']>({
+      title: stringValidator100,
+    }),
+  }), 
 })
 export const enduserProfileViewBlocksValidator = listValidator(enduserProfileViewBlockValidator)
 
@@ -5064,3 +5108,16 @@ export const labeledFieldsValidator = listValidatorOptionalOrEmptyOk(objectValid
   field: stringValidator100,
   value: stringValidator5000,
 }))
+
+export const fieldMappingValidator = objectValidator<FieldMapping>({
+  field: stringValidator250,
+  externalField: stringValidator250,
+  type: stringValidator100,
+})
+export const fieldMappingsValidator = listValidatorEmptyOk(fieldMappingValidator)
+
+export const analyticsFrameGroupingCategoryValidator = objectValidator<AnalyticsFrameGroupingCategory>({
+  category: stringValidator250,
+  keys: listOfStringsValidatorEmptyOk,
+})
+export const analyticsFrameGroupingCategoriesValidator = listValidatorEmptyOk(analyticsFrameGroupingCategoryValidator)

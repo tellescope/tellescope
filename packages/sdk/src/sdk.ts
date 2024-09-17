@@ -379,6 +379,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     confirm_file_upload: (args: extractFields<CustomActions['files']['confirm_file_upload']['parameters']>) => (
       Promise<extractFields<CustomActions['files']['confirm_file_upload']['returns']>>
     ),
+    send_fax: (args: extractFields<CustomActions['files']['send_fax']['parameters']>) => (
+      Promise<extractFields<CustomActions['files']['send_fax']['returns']>>
+    ),
     file_download_URL: (args: extractFields<CustomActions['files']['file_download_URL']['parameters']>) => (
       Promise<extractFields<CustomActions['files']['file_download_URL']['returns']>>
     ),
@@ -842,6 +845,7 @@ export class Session extends SessionManager {
 
     queries.files.prepare_file_upload = (args) => this._POST(`/v1/prepare-file-upload`, args)
     queries.files.confirm_file_upload = a => this._POST(`/v1${schema.files.customActions.confirm_file_upload.path}`, a)
+    queries.files.send_fax = a => this._POST(`/v1${schema.files.customActions.send_fax.path}`, a)
     queries.files.file_download_URL = a => this._GET('/v1/file-download-URL', a)
     queries.files.run_ocr = a => this._POST(`/v1${schema.files.customActions.run_ocr.path}`, a)
 

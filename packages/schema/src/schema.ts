@@ -297,6 +297,8 @@ import {
   listQueryQualifiersValidator,
   stringValidator5000OptionalEmptyOkay,
   labeledFieldsValidator,
+  fieldMappingsValidator,
+  analyticsFrameGroupingCategoriesValidator,
 } from "@tellescope/validation"
 
 import {
@@ -613,6 +615,7 @@ export type CustomActions = {
     file_download_URL: CustomAction<{ secureName: string, preferInBrowser?: boolean, }, { downloadURL: string, name: string }>,
     run_ocr: CustomAction<{ id: string, type: string }, { file: File }>,
     confirm_file_upload: CustomAction<{ id: string }, { }>,
+    send_fax: CustomAction<{ id: string, recipientFaxNumber: string }, { }>,
   },
   form_fields: {
     load_choices_from_database: CustomAction<{ fieldId: string, lastId?: string, limit?: number, databaseId?: string }, { choices: DatabaseRecordClient[] }>,
@@ -1359,6 +1362,8 @@ export const schema: SchemaV1 = build_schema({
       athenaPracticeId: { validator: stringValidator100 },
       salesforceId: { validator: stringValidator100 },
       vitalTriggersDisabled: { validator: booleanValidator },
+      defaultFromPhone: { validator: phoneValidator },
+      defaultFromEmail: { validator: emailValidator },
       // recentMessagePreview: { 
       //   validator: stringValidator,
       // },
@@ -1876,6 +1881,7 @@ export const schema: SchemaV1 = build_schema({
       pushCalendarDetails: { validator: booleanValidator },
       defaultAttendeeId: { validator: mongoIdStringValidator },
       sendEmailOnSync: { validator: booleanValidator },
+      enduserFieldMapping: { validator: fieldMappingsValidator },
     },
     customActions: {
       update_zoom: {
@@ -3519,6 +3525,17 @@ export const schema: SchemaV1 = build_schema({
         },
         returns: { },
       },
+      send_fax: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Send Fax (via mFax integration)',
+        path: '/files/send-fax',
+        description: "Sends a fax via mFax to the destination number",
+        parameters: { 
+          id: { validator: mongoIdStringRequired, required: true },
+          recipientFaxNumber: { validator: phoneValidator, required: true },
+        },
+        returns: { },
+      },
     },
   },
   tickets: {
@@ -4849,6 +4866,7 @@ export const schema: SchemaV1 = build_schema({
       bufferEndMinutes: { validator: numberValidator },
       bufferStartMinutes: { validator: numberValidator },
       canvasCoding: { validator: canvasCodingValidator },
+      canvasReasonCoding: { validator: canvasCodingValidator },
       canvasLocationId: { validator: stringValidator100 },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
       completedAt: { validator: dateValidatorOptional },
@@ -4914,6 +4932,7 @@ export const schema: SchemaV1 = build_schema({
       bufferEndMinutes: { validator: numberValidator },
       bufferStartMinutes: { validator: numberValidator },
       canvasCoding: { validator: canvasCodingValidator },
+      canvasReasonCoding: { validator: canvasCodingValidator },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       matchToHealthieTemplate: { validator: booleanValidator },
       useUserURL: { validator: booleanValidator },
@@ -6716,6 +6735,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       groupMin: { validator: nonNegNumberValidator },
       groupMax: { validator: nonNegNumberValidator },
       groupByCareTeam: { validator: booleanValidator },
+      displayType: { validator: stringValidator100 },
+      analyticsFrameGroupingCategory: { validator: analyticsFrameGroupingCategoriesValidator },
     },
   },
   availability_blocks: {

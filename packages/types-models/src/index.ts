@@ -131,6 +131,7 @@ export type CustomEnduserFields = {
   "Select": BuildCustomEnduserField<'Select', { options: string[], other?: boolean }>,
   "Multiple Select": BuildCustomEnduserField<'Multiple Select', { options: string[] }>,
   "Text": BuildCustomEnduserField<'Text', { }>,
+  "Number": BuildCustomEnduserField<'Number', { }>,
   "Multiple Text": BuildCustomEnduserField<'Multiple Text', { }>,
   "Date": BuildCustomEnduserField<'Date', { }>,
   "File": BuildCustomEnduserField<'File', { }>,
@@ -309,6 +310,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedPagerDuty?: boolean,
   hasConnectedSmartMeter?: boolean,
   hasConnectedAthena?: boolean,
+  hasConnectedActiveCampaign?: boolean,
   hasConnectedDocsumo?: boolean,
   hasConfiguredZoom?: boolean,
   hasTicketQueues?: boolean,
@@ -747,6 +749,8 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   athenaPracticeId?: string,
   athenaDepartmentId?: string,
   vitalTriggersDisabled?: boolean,
+  defaultFromPhone?: string,
+  defaultFromEmail?: string,
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
 }
@@ -1207,6 +1211,7 @@ export type TicketActions = {
   "Complete Form": TicketActionBuilder<'Complete Form', { formId: string, formResponseId?: string }>,
   "Create Prescription": TicketActionBuilder<'Create Prescription', { }>,
   "Send SMS": TicketActionBuilder<'Send SMS', { templateId: string, smsId?: string }>,
+  "Send Email": TicketActionBuilder<'Send Email', { templateId: string, emailId?: string }>,
 }
 export type TicketActionType = keyof TicketActions
 export type TicketAction = TicketActions[TicketActionType]
@@ -1569,6 +1574,12 @@ export type IntegrationAuthentication = (
   }
 )
 
+export type FieldMapping = {
+  field: string,
+  externalField: string,
+  type: string,
+}
+
 export interface Integration_readonly extends ClientRecord {
   lastSync?: number,
   lastSyncId?: string,
@@ -1599,6 +1610,7 @@ export interface Integration extends Integration_readonly, Integration_required,
   fhirExpiryDate?: number,
   defaultAttendeeId?: string,
   sendEmailOnSync?: boolean,
+  enduserFieldMapping?: FieldMapping[],
 }
 
 export type BuildDatabaseRecordField <K extends string, V, O> = { type: K, value: V, options: O & { width?: string } }
@@ -1999,6 +2011,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   bufferStartMinutes?: number,
   bufferEndMinutes?: number,
   canvasCoding?: CanvasCoding,
+  canvasReasonCoding?: CanvasCoding,
   canvasLocationId?: string,
   completedAt?: Date | '',
   holdUntil?: Date,
@@ -2116,6 +2129,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   bufferEndMinutes?: number,
 
   canvasCoding?: CanvasCoding,
+  canvasReasonCoding?: CanvasCoding,
   tags?: string[],
   matchToHealthieTemplate?: boolean,
   useUserURL?: boolean,
@@ -2438,6 +2452,7 @@ export type CreateCarePlanAutomationAction = AutomationActionBuilder<'createCare
 }>
 export type CompleteCarePlanAutomationAction = AutomationActionBuilder<'completeCarePlan', {}>
 export type ZusSyncAutomationAction = AutomationActionBuilder<'zusSync', {}>
+export type ZusPullAutomationAction = AutomationActionBuilder<'zusPull', {}>
 export type PagerDutyCreateIncidentAutomationAction = AutomationActionBuilder<'pagerDutyCreateIncident', { type: string, title: string, serviceId: string }>
 export type SmartMeterOrderLineItem = { quantity: number, sku: string }
 export type SmartMeterPlaceOrderAutomationAction = AutomationActionBuilder<'smartMeterPlaceOrder', { 
@@ -2449,6 +2464,7 @@ export type HealthieAddToCourseAutomationAction = AutomationActionBuilder<'healt
 export type HealthieSendChatAutomationAction = AutomationActionBuilder<'healthieSendChat', { templateId: string, identifier: string, includeCareTeam?: boolean }>
 export type CompleteTicketsAutomationAction = AutomationActionBuilder<'completeTickets', { journeyIds?: string[] }>
 export type ChangeContactTypeAutomationAction = AutomationActionBuilder<'changeContactType', { type: string }>
+export type ActiveCampaignSyncAutomationAction = AutomationActionBuilder<'activeCampaignSync', { }>
 
 export type IterableFieldsMapping = {
   iterable: string,
@@ -2498,6 +2514,7 @@ export type AutomationActionForType = {
   'createCarePlan': CreateCarePlanAutomationAction,
   'completeCarePlan': CompleteCarePlanAutomationAction,
   'zusSync': ZusSyncAutomationAction,
+  'zusPull': ZusPullAutomationAction,
   'pagerDutyCreateIncident': PagerDutyCreateIncidentAutomationAction,
   'smartMeterPlaceOrder': SmartMeterPlaceOrderAutomationAction,
   'healthieSync': HealthieSyncAutomationAction,
@@ -2505,6 +2522,7 @@ export type AutomationActionForType = {
   healthieSendChat: HealthieSendChatAutomationAction,
   'completeTickets': CompleteTicketsAutomationAction,
   'changeContactType': ChangeContactTypeAutomationAction,
+  activeCampaignSync: ActiveCampaignSyncAutomationAction,
 }
 export type AutomationActionType = keyof AutomationActionForType
 export type AutomationAction = AutomationActionForType[AutomationActionType]
@@ -3163,6 +3181,11 @@ export type AnalyticsQueryOptions = {
   groupByCareTeam?: boolean, // supports multi-grouping for both care team and a normal field
 }
 
+export type AnalyticsFrameGroupingCategory = {
+  category: string,
+  keys: string[],
+}
+
 export type AnalyticsFrameType = 'Percentage'
 export interface AnalyticsFrame_readonly extends ClientRecord {}
 export interface AnalyticsFrame_required {
@@ -3178,6 +3201,8 @@ export interface AnalyticsFrame extends
   type?: AnalyticsFrameType,
   groupMin?: number | '',
   groupMax?: number | '',
+  displayType?: string,
+  analyticsFrameGroupingCategory?: AnalyticsFrameGroupingCategory[],
 }
 
 
@@ -3232,6 +3257,9 @@ export type EnduserProfileViewBlocks = {
     title: string, 
     formId: string,
     fieldIds: string[],
+  }>,
+  "Zus Encounters": EnduserProfileViewBlockBuilder<"Zus Encounters", { 
+    title: string, 
   }>,
 }
 export type EnduserProfileViewBlockType = keyof EnduserProfileViewBlocks
@@ -3637,6 +3665,7 @@ export type Diagnosis = {
 }
 export interface EnduserEncounter_readonly extends ClientRecord {
   externalId?: string,
+  source?: string,
   integration?: 'Candid',
 }
 export interface EnduserEncounter_updatesDisabled {}
@@ -3653,6 +3682,11 @@ export interface EnduserEncounter extends EnduserEncounter_readonly, EnduserEnco
   serviceFacilityAddress?: Address, // could also collect rendering provider address, but it's typically the same as service facility address
   modifiers?: string[],
   error?: string, // e.g. for errors with push to Candid
+  class?: string, // for Zus, e.g. Emergency or Ambulator
+  status?: string, // for Zus, e.g. "finished" or "in-progress" in zus as "Finished" or "In Progress"
+  location?: string, // for Zus, name of location
+  providerNames?: string[], // for Zus, display name of provider
+  diagnosisDisplays?: string[], // for Zus, display name of diagnoses
 }
 
 export interface TicketQueue_readonly extends ClientRecord {

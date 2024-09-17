@@ -132,6 +132,7 @@ export const GOGO_MEDS_TITLE = "GoGoMeds"
 export const ATHENA_TITLE = "athenahealth"
 export const DOSESPOT_TITLE = "DoseSpot"
 export const DOCSUMO_TITLE = "Docsumo"
+export const ACTIVE_CAMPAIGN_TITLE = "ActiveCampaign"
 export const ZENDESK_INTEGRATIONS_TITLE = "Zendesk"
 export const ZENDESK_REDIRECT_URI_ENDING = "/zendesk-oauth2-verify"
 export const FULLSCRIPT_INTEGRATIONS_TITLE = "Fullscript"
@@ -154,6 +155,7 @@ export const ORGANIZATION_WIDE_INTEGRATIONS = [
   PHOTON_TITLE,
   MFAX_TITLE,
   MEDPLUM_TITLE,
+  ACTIVE_CAMPAIGN_TITLE,
 ]
 
 export const ONE_MINUTE_IN_MS = 1000 * 60
