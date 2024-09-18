@@ -2572,7 +2572,12 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
   }),
   sendEmail: objectValidator<SendEmailAutomationAction>({
     type: exactMatchValidator(['sendEmail']),
-    info: automationForMessageValidator,
+    info: objectValidator<SendEmailAutomationAction['info']>({ 
+      senderId: mongoIdStringRequired, 
+      templateId: mongoIdStringRequired,
+      assignment: senderAssignmentStrategyValidatorOptional,
+      fromEmailOverride: emailValidatorOptional,
+    }, { emptyOk: false }),
     continueOnError: booleanValidatorOptional,
   }),
   sendSMS: objectValidator<SendSMSAutomationAction>({
@@ -2587,6 +2592,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
         templateId: mongoIdStringRequired,
         forAssigned: booleanValidator,
         roles: listOfStringsValidatorOptionalOrEmptyOk,
+        tags: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
       }, 
       { emptyOk: false }
     ),
@@ -3580,6 +3586,14 @@ export const buildInFieldsValidator = listValidatorOptionalOrEmptyOk(objectValid
   requireConfirmation: booleanValidatorOptional,
 }))
 
+export const customDashboardViewValidator = (
+  objectValidator<Required<OrganizationSettings>['dashboard']['view']>({
+    blocks: listValidatorOptionalOrEmptyOk(objectValidator<CustomDashboardViewBlock>({
+      type: exactMatchValidator<CustomDashboardViewBlockType>(['Inbox', 'Tickets', 'Team Chats', 'Upcoming Events']),
+    }))
+  }, { isOptional: true, emptyOk: true })
+)
+
 export const organizationSettingsValidator = objectValidator<OrganizationSettings>({
   endusers: objectValidator<OrganizationSettings['endusers']>({
     disableMultipleChatRooms: booleanValidatorOptional,
@@ -3608,6 +3622,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     inboxRepliesMarkRead: booleanValidatorOptional,
     recordCallAudioPlayback: stringValidatorOptional,
     disableAutoreplyForCustomEntities: booleanValidatorOptional,
+    alwaysShowInsurance: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -3641,11 +3656,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     locationRequired: booleanValidatorOptional,
   }, { isOptional: true }),
   dashboard: objectValidator<OrganizationSettings['dashboard']>({
-    view: objectValidator<Required<OrganizationSettings>['dashboard']['view']>({
-      blocks: listValidatorOptionalOrEmptyOk(objectValidator<CustomDashboardViewBlock>({
-        type: exactMatchValidator<CustomDashboardViewBlockType>(['Inbox', 'Tickets', 'Team Chats', 'Upcoming Events']),
-      }))
-    }, { isOptional: true, emptyOk: true, }),
+    view: customDashboardViewValidator,
   }, { isOptional: true, emptyOk: true, }),
   users: objectValidator<OrganizationSettings['users']>({
     sessionDurationInHours: numberValidatorOptional,
@@ -4376,6 +4387,12 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       "Total": objectValidator<AnalyticsQueryInfoForType['Endusers']['Total']>({
         method: exactMatchValidator<"Total">(['Total']),
         parameters: optionalEmptyObjectValidator,
+      }),
+      "Sum of Field": objectValidator<AnalyticsQueryInfoForType['Endusers']['Sum of Field']>({
+        method: exactMatchValidator<"Sum of Field">(['Sum of Field']),
+        parameters: objectValidator<{ field: string }>({
+          field: stringValidator250,
+        }),
       }),
     }),
     grouping: objectValidator<AnalyticsQueryGroupingForType['Endusers']>({

@@ -185,6 +185,7 @@ export type OrganizationSettings = {
     canMoveCalls?: boolean,
     canMoveSMS?: boolean,
     inboxRepliesMarkRead?: boolean,
+    alwaysShowInsurance?: boolean,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
@@ -551,6 +552,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   url?: string,
   requiresMFAConfiguration?: boolean,
   templateFields?: LabeledField[]
+  dashboardView?: CustomDashboardView,
 }
 
 export type Preference = 'email' | 'sms' | 'call' | 'chat'
@@ -751,6 +753,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   vitalTriggersDisabled?: boolean,
   defaultFromPhone?: string,
   defaultFromEmail?: string,
+  useDefaultFromEmailInAutomations?: boolean,
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
 }
@@ -787,6 +790,7 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
   calendarEventId?: string,
   prescribedBy?: string,
   prescribedAt?: Date | '',
+  prescriberName?: string,
   startedTakingAt?: Date | '',
   stoppedTakingAt?: Date | '',
   rxNormCode?: string,
@@ -1473,7 +1477,8 @@ export interface FormField extends FormField_readonly, FormField_required, FormF
     databaseId?: string,
     field?: string,
     overwrite?: boolean,
-  }
+  },
+  titleFontSize?: number,
 }
 
 export type FormScoring = {
@@ -2421,11 +2426,12 @@ export type CreateTicketActionInfo = {
   tags?: string[],
 }
 
-export type SendEmailAutomationAction = AutomationActionBuilder<'sendEmail', AutomationForMessage>
+export type SendEmailAutomationAction = AutomationActionBuilder<'sendEmail', AutomationForMessage & { fromEmailOverride?: string }>
 export type NotifyTeamAutomationAction = AutomationActionBuilder<'notifyTeam', {
   templateId: string,
   forAssigned: boolean,
   roles?: string[],
+  tags?: ListOfStringsWithQualifier,
 }>
 export type SendSMSAutomationAction = AutomationActionBuilder<'sendSMS', AutomationForMessage>
 export type SendFormAutomationAction = AutomationActionBuilder<'sendForm', AutomationForFormRequest>
@@ -2946,7 +2952,10 @@ export type DateRange = { from?: Date | '', to?: Date | '' }
 
 type AnalyticsQueryInfoBuilder <M extends string, P extends object | undefined> = { method: M, parameters: P }
 export type AnalyticsQueryInfoForType = {
-  "Endusers": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },
+  "Endusers": { 
+    Total:  AnalyticsQueryInfoBuilder<'Total', undefined>,
+    "Sum of Field": AnalyticsQueryInfoBuilder<"Sum of Field", { field: string }>,
+  },
   "Calendar Events": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },
   "Form Responses": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },
   "Purchases": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },  

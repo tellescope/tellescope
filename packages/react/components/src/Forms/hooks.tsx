@@ -201,9 +201,10 @@ export const getNextField = (activeField: FormFieldNode, currentValue: Response,
     return
   } 
   
-  if (activeField.children.length === 1) {
-    return activeField.children[0]
-  } 
+  // if the one child isn't valid, we can show an early submission now, so don't return it by default
+  // if (activeField.children.length === 1) {
+  //   return activeField.children[0]
+  // } 
 
   try {
     const advancedLogic = (
@@ -1027,7 +1028,19 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
     }
   }, [validateField, fields, responses])
 
-  const showSubmit = activeField.children.length === 0
+  const nextField = (
+    !currentValue ? undefined 
+    : (
+      getNextField(activeField, currentValue, responses, { 
+        urlLogicValue, 
+        form,
+        activeResponses: responses.filter(r => r.includeInSubmit),
+        dateOfBirth: enduser?.dateOfBirth,
+      })
+    )
+  )
+
+  const showSubmit = activeField.children.length === 0 || !nextField
 
   const getResponsesWithQuestionGroupAnswers = useCallback((responsesToSubmit: Response[]) => {
     // ensure Question Group responses are included

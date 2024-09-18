@@ -23,7 +23,7 @@ import LanguageIcon from '@mui/icons-material/Language';
 
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js'; 
-import { CheckCircleOutline, Delete, Edit } from "@mui/icons-material"
+import { CheckCircleOutline, Delete, Edit, PropaneSharp } from "@mui/icons-material"
 
 export const LanguageSelect = ({ value, ...props }: { value: string, onChange: (s: string) => void}) => (
   <Grid container alignItems="center" justifyContent={"center"} wrap="nowrap" spacing={1}>
@@ -412,13 +412,16 @@ export const DateStringInput = ({ field, value, onChange, ...props }: FormInputP
           required={!field.isOptional}
           autoComplete="off"
           dateFormat={"MM-dd-yyyy"}
-          customInput={<CustomDateStringInput inputRef={inputRef} {...props} />}
+          customInput={<CustomDateStringInput inputRef={inputRef} {...props} 
+            label={(!field.title && field.placeholder) ? field.placeholder : props.label} 
+          />}
           // className={css`width: 100%;`}
           className={css`${datepickerCSS}`}
         />
       )
       : (
         <AutoFocusTextField {...props} required={!field.isOptional} fullWidth placeholder="MM-DD-YYYY" value={value}
+          label={(!field.title && field.placeholder) ? field.placeholder : props.label}
           onChange={e => {
             const v = e.target.value || ''
             onChange(
@@ -439,30 +442,35 @@ export const DateStringInput = ({ field, value, onChange, ...props }: FormInputP
 }
 export const StringInput = ({ field, value, form, onChange, ...props }: FormInputProps<'string'>) => (
   <AutoFocusTextField {...props} required={!field.isOptional} fullWidth value={value} onChange={e => onChange(e.target.value, field.id)} 
-    placeholder={field.placeholder || form_display_text_for_language(form, "Answer here...", '')} 
+    placeholder={(field.placeholder || form_display_text_for_language(form, "Answer here...", ''))} 
+    label={(!field.title && field.placeholder) ? field.placeholder : props.label}
   />
 )
 export const StringLongInput = ({ field, value, onChange, form, ...props }: FormInputProps<'string'>) => (
   <AutoFocusTextField {...props} multiline minRows={3} maxRows={8} required={!field.isOptional} fullWidth value={value} onChange={e => onChange(e.target.value, field.id)}  
     placeholder={field.placeholder || form_display_text_for_language(form, "Answer here...", '')} 
+    label={(!field.title && field.placeholder) ? field.placeholder : props.label}
   />
 )
 
 export const PhoneInput = ({ field, value, onChange, form, ...props }: FormInputProps<'phone'>) => (
   <AutoFocusTextField {...props} required={!field.isOptional} fullWidth value={value} onChange={e => onChange(e.target.value, field.id)} 
     placeholder={field.placeholder || form_display_text_for_language(form, "Enter phone...", '')}
+    label={(!field.title && field.placeholder) ? field.placeholder : props.label}
   />
 )
 
 export const EmailInput = ({ field, value, onChange, form, ...props }: FormInputProps<'email'>) => (
   <AutoFocusTextField {...props} required={!field.isOptional} fullWidth type="email" value={value} onChange={e => onChange(e.target.value, field.id)} 
     placeholder={field.placeholder || form_display_text_for_language(form, "Enter email...", '')}
+    label={(!field.title && field.placeholder) ? field.placeholder : props.label}
   />
 )
 
 export const NumberInput = ({ field, value, onChange, form, ...props }: FormInputProps<'number'>) => (
   <AutoFocusTextField {...props} required={!field.isOptional} fullWidth type="number" value={value} 
     onChange={e => onChange(parseInt(e.target.value), field.id)}  
+    label={(!field.title && field.placeholder) ? field.placeholder : props.label}
     placeholder={field.placeholder || form_display_text_for_language(form, "Enter a number...", '')}
     sx={{
       '& input[type=number]': {
@@ -1583,6 +1591,7 @@ export const DropdownInput = ({ field, value, onChange }: FormInputProps<'Dropdo
               ? onChange(e.target.value ? [e.target.value] : [], field.id)
               : undefined
           )}
+          placeholder={field.placeholder + ((!field.title && !field.isOptional) ? '*' : '')}
           label={
             (!field.options?.radio && field.options?.other)
               ? "Press enter to save a custom value"

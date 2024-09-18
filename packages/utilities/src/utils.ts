@@ -1634,7 +1634,7 @@ export const validate_insurance_for_eligibility = (enduser: Pick<Enduser, 'insur
   if (!enduser.insurance.payerName) { return "Payer name not set" }
   if (!enduser.insurance.payerId) { return "Payer id not set" }
   if (!enduser.insurance.memberId) { return "Member id not set" }
-  if (!enduser.insurance.relationship) { return "Subscriber relationship set" }
+  if (!enduser.insurance.relationship) { return "Subscriber relationship not set" }
   if (enduser.insurance.relationship !== 'Self') {
     if (!enduser.insurance.relationshipDetails?.fname) { return "Subscriber first name not set" }
     if (!enduser.insurance.relationshipDetails?.lname) { return "Subscriber last name not set" } 

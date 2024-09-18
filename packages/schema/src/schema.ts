@@ -299,6 +299,7 @@ import {
   labeledFieldsValidator,
   fieldMappingsValidator,
   analyticsFrameGroupingCategoriesValidator,
+  customDashboardViewValidator,
 } from "@tellescope/validation"
 
 import {
@@ -1364,6 +1365,7 @@ export const schema: SchemaV1 = build_schema({
       vitalTriggersDisabled: { validator: booleanValidator },
       defaultFromPhone: { validator: phoneValidator },
       defaultFromEmail: { validator: emailValidator },
+      useDefaultFromEmailInAutomations: { validator: booleanValidator },
       // recentMessagePreview: { 
       //   validator: stringValidator,
       // },
@@ -3307,6 +3309,7 @@ export const schema: SchemaV1 = build_schema({
         }))
       },
       canvasId: { validator: stringValidator100 },
+      dashboardView: { validator: customDashboardViewValidator }
     }
   },
   templates: {
@@ -4047,9 +4050,10 @@ export const schema: SchemaV1 = build_schema({
         examples: [PLACEHOLDER_ID],
       }, 
       title: {
-        validator: stringValidator250,
+        validator: stringValidatorOptionalEmptyOkay,
         required: true,
         examples: ["Text"],
+        initializer: () => '',
       }, 
       headerText: { validator: stringValidator250 },
       placeholder: { validator: stringValidatorOptional },
@@ -4083,6 +4087,7 @@ export const schema: SchemaV1 = build_schema({
       },
       disabledWhenPrepopulated: { validator: booleanValidator },
       feedback: { validator: listValidatorOptionalOrEmptyOk(formFieldFeedbackValidator) },
+      titleFontSize: { validator: nonNegNumberValidator },
     }
   },
   form_responses: {
@@ -7126,6 +7131,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
       orderStatus: { validator: stringValidator1000 },
       pharmacyName: { validator: stringValidator1000 },
+      prescriberName: { validator: stringValidator1000 },
     }
   },
   phone_trees: {
