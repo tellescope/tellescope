@@ -837,7 +837,7 @@ export type CustomActions = {
     disconnect_google_integration: CustomAction<{}, {}>,
     generate_oauth2_auth_url: CustomAction<{ integration: IntegrationsTitleType }, { authUrl: string, state: string }>, 
     add_api_key_integration: CustomAction<{ API_KEY: string, integration: string, externalId?: string, webhooksSecret?: string, environment?: string, fields?: Record<string, string>, scope?: string }, { integration: Integration }>, 
-    remove_api_key_integration: CustomAction<{ integration: string }, { }>, 
+    remove_api_key_integration: CustomAction<{ integration: string, externalId?: string }, { }>, 
     disconnect_oauth2_integration: CustomAction<{ integration: IntegrationsTitleType }, {}>,
     refresh_oauth2_session: CustomAction<{ title: string }, { access_token: string, expiry_date: number }>, 
     connect_stripe: CustomAction<{ accountId?: string, countryCode?: StripeCountryCode }, { accountId: string, accountLinkUrl: string }>, 
@@ -907,6 +907,7 @@ export type CustomActions = {
       holdUntil?: Date,
       holdFormResponseId?: string,
       reason?: string,
+      scheduledBy?: string,
     }, { 
       createdEvent: CalendarEvent,
     }>,
@@ -984,7 +985,11 @@ export type CustomActions = {
       { productIds: string[] }, 
       { customerId: string, clientSecret: string, publishableKey: string, stripeAccount: string, businessName: string }
     >,
-    get_stripe_portal_session: CustomAction<{ return_url: string }, { url: string }>
+    get_stripe_portal_session: CustomAction<{ 
+      stripeKey?: string,
+      stripeCustomerId?: string,
+      return_url: string 
+    }, { url: string }>
   },
   purchases: {
     charge_card_on_file: CustomAction<
@@ -1366,6 +1371,8 @@ export const schema: SchemaV1 = build_schema({
       defaultFromPhone: { validator: phoneValidator },
       defaultFromEmail: { validator: emailValidator },
       useDefaultFromEmailInAutomations: { validator: booleanValidator },
+      stripeCustomerId: { validator: stringValidator100 },
+      stripeKey: { validator: stringValidator250 },
       // recentMessagePreview: { 
       //   validator: stringValidator,
       // },
@@ -2061,6 +2068,7 @@ export const schema: SchemaV1 = build_schema({
         description: "", 
         parameters: {
           integration: { validator: stringValidator, required: true },
+          externalId: { validator: stringValidator },
         },
         returns: { }
       },
@@ -3309,7 +3317,8 @@ export const schema: SchemaV1 = build_schema({
         }))
       },
       canvasId: { validator: stringValidator100 },
-      dashboardView: { validator: customDashboardViewValidator }
+      dashboardView: { validator: customDashboardViewValidator },
+      hideFromCalendarView: { validator: booleanValidator },
     }
   },
   templates: {
@@ -4625,6 +4634,7 @@ export const schema: SchemaV1 = build_schema({
           holdUntil: { validator: dateValidator },
           holdFormResponseId: { validator: mongoIdStringValidator },
           reason: { validator: stringValidator5000 },
+          scheduledBy: { validator: mongoIdStringValidator },
         },
         returns: { 
           createdEvent: { validator: 'calenar_event' as any },
@@ -4885,6 +4895,7 @@ export const schema: SchemaV1 = build_schema({
       useUserURL: { validator: booleanValidator },
       instructions: { validator: stringValidator5000EmptyOkay },
       reason: { validator: stringValidator5000 },
+      scheduledBy: { validator: mongoIdStringValidator },
       // isAllDay: { validator: booleanValidator },
     }
   },
@@ -4931,6 +4942,7 @@ export const schema: SchemaV1 = build_schema({
       carePlanFiles: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
       carePlanTasks: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       videoIntegration: { validator: videoIntegrationTypesValidator },
+      generateZoomLinkWhenBooked: { validator: booleanValidator },
       color: { validator: stringValidator1000 },
       apiOnly: { validator: booleanValidator },
       enduserAttendeeLimit: { validator: numberValidator },
@@ -6090,6 +6102,7 @@ export const schema: SchemaV1 = build_schema({
       iframeURL: { validator: stringValidator1000 },
       iconURL: { validator: stringValidator1000 },
       activeIconURL: { validator: stringValidator1000 },
+      showStripePortalLink: { validator: booleanValidator },
     },
   }, 
   enduser_tasks: {
@@ -6355,6 +6368,8 @@ export const schema: SchemaV1 = build_schema({
         path: '/products/stripe-portal-session',
         description: "Prepares a Stripe checkout process",
         parameters: { 
+          stripeKey: { validator: stringValidator250, },
+          stripeCustomerId: { validator: stringValidator100, },
           return_url: { validator: stringValidator, required: true },
         },
         returns: {

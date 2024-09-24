@@ -137,6 +137,7 @@ export const ZENDESK_INTEGRATIONS_TITLE = "Zendesk"
 export const ZENDESK_REDIRECT_URI_ENDING = "/zendesk-oauth2-verify"
 export const FULLSCRIPT_INTEGRATIONS_TITLE = "Fullscript"
 export const FULLSCRIPT_REDIRECT_URI_ENDING = "/fullscript-oauth2-verify"
+export const STRIPE_TITLE = "Stripe"
 
 export const ORGANIZATION_WIDE_INTEGRATIONS = [
   OPENAI_TITLE, 

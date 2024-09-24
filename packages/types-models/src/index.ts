@@ -354,7 +354,8 @@ export interface Organization extends Organization_readonly, Organization_requir
   analyticsIframes?: {
     title: string,
     iframeURL: string,
-  }[]
+  }[],
+  stripePublicKeys?: string[],
   // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {
@@ -553,6 +554,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   requiresMFAConfiguration?: boolean,
   templateFields?: LabeledField[]
   dashboardView?: CustomDashboardView,
+  hideFromCalendarView?: boolean,
 }
 
 export type Preference = 'email' | 'sms' | 'call' | 'chat'
@@ -754,6 +756,8 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   defaultFromPhone?: string,
   defaultFromEmail?: string,
   useDefaultFromEmailInAutomations?: boolean,
+  stripeCustomerId?: string,
+  stripeKey?: string,
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
 }
@@ -2030,6 +2034,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   healthieZoomStartURL?: string,
   healthieZoomJoinURL?: string,
   instructions?: string,
+  scheduledBy?: string,
   // isAllDay?: boolean,
 }
 
@@ -2075,6 +2080,7 @@ export interface Purchase extends Purchase_readonly, Purchase_required, Purchase
   externalId?: string,
   cptCode?: BillingCode,
   notes?: string,
+  references?: RelatedRecord[],
 }
 
 type BuildPurchaseCreditInfo <T, I> = { type: T, info: I }
@@ -2110,6 +2116,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   type?: string,
   enableVideoCall?: boolean,
   videoIntegration?: VideoIntegrationType,
+  generateZoomLinkWhenBooked?: boolean,
   enableSelfScheduling?: boolean,
   restrictedByState?: boolean,
   publicRead?: boolean,
@@ -2724,6 +2731,7 @@ export interface PortalCustomization extends PortalCustomization_readonly, Porta
   iframeURL?: string,
   iconURL?: string,
   activeIconURL?: string,
+  showStripePortalLink?: boolean,
 }
 export const MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION = 1000
 export const DEFAULT_PATIENT_PORTAL_BOTTOM_NAVIGATION_POSITIONS: { [K in PortalPage]: number } = {

@@ -337,6 +337,7 @@ import {
   PAGER_DUTY_TITLE,
   SMART_METER_TITLE,
   SQUARE_INTEGRATIONS_TITLE,
+  STRIPE_TITLE,
   ZENDESK_INTEGRATIONS_TITLE,
   ZOHO_TITLE,
   ZOOM_TITLE,
@@ -1840,7 +1841,7 @@ export const insuranceOptionalValidator = objectValidator<EnduserInsurance>({
   relationship: exactMatchValidatorOptional(INSURANCE_RELATIONSHIPS),
   coverageId: stringValidatorOptional,
   requestId: stringValidatorOptional,
-  eligibility: stringValidatorOptional,
+  eligibility: stringValidator100000OptionalEmptyOkay,
   // eligible: booleanValidatorOptional,
   eligibilityRanAt: dateValidatorOptional,
   status: stringValidatorOptional,
@@ -4281,6 +4282,7 @@ export type IntegrationsTitleType = (
 | typeof DOSESPOT_TITLE
 | typeof DOCSUMO_TITLE
 | typeof ACTIVE_CAMPAIGN_TITLE
+| typeof STRIPE_TITLE
 )
 export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleType>([
   SQUARE_INTEGRATIONS_TITLE,
@@ -4300,6 +4302,7 @@ export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleTy
   DOSESPOT_TITLE,
   DOCSUMO_TITLE,
   ACTIVE_CAMPAIGN_TITLE,
+  STRIPE_TITLE,
 ])
 
 const _VIDEO_INTEGRATION_TYPES: { [K in VideoIntegrationType]: any} = {
