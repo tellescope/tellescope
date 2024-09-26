@@ -1371,6 +1371,7 @@ export const schema: SchemaV1 = build_schema({
       defaultFromPhone: { validator: phoneValidator },
       defaultFromEmail: { validator: emailValidator },
       useDefaultFromEmailInAutomations: { validator: booleanValidator },
+      useDefaultFromPhoneInAutomations: { validator: booleanValidator },
       stripeCustomerId: { validator: stringValidator100 },
       stripeKey: { validator: stringValidator250 },
       // recentMessagePreview: { 
@@ -3718,10 +3719,12 @@ export const schema: SchemaV1 = build_schema({
       calendarEventId: { validator: mongoIdStringValidator },
       observationId: { validator: mongoIdStringValidator },
       phoneCallId: { validator: mongoIdStringValidator },
+      smsId: { validator: mongoIdStringValidator },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       restrictByState: { validator: stateValidator },
       restrictByTags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       restrictByTagsQualifier: { validator: listQueryQualifiersValidator },
+      archiveReason: { validator: stringValidator },
     }
   },
   meetings: {
@@ -6103,6 +6106,8 @@ export const schema: SchemaV1 = build_schema({
       iconURL: { validator: stringValidator1000 },
       activeIconURL: { validator: stringValidator1000 },
       showStripePortalLink: { validator: booleanValidator },
+      hideCancellatation: { validator: booleanValidator },
+      hiddenEventTitles: { validator: listOfStringsValidatorEmptyOk },
     },
   }, 
   enduser_tasks: {

@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/types-models",
-  "version": "1.123.0",
+  "version": "1.124.0",
   "description": "Models used in Tellescope across the stack",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
@@ -34,7 +34,7 @@
   "publishConfig": {
     "access": "public"
   },
-  "gitHead": "564bdc0b1aa1f476be70fceee7fabd8afda30da0",
+  "gitHead": "7be4ae7d05361759e5de904671e86c16ece21323",
   "references": [
     {
       "path": "../types-utilities"

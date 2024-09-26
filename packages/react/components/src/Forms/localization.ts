@@ -21,6 +21,15 @@ export const form_display_text_for_language = (form: Pick<Form, 'language'> | un
     if (text === 'Previous')  { return "Previo" }
     if (text === 'Submit')  { return "Entregar" }
 
+    if (text === 'Select One')  { return "Seleccione una" }
+    if (text === 'Other')  { return "Otra" }
+    
+    if (text === 'Address Line 1')  { return "Dirección Línea 1" }
+    if (text === 'Address Line 2')  { return "Dirección Línea 2" }
+    if (text === 'City')  { return "Ciudad" }
+    if (text === 'State')  { return "Estado" }
+    if (text === 'ZIP Code')  { return "Código Postal" }
+
     if (typeof placeholder === 'string') { return placeholder }
   }
 

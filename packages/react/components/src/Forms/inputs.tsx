@@ -846,7 +846,7 @@ export const TimeInput = ({ field, value, onChange, ...props }: FormInputProps<'
   )
 }
 
-export const AddressInput = ({ field, value, onChange, ...props }: FormInputProps<'Address'>) => (
+export const AddressInput = ({ field, form, value, onChange, ...props }: FormInputProps<'Address'>) => (
   // state only
   field.options?.addressFields?.includes('state')
     ? (
@@ -862,7 +862,8 @@ export const AddressInput = ({ field, value, onChange, ...props }: FormInputProp
         )}
         renderInput={(params) => (
           <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
-            size={'small'} label={"State"} required={!field.isOptional}  
+            size={'small'} required={!field.isOptional}  
+            label={form_display_text_for_language(form, "State")} 
           />
         )}
         {...props}
@@ -871,9 +872,10 @@ export const AddressInput = ({ field, value, onChange, ...props }: FormInputProp
     : (
     <Grid container direction="column" spacing={2} sx={{ mt: 0 }}>
       <Grid item>
-      <AutoFocusTextField {...props} size="small" label="Address Line 1" required={!field.isOptional} fullWidth 
+      <AutoFocusTextField {...props} size="small" required={!field.isOptional} fullWidth 
         value={value?.addressLineOne ?? ''} 
-        placeholder="Address Line 1" 
+        label={form_display_text_for_language(form, "Address Line 1")} 
+        placeholder={form_display_text_for_language(form, "Address Line 1")} 
         onChange={e => 
           onChange({
             ...value as any,
@@ -885,10 +887,11 @@ export const AddressInput = ({ field, value, onChange, ...props }: FormInputProp
       </Grid>
 
       <Grid item>
-      <TextField {...props} size="small" label="Address Line 2" required={false} fullWidth 
+      <TextField {...props} size="small" required={false} fullWidth 
         InputProps={defaultInputProps}
         value={value?.addressLineTwo ?? ''} 
-        placeholder="Address Line 2" 
+        label={form_display_text_for_language(form, "Address Line 2")}
+        placeholder={form_display_text_for_language(form, "Address Line 2")} 
         onChange={e => 
           onChange({
             ...value as any,
@@ -902,11 +905,12 @@ export const AddressInput = ({ field, value, onChange, ...props }: FormInputProp
       <Grid item>
       <Grid container alignItems="center" justifyContent={"space-between"} spacing={1}>
         <Grid item xs={12} sm={field.fullZIP ? 5 : 6}>
-          <TextField {...props} size="small" label="City" required={!field.isOptional} 
+          <TextField {...props} size="small" required={!field.isOptional} 
             InputProps={defaultInputProps}
             fullWidth
             value={value?.city ?? ''} 
-            placeholder="City" 
+            label={form_display_text_for_language(form, "City")}
+            placeholder={form_display_text_for_language(form, "City")} 
             onChange={e => 
               onChange({
                 ...value as any,
@@ -930,7 +934,8 @@ export const AddressInput = ({ field, value, onChange, ...props }: FormInputProp
             )}
             renderInput={(params) => (
               <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
-                size={'small'} label={"State"} required={!field.isOptional}  
+                size={'small'} required={!field.isOptional}  
+                label={form_display_text_for_language(form, "State")} 
               />
             )}
             {...props}
@@ -938,10 +943,11 @@ export const AddressInput = ({ field, value, onChange, ...props }: FormInputProp
         </Grid>
 
         <Grid item xs={field.fullZIP ? 5 : 6} sm={field.fullZIP ? 2 : 3}>
-          <TextField {...props} size="small" label="ZIP Code" required={!field.isOptional} 
+          <TextField {...props} size="small" required={!field.isOptional} 
             InputProps={defaultInputProps} fullWidth
             value={value?.zipCode ?? ''} 
-            placeholder="ZIP Code" 
+            label={form_display_text_for_language(form, "ZIP Code")}
+            placeholder={form_display_text_for_language(form, "ZIP Code")}
             onChange={e => 
               onChange({
                 ...value as any,
@@ -1305,7 +1311,7 @@ const multipleChoiceItemSx: SxProps = {
   },
 }
 
-export const MultipleChoiceInput = ({ field, value: _value, onChange }: FormInputProps<'multiple_choice'>) => {
+export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: FormInputProps<'multiple_choice'>) => {
   const value = typeof _value === 'string' ? [_value] : _value // if loading existingResponses, allows them to be a string
   const { choices, radio, other } = field.options as MultipleChoiceOptions
 
@@ -1318,7 +1324,9 @@ export const MultipleChoiceInput = ({ field, value: _value, onChange }: FormInpu
       {radio
         ? (
           <FormControl fullWidth>
-            <FormLabel id={`radio-group-${field.id}-label`}>Select One</FormLabel>
+            <FormLabel id={`radio-group-${field.id}-label`}>
+              {form_display_text_for_language(form, "Select One")} 
+            </FormLabel>
             <RadioGroup
               aria-labelledby={`radio-group-${field.id}-label`}
               defaultValue="female"
@@ -1374,9 +1382,10 @@ export const MultipleChoiceInput = ({ field, value: _value, onChange }: FormInpu
             InputProps={{ sx: { borderRadius: 2.5 }}} // match Checkbox, not default styles
             sx={{ width: radio ? `calc(100% - 15px)` : '100%' }}
             size="small"
-            aria-label="Other"
+            aria-label={form_display_text_for_language(form, "Other")}
             value={otherString} 
-            placeholder="Other" variant="outlined" 
+            placeholder={form_display_text_for_language(form, "Other")}
+            variant="outlined" 
             // onClick={() => !otherChecked && handleOtherChecked()} // allow click to enable when disabled
             onChange={e => {
               enteringOtherStringRef.current = e.target.value

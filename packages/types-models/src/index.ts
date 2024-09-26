@@ -193,6 +193,7 @@ export type OrganizationSettings = {
     showCommunications?: boolean,
     showJourneys?: boolean,
     requireDueDate?: boolean,
+    allowArchival?: boolean,
   },
   calendar?: {
     dayStart?: {
@@ -601,6 +602,7 @@ export type EnduserRelationship = {
     | 'Caregiver' | 'Caretaker' | 'Care Recipient'
     | 'Power of Attorney' | 'Power of Attorney For'
     | "Emergency Contact"  | "Emergency Contact For"
+    | "Care Partner"
     | 'Relates To' 
   )
   id: string,
@@ -756,6 +758,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   defaultFromPhone?: string,
   defaultFromEmail?: string,
   useDefaultFromEmailInAutomations?: boolean,
+  useDefaultFromPhoneInAutomations?: boolean,
   stripeCustomerId?: string,
   stripeKey?: string,
   // unsubscribedFromEmail?: boolean,
@@ -1292,12 +1295,14 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
   reminders?: TicketReminder[],
   preserveContext?: boolean,
   phoneCallId?: string,
+  smsId?: string,
   calendarEventId?: string,
   observationId?: string,
   tags?: string[],
   restrictByState?: string,
   restrictByTags?: string[],
   restrictByTagsQualifier?: ListQueryQualifier,
+  archiveReason?: string,
 }
 
 export type AttendeeInfo = {
@@ -2732,6 +2737,8 @@ export interface PortalCustomization extends PortalCustomization_readonly, Porta
   iconURL?: string,
   activeIconURL?: string,
   showStripePortalLink?: boolean,
+  hideCancellatation?: boolean,
+  hiddenEventTitles?: string[],
 }
 export const MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION = 1000
 export const DEFAULT_PATIENT_PORTAL_BOTTOM_NAVIGATION_POSITIONS: { [K in PortalPage]: number } = {
@@ -3357,10 +3364,14 @@ export type AutomationTriggerEvents = {
     phoneNumbers?: string[], 
     inputs?: string[], 
   }, {}>,
+  'Left Voicemail': AutomationTriggerEventBuilder<"Left Voicemail", { 
+    phoneNumbers?: string[], 
+    inputs?: string[], 
+  }, {}>,
   'Order Created': AutomationTriggerEventBuilder<"Order Created", { titles?: string[] }, {}>,
   'Problem Created': AutomationTriggerEventBuilder<"Problem Created", { titles?: string[] }, {}>,
   'Message Delivery Failure': AutomationTriggerEventBuilder<"Message Delivery Failure", { }, {}>,
-  'Incoming Message': AutomationTriggerEventBuilder<"Incoming Message", { noCareTeam?: boolean, destinations?: string[], channels?: string[],  }, {}>,
+  'Incoming Message': AutomationTriggerEventBuilder<"Incoming Message", { noCareTeam?: boolean, destinations?: string[], channels?: string[], keywords?: string[] }, {}>,
   'Pregnancy Ended': AutomationTriggerEventBuilder<"Pregnancy Ended", { reason?: string }, {}>,
   'Form Group Completed': AutomationTriggerEventBuilder<"Form Group Completed", { groupId: string }, {}>,
   'Form Group Incomplete': AutomationTriggerEventBuilder<"Form Group Incomplete", { groupId: string, intervalInMS: number }, {}>,

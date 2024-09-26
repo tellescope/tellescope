@@ -360,6 +360,7 @@ export interface ValidatorOptions {
   errorMessage?: string;
   trim?: boolean;
   unique?: boolean, // should list contain uniques
+  field?: string,
 }  
 export interface ValidatorOptionsForValue extends ValidatorOptions {
   listOf?: false;
@@ -413,7 +414,7 @@ export const build_validator: BuildValidator_T = (escapeFunction, options={} as 
     shouldTruncate, isOptional, toLower,
     emptyStringOk, emptyListOk, nullOk,
     isObject, isNumber, listOf, isBoolean,
-    unique,
+    unique, field='',
   } = options
 
   const minLength = options.minLength || 0
@@ -443,7 +444,7 @@ export const build_validator: BuildValidator_T = (escapeFunction, options={} as 
     if (isNumber && fieldValue === 0) return 0 // avoid falsey issues later
 
     if (!isOptional && !fieldValue && !(isBoolean && fieldValue === false)) {
-      throw 'missing value'
+      throw { message: 'missing value', field }
     }
 
     // asserts for listOf === true, that fieldValue typed as array
@@ -720,12 +721,19 @@ export const objectValidator = <T extends object | undefined>(i: InputValidation
       for (const field in i) {
         // console.log('validating field of object', field)
         const value = (object as Indexable)[field] 
-        // console.log(field, value)
-        const escaped = i[field].validate()(value) // may be required
-        // console.log('escaped', escaped)
-        if (escaped === undefined) continue
+        try {
+          const escaped = i[field].validate({ field })(value) // may be required
 
-        (validated as Indexable)[field] = escaped
+          // console.log('escaped', escaped)
+          if (escaped === undefined) continue
+
+          (validated as Indexable)[field] = escaped
+        } catch(err: any) {
+          if (err.message === 'missing value') {
+            throw { ...err, field: o.field || field }
+          }
+          throw err
+        }
       }
 
       return validated
@@ -3631,6 +3639,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     showCommunications: booleanValidatorOptional,
     showJourneys: booleanValidatorOptional,
     requireDueDate: booleanValidatorOptional,
+    allowArchival: booleanValidatorOptional,
   }, { isOptional: true }),
   calendar: objectValidator<OrganizationSettings['calendar']>({
     dayStart: objectValidator<Required<OrganizationSettings>['calendar']['dayStart']>({
@@ -3720,6 +3729,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Pregnancy Ended": true,
   "Form Group Completed": true,
   "Form Group Incomplete": true,
+  "Left Voicemail": true,
 }
 export const AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES) as AutomationTriggerEventType[]
 
@@ -3778,6 +3788,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
       noCareTeam: booleanValidatorOptional,
       destinations: listOfStringsValidatorOptionalOrEmptyOk,
       channels: listOfStringsValidatorOptionalOrEmptyOk,
+      keywords: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -3875,6 +3886,14 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
   "Missed Call": objectValidator<AutomationTriggerEvents["Missed Call"]>({
     type: exactMatchValidator(['Missed Call']),
     info: objectValidator<AutomationTriggerEvents['Missed Call']['info']>({
+      inputs: listOfStringsValidatorOptionalOrEmptyOk,
+      phoneNumbers: listOfStringsValidatorOptionalOrEmptyOk,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Left Voicemail": objectValidator<AutomationTriggerEvents["Left Voicemail"]>({
+    type: exactMatchValidator(['Left Voicemail']),
+    info: objectValidator<AutomationTriggerEvents['Left Voicemail']['info']>({
       inputs: listOfStringsValidatorOptionalOrEmptyOk,
       phoneNumbers: listOfStringsValidatorOptionalOrEmptyOk,
     }),

@@ -503,6 +503,7 @@ export const RELATIONSHIP_TYPES = [
   'Power of Attorney For',
   'Emergency Contact',
   'Emergency Contact For',
+  "Care Partner",
   'Relates To',
 ] satisfies EnduserRelationship['type'][]
 
@@ -535,6 +536,8 @@ export const get_inverse_relationship_type = (type: EnduserRelationship['type'])
     ? 'Emergency Contact For'
 : type === 'Emergency Contact For'
     ? 'Emergency Contact'
+: type === 'Care Partner'
+    ? 'Care Partner'
     : 'Relates To'
 )
 

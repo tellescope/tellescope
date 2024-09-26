@@ -1,4 +1,4 @@
-import { AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserObservation, EnduserRelationship, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, LabeledField, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, TIMEZONES, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
+import { AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserInsurance, EnduserObservation, EnduserRelationship, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, LabeledField, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, TIMEZONES, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
 import { ADMIN_ROLE, get_inverse_relationship_type } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 import { DateTime } from "luxon"
@@ -779,7 +779,7 @@ export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Endu
           }
 
           if (k === '$before' || k === '$after') {
-            const vDate = new Date(v)
+            const vDate = v === '$now' ? new Date() : new Date(v)
             if (isNaN(vDate.getTime())) return false
 
             const eDateField = enduser.fields?.[key] ?? get_enduser_field_value_for_key(enduser, key)
@@ -796,6 +796,23 @@ export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Endu
             return (
                (k === '$before' && eDate.getTime() < vDate.getTime())
             || (k === '$after' && eDate.getTime() > vDate.getTime())
+            )
+          }
+
+          if (k === '$lt' || k === '$gt') {
+            const enduserValue = enduser.fields?.[key]
+            if (typeof enduserValue !== 'number') return false
+
+            const _v = (
+              typeof v === 'number'
+                ? v
+                : parseInt(v)
+            )
+            if (isNaN(_v)) return false
+
+            return (
+                (k === '$lt' && enduserValue < _v)
+            ||  (k === '$gt' && enduserValue > _v)
             )
           }
 
@@ -2104,3 +2121,10 @@ export const downloadFile = (data: Uint8Array | Blob | Buffer | string, options 
 }
 
 export const is_timezone = (value: any): value is Timezone => (typeof value === 'string' && TIMEZONES.includes(value as Timezone))
+
+export const enduser_address_string = (e: Enduser) => (
+  `${e.addressLineOne ? e.addressLineOne : ''}${e.addressLineTwo ? ` ${e.addressLineTwo}` : ''}${e.addressLineOne || e.addressLineTwo ? ', ' : ''}${e.city ? `${e.city}, ` : ''}${e.state ? `${e.state}${e.zipCode ? ', ' : ''}` : ''}${e.zipCode ? e.zipCode : ''}${e.zipPlusFour && e.zipCode ? `-${e.zipPlusFour}`: ''}`
+)
+export const enduser_insurance_string = (i?: EnduserInsurance) => !i ? '' : (
+  `${i.payerName}${i.memberId ? ` (${i.memberId})` : ''}`
+)

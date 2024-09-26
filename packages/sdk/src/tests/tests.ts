@@ -8459,6 +8459,50 @@ const mdb_filter_tests = async () => {
   ])
 }
 
+const uniqueness_tests = async () => {
+  log_header("Uniqueness Tests")
+  const email = "test@tellescope.com"
+  const externalId = "12345"
+  const dateOfBirth = "12-20-1997"
+
+  const form = await sdk.api.forms.createOne({ title: 'test form for duplication', allowPublicURL: true })
+  await sdk.api.form_fields.createOne({ formId: form.id, title: 'title', type: 'string', previousFields: [{ type: 'root', info: { }}]})
+
+  const [eExternalId, other] = (await sdk.api.endusers.createSome([{ email, externalId }, { }])).created
+  const eExternalIdOnUpdate = await sdk.api.endusers.createOne({ })
+
+  await enduserSDK.api.form_responses.session_for_public_form({ businessId: form.businessId, formId: form.id, skipMatch: true, dateOfBirth })
+  const enduserNoCreator = await sdk.api.endusers.getOne({ dateOfBirth })
+  
+  assert(enduserNoCreator.creator === null, 'creator null from public form', 'creator null from public form')
+
+  await async_test(
+    "Cannot create with duplicate externalId",
+    () => sdk.api.endusers.createOne({ email: 'notaconflict2@tellescope.com', phone: "+15555555555", externalId }),
+    { shouldError: true, onError: e => e.message === UniquenessViolationMessage }
+  ) 
+
+  await async_test(
+    "Cannot update to set duplicate externalId",
+    () => sdk.api.endusers.updateOne(eExternalIdOnUpdate.id, { email, phone: "+15555555555", externalId }, { replaceObjectFields: true }),
+    { shouldError: true, onError: e => e.message === UniquenessViolationMessage }
+  ) 
+
+  await async_test(
+    "Cannot update to set duplicate externalId",
+    () => sdk.api.endusers.updateOne(enduserNoCreator.id, { email, phone: "+15555555555", externalId }, { replaceObjectFields: true }),
+    { shouldError: true, onError: e => e.message === UniquenessViolationMessage }
+  ) 
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(eExternalId.id),
+    sdk.api.endusers.deleteOne(other.id),
+    sdk.api.endusers.deleteOne(eExternalIdOnUpdate.id),
+    sdk.api.endusers.deleteOne(enduserNoCreator.id),
+    sdk.api.forms.deleteOne(form.id),
+  ])
+}
+
 (async () => {
   log_header("API")
 
@@ -8490,7 +8534,39 @@ const mdb_filter_tests = async () => {
       sdkSubSub.authenticate(subSubUserEmail, password),
       sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword),
     ]) 
-    console.log("Authentication done")
+
+    await async_test(
+      'Nested error message',
+      () => sdk.api.endusers.createOne({ bookingNotes: [{ note: 'optional note' } as any]}),
+      { shouldError: true, onError: e => e.message === 'Value not provided for required field: bookingNotes.bookingPageId'}
+    )
+    await async_test(
+      'Nested error message',
+      () => sdk.api.endusers.createOne({ weight: { unit: undefined as any, value: 10 }}),
+      { shouldError: true, onError: e => e.message === 'Value not provided for required field: weight.unit'}
+    )
+    // await async_test(
+    //   'Nested error message?',
+    //   () => sdk.api.form_responses.createOne({ 
+    //       enduserId: PLACEHOLDER_ID,
+    //       formId: PLACEHOLDER_ID,
+    //       formTitle: 'test',
+    //       responses: [
+    //         {
+    //           'fieldId': '113', 
+    //           'fieldTitle': 'Thanks! Could you share a few more details about your insurance plan with us, please?',
+    //           answer: {
+    //             type: "Table Input",
+    //             value: [
+    //               []
+    //             ]
+    //           }
+
+    //         },
+    //       ]
+    //   }),
+    //   passOnAnyResult
+    // )
 
     await async_test(
       "Uniqueness violation redacts sensitive existing record details",
@@ -8541,6 +8617,7 @@ const mdb_filter_tests = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await uniqueness_tests()
     await redaction_tests()
     await self_serve_appointment_booking_tests()
     await no_chained_triggers_tests()
