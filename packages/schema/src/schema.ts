@@ -300,6 +300,7 @@ import {
   fieldMappingsValidator,
   analyticsFrameGroupingCategoriesValidator,
   customDashboardViewValidator,
+  bookingRestrictionsByTemplateValidator,
 } from "@tellescope/validation"
 
 import {
@@ -912,7 +913,7 @@ export type CustomActions = {
       createdEvent: CalendarEvent,
     }>,
     stripe_details: CustomAction<{ }, { stripe?: StripeCheckoutInfo }>,
-    generate_zoom_meeting: CustomAction<{ calendarEventId: string, userId: string }, { updatedEvent: CalendarEvent }>, 
+    generate_zoom_meeting: CustomAction<{ calendarEventId?: string, userId: string, startTimeInMS?: number, durationInMinutes?: number }, { updatedEvent: CalendarEvent }>, 
     change_zoom_host: CustomAction<{ calendarEventId: string, userId: string }, { updatedEvent: CalendarEvent }>, 
     download_ics_file: CustomAction<{ calendarEventId: string, attendeeId?: string, attendeeType?: SessionType, excludeAttendee?: boolean }, { }>,
     get_report: CustomAction<{ range?: DateRange, groupBy?: string, templateIds?: string[] }, { report: Report }>,
@@ -1892,6 +1893,7 @@ export const schema: SchemaV1 = build_schema({
       defaultAttendeeId: { validator: mongoIdStringValidator },
       sendEmailOnSync: { validator: booleanValidator },
       enduserFieldMapping: { validator: fieldMappingsValidator },
+      default_dietitian_id: { validator: stringValidator100 },
     },
     customActions: {
       update_zoom: {
@@ -1939,7 +1941,7 @@ export const schema: SchemaV1 = build_schema({
         returns: { authUrl: { validator: stringValidator, required: true }, }
       },
       generate_oauth2_auth_url: {
-        op: 'custom', access: 'delete', method: 'post',
+        op: 'custom', access: 'create', method: 'post',
         path: '/generate-oauth2-auth-url',
         description: "", 
         parameters: { integration: { validator: integrationTitleValidator,  }},
@@ -4667,8 +4669,10 @@ export const schema: SchemaV1 = build_schema({
         path: '/generate-zoom-meeting',
         description: "Generates a Zoom meeting for including in a Calendar Event",
         parameters: { 
-          calendarEventId: { validator: stringValidator, required: true },
           userId: { validator: stringValidator, required: true },
+          calendarEventId: { validator: stringValidator },
+          startTimeInMS: { validator: nonNegNumberValidator },
+          durationInMinutes: { validator: nonNegNumberValidator },
         },
         returns: { 
           updatedEvent: { validator: 'calendar_event' as any, required: true },
@@ -4874,6 +4878,7 @@ export const schema: SchemaV1 = build_schema({
       externalId: { validator: stringValidator },
       source: { validator: stringValidator },
       videoIntegration: { validator: videoIntegrationTypesValidator },
+      videoHostUserId: { validator: mongoIdStringValidator },
       videoURL: { validator: stringValidator },
       externalVideoURL: { validator: stringValidator },
       timezone: { validator: timezoneValidator},
@@ -4900,6 +4905,12 @@ export const schema: SchemaV1 = build_schema({
       reason: { validator: stringValidator5000 },
       scheduledBy: { validator: mongoIdStringValidator },
       // isAllDay: { validator: booleanValidator },
+      statusChangeSource: {
+        validator: objectValidator<CalendarEvent['statusChangeSource']>({
+          source: stringValidator100,
+          identifier: stringValidator100,
+        }),
+      }
     }
   },
   calendar_event_templates: {
@@ -6309,7 +6320,8 @@ export const schema: SchemaV1 = build_schema({
       fontFace: { validator: stringValidator },
       fontFamily: { validator: stringValidator5000EmptyOkay },
       fontURL: { validator: stringValidator },
-      collectReason: { validator: exactMatchValidator<Required<AppointmentBookingPageClient>['collectReason']>(['Do Not Collect', 'Optional', 'Required'])}
+      collectReason: { validator: exactMatchValidator<Required<AppointmentBookingPageClient>['collectReason']>(['Do Not Collect', 'Optional', 'Required'])},
+      restrictionsByTemplate: { validator: bookingRestrictionsByTemplateValidator },
       // defer to template
       // productIds: { validator: listOfStringsValidator },
     }
@@ -7368,6 +7380,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       type: { validator: stringValidator100 },
       defaultFromNumber: { validator: stringValidatorOptional },
       enduserFields: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      preventPull: { validator: listOfMongoIdStringValidatorEmptyOk },
     },
   },
   group_mms_conversations: {

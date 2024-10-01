@@ -186,6 +186,7 @@ export type OrganizationSettings = {
     canMoveSMS?: boolean,
     inboxRepliesMarkRead?: boolean,
     alwaysShowInsurance?: boolean,
+    defaultToOutboundConferenceCall?: boolean,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
@@ -314,6 +315,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedAthena?: boolean,
   hasConnectedActiveCampaign?: boolean,
   hasConnectedDocsumo?: boolean,
+  hasConnectedEmotii?: boolean,
   hasConfiguredZoom?: boolean,
   hasTicketQueues?: boolean,
   vitalTeamId?: string,
@@ -1346,7 +1348,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
 }
 
 export type FormFieldLiteralType = 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time'
-export type FormFieldComplexType = "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance"
+export type FormFieldComplexType = "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance"
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
 
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic'
@@ -1625,6 +1627,7 @@ export interface Integration extends Integration_readonly, Integration_required,
   defaultAttendeeId?: string,
   sendEmailOnSync?: boolean,
   enduserFieldMapping?: FieldMapping[],
+  default_dietitian_id?: string,
 }
 
 export type BuildDatabaseRecordField <K extends string, V, O> = { type: K, value: V, options: O & { width?: string } }
@@ -1765,6 +1768,7 @@ export type FormResponseAnswerMultipleChoice = FormResponseValueAnswerBuilder<'m
 export type FormResponseAnswerDropdown = FormResponseValueAnswerBuilder<'Dropdown', FormResponseAnswerMultipleChoiceValue>
 export type FormResponseAnswerRanking = FormResponseValueAnswerBuilder<'ranking', FormResponseAnswerMultipleChoiceValue>
 export type FormResponseAnswerHiddenValue = FormResponseValueAnswerBuilder<'Hidden Value', string>
+export type FormResponseAnswerEmotii = FormResponseValueAnswerBuilder<'Emotii', string>
 
 export type FormResponseAnswerFileValue = {
   secureName: string,
@@ -1803,6 +1807,7 @@ export type FormResponseValueAnswer = (
   | FormResponseAnswerHeight
   | FormResponseAnswerRedirect
   | FormResponseAnswerHiddenValue
+  | FormResponseAnswerEmotii
 )
 
 export type FormResponseValue = {
@@ -1847,6 +1852,7 @@ export type AnswerForType = {
   'Height': FormResponseAnswerHeight['value']
   'Redirect': FormResponseAnswerRedirect['value']
   'Hidden Value': FormResponseAnswerHiddenValue['value']
+  'Emotii': FormResponseAnswerEmotii['value']
 }
 
 export interface FormResponse_readonly extends ClientRecord {
@@ -2040,6 +2046,10 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   healthieZoomJoinURL?: string,
   instructions?: string,
   scheduledBy?: string,
+  statusChangeSource?: {
+    source: string,
+    identifier: string,
+  }
   // isAllDay?: boolean,
 }
 
@@ -2172,6 +2182,16 @@ export interface AppointmentLocation extends AppointmentLocation_readonly, Appoi
   instructions?: string,
 }
 
+export interface BookingRestrictions {
+  templateId: string,
+  restrictions: {
+    state?: boolean,
+    careTeam?: boolean,
+    tagsPortal?: string[],
+    hoursBefore?: number | '',
+    hoursAfter?: number | '',
+  }
+}
 export type AppointmentTerm = {
   title: string,
   link: string,
@@ -2209,7 +2229,8 @@ export interface AppointmentBookingPage extends AppointmentBookingPage_readonly,
   limitedByState?: boolean,
   limitedByTagsPortal?: string[],
   requireLocationSelection?: boolean,
-  collectReason?: "Do Not Collect" | 'Optional' | 'Required'
+  collectReason?: "Do Not Collect" | 'Optional' | 'Required',
+  restrictionsByTemplate?: BookingRestrictions[],
   // productIds?: string[], // defer to specific template
 }
 
@@ -3491,6 +3512,7 @@ export type PhoneTreeActions = {
     byTags?: ListOfStringsWithQualifier, 
     playback?: Partial<PhonePlayback>,
     duration?: number,
+    addToCareTeam?: boolean,
   }>
   'Forward Call': PhoneTreeActionBuilder<"Forward Call", { to: string }>
   'Conditional Split': PhoneTreeActionBuilder<"Conditional Split", { 
@@ -3630,6 +3652,7 @@ export interface TicketQueue extends TicketQueue_readonly, TicketQueue_required,
   defaultFromNumber?: string,
   enduserFields?: string[],
   lastRefreshedCountAt?: Date,
+  preventPull?: string[],
 }
 
 export interface EnduserOrder_readonly extends ClientRecord {}

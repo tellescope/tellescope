@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from "react"
 import { Button, CircularProgress, Flex, LoadingButton, Modal, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
-import { AddressInput, AppointmentBookingInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
+import { AddressInput, AppointmentBookingInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
@@ -131,6 +131,7 @@ export const QuestionForField = ({
   groupInstance,
   goToNextField,
   spacing,
+  isSinglePage,
 } : {
   spacing?: number,
   form?: Form,
@@ -140,6 +141,7 @@ export const QuestionForField = ({
   file: FileResponse,
   field: FormField,
   setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>,
+  isSinglePage?: boolean,
 } & Pick<TellescopeFormProps, "goToNextField" | "groupId" | "groupInstance" | "submit" | "formResponseId" | 'enduserId' | 'isPreviousDisabled' | 'goToPreviousField' | 'enduser' | 'handleDatabaseSelect' | 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField'>) => {
   const String = customInputs?.['string'] ?? StringInput
   const StringLong = customInputs?.['stringLong'] ?? StringLongInput
@@ -165,6 +167,7 @@ export const QuestionForField = ({
   const Height = customInputs?.['Height'] ?? HeightInput
   const Redirect = customInputs?.['Redirect'] ?? RedirectInput
   const HiddenValue = customInputs?.['Hidden Value'] ?? HiddenValueInput
+  const Emotii = customInputs?.['Emotii'] ?? EmotiiInput
 
   const validationMessage = validateField(field)
 
@@ -231,10 +234,13 @@ export const QuestionForField = ({
           <DateStringInput field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} form={form} />
         )
         : field.type === 'Hidden Value' ? (
-          <HiddenValue goToNextField={goToNextField} goToPreviousField={goToPreviousField} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} form={form} />
+          <HiddenValue isSinglePage={isSinglePage} goToNextField={goToNextField} goToPreviousField={goToPreviousField} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'Address' ? (
           <Address field={field} disabled={value.disabled} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
+        )
+        : field.type === 'Emotii' ? (
+          <Emotii field={field} disabled={value.disabled} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'Height' ? (
           <Height field={field} disabled={value.disabled} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
@@ -964,7 +970,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
           return (
             <Flex key={activeField.id} style={{ marginBottom: 5 }}>
               <Flex column flex={1}>
-                <QuestionForField fields={fields} field={activeField} handleDatabaseSelect={handleDatabaseSelect}
+                <QuestionForField isSinglePage fields={fields} field={activeField} handleDatabaseSelect={handleDatabaseSelect}
                   enduserId={props.enduserId} formResponseId={props.formResponseId} submit={submit}
                   enduser={enduser} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled} goToNextField={goToNextField}
                   repeats={repeats} onRepeatsChange={setRepeats} setCustomerId={setCustomerId}

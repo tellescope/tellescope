@@ -30,6 +30,7 @@ export interface FormInputProps<K extends keyof AnswerForType> {
   groupId?: string,
   groupInsance?: string,
   disabled?: boolean,
+  isSinglePage?: boolean,
 }
 
 export type FormInputs = { 

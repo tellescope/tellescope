@@ -1437,10 +1437,19 @@ export const responses_satisfy_conditions = (responses: FormResponseValue[], con
     const answer = (
       fieldIdOrCalculated === FORM_LOGIC_CALCULATED_FIELDS[0] // bmi
         ? (() => {
-          const h = responses.find(r => r.answer.type === 'number' && r.answer.value && r.computedValueKey === 'Height')?.answer
+          const h = (
+            responses.find(r => r.answer.type === 'number' && r.answer.value && r.computedValueKey === 'Height')?.answer
+          || responses.find(r => r.answer.type === 'Height' && r.answer.value && r.computedValueKey === 'Height')?.answer
+          )
           const w = responses.find(r => r.answer.type === 'number' && r.answer.value && r.computedValueKey === 'Weight')?.answer
 
-          const height = h?.type === 'number' && h.value ? h.value : undefined
+          const height = (
+            (h?.type === 'number' && h.value)
+              ? h.value 
+          : (h?.type === 'Height' && typeof h.value?.feet === 'number')
+              ? h.value.feet * 12 + (h.value.inches || 0)
+              : undefined
+          )
           const weight = w?.type === 'number' && w.value ? w?.value : undefined
 
           if (!(height && weight)) return undefined
@@ -1860,7 +1869,6 @@ export const append_current_utm_params = (targetURL: string) => {
         utmParams[key] = value
       }
     })
-    console.log(params, utmParams)
     
     if (object_is_empty(utmParams)) { return targetURL }
 
@@ -2091,6 +2099,18 @@ export const get_prepopulated_responses = (fields: FormField[], enduser: Enduser
         type: "Database Select",
         value: [(enduser?.[v.intakeField as keyof typeof enduser] || enduser?.fields?.[v.intakeField!])]
       }
+    : (v.type === 'Height' && enduser.height?.value)
+      ? { 
+        type: 'Height',
+        value: {
+          feet: Math.floor((parseInt(enduser.height.value as string) / 12)),
+          inches: Math.floor((parseInt(enduser.height.value as string) % 12)),
+        }
+      }
+    : (v.type === 'number' && v.intakeField === 'weight' && enduser?.weight?.value)
+      ? { type: 'number', value: parseInt(enduser?.weight?.value as string) }
+    : (v.type === 'number' && v.intakeField === 'height' && enduser?.height?.value)
+      ? { type: 'number', value: parseInt(enduser?.height?.value as string) }
     : {
       type: v.type,
       value: (enduser?.[v.intakeField as keyof typeof enduser] || enduser?.fields?.[v.intakeField!])

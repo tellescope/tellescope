@@ -3,7 +3,7 @@ import axios from "axios"
 import { Autocomplete, Box, Button, Checkbox, Divider, FormControl, FormControlLabel, FormLabel, Grid, InputLabel, MenuItem, Radio, RadioGroup, Select, SxProps, TextField, TextFieldProps, Typography } from "@mui/material"
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
-import { INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
+import { EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
 import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, truncate_string, user_display_name } from "@tellescope/utilities"
 import { Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MultipleChoiceOptions, TellescopeGender } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
@@ -2649,7 +2649,7 @@ export const HeightInput = ({ field, value={} as any, onChange, ...props }: Form
     </Grid>
     <Grid item sx={{ width: '100%' }}>
       <TextField fullWidth size="small" label="Inches" type="number"
-        value={value?.inches || ''}
+        value={value?.inches ?? ''}
         onChange={e => onChange({ ...value, inches: parseInt(e.target.value) }, field.id)}
       />
     </Grid>
@@ -2719,20 +2719,41 @@ export const RedirectInput = ({ groupId, groupInsance, formResponseId, field, su
   return null
 }
 
-export const HiddenValueInput = ({ goToNextField, goToPreviousField, field, value, onChange, form, ...props }: FormInputProps<'email'>) => {
+export const HiddenValueInput = ({ goToNextField, goToPreviousField, field, value, onChange, form, isSinglePage, }: FormInputProps<'email'>) => {
   let lastRef = useRef(0)
   useEffect(() => {
     if (lastRef.current > Date.now() - 1000) return
     lastRef.current = Date.now()
 
     if (value) {
+      if (isSinglePage) return
       onChange('', field.id)
       goToPreviousField?.()
     } else {
       onChange(field.title, field.id)
       goToNextField?.()
     }
-  }, [value, onChange, field, goToNextField, goToPreviousField])
+  }, [value, onChange, field, goToNextField, goToPreviousField, isSinglePage])
 
   return <></>
+}
+
+export const EmotiiInput = ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'email'>) => {
+  const session = useResolvedSession()
+  const [data, setData] = useState<{ surveyRequestId: string, surveyUrl: string }>()
+
+  useEffect(() => {
+    session.api.integrations
+    .proxy_read({ 
+      integration: EMOTII_TITLE, 
+      type: 'get_survey', 
+      query: `${field.id}-${formResponseId || Date.now()}`,
+    })
+    .then(r => setData(r.data))
+  }, [session])
+
+  if (!data) { return <LinearProgress /> }
+  return (
+    <iframe src={data.surveyUrl} style={{ border: 'none', height: 400, width: '100%' }} />
+  )
 }

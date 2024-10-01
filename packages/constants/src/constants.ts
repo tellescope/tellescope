@@ -138,6 +138,7 @@ export const ZENDESK_REDIRECT_URI_ENDING = "/zendesk-oauth2-verify"
 export const FULLSCRIPT_INTEGRATIONS_TITLE = "Fullscript"
 export const FULLSCRIPT_REDIRECT_URI_ENDING = "/fullscript-oauth2-verify"
 export const STRIPE_TITLE = "Stripe"
+export const EMOTII_TITLE = "Emotii"
 
 export const ORGANIZATION_WIDE_INTEGRATIONS = [
   OPENAI_TITLE, 
@@ -157,6 +158,7 @@ export const ORGANIZATION_WIDE_INTEGRATIONS = [
   MFAX_TITLE,
   MEDPLUM_TITLE,
   ACTIVE_CAMPAIGN_TITLE,
+  EMOTII_TITLE,
 ]
 
 export const ONE_MINUTE_IN_MS = 1000 * 60

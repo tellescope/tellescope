@@ -288,8 +288,11 @@ import {
   FieldMapping,
   ActiveCampaignSyncAutomationAction,
   AnalyticsFrameGroupingCategory,
+  FormResponseAnswerEmotii,
+  BookingRestrictions,
 } from "@tellescope/types-models"
 import {
+  AppointmentBookingPage,
   UserDisplayInfo,
 } from "@tellescope/types-client"
 
@@ -327,6 +330,7 @@ import {
   DEFAULT_ACCESS,
   DOCSUMO_TITLE,
   DOSESPOT_TITLE,
+  EMOTII_TITLE,
   ENDUSER_FIELD_TYPES,
   FULLSCRIPT_INTEGRATIONS_TITLE,
   GOGO_MEDS_TITLE,
@@ -1510,11 +1514,13 @@ const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
   Height: '',
   Redirect: '',
   'Hidden Value': '',
+  Emotii: '',
 }
 export const FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES) as FormFieldType[]
 export const formFieldTypeValidator = exactMatchValidator<FormFieldType>(FORM_FIELD_TYPES)
 
 export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' | 'phoneNumber']: (value?: FormResponseValueAnswer[keyof FormResponseValueAnswer], options?: any, isOptional?: boolean) => any } = {
+  "Emotii": stringValidator.validate({ maxLength: 5000 }),
   "Hidden Value": stringValidator.validate({ maxLength: 5000 }),
   'Appointment Booking': stringValidator.validate({ maxLength: 100, isOptional: true }),
   'Redirect': stringValidator.validate({ maxLength: 100 }),
@@ -1945,6 +1951,10 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
   }),
   "Hidden Value": objectValidator<FormResponseAnswerHiddenValue>({
     type: exactMatchValidator(['Hidden Value']),
+    value: stringValidator1000Optional,
+  }),
+  "Emotii": objectValidator<FormResponseAnswerEmotii>({
+    type: exactMatchValidator(['Emotii']),
     value: stringValidator1000Optional,
   }),
   Stripe: objectValidator<FormResponseAnswerStripe>({
@@ -3632,6 +3642,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     recordCallAudioPlayback: stringValidatorOptional,
     disableAutoreplyForCustomEntities: booleanValidatorOptional,
     alwaysShowInsurance: booleanValidatorOptional,
+    defaultToOutboundConferenceCall: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -4302,6 +4313,7 @@ export type IntegrationsTitleType = (
 | typeof DOCSUMO_TITLE
 | typeof ACTIVE_CAMPAIGN_TITLE
 | typeof STRIPE_TITLE
+| typeof EMOTII_TITLE
 )
 export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleType>([
   SQUARE_INTEGRATIONS_TITLE,
@@ -4322,6 +4334,7 @@ export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleTy
   DOCSUMO_TITLE,
   ACTIVE_CAMPAIGN_TITLE,
   STRIPE_TITLE,
+  EMOTII_TITLE,
 ])
 
 const _VIDEO_INTEGRATION_TYPES: { [K in VideoIntegrationType]: any} = {
@@ -4928,6 +4941,7 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
       prePlayback: phonePlaybackValidatorOptional,
       playback: phonePlaybackValidatorOptional,
       duration: numberValidatorOptional,
+      addToCareTeam: booleanValidatorOptional,
     }),
   }),
   "Forward Call": objectValidator<PhoneTreeActions["Forward Call"]>({
@@ -5160,3 +5174,14 @@ export const analyticsFrameGroupingCategoryValidator = objectValidator<Analytics
   keys: listOfStringsValidatorEmptyOk,
 })
 export const analyticsFrameGroupingCategoriesValidator = listValidatorEmptyOk(analyticsFrameGroupingCategoryValidator)
+
+export const bookingRestrictionsByTemplateValidator = listValidatorEmptyOk(objectValidator<BookingRestrictions>({
+  templateId: mongoIdStringRequired,
+  restrictions: objectValidator<BookingRestrictions['restrictions']>({
+    careTeam: booleanValidatorOptional,
+    state: booleanValidatorOptional,
+    hoursBefore: numberValidatorOptional,
+    hoursAfter: numberValidatorOptional,
+    tagsPortal: listOfStringsValidatorOptionalOrEmptyOk,
+  })
+}))
