@@ -2744,17 +2744,23 @@ export const EmotiiInput = ({ goToNextField, goToPreviousField, field, value, on
   const [data, setData] = useState<{ surveyRequestId: string, surveyUrl: string }>()
   const [loadCount, setLoadCount] = useState(0)
 
+  console.log(props.enduserId, props.enduser)
+
+  const fetchRef = useRef(false)
   useEffect(() => {
     if (value) return
+    if (fetchRef.current) return
+    fetchRef.current = true
 
     session.api.integrations
     .proxy_read({ 
       integration: EMOTII_TITLE, 
       type: 'get_survey', 
+      id: props?.enduserId, // defaults to session id when not defined
       query: requestIdRef.current,
     })
     .then(r => setData(r.data))
-  }, [session, value])
+  }, [session, value, props?.enduserId])
 
   const loadAnswerRef = useRef(false)
   useEffect(() => {

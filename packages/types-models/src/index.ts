@@ -1911,8 +1911,20 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   groupPosition?: number,
   utm?: LabeledField[],
   emotii?: {
-    id?: string,
-    scores?: any,
+    id: string,
+    scores: {
+      total: {
+        score: number,
+        relative: number,
+        percentile: number,
+      },
+      byAnswer: {
+        label: string,
+        score: number,
+        relative: number,
+        percentile: number,
+      }[]
+    },
   }[]
 }
 
@@ -3406,6 +3418,9 @@ export type AutomationTriggerEvents = {
   'Pregnancy Ended': AutomationTriggerEventBuilder<"Pregnancy Ended", { reason?: string }, {}>,
   'Form Group Completed': AutomationTriggerEventBuilder<"Form Group Completed", { groupId: string }, {}>,
   'Form Group Incomplete': AutomationTriggerEventBuilder<"Form Group Incomplete", { groupId: string, intervalInMS: number }, {}>,
+  'Message Opened': AutomationTriggerEventBuilder<"Message Opened", { templateIds?: string[] }, {}>,
+  'Message Link Clicked': AutomationTriggerEventBuilder<"Message Link Clicked", { templateIds?: string[] }, {}>,
+  'Healthie Note Locked': AutomationTriggerEventBuilder<"Healthie Note Locked", { healthieFormIds?: string[] }, {}>,
 }
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents
 export type AutomationTriggerEvent = AutomationTriggerEvents[AutomationTriggerEventType]
@@ -4317,6 +4332,8 @@ export type JourneyContext = {
   smsId?: string,
   formGroupId?: string,
   publicIdentifier?: string,
+  chatId?: string,
+  emailId?: string,
 }
 
 // https://gist.github.com/aviflax/a4093965be1cd008f172/ 

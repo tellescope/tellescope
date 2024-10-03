@@ -2860,6 +2860,8 @@ export const journeyContextValidator = objectValidator<JourneyContext>({
   observationId: mongoIdStringOptional,
   phoneCallId: mongoIdStringOptional,
   smsId: mongoIdStringOptional,
+  chatId: mongoIdStringOptional,
+  emailId: mongoIdStringOptional,
   formGroupId: mongoIdStringOptional,
   publicIdentifier: stringValidatorOptional,
 })
@@ -3744,6 +3746,9 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Form Group Completed": true,
   "Form Group Incomplete": true,
   "Left Voicemail": true,
+  "Message Opened": true,
+  "Message Link Clicked": true,
+  "Healthie Note Locked": true,
 }
 export const AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES) as AutomationTriggerEventType[]
 
@@ -3947,6 +3952,27 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
       groupId: mongoIdStringRequired,
       intervalInMS: nonNegNumberValidator,
     }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Message Opened": objectValidator<AutomationTriggerEvents["Message Opened"]>({
+    type: exactMatchValidator(['Message Opened']),
+    info: objectValidator<AutomationTriggerEvents['Message Opened']['info']>({
+      templateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+    }, { emptyOk: true }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Message Link Clicked": objectValidator<AutomationTriggerEvents["Message Link Clicked"]>({
+    type: exactMatchValidator(['Message Link Clicked']),
+    info: objectValidator<AutomationTriggerEvents['Message Link Clicked']['info']>({
+      templateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+    }, { emptyOk: true }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Healthie Note Locked": objectValidator<AutomationTriggerEvents["Healthie Note Locked"]>({
+    type: exactMatchValidator(['Healthie Note Locked']),
+    info: objectValidator<AutomationTriggerEvents['Healthie Note Locked']['info']>({
+      healthieFormIds: listOfStringsValidatorOptionalOrEmptyOk,
+    }, { emptyOk: true }),
     conditions: optionalEmptyObjectValidator,
   }), 
 })

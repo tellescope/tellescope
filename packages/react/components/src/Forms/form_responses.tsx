@@ -23,13 +23,15 @@ export const AddressDisplay = ({ value } : { value: Required<FormResponseAnswerA
   </Grid>
 ) 
 
-export const ResponseAnswer = ({ isHTML, answer: a, printing, onImageClick } : { 
+export const ResponseAnswer = ({ formResponse, fieldId, isHTML, answer: a, printing, onImageClick } : { 
   answer: FormResponseValueAnswer, 
+  formResponse: FormResponse,
+  fieldId: string,
   printing?: boolean,
   onImageClick?: (args: { src: string }) => void,
   isHTML?: boolean,
 }) => (
-(isHTML  && typeof a.value === 'string') 
+(isHTML && typeof a.value === 'string') 
   ? <div dangerouslySetInnerHTML={{ __html: remove_script_tags(a.value) }} />
   : a.value 
     ? (
@@ -139,8 +141,21 @@ export const ResponseAnswer = ({ isHTML, answer: a, printing, onImageClick } : {
               </Grid>
             ))}
           </Grid>
-
         )
+        : (a.type === 'Emotii') ? (() => {
+            if (!a.value) return null
+            const scoring = formResponse?.emotii?.find(s => s.id === fieldId)
+            if (!scoring) return null
+        
+            return (
+              <>
+              {[{ label: 'Average', ...scoring.scores.total }, ...scoring.scores.byAnswer].map((s, i) => (
+                <Typography>{s.label}: {s.score}</Typography>
+              ))}
+              </>
+            )
+
+          })()
         : (
           <Typography style={answerStyles}>
             {form_response_value_to_string(a.value)}
@@ -297,7 +312,7 @@ export const FormResponseView = ({ enduser, onClose, hideHeader, response, id, p
                 && (
                   (r.answerIsHTML && typeof r.answer.value === 'string') 
                     ? <div dangerouslySetInnerHTML={{ __html: remove_script_tags(r.answer.value) }} />
-                    : <ResponseAnswer answer={r.answer} printing={printing} />
+                    : <ResponseAnswer fieldId={r.fieldId} formResponse={response} answer={r.answer} printing={printing} />
                 )
                 }
               </div>
@@ -318,7 +333,7 @@ export const FormResponseView = ({ enduser, onClose, hideHeader, response, id, p
             } 
 
             {!showAnswerInline &&
-              <ResponseAnswer answer={r.answer} />
+              <ResponseAnswer answer={r.answer} formResponse={response} fieldId={r.fieldId} />
             }
           </div>
         )

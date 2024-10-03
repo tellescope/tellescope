@@ -240,7 +240,7 @@ export const QuestionForField = ({
           <Address field={field} disabled={value.disabled} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'Emotii' ? (
-          <Emotii field={field} disabled={value.disabled} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
+          <Emotii enduser={enduser} enduserId={enduserId} field={field} disabled={value.disabled} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'Height' ? (
           <Height field={field} disabled={value.disabled} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
