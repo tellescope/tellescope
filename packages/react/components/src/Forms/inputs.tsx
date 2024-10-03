@@ -2740,20 +2740,44 @@ export const HiddenValueInput = ({ goToNextField, goToPreviousField, field, valu
 
 export const EmotiiInput = ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'email'>) => {
   const session = useResolvedSession()
+  const requestIdRef = useRef(value || `${field.id}${formResponseId || Date.now()}`)
   const [data, setData] = useState<{ surveyRequestId: string, surveyUrl: string }>()
+  const [loadCount, setLoadCount] = useState(0)
 
   useEffect(() => {
+    if (value) return
+
     session.api.integrations
     .proxy_read({ 
       integration: EMOTII_TITLE, 
       type: 'get_survey', 
-      query: `${field.id}-${formResponseId || Date.now()}`,
+      query: requestIdRef.current,
     })
     .then(r => setData(r.data))
-  }, [session])
+  }, [session, value])
 
+  const loadAnswerRef = useRef(false)
+  useEffect(() => {
+    if (loadCount !== 2) return
+    if (loadAnswerRef.current) return
+    loadAnswerRef.current = true
+
+    onChange(requestIdRef.current, field.id)
+  }, [loadCount])
+
+  if (value || loadCount === 2) return (
+    <Grid container alignItems="center" wrap="nowrap">
+      <CheckCircleOutline color="success" />
+
+      <Typography sx={{ ml: 1, fontSize: 20 }}>
+        Please click Next or Submit to continue.
+      </Typography>
+    </Grid>
+  )
   if (!data) { return <LinearProgress /> }
   return (
-    <iframe src={data.surveyUrl} style={{ border: 'none', height: 400, width: '100%' }} />
+    <iframe src={data.surveyUrl} style={{ border: 'none', height: 650, width: '100%' }} 
+      onLoad={() => setLoadCount(l => l + 1)} 
+    />
   )
 }

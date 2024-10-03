@@ -5,8 +5,8 @@ import { LoadFunction, LoadFunctionArguments } from "@tellescope/sdk"
 import { ALL_ACCESS, UNSEARCHABLE_FIELDS } from "@tellescope/constants"
 import { SearchAPIProps, useSearchAPI } from "./hooks"
 import { TextFieldProps } from "./mui"
-import { AutomationTrigger, CalendarEventTemplate, ChatRoom, Database, DatabaseRecord, Enduser, File, Form, FormGroup, Forum, Journey, ManagedContentRecord, Organization, PrescriptionRoute, Template, Ticket, User, UserNotification } from "@tellescope/types-client"
-import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, LoadingLinear, ScrollingList, SearchTextInput, Typography, useAutomationTriggers, useCalendarEventTemplates, useChatRooms, useDatabaseRecords, useDatabases, useEndusers, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useNotifications, useOrganization, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useTemplates, useTickets, useUsers, value_is_loaded } from "."
+import { AppointmentBookingPage, AutomationTrigger, CalendarEventTemplate, ChatRoom, Database, DatabaseRecord, Enduser, File, Form, FormGroup, Forum, Journey, ManagedContentRecord, Organization, PrescriptionRoute, Template, Ticket, User, UserNotification } from "@tellescope/types-client"
+import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, LoadingLinear, ScrollingList, SearchTextInput, Typography, useAppointmentBookingPages, useAutomationTriggers, useCalendarEventTemplates, useChatRooms, useDatabaseRecords, useDatabases, useEndusers, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useNotifications, useOrganization, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useTemplates, useTickets, useUsers, value_is_loaded } from "."
 import { SxProps } from "@mui/material"
 import { AccessPermissions } from "@tellescope/types-models"
 
@@ -678,6 +678,17 @@ export const CalendarEventTemplatesSearch = (props: Omit<GenericSearchProps<Cale
   return (
     <ModelSearchInput  filterKey="calendar_event_templates" {...props}
       searchAPI={session.api.calendar_event_templates.getSome}
+      onLoad={addLocalElements}
+    />
+  )
+}
+
+export const AppointmentBookingPagesSearch = (props: Omit<GenericSearchProps<AppointmentBookingPage>, 'filterKey'> & { filterKey?: string }) => {
+  const session = useSession()
+  const [, { addLocalElements }] = useAppointmentBookingPages()
+  return (
+    <ModelSearchInput filterKey="appointment_booking_pages" {...props}
+      searchAPI={session.api.appointment_booking_pages.getSome}
       onLoad={addLocalElements}
     />
   )

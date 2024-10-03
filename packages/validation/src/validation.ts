@@ -2355,6 +2355,7 @@ export const messageTemplateModeValidator = exactMatchValidator<MessageTemplateM
 const sharedReminderValidators = {
   msBeforeStartTime: numberValidator,
   didRemind: booleanValidatorOptional,
+  dontSendIfPassed: booleanValidatorOptional,
 }
 
 export const calendarEventReminderValidator = orValidator<{ [K in CalendarEventReminderType]: CalendarEventReminderInfoForType[K] } >({
@@ -3643,6 +3644,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     disableAutoreplyForCustomEntities: booleanValidatorOptional,
     alwaysShowInsurance: booleanValidatorOptional,
     defaultToOutboundConferenceCall: booleanValidatorOptional,
+    sharedInboxReadStatus: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -3651,6 +3653,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     showJourneys: booleanValidatorOptional,
     requireDueDate: booleanValidatorOptional,
     allowArchival: booleanValidatorOptional,
+    returnToTicketsList: booleanValidatorOptional,
   }, { isOptional: true }),
   calendar: objectValidator<OrganizationSettings['calendar']>({
     dayStart: objectValidator<Required<OrganizationSettings>['calendar']['dayStart']>({
@@ -4956,6 +4959,10 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
       weeklyAvailabilities: weeklyAvailabilitiesValidator,
       timezone: timezoneValidatorOptional,
     }),
+  }),
+  "Select Care Team Member": objectValidator<PhoneTreeActions["Select Care Team Member"]>({
+    type: exactMatchValidator(['Select Care Team Member']),
+    info: objectValidator<PhoneTreeActions["Select Care Team Member"]['info']>({ }, { emptyOk: true }),
   }),
 })
 

@@ -194,6 +194,7 @@ export const useTreeForFormFields = (_fields: FormField[]) => {
 export const getNextField = (activeField: FormFieldNode, currentValue: Response, responses: FormResponseValue[], options?: {
   urlLogicValue?: string,
   dateOfBirth?: string,
+  gender?: string,
   form?: Form,
   activeResponses?: FormResponseValue[], // current and previous answers (not future answers)
 }) => {
@@ -265,6 +266,7 @@ export const getNextField = (activeField: FormFieldNode, currentValue: Response,
 export const useListForFormFields = (fields: FormField[], responses: Response[], options?: {
   dateOfBirth?: string,
   urlLogicValue?: string,
+  gender?: string,
   form?: Form,
 }) => {
   const list: FormField[] = []
@@ -600,6 +602,8 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
           ? 'Weight'
       : f?.intakeField === 'dateOfBirth' && existingResponses?.find(r => r.fieldId === f.id)?.answer?.type === 'dateString'
           ? 'Date of Birth'
+      : f?.intakeField === 'gender' && ['multiple_choice', 'Dropdown'].includes(existingResponses?.find(r => r.fieldId === f.id)?.answer?.type || '')
+          ? 'Gender'
           : undefined
       ) as any,  
       answer: { 
@@ -1037,6 +1041,7 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
         form,
         activeResponses: responses.filter(r => r.includeInSubmit),
         dateOfBirth: enduser?.dateOfBirth,
+        gender: enduser?.gender,
       })
     )
   )
@@ -1251,6 +1256,7 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
         form,
         activeResponses: responses.filter(r => r.includeInSubmit),
         dateOfBirth: enduser?.dateOfBirth,
+        gender: enduser?.gender,
       })
 
       // when autoadvancing, prevent adding duplicates by checking whether already on stack
@@ -1315,6 +1321,8 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
           ? 'Weight'
       : field?.intakeField === 'dateOfBirth' && r.answer.type === 'dateString'
           ? 'Date of Birth'
+      : field?.intakeField === 'gender' && (r.answer.type === 'Dropdown' || r.answer.type === 'multiple_choice')
+          ? 'Gender'
           : undefined
       )
     })))

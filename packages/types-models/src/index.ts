@@ -187,6 +187,7 @@ export type OrganizationSettings = {
     inboxRepliesMarkRead?: boolean,
     alwaysShowInsurance?: boolean,
     defaultToOutboundConferenceCall?: boolean,
+    sharedInboxReadStatus?: boolean,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
@@ -195,6 +196,7 @@ export type OrganizationSettings = {
     showJourneys?: boolean,
     requireDueDate?: boolean,
     allowArchival?: boolean,
+    returnToTicketsList?: boolean,
   },
   calendar?: {
     dayStart?: {
@@ -1822,7 +1824,7 @@ export type FormResponseValue = {
   isCalledOut?: boolean,
   disabled?: boolean,
   isHighlightedOnTimeline?: boolean,
-  computedValueKey?: 'Height' | 'Weight' | 'Date of Birth',
+  computedValueKey?: 'Height' | 'Weight' | 'Date of Birth' | "Gender",
 }
 
 export type AnswerForType = {
@@ -1908,6 +1910,10 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   groupInstance?: string,
   groupPosition?: number,
   utm?: LabeledField[],
+  emotii?: {
+    id?: string,
+    scores?: any,
+  }[]
 }
 
 export interface WebHook_readonly extends ClientRecord {}
@@ -1943,7 +1949,7 @@ export type CalendarEventReminderNotificationInfo = {
   templateId?: string,
   channel?: 'Email' | 'SMS',
 }
-type BuildCalendarEventReminderInfo <T, I> = { type: T, info: I, msBeforeStartTime: number, didRemind?: boolean }
+type BuildCalendarEventReminderInfo <T, I> = { type: T, info: I, msBeforeStartTime: number, dontSendIfPassed?: boolean, didRemind?: boolean }
 export type CalendarEventReminderInfoForType = {
   "webhook": BuildCalendarEventReminderInfo<'webhook', {}>,
   "add-to-journey": BuildCalendarEventReminderInfo<'add-to-journey', { journeyId: string }>,
@@ -1981,7 +1987,8 @@ export interface CalendarEvent_required {
 }
 export interface CalendarEvent_updatesDisabled {}
 export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_required, CalendarEvent_updatesDisabled {
-  reason?: string,
+  reason?: string, // reason for booking, patient-entered
+  cancelReason?: string,
   attendees: UserIdentity[],
   color?: string,
   enableVideoCall?: boolean,
@@ -2231,6 +2238,9 @@ export interface AppointmentBookingPage extends AppointmentBookingPage_readonly,
   requireLocationSelection?: boolean,
   collectReason?: "Do Not Collect" | 'Optional' | 'Required',
   restrictionsByTemplate?: BookingRestrictions[],
+  publicMulti?: boolean,
+  publicUserTags?: string[],
+  publicUserFilterTags?: string[],
   // productIds?: string[], // defer to specific template
 }
 
@@ -3514,6 +3524,7 @@ export type PhoneTreeActions = {
     duration?: number,
     addToCareTeam?: boolean,
   }>
+  "Select Care Team Member": PhoneTreeActionBuilder<"Select Care Team Member", { }>,
   'Forward Call': PhoneTreeActionBuilder<"Forward Call", { to: string }>
   'Conditional Split': PhoneTreeActionBuilder<"Conditional Split", { 
     timezone?: Timezone,

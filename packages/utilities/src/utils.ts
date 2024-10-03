@@ -1394,7 +1394,7 @@ export const calculate_form_scoring = ({
 }
 
 // don't change order without updating responses_satisfy_conditions calculations
-export const FORM_LOGIC_CALCULATED_FIELDS = ['Calculated: BMI', 'Calculated: Age', 'Calculated: Score']
+export const FORM_LOGIC_CALCULATED_FIELDS = ['Calculated: BMI', 'Calculated: Age', 'Calculated: Score', 'Gender']
 export const FORM_LOGIC_URL_PARAMETER = 'URL Logic Parameter'
 
 export const calculate_bmi = (e: Pick<Enduser, 'height' | 'weight'>) => {
@@ -1409,6 +1409,7 @@ export const calculate_bmi = (e: Pick<Enduser, 'height' | 'weight'>) => {
 // keep consistent with convert_form_logic_to_filter logic in analytics.ts
 export const responses_satisfy_conditions = (responses: FormResponseValue[], conditions: CompoundFilter<string>, options?: {
   dateOfBirth?: string,
+  gender?: string,
   urlLogicValue?: string,
   form?: Form, // required for calculating scoring
   activeResponses?: FormResponseValue[], // current and previous answers (not future answers)
@@ -1494,6 +1495,24 @@ export const responses_satisfy_conditions = (responses: FormResponseValue[], con
           }
 
           return Score 
+        })()
+      : fieldIdOrCalculated === FORM_LOGIC_CALCULATED_FIELDS[3] // gender
+        ? (() => {
+          const gender = (
+            ( // responses should be priority, in case they're being used to change gender
+              responses.find(
+                r => (r.answer.type === 'Dropdown' || r.answer.type === 'multiple_choice') && r.computedValueKey === 'Gender'
+              )?.answer?.value as string[]
+            )?.[0]
+            || options?.gender 
+          )
+
+          const Gender: FormResponseAnswerString = {
+            type: 'string',
+            value: gender || '',
+          }
+
+          return Gender
         })()
       : fieldIdOrCalculated === FORM_LOGIC_URL_PARAMETER
         ? { type: 'string', value: options?.urlLogicValue || '' } as FormResponseAnswerString

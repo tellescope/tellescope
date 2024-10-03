@@ -4419,6 +4419,8 @@ export const schema: SchemaV1 = build_schema({
 }</pre>
         This includes the name of the model, the type of operation performed, and an array of the new, updated, or deleted model(s).
 
+        <strong>Each 'create' webhook may include more than one record (e.g. when records are created as part of a bulk POST) </strong>
+
         The integrity field is a sha256 hash of (record ids concatenated from index 0 to the end, with the timestamp and then secret appended)
         For example hook: { records: [{ id: '1', ... }, { id: '4', ... }], timestamp: "1029358" } with secret set as "secret",
         integrity = sha256('141029358secret')
@@ -4910,7 +4912,8 @@ export const schema: SchemaV1 = build_schema({
           source: stringValidator100,
           identifier: stringValidator100,
         }),
-      }
+      },
+      cancelReason: { validator: stringValidator5000 },
     }
   },
   calendar_event_templates: {
@@ -6322,6 +6325,9 @@ export const schema: SchemaV1 = build_schema({
       fontURL: { validator: stringValidator },
       collectReason: { validator: exactMatchValidator<Required<AppointmentBookingPageClient>['collectReason']>(['Do Not Collect', 'Optional', 'Required'])},
       restrictionsByTemplate: { validator: bookingRestrictionsByTemplateValidator },
+      publicMulti: { validator: booleanValidator },
+      publicUserTags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      publicUserFilterTags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       // defer to template
       // productIds: { validator: listOfStringsValidator },
     }

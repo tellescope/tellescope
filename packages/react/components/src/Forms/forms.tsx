@@ -905,7 +905,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
   groupInstance,
   ...props 
 }) => {
-  const list = useListForFormFields(fields, responses, { form: props.form })
+  const list = useListForFormFields(fields, responses, { form: props.form, gender: enduser?.gender })
 
   const includedFieldIds = (
     Array.from(new Set([...list.map(f => f.id), ...(existingResponses ?? []).map(e => e.fieldId)])) 
