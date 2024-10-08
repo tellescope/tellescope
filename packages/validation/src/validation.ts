@@ -3647,6 +3647,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     alwaysShowInsurance: booleanValidatorOptional,
     defaultToOutboundConferenceCall: booleanValidatorOptional,
     sharedInboxReadStatus: booleanValidatorOptional,
+    matchEmailAndNames: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -4192,12 +4193,14 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   webhook_logs: accessPermissionValidator,
   form_groups: accessPermissionValidator,
   portal_brandings: accessPermissionValidator,
+  message_template_snippets: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
 })
 
 export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
+  message_template_snippets: accessPermissionValidator,
   webhook_logs: accessPermissionValidator,
   enduser_problems: accessPermissionValidator,
   prescription_routes: accessPermissionValidator,

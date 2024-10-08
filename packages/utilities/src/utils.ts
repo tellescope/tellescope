@@ -339,6 +339,16 @@ export const formatted_date = (date: Date): string => {
   return `${month} ${dayOfMonth} ${year}, ${hoursAmPm}:${minutes}${amPm}`
 }
 
+export const get_add_to_gcal_link = (event: Pick<CalendarEvent, "startTimeInMS" | 'durationInMinutes' | 'title' |'videoURL'>) => {
+  const start = DateTime.fromMillis(event.startTimeInMS, { zone: 'UTC' })
+  const end   = DateTime.fromMillis(event.startTimeInMS + event.durationInMinutes * 60 * 1000, { zone: 'UTC' })
+  const startString = `${start.toFormat('yyyyLLdd')}T${start.toFormat('HHmmss')}Z`
+  const endString = `${end.toFormat('yyyyLLdd')}T${end.toFormat('HHmmss')}Z`
+  return (
+`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${event.title.replaceAll(' ', '+')}&details=${event.videoURL || ''}&dates=${startString}/${endString}`
+  )
+}
+
 export const formatted_date_hh_mm = (date: Date) => {
   const { minutes, hoursAmPm, amPm,  } = get_time_values(date)
   return `${hoursAmPm}:${minutes}${amPm}`

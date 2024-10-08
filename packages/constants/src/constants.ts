@@ -263,6 +263,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
     update: ASSIGNED_ACCESS, // only allows updating enduser-specific settings when they can access the enduser, but not global settings
     delete: NO_ACCESS,
   },
+  message_template_snippets: READ_ONLY_ALL,
   enduser_custom_types: READ_ONLY_ALL,
   superbill_providers: READ_ONLY_ALL,
   superbills: ASSIGNED_AND_DEFAULT_ACCESS,
@@ -376,6 +377,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
+  message_template_snippets: FULL_ACCESS,
   portal_brandings: FULL_ACCESS,
   webhook_logs: READ_ONLY_ALL,
   form_groups: FULL_ACCESS,

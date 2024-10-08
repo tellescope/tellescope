@@ -4882,6 +4882,7 @@ export const schema: SchemaV1 = build_schema({
       videoIntegration: { validator: videoIntegrationTypesValidator },
       videoHostUserId: { validator: mongoIdStringValidator },
       videoURL: { validator: stringValidator },
+      videoStartURL: { validator: stringValidator },
       externalVideoURL: { validator: stringValidator },
       timezone: { validator: timezoneValidator},
       copiedFrom: { validator: mongoIdStringValidator },
@@ -6359,6 +6360,7 @@ export const schema: SchemaV1 = build_schema({
       healthieLocationId: { validator: stringValidator100 },
       healthieUseZoom: { validator: booleanValidator },
       instructions: { validator: stringValidator5000EmptyOkay },
+      tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
     }
   },
   products: {
@@ -7751,6 +7753,18 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       logoURL: { validator: stringValidator },
       subdomain: { validator: stringValidator },
       customPortalURL: { validator: stringValidator },
+    }
+  },
+  message_template_snippets: {
+    info: { description: '' },
+    constraints: { unique: ['key'], relationship: [], access: [] },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields,
+      key: { validator: stringValidator, required: true, examples: ['Unique Key'] },
+      value: { validator: stringValidator, required: true, examples: ['Value'] },
     }
   },
 })

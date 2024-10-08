@@ -5,8 +5,8 @@ import { LoadFunction, LoadFunctionArguments } from "@tellescope/sdk"
 import { ALL_ACCESS, UNSEARCHABLE_FIELDS } from "@tellescope/constants"
 import { SearchAPIProps, useSearchAPI } from "./hooks"
 import { TextFieldProps } from "./mui"
-import { AppointmentBookingPage, AutomationTrigger, CalendarEventTemplate, ChatRoom, Database, DatabaseRecord, Enduser, File, Form, FormGroup, Forum, Journey, ManagedContentRecord, Organization, PrescriptionRoute, Template, Ticket, User, UserNotification } from "@tellescope/types-client"
-import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, LoadingLinear, ScrollingList, SearchTextInput, Typography, useAppointmentBookingPages, useAutomationTriggers, useCalendarEventTemplates, useChatRooms, useDatabaseRecords, useDatabases, useEndusers, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useNotifications, useOrganization, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useTemplates, useTickets, useUsers, value_is_loaded } from "."
+import { AppointmentBookingPage, AppointmentLocation, AutomationTrigger, CalendarEventTemplate, ChatRoom, Database, DatabaseRecord, Enduser, File, Form, FormGroup, Forum, Journey, ManagedContentRecord, MessageTemplateSnippet, Organization, PrescriptionRoute, Template, Ticket, User, UserNotification } from "@tellescope/types-client"
+import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, LoadingLinear, ScrollingList, SearchTextInput, Typography, useAppointmentBookingPages, useAppointmentLocations, useAutomationTriggers, useCalendarEventTemplates, useChatRooms, useDatabaseRecords, useDatabases, useEndusers, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useMessageTemplateSnippets, useNotifications, useOrganization, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useTemplates, useTickets, useUsers, value_is_loaded } from "."
 import { SxProps } from "@mui/material"
 import { AccessPermissions } from "@tellescope/types-models"
 
@@ -661,6 +661,17 @@ export const EnduserOrUserSearch = (props: Omit<GenericSearchProps<Enduser | Use
   )
 }
 
+export const MessageTemplateSnippetSearch = ({ dontFetch, ...props }: Omit<GenericSearchProps<MessageTemplateSnippet>, 'filterKey'> & { filterKey?: string }) => {
+  const session = useSession()
+  const [, { addLocalElements }] = useMessageTemplateSnippets({ dontFetch })
+  return (
+    <ModelSearchInput filterKey="message_template_snippets" {...props} 
+      searchAPI={session.api.message_template_snippets.getSome}
+      onLoad={addLocalElements}
+    />
+  )
+}
+
 export const ContentSearch = ({ dontFetch, ...props }: Omit<GenericSearchProps<ManagedContentRecord>, 'filterKey'> & { filterKey?: string }) => {
   const session = useResolvedSession()
   const [, { addLocalElements }] = useManagedContentRecords({ dontFetch })
@@ -678,6 +689,17 @@ export const CalendarEventTemplatesSearch = (props: Omit<GenericSearchProps<Cale
   return (
     <ModelSearchInput  filterKey="calendar_event_templates" {...props}
       searchAPI={session.api.calendar_event_templates.getSome}
+      onLoad={addLocalElements}
+    />
+  )
+}
+
+export const AppointmentLocationSearch = (props: Omit<GenericSearchProps<AppointmentLocation>, 'filterKey'> & { filterKey?: string }) => {
+  const session = useSession()
+  const [, { addLocalElements }] = useAppointmentLocations()
+  return (
+    <ModelSearchInput filterKey="appointment_locations" {...props}
+      searchAPI={session.api.appointment_locations.getSome}
       onLoad={addLocalElements}
     />
   )

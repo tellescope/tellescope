@@ -89,6 +89,7 @@ import {
   WebhookLog,
   FormGroup,
   PortalBranding,
+  MessageTemplateSnippet,
 } from "@tellescope/types-client"
 
 import {
@@ -103,7 +104,7 @@ import {
 } from '@tellescope/sdk'
 import { value_is_loaded } from './loading'
 import { matches_organization, object_is_empty, objects_equivalent } from '@tellescope/utilities'
-import { Model, ModelName, ReadFilter, SortBy } from '@tellescope/types-models'
+import { ModelName, ReadFilter, SortBy } from '@tellescope/types-models'
 
 const RESET_CACHE_TYPE = "cache/reset" as const
 export const resetStateAction = createAction(RESET_CACHE_TYPE)
@@ -345,6 +346,7 @@ const flowchartNotesSlice = createSliceForList<FlowchartNote, 'flowchart_notes'>
 const webhookLogsSlice = createSliceForList<WebhookLog, 'webhook_logs'>('webhook_logs')
 const formGroupsSlice = createSliceForList<FormGroup, 'form_groups'>('form_groups')
 const portalBrandingsSlice = createSliceForList<PortalBranding, 'portal_brandings'>('portal_brandings')
+const messageTemplateSnippetsSlice = createSliceForList<MessageTemplateSnippet, 'message_template_snippets'>('message_template_snippets')
 
 const roleBasedAccessPermissionsSlice = createSliceForList<RoleBasedAccessPermission, 'role_based_access_permissions'>('role_based_access_permissions')
 
@@ -428,6 +430,7 @@ export const sharedConfig = {
     webhook_logs: webhookLogsSlice.reducer,
     form_groups: formGroupsSlice.reducer,
     portal_brandings: portalBrandingsSlice.reducer,
+    message_template_snippets: messageTemplateSnippetsSlice.reducer,
   },
 }
 
@@ -1171,6 +1174,24 @@ export const useUserAndEnduserDisplayInfo = () => {
   return displayInfo
 }
 
+export const useMessageTemplateSnippets = (options={} as HookOptions<MessageTemplateSnippet>) => {
+  const session = useSession()
+
+  return useListStateHook('message_template_snippets', useTypedSelector(s => s.message_template_snippets), session, messageTemplateSnippetsSlice,
+    { 
+      loadQuery: session.api.message_template_snippets.getSome,
+      findOne: session.api.message_template_snippets.getOne,
+      findByIds: session.api.message_template_snippets.getByIds,
+      addOne: session.api.message_template_snippets.createOne,
+      addSome: session.api.message_template_snippets.createSome,
+      deleteOne: session.api.message_template_snippets.deleteOne,
+      updateOne: session.api.message_template_snippets.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
 export const usePortalBrandings = (options={} as HookOptions<PortalBranding>) => {
   const session = useSession()
 

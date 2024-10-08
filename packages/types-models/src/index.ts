@@ -188,6 +188,7 @@ export type OrganizationSettings = {
     alwaysShowInsurance?: boolean,
     defaultToOutboundConferenceCall?: boolean,
     sharedInboxReadStatus?: boolean,
+    matchEmailAndNames?: boolean,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
@@ -1191,6 +1192,14 @@ export interface MessageTemplate extends MessageTemplate_readonly, MessageTempla
   tags?: string[],
 }
 
+export interface MessageTemplateSnippet_readonly extends ClientRecord {}
+export interface MessageTemplateSnippet_required {
+  key: string,
+  value: string
+}
+export interface MessageTemplateSnippet_updatesDisabled {}
+export interface MessageTemplateSnippet extends MessageTemplateSnippet_readonly, MessageTemplateSnippet_required, MessageTemplateSnippet_updatesDisabled {}
+
 export interface File_readonly extends ClientRecord {
   secureName: string,
   publicRead?: boolean, // set on prepare_file_upload and cannot be changed without messing up assumptions in access
@@ -2037,7 +2046,8 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   portalSettings?: CalendarEventPortalSettings,
   isEphemeral?: boolean,
   videoIntegration?: VideoIntegrationType,
-  videoURL?: string, // for storing built-in video links (e.g. with our direct Zoom integration)
+  videoURL?: string, // for storing built-in video links (e.g. join link for our built-in Zoom integration)
+  videoStartURL?: string, // for storing built-in video links (e.g. join link for our built-in Zoom integration)
   externalVideoURL?: string, // for join links provided by integrations like Healthie
   videoHostUserId?: string, // so we know which integration to use for updating / deleting the event
   timezone?: Timezone
@@ -2199,6 +2209,7 @@ export interface AppointmentLocation extends AppointmentLocation_readonly, Appoi
   healthieLocationId?: string,
   healthieUseZoom?: boolean,
   instructions?: string,
+  tags?: string[],
 }
 
 export interface BookingRestrictions {
@@ -3895,6 +3906,7 @@ export interface WebhookLog_updatesDisabled {}
 export interface WebhookLog extends WebhookLog_readonly, WebhookLog_required, WebhookLog_updatesDisabled {}
 
 export type ModelForName_required = {
+  message_template_snippets: MessageTemplateSnippet_required
   portal_brandings: PortalBranding_required
   form_groups: FormGroup_required,
   webhook_logs: WebhookLog_required,
@@ -3975,6 +3987,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  message_template_snippets: MessageTemplateSnippet_readonly,
   portal_brandings: PortalBranding_readonly,
   form_groups: FormGroup_readonly,
   webhook_logs: WebhookLog_readonly,
@@ -4055,6 +4068,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  message_template_snippets: MessageTemplateSnippet_updatesDisabled,
   portal_brandings: PortalBranding_updatesDisabled,
   form_groups: FormGroup_updatesDisabled,
   webhook_logs: WebhookLog_updatesDisabled,
@@ -4135,6 +4149,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly { 
+  message_template_snippets: MessageTemplateSnippet,
   portal_brandings: PortalBranding,
   form_groups: FormGroup,
   webhook_logs: WebhookLog,
@@ -4225,6 +4240,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  message_template_snippets: true,
   portal_brandings: true,
   form_groups: true,
   webhook_logs: true,
