@@ -5998,6 +5998,7 @@ export const schema: SchemaV1 = build_schema({
           questionId: stringValidator100,
         })
       },
+      canvasSyncEmailConsent: { validator: booleanValidator },
       enforceMFA: { validator: booleanValidator },
       replyToEnduserTransactionalEmails: { validator: emailValidator },
       customTermsOfService: { validator: stringValidator },
@@ -6782,6 +6783,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       groupByCareTeam: { validator: booleanValidator },
       displayType: { validator: stringValidator100 },
       analyticsFrameGroupingCategory: { validator: analyticsFrameGroupingCategoriesValidator },
+      truncationLength: { validator: nonNegNumberValidator },
+      showEllipsis: { validator: booleanValidator },
     },
   },
   availability_blocks: {
@@ -7219,6 +7222,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       testEnduserIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       enduserCondition: { validator: phoneTreeEnduserConditionValidator },
       bypassOOO: { validator: booleanValidator },
+      defaultEntityType: { validator: stringValidator100 },
     }
   },
   enduser_custom_types: {
@@ -7315,6 +7319,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       group: { validator: stringValidator250 },
       assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
+      tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, 
     }
   },
   ticket_thread_comments: {
@@ -7356,6 +7361,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       group: { validator: stringValidator250 },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
       userDisplayName: { validator: stringValidator250 },
+      tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, 
     }
   },
   configurations: {

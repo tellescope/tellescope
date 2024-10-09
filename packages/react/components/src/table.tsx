@@ -1029,8 +1029,8 @@ export const Table = <T extends Item>({
             onExport={
               onExport ? () => {
                 onExport({
-                  // use items, not sorted, as sorted only includes first page
-                  data:   items.map(s => fields.map(f => f.getExportData?.(s) || '')),
+                  // use items, not sorted, as sorted only includes first page when paginated
+                  data:   (paginated ? items : sorted).map(s => fields.map(f => f.getExportData?.(s) || '')),
                   labels: fields.map(f => f.label)
                 })
               }

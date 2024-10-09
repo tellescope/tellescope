@@ -290,6 +290,7 @@ import {
   AnalyticsFrameGroupingCategory,
   FormResponseAnswerEmotii,
   BookingRestrictions,
+  SwitchToRelatedContactAutomationAction,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -2332,6 +2333,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   completeTickets: '',
   changeContactType: '',
   activeCampaignSync: '',
+  switchToRelatedContact: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -2848,6 +2850,13 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['activeCampaignSync']),
     info: objectValidator<ActiveCampaignSyncAutomationAction['info']>({ }, { emptyOk: true }),
+  }),
+  switchToRelatedContact: objectValidator<SwitchToRelatedContactAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['switchToRelatedContact']),
+    info: objectValidator<SwitchToRelatedContactAutomationAction['info']>({ 
+      type: stringValidator100
+    }, {  }),
   }),
 })
 

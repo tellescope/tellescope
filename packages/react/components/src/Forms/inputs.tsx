@@ -2596,11 +2596,13 @@ export const AppointmentBookingInput = ({ formResponseId, field, value, onChange
       .join(',')
     }`
   }
-  if (field.options?.holdAppointmentMinutes && formResponseId) {
-    bookingURL += `&formResponseId=${formResponseId}`
+  // need to use form?.id for internally-submitted forms because formResponseId isn't generated until initial submission or saved draft
+  if (field.options?.holdAppointmentMinutes && (formResponseId || field?.id)) {
+    bookingURL += `&formResponseId=${formResponseId || field?.id}`
     bookingURL += `&holdAppointmentMinutes=${field.options.holdAppointmentMinutes}`
   }
 
+  console.log(bookingURL, formResponseId, field?.id, field.options?.holdAppointmentMinutes)
   return (
     <Grid container direction="column" spacing={1} sx={{ mt: 1 }}>
       {/* When skipping user selection, include a back button at the top for clearer navigation on mobile */}

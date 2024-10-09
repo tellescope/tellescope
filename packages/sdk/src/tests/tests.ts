@@ -3981,7 +3981,7 @@ export const calendar_event_RSVPs_tests = async () => {
   })
 
   const userRSVP = await sdk.api.calendar_event_RSVPs.createOne({ eventId: event.id })
-  assert(userRSVP.displayName === sdk.userInfo.fname ?? '', 'display name init bad', 'display name init')
+  assert(userRSVP.displayName === sdk.userInfo.fname, 'display name init bad', 'display name init')
   
   await sdk.api.calendar_event_RSVPs.createOne({ eventId: event2.id }) // can create second event for non-match
 
@@ -6244,6 +6244,51 @@ export const alternate_phones_tests = async () => {
   )
 
   await sdk.api.endusers.deleteOne(e.id)
+}
+
+export const switch_to_related_contacts_tests = async () => {
+  log_header("Switch to Related Contacts Tests")
+
+  const parent = await sdk.api.endusers.createOne({ fname: "Parent" })
+  const child  = await sdk.api.endusers.createOne({ relationships: [{ type: 'Parent', id: parent.id }] })
+
+  const journey = await sdk.api.journeys.createOne({ title: "Parent Child Switch Test"})
+
+  const step1 = await sdk.api.automation_steps.createOne({
+    journeyId: journey.id,
+    events: [{ type: 'onJourneyStart', info: {} }],
+    action: {
+      type: 'switchToRelatedContact',
+      info: { type: 'Parent' },
+    }
+  })
+  await sdk.api.automation_steps.createOne({
+    journeyId: journey.id,
+    events: [{ type: 'afterAction', info: { automationStepId: step1.id, delay: 0, delayInMS: 0, unit: 'Seconds' } }],
+    action: {
+      type: 'addEnduserTags',
+      info: { tags: ['Success'] },
+    }
+  })
+
+  await sdk.api.endusers.updateOne(child.id, { journeys: { [journey.id]: '' } })
+
+  await async_test(
+    `Related contact got tags`, 
+    () => pollForResults(
+      () => sdk.api.endusers.getOne(parent.id),
+      e => !!e.tags?.includes('Success'),
+      50,
+      100,
+    ),
+    passOnAnyResult
+  )
+
+  return Promise.all([
+    sdk.api.endusers.deleteOne(parent.id),
+    sdk.api.endusers.deleteOne(child.id),
+    sdk.api.journeys.deleteOne(journey.id),
+  ])
 }
 
 const NO_TEST = () => {}
@@ -8618,6 +8663,7 @@ const uniqueness_tests = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await switch_to_related_contacts_tests()
     await uniqueness_tests()
     await redaction_tests()
     await self_serve_appointment_booking_tests()

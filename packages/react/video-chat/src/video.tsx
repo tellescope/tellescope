@@ -41,6 +41,7 @@ import {
   // CameraSelection,
   useVideoInputs,
   useBackgroundReplacement,
+  useAudioVideo,
   // useRemoteVideoTileState,
   // useContentShareControls, // screen sharing
 } from 'amazon-chime-sdk-component-library-react';
@@ -159,6 +160,34 @@ export const useJoinMeeting = () => {
   }
 }
 
+const useHandleDataMessages = () => {
+  try {
+    const session = useResolvedSession()
+    const audioVideo = useAudioVideo()
+    const { muted, toggleMute } = useToggleLocalMute()
+    
+    useEffect(() => {
+      if (!audioVideo) {
+        return;
+      }
+  
+      audioVideo.realtimeSubscribeToReceiveDataMessage('Message', (data) => {
+        const message = (data && data.json()) || {};
+  
+        if (message.type === 'mute' && message.userId === session.userInfo.id && !muted) {
+          toggleMute()
+        }
+      });
+  
+      return () => {
+        audioVideo.realtimeUnsubscribeFromReceiveDataMessage('Message');
+      }
+    }, [audioVideo, muted, toggleMute, session.userInfo?.id])
+  } catch(err) {
+    console.error(err)
+  }
+}
+
 const WithContext = ({ children } : { children: React.ReactNode }) => {
   const [meeting, setMeeting] = useState(undefined as MeetingInfo | undefined)
   const [isHost, setIsHost] = useState(false)
@@ -167,6 +196,7 @@ const WithContext = ({ children } : { children: React.ReactNode }) => {
   const { tileId } = useContentShareState()
   const { tiles } = useRemoteVideoTileState()
   const { muted, toggleMute } = useToggleLocalMute()
+  useHandleDataMessages()
 
   const attendees = [] as AttendeeDisplayInfo[]
   for (const attendeeId in roster) {

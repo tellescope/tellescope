@@ -353,6 +353,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     id: string,
     questionId: string,
   },
+  canvasSyncEmailConsent?: boolean,
   dosespotClinics?: { id: string, name: string }[],
   answersSyncToPortal?: { id: string, questions: string[] }[]
   externalFormIdsToSync?: string[],
@@ -766,6 +767,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   useDefaultFromPhoneInAutomations?: boolean,
   stripeCustomerId?: string,
   stripeKey?: string,
+  lastDoseSpotSyncAt?: Date,
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
 }
@@ -817,6 +819,7 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
   },
   notes?: string,
   pharmacyName?: string,
+  pharmacyId?: string,
   orderStatus?: string,
 }
 
@@ -2537,6 +2540,7 @@ export type HealthieSendChatAutomationAction = AutomationActionBuilder<'healthie
 export type CompleteTicketsAutomationAction = AutomationActionBuilder<'completeTickets', { journeyIds?: string[] }>
 export type ChangeContactTypeAutomationAction = AutomationActionBuilder<'changeContactType', { type: string }>
 export type ActiveCampaignSyncAutomationAction = AutomationActionBuilder<'activeCampaignSync', { }>
+export type SwitchToRelatedContactAutomationAction = AutomationActionBuilder<'switchToRelatedContact', { type: string }>
 
 export type IterableFieldsMapping = {
   iterable: string,
@@ -2595,6 +2599,7 @@ export type AutomationActionForType = {
   'completeTickets': CompleteTicketsAutomationAction,
   'changeContactType': ChangeContactTypeAutomationAction,
   activeCampaignSync: ActiveCampaignSyncAutomationAction,
+  switchToRelatedContact: SwitchToRelatedContactAutomationAction,
 }
 export type AutomationActionType = keyof AutomationActionForType
 export type AutomationAction = AutomationActionForType[AutomationActionType]
@@ -3281,6 +3286,8 @@ export interface AnalyticsFrame extends
   groupMax?: number | '',
   displayType?: string,
   analyticsFrameGroupingCategory?: AnalyticsFrameGroupingCategory[],
+  truncationLength?: number,
+  showEllipsis?: boolean,
 }
 
 
@@ -3582,6 +3589,7 @@ export interface PhoneTree extends PhoneTree_readonly, PhoneTree_required, Phone
   testEnduserIds?: string[],
   enduserCondition?: PhoneTreeEnduserCondition,
   bypassOOO?: boolean,
+  defaultEntityType?: string,
 }
 
 export type TableViewColumn = {
@@ -3631,6 +3639,7 @@ export interface TicketThread extends TicketThread_readonly, TicketThread_requir
   closedAt?: Date | '',
   pinnedAt?: Date | '',
   assignedTo?: string[],
+  tags?: string[],
 }
 
 export interface TicketThreadComment_readonly extends ClientRecord {
@@ -3666,6 +3675,7 @@ export interface TicketThreadComment extends TicketThreadComment_readonly, Ticke
   },
   hiddenBy?: { [index: string] : Date | '' };
   ticketIds?: string[], 
+  tags?: string[],
 }
 
 export interface Configuration_readonly extends ClientRecord {}
