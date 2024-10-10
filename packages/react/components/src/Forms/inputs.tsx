@@ -2602,7 +2602,6 @@ export const AppointmentBookingInput = ({ formResponseId, field, value, onChange
     bookingURL += `&holdAppointmentMinutes=${field.options.holdAppointmentMinutes}`
   }
 
-  console.log(bookingURL, formResponseId, field?.id, field.options?.holdAppointmentMinutes)
   return (
     <Grid container direction="column" spacing={1} sx={{ mt: 1 }}>
       {/* When skipping user selection, include a back button at the top for clearer navigation on mobile */}
