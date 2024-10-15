@@ -2696,6 +2696,8 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       priority: numberValidatorOptional,
       preserveContext: booleanValidatorOptional,
       tags: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
+      contextFormIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+      contextEnduserFields: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
     }, { emptyOk: false }),
   }),
   sendWebhook: objectValidator<SendWebhookAutomationAction>({

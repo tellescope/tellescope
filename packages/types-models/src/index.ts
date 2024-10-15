@@ -1319,6 +1319,8 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
   restrictByTags?: string[],
   restrictByTagsQualifier?: ListQueryQualifier,
   archiveReason?: string,
+  contextFormIds?: string[],
+  contextEnduserFields?: string[],
 }
 
 export type AttendeeInfo = {
@@ -1573,6 +1575,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   canvasId?: string,
   canvasQuestionId?: string,
   syncToOLH?: boolean,
+  syncWithResponsesFromFormIds?: string[],
 }
 
 export interface FormGroup_readonly extends ClientRecord {}
@@ -2081,7 +2084,8 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   statusChangeSource?: {
     source: string,
     identifier: string,
-  }
+  },
+  dontAutoSyncPatientToHealthie?: boolean,
   // isAllDay?: boolean,
 }
 
@@ -2193,6 +2197,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   matchToHealthieTemplate?: boolean,
   useUserURL?: boolean,
   instructions?: string,
+  dontAutoSyncPatientToHealthie?: boolean,
 }
 
 export interface AppointmentLocation_readonly extends ClientRecord {}
@@ -2493,6 +2498,8 @@ export type CreateTicketActionInfo = {
   priority?: number,
   preserveContext?: boolean,
   tags?: string[],
+  contextFormIds?: string[],
+  contextEnduserFields?: string[],
 }
 
 export type SendEmailAutomationAction = AutomationActionBuilder<'sendEmail', AutomationForMessage & { fromEmailOverride?: string }>

@@ -3727,6 +3727,8 @@ export const schema: SchemaV1 = build_schema({
       restrictByTags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       restrictByTagsQualifier: { validator: listQueryQualifiersValidator },
       archiveReason: { validator: stringValidator },
+      contextFormIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+      contextEnduserFields: { validator: listOfUniqueStringsValidatorEmptyOk },
     }
   },
   meetings: {
@@ -3995,6 +3997,7 @@ export const schema: SchemaV1 = build_schema({
       canvasId: { validator: stringValidator100 },
       canvasQuestionId: { validator: stringValidator100 },
       syncToOLH: { validator: booleanValidator }, 
+      syncWithResponsesFromFormIds: { validator: listOfUniqueStringsValidatorEmptyOk },
     }
   },
   form_fields: {
@@ -4915,6 +4918,7 @@ export const schema: SchemaV1 = build_schema({
         }),
       },
       cancelReason: { validator: stringValidator5000 },
+      dontAutoSyncPatientToHealthie: { validator: booleanValidator },
     }
   },
   calendar_event_templates: {
@@ -4929,6 +4933,7 @@ export const schema: SchemaV1 = build_schema({
     enduserActions: { read: {}, readMany: {} },
     fields: {
       ...BuiltInFields, 
+      dontAutoSyncPatientToHealthie: { validator: booleanValidator },
       title: {
         validator: stringValidator250,
         required: true,
