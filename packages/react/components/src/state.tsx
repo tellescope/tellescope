@@ -90,6 +90,7 @@ import {
   FormGroup,
   PortalBranding,
   MessageTemplateSnippet,
+  FaxLog,
 } from "@tellescope/types-client"
 
 import {
@@ -347,6 +348,7 @@ const webhookLogsSlice = createSliceForList<WebhookLog, 'webhook_logs'>('webhook
 const formGroupsSlice = createSliceForList<FormGroup, 'form_groups'>('form_groups')
 const portalBrandingsSlice = createSliceForList<PortalBranding, 'portal_brandings'>('portal_brandings')
 const messageTemplateSnippetsSlice = createSliceForList<MessageTemplateSnippet, 'message_template_snippets'>('message_template_snippets')
+const faxLogsSlice = createSliceForList<FaxLog, 'fax_logs'>('fax_logs')
 
 const roleBasedAccessPermissionsSlice = createSliceForList<RoleBasedAccessPermission, 'role_based_access_permissions'>('role_based_access_permissions')
 
@@ -431,6 +433,7 @@ export const sharedConfig = {
     form_groups: formGroupsSlice.reducer,
     portal_brandings: portalBrandingsSlice.reducer,
     message_template_snippets: messageTemplateSnippetsSlice.reducer,
+    fax_logs: faxLogsSlice.reducer,
   },
 }
 
@@ -1174,6 +1177,24 @@ export const useUserAndEnduserDisplayInfo = () => {
   return displayInfo
 }
 
+export const useFaxLogs = (options={} as HookOptions<FaxLog>) => {
+  const session = useSession()
+
+  return useListStateHook('fax_logs', useTypedSelector(s => s.fax_logs), session, faxLogsSlice,
+    { 
+      loadQuery: session.api.fax_logs.getSome,
+      findOne: session.api.fax_logs.getOne,
+      findByIds: session.api.fax_logs.getByIds,
+      addOne: session.api.fax_logs.createOne,
+      addSome: session.api.fax_logs.createSome,
+      deleteOne: session.api.fax_logs.deleteOne,
+      updateOne: session.api.fax_logs.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
 export const useMessageTemplateSnippets = (options={} as HookOptions<MessageTemplateSnippet>) => {
   const session = useSession()
 

@@ -562,6 +562,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   templateFields?: LabeledField[]
   dashboardView?: CustomDashboardView,
   hideFromCalendarView?: boolean,
+  requireSSO?: string[],
 }
 
 export type Preference = 'email' | 'sms' | 'call' | 'chat'
@@ -1230,6 +1231,7 @@ export interface File extends File_readonly, File_required, File_updatesDisabled
   // ocrResult?: string,
   ocrType?: string,
   references?: RelatedRecord[] // internal, for storing built-in integrations info
+  tags?: string[],
 }
 
 
@@ -1840,6 +1842,7 @@ export type FormResponseValue = {
   disabled?: boolean,
   isHighlightedOnTimeline?: boolean,
   computedValueKey?: 'Height' | 'Weight' | 'Date of Birth' | "Gender",
+  intakeField?: string,
 }
 
 export type AnswerForType = {
@@ -2086,6 +2089,8 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
     identifier: string,
   },
   dontAutoSyncPatientToHealthie?: boolean,
+  displayTitle?: string,
+  displayDescription?: string,
   // isAllDay?: boolean,
 }
 
@@ -2198,6 +2203,8 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   useUserURL?: boolean,
   instructions?: string,
   dontAutoSyncPatientToHealthie?: boolean,
+  displayTitle?: string,
+  displayDescription?: string,
 }
 
 export interface AppointmentLocation_readonly extends ClientRecord {}
@@ -2547,7 +2554,7 @@ export type HealthieSendChatAutomationAction = AutomationActionBuilder<'healthie
 export type CompleteTicketsAutomationAction = AutomationActionBuilder<'completeTickets', { journeyIds?: string[] }>
 export type ChangeContactTypeAutomationAction = AutomationActionBuilder<'changeContactType', { type: string }>
 export type ActiveCampaignSyncAutomationAction = AutomationActionBuilder<'activeCampaignSync', { }>
-export type SwitchToRelatedContactAutomationAction = AutomationActionBuilder<'switchToRelatedContact', { type: string }>
+export type SwitchToRelatedContactAutomationAction = AutomationActionBuilder<'switchToRelatedContact', { type: string, otherTypes?: string[] }>
 
 export type IterableFieldsMapping = {
   iterable: string,
@@ -2939,6 +2946,26 @@ export interface EnduserTask extends EnduserTask_readonly, EnduserTask_required,
   completedAt?: Date;
 }
 
+export interface FaxLog_readonly extends ClientRecord {}
+export interface FaxLog_required {
+  externalId: string,
+  source: string,
+  from: string,
+  to: string,
+  fileId: string,
+  inbound: boolean,
+  title: string,
+}
+export interface FaxLog_updatesDisabled {}
+export interface FaxLog extends FaxLog_readonly, FaxLog_required, FaxLog_updatesDisabled {
+  userId?: string,
+  enduserId?: string,
+  status?: string,
+  errorMessage?: string,
+  pageCount?: string,
+  tags?: string[],
+}
+
 export interface CarePlan_readonly extends ClientRecord {}
 export interface CarePlan_required {
   title: string,
@@ -2969,6 +2996,7 @@ export type UserUIRestrictions = {
   hideUnsubmittedForms?: boolean,
   hideMergeEndusers?: boolean,
   hideQueuedTicketsViewer?: boolean,
+  hideIncomingFaxesIcon?: boolean,
 }
 
 export interface RoleBasedAccessPermission_readonly extends ClientRecord {}
@@ -3295,6 +3323,7 @@ export interface AnalyticsFrame extends
   analyticsFrameGroupingCategory?: AnalyticsFrameGroupingCategory[],
   truncationLength?: number,
   showEllipsis?: boolean,
+  orderedLabels?: string[],
 }
 
 
@@ -3552,7 +3581,7 @@ export type PhoneTreeActionBuilder <T, V> = { type: T, info: V }
 export type PhoneTreeActions = {
   // 'Play': PhoneTreeActionBuilder<"Play", { playback: PhonePlayback }>
   'Gather': PhoneTreeActionBuilder<"Gather", { digits: boolean, speech: boolean, playback: PhonePlayback }>
-  'Voicemail': PhoneTreeActionBuilder<"Voicemail", { playback: PhonePlayback }>
+  'Voicemail': PhoneTreeActionBuilder<"Voicemail", { playback: PhonePlayback, journeyId?: string }>
   'Play Message': PhoneTreeActionBuilder<"Play Message", { playback: PhonePlayback, journeyId?: string }>
   'Dial Users': PhoneTreeActionBuilder<"Dial Users", { userIds: string[], playback?: Partial<PhonePlayback>, duration?: number }>
   'Route Call': PhoneTreeActionBuilder<"Route Call", { 
@@ -3707,6 +3736,7 @@ export interface TicketQueue extends TicketQueue_readonly, TicketQueue_required,
   enduserFields?: string[],
   lastRefreshedCountAt?: Date,
   preventPull?: string[],
+  index?: number,
 }
 
 export interface EnduserOrder_readonly extends ClientRecord {}
@@ -3923,6 +3953,7 @@ export interface WebhookLog_updatesDisabled {}
 export interface WebhookLog extends WebhookLog_readonly, WebhookLog_required, WebhookLog_updatesDisabled {}
 
 export type ModelForName_required = {
+  fax_logs: FaxLog_required,
   message_template_snippets: MessageTemplateSnippet_required
   portal_brandings: PortalBranding_required
   form_groups: FormGroup_required,
@@ -4004,6 +4035,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  fax_logs: FaxLog_readonly,
   message_template_snippets: MessageTemplateSnippet_readonly,
   portal_brandings: PortalBranding_readonly,
   form_groups: FormGroup_readonly,
@@ -4085,6 +4117,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  fax_logs: FaxLog_updatesDisabled,
   message_template_snippets: MessageTemplateSnippet_updatesDisabled,
   portal_brandings: PortalBranding_updatesDisabled,
   form_groups: FormGroup_updatesDisabled,
@@ -4166,6 +4199,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly { 
+  fax_logs: FaxLog,
   message_template_snippets: MessageTemplateSnippet,
   portal_brandings: PortalBranding,
   form_groups: FormGroup,
@@ -4257,6 +4291,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  fax_logs: true,
   message_template_snippets: true,
   portal_brandings: true,
   form_groups: true,

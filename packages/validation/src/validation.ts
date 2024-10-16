@@ -2092,6 +2092,7 @@ export const formResponseValidator = objectValidator<FormResponseValue>({
   isHighlightedOnTimeline: booleanValidatorOptional,
   computedValueKey: stringValidatorOptional,
   disabled: booleanValidatorOptional,
+  intakeField: stringValidatorOptionalEmptyOkay,
 })
 export const formResponsesValidator = listValidator(formResponseValidator)
 
@@ -2857,7 +2858,8 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['switchToRelatedContact']),
     info: objectValidator<SwitchToRelatedContactAutomationAction['info']>({ 
-      type: stringValidator100
+      type: stringValidator100,
+      otherTypes: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
     }, {  }),
   }),
 })
@@ -4205,6 +4207,7 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   form_groups: accessPermissionValidator,
   portal_brandings: accessPermissionValidator,
   message_template_snippets: accessPermissionValidator,
+  fax_logs: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
@@ -4288,6 +4291,7 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   flowchart_notes: numberValidatorOptional,
   form_groups: numberValidatorOptional,
   portal_brandings: numberValidatorOptional,
+  fax_logs: numberValidatorOptional,
 }, { emptyOk: true })
 
 const _LOGIN_FLOW_RESULTS = {
@@ -4813,6 +4817,7 @@ export const userUIRestrictionsValidator = objectValidator<UserUIRestrictions>({
   hideUnsubmittedForms: booleanValidatorOptional,
   hideMergeEndusers: booleanValidatorOptional,
   hideQueuedTicketsViewer: booleanValidatorOptional,
+  hideIncomingFaxesIcon: booleanValidatorOptional,
 }, { emptyOk: true })
 
 const externalChatGPTMessageValidator = objectValidator<ExternalChatGPTMessage>({
@@ -4958,6 +4963,7 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
     type: exactMatchValidator(['Voicemail']),
     info: objectValidator<PhoneTreeActions["Voicemail"]['info']>({
       playback: phonePlaybackValidator,
+      journeyId: mongoIdStringOptional,
     }),
   }),
   "Play Message": objectValidator<PhoneTreeActions["Play Message"]>({

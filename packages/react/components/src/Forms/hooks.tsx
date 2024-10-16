@@ -588,6 +588,7 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
       fieldDescription: f.description,
       fieldHtmlDescription: f.htmlDescription,
       externalId: f.externalId,
+      intakeField: f.intakeField || undefined,
       touched: false, 
       includeInSubmit: false,
       sharedWithEnduser: f.sharedWithEnduser,

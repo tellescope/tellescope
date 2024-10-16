@@ -61,7 +61,7 @@ import { response } from "express";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
-const host = process.env.TEST_URL || 'http://localhost:8080'
+const host = process.env.TEST_URL || 'http://localhost:8080' as const
 const [email, password] = [process.env.TEST_EMAIL, process.env.TEST_PASSWORD]
 const [mfaEmail, mfaPassword] = [process.env.MFA_EMAIL, process.env.TEST_PASSWORD]
 const [email2, password2] = [process.env.TEST_EMAIL_2, process.env.TEST_PASSWORD_2]
@@ -6291,8 +6291,73 @@ export const switch_to_related_contacts_tests = async () => {
   ])
 }
 
+export const formsort_tests = async () => {
+  log_header("FormSort Tests")
+
+  const form = await sdk.api.forms.createOne({ title: "FormSort" })
+
+  const postToFormsort = async ({ matchByName=false, ...o }: { 
+    answers: { key: string, value: any }[],
+    responder_uuid: string,
+    finalized: boolean,
+    matchByName?: boolean,
+  }) => {
+    await axios.post(`${host}/v1/webhooks/formsort/9d4f9dff00f60df2690a16da2cb848f289b447614ad9bef850e54af09a1fbf7a?formId=${form.id}&matchByName=${matchByName}`, o)
+  }
+
+  const emailAnswer = { key: 'email', value: 'test@tellescope.com' }
+  const nameAnswers = [{ key: 'fname', value: 'First' }, { key: 'lname', value: 'Last' }]
+
+  await postToFormsort({ answers: [{ key: 'test', value: 'test' }], responder_uuid: "1", finalized: false })
+  await async_test(`Partial no contact`, sdk.api.form_responses.getSome, { onResult: r => r.length === 0 })
+  await async_test(`Partial no contact`, sdk.api.endusers.getSome, { onResult: r => r.length === 0 })
+
+  await postToFormsort({ answers: [{ key: 'test', value: 'test' }], responder_uuid: "1", finalized: true })
+  await async_test(`Submitted no contact`, sdk.api.form_responses.getSome, { onResult: r => r.length === 1 })
+  await async_test(`Submitted no contact`, sdk.api.endusers.getSome, { onResult: r => r.length === 1 })
+
+  await postToFormsort({ answers: [emailAnswer], responder_uuid: "2", finalized: false })
+  await async_test(`Partial email`, sdk.api.form_responses.getSome, { onResult: r => r.length === 2 })
+  await async_test(`Partial email`, sdk.api.endusers.getSome, { onResult: r => r.length === 2 })
+
+  await postToFormsort({ answers: [emailAnswer], responder_uuid: "2", finalized: true })
+  await async_test(`Submitted email`, sdk.api.form_responses.getSome, { onResult: r => r.length === 2 })
+  await async_test(`Submitted email`, sdk.api.endusers.getSome, { onResult: r => r.length === 2 })
+
+  await postToFormsort({ answers: [emailAnswer], responder_uuid: "3", finalized: true })
+  await async_test(`Matched email`, sdk.api.form_responses.getSome, { onResult: r => r.length === 3 })
+  await async_test(`Matched email`, sdk.api.endusers.getSome, { onResult: r => r.length === 2 })
+
+
+  await postToFormsort({ answers: [emailAnswer], responder_uuid: "4", finalized: false, matchByName: true })
+  await async_test(`Email no name partial`, sdk.api.form_responses.getSome, { onResult: r => r.length === 3 })
+  await async_test(`Email no name partial`, sdk.api.endusers.getSome, { onResult: r => r.length === 2 })
+
+  await postToFormsort({ answers: [emailAnswer, ...nameAnswers], responder_uuid: "4", finalized: false, matchByName: true })
+  await async_test(`Email with name partial`, sdk.api.form_responses.getSome, { onResult: r => r.length === 4 })
+  await async_test(`Email with name partial`, sdk.api.endusers.getSome, { onResult: r => r.length === 3 })
+
+  await postToFormsort({ answers: [emailAnswer, ...nameAnswers], responder_uuid: "5", finalized: false, matchByName: true })
+  await async_test(`Email with name match partial`, sdk.api.form_responses.getSome, { onResult: r => r.length === 5 })
+  await async_test(`Email with name match partial`, sdk.api.endusers.getSome, { onResult: r => r.length === 3 })
+
+  await postToFormsort({ answers: [emailAnswer, ...nameAnswers], responder_uuid: "5", finalized: true, matchByName: true })
+  await async_test(`Email with name match`, sdk.api.form_responses.getSome, { onResult: r => r.length === 5 })
+  await async_test(`Email with name match`, sdk.api.endusers.getSome, { onResult: r => r.length === 3 })
+
+  // cleanup
+  const endusers = await sdk.api.endusers.getSome()
+  const formResponses = await sdk.api.form_responses.getSome()
+  await Promise.all([
+    sdk.api.forms.deleteOne(form.id),
+    ...endusers.map(e => sdk.api.endusers.deleteOne(e.id)),
+    ...formResponses.map(f => sdk.api.form_responses.deleteOne(f.id)),
+  ])
+}
+
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
+  fax_logs: NO_TEST,
   form_groups: NO_TEST,
   webhook_logs: NO_TEST,
   flowchart_notes: NO_TEST,
@@ -8663,6 +8728,7 @@ const uniqueness_tests = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await formsort_tests()
     await switch_to_related_contacts_tests()
     await uniqueness_tests()
     await redaction_tests()

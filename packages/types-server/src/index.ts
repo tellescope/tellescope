@@ -87,6 +87,7 @@ export type WebhookLog = ServerModelForName['webhook_logs']
 export type FormGroup = ServerModelForName['form_groups']
 export type PortalBranding = ServerModelForName['portal_brandings']
 export type MessageTemplateSnippet = ServerModelForName['message_template_snippets']
+export type FaxLog = ServerModelForName['fax_logs']
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']

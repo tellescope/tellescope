@@ -213,6 +213,7 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   webhook_logs: defaultQueries(s, 'webhook_logs'),
   portal_brandings: defaultQueries(s, 'portal_brandings'),
   message_template_snippets: defaultQueries(s, 'message_template_snippets'),
+  fax_logs: defaultQueries(s, 'fax_logs'),
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
@@ -696,6 +697,11 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
       Promise<extractFields<CustomActions['automation_triggers']['trigger_events']['returns']>>
     ),
   },
+  ticket_queues: {
+    update_indexes: (args: extractFields<CustomActions['ticket_queues']['update_indexes']['parameters']>) => (
+      Promise<extractFields<CustomActions['ticket_queues']['update_indexes']['returns']>>
+    ),
+  },
   tickets: {
     update_indexes: (args: extractFields<CustomActions['tickets']['update_indexes']['parameters']>) => (
       Promise<extractFields<CustomActions['tickets']['update_indexes']['returns']>>
@@ -946,6 +952,8 @@ export class Session extends SessionManager {
     queries.managed_content_records.update_indexes = a => this._PATCH(`/v1/${schema.managed_content_records.customActions.update_indexes.path}`, a)
 
     queries.automation_triggers.trigger_events = a => this._POST(`/v1/${schema.automation_triggers.customActions.trigger_events.path}`, a)
+
+    queries.ticket_queues.update_indexes = a => this._PATCH(`/v1/${schema.ticket_queues.customActions.update_indexes.path}`, a)
 
     queries.tickets.update_indexes = a => this._PATCH(`/v1/${schema.tickets.customActions.update_indexes.path}`, a)
     queries.tickets.assign_from_queue = a => this._PATCH(`/v1/${schema.tickets.customActions.assign_from_queue.path}`, a)

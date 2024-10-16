@@ -964,6 +964,9 @@ export type CustomActions = {
     get_distribution_report: CustomAction<{  range?: DateRange }, { report: Report[keyof Report] }>,
     assign_from_queue: CustomAction<{ userId?: string, ticketId?: string, queueId?: string, overrideRestrictions?: boolean, }, { ticket: Ticket, queue: TicketQueue, enduser: Enduser }>,
   },
+  ticket_queues: {
+    update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
+  },
   appointment_booking_pages: {
     generate_access_token: CustomAction<{ expiresAt: Date, bookingPageId?: string }, { token: string }>,
   },
@@ -2945,6 +2948,16 @@ export const schema: SchemaV1 = build_schema({
           }
         }, 
         {
+          explanation: "Only admin users can update requireSSO",
+          evaluate: ({ roles }, _, session, method, { updates }) => {
+            if ((session as UserSession)?.roles?.includes('Admin')) return // admin can do this
+            if (method === 'create') return // create already admin restricted
+            if (!updates?.requireSSO) return // requireSSO not provided
+
+            return "Only admin users can update requireSSO"
+          }
+        }, 
+        {
           explanation: "User organizationIds are readonly",
           evaluate: ({ }, _, session, method, { updates }) => {
             if (method === 'create') return // only concerned with updates
@@ -3322,6 +3335,7 @@ export const schema: SchemaV1 = build_schema({
       canvasId: { validator: stringValidator100 },
       dashboardView: { validator: customDashboardViewValidator },
       hideFromCalendarView: { validator: booleanValidator },
+      requireSSO: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
     }
   },
   templates: {
@@ -3437,6 +3451,7 @@ export const schema: SchemaV1 = build_schema({
     enduserActions: { prepare_file_upload: {}, confirm_file_upload: {}, file_download_URL: {}, read: {}, readMany: {}, delete: {}, update: { } /* allow to hide from client side */ },
     fields: {
       ...BuiltInFields, 
+      tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, 
       name: {
         validator: stringValidator250,
         required: true,
@@ -4806,6 +4821,8 @@ export const schema: SchemaV1 = build_schema({
         required: true,
         examples: ["Text"],
       }, 
+      displayTitle: { validator: stringValidator250 },
+      displayDescription: { validator: stringValidator5000 },
       startTimeInMS: { 
         validator: nonNegNumberValidator,
         examples: [100],
@@ -4939,6 +4956,8 @@ export const schema: SchemaV1 = build_schema({
         required: true,
         examples: ["Text"],
       }, 
+      displayTitle: { validator: stringValidator250 },
+      displayDescription: { validator: stringValidator5000 },
       durationInMinutes: { 
         validator: nonNegNumberValidator,
         examples: [100],
@@ -6790,6 +6809,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       analyticsFrameGroupingCategory: { validator: analyticsFrameGroupingCategoriesValidator },
       truncationLength: { validator: nonNegNumberValidator },
       showEllipsis: { validator: booleanValidator },
+      orderedLabels: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
     },
   },
   availability_blocks: {
@@ -7390,7 +7410,18 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       ]  
     },
     defaultActions: DEFAULT_OPERATIONS,
-    customActions: {},
+    customActions: {
+      update_indexes: {
+        op: "custom", access: 'update', method: "patch",
+        name: 'Update Indexes',
+        path: '/ticket-queues/update-indexes',
+        description: "Updates indexes for a number of ticket queues to adjust the default sorting",
+        parameters: { 
+          updates: { validator: indexUpdatesValidator, required: true },
+        },
+        returns: {},
+      },
+    },
     enduserActions: {},
     fields: {
       ...BuiltInFields, 
@@ -7776,6 +7807,27 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       ...BuiltInFields,
       key: { validator: stringValidator, required: true, examples: ['Unique Key'] },
       value: { validator: stringValidator, required: true, examples: ['Value'] },
+    }
+  },
+  fax_logs: {
+    info: { description: '' },
+    constraints: { unique: [], relationship: [], access: [] },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields,
+      title: { validator: stringValidator100, required: true, examples: ['Title'] },
+      externalId: { validator: stringValidator100, required: true, examples: ['external-uuid'] },
+      source: { validator: stringValidator100, required: true, examples: ['mFax'] },
+      fileId: { validator: mongoIdStringValidator, required: true, examples: [PLACEHOLDER_ID] },
+      from: { validator: stringValidator100, required: true, examples: ['+15555555555'] },
+      to: { validator: stringValidator100, required: true, examples: ['+15555555555'] },
+      inbound: { validator: booleanValidator, required: true, examples: [true] },
+      enduserId: { validator: mongoIdStringValidator },
+      userId: { validator: mongoIdStringValidator },
+      errorMessage: { validator: stringValidator },
+      tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, 
     }
   },
 })

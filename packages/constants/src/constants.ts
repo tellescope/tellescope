@@ -109,6 +109,7 @@ export const SQUARE_REDIRECT_URI_ENDING = "/square-oauth2-verify"
 export const DIALPAD_INTEGRATIONS_TITLE = "DialPad"
 export const DIALPAD_REDIRECT_URI_ENDING = "/dialpad-oauth2-verify"
 export const OUTLOOK_INTEGRATIONS_TITLE = "Outlook"
+export const MICROSOFT_INTEGRATIONS_TITLE = "Microsoft"
 export const OUTLOOK_REDIRECT_URI_ENDING = "/outlook-oauth2-verify"
 export const MICROSOFT_OIDC_URI_ENDING = "/microsoft-oidc-verify"
 export const ZOHO_TITLE = "Zoho"
@@ -321,6 +322,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
     ...ASSIGNED_AND_DEFAULT_ACCESS,
     delete: ASSIGNED_ACCESS,
   },
+  fax_logs: ASSIGNED_AND_DEFAULT_ACCESS,
   enduser_observations: ASSIGNED_AND_DEFAULT_ACCESS,
   enduser_problems: ASSIGNED_AND_DEFAULT_ACCESS,
   forum_posts: ASSIGNED_AND_DEFAULT_ACCESS,
@@ -377,6 +379,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
+  fax_logs: FULL_ACCESS,
   message_template_snippets: FULL_ACCESS,
   portal_brandings: FULL_ACCESS,
   webhook_logs: READ_ONLY_ALL,
