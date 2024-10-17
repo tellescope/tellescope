@@ -363,6 +363,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     iframeURL: string,
   }[],
   stripePublicKeys?: string[],
+  defaultDoseSpotPharmacies?: { id: string, name: string }[]
   // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {

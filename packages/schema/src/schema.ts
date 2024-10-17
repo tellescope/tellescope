@@ -6042,6 +6042,12 @@ export const schema: SchemaV1 = build_schema({
           iframeURL: stringValidator1000,
         }))
       },
+      defaultDoseSpotPharmacies: { 
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ id: string, name: string }>({
+          id: stringValidator100,
+          name: stringValidator,
+        }))
+      },
     },
   },
   databases: {
