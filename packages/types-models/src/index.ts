@@ -17,7 +17,7 @@ export type StripeCheckoutInfo = {
   businessName: string
 }
 
-export type SortBy = 'updatedAt'
+export type SortBy = 'updatedAt' | 'dueDateInMS'
 
 export type AccessType = "All" | "Default" | "Assigned" | null
 export type AccessAction = "create" | "read" | "update" | "delete"

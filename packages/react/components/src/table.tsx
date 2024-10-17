@@ -719,6 +719,7 @@ export interface TableProps<T extends Item> extends WithTitle, WithHeader<T>, Wi
   onExport?: (v: { data: (string | number)[][], labels: string[] }) => void,
   sort?: SortingField[],
   loadMoreOptions?: LoadMoreOptions<T>,
+  refreshFilterSuggestionsKey?: number,
 }
 export const Table = <T extends Item>({
   items,
@@ -771,6 +772,7 @@ export const Table = <T extends Item>({
   onExport,
 
   sort,
+  refreshFilterSuggestionsKey,
 }: TableProps<T> & Styled) => {
   const sortingStorageKey = (memoryId ?? '') + 'sorting'
   const cachedSortString = read_local_storage(sortingStorageKey)
@@ -959,7 +961,7 @@ export const Table = <T extends Item>({
     }
 
     return suggestions
-  }, [sorted, keyString])
+  }, [sorted, keyString, refreshFilterSuggestionsKey])
 
   const table = (
     <Flex column>
