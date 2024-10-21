@@ -291,6 +291,7 @@ import {
   FormResponseAnswerEmotii,
   BookingRestrictions,
   SwitchToRelatedContactAutomationAction,
+  ElationSyncAutomationAction,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -2335,6 +2336,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   changeContactType: '',
   activeCampaignSync: '',
   switchToRelatedContact: '',
+  elationSync: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -2820,6 +2822,11 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['healthieSync']),
     info: objectValidator<HealthieSyncAutomationAction['info']>({ }, { emptyOk: true }),
+  }),
+  elationSync: objectValidator<ElationSyncAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['elationSync']),
+    info: objectValidator<ElationSyncAutomationAction['info']>({ }, { emptyOk: true }),
   }),
   healthieAddToCourse: objectValidator<HealthieAddToCourseAutomationAction>({
     continueOnError: booleanValidatorOptional,
@@ -3737,6 +3744,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Form Submitted": true,
   "Form Unsubmitted": true,
   "Purchase Made": true,
+  "Refund Issued": true,
   "Appointment No-Showed": true,
   "Appointment Created": true,
   "Appointment Cancelled": true,
@@ -3807,6 +3815,11 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
   }), 
   "Purchase Made": objectValidator<AutomationTriggerEvents["Purchase Made"]>({
     type: exactMatchValidator(['Purchase Made']),
+    info: optionalEmptyObjectValidator,
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Refund Issued": objectValidator<AutomationTriggerEvents["Refund Issued"]>({
+    type: exactMatchValidator(['Refund Issued']),
     info: optionalEmptyObjectValidator,
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -3995,6 +4008,7 @@ const _AUTOMATION_TRIGGER_ACTION_TYPES: { [K in AutomationTriggerActionType]: an
   "Add To Journey": true,
   "Remove From Journey": true,
   "Move To Step": true,
+  "Set Fields": true,
   "Add Tags": true,
   "Remove Tags": true,
   "Add Access Tags": true,
@@ -4046,6 +4060,16 @@ export const automationTriggerActionValidator = orValidator<{ [K in AutomationTr
     info: objectValidator<AutomationTriggerActions['Assign Care Team']['info']>({
       tags: listOfStringsWithQualifierValidator,
       limitToOneUser: booleanValidatorOptional,
+    }),
+  }), 
+  "Set Fields": objectValidator<AutomationTriggerActions["Set Fields"]>({
+    type: exactMatchValidator(['Set Fields']),
+    info: objectValidator<AutomationTriggerActions['Set Fields']['info']>({
+      fields: listValidator(objectValidator<EnduserFieldSetter>({
+        name: stringValidator,
+        type: stringValidator,
+        value: stringValidator,
+      }))
     }),
   }), 
   "Remove From All Journeys": objectValidator<AutomationTriggerActions["Remove From All Journeys"]>({
@@ -4501,6 +4525,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       wasNoShowed: booleanValidatorOptional,
       wasRescheduled: booleanValidatorOptional,
       userIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+      scheduledBy: mongoIdStringOptional,
     }, { isOptional: true, emptyOk: true }),
     info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Calendar Events']]: AnalyticsQueryInfoForType['Calendar Events'][K] }>({
       "Total": objectValidator<AnalyticsQueryInfoForType['Calendar Events']['Total']>({
@@ -4518,6 +4543,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Age: booleanValidatorOptional,
       State: booleanValidatorOptional,
       Phone: booleanValidatorOptional,
+      "Scheduled By": booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),

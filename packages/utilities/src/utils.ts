@@ -1937,7 +1937,9 @@ export const replace_tag_template_values_for_enduser = (tags: string[], enduser:
   })
 )
 
-export const replace_enduser_template_values = (s: string, enduser: Omit<Enduser, 'id'>) => {
+export const replace_enduser_template_values = (s: string, enduser?: Omit<Enduser, 'id'> | null) => {
+  if (!enduser) return s
+
   let i = 0
   let start = 0
   let templates = [] as { match: string, replacement: string }[]

@@ -2556,6 +2556,7 @@ export type CompleteTicketsAutomationAction = AutomationActionBuilder<'completeT
 export type ChangeContactTypeAutomationAction = AutomationActionBuilder<'changeContactType', { type: string }>
 export type ActiveCampaignSyncAutomationAction = AutomationActionBuilder<'activeCampaignSync', { }>
 export type SwitchToRelatedContactAutomationAction = AutomationActionBuilder<'switchToRelatedContact', { type: string, otherTypes?: string[] }>
+export type ElationSyncAutomationAction = AutomationActionBuilder<'elationSync', { }>
 
 export type IterableFieldsMapping = {
   iterable: string,
@@ -2615,6 +2616,7 @@ export type AutomationActionForType = {
   'changeContactType': ChangeContactTypeAutomationAction,
   activeCampaignSync: ActiveCampaignSyncAutomationAction,
   switchToRelatedContact: SwitchToRelatedContactAutomationAction,
+  'elationSync': ElationSyncAutomationAction,
 }
 export type AutomationActionType = keyof AutomationActionForType
 export type AutomationAction = AutomationActionForType[AutomationActionType]
@@ -3110,6 +3112,7 @@ export type AnalyticsQueryFilterForType = {
     wasCancelled?: boolean,
     wasRescheduled?: boolean,
     wasNoShowed?: boolean,
+    scheduledBy?: string,
   },  
   "Form Responses": {
     formIds?: string[],
@@ -3147,6 +3150,7 @@ export type AnalyticsQueryGroupingForType = {
   "Endusers": EnduserGrouping,  
   "Calendar Events": {
     Type: boolean,
+    "Scheduled By"?: boolean,
   } & EnduserGrouping & { Enduser: string },
   "Form Responses": {
     "Public Identifier"?: boolean,
@@ -3408,6 +3412,7 @@ export type AutomationTriggerActions = {
   "Add Tags": AutomationTriggerActionBuilder<'Add Tags', { tags: string[] }>,
   "Remove Tags": AutomationTriggerActionBuilder<'Remove Tags', { tags: string[] }>,
   "Add Access Tags": AutomationTriggerActionBuilder<'Add Access Tags', { tags: string[] }>,
+  "Set Fields": AutomationTriggerActionBuilder<'Set Fields', { fields: EnduserFieldSetter[] }>,
   "Move To Step": AutomationTriggerActionBuilder<'Move To Step', { }>, // journeyId and automationStepId stored as part of trigger for better dependency deletion
   "Assign Care Team": AutomationTriggerActionBuilder<'Assign Care Team', { 
     tags: ListOfStringsWithQualifier,
@@ -3430,6 +3435,7 @@ export type AutomationTriggerEvents = {
   }, {}>,
   'Form Unsubmitted': AutomationTriggerEventBuilder<"Form Unsubmitted", { formId: string, intervalInMS: number }, {}>,
   'Purchase Made': AutomationTriggerEventBuilder<"Purchase Made", { }, {}>,
+  'Refund Issued': AutomationTriggerEventBuilder<"Refund Issued", { }, {}>,
   'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", { titles?: string[], templateIds?: string[] }, { }>,
   'Field Equals': AutomationTriggerEventBuilder<"Field Equals", { field: string, value: string }, { }>,
   'Appointment Created': AutomationTriggerEventBuilder<"Appointment Created", { titles?: string[] }, {}>,

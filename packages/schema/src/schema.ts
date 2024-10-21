@@ -4099,8 +4099,8 @@ export const schema: SchemaV1 = build_schema({
       },
       flowchartUI: { validator: flowchartUIValidator },
       options: { validator: formFieldOptionsValidator },
-      description: { validator: stringValidator5000EmptyOkay }, 
-      htmlDescription: { validator: stringValidator5000EmptyOkay }, 
+      description: { validator: stringValidator25000EmptyOkay }, 
+      htmlDescription: { validator: stringValidator25000EmptyOkay }, 
       intakeField: { validator: stringValidator5000EmptyOkay }, // todo: ensure built-ins are ignored
       isOptional: { validator: booleanValidator },
       fullZIP: { validator: booleanValidator },
@@ -4615,6 +4615,7 @@ export const schema: SchemaV1 = build_schema({
         path: '/calendar-availability',
         description: "Gets availability blocks for different users based on their internal and external calendars",
         warnings: [
+          "businessId is currently required when not authenticating as an Enduser (e.g. API key or unauthenticated requests)",
           "The limit parameter indicates the number of future calendar event conflicts to look up when determining availability. This defaults to a high value (500) and should only be reduced with caution.",
           "If restrictedByState, and authenticated as an enduser, state will be pulled from the enduser automatically. If state is not defined, will result in a 400 error",
           "If restrictedByState, and authenticated as a user (e.g. by API Key), you can provide state as a parameter",
