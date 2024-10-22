@@ -1934,7 +1934,7 @@ export const replace_tag_template_values_for_enduser = (tags: string[], enduser:
         return age_for_dob_mmddyyyy(enduser.dateOfBirth)
       }
       if (tagField === 'BMI' && enduser.height?.value && enduser.weight?.value) {
-        return calculate_bmi(enduser)
+        return calculate_bmi(enduser).toFixed(2)
       }
 
       return (
