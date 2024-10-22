@@ -4844,6 +4844,7 @@ export const userUIRestrictionsValidator = objectValidator<UserUIRestrictions>({
   hideMergeEndusers: booleanValidatorOptional,
   hideQueuedTicketsViewer: booleanValidatorOptional,
   hideIncomingFaxesIcon: booleanValidatorOptional,
+  hideBulkEnduserActions: booleanValidatorOptional,
 }, { emptyOk: true })
 
 const externalChatGPTMessageValidator = objectValidator<ExternalChatGPTMessage>({

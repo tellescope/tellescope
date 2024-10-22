@@ -3475,6 +3475,10 @@ export const schema: SchemaV1 = build_schema({
       pushedToClientPortal: { validator: booleanValidator }, // user push
       hiddenFromEnduser: { validator: booleanValidator }, // user hide
       isCalledOut: { validator: booleanValidator },
+      externalId: {
+        validator: stringValidator250,
+        examples: ['addfed3e-ddea-415b-b52b-df820c944dbb'],
+      },
     },
     customActions: {
       prepare_file_upload: {

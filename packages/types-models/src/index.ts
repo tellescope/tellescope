@@ -2936,6 +2936,7 @@ export interface UserLog_updatesDisabled {}
 export interface UserLog extends UserLog_readonly, UserLog_required, UserLog_updatesDisabled {
   info?: Indexable,
   enduserId?: string,
+  note?: string,
 }
 
 export interface EnduserTask_readonly extends ClientRecord {}
@@ -3000,6 +3001,7 @@ export type UserUIRestrictions = {
   hideMergeEndusers?: boolean,
   hideQueuedTicketsViewer?: boolean,
   hideIncomingFaxesIcon?: boolean,
+  hideBulkEnduserActions?: boolean,
 }
 
 export interface RoleBasedAccessPermission_readonly extends ClientRecord {}

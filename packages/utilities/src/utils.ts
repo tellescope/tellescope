@@ -532,6 +532,10 @@ export const form_response_value_to_string = (value: FormResponseValueAnswer['va
     return formatted_date(maybeDate)
   }
 
+  if (value instanceof Date) {
+    return formatted_date(value)
+  }
+
   if (typeof value === 'string') return value
   if (typeof value === 'number' || typeof value === 'boolean') return value.toString()
 
@@ -1925,6 +1929,13 @@ export const replace_tag_template_values_for_enduser = (tags: string[], enduser:
     if (t.startsWith('{{') && t.endsWith('}}')) {
       const tagField = (t.split('{{enduser.').pop() || '').replace("}}", '')
       if (tagField === 'hashedPassword') return t
+
+      if (tagField === 'Age' && enduser.dateOfBirth) {
+        return age_for_dob_mmddyyyy(enduser.dateOfBirth)
+      }
+      if (tagField === 'BMI' && enduser.height?.value && enduser.weight?.value) {
+        return calculate_bmi(enduser)
+      }
 
       return (
            enduser.fields?.[tagField]?.toString() 
