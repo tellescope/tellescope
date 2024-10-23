@@ -1364,6 +1364,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
   fields?: Indexable<string | CustomField>,
   pinnedAt?: Date | '',
   tags?: string[],
+  discussionRoomId?: string,
 }
 
 export type FormFieldLiteralType = 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time'
@@ -1404,6 +1405,8 @@ export type TableInputChoiceType = keyof TableInputChoices
 export type TableInputChoice = TableInputChoices[TableInputChoiceType]
 
 export type FormFieldValidation = {
+  min?: number,
+  max?: number,
   minLength?: number,
   maxLength?: number,
   repeat?: boolean,
@@ -1944,7 +1947,8 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
         percentile: number,
       }[]
     },
-  }[]
+  }[],
+  discussionRoomId?: string,
 }
 
 export interface WebHook_readonly extends ClientRecord {}
@@ -2280,6 +2284,7 @@ export interface AppointmentBookingPage extends AppointmentBookingPage_readonly,
   publicMulti?: boolean,
   publicUserTags?: string[],
   publicUserFilterTags?: string[],
+  appointmentSlotsMaxHeight?: number,
   // productIds?: string[], // defer to specific template
 }
 
@@ -3438,6 +3443,7 @@ export type AutomationTriggerEvents = {
   'Form Unsubmitted': AutomationTriggerEventBuilder<"Form Unsubmitted", { formId: string, intervalInMS: number }, {}>,
   'Purchase Made': AutomationTriggerEventBuilder<"Purchase Made", { }, {}>,
   'Refund Issued': AutomationTriggerEventBuilder<"Refund Issued", { }, {}>,
+  'Subscription Ended': AutomationTriggerEventBuilder<"Subscription Ended", { }, {}>,
   'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", { titles?: string[], templateIds?: string[] }, { }>,
   'Field Equals': AutomationTriggerEventBuilder<"Field Equals", { field: string, value: string }, { }>,
   'Appointment Created': AutomationTriggerEventBuilder<"Appointment Created", { titles?: string[] }, {}>,

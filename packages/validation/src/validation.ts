@@ -3151,6 +3151,8 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   customTypeId: mongoIdStringOptional,
   groupPadding: numberValidatorOptional,
   saveIntakeOnPartial: booleanValidatorOptional,
+  max: numberValidatorOptional,
+  min: numberValidatorOptional,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -3745,6 +3747,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Form Unsubmitted": true,
   "Purchase Made": true,
   "Refund Issued": true,
+  "Subscription Ended": true,
   "Appointment No-Showed": true,
   "Appointment Created": true,
   "Appointment Cancelled": true,
@@ -3820,6 +3823,11 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
   }), 
   "Refund Issued": objectValidator<AutomationTriggerEvents["Refund Issued"]>({
     type: exactMatchValidator(['Refund Issued']),
+    info: optionalEmptyObjectValidator,
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Subscription Ended": objectValidator<AutomationTriggerEvents["Subscription Ended"]>({
+    type: exactMatchValidator(['Subscription Ended']),
     info: optionalEmptyObjectValidator,
     conditions: optionalEmptyObjectValidator,
   }), 

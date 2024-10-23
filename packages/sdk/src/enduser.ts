@@ -364,8 +364,8 @@ export class EnduserSession extends Session {
     return await this.DELETE<A,R>(endpoint, args, authenticated)
   }
 
-  prepare_and_upload_file = async (details: FileDetails & { publicRead?: boolean, publicName?: string, source?: string }, file: Blob | Buffer | ReactNativeFile) => {
-    const { name, size, type, enduserId, publicName, publicRead, source } = details
+  prepare_and_upload_file = async (details: FileDetails & { publicRead?: boolean, publicName?: string, source?: string, externalId?: string }, file: Blob | Buffer | ReactNativeFile) => {
+    const { name, size, type, enduserId, publicName, publicRead, source, externalId } = details
     const { presignedUpload, file: createdFile } = await this.api.files.prepare_file_upload({ name, size, type, enduserId, publicRead, publicName, source })
     await this.UPLOAD(presignedUpload, file)
 

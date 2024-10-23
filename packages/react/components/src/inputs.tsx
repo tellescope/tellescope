@@ -95,16 +95,17 @@ export const useFileDropzone = ({ DropzoneComponent=DefaultDropzoneContent, styl
   }
 }
 
-type FileUploadHandler = (details: FileDetails, file: Blob | Buffer | ReactNativeFile, options?: {}) => Promise<FileClientType>
+type FileUploadHandler = (details: FileDetails & { externalId?: string, }, file: Blob | Buffer | ReactNativeFile, options?: {}) => Promise<FileClientType>
 interface UseFileUploaderOptions {
   enduserId?: string
   publicRead?: boolean,
   publicName?: string,
   source?: string,
   isCalledOut?: boolean,
+  externalId?: string,
 }
 export const useFileUpload = (o={} as UseFileUploaderOptions) => {
-  const { enduserId, publicRead, publicName, source, isCalledOut } = o
+  const { enduserId, publicRead, publicName, source, isCalledOut, externalId } = o
   const session = useResolvedSession()
   const [, { addLocalElement }] = useFiles({ dontFetch: true })
 
@@ -113,7 +114,7 @@ export const useFileUpload = (o={} as UseFileUploaderOptions) => {
   const handleUpload: FileUploadHandler = useCallback(async (details, file) => {
     setUploading(true)
     try {
-      const createdFile = await session.prepare_and_upload_file({ ...details, publicName, enduserId, publicRead, source, isCalledOut }, file);
+      const createdFile = await session.prepare_and_upload_file({ externalId, ...details, publicName, enduserId, publicRead, source, isCalledOut }, file);
       addLocalElement(createdFile)
       return createdFile
     } catch(err) {

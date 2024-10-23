@@ -861,6 +861,14 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
         return `Must be under 20000 characters, got ${value.answer.value?.length}`
       }
     }
+    if (value.answer.type === 'number' && value.answer.value) {
+      if ((field.options?.min ?? -Infinity) >= value.answer.value) {
+        return `Must be greater than ${field.options?.min}`
+      }
+      if ((field.options?.max ?? Infinity) <= value.answer.value) {
+        return `Must be less than ${field.options?.max}`
+      }
+    }
 
     if (field.isOptional || (sessionType === 'user' && field.type === 'Appointment Booking')) {
       return null 

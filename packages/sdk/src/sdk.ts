@@ -1060,9 +1060,9 @@ export class Session extends SessionManager {
     await this.POST('/logout-api').catch(console.error)
   }
 
-  prepare_and_upload_file = async (details: FileDetails & { publicRead?: boolean, publicName?: string, isCalledOut?: boolean }, file: Blob | Buffer | ReactNativeFile) => {
-    const { name, size, type, enduserId, publicRead, publicName, source, isCalledOut } = details
-    const { presignedUpload, file: createdFile } = await this.api.files.prepare_file_upload({ name, size, type, enduserId, publicRead, publicName, source, isCalledOut })
+  prepare_and_upload_file = async (details: FileDetails & { publicRead?: boolean, publicName?: string, isCalledOut?: boolean, externalId?: string }, file: Blob | Buffer | ReactNativeFile) => {
+    const { name, size, type, enduserId, publicRead, publicName, source, isCalledOut, externalId } = details
+    const { presignedUpload, file: createdFile } = await this.api.files.prepare_file_upload({ name, size, type, enduserId, publicRead, publicName, source, isCalledOut, externalId })
     await this.UPLOAD(presignedUpload as any, file)
 
     this.api.files.confirm_file_upload({ id: createdFile.id }).catch(console.error)

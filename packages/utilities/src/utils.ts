@@ -1992,7 +1992,11 @@ export const display_time_for_seconds = (seconds?: number) => (
 export const is_full_iso_string_heuristic = (d: string): Date | undefined => {
   try {
     if (d.length < 12) return // don't consider simple YYYY-MM-DD (10 characters) dates
-    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) { // if it's just YYYY-MM-DD, return
+      return 
+    }
+    // ensure it does start YYYY-MM-DD but has future characters
+    if (!(/\d{4}-\d{2}-\d{2}.*/.test(d))) {
       return 
     }
 

@@ -610,6 +610,7 @@ export type CustomActions = {
       publicRead?: boolean,
       publicName?: string,
       source?: string,
+      externalId?: string,
       isCalledOut?: boolean,
     }, 
       { presignedUpload: object, file: File }
@@ -3512,6 +3513,7 @@ export const schema: SchemaV1 = build_schema({
             }]
           },
           source: { validator: stringValidator100 },
+          externalId: { validator: stringValidator100 },
         },
         returns: { 
           presignedUpload: {
@@ -3928,6 +3930,7 @@ export const schema: SchemaV1 = build_schema({
       },
       pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      discussionRoomId: { validator: mongoIdStringValidator },
     }
   },
   forms: {
@@ -4134,6 +4137,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields, 
+      discussionRoomId: { validator: mongoIdStringValidator },
       formId: {
         validator: stringValidator100, // allow other external id types here too, not just mongoid
         required: true,
@@ -6365,6 +6369,7 @@ export const schema: SchemaV1 = build_schema({
       publicMulti: { validator: booleanValidator },
       publicUserTags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       publicUserFilterTags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      appointmentSlotsMaxHeight: { validator: numberValidatorOptional },
       // defer to template
       // productIds: { validator: listOfStringsValidator },
     }
