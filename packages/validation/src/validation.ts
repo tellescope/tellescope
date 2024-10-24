@@ -3502,6 +3502,7 @@ export const weeklyAvailabilityValidator = objectValidator<WeeklyAvailability>({
   active: dateRangeOptionalValidator,
   validTemplateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
   intervalInMinutes: numberValidatorOptional,
+  priority: numberValidatorOptional,
 })
 export const weeklyAvailabilitiesValidator = listValidatorEmptyOk(weeklyAvailabilityValidator)
 
@@ -5043,7 +5044,9 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
   }),
   "Select Care Team Member": objectValidator<PhoneTreeActions["Select Care Team Member"]>({
     type: exactMatchValidator(['Select Care Team Member']),
-    info: objectValidator<PhoneTreeActions["Select Care Team Member"]['info']>({ }, { emptyOk: true }),
+    info: objectValidator<PhoneTreeActions["Select Care Team Member"]['info']>({ 
+      playback: phonePlaybackValidatorOptional,
+    }, { emptyOk: true }),
   }),
 })
 

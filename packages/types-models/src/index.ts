@@ -472,6 +472,7 @@ export type WeeklyAvailability = {
   locationId?: string, // deprecated
   locationIds?: string[],
   validTemplateIds?: string[],
+  priority?: number,
 }
 export type NotificationPreference = {
   email?: boolean 
@@ -1582,6 +1583,10 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   canvasQuestionId?: string,
   syncToOLH?: boolean,
   syncWithResponsesFromFormIds?: string[],
+  scoresSync?: {
+    score: string,
+    externalId: string,
+  }[]
 }
 
 export interface FormGroup_readonly extends ClientRecord {}
@@ -3608,7 +3613,9 @@ export type PhoneTreeActions = {
     duration?: number,
     addToCareTeam?: boolean,
   }>
-  "Select Care Team Member": PhoneTreeActionBuilder<"Select Care Team Member", { }>,
+  "Select Care Team Member": PhoneTreeActionBuilder<"Select Care Team Member", { 
+    playback?: Partial<PhonePlayback>,
+  }>,
   'Forward Call': PhoneTreeActionBuilder<"Forward Call", { to: string }>
   'Conditional Split': PhoneTreeActionBuilder<"Conditional Split", { 
     timezone?: Timezone,

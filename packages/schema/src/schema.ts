@@ -4020,6 +4020,12 @@ export const schema: SchemaV1 = build_schema({
       canvasQuestionId: { validator: stringValidator100 },
       syncToOLH: { validator: booleanValidator }, 
       syncWithResponsesFromFormIds: { validator: listOfUniqueStringsValidatorEmptyOk },
+      scoresSync: {
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ score: string, externalId: string }>({ 
+          score: stringValidator100,
+          externalId: stringValidator100,
+        }))
+      }
     }
   },
   form_fields: {
