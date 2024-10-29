@@ -2784,6 +2784,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       htmlDescription: stringValidator100000EmptyOkay, 
       hideRemainingTicketsProgress: booleanValidatorOptional,
       highlightedEnduserFields: listOfStringsValidatorOptionalOrEmptyOk,
+      closeAutomaticallyByTicket: booleanValidatorOptional,
     }, { emptyOk: false }),
   }),
   completeCarePlan: objectValidator<CompleteCarePlanAutomationAction>({
@@ -3447,6 +3448,10 @@ export const portalBlockValidator = orValidator<{ [K in PortalBlockType]: Portal
       text: stringValidator5000,
     })
   }), 
+  chat: objectValidator<PortalBlockForType['chat']>({
+    type: exactMatchValidator(['chat']),
+    info: objectValidator<PortalBlockForType['chat']['info']>({}, { emptyOk: true })
+  }), 
 })
 export const portalBlocksValidator = listValidatorEmptyOk(portalBlockValidator)
 
@@ -3456,6 +3461,7 @@ const _PORTAL_BLOCK_TYPES: { [K in PortalBlockType]: any } = {
   education: '',
   text: '',
   Events: '',
+  chat: '',
 }
 export const PORTAL_BLOCK_TYPES = Object.keys(_PORTAL_BLOCK_TYPES) as PortalBlockType[]
 export const portalTypeValidator = exactMatchValidator<PortalBlockType>(PORTAL_BLOCK_TYPES)
@@ -3859,6 +3865,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['Appointment Created']),
     info: objectValidator<AutomationTriggerEvents['Appointment Created']['info']>({
       titles: listOfStringsValidatorOptionalOrEmptyOk,
+      templateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -3866,6 +3873,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['Appointment Completed']),
     info: objectValidator<AutomationTriggerEvents['Appointment Completed']['info']>({
       titles: listOfStringsValidatorOptionalOrEmptyOk,
+      templateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -3958,6 +3966,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['Order Created']),
     info: objectValidator<AutomationTriggerEvents['Order Created']['info']>({
       titles: listOfStringsValidatorOptionalOrEmptyOk,
+      partialFrequency: stringValidatorOptional,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 

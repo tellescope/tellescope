@@ -346,7 +346,7 @@ export type AccessConstraint <T> = { type: 'creatorOnly' }
   | FilterAccessConstraint<T>
   | DependencyAccessConstraint<T>
 
-export type UniqueArrayConstraint <T> = { array: keyof T, itemKey?: string }
+export type UniqueArrayConstraint <T> = { array: keyof T, itemKey?: string, compareToOtherRecords?: boolean, }
 export type AndConstraint <T> = (keyof T)[]
 export type UniqueConstraint<T> = (keyof T & string | AndConstraint<T> | UniqueArrayConstraint<T>)
 
@@ -937,6 +937,7 @@ export type CustomActions = {
     get_number_report: CustomAction<{ range?: DateRange }, { report: PhoneCallsReport }>,
     upgrade_to_conference: CustomAction<{ id: string }, { }>,
     add_conference_attendees: CustomAction<{ conferenceId: string, enduserId?: string, byClientId?: string[], byPhone?: string[] }, { }>,
+    remove_conference_attendees: CustomAction<{ conferenceId: string, byClientId?: string[], byPhone?: string[] }, { }>,
     end_conference: CustomAction<{ id: string }, { }>,
     cancel_recording: CustomAction<{ enduserId: string }, { }>,
     delete_recordings: CustomAction<{ callIds: string[] }, { }>,
@@ -1157,7 +1158,7 @@ export const schema: SchemaV1 = build_schema({
       }
     },
     constraints: {
-      unique: ['email', 'externalId'],
+      unique: ['email', 'externalId', 'devices.id' as any, { array: 'devices', itemKey: 'id', compareToOtherRecords: true }],
       relationship: [
         // {
         //   explanation: 'One of email or phone is required',
@@ -4951,6 +4952,7 @@ export const schema: SchemaV1 = build_schema({
       },
       cancelReason: { validator: stringValidator5000 },
       dontAutoSyncPatientToHealthie: { validator: booleanValidator },
+      dontBlockAvailability: { validator: booleanValidator },
     }
   },
   calendar_event_templates: {
@@ -6244,6 +6246,7 @@ export const schema: SchemaV1 = build_schema({
       htmlDescription: { validator: stringValidator100000EmptyOkay },
       hideRemainingTicketsProgress: { validator: booleanValidator },
       highlightedEnduserFields: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      closeAutomaticallyByTicket: { validator: booleanValidator },
     },
   }, 
   role_based_access_permissions: {
@@ -6653,12 +6656,24 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       },
       add_conference_attendees: {
         op: "custom", access: 'update', method: "post",
-        name: 'Upgrade to Conference',
+        name: 'Remove Conference Attendees',
         path: '/phone-calls/add-conference-attendees',
-        description: "Upgrades a live inbound call to a conference call",
+        description: "Adds attendees to conference call",
         parameters: {
           conferenceId: { validator: stringValidator100, required: true },
           enduserId: { validator: mongoIdStringValidator },
+          byClientId: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+          byPhone: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+        },
+        returns: {},
+      },
+      remove_conference_attendees: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Remove Conference Attendees',
+        path: '/phone-calls/remove-conference-attendees',
+        description: "Removes attendees from a conference call",
+        parameters: {
+          conferenceId: { validator: stringValidator100, required: true },
           byClientId: { validator: listOfStringsValidatorOptionalOrEmptyOk },
           byPhone: { validator: listOfStringsValidatorOptionalOrEmptyOk },
         },
@@ -7659,6 +7674,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       title: { validator: stringValidator, required: true, examples: ['title'] },
       status: { validator: stringValidator, required: true, examples: ['status'] },
       description: { validator: stringValidator1000 },
+      frequency: { validator: stringValidator100 },
     }
   },
   vital_configurations: {

@@ -589,6 +589,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     add_conference_attendees: (args: extractFields<CustomActions['phone_calls']['add_conference_attendees']['parameters']>) => (
       Promise<extractFields<CustomActions['phone_calls']['add_conference_attendees']['returns']>>
     ),
+    remove_conference_attendees: (args: extractFields<CustomActions['phone_calls']['remove_conference_attendees']['parameters']>) => (
+      Promise<extractFields<CustomActions['phone_calls']['remove_conference_attendees']['returns']>>
+    ),
     end_conference: (args: extractFields<CustomActions['phone_calls']['end_conference']['parameters']>) => (
       Promise<extractFields<CustomActions['phone_calls']['end_conference']['returns']>>
     ),
@@ -930,6 +933,7 @@ export class Session extends SessionManager {
     queries.phone_calls.authenticate_calling = a => this._POST(`/v1${schema.phone_calls.customActions.authenticate_calling.path}`, a)
     queries.phone_calls.upgrade_to_conference = a => this._POST(`/v1${schema.phone_calls.customActions.upgrade_to_conference.path}`, a)
     queries.phone_calls.add_conference_attendees = a => this._POST(`/v1${schema.phone_calls.customActions.add_conference_attendees.path}`, a)
+    queries.phone_calls.remove_conference_attendees = a => this._POST(`/v1${schema.phone_calls.customActions.remove_conference_attendees.path}`, a)
     queries.phone_calls.end_conference = a => this._POST(`/v1${schema.phone_calls.customActions.end_conference.path}`, a)
     queries.phone_calls.cancel_recording = a => this._POST(`/v1${schema.phone_calls.customActions.cancel_recording.path}`, a)
     queries.phone_calls.delete_recordings = a => this._POST(`/v1${schema.phone_calls.customActions.delete_recordings.path}`, a)

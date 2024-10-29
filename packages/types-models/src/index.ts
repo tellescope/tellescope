@@ -2101,6 +2101,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   dontAutoSyncPatientToHealthie?: boolean,
   displayTitle?: string,
   displayDescription?: string,
+  dontBlockAvailability?: boolean,
   // isAllDay?: boolean,
 }
 
@@ -2549,6 +2550,7 @@ export type CreateCarePlanAutomationAction = AutomationActionBuilder<'createCare
   htmlDescription?: string, 
   hideRemainingTicketsProgress?: boolean 
   highlightedEnduserFields?: string[],
+  closeAutomaticallyByTicket?: boolean,
 }>
 export type CompleteCarePlanAutomationAction = AutomationActionBuilder<'completeCarePlan', {}>
 export type ZusSyncAutomationAction = AutomationActionBuilder<'zusSync', {}>
@@ -2804,6 +2806,7 @@ export type PortalBlockForType = {
   education: BuildPortalBlockInfo<'education', {}>,
   Events: BuildPortalBlockInfo<'Events', {}>,
   text: BuildPortalBlockInfo<'text', { text: string }>
+  chat: BuildPortalBlockInfo<'chat', { }>
 }
 export type PortalBlockType = keyof PortalBlockForType
 export type PortalBlock = PortalBlockForType[PortalBlockType]
@@ -2994,6 +2997,7 @@ export interface CarePlan extends CarePlan_readonly, CarePlan_required, CarePlan
   completedAt?: Date | '',
   hideRemainingTicketsProgress?: boolean,
   highlightedEnduserFields?: string[],
+  closeAutomaticallyByTicket?: boolean,
 }
 
 export type TypedField = { type?: string, field?: string, }
@@ -3040,6 +3044,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
   recordingDurationInSeconds?: number,
   transcriptionId?: string,
   conferenceId?: string,
+  externalConferenceId?: string,
   conferenceAttendees?: string[],
   unread?: boolean,
   transcription?: string,
@@ -3451,8 +3456,8 @@ export type AutomationTriggerEvents = {
   'Subscription Ended': AutomationTriggerEventBuilder<"Subscription Ended", { }, {}>,
   'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", { titles?: string[], templateIds?: string[] }, { }>,
   'Field Equals': AutomationTriggerEventBuilder<"Field Equals", { field: string, value: string }, { }>,
-  'Appointment Created': AutomationTriggerEventBuilder<"Appointment Created", { titles?: string[] }, {}>,
-  'Appointment Completed': AutomationTriggerEventBuilder<"Appointment Completed", { titles?: string[] }, {}>,
+  'Appointment Created': AutomationTriggerEventBuilder<"Appointment Created", { titles?: string[], templateIds?: string[] }, {}>,
+  'Appointment Completed': AutomationTriggerEventBuilder<"Appointment Completed", { titles?: string[], templateIds?: string[] }, {}>,
   'Appointment Cancelled': AutomationTriggerEventBuilder<"Appointment Cancelled", { titles?: string[] }, {}>,
   'Appointment Rescheduled': AutomationTriggerEventBuilder<"Appointment Rescheduled", { titles?: string[] }, {}>,
   'Medication Added': AutomationTriggerEventBuilder<"Medication Added", { titles: string[] }, {}>,
@@ -3485,7 +3490,7 @@ export type AutomationTriggerEvents = {
     phoneNumbers?: string[], 
     inputs?: string[], 
   }, {}>,
-  'Order Created': AutomationTriggerEventBuilder<"Order Created", { titles?: string[] }, {}>,
+  'Order Created': AutomationTriggerEventBuilder<"Order Created", { titles?: string[], partialFrequency?: string, }, {}>,
   'Problem Created': AutomationTriggerEventBuilder<"Problem Created", { titles?: string[] }, {}>,
   'Message Delivery Failure': AutomationTriggerEventBuilder<"Message Delivery Failure", { }, {}>,
   'Incoming Message': AutomationTriggerEventBuilder<"Incoming Message", { noCareTeam?: boolean, destinations?: string[], channels?: string[], keywords?: string[] }, {}>,
@@ -3780,6 +3785,7 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
   tracking?: string,
   instructions?: string,
   shippedDate?: string,
+  frequency?: string,
 }
 
 export interface EnduserProblem_readonly extends ClientRecord {}
