@@ -214,6 +214,7 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   portal_brandings: defaultQueries(s, 'portal_brandings'),
   message_template_snippets: defaultQueries(s, 'message_template_snippets'),
   fax_logs: defaultQueries(s, 'fax_logs'),
+  call_hold_queues: defaultQueries(s, 'call_hold_queues'),
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
@@ -262,6 +263,14 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
   forms: {
     get_form_statistics: (args: extractFields<CustomActions['forms']['get_form_statistics']['parameters']>) => (
       Promise<extractFields<CustomActions['forms']['get_form_statistics']['returns']>>
+    ),
+  },
+  call_hold_queues: {
+    answer_call: (args: extractFields<CustomActions['call_hold_queues']['answer_call']['parameters']>) => (
+      Promise<extractFields<CustomActions['call_hold_queues']['answer_call']['returns']>>
+    ),
+    get_details: (args: extractFields<CustomActions['call_hold_queues']['get_details']['parameters']>) => (
+      Promise<extractFields<CustomActions['call_hold_queues']['get_details']['returns']>>
     ),
   },
   enduser_observations: {
@@ -979,6 +988,9 @@ export class Session extends SessionManager {
     queries.group_mms_conversations.send_message = args => this._POST(`/v1${schema.group_mms_conversations.customActions.send_message.path}`, args)
 
     queries.enduser_encounters.create_candid_encounter = args => this._POST(`/v1${schema.enduser_encounters.customActions.create_candid_encounter.path}`, args)
+    
+    queries.call_hold_queues.answer_call = args => this._POST(`/v1${schema.call_hold_queues.customActions.answer_call.path}`, args)
+    queries.call_hold_queues.get_details = args => this._GET(`/v1${schema.call_hold_queues.customActions.get_details.path}`, args)
 
     queries.enduser_observations.load = args => this._GET(`/v1${schema.enduser_observations.customActions.load.path}`, args)
     queries.enduser_observations.acknowledge = args => this._POST(`/v1${schema.enduser_observations.customActions.acknowledge.path}`, args)

@@ -84,6 +84,7 @@ export type FormGroup = ClientModelForName['form_groups']
 export type PortalBranding = ClientModelForName['portal_brandings']
 export type MessageTemplateSnippet = ClientModelForName['message_template_snippets']
 export type FaxLog = ClientModelForName['fax_logs']
+export type CallHoldQueue = ClientModelForName['call_hold_queues']
 
 export type Forum = ClientModelForName['forums']
 export type ForumPost = ClientModelForName['forum_posts']

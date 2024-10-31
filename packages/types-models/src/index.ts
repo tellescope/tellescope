@@ -3626,6 +3626,7 @@ export type PhoneTreeActions = {
     timezone?: Timezone,
     weeklyAvailabilities?: WeeklyAvailability[],
   }>
+  'Add to Queue': PhoneTreeActionBuilder<"Add to Queue", { queueId: string, playback?: Partial<PhonePlayback>, }>
 }
 export type PhoneTreeActionType = keyof PhoneTreeActions 
 export type PhoneTreeAction = PhoneTreeActions[PhoneTreeActionType]
@@ -3862,6 +3863,15 @@ export interface TicketQueue_required {
 }
 export interface TicketQueue extends TicketQueue_readonly, TicketQueue_required, TicketQueue_updatesDisabled {}
 
+export interface CallHoldQueue_readonly extends ClientRecord {}
+export interface CallHoldQueue_updatesDisabled {}
+export interface CallHoldQueue_required {
+  title: string,
+  userIds: string[],
+  twilioQueueId?: string,
+}
+export interface CallHoldQueue extends CallHoldQueue_readonly, CallHoldQueue_required, CallHoldQueue_updatesDisabled {}
+
 export type ImageAttachment = {
   url: string,
   type: string,
@@ -3981,6 +3991,7 @@ export interface WebhookLog_updatesDisabled {}
 export interface WebhookLog extends WebhookLog_readonly, WebhookLog_required, WebhookLog_updatesDisabled {}
 
 export type ModelForName_required = {
+  call_hold_queues: CallHoldQueue_required,
   fax_logs: FaxLog_required,
   message_template_snippets: MessageTemplateSnippet_required
   portal_brandings: PortalBranding_required
@@ -4063,6 +4074,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  call_hold_queues: CallHoldQueue_readonly,
   fax_logs: FaxLog_readonly,
   message_template_snippets: MessageTemplateSnippet_readonly,
   portal_brandings: PortalBranding_readonly,
@@ -4145,6 +4157,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  call_hold_queues: CallHoldQueue_updatesDisabled,
   fax_logs: FaxLog_updatesDisabled,
   message_template_snippets: MessageTemplateSnippet_updatesDisabled,
   portal_brandings: PortalBranding_updatesDisabled,
@@ -4227,6 +4240,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly { 
+  call_hold_queues: CallHoldQueue,
   fax_logs: FaxLog,
   message_template_snippets: MessageTemplateSnippet,
   portal_brandings: PortalBranding,
@@ -4319,6 +4333,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  call_hold_queues: true,
   fax_logs: true,
   message_template_snippets: true,
   portal_brandings: true,
@@ -5165,3 +5180,9 @@ export type DataSyncRecord = {
 }
 
 export type InsuranceType = "Primary" | "Secondary"
+
+export type TwilioQueue = {
+  currentSize: number,
+  friendlyName: string,
+  averageWaitTime: number,
+}

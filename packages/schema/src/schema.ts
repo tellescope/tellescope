@@ -67,6 +67,7 @@ import {
   TellescopeGender,
   LabeledField,
   HealthieSendChatAutomationAction,
+  TwilioQueue,
 } from "@tellescope/types-models"
 
 import {
@@ -942,6 +943,10 @@ export type CustomActions = {
     cancel_recording: CustomAction<{ enduserId: string }, { }>,
     delete_recordings: CustomAction<{ callIds: string[] }, { }>,
   },
+  call_hold_queues: {
+    answer_call: CustomAction<{ queueId: string }, { }>, 
+    get_details: CustomAction<{ }, { queues: TwilioQueue[] }>, 
+  }
   analytics_frames: {
     get_result_for_query: CustomAction<{ 
       query: AnalyticsQuery,
@@ -7867,6 +7872,50 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       errorMessage: { validator: stringValidator },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, 
     }
+  },
+  call_hold_queues: {
+    info: {},
+    constraints: { 
+      unique: ['title'], relationship: [], 
+      access: [
+        { type: 'filter', field: 'userIds' }, 
+      ]  
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {
+      answer_call: {
+        op: "custom", access: 'read', method: "post",
+        name: 'Answer Queued Call',
+        path: '/call-hold-queues/answer',
+        description: "Answers the next call in a hold queue, if available",
+        parameters: { 
+          queueId: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: {} 
+      },
+      get_details: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Get Queue Details',
+        path: '/call-hold-queues/details',
+        description: "Gets current details / stats about queue",
+        parameters: { },
+        returns: {
+          queues: {
+            validator: listValidatorEmptyOk(objectValidator<TwilioQueue>({
+              averageWaitTime: numberValidator,
+              currentSize: numberValidator,
+              friendlyName: stringValidator,
+            }))
+          }
+        }
+      },
+    },
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields, 
+      title: { validator: stringValidator, required: true, examples: ['Title']},
+      userIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] },
+    },
   },
 })
 

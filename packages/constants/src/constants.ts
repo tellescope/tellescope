@@ -228,6 +228,12 @@ export const READ_ONLY_DEFAULT: AccessForResource = {
 export const PROVIDER_PERMISSIONS: AccessPermissions = {
   portal_brandings: INACCESSIBLE,
   webhook_logs: INACCESSIBLE,
+  call_hold_queues: {
+    create: NO_ACCESS, // allow for creating self-assigned objects
+    read:   DEFAULT_ACCESS, // only by inclusion in userIds should it be accessible by default
+    update: NO_ACCESS,
+    delete: NO_ACCESS,
+  },
   ticket_queues: {
     create: NO_ACCESS, // allow for creating self-assigned objects
     read:   DEFAULT_ACCESS, // only by inclusion in userIds should it be accessible by default
@@ -379,6 +385,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
+  call_hold_queues: FULL_ACCESS,
   fax_logs: FULL_ACCESS,
   message_template_snippets: FULL_ACCESS,
   portal_brandings: FULL_ACCESS,

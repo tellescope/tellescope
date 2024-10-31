@@ -4250,6 +4250,7 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   portal_brandings: accessPermissionValidator,
   message_template_snippets: accessPermissionValidator,
   fax_logs: accessPermissionValidator,
+  call_hold_queues: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
@@ -4334,6 +4335,7 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   form_groups: numberValidatorOptional,
   portal_brandings: numberValidatorOptional,
   fax_logs: numberValidatorOptional,
+  call_hold_queues: numberValidatorOptional,
 }, { emptyOk: true })
 
 const _LOGIN_FLOW_RESULTS = {
@@ -5056,6 +5058,13 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
     info: objectValidator<PhoneTreeActions["Select Care Team Member"]['info']>({ 
       playback: phonePlaybackValidatorOptional,
     }, { emptyOk: true }),
+  }),
+  "Add to Queue": objectValidator<PhoneTreeActions["Add to Queue"]>({
+    type: exactMatchValidator(['Add to Queue']),
+    info: objectValidator<PhoneTreeActions["Add to Queue"]['info']>({
+      queueId: mongoIdStringRequired,
+      playback: phonePlaybackValidatorOptional,
+    }),
   }),
 })
 

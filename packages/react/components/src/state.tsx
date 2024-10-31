@@ -91,6 +91,7 @@ import {
   PortalBranding,
   MessageTemplateSnippet,
   FaxLog,
+  CallHoldQueue,
 } from "@tellescope/types-client"
 
 import {
@@ -340,6 +341,7 @@ const ticketThreadsSlice = createSliceForList<TicketThread, 'ticket_threads'>('t
 const ticketThreadCommentsSlice = createSliceForList<TicketThreadComment, 'ticket_thread_comments'>('ticket_thread_comments')
 const configurationsSlice = createSliceForList<Configuration, 'configurations'>('configurations')
 const ticketQueuesSlice = createSliceForList<TicketQueue, 'ticket_queues'>('ticket_queues')
+const callHoldQueuesSlice = createSliceForList<TicketQueue, 'call_hold_queues'>('call_hold_queues')
 const enduserOrdersSlice = createSliceForList<EnduserOrder, 'enduser_orders'>('enduser_orders')
 const enduserEncountersSlice = createSliceForList<EnduserEncounter, 'enduser_encounters'>('enduser_encounters')
 const vitalConfigurationsSlice = createSliceForList<VitalConfiguration, 'vital_configurations'>('vital_configurations')
@@ -434,6 +436,7 @@ export const sharedConfig = {
     portal_brandings: portalBrandingsSlice.reducer,
     message_template_snippets: messageTemplateSnippetsSlice.reducer,
     fax_logs: faxLogsSlice.reducer,
+    call_hold_queues: callHoldQueuesSlice.reducer,
   },
 }
 
@@ -1433,6 +1436,24 @@ export const useEnduserProfileViews = (options={} as HookOptions<EnduserProfileV
       addSome: session.api.enduser_profile_views.createSome,
       deleteOne: session.api.enduser_profile_views.deleteOne,
       updateOne: session.api.enduser_profile_views.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
+export const useCallHoldQueues = (options={} as HookOptions<CallHoldQueue>) => {
+  const session = useSession() 
+
+  return useListStateHook('call_hold_queues', useTypedSelector(s => s.call_hold_queues), session, callHoldQueuesSlice,
+    { 
+      loadQuery: session.api.call_hold_queues.getSome,
+      findOne: session.api.call_hold_queues.getOne,
+      findByIds: session.api.call_hold_queues.getByIds,
+      addOne: session.api.call_hold_queues.createOne,
+      addSome: session.api.call_hold_queues.createSome,
+      deleteOne: session.api.call_hold_queues.deleteOne,
+      updateOne: session.api.call_hold_queues.updateOne,
     },
     { 
       ...options,
