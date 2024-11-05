@@ -1163,7 +1163,11 @@ export const schema: SchemaV1 = build_schema({
       }
     },
     constraints: {
-      unique: ['email', 'externalId', 'devices.id' as any, { array: 'devices', itemKey: 'id', compareToOtherRecords: true }],
+      unique: [
+        'email', 
+        'externalId', 
+        // 'devices.id' as any, { array: 'devices', itemKey: 'id', compareToOtherRecords: true }
+      ],
       relationship: [
         // {
         //   explanation: 'One of email or phone is required',
@@ -4032,7 +4036,8 @@ export const schema: SchemaV1 = build_schema({
           score: stringValidator100,
           externalId: stringValidator100,
         }))
-      }
+      },
+      hideAfterUnsubmittedInMS: { validator: numberValidator },
     }
   },
   form_fields: {
@@ -4207,6 +4212,7 @@ export const schema: SchemaV1 = build_schema({
       groupId: { validator: mongoIdStringValidator },
       instanceId: { validator: stringValidator100 },
       groupPosition: { validator: nonNegNumberValidator },
+      hideAfterUnsubmittedInMS: { validator: numberValidator },
     },
     defaultActions: DEFAULT_OPERATIONS,
     enduserActions: { 

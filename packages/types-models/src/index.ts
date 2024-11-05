@@ -1588,6 +1588,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
     score: string,
     externalId: string,
   }[]
+  hideAfterUnsubmittedInMS?: number,
 }
 
 export interface FormGroup_readonly extends ClientRecord {}
@@ -1957,6 +1958,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   }[],
   discussionRoomId?: string,
   formsort?: string,
+  hideAfterUnsubmittedInMS?: number,
 }
 
 export interface WebHook_readonly extends ClientRecord {}

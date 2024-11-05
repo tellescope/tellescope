@@ -4880,8 +4880,16 @@ const auto_reply_tests = async () => {
 const merge_enduser_tests = async () => {
   log_header("Merge Endusers")
 
+  const stripeCustomerId = 'example_cu_id';
+  const stripeKey = 'example_stripe_key';
   const [source, destination, otherEnduser] = (await sdk.api.endusers.createSome([
-    { email: 'source@tellescope.com', fname: 'source', lname: 'enduser', references: [{ type: '2', id: '2.2' }, { type: '3', id: '3.2' }, { type: '4', id: '4.2'}] },
+    { 
+      email: 'source@tellescope.com', fname: 'source', lname: 'enduser', 
+      references: [{ type: '2', id: '2.2' }, { type: '3', id: '3.2' }, { type: '4', id: '4.2'}], 
+      // @ts-ignore
+      stripeCustomerId,
+      stripeKey,
+    },
     { email: 'destination@tellescope.com', source: '4', externalId: "4", references: [{ type: '1', id: '1' }, { type: '2', id: '2' }] },
     { email: 'other@tellescope.com'},
   ])).created
@@ -4923,6 +4931,8 @@ const merge_enduser_tests = async () => {
          e.email === destination.email
       && e.fname === source.fname
       && e.lname === source.lname
+      && e.stripeKey === stripeKey
+      && e.stripeCustomerId === stripeCustomerId
       && e.source === '4' && e.externalId === '4' // should prevent 4 from syncing to references at all
       && e.references?.find(r => r.type === '1')?.id === '1'
       && e.references?.find(r => r.type === '2')?.id === '2'
@@ -8766,57 +8776,57 @@ const uniqueness_tests = async () => {
     { shouldError: true, onError: e => e.message === UniquenessViolationMessage }
   ) 
 
-  await async_test(
-    "Set blank devices",
-    () => sdk.api.endusers.updateOne(enduserNoCreator.id, { devices: [] }, { replaceObjectFields: true }),
-    passOnAnyResult
-  ) 
-  await async_test(
-    "Set initial devices",
-    () => sdk.api.endusers.updateOne(enduserNoCreator.id, { devices: [{ id: "1", title: '1' }] }, { replaceObjectFields: true }),
-    passOnAnyResult
-  ) 
-  await async_test(
-    "Cant push same id",
-    () => sdk.api.endusers.updateOne(enduserNoCreator.id, { devices: [{ id: "1", title: '1' }] }),
-    { shouldError: true, onError: e => e.message === UniquenessViolationMessage }
-  ) 
-  await async_test(
-    "Cant replace same id",
-    () => sdk.api.endusers.updateOne(enduserNoCreator.id, { devices: [{ id: "1", title: '1' }, { id: "1", title: "1" }] }, { replaceObjectFields: true }),
-    { shouldError: true, onError: e => e.message === UniquenessViolationMessage }
-  ) 
-  await async_test(
-    "Can push new id",
-    () => sdk.api.endusers.updateOne(enduserNoCreator.id, { devices: [{ id: "2", title: "2" }] }),
-    passOnAnyResult
-  ) 
-  await async_test(
-    "Can replace new id",
-    () => sdk.api.endusers.updateOne(enduserNoCreator.id, { devices: [{ id: "1", title: '1' }, { id: "2", title: "2" }, { id: "3", title: "3" }] }, { replaceObjectFields: true }),
-    passOnAnyResult
-  ) 
+  // await async_test(
+  //   "Set blank devices",
+  //   () => sdk.api.endusers.updateOne(enduserNoCreator.id, { devices: [] }, { replaceObjectFields: true }),
+  //   passOnAnyResult
+  // ) 
+  // await async_test(
+  //   "Set initial devices",
+  //   () => sdk.api.endusers.updateOne(enduserNoCreator.id, { devices: [{ id: "1", title: '1' }] }, { replaceObjectFields: true }),
+  //   passOnAnyResult
+  // ) 
+  // await async_test(
+  //   "Cant push same id",
+  //   () => sdk.api.endusers.updateOne(enduserNoCreator.id, { devices: [{ id: "1", title: '1' }] }),
+  //   { shouldError: true, onError: e => e.message === UniquenessViolationMessage }
+  // ) 
+  // await async_test(
+  //   "Cant replace same id",
+  //   () => sdk.api.endusers.updateOne(enduserNoCreator.id, { devices: [{ id: "1", title: '1' }, { id: "1", title: "1" }] }, { replaceObjectFields: true }),
+  //   { shouldError: true, onError: e => e.message === UniquenessViolationMessage }
+  // ) 
+  // await async_test(
+  //   "Can push new id",
+  //   () => sdk.api.endusers.updateOne(enduserNoCreator.id, { devices: [{ id: "2", title: "2" }] }),
+  //   passOnAnyResult
+  // ) 
+  // await async_test(
+  //   "Can replace new id",
+  //   () => sdk.api.endusers.updateOne(enduserNoCreator.id, { devices: [{ id: "1", title: '1' }, { id: "2", title: "2" }, { id: "3", title: "3" }] }, { replaceObjectFields: true }),
+  //   passOnAnyResult
+  // ) 
 
-  await async_test(
-    "Can push new id to other enduser",
-    () => sdk.api.endusers.updateOne(other.id, { devices: [{ id: "4", title: "4" }] }),
-    passOnAnyResult
-  ) 
-  await async_test(
-    "Can replace new id to other enduser",
-    () => sdk.api.endusers.updateOne(other.id, { devices: [{ id: "4", title: "4" }] }, { replaceObjectFields: true }),
-    passOnAnyResult
-  ) 
-  await async_test(
-    "Cant push same id to other enduser",
-    () => sdk.api.endusers.updateOne(other.id, { devices: [{ id: "2", title: "2" }] }),
-    { shouldError: true, onError: e => e.message === UniquenessViolationMessage }
-  ) 
-  await async_test(
-    "Cant replace same id to other enduser",
-    () => sdk.api.endusers.updateOne(other.id, { devices: [{ id: "2", title: "2" }] }, { replaceObjectFields: true }),
-    { shouldError: true, onError: e => e.message === UniquenessViolationMessage }
-  ) 
+  // await async_test(
+  //   "Can push new id to other enduser",
+  //   () => sdk.api.endusers.updateOne(other.id, { devices: [{ id: "4", title: "4" }] }),
+  //   passOnAnyResult
+  // ) 
+  // await async_test(
+  //   "Can replace new id to other enduser",
+  //   () => sdk.api.endusers.updateOne(other.id, { devices: [{ id: "4", title: "4" }] }, { replaceObjectFields: true }),
+  //   passOnAnyResult
+  // ) 
+  // await async_test(
+  //   "Cant push same id to other enduser",
+  //   () => sdk.api.endusers.updateOne(other.id, { devices: [{ id: "2", title: "2" }] }),
+  //   { shouldError: true, onError: e => e.message === UniquenessViolationMessage }
+  // ) 
+  // await async_test(
+  //   "Cant replace same id to other enduser",
+  //   () => sdk.api.endusers.updateOne(other.id, { devices: [{ id: "2", title: "2" }] }, { replaceObjectFields: true }),
+  //   { shouldError: true, onError: e => e.message === UniquenessViolationMessage }
+  // ) 
 
   await Promise.all([
     sdk.api.endusers.deleteOne(eExternalId.id),
@@ -8979,6 +8989,7 @@ const input_modifier_tests = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await merge_enduser_tests()
     await input_modifier_tests()
     await formsort_tests()
     await switch_to_related_contacts_tests()
@@ -8991,7 +9002,6 @@ const input_modifier_tests = async () => {
     await test_ticket_automation_assignment_and_optimization()
     await superadmin_tests()
     await ticket_queue_tests()
-    await merge_enduser_tests()
     await vital_trigger_tests()
     await close_reasons_no_duplicates_tests()
     await register_as_enduser_tests()

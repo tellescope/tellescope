@@ -2195,3 +2195,12 @@ export const enduser_address_string = (e: Enduser) => (
 export const enduser_insurance_string = (i?: EnduserInsurance) => !i ? '' : (
   `${i.payerName}${i.memberId ? ` (${i.memberId})` : ''}`
 )
+
+export const should_show_unsubmitted_form_response_for_interval = (fr: FormResponse & { createdAt: any }) => {
+  if (!fr.createdAt) return false 
+  if (typeof fr.hideAfterUnsubmittedInMS !== 'number') return true
+  if (fr.hideAfterUnsubmittedInMS === -1) return true
+  if (new Date(fr.createdAt).getTime() + fr.hideAfterUnsubmittedInMS > Date.now()) return true
+
+  return false
+}
