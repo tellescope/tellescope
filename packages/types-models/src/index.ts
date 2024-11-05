@@ -17,7 +17,7 @@ export type StripeCheckoutInfo = {
   businessName: string
 }
 
-export type SortBy = 'updatedAt' | 'dueDateInMS'
+export type SortBy = 'updatedAt' | 'dueDateInMS' | 'closedAt'
 
 export type AccessType = "All" | "Default" | "Assigned" | null
 export type AccessAction = "create" | "read" | "update" | "delete"
@@ -149,7 +149,7 @@ export type EnduserBuiltInField = {
   hidden?: boolean,
 }
 
-export type CustomDashboardViewBlockType = "Inbox" | "Tickets" | "Upcoming Events" | "Team Chats"
+export type CustomDashboardViewBlockType = "Inbox" | "Tickets" | "Upcoming Events" | "Team Chats" | "To-Dos"
 export type CustomDashboardViewBlock = { type: CustomDashboardViewBlockType }
 export type CustomDashboardView = {
   blocks: CustomDashboardViewBlock[]
@@ -1325,6 +1325,7 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
   archiveReason?: string,
   contextFormIds?: string[],
   contextEnduserFields?: string[],
+  isTodo?: boolean,
 }
 
 export type AttendeeInfo = {
@@ -1915,6 +1916,7 @@ export interface FormResponse_updatesDisabled {
 }
 export interface FormResponse extends FormResponse_readonly, FormResponse_required, FormResponse_updatesDisabled, EnduserPortalVisibility {
   draftSavedAt?: Date,
+  draftSavedBy?: string,
   sharedVia?: CommunicationsChannel,
   isInternalNote?: boolean,
   scores?: {
@@ -1954,6 +1956,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
     },
   }[],
   discussionRoomId?: string,
+  formsort?: string,
 }
 
 export interface WebHook_readonly extends ClientRecord {}
@@ -2702,6 +2705,7 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
   classifications?: { configurationId: string, classification: string }[]
   beforeMeal?: boolean,
   dontTrigger?: boolean,
+  showWithPlotsByUnit?: string[],
 }
 
 export type BlockType = 'h1' | 'h2' | 'html' | 'image' | 'youtube' | 'pdf' | 'iframe' | 'content-link'
@@ -3060,6 +3064,8 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
   recordingCancelledAt?: Date,
   assignedTo?: string[],
   timestamp?: Date,
+  dialedUserIds?: string[][],  // might ring multiple stages, so use list of users dialed at each step
+  ignoredUserIds?: string[][], // might ring multiple stages, so use list of users dialed at each step
 }
 
 export type AnalyticsQueryResultValue = {
@@ -3127,6 +3133,7 @@ export type AnalyticsQueryFilterForType = {
     starts?: DateRange,
     wasSelfScheduled?: boolean,
     wasCancelled?: boolean,
+    wasCompleted?: boolean,
     wasRescheduled?: boolean,
     wasNoShowed?: boolean,
     scheduledBy?: string,

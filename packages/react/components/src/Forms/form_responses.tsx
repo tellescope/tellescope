@@ -156,6 +156,17 @@ export const ResponseAnswer = ({ formResponse, fieldId, isHTML, answer: a, print
             )
 
           })()
+        : (a.type === 'Related Contacts' && a.value && a.value.length > 0) ? (
+          <Grid container direction="column" spacing={1}>
+          {a.value.map((v, i) => (
+            <Grid item key={i}>
+              <Typography>
+                {v.fname}{v.lname && ` ${v.lname}`}{v.dateOfBirth && ` ${v.dateOfBirth}`}{v.email && `, ${v.email}`}{v.phone && `, ${v.phone}`}
+              </Typography>
+            </Grid>
+          ))}
+          </Grid>
+        )
         : (
           <Typography style={answerStyles}>
             {form_response_value_to_string(a.value)}
@@ -188,8 +199,20 @@ export const OrganizationLogo = () => {
   )
 }
 
-export const ResolveOrganizationLogo = () => {
+export const ResolveOrganizationLogo = ({ logoURL } : { logoURL?: string }) => {
   const session = useResolvedSession()
+
+  if (logoURL) {
+    return (
+      <Image 
+        src={logoURL} 
+        alt=""
+        maxWidth={400}
+        height={50}
+      />
+    )
+  }
+
   if (session.type === 'enduser') return null
 
   return <OrganizationLogo />
@@ -201,9 +224,10 @@ interface FormResponse_T {
   hideHeader?: boolean,
   response: FormResponse,
   id?: string,
+  logoURL?: string,
 }
 // this should use all vanilla React / inline styles to ensure printing is consistent
-export const FormResponseView = ({ enduser, onClose, hideHeader, response, id, printing, onImageClick } : FormResponse_T & { 
+export const FormResponseView = ({ logoURL, enduser, onClose, hideHeader, response, id, printing, onImageClick } : FormResponse_T & { 
   printing?: boolean,
   onImageClick?: (args: { src: string }) => void,
 }) => {
@@ -220,7 +244,7 @@ export const FormResponseView = ({ enduser, onClose, hideHeader, response, id, p
       <div style={{ textAlign: 'center' }}>
         {!hideHeader && 
           <>
-          <ResolveOrganizationLogo />
+          <ResolveOrganizationLogo logoURL={logoURL} />
 
           <h2 style={{
             fontSize: 20,

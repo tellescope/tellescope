@@ -11,6 +11,7 @@ import {
   Ticket,
   VitalConfiguration,
   EnduserObservation,
+  FormResponse,
 } from "@tellescope/types-client"
 import { 
   CompoundFilter,
@@ -6345,6 +6346,165 @@ export const formsort_tests = async () => {
   await async_test(`Email with name match`, sdk.api.form_responses.getSome, { onResult: r => r.length === 5 })
   await async_test(`Email with name match`, sdk.api.endusers.getSome, { onResult: r => r.length === 3 })
 
+  const answersEmail = "formsortanswers@tellescope.com"
+  const address = {
+    address_1: 'Address 1',
+    address_2: 'Address 2',
+    city: 'City',
+    state: 'State',
+    postal_code: 'ZIP',
+  }
+  const answers = [
+    { key: 'email', value: answersEmail },
+    { key: 'phone', value: "+15555555555" },
+    { key: 'fname', value: 'Fname' },
+    { key: 'lname', value: 'Lname' },
+    { key: 'gender', value: 'Male' },
+    { key: 'defaultFromEmail', value: 'from@tellescope.com' },
+    { key: 'useDefaultFromEmailInAutomations', value: true },
+    { key: 'defaultFromPhone', value: '+15555555555' },
+    { key: 'useDefaultFromPhoneInAutomations', value: true },
+    { key: 'language', value: 'Spanish' },
+    { key: 'timezone', value: 'US/Eastern' },
+    { key: 'healthie_dietitian_id', value: 'test_id' },
+    { key: 'height', value: 10 },
+    { key: 'weight', value: 20 },
+    { key: 'address', value: address },
+    { key: 'dateOfBirth', value: '2000-12-20' },
+    { key: 'insurance.payerId', value: 'insurance 1' },
+    { key: 'insuranceSecondary.payerId', value: 'insurance 2' },
+    { key: 'ts_enduser_custom', value: 'Custom' },
+    { key: 'ts_enduser_custom2', value: 'Custom 2' },
+    { key: 'multiple_choice', value: ['multiple choice'] },
+  ]
+  await sdk.api.endusers.createOne({ email: answersEmail })
+  await postToFormsort({ 
+    answers, 
+    responder_uuid: "6", 
+    finalized: false,
+    matchByName: false,
+  })
+  let submissionEnduser = await sdk.api.endusers.getOne({ email: answersEmail })
+
+  const validateResponse = (fr: FormResponse, key: string, value: any): boolean => {
+    const answer = fr.responses.find(r => r.externalId === key)?.answer?.value
+
+    if (typeof value === 'object') {
+      return objects_equivalent(answer, value)
+    }
+
+    return answer === value
+  }
+  // EXISTING ENDUSER FIELDS ARE CURRENTLY ONLY UPDATED ON SUBMISSION
+  await async_test(
+    `Answers and fields (unfinalized)`, 
+    () => sdk.api.form_responses.getOne({ externalId: '6' }),
+    { 
+      onResult: r => {
+        if (!r) { return false }
+        if (r.submittedAt) { return false }
+        if (!r.formsort?.length) { return false }
+        if (!r.responses.length) { return false }
+        if (r.responses.length !== answers.length) { return false }
+
+        if (!validateResponse(r, 'address', JSON.stringify(address, null, 2))) { return false }
+        if (!validateResponse(r, 'email', answersEmail)) { return false }
+        if (!validateResponse(r, 'phone', "+15555555555")) { return false }
+        if (!validateResponse(r, 'fname', "Fname")) { return false }
+        if (!validateResponse(r, 'lname', "Lname")) { return false }
+        if (!validateResponse(r, 'gender', "Male")) { return false }
+        if (!validateResponse(r, 'defaultFromEmail', "from@tellescope.com")) { return false }
+        if (!validateResponse(r, 'useDefaultFromEmailInAutomations', "true")) { return false }
+        if (!validateResponse(r, 'defaultFromPhone', "+15555555555")) { return false }
+        if (!validateResponse(r, 'useDefaultFromPhoneInAutomations', "true")) { return false }
+        if (!validateResponse(r, 'language', "Spanish")) { return false }
+        if (!validateResponse(r, 'timezone', "US/Eastern")) { return false }
+        if (!validateResponse(r, 'healthie_dietitian_id', "test_id")) { return false }
+        if (!validateResponse(r, 'height', "10")) { return false }
+        if (!validateResponse(r, 'weight', "20")) { return false }
+        if (!validateResponse(r, 'dateOfBirth', "2000-12-20")) { return false }
+        if (!validateResponse(r, 'insurance.payerId', "insurance 1")) { return false }
+        if (!validateResponse(r, 'insuranceSecondary.payerId', "insurance 2")) { return false }
+        if (!validateResponse(r, 'ts_enduser_custom', "Custom")) { return false }
+        if (!validateResponse(r, 'ts_enduser_custom2', "Custom 2")) { return false }
+        if (!validateResponse(r, 'multiple_choice', ['multiple choice'])) { return false }
+
+        return true
+      }
+    }
+  )
+
+  await postToFormsort({ 
+    answers,
+    responder_uuid: "6", 
+    finalized: true,
+    matchByName: false,
+  })
+  submissionEnduser = await sdk.api.endusers.getOne({ email: answersEmail })
+  // EXISTING ENDUSER FIELDS ARE CURRENTLY ONLY UPDATED ON SUBMISSION
+  await async_test(
+    `Answers and fields (finalized)`, 
+    () => sdk.api.form_responses.getOne({ externalId: '6' }),
+    { 
+      onResult: r => {
+        if (!r) { return false }
+        if (!r.submittedAt) { return false }
+        if (!r.formsort?.length) { return false }
+        if (!r.responses.length) { return false }
+        if (r.responses.length !== answers.length) { return false }
+
+        if (!validateResponse(r, 'address', JSON.stringify(address, null, 2))) { return false }
+        if (!validateResponse(r, 'email', answersEmail)) { return false }
+        if (!validateResponse(r, 'phone', "+15555555555")) { return false }
+        if (!validateResponse(r, 'fname', "Fname")) { return false }
+        if (!validateResponse(r, 'lname', "Lname")) { return false }
+        if (!validateResponse(r, 'gender', "Male")) { return false }
+        if (!validateResponse(r, 'defaultFromEmail', "from@tellescope.com")) { return false }
+        if (!validateResponse(r, 'useDefaultFromEmailInAutomations', "true")) { return false }
+        if (!validateResponse(r, 'defaultFromPhone', "+15555555555")) { return false }
+        if (!validateResponse(r, 'useDefaultFromPhoneInAutomations', "true")) { return false }
+        if (!validateResponse(r, 'language', "Spanish")) { return false }
+        if (!validateResponse(r, 'timezone', "US/Eastern")) { return false }
+        if (!validateResponse(r, 'healthie_dietitian_id', "test_id")) { return false }
+        if (!validateResponse(r, 'height', "10")) { return false }
+        if (!validateResponse(r, 'weight', "20")) { return false }
+        if (!validateResponse(r, 'dateOfBirth', "2000-12-20")) { return false }
+        if (!validateResponse(r, 'insurance.payerId', "insurance 1")) { return false }
+        if (!validateResponse(r, 'insuranceSecondary.payerId', "insurance 2")) { return false }
+        if (!validateResponse(r, 'ts_enduser_custom', "Custom")) { return false }
+        if (!validateResponse(r, 'ts_enduser_custom2', "Custom 2")) { return false }
+        if (!validateResponse(r, 'multiple_choice', ['multiple choice'])) { return false }
+
+        if (submissionEnduser.email !== answersEmail) { return false }
+        if (submissionEnduser.fname !== 'Fname') { return false }
+        if (submissionEnduser.lname !== 'Lname') { return false }
+        if (submissionEnduser.gender !== 'Male') { return false }
+        if (submissionEnduser.phone !== '+15555555555') { return false }
+        if (submissionEnduser.defaultFromEmail !== 'from@tellescope.com') { return false }
+        if (submissionEnduser.useDefaultFromEmailInAutomations !== true) { return false }
+        if (submissionEnduser.defaultFromPhone !== '+15555555555') { return false }
+        if (submissionEnduser.useDefaultFromPhoneInAutomations !== true) { return false }
+        if (submissionEnduser.language?.displayName !== "Spanish") { return false }
+        if (submissionEnduser.timezone !== "US/Eastern") { return false }
+        if (submissionEnduser.healthie_dietitian_id !== "test_id") { return false }
+        if (submissionEnduser.height?.value !== 10) { return false }
+        if (submissionEnduser.weight?.value !== 20) { return false }
+        if (submissionEnduser.addressLineOne !== 'Address 1') { return false }
+        if (submissionEnduser.addressLineTwo !== 'Address 2') { return false }
+        if (submissionEnduser.city !== 'City') { return false }
+        if (submissionEnduser.state !== 'State') { return false }
+        if (submissionEnduser.zipCode !== 'ZIP') { return false }
+        if (submissionEnduser.dateOfBirth !== '12-20-2000') { return false }
+        if (submissionEnduser.insurance?.payerId !== 'insurance 1') { return false }
+        if (submissionEnduser.insuranceSecondary?.payerId !== 'insurance 2') { return false }
+        if (submissionEnduser.fields?.custom !== 'Custom') { return false }
+        if (submissionEnduser.fields?.custom2 !== 'Custom 2') { return false }
+
+        return true
+      }
+    }
+  )
+
   // cleanup
   const endusers = await sdk.api.endusers.getSome()
   const formResponses = await sdk.api.form_responses.getSome()
@@ -8667,6 +8827,44 @@ const uniqueness_tests = async () => {
   ])
 }
 
+const input_modifier_tests = async () => {
+  log_header("Input Modifiers")
+  const e = await sdk.api.endusers.createOne({})
+
+  await async_test(
+    "Regular string",
+    () => sdk.api.form_responses.createOne({ 
+      enduserId: e.id,
+      formId: PLACEHOLDER_ID,
+      formTitle: "input modifiers",
+      responses: [{
+        fieldTitle: '',
+        fieldId: '',
+        answer: { type: 'string', value: 'hello' }
+      }]
+    }),
+    { onResult: r => r.responses[0].answer.value === 'hello' }
+  )
+  await async_test(
+    "Number coerce to string",
+    () => sdk.api.form_responses.createOne({ 
+      enduserId: e.id,
+      formId: PLACEHOLDER_ID,
+      formTitle: "input modifiers",
+      responses: [{
+        fieldTitle: '',
+        fieldId: '',
+        answer: { type: 'string', value: 55 as any }
+      }]
+    }),
+    { onResult: r => r.responses[0].answer.value === '55' }
+  )
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(e.id),
+  ])
+}
+
 (async () => {
   log_header("API")
 
@@ -8781,6 +8979,7 @@ const uniqueness_tests = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await input_modifier_tests()
     await formsort_tests()
     await switch_to_related_contacts_tests()
     await uniqueness_tests()

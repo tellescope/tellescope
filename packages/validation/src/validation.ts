@@ -1946,6 +1946,11 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
   string: objectValidator<FormResponseAnswerString>({
     type: exactMatchValidator(['string']),
     value: stringValidator5000Optional,
+  }, {
+    inputModifier: (o => {
+      if (typeof o?.value === 'number') { return { ...o, value: o.value.toString() } }
+      return o
+    })
   }),
   Time: objectValidator<FormResponseAnswerTime>({
     type: exactMatchValidator(['Time']),
@@ -3640,7 +3645,7 @@ export const buildInFieldsValidator = listValidatorOptionalOrEmptyOk(objectValid
 export const customDashboardViewValidator = (
   objectValidator<Required<OrganizationSettings>['dashboard']['view']>({
     blocks: listValidatorOptionalOrEmptyOk(objectValidator<CustomDashboardViewBlock>({
-      type: exactMatchValidator<CustomDashboardViewBlockType>(['Inbox', 'Tickets', 'Team Chats', 'Upcoming Events']),
+      type: exactMatchValidator<CustomDashboardViewBlockType>(['Inbox', 'Tickets', 'Team Chats', 'Upcoming Events', "To-Dos"]),
     }))
   }, { isOptional: true, emptyOk: true })
 )
@@ -4542,6 +4547,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       starts: dateRangeOptionalValidator,
       wasSelfScheduled: booleanValidatorOptional,
       wasCancelled: booleanValidatorOptional,
+      wasCompleted: booleanValidatorOptional,
       wasNoShowed: booleanValidatorOptional,
       wasRescheduled: booleanValidatorOptional,
       userIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,

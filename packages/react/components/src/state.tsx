@@ -2305,7 +2305,7 @@ export const useOrganizations = (options={} as HookOptions<Organization>) => {
   )
 }
 export const useOrganization = (options={} as HookOptions<Organization>) => {
-  const session = useSession()
+  const session = useResolvedSession()
   const [organizationsLoading, actions] = useOrganizations(options)
 
   return [

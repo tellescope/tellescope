@@ -720,6 +720,7 @@ export const SaveDraft = ({
             ),
             { 
               draftSavedAt: new Date(),
+              draftSavedBy: session?.userInfo?.id,
               responses: [
                 ...(existingResponses ?? []).filter(r => !fields.find(f => f.id === r.fieldId)),
                 ...getResponsesWithQuestionGroupAnswers(includedFieldIds.map(id => responses.find(r => r.fieldId === id)!))

@@ -3047,7 +3047,7 @@ export const schema: SchemaV1 = build_schema({
         },
         returns: { 
           authToken: { validator: stringValidator, required: true }, 
-          enduser: { validator:  'user' }, 
+          user: { validator:  'user' }, 
         } as any // add enduser eventually, when validator defined
       },
       configure_MFA: {
@@ -3756,6 +3756,7 @@ export const schema: SchemaV1 = build_schema({
       archiveReason: { validator: stringValidator },
       contextFormIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
       contextEnduserFields: { validator: listOfUniqueStringsValidatorEmptyOk },
+      isTodo: { validator: booleanValidator },
     }
   },
   meetings: {
@@ -4188,6 +4189,7 @@ export const schema: SchemaV1 = build_schema({
       formTitle: { validator: stringValidator250 },  
       responses: { validator: formResponsesValidator },
       draftSavedAt: { validator: dateValidator },
+      draftSavedBy: { validator: mongoIdStringValidator },
       hideFromEnduserPortal: { validator: booleanValidator },
       sharedVia: { validator: communicationsChannelValidator },
       isInternalNote: { validator: booleanValidator },
@@ -5387,6 +5389,7 @@ export const schema: SchemaV1 = build_schema({
       beforeMeal: { validator: booleanValidator },
       dontTrigger: { validator: booleanValidator },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
+      showWithPlotsByUnit: { validator: listOfStringsValidatorOptionalOrEmptyOk },
     }
   },
   managed_content_records: {
