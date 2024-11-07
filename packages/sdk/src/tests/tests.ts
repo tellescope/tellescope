@@ -6527,6 +6527,7 @@ export const formsort_tests = async () => {
 
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
+  suggested_contacts: NO_TEST,
   call_hold_queues: NO_TEST,
   fax_logs: NO_TEST,
   form_groups: NO_TEST,

@@ -92,6 +92,7 @@ import {
   MessageTemplateSnippet,
   FaxLog,
   CallHoldQueue,
+  SuggestedContact,
 } from "@tellescope/types-client"
 
 import {
@@ -351,6 +352,7 @@ const formGroupsSlice = createSliceForList<FormGroup, 'form_groups'>('form_group
 const portalBrandingsSlice = createSliceForList<PortalBranding, 'portal_brandings'>('portal_brandings')
 const messageTemplateSnippetsSlice = createSliceForList<MessageTemplateSnippet, 'message_template_snippets'>('message_template_snippets')
 const faxLogsSlice = createSliceForList<FaxLog, 'fax_logs'>('fax_logs')
+const suggestedContactsSlice = createSliceForList<SuggestedContact, 'suggested_contacts'>('suggested_contacts')
 
 const roleBasedAccessPermissionsSlice = createSliceForList<RoleBasedAccessPermission, 'role_based_access_permissions'>('role_based_access_permissions')
 
@@ -437,6 +439,7 @@ export const sharedConfig = {
     message_template_snippets: messageTemplateSnippetsSlice.reducer,
     fax_logs: faxLogsSlice.reducer,
     call_hold_queues: callHoldQueuesSlice.reducer,
+    suggested_contacts: suggestedContactsSlice.reducer,
   },
 }
 
@@ -1178,6 +1181,25 @@ export const useUserAndEnduserDisplayInfo = () => {
   }
 
   return displayInfo
+}
+
+export const useSuggestedContacts = (options={} as HookOptions<SuggestedContact>) => {
+  const session = useSession()
+
+  return useListStateHook('suggested_contacts', useTypedSelector(s => s.suggested_contacts), session, suggestedContactsSlice,
+    { 
+      loadQuery: session.api.suggested_contacts.getSome,
+      findOne: session.api.suggested_contacts.getOne,
+      findByIds: session.api.suggested_contacts.getByIds,
+      addOne: session.api.suggested_contacts.createOne,
+      addSome: session.api.suggested_contacts.createSome,
+      deleteOne: session.api.suggested_contacts.deleteOne,
+      updateOne: session.api.suggested_contacts.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
 }
 
 export const useFaxLogs = (options={} as HookOptions<FaxLog>) => {

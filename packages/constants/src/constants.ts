@@ -226,6 +226,7 @@ export const READ_ONLY_DEFAULT: AccessForResource = {
 }
 
 export const PROVIDER_PERMISSIONS: AccessPermissions = {
+  suggested_contacts: READ_ONLY_ALL,
   portal_brandings: INACCESSIBLE,
   webhook_logs: INACCESSIBLE,
   call_hold_queues: {
@@ -385,6 +386,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
+  suggested_contacts: FULL_ACCESS,
   call_hold_queues: FULL_ACCESS,
   fax_logs: FULL_ACCESS,
   message_template_snippets: FULL_ACCESS,

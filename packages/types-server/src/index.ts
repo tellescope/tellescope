@@ -89,6 +89,7 @@ export type PortalBranding = ServerModelForName['portal_brandings']
 export type MessageTemplateSnippet = ServerModelForName['message_template_snippets']
 export type FaxLog = ServerModelForName['fax_logs']
 export type CallHoldQueue = ServerModelForName['call_hold_queues']
+export type SuggestedContact = ServerModelForName['suggested_contacts']
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']

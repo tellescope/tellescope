@@ -910,6 +910,12 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
       if (!file.blobs?.length) {
         return "A file is required"
       }
+      if (typeof field.options?.min === 'number' && file.blobs.length < field.options.min) {
+        return `At least ${field.options?.min} file(s) are required`
+      }
+      if (typeof field.options?.max === 'number' && file.blobs.length > field.options.max) {
+        return `At most ${field.options?.max} file(s) are allowed`
+      }
       return null // no need to check against other stuff
     }
     // remaining can refer to currentValue, not currentFileValue

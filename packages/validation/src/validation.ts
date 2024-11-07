@@ -2974,6 +2974,7 @@ export const portalSettingsValidator = objectValidator<PortalSettings>({
   communication: objectValidator<PortalSettings['communication']>({
     allowEnduserInitiatedChat: booleanValidatorOptional,
     sendEmailNotificationsToEnduser: booleanValidatorOptional,
+    sendSMSNotificationsToEnduser: booleanValidatorOptional,
     enduserInitiatedChatDefaultSubject: stringValidator5000OptionalEmptyOkay,
   }, { isOptional: true, emptyOk: true })
 })
@@ -3715,6 +3716,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     }, { isOptional: true }),
     templateRequired: booleanValidatorOptional,
     locationRequired: booleanValidatorOptional,
+    cancelReasons: listOfStringsValidatorOptionalOrEmptyOk,
   }, { isOptional: true }),
   dashboard: objectValidator<OrganizationSettings['dashboard']>({
     view: customDashboardViewValidator,
@@ -4256,12 +4258,14 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   message_template_snippets: accessPermissionValidator,
   fax_logs: accessPermissionValidator,
   call_hold_queues: accessPermissionValidator,
+  suggested_contacts: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
 })
 
 export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
+  suggested_contacts: accessPermissionValidator,
   message_template_snippets: accessPermissionValidator,
   webhook_logs: accessPermissionValidator,
   enduser_problems: accessPermissionValidator,
@@ -4871,6 +4875,7 @@ export const userUIRestrictionsValidator = objectValidator<UserUIRestrictions>({
   hideQueuedTicketsViewer: booleanValidatorOptional,
   hideIncomingFaxesIcon: booleanValidatorOptional,
   hideBulkEnduserActions: booleanValidatorOptional,
+  visibleIntegrations: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
 }, { emptyOk: true })
 
 const externalChatGPTMessageValidator = objectValidator<ExternalChatGPTMessage>({

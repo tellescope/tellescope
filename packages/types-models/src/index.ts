@@ -114,6 +114,7 @@ export type PortalSettings = {
     allowEnduserInitiatedChat?: boolean,
     enduserInitiatedChatDefaultSubject?: string,
     sendEmailNotificationsToEnduser?: boolean,
+    sendSMSNotificationsToEnduser?: boolean,
   },
 }
 
@@ -222,6 +223,7 @@ export type OrganizationSettings = {
     },
     templateRequired?: boolean,
     locationRequired?: boolean,
+    cancelReasons?: string[],
   },
   users?: {
     sessionDurationInHours?: number,
@@ -2107,6 +2109,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   displayTitle?: string,
   displayDescription?: string,
   dontBlockAvailability?: boolean,
+  previousStartTimes?: number[],
   // isAllDay?: boolean,
 }
 
@@ -3022,6 +3025,7 @@ export type UserUIRestrictions = {
   hideQueuedTicketsViewer?: boolean,
   hideIncomingFaxesIcon?: boolean,
   hideBulkEnduserActions?: boolean,
+  visibleIntegrations?: string[],
 }
 
 export interface RoleBasedAccessPermission_readonly extends ClientRecord {}
@@ -3999,7 +4003,17 @@ export interface WebhookLog_required {}
 export interface WebhookLog_updatesDisabled {}
 export interface WebhookLog extends WebhookLog_readonly, WebhookLog_required, WebhookLog_updatesDisabled {}
 
+export interface SuggestedContact_readonly extends ClientRecord {}
+export interface SuggestedContact_required {
+  title: string,
+  phone?: string,
+  email?: string,
+}
+export interface SuggestedContact_updatesDisabled {}
+export interface SuggestedContact extends SuggestedContact_readonly, SuggestedContact_required, SuggestedContact_updatesDisabled {}
+
 export type ModelForName_required = {
+  suggested_contacts: SuggestedContact_required,
   call_hold_queues: CallHoldQueue_required,
   fax_logs: FaxLog_required,
   message_template_snippets: MessageTemplateSnippet_required
@@ -4083,6 +4097,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  suggested_contacts: SuggestedContact_readonly,
   call_hold_queues: CallHoldQueue_readonly,
   fax_logs: FaxLog_readonly,
   message_template_snippets: MessageTemplateSnippet_readonly,
@@ -4166,6 +4181,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  suggested_contacts: SuggestedContact_updatesDisabled,
   call_hold_queues: CallHoldQueue_updatesDisabled,
   fax_logs: FaxLog_updatesDisabled,
   message_template_snippets: MessageTemplateSnippet_updatesDisabled,
@@ -4249,6 +4265,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly { 
+  suggested_contacts: SuggestedContact,
   call_hold_queues: CallHoldQueue,
   fax_logs: FaxLog,
   message_template_snippets: MessageTemplateSnippet,
@@ -4342,6 +4359,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  suggested_contacts: true,
   call_hold_queues: true,
   fax_logs: true,
   message_template_snippets: true,

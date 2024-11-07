@@ -348,10 +348,10 @@ export const DeleteWithConfimrationIcon = ({ modelName, color, iconProps, onSucc
   )
 }
 
-export const SearchTextInput = ({ onChange, ...props } : TextFieldProps) => (
+export const SearchTextInput = ({ onChange, hideIcon, ...props } : TextFieldProps & { hideIcon?: boolean, }) => (
   <TextField size="small" placeholder="Search..." 
     onChange={s => onChange?.(s)}
-    InputProps={{
+    InputProps={hideIcon ? undefined : {
       startAdornment: (
         <InputAdornment position="start">
           <SearchIcon color={props.value ? 'primary' : undefined} />

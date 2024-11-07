@@ -5,8 +5,8 @@ import { LoadFunction, LoadFunctionArguments } from "@tellescope/sdk"
 import { ALL_ACCESS, UNSEARCHABLE_FIELDS } from "@tellescope/constants"
 import { SearchAPIProps, useSearchAPI } from "./hooks"
 import { TextFieldProps } from "./mui"
-import { AppointmentBookingPage, AppointmentLocation, AutomationTrigger, CalendarEventTemplate, CallHoldQueue, ChatRoom, Database, DatabaseRecord, Enduser, FaxLog, File, Form, FormGroup, Forum, Journey, ManagedContentRecord, MessageTemplateSnippet, Organization, PrescriptionRoute, Template, Ticket, TicketQueue, User, UserNotification } from "@tellescope/types-client"
-import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, LoadingLinear, ScrollingList, SearchTextInput, Typography, useAppointmentBookingPages, useAppointmentLocations, useAutomationTriggers, useCalendarEventTemplates, useCallHoldQueues, useChatRooms, useDatabaseRecords, useDatabases, useEndusers, useFaxLogs, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useMessageTemplateSnippets, useNotifications, useOrganization, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useTemplates, useTicketQueues, useTickets, useUsers, value_is_loaded } from "."
+import { AppointmentBookingPage, AppointmentLocation, AutomationTrigger, CalendarEventTemplate, CallHoldQueue, ChatRoom, Database, DatabaseRecord, Enduser, FaxLog, File, Form, FormGroup, Forum, Journey, ManagedContentRecord, MessageTemplateSnippet, Organization, PrescriptionRoute, SuggestedContact, Template, Ticket, TicketQueue, User, UserNotification } from "@tellescope/types-client"
+import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, LoadingLinear, ScrollingList, SearchTextInput, Typography, useAppointmentBookingPages, useAppointmentLocations, useAutomationTriggers, useCalendarEventTemplates, useCallHoldQueues, useChatRooms, useDatabaseRecords, useDatabases, useEndusers, useFaxLogs, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useMessageTemplateSnippets, useNotifications, useOrganization, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useSuggestedContacts, useTemplates, useTicketQueues, useTickets, useUsers, value_is_loaded } from "."
 import { SxProps } from "@mui/material"
 import { AccessPermissions } from "@tellescope/types-models"
 
@@ -341,6 +341,9 @@ export interface GenericSearchProps <T> extends FilterComponent<T> {
   attachSearchableFields?: (v: T) => Indexable | undefined,
   dontFetch?: boolean,
   autoFocus?: boolean,
+  value?: string,
+  onChange?: (s: string) => void,
+  hideIcon?: boolean,
 }
 interface ModelSearchProps<T> extends GenericSearchProps<T>, SearchAPIProps<T> {}
 export const ModelSearchInput = <T,>({ 
@@ -352,15 +355,23 @@ export const ModelSearchInput = <T,>({
   // @ts-ignore remove from props if provided by mistake
   compoundApiFilter, 
 
+  value,
+  onChange,
+
   ...props 
 } : ModelSearchProps<T>) => {
   const cacheKey = `search-cache-${filterKey}`
-  const [query, setQuery] = useState(read_local_storage(cacheKey) || '')
+  const [_query, _setQuery] = useState(read_local_storage(cacheKey) || '')
+
+  const query = value ?? _query
+  const setQuery = onChange ?? _setQuery
   const filterOnLoadRef = useRef(!!query)
 
   useEffect(() => {
     update_local_storage(cacheKey, query) 
   }, [query])
+
+  useEffect(() => onChange?.(query), [onChange, query])
 
   useSearchAPI({ query, searchAPI, onLoad })
 
@@ -559,6 +570,17 @@ export const FileSearch = (props: Omit<GenericSearchProps<File>, 'filterKey'> & 
 
         return toJoin
       }}
+    />
+  )
+}
+
+export const SuggestedContactSearch = (props: Omit<GenericSearchProps<SuggestedContact>, 'filterKey'> & { filterKey?: string }) => {
+  const session = useSession()
+  const [, { addLocalElements }] = useSuggestedContacts({ dontFetch: true })
+  return (
+    <ModelSearchInput filterKey="suggested-contact" {...props} 
+      searchAPI={session.api.suggested_contacts.getSome}
+      onLoad={addLocalElements}
     />
   )
 }

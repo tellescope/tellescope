@@ -302,6 +302,7 @@ import {
   analyticsFrameGroupingCategoriesValidator,
   customDashboardViewValidator,
   bookingRestrictionsByTemplateValidator,
+  listOfNumbersValidatorUniqueOptionalOrEmptyOkay,
 } from "@tellescope/validation"
 
 import {
@@ -879,6 +880,7 @@ export type CustomActions = {
     }>, 
     deliver_via_iterable: CustomAction<{ recipientEmail: string, campaignId: string }, {}>,
     send_with_template: CustomAction<{ enduserId: string, senderId: string, templateId: string }, { email: Email }>,
+    get_template_report: CustomAction<{ range?: DateRange }, { report: Report }>,
   },
   calendar_events: {
     get_events_for_user: CustomAction<{ userId: string, from: Date, userIds?: string[], to?: Date, limit?: number }, { events: CalendarEvent[] }>, 
@@ -2476,6 +2478,18 @@ export const schema: SchemaV1 = build_schema({
         },
         returns: { email: { validator: 'email' as any } } 
       },
+      get_template_report: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Template Report',
+        path: '/emails/template-report',
+        description: "Builds a report showing Email details by template",
+        parameters: {
+          range: { validator: dateRangeOptionalValidator },
+        },
+        returns: {
+          report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
+        },
+      },
     },
   },
   sms_messages: {
@@ -2905,15 +2919,17 @@ export const schema: SchemaV1 = build_schema({
             if (updates?.roles?.includes("Admin")) return "Only Admin users can assign the Admin role"
           }
         },
-        {
-          explanation: "Only admin users can update others' profiles",
-          evaluate: ({ _id }, _, session) => {
-            if (_id && _id.toString() === session.id) return
-            if ((session as UserSession)?.roles?.includes('Admin')) return
+        // unnecessary now do to other restrictions, should just be controlled by users.update access permission
+        // remove to allow non-admin to update other users' availabilities, for example
+        // {
+        //   explanation: "Only admin users can update others' profiles",
+        //   evaluate: ({ _id }, _, session) => {
+        //     if (_id && _id.toString() === session.id) return
+        //     if ((session as UserSession)?.roles?.includes('Admin')) return
 
-            return "Only admin users can update others' profiles"
-          }
-        }, 
+        //     return "Only admin users can update others' profiles"
+        //   }
+        // }, 
         {
           explanation: "Only admin users can update tags when accessTags is enabled",
           evaluate: ({ _id }, _, session, method, { updates } ) => {
@@ -4966,6 +4982,7 @@ export const schema: SchemaV1 = build_schema({
       cancelReason: { validator: stringValidator5000 },
       dontAutoSyncPatientToHealthie: { validator: booleanValidator },
       dontBlockAvailability: { validator: booleanValidator },
+      previousStartTimes: { validator: listOfNumbersValidatorUniqueOptionalOrEmptyOkay },
     }
   },
   calendar_event_templates: {
@@ -7925,6 +7942,19 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       title: { validator: stringValidator, required: true, examples: ['Title']},
       userIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] },
     },
+  },
+  suggested_contacts: {
+    info: { description: '' },
+    constraints: { unique: [], relationship: [], access: [] },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields,
+      title: { validator: stringValidator, required: true, examples: ['Title'] },
+      phone: { validator: phoneValidator, examples: ["+15555555555"] },
+      email: { validator: emailValidator, examples: ['test@tellescope.com'] },
+    }
   },
 })
 
