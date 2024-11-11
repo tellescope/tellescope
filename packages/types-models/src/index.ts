@@ -190,6 +190,7 @@ export type OrganizationSettings = {
     defaultToOutboundConferenceCall?: boolean,
     sharedInboxReadStatus?: boolean,
     matchEmailAndNames?: boolean,
+    hideNotesFromComposeForm?: boolean,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
@@ -1252,6 +1253,7 @@ export type TicketAction = TicketActions[TicketActionType]
 export type TicketSnooze = {
   at: Date,
   until: Date,
+  reason?: string,
 }
 
 export type RoundRobinAssignmentInfo = {
@@ -1591,6 +1593,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
     externalId: string,
   }[]
   hideAfterUnsubmittedInMS?: number,
+  hideFromCompose?: boolean,
 }
 
 export interface FormGroup_readonly extends ClientRecord {}

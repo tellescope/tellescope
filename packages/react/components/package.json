@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/react-components",
-  "version": "1.140.0",
+  "version": "1.141.0",
   "description": "",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
@@ -38,7 +38,7 @@
     "@types/react-window": "^1.8.5",
     "babel-loader": "^8.2.3",
     "react-native": "0.68.0",
-    "typescript": "^4.4.3"
+    "typescript": "4.9.3"
   },
   "dependencies": {
     "@emotion/css": "^11.9.0",
@@ -47,12 +47,13 @@
     "@reduxjs/toolkit": "^1.6.2",
     "@stripe/react-stripe-js": "^2.1.0",
     "@stripe/stripe-js": "^1.52.1",
-    "@tellescope/constants": "^1.140.0",
-    "@tellescope/sdk": "^1.140.0",
-    "@tellescope/types-client": "^1.140.0",
-    "@tellescope/types-models": "^1.140.0",
-    "@tellescope/types-utilities": "^1.69.3",
-    "@tellescope/utilities": "^1.140.0",
+    "@tellescope/constants": "^1.141.0",
+    "@tellescope/sdk": "^1.141.0",
+    "@tellescope/types-client": "^1.141.0",
+    "@tellescope/types-models": "^1.141.0",
+    "@tellescope/types-utilities": "^1.141.0",
+    "@tellescope/utilities": "^1.141.0",
+    "@tellescope/validation": "^1.141.0",
     "@typescript-eslint/eslint-plugin": "^4.33.0",
     "@typescript-eslint/parser": "^4.33.0",
     "css-to-react-native": "^3.0.0",

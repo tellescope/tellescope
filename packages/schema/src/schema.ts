@@ -1033,6 +1033,7 @@ export type CustomActions = {
       labTestId: string,
       physicianUserId?: string,
       teamId?: string, // for picking from multiple vital integrations
+      activateBy?: string,
     }, { order: EnduserOrder }>,
     create_go_go_meds_order: CustomAction<{ 
       enduserId: string,
@@ -2948,7 +2949,7 @@ export const schema: SchemaV1 = build_schema({
             if (method === 'create') return // create already admin restricted
             if (!updates?.roles) return // roles not provided (empty array is blocked by validator)
 
-            return "Only admin users can update others' profiles"
+            return "Only admin users can update user roles"
           }
         }, 
         {
@@ -4054,6 +4055,7 @@ export const schema: SchemaV1 = build_schema({
         }))
       },
       hideAfterUnsubmittedInMS: { validator: numberValidator },
+      hideFromCompose: { validator: booleanValidator },
     }
   },
   form_fields: {
@@ -7658,6 +7660,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           labTestId: { validator: stringValidator, required: true },
           physicianUserId: { validator: mongoIdStringValidator },
           teamId: { validator: stringValidator },
+          activateBy: { validator: stringValidator },
         },
         returns: { 
           order: { validator: 'enduser_order' as any, required: true },

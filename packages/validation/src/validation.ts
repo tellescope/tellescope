@@ -3683,6 +3683,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     defaultToOutboundConferenceCall: booleanValidatorOptional,
     sharedInboxReadStatus: booleanValidatorOptional,
     matchEmailAndNames: booleanValidatorOptional,
+    hideNotesFromComposeForm: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -4166,6 +4167,7 @@ export const superbillLineItemsValidator = listValidator(superbillLineItemValida
 const ticketSnoozeValidator = objectValidator<TicketSnooze>({
   at: dateValidator,
   until: dateValidator,
+  reason: stringValidatorOptional,
 })
 export const ticketSnoozesValidator = listValidatorOptionalOrEmptyOk(ticketSnoozeValidator)
 

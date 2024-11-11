@@ -29,6 +29,7 @@ import {
   convert_CSS_to_RNStyles
 } from "./mui.native"
 
+// @ts-ignore
 import NativeVideo from 'react-native-video';
 
 export const IN_REACT_WEB = false
