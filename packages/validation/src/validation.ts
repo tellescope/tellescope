@@ -3684,6 +3684,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     sharedInboxReadStatus: booleanValidatorOptional,
     matchEmailAndNames: booleanValidatorOptional,
     hideNotesFromComposeForm: booleanValidatorOptional,
+    showSalesforceId: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,

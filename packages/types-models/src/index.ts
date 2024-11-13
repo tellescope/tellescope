@@ -191,6 +191,7 @@ export type OrganizationSettings = {
     sharedInboxReadStatus?: boolean,
     matchEmailAndNames?: boolean,
     hideNotesFromComposeForm?: boolean,
+    showSalesforceId?: boolean,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
