@@ -719,6 +719,28 @@ export const evaluate_conditional_logic = <T extends string>(conditions: Compoun
   return true
 }
 
+export const get_conditional_logic_values = <T extends string>(conditions: CompoundFilter<T>): any[] => {
+  const key = Object.keys(conditions)[0] as '$and' | '$or' | 'condition' | 'string'
+
+  console.log(JSON.stringify(conditions, null, 2))
+
+  if (key === '$and') {
+    const andConditions = conditions[key] as CompoundFilter<string>[]
+    return andConditions.flatMap(get_conditional_logic_values)
+  } else if (key === '$or') {
+    const orConditions = conditions[key] as CompoundFilter<string>[]
+    return orConditions.flatMap(get_conditional_logic_values)
+  } else if (key === 'condition') {
+    if (!Object.values(conditions[key] as object)[0]) {
+      return [Object.keys(conditions[key] as object)[0]]
+    } else {
+      return [Object.values(conditions[key] as object)[0]]
+    }
+  }
+
+  return []
+}
+
 export const age_for_dob_mmddyyyy = (mmddyyyy: string) => {
   const [mm, dd, yyyy] = mmddyyyy.split('-').map(s => parseInt(s)) // ensure second argument to parseInt is not provided
   if (isNaN(mm) || isNaN(dd) || isNaN(yyyy)) return ''

@@ -367,6 +367,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   }[],
   stripePublicKeys?: string[],
   defaultDoseSpotPharmacies?: { id: string, name: string }[]
+  groups?: string[],
   // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {
@@ -1092,6 +1093,7 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
   templatedMessage?: string,
   canvasId?: string,
   discussionRoomId?: string,
+  mediaURLs?: string[],
   // usingPublicNumber?: boolean, // flagged on outgoing messages from public number
   // sentAt: string, // only outgoing
 }

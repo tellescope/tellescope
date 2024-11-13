@@ -672,12 +672,14 @@ export interface CreateChatRoomProps extends Omit<UserAndEnduserSelectorProps, '
   roomType?: ChatRoom['type'],
   aboutEnduserId?: string,
   limitToUsers?: User[],
+  addedUserIds?: string[],
 }
 export const CreateChatRoom = ({ 
   roomTitle: defaultRoomTitle = "Group Chat", 
   onSuccess, onError, 
   roomType,
   aboutEnduserId,
+  addedUserIds=[],
   ...props 
 } : CreateChatRoomProps) => {
   const [, { createElement: createRoom }] = useChatRooms({ dontFetch: true })
@@ -689,7 +691,7 @@ export const CreateChatRoom = ({
 
     createRoom({
       enduserIds, 
-      userIds,
+      userIds: Array.from(new Set([...userIds, ...addedUserIds])),
       title: roomTitle,
       type: roomType,
       ...aboutEnduserId ? { aboutEnduserId } : {},
@@ -702,6 +704,7 @@ export const CreateChatRoom = ({
   
   return (
     <UserAndEnduserSelector {...props} onSelect={handleCreateRoom} 
+      initialSelected={addedUserIds} // allows for submitting without selection
       titleInput={
         <TextField autoFocus value={roomTitle} onChange={t => setRoomTitle(t)} 
           style={{ 

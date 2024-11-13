@@ -180,7 +180,7 @@ export const TableHeader = <T extends Item>({
           ? (
             <Autocomplete size={'small'}
               disablePortal multiple
-              options={filterSuggestions?.[fields[openFilter]?.key?.toString()] || []}
+              options={(filterSuggestions?.[fields[openFilter]?.key?.toString()] || []).sort()}
               freeSolo autoSelect // allow any input and select it on change
               onChange={(e, values=[]) => {
                 setLocalFilters(fs => fs.map((f, i) => i === openFilter ? { query: '', values } : f))
@@ -197,7 +197,7 @@ export const TableHeader = <T extends Item>({
           ) : (
             <Autocomplete size={'small'}
               disablePortal
-              options={filterSuggestions?.[fields[openFilter]?.key?.toString()] || []}
+              options={(filterSuggestions?.[fields[openFilter]?.key?.toString()] || []).sort()}
               freeSolo autoSelect // allow any input and select it on change
               onChange={(e, _query) => {
                 const query = _query || ''

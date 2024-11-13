@@ -382,7 +382,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     get_engagement_report: (args: extractFields<CustomActions['users']['get_engagement_report']['parameters']>) => (
       Promise<extractFields<CustomActions['users']['get_engagement_report']['returns']>>
     ),
-
+    get_users_for_groups: (args: extractFields<CustomActions['users']['get_users_for_groups']['parameters']>) => (
+      Promise<extractFields<CustomActions['users']['get_users_for_groups']['returns']>>
+    ),
   },
   files: {
     prepare_file_upload: (args: extractFields<CustomActions['files']['prepare_file_upload']['parameters']>) => (
@@ -836,6 +838,7 @@ export class Session extends SessionManager {
     queries.users.configure_inbox = a => this._POST(`/v1/${schema.users.customActions.configure_inbox.path}`, a)
     queries.users.consent = a => this._PATCH(`/v1/${schema.users.customActions.consent.path}`, a)
     queries.users.get_engagement_report = a => this._GET(`/v1/${schema.users.customActions.get_engagement_report.path}`, a)
+    queries.users.get_users_for_groups = a => this._GET(`/v1/${schema.users.customActions.get_users_for_groups.path}`, a)
 
     queries.users.configure_MFA = a => this._POST(`/v1/${schema.users.customActions.configure_MFA.path}`, a)
     queries.users.generate_MFA_challenge = a => this._POST(`/v1/${schema.users.customActions.generate_MFA_challenge.path}`, a)

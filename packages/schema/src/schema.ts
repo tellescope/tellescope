@@ -802,6 +802,7 @@ export type CustomActions = {
     submit_MFA_challenge: CustomAction<{ code: string }, { authToken: string, user: UserSession }>,
     get_engagement_report: CustomAction<{ range?: DateRange, excludeAutomated?: boolean }, { report: Record<string, any> }>,
     consent: CustomAction<{ termsVersion: string, }, { user: User, authToken: string }>,
+    get_users_for_groups: CustomAction<{ groups: string[] }, { userIds: string[] }>,
   },
   chat_rooms: {
     join_room: CustomAction<{ id: string }, { room: ChatRoom }>,
@@ -1059,7 +1060,7 @@ export type PublicActions = {
     }, {  }>,
     request_password_reset: CustomAction<{ email: string, businessId: string, organizationIds?: string[]  }, { }>,
     reset_password: CustomAction<{ resetToken: string, newPassword: string, businessId: string, organizationIds?: string[] }, { }>,
-    begin_login_flow: CustomAction<{ email?: string, phone?: string, businessId: string, organizationIds?: string[] }, { result: LoginFlowResult, email?: string }>,
+    begin_login_flow: CustomAction<{ email?: string, phone?: string, redir?: string, businessId: string, organizationIds?: string[] }, { result: LoginFlowResult, email?: string }>,
     unsubscribe: CustomAction<{ enduserId: string, unsubscribeFrom: string[] }, { }>,
     get_otp_methods: CustomAction<{ token: string }, { methods: string[] }>,
     send_otp: CustomAction<{ token: string, method: string }, { }>,
@@ -1688,6 +1689,7 @@ export const schema: SchemaV1 = build_schema({
           organizationIds: { validator: listOfMongoIdStringValidatorEmptyOk },
           phone: { validator: phoneValidator },
           email: { validator: emailValidator },
+          redir: { validator: stringValidator },
         },
         returns: { 
           result: { validator: loginFlowResultValidator, required: true },
@@ -2670,6 +2672,7 @@ export const schema: SchemaV1 = build_schema({
       discussionRoomId: { validator: mongoIdStringValidator },
       journeyId: { validator: mongoIdStringValidator },
       calendarEventId: { validator: mongoIdStringValidator },
+      mediaURLs: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
     }, 
   },
   chat_rooms: {
@@ -3145,6 +3148,18 @@ export const schema: SchemaV1 = build_schema({
         returns: { 
           authToken: { validator: stringValidator, required: true },
           user: { validator: 'user' as any, required: true },
+        },
+      },
+      get_users_for_groups: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Get userIds for Group',
+        path: '/users/group',
+        description: "Loads all user ids for a given group",
+        parameters: { 
+          groups: { validator: listOfStringsValidator, required: true }
+        },
+        returns: { 
+          userIds: { validator: listOfMongoIdStringValidator, required: true },
         },
       },
     },
@@ -6098,6 +6113,7 @@ export const schema: SchemaV1 = build_schema({
           name: stringValidator,
         }))
       },
+      groups: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
     },
   },
   databases: {

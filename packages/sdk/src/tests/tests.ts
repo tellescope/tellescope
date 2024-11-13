@@ -8876,6 +8876,63 @@ const input_modifier_tests = async () => {
   ])
 }
 
+const calendar_event_care_team_tests = async () => {
+  log_header("Calendar Event Care Team Test")
+  const e = await sdk.api.endusers.createOne({})
+  const userId = sdk.userInfo.id
+
+  const ev1 = await sdk.api.calendar_events.createOne({ 
+    title: 'test', durationInMinutes: 60, startTimeInMS: Date.now(),
+    attendees: [{ type: 'enduser', id: e.id }, { type: 'user', id: userId }], 
+  })
+  const ev2 = await sdk.api.calendar_events.createOne({ 
+    title: 'test', durationInMinutes: 60, startTimeInMS: Date.now(),
+    attendees: [{ type: 'enduser', id: e.id }], 
+  })
+  await async_test(
+    `User assigned on event create`,
+    () => pollForResults(
+      () => sdk.api.endusers.getOne(e.id),
+      e => !!e.assignedTo?.includes(userId),
+      50,
+      10,
+    ),
+    passOnAnyResult
+  )  
+  await sdk.api.endusers.updateOne(e.id, { assignedTo: [] }, { replaceObjectFields: true })
+
+  await sdk.api.calendar_events.updateOne(ev2.id, { attendees: [{ type: 'user', id: userId }]})
+  await async_test(
+    `User assigned on add to event`,
+    () => pollForResults(
+      () => sdk.api.endusers.getOne(e.id),
+      e => !!e.assignedTo?.includes(userId),
+      50,
+      10,
+    ),
+    passOnAnyResult
+  )  
+  await sdk.api.endusers.updateOne(e.id, { assignedTo: [] }, { replaceObjectFields: true })
+
+  await sdk.api.calendar_events.updateOne(ev2.id, { title: "Updated title"})
+  await async_test(
+    `User not assinged on non-attendee event change`,
+    () => pollForResults(
+      () => sdk.api.endusers.getOne(e.id),
+      e => !e.assignedTo?.includes(userId),
+      1000,
+      1,
+    ),
+    passOnAnyResult
+  )  
+
+  return Promise.all([
+    sdk.api.endusers.deleteOne(e.id),
+    sdk.api.calendar_events.deleteOne(ev1.id),
+    sdk.api.calendar_events.deleteOne(ev2.id),
+  ])
+}
+
 (async () => {
   log_header("API")
 
@@ -8990,6 +9047,7 @@ const input_modifier_tests = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await calendar_event_care_team_tests()
     await merge_enduser_tests()
     await input_modifier_tests()
     await formsort_tests()
