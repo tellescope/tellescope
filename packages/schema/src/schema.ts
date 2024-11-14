@@ -98,6 +98,7 @@ import {
   Purchase,
   Integration,
   TicketQueue,
+  SMSMessage,
 } from "@tellescope/types-client"
 
 import {
@@ -884,6 +885,7 @@ export type CustomActions = {
     get_template_report: CustomAction<{ range?: DateRange }, { report: Report }>,
   },
   calendar_events: {
+    push: CustomAction<{ calendarEventId: string, destinations?: string[] }, {  }>,
     get_events_for_user: CustomAction<{ userId: string, from: Date, userIds?: string[], to?: Date, limit?: number }, { events: CalendarEvent[] }>, 
     load_events: CustomAction<{ userIds: string[], from: Date, to: Date, limit?: number, external?: boolean }, { events: CalendarEvent[] }>, 
     generate_meeting_link: CustomAction<{ eventId: string, enduserId: string }, { link: string }>, 
@@ -993,6 +995,7 @@ export type CustomActions = {
     send_message_to_number: CustomAction<{ message: string, to: string }, { enduser: Enduser }>,
     get_number_report: CustomAction<{ range?: DateRange }, { report: PhoneCallsReport }>,
     get_template_report: CustomAction<{ range?: DateRange }, { report: Report }>,
+    send_with_template: CustomAction<{ enduserId: string, senderId: string, templateId: string, fromNumber?: string }, { sms: SMSMessage }>,
   },
   products: {
     prepare_stripe_checkout: CustomAction<
@@ -2516,6 +2519,19 @@ export const schema: SchemaV1 = build_schema({
       },
     },
     customActions: {
+      send_with_template: {
+        op: "custom", access: 'create', method: "post", 
+        name: 'Send SMS via Template',
+        path: '/sms-messages/send-with-template',
+        description: "Sends an sms for a specific template on behalf of a user (senderId is user.id)",
+        parameters: { 
+          enduserId: { validator: mongoIdStringValidator, required: true },
+          senderId: { validator: mongoIdStringValidator, required: true },
+          templateId: { validator: mongoIdStringValidator, required: true },
+          fromNumber: { validator: phoneValidator },
+        },
+        returns: { sms: { validator: 'sms_message' as any } } 
+      },
       get_number_report: {
         op: "custom", access: 'read', method: "get",
         name: 'Number Report',
@@ -4817,6 +4833,17 @@ export const schema: SchemaV1 = build_schema({
           report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
         },
       },
+      push: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Push to external EHRs',
+        path: '/calendar-events/push',
+        description: "Syncs to an external EHR (e.g. Canvas)",
+        parameters: {
+          calendarEventId: { validator: mongoIdStringValidator, required: true },
+          destinations: { validator: listOfStringsValidatorOptionalOrEmptyOk }
+        },
+        returns: {},
+      },
     },
     publicActions: {
       session_for_public_appointment_booking: {
@@ -7015,6 +7042,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           }]
         ]
       },
+      showCompose: { validator: booleanValidator },
     }
   },
   background_errors: {

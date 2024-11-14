@@ -1,6 +1,6 @@
-import React, { useEffect, useCallback, useMemo, useState, useRef, memo } from "react"
+import React, { useEffect, useCallback, useMemo, useState, useRef } from "react"
 import { Indexable, ScoreFilter } from "@tellescope/types-utilities"
-import { objects_equivalent, read_local_storage, safeJSONParse, update_local_storage, user_display_name, wait } from "@tellescope/utilities"
+import { objects_equivalent, read_local_storage, safeJSONParse, update_local_storage, user_display_name } from "@tellescope/utilities"
 import { LoadFunction, LoadFunctionArguments } from "@tellescope/sdk"
 import { ALL_ACCESS, UNSEARCHABLE_FIELDS } from "@tellescope/constants"
 import { SearchAPIProps, useSearchAPI } from "./hooks"

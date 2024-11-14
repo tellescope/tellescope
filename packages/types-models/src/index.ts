@@ -192,6 +192,7 @@ export type OrganizationSettings = {
     matchEmailAndNames?: boolean,
     hideNotesFromComposeForm?: boolean,
     showSalesforceId?: boolean,
+    loopQueueCallSound?: boolean,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
@@ -3423,6 +3424,11 @@ export type EnduserProfileViewBlocks = {
   "Zus Encounters": EnduserProfileViewBlockBuilder<"Zus Encounters", { 
     title: string, 
   }>,
+  "Files": EnduserProfileViewBlockBuilder<"Files", { title: string }>,
+  "Tickets": EnduserProfileViewBlockBuilder<"Tickets", { title: string }>,
+  "Events": EnduserProfileViewBlockBuilder<"Events", { title: string }>,
+  "Labs": EnduserProfileViewBlockBuilder<"Labs", { title: string }>,
+  "Medications": EnduserProfileViewBlockBuilder<"Medications", { title: string }>,
 }
 export type EnduserProfileViewBlockType = keyof EnduserProfileViewBlocks
 export type EnduserProfileViewBlock = EnduserProfileViewBlocks[EnduserProfileViewBlockType]
@@ -3433,7 +3439,9 @@ export interface EnduserProfileView_required {
   blocks: EnduserProfileViewBlock[],
 }
 export interface EnduserProfileView_updatesDisabled {}
-export interface EnduserProfileView extends EnduserProfileView_readonly, EnduserProfileView_required, EnduserProfileView_updatesDisabled {}
+export interface EnduserProfileView extends EnduserProfileView_readonly, EnduserProfileView_required, EnduserProfileView_updatesDisabled {
+  showCompose?: boolean,
+}
 
 export type ListOfStringsWithQualifier = {
   qualifier: ListQueryQualifier,

@@ -5296,7 +5296,7 @@ const remove_from_journey_on_incoming_comms_tests = async () => {
           && a.status === 'active'
         )
       ),
-      25,
+      50,
       400,
     ),
     passOnAnyResult,

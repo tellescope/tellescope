@@ -618,6 +618,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
   },
   sms_messages: {
+    send_with_template: (args: extractFields<CustomActions['sms_messages']['send_with_template']['parameters']>) => (
+      Promise<extractFields<CustomActions['sms_messages']['send_with_template']['returns']>>
+    ),
     send_message_to_number: (args: extractFields<CustomActions['sms_messages']['send_message_to_number']['parameters']>) => (
       Promise<extractFields<CustomActions['sms_messages']['send_message_to_number']['returns']>>
     ),
@@ -668,6 +671,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
   },
   calendar_events: {
+    push: (args: extractFields<CustomActions['calendar_events']['push']['parameters']>) => (
+      Promise<extractFields<CustomActions['calendar_events']['push']['returns']>>
+    ),
     download_ics_file: (args: extractFields<CustomActions['calendar_events']['download_ics_file']['parameters']>) => (
       Promise<extractFields<CustomActions['calendar_events']['download_ics_file']['returns']>>
     ),
@@ -941,6 +947,7 @@ export class Session extends SessionManager {
     queries.calendar_events.get_report = a => this._POST(`/v1${schema.calendar_events.customActions.get_report.path}`, a)
     queries.calendar_events.get_enduser_report = a => this._POST(`/v1${schema.calendar_events.customActions.get_enduser_report.path}`, a)
     queries.calendar_events.get_appointment_availability = a => this._GET(`/v1${schema.calendar_events.customActions.get_appointment_availability.path}`, a)
+    queries.calendar_events.push = a => this._POST(`/v1${schema.calendar_events.customActions.push.path}`, a)
 
     // this returns an array buffer, avoid using for copy + paste
     queries.calendar_events.download_ics_file = a => this._GET(`/v1${schema.calendar_events.customActions.download_ics_file.path}`, a, true, { responseType: 'arraybuffer' })
@@ -987,6 +994,7 @@ export class Session extends SessionManager {
     queries.sms_messages.send_message_to_number = a => this._POST(`/v1/${schema.sms_messages.customActions.send_message_to_number.path}`, a)
     queries.sms_messages.get_number_report = a => this._GET(`/v1/${schema.sms_messages.customActions.get_number_report.path}`, a)
     queries.sms_messages.get_template_report = a => this._GET(`/v1/${schema.sms_messages.customActions.get_template_report.path}`, a)
+    queries.sms_messages.send_with_template = a => this._POST(`/v1/${schema.sms_messages.customActions.send_with_template.path}`, a)
 
     queries.purchases.charge_card_on_file = a => this._POST(`/v1/${schema.purchases.customActions.charge_card_on_file.path}`, a)
 

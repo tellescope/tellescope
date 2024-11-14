@@ -3685,6 +3685,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     matchEmailAndNames: booleanValidatorOptional,
     hideNotesFromComposeForm: booleanValidatorOptional,
     showSalesforceId: booleanValidatorOptional,
+    loopQueueCallSound: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -4920,6 +4921,41 @@ export const enduserProfileViewBlockValidator = orValidator<{ [K in EnduserProfi
     ...sharedEnduserProfileViewBlockFields,
     type: exactMatchValidator(['Zus Encounters']),
     info: objectValidator<EnduserProfileViewBlocks['Zus Encounters']['info']>({
+      title: stringValidator100,
+    }),
+  }), 
+  "Files": objectValidator<EnduserProfileViewBlocks["Files"]>({
+    ...sharedEnduserProfileViewBlockFields,
+    type: exactMatchValidator(['Files']),
+    info: objectValidator<EnduserProfileViewBlocks['Files']['info']>({
+      title: stringValidator100,
+    }),
+  }), 
+  "Tickets": objectValidator<EnduserProfileViewBlocks["Tickets"]>({
+    ...sharedEnduserProfileViewBlockFields,
+    type: exactMatchValidator(['Tickets']),
+    info: objectValidator<EnduserProfileViewBlocks['Tickets']['info']>({
+      title: stringValidator100,
+    }),
+  }), 
+  "Events": objectValidator<EnduserProfileViewBlocks["Events"]>({
+    ...sharedEnduserProfileViewBlockFields,
+    type: exactMatchValidator(['Events']),
+    info: objectValidator<EnduserProfileViewBlocks['Events']['info']>({
+      title: stringValidator100,
+    }),
+  }), 
+  "Labs": objectValidator<EnduserProfileViewBlocks["Labs"]>({
+    ...sharedEnduserProfileViewBlockFields,
+    type: exactMatchValidator(['Labs']),
+    info: objectValidator<EnduserProfileViewBlocks['Labs']['info']>({
+      title: stringValidator100,
+    }),
+  }), 
+  "Medications": objectValidator<EnduserProfileViewBlocks["Medications"]>({
+    ...sharedEnduserProfileViewBlockFields,
+    type: exactMatchValidator(['Medications']),
+    info: objectValidator<EnduserProfileViewBlocks['Medications']['info']>({
       title: stringValidator100,
     }),
   }), 
