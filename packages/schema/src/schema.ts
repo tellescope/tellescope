@@ -2962,6 +2962,16 @@ export const schema: SchemaV1 = build_schema({
           }
         }, 
         {
+          explanation: "Only admin users can update user email",
+          evaluate: ({ roles }, _, session, method, { updates }) => {
+            if ((session as UserSession)?.roles?.includes('Admin')) return // admin can do this
+            if (method === 'create') return // create already admin restricted
+            if (!updates?.email) return // roles not provided (empty array is blocked by validator)
+
+            return "Only admin users can update user email"
+          }
+        }, 
+        {
           explanation: "Only admin users can update user roles",
           evaluate: ({ roles }, _, session, method, { updates }) => {
             if ((session as UserSession)?.roles?.includes('Admin')) return // admin can do this
@@ -7545,6 +7555,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       defaultFromNumber: { validator: stringValidatorOptional },
       enduserFields: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       preventPull: { validator: listOfMongoIdStringValidatorEmptyOk },
+      overdueReminderUserId: { validator: mongoIdStringValidator },
     },
   },
   group_mms_conversations: {
@@ -7753,6 +7764,10 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       status: { validator: stringValidator, required: true, examples: ['status'] },
       description: { validator: stringValidator1000 },
       frequency: { validator: stringValidator100 },
+      items: { validator: listValidatorOptionalOrEmptyOk(objectValidator<{ title: string, tracking?: string }>({
+        title: stringValidator,
+        tracking: stringValidatorOptional,
+      }))}
     }
   },
   vital_configurations: {

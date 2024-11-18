@@ -146,6 +146,7 @@ export const parse_link_template = (text: string, startFrom?: number) => {
   let linkChars = []
   const linkTextChars = []
   
+  let additionalOpenBraceCount = 0
   for (let i = startFrom || 0; i < text.length; i++) {
     const char = text[i]
     if (state === LINK_START) {
@@ -155,8 +156,17 @@ export const parse_link_template = (text: string, startFrom?: number) => {
       }
     } 
     else if (state === LINK_END) {
-      if (char === '}') {
-        state = TEXT_START
+      if (char === '{') {
+        additionalOpenBraceCount++
+        linkChars.push(char)
+      }
+      else if (char === '}') {
+        if (additionalOpenBraceCount) {
+          additionalOpenBraceCount--
+          linkChars.push(char)
+        } else {
+          state = TEXT_START
+        }
       } else {
         linkChars.push(char)
       }
@@ -722,8 +732,6 @@ export const evaluate_conditional_logic = <T extends string>(conditions: Compoun
 export const get_conditional_logic_values = <T extends string>(conditions: CompoundFilter<T>): any[] => {
   const key = Object.keys(conditions)[0] as '$and' | '$or' | 'condition' | 'string'
 
-  console.log(JSON.stringify(conditions, null, 2))
-
   if (key === '$and') {
     const andConditions = conditions[key] as CompoundFilter<string>[]
     return andConditions.flatMap(get_conditional_logic_values)
@@ -760,6 +768,24 @@ export const age_for_dob_mmddyyyy = (mmddyyyy: string) => {
 export const get_enduser_field_value_for_key = (enduser: Omit<Enduser, 'id'>, key: string) => {
   if (key === 'insurance.payerName') return enduser?.insurance?.payerName
   if (key === 'insuranceSecondary.payerName') return enduser?.insuranceSecondary?.payerName
+  if (key === 'insurance.relationship') return enduser?.insurance?.relationship
+  if (key === 'insuranceSecondary.relationship') return enduser?.insuranceSecondary?.relationship
+  if (key === 'insurance.payerId') return enduser?.insurance?.payerId
+  if (key === 'insuranceSecondary.payerId') return enduser?.insuranceSecondary?.payerId
+  if (key === 'insurance.memberId') return enduser?.insurance?.memberId
+  if (key === 'insuranceSecondary.memberId') return enduser?.insuranceSecondary?.memberId
+  if (key === 'insurance.groupNumber') return enduser?.insurance?.groupNumber
+  if (key === 'insuranceSecondary.groupNumber') return enduser?.insuranceSecondary?.groupNumber
+  if (key === 'insurance.relationshipDetails') {
+    try {
+      return JSON.stringify(enduser?.insurance?.relationshipDetails ?? {})
+    } catch(err) {}
+  }
+  if (key === 'insuranceSecondary.relationshipDetails') {
+    try {
+      return JSON.stringify(enduser?.insuranceSecondary?.relationshipDetails ?? {})
+    } catch(err) {}
+  }
 
   return enduser?.[key as keyof typeof enduser] as any
 }

@@ -202,6 +202,11 @@ const setup_tests = async () => {
     handleAnyError
   )
   await async_test(
+    'email change by non-admin prevented (admin)', 
+    () => sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { email: 'otheremail@tellescope.com' }, { replaceObjectFields: true }),
+    handleAnyError
+  )
+  await async_test(
     'role change by non-admin prevented (non-admin)', 
     () => sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Not Admin'] }, { replaceObjectFields: true }),
     handleAnyError
@@ -6525,6 +6530,32 @@ export const formsort_tests = async () => {
   ])
 }
 
+// initially added to validate items can be added via API
+export const enduser_orders_tests = async () => {
+  log_header("EnduserOrders Tests")
+
+  await async_test(
+    `Items are optional`, 
+    () => sdk.api.enduser_orders.createOne({ title: 'test', status: 'test' , externalId: '1', source: 'test', enduserId: PLACEHOLDER_ID }),
+    { onResult: r => !!r.enduserId }
+  )
+
+  await async_test(
+    `Items are allowed (singleton)`, 
+    () => sdk.api.enduser_orders.createOne({ title: 'test', status: 'test', externalId: '2', source: 'test', enduserId: PLACEHOLDER_ID, items: [{ title: 'item 1'}] }),
+    { onResult: r => r.items?.length === 1 }
+  )
+
+  await async_test(
+    `Items are allowed (multiple)`, 
+    () => sdk.api.enduser_orders.createOne({ title: 'test', status: 'test', externalId: '3', source: 'test', enduserId: PLACEHOLDER_ID, items: [{ title: 'item 1'}, { title: 'item 2', tracking: 'tracking' }] }),
+    { onResult: r => r.items?.length === 2 && r.items[0].title === 'item 1' && !r.items[0].tracking && r.items[1].title === 'item 2' && r.items[1].tracking === 'tracking' }
+  )
+   
+  const orders = await sdk.api.enduser_orders.getSome()
+  return Promise.all(orders.map(o => sdk.api.enduser_orders.deleteOne(o.id)))
+}
+
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
   suggested_contacts: NO_TEST,
@@ -6536,7 +6567,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   enduser_problems: NO_TEST,
   vital_configurations: NO_TEST,
   enduser_encounters: NO_TEST,
-  enduser_orders: NO_TEST,
+  enduser_orders: enduser_orders_tests,
   ticket_queues: NO_TEST,
   phone_trees: NO_TEST,
   enduser_medications: NO_TEST,
@@ -9047,6 +9078,7 @@ const calendar_event_care_team_tests = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await enduser_orders_tests()
     await calendar_event_care_team_tests()
     await merge_enduser_tests()
     await input_modifier_tests()

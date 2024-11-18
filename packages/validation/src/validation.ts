@@ -292,6 +292,7 @@ import {
   BookingRestrictions,
   SwitchToRelatedContactAutomationAction,
   ElationSyncAutomationAction,
+  CanvasSyncAutomationAction,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -2341,6 +2342,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   changeContactType: '',
   activeCampaignSync: '',
   switchToRelatedContact: '',
+  canvasSync: '',
   elationSync: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
@@ -2833,6 +2835,11 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['elationSync']),
     info: objectValidator<ElationSyncAutomationAction['info']>({ }, { emptyOk: true }),
+  }),
+  canvasSync: objectValidator<CanvasSyncAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['canvasSync']),
+    info: objectValidator<CanvasSyncAutomationAction['info']>({ }, { emptyOk: true }),
   }),
   healthieAddToCourse: objectValidator<HealthieAddToCourseAutomationAction>({
     continueOnError: booleanValidatorOptional,

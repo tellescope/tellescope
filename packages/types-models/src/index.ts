@@ -2584,6 +2584,7 @@ export type ChangeContactTypeAutomationAction = AutomationActionBuilder<'changeC
 export type ActiveCampaignSyncAutomationAction = AutomationActionBuilder<'activeCampaignSync', { }>
 export type SwitchToRelatedContactAutomationAction = AutomationActionBuilder<'switchToRelatedContact', { type: string, otherTypes?: string[] }>
 export type ElationSyncAutomationAction = AutomationActionBuilder<'elationSync', { }>
+export type CanvasSyncAutomationAction = AutomationActionBuilder<'canvasSync', {}>
 
 export type IterableFieldsMapping = {
   iterable: string,
@@ -2644,6 +2645,7 @@ export type AutomationActionForType = {
   activeCampaignSync: ActiveCampaignSyncAutomationAction,
   switchToRelatedContact: SwitchToRelatedContactAutomationAction,
   'elationSync': ElationSyncAutomationAction,
+  canvasSync: CanvasSyncAutomationAction,
 }
 export type AutomationActionType = keyof AutomationActionForType
 export type AutomationAction = AutomationActionForType[AutomationActionType]
@@ -3062,7 +3064,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
   transcriptionId?: string,
   conferenceId?: string,
   externalConferenceId?: string,
-  conferenceAttendees?: string[],
+  conferenceAttendees?: (string[]) | (string[][]), // old code caused multiple lists to be pushed by mistake
   unread?: boolean,
   transcription?: string,
   note?: string,
@@ -3792,6 +3794,7 @@ export interface TicketQueue extends TicketQueue_readonly, TicketQueue_required,
   lastRefreshedCountAt?: Date,
   preventPull?: string[],
   index?: number,
+  overdueReminderUserId?: string,
 }
 
 export interface EnduserOrder_readonly extends ClientRecord {}
