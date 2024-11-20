@@ -2607,6 +2607,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields,   
+      autoResolveToFrom: { validator: booleanValidator },
       logOnly: {
         validator: booleanValidator,
         examples: [true],
@@ -5097,6 +5098,7 @@ export const schema: SchemaV1 = build_schema({
       matchToHealthieTemplate: { validator: booleanValidator },
       useUserURL: { validator: booleanValidator },
       instructions: { validator: stringValidator5000EmptyOkay },
+      requiresEnduser: { validator: booleanValidator },
     }
   },
   calendar_event_RSVPs: {

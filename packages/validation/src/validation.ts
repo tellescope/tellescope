@@ -2723,6 +2723,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
         name: stringValidator,
         type: stringValidator,
         value: stringValidator,
+        increment: numberValidatorOptional,
       }))
     }, { emptyOk: false }),
   }),
@@ -4104,6 +4105,7 @@ export const automationTriggerActionValidator = orValidator<{ [K in AutomationTr
         name: stringValidator,
         type: stringValidator,
         value: stringValidator,
+        increment: numberValidatorOptional,
       }))
     }),
   }), 
@@ -4963,6 +4965,13 @@ export const enduserProfileViewBlockValidator = orValidator<{ [K in EnduserProfi
     ...sharedEnduserProfileViewBlockFields,
     type: exactMatchValidator(['Medications']),
     info: objectValidator<EnduserProfileViewBlocks['Medications']['info']>({
+      title: stringValidator100,
+    }),
+  }), 
+  "Diagnoses": objectValidator<EnduserProfileViewBlocks["Diagnoses"]>({
+    ...sharedEnduserProfileViewBlockFields,
+    type: exactMatchValidator(['Diagnoses']),
+    info: objectValidator<EnduserProfileViewBlocks['Diagnoses']['info']>({
       title: stringValidator100,
     }),
   }), 

@@ -681,6 +681,16 @@ export type EnduserInsurance = {
   groupNumber?: string,
 }
 
+export type EnduserDiagnosis = {
+  externalId?: string,
+  active?: boolean,
+  start?: string,
+  end?: string,
+  code?: string,
+  display?: string,
+  source?: string,
+}
+
 export type TellescopeGender = "Male" | "Female" | "Other" | "Unknown"
 export interface Enduser_readonly extends UserActivityInfo, ClientRecord, EnduserEngagementTimestamps {
   lastCommunication?: Date;
@@ -777,6 +787,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   stripeCustomerId?: string,
   stripeKey?: string,
   lastDoseSpotSyncAt?: Date,
+  diagnoses?: EnduserDiagnosis[]
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
 }
@@ -1074,6 +1085,7 @@ export interface SMSMessage_updatesDisabled {
   journeyId?: string,
 }
 export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SMSMessage_updatesDisabled, TextCommunication, WithLinkOpenTrackingIds {
+  autoResolveToFrom?: boolean,
   isAutoreply?: boolean,
   userId?: string, // defaults to self, but should allow future options to send as other user
   readBy?: { [index: string] : Date };
@@ -2231,6 +2243,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   dontAutoSyncPatientToHealthie?: boolean,
   displayTitle?: string,
   displayDescription?: string,
+  requiresEnduser?: boolean,
 }
 
 export interface AppointmentLocation_readonly extends ClientRecord {}
@@ -2596,11 +2609,12 @@ export type IterableCustomEventAutomationAction = AutomationActionBuilder<'itera
   dataFieldsMapping?: IterableFieldsMapping[]
 }>
 
-export type EnduserFieldSetterType = 'Custom Value' | 'Current Timestamp' | 'Current Date'
+export type EnduserFieldSetterType = 'Custom Value' | 'Current Timestamp' | 'Current Date' | "Increment Number"
 export type EnduserFieldSetter = {
   name: string,
   type: EnduserFieldSetterType,
   value: string,
+  increment?: number, // MS increment for timestamp/date fields, numeric increment for number fields
 }
 export type SetEnduserFieldsAutomationAction = AutomationActionBuilder<'setEnduserFields', {
   fields: EnduserFieldSetter[]
@@ -3431,6 +3445,7 @@ export type EnduserProfileViewBlocks = {
   "Events": EnduserProfileViewBlockBuilder<"Events", { title: string }>,
   "Labs": EnduserProfileViewBlockBuilder<"Labs", { title: string }>,
   "Medications": EnduserProfileViewBlockBuilder<"Medications", { title: string }>,
+  "Diagnoses": EnduserProfileViewBlockBuilder<"Diagnoses", { title: string }>,
 }
 export type EnduserProfileViewBlockType = keyof EnduserProfileViewBlocks
 export type EnduserProfileViewBlock = EnduserProfileViewBlocks[EnduserProfileViewBlockType]
