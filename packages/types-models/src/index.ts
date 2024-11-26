@@ -1497,6 +1497,7 @@ export type FormFieldOptions = FormFieldValidation & {
   redirectExternalUrl?: string,
   groupPadding?: number,
   saveIntakeOnPartial?: boolean,
+  stripeKey?: string, // publishable key of custom stripe API keys
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
@@ -2155,6 +2156,8 @@ export interface Product extends Product_readonly, Product_required, Product_upd
   showInPortal?: boolean,
   categories?: string[],
   maxCheckoutCount?: number | '',
+  stripeSubscriptionId?: string,
+  stripeProductId?: string,
 }
 
 export interface Purchase_readonly extends ClientRecord {}

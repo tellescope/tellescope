@@ -3170,6 +3170,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   saveIntakeOnPartial: booleanValidatorOptional,
   max: numberValidatorOptional,
   min: numberValidatorOptional,
+  stripeKey: stringValidatorOptionalEmptyOkay,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({

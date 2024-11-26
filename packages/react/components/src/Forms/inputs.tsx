@@ -21,9 +21,9 @@ import heic2any from "heic2any"
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import LanguageIcon from '@mui/icons-material/Language';
 
-import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
+import { Elements, PaymentElement, useStripe, useElements, EmbeddedCheckout, EmbeddedCheckoutProvider } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js'; 
-import { CheckCircleOutline, Delete, Edit, PropaneSharp } from "@mui/icons-material"
+import { CheckCircleOutline, Delete, Edit } from "@mui/icons-material"
 
 export const LanguageSelect = ({ value, ...props }: { value: string, onChange: (s: string) => void}) => (
   <Grid container alignItems="center" justifyContent={"center"} wrap="nowrap" spacing={1}>
@@ -1420,6 +1420,7 @@ export const StripeInput = ({ field, value, onChange, setCustomerId }: FormInput
   const session = useResolvedSession()
   const [clientSecret, setClientSecret] = useState('')
   const [businessName, setBusinessName] = useState('')
+  const [isCheckout, setIsCheckout] = useState(false)
   const [stripePromise, setStripePromise] = useState<ReturnType<typeof loadStripe>>()
   const [, { findById: findProduct }] = useProducts({ dontFetch: true })
 
@@ -1432,7 +1433,8 @@ export const StripeInput = ({ field, value, onChange, setCustomerId }: FormInput
     fetchRef.current = true
 
     session.api.form_responses.stripe_details({ fieldId: field.id })
-    .then(({ clientSecret, publishableKey, stripeAccount, businessName, customerId }) => {
+    .then(({ clientSecret, publishableKey, stripeAccount, businessName, customerId, isCheckout }) => {
+      setIsCheckout(!!isCheckout)
       setClientSecret(clientSecret)
       setStripePromise(loadStripe(publishableKey, { stripeAccount }))
       setBusinessName(businessName)
@@ -1448,7 +1450,7 @@ export const StripeInput = ({ field, value, onChange, setCustomerId }: FormInput
 
   if (value) {
     return (
-      <Grid container alignItems="center" wrap="nowrap">
+      <Grid container alignItems="center" wrap="nowrap">
         <CheckCircleOutline color="success" />
 
         <Typography sx={{ ml: 1, fontSize: 20 }}>
@@ -1458,6 +1460,16 @@ export const StripeInput = ({ field, value, onChange, setCustomerId }: FormInput
     )
   }
   if (!(clientSecret && stripePromise)) return <LinearProgress />
+  if (isCheckout && stripePromise) return (
+    <EmbeddedCheckoutProvider stripe={stripePromise}
+      options={{ 
+        clientSecret, 
+        onComplete: () => onChange('Completed checkout', field.id),        
+      }}
+    >
+      <EmbeddedCheckout />
+    </EmbeddedCheckoutProvider>
+  )
   return (
     <Elements stripe={stripePromise} options={{
       clientSecret,

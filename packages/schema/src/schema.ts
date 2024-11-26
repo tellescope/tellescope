@@ -660,7 +660,7 @@ export type CustomActions = {
     }>,
     stripe_details: CustomAction<
       { fieldId: string }, 
-      { customerId: string, clientSecret: string, publishableKey: string, stripeAccount: string, businessName: string }
+      { customerId: string, clientSecret: string, publishableKey: string, stripeAccount: string, businessName: string, isCheckout?: boolean }
     >,
     generate_pdf: CustomAction<
       { id: string }, 
@@ -1100,8 +1100,9 @@ export type PublicActions = {
       state?: string,
       customTypeId?: string,
       skipMatch?: boolean,
+      enduserId?: string,
       // organizationIds?: string[]
-    }, { accessCode: string, authToken: string, url: string, path: string }>,
+    }, { accessCode: string, authToken: string, url: string, path: string, enduserId: string }>,
   },
   calendar_events: {
     session_for_public_appointment_booking: CustomAction<{ 
@@ -4394,6 +4395,7 @@ export const schema: SchemaV1 = build_schema({
           publishableKey: { validator: stringValidator, required: true },
           stripeAccount: { validator: stringValidator, required: true },
           businessName: { validator: stringValidator, required: true },
+          isCheckout: { validator: booleanValidator },
         },
       },
       get_report: {
@@ -4495,6 +4497,7 @@ export const schema: SchemaV1 = build_schema({
         parameters: { 
           formId: { validator: mongoIdStringValidator, required: true },
           businessId: { validator: mongoIdStringValidator, required: true },
+          enduserId: { validator: mongoIdStringValidator },
           email: { validator: emailValidator },
           dateOfBirth: { validator: stringValidator100 },
           phone: { validator: phoneValidator },
@@ -4511,6 +4514,7 @@ export const schema: SchemaV1 = build_schema({
           authToken: { validator: stringValidator250, required: true },
           url: { validator: stringValidator250, required: true },
           path: { validator: stringValidator250, required: true },
+          enduserId: { validator: mongoIdStringValidator, required: true }
         },
       },
     },
@@ -6573,7 +6577,9 @@ export const schema: SchemaV1 = build_schema({
       image: { validator: stringValidator100000EmptyOkay },
       showInPortal: { validator: booleanValidator },
       categories: { validator: listOfStringsValidatorEmptyOk },
-      maxCheckoutCount: { validator: numberValidatorOptional }
+      maxCheckoutCount: { validator: numberValidatorOptional },
+      stripeProductId: { validator: stringValidator100 },
+      stripeSubscriptionId: { validator: stringValidator100 },
     }
   },
   purchases: {
