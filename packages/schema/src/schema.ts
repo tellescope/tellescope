@@ -1400,7 +1400,8 @@ export const schema: SchemaV1 = build_schema({
       diagnoses: {
         validator: listValidatorOptionalOrEmptyOk(enduserDiagnosisValidator),
         redactions: ['enduser']
-      }
+      },
+      unsubscribedFromPhones: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay, redactions: ['enduser'] },
       // recentMessagePreview: { 
       //   validator: stringValidator,
       // },
