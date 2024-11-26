@@ -304,6 +304,7 @@ import {
   customDashboardViewValidator,
   bookingRestrictionsByTemplateValidator,
   listOfNumbersValidatorUniqueOptionalOrEmptyOkay,
+  enduserDiagnosisValidator,
 } from "@tellescope/validation"
 
 import {
@@ -1385,17 +1386,21 @@ export const schema: SchemaV1 = build_schema({
         })),
         redactions: ['enduser'],
       },
-      references: { validator: listOfRelatedRecordsValidator, updatesDisabled: true },
-      athenaDepartmentId: { validator: stringValidator100 },
-      athenaPracticeId: { validator: stringValidator100 },
-      salesforceId: { validator: stringValidator100 },
+      references: { validator: listOfRelatedRecordsValidator, updatesDisabled: true, redactions: ['enduser'] },
+      athenaDepartmentId: { validator: stringValidator100, redactions: ['enduser'] },
+      athenaPracticeId: { validator: stringValidator100, redactions: ['enduser'] },
+      salesforceId: { validator: stringValidator100, redactions: ['enduser'] },
       vitalTriggersDisabled: { validator: booleanValidator },
-      defaultFromPhone: { validator: phoneValidator },
-      defaultFromEmail: { validator: emailValidator },
+      defaultFromPhone: { validator: phoneValidator, redactions: ['enduser'] },
+      defaultFromEmail: { validator: emailValidator, redactions: ['enduser'] },
       useDefaultFromEmailInAutomations: { validator: booleanValidator },
       useDefaultFromPhoneInAutomations: { validator: booleanValidator },
-      stripeCustomerId: { validator: stringValidator100 },
-      stripeKey: { validator: stringValidator250 },
+      stripeCustomerId: { validator: stringValidator100, redactions: ['enduser'] },
+      stripeKey: { validator: stringValidator250, redactions: ['enduser'] },
+      diagnoses: {
+        validator: listValidatorOptionalOrEmptyOk(enduserDiagnosisValidator),
+        redactions: ['enduser']
+      }
       // recentMessagePreview: { 
       //   validator: stringValidator,
       // },
@@ -7055,6 +7060,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         ]
       },
       showCompose: { validator: booleanValidator },
+      defaultForRoles: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      defaultForUserIds: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
     }
   },
   background_errors: {

@@ -5,8 +5,8 @@ import { LoadFunction, LoadFunctionArguments } from "@tellescope/sdk"
 import { ALL_ACCESS, UNSEARCHABLE_FIELDS } from "@tellescope/constants"
 import { SearchAPIProps, useSearchAPI } from "./hooks"
 import { TextFieldProps } from "./mui"
-import { AppointmentBookingPage, AppointmentLocation, AutomationTrigger, CalendarEventTemplate, CallHoldQueue, ChatRoom, Database, DatabaseRecord, Enduser, FaxLog, File, Form, FormGroup, Forum, Journey, ManagedContentRecord, MessageTemplateSnippet, Organization, PrescriptionRoute, SuggestedContact, Template, Ticket, TicketQueue, User, UserNotification } from "@tellescope/types-client"
-import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, LoadingLinear, ScrollingList, SearchTextInput, Typography, useAppointmentBookingPages, useAppointmentLocations, useAutomationTriggers, useCalendarEventTemplates, useCallHoldQueues, useChatRooms, useDatabaseRecords, useDatabases, useEndusers, useFaxLogs, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useMessageTemplateSnippets, useNotifications, useOrganization, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useSuggestedContacts, useTemplates, useTicketQueues, useTickets, useUsers, value_is_loaded } from "."
+import { AppointmentBookingPage, AppointmentLocation, AutomationTrigger, CalendarEventTemplate, CallHoldQueue, ChatRoom, Database, DatabaseRecord, Enduser, EnduserOrder, FaxLog, File, Form, FormGroup, Forum, Journey, ManagedContentRecord, MessageTemplateSnippet, Organization, PrescriptionRoute, SuggestedContact, Template, Ticket, TicketQueue, User, UserNotification } from "@tellescope/types-client"
+import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, LoadingLinear, ScrollingList, SearchTextInput, Typography, useAppointmentBookingPages, useAppointmentLocations, useAutomationTriggers, useCalendarEventTemplates, useCallHoldQueues, useChatRooms, useDatabaseRecords, useDatabases, useEnduserOrders, useEndusers, useFaxLogs, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useMessageTemplateSnippets, useNotifications, useOrganization, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useSuggestedContacts, useTemplates, useTicketQueues, useTickets, useUsers, value_is_loaded } from "."
 import { SxProps } from "@mui/material"
 import { AccessPermissions } from "@tellescope/types-models"
 
@@ -496,6 +496,39 @@ export const TicketSearch = (props: Omit<GenericSearchProps<Ticket>, 'filterKey'
           fields.user_fullname = `${user.fname} ${user.lname}`;
           fields.user_email = user.email || '';
         }
+        if (enduser) {
+          fields.enduser_fname = enduser.fname || '';
+          fields.enduser_lname = enduser.lname || '';
+          fields.enduser_fullname = `${enduser.fname} ${enduser.lname}`;
+          fields.enduser_email = enduser.email || '';
+          if (enduser.tags?.length) {
+            fields.tags = enduser.tags.join(',')
+          }
+        }
+    
+        return fields
+      }}
+    />
+  )
+}
+
+export const ENDUSER_ORDERS_SEARCH_FILTER_KEY = 'ticket-search'
+export const EnduserOrdersSearch = (props: Omit<GenericSearchProps<EnduserOrder>, 'filterKey'> & { filterKey?: string }) => {
+  const session = useResolvedSession()
+  const [, { addLocalElements }] = useEnduserOrders()
+  const [endusersLoading, { findById: findEnduser }] = useEndusers() 
+
+  // wait for users/endusers to load, so that a saved query is able to match attachSearchableFields
+  if (!value_is_loaded(endusersLoading)) return null
+  return (
+    <ModelSearchInput filterKey={ENDUSER_ORDERS_SEARCH_FILTER_KEY} {...props} 
+      searchAPI={session.api.enduser_orders.getSome}
+      onLoad={addLocalElements}
+      attachSearchableFields={t => {
+        const enduser = findEnduser(t.enduserId ?? '', { batch: true })
+        if (!enduser) return undefined
+    
+        const fields = {} as Record<string, string>
         if (enduser) {
           fields.enduser_fname = enduser.fname || '';
           fields.enduser_lname = enduser.lname || '';

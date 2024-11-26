@@ -293,6 +293,7 @@ import {
   SwitchToRelatedContactAutomationAction,
   ElationSyncAutomationAction,
   CanvasSyncAutomationAction,
+  EnduserDiagnosis,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -2907,6 +2908,7 @@ export const relatedRecordValidator = objectValidator<RelatedRecord>({
   environment: stringValidatorOptional,
 })
 export const listOfRelatedRecordsValidator = listValidatorEmptyOk(relatedRecordValidator)
+export const relatedRecordsValidatorOptional = listValidatorOptionalOrEmptyOk(relatedRecordValidator)
 
 export const searchOptionsValidator = objectValidator<SearchOptions>({
   query: stringValidator100,
@@ -3694,6 +3696,8 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     hideNotesFromComposeForm: booleanValidatorOptional,
     showSalesforceId: booleanValidatorOptional,
     loopQueueCallSound: booleanValidatorOptional,
+    showOrdersInSidebar: booleanValidatorOptional,
+    showDiagnoses: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -4049,6 +4053,7 @@ const _AUTOMATION_TRIGGER_ACTION_TYPES: { [K in AutomationTriggerActionType]: an
   "Remove Tags": true,
   "Add Access Tags": true,
   "Assign Care Team": true,
+  "Remove Care Team": true,
   "Remove From All Journeys": true,
   "Canvas: Add Patient": true,
   "Zus: Delete Enrollment": true,
@@ -4096,6 +4101,12 @@ export const automationTriggerActionValidator = orValidator<{ [K in AutomationTr
     info: objectValidator<AutomationTriggerActions['Assign Care Team']['info']>({
       tags: listOfStringsWithQualifierValidator,
       limitToOneUser: booleanValidatorOptional,
+    }),
+  }), 
+  "Remove Care Team": objectValidator<AutomationTriggerActions["Remove Care Team"]>({
+    type: exactMatchValidator(['Remove Care Team']),
+    info: objectValidator<AutomationTriggerActions['Remove Care Team']['info']>({
+      tags: listOfStringsWithQualifierValidator,
     }),
   }), 
   "Set Fields": objectValidator<AutomationTriggerActions["Set Fields"]>({
@@ -4922,8 +4933,9 @@ export const enduserProfileViewBlockValidator = orValidator<{ [K in EnduserProfi
     type: exactMatchValidator(['Form Responses']),
     info: objectValidator<EnduserProfileViewBlocks['Form Responses']['info']>({
       title: stringValidator100,
-      formId: mongoIdStringRequired,
+      formId: mongoIdStringOptional,
       fieldIds: listOfMongoIdStringValidatorEmptyOk,
+      showAllForms: booleanValidatorOptional,
     }),
   }), 
   "Zus Encounters": objectValidator<EnduserProfileViewBlocks["Zus Encounters"]>({
@@ -5360,3 +5372,15 @@ export const bookingRestrictionsByTemplateValidator = listValidatorEmptyOk(objec
     tagsPortal: listOfStringsValidatorOptionalOrEmptyOk,
   })
 }))
+
+export const enduserDiagnosisValidator = objectValidator<EnduserDiagnosis>({
+  id: stringValidatorOptional,
+  active: booleanValidatorOptional,
+  code: stringValidator100,
+  display: stringValidatorOptionalEmptyOkay,
+  end: stringValidatorOptional,
+  start: stringValidatorOptional,
+  externalId: stringValidatorOptional,
+  source: stringValidatorOptional,
+  references: relatedRecordsValidatorOptional,
+})

@@ -193,6 +193,8 @@ export type OrganizationSettings = {
     hideNotesFromComposeForm?: boolean,
     showSalesforceId?: boolean,
     loopQueueCallSound?: boolean,
+    showOrdersInSidebar?: boolean,
+    showDiagnoses?: boolean,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
@@ -682,6 +684,7 @@ export type EnduserInsurance = {
 }
 
 export type EnduserDiagnosis = {
+  id?: string, // if created in Tellescope
   externalId?: string,
   active?: boolean,
   start?: string,
@@ -689,6 +692,7 @@ export type EnduserDiagnosis = {
   code?: string,
   display?: string,
   source?: string,
+  references?: RelatedRecord[],
 }
 
 export type TellescopeGender = "Male" | "Female" | "Other" | "Unknown"
@@ -3434,8 +3438,9 @@ export type EnduserProfileViewBlocks = {
   }>,
   "Form Responses": EnduserProfileViewBlockBuilder<"Form Responses", { 
     title: string, 
-    formId: string,
-    fieldIds: string[],
+    formId?: string,
+    fieldIds?: string[],
+    showAllForms?: boolean,
   }>,
   "Zus Encounters": EnduserProfileViewBlockBuilder<"Zus Encounters", { 
     title: string, 
@@ -3458,6 +3463,8 @@ export interface EnduserProfileView_required {
 export interface EnduserProfileView_updatesDisabled {}
 export interface EnduserProfileView extends EnduserProfileView_readonly, EnduserProfileView_required, EnduserProfileView_updatesDisabled {
   showCompose?: boolean,
+  defaultForUserIds?: string[],
+  defaultForRoles?: string[],
 }
 
 export type ListOfStringsWithQualifier = {
@@ -3481,6 +3488,9 @@ export type AutomationTriggerActions = {
   }>, 
   "Canvas: Add Patient": AutomationTriggerActionBuilder<'Canvas: Add Patient', { }>, 
   "Zus: Delete Enrollment": AutomationTriggerActionBuilder<'Zus: Delete Enrollment', { packageId: string }>, 
+  "Remove Care Team": AutomationTriggerActionBuilder<'Remove Care Team', { 
+    tags: ListOfStringsWithQualifier,
+  }>, 
 }
 export type AutomationTriggerActionType = keyof AutomationTriggerActions
 export type AutomationTriggerAction = AutomationTriggerActions[AutomationTriggerActionType]
