@@ -2975,6 +2975,7 @@ export interface AutomatedAction_required {
 export interface AutomatedAction_updatesDisabled {}
 export interface AutomatedAction extends AutomatedAction_readonly, AutomatedAction_required, AutomatedAction_updatesDisabled {
   isNOP?: boolean,
+  cancelledBy?: string,
 }
 
 export interface UserLog_readonly extends ClientRecord {
