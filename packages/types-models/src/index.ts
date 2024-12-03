@@ -150,8 +150,8 @@ export type EnduserBuiltInField = {
   hidden?: boolean,
 }
 
-export type CustomDashboardViewBlockType = "Inbox" | "Tickets" | "Upcoming Events" | "Team Chats" | "To-Dos"
-export type CustomDashboardViewBlock = { type: CustomDashboardViewBlockType }
+export type CustomDashboardViewBlockType = "Inbox" | "Tickets" | "Upcoming Events" | "Team Chats" | "To-Dos" | "Database"
+export type CustomDashboardViewBlock = { type: CustomDashboardViewBlockType, info?: { databaseId?: string } }
 export type CustomDashboardView = {
   blocks: CustomDashboardViewBlock[]
 }
@@ -1348,8 +1348,11 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
   restrictByTagsQualifier?: ListQueryQualifier,
   archiveReason?: string,
   contextFormIds?: string[],
+  orderId?: string,
   contextEnduserFields?: string[],
   isTodo?: boolean,
+  databaseRecordId?: string,
+  databaseRecordCreator?: string,
 }
 
 export type AttendeeInfo = {
@@ -1712,6 +1715,7 @@ export type DatabaseRecordFields = {
   [K in DatabaseRecordFieldType] : {
     type: K,
     label: string,
+    showConditions?: Record<any, any>, 
     required?: boolean,
     hideFromTable?: boolean,
     wrap?: string, 
@@ -3445,6 +3449,7 @@ export type EnduserProfileViewBlocks = {
     formId?: string,
     fieldIds?: string[],
     showAllForms?: boolean,
+    expandable?: boolean,
   }>,
   "Zus Encounters": EnduserProfileViewBlockBuilder<"Zus Encounters", { 
     title: string, 
@@ -3558,6 +3563,7 @@ export type AutomationTriggerEvents = {
   'Message Opened': AutomationTriggerEventBuilder<"Message Opened", { templateIds?: string[] }, {}>,
   'Message Link Clicked': AutomationTriggerEventBuilder<"Message Link Clicked", { templateIds?: string[] }, {}>,
   'Healthie Note Locked': AutomationTriggerEventBuilder<"Healthie Note Locked", { healthieFormIds?: string[] }, {}>,
+  'Database Entry Added': AutomationTriggerEventBuilder<"Database Entry Added", { databaseId: string }, {}>,
 }
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents
 export type AutomationTriggerEvent = AutomationTriggerEvents[AutomationTriggerEventType]
@@ -3678,6 +3684,7 @@ export type PhoneTreeActions = {
   }>
   "Select Care Team Member": PhoneTreeActionBuilder<"Select Care Team Member", { 
     playback?: Partial<PhonePlayback>,
+    playbackVoicemail?: Partial<PhonePlayback>,
   }>,
   'Forward Call': PhoneTreeActionBuilder<"Forward Call", { to: string }>
   'Conditional Split': PhoneTreeActionBuilder<"Conditional Split", { 
@@ -4518,6 +4525,8 @@ export type JourneyContext = {
   publicIdentifier?: string,
   chatId?: string,
   emailId?: string,
+  databaseRecordId?: string,
+  databaseRecordCreator?: string,
 }
 
 // https://gist.github.com/aviflax/a4093965be1cd008f172/ 

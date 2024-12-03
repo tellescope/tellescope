@@ -82,12 +82,14 @@ const defaultSentStyle: CSSProperties = {
   marginLeft: 'auto',
   marginRight: 5,
   backgroundColor: PRIMARY_HEX,
+  wordBreak: 'break-word',
 }
 const defaultReceivedStyle: CSSProperties = {
   ...baseMessageStyle,
   marginRight: 'auto',
   marginLeft: 5,
   backgroundColor: "#444444",
+  wordBreak: 'break-word',
 }
 
 const baseTextStyle = {

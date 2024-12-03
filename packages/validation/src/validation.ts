@@ -2899,6 +2899,8 @@ export const journeyContextValidator = objectValidator<JourneyContext>({
   emailId: mongoIdStringOptional,
   formGroupId: mongoIdStringOptional,
   publicIdentifier: stringValidatorOptional,
+  databaseRecordId: mongoIdStringOptional,
+  databaseRecordCreator: mongoIdStringOptional,
 })
 
 export const relatedRecordValidator = objectValidator<RelatedRecord>({
@@ -3278,6 +3280,7 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
   Text: objectValidator<DatabaseRecordFields['Text']>({
     type: exactMatchValidator(['Text']),
     label: stringValidator250,
+    showConditions: optionalAnyObjectValidator,
     hideFromTable: booleanValidatorOptional,
     wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
@@ -3288,6 +3291,7 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
   Email: objectValidator<DatabaseRecordFields['Email']>({
     type: exactMatchValidator(['Email']),
     label: stringValidator250,
+    showConditions: optionalAnyObjectValidator,
     hideFromTable: booleanValidatorOptional,
     wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
@@ -3298,6 +3302,7 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
   Phone: objectValidator<DatabaseRecordFields['Phone']>({
     type: exactMatchValidator(['Phone']),
     label: stringValidator250,
+    showConditions: optionalAnyObjectValidator,
     hideFromTable: booleanValidatorOptional,
     wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
@@ -3308,6 +3313,7 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
   'Text Long': objectValidator<DatabaseRecordFields['Text Long']>({
     type: exactMatchValidator(['Text Long']),
     label: stringValidator250,
+    showConditions: optionalAnyObjectValidator,
     hideFromTable: booleanValidatorOptional,
     wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
@@ -3318,6 +3324,7 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
   'Text List': objectValidator<DatabaseRecordFields['Text List']>({
     type: exactMatchValidator(['Text List']),
     label: stringValidator250,
+    showConditions: optionalAnyObjectValidator,
     hideFromTable: booleanValidatorOptional,
     wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
@@ -3328,6 +3335,7 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
   'Number': objectValidator<DatabaseRecordFields['Number']>({
     type: exactMatchValidator(['Number']),
     label: stringValidator250,
+    showConditions: optionalAnyObjectValidator,
     hideFromTable: booleanValidatorOptional,
     wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
@@ -3338,6 +3346,7 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
   'Address': objectValidator<DatabaseRecordFields['Address']>({
     type: exactMatchValidator(['Address']),
     label: stringValidator250,
+    showConditions: optionalAnyObjectValidator,
     hideFromTable: booleanValidatorOptional,
     wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
@@ -3348,6 +3357,7 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
   'Multiple Select': objectValidator<DatabaseRecordFields['Multiple Select']>({
     type: exactMatchValidator(['Multiple Select']),
     label: stringValidator250,
+    showConditions: optionalAnyObjectValidator,
     hideFromTable: booleanValidatorOptional,
     wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
@@ -3657,7 +3667,10 @@ export const buildInFieldsValidator = listValidatorOptionalOrEmptyOk(objectValid
 export const customDashboardViewValidator = (
   objectValidator<Required<OrganizationSettings>['dashboard']['view']>({
     blocks: listValidatorOptionalOrEmptyOk(objectValidator<CustomDashboardViewBlock>({
-      type: exactMatchValidator<CustomDashboardViewBlockType>(['Inbox', 'Tickets', 'Team Chats', 'Upcoming Events', "To-Dos"]),
+      type: exactMatchValidator<CustomDashboardViewBlockType>(['Inbox', 'Tickets', 'Team Chats', 'Upcoming Events', "To-Dos", "Database"]),
+      info: objectValidator<CustomDashboardViewBlock['info']>({
+        databaseId: mongoIdStringOptional,
+      }, { emptyOk: true, isOptional: true }),
     }))
   }, { isOptional: true, emptyOk: true })
 )
@@ -3804,6 +3817,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Message Opened": true,
   "Message Link Clicked": true,
   "Healthie Note Locked": true,
+  "Database Entry Added": true,
 }
 export const AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES) as AutomationTriggerEventType[]
 
@@ -4040,6 +4054,13 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['Healthie Note Locked']),
     info: objectValidator<AutomationTriggerEvents['Healthie Note Locked']['info']>({
       healthieFormIds: listOfStringsValidatorOptionalOrEmptyOk,
+    }, { emptyOk: true }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Database Entry Added": objectValidator<AutomationTriggerEvents["Database Entry Added"]>({
+    type: exactMatchValidator(['Database Entry Added']),
+    info: objectValidator<AutomationTriggerEvents['Database Entry Added']['info']>({
+      databaseId: mongoIdStringRequired,
     }, { emptyOk: true }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -4937,6 +4958,7 @@ export const enduserProfileViewBlockValidator = orValidator<{ [K in EnduserProfi
       formId: mongoIdStringOptional,
       fieldIds: listOfMongoIdStringValidatorEmptyOk,
       showAllForms: booleanValidatorOptional,
+      expandable: booleanValidatorOptional,
     }),
   }), 
   "Zus Encounters": objectValidator<EnduserProfileViewBlocks["Zus Encounters"]>({
@@ -5136,6 +5158,7 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
     type: exactMatchValidator(['Select Care Team Member']),
     info: objectValidator<PhoneTreeActions["Select Care Team Member"]['info']>({ 
       playback: phonePlaybackValidatorOptional,
+      playbackVoicemail: phonePlaybackValidatorOptional,
     }, { emptyOk: true }),
   }),
   "Add to Queue": objectValidator<PhoneTreeActions["Add to Queue"]>({

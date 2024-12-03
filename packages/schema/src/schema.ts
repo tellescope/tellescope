@@ -3819,6 +3819,7 @@ export const schema: SchemaV1 = build_schema({
       observationId: { validator: mongoIdStringValidator },
       phoneCallId: { validator: mongoIdStringValidator },
       smsId: { validator: mongoIdStringValidator },
+      orderId: { validator: mongoIdStringValidator },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       restrictByState: { validator: stateValidator },
       restrictByTags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
@@ -3827,6 +3828,8 @@ export const schema: SchemaV1 = build_schema({
       contextFormIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
       contextEnduserFields: { validator: listOfUniqueStringsValidatorEmptyOk },
       isTodo: { validator: booleanValidator },
+      databaseRecordId: { validator: mongoIdStringValidator },
+      databaseRecordCreator: { validator: mongoIdStringValidator },
     }
   },
   meetings: {
