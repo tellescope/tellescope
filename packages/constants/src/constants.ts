@@ -521,6 +521,8 @@ export const RELATIONSHIP_TYPES = [
   'Emergency Contact For',
   "Care Partner",
   'Relates To',
+  "Referring Provider",
+  "Referred Patient",
 ] satisfies EnduserRelationship['type'][]
 
 export const get_inverse_relationship_type = (type: EnduserRelationship['type']): EnduserRelationship['type'] => (
@@ -552,6 +554,10 @@ export const get_inverse_relationship_type = (type: EnduserRelationship['type'])
     ? 'Emergency Contact For'
 : type === 'Emergency Contact For'
     ? 'Emergency Contact'
+: type === 'Referring Provider'
+    ? 'Referred Patient'
+: type === 'Referred Patient'
+    ? 'Referring Provider'
 : type === 'Care Partner'
     ? 'Care Partner'
     : 'Relates To'

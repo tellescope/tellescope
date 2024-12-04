@@ -294,6 +294,7 @@ import {
   ElationSyncAutomationAction,
   CanvasSyncAutomationAction,
   EnduserDiagnosis,
+  SendChatAutomationAction,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -2319,6 +2320,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   completeCarePlan: '',
   sendEmail: '',
   sendSMS: '',
+  sendChat: '',
   sendForm: '',
   sendWebhook: '',
   setEnduserStatus: '',
@@ -2827,6 +2829,15 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       lines: smartMeterLinesValidator,
       shipping: stringValidator100,
      }),
+  }),
+  sendChat: objectValidator<SendChatAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['sendChat']),
+    info: objectValidator<SendChatAutomationAction['info']>({ 
+      templateId: mongoIdStringRequired,
+      identifier: stringValidator100,
+      includeCareTeam: booleanValidatorOptional,
+    }),
   }),
   healthieSync: objectValidator<HealthieSyncAutomationAction>({
     continueOnError: booleanValidatorOptional,

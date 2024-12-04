@@ -621,6 +621,8 @@ export type EnduserRelationship = {
     | "Emergency Contact"  | "Emergency Contact For"
     | "Care Partner"
     | 'Relates To' 
+    | "Referring Provider"
+    | "Referred Patient"
   )
   id: string,
 }
@@ -2137,7 +2139,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   displayTitle?: string,
   displayDescription?: string,
   dontBlockAvailability?: boolean,
-  previousStartTimes?: number[],
+  previousStartTimes?: (number | string)[],
   // isAllDay?: boolean,
 }
 
@@ -2600,6 +2602,7 @@ export type SmartMeterPlaceOrderAutomationAction = AutomationActionBuilder<'smar
   lines: SmartMeterOrderLineItem[],
   shipping?: string,
 }>
+export type SendChatAutomationAction = AutomationActionBuilder<'sendChat', { templateId: string, identifier: string, includeCareTeam?: boolean }>
 export type HealthieSyncAutomationAction = AutomationActionBuilder<'healthieSync', {}>
 export type HealthieAddToCourseAutomationAction = AutomationActionBuilder<'healthieAddToCourse', { courseId: string }>
 export type HealthieSendChatAutomationAction = AutomationActionBuilder<'healthieSendChat', { templateId: string, identifier: string, includeCareTeam?: boolean }>
@@ -2642,6 +2645,7 @@ export type AutomationCondition = AtJourneyStateAutomationCondition
 export type AutomationActionForType = {
   "sendEmail" : SendEmailAutomationAction,
   "sendSMS": SendSMSAutomationAction,
+  "sendChat": SendChatAutomationAction,
   "sendForm": SendFormAutomationAction,
   "createTicket": CreateTicketAutomationAction,
   'sendWebhook': SendWebhookAutomationAction,

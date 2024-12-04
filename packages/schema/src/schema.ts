@@ -68,6 +68,7 @@ import {
   LabeledField,
   HealthieSendChatAutomationAction,
   TwilioQueue,
+  SendWebhookAutomationAction,
 } from "@tellescope/types-models"
 
 import {
@@ -827,7 +828,7 @@ export type CustomActions = {
     configure: CustomAction<{ url: string, secret: string, subscriptions?: WebhookSubscriptionsType }, { }>,
     update: CustomAction<{ url?: string, secret?: string, subscriptionUpdates?: WebhookSubscriptionsType }, { }>,
     get_configuration: CustomAction<{ }, { url?: string, subscriptions?: WebhookSubscriptionsType }>,
-    send_automation_webhook: CustomAction<{ message: string, enduserId: string, context?: JourneyContext }, { }>,
+    send_automation_webhook: CustomAction<{ message: string, enduserId: string, automationStepId: string, action: SendWebhookAutomationAction, context?: JourneyContext }, { }>,
     send_calendar_event_reminder_webhook: CustomAction<{ id: string }, { }>,
   },
   user_notifications: {
@@ -4617,6 +4618,8 @@ export const schema: SchemaV1 = build_schema({
         parameters: { 
           message: { validator: stringValidator5000, required: true },
           enduserId: { validator: mongoIdStringValidator }, // can make required after initial updates to ensure worker uses this
+          automationStepId: { validator: mongoIdStringValidator }, // can make required after initial updates to ensure worker uses this
+          action: { validator: optionalAnyObjectValidator as any },
           context: { validator: journeyContextValidator },
         },
         returns: {},
