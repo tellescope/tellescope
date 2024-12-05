@@ -69,6 +69,7 @@ import {
   HealthieSendChatAutomationAction,
   TwilioQueue,
   SendWebhookAutomationAction,
+  Addendum,
 } from "@tellescope/types-models"
 
 import {
@@ -3557,6 +3558,7 @@ export const schema: SchemaV1 = build_schema({
         validator: stringValidator250,
         examples: ['addfed3e-ddea-415b-b52b-df820c944dbb'],
       },
+      publicRead: { validator: booleanValidator, readonly: true },
     },
     customActions: {
       prepare_file_upload: {
@@ -4284,6 +4286,13 @@ export const schema: SchemaV1 = build_schema({
       instanceId: { validator: stringValidator100 },
       groupPosition: { validator: nonNegNumberValidator },
       hideAfterUnsubmittedInMS: { validator: numberValidator },
+      addenda: { 
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<Addendum>({ 
+          text: stringValidator25000EmptyOkay,
+          timestamp: dateValidator,
+          userId: mongoIdStringRequired,
+        }))
+      }
     },
     defaultActions: DEFAULT_OPERATIONS,
     enduserActions: { 

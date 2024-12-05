@@ -363,6 +363,22 @@ export const FormResponseView = ({ logoURL, enduser, onClose, hideHeader, respon
         )
       })}
       </div>
+
+      {(response.addenda || []).length > 0 &&
+        <div style={{ borderBottom: '1px solid #00000088', width: '100%', marginTop: 10, marginBottom: 10 }} />
+      }
+
+      {(response.addenda || []).map((a, i) => (
+        <div key={i} style={{ marginTop: 10 }}>
+          <div style={{ fontWeight: 'bold', fontSize: 15 }}>
+            Addendum {i + 1} by {user_display_name(findUser(a.userId, { batch: true }))} at {formatted_date(new Date(a.timestamp))}
+          </div>
+
+          <div style={{ fontSize: 14 }}>
+            {a.text.split('\n').map((v, t) => <div key={t}>{v}</div>)}
+          </div>
+        </div>
+      ))}
     </div>
   )
 }

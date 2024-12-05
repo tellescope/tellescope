@@ -787,6 +787,18 @@ export const get_enduser_field_value_for_key = (enduser: Omit<Enduser, 'id'>, ke
     } catch(err) {}
   }
 
+  try {
+    if (key === 'createdAt' && (enduser as any)._id) {
+      return ((enduser as any)._id as ObjectId).getTimestamp().toISOString()
+    }
+  } catch(err) { }
+
+  try {
+    if (key === 'id' && (enduser as any)._id) {
+      return ((enduser as any)._id as ObjectId).toString()
+    }
+  } catch(err) { }
+
   return enduser?.[key as keyof typeof enduser] as any
 }
 

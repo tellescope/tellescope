@@ -683,6 +683,8 @@ export type EnduserInsurance = {
   },
   payerType?: string, // for Healthie
   groupNumber?: string,
+  planName?: string,
+  startDate?: string,
 }
 
 export type EnduserDiagnosis = {
@@ -1918,6 +1920,12 @@ export type AnswerForType = {
   'Emotii': FormResponseAnswerEmotii['value']
 }
 
+export type Addendum = {
+  timestamp: Date,
+  userId: string,
+  text: string,
+}
+
 export interface FormResponse_readonly extends ClientRecord {
   openedAt?: Date,
   references?: RelatedRecord[]
@@ -1991,6 +1999,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   discussionRoomId?: string,
   formsort?: string,
   hideAfterUnsubmittedInMS?: number,
+  addenda?: Addendum[]
 }
 
 export interface WebHook_readonly extends ClientRecord {}
@@ -2416,7 +2425,12 @@ export interface AutomationForSender {
 }
 export interface AutomationForFormRequest extends AutomationForForm, AutomationForSender { channel?: CommunicationsChannel }
 export interface AutomationForMessage extends AutomationForTemplate, AutomationForSender {}
-export interface AutomationForWebhook { message: string }
+export interface AutomationForWebhook { 
+  message: string,
+  url?: string,
+  secret?: string,
+  fields?: LabeledField[],
+}
 
 export type FormResponseAutomationEvent = AutomationEventBuilder<'formResponse', {
   automationStepId: string, 

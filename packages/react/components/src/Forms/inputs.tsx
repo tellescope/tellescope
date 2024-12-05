@@ -559,6 +559,30 @@ export const InsuranceInput = ({ field, value, onChange, form, responses, enduse
       />
       </Grid>
 
+      <Grid item xs={12} sm={6}>
+      <TextField InputProps={defaultInputProps} required={false} fullWidth value={value?.planName ?? ''} 
+        onChange={e => onChange({ ...value, planName: e.target.value }, field.id)}  
+        label={form_display_text_for_language(form, "Plan Name", '')}
+        size="small"
+      />
+      </Grid>
+
+      <Grid item xs={12} sm={6}>
+        <DateStringInput size="small" label="Plan Start Date"
+          field={{
+            ...field,
+            isOptional: true, //field.isOptional || field.options?.billingProvider === 'Candid'
+          }} 
+          value={value?.startDate || ''} 
+          onChange={startDate => 
+            onChange({ 
+              ...value, 
+              startDate,
+            }, field.id)
+          }
+        />
+      </Grid>
+
       {field.options?.includeGroupNumber &&
         <Grid item xs={12}>
           <TextField InputProps={defaultInputProps} fullWidth value={value?.groupNumber ?? ''} 

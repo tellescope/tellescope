@@ -1468,6 +1468,10 @@ export const signatureResponseValidator = objectValidator<SignatureResponse>({
   signed: booleanValidator, 
 })
 
+export const labeledFieldsValidator = listValidatorOptionalOrEmptyOk(objectValidator<LabeledField>({
+  field: stringValidator100,
+  value: stringValidator5000,
+}))
 
 type MultipleChoiceOptions = {
   choices: string[],
@@ -1873,6 +1877,8 @@ export const insuranceOptionalValidator = objectValidator<EnduserInsurance>({
   }, { isOptional: true, emptyOk: true }),
   payerType: stringValidatorOptional,
   groupNumber: stringValidatorOptional,
+  planName: stringValidatorOptional,
+  startDate: stringValidatorOptional,
 }, { isOptional: true, emptyOk: true })
 
 // validate optional vs not at endpoint-level
@@ -2716,7 +2722,12 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
   sendWebhook: objectValidator<SendWebhookAutomationAction>({
     continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['sendWebhook']),
-    info: objectValidator<AutomationForWebhook>({ message: stringValidator5000 }, { emptyOk: false }),
+    info: objectValidator<AutomationForWebhook>({ 
+      message: stringValidator5000,
+      url: stringValidator20000ptional,
+      fields: labeledFieldsValidator,
+      secret: stringValidatorOptional,
+    }, { emptyOk: false }),
   }),
   setEnduserFields: objectValidator<SetEnduserFieldsAutomationAction>({
     continueOnError: booleanValidatorOptional,
@@ -5378,11 +5389,6 @@ export const athenaSubscriptionValidator = objectValidator<AthenaSubscription>({
   lastSyncedAt: dateValidator,
 })
 export const athenaSubscriptionsValidator = listValidatorEmptyOk(athenaSubscriptionValidator)
-
-export const labeledFieldsValidator = listValidatorOptionalOrEmptyOk(objectValidator<LabeledField>({
-  field: stringValidator100,
-  value: stringValidator5000,
-}))
 
 export const fieldMappingValidator = objectValidator<FieldMapping>({
   field: stringValidator250,
