@@ -1013,7 +1013,7 @@ export type CustomActions = {
   },
   purchases: {
     charge_card_on_file: CustomAction<
-      { enduserId: string, productIds?: string[], cost?: Purchase['cost'] }, 
+      { enduserId: string, productIds?: string[], cost?: Purchase['cost'], stripeKey?: string }, 
       { }
     >,
   },
@@ -6611,6 +6611,7 @@ export const schema: SchemaV1 = build_schema({
           enduserId: { validator: mongoIdStringValidator, required: true },
           productIds: { validator: listOfMongoIdStringValidatorEmptyOk },
           cost: { validator: costValidator },
+          stripeKey: { validator: stringValidator },
         },
         returns: {
 
@@ -6866,6 +6867,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       unread: { validator: booleanValidator },
 
       userId: { validator: mongoIdStringValidator },
+      ticketId: { validator: mongoIdStringValidator },
       pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
       readBy: { validator: idStringToDateValidator },
       hiddenBy: { validator: idStringToDateValidator },

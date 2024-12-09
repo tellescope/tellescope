@@ -295,6 +295,8 @@ import {
   CanvasSyncAutomationAction,
   EnduserDiagnosis,
   SendChatAutomationAction,
+  FormResponseAnswerAllergies,
+  AllergyResponse,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -1524,11 +1526,13 @@ const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
   Redirect: '',
   'Hidden Value': '',
   Emotii: '',
+  Allergies: "",
 }
 export const FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES) as FormFieldType[]
 export const formFieldTypeValidator = exactMatchValidator<FormFieldType>(FORM_FIELD_TYPES)
 
 export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' | 'phoneNumber']: (value?: FormResponseValueAnswer[keyof FormResponseValueAnswer], options?: any, isOptional?: boolean) => any } = {
+  'Allergies': objectAnyFieldsAnyValuesValidator.validate(),
   "Emotii": stringValidator.validate({ maxLength: 5000 }),
   "Hidden Value": stringValidator.validate({ maxLength: 5000 }),
   'Appointment Booking': stringValidator.validate({ maxLength: 100, isOptional: true }),
@@ -2079,7 +2083,16 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
       }, { emptyOk: false, isOptional: true })
     ),
   }),
-
+  "Allergies": objectValidator<FormResponseAnswerAllergies>({
+    type: exactMatchValidator(['Allergies']),
+    value: listValidatorOptionalOrEmptyOk(
+      objectValidator<AllergyResponse>({
+        code: stringValidator100,
+        display: stringValidator,
+        system: stringValidatorOptional,
+      })
+    ),
+  }),
 })
 
 export const mmddyyyyRegex = /^\d{2}-\d{2}-\d{4}$/
@@ -3195,6 +3208,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   max: numberValidatorOptional,
   min: numberValidatorOptional,
   stripeKey: stringValidatorOptionalEmptyOkay,
+  dataSource: stringValidatorOptionalEmptyOkay,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -3293,6 +3307,9 @@ const _DATABASE_RECORD_FIELD_TYPES: { [K in DatabaseRecordFieldType]: any } = {
   'Multiple Select': '',
   Email: '',
   Phone: '',
+  Date: '',
+  Dropdown: '',
+  Timestamp: '',
 }
 export const DATABASE_RECORD_FIELD_TYPES = Object.keys(_DATABASE_RECORD_FIELD_TYPES) as DatabaseRecordFieldType[]
 export const databaseRecordFieldTypeValidator = exactMatchValidator<DatabaseRecordFieldType>(DATABASE_RECORD_FIELD_TYPES)
@@ -3388,6 +3405,40 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
       options: listOfStringsValidatorEmptyOk,
     }, { isOptional: true, emptyOk: true }),
   }), 
+  'Dropdown': objectValidator<DatabaseRecordFields['Dropdown']>({
+    type: exactMatchValidator(['Dropdown']),
+    label: stringValidator250,
+    showConditions: optionalAnyObjectValidator,
+    hideFromTable: booleanValidatorOptional,
+    wrap: stringValidatorOptional,
+    required: booleanValidatorOptional,
+    options: objectValidator<DatabaseRecordFields['Dropdown']['options']>({
+      width: stringValidatorOptionalEmptyOkay,
+      options: listOfStringsValidatorEmptyOk,
+    }, { isOptional: true, emptyOk: true }),
+  }), 
+  'Timestamp': objectValidator<DatabaseRecordFields['Timestamp']>({
+    type: exactMatchValidator(['Timestamp']),
+    label: stringValidator250,
+    showConditions: optionalAnyObjectValidator,
+    hideFromTable: booleanValidatorOptional,
+    wrap: stringValidatorOptional,
+    required: booleanValidatorOptional,
+    options: objectValidator<DatabaseRecordFields['Timestamp']['options']>({
+      width: stringValidatorOptionalEmptyOkay,
+    }, { isOptional: true, emptyOk: true }),
+  }), 
+  'Date': objectValidator<DatabaseRecordFields['Date']>({
+    type: exactMatchValidator(['Date']),
+    label: stringValidator250,
+    showConditions: optionalAnyObjectValidator,
+    hideFromTable: booleanValidatorOptional,
+    wrap: stringValidatorOptional,
+    required: booleanValidatorOptional,
+    options: objectValidator<DatabaseRecordFields['Date']['options']>({
+      width: stringValidatorOptionalEmptyOkay,
+    }, { isOptional: true, emptyOk: true }),
+  }), 
 })
 export const databaseFieldsValidator = listValidator(databaseFieldValidator)
 
@@ -3431,6 +3482,21 @@ export const databaseRecordValueValidator = orValidator<{ [K in DatabaseRecordFi
   'Multiple Select': objectValidator<DatabaseRecordValues['Multiple Select']>({
     type: exactMatchValidator(['Multiple Select']),
     value: listOfStringsValidatorOptionalOrEmptyOk,
+    label: stringValidator250,
+  }), 
+  'Dropdown': objectValidator<DatabaseRecordValues['Dropdown']>({
+    type: exactMatchValidator(['Dropdown']),
+    value: stringValidatorOptional,
+    label: stringValidator250,
+  }), 
+  'Date': objectValidator<DatabaseRecordValues['Date']>({
+    type: exactMatchValidator(['Date']),
+    value: stringValidatorOptional,
+    label: stringValidator250,
+  }), 
+  'Timestamp': objectValidator<DatabaseRecordValues['Timestamp']>({
+    type: exactMatchValidator(['Timestamp']),
+    value: stringValidatorOptional,
     label: stringValidator250,
   }), 
 })
@@ -3819,6 +3885,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Appointment Completed": true,
   "Appointment Rescheduled": true,
   "Field Equals": true,
+  "Contact Created": true,
   "No Recent Appointment": true,
   "Medication Added": true,
   "On Birthday": true,
@@ -3871,6 +3938,11 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
       field: stringValidator1000,
       value: stringValidator1000,
     }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Contact Created": objectValidator<AutomationTriggerEvents["Contact Created"]>({
+    type: exactMatchValidator(['Contact Created']),
+    info: optionalEmptyObjectValidator,
     conditions: optionalEmptyObjectValidator,
   }), 
   "No Recent Appointment": objectValidator<AutomationTriggerEvents["No Recent Appointment"]>({
@@ -5127,6 +5199,7 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
       playback: phonePlaybackValidator,
       digits: booleanValidator,
       speech: booleanValidator,
+      duration: numberValidatorOptional,
     }),
   }), 
   "Voicemail": objectValidator<PhoneTreeActions["Voicemail"]>({

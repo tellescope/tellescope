@@ -1401,7 +1401,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
 }
 
 export type FormFieldLiteralType = 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time'
-export type FormFieldComplexType = "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance"
+export type FormFieldComplexType = "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance"
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
 
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic'
@@ -1505,6 +1505,7 @@ export type FormFieldOptions = FormFieldValidation & {
   groupPadding?: number,
   saveIntakeOnPartial?: boolean,
   stripeKey?: string, // publishable key of custom stripe API keys
+  dataSource?: string, // e.g. Canvas for Allergies
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
@@ -1703,6 +1704,9 @@ export type DatabaseRecordFieldsInfo = {
   'Number': BuildDatabaseRecordField<'Number', number | '', { }>,
   Address: BuildDatabaseRecordField<'Address', Address | undefined, { }>
   'Multiple Select': BuildDatabaseRecordField<'Multiple Select', string[], { options: string[] }>,
+  'Dropdown': BuildDatabaseRecordField<'Dropdown', string, { options: string[] }>,
+  'Timestamp': BuildDatabaseRecordField<'Timestamp', string, { }>,
+  'Date': BuildDatabaseRecordField<'Date', string, { }>,
 }
 export type DatabaseRecordFieldType = keyof DatabaseRecordFieldsInfo
 
@@ -1797,6 +1801,12 @@ export type MedicationResponse = {
   reasonForTaking?: string,
 }
 
+export type AllergyResponse = {
+  display: string,
+  code: string,
+  system?: string,
+}
+
 export type FormResponseAnswerTable = FormResponseValueAnswerBuilder<'Table Input', TableInputCell[][]>
 export type FormResponseAnswerGroup = FormResponseValueAnswerBuilder<'Question Group', FormSubField[]>
 export type FormResponseAnswerDescription  = FormResponseValueAnswerBuilder<'description', ''>
@@ -1817,6 +1827,7 @@ export type FormResponseAnswerAppointmentBooking = FormResponseValueAnswerBuilde
 export type FormResponseAnswerInsurance = FormResponseValueAnswerBuilder<'Insurance', Partial<EnduserInsurance>>
 export type FormResponseAnswerHeight = FormResponseValueAnswerBuilder<'Height', { feet: number, inches: number }>
 export type FormResponseAnswerRedirect = FormResponseValueAnswerBuilder<'Redirect', string>
+export type FormResponseAnswerAllergies = FormResponseValueAnswerBuilder<'Allergies', AllergyResponse[]>
 
 export type FormResponseAnswerSignatureValue = {
   fullName: string,
@@ -1872,6 +1883,7 @@ export type FormResponseValueAnswer = (
   | FormResponseAnswerRedirect
   | FormResponseAnswerHiddenValue
   | FormResponseAnswerEmotii
+  | FormResponseAnswerAllergies
 )
 
 export type FormResponseValue = {
@@ -1918,6 +1930,7 @@ export type AnswerForType = {
   'Redirect': FormResponseAnswerRedirect['value']
   'Hidden Value': FormResponseAnswerHiddenValue['value']
   'Emotii': FormResponseAnswerEmotii['value']
+  'Allergies': FormResponseAnswerAllergies['value']
 }
 
 export type Addendum = {
@@ -3125,6 +3138,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
   timestamp?: Date,
   dialedUserIds?: string[][],  // might ring multiple stages, so use list of users dialed at each step
   ignoredUserIds?: string[][], // might ring multiple stages, so use list of users dialed at each step
+  ticketId?: string,
 }
 
 export type AnalyticsQueryResultValue = {
@@ -3537,6 +3551,7 @@ export type AutomationTriggerEvents = {
   'Subscription Ended': AutomationTriggerEventBuilder<"Subscription Ended", { }, {}>,
   'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", { titles?: string[], templateIds?: string[] }, { }>,
   'Field Equals': AutomationTriggerEventBuilder<"Field Equals", { field: string, value: string }, { }>,
+  'Contact Created': AutomationTriggerEventBuilder<"Contact Created", { }, { }>,
   'Appointment Created': AutomationTriggerEventBuilder<"Appointment Created", { titles?: string[], templateIds?: string[] }, {}>,
   'Appointment Completed': AutomationTriggerEventBuilder<"Appointment Completed", { titles?: string[], templateIds?: string[] }, {}>,
   'Appointment Cancelled': AutomationTriggerEventBuilder<"Appointment Cancelled", { titles?: string[] }, {}>,
@@ -3687,7 +3702,7 @@ export type PhonePlayback = PhonePlaybackInfo[PhonePlaybackType]
 export type PhoneTreeActionBuilder <T, V> = { type: T, info: V }
 export type PhoneTreeActions = {
   // 'Play': PhoneTreeActionBuilder<"Play", { playback: PhonePlayback }>
-  'Gather': PhoneTreeActionBuilder<"Gather", { digits: boolean, speech: boolean, playback: PhonePlayback }>
+  'Gather': PhoneTreeActionBuilder<"Gather", { digits: boolean, speech: boolean, playback: PhonePlayback, duration?: number }>
   'Voicemail': PhoneTreeActionBuilder<"Voicemail", { playback: PhonePlayback, journeyId?: string }>
   'Play Message': PhoneTreeActionBuilder<"Play Message", { playback: PhonePlayback, journeyId?: string }>
   'Dial Users': PhoneTreeActionBuilder<"Dial Users", { userIds: string[], playback?: Partial<PhonePlayback>, duration?: number }>
@@ -3871,6 +3886,7 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
   instructions?: string,
   shippedDate?: string,
   frequency?: string,
+  activateBy?: string,
 }
 
 export interface EnduserProblem_readonly extends ClientRecord {}

@@ -3,7 +3,7 @@ import axios from "axios"
 import { Autocomplete, Box, Button, Checkbox, Divider, FormControl, FormControlLabel, FormLabel, Grid, InputLabel, MenuItem, Radio, RadioGroup, Select, SxProps, TextField, TextFieldProps, Typography } from "@mui/material"
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
-import { EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
+import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
 import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, truncate_string, user_display_name } from "@tellescope/utilities"
 import { Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MultipleChoiceOptions, TellescopeGender } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
@@ -2781,8 +2781,6 @@ export const EmotiiInput = ({ goToNextField, goToPreviousField, field, value, on
   const [data, setData] = useState<{ surveyRequestId: string, surveyUrl: string }>()
   const [loadCount, setLoadCount] = useState(0)
 
-  console.log(props.enduserId, props.enduser)
-
   const fetchRef = useRef(false)
   useEffect(() => {
     if (value) return
@@ -2822,5 +2820,61 @@ export const EmotiiInput = ({ goToNextField, goToPreviousField, field, value, on
     <iframe src={data.surveyUrl} style={{ border: 'none', height: 650, width: '100%' }} 
       onLoad={() => setLoadCount(l => l + 1)} 
     />
+  )
+}
+
+type AllergyResult = {
+  entry?: { resource: { code: { coding: { system: "http://www.fdbhealth.com/", code: string, display: string } []}} }[]
+}
+
+export const AllergiesInput = ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'Allergies'>) => {
+  const session = useResolvedSession()
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<{ code: string, display: string }[]>([])
+
+  const fetchRef = useRef(query)
+  useEffect(() => {
+    if (fetchRef.current === query) return
+    fetchRef.current = query
+
+    const t = setTimeout(() => {
+      session.api.integrations
+      .proxy_read({ 
+        integration: CANVAS_TITLE, 
+        type: 'allergies', 
+        query,
+      })
+      .then((r : { data: AllergyResult }) => {
+        const deduped: typeof results = []
+        const totalResults = (
+          (r.data.entry || [])
+          .flatMap(v => v?.resource?.code?.coding || [])
+          .filter(v => v.system.includes('fdbhealth'))
+          .map(v => ({ code: v.code, display: v.display, system: v.system }))
+        )
+        for (const v of totalResults) {
+          if (deduped.find(d => d.display === v.display)) { continue }
+
+          deduped.push(v)
+        }
+        setResults(deduped)
+      })
+    }, 99)
+
+    return () => { clearTimeout(t) }
+  }, [session, query])
+
+  return (
+    <Autocomplete multiple value={value || []} options={[...results, ...(value || [])]} style={{ marginTop: 5 }}
+      noOptionsText={query.length ? 'No results found' : 'Type to start search'}
+      onChange={(e, v) => v && onChange(v, field.id)}
+      getOptionLabel={v => first_letter_capitalized(v.display)} filterOptions={o => o}
+      inputValue={query} onInputChange={(e, v) => e && setQuery(v) }
+      renderInput={(params) => (
+        <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
+          required={!field.isOptional} size="small" label="" placeholder="Search allergies..."
+        />
+      )}
+    /> 
   )
 }
