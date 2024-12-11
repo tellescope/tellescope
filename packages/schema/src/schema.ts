@@ -662,7 +662,7 @@ export type CustomActions = {
     }>,
     stripe_details: CustomAction<
       { fieldId: string }, 
-      { customerId: string, clientSecret: string, publishableKey: string, stripeAccount: string, businessName: string, isCheckout?: boolean }
+      { customerId: string, clientSecret: string, publishableKey: string, stripeAccount: string, businessName: string, answerText?: string, isCheckout?: boolean }
     >,
     generate_pdf: CustomAction<
       { id: string }, 
@@ -4111,6 +4111,7 @@ export const schema: SchemaV1 = build_schema({
       },
       hideAfterUnsubmittedInMS: { validator: numberValidator },
       hideFromCompose: { validator: booleanValidator },
+      enduserFieldsToAppendForSync: { validator: listOfUniqueStringsValidatorEmptyOk },
     }
   },
   form_fields: {
@@ -8062,6 +8063,19 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       code: { validator: stringValidator, required: true, examples: ['A000'] },
       display: { validator: stringValidator, required: true, examples: ["Cholera due to Vibrio cholerae 01, biovar cholerae"] },
       system: { validator: stringValidator, required: true, examples: ['http://hl7.org/fhir/sid/icd-10-cm'] },
+    }
+  },
+  allergy_codes: {
+    info: { description: '' },
+    constraints: { unique: [], relationship: [], access: [] },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: { read: {}, readMany: {} },
+    fields: {
+      ...BuiltInFields,
+      code: { validator: stringValidator, required: true, examples: ['6-2754'] },
+      display: { validator: stringValidator, required: true, examples: ["minocycline HCl"] },
+      system: { validator: stringValidator, required: true, examples: ['http://www.fdbhealth.com/'] },
     }
   },
 })

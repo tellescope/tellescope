@@ -55,6 +55,7 @@ type EnduserAccessibleModels = (
   | 'enduser_orders'
   | 'enduser_problems'
   | 'diagnosis_codes'
+  | 'allergy_codes'
 )
 
 export const defaultQueries = <N extends keyof ClientModelForName>(
@@ -262,6 +263,7 @@ const loadDefaultQueries = (s: EnduserSession): { [K in EnduserAccessibleModels]
   enduser_orders: defaultQueries(s, 'enduser_orders'), 
   enduser_problems: defaultQueries(s, 'enduser_problems'), 
   diagnosis_codes: defaultQueries(s, 'diagnosis_codes'), 
+  allergy_codes: defaultQueries(s, 'allergy_codes'), 
 })
 
 

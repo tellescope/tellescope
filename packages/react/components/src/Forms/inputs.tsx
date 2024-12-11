@@ -1,6 +1,6 @@
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import axios from "axios"
-import { Autocomplete, Box, Button, Checkbox, Divider, FormControl, FormControlLabel, FormLabel, Grid, InputLabel, MenuItem, Radio, RadioGroup, Select, SxProps, TextField, TextFieldProps, Typography } from "@mui/material"
+import { Autocomplete, Box, Button, Checkbox, Chip, Divider, FormControl, FormControlLabel, FormLabel, Grid, InputLabel, MenuItem, Radio, RadioGroup, Select, SxProps, TextField, TextFieldProps, Typography } from "@mui/material"
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
@@ -1447,6 +1447,7 @@ export const StripeInput = ({ field, value, onChange, setCustomerId }: FormInput
   const [isCheckout, setIsCheckout] = useState(false)
   const [stripePromise, setStripePromise] = useState<ReturnType<typeof loadStripe>>()
   const [, { findById: findProduct }] = useProducts({ dontFetch: true })
+  const [answertext, setAnswertext] = useState('')
 
   const fetchRef = useRef(false)
   useEffect(() => {
@@ -1457,12 +1458,13 @@ export const StripeInput = ({ field, value, onChange, setCustomerId }: FormInput
     fetchRef.current = true
 
     session.api.form_responses.stripe_details({ fieldId: field.id })
-    .then(({ clientSecret, publishableKey, stripeAccount, businessName, customerId, isCheckout }) => {
+    .then(({ clientSecret, publishableKey, stripeAccount, businessName, customerId, isCheckout, answerText }) => {
       setIsCheckout(!!isCheckout)
       setClientSecret(clientSecret)
       setStripePromise(loadStripe(publishableKey, { stripeAccount }))
       setBusinessName(businessName)
       setCustomerId(customerId)
+      setAnswertext(answerText || '')
     })
     .catch(console.error)
   }, [session, value, field.id])
@@ -1488,7 +1490,7 @@ export const StripeInput = ({ field, value, onChange, setCustomerId }: FormInput
     <EmbeddedCheckoutProvider stripe={stripePromise}
       options={{ 
         clientSecret, 
-        onComplete: () => onChange('Completed checkout', field.id),        
+        onComplete: () => onChange(answertext || 'Completed checkout', field.id),        
       }}
     >
       <EmbeddedCheckout />
@@ -1498,7 +1500,7 @@ export const StripeInput = ({ field, value, onChange, setCustomerId }: FormInput
     <Elements stripe={stripePromise} options={{
       clientSecret,
     }}>
-      <StripeForm businessName={businessName} onSuccess={() => onChange('Saved card details', field.id)} 
+      <StripeForm businessName={businessName} onSuccess={() => onChange(answertext || 'Saved card details', field.id)} 
         cost={cost}
         field={field}
       />
@@ -1841,6 +1843,7 @@ export const DatabaseSelectInput = ({ field, value: _value, onChange, onDatabase
   if (!doneLoading) return <LinearProgress />
   return (
     <Autocomplete id={field.id} freeSolo={false}
+      componentsProps={{ popper: { sx: { wordBreak: "break-word" } } } }
       options={filteredChoices} multiple={true}
       getOptionLabel={o => (
         Array.isArray(o) // edge case
@@ -1872,6 +1875,16 @@ export const DatabaseSelectInput = ({ field, value: _value, onChange, onDatabase
       inputValue={typing}
       onInputChange={(e, v) => e && setTyping(v)}
       renderInput={params => <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }} />}
+      // use custom Chip to ensure very long entries break properly (whitespace: normal)
+      renderTags={(value, getTagProps) =>
+        value.map((value, index) => (
+          <Chip
+            label={<Typography style={{whiteSpace: 'normal'}}>{Array.isArray(value) ? '' : label_for_database_record(field, value)}</Typography>}
+            {...getTagProps({ index })}
+            sx={{height:"100%", py: 0.5 }}
+          />
+        ))
+      }
     />
   )
 }
@@ -2861,6 +2874,12 @@ export const AllergiesInput = ({ goToNextField, goToPreviousField, field, value,
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<{ code: string, display: string }[]>([])
 
+  // if two allergy questions shown in a row, reset state
+  useEffect(() => {
+    setQuery('')
+    setResults([])
+  }, [field.id])
+
   const fetchRef = useRef(query)
   useEffect(() => {
     if (fetchRef.current === query) return
@@ -2869,36 +2888,55 @@ export const AllergiesInput = ({ goToNextField, goToPreviousField, field, value,
     if (!query) return
 
     const t = setTimeout(() => {
-      session.api.integrations
-      .proxy_read({ 
-        integration: CANVAS_TITLE, 
-        type: 'allergies', 
-        query,
-      })
-      .then((r : { data: AllergyResult }) => {
-        const deduped: typeof results = []
-        const totalResults = (
-          (r.data.entry || [])
-          .flatMap(v => v?.resource?.code?.coding || [])
-          .filter(v => v.system.includes('fdbhealth'))
-          .map(v => ({ code: v.code, display: v.display, system: v.system }))
-        )
-        for (const v of totalResults) {
-          if (deduped.find(d => d.display === v.display)) { continue }
+      if (field.options?.dataSource === CANVAS_TITLE) {
+        session.api.integrations
+        .proxy_read({ 
+          integration: CANVAS_TITLE, 
+          type: 'allergies', 
+          query,
+        })
+        .then((r : { data: AllergyResult }) => {
+          const deduped: typeof results = []
+          const totalResults = (
+            (r.data.entry || [])
+            .flatMap(v => v?.resource?.code?.coding || [])
+            .filter(v => v.system.includes('fdbhealth'))
+            .map(v => ({ code: v.code, display: v.display, system: v.system }))
+          )
+          for (const v of totalResults) {
+            if (deduped.find(d => d.display === v.display)) { continue }
 
-          deduped.push(v)
-        }
-        setResults(deduped)
-      })
+            deduped.push(v)
+          }
+          setResults(deduped)
+        })
+      } else {
+        session.api.allergy_codes.getSome({ search: { query }})
+        .then(results => {
+          const deduped: typeof results = []
+          for (const v of results) {
+            if (deduped.find(d => d.display === v.display)) { continue }
+
+            deduped.push(v)
+          }
+          setResults(deduped)
+        })
+      }
+
+      
     }, 200)
 
     return () => { clearTimeout(t) }
-  }, [session, query])
+  }, [session, query, field?.options?.dataSource])
 
   return (
-    <Autocomplete multiple value={value || []} options={[...results, ...(value || [])]} style={{ marginTop: 5 }}
+    <Autocomplete multiple value={value || []} options={results} style={{ marginTop: 5 }}
       noOptionsText={query.length ? 'No results found' : 'Type to start search'}
-      onChange={(e, v) => v && onChange(v, field.id)}
+      onChange={(e, v) => {
+        if (!v) { return }
+        onChange(v, field.id)
+        setResults([])
+      }}
       getOptionLabel={v => first_letter_capitalized(v.display)} filterOptions={o => o}
       inputValue={query} onInputChange={(e, v) => e && setQuery(v) }
       renderInput={(params) => (
@@ -2906,6 +2944,15 @@ export const AllergiesInput = ({ goToNextField, goToPreviousField, field, value,
           required={!field.isOptional} size="small" label="" placeholder="Search allergies..."
         />
       )}
+      renderTags={(value, getTagProps) =>
+        value.map((value, index) => (
+          <Chip
+            label={<Typography style={{whiteSpace: 'normal'}}>{value.display}</Typography>}
+            {...getTagProps({ index })}
+            sx={{height:"100%", py: 0.5 }}
+          />
+        ))
+      }
     /> 
   )
 }
@@ -2939,9 +2986,13 @@ export const ConditionsInput = ({ goToNextField, goToPreviousField, field, value
   }, [session, query])
 
   return (
-    <Autocomplete multiple value={value || []} options={[...results, ...(value || [])]} style={{ marginTop: 5 }}
+    <Autocomplete multiple value={value || []} options={results} style={{ marginTop: 5 }}
       noOptionsText={query.length ? 'No results found' : 'Type to start search'}
-      onChange={(e, v) => v && onChange(v, field.id)}
+      onChange={(e, v) => {
+        if (!v) { return }
+        onChange(v, field.id)
+        setResults([])
+      }}
       getOptionLabel={v => first_letter_capitalized(v.display)} filterOptions={o => o}
       inputValue={query} onInputChange={(e, v) => e && setQuery(v) }
       renderInput={(params) => (
@@ -2949,6 +3000,15 @@ export const ConditionsInput = ({ goToNextField, goToPreviousField, field, value
           required={!field.isOptional} size="small" label="" placeholder="Search conditions..."
         />
       )}
+      renderTags={(value, getTagProps) =>
+        value.map((value, index) => (
+          <Chip
+            label={<Typography style={{whiteSpace: 'normal'}}>{value.display}</Typography>}
+            {...getTagProps({ index })}
+            sx={{height:"100%", py: 0.5 }}
+          />
+        ))
+      }
     /> 
   )
 }

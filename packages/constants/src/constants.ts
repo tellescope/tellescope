@@ -226,6 +226,7 @@ export const READ_ONLY_DEFAULT: AccessForResource = {
 }
 
 export const PROVIDER_PERMISSIONS: AccessPermissions = {
+  allergy_codes: READ_ONLY_ALL,
   diagnosis_codes: READ_ONLY_ALL,
   suggested_contacts: READ_ONLY_ALL,
   portal_brandings: INACCESSIBLE,
@@ -387,6 +388,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
+  allergy_codes: FULL_ACCESS,
   diagnosis_codes: FULL_ACCESS,
   suggested_contacts: FULL_ACCESS,
   call_hold_queues: FULL_ACCESS,

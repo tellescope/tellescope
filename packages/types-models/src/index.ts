@@ -1623,6 +1623,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   }[]
   hideAfterUnsubmittedInMS?: number,
   hideFromCompose?: boolean,
+  enduserFieldsToAppendForSync?: string[],
 }
 
 export interface FormGroup_readonly extends ClientRecord {}
@@ -4112,7 +4113,17 @@ export interface DiagnosisCode_required {
 export interface DiagnosisCode_updatesDisabled {}
 export interface DiagnosisCode extends DiagnosisCode_readonly, DiagnosisCode_required, DiagnosisCode_updatesDisabled {}
 
+export interface AllergyCode_readonly extends ClientRecord {}
+export interface AllergyCode_required {
+  code: string,
+  display: string,
+  system: string,
+}
+export interface AllergyCode_updatesDisabled {}
+export interface AllergyCode extends AllergyCode_readonly, AllergyCode_required, AllergyCode_updatesDisabled {}
+
 export type ModelForName_required = {
+  allergy_codes: AllergyCode_required,
   diagnosis_codes: DiagnosisCode_required,
   suggested_contacts: SuggestedContact_required,
   call_hold_queues: CallHoldQueue_required,
@@ -4198,6 +4209,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  allergy_codes: AllergyCode_readonly,
   diagnosis_codes: DiagnosisCode_readonly,
   suggested_contacts: SuggestedContact_readonly,
   call_hold_queues: CallHoldQueue_readonly,
@@ -4283,6 +4295,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  allergy_codes: AllergyCode_updatesDisabled,
   diagnosis_codes: DiagnosisCode_updatesDisabled,
   suggested_contacts: SuggestedContact_updatesDisabled,
   call_hold_queues: CallHoldQueue_updatesDisabled,
@@ -4368,6 +4381,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly { 
+  allergy_codes: AllergyCode,
   diagnosis_codes: DiagnosisCode,
   suggested_contacts: SuggestedContact,
   call_hold_queues: CallHoldQueue,
@@ -4463,6 +4477,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  allergy_codes: true,
   diagnosis_codes: true,
   suggested_contacts: true,
   call_hold_queues: true,

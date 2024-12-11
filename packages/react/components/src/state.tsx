@@ -94,6 +94,7 @@ import {
   CallHoldQueue,
   SuggestedContact,
   DiagnosisCode,
+  AllergyCode,
 } from "@tellescope/types-client"
 
 import {
@@ -355,6 +356,7 @@ const messageTemplateSnippetsSlice = createSliceForList<MessageTemplateSnippet, 
 const faxLogsSlice = createSliceForList<FaxLog, 'fax_logs'>('fax_logs')
 const suggestedContactsSlice = createSliceForList<SuggestedContact, 'suggested_contacts'>('suggested_contacts')
 const diagnosisCodesSlice = createSliceForList<DiagnosisCode, 'diagnosis_codes'>('diagnosis_codes')
+const allergyCodesSlice = createSliceForList<AllergyCode, 'allergy_codes'>('allergy_codes')
 
 const roleBasedAccessPermissionsSlice = createSliceForList<RoleBasedAccessPermission, 'role_based_access_permissions'>('role_based_access_permissions')
 
@@ -443,6 +445,7 @@ export const sharedConfig = {
     call_hold_queues: callHoldQueuesSlice.reducer,
     suggested_contacts: suggestedContactsSlice.reducer,
     diagnosis_codes: diagnosisCodesSlice.reducer,
+    allergy_codes: allergyCodesSlice.reducer,
   },
 }
 
@@ -1253,6 +1256,24 @@ export const usePortalBrandings = (options={} as HookOptions<PortalBranding>) =>
       addSome: session.api.portal_brandings.createSome,
       deleteOne: session.api.portal_brandings.deleteOne,
       updateOne: session.api.portal_brandings.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
+export const useAllergyCodes = (options={} as HookOptions<AllergyCode>) => {
+  const session = useResolvedSession()
+
+  return useListStateHook('allergy_codes', useTypedSelector(s => s.allergy_codes), session, allergyCodesSlice,
+    { 
+      loadQuery: session.api.allergy_codes.getSome,
+      findOne: session.api.allergy_codes.getOne,
+      findByIds: session.api.allergy_codes.getByIds,
+      addOne: session.api.allergy_codes.createOne,
+      addSome: session.api.allergy_codes.createSome,
+      deleteOne: session.api.allergy_codes.deleteOne,
+      updateOne: session.api.allergy_codes.updateOne,
     },
     { 
       ...options,

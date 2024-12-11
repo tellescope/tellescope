@@ -87,6 +87,7 @@ export type FaxLog = ClientModelForName['fax_logs']
 export type CallHoldQueue = ClientModelForName['call_hold_queues']
 export type SuggestedContact = ClientModelForName['suggested_contacts']
 export type DiagnosisCode = ClientModelForName['diagnosis_codes']
+export type AllergyCode = ClientModelForName['allergy_codes']
 
 export type Forum = ClientModelForName['forums']
 export type ForumPost = ClientModelForName['forum_posts']

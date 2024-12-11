@@ -91,6 +91,7 @@ export type FaxLog = ServerModelForName['fax_logs']
 export type CallHoldQueue = ServerModelForName['call_hold_queues']
 export type SuggestedContact = ServerModelForName['suggested_contacts']
 export type DiagnosisCode = ServerModelForName['diagnosis_codes']
+export type AllergyCode = ServerModelForName['allergy_codes']
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']
