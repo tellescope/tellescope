@@ -668,7 +668,7 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
     selectedFiles.find(f => f.fieldId === activeField.value.id)
   )
 
-  const handleDatabaseSelect = useCallback((databaseRecords: DatabaseRecord[]) => {
+  const handleDatabaseSelect = useCallback((databaseRecords: Pick<DatabaseRecord, "values" | "databaseId">[]) => {
     try {
       // no need to update if there's no prepopulation
       if (!fields?.find(f => f.prepopulateFromDatabase?.databaseId && f.prepopulateFromDatabase?.field)) return

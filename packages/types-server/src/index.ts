@@ -90,6 +90,7 @@ export type MessageTemplateSnippet = ServerModelForName['message_template_snippe
 export type FaxLog = ServerModelForName['fax_logs']
 export type CallHoldQueue = ServerModelForName['call_hold_queues']
 export type SuggestedContact = ServerModelForName['suggested_contacts']
+export type DiagnosisCode = ServerModelForName['diagnosis_codes']
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']

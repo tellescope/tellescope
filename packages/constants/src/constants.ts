@@ -93,7 +93,7 @@ export const ENDUSER_SESSION_TYPE = 'enduser'
 
 export const SECONDS_IN_ONE_YEAR = 31560000
 
-export const UNSEARCHABLE_FIELDS = ['_id', 'id', 'creator', 'createdAt', 'updatedAt', 'businessId', 'externalId', 'enduserId']
+export const UNSEARCHABLE_FIELDS = ['_id', 'id', 'creator', 'createdAt', 'updatedAt', 'businessId', 'enduserId', 'organizationIds', 'sharedWithOrganizations']
 
 export const QUESTION_GROUP_VALUE_PLACEHOLDER = "_question_group"
 
@@ -226,6 +226,7 @@ export const READ_ONLY_DEFAULT: AccessForResource = {
 }
 
 export const PROVIDER_PERMISSIONS: AccessPermissions = {
+  diagnosis_codes: READ_ONLY_ALL,
   suggested_contacts: READ_ONLY_ALL,
   portal_brandings: INACCESSIBLE,
   webhook_logs: INACCESSIBLE,
@@ -386,6 +387,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
+  diagnosis_codes: FULL_ACCESS,
   suggested_contacts: FULL_ACCESS,
   call_hold_queues: FULL_ACCESS,
   fax_logs: FULL_ACCESS,

@@ -1,8 +1,8 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react"
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Button, CircularProgress, Flex, LoadingButton, Modal, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
-import { AddressInput, AllergiesInput, AppointmentBookingInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
+import { AddressInput, AllergiesInput, AppointmentBookingInput, ConditionsInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
@@ -169,6 +169,7 @@ export const QuestionForField = ({
   const HiddenValue = customInputs?.['Hidden Value'] ?? HiddenValueInput
   const Emotii = customInputs?.['Emotii'] ?? EmotiiInput
   const Allergies = customInputs?.['Allergies'] ?? AllergiesInput
+  const Conditions = customInputs?.['Conditions'] ?? ConditionsInput
 
   const validationMessage = validateField(field)
 
@@ -245,6 +246,9 @@ export const QuestionForField = ({
         )
         : field.type === 'Allergies' ? (
           <Allergies enduser={enduser} enduserId={enduserId} field={field} disabled={value.disabled} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
+        )
+        : field.type === 'Conditions' ? (
+          <Conditions enduser={enduser} enduserId={enduserId} field={field} disabled={value.disabled} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'Height' ? (
           <Height field={field} disabled={value.disabled} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
@@ -435,6 +439,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
   }, [])
 
   const [uploading, setUploading] = useState(false)
+  const [autosubmitting, setAutoSubmitting] = useState(false)
 
   useEffect(() => {
     // ensure redirect question doesn't trip this alert
@@ -449,6 +454,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
       return onSuccess?.({} as any)
     } 
 
+
     await submit({ 
       onSuccess,
       ...options,
@@ -461,13 +467,18 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
     })
   }, [isPreview, onSuccess, submit, beforeunloadHandler])
 
+  const autoSubmitRef = useRef(false)
   useEffect(() => {
     if (!activeField.value.options?.autoSubmit) {
       return  
     }
+    if (autoSubmitRef.current) return
 
     if (responses.find(r => r.fieldId === activeField.value.id && field_can_autosubmit(activeField.value) && r.answer.value)) {
+      autoSubmitRef.current = true
+      setAutoSubmitting(true)
       handleSubmit()
+      .finally(() => setAutoSubmitting(false))
     }
   }, [handleSubmit, responses, activeField])
 
@@ -551,7 +562,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
                   setUploading(!!selectedFiles.find(r => !!r.blobs?.length))
                   return handleSubmit({ onFileUploadsDone: () => setUploading(false) })
                 }} 
-                disabled={!!validationMessage || currentValue.field?.options?.disableNext === true}
+                disabled={!!validationMessage || currentValue.field?.options?.disableNext === true || autosubmitting}
                 submitText={form_display_text_for_language(form, "Submit")}
                 submittingText={
                   submittingStatus === 'uploading-files' 

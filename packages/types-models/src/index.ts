@@ -1401,7 +1401,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
 }
 
 export type FormFieldLiteralType = 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time'
-export type FormFieldComplexType = "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance"
+export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance"
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
 
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic'
@@ -1828,6 +1828,7 @@ export type FormResponseAnswerInsurance = FormResponseValueAnswerBuilder<'Insura
 export type FormResponseAnswerHeight = FormResponseValueAnswerBuilder<'Height', { feet: number, inches: number }>
 export type FormResponseAnswerRedirect = FormResponseValueAnswerBuilder<'Redirect', string>
 export type FormResponseAnswerAllergies = FormResponseValueAnswerBuilder<'Allergies', AllergyResponse[]>
+export type FormResponseAnswerConditions = FormResponseValueAnswerBuilder<'Conditions', AllergyResponse[]>
 
 export type FormResponseAnswerSignatureValue = {
   fullName: string,
@@ -1884,6 +1885,7 @@ export type FormResponseValueAnswer = (
   | FormResponseAnswerHiddenValue
   | FormResponseAnswerEmotii
   | FormResponseAnswerAllergies
+  | FormResponseAnswerConditions
 )
 
 export type FormResponseValue = {
@@ -1931,6 +1933,7 @@ export type AnswerForType = {
   'Hidden Value': FormResponseAnswerHiddenValue['value']
   'Emotii': FormResponseAnswerEmotii['value']
   'Allergies': FormResponseAnswerAllergies['value']
+  'Conditions': FormResponseAnswerConditions['value']
 }
 
 export type Addendum = {
@@ -2468,6 +2471,7 @@ export type AfterActionEventInfo = {
   unit: UnitOfTime, // for displaying in editor
   officeHoursOnly?: boolean,
   cancelConditions?: CancelCondition[]
+  abTestCondition?: string,
 }
 export type TicketCompletedEventInfo = {
   automationStepId: string,
@@ -4099,7 +4103,17 @@ export interface SuggestedContact_required {
 export interface SuggestedContact_updatesDisabled {}
 export interface SuggestedContact extends SuggestedContact_readonly, SuggestedContact_required, SuggestedContact_updatesDisabled {}
 
+export interface DiagnosisCode_readonly extends ClientRecord {}
+export interface DiagnosisCode_required {
+  code: string,
+  display: string,
+  system: string,
+}
+export interface DiagnosisCode_updatesDisabled {}
+export interface DiagnosisCode extends DiagnosisCode_readonly, DiagnosisCode_required, DiagnosisCode_updatesDisabled {}
+
 export type ModelForName_required = {
+  diagnosis_codes: DiagnosisCode_required,
   suggested_contacts: SuggestedContact_required,
   call_hold_queues: CallHoldQueue_required,
   fax_logs: FaxLog_required,
@@ -4184,6 +4198,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  diagnosis_codes: DiagnosisCode_readonly,
   suggested_contacts: SuggestedContact_readonly,
   call_hold_queues: CallHoldQueue_readonly,
   fax_logs: FaxLog_readonly,
@@ -4268,6 +4283,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  diagnosis_codes: DiagnosisCode_updatesDisabled,
   suggested_contacts: SuggestedContact_updatesDisabled,
   call_hold_queues: CallHoldQueue_updatesDisabled,
   fax_logs: FaxLog_updatesDisabled,
@@ -4352,6 +4368,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly { 
+  diagnosis_codes: DiagnosisCode,
   suggested_contacts: SuggestedContact,
   call_hold_queues: CallHoldQueue,
   fax_logs: FaxLog,
@@ -4446,6 +4463,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  diagnosis_codes: true,
   suggested_contacts: true,
   call_hold_queues: true,
   fax_logs: true,

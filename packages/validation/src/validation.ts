@@ -297,6 +297,7 @@ import {
   SendChatAutomationAction,
   FormResponseAnswerAllergies,
   AllergyResponse,
+  FormResponseAnswerConditions,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -1527,12 +1528,14 @@ const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
   'Hidden Value': '',
   Emotii: '',
   Allergies: "",
+  Conditions: "",
 }
 export const FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES) as FormFieldType[]
 export const formFieldTypeValidator = exactMatchValidator<FormFieldType>(FORM_FIELD_TYPES)
 
 export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' | 'phoneNumber']: (value?: FormResponseValueAnswer[keyof FormResponseValueAnswer], options?: any, isOptional?: boolean) => any } = {
   'Allergies': objectAnyFieldsAnyValuesValidator.validate(),
+  'Conditions': objectAnyFieldsAnyValuesValidator.validate(),
   "Emotii": stringValidator.validate({ maxLength: 5000 }),
   "Hidden Value": stringValidator.validate({ maxLength: 5000 }),
   'Appointment Booking': stringValidator.validate({ maxLength: 100, isOptional: true }),
@@ -2046,7 +2049,7 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
     type: exactMatchValidator(['Database Select']),
     value: listValidatorOptionalOrEmptyOk(
       objectValidator<DatabaseSelectResponse>({
-        recordId: mongoIdStringOptional,
+        recordId: stringValidatorOptional, // for radio, may not be objectId
         databaseId: mongoIdStringOptional,
         text: stringValidator25000,
       }, { emptyOk: false, isOptional: true })
@@ -2090,6 +2093,16 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
         code: stringValidator100,
         display: stringValidator,
         system: stringValidatorOptional,
+      })
+    ),
+  }),
+  "Conditions": objectValidator<FormResponseAnswerConditions>({
+    type: exactMatchValidator(['Conditions']),
+    value: listValidatorOptionalOrEmptyOk(
+      objectValidator<AllergyResponse>({
+        code: stringValidator100,
+        display: stringValidator,
+        system: stringValidator1000,
       })
     ),
   }),
@@ -2475,6 +2488,7 @@ const delayValidation = {
   unit: UnitOfTimeValidator, // for UI only
   cancelConditions: cancelConditionsValidatorOptional,
   officeHoursOnly: booleanValidatorOptional,
+  abTestCondition: stringValidatorOptionalEmptyOkay,
 }
 
 export const automationEventValidator = orValidator<{ [K in AutomationEventType]: AutomationEvent & { type: K } } >({
@@ -4399,6 +4413,7 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   fax_logs: accessPermissionValidator,
   call_hold_queues: accessPermissionValidator,
   suggested_contacts: accessPermissionValidator,
+  diagnosis_codes: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
@@ -4485,6 +4500,7 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   portal_brandings: numberValidatorOptional,
   fax_logs: numberValidatorOptional,
   call_hold_queues: numberValidatorOptional,
+  diagnosis_codes: numberValidatorOptional,
 }, { emptyOk: true })
 
 const _LOGIN_FLOW_RESULTS = {

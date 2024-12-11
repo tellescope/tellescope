@@ -93,6 +93,7 @@ import {
   FaxLog,
   CallHoldQueue,
   SuggestedContact,
+  DiagnosisCode,
 } from "@tellescope/types-client"
 
 import {
@@ -107,7 +108,7 @@ import {
 } from '@tellescope/sdk'
 import { value_is_loaded } from './loading'
 import { matches_organization, object_is_empty, objects_equivalent } from '@tellescope/utilities'
-import { ModelName, ReadFilter, SortBy } from '@tellescope/types-models'
+import { Diagnosis, ModelName, ReadFilter, SortBy } from '@tellescope/types-models'
 
 const RESET_CACHE_TYPE = "cache/reset" as const
 export const resetStateAction = createAction(RESET_CACHE_TYPE)
@@ -353,6 +354,7 @@ const portalBrandingsSlice = createSliceForList<PortalBranding, 'portal_branding
 const messageTemplateSnippetsSlice = createSliceForList<MessageTemplateSnippet, 'message_template_snippets'>('message_template_snippets')
 const faxLogsSlice = createSliceForList<FaxLog, 'fax_logs'>('fax_logs')
 const suggestedContactsSlice = createSliceForList<SuggestedContact, 'suggested_contacts'>('suggested_contacts')
+const diagnosisCodesSlice = createSliceForList<DiagnosisCode, 'diagnosis_codes'>('diagnosis_codes')
 
 const roleBasedAccessPermissionsSlice = createSliceForList<RoleBasedAccessPermission, 'role_based_access_permissions'>('role_based_access_permissions')
 
@@ -440,6 +442,7 @@ export const sharedConfig = {
     fax_logs: faxLogsSlice.reducer,
     call_hold_queues: callHoldQueuesSlice.reducer,
     suggested_contacts: suggestedContactsSlice.reducer,
+    diagnosis_codes: diagnosisCodesSlice.reducer,
   },
 }
 
@@ -1250,6 +1253,24 @@ export const usePortalBrandings = (options={} as HookOptions<PortalBranding>) =>
       addSome: session.api.portal_brandings.createSome,
       deleteOne: session.api.portal_brandings.deleteOne,
       updateOne: session.api.portal_brandings.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
+export const useDiagnosisCodes = (options={} as HookOptions<DiagnosisCode>) => {
+  const session = useResolvedSession()
+
+  return useListStateHook('diagnosis_codes', useTypedSelector(s => s.diagnosis_codes), session, diagnosisCodesSlice,
+    { 
+      loadQuery: session.api.diagnosis_codes.getSome,
+      findOne: session.api.diagnosis_codes.getOne,
+      findByIds: session.api.diagnosis_codes.getByIds,
+      addOne: session.api.diagnosis_codes.createOne,
+      addSome: session.api.diagnosis_codes.createSome,
+      deleteOne: session.api.diagnosis_codes.deleteOne,
+      updateOne: session.api.diagnosis_codes.updateOne,
     },
     { 
       ...options,

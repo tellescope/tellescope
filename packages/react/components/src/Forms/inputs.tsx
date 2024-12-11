@@ -5,7 +5,7 @@ import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
 import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, truncate_string, user_display_name } from "@tellescope/utilities"
-import { Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MultipleChoiceOptions, TellescopeGender } from "@tellescope/types-models"
+import { DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MultipleChoiceOptions, TellescopeGender } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -1661,7 +1661,7 @@ const choicesForDatabase: {
 } = {}
 
 const LOAD_CHOICES_LIMIT = 500
-const useDatabaseChoices = ({ databaseId='', field } : { databaseId?: string, field: FormField }) => {
+const useDatabaseChoices = ({ databaseId='', field, otherAnswers } : { databaseId?: string, field: FormField, otherAnswers?: DatabaseSelectResponse[] }) => {
   const session = useResolvedSession()
   const [renderCount, setRenderCount] = useState(0)
 
@@ -1697,13 +1697,20 @@ const useDatabaseChoices = ({ databaseId='', field } : { databaseId?: string, fi
 
   return {
     doneLoading: choicesForDatabase[databaseId]?.done ?? false,
-    choices: choicesForDatabase[databaseId]?.records ?? [],
+    choices: [
+      ...choicesForDatabase[databaseId]?.records ?? [],
+      ...(otherAnswers || []).map(v => ({
+        id: v.text,
+        databaseId,
+        values: [{ label: field.options?.databaseLabel || '', type: 'Text', value: v.text }],
+      }) as Pick<DatabaseRecord, 'id' | 'values' | 'databaseId'>)
+    ],
     renderCount,
   }
 }
 
 
-const label_for_database_record = (field: FormField, record?: DatabaseRecord) => {
+const label_for_database_record = (field: FormField, record?: Pick<DatabaseRecord, 'values'>) => {
   if (!record) return ''
 
   const addedLabels = (
@@ -1722,14 +1729,34 @@ const label_for_database_record = (field: FormField, record?: DatabaseRecord) =>
   )
 }
 
+const get_other_answers = (_value?: DatabaseSelectResponse[], typing?: string) => {
+  try { 
+    const existing = (
+      (_value || [])
+      .filter(v => typeof v === 'string' || v.recordId === v.text)
+      .map(v => typeof v === 'string' ? { databaseId: '', recordId: v, text: v } : v)
+    )
+    if (typing) {
+      existing.push({ text: typing, databaseId: '', recordId: typing })
+    }
+
+    return existing
+  } catch(err) { console.error(err) }
+
+  return []
+}
+
 export const DatabaseSelectInput = ({ field, value: _value, onChange, onDatabaseSelect, responses }: FormInputProps<'Database Select'> & {
   responses: FormResponseValue[],
 }) => {
+  const [typing, setTyping] = useState('')
   const { choices, doneLoading } = useDatabaseChoices({ 
     databaseId: field.options?.databaseId,
     field,
+    otherAnswers: get_other_answers(_value, field?.options?.other ? typing : undefined),
   })
 
+  console.log(choices, _value)
   const value = React.useMemo(() => {
     try {
       // if the value is a string (some single answer that was save), make sure we coerce to array
@@ -1797,7 +1824,7 @@ export const DatabaseSelectInput = ({ field, value: _value, onChange, onDatabase
   }, [choices, filterResponse, field.options?.databaseFilter, value])
 
   const filteredChoices = useMemo(() => {
-    const filtered: typeof filteredChoicesWithPotentialDuplicates = [] 
+    const filtered = [] 
 
     const uniques = new Set<string>([])
     for (const c of filteredChoicesWithPotentialDuplicates) {
@@ -1842,6 +1869,8 @@ export const DatabaseSelectInput = ({ field, value: _value, onChange, onDatabase
           field.id,
         )
       }}
+      inputValue={typing}
+      onInputChange={(e, v) => e && setTyping(v)}
       renderInput={params => <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }} />}
     />
   )
@@ -2837,6 +2866,8 @@ export const AllergiesInput = ({ goToNextField, goToPreviousField, field, value,
     if (fetchRef.current === query) return
     fetchRef.current = query
 
+    if (!query) return
+
     const t = setTimeout(() => {
       session.api.integrations
       .proxy_read({ 
@@ -2859,7 +2890,7 @@ export const AllergiesInput = ({ goToNextField, goToPreviousField, field, value,
         }
         setResults(deduped)
       })
-    }, 99)
+    }, 200)
 
     return () => { clearTimeout(t) }
   }, [session, query])
@@ -2873,6 +2904,49 @@ export const AllergiesInput = ({ goToNextField, goToPreviousField, field, value,
       renderInput={(params) => (
         <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
           required={!field.isOptional} size="small" label="" placeholder="Search allergies..."
+        />
+      )}
+    /> 
+  )
+}
+
+export const ConditionsInput = ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'Conditions'>) => {
+  const session = useResolvedSession()
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<{ code: string, display: string }[]>([])
+
+  const fetchRef = useRef(query)
+  useEffect(() => {
+    if (fetchRef.current === query) return
+    fetchRef.current = query
+
+    if (!query) return
+
+    const t = setTimeout(() => {
+      session.api.diagnosis_codes.getSome({ search: { query } })
+      .then(codes => {
+        const deduped: typeof results = []
+        for (const v of codes) {
+          if (deduped.find(d => d.display === v.display)) { continue }
+
+          deduped.push(v)
+        }
+        setResults(deduped)
+      })
+    }, 200)
+
+    return () => { clearTimeout(t) }
+  }, [session, query])
+
+  return (
+    <Autocomplete multiple value={value || []} options={[...results, ...(value || [])]} style={{ marginTop: 5 }}
+      noOptionsText={query.length ? 'No results found' : 'Type to start search'}
+      onChange={(e, v) => v && onChange(v, field.id)}
+      getOptionLabel={v => first_letter_capitalized(v.display)} filterOptions={o => o}
+      inputValue={query} onInputChange={(e, v) => e && setQuery(v) }
+      renderInput={(params) => (
+        <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
+          required={!field.isOptional} size="small" label="" placeholder="Search conditions..."
         />
       )}
     /> 

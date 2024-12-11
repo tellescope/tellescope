@@ -7709,7 +7709,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       access: [{ type: 'filter', field: 'userId' }]
     },
     defaultActions: DEFAULT_OPERATIONS,
-    enduserActions: { read: {}, readMany: {} },
+    enduserActions: { create: {}, /* for importing historical labs in portal */ read: {}, readMany: {} },
     customActions: {
       get_available_tests: {
         op: "custom", access: 'read', method: "get",
@@ -8049,6 +8049,19 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       title: { validator: stringValidator, required: true, examples: ['Title'] },
       phone: { validator: phoneValidator, examples: ["+15555555555"] },
       email: { validator: emailValidator, examples: ['test@tellescope.com'] },
+    }
+  },
+  diagnosis_codes: {
+    info: { description: '' },
+    constraints: { unique: [], relationship: [], access: [] },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: { read: {}, readMany: {} },
+    fields: {
+      ...BuiltInFields,
+      code: { validator: stringValidator, required: true, examples: ['A000'] },
+      display: { validator: stringValidator, required: true, examples: ["Cholera due to Vibrio cholerae 01, biovar cholerae"] },
+      system: { validator: stringValidator, required: true, examples: ['http://hl7.org/fhir/sid/icd-10-cm'] },
     }
   },
 })
