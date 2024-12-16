@@ -1485,6 +1485,32 @@ export const calculate_bmi = (e: Pick<Enduser, 'height' | 'weight'>) => {
   return (703 * weight / (height * height))
 }
 
+const evaluate_response_equals = (answer: FormResponseValueAnswer, comparison: string) => {
+  if (answer.type === 'Database Select' && answer.value?.length) {
+    return (
+      !!answer.value.find(v => v?.text === comparison)
+    )
+  }
+
+  if (answer.type === 'Insurance') {
+    return answer.value?.payerName === comparison
+  }
+
+  if (answer.type === 'Address') {
+    return (
+       comparison === answer.value?.state
+    || comparison === answer.value?.zipCode
+    || comparison === answer.value?.city
+    )
+  }
+
+  return (
+    Array.isArray(answer.value)
+      ? (answer.value as string[]).includes(comparison)
+      : answer.value === comparison
+  )
+}
+
 // keep consistent with convert_form_logic_to_filter logic in analytics.ts
 export const responses_satisfy_conditions = (responses: FormResponseValue[], conditions: CompoundFilter<string>, options?: {
   dateOfBirth?: string,
@@ -1601,32 +1627,14 @@ export const responses_satisfy_conditions = (responses: FormResponseValue[], con
 
     const comparison = (conditions[key] as Indexable)[fieldIdOrCalculated]
     if (typeof comparison === 'string') {
-      if (answer.type === 'Database Select' && answer.value?.length) {
-        return (
-          !!answer.value.find(v => v?.text === comparison)
-        )
-      }
-
-      if (answer.type === 'Insurance') {
-        return answer.value?.payerName === comparison
-      }
-
-      if (answer.type === 'Address') {
-        return (
-           comparison === answer.value?.state
-        || comparison === answer.value?.zipCode
-        || comparison === answer.value?.city
-        )
-      }
-
-      return (
-        Array.isArray(answer.value)
-          ? (answer.value as string[]).includes(comparison)
-          : answer.value === comparison
-      )
+      return evaluate_response_equals(answer, comparison)
     } else {
-      const condition = Object.keys(comparison)[0] as '$exists' | '$contains' | '$doesNotContain' | '$range' | '$lt' | '$gt'
+      const condition = Object.keys(comparison)[0] as '$ne' | '$exists' | '$contains' | '$doesNotContain' | '$range' | '$lt' | '$gt'
       const conditionValue = comparison[condition]
+
+      if (condition === "$ne") {
+        return !evaluate_response_equals(answer, conditionValue)
+      }
 
       if (condition === '$lt' || condition === '$gt') {
         if (conditionValue === '$now') {

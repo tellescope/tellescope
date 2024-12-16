@@ -204,6 +204,7 @@ export type OrganizationSettings = {
     requireDueDate?: boolean,
     allowArchival?: boolean,
     returnToTicketsList?: boolean,
+    dontAddToCareTeamOnTicketAssignment?: boolean,
   },
   calendar?: {
     dayStart?: {
@@ -849,6 +850,7 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
   pharmacyName?: string,
   pharmacyId?: string,
   orderStatus?: string,
+  reasonForTaking?: string,
 }
 
 export interface APIKey_readonly extends ClientRecord { 
@@ -1570,6 +1572,7 @@ export type FormCustomization = {
   hideLogo?: boolean,
   multiPagePublicQuestions?: boolean,
   hideBg?: boolean,
+  portalShowThanksAfterSubmission?: boolean,
 }
 export interface Form_readonly extends ClientRecord {
   numFields: number,
@@ -2074,6 +2077,8 @@ export type EnduserFormResponseForEvent = {
   accessCode: string,
 }
 
+export type GroupCancellation = { at: Date, id: string }
+
 export interface CalendarEventPortalSettings {
   hideUsers?: boolean,
 }
@@ -2148,10 +2153,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   holdUntil?: Date,
   holdFormResponseId?: string,
   tags?: string[],
-  cancelledGroupAttendees?: {
-    id: string,
-    at: Date,
-  }[],
+  cancelledGroupAttendees?: GroupCancellation[],
   useUserURL?: boolean,
   healthieZoomStartURL?: string,
   healthieZoomJoinURL?: string,
@@ -2166,6 +2168,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   displayDescription?: string,
   dontBlockAvailability?: boolean,
   previousStartTimes?: (number | string)[],
+  requirePortalCancelReason?: boolean,
   // isAllDay?: boolean,
 }
 
@@ -2283,6 +2286,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   displayTitle?: string,
   displayDescription?: string,
   requiresEnduser?: boolean,
+  requirePortalCancelReason?: boolean,
 }
 
 export interface AppointmentLocation_readonly extends ClientRecord {}
@@ -3403,6 +3407,7 @@ export const resource_to_modelName: { [K in AnalyticsQueryType] : ModelName } = 
 export type AnalyticsQueryOptions = {
   createdRange?: DateRange,
   updatedRange?: DateRange,
+  overrideGlobalRange?: boolean,
   groupByCareTeam?: boolean, // supports multi-grouping for both care team and a normal field
 }
 
@@ -3602,6 +3607,7 @@ export type AutomationTriggerEvents = {
   'Message Link Clicked': AutomationTriggerEventBuilder<"Message Link Clicked", { templateIds?: string[] }, {}>,
   'Healthie Note Locked': AutomationTriggerEventBuilder<"Healthie Note Locked", { healthieFormIds?: string[] }, {}>,
   'Database Entry Added': AutomationTriggerEventBuilder<"Database Entry Added", { databaseId: string }, {}>,
+  'Form Started': AutomationTriggerEventBuilder<"Form Started", { formIds?: string[] }, {}>,
 }
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents
 export type AutomationTriggerEvent = AutomationTriggerEvents[AutomationTriggerEventType]

@@ -70,6 +70,7 @@ import {
   TwilioQueue,
   SendWebhookAutomationAction,
   Addendum,
+  GroupCancellation,
 } from "@tellescope/types-models"
 
 import {
@@ -975,7 +976,7 @@ export type CustomActions = {
   tickets: {
     close_ticket: CustomAction<{ ticketId: string, closedForReason?: string }, { updated: Ticket, generated?: Ticket }>,
     update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
-    get_report: CustomAction<{ title?: string, titles?: string[], userId?: string, range?: DateRange, groupByOwnerAndTitle?: boolean }, { report: TicketsReport }>,
+    get_report: CustomAction<{ rangeField?: string, title?: string, titles?: string[], userId?: string, range?: DateRange, groupByOwnerAndTitle?: boolean }, { report: TicketsReport }>,
     get_distribution_report: CustomAction<{  range?: DateRange }, { report: Report[keyof Report] }>,
     assign_from_queue: CustomAction<{ userId?: string, ticketId?: string, queueId?: string, overrideRestrictions?: boolean, }, { ticket: Ticket, queue: TicketQueue, enduser: Enduser }>,
   },
@@ -3713,6 +3714,7 @@ export const schema: SchemaV1 = build_schema({
           title: { validator: stringValidator25000 },
           titles: { validator: listOfStringsValidatorEmptyOk },
           range: { validator: dateRangeOptionalValidator },
+          rangeField: { validator: stringValidator },
           groupByOwnerAndTitle: { validator: booleanValidator },
         },
         returns: {
@@ -5044,7 +5046,7 @@ export const schema: SchemaV1 = build_schema({
       completedAt: { validator: dateValidatorOptional },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       cancelledGroupAttendees: {
-        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ id: string, at: Date }>({
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<GroupCancellation>({
           id: mongoIdStringRequired,
           at: dateValidator,
         }))
@@ -5064,6 +5066,7 @@ export const schema: SchemaV1 = build_schema({
       dontAutoSyncPatientToHealthie: { validator: booleanValidator },
       dontBlockAvailability: { validator: booleanValidator },
       previousStartTimes: { validator: listOfNumbersValidatorUniqueOptionalOrEmptyOkay },
+      requirePortalCancelReason: { validator: booleanValidator },
     }
   },
   calendar_event_templates: {
@@ -5125,6 +5128,7 @@ export const schema: SchemaV1 = build_schema({
       useUserURL: { validator: booleanValidator },
       instructions: { validator: stringValidator5000EmptyOkay },
       requiresEnduser: { validator: booleanValidator },
+      requirePortalCancelReason: { validator: booleanValidator },
     }
   },
   calendar_event_RSVPs: {
@@ -6965,6 +6969,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       truncationLength: { validator: nonNegNumberValidator },
       showEllipsis: { validator: booleanValidator },
       orderedLabels: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      overrideGlobalRange: { validator: booleanValidator },
     },
   },
   availability_blocks: {
@@ -7358,6 +7363,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       orderStatus: { validator: stringValidator1000 },
       pharmacyName: { validator: stringValidator1000 },
       prescriberName: { validator: stringValidator1000 },
+      reasonForTaking: { validator: stringValidator },
     }
   },
   phone_trees: {

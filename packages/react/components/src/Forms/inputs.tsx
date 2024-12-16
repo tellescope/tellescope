@@ -2735,13 +2735,40 @@ export const HeightInput = ({ field, value={} as any, onChange, ...props }: Form
   </Grid>
 )
 
-export const RedirectInput = ({ groupId, groupInsance, formResponseId, field, submit, value={} as any, onChange, ...props }: FormInputProps<'Redirect'>) => {
+export const RedirectInput = ({ groupId, groupInsance, formResponseId, field, submit, value={} as any, onChange, responses, enduser, ...props }: FormInputProps<'Redirect'>) => {
   const session = useResolvedSession()
 
   let eId = ''
   try {
     eId = new URL(window.location.href).searchParams.get('eId') || ''
   } catch(err) {}
+
+  const email = (
+    responses?.find(r => r.intakeField === 'email')?.answer?.value
+  || enduser?.email 
+  || session.userInfo.email
+  )
+  const phone = (
+    responses?.find(r => r.intakeField === 'phone')?.answer?.value
+  || enduser?.phone
+  || session.userInfo.phone
+  )
+  const fname = (
+    responses?.find(r => r.intakeField === 'fname')?.answer?.value
+  || enduser?.fname
+  || session.userInfo?.fname
+  )
+  const lname = (
+    responses?.find(r => r.intakeField === 'lname')?.answer?.value
+  || enduser?.lname
+  || session.userInfo?.lname
+  )
+  const state = (
+     responses?.find(r => r.intakeField === 'state')?.answer?.value
+  || (responses?.find(r => r.intakeField === 'Address')?.answer?.value as any)?.state
+  || enduser?.state
+  || (session.userInfo as Enduser)?.state
+  )
 
   useEffect(() => {
     if (session.type === 'user') { return }
@@ -2751,7 +2778,15 @@ export const RedirectInput = ({ groupId, groupInsance, formResponseId, field, su
       .finally(() => {
         if (!field.options?.redirectExternalUrl) { return }
 
-        window.location.href = replace_enduser_template_values(field.options.redirectExternalUrl, session.userInfo as any)
+        window.location.href = (
+          replace_enduser_template_values(
+            field.options.redirectExternalUrl, 
+            {
+              ...session.userInfo as any,
+              email, fname, lname, state, phone, 
+            }
+          )
+        )
       })
       .catch(console.error)
       
@@ -2785,7 +2820,7 @@ export const RedirectInput = ({ groupId, groupInsance, formResponseId, field, su
       })
     ))
     .catch(console.error)
-  }, [session])
+  }, [session, email, fname, lname, state, phone])
 
   if (session.type === 'user') {
     return (

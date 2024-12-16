@@ -254,7 +254,7 @@ export const QuestionForField = ({
           <Height field={field} disabled={value.disabled} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'Redirect' ? (
-          <Redirect groupId={groupId} groupInsance={groupInstance} submit={submit} field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
+          <Redirect responses={responses} enduser={enduser} groupId={groupId} groupInsance={groupInstance} submit={submit} field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'Related Contacts' ? (
           <RelatedContacts field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
@@ -601,7 +601,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
 }
 
 export const DEFAULT_THANKS_MESSAGE = "Your response was successfully recorded";
-const ThanksMessage = ({ 
+export const ThanksMessage = ({ 
   thanksMessage, 
   htmlThanksMessage,
   showRestartAtEnd,

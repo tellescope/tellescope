@@ -99,6 +99,9 @@ export const default_label_for_compound_logic = (f: CompoundFilter<string>): str
         const value = f.condition[key]
         if (value && typeof value === 'object') {
           const objectKey = Object.keys(value)[0]
+          if (objectKey === '$ne') {
+            return `${key} Does Not Equal ${value[objectKey as keyof typeof value]}`
+          }
           if (objectKey === '$gt') {
             return `${key} Greater Than ${value[objectKey as keyof typeof value]}`
           }

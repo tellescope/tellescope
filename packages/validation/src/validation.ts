@@ -970,6 +970,13 @@ export const stringValidator100000OptionalEmptyOkay: ValidatorDefinition<string>
   getExample: getExampleString,
   getType: getTypeString,
 }
+export const stringValidator25000OptionalEmptyOkay: ValidatorDefinition<string> = {
+  validate: (o={}) => build_validator(
+    escapeString(o), { ...o, maxLength: 25000, isOptional: true, listOf: false, emptyStringOk: true } 
+  ),
+  getExample: getExampleString,
+  getType: getTypeString,
+}
 export const stringValidator25000EmptyOkay: ValidatorDefinition<string> = {
   validate: (o={}) => build_validator(
     escapeString(o), { ...o, maxLength: 25000, listOf: false, emptyStringOk: true } 
@@ -2124,7 +2131,7 @@ export const formResponseValidator = objectValidator<FormResponseValue>({
   fieldId: stringValidatorOptionalEmptyOkay,
   fieldTitle: stringValidator5000EmptyOkay,
   fieldDescription: stringValidator5000Optional,
-  fieldHtmlDescription: stringValidator5000Optional,
+  fieldHtmlDescription: stringValidator25000OptionalEmptyOkay,
   answer: formResponseAnswerValidator,
   answerIsHTML: booleanValidatorOptional,
   externalId: stringValidatorOptional,
@@ -3823,6 +3830,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     requireDueDate: booleanValidatorOptional,
     allowArchival: booleanValidatorOptional,
     returnToTicketsList: booleanValidatorOptional,
+    dontAddToCareTeamOnTicketAssignment: booleanValidatorOptional,
   }, { isOptional: true }),
   calendar: objectValidator<OrganizationSettings['calendar']>({
     dayStart: objectValidator<Required<OrganizationSettings>['calendar']['dayStart']>({
@@ -3890,6 +3898,7 @@ export const vitalConfigurationRangesValidator = listValidator(vitalConfiguratio
 const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any } = {
   "Form Submitted": true,
   "Form Unsubmitted": true,
+  "Form Started": true,
   "Purchase Made": true,
   "Refund Issued": true,
   "Subscription Ended": true,
@@ -3943,6 +3952,13 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     info: objectValidator<AutomationTriggerEvents['Form Unsubmitted']['info']>({
       formId: mongoIdStringRequired,
       intervalInMS: nonNegNumberValidator,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }), 
+  "Form Started": objectValidator<AutomationTriggerEvents["Form Started"]>({
+    type: exactMatchValidator(['Form Started']),
+    info: objectValidator<AutomationTriggerEvents['Form Started']['info']>({
+      formIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -5308,6 +5324,7 @@ export const formCustomizationValidator = objectValidator<Form['customization']>
   multiPagePublicQuestions: booleanValidatorOptional,
   logoHeight: numberValidatorOptional,
   hideBg: booleanValidatorOptional,
+  portalShowThanksAfterSubmission: booleanValidatorOptional,
 })
 
 export const languageValidator = objectValidator<Language>({
