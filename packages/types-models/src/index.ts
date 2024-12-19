@@ -2362,6 +2362,7 @@ export interface AppointmentBookingPage extends AppointmentBookingPage_readonly,
   publicUserTags?: string[],
   publicUserFilterTags?: string[],
   appointmentSlotsMaxHeight?: number,
+  includeRelatedContactTypes?: string[],
   // productIds?: string[], // defer to specific template
 }
 
@@ -4128,7 +4129,20 @@ export interface AllergyCode_required {
 export interface AllergyCode_updatesDisabled {}
 export interface AllergyCode extends AllergyCode_readonly, AllergyCode_required, AllergyCode_updatesDisabled {}
 
+export interface IntegrationLog_readonly extends ClientRecord {
+  integration: string,
+  status: "Success" | "Error",
+  type: string, // e.g. Create Patient
+  url?: string, // for logging endpoint 
+  payload?: string, // for logging payload sent (if not too space-intensive)
+  response?: string, // for logging response (particularly for errors)
+}
+export interface IntegrationLog_required {}
+export interface IntegrationLog_updatesDisabled {}
+export interface IntegrationLog extends IntegrationLog_readonly, IntegrationLog_required, IntegrationLog_updatesDisabled {}
+
 export type ModelForName_required = {
+  integration_logs: IntegrationLog_required,
   allergy_codes: AllergyCode_required,
   diagnosis_codes: DiagnosisCode_required,
   suggested_contacts: SuggestedContact_required,
@@ -4215,6 +4229,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  integration_logs: IntegrationLog_readonly,
   allergy_codes: AllergyCode_readonly,
   diagnosis_codes: DiagnosisCode_readonly,
   suggested_contacts: SuggestedContact_readonly,
@@ -4301,6 +4316,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  integration_logs: IntegrationLog_updatesDisabled,
   allergy_codes: AllergyCode_updatesDisabled,
   diagnosis_codes: DiagnosisCode_updatesDisabled,
   suggested_contacts: SuggestedContact_updatesDisabled,
@@ -4387,6 +4403,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly { 
+  integration_logs: IntegrationLog,
   allergy_codes: AllergyCode,
   diagnosis_codes: DiagnosisCode,
   suggested_contacts: SuggestedContact,
@@ -4483,6 +4500,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  integration_logs: true,
   allergy_codes: true,
   diagnosis_codes: true,
   suggested_contacts: true,

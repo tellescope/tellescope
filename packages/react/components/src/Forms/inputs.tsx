@@ -1459,12 +1459,12 @@ export const StripeInput = ({ field, value, onChange, setCustomerId }: FormInput
 
     session.api.form_responses.stripe_details({ fieldId: field.id })
     .then(({ clientSecret, publishableKey, stripeAccount, businessName, customerId, isCheckout, answerText }) => {
+      setAnswertext(answerText || '')
       setIsCheckout(!!isCheckout)
       setClientSecret(clientSecret)
       setStripePromise(loadStripe(publishableKey, { stripeAccount }))
       setBusinessName(businessName)
       setCustomerId(customerId)
-      setAnswertext(answerText || '')
     })
     .catch(console.error)
   }, [session, value, field.id])

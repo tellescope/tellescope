@@ -889,7 +889,7 @@ export type CustomActions = {
     get_template_report: CustomAction<{ range?: DateRange }, { report: Report }>,
   },
   calendar_events: {
-    push: CustomAction<{ calendarEventId: string, destinations?: string[] }, {  }>,
+    push: CustomAction<{ calendarEventId: string, destinations?: string[] }, { event?: CalendarEvent }>,
     get_events_for_user: CustomAction<{ userId: string, from: Date, userIds?: string[], to?: Date, limit?: number }, { events: CalendarEvent[] }>, 
     load_events: CustomAction<{ userIds: string[], from: Date, to: Date, limit?: number, external?: boolean }, { events: CalendarEvent[] }>, 
     generate_meeting_link: CustomAction<{ eventId: string, enduserId: string }, { link: string }>, 
@@ -1074,7 +1074,7 @@ export type PublicActions = {
     verify_otp: CustomAction<{ token: string, code: string }, { authToken: string, enduser: Enduser }>,
   },
   users: {
-    begin_sso: CustomAction<{ provider: string }, { url: string }>,
+    begin_sso: CustomAction<{ provider: string, configurationId?: string }, { url: string }>,
     complete_sso: CustomAction<{ token: string }, { authToken: string, user: User }>,
     login: CustomAction<{ email: string, password: string, expirationInSeconds?: number }, { user: User, authToken: string }>,
     login_with_google: CustomAction<{ jwt: string }, { user: User, authToken: string }>,
@@ -3208,6 +3208,7 @@ export const schema: SchemaV1 = build_schema({
         description: "Begins an SSO login process for a specific user",
         parameters: { 
           provider: { validator: stringValidator, required: true },
+          configurationId: { validator: mongoIdStringValidator }
         },
         returns: { 
           url: { validator: stringValidator, required: true },
@@ -4881,7 +4882,9 @@ export const schema: SchemaV1 = build_schema({
           calendarEventId: { validator: mongoIdStringValidator, required: true },
           destinations: { validator: listOfStringsValidatorOptionalOrEmptyOk }
         },
-        returns: {},
+        returns: {
+          event: { validator: 'calendar_event' as any, required: true },
+        },
       },
     },
     publicActions: {
@@ -6497,6 +6500,7 @@ export const schema: SchemaV1 = build_schema({
       publicUserTags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       publicUserFilterTags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       appointmentSlotsMaxHeight: { validator: numberValidatorOptional },
+      includeRelatedContactTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       // defer to template
       // productIds: { validator: listOfStringsValidator },
     }
@@ -8082,6 +8086,22 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       code: { validator: stringValidator, required: true, examples: ['6-2754'] },
       display: { validator: stringValidator, required: true, examples: ["minocycline HCl"] },
       system: { validator: stringValidator, required: true, examples: ['http://www.fdbhealth.com/'] },
+    }
+  },
+  integration_logs: {
+    info: { description: 'Read Only' },
+    constraints: { unique: [], relationship: [], access: [] },
+    defaultActions: { read: {}, readMany: {} },
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields,
+      integration: { validator: stringValidator, readonly: true, examples: ['Canvas'] },
+      status: { validator: exactMatchValidator(['Success', 'Error']), readonly: true, examples: ['Error'] },
+      type: { validator: stringValidator, readonly: true, examples: ['Patient Create'] },
+      payload: { validator: stringValidator, readonly: true, examples: ['{}'] },
+      response: { validator: stringValidator, readonly: true, examples: ['{}'] },
+      url: { validator: stringValidator, readonly: true, examples: ['https://www.tellescope.com'] },
     }
   },
 })

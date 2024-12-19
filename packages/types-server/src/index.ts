@@ -92,6 +92,7 @@ export type CallHoldQueue = ServerModelForName['call_hold_queues']
 export type SuggestedContact = ServerModelForName['suggested_contacts']
 export type DiagnosisCode = ServerModelForName['diagnosis_codes']
 export type AllergyCode = ServerModelForName['allergy_codes']
+export type IntegrationLog = ServerModelForName['integration_logs']
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']
@@ -263,4 +264,12 @@ export interface CustomAggregation extends InternalBusinessRecord {
 }
 export interface ConferenceFlags extends InternalBusinessRecord {
   conferenceId: string,
+}
+
+export interface MicrosoftSSOConfiguration extends InternalBusinessRecord {
+  clientId: string,
+  clientSecret: string,
+  authorizationURL: string,
+  tokenURL: string,
+  authorityURL: string,
 }

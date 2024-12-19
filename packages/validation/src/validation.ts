@@ -4431,6 +4431,7 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   suggested_contacts: accessPermissionValidator,
   diagnosis_codes: accessPermissionValidator,
   allergy_codes: accessPermissionValidator,
+  integration_logs: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
@@ -4519,6 +4520,7 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   call_hold_queues: numberValidatorOptional,
   diagnosis_codes: numberValidatorOptional,
   allergy_codes: numberValidatorOptional,
+  integration_logs: numberValidatorOptional,
 }, { emptyOk: true })
 
 const _LOGIN_FLOW_RESULTS = {

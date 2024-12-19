@@ -1,5 +1,5 @@
 import { AllergyResponse, AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserInsurance, EnduserObservation, EnduserRelationship, File, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, LabeledField, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, TIMEZONES, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
-import { ADMIN_ROLE, get_inverse_relationship_type } from "@tellescope/constants"
+import { ADMIN_ROLE, CANVAS_TITLE, get_inverse_relationship_type } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 import { DateTime } from "luxon"
 
@@ -2276,3 +2276,9 @@ export const should_show_unsubmitted_form_response_for_interval = (fr: FormRespo
 
   return false
 }
+
+export const get_canvas_id = (v: Pick<Enduser, 'source' | 'externalId' | 'references'>) => (
+  (v.source === CANVAS_TITLE && v.externalId)
+    ? v.externalId
+    : v.references?.find(r => r.type === CANVAS_TITLE)?.id
+)

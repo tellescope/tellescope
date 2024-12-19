@@ -725,6 +725,7 @@ const run_generated_tests = async <N extends ModelName>({ queries, model, name, 
   || name === 'analytics_frames'
   || name === 'superbills'
   || name === 'webhooks'
+  || name === 'integration_logs' // readonly
   || name === 'automated_actions' // might process in background and cause false failure
   ) return 
   if (!defaultEnduser) defaultEnduser = await sdk.api.endusers.createOne({ email: 'default@tellescope.com', phone: "5555555555"  })
@@ -6640,6 +6641,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   prescription_routes: NO_TEST,
   portal_brandings: NO_TEST,
   message_template_snippets: NO_TEST,
+  integration_logs: NO_TEST,
 };
 
 const TRACK_OPEN_IMAGE = Buffer.from(

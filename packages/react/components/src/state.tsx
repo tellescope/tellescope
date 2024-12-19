@@ -95,6 +95,7 @@ import {
   SuggestedContact,
   DiagnosisCode,
   AllergyCode,
+  IntegrationLog,
 } from "@tellescope/types-client"
 
 import {
@@ -357,6 +358,7 @@ const faxLogsSlice = createSliceForList<FaxLog, 'fax_logs'>('fax_logs')
 const suggestedContactsSlice = createSliceForList<SuggestedContact, 'suggested_contacts'>('suggested_contacts')
 const diagnosisCodesSlice = createSliceForList<DiagnosisCode, 'diagnosis_codes'>('diagnosis_codes')
 const allergyCodesSlice = createSliceForList<AllergyCode, 'allergy_codes'>('allergy_codes')
+const integrationLogsSlice = createSliceForList<IntegrationLog, 'integration_logs'>('integration_logs')
 
 const roleBasedAccessPermissionsSlice = createSliceForList<RoleBasedAccessPermission, 'role_based_access_permissions'>('role_based_access_permissions')
 
@@ -365,6 +367,7 @@ const userLogsSlice = createSliceForList<UserLog, 'user_logs'>('user_logs')
 
 export const sharedConfig = {
   reducer: { 
+    integration_logs: integrationLogsSlice.reducer,
     ticket_queues: ticketQueuesSlice.reducer,
     automation_triggers: automationTriggersSlice.reducer,
     automated_actions: automatedActionsSlice.reducer,
@@ -1346,6 +1349,22 @@ export const useEnduserOrders = (options={} as HookOptions<EnduserOrder>) => {
       addSome: session.api.enduser_orders.createSome,
       deleteOne: session.api.enduser_orders.deleteOne,
       updateOne: session.api.enduser_orders.updateOne,
+    }, 
+    {...options}
+  )
+}
+export const useIntegrationLogs = (options={} as HookOptions<IntegrationLog>) => {
+  const session = useSession()
+  return useListStateHook(
+    'integration_logs', useTypedSelector(s => s.integration_logs), session, integrationLogsSlice, 
+    { 
+      loadQuery: session.api.integration_logs.getSome,
+      findOne: session.api.integration_logs.getOne,
+      findByIds: session.api.integration_logs.getByIds,
+      addOne: session.api.integration_logs.createOne,
+      addSome: session.api.integration_logs.createSome,
+      deleteOne: session.api.integration_logs.deleteOne,
+      updateOne: session.api.integration_logs.updateOne,
     }, 
     {...options}
   )

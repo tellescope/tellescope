@@ -218,6 +218,7 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   suggested_contacts: defaultQueries(s, 'suggested_contacts'),
   diagnosis_codes: defaultQueries(s, 'diagnosis_codes'),
   allergy_codes: defaultQueries(s, 'allergy_codes'),
+  integration_logs: defaultQueries(s, 'integration_logs'),
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
