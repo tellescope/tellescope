@@ -146,6 +146,7 @@ export interface TableHeaderProps<T extends Item> extends Styled, HorizontalPadd
   localFilters: LocalFilter[],
   setLocalFilters: React.Dispatch<React.SetStateAction<LocalFilter[]>>,
   filterSuggestions: Record<string, string[]>,
+  minColumnWidth?: number,
 }
 export const TableHeader = <T extends Item>({ 
   fields, 
@@ -165,6 +166,7 @@ export const TableHeader = <T extends Item>({
   localFilters,
   setLocalFilters,
   filterSuggestions,
+  minColumnWidth=75,
 } : TableHeaderProps<T>) => { 
   const [openFilter, setOpenFilter] = useState(-1)
   const [startX, setStartX] = useState(0)
@@ -249,7 +251,7 @@ export const TableHeader = <T extends Item>({
               justifyContent: textAlign === 'right' ? 'flex-end' : 'flex-start',
               width: (
                 typeof width === 'number'
-                  ? Math.max(75, width + (widthOffsets[key] || 0))
+                  ? Math.max(minColumnWidth, width + (widthOffsets[key] || 0))
                   : (width ?? defaultWidthForFields(fields.length))
               ), 
               alignItems: 'center',
@@ -384,6 +386,7 @@ export interface TableRowProps<T extends Item> extends Styled, HorizontalPadded,
   fontSize?: CSSProperties['fontSize']
   textStyle?: CSSProperties,
   widthOffsets: Record<string, number>,
+  minColumnWidth?: number,
 }
 export const TableRow = <T extends Item>({ 
   item, indices, fields, onClick, onPress, hover, 
@@ -400,6 +403,7 @@ export const TableRow = <T extends Item>({
   widthOffsets,
   allowUnselectItemsAfterSelectAll,
   setAllSelected,
+  minColumnWidth=75,
 } : TableRowProps<T>) => (
   <WithHover hoveredColor={hoveredColor ?? GRAY} notHoveredColor={notHoveredColor} disabled={!hover} flex>
     <Flex flex={1} alignItems="center"
@@ -442,7 +446,7 @@ export const TableRow = <T extends Item>({
             textAlign, fontSize,
             width: (
               typeof width === 'number'
-                ? Math.max(75, width + (widthOffsets[key] || 0))
+                ? Math.max(minColumnWidth, width + (widthOffsets[key] || 0))
                 : (width ?? defaultWidthForFields(fields.length))
             ), 
             // display: flex ? 'flex' : undefined,
@@ -453,7 +457,7 @@ export const TableRow = <T extends Item>({
             {get_display_value(item, key, indices, render, {
               adjustedWidth: (
                 typeof width === 'number'
-                  ? Math.max(75, width + (widthOffsets[key] || 0))
+                  ? Math.max(minColumnWidth, width + (widthOffsets[key] || 0))
                   : undefined
               )
             })}
@@ -720,6 +724,7 @@ export interface TableProps<T extends Item> extends WithTitle, WithHeader<T>, Wi
   sort?: SortingField[],
   loadMoreOptions?: LoadMoreOptions<T>,
   refreshFilterSuggestionsKey?: number,
+  minColumnWidth?: number,
 }
 export const Table = <T extends Item>({
   items,
@@ -773,6 +778,7 @@ export const Table = <T extends Item>({
 
   sort,
   refreshFilterSuggestionsKey,
+  minColumnWidth,
 }: TableProps<T> & Styled) => {
   const sortingStorageKey = (memoryId ?? '') + 'sorting'
   const cachedSortString = read_local_storage(sortingStorageKey)
@@ -1038,6 +1044,7 @@ export const Table = <T extends Item>({
               }
               : undefined
             }
+            minColumnWidth={minColumnWidth}
           />
         )}
 
@@ -1078,6 +1085,7 @@ export const Table = <T extends Item>({
                   : undefined,
             }}
             onClick={onClick} onPress={onPress} 
+            minColumnWidth={minColumnWidth}
           />
         )
       } />

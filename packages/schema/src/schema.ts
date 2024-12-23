@@ -7211,6 +7211,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       //   }]
       // },
       triggerNextAt: { validator: dateValidator },
+      tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, 
     }
   },
   superbill_providers: {
@@ -7357,6 +7358,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         validator: objectValidator<EnduserMedication['dosage']>({ 
           value: stringValidator, 
           unit: stringValidator,
+          quantity: stringValidator,
           frequency: stringValidator,
         }), 
       },
@@ -7416,6 +7418,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       enduserCondition: { validator: phoneTreeEnduserConditionValidator },
       bypassOOO: { validator: booleanValidator },
       defaultEntityType: { validator: stringValidator100 },
+      tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, 
     }
   },
   enduser_custom_types: {

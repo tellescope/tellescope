@@ -1758,7 +1758,6 @@ export const DatabaseSelectInput = ({ field, value: _value, onChange, onDatabase
     otherAnswers: get_other_answers(_value, field?.options?.other ? typing : undefined),
   })
 
-  console.log(choices, _value)
   const value = React.useMemo(() => {
     try {
       // if the value is a string (some single answer that was save), make sure we coerce to array
@@ -1794,13 +1793,15 @@ export const DatabaseSelectInput = ({ field, value: _value, onChange, onDatabase
         const v = c.values.find(_v => _v.label === field.options?.databaseFilter?.databaseLabel)?.value
         if (!v) return true
 
+        // use .text on r values to handle Database Select types as filter source (in addition to basic text and list of text)
+
         if (typeof v === 'object') {
           return !!(
             Object.values(v).find(oVal => (
               typeof oVal === 'string' || typeof oVal === 'number'
                 ? (
                   Array.isArray(filterResponse)
-                    ? (filterResponse as any[]).find(r => r === oVal.toString())
+                    ? (filterResponse as any[]).find(r => r === oVal.toString() || (typeof r === 'object' && r.text === oVal))
                 : (typeof filterResponse === 'string' || typeof filterResponse === 'number')
                     ? filterResponse.toString() === oVal.toString()
                     : false
@@ -1813,7 +1814,7 @@ export const DatabaseSelectInput = ({ field, value: _value, onChange, onDatabase
         if (typeof v === 'string' || typeof v === 'number') {
           return !!(
             Array.isArray(filterResponse)
-              ? (filterResponse as any[]).find(r => r === v.toString())
+              ? (filterResponse as any[]).find(r => r === v.toString() || (typeof r === 'object' && r.text === v))
           : (typeof filterResponse === 'string' || typeof filterResponse === 'number')
               ? filterResponse.toString() === v.toString()
               : false

@@ -4772,6 +4772,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       }),
     }),
     grouping: objectValidator<AnalyticsQueryGroupingForType['Form Responses']>({
+      "Submitted By": booleanValidatorOptional,
       "Public Identifier": booleanValidatorOptional,
       Enduser: booleanValidatorOptional,
       Gender: booleanValidatorOptional,

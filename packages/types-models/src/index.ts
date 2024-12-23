@@ -844,6 +844,7 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
   dosage?: {
     value: string,
     unit: string,
+    quantity?: string,
     frequency?: string,
   },
   notes?: string,
@@ -3260,6 +3261,7 @@ export type AnalyticsQueryGroupingForType = {
     "Scheduled By"?: boolean,
   } & EnduserGrouping & { Enduser: string },
   "Form Responses": {
+    "Submitted By"?: boolean,
     "Public Identifier"?: boolean,
   } & EnduserGrouping & { Enduser: string },
   "Purchases": { 
@@ -3764,6 +3766,7 @@ export interface PhoneTree extends PhoneTree_readonly, PhoneTree_required, Phone
   enduserCondition?: PhoneTreeEnduserCondition,
   bypassOOO?: boolean,
   defaultEntityType?: string,
+  tags?: string[],
 }
 
 export type TableViewColumn = {

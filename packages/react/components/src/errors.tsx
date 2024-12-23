@@ -30,7 +30,14 @@ export class ErrorBoundary extends React.Component<{ errorMessage?: string }, { 
   }
 }
 
-export const stringForError = (err: any) => (err as APIError)?.message ?? err?.toString() ?? 'An unexpected error occurred'
+export const stringForError = (err: any) => {
+  const toReturn = (err as APIError)?.message ?? err?.toString() ?? 'An unexpected error occurred'
+
+  // if ?.message isn't a string (by mistake), handle gracefully
+  if (typeof toReturn === 'object') { return JSON.stringify(toReturn, null, 2)}
+
+  return toReturn
+}
 
 export const parseUniquenessError = (err: any, uniquenessMessage: string) => {
   const message = stringForError(err)
