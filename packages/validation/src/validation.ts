@@ -3821,6 +3821,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     loopQueueCallSound: booleanValidatorOptional,
     showOrdersInSidebar: booleanValidatorOptional,
     showDiagnoses: booleanValidatorOptional,
+    requireObservationInvalidationReason: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -4997,6 +4998,27 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Files']>(['Created At', 'Updated At']),
     }, { isOptional: true, emptyOk: true })
   }), 
+  "Meetings": objectValidator<AnalyticsQueryForType['Meetings']>({
+    resource: exactMatchValidator<'Meetings'>(['Meetings']),
+    filter: objectValidator<AnalyticsQueryFilterForType['Meetings']>({ }, { isOptional: true, emptyOk: true }),
+    info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Meetings']]: AnalyticsQueryInfoForType['Meetings'][K] }>({
+      "Total": objectValidator<AnalyticsQueryInfoForType['Meetings']['Total']>({
+        method: exactMatchValidator<"Total">(['Total']),
+        parameters: optionalEmptyObjectValidator,
+      }),
+      "Duration": objectValidator<AnalyticsQueryInfoForType['Meetings']['Duration']>({
+        method: exactMatchValidator<"Duration">(['Duration']),
+        parameters: optionalEmptyObjectValidator,
+      }),
+    }),
+    grouping: objectValidator<AnalyticsQueryGroupingForType['Meetings']>({
+      Host: booleanValidatorOptional,
+    }, { isOptional: true, emptyOk: true }),
+    range: objectValidator<AnalyticsQueryRange<any>>({
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
+      key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Phone Calls']>(['Created At', 'Updated At']),
+    }, { isOptional: true, emptyOk: true })
+  }), 
 })
 export const analyticsQueriesValidatorOptional = listValidatorOptionalOrEmptyOk(analyticsQueryValidator)
 
@@ -5018,6 +5040,7 @@ const _ANALYTICS_QUERY_TYPES: { [K in AnalyticsQueryType]: any } = {
   Emails: true,
   Medications: true,
   Files: true,
+  Meetings: true,
 }
 export const ANALYTICS_QUERY_TYPES = Object.keys(_ANALYTICS_QUERY_TYPES) as AnalyticsQueryType[]
 export const analyticsQueryTypeValidator = exactMatchValidator<AnalyticsQueryType>(ANALYTICS_QUERY_TYPES)

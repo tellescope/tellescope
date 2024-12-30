@@ -198,6 +198,7 @@ export const getNextField = (activeField: FormFieldNode, currentValue: Response,
   urlLogicValue?: string,
   dateOfBirth?: string,
   gender?: string,
+  state?: string,
   form?: Form,
   activeResponses?: FormResponseValue[], // current and previous answers (not future answers)
 }) => {
@@ -600,6 +601,7 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
       disabled: !!(existingResponses?.find(r => r.fieldId === f.id)?.answer?.value && f.disabledWhenPrepopulated),
       // keep consistent with onFieldChange
       computedValueKey: (
+        // the height typeof is unnecessary (no actual type comparison), but don't change without testing both number and height question types
         f?.intakeField === 'height' && typeof existingResponses?.find(r => r.fieldId === f.id)?.answer?.value
           ? 'Height'
       : f?.intakeField === 'weight' && typeof existingResponses?.find(r => r.fieldId === f.id)?.answer?.value === 'number'
@@ -608,6 +610,8 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
           ? 'Date of Birth'
       : f?.intakeField === 'gender' && ['multiple_choice', 'Dropdown'].includes(existingResponses?.find(r => r.fieldId === f.id)?.answer?.type || '')
           ? 'Gender'
+      : f?.intakeField === 'Address' && existingResponses?.find(r => r.fieldId === f.id && r.answer.type === 'Address')
+          ? 'State'
           : undefined
       ) as any,  
       answer: { 
@@ -1060,6 +1064,7 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
         activeResponses: responses.filter(r => r.includeInSubmit),
         dateOfBirth: enduser?.dateOfBirth,
         gender: enduser?.gender,
+        state: enduser?.state,
       })
     )
   )
@@ -1275,6 +1280,7 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
         activeResponses: responses.filter(r => r.includeInSubmit),
         dateOfBirth: enduser?.dateOfBirth,
         gender: enduser?.gender,
+        state: enduser?.state,
       })
 
       // when autoadvancing, prevent adding duplicates by checking whether already on stack
@@ -1341,6 +1347,8 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
           ? 'Date of Birth'
       : field?.intakeField === 'gender' && (r.answer.type === 'Dropdown' || r.answer.type === 'multiple_choice')
           ? 'Gender'
+      : field?.intakeField === 'Address' && r.answer.type === 'Address'
+          ? 'State'
           : undefined
       )
     })))

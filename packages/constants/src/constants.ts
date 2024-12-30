@@ -8,6 +8,7 @@ import {
 export type EnduserField = keyof Pick<Enduser, 'email' | 'phone' | 'fname' | 'lname' | 'dateOfBirth' | 'height' | 'weight'>
 
 export const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
+  'id': "ID",
   'fname': 'First Name',
   'lname': 'Last Name',
   'email': 'Email',

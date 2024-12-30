@@ -4042,7 +4042,7 @@ export const schema: SchemaV1 = build_schema({
         },
       },
     },
-    enduserActions: {},
+    enduserActions: { read: {}, readMany: {} },
     publicActions: {
       public_form_details: {
         op: "custom", access: 'read', method: "get",
@@ -4115,6 +4115,7 @@ export const schema: SchemaV1 = build_schema({
       hideAfterUnsubmittedInMS: { validator: numberValidator },
       hideFromCompose: { validator: booleanValidator },
       enduserFieldsToAppendForSync: { validator: listOfUniqueStringsValidatorEmptyOk },
+      allowPortalSubmission: { validator: booleanValidator },
     }
   },
   form_fields: {
@@ -5502,6 +5503,7 @@ export const schema: SchemaV1 = build_schema({
       dontTrigger: { validator: booleanValidator },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
       showWithPlotsByUnit: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      invalidationReason: { validator: stringValidatorOptionalEmptyOkay },
     }
   },
   managed_content_records: {
@@ -6186,6 +6188,8 @@ export const schema: SchemaV1 = build_schema({
         }))
       },
       groups: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      canvasURL: { validator: stringValidator },
+      observationInvalidationReasons: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
     },
   },
   databases: {

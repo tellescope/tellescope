@@ -1985,7 +1985,7 @@ export const useTemplates = (options={} as HookOptions<Template>) => {
   )
 }
 export const useForms = (options={} as HookOptions<Form>) => {
-  const session = useSession()
+  const session = useResolvedSession()
   return useListStateHook(
     'forms', useTypedSelector(s => s.forms), session, formsSlice, 
     { 

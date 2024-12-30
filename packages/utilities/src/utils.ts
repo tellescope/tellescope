@@ -1,4 +1,4 @@
-import { AllergyResponse, AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserInsurance, EnduserObservation, EnduserRelationship, File, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, LabeledField, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, TIMEZONES, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
+import { AllergyResponse, AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserInsurance, EnduserObservation, EnduserRelationship, File, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerAddress, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, LabeledField, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, TIMEZONES, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
 import { ADMIN_ROLE, CANVAS_TITLE, get_inverse_relationship_type } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 import { DateTime } from "luxon"
@@ -1473,7 +1473,7 @@ export const calculate_form_scoring = ({
 }
 
 // don't change order without updating responses_satisfy_conditions calculations
-export const FORM_LOGIC_CALCULATED_FIELDS = ['Calculated: BMI', 'Calculated: Age', 'Calculated: Score', 'Gender']
+export const FORM_LOGIC_CALCULATED_FIELDS = ['Calculated: BMI', 'Calculated: Age', 'Calculated: Score', 'Gender', 'State']
 export const FORM_LOGIC_URL_PARAMETER = 'URL Logic Parameter'
 
 export const calculate_bmi = (e: Pick<Enduser, 'height' | 'weight'>) => {
@@ -1515,6 +1515,7 @@ const evaluate_response_equals = (answer: FormResponseValueAnswer, comparison: s
 export const responses_satisfy_conditions = (responses: FormResponseValue[], conditions: CompoundFilter<string>, options?: {
   dateOfBirth?: string,
   gender?: string,
+  state?: string,
   urlLogicValue?: string,
   form?: Form, // required for calculating scoring
   activeResponses?: FormResponseValue[], // current and previous answers (not future answers)
@@ -1618,6 +1619,20 @@ export const responses_satisfy_conditions = (responses: FormResponseValue[], con
           }
 
           return Gender
+        })()
+      : fieldIdOrCalculated === FORM_LOGIC_CALCULATED_FIELDS[4] // state
+        ? (() => {
+          const state = (
+            (responses.find(r => r.answer.type === 'Address' && r.computedValueKey === 'State')?.answer as FormResponseAnswerAddress)?.value?.state  
+            || options?.state 
+          )
+
+          const State: FormResponseAnswerString = {
+            type: 'string',
+            value: state || '',
+          }
+
+          return State 
         })()
       : fieldIdOrCalculated === FORM_LOGIC_URL_PARAMETER
         ? { type: 'string', value: options?.urlLogicValue || '' } as FormResponseAnswerString

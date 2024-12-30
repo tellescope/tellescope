@@ -13,7 +13,7 @@ import LinearProgress from '@mui/material/LinearProgress';
 import DatePicker from "react-datepicker";
 import { datepickerCSS } from "./css/react-datepicker" // avoids build issue with RN
 import { CancelIcon, FileBlob, IconButton, LabeledIconButton, LoadingButton, Styled, form_display_text_for_language, isDateString, useProducts, useResolvedSession } from ".."
-import { CalendarEvent, DatabaseRecord, FormField } from "@tellescope/types-client"
+import { AllergyCode, CalendarEvent, DatabaseRecord, FormField } from "@tellescope/types-client"
 import { css } from '@emotion/css'
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
@@ -2992,6 +2992,7 @@ export const AllergiesInput = ({ goToNextField, goToPreviousField, field, value,
     /> 
   )
 }
+const display_with_code = (v: { code: string, display: string }) => `${v.code}: ${first_letter_capitalized(v.display)}`
 
 export const ConditionsInput = ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'Conditions'>) => {
   const session = useResolvedSession()
@@ -3029,7 +3030,7 @@ export const ConditionsInput = ({ goToNextField, goToPreviousField, field, value
         onChange(v, field.id)
         setResults([])
       }}
-      getOptionLabel={v => first_letter_capitalized(v.display)} filterOptions={o => o}
+      getOptionLabel={display_with_code} filterOptions={o => o}
       inputValue={query} onInputChange={(e, v) => e && setQuery(v) }
       renderInput={(params) => (
         <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
@@ -3039,7 +3040,7 @@ export const ConditionsInput = ({ goToNextField, goToPreviousField, field, value
       renderTags={(value, getTagProps) =>
         value.map((value, index) => (
           <Chip
-            label={<Typography style={{whiteSpace: 'normal'}}>{value.display}</Typography>}
+            label={<Typography style={{whiteSpace: 'normal'}}>{display_with_code(value)}</Typography>}
             {...getTagProps({ index })}
             sx={{height:"100%", py: 0.5 }}
           />

@@ -195,6 +195,7 @@ export type OrganizationSettings = {
     loopQueueCallSound?: boolean,
     showOrdersInSidebar?: boolean,
     showDiagnoses?: boolean,
+    requireObservationInvalidationReason?: boolean,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
@@ -319,6 +320,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedZendesk?: boolean,
   hasConnectedZus?: boolean,
   hasConnectedCanvas?: boolean,
+  canvasURL?: string,
   hasConnectedCandid?: boolean,
   hasConnectedGoGoMeds?: boolean,
   hasConnectedPagerDuty?: boolean,
@@ -373,6 +375,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   stripePublicKeys?: string[],
   defaultDoseSpotPharmacies?: { id: string, name: string }[]
   groups?: string[],
+  observationInvalidationReasons?: string[],
   // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {
@@ -1628,6 +1631,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   hideAfterUnsubmittedInMS?: number,
   hideFromCompose?: boolean,
   enduserFieldsToAppendForSync?: string[],
+  allowPortalSubmission?: boolean,
 }
 
 export interface FormGroup_readonly extends ClientRecord {}
@@ -1905,7 +1909,7 @@ export type FormResponseValue = {
   isCalledOut?: boolean,
   disabled?: boolean,
   isHighlightedOnTimeline?: boolean,
-  computedValueKey?: 'Height' | 'Weight' | 'Date of Birth' | "Gender",
+  computedValueKey?: 'Height' | 'Weight' | 'Date of Birth' | "Gender" | "State",
   intakeField?: string,
 }
 
@@ -2787,6 +2791,7 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
   beforeMeal?: boolean,
   dontTrigger?: boolean,
   showWithPlotsByUnit?: string[],
+  invalidationReason?: string,
 }
 
 export type BlockType = 'h1' | 'h2' | 'html' | 'image' | 'youtube' | 'pdf' | 'iframe' | 'content-link'
@@ -3188,6 +3193,10 @@ export type AnalyticsQueryInfoForType = {
     Total:  AnalyticsQueryInfoBuilder<'Total', undefined>,
     Duration:  AnalyticsQueryInfoBuilder<'Duration', undefined>,
   },
+  "Meetings": { 
+    Total: AnalyticsQueryInfoBuilder<'Total', undefined>,
+    Duration: AnalyticsQueryInfoBuilder<'Duration', undefined>,
+  },
 }
 export type AnalyticsQueryInfoType = keyof AnalyticsQueryInfoForType
 export type AnalyticsQueryInfo = AnalyticsQueryInfoForType[AnalyticsQueryInfoType]
@@ -3233,6 +3242,7 @@ export type AnalyticsQueryFilterForType = {
     closeReasons?: string[],
   },
   "Phone Calls": { },
+  "Meetings": { },
   "SMS Messages": { 
     direction?: string,
     messages?: string[],
@@ -3280,6 +3290,7 @@ export type AnalyticsQueryGroupingForType = {
   "Emails": {} & EnduserGrouping & { Enduser: string },
   "Medications": {} & EnduserGrouping & { Enduser: string },
   "Files": {} & EnduserGrouping & { Enduser: string },
+  "Meetings": { Host?: boolean },  
 }
 
 type DefaultRangeKey = 'Created At' | 'Updated At'
@@ -3295,6 +3306,7 @@ export type AnalyticsQueryRangeKeyForType = {
   "Emails": DefaultRangeKey,
   "Medications": DefaultRangeKey,
   "Files": DefaultRangeKey,
+  "Meetings": DefaultRangeKey,
 }
 export type RangeKey = DefaultRangeKey | 'Submitted At' | "Closed At"
 
@@ -3389,6 +3401,13 @@ export type AnalyticsQueryForType = {
     AnalyticsQueryGroupingForType['Files'],
     AnalyticsQueryRangeKeyForType['Files']
   >,
+  "Meetings": AnalyticsQueryBuilder<
+    "Meetings", 
+    AnalyticsQueryInfoForType['Meetings'][keyof AnalyticsQueryInfoForType['Meetings']],
+    AnalyticsQueryFilterForType['Meetings'],
+    AnalyticsQueryGroupingForType['Meetings'],
+    AnalyticsQueryRangeKeyForType['Meetings']
+  >,
 }
 export type AnalyticsQueryType = keyof AnalyticsQueryForType
 export type AnalyticsQuery = AnalyticsQueryForType[AnalyticsQueryType]
@@ -3405,6 +3424,7 @@ export const resource_to_modelName: { [K in AnalyticsQueryType] : ModelName } = 
   Emails: "emails",
   Medications: "enduser_medications",
   Files: "files",
+  Meetings: "meetings",
 }
 
 export type AnalyticsQueryOptions = {

@@ -56,6 +56,7 @@ type EnduserAccessibleModels = (
   | 'enduser_problems'
   | 'diagnosis_codes'
   | 'allergy_codes'
+  | 'forms'
 )
 
 export const defaultQueries = <N extends keyof ClientModelForName>(
@@ -264,6 +265,7 @@ const loadDefaultQueries = (s: EnduserSession): { [K in EnduserAccessibleModels]
   enduser_problems: defaultQueries(s, 'enduser_problems'), 
   diagnosis_codes: defaultQueries(s, 'diagnosis_codes'), 
   allergy_codes: defaultQueries(s, 'allergy_codes'), 
+  forms: defaultQueries(s, 'forms'), 
 })
 
 
@@ -331,10 +333,8 @@ export class EnduserSession extends Session {
 
     this.api.managed_content_records.search = args => this._POST(`/v1${schema.managed_content_records.customActions.search.path}`, args)
 
-    this.api.forms = {
-      public_form_details: args => this._GET(`/v1${schema.forms.publicActions.public_form_details.path}`, args)
-    }
-
+    this.api.forms.public_form_details = args => this._GET(`/v1${schema.forms.publicActions.public_form_details.path}`, args)
+  
     this.api.sms_messages = {
       leave_message: args => this._POST(`/v1${schema.sms_messages.publicActions.leave_message.path}`, args)
     }
