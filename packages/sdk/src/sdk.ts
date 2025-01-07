@@ -674,6 +674,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
   },
   calendar_events: {
+    session_for_start_link: (args: extractFields<PublicActions['calendar_events']['session_for_start_link']['parameters']>) => (
+      Promise<extractFields<PublicActions['calendar_events']['session_for_start_link']['returns']>>
+    ),
     push: (args: extractFields<CustomActions['calendar_events']['push']['parameters']>) => (
       Promise<extractFields<CustomActions['calendar_events']['push']['returns']>>
     ),
@@ -942,6 +945,7 @@ export class Session extends SessionManager {
     queries.emails.send_with_template = a => this._POST(`/v1/${schema.emails.customActions.send_with_template.path}`, a)
     queries.emails.get_template_report = a => this._GET(`/v1/${schema.emails.customActions.get_template_report.path}`, a)
     
+    queries.calendar_events.session_for_start_link = a => this._GET(`/v1${schema.calendar_events.publicActions.session_for_start_link.path}`, a)
     queries.calendar_events.get_events_for_user = a => this._GET(`/v1/${schema.calendar_events.customActions.get_events_for_user.path}`, a)
     queries.calendar_events.load_events = a => this._GET(`/v1/${schema.calendar_events.customActions.load_events.path}`, a)
     queries.calendar_events.generate_meeting_link = a => this._POST(`/v1/${schema.calendar_events.customActions.generate_meeting_link.path}`, a)

@@ -492,6 +492,7 @@ export const InsuranceInput = ({ field, value, onChange, form, responses, enduse
   const session = useResolvedSession()
 
   const [payers, setPayers] = useState<{ id: string, name: string, type?: string, state?: string }[]>([])
+  const [query, setQuery] = useState('')
 
   const addressQuestion = useMemo(() => responses?.find(r => {
     if (r.answer.type !== 'Address') return false
@@ -509,6 +510,7 @@ export const InsuranceInput = ({ field, value, onChange, form, responses, enduse
 
   const loadRef = useRef(false) // so session changes don't cause
   useEffect(() => {
+    if (field?.options?.dataSource === CANVAS_TITLE) return // instead, look-up while typing against Canvas Search API
     if (loadRef.current) return
     loadRef.current = true
 
@@ -525,7 +527,30 @@ export const InsuranceInput = ({ field, value, onChange, form, responses, enduse
       .filter(c => !c.state || !state || (c.state === state))
     ))
     .catch(console.error)
-  }, [session, state])
+  }, [session, state, field?.options?.dataSource])
+
+  const searchRef = useRef(query)
+  useEffect(() => {
+    if (field?.options?.dataSource !== CANVAS_TITLE) { return }
+    if (!query) return
+    if (searchRef.current === query) return
+    searchRef.current = query
+
+    session.api.integrations.proxy_read({
+      integration: CANVAS_TITLE,
+      query,
+      type: 'organizations',
+    })
+    .then(({ data }) => {
+      try {
+        setPayers(data.map((d: any) => ({
+          id: d.resource.id,
+          name: d.resource.name,
+        })))
+      } catch(err) { console.error }
+    })
+    .catch(console.error)
+  }, [session, field?.options?.dataSource, query])
 
   return (
     <Grid container spacing={2} sx={{ mt: '0' }}>
@@ -538,12 +563,20 @@ export const InsuranceInput = ({ field, value, onChange, form, responses, enduse
           payerId: payers.find(p => p.name === v)?.id || '',
           payerType: payers.find(p => p.name === v)?.type || '',
         }, field.id)}  
-        onInputChange={field.options?.requirePredefinedInsurer ? undefined : (e, v) => onChange({ 
-          ...value, 
-          payerName: v || '',
-          payerId: payers.find(p => p.name === v)?.id || '',
-          payerType: payers.find(p => p.name === v)?.type || '',
-        }, field.id)}
+        onInputChange={
+          field.options?.requirePredefinedInsurer 
+            ? (e, v) => { if (v) { setQuery(v) } }
+            : (e, v) => {
+              if (v) { setQuery(v) }
+
+              onChange({ 
+                ...value, 
+                payerName: v || '',
+                payerId: payers.find(p => p.name === v)?.id || '',
+                payerType: payers.find(p => p.name === v)?.type || '',
+              }, field.id)
+            }
+          }
         renderInput={(params) => (
           <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
             required={!field.isOptional} size="small"  label="Insurer"
@@ -596,7 +629,11 @@ export const InsuranceInput = ({ field, value, onChange, form, responses, enduse
       <Grid item xs={12}>
         <StringSelector size="small" label="Relationship to Policy Owner"
           options={
-            (field.options?.billingProvider === 'Canvas' ? INSURANCE_RELATIONSHIPS_CANVAS : INSURANCE_RELATIONSHIPS)
+            (
+              (field.options?.billingProvider === CANVAS_TITLE || field.options?.dataSource === CANVAS_TITLE )
+                ? INSURANCE_RELATIONSHIPS_CANVAS 
+                : INSURANCE_RELATIONSHIPS
+            )
             .sort((x, y) => x.localeCompare(y))
           }
           value={value?.relationship || 'Self'} 
@@ -809,13 +846,14 @@ export const InsuranceInput = ({ field, value, onChange, form, responses, enduse
 }
 
 
-const StringSelector = ({ options, value, onChange, required, ...props } : {
+const StringSelector = ({ options, value, onChange, required, getDisplayValue, ...props } : {
   options: string[]
   value: string,
   onChange: (v: string) => void,
   label?: string,
   size?: "small",
   required?: boolean,
+  getDisplayValue?: (v: string) => string,
 }) => (
   <FormControl fullWidth size={props.size} required={required}>
     <InputLabel>{props.label}</InputLabel>
@@ -823,7 +861,7 @@ const StringSelector = ({ options, value, onChange, required, ...props } : {
       sx={defaultInputProps.sx}
     >
     {options.map((o, i) => (
-      <MenuItem value={o} key={o || i}>{o}</MenuItem>
+      <MenuItem value={o} key={o || i}>{getDisplayValue?.(o) ?? o}</MenuItem>
     ))}
     </Select>
   </FormControl>
@@ -886,7 +924,9 @@ export const AddressInput = ({ field, form, value, onChange, ...props }: FormInp
         )}
         renderInput={(params) => (
           <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
-            size={'small'} required={!field.isOptional}  
+            required={!field.isOptional}  
+            // don't use 'small' so as to be consistent with other text fields, in case this is used in a group
+            // size={'small'} 
             label={form_display_text_for_language(form, "State")} 
           />
         )}
@@ -2966,30 +3006,61 @@ export const AllergiesInput = ({ goToNextField, goToPreviousField, field, value,
   }, [session, query, field?.options?.dataSource])
 
   return (
-    <Autocomplete multiple value={value || []} options={results} style={{ marginTop: 5 }}
-      noOptionsText={query.length ? 'No results found' : 'Type to start search'}
-      onChange={(e, v) => {
-        if (!v) { return }
-        onChange(v, field.id)
-        setResults([])
-      }}
-      getOptionLabel={v => first_letter_capitalized(v.display)} filterOptions={o => o}
-      inputValue={query} onInputChange={(e, v) => e && setQuery(v) }
-      renderInput={(params) => (
-        <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
-          required={!field.isOptional} size="small" label="" placeholder="Search allergies..."
-        />
-      )}
-      renderTags={(value, getTagProps) =>
-        value.map((value, index) => (
-          <Chip
-            label={<Typography style={{whiteSpace: 'normal'}}>{value.display}</Typography>}
-            {...getTagProps({ index })}
-            sx={{height:"100%", py: 0.5 }}
+    <Grid container direction="column" spacing={1}>
+      <Grid item>
+      <Autocomplete multiple value={value || []} options={results} style={{ marginTop: 5 }}
+        noOptionsText={query.length ? 'No results found' : 'Type to start search'}
+        onChange={(e, v) => {
+          if (!v) { return }
+          onChange(v, field.id)
+          setResults([])
+        }}
+        getOptionLabel={v => first_letter_capitalized(v.display)} filterOptions={o => o}
+        inputValue={query} onInputChange={(e, v) => e && setQuery(v) }
+        renderInput={(params) => (
+          <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
+            required={!field.isOptional} size="small" label="" placeholder="Search allergies..."
           />
-        ))
-      }
-    /> 
+        )}
+        renderTags={(value, getTagProps) =>
+          value.map((value, index) => (
+            <Chip
+              label={<Typography style={{whiteSpace: 'normal'}}>{value.display}</Typography>}
+              {...getTagProps({ index })}
+              sx={{height:"100%", py: 0.5 }}
+            />
+          ))
+        }
+      /> 
+      </Grid>
+
+      {(value || []).map((allergy, i) => (
+        <Grid item key={i}>
+        <Grid container alignItems="center" wrap="nowrap" columnGap={0.5} justifyContent={"space-between"}>
+          <Grid item>
+            <Typography noWrap sx={{ width: 85, fontSize: 14 }}>
+              {allergy.display}
+            </Typography>
+          </Grid>
+
+          <Grid item sx={{ width: 140 }}>
+            <StringSelector options={['mild', 'moderate', 'severe']} size="small" label="Severity"
+              value={allergy.severity || ''}
+              onChange={severity => onChange((value || []).map((v, _i) => i === _i ? { ...v, severity } : v), field.id)}
+              getDisplayValue={first_letter_capitalized}
+            />
+          </Grid>
+
+          <Grid item sx={{ width: "50%" }}>
+            <TextField InputProps={{ sx: defaultInputProps.sx }} fullWidth size="small" label="Note"
+              value={allergy.note || ''} 
+              onChange={e => onChange((value || []).map((v, _i) => i === _i ? { ...v, note: e.target.value } : v), field.id)}
+            />
+          </Grid>
+        </Grid>
+        </Grid>
+      ))}
+    </Grid>
   )
 }
 const display_with_code = (v: { code: string, display: string }) => `${v.code}: ${first_letter_capitalized(v.display)}`

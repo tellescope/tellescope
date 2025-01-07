@@ -298,6 +298,9 @@ import {
   FormResponseAnswerAllergies,
   AllergyResponse,
   FormResponseAnswerConditions,
+  ActiveCampaignAddToListsAutomationAction,
+  BaseResponse,
+  ConditionResponse,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -2100,13 +2103,15 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
         code: stringValidator100,
         display: stringValidator,
         system: stringValidatorOptional,
+        note: stringValidatorOptional,
+        severity: stringValidatorOptional,
       })
     ),
   }),
   "Conditions": objectValidator<FormResponseAnswerConditions>({
     type: exactMatchValidator(['Conditions']),
     value: listValidatorOptionalOrEmptyOk(
-      objectValidator<AllergyResponse>({
+      objectValidator<ConditionResponse>({
         code: stringValidator100,
         display: stringValidator,
         system: stringValidator1000,
@@ -2383,6 +2388,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   completeTickets: '',
   changeContactType: '',
   activeCampaignSync: '',
+  activeCampaignAddToLists: '',
   switchToRelatedContact: '',
   canvasSync: '',
   elationSync: '',
@@ -2932,6 +2938,13 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     type: exactMatchValidator(['activeCampaignSync']),
     info: objectValidator<ActiveCampaignSyncAutomationAction['info']>({ }, { emptyOk: true }),
   }),
+  activeCampaignAddToLists: objectValidator<ActiveCampaignAddToListsAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['activeCampaignAddToLists']),
+    info: objectValidator<ActiveCampaignAddToListsAutomationAction['info']>({
+      listIds: listOfStringsValidator,
+    }),
+  }),
   switchToRelatedContact: objectValidator<SwitchToRelatedContactAutomationAction>({
     continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['switchToRelatedContact']),
@@ -3206,6 +3219,10 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   canvasConsentCategory: objectValidator<CanvasConsentCategory>({
     code: stringValidator,
     display: stringValidator,
+    system: stringValidator,
+  }, { isOptional: true, emptyOk: true }),
+  canvasDocumentCoding: objectValidator<FormFieldOptions['canvasDocumentCoding']>({
+    code: stringValidator,
     system: stringValidator,
   }, { isOptional: true, emptyOk: true }),
   customPriceMessage: stringValidatorOptional,
@@ -4204,6 +4221,7 @@ const _AUTOMATION_TRIGGER_ACTION_TYPES: { [K in AutomationTriggerActionType]: an
   "Remove From All Journeys": true,
   "Canvas: Add Patient": true,
   "Zus: Delete Enrollment": true,
+  "Require Form Followups": true,
 }
 export const AUTOMATION_TRIGGER_ACTION_TYPES = Object.keys(_AUTOMATION_TRIGGER_ACTION_TYPES) as AutomationTriggerActionType[]
 
@@ -4279,6 +4297,12 @@ export const automationTriggerActionValidator = orValidator<{ [K in AutomationTr
     type: exactMatchValidator(['Zus: Delete Enrollment']),
     info: objectValidator<AutomationTriggerActions['Zus: Delete Enrollment']['info']>({
       packageId: stringValidator100,
+    }),
+  }), 
+  "Require Form Followups": objectValidator<AutomationTriggerActions["Require Form Followups"]>({
+    type: exactMatchValidator(['Require Form Followups']),
+    info: objectValidator<AutomationTriggerActions['Require Form Followups']['info']>({
+      formIds: listOfUniqueStringsValidatorEmptyOk,
     }),
   }), 
 })
@@ -5161,6 +5185,13 @@ export const enduserProfileViewBlockValidator = orValidator<{ [K in EnduserProfi
     ...sharedEnduserProfileViewBlockFields,
     type: exactMatchValidator(['Diagnoses']),
     info: objectValidator<EnduserProfileViewBlocks['Diagnoses']['info']>({
+      title: stringValidator100,
+    }),
+  }), 
+  "Timeline": objectValidator<EnduserProfileViewBlocks["Timeline"]>({
+    ...sharedEnduserProfileViewBlockFields,
+    type: exactMatchValidator(['Timeline']),
+    info: objectValidator<EnduserProfileViewBlocks['Timeline']['info']>({
       title: stringValidator100,
     }),
   }), 

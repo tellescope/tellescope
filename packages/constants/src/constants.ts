@@ -1025,4 +1025,16 @@ export const BUILT_INS_FOR_SET_FIELDS: (keyof Enduser)[] = [
 export const BUILT_IN_BOOLEANS_FOR_SET_FIELDS: (keyof Enduser)[] = [
   "useDefaultFromPhoneInAutomations",
   "useDefaultFromEmailInAutomations",
+  'lockedFromPortal',
+]
+
+export const DOCUMENT_REFERENCE_CODINGS = [
+  {
+    "system": "http://schemas.canvasmedical.com/fhir/document-reference-category",
+    "code": "patientadministrativedocument"
+  },
+  {
+    "system": "http://schemas.canvasmedical.com/fhir/document-reference-category",
+    "code": "uncategorizedclinicaldocument"
+  },
 ]

@@ -340,9 +340,10 @@ export interface ModalProps extends Styled {
   setOpen: (b: boolean) => void,
   onClick?: () => void,
   ref?: any,
+  zIndex?: number,
 }
-export const Modal = ({ children, onClick, open, setOpen, style=defaultModalStyle }: ModalProps) => (
-  <MuiModal open={open} onClick={onClick} onClose={() => setOpen(false)}>
+export const Modal = ({ children, onClick, open, setOpen, style=defaultModalStyle, zIndex }: ModalProps) => (
+  <MuiModal open={open} onClick={onClick} onClose={() => setOpen(false)} style={{ zIndex }}>
   <Grid container style={style}>
     {children}
   </Grid>

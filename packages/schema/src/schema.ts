@@ -71,6 +71,7 @@ import {
   SendWebhookAutomationAction,
   Addendum,
   GroupCancellation,
+  FormResponseFollowup,
 } from "@tellescope/types-models"
 
 import {
@@ -744,7 +745,7 @@ export type CustomActions = {
     add_to_journey: CustomAction<{ enduserIds: string[], journeyId: string, startAt?: Date, automationStepId?: string, journeyContext?: JourneyContext, throttle?: boolean, source?: string }, { }>, 
     remove_from_journey: CustomAction<{ enduserIds: string[], journeyId: string }, { }>, 
     merge: CustomAction<{ sourceEnduserId: string, destinationEnduserId: string, }, { }>, 
-    push: CustomAction<{ enduserId: string, destinations?: string[] }, { fullscriptRedirectURL?: string, vital_user_id?: string }>,
+    push: CustomAction<{ enduserId: string, destinations?: string[], externalIds?: string[] }, { fullscriptRedirectURL?: string, vital_user_id?: string }>,
     bulk_update: CustomAction<
       { ids: string[], state?: string, fields?: CustomFields, pushTags?: string[], replaceTags?: string[], updateAccessTags?: boolean, customTypeId?: string }, 
       { updated: Enduser[] }
@@ -1108,6 +1109,7 @@ export type PublicActions = {
     }, { accessCode: string, authToken: string, url: string, path: string, enduserId: string }>,
   },
   calendar_events: {
+    session_for_start_link: CustomAction<{ token: string }, { authToken: string, eventId: string }>,
     session_for_public_appointment_booking: CustomAction<{ 
       fname?: string, 
       lname?: string, 
@@ -1406,6 +1408,7 @@ export const schema: SchemaV1 = build_schema({
         redactions: ['enduser']
       },
       unsubscribedFromPhones: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay, redactions: ['enduser'] },
+      lockedFromPortal: { validator: booleanValidator },
       // recentMessagePreview: { 
       //   validator: stringValidator,
       // },
@@ -1559,6 +1562,7 @@ export const schema: SchemaV1 = build_schema({
         parameters: {
           enduserId: { validator: mongoIdStringValidator, required: true },
           destinations: { validator: listOfStringsValidatorOptionalOrEmptyOk, },
+          externalIds: { validator: listOfStringsValidatorOptionalOrEmptyOk, },
         },
         returns: {
           fullscriptRedirectURL: { validator: stringValidator },
@@ -4297,7 +4301,14 @@ export const schema: SchemaV1 = build_schema({
           timestamp: dateValidator,
           userId: mongoIdStringRequired,
         }))
-      }
+      },
+      followups: { 
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<FormResponseFollowup>({ 
+          formId: mongoIdStringRequired,
+          formResponseId: mongoIdStringOptional,
+          completedAt: dateValidatorOptional,
+        }))
+      },
     },
     defaultActions: DEFAULT_OPERATIONS,
     enduserActions: { 
@@ -4668,7 +4679,7 @@ export const schema: SchemaV1 = build_schema({
   calendar_events: {
     info: {},
     constraints: {
-      unique: [], 
+      unique: ['startLinkToken'], 
       access: [
         { type: 'filter', field: 'attendees.id' }, 
       ],
@@ -4889,6 +4900,19 @@ export const schema: SchemaV1 = build_schema({
       },
     },
     publicActions: {
+      session_for_start_link: {
+        op: "custom", access: 'read', method: "get",
+        path: '/calendar-events/session-link',
+        name: 'Gets Link Info',
+        description: "Gets session and event details for a start link",
+        parameters: { 
+          token: { validator: stringValidator, required: true }
+        },
+        returns: {
+          authToken: { validator: stringValidator250, required: true },
+          eventId: { validator: mongoIdStringValidator, required: true },
+        },
+      },
       session_for_public_appointment_booking: {
         op: "custom", access: 'create', method: "post",
         path: '/session-for-public-appointment-booking',
@@ -5071,6 +5095,7 @@ export const schema: SchemaV1 = build_schema({
       dontBlockAvailability: { validator: booleanValidator },
       previousStartTimes: { validator: listOfNumbersValidatorUniqueOptionalOrEmptyOkay },
       requirePortalCancelReason: { validator: booleanValidator },
+      startLinkToken: { validator: stringValidator250 },
     }
   },
   calendar_event_templates: {

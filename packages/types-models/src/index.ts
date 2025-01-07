@@ -800,6 +800,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   stripeKey?: string,
   lastDoseSpotSyncAt?: Date,
   diagnoses?: EnduserDiagnosis[]
+  lockedFromPortal?: boolean,
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
 }
@@ -1512,6 +1513,7 @@ export type FormFieldOptions = FormFieldValidation & {
   saveIntakeOnPartial?: boolean,
   stripeKey?: string, // publishable key of custom stripe API keys
   dataSource?: string, // e.g. Canvas for Allergies
+  canvasDocumentCoding?: Pick<CanvasCoding, 'system' | 'code'>
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
@@ -1810,11 +1812,16 @@ export type MedicationResponse = {
   reasonForTaking?: string,
 }
 
-export type AllergyResponse = {
+export type BaseResponse = {
   display: string,
   code: string,
   system?: string,
 }
+export type AllergyResponse = BaseResponse & {
+  severity?: string,
+  note?: string,
+}
+export type ConditionResponse = BaseResponse
 
 export type FormResponseAnswerTable = FormResponseValueAnswerBuilder<'Table Input', TableInputCell[][]>
 export type FormResponseAnswerGroup = FormResponseValueAnswerBuilder<'Question Group', FormSubField[]>
@@ -1837,7 +1844,7 @@ export type FormResponseAnswerInsurance = FormResponseValueAnswerBuilder<'Insura
 export type FormResponseAnswerHeight = FormResponseValueAnswerBuilder<'Height', { feet: number, inches: number }>
 export type FormResponseAnswerRedirect = FormResponseValueAnswerBuilder<'Redirect', string>
 export type FormResponseAnswerAllergies = FormResponseValueAnswerBuilder<'Allergies', AllergyResponse[]>
-export type FormResponseAnswerConditions = FormResponseValueAnswerBuilder<'Conditions', AllergyResponse[]>
+export type FormResponseAnswerConditions = FormResponseValueAnswerBuilder<'Conditions', ConditionResponse[]>
 
 export type FormResponseAnswerSignatureValue = {
   fullName: string,
@@ -1950,6 +1957,11 @@ export type Addendum = {
   userId: string,
   text: string,
 }
+export type FormResponseFollowup = {
+  formId: string,
+  formResponseId?: string,
+  completedAt?: Date,
+}
 
 export interface FormResponse_readonly extends ClientRecord {
   openedAt?: Date,
@@ -1975,6 +1987,7 @@ export interface FormResponse_required {
   dateOfBirth?: string,
   gender?: TellescopeGender,
   customTypeId?: string,
+  followups?: FormResponseFollowup[],
 }
 export interface FormResponse_updatesDisabled {
   submissionExpiresAt?: number,
@@ -2174,6 +2187,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   dontBlockAvailability?: boolean,
   previousStartTimes?: (number | string)[],
   requirePortalCancelReason?: boolean,
+  startLinkToken?: string,
   // isAllDay?: boolean,
 }
 
@@ -2651,6 +2665,7 @@ export type HealthieSendChatAutomationAction = AutomationActionBuilder<'healthie
 export type CompleteTicketsAutomationAction = AutomationActionBuilder<'completeTickets', { journeyIds?: string[] }>
 export type ChangeContactTypeAutomationAction = AutomationActionBuilder<'changeContactType', { type: string }>
 export type ActiveCampaignSyncAutomationAction = AutomationActionBuilder<'activeCampaignSync', { }>
+export type ActiveCampaignAddToListsAutomationAction = AutomationActionBuilder<'activeCampaignAddToLists', { listIds: string[] }>
 export type SwitchToRelatedContactAutomationAction = AutomationActionBuilder<'switchToRelatedContact', { type: string, otherTypes?: string[] }>
 export type ElationSyncAutomationAction = AutomationActionBuilder<'elationSync', { }>
 export type CanvasSyncAutomationAction = AutomationActionBuilder<'canvasSync', {}>
@@ -2714,6 +2729,7 @@ export type AutomationActionForType = {
   'completeTickets': CompleteTicketsAutomationAction,
   'changeContactType': ChangeContactTypeAutomationAction,
   activeCampaignSync: ActiveCampaignSyncAutomationAction,
+  activeCampaignAddToLists: ActiveCampaignAddToListsAutomationAction,
   switchToRelatedContact: SwitchToRelatedContactAutomationAction,
   'elationSync': ElationSyncAutomationAction,
   canvasSync: CanvasSyncAutomationAction,
@@ -3525,6 +3541,7 @@ export type EnduserProfileViewBlocks = {
   "Labs": EnduserProfileViewBlockBuilder<"Labs", { title: string }>,
   "Medications": EnduserProfileViewBlockBuilder<"Medications", { title: string }>,
   "Diagnoses": EnduserProfileViewBlockBuilder<"Diagnoses", { title: string }>,
+  "Timeline": EnduserProfileViewBlockBuilder<"Timeline", { title: string }>,
 }
 export type EnduserProfileViewBlockType = keyof EnduserProfileViewBlocks
 export type EnduserProfileViewBlock = EnduserProfileViewBlocks[EnduserProfileViewBlockType]
@@ -3564,6 +3581,9 @@ export type AutomationTriggerActions = {
   "Zus: Delete Enrollment": AutomationTriggerActionBuilder<'Zus: Delete Enrollment', { packageId: string }>, 
   "Remove Care Team": AutomationTriggerActionBuilder<'Remove Care Team', { 
     tags: ListOfStringsWithQualifier,
+  }>, 
+  "Require Form Followups": AutomationTriggerActionBuilder<'Require Form Followups', { 
+    formIds: string[],
   }>, 
 }
 export type AutomationTriggerActionType = keyof AutomationTriggerActions

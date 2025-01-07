@@ -372,7 +372,7 @@ export const QuestionForField = ({
 
       {field.type !== 'Question Group' &&
         <Typography color="error" style={{ marginTop: 3, height: 10, fontSize: 14, marginBottom: -10 }}> 
-          {(validationMessage === 'A response is required' || validationMessage === 'A value must be checked' || validationMessage === 'A file is required')
+          {(validationMessage === 'A response is required' || validationMessage === 'A value must be checked' || validationMessage === 'A file is required' || 'Enter a valid phone number' || 'Insurer is required')
             ? value.touched 
               ? form_display_text_for_language(form, validationMessage)
               : null 
