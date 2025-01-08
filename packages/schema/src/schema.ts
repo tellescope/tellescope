@@ -1446,6 +1446,7 @@ export const schema: SchemaV1 = build_schema({
         name: 'Add to journey',
         path: '/add-endusers-to-journey',
         description: "Adds (or restarts) endusers in a journey",
+        warnings: ["The maximum number of enduserIds per call is 1000 (the default size limit of all array fields)"],
         parameters: { 
           enduserIds: { validator: listOfMongoIdStringValidator, required: true },
           journeyId: { validator: mongoIdStringValidator, required: true },
@@ -2417,6 +2418,7 @@ export const schema: SchemaV1 = build_schema({
       },
       readBy: { validator: idStringToDateValidator },
       hiddenBy: { validator: idStringToDateValidator },
+      hiddenForAll: { validator: booleanValidator },
       templateId: { validator: mongoIdStringValidator },
       automationStepId: { validator: mongoIdStringValidator },
       linkOpenTrackingIds: {
@@ -2681,6 +2683,7 @@ export const schema: SchemaV1 = build_schema({
       },
       readBy: { validator: idStringToDateValidator },
       hiddenBy: { validator: idStringToDateValidator },
+      hiddenForAll: { validator: booleanValidator },
       templateId: { validator: mongoIdStringValidator },
       automationStepId: { validator: mongoIdStringValidator },
       linkOpenTrackingIds: {
@@ -2916,6 +2919,7 @@ export const schema: SchemaV1 = build_schema({
       },
       readBy: { validator: idStringToDateValidator },
       hiddenBy: { validator: idStringToDateValidator },
+      hiddenForAll: { validator: booleanValidator },
       attachments: {
         validator: listOfChatAttachmentsValidator,
       },
@@ -4309,6 +4313,7 @@ export const schema: SchemaV1 = build_schema({
           completedAt: dateValidatorOptional,
         }))
       },
+      canvasEncounterId: { validator: stringValidator100 },
     },
     defaultActions: DEFAULT_OPERATIONS,
     enduserActions: { 
@@ -5096,6 +5101,7 @@ export const schema: SchemaV1 = build_schema({
       previousStartTimes: { validator: listOfNumbersValidatorUniqueOptionalOrEmptyOkay },
       requirePortalCancelReason: { validator: booleanValidator },
       startLinkToken: { validator: stringValidator250 },
+      canvasEncounterId: { validator: stringValidator100 },
     }
   },
   calendar_event_templates: {
@@ -6909,6 +6915,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
       readBy: { validator: idStringToDateValidator },
       hiddenBy: { validator: idStringToDateValidator },
+      hiddenForAll: { validator: booleanValidator },
       ticketIds: { validator: listOfStringsValidatorEmptyOk },
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
@@ -7003,6 +7010,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       showEllipsis: { validator: booleanValidator },
       orderedLabels: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       overrideGlobalRange: { validator: booleanValidator },
+      visibleForRoles: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      visibleForUserIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
     },
   },
   availability_blocks: {
@@ -7377,6 +7386,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       startedTakingAt: { validator: dateOptionalOrEmptyStringValidator },
       stoppedTakingAt: { validator: dateOptionalOrEmptyStringValidator },
       rxNormCode: { validator: stringValidator },
+      fdbCode: { validator: stringValidator },
       dispensing: {
         validator: objectValidator<EnduserMedication['dispensing']>({ 
           quantity: numberValidator,
@@ -7389,6 +7399,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           unit: stringValidator,
           quantity: stringValidator,
           frequency: stringValidator,
+          frequencyDescriptor: stringValidatorOptional,
         }), 
       },
       source: { validator: stringValidator1000Optional },
@@ -7582,6 +7593,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       inbound: { validator: booleanValidator },
       readBy: { validator: idStringToDateValidator },
       hiddenBy: { validator: idStringToDateValidator },
+      hiddenForAll: { validator: booleanValidator },
       ticketIds: { validator: listOfStringsValidatorEmptyOk },
       group: { validator: stringValidator250 },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
@@ -7690,6 +7702,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       tags: { validator: listOfStringsValidatorEmptyOk },
       suggestedReply: { validator: stringValidator5000EmptyOkay },
       hiddenBy: { validator: idStringToDateValidator },
+      hiddenForAll: { validator: booleanValidator },
       assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
     },

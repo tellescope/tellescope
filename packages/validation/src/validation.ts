@@ -2086,12 +2086,14 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
         otherDrug: stringValidatorOptionalEmptyOkay,
         NDCs: listOfStringsValidatorOptionalOrEmptyOk,
         rxNormCode: stringValidatorOptionalEmptyOkay,
+        fdbCode: stringValidatorOptionalEmptyOkay,
         reasonForTaking: stringValidatorOptionalEmptyOkay,
         dosage: objectValidator<MedicationResponse['dosage']>({
           value: stringValidatorOptionalEmptyOkay,
           unit: stringValidatorOptionalEmptyOkay,
           quantity: stringValidatorOptionalEmptyOkay,
           frequency: stringValidatorOptionalEmptyOkay,
+          frequencyDescriptor: stringValidatorOptionalEmptyOkay,
         }, { emptyOk: true, isOptional: true }),
       }, { emptyOk: false, isOptional: true })
     ),
@@ -5043,6 +5045,32 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Phone Calls']>(['Created At', 'Updated At']),
     }, { isOptional: true, emptyOk: true })
   }), 
+  "Journey Logs": objectValidator<AnalyticsQueryForType['Journey Logs']>({
+    resource: exactMatchValidator<'Journey Logs'>(['Journey Logs']),
+    filter: objectValidator<AnalyticsQueryFilterForType['Journey Logs']>({ 
+      automationStepIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+    }, { isOptional: true, emptyOk: true }),
+    info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Journey Logs']]: AnalyticsQueryInfoForType['Journey Logs'][K] }>({
+      "Total": objectValidator<AnalyticsQueryInfoForType['Journey Logs']['Total']>({
+        method: exactMatchValidator<"Total">(['Total']),
+        parameters: optionalEmptyObjectValidator,
+      }),
+    }),
+    grouping: objectValidator<AnalyticsQueryGroupingForType['Journey Logs']>({
+      Enduser: booleanValidatorOptional,
+      Gender: booleanValidatorOptional,
+      "Assigned To": booleanValidatorOptional,
+      Field: stringValidatorOptionalEmptyOkay,
+      Tags: booleanValidatorOptional,
+      Age: booleanValidatorOptional, 
+      State: booleanValidatorOptional,
+      Phone: booleanValidatorOptional,
+    }, { isOptional: true, emptyOk: true }),
+    range: objectValidator<AnalyticsQueryRange<any>>({
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
+      key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Journey Logs']>(['Created At', 'Updated At']),
+    }, { isOptional: true, emptyOk: true })
+  }),
 })
 export const analyticsQueriesValidatorOptional = listValidatorOptionalOrEmptyOk(analyticsQueryValidator)
 
@@ -5065,6 +5093,7 @@ const _ANALYTICS_QUERY_TYPES: { [K in AnalyticsQueryType]: any } = {
   Medications: true,
   Files: true,
   Meetings: true,
+  "Journey Logs": true,
 }
 export const ANALYTICS_QUERY_TYPES = Object.keys(_ANALYTICS_QUERY_TYPES) as AnalyticsQueryType[]
 export const analyticsQueryTypeValidator = exactMatchValidator<AnalyticsQueryType>(ANALYTICS_QUERY_TYPES)

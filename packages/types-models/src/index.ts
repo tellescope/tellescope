@@ -841,6 +841,7 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
   startedTakingAt?: Date | '',
   stoppedTakingAt?: Date | '',
   rxNormCode?: string,
+  fdbCode?: string,
   dispensing?: {
     quantity: number,
     unit?: string,
@@ -850,6 +851,7 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
     unit: string,
     quantity?: string,
     frequency?: string,
+    frequencyDescriptor?: string,
   },
   notes?: string,
   pharmacyName?: string,
@@ -1065,6 +1067,7 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
   ticketIds?: string[],
   alternateToAddress?: string,
   hiddenBy?: { [index: string] : Date | '' };
+  hiddenForAll?: boolean,
   suggestedReply?: string,
   tags?: string[],
   batchId?: string,
@@ -1105,6 +1108,7 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
   userId?: string, // defaults to self, but should allow future options to send as other user
   readBy?: { [index: string] : Date };
   hiddenBy?: { [index: string] : Date | '' };
+  hiddenForAll?: boolean,
   error?: string,
   journeyContext?: JourneyContext,
   sendAt?: Date | '',
@@ -1196,6 +1200,7 @@ export interface ChatMessage extends ChatMessage_readonly, ChatMessage_required,
   html?: string,
   readBy?: { [index: string] : Date };
   hiddenBy?: { [index: string] : Date | '' };
+  hiddenForAll?: boolean,
   attachments?: ChatAttachment[]
   timestamp?: Date,
   ticketIds?: string[],
@@ -1802,11 +1807,13 @@ export type MedicationResponse = {
   otherDrug?: string,
   drugSynonym?: string,
   rxNormCode?: string,
+  fdbCode?: string,
   dosage?: {
     value: string,
     unit: string,
     quantity?: string, // how many per frequency
     frequency?: string,
+    frequencyDescriptor?: string,
   },
   NDCs?: string[],
   reasonForTaking?: string,
@@ -2037,7 +2044,8 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   discussionRoomId?: string,
   formsort?: string,
   hideAfterUnsubmittedInMS?: number,
-  addenda?: Addendum[]
+  addenda?: Addendum[],
+  canvasEncounterId?: string,
 }
 
 export interface WebHook_readonly extends ClientRecord {}
@@ -2188,6 +2196,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   previousStartTimes?: (number | string)[],
   requirePortalCancelReason?: boolean,
   startLinkToken?: string,
+  canvasEncounterId?: string,
   // isAllDay?: boolean,
 }
 
@@ -3161,6 +3170,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
   pinnedAt?: Date | '',
   readBy?: { [index: string] : Date | '' };
   hiddenBy?: { [index: string] : Date | '' };
+  hiddenForAll?: boolean,
   ticketIds?: string[],
   tags?: string[],
   inputs?: string[],
@@ -3213,6 +3223,7 @@ export type AnalyticsQueryInfoForType = {
     Total: AnalyticsQueryInfoBuilder<'Total', undefined>,
     Duration: AnalyticsQueryInfoBuilder<'Duration', undefined>,
   },
+  "Journey Logs": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },
 }
 export type AnalyticsQueryInfoType = keyof AnalyticsQueryInfoForType
 export type AnalyticsQueryInfo = AnalyticsQueryInfoForType[AnalyticsQueryInfoType]
@@ -3268,6 +3279,9 @@ export type AnalyticsQueryFilterForType = {
   Files: { 
     names?: string[],
   },
+  "Journey Logs": { 
+    automationStepIds?: string[],
+  },
 }
 
 export type EnduserGrouping = {
@@ -3306,6 +3320,7 @@ export type AnalyticsQueryGroupingForType = {
   "Emails": {} & EnduserGrouping & { Enduser: string },
   "Medications": {} & EnduserGrouping & { Enduser: string },
   "Files": {} & EnduserGrouping & { Enduser: string },
+  "Journey Logs": {} & EnduserGrouping & { Enduser: string },
   "Meetings": { Host?: boolean },  
 }
 
@@ -3323,6 +3338,7 @@ export type AnalyticsQueryRangeKeyForType = {
   "Medications": DefaultRangeKey,
   "Files": DefaultRangeKey,
   "Meetings": DefaultRangeKey,
+  "Journey Logs": DefaultRangeKey,
 }
 export type RangeKey = DefaultRangeKey | 'Submitted At' | "Closed At"
 
@@ -3424,6 +3440,13 @@ export type AnalyticsQueryForType = {
     AnalyticsQueryGroupingForType['Meetings'],
     AnalyticsQueryRangeKeyForType['Meetings']
   >,
+  "Journey Logs": AnalyticsQueryBuilder<
+    "Journey Logs", 
+    AnalyticsQueryInfoForType['Journey Logs'][keyof AnalyticsQueryInfoForType['Journey Logs']],
+    AnalyticsQueryFilterForType['Journey Logs'],
+    AnalyticsQueryGroupingForType['Journey Logs'],
+    AnalyticsQueryRangeKeyForType['Journey Logs']
+  >,
 }
 export type AnalyticsQueryType = keyof AnalyticsQueryForType
 export type AnalyticsQuery = AnalyticsQueryForType[AnalyticsQueryType]
@@ -3441,6 +3464,7 @@ export const resource_to_modelName: { [K in AnalyticsQueryType] : ModelName } = 
   Medications: "enduser_medications",
   Files: "files",
   Meetings: "meetings",
+  "Journey Logs": "automated_actions",
 }
 
 export type AnalyticsQueryOptions = {
@@ -3475,6 +3499,8 @@ export interface AnalyticsFrame extends
   truncationLength?: number,
   showEllipsis?: boolean,
   orderedLabels?: string[],
+  visibleForRoles?: string[],
+  visibleForUserIds?: string[],
 }
 
 
@@ -3891,6 +3917,7 @@ export interface TicketThreadComment extends TicketThreadComment_readonly, Ticke
     transcription?: string,
   },
   hiddenBy?: { [index: string] : Date | '' };
+  hiddenForAll?: boolean,
   ticketIds?: string[], 
   tags?: string[],
 }
@@ -4057,6 +4084,7 @@ export interface GroupMMSConversation_readonly extends ClientRecord {
   tags?: string[]
   suggestedReply?: string,
   hiddenBy?: { [index: string] : Date | '' };
+  hiddenForAll?: boolean,
   assignedTo?: string[],
 }
 export interface GroupMMSConversation_updatesDisabled {}

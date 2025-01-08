@@ -5,7 +5,7 @@ import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
 import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, truncate_string, user_display_name } from "@tellescope/utilities"
-import { DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MultipleChoiceOptions, TellescopeGender } from "@tellescope/types-models"
+import { DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, TellescopeGender } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -1941,11 +1941,12 @@ const DRUGS_FOR_DISPLAY_TERM = {} as Record<string, Drug[]>
 const RX_NORM_CODE_FOR_DRUG = {} as Record<string, string>
 const NDC_CODES_FOR_RX_NORM_CODE = {} as Record<string, string[]>
 
-const useMedications = () => {
+const useMedications = ({ dontFetch } : { dontFetch?: boolean }) => {
   const [displayTerms, setDisplayTerms] = useState(displayTermsCache)
   const fetchRef = useRef(displayTerms !== undefined)
 
   useEffect(() => {
+    if (dontFetch) return
     if (fetchRef.current) return
     fetchRef.current = true
 
@@ -1972,7 +1973,7 @@ const useMedications = () => {
       }) 
     )
     .catch(console.error)
-  }, [])
+  }, [dontFetch])
 
   const getDrugsForDisplayTerm = useCallback(async (s: string) => {
     const drugs = DRUGS_FOR_DISPLAY_TERM[s] || (
@@ -2050,8 +2051,172 @@ const filterOptions = (options: string[], { inputValue } : { inputValue: string 
   .slice(0, 100) // dramatic performance improvement (when not virtualized) to show a subset like this
 )
 
-export const MedicationsInput = ({ field, value, onChange }: FormInputProps<'Medications'>) => {
-  const { displayTerms, doneLoading, getCodesForDrug, getDrugsForDisplayTerm } = useMedications()
+const FDB_URL = "http://www.fdbhealth.com/"
+type CanvasMedicationResult = {
+  entry?: { resource: { code: { coding: { system: string, code: string, display: string } []}} }[]
+}
+
+export const CanvasMedicationsInput = ({ field, value=[], onChange }: FormInputProps<'Medications'>) => {
+  const session = useResolvedSession()
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<MedicationResponse[]>([])
+
+  // if two Medications questions shown in a row, reset state
+  useEffect(() => {
+    setQuery('')
+    setResults([])
+  }, [field.id])
+
+  const fetchRef = useRef(query)
+  useEffect(() => {
+    if (fetchRef.current === query) return
+    fetchRef.current = query
+
+    if (!query) return
+
+    const t = setTimeout(() => {
+      session.api.integrations
+      .proxy_read({ 
+        integration: CANVAS_TITLE, 
+        type: 'medications', 
+        query,
+      })
+      .then((r : { data: CanvasMedicationResult }) => {
+        setResults(
+          (r.data?.entry || [])
+          .map(v => {
+            const fdbCode = v.resource.code.coding.find(c => c.system === FDB_URL)
+
+            return {
+              displayTerm: fdbCode?.display || '',
+              drugName: fdbCode?.display || '',
+              fdbCode: fdbCode?.code || '', 
+            }
+          })
+        )
+      })   
+    }, 200)
+
+    return () => { clearTimeout(t) }
+  }, [session, query, field?.options?.dataSource])
+
+  return (
+    <Grid container direction="column" spacing={1}>
+      <Grid item>
+      <Autocomplete multiple value={value} options={results} style={{ marginTop: 5 }}
+        noOptionsText={query.length ? 'No results found' : 'Type to start search'}
+        onChange={(e, v) => {
+          if (!v) { return }
+          onChange(v, field.id)
+          setResults([])
+        }}
+        getOptionLabel={v => first_letter_capitalized(v.displayTerm)} filterOptions={o => o}
+        inputValue={query} onInputChange={(e, v) => e && setQuery(v) }
+        renderInput={(params) => (
+          <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
+            required={!field.isOptional} size="small" label="" placeholder="Search medications..."
+          />
+        )}
+        renderTags={(value, getTagProps) =>
+          value.map((value, index) => (
+            <Chip
+              label={<Typography style={{whiteSpace: 'normal'}}>{value.displayTerm}</Typography>}
+              {...getTagProps({ index })}
+              sx={{height:"100%", py: 0.5 }}
+            />
+          ))
+        }
+      /> 
+      </Grid>
+
+      {(value || []).map((medication, i) => (
+        <Grid item key={i}>
+        <Grid container direction="column" spacing={0.75}>
+          <Grid item>
+            <Typography noWrap sx={{ fontSize: 14 }}>
+              {medication.drugName}
+            </Typography>
+          </Grid>
+
+          <Grid item>
+          <Grid container alignItems="center" wrap="nowrap" columnGap={0.5} justifyContent={"space-between"}>
+            <Grid item sx={{ width: '50%', mr: 1 }}>
+              <TextField type="number" InputProps={{ sx: defaultInputProps.sx }} fullWidth size="small" 
+                label="Units (e.g. capsule, table, puff) per dose?"
+                value={medication.dosage?.quantity || ''} 
+                onChange={e => (
+                  onChange((value || []).map((v, _i) => 
+                    i === _i 
+                      ? { ...v, dosage: { ...v.dosage!, quantity: e.target.value  } } 
+                      : v
+                    ), 
+                    field.id
+                  )
+                )} />
+            </Grid>
+
+            <Grid item sx={{ width: '30%' }}>
+              <StringSelector size="small" label="How many times?"
+                options={["1", "2", "3", "4", "5", "6", "As Needed"]} 
+                value={medication.dosage?.frequency ?? ''}
+                onChange={async (frequency) => {
+                  onChange(
+                    (value ?? []).map((_v, _i) => (
+                      i === _i
+                        ? { 
+                          ..._v, 
+                          dosage: {
+                            ..._v.dosage!,
+                            frequency: frequency || ''
+                          }
+                        }
+                        : _v
+                    )),
+                    field.id,
+                  )
+                }}
+              />
+            </Grid>
+
+            <Grid item sx={{ width: '20%' }}>
+              <StringSelector options={['Day', 'Week', 'Month', "Year"]} size="small" label="Per"
+                value={medication.dosage?.frequencyDescriptor || 'Day'}
+                onChange={frequencyDescriptor => (
+                  onChange((value || []).map((v, _i) => 
+                    i === _i 
+                      ? { ...v, dosage: { ...v.dosage!, frequencyDescriptor } } 
+                      : v
+                    ), 
+                    field.id
+                  )
+                )}
+                getDisplayValue={first_letter_capitalized}
+              />
+            </Grid>
+          </Grid>
+          </Grid>
+
+          <Grid item>
+            <TextField InputProps={{ sx: defaultInputProps.sx }} fullWidth size="small" label="Reason for taking medication"
+              value={medication.reasonForTaking || ''} 
+              onChange={e => onChange((value || []).map((v, _i) => i === _i ? { ...v, reasonForTaking: e.target.value } : v), field.id)}
+            />
+          </Grid>
+
+          <Grid item>
+            <Divider flexItem sx={{ my: 0.5 }} />
+          </Grid>
+        </Grid>
+        </Grid>
+      ))}
+    </Grid>
+  )
+}
+
+export const MedicationsInput = ({ field, value, onChange, ...props }: FormInputProps<'Medications'>) => {
+  const { displayTerms, doneLoading, getCodesForDrug, getDrugsForDisplayTerm } = useMedications({
+    dontFetch: field.options?.dataSource === CANVAS_TITLE
+  })
   const [drugs, setDrugs] = useState<Record<string, Drug[]>>({})
   
   // uncomment to load data after initial typing
@@ -2080,6 +2245,9 @@ export const MedicationsInput = ({ field, value, onChange }: FormInputProps<'Med
   //   .catch(console.error)
   // }, [value, getDrugsForDisplayTerm])
 
+  if (field.options?.dataSource === CANVAS_TITLE) {
+    return <CanvasMedicationsInput field={field} value={value} onChange={onChange} {...props} />
+  }
   return (
     <Grid container direction="column" sx={{ mt: 2 }}>
     {(value ?? []).map((v, i) => (
