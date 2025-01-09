@@ -26,6 +26,7 @@ export interface FormInputProps<K extends keyof AnswerForType> {
   goToNextField?: () => void, 
   isPreviousDisabled?: () => boolean,
   formResponseId?: string,
+  rootResponseId?: string,
   submit?: () => Promise<void>,
   groupId?: string,
   groupInsance?: string,

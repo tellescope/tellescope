@@ -2944,7 +2944,8 @@ export const HeightInput = ({ field, value={} as any, onChange, ...props }: Form
   </Grid>
 )
 
-export const RedirectInput = ({ groupId, groupInsance, formResponseId, field, submit, value={} as any, onChange, responses, enduser, ...props }: FormInputProps<'Redirect'>) => {
+export const RedirectInput = ({ groupId, groupInsance, rootResponseId, formResponseId, field, submit, value={} as any, onChange, responses, enduser, ...props }: FormInputProps<'Redirect'>) => {
+  console.log('formResponseId', formResponseId, 'rootResponseId', rootResponseId)
   const session = useResolvedSession()
 
   let eId = ''
@@ -3007,7 +3008,7 @@ export const RedirectInput = ({ groupId, groupInsance, formResponseId, field, su
     session.api.form_responses.prepare_form_response({
       enduserId: session.userInfo.id || eId,
       formId: field.options.redirectFormId,
-      rootResponseId: formResponseId,
+      rootResponseId: rootResponseId || formResponseId,
       parentResponseId: formResponseId,
     })
     .then(({ fullURL }) => (

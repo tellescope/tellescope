@@ -132,6 +132,7 @@ export const QuestionForField = ({
   goToNextField,
   spacing,
   isSinglePage,
+  rootResponseId,
 } : {
   spacing?: number,
   form?: Form,
@@ -142,7 +143,7 @@ export const QuestionForField = ({
   field: FormField,
   setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>,
   isSinglePage?: boolean,
-} & Pick<TellescopeFormProps, "goToNextField" | "groupId" | "groupInstance" | "submit" | "formResponseId" | 'enduserId' | 'isPreviousDisabled' | 'goToPreviousField' | 'enduser' | 'handleDatabaseSelect' | 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField'>) => {
+} & Pick<TellescopeFormProps, "rootResponseId" | "goToNextField" | "groupId" | "groupInstance" | "submit" | "formResponseId" | 'enduserId' | 'isPreviousDisabled' | 'goToPreviousField' | 'enduser' | 'handleDatabaseSelect' | 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField'>) => {
   const String = customInputs?.['string'] ?? StringInput
   const StringLong = customInputs?.['stringLong'] ?? StringLongInput
   const Email = customInputs?.['email'] ?? EmailInput
@@ -254,7 +255,7 @@ export const QuestionForField = ({
           <Height field={field} disabled={value.disabled} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'Redirect' ? (
-          <Redirect responses={responses} enduser={enduser} groupId={groupId} groupInsance={groupInstance} submit={submit} field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
+          <Redirect rootResponseId={rootResponseId} formResponseId={formResponseId} responses={responses} enduser={enduser} groupId={groupId} groupInsance={groupInstance} submit={submit} field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'Related Contacts' ? (
           <RelatedContacts field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
@@ -337,7 +338,7 @@ export const QuestionForField = ({
               <Flex key={id} flex={1}>
                 <QuestionForField groupId={groupId} groupInstance={groupInstance} customInputs={customInputs} field={match} fields={fields} handleDatabaseSelect={handleDatabaseSelect}
                   enduser={enduser} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled} goToNextField={goToNextField}
-                  form={form} formResponseId={formResponseId} submit={submit}
+                  form={form} formResponseId={formResponseId} rootResponseId={rootResponseId} submit={submit}
                   repeats={repeats} onRepeatsChange={onRepeatsChange} setCustomerId={setCustomerId}
                   value={value} file={file} 
                   onAddFile={onAddFile} onFieldChange={onFieldChange}
@@ -987,7 +988,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
             <Flex key={activeField.id} style={{ marginBottom: 5 }}>
               <Flex column flex={1}>
                 <QuestionForField isSinglePage fields={fields} field={activeField} handleDatabaseSelect={handleDatabaseSelect}
-                  enduserId={props.enduserId} formResponseId={props.formResponseId} submit={submit}
+                  enduserId={props.enduserId} formResponseId={props.formResponseId} rootResponseId={rootResponseId} submit={submit}
                   enduser={enduser} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled} goToNextField={goToNextField}
                   repeats={repeats} onRepeatsChange={setRepeats} setCustomerId={setCustomerId}
                   value={value} file={file} 
