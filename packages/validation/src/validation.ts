@@ -3184,6 +3184,12 @@ export const canvasCodingValidator = objectValidator<CanvasCoding>({
   system: stringValidator,
 }, { })
 
+export const canvasCodingValidatorOptional = objectValidator<CanvasCoding>({
+  code: stringValidatorOptional,
+  display: stringValidatorOptional,
+  system: stringValidatorOptional,
+}, { })
+
 export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   default: stringValidatorOptional,
   bookingPageId: stringValidatorOptional,
@@ -3559,6 +3565,7 @@ const _PORTAL_PAGES: { [K in PortalPage]: any } = {
   Communications: true,
   "My Events": true,
   Orders: true,
+  Vitals: true,
 }
 export const PORTAL_PAGES = Object.keys(_PORTAL_PAGES) as PortalPage[]
 export const portalPageValidator = exactMatchValidator<PortalPage>(PORTAL_PAGES)
@@ -4062,6 +4069,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['Appointment Cancelled']),
     info: objectValidator<AutomationTriggerEvents['Appointment Cancelled']['info']>({
       titles: listOfStringsValidatorOptionalOrEmptyOk,
+      by: exactMatchValidatorOptional(['', 'enduser', 'user']),
     }),
     conditions: optionalEmptyObjectValidator,
   }), 

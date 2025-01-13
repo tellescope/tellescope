@@ -1038,3 +1038,7 @@ export const DOCUMENT_REFERENCE_CODINGS = [
     "code": "uncategorizedclinicaldocument"
   },
 ]
+
+export const PORTAL_PAGES_HIDDEN_BY_DEFAULT = [
+  "Orders", "Vitals",
+]

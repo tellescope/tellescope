@@ -222,7 +222,12 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
     proxy_read: (args: extractFields<CustomActions['integrations']['proxy_read']['parameters']>) => (
       Promise<extractFields<CustomActions['integrations']['proxy_read']['returns']>>
     ),
-  }
+  },
+  enduser_observations: {
+    load: (args: extractFields<CustomActions['enduser_observations']['load']['parameters']>) => (
+      Promise<extractFields<CustomActions['enduser_observations']['load']['returns']>>
+    ),
+  },
 }
 
 export type PublicAppointmentBookingInfo = extractFields<PublicActions['calendar_events']['details_for_appointment_booking_page']['returns']>
@@ -345,6 +350,8 @@ export class EnduserSession extends Session {
     this.api.products.get_stripe_portal_session = args => this._GET(`/v1${schema.products.customActions.get_stripe_portal_session.path}`, args)
 
     this.api.integrations.proxy_read = args => this._GET(`/v1${schema.integrations.customActions.proxy_read.path}`, args)
+
+    this.api.enduser_observations.load = args => this._GET(`/v1${schema.enduser_observations.customActions.load.path}`, args)
     // if (this.authToken) this.refresh_session()
   }
 

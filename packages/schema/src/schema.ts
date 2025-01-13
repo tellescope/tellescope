@@ -309,6 +309,7 @@ import {
   bookingRestrictionsByTemplateValidator,
   listOfNumbersValidatorUniqueOptionalOrEmptyOkay,
   enduserDiagnosisValidator,
+  canvasCodingValidatorOptional,
 } from "@tellescope/validation"
 
 import {
@@ -645,6 +646,9 @@ export type CustomActions = {
         carePlanId?: string,
         context?: string,
         calendarEventId?: string,
+        groupId?: string,
+        groupInstance?: string,
+        groupPosition?: number,
       }, 
       { accessCode: string, url: string, response: FormResponse, fullURL: string }>
     ,
@@ -654,7 +658,7 @@ export type CustomActions = {
         automationStepId?: string, customerId?: string, productIds?: string[],
         utm?: LabeledField[],
       }, 
-      { formResponse: FormResponse }
+      { formResponse: FormResponse, nextFormGroupPublicURL?: string }
     >,
     save_field_response: CustomAction<{ formResponseId?: string, accessCode?: string, response?: FormResponseValue, responses?: FormResponseValue[] }, { }>,
     info_for_access_code: CustomAction<{ accessCode: string }, {
@@ -1105,8 +1109,10 @@ export type PublicActions = {
       customTypeId?: string,
       skipMatch?: boolean,
       enduserId?: string,
+      groupId?: string,
       // organizationIds?: string[]
     }, { accessCode: string, authToken: string, url: string, path: string, enduserId: string }>,
+    // portalURL defined when needing to redirect to portal (e.g. for Form Group)
   },
   calendar_events: {
     session_for_start_link: CustomAction<{ token: string }, { authToken: string, eventId: string }>,
@@ -1931,6 +1937,7 @@ export const schema: SchemaV1 = build_schema({
       sendEmailOnSync: { validator: booleanValidator },
       enduserFieldMapping: { validator: fieldMappingsValidator },
       default_dietitian_id: { validator: stringValidator100 },
+      dontPushCalendarEvent: { validator: booleanValidator },
     },
     customActions: {
       update_zoom: {
@@ -4124,6 +4131,7 @@ export const schema: SchemaV1 = build_schema({
       hideFromCompose: { validator: booleanValidator },
       enduserFieldsToAppendForSync: { validator: listOfUniqueStringsValidatorEmptyOk },
       allowPortalSubmission: { validator: booleanValidator },
+      canvasNoteCoding: { validator: canvasCodingValidatorOptional },
     }
   },
   form_fields: {
@@ -4231,6 +4239,7 @@ export const schema: SchemaV1 = build_schema({
       disabledWhenPrepopulated: { validator: booleanValidator },
       feedback: { validator: listValidatorOptionalOrEmptyOk(formFieldFeedbackValidator) },
       titleFontSize: { validator: nonNegNumberValidator },
+      groupShowCondition: { validator: objectAnyFieldsAnyValuesValidator },
     }
   },
   form_responses: {
@@ -4340,6 +4349,9 @@ export const schema: SchemaV1 = build_schema({
           carePlanId: { validator: mongoIdStringValidator },
           calendarEventId: { validator: mongoIdStringValidator },
           context: { validator: stringValidator1000 },
+          groupId: { validator: mongoIdStringValidator },
+          instanceId: { validator: stringValidator100 },
+          groupPosition: { validator: nonNegNumberValidator },
         },
         returns: {
           accessCode: { validator: stringValidator250, required: true },
@@ -4399,6 +4411,7 @@ export const schema: SchemaV1 = build_schema({
         },
         returns: {
           formResponse: 'form response' as any,
+          nextFormGroupPublicURL: { validator: stringValidator },
         },
       },
       info_for_access_code: {
@@ -4542,13 +4555,14 @@ export const schema: SchemaV1 = build_schema({
           state: { validator: stateValidator },
           customTypeId: { validator: stringValidator },
           skipMatch: { validator: booleanValidator },
+          groupId: { validator: mongoIdStringValidator },
         },
         returns: {
           accessCode: { validator: stringValidator250, required: true },
           authToken: { validator: stringValidator250, required: true },
           url: { validator: stringValidator250, required: true },
           path: { validator: stringValidator250, required: true },
-          enduserId: { validator: mongoIdStringValidator, required: true }
+          enduserId: { validator: mongoIdStringValidator, required: true },
         },
       },
     },
@@ -5093,6 +5107,7 @@ export const schema: SchemaV1 = build_schema({
         validator: objectValidator<CalendarEvent['statusChangeSource']>({
           source: stringValidator100,
           identifier: stringValidator100,
+          byEnduserExternal: booleanValidatorOptional,
         }),
       },
       cancelReason: { validator: stringValidator5000 },
@@ -5490,7 +5505,7 @@ export const schema: SchemaV1 = build_schema({
         returns: { },
       },
     },
-    enduserActions: { create: {}, createMany: {}, read: {}, readMany: {} },
+    enduserActions: { create: {}, createMany: {}, read: {}, readMany: {}, load: {} },
     fields: {
       ...BuiltInFields, 
       category: {
@@ -5654,6 +5669,7 @@ export const schema: SchemaV1 = build_schema({
       embedding: { validator: listValidator(numberValidator) },
       forInternalUse: { validator: booleanValidator },
       allowUnauthenticatedAccess: { validator: booleanValidator },
+      portalIndex: { validator: numberValidator },
     }
   },
   managed_content_record_assignments: {
@@ -7992,7 +8008,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     constraints: { unique: ['title'], relationship: [], access: [] },
     defaultActions: DEFAULT_OPERATIONS,
     customActions: {},
-    enduserActions: {},
+    enduserActions: { read: {}, readMany: {} },
     fields: {
       ...BuiltInFields,
       title: { validator: stringValidator, required: true, examples: ['Title'] },

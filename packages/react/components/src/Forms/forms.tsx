@@ -1,12 +1,12 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
-import { Button, CircularProgress, Flex, LoadingButton, Modal, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
-import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse } from "./hooks"
+import { Button, CircularProgress, Flex, LinearProgress, LoadingButton, Modal, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
+import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse, NextFieldLogicOptions } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
 import { AddressInput, AllergiesInput, AppointmentBookingInput, ConditionsInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
-import { field_can_autosubmit, formatted_date, objects_equivalent, remove_script_tags, truncate_string } from "@tellescope/utilities"
+import { field_can_autosubmit, formatted_date, object_is_empty, objects_equivalent, read_local_storage, remove_script_tags, responses_satisfy_conditions, truncate_string } from "@tellescope/utilities"
 import { Divider } from "@mui/material"
 
 export const TellescopeFormContainer = ({ businessId, organizationIds, ...props } : { 
@@ -133,6 +133,8 @@ export const QuestionForField = ({
   spacing,
   isSinglePage,
   rootResponseId,
+  isInQuestionGroup,
+  logicOptions,
 } : {
   spacing?: number,
   form?: Form,
@@ -143,6 +145,8 @@ export const QuestionForField = ({
   field: FormField,
   setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>,
   isSinglePage?: boolean,
+  isInQuestionGroup?: boolean,
+  logicOptions?: NextFieldLogicOptions,
 } & Pick<TellescopeFormProps, "rootResponseId" | "goToNextField" | "groupId" | "groupInstance" | "submit" | "formResponseId" | 'enduserId' | 'isPreviousDisabled' | 'goToPreviousField' | 'enduser' | 'handleDatabaseSelect' | 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField'>) => {
   const String = customInputs?.['string'] ?? StringInput
   const StringLong = customInputs?.['stringLong'] ?? StringLongInput
@@ -184,6 +188,13 @@ export const QuestionForField = ({
   ), [field.feedback, value])
 
   if (!value) return null
+  if (
+    isInQuestionGroup 
+    && field.groupShowCondition && !object_is_empty(field.groupShowCondition)
+    && !responses_satisfy_conditions(responses, field.groupShowCondition, logicOptions)
+  ) {
+      return null
+  }
   return ( 
     // margin leaves room for error message in Question Group
     <Flex column flex={1} style={{ marginBottom: spacing ?? 25 }} id={field.id}> 
@@ -345,6 +356,8 @@ export const QuestionForField = ({
                   responses={responses} selectedFiles={selectedFiles}
                   validateField={validateField} enduserId={enduserId}
                   spacing={field.options?.groupPadding}
+                  logicOptions={logicOptions}
+                  isInQuestionGroup
                 />
               </Flex>
             )
@@ -429,6 +442,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
   formResponseId,
   groupId,
   groupInstance,
+  logicOptions,
 }) => {
   const beforeunloadHandler = React.useCallback((e: BeforeUnloadEvent) => {
     try {
@@ -526,6 +540,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
                 responses={responses} selectedFiles={selectedFiles}
                 validateField={validateField}
                 groupId={groupId} groupInstance={groupInstance}
+                logicOptions={logicOptions}
               />
             </Flex>
         </Flex>
@@ -622,6 +637,13 @@ export const ThanksMessage = ({
       ) : (
         <Typography style={{ marginTop: 25, alignSelf: 'center' }}>{thanksMessage || DEFAULT_THANKS_MESSAGE}</Typography>
       )
+    }
+    {read_local_storage('redirecting_public_group') === 'true' &&
+      <>
+      <Typography style={{ marginTop: 25, alignSelf: 'center' }}>
+        Redirecting to next form... <CircularProgress size={20} color="primary" />
+      </Typography>
+      </>
     }
     {downloadComponent &&
       <Flex justifyContent="center" style={{ marginTop: 15, marginBottom: 15 }}>

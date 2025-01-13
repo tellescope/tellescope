@@ -189,7 +189,7 @@ export const Typography = ({ children, onClick, onPress, color, style, ...props 
   const colorStyle = { color: color ? useTheme().colors[color] : undefined }
 
   return (
-    <MuiText onPress={onPress ?? onClick} style={{ ...colorStyle, ...convert_CSS_to_RNStyles(style) }}>
+    <MuiText {...props} onPress={onPress ?? onClick} style={{ ...colorStyle, ...convert_CSS_to_RNStyles(style) }}>
       {children}
     </MuiText>
   )

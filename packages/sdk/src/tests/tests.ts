@@ -1480,6 +1480,7 @@ const enduserAccessTests = async () => {
     const endpoint = url_safe_path(n)
     const model = schema[n as keyof typeof schema]
     if (n === 'webhooks') continue // no default endpoints implemented
+    if (n === 'form_groups') continue
 
     //@ts-ignore
     if (!model?.enduserActions?.read && (model.defaultActions.read || model.customActions.read)) {

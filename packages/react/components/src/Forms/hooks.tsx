@@ -9,7 +9,7 @@ import { WithTheme, contact_is_valid, useFileUpload, useFormFields, useFormRespo
 import ReactGA from "react-ga4";
 
 import isEmail from "validator/lib/isEmail"
-import { append_current_utm_params, field_can_autoadvance, getLocalTimezone, get_time_values, get_utm_params, is_object, object_is_empty, responses_satisfy_conditions } from "@tellescope/utilities"
+import { append_current_utm_params, field_can_autoadvance, getLocalTimezone, get_time_values, get_utm_params, is_object, object_is_empty, responses_satisfy_conditions, update_local_storage } from "@tellescope/utilities"
 
 export const useFlattenedTree = (root?: FormFieldNode) => {
   const flat: FormField[] = []
@@ -194,14 +194,16 @@ export const useTreeForFormFields = (_fields: FormField[]) => {
   return nodesForId[fields.find(s => s.previousFields.find(p => p.type === 'root'))?.id ?? '']
 }
 
-export const getNextField = (activeField: FormFieldNode, currentValue: Response, responses: FormResponseValue[], options?: {
+export type NextFieldLogicOptions = {
   urlLogicValue?: string,
   dateOfBirth?: string,
   gender?: string,
   state?: string,
   form?: Form,
   activeResponses?: FormResponseValue[], // current and previous answers (not future answers)
-}) => {
+}
+
+export const getNextField = (activeField: FormFieldNode, currentValue: Response, responses: FormResponseValue[], options?: NextFieldLogicOptions) => {
   if (activeField.children.length === 0) {
     return
   } 
@@ -360,6 +362,7 @@ interface UseTellescopeFormOptions {
   context?: string,
   urlLogicValue?: string,
   enduser?: Partial<Enduser>,
+  isPublicForm?: boolean,
 }
 
 const OrganizationThemeContext = createContext(null as any as { 
@@ -508,7 +511,7 @@ const shouldCallout = (field: FormField | undefined, value: FormResponseValueAns
 
 export type Response = FormResponseValue & { touched: boolean, includeInSubmit: boolean, field: FormField }
 export type FileResponse = { fieldId: string, fieldTitle: string, blobs?: FileBlob[] }
-export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL,enduser }: UseTellescopeFormOptions) => {
+export const useTellescopeForm = ({ isPublicForm, form, urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL,enduser }: UseTellescopeFormOptions) => {
   const { amPm, hoursAmPm, minutes } = get_time_values(new Date())
 
   const root = useTreeForFormFields(fields)
@@ -675,6 +678,15 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
     selectedFiles.find(f => f.fieldId === activeField.value.id)
   )
 
+  const logicOptions: NextFieldLogicOptions = {
+    urlLogicValue, 
+    activeResponses: responses.filter(r => r.includeInSubmit),
+    dateOfBirth: enduser?.dateOfBirth,
+    gender: enduser?.gender,
+    state: enduser?.state,
+    form,
+  }
+
   const handleDatabaseSelect = useCallback((databaseRecords: Pick<DatabaseRecord, "values" | "databaseId">[]) => {
     try {
       // no need to update if there's no prepopulation
@@ -793,6 +805,15 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
     const file = selectedFiles.find(r => r.fieldId === field.id)
     if (!value) return "Value not provided"
     if (!file) return "File not provided"
+
+    // if question is in group, and question is hidden in group, don't validate
+    if (
+      field.isInGroup
+      && field.groupShowCondition && !object_is_empty(field.groupShowCondition)
+      && !responses_satisfy_conditions(responses, field.groupShowCondition, logicOptions)
+    ) {
+      return null
+    }
 
     if (value.answer.type === 'Insurance') {
       if (value.answer.value?.relationshipDetails?.dateOfBirth && !isDateString(value.answer.value.relationshipDetails.dateOfBirth)) {
@@ -1014,7 +1035,7 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
     } 
 
     return null
-  }, [responses, selectedFiles, currentValue, activeField, repeats, sessionType])
+  }, [responses, selectedFiles, currentValue, activeField, repeats, sessionType, logicOptions])
 
   // nested Question Group fields are disabled, so it's safe to avoid recursion multiple times
   const validateField = useCallback((field: FormField) => {
@@ -1058,14 +1079,7 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
   const nextField = (
     !currentValue ? undefined 
     : (
-      getNextField(activeField, currentValue, responses, { 
-        urlLogicValue, 
-        form,
-        activeResponses: responses.filter(r => r.includeInSubmit),
-        dateOfBirth: enduser?.dateOfBirth,
-        gender: enduser?.gender,
-        state: enduser?.state,
-      })
+      getNextField(activeField, currentValue, responses, logicOptions)
     )
   )
 
@@ -1155,6 +1169,12 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
           const match = responses.find(r => r.fieldId === f?.id)
           if (!match || responsesToSubmit.find(r => r.fieldId === match.fieldId)) continue
 
+          // hidden in group by conditional logic
+          if ((
+            match.field.groupShowCondition && !object_is_empty(match.field.groupShowCondition)
+            && !responses_satisfy_conditions(responses, match.field.groupShowCondition, logicOptions)
+          )) continue
+
           responsesToSubmit.push(match)
         }
       }
@@ -1162,7 +1182,8 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
       const errors: { enduserId: string, message: string }[] = []
       for (const eId of [enduserId, ...(options?.otherEnduserIds ?? [])]) {
         try {
-          const { formResponse } = await session.api.form_responses.submit_form_response({ 
+          update_local_storage('redirecting_public_group', '')
+          const { formResponse, nextFormGroupPublicURL } = await session.api.form_responses.submit_form_response({ 
             accessCode : (
               accessCode 
               || (await (
@@ -1186,6 +1207,12 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
             productIds: responsesToSubmit.flatMap(r => r.field?.options?.productIds ?? []),
             utm: get_utm_params(),
           })
+
+          // do actual redirect later to prevent popup
+          if (isPublicForm && nextFormGroupPublicURL) { 
+            update_local_storage('redirecting_public_group', 'true')
+          }
+
           if (!options?.otherEnduserIds?.length) { // only track for signle submission
             if (ga4measurementId) {
               ReactGA.event({
@@ -1205,6 +1232,10 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
               options?.onPreRedirect?.() // in case redirect on success
               options?.onSuccess?.(formResponse)
             }
+          }
+        
+          if (isPublicForm && nextFormGroupPublicURL) { 
+            window.location.href = nextFormGroupPublicURL 
           }
         } catch(err: any) {
           if (options?.onBulkErrors) { // only track for signle submission
@@ -1229,7 +1260,7 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
     } finally {
       setSubmittingStatus(undefined)
     }
-  }, [accessCode, automationStepId, enduserId, responses, selectedFiles, session, handleUpload, existingResponses, ga4measurementId, rootResponseId, parentResponseId, calendarEventId, goBackURL])
+  }, [accessCode, automationStepId, enduserId, responses, selectedFiles, session, handleUpload, existingResponses, ga4measurementId, rootResponseId, parentResponseId, calendarEventId, goBackURL, logicOptions])
 
   const isNextDisabled = useCallback(() => {
     if (activeField.children.length === 0) {
@@ -1274,14 +1305,7 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
 
     try { window.scrollTo({ top: 0 }) } catch(err) {} // scroll to top if needed
     setActiveField(activeField => {
-      let newField = getNextField(activeField, currentValue, responses, { 
-        urlLogicValue, 
-        form,
-        activeResponses: responses.filter(r => r.includeInSubmit),
-        dateOfBirth: enduser?.dateOfBirth,
-        gender: enduser?.gender,
-        state: enduser?.state,
-      })
+      let newField = getNextField(activeField, currentValue, responses, logicOptions)
 
       // when autoadvancing, prevent adding duplicates by checking whether already on stack
       if (newField !== undefined && !prevFieldStackRef.current.find(v => v.value.id === activeField?.value.id)) {
@@ -1291,7 +1315,7 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
       
       return newField || activeField
     })
-  }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, urlLogicValue, form, enduser?.dateOfBirth])
+  }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, logicOptions])
 
   useEffect(() => {
     if (!autoAdvanceRef.current) return
@@ -1420,5 +1444,6 @@ export const useTellescopeForm = ({ form, urlLogicValue, customization, carePlan
     setCustomerId,
     customization,
     handleDatabaseSelect,
+    logicOptions,
   }
 }

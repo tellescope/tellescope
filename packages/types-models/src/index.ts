@@ -1560,6 +1560,7 @@ export interface FormField extends FormField_readonly, FormField_required, FormF
     overwrite?: boolean,
   },
   titleFontSize?: number,
+  groupShowCondition: Record<string, any>,
 }
 
 export type FormScoring = {
@@ -1639,6 +1640,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   hideFromCompose?: boolean,
   enduserFieldsToAppendForSync?: string[],
   allowPortalSubmission?: boolean,
+  canvasNoteCoding?: Partial<CanvasCoding>,
 }
 
 export interface FormGroup_readonly extends ClientRecord {}
@@ -1708,6 +1710,7 @@ export interface Integration extends Integration_readonly, Integration_required,
   sendEmailOnSync?: boolean,
   enduserFieldMapping?: FieldMapping[],
   default_dietitian_id?: string,
+  dontPushCalendarEvent?: boolean,
 }
 
 export type BuildDatabaseRecordField <K extends string, V, O> = { type: K, value: V, options: O & { width?: string } }
@@ -2188,6 +2191,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   statusChangeSource?: {
     source: string,
     identifier: string,
+    byEnduserExternal?: boolean, // e.g. if cancelled in Healthie, source is healthie, so this indicates patient vs not
   },
   dontAutoSyncPatientToHealthie?: boolean,
   displayTitle?: string,
@@ -2893,6 +2897,7 @@ export interface ManagedContentRecord extends ManagedContentRecord_readonly, Man
   embeddingHash?: string,
   embeddingType?: EmbeddingType,
   forInternalUse?: boolean,
+  portalIndex?: number,
 }
 
 export interface ManagedContentRecordAssignment_readonly extends ClientRecord {}
@@ -2903,7 +2908,7 @@ export interface ManagedContentRecordAssignment_required {
 export interface ManagedContentRecordAssignment_updatesDisabled {}
 export interface ManagedContentRecordAssignment extends ManagedContentRecordAssignment_readonly, ManagedContentRecordAssignment_required, ManagedContentRecordAssignment_updatesDisabled {}
 
-export type PortalPage = "Home" | "Care Plan" | "Documents" | "Education" | "My Events" |  "Community" | "Communications" | "Appointment Booking" | "Orders"
+export type PortalPage = "Home" | "Care Plan" | "Documents" | "Education" | "My Events" |  "Community" | "Communications" | "Appointment Booking" | "Orders" | "Vitals"
 
 type BuildPortalBlockInfo <T, I> = { type: T, info: I }
 
@@ -2955,6 +2960,7 @@ export const DEFAULT_PATIENT_PORTAL_BOTTOM_NAVIGATION_POSITIONS: { [K in PortalP
   "Appointment Booking": MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION,
   "My Events": MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION,
   "Orders": MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION,
+  "Vitals": MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION,
 }
 
 export interface Forum_readonly extends ClientRecord {}
@@ -3633,7 +3639,10 @@ export type AutomationTriggerEvents = {
   'Contact Created': AutomationTriggerEventBuilder<"Contact Created", { }, { }>,
   'Appointment Created': AutomationTriggerEventBuilder<"Appointment Created", { titles?: string[], templateIds?: string[] }, {}>,
   'Appointment Completed': AutomationTriggerEventBuilder<"Appointment Completed", { titles?: string[], templateIds?: string[] }, {}>,
-  'Appointment Cancelled': AutomationTriggerEventBuilder<"Appointment Cancelled", { titles?: string[] }, {}>,
+  'Appointment Cancelled': AutomationTriggerEventBuilder<"Appointment Cancelled", { 
+    titles?: string[], 
+    by?: '' | 'enduser' | 'user', // only implemented for enduser for now
+  }, {}>,
   'Appointment Rescheduled': AutomationTriggerEventBuilder<"Appointment Rescheduled", { titles?: string[] }, {}>,
   'Medication Added': AutomationTriggerEventBuilder<"Medication Added", { titles: string[] }, {}>,
   'No Recent Appointment': AutomationTriggerEventBuilder<"No Recent Appointment", { 
