@@ -329,6 +329,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedActiveCampaign?: boolean,
   hasConnectedDocsumo?: boolean,
   hasConnectedEmotii?: boolean,
+  hasConnectedDevelopHealth?: boolean,
   hasConfiguredZoom?: boolean,
   hasTicketQueues?: boolean,
   vitalTeamId?: string,
@@ -1711,6 +1712,7 @@ export interface Integration extends Integration_readonly, Integration_required,
   enduserFieldMapping?: FieldMapping[],
   default_dietitian_id?: string,
   dontPushCalendarEvent?: boolean,
+  dontPullCalendarEvent?: boolean,
 }
 
 export type BuildDatabaseRecordField <K extends string, V, O> = { type: K, value: V, options: O & { width?: string } }
@@ -3574,6 +3576,7 @@ export type EnduserProfileViewBlocks = {
   "Medications": EnduserProfileViewBlockBuilder<"Medications", { title: string }>,
   "Diagnoses": EnduserProfileViewBlockBuilder<"Diagnoses", { title: string }>,
   "Timeline": EnduserProfileViewBlockBuilder<"Timeline", { title: string }>,
+  "Shared Content": EnduserProfileViewBlockBuilder<"Shared Content", { title: string }>,
 }
 export type EnduserProfileViewBlockType = keyof EnduserProfileViewBlocks
 export type EnduserProfileViewBlock = EnduserProfileViewBlocks[EnduserProfileViewBlockType]

@@ -1938,6 +1938,7 @@ export const schema: SchemaV1 = build_schema({
       enduserFieldMapping: { validator: fieldMappingsValidator },
       default_dietitian_id: { validator: stringValidator100 },
       dontPushCalendarEvent: { validator: booleanValidator },
+      dontPullCalendarEvent: { validator: booleanValidator },
     },
     customActions: {
       update_zoom: {

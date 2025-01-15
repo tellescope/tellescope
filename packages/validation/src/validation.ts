@@ -339,6 +339,7 @@ import {
   CANDID_TITLE,
   CANVAS_TITLE,
   DEFAULT_ACCESS,
+  DEVELOP_HEALTH_TITLE,
   DOCSUMO_TITLE,
   DOSESPOT_TITLE,
   EMOTII_TITLE,
@@ -4625,6 +4626,7 @@ export type IntegrationsTitleType = (
 | typeof ACTIVE_CAMPAIGN_TITLE
 | typeof STRIPE_TITLE
 | typeof EMOTII_TITLE
+| typeof DEVELOP_HEALTH_TITLE
 )
 export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleType>([
   SQUARE_INTEGRATIONS_TITLE,
@@ -4646,6 +4648,7 @@ export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleTy
   ACTIVE_CAMPAIGN_TITLE,
   STRIPE_TITLE,
   EMOTII_TITLE,
+  DEVELOP_HEALTH_TITLE,
 ])
 
 const _VIDEO_INTEGRATION_TYPES: { [K in VideoIntegrationType]: any} = {
@@ -5229,6 +5232,13 @@ export const enduserProfileViewBlockValidator = orValidator<{ [K in EnduserProfi
     ...sharedEnduserProfileViewBlockFields,
     type: exactMatchValidator(['Timeline']),
     info: objectValidator<EnduserProfileViewBlocks['Timeline']['info']>({
+      title: stringValidator100,
+    }),
+  }), 
+  "Shared Content": objectValidator<EnduserProfileViewBlocks["Shared Content"]>({
+    ...sharedEnduserProfileViewBlockFields,
+    type: exactMatchValidator(['Shared Content']),
+    info: objectValidator<EnduserProfileViewBlocks['Shared Content']['info']>({
       title: stringValidator100,
     }),
   }), 

@@ -141,6 +141,7 @@ export const FULLSCRIPT_INTEGRATIONS_TITLE = "Fullscript"
 export const FULLSCRIPT_REDIRECT_URI_ENDING = "/fullscript-oauth2-verify"
 export const STRIPE_TITLE = "Stripe"
 export const EMOTII_TITLE = "Emotii"
+export const DEVELOP_HEALTH_TITLE = "Develop Health"
 
 export const ORGANIZATION_WIDE_INTEGRATIONS = [
   OPENAI_TITLE, 
@@ -161,6 +162,7 @@ export const ORGANIZATION_WIDE_INTEGRATIONS = [
   MEDPLUM_TITLE,
   ACTIVE_CAMPAIGN_TITLE,
   EMOTII_TITLE,
+  DEVELOP_HEALTH_TITLE,
 ]
 
 export const ONE_MINUTE_IN_MS = 1000 * 60
@@ -1042,3 +1044,5 @@ export const DOCUMENT_REFERENCE_CODINGS = [
 export const PORTAL_PAGES_HIDDEN_BY_DEFAULT = [
   "Orders", "Vitals",
 ]
+
+export const USER_PERSONAL_EMAIL_OVERRIDE = "personal@tellescope.com"
