@@ -219,6 +219,7 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   diagnosis_codes: defaultQueries(s, 'diagnosis_codes'),
   allergy_codes: defaultQueries(s, 'allergy_codes'),
   integration_logs: defaultQueries(s, 'integration_logs'),
+  enduser_eligibility_results: defaultQueries(s, 'enduser_eligibility_results'),
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
@@ -767,6 +768,11 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
       Promise<extractFields<CustomActions['group_mms_conversations']['send_message']['returns']>>
     ),
   },
+  enduser_eligibility_results: {
+    develop_health_run_benefit_verification: (args: extractFields<CustomActions['enduser_eligibility_results']['develop_health_run_benefit_verification']['parameters']>) => (
+      Promise<extractFields<CustomActions['enduser_eligibility_results']['develop_health_run_benefit_verification']['returns']>>
+    ),
+  },
 }
 
 // session info that's currently required/used on front-end but not part of base user model
@@ -1017,6 +1023,8 @@ export class Session extends SessionManager {
 
     queries.enduser_observations.load = args => this._GET(`/v1${schema.enduser_observations.customActions.load.path}`, args)
     queries.enduser_observations.acknowledge = args => this._POST(`/v1${schema.enduser_observations.customActions.acknowledge.path}`, args)
+
+    queries.enduser_eligibility_results.develop_health_run_benefit_verification = args => this._POST(`/v1${schema.enduser_eligibility_results.customActions.develop_health_run_benefit_verification.path}`, args)
 
     this.api = queries
   }

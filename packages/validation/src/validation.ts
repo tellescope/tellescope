@@ -4468,6 +4468,7 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   diagnosis_codes: accessPermissionValidator,
   allergy_codes: accessPermissionValidator,
   integration_logs: accessPermissionValidator,
+  enduser_eligibility_results: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
@@ -4557,6 +4558,7 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   diagnosis_codes: numberValidatorOptional,
   allergy_codes: numberValidatorOptional,
   integration_logs: numberValidatorOptional,
+  enduser_eligibility_results: numberValidatorOptional,
 }, { emptyOk: true })
 
 const _LOGIN_FLOW_RESULTS = {
@@ -5636,4 +5638,5 @@ export const enduserDiagnosisValidator = objectValidator<EnduserDiagnosis>({
   externalId: stringValidatorOptional,
   source: stringValidatorOptional,
   references: relatedRecordsValidatorOptional,
+  createdAt: dateValidatorOptional,
 })

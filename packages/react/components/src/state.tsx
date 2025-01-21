@@ -96,6 +96,7 @@ import {
   DiagnosisCode,
   AllergyCode,
   IntegrationLog,
+  EnduserEligibilityResult,
 } from "@tellescope/types-client"
 
 import {
@@ -359,6 +360,7 @@ const suggestedContactsSlice = createSliceForList<SuggestedContact, 'suggested_c
 const diagnosisCodesSlice = createSliceForList<DiagnosisCode, 'diagnosis_codes'>('diagnosis_codes')
 const allergyCodesSlice = createSliceForList<AllergyCode, 'allergy_codes'>('allergy_codes')
 const integrationLogsSlice = createSliceForList<IntegrationLog, 'integration_logs'>('integration_logs')
+const enduserEligibilityResultsSlice = createSliceForList<EnduserEligibilityResult, 'enduser_eligibility_results'>('enduser_eligibility_results')
 
 const roleBasedAccessPermissionsSlice = createSliceForList<RoleBasedAccessPermission, 'role_based_access_permissions'>('role_based_access_permissions')
 
@@ -367,6 +369,7 @@ const userLogsSlice = createSliceForList<UserLog, 'user_logs'>('user_logs')
 
 export const sharedConfig = {
   reducer: { 
+    enduser_eligibility_results: enduserEligibilityResultsSlice.reducer,
     integration_logs: integrationLogsSlice.reducer,
     ticket_queues: ticketQueuesSlice.reducer,
     automation_triggers: automationTriggersSlice.reducer,
@@ -1190,6 +1193,25 @@ export const useUserAndEnduserDisplayInfo = () => {
   }
 
   return displayInfo
+}
+
+export const useEnduserEligibilityResults = (options={} as HookOptions<EnduserEligibilityResult>) => {
+  const session = useResolvedSession()
+
+  return useListStateHook('enduser_eligibility_results', useTypedSelector(s => s.enduser_eligibility_results), session, enduserEligibilityResultsSlice,
+    { 
+      loadQuery: session.api.enduser_eligibility_results.getSome,
+      findOne: session.api.enduser_eligibility_results.getOne,
+      findByIds: session.api.enduser_eligibility_results.getByIds,
+      addOne: session.api.enduser_eligibility_results.createOne,
+      addSome: session.api.enduser_eligibility_results.createSome,
+      deleteOne: session.api.enduser_eligibility_results.deleteOne,
+      updateOne: session.api.enduser_eligibility_results.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
 }
 
 export const useSuggestedContacts = (options={} as HookOptions<SuggestedContact>) => {

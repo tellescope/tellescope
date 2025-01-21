@@ -2944,14 +2944,15 @@ export const HeightInput = ({ field, value={} as any, onChange, ...props }: Form
   </Grid>
 )
 
-export const RedirectInput = ({ groupId, groupInsance, rootResponseId, formResponseId, field, submit, value={} as any, onChange, responses, enduser, ...props }: FormInputProps<'Redirect'>) => {
+export const RedirectInput = ({ enduserId, groupId, groupInsance, rootResponseId, formResponseId, field, submit, value={} as any, onChange, responses, enduser, ...props }: FormInputProps<'Redirect'>) => {
   console.log('formResponseId', formResponseId, 'rootResponseId', rootResponseId)
   const session = useResolvedSession()
 
   let eId = ''
   try {
-    eId = new URL(window.location.href).searchParams.get('eId') || ''
+    eId = new URL(window.location.href).searchParams.get('eId') || enduserId || ''
   } catch(err) {}
+  console.log(eId)
 
   const email = (
     responses?.find(r => r.intakeField === 'email')?.answer?.value
@@ -2993,7 +2994,7 @@ export const RedirectInput = ({ groupId, groupInsance, rootResponseId, formRespo
             field.options.redirectExternalUrl, 
             {
               ...session.userInfo as any,
-              email, fname, lname, state, phone, 
+              id: eId, email, fname, lname, state, phone, 
             }
           )
         )

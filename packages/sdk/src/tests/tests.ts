@@ -6560,6 +6560,7 @@ export const enduser_orders_tests = async () => {
 
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
+  enduser_eligibility_results: NO_TEST,
   diagnosis_codes: NO_TEST,
   allergy_codes: NO_TEST,
   suggested_contacts: NO_TEST,

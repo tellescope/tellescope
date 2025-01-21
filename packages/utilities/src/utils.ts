@@ -1,5 +1,5 @@
 import { AllergyResponse, AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserInsurance, EnduserObservation, EnduserRelationship, File, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerAddress, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, LabeledField, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, TIMEZONES, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
-import { ADMIN_ROLE, CANVAS_TITLE, get_inverse_relationship_type } from "@tellescope/constants"
+import { ADMIN_ROLE, CANVAS_TITLE, get_inverse_relationship_type, MM_DD_YYYY_REGEX } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 import { DateTime } from "luxon"
 
@@ -1870,6 +1870,51 @@ export const validate_enduser_for_dose_spot = (enduser?: Omit<Enduser, 'id'> | n
     if (!enduser.height?.value) return "Height is required for patients under 19"
     if (!enduser.weight?.value) return "Weight is required for patients under 19"
   }
+}
+
+export const validate_enduser_for_develop_health = (enduser?: Omit<Enduser, 'id'> | null, insuranceType?: string) => {
+  if (!enduser) return "Enduser is required"
+  
+  if (!enduser.fname) return "First name is required"
+  if (!enduser.lname) return "Last name is required"
+
+  if (!enduser.gender) return "Gender is required"
+  if (!enduser.dateOfBirth || !MM_DD_YYYY_REGEX.test(enduser.dateOfBirth)) return "Date of Birth is required in MM-DD-YYYY format"
+
+  if (!enduser.addressLineOne) return "Patient address is required (Line One)"
+  if (!enduser.city) return "Patient address is required (City)"
+  if (!enduser.state) return "Patient address is required (State)"
+  if (!enduser.zipCode) return "Patient address is required (ZIP)"
+
+  const insurance = (
+    insuranceType === 'Secondary'
+      ? enduser.insuranceSecondary
+      : enduser.insurance
+  )
+  if (!insurance) return "Patient insurance is not set"
+
+  if (!(
+    (insurance.cardFront && insurance.cardBack)
+  || (insurance.payerName && insurance.memberId)
+  )) {
+    return "Payer name and member ID or front and back insurance images are required"  
+  }
+}
+export const validate_user_for_develop_health = (user?: Omit<User, 'id'> | null) => {
+  if (!user) return "Provider is required"
+  
+  if (!user.fname) return "First name is required"
+  if (!user.lname) return "Last name is required"
+  if (!user.NPI) return "NPI is required"
+}
+export const validate_organization_for_develop_health = (organization?: Omit<Organization, 'id'> | null) => {
+  if (!organization) return "Organization is required"
+  if (!organization.billingOrganizationName) return "Billing organization name is required"
+  if (!organization.billingOrganizationTaxId) return "Billing organization Tax ID"
+  if (!organization?.billingOrganizationAddress?.lineOne) return "Billing organization address is required (Line One)"
+  if (!organization?.billingOrganizationAddress?.city) return "Billing organization address is required (City)"
+  if (!organization?.billingOrganizationAddress?.state) return "Billing organization address is required (State)"
+  if (!organization?.billingOrganizationAddress?.zipCode) return "Billing organization address is required (ZIP)"
 }
 
 // https://stackoverflow.com/questions/38552003/how-to-decode-jwt-token-in-javascript-without-using-a-library

@@ -694,6 +694,7 @@ export type EnduserInsurance = {
 
 export type EnduserDiagnosis = {
   id?: string, // if created in Tellescope
+  createdAt?: Date,
   externalId?: string,
   active?: boolean,
   start?: string,
@@ -2950,6 +2951,7 @@ export interface PortalCustomization extends PortalCustomization_readonly, Porta
   showStripePortalLink?: boolean,
   hideCancellatation?: boolean,
   hiddenEventTitles?: string[],
+  hiddenFormIds?: string[],
 }
 export const MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION = 1000
 export const DEFAULT_PATIENT_PORTAL_BOTTOM_NAVIGATION_POSITIONS: { [K in PortalPage]: number } = {
@@ -4224,7 +4226,30 @@ export interface IntegrationLog_required {}
 export interface IntegrationLog_updatesDisabled {}
 export interface IntegrationLog extends IntegrationLog_readonly, IntegrationLog_required, IntegrationLog_updatesDisabled {}
 
+
+export interface EnduserEligibilityResult_readonly extends ClientRecord {}
+export interface EnduserEligibilityResult_updatesDisabled {}
+export interface EnduserEligibilityResult_required {
+  title: string,
+  type: string,
+  status: string,
+  externalId: string,
+  source: string,
+  enduserId: string,
+}
+export interface EnduserEligibilityResult extends EnduserEligibilityResult_readonly, EnduserEligibilityResult_required, EnduserEligibilityResult_updatesDisabled {
+  statusText?: string,
+  results?: {
+    title: string,
+    is_covered: boolean,
+    requires_prior_authorization: boolean,
+    copay: string,
+    copayDescription: string,
+  }[]
+}
+
 export type ModelForName_required = {
+  enduser_eligibility_results: EnduserEligibilityResult_required,
   integration_logs: IntegrationLog_required,
   allergy_codes: AllergyCode_required,
   diagnosis_codes: DiagnosisCode_required,
@@ -4312,6 +4337,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  enduser_eligibility_results: EnduserEligibilityResult_readonly,
   integration_logs: IntegrationLog_readonly,
   allergy_codes: AllergyCode_readonly,
   diagnosis_codes: DiagnosisCode_readonly,
@@ -4399,6 +4425,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  enduser_eligibility_results: EnduserEligibilityResult_updatesDisabled,
   integration_logs: IntegrationLog_updatesDisabled,
   allergy_codes: AllergyCode_updatesDisabled,
   diagnosis_codes: DiagnosisCode_updatesDisabled,
@@ -4486,6 +4513,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly { 
+  enduser_eligibility_results: EnduserEligibilityResult,
   integration_logs: IntegrationLog,
   allergy_codes: AllergyCode,
   diagnosis_codes: DiagnosisCode,
@@ -4583,6 +4611,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  enduser_eligibility_results: true,
   integration_logs: true,
   allergy_codes: true,
   diagnosis_codes: true,
@@ -5441,4 +5470,28 @@ export type TwilioQueue = {
   currentSize: number,
   friendlyName: string,
   averageWaitTime: number,
+}
+
+export type DevelopHealthRunBenefitVerificationBaseArguments = {
+  drugs: {
+    name: string, 
+    dosage: string,
+    quantity: number,
+  }[],
+  drug_history: {
+    currently_taking_drugs: {
+      name: string,
+    }[],
+    previously_taken_drugs: {
+      name: string,
+    }[],
+  },
+  diagnoses: {
+    code: string, // ICD-10
+  }[],
+  mock_result?: {
+    status: string, // e.g. "completed",
+    case: string, // e.g. "drugs_covered__prior_auth_required__has_copay"
+  },
+  use_patient_plan_fund_source_check?: boolean,
 }

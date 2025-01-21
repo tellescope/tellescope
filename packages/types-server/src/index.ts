@@ -93,6 +93,7 @@ export type SuggestedContact = ServerModelForName['suggested_contacts']
 export type DiagnosisCode = ServerModelForName['diagnosis_codes']
 export type AllergyCode = ServerModelForName['allergy_codes']
 export type IntegrationLog = ServerModelForName['integration_logs']
+export type EnduserEligibilityResult = ServerModelForName['enduser_eligibility_results']
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']

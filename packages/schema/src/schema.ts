@@ -72,6 +72,7 @@ import {
   Addendum,
   GroupCancellation,
   FormResponseFollowup,
+  DevelopHealthRunBenefitVerificationBaseArguments,
 } from "@tellescope/types-models"
 
 import {
@@ -103,6 +104,7 @@ import {
   Integration,
   TicketQueue,
   SMSMessage,
+  EnduserEligibilityResult,
 } from "@tellescope/types-client"
 
 import {
@@ -319,6 +321,7 @@ import {
   ENDUSER_SESSION_TYPE,
   USER_SESSION_TYPE,
   CANDID_TITLE,
+  DEVELOP_HEALTH_TITLE,
 } from "@tellescope/constants"
 
 export const get_next_reminder_timestamp_for_ticket = ({ dueDateInMS, reminders, closedAt } : Pick<Ticket, 'dueDateInMS' | 'reminders' | 'closedAt'>): number => {
@@ -1057,6 +1060,15 @@ export type CustomActions = {
   enduser_encounters: {
     create_candid_encounter: CustomAction<{ encounterId: string }, { encounter: EnduserEncounter }>,
   },
+  enduser_eligibility_results: {
+    develop_health_run_benefit_verification: CustomAction<DevelopHealthRunBenefitVerificationBaseArguments & { 
+      enduserId: string,
+      providerUserId: string,
+      insuranceType?: string,
+    }, { 
+      result: EnduserEligibilityResult,
+    }>, 
+  }
 } 
 
 export type PublicActions = {
@@ -6344,6 +6356,7 @@ export const schema: SchemaV1 = build_schema({
       showStripePortalLink: { validator: booleanValidator },
       hideCancellatation: { validator: booleanValidator },
       hiddenEventTitles: { validator: listOfStringsValidatorEmptyOk },
+      hiddenFormIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
     },
   }, 
   enduser_tasks: {
@@ -8164,6 +8177,78 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       payload: { validator: stringValidator, readonly: true, examples: ['{}'] },
       response: { validator: stringValidator, readonly: true, examples: ['{}'] },
       url: { validator: stringValidator, readonly: true, examples: ['https://www.tellescope.com'] },
+    }
+  },
+  enduser_eligibility_results: {
+    info: {},
+    constraints: { unique: [['externalId', 'source']], relationship: [], },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {
+      develop_health_run_benefit_verification: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Run Benefit Verification (Develop Health)',
+        path: '/enduser-eligibility-results/develop-health/run-benefit-verification',
+        description: "Runs a medication benefit verification for an enduser",
+        parameters: { 
+          enduserId: { validator: mongoIdStringValidator, required: true },
+          providerUserId: { validator: mongoIdStringValidator, required: true },
+          insuranceType: { validator: stringValidator100, examples: ["Primary", "Secondary"] }, // Primary or Secondary
+          diagnoses: { // can't be empty
+            validator: listValidator(objectValidator<{ code: string }>({
+              code: stringValidator,
+            })),
+            required: true,
+          },
+          drug_history: {
+            validator: objectValidator<{ currently_taking_drugs: { name: string }[], previously_taken_drugs: { name: string }[] }>({
+              currently_taking_drugs: listValidatorOptionalOrEmptyOk(objectValidator<{ name: string }>({ name: stringValidator })),
+              previously_taken_drugs: listValidatorOptionalOrEmptyOk(objectValidator<{ name: string }>({ name: stringValidator })),
+            }),
+            required: true,
+          }, 
+          drugs: { // can't be empty
+            validator: listValidator(objectValidator<{ name: string, dosage: string, quantity: number }>({
+              name: stringValidator,
+              dosage: stringValidator,
+              quantity: numberValidator,
+            })),
+            required: true,
+          },
+          use_patient_plan_fund_source_check: { validator: booleanValidator },
+          mock_result: {
+            validator: objectValidator<{ status: string, case: string }>({
+              status: stringValidator,
+              case: stringValidator,
+            }),
+          }
+        },
+        returns: {
+          result: { validator: 'enduser_eligibility_result' as any, required: true },
+        }
+      }
+    },
+    enduserActions: {
+      read: {}, readMany: {},
+    },
+    fields: {
+      ...BuiltInFields, 
+      enduserId: {
+        validator: mongoIdStringValidator,
+        required: true,
+        examples: [PLACEHOLDER_ID],
+        updatesDisabled: true,
+        dependencies: [{
+          dependsOn: ['endusers'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+      title: { validator: stringValidator, required: true, examples: ["Drug Name (20mg, x8)"] },
+      type: { validator: stringValidator250, required: true, examples: ["Prescription"] },
+      externalId: { validator: stringValidator250, required: true, examples: [PLACEHOLDER_ID] },
+      source: { validator: stringValidator250, required: true, examples: [DEVELOP_HEALTH_TITLE] },
+      status: { validator: stringValidator250, required: true, examples: ["Pending"] },
     }
   },
 })

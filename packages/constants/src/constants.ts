@@ -294,6 +294,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
   emails: ASSIGNED_AND_DEFAULT_ACCESS,
   endusers: DEFAULT_ONLY_ACCESS, // equivalent to assigned access, but more efficient in this case
   enduser_status_updates: ASSIGNED_AND_DEFAULT_ACCESS,
+  enduser_eligibility_results: ASSIGNED_AND_DEFAULT_ACCESS,
   engagement_events: ASSIGNED_AND_DEFAULT_ACCESS,
   files: ASSIGNED_AND_DEFAULT_ACCESS, 
   forms: READ_ONLY_ALL,
@@ -393,6 +394,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
   integration_logs: READ_ONLY_ALL,
+  enduser_eligibility_results: FULL_ACCESS,
   allergy_codes: FULL_ACCESS,
   diagnosis_codes: FULL_ACCESS,
   suggested_contacts: FULL_ACCESS,
