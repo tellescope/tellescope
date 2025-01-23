@@ -1521,6 +1521,7 @@ export type FormFieldOptions = FormFieldValidation & {
   stripeKey?: string, // publishable key of custom stripe API keys
   dataSource?: string, // e.g. Canvas for Allergies
   canvasDocumentCoding?: Pick<CanvasCoding, 'system' | 'code'>
+  esignatureTermsCompanyName?: string,
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
@@ -2129,7 +2130,7 @@ export interface CalendarEvent_updatesDisabled {}
 export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_required, CalendarEvent_updatesDisabled {
   reason?: string, // reason for booking, patient-entered
   cancelReason?: string,
-  attendees: UserIdentity[],
+  attendees: (UserIdentity & { joinLinkToken?: string })[],
   color?: string,
   enableVideoCall?: boolean,
   type?: string,
@@ -2344,6 +2345,7 @@ export interface AppointmentLocation extends AppointmentLocation_readonly, Appoi
   tags?: string[],
 }
 
+// also includes per-template customizations, but naming is based on original purpose
 export interface BookingRestrictions {
   templateId: string,
   restrictions: {
@@ -2352,7 +2354,8 @@ export interface BookingRestrictions {
     tagsPortal?: string[],
     hoursBefore?: number | '',
     hoursAfter?: number | '',
-  }
+    shouldOpenJoinLink?: boolean,
+  },
 }
 export type AppointmentTerm = {
   title: string,
@@ -3688,7 +3691,10 @@ export type AutomationTriggerEvents = {
   'Form Group Incomplete': AutomationTriggerEventBuilder<"Form Group Incomplete", { groupId: string, intervalInMS: number }, {}>,
   'Message Opened': AutomationTriggerEventBuilder<"Message Opened", { templateIds?: string[] }, {}>,
   'Message Link Clicked': AutomationTriggerEventBuilder<"Message Link Clicked", { templateIds?: string[] }, {}>,
-  'Healthie Note Locked': AutomationTriggerEventBuilder<"Healthie Note Locked", { healthieFormIds?: string[] }, {}>,
+  'Healthie Note Locked': AutomationTriggerEventBuilder<"Healthie Note Locked", { 
+    healthieFormIds?: string[],
+    answersCondition?: Record<string, any>,
+  }, {}>,
   'Database Entry Added': AutomationTriggerEventBuilder<"Database Entry Added", { databaseId: string }, {}>,
   'Form Started': AutomationTriggerEventBuilder<"Form Started", { formIds?: string[] }, {}>,
 }

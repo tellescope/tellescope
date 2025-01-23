@@ -2277,6 +2277,17 @@ export const userIdentityValidator = objectValidator<{
 }) 
 export const listOfUserIndentitiesValidator = listValidator(userIdentityValidator)
 
+export const calendarEventAttendeeValidator = objectValidator<{
+  type: SessionType,
+  id: string,
+  joinLinkToken?: string,
+}>({ 
+  type: sessionTypeValidator,
+  id: mongoIdStringRequired,
+  joinLinkToken: stringValidatorOptionalEmptyOkay,
+}) 
+export const calendarEventAttendeesValidator = listValidator(calendarEventAttendeeValidator)
+
 export const chatAttachmentValidator = objectValidator<ChatAttachment>({ 
   type: stringValidator100,
   name: stringValidatorOptional,
@@ -3256,6 +3267,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   min: numberValidatorOptional,
   stripeKey: stringValidatorOptionalEmptyOkay,
   dataSource: stringValidatorOptionalEmptyOkay,
+  esignatureTermsCompanyName: stringValidatorOptionalEmptyOkay,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -4207,6 +4219,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['Healthie Note Locked']),
     info: objectValidator<AutomationTriggerEvents['Healthie Note Locked']['info']>({
       healthieFormIds: listOfStringsValidatorOptionalOrEmptyOk,
+      answersCondition: objectAnyFieldsAnyValuesValidator,
     }, { emptyOk: true }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -5625,7 +5638,8 @@ export const bookingRestrictionsByTemplateValidator = listValidatorEmptyOk(objec
     hoursBefore: numberValidatorOptional,
     hoursAfter: numberValidatorOptional,
     tagsPortal: listOfStringsValidatorOptionalOrEmptyOk,
-  })
+    shouldOpenJoinLink: booleanValidatorOptional,
+  }),
 }))
 
 export const enduserDiagnosisValidator = objectValidator<EnduserDiagnosis>({

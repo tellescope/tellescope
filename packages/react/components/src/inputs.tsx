@@ -122,7 +122,7 @@ export const useFileUpload = (o={} as UseFileUploaderOptions) => {
     } finally {
       setUploading(false)
     }
-  }, [session, setUploading, isCalledOut])
+  }, [session, setUploading, isCalledOut, enduserId])
 
   return {
     handleUpload,

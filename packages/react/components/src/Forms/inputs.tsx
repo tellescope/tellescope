@@ -1045,6 +1045,44 @@ export const AddressInput = ({ field, form, value, onChange, ...props }: FormInp
   )
 )
 
+export const ESignatureTerms = () => {
+  let companyName = 'Tellescope'
+  try {
+    const indexOfName = window.location.href.indexOf('name=')
+    if (indexOfName !== -1) {
+      companyName = (
+        decodeURIComponent(window.location.href.substring(indexOfName + 5))
+        || companyName
+      )
+    }
+  } catch(err) { 
+    console.error(err) 
+  }
+
+  return (
+    <div style={{paddingLeft: 10}}>
+      <h1>{companyName} Electronic Signature Terms</h1>
+
+      <p>
+        By selecting the "I consent to use electronic signatures" checkbox, 
+        you are signing this Agreement electronically. 
+        You agree your electronic signature is the legal 
+        equivalent of your manual/handwritten signature on this Agreement.  
+        By selecting "I consent to use electronic signatures" using any device, means or action, you consent to the 
+        legally binding terms and conditions of this Agreement. 
+        You further agree that your signature on this document (hereafter referred to as your "E-Signature") 
+        is as valid as if you signed the document in writing. 
+        You also agree that no certification authority or other third party 
+        verification is necessary to validate your E-Signature,
+        and that the lack of such certification or third party verification will 
+        not in any way affect the enforceability
+        of your E-Signature or any resulting agreement between you and 
+        {companyName} or between you and a customer of {companyName}.
+      </p>  
+    </div>
+  )
+}
+
 export const SignatureInput = ({ value, field, autoFocus=true, enduser, onChange }: FormInputProps<'signature'>) => {
   const prefill = (
     field.options?.prefillSignature && enduser?.fname && enduser.lname
@@ -1103,7 +1141,7 @@ export const SignatureInput = ({ value, field, autoFocus=true, enduser, onChange
         />
         <Typography component="span" style={{ position: 'relative', top: 5, left: 2 }}> 
           I consent to 
-          use <a href="/e-signature-terms" target="_blank" rel="noopener noreferrer"> electronic signatures </a>
+          use <a href={`/e-signature-terms?name=${field.options?.esignatureTermsCompanyName || ''}`} target="_blank" rel="noopener noreferrer"> electronic signatures </a>
         </Typography>
       </Grid>
 

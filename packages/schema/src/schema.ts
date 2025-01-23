@@ -312,6 +312,7 @@ import {
   listOfNumbersValidatorUniqueOptionalOrEmptyOkay,
   enduserDiagnosisValidator,
   canvasCodingValidatorOptional,
+  calendarEventAttendeesValidator,
 } from "@tellescope/validation"
 
 import {
@@ -1127,6 +1128,7 @@ export type PublicActions = {
     // portalURL defined when needing to redirect to portal (e.g. for Form Group)
   },
   calendar_events: {
+    session_for_join_link: CustomAction<{ token: string }, { authToken: string, eventId: string }>,
     session_for_start_link: CustomAction<{ token: string }, { authToken: string, eventId: string }>,
     session_for_public_appointment_booking: CustomAction<{ 
       fname?: string, 
@@ -4932,10 +4934,23 @@ export const schema: SchemaV1 = build_schema({
       },
     },
     publicActions: {
+      session_for_join_link: {
+        op: "custom", access: 'read', method: "get",
+        path: '/calendar-events/session-join-link',
+        name: 'Gets Start Link Info (enduser only)',
+        description: "Gets session and event details for a join link",
+        parameters: { 
+          token: { validator: stringValidator, required: true }
+        },
+        returns: {
+          authToken: { validator: stringValidator250, required: true },
+          eventId: { validator: mongoIdStringValidator, required: true },
+        },
+      },
       session_for_start_link: {
         op: "custom", access: 'read', method: "get",
         path: '/calendar-events/session-link',
-        name: 'Gets Link Info',
+        name: 'Gets Start Link Info (user only)',
         description: "Gets session and event details for a start link",
         parameters: { 
           token: { validator: stringValidator, required: true }
@@ -5054,7 +5069,7 @@ export const schema: SchemaV1 = build_schema({
       },
       carePlanNote: { validator: stringValidator5000EmptyOkay },
       attendees: { 
-        validator: listOfUserIndentitiesValidator,
+        validator: calendarEventAttendeesValidator,
         initializer: () => [],
       }, 
       reminders: {

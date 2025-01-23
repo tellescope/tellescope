@@ -8812,59 +8812,7 @@ const uniqueness_tests = async () => {
     "Cannot update to set duplicate externalId",
     () => sdk.api.endusers.updateOne(enduserNoCreator.id, { email, phone: "+15555555555", externalId }, { replaceObjectFields: true }),
     { shouldError: true, onError: e => e.message === UniquenessViolationMessage }
-  ) 
-
-  // await async_test(
-  //   "Set blank devices",
-  //   () => sdk.api.endusers.updateOne(enduserNoCreator.id, { devices: [] }, { replaceObjectFields: true }),
-  //   passOnAnyResult
-  // ) 
-  // await async_test(
-  //   "Set initial devices",
-  //   () => sdk.api.endusers.updateOne(enduserNoCreator.id, { devices: [{ id: "1", title: '1' }] }, { replaceObjectFields: true }),
-  //   passOnAnyResult
-  // ) 
-  // await async_test(
-  //   "Cant push same id",
-  //   () => sdk.api.endusers.updateOne(enduserNoCreator.id, { devices: [{ id: "1", title: '1' }] }),
-  //   { shouldError: true, onError: e => e.message === UniquenessViolationMessage }
-  // ) 
-  // await async_test(
-  //   "Cant replace same id",
-  //   () => sdk.api.endusers.updateOne(enduserNoCreator.id, { devices: [{ id: "1", title: '1' }, { id: "1", title: "1" }] }, { replaceObjectFields: true }),
-  //   { shouldError: true, onError: e => e.message === UniquenessViolationMessage }
-  // ) 
-  // await async_test(
-  //   "Can push new id",
-  //   () => sdk.api.endusers.updateOne(enduserNoCreator.id, { devices: [{ id: "2", title: "2" }] }),
-  //   passOnAnyResult
-  // ) 
-  // await async_test(
-  //   "Can replace new id",
-  //   () => sdk.api.endusers.updateOne(enduserNoCreator.id, { devices: [{ id: "1", title: '1' }, { id: "2", title: "2" }, { id: "3", title: "3" }] }, { replaceObjectFields: true }),
-  //   passOnAnyResult
-  // ) 
-
-  // await async_test(
-  //   "Can push new id to other enduser",
-  //   () => sdk.api.endusers.updateOne(other.id, { devices: [{ id: "4", title: "4" }] }),
-  //   passOnAnyResult
-  // ) 
-  // await async_test(
-  //   "Can replace new id to other enduser",
-  //   () => sdk.api.endusers.updateOne(other.id, { devices: [{ id: "4", title: "4" }] }, { replaceObjectFields: true }),
-  //   passOnAnyResult
-  // ) 
-  // await async_test(
-  //   "Cant push same id to other enduser",
-  //   () => sdk.api.endusers.updateOne(other.id, { devices: [{ id: "2", title: "2" }] }),
-  //   { shouldError: true, onError: e => e.message === UniquenessViolationMessage }
-  // ) 
-  // await async_test(
-  //   "Cant replace same id to other enduser",
-  //   () => sdk.api.endusers.updateOne(other.id, { devices: [{ id: "2", title: "2" }] }, { replaceObjectFields: true }),
-  //   { shouldError: true, onError: e => e.message === UniquenessViolationMessage }
-  // ) 
+  )
 
   await Promise.all([
     sdk.api.endusers.deleteOne(eExternalId.id),
@@ -8872,6 +8820,27 @@ const uniqueness_tests = async () => {
     sdk.api.endusers.deleteOne(eExternalIdOnUpdate.id),
     sdk.api.endusers.deleteOne(enduserNoCreator.id),
     sdk.api.forms.deleteOne(form.id),
+  ])
+
+  // tests for _overrideUnique: true
+  const e  = await sdk.api.endusers.createOne({ fname: "1", email, _overrideUnique: true })
+  const e2 = await sdk.api.endusers.createOne({ fname: "2", email, _overrideUnique: true })
+  const [e3, e4] = (await sdk.api.endusers.createSome([{ fname: "3", email }, { fname: "4", email }], { _overrideUnique: true })).created
+  const eUpdate = await sdk.api.endusers.createOne({ fname: "5", })
+  await sdk.api.endusers.updateOne(eUpdate.id, { email }, {}, true)
+
+  await async_test(
+    "Duplicates allowed via _overrideUnique: true",
+    () => sdk.api.endusers.getSome({ filter: { email }}),
+    { onResult: v => v.length === 5 }
+  )
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(e.id),
+    sdk.api.endusers.deleteOne(e2.id),
+    sdk.api.endusers.deleteOne(e3.id),
+    sdk.api.endusers.deleteOne(e4.id),
+    sdk.api.endusers.deleteOne(eUpdate.id),
   ])
 }
 
@@ -9136,6 +9105,7 @@ const ticket_no_care_team_setting_test = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await uniqueness_tests()
     await ticket_no_care_team_setting_test()
     await enduser_orders_tests()
     await calendar_event_care_team_tests()
@@ -9143,7 +9113,6 @@ const ticket_no_care_team_setting_test = async () => {
     await input_modifier_tests()
     await formsort_tests()
     await switch_to_related_contacts_tests()
-    await uniqueness_tests()
     await redaction_tests()
     await self_serve_appointment_booking_tests()
     await no_chained_triggers_tests()

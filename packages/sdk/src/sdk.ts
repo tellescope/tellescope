@@ -90,12 +90,12 @@ export interface APIQuery<
   UPDATE=Omit<Partial<T>, keyof (ClientModelForName_readonly[N] & ClientModelForName_updatesDisabled[N])> & { organizationIds?: string[], sharedWithOrganizations?: string[][] },
 > 
 {
-  createOne: (t: CREATE & { sharedWithOrganizations?: string[][] }) => Promise<T>;
-  createSome: (ts: CREATE[]) => Promise<{ created: T[], errors: object[] }>;
+  createOne: (t: CREATE & { sharedWithOrganizations?: string[][], _overrideUnique?: boolean }) => Promise<T>;
+  createSome: (ts: CREATE[], o?: { _overrideUnique?: boolean }) => Promise<{ created: T[], errors: object[] }>;
   getOne: (argument: string | ReadFilter<T>, mdbFilter?: any) => Promise<T>;
   getSome: LoadFunction<T>;
   getByIds: ({ ids } : { ids: string[] }) => Promise<{ matches: T[] }>;
-  updateOne: (id: string, updates: UPDATE, options?: CustomUpdateOptions) => Promise<T>;
+  updateOne: (id: string, updates: UPDATE, options?: CustomUpdateOptions, _overrideUnique?: boolean) => Promise<T>;
   deleteOne: (id: string) => Promise<void>;
 }
 
@@ -122,7 +122,7 @@ export const defaultQueries = <N extends keyof ClientModelForName>(
 
   return {
     createOne: o => s._POST(`/v1/${singularName}`, o),
-    createSome: os => s._POST(`/v1/${safeName}`, { create: os }),
+    createSome: (os, o) => s._POST(`/v1/${safeName}`, { create: os, ...o }),
     getOne: (argument, mdbFilter) => (
       (typeof argument === 'string' && argument !== '')
         ? s._GET(`/v1/${singularName}/${argument}`)
@@ -130,7 +130,7 @@ export const defaultQueries = <N extends keyof ClientModelForName>(
     ),
     getSome: (o) => s._GET(`/v1/${safeName}`, o),
     getByIds: (o) => s._POST(`/v1/${safeName}/bulk-read`, o),
-    updateOne: (id, updates, options) => s._PATCH(`/v1/${singularName}/${id}`, { updates, options }),
+    updateOne: (id, updates, options, _overrideUnique) => s._PATCH(`/v1/${singularName}/${id}`, { updates, options, _overrideUnique }),
     deleteOne: id => s._DELETE(`/v1/${singularName}/${id}`),
   }
 }

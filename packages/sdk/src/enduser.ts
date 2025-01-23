@@ -189,6 +189,9 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
     session_for_public_appointment_booking: (args: extractFields<PublicActions['calendar_events']['session_for_public_appointment_booking']['parameters']>) => (
       Promise<extractFields<PublicActions['calendar_events']['session_for_public_appointment_booking']['returns']>>
     ),
+    session_for_join_link: (args: extractFields<PublicActions['calendar_events']['session_for_join_link']['parameters']>) => (
+      Promise<extractFields<PublicActions['calendar_events']['session_for_join_link']['returns']>>
+    ),
     details_for_appointment_booking_page: (args: extractFields<PublicActions['calendar_events']['details_for_appointment_booking_page']['parameters']>) => (
       Promise<extractFields<PublicActions['calendar_events']['details_for_appointment_booking_page']['returns']>>
     ),
@@ -294,6 +297,7 @@ export class EnduserSession extends Session {
     this.api.calendar_events.book_appointment = a => this._POST(`/v1${schema.calendar_events.customActions.book_appointment.path}`, a)
     this.api.calendar_events.session_for_public_appointment_booking = a => this._POST(`/v1${schema.calendar_events.publicActions.session_for_public_appointment_booking.path}`, a)
     this.api.calendar_events.details_for_appointment_booking_page = a => this._GET(`/v1${schema.calendar_events.publicActions.details_for_appointment_booking_page.path}`, a)
+    this.api.calendar_events.session_for_join_link = a => this._GET(`/v1${schema.calendar_events.publicActions.session_for_join_link.path}`, a)
     this.api.calendar_events.stripe_details = a => this._GET(`/v1${schema.calendar_events.customActions.stripe_details.path}`, a)
     this.api.calendar_events.download_ics_file = a => this._GET(`/v1${schema.calendar_events.customActions.download_ics_file.path}`, a, true, { responseType: 'arraybuffer' })
 
