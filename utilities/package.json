@@ -1,0 +1,44 @@
+{
+  "name": "@tellescope/utilities",
+  "version": "1.165.0",
+  "description": "Shared JS code for common actions across API and browser",
+  "main": "./lib/cjs/utils.js",
+  "module": "./lib/esm/utils.js",
+  "types": "./lib/esm/utils.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npm run-script build:esm && npm run-script build:cjs",
+    "build:esm": "tsc",
+    "build:cjs": "tsc --module commonjs --outDir lib/cjs",
+    "watch:cjs": "tsc --module commonjs --outDir lib/cjs --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tellescope-os/tellescope.git"
+  },
+  "author": "Sebastian Coates",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/tellescope-os/tellescope/issues"
+  },
+  "homepage": "https://github.com/tellescope-os/tellescope#readme",
+  "dependencies": {
+    "@tellescope/constants": "^1.165.0",
+    "@tellescope/types-models": "^1.165.0",
+    "luxon": "3.1.0",
+    "sanitize-html": "^2.10.0"
+  },
+  "devDependencies": {
+    "@types/luxon": "3.1.0",
+    "@types/sanitize-html": "^2.9.0",
+    "@typescript-eslint/eslint-plugin": "^4.33.0",
+    "@typescript-eslint/parser": "^4.33.0",
+    "eslint": "^7.32.0",
+    "nodemon": "^2.0.13",
+    "typescript": "4.9.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "gitHead": "7be4ae7d05361759e5de904671e86c16ece21323"
+}

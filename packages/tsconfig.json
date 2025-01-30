@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "composite": true
+  },
+  "files": [],
+  "references": [],
+  "exclude": [
+    "**/lib",
+    "**/NativeTests",
+  ]
+}

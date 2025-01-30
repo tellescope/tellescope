@@ -1,0 +1,1 @@
+{"version":3,"file":"RNVideoRenderView.d.ts","sourceRoot":"","sources":["../../../src/native/RNVideoRenderView.tsx"],"names":[],"mappings":"AAKA,OAAO,KAAK,MAAM,OAAO,CAAC;AAC1B,OAAO,EAA0C,SAAS,EAAE,MAAM,cAAc,CAAC;AAGjF,qBAAa,iBAAkB,SAAQ,KAAK,CAAC,SAAS,CAAC;IAAE,MAAM,EAAE,MAAM,CAAC;IAAC,KAAK,CAAC,EAAE,SAAS,CAAA;CAAE,CAAC;IAC3F,iBAAiB;IAUjB,oBAAoB;IAIpB,MAAM;CAGP"}

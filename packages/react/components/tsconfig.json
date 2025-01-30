@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.settings.json",
+  "compilerOptions": {
+    "outDir": "lib/esm",
+    "rootDir": "src",
+    "paths": {
+      "@tellescope/types-models": ["../../types-models/lib/esm"],
+      "@tellescope/types-models/src": ["../../types-models/src"],
+    }
+  },
+  "exclude": ["node_modules", "lib", "tests"],
+  "include": ["src"],
+  "references": [
+    { "path": "../../sdk" },
+    { "path": "../../utilities" },
+    { "path": "../../types-client" },
+    { "path": "../../types-models" },
+    { "path": "../../types-utilities" }
+  ]
+}
