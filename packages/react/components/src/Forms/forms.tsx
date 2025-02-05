@@ -266,7 +266,7 @@ export const QuestionForField = ({
           <Height field={field} disabled={value.disabled} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'Redirect' ? (
-          <Redirect rootResponseId={rootResponseId} formResponseId={formResponseId} responses={responses} enduser={enduser} groupId={groupId} groupInsance={groupInstance} submit={submit} field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
+          <Redirect enduserId={enduserId} rootResponseId={rootResponseId} formResponseId={formResponseId} responses={responses} enduser={enduser} groupId={groupId} groupInsance={groupInstance} submit={submit} field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'Related Contacts' ? (
           <RelatedContacts field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />

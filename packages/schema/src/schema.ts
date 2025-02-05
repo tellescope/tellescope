@@ -2333,7 +2333,7 @@ export const schema: SchemaV1 = build_schema({
       relationship: [
         {
           explanation: "Email and email consent must be set for enduser",
-          evaluate: ({ enduserId, logOnly, isMarketing }, deps, _, method) => {
+          evaluate: ({ enduserId, logOnly, isMarketing, alternateToAddress }, deps, _, method) => {
             const e = deps[enduserId ?? ''] as Enduser
 
             // include before logOnly return for test-coverage purposes
@@ -2343,7 +2343,7 @@ export const schema: SchemaV1 = build_schema({
             if (method === 'update') return
 
             if (!e) return // not in cache, permit by default, likely during an update
-            if (!e?.email) return "Missing email"
+            if (!e?.email && !alternateToAddress) return "Missing email"
             // if (!e?.emailConsent) return "Missing email consent"
 
           }
@@ -4152,6 +4152,7 @@ export const schema: SchemaV1 = build_schema({
       enduserFieldsToAppendForSync: { validator: listOfUniqueStringsValidatorEmptyOk },
       allowPortalSubmission: { validator: booleanValidator },
       canvasNoteCoding: { validator: canvasCodingValidatorOptional },
+      syncToCanvasAsDataImport: { validator: booleanValidator },
     }
   },
   form_fields: {
@@ -4343,6 +4344,7 @@ export const schema: SchemaV1 = build_schema({
         }))
       },
       canvasEncounterId: { validator: stringValidator100 },
+      pushedToPortalAt: { validator: dateValidatorOptional },
     },
     defaultActions: DEFAULT_OPERATIONS,
     enduserActions: { 
@@ -5150,6 +5152,7 @@ export const schema: SchemaV1 = build_schema({
       requirePortalCancelReason: { validator: booleanValidator },
       startLinkToken: { validator: stringValidator250 },
       canvasEncounterId: { validator: stringValidator100 },
+      allowGroupReschedule: { validator: booleanValidator },
     }
   },
   calendar_event_templates: {
@@ -5164,6 +5167,7 @@ export const schema: SchemaV1 = build_schema({
     enduserActions: { read: {}, readMany: {} },
     fields: {
       ...BuiltInFields, 
+      allowGroupReschedule: { validator: booleanValidator },
       dontAutoSyncPatientToHealthie: { validator: booleanValidator },
       title: {
         validator: stringValidator250,
@@ -7183,6 +7187,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       },
       showCompose: { validator: booleanValidator },
       defaultForRoles: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      hiddenFromRoles: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       defaultForUserIds: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
     }
   },
@@ -7452,6 +7457,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           quantity: stringValidator,
           frequency: stringValidator,
           frequencyDescriptor: stringValidatorOptional,
+          description: stringValidatorOptional,
         }), 
       },
       source: { validator: stringValidator1000Optional },

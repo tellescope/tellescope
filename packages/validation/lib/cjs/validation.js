@@ -1706,6 +1706,7 @@ exports.formResponseAnswerValidator = (0, exports.orValidator)({
             fdbCode: exports.stringValidatorOptionalEmptyOkay,
             reasonForTaking: exports.stringValidatorOptionalEmptyOkay,
             dosage: (0, exports.objectValidator)({
+                description: exports.stringValidatorOptionalEmptyOkay,
                 value: exports.stringValidatorOptionalEmptyOkay,
                 unit: exports.stringValidatorOptionalEmptyOkay,
                 quantity: exports.stringValidatorOptionalEmptyOkay,
@@ -1937,6 +1938,7 @@ var _AUTOMATION_ACTIONS = {
     sendEmail: '',
     sendSMS: '',
     sendChat: '',
+    pushFormsToPortal: '',
     sendForm: '',
     sendWebhook: '',
     setEnduserStatus: '',
@@ -2163,6 +2165,7 @@ exports.automationForMessageValidator = (0, exports.objectValidator)({
     senderId: exports.mongoIdStringRequired,
     templateId: exports.mongoIdStringRequired,
     assignment: exports.senderAssignmentStrategyValidatorOptional,
+    sendToDestinationOfRelatedContactTypes: exports.listOfStringsValidatorOptionalOrEmptyOk,
 }, { emptyOk: false });
 exports.automationActionValidator = (0, exports.orValidator)({
     setEnduserStatus: (0, exports.objectValidator)({
@@ -2177,6 +2180,7 @@ exports.automationActionValidator = (0, exports.orValidator)({
             templateId: exports.mongoIdStringRequired,
             assignment: exports.senderAssignmentStrategyValidatorOptional,
             fromEmailOverride: exports.emailValidatorOptional,
+            sendToDestinationOfRelatedContactTypes: exports.listOfStringsValidatorOptionalOrEmptyOk,
         }, { emptyOk: false }),
         continueOnError: exports.booleanValidatorOptional,
     }),
@@ -2467,6 +2471,13 @@ exports.automationActionValidator = (0, exports.orValidator)({
             otherTypes: exports.listOfStringsValidatorUniqueOptionalOrEmptyOkay,
         }, {}),
     }),
+    pushFormsToPortal: (0, exports.objectValidator)({
+        continueOnError: exports.booleanValidatorOptional,
+        type: (0, exports.exactMatchValidator)(['pushFormsToPortal']),
+        info: (0, exports.objectValidator)({
+            formIds: exports.listOfMongoIdStringValidator,
+        }, { emptyOk: false }),
+    }),
 });
 exports.journeyContextValidator = (0, exports.objectValidator)({
     calendarEventId: exports.mongoIdStringOptional,
@@ -2739,6 +2750,9 @@ exports.formFieldOptionsValidator = (0, exports.objectValidator)({
     stripeKey: exports.stringValidatorOptionalEmptyOkay,
     dataSource: exports.stringValidatorOptionalEmptyOkay,
     esignatureTermsCompanyName: exports.stringValidatorOptionalEmptyOkay,
+    observationCode: exports.stringValidatorOptionalEmptyOkay,
+    observationDisplay: exports.stringValidatorOptionalEmptyOkay,
+    observationUnit: exports.stringValidatorOptionalEmptyOkay,
 });
 exports.blockValidator = (0, exports.orValidator)({
     h1: (0, exports.objectValidator)({
@@ -4709,6 +4723,7 @@ exports.phoneTreeActionValidator = (0, exports.orValidator)({
     "Route Call": (0, exports.objectValidator)({
         type: (0, exports.exactMatchValidator)(['Route Call']),
         info: (0, exports.objectValidator)({
+            byCareTeamPrimary: exports.booleanValidatorOptional,
             byCareTeam: exports.booleanValidatorOptional,
             byRole: exports.stringValidatorOptional,
             byTags: exports.listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
@@ -4729,6 +4744,7 @@ exports.phoneTreeActionValidator = (0, exports.orValidator)({
         info: (0, exports.objectValidator)({
             weeklyAvailabilities: exports.weeklyAvailabilitiesValidator,
             timezone: exports.timezoneValidatorOptional,
+            hasCareTeam: exports.booleanValidatorOptional,
         }),
     }),
     "Select Care Team Member": (0, exports.objectValidator)({
@@ -4770,6 +4786,13 @@ exports.formCustomizationValidator = (0, exports.objectValidator)({
     logoHeight: exports.numberValidatorOptional,
     hideBg: exports.booleanValidatorOptional,
     portalShowThanksAfterSubmission: exports.booleanValidatorOptional,
+    publicFnameLabel: exports.stringValidatorOptionalEmptyOkay,
+    publicLnameLabel: exports.stringValidatorOptionalEmptyOkay,
+    publicDateOfBirthLabel: exports.stringValidatorOptionalEmptyOkay,
+    publicEmailLabel: exports.stringValidatorOptionalEmptyOkay,
+    publicGenderLabel: exports.stringValidatorOptionalEmptyOkay,
+    publicPhoneLabel: exports.stringValidatorOptionalEmptyOkay,
+    publicStateLabel: exports.stringValidatorOptionalEmptyOkay,
 });
 exports.languageValidator = (0, exports.objectValidator)({
     displayName: exports.stringValidator100,

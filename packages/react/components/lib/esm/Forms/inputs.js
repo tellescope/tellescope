@@ -1168,20 +1168,11 @@ export var CanvasMedicationsInput = function (_a) {
                     }, getOptionLabel: function (v) { return first_letter_capitalized(v.displayTerm); }, filterOptions: function (o) { return o; }, inputValue: query, onInputChange: function (e, v) { return e && setQuery(v); }, renderInput: function (params) { return (_jsx(TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: defaultInputProps.sx }), required: !field.isOptional, size: "small", label: "", placeholder: "Search medications..." }))); }, renderTags: function (value, getTagProps) {
                         return value.map(function (value, index) { return (_jsx(Chip, __assign({ label: _jsx(Typography, __assign({ style: { whiteSpace: 'normal' } }, { children: value.displayTerm })) }, getTagProps({ index: index }), { sx: { height: "100%", py: 0.5 } }))); });
                     } }) })), (value || []).map(function (medication, i) {
-                var _a, _b, _d, _e;
-                return (_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, direction: "column", spacing: 0.75 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ noWrap: true, sx: { fontSize: 14 } }, { children: medication.drugName })) })), _jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap", columnGap: 0.5, justifyContent: "space-between" }, { children: [_jsx(Grid, __assign({ item: true, sx: { width: '50%', mr: 1 } }, { children: _jsx(TextField, { type: "number", InputProps: { sx: defaultInputProps.sx }, fullWidth: true, size: "small", label: "Units (e.g. capsule, table, puff) per dose?", value: ((_a = medication.dosage) === null || _a === void 0 ? void 0 : _a.quantity) || '', onChange: function (e) { return (onChange((value || []).map(function (v, _i) {
-                                                    return i === _i
-                                                        ? __assign(__assign({}, v), { dosage: __assign(__assign({}, v.dosage), { quantity: e.target.value }) }) : v;
-                                                }), field.id)); } }) })), _jsx(Grid, __assign({ item: true, sx: { width: '30%' } }, { children: _jsx(StringSelector, { size: "small", label: "How many times?", options: ["1", "2", "3", "4", "5", "6", "As Needed"], value: (_d = (_b = medication.dosage) === null || _b === void 0 ? void 0 : _b.frequency) !== null && _d !== void 0 ? _d : '', onChange: function (frequency) { return __awaiter(void 0, void 0, void 0, function () {
-                                                    return __generator(this, function (_a) {
-                                                        onChange((value !== null && value !== void 0 ? value : []).map(function (_v, _i) { return (i === _i
-                                                            ? __assign(__assign({}, _v), { dosage: __assign(__assign({}, _v.dosage), { frequency: frequency || '' }) }) : _v); }), field.id);
-                                                        return [2 /*return*/];
-                                                    });
-                                                }); } }) })), _jsx(Grid, __assign({ item: true, sx: { width: '20%' } }, { children: _jsx(StringSelector, { options: ['Day', 'Week', 'Month', "Year"], size: "small", label: "Per", value: ((_e = medication.dosage) === null || _e === void 0 ? void 0 : _e.frequencyDescriptor) || 'Day', onChange: function (frequencyDescriptor) { return (onChange((value || []).map(function (v, _i) {
-                                                    return i === _i
-                                                        ? __assign(__assign({}, v), { dosage: __assign(__assign({}, v.dosage), { frequencyDescriptor: frequencyDescriptor }) }) : v;
-                                                }), field.id)); }, getDisplayValue: first_letter_capitalized }) }))] })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(TextField, { InputProps: { sx: defaultInputProps.sx }, fullWidth: true, size: "small", label: "Reason for taking medication", value: medication.reasonForTaking || '', onChange: function (e) { return onChange((value || []).map(function (v, _i) { return i === _i ? __assign(__assign({}, v), { reasonForTaking: e.target.value }) : v; }), field.id); } }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Divider, { flexItem: true, sx: { my: 0.5 } }) }))] })) }), i));
+                var _a;
+                return (_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, direction: "column", spacing: 0.75 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ noWrap: true, sx: { fontSize: 14 } }, { children: medication.drugName })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(TextField, { InputProps: { sx: defaultInputProps.sx }, fullWidth: true, size: "small", label: "Medication instructions: how much you take, how often, and when", value: ((_a = medication.dosage) === null || _a === void 0 ? void 0 : _a.description) || '', onChange: function (e) { return (onChange((value || []).map(function (v, _i) {
+                                        return i === _i
+                                            ? __assign(__assign({}, v), { dosage: __assign(__assign({}, v.dosage), { description: e.target.value }) }) : v;
+                                    }), field.id)); } }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Divider, { flexItem: true, sx: { my: 0.5 } }) }))] })) }), i));
             })] })));
 };
 export var MedicationsInput = function (_a) {
@@ -1558,14 +1549,12 @@ export var HeightInput = function (_a) {
 export var RedirectInput = function (_a) {
     var _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
     var enduserId = _a.enduserId, groupId = _a.groupId, groupInsance = _a.groupInsance, rootResponseId = _a.rootResponseId, formResponseId = _a.formResponseId, field = _a.field, submit = _a.submit, _u = _a.value, value = _u === void 0 ? {} : _u, onChange = _a.onChange, responses = _a.responses, enduser = _a.enduser, props = __rest(_a, ["enduserId", "groupId", "groupInsance", "rootResponseId", "formResponseId", "field", "submit", "value", "onChange", "responses", "enduser"]);
-    console.log('formResponseId', formResponseId, 'rootResponseId', rootResponseId);
     var session = useResolvedSession();
     var eId = '';
     try {
-        eId = new URL(window.location.href).searchParams.get('eId') || enduserId || '';
+        eId = new URL(window.location.href).searchParams.get('eId') || enduserId || (enduser === null || enduser === void 0 ? void 0 : enduser.id) || '';
     }
     catch (err) { }
-    console.log(eId);
     var email = (((_d = (_b = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { return r.intakeField === 'email'; })) === null || _b === void 0 ? void 0 : _b.answer) === null || _d === void 0 ? void 0 : _d.value)
         || (enduser === null || enduser === void 0 ? void 0 : enduser.email)
         || session.userInfo.email);
@@ -1636,10 +1625,12 @@ export var RedirectInput = function (_a) {
 export var HiddenValueInput = function (_a) {
     var goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, isSinglePage = _a.isSinglePage;
     var lastRef = useRef(0);
+    var lastIdRef = useRef('');
     useEffect(function () {
-        if (lastRef.current > Date.now() - 1000)
+        if (lastRef.current > Date.now() - 1000 && lastIdRef.current === field.id)
             return;
         lastRef.current = Date.now();
+        lastIdRef.current = field.id;
         if (value) {
             if (isSinglePage)
                 return;

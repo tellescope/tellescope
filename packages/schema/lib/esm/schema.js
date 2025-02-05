@@ -1122,7 +1122,7 @@ export var schema = build_schema({
                 {
                     explanation: "Email and email consent must be set for enduser",
                     evaluate: function (_a, deps, _, method) {
-                        var enduserId = _a.enduserId, logOnly = _a.logOnly, isMarketing = _a.isMarketing;
+                        var enduserId = _a.enduserId, logOnly = _a.logOnly, isMarketing = _a.isMarketing, alternateToAddress = _a.alternateToAddress;
                         var e = deps[enduserId !== null && enduserId !== void 0 ? enduserId : ''];
                         // include before logOnly return for test-coverage purposes
                         if (isMarketing && e.unsubscribedFromMarketing)
@@ -1133,7 +1133,7 @@ export var schema = build_schema({
                             return;
                         if (!e)
                             return; // not in cache, permit by default, likely during an update
-                        if (!(e === null || e === void 0 ? void 0 : e.email))
+                        if (!(e === null || e === void 0 ? void 0 : e.email) && !alternateToAddress)
                             return "Missing email";
                         // if (!e?.emailConsent) return "Missing email consent"
                     }
@@ -2657,7 +2657,7 @@ export var schema = build_schema({
                     score: stringValidator100,
                     externalId: stringValidator100,
                 }))
-            }, hideAfterUnsubmittedInMS: { validator: numberValidator }, hideFromCompose: { validator: booleanValidator }, enduserFieldsToAppendForSync: { validator: listOfUniqueStringsValidatorEmptyOk }, allowPortalSubmission: { validator: booleanValidator }, canvasNoteCoding: { validator: canvasCodingValidatorOptional } })
+            }, hideAfterUnsubmittedInMS: { validator: numberValidator }, hideFromCompose: { validator: booleanValidator }, enduserFieldsToAppendForSync: { validator: listOfUniqueStringsValidatorEmptyOk }, allowPortalSubmission: { validator: booleanValidator }, canvasNoteCoding: { validator: canvasCodingValidatorOptional }, syncToCanvasAsDataImport: { validator: booleanValidator } })
     },
     form_fields: {
         info: {
@@ -2784,7 +2784,7 @@ export var schema = build_schema({
                     formResponseId: mongoIdStringOptional,
                     completedAt: dateValidatorOptional,
                 }))
-            }, canvasEncounterId: { validator: stringValidator100 } }),
+            }, canvasEncounterId: { validator: stringValidator100 }, pushedToPortalAt: { validator: dateValidatorOptional } }),
         defaultActions: DEFAULT_OPERATIONS,
         enduserActions: {
             prepare_form_response: {}, info_for_access_code: {}, submit_form_response: {}, stripe_details: {},
@@ -3473,7 +3473,7 @@ export var schema = build_schema({
                     identifier: stringValidator100,
                     byEnduserExternal: booleanValidatorOptional,
                 }),
-            }, cancelReason: { validator: stringValidator5000 }, dontAutoSyncPatientToHealthie: { validator: booleanValidator }, dontBlockAvailability: { validator: booleanValidator }, previousStartTimes: { validator: listOfNumbersValidatorUniqueOptionalOrEmptyOkay }, requirePortalCancelReason: { validator: booleanValidator }, startLinkToken: { validator: stringValidator250 }, canvasEncounterId: { validator: stringValidator100 } })
+            }, cancelReason: { validator: stringValidator5000 }, dontAutoSyncPatientToHealthie: { validator: booleanValidator }, dontBlockAvailability: { validator: booleanValidator }, previousStartTimes: { validator: listOfNumbersValidatorUniqueOptionalOrEmptyOkay }, requirePortalCancelReason: { validator: booleanValidator }, startLinkToken: { validator: stringValidator250 }, canvasEncounterId: { validator: stringValidator100 }, allowGroupReschedule: { validator: booleanValidator } })
     },
     calendar_event_templates: {
         info: {},
@@ -3485,7 +3485,7 @@ export var schema = build_schema({
         defaultActions: DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: { read: {}, readMany: {} },
-        fields: __assign(__assign({}, BuiltInFields), { dontAutoSyncPatientToHealthie: { validator: booleanValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { allowGroupReschedule: { validator: booleanValidator }, dontAutoSyncPatientToHealthie: { validator: booleanValidator }, title: {
                 validator: stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -5071,7 +5071,7 @@ export var schema = build_schema({
                             }
                         }]
                 ]
-            }, showCompose: { validator: booleanValidator }, defaultForRoles: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, defaultForUserIds: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay } })
+            }, showCompose: { validator: booleanValidator }, defaultForRoles: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, hiddenFromRoles: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, defaultForUserIds: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay } })
     },
     background_errors: {
         info: {},
@@ -5290,6 +5290,7 @@ export var schema = build_schema({
                     quantity: stringValidator,
                     frequency: stringValidator,
                     frequencyDescriptor: stringValidatorOptional,
+                    description: stringValidatorOptional,
                 }),
             }, source: { validator: stringValidator1000Optional }, externalId: { validator: stringValidator250 }, notes: { validator: stringValidator }, references: { validator: listOfRelatedRecordsValidator, readonly: true }, orderStatus: { validator: stringValidator1000 }, pharmacyName: { validator: stringValidator1000 }, prescriberName: { validator: stringValidator1000 }, reasonForTaking: { validator: stringValidator } })
     },

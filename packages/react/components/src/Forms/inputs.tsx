@@ -2177,68 +2177,18 @@ export const CanvasMedicationsInput = ({ field, value=[], onChange }: FormInputP
           </Grid>
 
           <Grid item>
-          <Grid container alignItems="center" wrap="nowrap" columnGap={0.5} justifyContent={"space-between"}>
-            <Grid item sx={{ width: '50%', mr: 1 }}>
-              <TextField type="number" InputProps={{ sx: defaultInputProps.sx }} fullWidth size="small" 
-                label="Units (e.g. capsule, table, puff) per dose?"
-                value={medication.dosage?.quantity || ''} 
-                onChange={e => (
-                  onChange((value || []).map((v, _i) => 
-                    i === _i 
-                      ? { ...v, dosage: { ...v.dosage!, quantity: e.target.value  } } 
-                      : v
-                    ), 
-                    field.id
-                  )
-                )} />
-            </Grid>
-
-            <Grid item sx={{ width: '30%' }}>
-              <StringSelector size="small" label="How many times?"
-                options={["1", "2", "3", "4", "5", "6", "As Needed"]} 
-                value={medication.dosage?.frequency ?? ''}
-                onChange={async (frequency) => {
-                  onChange(
-                    (value ?? []).map((_v, _i) => (
-                      i === _i
-                        ? { 
-                          ..._v, 
-                          dosage: {
-                            ..._v.dosage!,
-                            frequency: frequency || ''
-                          }
-                        }
-                        : _v
-                    )),
-                    field.id,
-                  )
-                }}
-              />
-            </Grid>
-
-            <Grid item sx={{ width: '20%' }}>
-              <StringSelector options={['Day', 'Week', 'Month', "Year"]} size="small" label="Per"
-                value={medication.dosage?.frequencyDescriptor || 'Day'}
-                onChange={frequencyDescriptor => (
-                  onChange((value || []).map((v, _i) => 
-                    i === _i 
-                      ? { ...v, dosage: { ...v.dosage!, frequencyDescriptor } } 
-                      : v
-                    ), 
-                    field.id
-                  )
-                )}
-                getDisplayValue={first_letter_capitalized}
-              />
-            </Grid>
-          </Grid>
-          </Grid>
-
-          <Grid item>
-            <TextField InputProps={{ sx: defaultInputProps.sx }} fullWidth size="small" label="Reason for taking medication"
-              value={medication.reasonForTaking || ''} 
-              onChange={e => onChange((value || []).map((v, _i) => i === _i ? { ...v, reasonForTaking: e.target.value } : v), field.id)}
-            />
+            <TextField InputProps={{ sx: defaultInputProps.sx }} fullWidth size="small" 
+              label="Medication instructions: how much you take, how often, and when"
+              value={medication.dosage?.description || ''} 
+              onChange={e => (
+                onChange((value || []).map((v, _i) => 
+                  i === _i 
+                    ? { ...v, dosage: { ...v.dosage!, description: e.target.value  } } 
+                    : v
+                  ), 
+                  field.id
+                )
+              )} />
           </Grid>
 
           <Grid item>
@@ -2983,14 +2933,12 @@ export const HeightInput = ({ field, value={} as any, onChange, ...props }: Form
 )
 
 export const RedirectInput = ({ enduserId, groupId, groupInsance, rootResponseId, formResponseId, field, submit, value={} as any, onChange, responses, enduser, ...props }: FormInputProps<'Redirect'>) => {
-  console.log('formResponseId', formResponseId, 'rootResponseId', rootResponseId)
   const session = useResolvedSession()
 
   let eId = ''
   try {
-    eId = new URL(window.location.href).searchParams.get('eId') || enduserId || ''
+    eId = new URL(window.location.href).searchParams.get('eId') || enduserId || enduser?.id || ''
   } catch(err) {}
-  console.log(eId)
 
   const email = (
     responses?.find(r => r.intakeField === 'email')?.answer?.value
@@ -3084,9 +3032,11 @@ export const RedirectInput = ({ enduserId, groupId, groupInsance, rootResponseId
 
 export const HiddenValueInput = ({ goToNextField, goToPreviousField, field, value, onChange, form, isSinglePage, }: FormInputProps<'email'>) => {
   let lastRef = useRef(0)
+  let lastIdRef = useRef('')
   useEffect(() => {
-    if (lastRef.current > Date.now() - 1000) return
+    if (lastRef.current > Date.now() - 1000 && lastIdRef.current === field.id) return
     lastRef.current = Date.now()
+    lastIdRef.current = field.id
 
     if (value) {
       if (isSinglePage) return

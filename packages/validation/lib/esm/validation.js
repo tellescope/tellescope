@@ -1660,6 +1660,7 @@ export var formResponseAnswerValidator = orValidator({
             fdbCode: stringValidatorOptionalEmptyOkay,
             reasonForTaking: stringValidatorOptionalEmptyOkay,
             dosage: objectValidator({
+                description: stringValidatorOptionalEmptyOkay,
                 value: stringValidatorOptionalEmptyOkay,
                 unit: stringValidatorOptionalEmptyOkay,
                 quantity: stringValidatorOptionalEmptyOkay,
@@ -1887,6 +1888,7 @@ var _AUTOMATION_ACTIONS = {
     sendEmail: '',
     sendSMS: '',
     sendChat: '',
+    pushFormsToPortal: '',
     sendForm: '',
     sendWebhook: '',
     setEnduserStatus: '',
@@ -2113,6 +2115,7 @@ export var automationForMessageValidator = objectValidator({
     senderId: mongoIdStringRequired,
     templateId: mongoIdStringRequired,
     assignment: senderAssignmentStrategyValidatorOptional,
+    sendToDestinationOfRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
 }, { emptyOk: false });
 export var automationActionValidator = orValidator({
     setEnduserStatus: objectValidator({
@@ -2127,6 +2130,7 @@ export var automationActionValidator = orValidator({
             templateId: mongoIdStringRequired,
             assignment: senderAssignmentStrategyValidatorOptional,
             fromEmailOverride: emailValidatorOptional,
+            sendToDestinationOfRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
         }, { emptyOk: false }),
         continueOnError: booleanValidatorOptional,
     }),
@@ -2417,6 +2421,13 @@ export var automationActionValidator = orValidator({
             otherTypes: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
         }, {}),
     }),
+    pushFormsToPortal: objectValidator({
+        continueOnError: booleanValidatorOptional,
+        type: exactMatchValidator(['pushFormsToPortal']),
+        info: objectValidator({
+            formIds: listOfMongoIdStringValidator,
+        }, { emptyOk: false }),
+    }),
 });
 export var journeyContextValidator = objectValidator({
     calendarEventId: mongoIdStringOptional,
@@ -2689,6 +2700,9 @@ export var formFieldOptionsValidator = objectValidator({
     stripeKey: stringValidatorOptionalEmptyOkay,
     dataSource: stringValidatorOptionalEmptyOkay,
     esignatureTermsCompanyName: stringValidatorOptionalEmptyOkay,
+    observationCode: stringValidatorOptionalEmptyOkay,
+    observationDisplay: stringValidatorOptionalEmptyOkay,
+    observationUnit: stringValidatorOptionalEmptyOkay,
 });
 export var blockValidator = orValidator({
     h1: objectValidator({
@@ -4657,6 +4671,7 @@ export var phoneTreeActionValidator = orValidator({
     "Route Call": objectValidator({
         type: exactMatchValidator(['Route Call']),
         info: objectValidator({
+            byCareTeamPrimary: booleanValidatorOptional,
             byCareTeam: booleanValidatorOptional,
             byRole: stringValidatorOptional,
             byTags: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
@@ -4677,6 +4692,7 @@ export var phoneTreeActionValidator = orValidator({
         info: objectValidator({
             weeklyAvailabilities: weeklyAvailabilitiesValidator,
             timezone: timezoneValidatorOptional,
+            hasCareTeam: booleanValidatorOptional,
         }),
     }),
     "Select Care Team Member": objectValidator({
@@ -4718,6 +4734,13 @@ export var formCustomizationValidator = objectValidator({
     logoHeight: numberValidatorOptional,
     hideBg: booleanValidatorOptional,
     portalShowThanksAfterSubmission: booleanValidatorOptional,
+    publicFnameLabel: stringValidatorOptionalEmptyOkay,
+    publicLnameLabel: stringValidatorOptionalEmptyOkay,
+    publicDateOfBirthLabel: stringValidatorOptionalEmptyOkay,
+    publicEmailLabel: stringValidatorOptionalEmptyOkay,
+    publicGenderLabel: stringValidatorOptionalEmptyOkay,
+    publicPhoneLabel: stringValidatorOptionalEmptyOkay,
+    publicStateLabel: stringValidatorOptionalEmptyOkay,
 });
 export var languageValidator = objectValidator({
     displayName: stringValidator100,

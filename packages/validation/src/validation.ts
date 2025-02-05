@@ -301,6 +301,7 @@ import {
   ActiveCampaignAddToListsAutomationAction,
   BaseResponse,
   ConditionResponse,
+  PushFormsAutomationAction,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -2090,6 +2091,7 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
         fdbCode: stringValidatorOptionalEmptyOkay,
         reasonForTaking: stringValidatorOptionalEmptyOkay,
         dosage: objectValidator<MedicationResponse['dosage']>({
+          description: stringValidatorOptionalEmptyOkay,
           value: stringValidatorOptionalEmptyOkay,
           unit: stringValidatorOptionalEmptyOkay,
           quantity: stringValidatorOptionalEmptyOkay,
@@ -2379,6 +2381,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   sendEmail: '',
   sendSMS: '',
   sendChat: '',
+  pushFormsToPortal: '',
   sendForm: '',
   sendWebhook: '',
   setEnduserStatus: '',
@@ -2657,6 +2660,7 @@ export const automationForMessageValidator = objectValidator<AutomationForMessag
   senderId: mongoIdStringRequired, 
   templateId: mongoIdStringRequired,
   assignment: senderAssignmentStrategyValidatorOptional,
+  sendToDestinationOfRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
 }, { emptyOk: false })
 
 export const automationActionValidator = orValidator<{ [K in AutomationActionType]: AutomationAction & { type: K } } >({
@@ -2672,6 +2676,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       templateId: mongoIdStringRequired,
       assignment: senderAssignmentStrategyValidatorOptional,
       fromEmailOverride: emailValidatorOptional,
+      sendToDestinationOfRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
     }, { emptyOk: false }),
     continueOnError: booleanValidatorOptional,
   }),
@@ -2966,6 +2971,13 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       type: stringValidator100,
       otherTypes: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
     }, {  }),
+  }),
+  pushFormsToPortal: objectValidator<PushFormsAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['pushFormsToPortal']),
+    info: objectValidator<PushFormsAutomationAction['info']>({ 
+      formIds: listOfMongoIdStringValidator,
+    }, { emptyOk: false }),
   }),
 })
 
@@ -3268,6 +3280,9 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   stripeKey: stringValidatorOptionalEmptyOkay,
   dataSource: stringValidatorOptionalEmptyOkay,
   esignatureTermsCompanyName: stringValidatorOptionalEmptyOkay,
+  observationCode: stringValidatorOptionalEmptyOkay,
+  observationDisplay: stringValidatorOptionalEmptyOkay,
+  observationUnit: stringValidatorOptionalEmptyOkay,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -5382,6 +5397,7 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
   "Route Call": objectValidator<PhoneTreeActions["Route Call"]>({
     type: exactMatchValidator(['Route Call']),
     info: objectValidator<PhoneTreeActions["Route Call"]['info']>({
+      byCareTeamPrimary: booleanValidatorOptional,
       byCareTeam: booleanValidatorOptional,
       byRole: stringValidatorOptional, 
       byTags: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
@@ -5402,6 +5418,7 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
     info: objectValidator<PhoneTreeActions["Conditional Split"]['info']>({
       weeklyAvailabilities: weeklyAvailabilitiesValidator,
       timezone: timezoneValidatorOptional,
+      hasCareTeam: booleanValidatorOptional,
     }),
   }),
   "Select Care Team Member": objectValidator<PhoneTreeActions["Select Care Team Member"]>({
@@ -5446,6 +5463,13 @@ export const formCustomizationValidator = objectValidator<Form['customization']>
   logoHeight: numberValidatorOptional,
   hideBg: booleanValidatorOptional,
   portalShowThanksAfterSubmission: booleanValidatorOptional,
+  publicFnameLabel: stringValidatorOptionalEmptyOkay,
+  publicLnameLabel: stringValidatorOptionalEmptyOkay,
+  publicDateOfBirthLabel: stringValidatorOptionalEmptyOkay,
+  publicEmailLabel: stringValidatorOptionalEmptyOkay,
+  publicGenderLabel: stringValidatorOptionalEmptyOkay,
+  publicPhoneLabel: stringValidatorOptionalEmptyOkay,
+  publicStateLabel: stringValidatorOptionalEmptyOkay,
 })
 
 export const languageValidator = objectValidator<Language>({

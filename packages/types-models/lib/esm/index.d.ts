@@ -797,6 +797,7 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
     dosage?: {
         value: string;
         unit: string;
+        description?: string;
         quantity?: string;
         frequency?: string;
         frequencyDescriptor?: string;
@@ -1483,6 +1484,9 @@ export type FormFieldOptions = FormFieldValidation & {
     dataSource?: string;
     canvasDocumentCoding?: Pick<CanvasCoding, 'system' | 'code'>;
     esignatureTermsCompanyName?: string;
+    observationCode?: string;
+    observationDisplay?: string;
+    observationUnit?: string;
 };
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>;
 export type FormFieldCalloutConditionComparison = 'Equals';
@@ -1538,6 +1542,13 @@ export type FormCustomization = {
     publicFormSubmitHTMLDescription?: string;
     logoHeight?: number;
     publicLabelPrefix?: string;
+    publicFnameLabel?: string;
+    publicLnameLabel?: string;
+    publicEmailLabel?: string;
+    publicPhoneLabel?: string;
+    publicStateLabel?: string;
+    publicDateOfBirthLabel?: string;
+    publicGenderLabel?: string;
     hideProgressBar?: boolean;
     showRestartAtEnd?: boolean;
     hideLogo?: boolean;
@@ -1600,6 +1611,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
     enduserFieldsToAppendForSync?: string[];
     allowPortalSubmission?: boolean;
     canvasNoteCoding?: Partial<CanvasCoding>;
+    syncToCanvasAsDataImport?: boolean;
 }
 export interface FormGroup_readonly extends ClientRecord {
 }
@@ -1774,6 +1786,7 @@ export type MedicationResponse = {
     dosage?: {
         value: string;
         unit: string;
+        description?: string;
         quantity?: string;
         frequency?: string;
         frequencyDescriptor?: string;
@@ -1969,6 +1982,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
     hideAfterUnsubmittedInMS?: number;
     addenda?: Addendum[];
     canvasEncounterId?: string;
+    pushedToPortalAt?: Date;
 }
 export interface WebHook_readonly extends ClientRecord {
 }
@@ -2132,6 +2146,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
     requirePortalCancelReason?: boolean;
     startLinkToken?: string;
     canvasEncounterId?: string;
+    allowGroupReschedule?: boolean;
 }
 export type PaymentProcessor = 'Square' | 'Stripe';
 export interface Product_readonly extends ClientRecord {
@@ -2251,6 +2266,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
     displayDescription?: string;
     requiresEnduser?: boolean;
     requirePortalCancelReason?: boolean;
+    allowGroupReschedule?: boolean;
 }
 export interface AppointmentLocation_readonly extends ClientRecord {
 }
@@ -2420,6 +2436,7 @@ export interface AutomationForFormRequest extends AutomationForForm, AutomationF
     channel?: CommunicationsChannel;
 }
 export interface AutomationForMessage extends AutomationForTemplate, AutomationForSender {
+    sendToDestinationOfRelatedContactTypes?: string[];
 }
 export interface AutomationForWebhook {
     message: string;
@@ -2581,6 +2598,9 @@ export type NotifyTeamAutomationAction = AutomationActionBuilder<'notifyTeam', {
 }>;
 export type SendSMSAutomationAction = AutomationActionBuilder<'sendSMS', AutomationForMessage>;
 export type SendFormAutomationAction = AutomationActionBuilder<'sendForm', AutomationForFormRequest>;
+export type PushFormsAutomationAction = AutomationActionBuilder<'pushFormsToPortal', {
+    formIds: string[];
+}>;
 export type SetEnduserStatusAutomationAction = AutomationActionBuilder<'setEnduserStatus', SetEnduserStatusInfo>;
 export type CreateTicketAutomationAction = AutomationActionBuilder<'createTicket', CreateTicketActionInfo>;
 export type SendWebhookAutomationAction = AutomationActionBuilder<'sendWebhook', AutomationForWebhook>;
@@ -2719,6 +2739,7 @@ export type AutomationActionForType = {
     switchToRelatedContact: SwitchToRelatedContactAutomationAction;
     'elationSync': ElationSyncAutomationAction;
     canvasSync: CanvasSyncAutomationAction;
+    pushFormsToPortal: PushFormsAutomationAction;
 };
 export type AutomationActionType = keyof AutomationActionForType;
 export type AutomationAction = AutomationActionForType[AutomationActionType];
@@ -3545,6 +3566,7 @@ export interface EnduserProfileView extends EnduserProfileView_readonly, Enduser
     showCompose?: boolean;
     defaultForUserIds?: string[];
     defaultForRoles?: string[];
+    hiddenFromRoles?: string[];
 }
 export type ListOfStringsWithQualifier = {
     qualifier: ListQueryQualifier;
@@ -3865,6 +3887,7 @@ export type PhoneTreeActions = {
     }>;
     'Route Call': PhoneTreeActionBuilder<"Route Call", {
         prePlayback?: Partial<PhonePlayback>;
+        byCareTeamPrimary?: boolean;
         byCareTeam?: boolean;
         byRole?: string;
         byTags?: ListOfStringsWithQualifier;
@@ -3882,6 +3905,7 @@ export type PhoneTreeActions = {
     'Conditional Split': PhoneTreeActionBuilder<"Conditional Split", {
         timezone?: Timezone;
         weeklyAvailabilities?: WeeklyAvailability[];
+        hasCareTeam?: boolean;
     }>;
     'Add to Queue': PhoneTreeActionBuilder<"Add to Queue", {
         queueId: string;

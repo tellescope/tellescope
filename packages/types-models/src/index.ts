@@ -851,6 +851,7 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
   dosage?: {
     value: string,
     unit: string,
+    description?: string,
     quantity?: string,
     frequency?: string,
     frequencyDescriptor?: string,
@@ -1524,6 +1525,9 @@ export type FormFieldOptions = FormFieldValidation & {
   dataSource?: string, // e.g. Canvas for Allergies
   canvasDocumentCoding?: Pick<CanvasCoding, 'system' | 'code'>
   esignatureTermsCompanyName?: string,
+  observationCode?: string,
+  observationDisplay?: string,
+  observationUnit?: string,
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
@@ -1584,6 +1588,13 @@ export type FormCustomization = {
   publicFormSubmitHTMLDescription?: string,
   logoHeight?: number,
   publicLabelPrefix?: string,
+  publicFnameLabel?: string,
+  publicLnameLabel?: string,
+  publicEmailLabel?: string,
+  publicPhoneLabel?: string,
+  publicStateLabel?: string,
+  publicDateOfBirthLabel?: string,
+  publicGenderLabel?: string,
   hideProgressBar?: boolean,
   showRestartAtEnd?: boolean,
   hideLogo?: boolean,
@@ -1646,6 +1657,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   enduserFieldsToAppendForSync?: string[],
   allowPortalSubmission?: boolean,
   canvasNoteCoding?: Partial<CanvasCoding>,
+  syncToCanvasAsDataImport?: boolean,
 }
 
 export interface FormGroup_readonly extends ClientRecord {}
@@ -1820,6 +1832,7 @@ export type MedicationResponse = {
   dosage?: {
     value: string,
     unit: string,
+    description?: string,
     quantity?: string, // how many per frequency
     frequency?: string,
     frequencyDescriptor?: string,
@@ -2030,7 +2043,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   context?: string,
   calendarEventId?: string,
   copiedFrom?: string,
-  groupId?: string,
+  groupId?: string, // may be an automationStepId when created from Journey in push forms action
   groupInstance?: string,
   groupPosition?: number,
   utm?: LabeledField[],
@@ -2055,6 +2068,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   hideAfterUnsubmittedInMS?: number,
   addenda?: Addendum[],
   canvasEncounterId?: string,
+  pushedToPortalAt?: Date,
 }
 
 export interface WebHook_readonly extends ClientRecord {}
@@ -2207,6 +2221,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   requirePortalCancelReason?: boolean,
   startLinkToken?: string,
   canvasEncounterId?: string,
+  allowGroupReschedule?: boolean, // allows a patient to reschedule even if there are multiple attendees (e.g. 1 + care giver)
   // isAllDay?: boolean,
 }
 
@@ -2325,6 +2340,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   displayDescription?: string,
   requiresEnduser?: boolean,
   requirePortalCancelReason?: boolean,
+  allowGroupReschedule?: boolean, // allows a patient to reschedule even if there are multiple attendees (e.g. 1 + care giver)
 }
 
 export interface AppointmentLocation_readonly extends ClientRecord {}
@@ -2486,7 +2502,9 @@ export interface AutomationForSender {
   senderId: string // default sender
 }
 export interface AutomationForFormRequest extends AutomationForForm, AutomationForSender { channel?: CommunicationsChannel }
-export interface AutomationForMessage extends AutomationForTemplate, AutomationForSender {}
+export interface AutomationForMessage extends AutomationForTemplate, AutomationForSender {
+  sendToDestinationOfRelatedContactTypes?: string[],
+}
 export interface AutomationForWebhook { 
   message: string,
   url?: string,
@@ -2648,6 +2666,7 @@ export type NotifyTeamAutomationAction = AutomationActionBuilder<'notifyTeam', {
 }>
 export type SendSMSAutomationAction = AutomationActionBuilder<'sendSMS', AutomationForMessage>
 export type SendFormAutomationAction = AutomationActionBuilder<'sendForm', AutomationForFormRequest>
+export type PushFormsAutomationAction = AutomationActionBuilder<'pushFormsToPortal', { formIds: string[] }>
 export type SetEnduserStatusAutomationAction = AutomationActionBuilder<'setEnduserStatus', SetEnduserStatusInfo>
 export type CreateTicketAutomationAction = AutomationActionBuilder<'createTicket', CreateTicketActionInfo>
 export type SendWebhookAutomationAction = AutomationActionBuilder<'sendWebhook', AutomationForWebhook>
@@ -2754,6 +2773,7 @@ export type AutomationActionForType = {
   switchToRelatedContact: SwitchToRelatedContactAutomationAction,
   'elationSync': ElationSyncAutomationAction,
   canvasSync: CanvasSyncAutomationAction,
+  pushFormsToPortal: PushFormsAutomationAction,
 }
 export type AutomationActionType = keyof AutomationActionForType
 export type AutomationAction = AutomationActionForType[AutomationActionType]
@@ -3598,6 +3618,7 @@ export interface EnduserProfileView extends EnduserProfileView_readonly, Enduser
   showCompose?: boolean,
   defaultForUserIds?: string[],
   defaultForRoles?: string[],
+  hiddenFromRoles?: string[],
 }
 
 export type ListOfStringsWithQualifier = {
@@ -3812,6 +3833,7 @@ export type PhoneTreeActions = {
   'Dial Users': PhoneTreeActionBuilder<"Dial Users", { userIds: string[], playback?: Partial<PhonePlayback>, duration?: number }>
   'Route Call': PhoneTreeActionBuilder<"Route Call", { 
     prePlayback?: Partial<PhonePlayback>,
+    byCareTeamPrimary?: boolean,
     byCareTeam?: boolean, 
     byRole?: string, 
     byTags?: ListOfStringsWithQualifier, 
@@ -3827,6 +3849,7 @@ export type PhoneTreeActions = {
   'Conditional Split': PhoneTreeActionBuilder<"Conditional Split", { 
     timezone?: Timezone,
     weeklyAvailabilities?: WeeklyAvailability[],
+    hasCareTeam?: boolean,
   }>
   'Add to Queue': PhoneTreeActionBuilder<"Add to Queue", { queueId: string, playback?: Partial<PhonePlayback>, }>
 }
