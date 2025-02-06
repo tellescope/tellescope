@@ -42,6 +42,7 @@ import {
   useVideoInputs,
   useBackgroundReplacement,
   useAudioVideo,
+  BackgroundBlurProvider,
   // useRemoteVideoTileState,
   // useContentShareControls, // screen sharing
 } from 'amazon-chime-sdk-component-library-react';
@@ -252,9 +253,11 @@ const WithContext = ({ children } : { children: React.ReactNode }) => {
 export const WithVideo = ({ children }: VideoProps) => (
   <ThemeProvider theme={darkTheme}>
   <MeetingProvider>
+  <BackgroundBlurProvider>
   <WithContext>
     {children}
   </WithContext>
+  </BackgroundBlurProvider>
   </MeetingProvider>
   </ThemeProvider>
 )

@@ -640,7 +640,7 @@ export var DatabaseRecordSearch = function (_a) {
 };
 var SEARCHBAR_MIN_WIDTH = '125px';
 export var UserAndEnduserSelector = function (_a) {
-    var titleInput = _a.titleInput, excludeEndusers = _a.excludeEndusers, excludeUsers = _a.excludeUsers, onGoBack = _a.onGoBack, onSelect = _a.onSelect, showTitleInput = _a.showTitleInput, hiddenIds = _a.hiddenIds, _b = _a.title, title = _b === void 0 ? "Select Members" : _b, minHeight = _a.minHeight, _c = _a.maxHeight, maxHeight = _c === void 0 ? '50vh' : _c, _d = _a.searchBarPlacement, searchBarPlacement = _d === void 0 ? "top" : _d, _e = _a.initialSelected, initialSelected = _e === void 0 ? [] : _e, _f = _a.buttonText, buttonText = _f === void 0 ? "Create" : _f, filter = _a.filter, radio = _a.radio, limitToUsers = _a.limitToUsers, dontIncludeSelf = _a.dontIncludeSelf;
+    var titleInput = _a.titleInput, excludeEndusers = _a.excludeEndusers, excludeUsers = _a.excludeUsers, onGoBack = _a.onGoBack, onSelect = _a.onSelect, showTitleInput = _a.showTitleInput, hiddenIds = _a.hiddenIds, _b = _a.title, title = _b === void 0 ? "Select Members" : _b, minHeight = _a.minHeight, _c = _a.maxHeight, maxHeight = _c === void 0 ? '50vh' : _c, _d = _a.searchBarPlacement, searchBarPlacement = _d === void 0 ? "top" : _d, _e = _a.initialSelected, initialSelected = _e === void 0 ? [] : _e, _f = _a.buttonText, buttonText = _f === void 0 ? "Create" : _f, filter = _a.filter, radio = _a.radio, limitToUsers = _a.limitToUsers, dontIncludeSelf = _a.dontIncludeSelf, virtualizationHeight = _a.virtualizationHeight;
     var session = useResolvedSession();
     var _g = useEndusers(), endusersLoading = _g[0], _h = _g[1], loadMoreEndusers = _h.loadMore, doneLoadingEndusers = _h.doneLoading;
     var _j = useUsers({
@@ -697,7 +697,13 @@ export var UserAndEnduserSelector = function (_a) {
             return (_jsxs(Flex, __assign({ flex: 1, column: true, justifyContent: "center" }, { children: [_jsxs(Flex, __assign({ alignItems: "center", justifyContent: "space-between", wrap: "nowrap", style: {
                             marginBottom: 10,
                         } }, { children: [onGoBack &&
-                                _jsx(Button, __assign({ onClick: onGoBack }, { children: "Back" })), _jsx(Typography, __assign({ style: { fontSize: 16, textAlign: 'center' } }, { children: title })), _jsx(LoadingButton, { submitText: buttonText, submittingText: buttonText, disabled: selected.length === 0 && !(initialSelected === null || initialSelected === void 0 ? void 0 : initialSelected.length), style: { display: 'flex' }, onClick: function () { return handleSelect(users, endusers); } })] })), _jsx(ScrollingList, { items: items, emptyText: itemsUnfiltered.length === 0
+                                _jsx(Button, __assign({ onClick: onGoBack }, { children: "Back" })), _jsx(Typography, __assign({ style: { fontSize: 16, textAlign: 'center' } }, { children: title })), _jsx(LoadingButton, { submitText: buttonText, submittingText: buttonText, disabled: selected.length === 0 && !(initialSelected === null || initialSelected === void 0 ? void 0 : initialSelected.length), style: { display: 'flex' }, onClick: function () { return handleSelect(users, endusers); } })] })), _jsx(ScrollingList, { items: items, virtualization: virtualizationHeight ? {
+                            virtualize: true,
+                            height: virtualizationHeight,
+                            rowHeight: 45,
+                            width: '100%',
+                            hideHorizontalScroll: true,
+                        } : undefined, emptyText: itemsUnfiltered.length === 0
                             ? "No contacts found"
                             : "No one found for search", minHeight: minHeight, maxHeight: maxHeight, doneLoading: doneLoading, loadMore: loadMore, title: showTitleInput ? titleInput : undefined, titleStyle: searchBarPlacement !== "top" ?
                             {

@@ -945,6 +945,8 @@ export type CustomActions = {
     add_athena_subscription: CustomAction<{ startAt?: Date, type: AthenaSubscription['type'], frequency: number, daily?: boolean }, { organization: Organization }>, 
     sync_athena_subscription: CustomAction<{ type: AthenaSubscription['type'], backgroundTaskId?: string, enduserId?: string }, { }>, 
     sync_note_to_canvas: CustomAction<{ enduserId: string, note: string }, { canvasId: string }>, 
+    link_twilio: CustomAction<{ }, { organization: Organization }>, 
+    load_twilio_embed: CustomAction<{ type?: string }, { id: string, token: string }>, 
   },
   phone_calls: {
     authenticate_calling: CustomAction<{ os?: "ios" | "android", type?: UserCallRoutingBehavior }, { accessToken: string, identity: string }>, 
@@ -6148,6 +6150,31 @@ export const schema: SchemaV1 = build_schema({
         },
         returns: { 
           canvasId: { validator: stringValidator100, required: true }
+        } 
+      },
+      link_twilio: { 
+        op: "custom", access: 'update', method: "post", 
+        adminOnly: true, 
+        name: 'Link Twilio',
+        path: '/organizations/link-twilio', 
+        description: "Links to an existing Twilio sub-account configuration or creates a new one",
+        parameters: { },
+        returns: { 
+          organization: { validator: 'organization' as any, required: true },
+        } 
+      },
+      load_twilio_embed: { 
+        op: "custom", access: 'read', method: "get", 
+        adminOnly: true, 
+        name: 'Get Twilio Embed',
+        path: '/organizations/twilio-embed', 
+        description: "Gets detail to load an embedded Twilio UI in Tellescope",
+        parameters: { 
+          type: { validator: stringValidator },
+        },
+        returns: { 
+          id: { validator: stringValidator, required: true },
+          token: { validator: stringValidator, required: true },
         } 
       },
     },

@@ -59,7 +59,7 @@ RemoteVideo,
 // useAttendeeAudioStatus,
 LocalVideo, useLocalVideo, useMeetingManager, useRosterState, useRemoteVideoTileState, useToggleLocalMute, useMeetingStatus, MeetingStatus, ContentShareControl, VideoInputBackgroundBlurControl, 
 // CameraSelection,
-useVideoInputs, useBackgroundReplacement, useAudioVideo,
+useVideoInputs, useBackgroundReplacement, useAudioVideo, BackgroundBlurProvider,
 // useRemoteVideoTileState,
 // useContentShareControls, // screen sharing
  } from 'amazon-chime-sdk-component-library-react';
@@ -245,7 +245,7 @@ var WithContext = function (_a) {
 // }
 export var WithVideo = function (_a) {
     var children = _a.children;
-    return (_jsx(ThemeProvider, __assign({ theme: darkTheme }, { children: _jsx(MeetingProvider, { children: _jsx(WithContext, { children: children }) }) })));
+    return (_jsx(ThemeProvider, __assign({ theme: darkTheme }, { children: _jsx(MeetingProvider, { children: _jsx(BackgroundBlurProvider, { children: _jsx(WithContext, { children: children }) }) }) })));
 };
 export var useStartVideoCall = function () {
     var _a = useState(false), starting = _a[0], setStarting = _a[1];

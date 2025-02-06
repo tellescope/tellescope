@@ -1124,6 +1124,15 @@ export type CustomActions = {
         }, {
             canvasId: string;
         }>;
+        link_twilio: CustomAction<{}, {
+            organization: Organization;
+        }>;
+        load_twilio_embed: CustomAction<{
+            type?: string;
+        }, {
+            id: string;
+            token: string;
+        }>;
     };
     phone_calls: {
         authenticate_calling: CustomAction<{

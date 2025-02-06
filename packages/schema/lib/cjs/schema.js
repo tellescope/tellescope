@@ -4309,6 +4309,31 @@ exports.schema = (0, exports.build_schema)({
                     canvasId: { validator: validation_1.stringValidator100, required: true }
                 }
             },
+            link_twilio: {
+                op: "custom", access: 'update', method: "post",
+                adminOnly: true,
+                name: 'Link Twilio',
+                path: '/organizations/link-twilio',
+                description: "Links to an existing Twilio sub-account configuration or creates a new one",
+                parameters: {},
+                returns: {
+                    organization: { validator: 'organization', required: true },
+                }
+            },
+            load_twilio_embed: {
+                op: "custom", access: 'read', method: "get",
+                adminOnly: true,
+                name: 'Get Twilio Embed',
+                path: '/organizations/twilio-embed',
+                description: "Gets detail to load an embedded Twilio UI in Tellescope",
+                parameters: {
+                    type: { validator: validation_1.stringValidator },
+                },
+                returns: {
+                    id: { validator: validation_1.stringValidator, required: true },
+                    token: { validator: validation_1.stringValidator, required: true },
+                }
+            },
         },
         enduserActions: {},
         publicActions: {

@@ -3642,6 +3642,20 @@ export const portalBlockValidator = orValidator<{ [K in PortalBlockType]: Portal
     type: exactMatchValidator(['chat']),
     info: objectValidator<PortalBlockForType['chat']['info']>({}, { emptyOk: true })
   }), 
+  "Manage Subscription Button": objectValidator<PortalBlockForType['Manage Subscription Button']>({
+    type: exactMatchValidator(['Manage Subscription Button']),
+    info: objectValidator<PortalBlockForType['Manage Subscription Button']['info']>({}, { emptyOk: true })
+  }), 
+  "Orders": objectValidator<PortalBlockForType['Orders']>({
+    type: exactMatchValidator(['Orders']),
+    info: objectValidator<PortalBlockForType['Orders']['info']>({}, { emptyOk: true })
+  }), 
+  HTML: objectValidator<PortalBlockForType['HTML']>({
+    type: exactMatchValidator(['HTML']),
+    info: objectValidator<PortalBlockForType['HTML']['info']>({
+      html: stringValidator5000,
+    })
+  }), 
 })
 export const portalBlocksValidator = listValidatorEmptyOk(portalBlockValidator)
 
@@ -3652,6 +3666,9 @@ const _PORTAL_BLOCK_TYPES: { [K in PortalBlockType]: any } = {
   text: '',
   Events: '',
   chat: '',
+  "Manage Subscription Button": '',
+  Orders: '',
+  HTML: '',
 }
 export const PORTAL_BLOCK_TYPES = Object.keys(_PORTAL_BLOCK_TYPES) as PortalBlockType[]
 export const portalTypeValidator = exactMatchValidator<PortalBlockType>(PORTAL_BLOCK_TYPES)

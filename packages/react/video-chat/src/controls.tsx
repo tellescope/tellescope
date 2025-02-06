@@ -1,5 +1,5 @@
 // components that work with web or native
-import React from "react"
+import React, { useCallback, useEffect, useState } from "react"
 
 import { 
   VideoIcon,
@@ -9,14 +9,19 @@ import {
   CallEndIcon,
   LabeledIconButton,
   Flex,
-  Paper,
   Styled,
   Button,
-  Typography,
 } from "@tellescope/react-components"
 import { CurrentCallContext } from "./video_shared"
 import { useStartVideoCall } from "./video"
-import { BlurToggleIcon, ScreenShareIcon, useJoinVideoCall } from "."
+import { useJoinVideoCall } from "."
+import { 
+  AudioInputControl,
+  AudioOutputControl,
+  ControlBar as BaseControlBar,
+  Camera, ContentShareControl, ControlBarButton, Phone, useBackgroundBlur, useMeetingManager, useVideoInputs 
+} from "amazon-chime-sdk-component-library-react"
+import { isVideoTransformDevice } from "amazon-chime-sdk-js"
 
 const DEFAULT_BUTTON_SIZE = 30
 interface ButtonProps {
@@ -77,6 +82,43 @@ export const LeaveMeeting = ({ onLeave, size=DEFAULT_BUTTON_SIZE } : LeaveMeetin
   )
 }
 
+const useToggleBlur = () => {
+  const meetingManager = useMeetingManager();
+  const { selectedDevice } = useVideoInputs();
+  const { isBackgroundBlurSupported, createBackgroundBlurDevice } = useBackgroundBlur();
+  const [isVideoTransformCheckBoxOn, setisVideoTransformCheckBoxOn] = useState(false);
+
+  useEffect(() => {
+    async function toggleBackgroundBlur() {
+      try {
+        let current = selectedDevice;
+        if (isVideoTransformCheckBoxOn) {
+          current = await createBackgroundBlurDevice(selectedDevice as any);
+        } else {
+          if (isVideoTransformDevice(selectedDevice)) {
+            current = await selectedDevice.intrinsicDevice();
+          }
+        }
+        await meetingManager.startVideoInputDevice(current!);
+      } catch (error) {
+        // Handle device selection failure here
+        console.error('Failed to toggle Background Blur');
+      }
+    }
+
+    toggleBackgroundBlur();
+  // eslint-disable-next-line
+  }, [isVideoTransformCheckBoxOn]);
+
+  const toggleBlur = useCallback(() => setisVideoTransformCheckBoxOn((current) => !current), [])
+
+  return {
+    blurIsActive: isVideoTransformCheckBoxOn,
+    isBackgroundBlurSupported,
+    toggleBlur,
+  }
+};
+
 interface ControlbarProps {
   spacing?: number,
   size?: number,
@@ -88,52 +130,67 @@ export const ControlBar = ({ onLeave, style, spacing=15, size, showEndMeeting, s
   const { isHost } = React.useContext(CurrentCallContext)
   const itemStyle = { marginLeft: spacing, marginRight: spacing }
 
-  return (
-    <Flex flex={1} alignItems="center" justifyContent="center" style={style}>
-      <Paper elevation={5} 
-        style={{ 
-          display: 'flex', flexDirection: 'row', padding: spacing,
-          backgroundColor: '#00000088',
-          borderColor: 'white',
-        }}
-      >
-        {showScreenShare &&
-          <Flex column justifyContent="center" style={itemStyle}>
-            <Flex>
-              <ScreenShareIcon />
-            </Flex>
+  const { leaveMeeting } = useJoinVideoCall()
+  const { toggleVideo, videoIsEnabled: cameraActive } = React.useContext(CurrentCallContext)
 
-            <Flex>
-            <Typography style={{ color: 'white', textAlign: 'center', fontSize: 11 }}>
-              Screen share
-            </Typography>
-            </Flex>
-          </Flex>
-        }
-        {showBlurToggle &&
-          <Flex column justifyContent="center" style={itemStyle}>
-            <Flex>
-              <BlurToggleIcon />
-            </Flex>
-          </Flex>
-        }
-        {!showBlurToggle && // blur toggle also provides toggle video controls
-          <Flex style={itemStyle}>
-            <VideoToggle size={size}/>
-          </Flex>
-        }
-        <Flex style={itemStyle}>
-          <MicrophoneToggle size={size}/>
+  const { blurIsActive, isBackgroundBlurSupported, toggleBlur } = useToggleBlur()
+  // const { backgroundIsActive, isBackgroundReplacementSupported, toggleBackground } = useToggleReplacement()
+
+  const cameraButtonProps = {
+    icon: cameraActive ? <Camera /> : <Camera disabled />,
+    isSelected: true,
+    popOver: ([
+      ...(
+        isBackgroundBlurSupported ? 
+          [{
+            onClick: toggleBlur,
+            children: (
+              <span style={{ fontWeight: blurIsActive ? 'bold' : undefined}}>
+                {blurIsActive ? "Disable Blur" : "Blur Background"}
+              </span>
+            )
+          }] 
+          : []
+      ),
+      // ...(
+      //   isBackgroundReplacementSupported ? 
+      //     [{
+      //       onClick: toggleBackground,
+      //       children: (
+      //         <span style={{ fontWeight: backgroundIsActive ? 'bold' : undefined}}>
+      //           {backgroundIsActive ? "Remove Background Image" : "Use Background Image"}
+      //         </span>
+      //       )
+      //     }] 
+      //     : []
+      // ),
+    ]),
+    onClick: toggleVideo,
+    label: 'Camera',
+  };
+
+  const hangUpButtonProps = {
+    icon: <Phone />,
+    onClick: leaveMeeting,
+    label: 'Leave',
+  };
+
+  return (
+    <BaseControlBar showLabels={true} layout="bottom" css="position: absolute;"
+      style={style}
+    >
+      <AudioInputControl />
+      <AudioOutputControl />
+      <ControlBarButton {...cameraButtonProps} />
+      {showScreenShare && <ContentShareControl iconTitle="Screen" label="Share" />}
+      <ControlBarButton {...hangUpButtonProps} />
+
+      {(isHost || showEndMeeting) &&
+        <Flex style={{ marginLeft: 30, marginRight: 20 }}>
+          <EndMeeting size={size} onLeave={onLeave} />
         </Flex>
-        <Flex style={itemStyle}>
-          <LeaveMeeting size={size} onLeave={onLeave}/>
-        </Flex>
-        {(isHost || showEndMeeting) && 
-          <Flex style={{ marginLeft: 30, marginRight: 20 }}>
-            <EndMeeting size={size} onLeave={onLeave} />
-          </Flex>
-        }
-      </Paper>
-    </Flex>
-  )
+      }
+
+    </BaseControlBar>
+  );
 }

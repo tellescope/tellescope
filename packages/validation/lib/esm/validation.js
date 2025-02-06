@@ -3050,6 +3050,20 @@ export var portalBlockValidator = orValidator({
         type: exactMatchValidator(['chat']),
         info: objectValidator({}, { emptyOk: true })
     }),
+    "Manage Subscription Button": objectValidator({
+        type: exactMatchValidator(['Manage Subscription Button']),
+        info: objectValidator({}, { emptyOk: true })
+    }),
+    "Orders": objectValidator({
+        type: exactMatchValidator(['Orders']),
+        info: objectValidator({}, { emptyOk: true })
+    }),
+    HTML: objectValidator({
+        type: exactMatchValidator(['HTML']),
+        info: objectValidator({
+            html: stringValidator5000,
+        })
+    }),
 });
 export var portalBlocksValidator = listValidatorEmptyOk(portalBlockValidator);
 var _PORTAL_BLOCK_TYPES = {
@@ -3059,6 +3073,9 @@ var _PORTAL_BLOCK_TYPES = {
     text: '',
     Events: '',
     chat: '',
+    "Manage Subscription Button": '',
+    Orders: '',
+    HTML: '',
 };
 export var PORTAL_BLOCK_TYPES = Object.keys(_PORTAL_BLOCK_TYPES);
 export var portalTypeValidator = exactMatchValidator(PORTAL_BLOCK_TYPES);

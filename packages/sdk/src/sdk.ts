@@ -511,6 +511,12 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
   },
   organizations: {
+    load_twilio_embed: (args: extractFields<CustomActions['organizations']['load_twilio_embed']['parameters']>) => (
+      Promise<extractFields<CustomActions['organizations']['load_twilio_embed']['returns']>>
+    ),
+    link_twilio: (args: extractFields<CustomActions['organizations']['link_twilio']['parameters']>) => (
+      Promise<extractFields<CustomActions['organizations']['link_twilio']['returns']>>
+    ),
     sync_note_to_canvas: (args: extractFields<CustomActions['organizations']['sync_note_to_canvas']['parameters']>) => (
       Promise<extractFields<CustomActions['organizations']['sync_note_to_canvas']['returns']>>
     ),
@@ -930,6 +936,8 @@ export class Session extends SessionManager {
     queries.organizations.add_athena_subscription = a => this._POST(`/v1${schema.organizations.customActions.add_athena_subscription.path}`, a)
     queries.organizations.sync_athena_subscription = a => this._POST(`/v1${schema.organizations.customActions.sync_athena_subscription.path}`, a)
     queries.organizations.sync_note_to_canvas = a => this._POST(`/v1${schema.organizations.customActions.sync_note_to_canvas.path}`, a)
+    queries.organizations.link_twilio = a => this._POST(`/v1${schema.organizations.customActions.link_twilio.path}`, a)
+    queries.organizations.load_twilio_embed = a => this._GET(`/v1${schema.organizations.customActions.load_twilio_embed.path}`, a)
  
     queries.integrations.update_zoom = args => this._POST(`/v1${schema.integrations.customActions.update_zoom.path}`, args)
     queries.integrations.load_payers = args => this._GET(`/v1${schema.integrations.customActions.load_payers.path}`, args)

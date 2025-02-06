@@ -2118,7 +2118,7 @@ export const replace_enduser_template_values = (s: string, enduser?: Omit<Enduse
 }
 
 export const display_time_for_seconds = (seconds?: number) => (
-  !seconds 
+  typeof seconds !== 'number'
     ? ''
     : seconds > 60
       ? ` (${Math.floor(seconds / 60)} Minutes)`

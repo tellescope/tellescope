@@ -3635,6 +3635,8 @@ type Queries = {
         unlike_post: (args: extractFields<CustomActions['post_likes']['unlike_post']['parameters']>) => (Promise<extractFields<CustomActions['post_likes']['unlike_post']['returns']>>);
     };
     organizations: {
+        load_twilio_embed: (args: extractFields<CustomActions['organizations']['load_twilio_embed']['parameters']>) => (Promise<extractFields<CustomActions['organizations']['load_twilio_embed']['returns']>>);
+        link_twilio: (args: extractFields<CustomActions['organizations']['link_twilio']['parameters']>) => (Promise<extractFields<CustomActions['organizations']['link_twilio']['returns']>>);
         sync_note_to_canvas: (args: extractFields<CustomActions['organizations']['sync_note_to_canvas']['parameters']>) => (Promise<extractFields<CustomActions['organizations']['sync_note_to_canvas']['returns']>>);
         add_athena_subscription: (args: extractFields<CustomActions['organizations']['add_athena_subscription']['parameters']>) => (Promise<extractFields<CustomActions['organizations']['add_athena_subscription']['returns']>>);
         sync_athena_subscription: (args: extractFields<CustomActions['organizations']['sync_athena_subscription']['parameters']>) => (Promise<extractFields<CustomActions['organizations']['sync_athena_subscription']['returns']>>);

@@ -896,6 +896,7 @@ export interface UserAndEnduserSelectorProps {
   filter?: (e: Enduser | User) => boolean,
   limitToUsers?: User[],
   dontIncludeSelf: boolean,
+  virtualizationHeight?: number,
 }
 export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserSelectorProps> = ({
   titleInput,
@@ -914,7 +915,8 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
   filter,
   radio,
   limitToUsers,
-  dontIncludeSelf
+  dontIncludeSelf,
+  virtualizationHeight,
 }) => {
   const session = useResolvedSession()
   const [endusersLoading, { loadMore: loadMoreEndusers, doneLoading: doneLoadingEndusers }] = useEndusers()
@@ -1000,7 +1002,16 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
           />
         </Flex>
 
-        <ScrollingList items={items} 
+        <ScrollingList items={items}
+          virtualization={
+            virtualizationHeight ? {
+              virtualize: true,
+              height: virtualizationHeight,
+              rowHeight: 45,
+              width: '100%',
+              hideHorizontalScroll: true,
+            } : undefined
+          }
           emptyText={
             itemsUnfiltered.length === 0 
               ? "No contacts found" 

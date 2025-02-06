@@ -2138,7 +2138,7 @@ var replace_enduser_template_values = function (s, enduser) {
     return replaced;
 };
 exports.replace_enduser_template_values = replace_enduser_template_values;
-var display_time_for_seconds = function (seconds) { return (!seconds
+var display_time_for_seconds = function (seconds) { return (typeof seconds !== 'number'
     ? ''
     : seconds > 60
         ? " (".concat(Math.floor(seconds / 60), " Minutes)")

@@ -1252,6 +1252,17 @@ export declare const portalBlockValidator: ValidatorDefinition<{
 } | {
     type: "chat";
     info: {};
+} | {
+    type: "Manage Subscription Button";
+    info: {};
+} | {
+    type: "Orders";
+    info: {};
+} | {
+    type: "HTML";
+    info: {
+        html: string;
+    };
 }>;
 export declare const portalBlocksValidator: ValidatorDefinition<({
     type: "carePlan";
@@ -1276,6 +1287,17 @@ export declare const portalBlocksValidator: ValidatorDefinition<({
 } | {
     type: "chat";
     info: {};
+} | {
+    type: "Manage Subscription Button";
+    info: {};
+} | {
+    type: "Orders";
+    info: {};
+} | {
+    type: "HTML";
+    info: {
+        html: string;
+    };
 })[]>;
 export declare const PORTAL_BLOCK_TYPES: (keyof PortalBlockForType)[];
 export declare const portalTypeValidator: ValidatorDefinition<keyof PortalBlockForType>;

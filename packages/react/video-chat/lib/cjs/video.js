@@ -264,7 +264,7 @@ var WithContext = function (_a) {
 // }
 var WithVideo = function (_a) {
     var children = _a.children;
-    return ((0, jsx_runtime_1.jsx)(styled_components_1.ThemeProvider, __assign({ theme: amazon_chime_sdk_component_library_react_1.darkTheme }, { children: (0, jsx_runtime_1.jsx)(amazon_chime_sdk_component_library_react_1.MeetingProvider, { children: (0, jsx_runtime_1.jsx)(WithContext, { children: children }) }) })));
+    return ((0, jsx_runtime_1.jsx)(styled_components_1.ThemeProvider, __assign({ theme: amazon_chime_sdk_component_library_react_1.darkTheme }, { children: (0, jsx_runtime_1.jsx)(amazon_chime_sdk_component_library_react_1.MeetingProvider, { children: (0, jsx_runtime_1.jsx)(amazon_chime_sdk_component_library_react_1.BackgroundBlurProvider, { children: (0, jsx_runtime_1.jsx)(WithContext, { children: children }) }) }) })));
 };
 exports.WithVideo = WithVideo;
 var useStartVideoCall = function () {

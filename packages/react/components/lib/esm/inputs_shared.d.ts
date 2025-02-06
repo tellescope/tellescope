@@ -200,6 +200,7 @@ export interface UserAndEnduserSelectorProps {
     filter?: (e: Enduser | User) => boolean;
     limitToUsers?: User[];
     dontIncludeSelf: boolean;
+    virtualizationHeight?: number;
 }
 export declare const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserSelectorProps>;
 export {};

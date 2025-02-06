@@ -263,6 +263,8 @@ export interface Organization_readonly extends ClientRecord {
         environment: string;
     };
     fromEmails?: string[];
+    twilioSID?: string;
+    twilioCustomerId?: string;
 }
 export interface Organization_required {
 }
@@ -2917,6 +2919,11 @@ export type PortalBlockForType = {
         text: string;
     }>;
     chat: BuildPortalBlockInfo<'chat', {}>;
+    "Orders": BuildPortalBlockInfo<'Orders', {}>;
+    "Manage Subscription Button": BuildPortalBlockInfo<'Manage Subscription Button', {}>;
+    HTML: BuildPortalBlockInfo<'HTML', {
+        html: string;
+    }>;
 };
 export type PortalBlockType = keyof PortalBlockForType;
 export type PortalBlock = PortalBlockForType[PortalBlockType];
@@ -4396,6 +4403,8 @@ export interface AgentRecord extends AgentRecord_readonly, AgentRecord_required,
     embedding?: number[];
     source?: string;
     externalId?: string;
+    indexed?: boolean;
+    indexId?: string;
 }
 export type ModelForName_required = {
     agent_records: AgentRecord_required;
