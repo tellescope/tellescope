@@ -4404,7 +4404,6 @@ export interface AgentRecord extends AgentRecord_readonly, AgentRecord_required,
     source?: string;
     externalId?: string;
     indexed?: boolean;
-    indexId?: string;
 }
 export type ModelForName_required = {
     agent_records: AgentRecord_required;
@@ -5451,5 +5450,22 @@ export type ZendeskArticle = {
     html_url: string;
     title: string;
     body: string;
+};
+export type KendraSearchResult = {
+    ResultItems: {
+        Content: string;
+        DocumentAttributes: ({
+            Key: "_source_uri";
+            Value: {
+                StringValue: string;
+            };
+        })[];
+        DocumentId: string;
+        DocumentTitle: string;
+        DocumentURI: string;
+        ScoreAttributes: {
+            ScoreConfidence: "VERY_HIGH" | "HIGH" | "MEDIUM" | "LOW" | "NOT_AVAILABLE";
+        };
+    }[];
 };
 //# sourceMappingURL=index.d.ts.map

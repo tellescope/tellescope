@@ -142,6 +142,7 @@ export const FULLSCRIPT_REDIRECT_URI_ENDING = "/fullscript-oauth2-verify"
 export const STRIPE_TITLE = "Stripe"
 export const EMOTII_TITLE = "Emotii"
 export const DEVELOP_HEALTH_TITLE = "Develop Health"
+export const KENDRA_TITLE = "Kendra"
 
 export const ORGANIZATION_WIDE_INTEGRATIONS = [
   OPENAI_TITLE, 

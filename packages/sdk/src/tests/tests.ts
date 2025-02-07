@@ -2094,8 +2094,6 @@ const ticketEventTests = async () => {
     sdk.api.journeys.deleteOne(nullJourney.id),
     sdk.api.endusers.deleteOne(enduser.id),
     sdk.api.endusers.deleteOne(enduserWithTeam.id),
-    sdk.api.tickets.deleteOne(ticket.id),
-    sdk.api.tickets.deleteOne(ticketNull.id),
   ])
 }
 

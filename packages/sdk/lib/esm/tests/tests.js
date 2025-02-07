@@ -2603,8 +2603,6 @@ var ticketEventTests = function () { return __awaiter(void 0, void 0, void 0, fu
                         sdk.api.journeys.deleteOne(nullJourney.id),
                         sdk.api.endusers.deleteOne(enduser.id),
                         sdk.api.endusers.deleteOne(enduserWithTeam.id),
-                        sdk.api.tickets.deleteOne(ticket.id),
-                        sdk.api.tickets.deleteOne(ticketNull.id),
                     ])];
             case 26:
                 _c.sent();
