@@ -20,7 +20,7 @@ export declare const RatingInput: ({ field, value, onChange }: FormInputProps<'r
 export declare const RankingInput: ({ field, value, onChange }: FormInputProps<'ranking'>) => JSX.Element;
 export declare const DateInput: ({ field, value, onChange, placement, ...props }: {
     field: FormField;
-    placement?: "top" | "right" | "bottom" | "left" | undefined;
+    placement?: "top" | "left" | "right" | "bottom" | undefined;
 } & FormInputProps<"date"> & Styled) => JSX.Element;
 export declare const TableInput: ({ field, value, onChange, ...props }: FormInputProps<'Input Table'>) => JSX.Element;
 export declare const AutoFocusTextField: (props: TextFieldProps) => JSX.Element;
@@ -36,11 +36,11 @@ export declare const AddressInput: ({ field, form, value, onChange, ...props }: 
 export declare const ESignatureTerms: () => JSX.Element;
 export declare const SignatureInput: ({ value, field, autoFocus, enduser, onChange }: FormInputProps<'signature'>) => JSX.Element;
 export declare function convertHEIC(file: FileBlob | string): Promise<string>;
-export declare const FileInput: ({ value, onChange, field, existingFileName }: FormInputProps<"file"> & {
+export declare const FileInput: ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles }: FormInputProps<"file"> & {
     existingFileName?: string | undefined;
 }) => JSX.Element;
 export declare const safe_create_url: (file: any) => string | null;
-export declare const FilesInput: ({ value, onChange, field, existingFileName }: FormInputProps<"files"> & {
+export declare const FilesInput: ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles }: FormInputProps<"files"> & {
     existingFileName?: string | undefined;
 }) => JSX.Element;
 export declare const MultipleChoiceInput: ({ field, form, value: _value, onChange }: FormInputProps<'multiple_choice'>) => JSX.Element;
@@ -66,4 +66,5 @@ export declare const HiddenValueInput: ({ goToNextField, goToPreviousField, fiel
 export declare const EmotiiInput: ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'email'>) => JSX.Element;
 export declare const AllergiesInput: ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'Allergies'>) => JSX.Element;
 export declare const ConditionsInput: ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'Conditions'>) => JSX.Element;
+export declare const RichTextInput: ({ field, value, onChange }: FormInputProps<'Rich Text'>) => JSX.Element;
 //# sourceMappingURL=inputs.d.ts.map

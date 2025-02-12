@@ -3,6 +3,7 @@ import { DatabaseRecord, Enduser, Form, FormField } from "@tellescope/types-clie
 import { FileBlob, TreeNode } from "@tellescope/types-utilities";
 import { JSXElementConstructor } from "react";
 import { Response } from "./hooks";
+import { FileUploadHandler } from "../inputs";
 
 export type FormFieldNode = TreeNode<FormField>
 
@@ -32,6 +33,9 @@ export interface FormInputProps<K extends keyof AnswerForType> {
   groupInsance?: string,
   disabled?: boolean,
   isSinglePage?: boolean,
+  handleFileUpload?: (blob: FileBlob, fieldId: string) => Promise<any>,
+  uploadingFiles?: { fieldId: string }[]
+  setUploadingFiles?: React.Dispatch<React.SetStateAction<{ fieldId: string }[]>>,
 }
 
 export type FormInputs = { 

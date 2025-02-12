@@ -29,6 +29,13 @@ export interface FormInputProps<K extends keyof AnswerForType> {
     groupInsance?: string;
     disabled?: boolean;
     isSinglePage?: boolean;
+    handleFileUpload?: (blob: FileBlob, fieldId: string) => Promise<any>;
+    uploadingFiles?: {
+        fieldId: string;
+    }[];
+    setUploadingFiles?: React.Dispatch<React.SetStateAction<{
+        fieldId: string;
+    }[]>>;
 }
 export type FormInputs = {
     [K in keyof AnswerForType]: JSXElementConstructor<FormInputProps<K>>;

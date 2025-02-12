@@ -11,12 +11,13 @@ interface LeaveMeetingProps {
 }
 export declare const LeaveMeeting: ({ onLeave, size }: LeaveMeetingProps & ButtonProps) => JSX.Element;
 interface ControlbarProps {
+    autoCamera?: boolean;
     spacing?: number;
     size?: number;
     showEndMeeting?: boolean;
     showScreenShare?: boolean;
     showBlurToggle?: boolean;
 }
-export declare const ControlBar: ({ onLeave, style, spacing, size, showEndMeeting, showScreenShare, showBlurToggle }: ControlbarProps & LeaveMeetingProps & Styled) => JSX.Element;
+export declare const ControlBar: ({ autoCamera, onLeave, style, spacing, size, showEndMeeting, showScreenShare, showBlurToggle }: ControlbarProps & LeaveMeetingProps & Styled) => JSX.Element;
 export {};
 //# sourceMappingURL=controls.d.ts.map

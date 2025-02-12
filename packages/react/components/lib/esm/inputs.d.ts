@@ -29,7 +29,7 @@ export declare const useFileDropzone: ({ DropzoneComponent, style }: {
     setFile: React.Dispatch<React.SetStateAction<FileBlob | undefined>>;
     dropzone: JSX.Element;
 };
-type FileUploadHandler = (details: FileDetails & {
+export type FileUploadHandler = (details: FileDetails & {
     externalId?: string;
 }, file: Blob | Buffer | ReactNativeFile, options?: {}) => Promise<FileClientType>;
 interface UseFileUploaderOptions {

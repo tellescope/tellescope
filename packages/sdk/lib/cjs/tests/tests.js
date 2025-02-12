@@ -7500,8 +7500,8 @@ var formsort_tests = function () { return __awaiter(void 0, void 0, void 0, func
             case 31:
                 submissionEnduser = _a.sent();
                 validateResponse = function (fr, key, value) {
-                    var _a, _b;
-                    var answer = (_b = (_a = fr.responses.find(function (r) { return r.externalId === key; })) === null || _a === void 0 ? void 0 : _a.answer) === null || _b === void 0 ? void 0 : _b.value;
+                    var _a, _b, _c;
+                    var answer = (_c = (_b = (_a = fr.responses) === null || _a === void 0 ? void 0 : _a.find(function (r) { return r.externalId === key; })) === null || _b === void 0 ? void 0 : _b.answer) === null || _c === void 0 ? void 0 : _c.value;
                     if (typeof value === 'object') {
                         return (0, utilities_2.objects_equivalent)(answer, value);
                     }
@@ -7510,7 +7510,7 @@ var formsort_tests = function () { return __awaiter(void 0, void 0, void 0, func
                 // EXISTING ENDUSER FIELDS ARE CURRENTLY ONLY UPDATED ON SUBMISSION
                 return [4 /*yield*/, (0, testing_1.async_test)("Answers and fields (unfinalized)", function () { return sdk.api.form_responses.getOne({ externalId: '6' }); }, {
                         onResult: function (r) {
-                            var _a;
+                            var _a, _b;
                             if (!r) {
                                 return false;
                             }
@@ -7520,7 +7520,7 @@ var formsort_tests = function () { return __awaiter(void 0, void 0, void 0, func
                             if (!((_a = r.formsort) === null || _a === void 0 ? void 0 : _a.length)) {
                                 return false;
                             }
-                            if (!r.responses.length) {
+                            if (!((_b = r.responses) === null || _b === void 0 ? void 0 : _b.length)) {
                                 return false;
                             }
                             if (r.responses.length !== answers.length) {
@@ -7611,7 +7611,7 @@ var formsort_tests = function () { return __awaiter(void 0, void 0, void 0, func
                 // EXISTING ENDUSER FIELDS ARE CURRENTLY ONLY UPDATED ON SUBMISSION
                 return [4 /*yield*/, (0, testing_1.async_test)("Answers and fields (finalized)", function () { return sdk.api.form_responses.getOne({ externalId: '6' }); }, {
                         onResult: function (r) {
-                            var _a, _b, _c, _d, _f, _g, _h, _j;
+                            var _a, _b, _c, _d, _f, _g, _h, _j, _k;
                             if (!r) {
                                 return false;
                             }
@@ -7621,7 +7621,7 @@ var formsort_tests = function () { return __awaiter(void 0, void 0, void 0, func
                             if (!((_a = r.formsort) === null || _a === void 0 ? void 0 : _a.length)) {
                                 return false;
                             }
-                            if (!r.responses.length) {
+                            if (!((_b = r.responses) === null || _b === void 0 ? void 0 : _b.length)) {
                                 return false;
                             }
                             if (r.responses.length !== answers.length) {
@@ -7717,7 +7717,7 @@ var formsort_tests = function () { return __awaiter(void 0, void 0, void 0, func
                             if (submissionEnduser.useDefaultFromPhoneInAutomations !== true) {
                                 return false;
                             }
-                            if (((_b = submissionEnduser.language) === null || _b === void 0 ? void 0 : _b.displayName) !== "Spanish") {
+                            if (((_c = submissionEnduser.language) === null || _c === void 0 ? void 0 : _c.displayName) !== "Spanish") {
                                 return false;
                             }
                             if (submissionEnduser.timezone !== "US/Eastern") {
@@ -7726,10 +7726,10 @@ var formsort_tests = function () { return __awaiter(void 0, void 0, void 0, func
                             if (submissionEnduser.healthie_dietitian_id !== "test_id") {
                                 return false;
                             }
-                            if (((_c = submissionEnduser.height) === null || _c === void 0 ? void 0 : _c.value) !== 10) {
+                            if (((_d = submissionEnduser.height) === null || _d === void 0 ? void 0 : _d.value) !== 10) {
                                 return false;
                             }
-                            if (((_d = submissionEnduser.weight) === null || _d === void 0 ? void 0 : _d.value) !== 20) {
+                            if (((_f = submissionEnduser.weight) === null || _f === void 0 ? void 0 : _f.value) !== 20) {
                                 return false;
                             }
                             if (submissionEnduser.addressLineOne !== 'Address 1') {
@@ -7750,16 +7750,16 @@ var formsort_tests = function () { return __awaiter(void 0, void 0, void 0, func
                             if (submissionEnduser.dateOfBirth !== '12-20-2000') {
                                 return false;
                             }
-                            if (((_f = submissionEnduser.insurance) === null || _f === void 0 ? void 0 : _f.payerId) !== 'insurance 1') {
+                            if (((_g = submissionEnduser.insurance) === null || _g === void 0 ? void 0 : _g.payerId) !== 'insurance 1') {
                                 return false;
                             }
-                            if (((_g = submissionEnduser.insuranceSecondary) === null || _g === void 0 ? void 0 : _g.payerId) !== 'insurance 2') {
+                            if (((_h = submissionEnduser.insuranceSecondary) === null || _h === void 0 ? void 0 : _h.payerId) !== 'insurance 2') {
                                 return false;
                             }
-                            if (((_h = submissionEnduser.fields) === null || _h === void 0 ? void 0 : _h.custom) !== 'Custom') {
+                            if (((_j = submissionEnduser.fields) === null || _j === void 0 ? void 0 : _j.custom) !== 'Custom') {
                                 return false;
                             }
-                            if (((_j = submissionEnduser.fields) === null || _j === void 0 ? void 0 : _j.custom2) !== 'Custom 2') {
+                            if (((_k = submissionEnduser.fields) === null || _k === void 0 ? void 0 : _k.custom2) !== 'Custom 2') {
                                 return false;
                             }
                             return true;
@@ -10338,7 +10338,7 @@ var input_modifier_tests = function () { return __awaiter(void 0, void 0, void 0
                                 fieldId: '',
                                 answer: { type: 'string', value: 'hello' }
                             }]
-                    }); }, { onResult: function (r) { return r.responses[0].answer.value === 'hello'; } })];
+                    }); }, { onResult: function (r) { var _a; return ((_a = r.responses) === null || _a === void 0 ? void 0 : _a[0].answer.value) === 'hello'; } })];
             case 2:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Number coerce to string", function () { return sdk.api.form_responses.createOne({
@@ -10350,7 +10350,7 @@ var input_modifier_tests = function () { return __awaiter(void 0, void 0, void 0
                                 fieldId: '',
                                 answer: { type: 'string', value: 55 }
                             }]
-                    }); }, { onResult: function (r) { return r.responses[0].answer.value === '55'; } })];
+                    }); }, { onResult: function (r) { var _a; return ((_a = r.responses) === null || _a === void 0 ? void 0 : _a[0].answer.value) === '55'; } })];
             case 3:
                 _a.sent();
                 return [4 /*yield*/, Promise.all([

@@ -1328,13 +1328,13 @@ export var batch_array = function (array, size) {
     return batches;
 };
 export var calculate_form_scoring = function (_a) {
-    var _b;
+    var _b, _d;
     var response = _a.response, form = _a.form;
     if (!((_b = form.scoring) === null || _b === void 0 ? void 0 : _b.length))
         return;
     var scores = {};
     var _loop_1 = function (scoreCondition) {
-        var r = response.responses.find(function (r) { return r.fieldId === scoreCondition.fieldId
+        var r = (_d = response.responses) === null || _d === void 0 ? void 0 : _d.find(function (r) { return r.fieldId === scoreCondition.fieldId
             && (r.answer.type !== 'multiple_choice'
                 || (Array.isArray(r.answer.value)
                     && typeof scoreCondition.response === 'string'
@@ -1351,8 +1351,8 @@ export var calculate_form_scoring = function (_a) {
             scores[scoreCondition.title] += r.answer.value;
         }
     };
-    for (var _i = 0, _d = form.scoring; _i < _d.length; _i++) {
-        var scoreCondition = _d[_i];
+    for (var _i = 0, _e = form.scoring; _i < _e.length; _i++) {
+        var scoreCondition = _e[_i];
         _loop_1(scoreCondition);
     }
     if (object_is_empty(scores))

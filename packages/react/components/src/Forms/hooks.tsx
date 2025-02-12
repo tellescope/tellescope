@@ -531,6 +531,7 @@ export const useTellescopeForm = ({ isPublicForm, form, urlLogicValue, customiza
   const [submittingStatus, setSubmittingStatus] = useState<SubmitStatus>(undefined)
   const [submitErrorMessage, setSubmitErrorMessage] = useState('')
   const [currentPageIndex, setCurrentPageIndex] = useState(0)
+  const [uploadingFiles, setUploadingFiles] = useState<{ fieldId: string }[]>([]) 
   const prevFieldStackRef = useRef<typeof root[]>([])
 
   const [repeats, setRepeats] = useState({} as Record<string, string | number>)
@@ -813,6 +814,10 @@ export const useTellescopeForm = ({ isPublicForm, form, urlLogicValue, customiza
       && !responses_satisfy_conditions(responses, field.groupShowCondition, logicOptions)
     ) {
       return null
+    }
+
+    if (value.answer?.type === 'Rich Text' && value.answer?.value?.trim() === '<p></p>' && !field.isOptional) {
+      return "Answer is required"
     }
 
     if (value.answer.type === 'Insurance') {
@@ -1102,6 +1107,31 @@ export const useTellescopeForm = ({ isPublicForm, form, urlLogicValue, customiza
     return responsesToSubmit
   }, [responses])
 
+  const handleFileUpload = useCallback(async (blob: FileBlob, fieldId: string) => {
+    const responseIndex = responses.findIndex(f => f.fieldId === fieldId)
+    const result: FormResponseAnswerFileValue = { name: blob.name, secureName: '' }
+    const { secureName } = await handleUpload(
+      {
+        name: blob.name,
+        size: blob.size,
+        type: blob.type,
+        enduserId,
+      }, 
+      blob
+    )
+
+    if (responses[responseIndex].answer.type === 'files') {
+      if (!responses[responseIndex].answer.value) {
+        responses[responseIndex].answer.value = []
+      }
+      (responses[responseIndex].answer.value as any[]).push({ 
+        ...result, type: blob.type, secureName, name: result.name ?? ''
+      })
+    } else {
+      responses[responseIndex].answer.value = { ...result, type: blob.type, secureName, name: result.name ?? '' } 
+    }
+  }, [responses, handleUpload])
+
   const submit = useCallback(async (options?: { onPreRedirect?: () => void, onFileUploadsDone?: () => void, onSuccess?: (r: FormResponse) => void, includedFieldIds?: string[], otherEnduserIds?: string[], onBulkErrors?: (errors: { enduserId: string, message: string }[]) => void }) => {
     setSubmitErrorMessage('')
     const hasFile = selectedFiles.find(f => !!f.blobs?.length) !== undefined
@@ -1113,31 +1143,14 @@ export const useTellescopeForm = ({ isPublicForm, form, urlLogicValue, customiza
         for (const blobInfo of selectedFiles) {
           const { blobs, fieldId } = blobInfo
           if (!blobs) continue
-  
+
+          const responseIndex = responses.findIndex(f => f.fieldId === fieldId)
+
+          const response = responses[responseIndex]
+          if (response.field?.options?.autoUploadFiles) { continue } // must have uploaded prior to submission
+
           for (const blob of blobs) {
-            const result: FormResponseAnswerFileValue = { name: blob.name, secureName: '' }
-            const { secureName } = await handleUpload(
-              {
-                name: blob.name,
-                size: blob.size,
-                type: blob.type,
-                enduserId,
-              }, 
-              blob
-            )
-
-            const responseIndex = responses.findIndex(f => f.fieldId === fieldId)
-
-            if (responses[responseIndex].answer.type === 'files') {
-              if (!responses[responseIndex].answer.value) {
-                responses[responseIndex].answer.value = []
-              }
-              (responses[responseIndex].answer.value as any[]).push({ 
-                ...result, type: blob.type, secureName, name: result.name ?? ''
-              })
-            } else {
-              responses[responseIndex].answer.value = { ...result, type: blob.type, secureName, name: result.name ?? '' } 
-            }
+            await handleFileUpload(blob, fieldId)
           }          
         }
 
@@ -1260,9 +1273,11 @@ export const useTellescopeForm = ({ isPublicForm, form, urlLogicValue, customiza
     } finally {
       setSubmittingStatus(undefined)
     }
-  }, [accessCode, automationStepId, enduserId, responses, selectedFiles, session, handleUpload, existingResponses, ga4measurementId, rootResponseId, parentResponseId, calendarEventId, goBackURL, logicOptions])
+  }, [accessCode, automationStepId, enduserId, responses, selectedFiles, session, handleUpload, existingResponses, ga4measurementId, rootResponseId, parentResponseId, calendarEventId, goBackURL, logicOptions, handleFileUpload])
 
   const isNextDisabled = useCallback(() => {
+    if (uploadingFiles.length) { return true }
+
     if (activeField.children.length === 0) {
       return true
     }
@@ -1272,7 +1287,7 @@ export const useTellescopeForm = ({ isPublicForm, form, urlLogicValue, customiza
     }
 
     return false
-  }, [activeField, validateField])
+  }, [activeField, validateField, uploadingFiles])
 
   const autoAdvanceRef = useRef(false)
   const goToNextField = useCallback(() => {
@@ -1445,5 +1460,7 @@ export const useTellescopeForm = ({ isPublicForm, form, urlLogicValue, customiza
     customization,
     handleDatabaseSelect,
     logicOptions,
+    uploadingFiles, setUploadingFiles,
+    handleFileUpload,
   }
 }

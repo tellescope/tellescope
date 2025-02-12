@@ -95,7 +95,7 @@ export const useFileDropzone = ({ DropzoneComponent=DefaultDropzoneContent, styl
   }
 }
 
-type FileUploadHandler = (details: FileDetails & { externalId?: string, }, file: Blob | Buffer | ReactNativeFile, options?: {}) => Promise<FileClientType>
+export type FileUploadHandler = (details: FileDetails & { externalId?: string, }, file: Blob | Buffer | ReactNativeFile, options?: {}) => Promise<FileClientType>
 interface UseFileUploaderOptions {
   enduserId?: string
   publicRead?: boolean,

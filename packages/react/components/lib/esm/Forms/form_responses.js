@@ -34,7 +34,7 @@ export var AddressDisplay = function (_a) {
 };
 export var ResponseAnswer = function (_a) {
     var formResponse = _a.formResponse, fieldId = _a.fieldId, isHTML = _a.isHTML, a = _a.answer, printing = _a.printing, onImageClick = _a.onImageClick;
-    return ((isHTML && typeof a.value === 'string')
+    return (((isHTML || a.type === 'Rich Text') && typeof a.value === 'string')
         ? _jsx("div", { dangerouslySetInnerHTML: { __html: remove_script_tags(a.value) } })
         : a.value
             ? (_jsx(Typography, __assign({ component: "div" }, { children: (a.type === 'multiple_choice' || a.type === 'Database Select')

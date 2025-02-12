@@ -41,7 +41,7 @@ var AddressDisplay = function (_a) {
 exports.AddressDisplay = AddressDisplay;
 var ResponseAnswer = function (_a) {
     var formResponse = _a.formResponse, fieldId = _a.fieldId, isHTML = _a.isHTML, a = _a.answer, printing = _a.printing, onImageClick = _a.onImageClick;
-    return ((isHTML && typeof a.value === 'string')
+    return (((isHTML || a.type === 'Rich Text') && typeof a.value === 'string')
         ? (0, jsx_runtime_1.jsx)("div", { dangerouslySetInnerHTML: { __html: (0, utilities_1.remove_script_tags)(a.value) } })
         : a.value
             ? ((0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ component: "div" }, { children: (a.type === 'multiple_choice' || a.type === 'Database Select')

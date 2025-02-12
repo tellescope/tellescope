@@ -24,6 +24,7 @@ import LanguageIcon from '@mui/icons-material/Language';
 import { Elements, PaymentElement, useStripe, useElements, EmbeddedCheckout, EmbeddedCheckoutProvider } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js'; 
 import { CheckCircleOutline, Delete, Edit } from "@mui/icons-material"
+import { WYSIWYG } from "./wysiwyg"
 
 export const LanguageSelect = ({ value, ...props }: { value: string, onChange: (s: string) => void}) => (
   <Grid container alignItems="center" justifyContent={"center"} wrap="nowrap" spacing={1}>
@@ -1185,7 +1186,7 @@ export async function convertHEIC (file: FileBlob | string){
 };
 
 const value_is_image = (f?: { type?: string })=> f?.type?.includes('image')
-export const FileInput = ({ value, onChange, field, existingFileName }: FormInputProps<'file'> & { existingFileName?: string }) => {
+export const FileInput = ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles }: FormInputProps<'file'> & { existingFileName?: string }) => {
   const [error, setError] = useState('')
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
     onDrop: useCallback(
@@ -1202,7 +1203,16 @@ export const FileInput = ({ value, onChange, field, existingFileName }: FormInpu
 
         setError('')
         onChange(file, field.id)
-      }, [onChange, field.options?.validFileTypes]
+
+        if (field.options?.autoUploadFiles && handleFileUpload) {
+          setUploadingFiles?.(fs => [...fs, { fieldId: field.id }])
+          
+          handleFileUpload(file, field.id)
+          .finally(
+            () => setUploadingFiles?.(fs => fs.filter(f => f.fieldId !== field.id))
+          )
+        }
+      }, [onChange, field.options?.validFileTypes, handleFileUpload, setUploadingFiles]
     ),
   })
 
@@ -1221,7 +1231,9 @@ export const FileInput = ({ value, onChange, field, existingFileName }: FormInpu
     }
   }, [value])
 
-  // console.log(document.createElement('input').capture )
+  if (uploadingFiles?.find(f => f.fieldId === field.id)) {
+    return <LinearProgress />
+  }
   return (
     <Grid container direction="column">
     <Grid container {...getRootProps()} sx={{
@@ -1287,11 +1299,12 @@ export const safe_create_url = (file: any) => {
   }
 }
 
-export const FilesInput = ({ value, onChange, field, existingFileName }: FormInputProps<'files'> & { existingFileName?: string }) => {
+export const FilesInput = ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles }: FormInputProps<'files'> & { existingFileName?: string }) => {
   const [error, setError] = useState('')
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
     onDrop: useCallback(
-      acceptedFiles => {
+      async acceptedFiles => {
+        setUploadingFiles?.(fs => [...fs, { fieldId: field.id }])
         for (const file of acceptedFiles) {
           if (field.options?.validFileTypes?.length) {
             const match = field.options.validFileTypes.find(t => file.type.includes(t.toLowerCase()))
@@ -1299,11 +1312,16 @@ export const FilesInput = ({ value, onChange, field, existingFileName }: FormInp
               return setError(`File must have type: ${field.options.validFileTypes.join(', ')}`)
             }
           }  
+
+          if (field.options?.autoUploadFiles && handleFileUpload) {
+            await handleFileUpload(file, field.id).catch(console.error)
+          }
         }
+        setUploadingFiles?.(fs => fs.filter(f => f.fieldId !== field.id))
 
         setError('')
         onChange([...(value ?? []), ...acceptedFiles], field.id)
-      }, [onChange, value, field.options?.validFileTypes]
+      }, [onChange, value, field.options?.validFileTypes, handleFileUpload, setUploadingFiles]
     ),
   })
 
@@ -1313,6 +1331,9 @@ export const FilesInput = ({ value, onChange, field, existingFileName }: FormInp
     })
   ), [value])
 
+  if (uploadingFiles?.find(f => f.fieldId === field.id)) {
+    return <LinearProgress />
+  }
   return (
     <Grid container direction="column">
     <Grid container {...getRootProps()} sx={{
@@ -3278,3 +3299,7 @@ export const ConditionsInput = ({ goToNextField, goToPreviousField, field, value
     /> 
   )
 }
+
+export const RichTextInput = ({ field, value, onChange }: FormInputProps<'Rich Text'>) => (
+  <WYSIWYG initialHTML={value} onChange={v => onChange(v, field.id)} style={{ width: '100%' }} editorStyle={{ width: '100%' }} />
+)

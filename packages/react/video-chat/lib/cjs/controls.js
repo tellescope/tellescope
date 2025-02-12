@@ -171,13 +171,23 @@ var useToggleBlur = function () {
     };
 };
 var ControlBar = function (_a) {
-    var onLeave = _a.onLeave, style = _a.style, _b = _a.spacing, spacing = _b === void 0 ? 15 : _b, size = _a.size, showEndMeeting = _a.showEndMeeting, showScreenShare = _a.showScreenShare, showBlurToggle = _a.showBlurToggle;
+    var autoCamera = _a.autoCamera, onLeave = _a.onLeave, style = _a.style, _b = _a.spacing, spacing = _b === void 0 ? 15 : _b, size = _a.size, showEndMeeting = _a.showEndMeeting, showScreenShare = _a.showScreenShare, showBlurToggle = _a.showBlurToggle;
     var isHost = react_1.default.useContext(video_shared_1.CurrentCallContext).isHost;
-    var itemStyle = { marginLeft: spacing, marginRight: spacing };
     var leaveMeeting = (0, _1.useJoinVideoCall)().leaveMeeting;
     var _c = react_1.default.useContext(video_shared_1.CurrentCallContext), toggleVideo = _c.toggleVideo, cameraActive = _c.videoIsEnabled;
     var _d = useToggleBlur(), blurIsActive = _d.blurIsActive, isBackgroundBlurSupported = _d.isBackgroundBlurSupported, toggleBlur = _d.toggleBlur;
     // const { backgroundIsActive, isBackgroundReplacementSupported, toggleBackground } = useToggleReplacement()
+    var startCameraRef = (0, react_1.useRef)(false);
+    (0, react_1.useEffect)(function () {
+        if (startCameraRef.current)
+            return;
+        startCameraRef.current = true;
+        if (!autoCamera)
+            return;
+        if (cameraActive)
+            return;
+        toggleVideo();
+    }, [autoCamera, cameraActive, toggleVideo]);
     var cameraButtonProps = {
         icon: cameraActive ? (0, jsx_runtime_1.jsx)(amazon_chime_sdk_component_library_react_1.Camera, {}) : (0, jsx_runtime_1.jsx)(amazon_chime_sdk_component_library_react_1.Camera, { disabled: true }),
         isSelected: true,

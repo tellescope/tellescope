@@ -1,5 +1,5 @@
 import React from "react";
-import { Styled } from "../index";
+import { FileBlob, Styled } from "../index";
 import { useTellescopeForm, Response, FileResponse, NextFieldLogicOptions } from "./hooks";
 import { FormInputs } from "./types";
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client";
@@ -40,7 +40,7 @@ export declare const TellescopeForm: (props: TellescopeFormProps & Styled & {
     theme?: OrganizationTheme;
     inputStyle?: React.CSSProperties;
 }) => JSX.Element;
-export declare const QuestionForField: ({ form, value, field, file, responses, selectedFiles, onAddFile, onFieldChange, customInputs, fields, validateField, repeats, onRepeatsChange, setCustomerId, handleDatabaseSelect, enduser, goToPreviousField, isPreviousDisabled, enduserId, formResponseId, submit, groupId, groupInstance, goToNextField, spacing, isSinglePage, rootResponseId, isInQuestionGroup, logicOptions, }: {
+export declare const QuestionForField: ({ form, value, field, file, responses, selectedFiles, onAddFile, onFieldChange, customInputs, fields, validateField, repeats, onRepeatsChange, setCustomerId, handleDatabaseSelect, enduser, goToPreviousField, isPreviousDisabled, enduserId, formResponseId, submit, groupId, groupInstance, goToNextField, spacing, isSinglePage, rootResponseId, isInQuestionGroup, logicOptions, uploadingFiles, setUploadingFiles, handleFileUpload, }: {
     spacing?: number | undefined;
     form?: (import("@tellescope/types-models").Form & {
         id: string;
@@ -55,7 +55,14 @@ export declare const QuestionForField: ({ form, value, field, file, responses, s
     isSinglePage?: boolean | undefined;
     isInQuestionGroup?: boolean | undefined;
     logicOptions?: NextFieldLogicOptions | undefined;
-} & Pick<TellescopeFormProps, "enduserId" | "fields" | "rootResponseId" | "groupId" | "groupInstance" | "responses" | "enduser" | "submit" | "formResponseId" | "goToNextField" | "isPreviousDisabled" | "goToPreviousField" | "handleDatabaseSelect" | "onAddFile" | "onFieldChange" | "customInputs" | "selectedFiles" | "validateField">) => JSX.Element | null;
+    handleFileUpload: (blob: FileBlob, fieldId: string) => Promise<any>;
+    uploadingFiles: {
+        fieldId: string;
+    }[];
+    setUploadingFiles: React.Dispatch<React.SetStateAction<{
+        fieldId: string;
+    }[]>>;
+} & Pick<TellescopeFormProps, "enduserId" | "fields" | "rootResponseId" | "groupId" | "groupInstance" | "responses" | "enduser" | "formResponseId" | "selectedFiles" | "submit" | "goToPreviousField" | "goToNextField" | "isPreviousDisabled" | "handleDatabaseSelect" | "onAddFile" | "onFieldChange" | "customInputs" | "validateField">) => JSX.Element | null;
 export declare const TellescopeSingleQuestionFlow: typeof TellescopeForm;
 export declare const DEFAULT_THANKS_MESSAGE = "Your response was successfully recorded";
 export declare const ThanksMessage: ({ thanksMessage, htmlThanksMessage, showRestartAtEnd, downloadComponent, }: {

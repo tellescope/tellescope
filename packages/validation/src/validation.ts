@@ -302,6 +302,7 @@ import {
   BaseResponse,
   ConditionResponse,
   PushFormsAutomationAction,
+  FormResponseAnswerRichText,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -1541,6 +1542,7 @@ const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
   Emotii: '',
   Allergies: "",
   Conditions: "",
+  "Rich Text": "",
 }
 export const FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES) as FormFieldType[]
 export const formFieldTypeValidator = exactMatchValidator<FormFieldType>(FORM_FIELD_TYPES)
@@ -1567,6 +1569,7 @@ export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' 
   // need to keep consistent with other validation
   'string': stringValidator.validate({ maxLength: 5000, emptyStringOk: true, errorMessage: "Response must not exceed 5000 characters" }),
   'stringLong': stringValidator.validate({ maxLength: 20000, emptyStringOk: true, errorMessage: "Response must not exceed 20000 characters" }),
+  'Rich Text': stringValidator.validate({ maxLength: 25000, emptyStringOk: true, errorMessage: "Response must not exceed 25000 characters" }),
 
   'number': numberValidator.validate({ errorMessage: "Response must be a number" }),
   'email': emailValidator.validate(),
@@ -2000,6 +2003,10 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
   stringLong: objectValidator<FormResponseAnswerStringLong>({
     type: exactMatchValidator(['stringLong']),
     value: stringValidator20000ptional,
+  }),
+  "Rich Text": objectValidator<FormResponseAnswerRichText>({
+    type: exactMatchValidator(['Rich Text']),
+    value: stringValidator25000OptionalEmptyOkay,
   }),
   date: objectValidator<FormResponseAnswerDate>({
     type: exactMatchValidator(['date']),
@@ -3283,6 +3290,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   observationCode: stringValidatorOptionalEmptyOkay,
   observationDisplay: stringValidatorOptionalEmptyOkay,
   observationUnit: stringValidatorOptionalEmptyOkay,
+  autoUploadFiles: booleanValidatorOptional,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -3882,6 +3890,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     showDeleteCallRecordingOnTimeline: booleanValidatorOptional,
     inboxRepliesMarkRead: booleanValidatorOptional,
     recordCallAudioPlayback: stringValidatorOptional,
+    dontRecordCallsToPhone: listOfStringsValidatorOptionalOrEmptyOk,
     disableAutoreplyForCustomEntities: booleanValidatorOptional,
     alwaysShowInsurance: booleanValidatorOptional,
     defaultToOutboundConferenceCall: booleanValidatorOptional,
@@ -4847,6 +4856,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
     resource: exactMatchValidator<'Form Responses'>(['Form Responses']),
     filter: objectValidator<AnalyticsQueryFilterForType['Form Responses']>({
       formIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+      tags: listOfStringsWithQualifierValidatorOptional,
       formResponseCondition: orValidator({
         optional: optionalAnyObjectValidator,
         included: objectAnyFieldsAnyValuesValidator,

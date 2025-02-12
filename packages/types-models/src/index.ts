@@ -157,7 +157,7 @@ export type CustomDashboardView = {
 }
 export type OrganizationSettings = {
   dashboard?: {
-    view?: CustomDashboardView,
+    view?: CustomDashboardView, 
   },
   endusers?: { 
     disableMultipleChatRooms?: boolean,
@@ -172,6 +172,7 @@ export type OrganizationSettings = {
     canDeleteFreeNote?: boolean,
     recordCalls?: boolean,
     recordCallAudioPlayback?: string, 
+    dontRecordCallsToPhone?: string[],
     transcribeCalls?: boolean,
     transcribeCallInboundPlayback?: string, // should be 'recordCall' but too late
     showDeleteCallRecordingOnTimeline?: boolean,
@@ -1419,7 +1420,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
   discussionRoomId?: string,
 }
 
-export type FormFieldLiteralType = 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time'
+export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time'
 export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance"
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
 
@@ -1530,6 +1531,7 @@ export type FormFieldOptions = FormFieldValidation & {
   observationCode?: string,
   observationDisplay?: string,
   observationUnit?: string,
+  autoUploadFiles?: boolean,
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 
@@ -1646,6 +1648,8 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   tags?: string[]
   language?: string,
   isNonVisitElationNote?: boolean,
+  elationVisitNotePractitionerIds?: string[],
+  elationVisitNoteType?: string,
   canvasId?: string,
   canvasQuestionId?: string,
   syncToOLH?: boolean,
@@ -1862,6 +1866,7 @@ export type FormResponseAnswerNumber = FormResponseValueAnswerBuilder<'number', 
 export type FormResponseAnswerPhone = FormResponseValueAnswerBuilder<'phone', string>
 export type FormResponseAnswerString = FormResponseValueAnswerBuilder<'string', string>
 export type FormResponseAnswerStringLong = FormResponseValueAnswerBuilder<'stringLong', string>
+export type FormResponseAnswerRichText = FormResponseValueAnswerBuilder<'Rich Text', string>
 export type FormResponseAnswerDate = FormResponseValueAnswerBuilder<'date', Date>
 export type FormResponseAnswerDateString = FormResponseValueAnswerBuilder<'dateString', string>
 export type FormResponseAnswerRating = FormResponseValueAnswerBuilder<'rating', number>
@@ -1910,6 +1915,7 @@ export type FormResponseValueAnswer = (
   | FormResponseAnswerPhone
   | FormResponseAnswerString
   | FormResponseAnswerStringLong
+  | FormResponseAnswerRichText
   | FormResponseAnswerSignature
   | FormResponseAnswerMultipleChoice
   | FormResponseAnswerFile
@@ -1957,6 +1963,7 @@ export type AnswerForType = {
   'phone': FormResponseAnswerPhone['value'],
   'string': FormResponseAnswerString['value'],
   'stringLong': FormResponseAnswerStringLong['value'],
+  'Rich Text': FormResponseAnswerRichText['value'],
   'signature': FormResponseAnswerSignature['value'],
   'multiple_choice': FormResponseAnswerMultipleChoice['value'],
   'Dropdown': FormResponseAnswerMultipleChoice['value'],
@@ -2003,7 +2010,7 @@ export interface FormResponse_required {
   formId: string,
   enduserId: string,
   formTitle: string,
-  responses: FormResponseValue[],
+  responses?: FormResponseValue[], // some cases where undefined (not intended but now need to handle)
   publicSubmit?: boolean,
   submittedBy?: string,
   submittedByIsPlaceholder?: boolean,
@@ -3301,6 +3308,7 @@ export type AnalyticsQueryFilterForType = {
   "Form Responses": {
     formIds?: string[],
     formResponseCondition?: CompoundFilter<string>,
+    tags?: ListOfStringsWithQualifier,
   }
   "Purchases": { },
   "Purchase Credits": { },

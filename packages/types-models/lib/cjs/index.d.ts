@@ -159,6 +159,7 @@ export type OrganizationSettings = {
         canDeleteFreeNote?: boolean;
         recordCalls?: boolean;
         recordCallAudioPlayback?: string;
+        dontRecordCallsToPhone?: string[];
         transcribeCalls?: boolean;
         transcribeCallInboundPlayback?: string;
         showDeleteCallRecordingOnTimeline?: boolean;
@@ -1374,7 +1375,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
     tags?: string[];
     discussionRoomId?: string;
 }
-export type FormFieldLiteralType = 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' | 'dateString' | 'rating' | 'Time';
+export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' | 'dateString' | 'rating' | 'Time';
 export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance";
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType;
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic';
@@ -1489,6 +1490,7 @@ export type FormFieldOptions = FormFieldValidation & {
     observationCode?: string;
     observationDisplay?: string;
     observationUnit?: string;
+    autoUploadFiles?: boolean;
 };
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>;
 export type FormFieldCalloutConditionComparison = 'Equals';
@@ -1600,6 +1602,8 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
     tags?: string[];
     language?: string;
     isNonVisitElationNote?: boolean;
+    elationVisitNotePractitionerIds?: string[];
+    elationVisitNoteType?: string;
     canvasId?: string;
     canvasQuestionId?: string;
     syncToOLH?: boolean;
@@ -1814,6 +1818,7 @@ export type FormResponseAnswerNumber = FormResponseValueAnswerBuilder<'number', 
 export type FormResponseAnswerPhone = FormResponseValueAnswerBuilder<'phone', string>;
 export type FormResponseAnswerString = FormResponseValueAnswerBuilder<'string', string>;
 export type FormResponseAnswerStringLong = FormResponseValueAnswerBuilder<'stringLong', string>;
+export type FormResponseAnswerRichText = FormResponseValueAnswerBuilder<'Rich Text', string>;
 export type FormResponseAnswerDate = FormResponseValueAnswerBuilder<'date', Date>;
 export type FormResponseAnswerDateString = FormResponseValueAnswerBuilder<'dateString', string>;
 export type FormResponseAnswerRating = FormResponseValueAnswerBuilder<'rating', number>;
@@ -1852,7 +1857,7 @@ export type FormResponseAnswerFileValue = {
 };
 export type FormResponseAnswerFile = FormResponseValueAnswerBuilder<'file', FormResponseAnswerFileValue>;
 export type FormResponseAnswerFiles = FormResponseValueAnswerBuilder<'files', FormResponseAnswerFileValue[]>;
-export type FormResponseValueAnswer = (FormResponseAnswerGroup | FormResponseAnswerTable | FormResponseAnswerDescription | FormResponseAnswerEmail | FormResponseAnswerNumber | FormResponseAnswerPhone | FormResponseAnswerString | FormResponseAnswerStringLong | FormResponseAnswerSignature | FormResponseAnswerMultipleChoice | FormResponseAnswerFile | FormResponseAnswerFiles | FormResponseAnswerDate | FormResponseAnswerRating | FormResponseAnswerRanking | FormResponseAnswerDateString | FormResponseAnswerAddress | FormResponseAnswerTime | FormResponseAnswerStripe | FormResponseAnswerDropdown | FormResponseAnswerDatabaseSelect | FormResponseAnswerMedications | FormResponseAnswerRelatedContacts | FormResponseAnswerInsurance | FormResponseAnswerAppointmentBooking | FormResponseAnswerHeight | FormResponseAnswerRedirect | FormResponseAnswerHiddenValue | FormResponseAnswerEmotii | FormResponseAnswerAllergies | FormResponseAnswerConditions);
+export type FormResponseValueAnswer = (FormResponseAnswerGroup | FormResponseAnswerTable | FormResponseAnswerDescription | FormResponseAnswerEmail | FormResponseAnswerNumber | FormResponseAnswerPhone | FormResponseAnswerString | FormResponseAnswerStringLong | FormResponseAnswerRichText | FormResponseAnswerSignature | FormResponseAnswerMultipleChoice | FormResponseAnswerFile | FormResponseAnswerFiles | FormResponseAnswerDate | FormResponseAnswerRating | FormResponseAnswerRanking | FormResponseAnswerDateString | FormResponseAnswerAddress | FormResponseAnswerTime | FormResponseAnswerStripe | FormResponseAnswerDropdown | FormResponseAnswerDatabaseSelect | FormResponseAnswerMedications | FormResponseAnswerRelatedContacts | FormResponseAnswerInsurance | FormResponseAnswerAppointmentBooking | FormResponseAnswerHeight | FormResponseAnswerRedirect | FormResponseAnswerHiddenValue | FormResponseAnswerEmotii | FormResponseAnswerAllergies | FormResponseAnswerConditions);
 export type FormResponseValue = {
     fieldId: string;
     fieldTitle: string;
@@ -1874,6 +1879,7 @@ export type AnswerForType = {
     'phone': FormResponseAnswerPhone['value'];
     'string': FormResponseAnswerString['value'];
     'stringLong': FormResponseAnswerStringLong['value'];
+    'Rich Text': FormResponseAnswerRichText['value'];
     'signature': FormResponseAnswerSignature['value'];
     'multiple_choice': FormResponseAnswerMultipleChoice['value'];
     'Dropdown': FormResponseAnswerMultipleChoice['value'];
@@ -1918,7 +1924,7 @@ export interface FormResponse_required {
     formId: string;
     enduserId: string;
     formTitle: string;
-    responses: FormResponseValue[];
+    responses?: FormResponseValue[];
     publicSubmit?: boolean;
     submittedBy?: string;
     submittedByIsPlaceholder?: boolean;
@@ -3302,6 +3308,7 @@ export type AnalyticsQueryFilterForType = {
     "Form Responses": {
         formIds?: string[];
         formResponseCondition?: CompoundFilter<string>;
+        tags?: ListOfStringsWithQualifier;
     };
     "Purchases": {};
     "Purchase Credits": {};

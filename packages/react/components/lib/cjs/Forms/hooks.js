@@ -490,8 +490,9 @@ var useTellescopeForm = function (_a) {
     var _k = (0, react_1.useState)(undefined), submittingStatus = _k[0], setSubmittingStatus = _k[1];
     var _l = (0, react_1.useState)(''), submitErrorMessage = _l[0], setSubmitErrorMessage = _l[1];
     var _m = (0, react_1.useState)(0), currentPageIndex = _m[0], setCurrentPageIndex = _m[1];
+    var _o = (0, react_1.useState)([]), uploadingFiles = _o[0], setUploadingFiles = _o[1];
     var prevFieldStackRef = (0, react_1.useRef)([]);
-    var _o = (0, react_1.useState)({}), repeats = _o[0], setRepeats = _o[1];
+    var _p = (0, react_1.useState)({}), repeats = _p[0], setRepeats = _p[1];
     var gaEventRef = (0, react_1.useRef)({});
     var goBackURL = '';
     try {
@@ -584,7 +585,7 @@ var useTellescopeForm = function (_a) {
             field: f,
         });
     })); }, [fields, existingResponses]);
-    var _p = (0, react_1.useState)(initializeFields()), responses = _p[0], setResponses = _p[1];
+    var _q = (0, react_1.useState)(initializeFields()), responses = _q[0], setResponses = _q[1];
     (0, react_1.useEffect)(function () {
         // Be very careful about refreshing data to avoid losing progress -- only in the case the selected form has changed
         if (fieldInitRef.current === formId)
@@ -600,7 +601,7 @@ var useTellescopeForm = function (_a) {
         externalId: f.externalId,
         blob: undefined,
     }); })); }, [fields]);
-    var _q = (0, react_1.useState)(initializeFiles()), selectedFiles = _q[0], setSelectedFiles = _q[1];
+    var _t = (0, react_1.useState)(initializeFiles()), selectedFiles = _t[0], setSelectedFiles = _t[1];
     (0, react_1.useEffect)(function () {
         // Be very careful about refreshing data to avoid losing progress -- only in the case the selected form has changed
         if (fileInitRef.current === formId)
@@ -699,7 +700,7 @@ var useTellescopeForm = function (_a) {
         updateInclusion(true);
     }, [updateInclusion, currentValue]);
     var validateBasicField = (0, react_1.useCallback)(function (field) {
-        var _a, _b, _c, _d, _e, _g, _h, _j, _k, _l, _m, _o, _p, _q, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32, _33, _34, _35, _36;
+        var _a, _b, _c, _d, _e, _g, _h, _j, _k, _l, _m, _o, _p, _q, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15, _16, _17, _18, _19, _20, _21, _22, _23, _24, _25, _26, _27, _28, _29, _30, _31, _32, _33, _34, _35, _36, _37, _38, _39;
         var value = responses.find(function (r) { return r.fieldId === field.id; });
         var file = selectedFiles.find(function (r) { return r.fieldId === field.id; });
         if (!value)
@@ -712,34 +713,37 @@ var useTellescopeForm = function (_a) {
             && !(0, utilities_1.responses_satisfy_conditions)(responses, field.groupShowCondition, logicOptions)) {
             return null;
         }
+        if (((_a = value.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Rich Text' && ((_c = (_b = value.answer) === null || _b === void 0 ? void 0 : _b.value) === null || _c === void 0 ? void 0 : _c.trim()) === '<p></p>' && !field.isOptional) {
+            return "Answer is required";
+        }
         if (value.answer.type === 'Insurance') {
-            if (((_b = (_a = value.answer.value) === null || _a === void 0 ? void 0 : _a.relationshipDetails) === null || _b === void 0 ? void 0 : _b.dateOfBirth) && !(0, exports.isDateString)(value.answer.value.relationshipDetails.dateOfBirth)) {
+            if (((_e = (_d = value.answer.value) === null || _d === void 0 ? void 0 : _d.relationshipDetails) === null || _e === void 0 ? void 0 : _e.dateOfBirth) && !(0, exports.isDateString)(value.answer.value.relationshipDetails.dateOfBirth)) {
                 return "Enter date of birth in MM-DD-YYYY format";
             }
             if (field.isOptional)
                 return null;
-            if (!((_c = value.answer.value) === null || _c === void 0 ? void 0 : _c.payerName)) {
+            if (!((_g = value.answer.value) === null || _g === void 0 ? void 0 : _g.payerName)) {
                 return "Insurer is required";
             }
-            if (!((_d = value.answer.value) === null || _d === void 0 ? void 0 : _d.memberId)) {
+            if (!((_h = value.answer.value) === null || _h === void 0 ? void 0 : _h.memberId)) {
                 return "Member ID is required";
             }
             // assumes Self by default when left blank
-            if (((_e = value.answer.value) === null || _e === void 0 ? void 0 : _e.relationship) && ((_g = value.answer.value) === null || _g === void 0 ? void 0 : _g.relationship) !== 'Self' && !((_j = (_h = value.answer.value) === null || _h === void 0 ? void 0 : _h.relationshipDetails) === null || _j === void 0 ? void 0 : _j.fname)) {
+            if (((_j = value.answer.value) === null || _j === void 0 ? void 0 : _j.relationship) && ((_k = value.answer.value) === null || _k === void 0 ? void 0 : _k.relationship) !== 'Self' && !((_m = (_l = value.answer.value) === null || _l === void 0 ? void 0 : _l.relationshipDetails) === null || _m === void 0 ? void 0 : _m.fname)) {
                 return "First name is required";
             }
-            if (((_k = value.answer.value) === null || _k === void 0 ? void 0 : _k.relationship) && ((_l = value.answer.value) === null || _l === void 0 ? void 0 : _l.relationship) !== 'Self' && !((_o = (_m = value.answer.value) === null || _m === void 0 ? void 0 : _m.relationshipDetails) === null || _o === void 0 ? void 0 : _o.lname)) {
+            if (((_o = value.answer.value) === null || _o === void 0 ? void 0 : _o.relationship) && ((_p = value.answer.value) === null || _p === void 0 ? void 0 : _p.relationship) !== 'Self' && !((_t = (_q = value.answer.value) === null || _q === void 0 ? void 0 : _q.relationshipDetails) === null || _t === void 0 ? void 0 : _t.lname)) {
                 return "Last name is required";
             }
-            if (((_p = value.answer.value) === null || _p === void 0 ? void 0 : _p.relationship) && ((_q = value.answer.value) === null || _q === void 0 ? void 0 : _q.relationship) !== 'Self' && !((_u = (_t = value.answer.value) === null || _t === void 0 ? void 0 : _t.relationshipDetails) === null || _u === void 0 ? void 0 : _u.gender)) {
+            if (((_u = value.answer.value) === null || _u === void 0 ? void 0 : _u.relationship) && ((_v = value.answer.value) === null || _v === void 0 ? void 0 : _v.relationship) !== 'Self' && !((_x = (_w = value.answer.value) === null || _w === void 0 ? void 0 : _w.relationshipDetails) === null || _x === void 0 ? void 0 : _x.gender)) {
                 return "Gender is required";
             }
-            if (((_v = value.answer.value) === null || _v === void 0 ? void 0 : _v.relationship) && ((_w = value.answer.value) === null || _w === void 0 ? void 0 : _w.relationship) !== 'Self' && !((_y = (_x = value.answer.value) === null || _x === void 0 ? void 0 : _x.relationshipDetails) === null || _y === void 0 ? void 0 : _y.dateOfBirth)) {
+            if (((_y = value.answer.value) === null || _y === void 0 ? void 0 : _y.relationship) && ((_z = value.answer.value) === null || _z === void 0 ? void 0 : _z.relationship) !== 'Self' && !((_1 = (_0 = value.answer.value) === null || _0 === void 0 ? void 0 : _0.relationshipDetails) === null || _1 === void 0 ? void 0 : _1.dateOfBirth)) {
                 return "Date of birth is required";
             }
         }
         // even when optional, name is required when signed is checked
-        if (value.answer.type === 'signature' && ((_z = value.answer.value) === null || _z === void 0 ? void 0 : _z.signed) && !value.answer.value.fullName) {
+        if (value.answer.type === 'signature' && ((_2 = value.answer.value) === null || _2 === void 0 ? void 0 : _2.signed) && !value.answer.value.fullName) {
             return "Please enter your full name";
         }
         // event when optional, phone should be valid phone number if partially entered
@@ -750,58 +754,58 @@ var useTellescopeForm = function (_a) {
                 validation_1.phoneValidator.validate()(value.answer.value);
             }
             catch (err) {
-                return (_0 = err === null || err === void 0 ? void 0 : err.message) !== null && _0 !== void 0 ? _0 : "Enter a valid phone number";
+                return (_3 = err === null || err === void 0 ? void 0 : err.message) !== null && _3 !== void 0 ? _3 : "Enter a valid phone number";
             }
         }
         if (field.type === 'description')
             return null;
         if (field.type === 'string' || field.type === 'stringLong' || field.type === 'number') {
-            if (((_1 = field.options) === null || _1 === void 0 ? void 0 : _1.maxLength) && field.options.maxLength !== -1) {
-                if (((_2 = value.answer.value) !== null && _2 !== void 0 ? _2 : '').toString().length > field.options.maxLength) {
+            if (((_4 = field.options) === null || _4 === void 0 ? void 0 : _4.maxLength) && field.options.maxLength !== -1) {
+                if (((_5 = value.answer.value) !== null && _5 !== void 0 ? _5 : '').toString().length > field.options.maxLength) {
                     return "Answer must be no more than ".concat(field.options.maxLength, " characters");
                 }
             }
-            if (((_3 = field.options) === null || _3 === void 0 ? void 0 : _3.minLength) && field.options.minLength !== -1) {
+            if (((_6 = field.options) === null || _6 === void 0 ? void 0 : _6.minLength) && field.options.minLength !== -1) {
                 // allow optional when min length is greater than 0, only show error when value is entered
                 if (field.isOptional && !value.answer.value)
                     return null;
-                if (((_4 = value.answer.value) !== null && _4 !== void 0 ? _4 : '').toString().length < field.options.minLength) {
+                if (((_7 = value.answer.value) !== null && _7 !== void 0 ? _7 : '').toString().length < field.options.minLength) {
                     return "Answer must be at least ".concat(field.options.minLength, " characters");
                 }
             }
-            if (((_5 = field.options) === null || _5 === void 0 ? void 0 : _5.repeat) && (!field.isOptional || value.answer.value || repeats[field.id])) {
+            if (((_8 = field.options) === null || _8 === void 0 ? void 0 : _8.repeat) && (!field.isOptional || value.answer.value || repeats[field.id])) {
                 if (value.answer.value !== repeats[field.id]) {
                     return "Answers must match";
                 }
             }
             if (value.answer.type === 'string' && (value.answer.value || '').length >= 5000) {
-                return "Must be under 5000 characters, got ".concat((_6 = value.answer.value) === null || _6 === void 0 ? void 0 : _6.length);
+                return "Must be under 5000 characters, got ".concat((_9 = value.answer.value) === null || _9 === void 0 ? void 0 : _9.length);
             }
             if (value.answer.type === 'stringLong' && (value.answer.value || '').length >= 20000) {
-                return "Must be under 20000 characters, got ".concat((_7 = value.answer.value) === null || _7 === void 0 ? void 0 : _7.length);
+                return "Must be under 20000 characters, got ".concat((_10 = value.answer.value) === null || _10 === void 0 ? void 0 : _10.length);
             }
         }
         if (value.answer.type === 'number' && value.answer.value) {
-            if (((_9 = (_8 = field.options) === null || _8 === void 0 ? void 0 : _8.min) !== null && _9 !== void 0 ? _9 : -Infinity) >= value.answer.value) {
-                return "Must be greater than ".concat((_10 = field.options) === null || _10 === void 0 ? void 0 : _10.min);
+            if (((_12 = (_11 = field.options) === null || _11 === void 0 ? void 0 : _11.min) !== null && _12 !== void 0 ? _12 : -Infinity) >= value.answer.value) {
+                return "Must be greater than ".concat((_13 = field.options) === null || _13 === void 0 ? void 0 : _13.min);
             }
-            if (((_12 = (_11 = field.options) === null || _11 === void 0 ? void 0 : _11.max) !== null && _12 !== void 0 ? _12 : Infinity) <= value.answer.value) {
-                return "Must be less than ".concat((_13 = field.options) === null || _13 === void 0 ? void 0 : _13.max);
+            if (((_15 = (_14 = field.options) === null || _14 === void 0 ? void 0 : _14.max) !== null && _15 !== void 0 ? _15 : Infinity) <= value.answer.value) {
+                return "Must be less than ".concat((_16 = field.options) === null || _16 === void 0 ? void 0 : _16.max);
             }
         }
         if (field.isOptional || (sessionType === 'user' && field.type === 'Appointment Booking' && !enduserId)) {
             return null;
         }
         if (value.answer.type === 'Height') {
-            if (typeof ((_14 = value.answer.value) === null || _14 === void 0 ? void 0 : _14.feet) !== 'number' || isNaN((_15 = value.answer.value) === null || _15 === void 0 ? void 0 : _15.feet)) {
+            if (typeof ((_17 = value.answer.value) === null || _17 === void 0 ? void 0 : _17.feet) !== 'number' || isNaN((_18 = value.answer.value) === null || _18 === void 0 ? void 0 : _18.feet)) {
                 return "Feet must be provided";
             }
-            if (typeof ((_16 = value.answer.value) === null || _16 === void 0 ? void 0 : _16.inches) !== 'number' || isNaN((_17 = value.answer.value) === null || _17 === void 0 ? void 0 : _17.inches)) {
+            if (typeof ((_19 = value.answer.value) === null || _19 === void 0 ? void 0 : _19.inches) !== 'number' || isNaN((_20 = value.answer.value) === null || _20 === void 0 ? void 0 : _20.inches)) {
                 return "Inches must be provided (enter 0 for no inches)";
             }
         }
         if (value.answer.type === 'Related Contacts') {
-            for (var i = 0; i < ((_18 = value.answer.value) !== null && _18 !== void 0 ? _18 : []).length; i++) {
+            for (var i = 0; i < ((_21 = value.answer.value) !== null && _21 !== void 0 ? _21 : []).length; i++) {
                 var contact = value.answer.value[i];
                 var errorMessage = (0, index_1.contact_is_valid)(contact);
                 if (errorMessage) {
@@ -810,11 +814,11 @@ var useTellescopeForm = function (_a) {
             }
         }
         if (value.answer.type === 'Medications') {
-            if (!((_20 = (_19 = value.answer) === null || _19 === void 0 ? void 0 : _19.value) === null || _20 === void 0 ? void 0 : _20.length)) {
+            if (!((_23 = (_22 = value.answer) === null || _22 === void 0 ? void 0 : _22.value) === null || _23 === void 0 ? void 0 : _23.length)) {
                 return "At least one medication is required";
             }
-            for (var _i = 0, _37 = (_21 = value.answer.value) !== null && _21 !== void 0 ? _21 : []; _i < _37.length; _i++) {
-                var m = _37[_i];
+            for (var _i = 0, _40 = (_24 = value.answer.value) !== null && _24 !== void 0 ? _24 : []; _i < _40.length; _i++) {
+                var m = _40[_i];
                 if (!(m.drugName || m.otherDrug)) {
                     return "A drug selection is required for each medication";
                 }
@@ -822,14 +826,14 @@ var useTellescopeForm = function (_a) {
         }
         // remaining are required, non-empty
         if (field.type === 'file' || field.type === 'files') {
-            if (!((_22 = file.blobs) === null || _22 === void 0 ? void 0 : _22.length)) {
+            if (!((_25 = file.blobs) === null || _25 === void 0 ? void 0 : _25.length)) {
                 return "A file is required";
             }
-            if (typeof ((_23 = field.options) === null || _23 === void 0 ? void 0 : _23.min) === 'number' && file.blobs.length < field.options.min) {
-                return "At least ".concat((_24 = field.options) === null || _24 === void 0 ? void 0 : _24.min, " file(s) are required");
+            if (typeof ((_26 = field.options) === null || _26 === void 0 ? void 0 : _26.min) === 'number' && file.blobs.length < field.options.min) {
+                return "At least ".concat((_27 = field.options) === null || _27 === void 0 ? void 0 : _27.min, " file(s) are required");
             }
-            if (typeof ((_25 = field.options) === null || _25 === void 0 ? void 0 : _25.max) === 'number' && file.blobs.length > field.options.max) {
-                return "At most ".concat((_26 = field.options) === null || _26 === void 0 ? void 0 : _26.max, " file(s) are allowed");
+            if (typeof ((_28 = field.options) === null || _28 === void 0 ? void 0 : _28.max) === 'number' && file.blobs.length > field.options.max) {
+                return "At most ".concat((_29 = field.options) === null || _29 === void 0 ? void 0 : _29.max, " file(s) are allowed");
             }
             return null; // no need to check against other stuff
         }
@@ -846,7 +850,7 @@ var useTellescopeForm = function (_a) {
         }
         // remaining values exist and need to be validated by type
         if (value.answer.type === 'Address') {
-            var stateOnly = (_28 = (_27 = field.options) === null || _27 === void 0 ? void 0 : _27.addressFields) === null || _28 === void 0 ? void 0 : _28.includes('state');
+            var stateOnly = (_31 = (_30 = field.options) === null || _30 === void 0 ? void 0 : _30.addressFields) === null || _31 === void 0 ? void 0 : _31.includes('state');
             if (!value.answer.value.addressLineOne && !stateOnly) {
                 return "Address Line 1 is required";
             }
@@ -859,14 +863,14 @@ var useTellescopeForm = function (_a) {
             if (!value.answer.value.zipCode && !stateOnly) {
                 return "ZIP code is required";
             }
-            if (!isZIPString((_29 = value.answer.value) === null || _29 === void 0 ? void 0 : _29.zipCode) && !stateOnly) {
+            if (!isZIPString((_32 = value.answer.value) === null || _32 === void 0 ? void 0 : _32.zipCode) && !stateOnly) {
                 return "Enter a valid ZIP code";
             }
-            if (!((_30 = value.answer.value) === null || _30 === void 0 ? void 0 : _30.zipPlusFour) && field.fullZIP && !stateOnly) {
+            if (!((_33 = value.answer.value) === null || _33 === void 0 ? void 0 : _33.zipPlusFour) && field.fullZIP && !stateOnly) {
                 return "ZIP+4 is required";
             }
-            if (((_31 = value.answer.value) === null || _31 === void 0 ? void 0 : _31.zipPlusFour) && !stateOnly) {
-                var zipPlus4 = ((_32 = value.answer.value) === null || _32 === void 0 ? void 0 : _32.zipPlusFour) || '';
+            if (((_34 = value.answer.value) === null || _34 === void 0 ? void 0 : _34.zipPlusFour) && !stateOnly) {
+                var zipPlus4 = ((_35 = value.answer.value) === null || _35 === void 0 ? void 0 : _35.zipPlusFour) || '';
                 if (zipPlus4.length !== 4 || !/\d{4}$/.test(zipPlus4)) {
                     return "ZIP+4 must be 4 digits";
                 }
@@ -880,11 +884,11 @@ var useTellescopeForm = function (_a) {
         }
         else if (value.answer.type === 'Table Input') {
             var rowNumber = 0;
-            for (var _38 = 0, _39 = value.answer.value || []; _38 < _39.length; _38++) {
-                var row = _39[_38];
+            for (var _41 = 0, _42 = value.answer.value || []; _41 < _42.length; _41++) {
+                var row = _42[_41];
                 rowNumber++;
-                for (var _40 = 0, row_1 = row; _40 < row_1.length; _40++) {
-                    var cell = row_1[_40];
+                for (var _43 = 0, row_1 = row; _43 < row_1.length; _43++) {
+                    var cell = row_1[_43];
                     if (!cell.entry) {
                         return "Enter a value for ".concat(cell.label, " in row ").concat(rowNumber);
                     }
@@ -907,9 +911,9 @@ var useTellescopeForm = function (_a) {
             }
         }
         else if (value.answer.type === 'rating') {
-            if ((((_33 = field === null || field === void 0 ? void 0 : field.options) === null || _33 === void 0 ? void 0 : _33.from) && value.answer.value < field.options.from)
-                || ((_34 = field === null || field === void 0 ? void 0 : field.options) === null || _34 === void 0 ? void 0 : _34.to) && value.answer.value > field.options.to) {
-                return "Please enter a number between ".concat((_35 = field === null || field === void 0 ? void 0 : field.options) === null || _35 === void 0 ? void 0 : _35.from, " and ").concat((_36 = field === null || field === void 0 ? void 0 : field.options) === null || _36 === void 0 ? void 0 : _36.to);
+            if ((((_36 = field === null || field === void 0 ? void 0 : field.options) === null || _36 === void 0 ? void 0 : _36.from) && value.answer.value < field.options.from)
+                || ((_37 = field === null || field === void 0 ? void 0 : field.options) === null || _37 === void 0 ? void 0 : _37.to) && value.answer.value > field.options.to) {
+                return "Please enter a number between ".concat((_38 = field === null || field === void 0 ? void 0 : field.options) === null || _38 === void 0 ? void 0 : _38.from, " and ").concat((_39 = field === null || field === void 0 ? void 0 : field.options) === null || _39 === void 0 ? void 0 : _39.to);
             }
         }
         else if (value.answer.type === 'signature') {
@@ -998,6 +1002,35 @@ var useTellescopeForm = function (_a) {
         }
         return responsesToSubmit;
     }, [responses]);
+    var handleFileUpload = (0, react_1.useCallback)(function (blob, fieldId) { return __awaiter(void 0, void 0, void 0, function () {
+        var responseIndex, result, secureName;
+        var _a, _b;
+        return __generator(this, function (_c) {
+            switch (_c.label) {
+                case 0:
+                    responseIndex = responses.findIndex(function (f) { return f.fieldId === fieldId; });
+                    result = { name: blob.name, secureName: '' };
+                    return [4 /*yield*/, handleUpload({
+                            name: blob.name,
+                            size: blob.size,
+                            type: blob.type,
+                            enduserId: enduserId,
+                        }, blob)];
+                case 1:
+                    secureName = (_c.sent()).secureName;
+                    if (responses[responseIndex].answer.type === 'files') {
+                        if (!responses[responseIndex].answer.value) {
+                            responses[responseIndex].answer.value = [];
+                        }
+                        responses[responseIndex].answer.value.push(__assign(__assign({}, result), { type: blob.type, secureName: secureName, name: (_a = result.name) !== null && _a !== void 0 ? _a : '' }));
+                    }
+                    else {
+                        responses[responseIndex].answer.value = __assign(__assign({}, result), { type: blob.type, secureName: secureName, name: (_b = result.name) !== null && _b !== void 0 ? _b : '' });
+                    }
+                    return [2 /*return*/];
+            }
+        });
+    }); }, [responses, handleUpload]);
     var submit = (0, react_1.useCallback)(function (options) { return __awaiter(void 0, void 0, void 0, function () {
         var hasFile, _loop_9, _i, selectedFiles_1, blobInfo, err_1, responsesToSubmit_3, _a, responsesToSubmit_2, r, _loop_10, _b, _c, f, errors, _d, _e, eId, _g, formResponse, nextFormGroupPublicURL, _h, _j, _k, err_2, err_3;
         var _l;
@@ -1013,37 +1046,26 @@ var useTellescopeForm = function (_a) {
                 case 1:
                     _4.trys.push([1, 6, 7, 8]);
                     _loop_9 = function (blobInfo) {
-                        var blobs, fieldId, _5, blobs_1, blob, result, secureName, responseIndex;
+                        var blobs, fieldId, responseIndex, response, _5, blobs_1, blob;
                         return __generator(this, function (_6) {
                             switch (_6.label) {
                                 case 0:
                                     blobs = blobInfo.blobs, fieldId = blobInfo.fieldId;
                                     if (!blobs)
                                         return [2 /*return*/, "continue"];
+                                    responseIndex = responses.findIndex(function (f) { return f.fieldId === fieldId; });
+                                    response = responses[responseIndex];
+                                    if ((_o = (_m = response.field) === null || _m === void 0 ? void 0 : _m.options) === null || _o === void 0 ? void 0 : _o.autoUploadFiles) {
+                                        return [2 /*return*/, "continue"];
+                                    } // must have uploaded prior to submission
                                     _5 = 0, blobs_1 = blobs;
                                     _6.label = 1;
                                 case 1:
                                     if (!(_5 < blobs_1.length)) return [3 /*break*/, 4];
                                     blob = blobs_1[_5];
-                                    result = { name: blob.name, secureName: '' };
-                                    return [4 /*yield*/, handleUpload({
-                                            name: blob.name,
-                                            size: blob.size,
-                                            type: blob.type,
-                                            enduserId: enduserId,
-                                        }, blob)];
+                                    return [4 /*yield*/, handleFileUpload(blob, fieldId)];
                                 case 2:
-                                    secureName = (_6.sent()).secureName;
-                                    responseIndex = responses.findIndex(function (f) { return f.fieldId === fieldId; });
-                                    if (responses[responseIndex].answer.type === 'files') {
-                                        if (!responses[responseIndex].answer.value) {
-                                            responses[responseIndex].answer.value = [];
-                                        }
-                                        responses[responseIndex].answer.value.push(__assign(__assign({}, result), { type: blob.type, secureName: secureName, name: (_m = result.name) !== null && _m !== void 0 ? _m : '' }));
-                                    }
-                                    else {
-                                        responses[responseIndex].answer.value = __assign(__assign({}, result), { type: blob.type, secureName: secureName, name: (_o = result.name) !== null && _o !== void 0 ? _o : '' });
-                                    }
+                                    _6.sent();
                                     _6.label = 3;
                                 case 3:
                                     _5++;
@@ -1205,8 +1227,11 @@ var useTellescopeForm = function (_a) {
                 case 20: return [2 /*return*/];
             }
         });
-    }); }, [accessCode, automationStepId, enduserId, responses, selectedFiles, session, handleUpload, existingResponses, ga4measurementId, rootResponseId, parentResponseId, calendarEventId, goBackURL, logicOptions]);
+    }); }, [accessCode, automationStepId, enduserId, responses, selectedFiles, session, handleUpload, existingResponses, ga4measurementId, rootResponseId, parentResponseId, calendarEventId, goBackURL, logicOptions, handleFileUpload]);
     var isNextDisabled = (0, react_1.useCallback)(function () {
+        if (uploadingFiles.length) {
+            return true;
+        }
         if (activeField.children.length === 0) {
             return true;
         }
@@ -1214,7 +1239,7 @@ var useTellescopeForm = function (_a) {
             return true;
         }
         return false;
-    }, [activeField, validateField]);
+    }, [activeField, validateField, uploadingFiles]);
     var autoAdvanceRef = (0, react_1.useRef)(false);
     var goToNextField = (0, react_1.useCallback)(function () {
         var _a, _b, _c;
@@ -1372,6 +1397,9 @@ var useTellescopeForm = function (_a) {
         customization: customization,
         handleDatabaseSelect: handleDatabaseSelect,
         logicOptions: logicOptions,
+        uploadingFiles: uploadingFiles,
+        setUploadingFiles: setUploadingFiles,
+        handleFileUpload: handleFileUpload,
     };
 };
 exports.useTellescopeForm = useTellescopeForm;

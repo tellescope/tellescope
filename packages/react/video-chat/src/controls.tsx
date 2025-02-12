@@ -1,5 +1,5 @@
 // components that work with web or native
-import React, { useCallback, useEffect, useState } from "react"
+import React, { useCallback, useEffect, useRef, useState } from "react"
 
 import { 
   VideoIcon,
@@ -120,21 +120,32 @@ const useToggleBlur = () => {
 };
 
 interface ControlbarProps {
+  autoCamera?: boolean,
   spacing?: number,
   size?: number,
   showEndMeeting?: boolean,
   showScreenShare?: boolean,
   showBlurToggle?: boolean,
 }
-export const ControlBar = ({ onLeave, style, spacing=15, size, showEndMeeting, showScreenShare, showBlurToggle } : ControlbarProps & LeaveMeetingProps & Styled) => {
+export const ControlBar = ({ autoCamera, onLeave, style, spacing=15, size, showEndMeeting, showScreenShare, showBlurToggle } : ControlbarProps & LeaveMeetingProps & Styled) => {
   const { isHost } = React.useContext(CurrentCallContext)
-  const itemStyle = { marginLeft: spacing, marginRight: spacing }
 
   const { leaveMeeting } = useJoinVideoCall()
   const { toggleVideo, videoIsEnabled: cameraActive } = React.useContext(CurrentCallContext)
 
   const { blurIsActive, isBackgroundBlurSupported, toggleBlur } = useToggleBlur()
   // const { backgroundIsActive, isBackgroundReplacementSupported, toggleBackground } = useToggleReplacement()
+
+  const startCameraRef = useRef(false)
+  useEffect(() => {
+    if (startCameraRef.current) return
+    startCameraRef.current = true
+
+    if (!autoCamera) return
+    if (cameraActive) return
+    
+    toggleVideo()
+  }, [autoCamera, cameraActive, toggleVideo])
 
   const cameraButtonProps = {
     icon: cameraActive ? <Camera /> : <Camera disabled />,

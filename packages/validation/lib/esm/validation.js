@@ -1139,6 +1139,7 @@ var _FORM_FIELD_TYPES = {
     Emotii: '',
     Allergies: "",
     Conditions: "",
+    "Rich Text": "",
 };
 export var FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES);
 export var formFieldTypeValidator = exactMatchValidator(FORM_FIELD_TYPES);
@@ -1164,6 +1165,7 @@ export var FORM_FIELD_VALIDATORS_BY_TYPE = {
     // need to keep consistent with other validation
     'string': stringValidator.validate({ maxLength: 5000, emptyStringOk: true, errorMessage: "Response must not exceed 5000 characters" }),
     'stringLong': stringValidator.validate({ maxLength: 20000, emptyStringOk: true, errorMessage: "Response must not exceed 20000 characters" }),
+    'Rich Text': stringValidator.validate({ maxLength: 25000, emptyStringOk: true, errorMessage: "Response must not exceed 25000 characters" }),
     'number': numberValidator.validate({ errorMessage: "Response must be a number" }),
     'email': emailValidator.validate(),
     'userEmail': emailValidator.validate(),
@@ -1568,6 +1570,10 @@ export var formResponseAnswerValidator = orValidator({
     stringLong: objectValidator({
         type: exactMatchValidator(['stringLong']),
         value: stringValidator20000ptional,
+    }),
+    "Rich Text": objectValidator({
+        type: exactMatchValidator(['Rich Text']),
+        value: stringValidator25000OptionalEmptyOkay,
     }),
     date: objectValidator({
         type: exactMatchValidator(['date']),
@@ -2703,6 +2709,7 @@ export var formFieldOptionsValidator = objectValidator({
     observationCode: stringValidatorOptionalEmptyOkay,
     observationDisplay: stringValidatorOptionalEmptyOkay,
     observationUnit: stringValidatorOptionalEmptyOkay,
+    autoUploadFiles: booleanValidatorOptional,
 });
 export var blockValidator = orValidator({
     h1: objectValidator({
@@ -3271,6 +3278,7 @@ export var organizationSettingsValidator = objectValidator({
         showDeleteCallRecordingOnTimeline: booleanValidatorOptional,
         inboxRepliesMarkRead: booleanValidatorOptional,
         recordCallAudioPlayback: stringValidatorOptional,
+        dontRecordCallsToPhone: listOfStringsValidatorOptionalOrEmptyOk,
         disableAutoreplyForCustomEntities: booleanValidatorOptional,
         alwaysShowInsurance: booleanValidatorOptional,
         defaultToOutboundConferenceCall: booleanValidatorOptional,
@@ -4180,6 +4188,7 @@ export var analyticsQueryValidator = orValidator({
         resource: exactMatchValidator(['Form Responses']),
         filter: objectValidator({
             formIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+            tags: listOfStringsWithQualifierValidatorOptional,
             formResponseCondition: orValidator({
                 optional: optionalAnyObjectValidator,
                 included: objectAnyFieldsAnyValuesValidator,

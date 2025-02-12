@@ -1436,7 +1436,7 @@ export const calculate_form_scoring = ({
   const scores: Record<string, number> = {}
 
   for (const scoreCondition of form.scoring) {
-    const r = response.responses.find(
+    const r = response.responses?.find(
       r => r.fieldId === scoreCondition.fieldId
         && (
           r.answer.type !== 'multiple_choice'

@@ -56,7 +56,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 // components that work with web or native
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { VideoIcon, VideoOffIcon, MicrophoneIcon, MicrophoneOffIcon, CallEndIcon, LabeledIconButton, Flex, Button, } from "@tellescope/react-components";
 import { CurrentCallContext } from "./video_shared";
 import { useStartVideoCall } from "./video";
@@ -141,13 +141,23 @@ var useToggleBlur = function () {
     };
 };
 export var ControlBar = function (_a) {
-    var onLeave = _a.onLeave, style = _a.style, _b = _a.spacing, spacing = _b === void 0 ? 15 : _b, size = _a.size, showEndMeeting = _a.showEndMeeting, showScreenShare = _a.showScreenShare, showBlurToggle = _a.showBlurToggle;
+    var autoCamera = _a.autoCamera, onLeave = _a.onLeave, style = _a.style, _b = _a.spacing, spacing = _b === void 0 ? 15 : _b, size = _a.size, showEndMeeting = _a.showEndMeeting, showScreenShare = _a.showScreenShare, showBlurToggle = _a.showBlurToggle;
     var isHost = React.useContext(CurrentCallContext).isHost;
-    var itemStyle = { marginLeft: spacing, marginRight: spacing };
     var leaveMeeting = useJoinVideoCall().leaveMeeting;
     var _c = React.useContext(CurrentCallContext), toggleVideo = _c.toggleVideo, cameraActive = _c.videoIsEnabled;
     var _d = useToggleBlur(), blurIsActive = _d.blurIsActive, isBackgroundBlurSupported = _d.isBackgroundBlurSupported, toggleBlur = _d.toggleBlur;
     // const { backgroundIsActive, isBackgroundReplacementSupported, toggleBackground } = useToggleReplacement()
+    var startCameraRef = useRef(false);
+    useEffect(function () {
+        if (startCameraRef.current)
+            return;
+        startCameraRef.current = true;
+        if (!autoCamera)
+            return;
+        if (cameraActive)
+            return;
+        toggleVideo();
+    }, [autoCamera, cameraActive, toggleVideo]);
     var cameraButtonProps = {
         icon: cameraActive ? _jsx(Camera, {}) : _jsx(Camera, { disabled: true }),
         isSelected: true,

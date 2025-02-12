@@ -544,6 +544,7 @@ export const useDataSync____internal = () => {
     try {
       // not compatible with React Native
       if (typeof window === 'undefined') { return }
+      if (global?.navigator?.product === 'ReactNative') { return }
 
       const onMouseMove = () => { lastActiveForSync.at = new Date() }
       window.addEventListener('mousemove', onMouseMove)

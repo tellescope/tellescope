@@ -6411,7 +6411,7 @@ export const formsort_tests = async () => {
   let submissionEnduser = await sdk.api.endusers.getOne({ email: answersEmail })
 
   const validateResponse = (fr: FormResponse, key: string, value: any): boolean => {
-    const answer = fr.responses.find(r => r.externalId === key)?.answer?.value
+    const answer = fr.responses?.find(r => r.externalId === key)?.answer?.value
 
     if (typeof value === 'object') {
       return objects_equivalent(answer, value)
@@ -6428,7 +6428,7 @@ export const formsort_tests = async () => {
         if (!r) { return false }
         if (r.submittedAt) { return false }
         if (!r.formsort?.length) { return false }
-        if (!r.responses.length) { return false }
+        if (!r.responses?.length) { return false }
         if (r.responses.length !== answers.length) { return false }
 
         if (!validateResponse(r, 'address', JSON.stringify(address, null, 2))) { return false }
@@ -6474,7 +6474,7 @@ export const formsort_tests = async () => {
         if (!r) { return false }
         if (!r.submittedAt) { return false }
         if (!r.formsort?.length) { return false }
-        if (!r.responses.length) { return false }
+        if (!r.responses?.length) { return false }
         if (r.responses.length !== answers.length) { return false }
 
         if (!validateResponse(r, 'address', JSON.stringify(address, null, 2))) { return false }
@@ -8910,7 +8910,7 @@ const input_modifier_tests = async () => {
         answer: { type: 'string', value: 'hello' }
       }]
     }),
-    { onResult: r => r.responses[0].answer.value === 'hello' }
+    { onResult: r => r.responses?.[0].answer.value === 'hello' }
   )
   await async_test(
     "Number coerce to string",
@@ -8924,7 +8924,7 @@ const input_modifier_tests = async () => {
         answer: { type: 'string', value: 55 as any }
       }]
     }),
-    { onResult: r => r.responses[0].answer.value === '55' }
+    { onResult: r => r.responses?.[0].answer.value === '55' }
   )
 
   await Promise.all([

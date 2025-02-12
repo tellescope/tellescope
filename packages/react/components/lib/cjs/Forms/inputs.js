@@ -97,7 +97,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ConditionsInput = exports.AllergiesInput = exports.EmotiiInput = exports.HiddenValueInput = exports.RedirectInput = exports.HeightInput = exports.AppointmentBookingInput = exports.RelatedContactsInput = exports.contact_is_valid = exports.MedicationsInput = exports.CanvasMedicationsInput = exports.DatabaseSelectInput = exports.DropdownInput = exports.Progress = exports.StripeInput = exports.MultipleChoiceInput = exports.FilesInput = exports.safe_create_url = exports.FileInput = exports.convertHEIC = exports.SignatureInput = exports.ESignatureTerms = exports.AddressInput = exports.TimeInput = exports.InsuranceInput = exports.NumberInput = exports.EmailInput = exports.PhoneInput = exports.StringLongInput = exports.StringInput = exports.DateStringInput = exports.AutoFocusTextField = exports.TableInput = exports.DateInput = exports.RankingInput = exports.RatingInput = exports.PdfViewer = exports.defaultButtonStyles = exports.defaultInputProps = exports.LanguageSelect = void 0;
+exports.RichTextInput = exports.ConditionsInput = exports.AllergiesInput = exports.EmotiiInput = exports.HiddenValueInput = exports.RedirectInput = exports.HeightInput = exports.AppointmentBookingInput = exports.RelatedContactsInput = exports.contact_is_valid = exports.MedicationsInput = exports.CanvasMedicationsInput = exports.DatabaseSelectInput = exports.DropdownInput = exports.Progress = exports.StripeInput = exports.MultipleChoiceInput = exports.FilesInput = exports.safe_create_url = exports.FileInput = exports.convertHEIC = exports.SignatureInput = exports.ESignatureTerms = exports.AddressInput = exports.TimeInput = exports.InsuranceInput = exports.NumberInput = exports.EmailInput = exports.PhoneInput = exports.StringLongInput = exports.StringInput = exports.DateStringInput = exports.AutoFocusTextField = exports.TableInput = exports.DateInput = exports.RankingInput = exports.RatingInput = exports.PdfViewer = exports.defaultButtonStyles = exports.defaultInputProps = exports.LanguageSelect = void 0;
 var jsx_runtime_1 = require("react/jsx-runtime");
 var react_1 = __importStar(require("react"));
 var axios_1 = __importDefault(require("axios"));
@@ -120,6 +120,7 @@ var Language_1 = __importDefault(require("@mui/icons-material/Language"));
 var react_stripe_js_1 = require("@stripe/react-stripe-js");
 var stripe_js_1 = require("@stripe/stripe-js");
 var icons_material_1 = require("@mui/icons-material");
+var wysiwyg_1 = require("./wysiwyg");
 var LanguageSelect = function (_a) {
     var value = _a.value, props = __rest(_a, ["value"]);
     return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", justifyContent: "center", wrap: "nowrap", spacing: 1 }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(Language_1.default, { color: "primary" }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, style: { width: 150 } }, { children: (0, jsx_runtime_1.jsx)(StringSelector, __assign({}, props, { options: ["English", "Español"], size: "small", value: value === 'Spanish' ? 'Español' : value, label: (value === 'Español' || value === 'Spanish') ? 'Idioma'
@@ -573,11 +574,11 @@ exports.convertHEIC = convertHEIC;
 var value_is_image = function (f) { var _a; return (_a = f === null || f === void 0 ? void 0 : f.type) === null || _a === void 0 ? void 0 : _a.includes('image'); };
 var FileInput = function (_a) {
     var _b;
-    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName;
+    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName, uploadingFiles = _a.uploadingFiles, handleFileUpload = _a.handleFileUpload, setUploadingFiles = _a.setUploadingFiles;
     var _d = (0, react_1.useState)(''), error = _d[0], setError = _d[1];
     var _e = (0, react_dropzone_1.useDropzone)({
         onDrop: (0, react_1.useCallback)(function (acceptedFiles) {
-            var _a, _b;
+            var _a, _b, _d;
             var file = acceptedFiles.pop();
             if (!file)
                 return;
@@ -589,7 +590,12 @@ var FileInput = function (_a) {
             }
             setError('');
             onChange(file, field.id);
-        }, [onChange, (_b = field.options) === null || _b === void 0 ? void 0 : _b.validFileTypes]),
+            if (((_d = field.options) === null || _d === void 0 ? void 0 : _d.autoUploadFiles) && handleFileUpload) {
+                setUploadingFiles === null || setUploadingFiles === void 0 ? void 0 : setUploadingFiles(function (fs) { return __spreadArray(__spreadArray([], fs, true), [{ fieldId: field.id }], false); });
+                handleFileUpload(file, field.id)
+                    .finally(function () { return setUploadingFiles === null || setUploadingFiles === void 0 ? void 0 : setUploadingFiles(function (fs) { return fs.filter(function (f) { return f.fieldId !== field.id; }); }); });
+            }
+        }, [onChange, (_b = field.options) === null || _b === void 0 ? void 0 : _b.validFileTypes, handleFileUpload, setUploadingFiles]),
     }), getRootProps = _e.getRootProps, getInputProps = _e.getInputProps, isDragActive = _e.isDragActive;
     var _f = (0, react_1.useState)(''), preview = _f[0], setPreview = _f[1];
     (0, react_1.useEffect)(function () {
@@ -606,7 +612,9 @@ var FileInput = function (_a) {
             console.error(err);
         }
     }, [value]);
-    // console.log(document.createElement('input').capture )
+    if (uploadingFiles === null || uploadingFiles === void 0 ? void 0 : uploadingFiles.find(function (f) { return f.fieldId === field.id; })) {
+        return (0, jsx_runtime_1.jsx)(LinearProgress_1.default, {});
+    }
     return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, direction: "column" }, { children: [(0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true }, getRootProps(), { sx: {
                     width: "100%",
                     border: "1px dashed #000000",
@@ -640,32 +648,65 @@ var safe_create_url = function (file) {
 exports.safe_create_url = safe_create_url;
 var FilesInput = function (_a) {
     var _b;
-    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName;
+    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName, uploadingFiles = _a.uploadingFiles, handleFileUpload = _a.handleFileUpload, setUploadingFiles = _a.setUploadingFiles;
     var _d = (0, react_1.useState)(''), error = _d[0], setError = _d[1];
     var _e = (0, react_dropzone_1.useDropzone)({
-        onDrop: (0, react_1.useCallback)(function (acceptedFiles) {
-            var _a, _b;
-            var _loop_1 = function (file) {
-                if ((_b = (_a = field.options) === null || _a === void 0 ? void 0 : _a.validFileTypes) === null || _b === void 0 ? void 0 : _b.length) {
-                    var match = field.options.validFileTypes.find(function (t) { return file.type.includes(t.toLowerCase()); });
-                    if (!match) {
-                        return { value: setError("File must have type: ".concat(field.options.validFileTypes.join(', '))) };
-                    }
+        onDrop: (0, react_1.useCallback)(function (acceptedFiles) { return __awaiter(void 0, void 0, void 0, function () {
+            var _loop_1, _a, acceptedFiles_1, file, state_1;
+            var _b, _d, _e;
+            return __generator(this, function (_f) {
+                switch (_f.label) {
+                    case 0:
+                        setUploadingFiles === null || setUploadingFiles === void 0 ? void 0 : setUploadingFiles(function (fs) { return __spreadArray(__spreadArray([], fs, true), [{ fieldId: field.id }], false); });
+                        _loop_1 = function (file) {
+                            var match;
+                            return __generator(this, function (_g) {
+                                switch (_g.label) {
+                                    case 0:
+                                        if ((_d = (_b = field.options) === null || _b === void 0 ? void 0 : _b.validFileTypes) === null || _d === void 0 ? void 0 : _d.length) {
+                                            match = field.options.validFileTypes.find(function (t) { return file.type.includes(t.toLowerCase()); });
+                                            if (!match) {
+                                                return [2 /*return*/, { value: setError("File must have type: ".concat(field.options.validFileTypes.join(', '))) }];
+                                            }
+                                        }
+                                        if (!(((_e = field.options) === null || _e === void 0 ? void 0 : _e.autoUploadFiles) && handleFileUpload)) return [3 /*break*/, 2];
+                                        return [4 /*yield*/, handleFileUpload(file, field.id).catch(console.error)];
+                                    case 1:
+                                        _g.sent();
+                                        _g.label = 2;
+                                    case 2: return [2 /*return*/];
+                                }
+                            });
+                        };
+                        _a = 0, acceptedFiles_1 = acceptedFiles;
+                        _f.label = 1;
+                    case 1:
+                        if (!(_a < acceptedFiles_1.length)) return [3 /*break*/, 4];
+                        file = acceptedFiles_1[_a];
+                        return [5 /*yield**/, _loop_1(file)];
+                    case 2:
+                        state_1 = _f.sent();
+                        if (typeof state_1 === "object")
+                            return [2 /*return*/, state_1.value];
+                        _f.label = 3;
+                    case 3:
+                        _a++;
+                        return [3 /*break*/, 1];
+                    case 4:
+                        setUploadingFiles === null || setUploadingFiles === void 0 ? void 0 : setUploadingFiles(function (fs) { return fs.filter(function (f) { return f.fieldId !== field.id; }); });
+                        setError('');
+                        onChange(__spreadArray(__spreadArray([], (value !== null && value !== void 0 ? value : []), true), acceptedFiles, true), field.id);
+                        return [2 /*return*/];
                 }
-            };
-            for (var _d = 0, acceptedFiles_1 = acceptedFiles; _d < acceptedFiles_1.length; _d++) {
-                var file = acceptedFiles_1[_d];
-                var state_1 = _loop_1(file);
-                if (typeof state_1 === "object")
-                    return state_1.value;
-            }
-            setError('');
-            onChange(__spreadArray(__spreadArray([], (value !== null && value !== void 0 ? value : []), true), acceptedFiles, true), field.id);
-        }, [onChange, value, (_b = field.options) === null || _b === void 0 ? void 0 : _b.validFileTypes]),
+            });
+        }); }, [onChange, value, (_b = field.options) === null || _b === void 0 ? void 0 : _b.validFileTypes, handleFileUpload, setUploadingFiles]),
     }), getRootProps = _e.getRootProps, getInputProps = _e.getInputProps, isDragActive = _e.isDragActive;
     var previews = (0, react_1.useMemo)(function () { return ((value !== null && value !== void 0 ? value : []).map(function (v) {
         return value_is_image(v) ? (0, exports.safe_create_url)(v) : null;
     })); }, [value]);
+    if (uploadingFiles === null || uploadingFiles === void 0 ? void 0 : uploadingFiles.find(function (f) { return f.fieldId === field.id; })) {
+        return (0, jsx_runtime_1.jsx)(LinearProgress_1.default, {});
+    }
     return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, direction: "column" }, { children: [(0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true }, getRootProps(), { sx: {
                     width: "100%",
                     border: "1px dashed #000000",
@@ -1867,5 +1908,10 @@ var ConditionsInput = function (_a) {
         } }));
 };
 exports.ConditionsInput = ConditionsInput;
+var RichTextInput = function (_a) {
+    var field = _a.field, value = _a.value, onChange = _a.onChange;
+    return ((0, jsx_runtime_1.jsx)(wysiwyg_1.WYSIWYG, { initialHTML: value, onChange: function (v) { return onChange(v, field.id); }, style: { width: '100%' }, editorStyle: { width: '100%' } }));
+};
+exports.RichTextInput = RichTextInput;
 var templateObject_1, templateObject_2;
 //# sourceMappingURL=inputs.js.map

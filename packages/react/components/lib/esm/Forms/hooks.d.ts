@@ -141,6 +141,13 @@ export declare const useTellescopeForm: ({ isPublicForm, form, urlLogicValue, cu
     customization: FormCustomization | undefined;
     handleDatabaseSelect: (databaseRecords: Pick<DatabaseRecord, "values" | "databaseId">[]) => void;
     logicOptions: NextFieldLogicOptions;
+    uploadingFiles: {
+        fieldId: string;
+    }[];
+    setUploadingFiles: import("react").Dispatch<import("react").SetStateAction<{
+        fieldId: string;
+    }[]>>;
+    handleFileUpload: (blob: FileBlob, fieldId: string) => Promise<void>;
 };
 export {};
 //# sourceMappingURL=hooks.d.ts.map

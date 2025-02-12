@@ -91,6 +91,7 @@ import LanguageIcon from '@mui/icons-material/Language';
 import { Elements, PaymentElement, useStripe, useElements, EmbeddedCheckout, EmbeddedCheckoutProvider } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { CheckCircleOutline, Delete, Edit } from "@mui/icons-material";
+import { WYSIWYG } from "./wysiwyg";
 export var LanguageSelect = function (_a) {
     var value = _a.value, props = __rest(_a, ["value"]);
     return (_jsxs(Grid, __assign({ container: true, alignItems: "center", justifyContent: "center", wrap: "nowrap", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(LanguageIcon, { color: "primary" }) })), _jsx(Grid, __assign({ item: true, style: { width: 150 } }, { children: _jsx(StringSelector, __assign({}, props, { options: ["English", "Español"], size: "small", value: value === 'Spanish' ? 'Español' : value, label: (value === 'Español' || value === 'Spanish') ? 'Idioma'
@@ -525,11 +526,11 @@ export function convertHEIC(file) {
 var value_is_image = function (f) { var _a; return (_a = f === null || f === void 0 ? void 0 : f.type) === null || _a === void 0 ? void 0 : _a.includes('image'); };
 export var FileInput = function (_a) {
     var _b;
-    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName;
+    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName, uploadingFiles = _a.uploadingFiles, handleFileUpload = _a.handleFileUpload, setUploadingFiles = _a.setUploadingFiles;
     var _d = useState(''), error = _d[0], setError = _d[1];
     var _e = useDropzone({
         onDrop: useCallback(function (acceptedFiles) {
-            var _a, _b;
+            var _a, _b, _d;
             var file = acceptedFiles.pop();
             if (!file)
                 return;
@@ -541,7 +542,12 @@ export var FileInput = function (_a) {
             }
             setError('');
             onChange(file, field.id);
-        }, [onChange, (_b = field.options) === null || _b === void 0 ? void 0 : _b.validFileTypes]),
+            if (((_d = field.options) === null || _d === void 0 ? void 0 : _d.autoUploadFiles) && handleFileUpload) {
+                setUploadingFiles === null || setUploadingFiles === void 0 ? void 0 : setUploadingFiles(function (fs) { return __spreadArray(__spreadArray([], fs, true), [{ fieldId: field.id }], false); });
+                handleFileUpload(file, field.id)
+                    .finally(function () { return setUploadingFiles === null || setUploadingFiles === void 0 ? void 0 : setUploadingFiles(function (fs) { return fs.filter(function (f) { return f.fieldId !== field.id; }); }); });
+            }
+        }, [onChange, (_b = field.options) === null || _b === void 0 ? void 0 : _b.validFileTypes, handleFileUpload, setUploadingFiles]),
     }), getRootProps = _e.getRootProps, getInputProps = _e.getInputProps, isDragActive = _e.isDragActive;
     var _f = useState(''), preview = _f[0], setPreview = _f[1];
     useEffect(function () {
@@ -558,7 +564,9 @@ export var FileInput = function (_a) {
             console.error(err);
         }
     }, [value]);
-    // console.log(document.createElement('input').capture )
+    if (uploadingFiles === null || uploadingFiles === void 0 ? void 0 : uploadingFiles.find(function (f) { return f.fieldId === field.id; })) {
+        return _jsx(LinearProgress, {});
+    }
     return (_jsxs(Grid, __assign({ container: true, direction: "column" }, { children: [_jsxs(Grid, __assign({ container: true }, getRootProps(), { sx: {
                     width: "100%",
                     border: "1px dashed #000000",
@@ -590,32 +598,65 @@ export var safe_create_url = function (file) {
 };
 export var FilesInput = function (_a) {
     var _b;
-    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName;
+    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName, uploadingFiles = _a.uploadingFiles, handleFileUpload = _a.handleFileUpload, setUploadingFiles = _a.setUploadingFiles;
     var _d = useState(''), error = _d[0], setError = _d[1];
     var _e = useDropzone({
-        onDrop: useCallback(function (acceptedFiles) {
-            var _a, _b;
-            var _loop_1 = function (file) {
-                if ((_b = (_a = field.options) === null || _a === void 0 ? void 0 : _a.validFileTypes) === null || _b === void 0 ? void 0 : _b.length) {
-                    var match = field.options.validFileTypes.find(function (t) { return file.type.includes(t.toLowerCase()); });
-                    if (!match) {
-                        return { value: setError("File must have type: ".concat(field.options.validFileTypes.join(', '))) };
-                    }
+        onDrop: useCallback(function (acceptedFiles) { return __awaiter(void 0, void 0, void 0, function () {
+            var _loop_1, _a, acceptedFiles_1, file, state_1;
+            var _b, _d, _e;
+            return __generator(this, function (_f) {
+                switch (_f.label) {
+                    case 0:
+                        setUploadingFiles === null || setUploadingFiles === void 0 ? void 0 : setUploadingFiles(function (fs) { return __spreadArray(__spreadArray([], fs, true), [{ fieldId: field.id }], false); });
+                        _loop_1 = function (file) {
+                            var match;
+                            return __generator(this, function (_g) {
+                                switch (_g.label) {
+                                    case 0:
+                                        if ((_d = (_b = field.options) === null || _b === void 0 ? void 0 : _b.validFileTypes) === null || _d === void 0 ? void 0 : _d.length) {
+                                            match = field.options.validFileTypes.find(function (t) { return file.type.includes(t.toLowerCase()); });
+                                            if (!match) {
+                                                return [2 /*return*/, { value: setError("File must have type: ".concat(field.options.validFileTypes.join(', '))) }];
+                                            }
+                                        }
+                                        if (!(((_e = field.options) === null || _e === void 0 ? void 0 : _e.autoUploadFiles) && handleFileUpload)) return [3 /*break*/, 2];
+                                        return [4 /*yield*/, handleFileUpload(file, field.id).catch(console.error)];
+                                    case 1:
+                                        _g.sent();
+                                        _g.label = 2;
+                                    case 2: return [2 /*return*/];
+                                }
+                            });
+                        };
+                        _a = 0, acceptedFiles_1 = acceptedFiles;
+                        _f.label = 1;
+                    case 1:
+                        if (!(_a < acceptedFiles_1.length)) return [3 /*break*/, 4];
+                        file = acceptedFiles_1[_a];
+                        return [5 /*yield**/, _loop_1(file)];
+                    case 2:
+                        state_1 = _f.sent();
+                        if (typeof state_1 === "object")
+                            return [2 /*return*/, state_1.value];
+                        _f.label = 3;
+                    case 3:
+                        _a++;
+                        return [3 /*break*/, 1];
+                    case 4:
+                        setUploadingFiles === null || setUploadingFiles === void 0 ? void 0 : setUploadingFiles(function (fs) { return fs.filter(function (f) { return f.fieldId !== field.id; }); });
+                        setError('');
+                        onChange(__spreadArray(__spreadArray([], (value !== null && value !== void 0 ? value : []), true), acceptedFiles, true), field.id);
+                        return [2 /*return*/];
                 }
-            };
-            for (var _d = 0, acceptedFiles_1 = acceptedFiles; _d < acceptedFiles_1.length; _d++) {
-                var file = acceptedFiles_1[_d];
-                var state_1 = _loop_1(file);
-                if (typeof state_1 === "object")
-                    return state_1.value;
-            }
-            setError('');
-            onChange(__spreadArray(__spreadArray([], (value !== null && value !== void 0 ? value : []), true), acceptedFiles, true), field.id);
-        }, [onChange, value, (_b = field.options) === null || _b === void 0 ? void 0 : _b.validFileTypes]),
+            });
+        }); }, [onChange, value, (_b = field.options) === null || _b === void 0 ? void 0 : _b.validFileTypes, handleFileUpload, setUploadingFiles]),
     }), getRootProps = _e.getRootProps, getInputProps = _e.getInputProps, isDragActive = _e.isDragActive;
     var previews = useMemo(function () { return ((value !== null && value !== void 0 ? value : []).map(function (v) {
         return value_is_image(v) ? safe_create_url(v) : null;
     })); }, [value]);
+    if (uploadingFiles === null || uploadingFiles === void 0 ? void 0 : uploadingFiles.find(function (f) { return f.fieldId === field.id; })) {
+        return _jsx(LinearProgress, {});
+    }
     return (_jsxs(Grid, __assign({ container: true, direction: "column" }, { children: [_jsxs(Grid, __assign({ container: true }, getRootProps(), { sx: {
                     width: "100%",
                     border: "1px dashed #000000",
@@ -1799,6 +1840,10 @@ export var ConditionsInput = function (_a) {
         }, getOptionLabel: display_with_code, filterOptions: function (o) { return o; }, inputValue: query, onInputChange: function (e, v) { return e && setQuery(v); }, renderInput: function (params) { return (_jsx(TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: defaultInputProps.sx }), required: !field.isOptional, size: "small", label: "", placeholder: "Search conditions..." }))); }, renderTags: function (value, getTagProps) {
             return value.map(function (value, index) { return (_jsx(Chip, __assign({ label: _jsx(Typography, __assign({ style: { whiteSpace: 'normal' } }, { children: display_with_code(value) })) }, getTagProps({ index: index }), { sx: { height: "100%", py: 0.5 } }))); });
         } }));
+};
+export var RichTextInput = function (_a) {
+    var field = _a.field, value = _a.value, onChange = _a.onChange;
+    return (_jsx(WYSIWYG, { initialHTML: value, onChange: function (v) { return onChange(v, field.id); }, style: { width: '100%' }, editorStyle: { width: '100%' } }));
 };
 var templateObject_1, templateObject_2;
 //# sourceMappingURL=inputs.js.map

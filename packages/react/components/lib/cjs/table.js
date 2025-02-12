@@ -517,7 +517,7 @@ var Table = function (_a) {
                     }, onExport: onExport ? function () {
                         onExport({
                             // use items, not sorted, as sorted only includes first page when paginated
-                            data: (paginated ? items : sorted).map(function (s) { return fields.map(function (f) { var _a; return ((_a = f.getExportData) === null || _a === void 0 ? void 0 : _a.call(f, s)) || ''; }); }),
+                            data: (paginated ? items : filtered).map(function (s) { return fields.map(function (f) { var _a; return ((_a = f.getExportData) === null || _a === void 0 ? void 0 : _a.call(f, s)) || ''; }); }),
                             labels: fields.map(function (f) { return f.label; })
                         });
                     }

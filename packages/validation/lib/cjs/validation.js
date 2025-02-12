@@ -1181,6 +1181,7 @@ var _FORM_FIELD_TYPES = {
     Emotii: '',
     Allergies: "",
     Conditions: "",
+    "Rich Text": "",
 };
 exports.FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES);
 exports.formFieldTypeValidator = (0, exports.exactMatchValidator)(exports.FORM_FIELD_TYPES);
@@ -1206,6 +1207,7 @@ exports.FORM_FIELD_VALIDATORS_BY_TYPE = {
     // need to keep consistent with other validation
     'string': exports.stringValidator.validate({ maxLength: 5000, emptyStringOk: true, errorMessage: "Response must not exceed 5000 characters" }),
     'stringLong': exports.stringValidator.validate({ maxLength: 20000, emptyStringOk: true, errorMessage: "Response must not exceed 20000 characters" }),
+    'Rich Text': exports.stringValidator.validate({ maxLength: 25000, emptyStringOk: true, errorMessage: "Response must not exceed 25000 characters" }),
     'number': exports.numberValidator.validate({ errorMessage: "Response must be a number" }),
     'email': exports.emailValidator.validate(),
     'userEmail': exports.emailValidator.validate(),
@@ -1614,6 +1616,10 @@ exports.formResponseAnswerValidator = (0, exports.orValidator)({
     stringLong: (0, exports.objectValidator)({
         type: (0, exports.exactMatchValidator)(['stringLong']),
         value: exports.stringValidator20000ptional,
+    }),
+    "Rich Text": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['Rich Text']),
+        value: exports.stringValidator25000OptionalEmptyOkay,
     }),
     date: (0, exports.objectValidator)({
         type: (0, exports.exactMatchValidator)(['date']),
@@ -2753,6 +2759,7 @@ exports.formFieldOptionsValidator = (0, exports.objectValidator)({
     observationCode: exports.stringValidatorOptionalEmptyOkay,
     observationDisplay: exports.stringValidatorOptionalEmptyOkay,
     observationUnit: exports.stringValidatorOptionalEmptyOkay,
+    autoUploadFiles: exports.booleanValidatorOptional,
 });
 exports.blockValidator = (0, exports.orValidator)({
     h1: (0, exports.objectValidator)({
@@ -3323,6 +3330,7 @@ exports.organizationSettingsValidator = (0, exports.objectValidator)({
         showDeleteCallRecordingOnTimeline: exports.booleanValidatorOptional,
         inboxRepliesMarkRead: exports.booleanValidatorOptional,
         recordCallAudioPlayback: exports.stringValidatorOptional,
+        dontRecordCallsToPhone: exports.listOfStringsValidatorOptionalOrEmptyOk,
         disableAutoreplyForCustomEntities: exports.booleanValidatorOptional,
         alwaysShowInsurance: exports.booleanValidatorOptional,
         defaultToOutboundConferenceCall: exports.booleanValidatorOptional,
@@ -4232,6 +4240,7 @@ exports.analyticsQueryValidator = (0, exports.orValidator)({
         resource: (0, exports.exactMatchValidator)(['Form Responses']),
         filter: (0, exports.objectValidator)({
             formIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
+            tags: exports.listOfStringsWithQualifierValidatorOptional,
             formResponseCondition: (0, exports.orValidator)({
                 optional: exports.optionalAnyObjectValidator,
                 included: exports.objectAnyFieldsAnyValuesValidator,

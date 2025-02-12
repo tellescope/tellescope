@@ -4137,6 +4137,8 @@ export const schema: SchemaV1 = build_schema({
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       language: { validator: stringValidator },
       isNonVisitElationNote: { validator: booleanValidator },
+      elationVisitNotePractitionerIds: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      elationVisitNoteType: { validator: stringValidator100 },
       publicShowLanguage: { validator: booleanValidator },
       publicShowDownload: { validator: booleanValidator },
       canvasId: { validator: stringValidator100 },

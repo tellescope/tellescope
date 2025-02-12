@@ -31,7 +31,7 @@ export const ResponseAnswer = ({ formResponse, fieldId, isHTML, answer: a, print
   onImageClick?: (args: { src: string }) => void,
   isHTML?: boolean,
 }) => (
-(isHTML && typeof a.value === 'string') 
+((isHTML || a.type === 'Rich Text') && typeof a.value === 'string') 
   ? <div dangerouslySetInnerHTML={{ __html: remove_script_tags(a.value) }} />
   : a.value 
     ? (
