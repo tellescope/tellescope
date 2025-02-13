@@ -753,6 +753,47 @@ export const get_conditional_logic_values = <T extends string>(conditions: Compo
   return []
 }
 
+export const replace_keys_and_values_in_object = <T>(value: T, replacer: (v: any) => any): T => {
+  const replacement = replacer(value)
+  if (replacement !== value) return replacement as T
+
+  if (Array.isArray(value)) {
+    return [...value].map(v => replace_keys_and_values_in_object(v, replacer)) as T
+  }
+  if (value && typeof value === 'object') {
+    const newValue = { ...value }
+    for (const k in newValue) {
+      newValue[replace_keys_and_values_in_object(k, replacer)] = replace_keys_and_values_in_object(newValue[k], replacer)
+    }
+    return newValue
+  }
+
+  return value
+}
+// console.log(
+//   'replacement test case',
+//   JSON.stringify(
+//     replace_values_in_object(
+//       {
+//         a: 'replace_me',
+//         b: 'not_replaced',
+//         c: {
+//           d: 'replace_me',
+//           e: 'not_replaced',
+//           f: {
+//             g: 'replace_me',
+//             h: 'not_replaced',
+//           }
+//         },
+//         d: ['replace_me', 'not_replaced'],
+//         f: [{ f: 'replace_me' }, 'not_replaced'],
+//       },
+//       r => r === 'replace_me' ? 'REPLACED!' : r
+//     ), 
+//     null, 2
+//   )
+// )
+
 export const age_for_dob_mmddyyyy = (mmddyyyy: string) => {
   const [mm, dd, yyyy] = mmddyyyy.split('-').map(s => parseInt(s)) // ensure second argument to parseInt is not provided
   if (isNaN(mm) || isNaN(dd) || isNaN(yyyy)) return ''

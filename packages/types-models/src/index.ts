@@ -377,6 +377,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     iframeURL: string,
   }[],
   stripePublicKeys?: string[],
+  additionalIterableKeys?: string[],
   defaultDoseSpotPharmacies?: { id: string, name: string }[]
   groups?: string[],
   observationInvalidationReasons?: string[],
@@ -1364,6 +1365,7 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
   preserveContext?: boolean,
   phoneCallId?: string,
   smsId?: string,
+  emailId?: string,
   calendarEventId?: string,
   observationId?: string,
   tags?: string[],
@@ -2707,7 +2709,12 @@ export type SmartMeterPlaceOrderAutomationAction = AutomationActionBuilder<'smar
   lines: SmartMeterOrderLineItem[],
   shipping?: string,
 }>
-export type SendChatAutomationAction = AutomationActionBuilder<'sendChat', { templateId: string, identifier: string, includeCareTeam?: boolean }>
+export type SendChatAutomationAction = AutomationActionBuilder<'sendChat', { 
+  templateId: string, 
+  identifier: string, 
+  includeCareTeam?: boolean,
+  userIds?: string[], // for when not includeCareTeam
+}>
 export type HealthieSyncAutomationAction = AutomationActionBuilder<'healthieSync', {}>
 export type HealthieAddToCourseAutomationAction = AutomationActionBuilder<'healthieAddToCourse', { courseId: string }>
 export type HealthieSendChatAutomationAction = AutomationActionBuilder<'healthieSendChat', { templateId: string, identifier: string, includeCareTeam?: boolean }>
@@ -2727,6 +2734,7 @@ export type IterableCustomEventAutomationAction = AutomationActionBuilder<'itera
   eventName: string,
   description: string, // for logging in timeline 
   dataFieldsMapping?: IterableFieldsMapping[]
+  environment?: string, // for additional API keys
 }>
 
 export type EnduserFieldSetterType = 'Custom Value' | 'Current Timestamp' | 'Current Date' | "Increment Number"

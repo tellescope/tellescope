@@ -10364,8 +10364,8 @@ var calendar_event_care_team_tests = function () { return __awaiter(void 0, void
         }
     });
 }); };
-var ticket_no_care_team_setting_test = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var organization, e, userId, tOnwerOnUpdate, queue;
+var ticket_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var organization, e, userId, t, tOnwerOnUpdate, queue;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -10387,49 +10387,55 @@ var ticket_no_care_team_setting_test = function () { return __awaiter(void 0, vo
             case 3:
                 e = _a.sent();
                 userId = sdk.userInfo.id;
-                return [4 /*yield*/, sdk.api.tickets.createOne({ title: 'test', enduserId: e.id, owner: userId })];
+                return [4 /*yield*/, sdk.api.tickets.createOne({ title: 'test', enduserId: e.id, owner: userId, tags: '' })];
             case 4:
-                _a.sent();
-                return [4 /*yield*/, wait(undefined, 1000)];
+                t = _a.sent();
+                return [4 /*yield*/, async_test("Ticket tags coerced to empty array", function () { return sdk.api.tickets.getOne(t.id); }, { onResult: function (t) { return Array.isArray(t.tags) && t.tags.length === 0; } })];
             case 5:
                 _a.sent();
-                return [4 /*yield*/, async_test("Not on care team after ticket create", function () { return sdk.api.endusers.getOne(e.id); }, { onResult: function (e) { var _a; return !((_a = e.assignedTo) === null || _a === void 0 ? void 0 : _a.includes(userId)); } })];
+                return [4 /*yield*/, sdk.api.tickets.createOne({ title: 'test', enduserId: e.id, owner: userId })];
             case 6:
                 _a.sent();
-                return [4 /*yield*/, sdk.api.tickets.createOne({ title: 'test', enduserId: e.id })];
+                return [4 /*yield*/, wait(undefined, 1000)];
             case 7:
-                tOnwerOnUpdate = _a.sent();
-                return [4 /*yield*/, sdk.api.tickets.updateOne(tOnwerOnUpdate.id, { owner: userId })];
+                _a.sent();
+                return [4 /*yield*/, async_test("Not on care team after ticket create", function () { return sdk.api.endusers.getOne(e.id); }, { onResult: function (e) { var _a; return !((_a = e.assignedTo) === null || _a === void 0 ? void 0 : _a.includes(userId)); } })];
             case 8:
                 _a.sent();
-                return [4 /*yield*/, wait(undefined, 1000)];
+                return [4 /*yield*/, sdk.api.tickets.createOne({ title: 'test', enduserId: e.id })];
             case 9:
-                _a.sent();
-                return [4 /*yield*/, async_test("Not on care team after ticket owner set", function () { return sdk.api.endusers.getOne(e.id); }, { onResult: function (e) { var _a; return !((_a = e.assignedTo) === null || _a === void 0 ? void 0 : _a.includes(userId)); } })];
+                tOnwerOnUpdate = _a.sent();
+                return [4 /*yield*/, sdk.api.tickets.updateOne(tOnwerOnUpdate.id, { owner: userId })];
             case 10:
                 _a.sent();
-                return [4 /*yield*/, sdk.api.ticket_queues.createOne({ title: "Assignment Testing", userIds: [userId] })];
+                return [4 /*yield*/, wait(undefined, 1000)];
             case 11:
-                queue = _a.sent();
-                return [4 /*yield*/, sdk.api.tickets.createOne({ title: 'test', enduserId: e.id, queueId: queue.id })];
+                _a.sent();
+                return [4 /*yield*/, async_test("Not on care team after ticket owner set", function () { return sdk.api.endusers.getOne(e.id); }, { onResult: function (e) { var _a; return !((_a = e.assignedTo) === null || _a === void 0 ? void 0 : _a.includes(userId)); } })];
             case 12:
                 _a.sent();
-                return [4 /*yield*/, sdk.api.tickets.assign_from_queue({ overrideRestrictions: true, queueId: queue.id, userId: userId })];
+                return [4 /*yield*/, sdk.api.ticket_queues.createOne({ title: "Assignment Testing", userIds: [userId] })];
             case 13:
+                queue = _a.sent();
+                return [4 /*yield*/, sdk.api.tickets.createOne({ title: 'test', enduserId: e.id, queueId: queue.id })];
+            case 14:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.tickets.assign_from_queue({ overrideRestrictions: true, queueId: queue.id, userId: userId })];
+            case 15:
                 _a.sent();
                 return [4 /*yield*/, wait(undefined, 1000)];
-            case 14:
+            case 16:
                 _a.sent();
                 return [4 /*yield*/, async_test("Not on care team after ticket pulled from queue", function () { return sdk.api.endusers.getOne(e.id); }, { onResult: function (e) { var _a; return !((_a = e.assignedTo) === null || _a === void 0 ? void 0 : _a.includes(userId)); } })
                     // reset behavior to default for other tests
                 ];
-            case 15:
+            case 17:
                 _a.sent();
                 // reset behavior to default for other tests
                 return [4 /*yield*/, sdk.api.organizations.updateOne(organization.id, {
                         settings: { tickets: { dontAddToCareTeamOnTicketAssignment: false } }
                     })];
-            case 16:
+            case 18:
                 // reset behavior to default for other tests
                 _a.sent();
                 return [2 /*return*/, Promise.all([
@@ -10591,10 +10597,10 @@ var ticket_no_care_team_setting_test = function () { return __awaiter(void 0, vo
                 return [4 /*yield*/, sync_tests()]; // should come directly after setup to avoid extra sync values
             case 16:
                 _l.sent(); // should come directly after setup to avoid extra sync values
-                return [4 /*yield*/, uniqueness_tests()];
+                return [4 /*yield*/, ticket_tests()];
             case 17:
                 _l.sent();
-                return [4 /*yield*/, ticket_no_care_team_setting_test()];
+                return [4 /*yield*/, uniqueness_tests()];
             case 18:
                 _l.sent();
                 return [4 /*yield*/, enduser_orders_tests()];

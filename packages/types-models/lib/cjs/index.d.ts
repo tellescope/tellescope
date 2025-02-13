@@ -379,6 +379,7 @@ export interface Organization extends Organization_readonly, Organization_requir
         iframeURL: string;
     }[];
     stripePublicKeys?: string[];
+    additionalIterableKeys?: string[];
     defaultDoseSpotPharmacies?: {
         id: string;
         name: string;
@@ -1314,6 +1315,7 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
     preserveContext?: boolean;
     phoneCallId?: string;
     smsId?: string;
+    emailId?: string;
     calendarEventId?: string;
     observationId?: string;
     tags?: string[];
@@ -2661,6 +2663,7 @@ export type SendChatAutomationAction = AutomationActionBuilder<'sendChat', {
     templateId: string;
     identifier: string;
     includeCareTeam?: boolean;
+    userIds?: string[];
 }>;
 export type HealthieSyncAutomationAction = AutomationActionBuilder<'healthieSync', {}>;
 export type HealthieAddToCourseAutomationAction = AutomationActionBuilder<'healthieAddToCourse', {
@@ -2695,6 +2698,7 @@ export type IterableCustomEventAutomationAction = AutomationActionBuilder<'itera
     eventName: string;
     description: string;
     dataFieldsMapping?: IterableFieldsMapping[];
+    environment?: string;
 }>;
 export type EnduserFieldSetterType = 'Custom Value' | 'Current Timestamp' | 'Current Date' | "Increment Number";
 export type EnduserFieldSetter = {

@@ -60,6 +60,13 @@ export var build_validator = function (escapeFunction, options) {
             return undefined;
         if (nullOk && fieldValue === null)
             return null;
+        // ensure this comes before emptyStringOk to ensure empty string types are coerced to empty array when empty list is ok
+        if (listOf && (fieldValue === null || fieldValue === void 0 ? void 0 : fieldValue.length) === 0) {
+            if (emptyListOk)
+                return [];
+            else
+                throw new Error("Expecting a list of values but list is empty");
+        }
         if ((emptyStringOk || isOptional) && fieldValue === '')
             return '';
         if (!emptyStringOk && fieldValue === '')
@@ -88,12 +95,6 @@ export var build_validator = function (escapeFunction, options) {
         // asserts for listOf === true, that fieldValue typed as array
         if (listOf && !Array.isArray(fieldValue))
             throw "Expecting a list of values but got ".concat(escape_fieldValue(fieldValue));
-        if (listOf && (fieldValue === null || fieldValue === void 0 ? void 0 : fieldValue.length) === 0) {
-            if (emptyListOk)
-                return [];
-            else
-                throw new Error("Expecting a list of values but list is empty");
-        }
         if (toLower && typeof fieldValue === 'string') {
             fieldValue = fieldValue.toLowerCase();
         }
@@ -2301,7 +2302,8 @@ export var automationActionValidator = orValidator({
             dataFieldsMapping: listValidatorOptionalOrEmptyOk(objectValidator({
                 iterable: stringValidator,
                 tellescope: stringValidator,
-            }))
+            })),
+            environment: stringValidatorOptional,
         }, { emptyOk: false }),
     }),
     zendeskCreateTicket: objectValidator({
@@ -2362,6 +2364,7 @@ export var automationActionValidator = orValidator({
             templateId: mongoIdStringRequired,
             identifier: stringValidator100,
             includeCareTeam: booleanValidatorOptional,
+            userIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
         }),
     }),
     healthieSync: objectValidator({

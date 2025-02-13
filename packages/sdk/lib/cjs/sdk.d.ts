@@ -3525,6 +3525,7 @@ type Queries = {
         push: (args: extractFields<CustomActions['endusers']['push']['parameters']>) => (Promise<extractFields<CustomActions['endusers']['push']['returns']>>);
         bulk_update: (args: extractFields<CustomActions['endusers']['bulk_update']['parameters']>) => (Promise<extractFields<CustomActions['endusers']['bulk_update']['returns']>>);
         bulk_assignment: (args: extractFields<CustomActions['endusers']['bulk_assignment']['parameters']>) => (Promise<extractFields<CustomActions['endusers']['bulk_assignment']['returns']>>);
+        related_contacts_report: (args: extractFields<CustomActions['endusers']['related_contacts_report']['parameters']>) => (Promise<extractFields<CustomActions['endusers']['related_contacts_report']['returns']>>);
         get_report: (args: extractFields<CustomActions['endusers']['get_report']['parameters']>) => (Promise<extractFields<CustomActions['endusers']['get_report']['returns']>>);
         get_engagement_statistics: (args: extractFields<CustomActions['endusers']['get_engagement_statistics']['parameters']>) => (Promise<extractFields<CustomActions['endusers']['get_engagement_statistics']['returns']>>);
         get_engagement_statistics_by_userId: (args: extractFields<CustomActions['endusers']['get_engagement_statistics_by_userId']['parameters']>) => (Promise<extractFields<CustomActions['endusers']['get_engagement_statistics_by_userId']['returns']>>);

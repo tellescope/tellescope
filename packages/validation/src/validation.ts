@@ -442,6 +442,13 @@ export const build_validator: BuildValidator_T = (escapeFunction, options={} as 
     if (isOptional && fieldValue === undefined) return undefined
     if (isOptional && fieldValue === null && !nullOk) return undefined
     if (nullOk && fieldValue === null) return null
+
+    // ensure this comes before emptyStringOk to ensure empty string types are coerced to empty array when empty list is ok
+    if (listOf && (fieldValue as JSONType[])?.length === 0) {
+      if (emptyListOk) return []
+      else throw new Error("Expecting a list of values but list is empty")
+    }
+
     if ((emptyStringOk || isOptional) && fieldValue === '') return ''
     if (!emptyStringOk && fieldValue === '') throw `Expecting non-empty string but got ${escape_fieldValue(fieldValue)}`
     if (isObject && typeof fieldValue !== 'object') {
@@ -467,11 +474,6 @@ export const build_validator: BuildValidator_T = (escapeFunction, options={} as 
 
     // asserts for listOf === true, that fieldValue typed as array
     if (listOf && !Array.isArray(fieldValue)) throw `Expecting a list of values but got ${escape_fieldValue(fieldValue)}`
-
-    if (listOf && (fieldValue as JSONType[])?.length === 0) {
-      if (emptyListOk) return []
-      else throw new Error("Expecting a list of values but list is empty")
-    }
 
     if (toLower && typeof fieldValue === 'string') {
       fieldValue = fieldValue.toLowerCase()
@@ -2853,7 +2855,8 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
           iterable: stringValidator,
           tellescope: stringValidator,
         })
-      )
+      ),
+      environment: stringValidatorOptional,
     }, { emptyOk: false }),
   }),
   zendeskCreateTicket: objectValidator<ZendeskCreateTicketAutomationAction>({
@@ -2914,6 +2917,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       templateId: mongoIdStringRequired,
       identifier: stringValidator100,
       includeCareTeam: booleanValidatorOptional,
+      userIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
     }),
   }),
   healthieSync: objectValidator<HealthieSyncAutomationAction>({

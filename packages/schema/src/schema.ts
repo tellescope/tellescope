@@ -580,11 +580,33 @@ export type VitalLabTest = {
   },
   "markers"?: [
     {
+      id: number,
       "name": "Thyroid Stimulating Hormone",
       "slug": "tsh",
-      "description": ""
-    }
-  ]
+      "description": "",
+      aoe?: {
+        questions: {
+          id: number, 
+          required?: boolean,
+          code: string,
+          value: string, // question label
+          constraint?: string, // tooltip for text restrictions
+          type: 'choice' | 'multiple_choice' | 'numeric' | 'text',
+          answers?: { // included in choice / multiple_choice
+            id: string,
+            code: string,
+            value: string,
+          }[]
+        }[]
+      }
+    },
+  ],
+  
+}
+export type VitalAOEAnswer = {
+  marker_id: number,
+  question_id: number,
+  answer: string,
 }
 
 type BookingInfoEnduserFields = {
@@ -768,6 +790,7 @@ export type CustomActions = {
       }, 
       { updated: Enduser[] }
     >,
+    related_contacts_report: CustomAction<{ minimumRelationshipsCount: number }, { report: { enduserId: string, count: number }[] }>,
     get_report: CustomAction<{ 
       queries: EndusersReportQueries, 
       customTypeId?: string, 
@@ -1053,6 +1076,7 @@ export type CustomActions = {
       physicianUserId?: string,
       teamId?: string, // for picking from multiple vital integrations
       activateBy?: string,
+      aoe_answers?: VitalAOEAnswer[]
     }, { order: EnduserOrder }>,
     create_go_go_meds_order: CustomAction<{ 
       enduserId: string,
@@ -1631,6 +1655,18 @@ export const schema: SchemaV1 = build_schema({
         },
         returns: {
           updated: { validator: 'endusers' as any },
+        },
+      },
+      related_contacts_report: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Related Contacts Report',
+        path: '/endusers/related-contacts-report',
+        description: "Builds a report about related contacts",
+        parameters: {
+          minimumRelationshipsCount: { validator: numberValidator },
+        },
+        returns: {
+          report: { validator: listValidator(objectValidator<{ enduserId: string, count: number }>({ enduserId: stringValidator, count: numberValidator })), required: true }
         },
       },
       get_report: {
@@ -3862,6 +3898,7 @@ export const schema: SchemaV1 = build_schema({
       observationId: { validator: mongoIdStringValidator },
       phoneCallId: { validator: mongoIdStringValidator },
       smsId: { validator: mongoIdStringValidator },
+      emailId: { validator: mongoIdStringValidator },
       orderId: { validator: mongoIdStringValidator },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       restrictByState: { validator: stateValidator },
@@ -7892,6 +7929,13 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           physicianUserId: { validator: mongoIdStringValidator },
           teamId: { validator: stringValidator },
           activateBy: { validator: stringValidator },
+          aoe_answers: {
+            validator: listValidatorOptionalOrEmptyOk(objectValidator<VitalAOEAnswer>({
+              marker_id: numberValidator,
+              question_id: numberValidator,
+              answer: stringValidator,
+            })),
+          }
         },
         returns: { 
           order: { validator: 'enduser_order' as any, required: true },

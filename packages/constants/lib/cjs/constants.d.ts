@@ -3,6 +3,7 @@ import { AccessAction, AccessForResource, AccessPermissions, AccessType, Enduser
 export type EnduserField = keyof Pick<Enduser, 'email' | 'phone' | 'fname' | 'lname' | 'dateOfBirth' | 'height' | 'weight'>;
 export declare const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME: {
     id: string;
+    assignedTo: string;
     fname: string;
     lname: string;
     email: string;

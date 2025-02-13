@@ -115,6 +115,7 @@ export interface IgnoreWebhookFlag extends InternalBusinessRecord, EnduserEngage
     type: string;
     externalId: string;
     ignoreUntil: number;
+    deleteAfter: Date;
 }
 export interface DrChronoConfig extends InternalBusinessRecord, EnduserEngagementTimestamps {
     clientId: string;

@@ -8989,7 +8989,7 @@ const calendar_event_care_team_tests = async () => {
   ])
 }
 
-const ticket_no_care_team_setting_test = async () => {
+const ticket_tests = async () => {
   log_header("Ticket No Care Team Setting Tests")
 
   const organization = (await sdk.api.organizations.getSome()).find(o => o.id === sdk.userInfo.businessId)
@@ -9002,6 +9002,15 @@ const ticket_no_care_team_setting_test = async () => {
 
   const e = await sdk.api.endusers.createOne({})
   const userId = sdk.userInfo.id
+
+  // test tags as empty '' coereced to []
+  // facilitates backwards compatible change to allow '' as a valid tags, but store as array so our system won't make mistakes
+  const t = await sdk.api.tickets.createOne({ title: 'test', enduserId: e.id, owner: userId, tags: '' as any })
+  await async_test(
+    "Ticket tags coerced to empty array",
+    () => sdk.api.tickets.getOne(t.id),
+    { onResult: t => Array.isArray(t.tags) && t.tags.length === 0 }
+  )
 
   await sdk.api.tickets.createOne({ title: 'test', enduserId: e.id, owner: userId })
   await wait(undefined, 1000) 
@@ -9155,8 +9164,8 @@ const ticket_no_care_team_setting_test = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await ticket_tests()
     await uniqueness_tests()
-    await ticket_no_care_team_setting_test()
     await enduser_orders_tests()
     await calendar_event_care_team_tests()
     await merge_enduser_tests()

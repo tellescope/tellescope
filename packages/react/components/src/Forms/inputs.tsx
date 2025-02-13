@@ -13,7 +13,7 @@ import LinearProgress from '@mui/material/LinearProgress';
 import DatePicker from "react-datepicker";
 import { datepickerCSS } from "./css/react-datepicker" // avoids build issue with RN
 import { CancelIcon, FileBlob, IconButton, LabeledIconButton, LoadingButton, Styled, form_display_text_for_language, isDateString, useProducts, useResolvedSession } from ".."
-import { AllergyCode, CalendarEvent, DatabaseRecord, FormField } from "@tellescope/types-client"
+import { CalendarEvent, DatabaseRecord, FormField } from "@tellescope/types-client"
 import { css } from '@emotion/css'
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
@@ -580,7 +580,8 @@ export const InsuranceInput = ({ field, value, onChange, form, responses, enduse
           }
         renderInput={(params) => (
           <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
-            required={!field.isOptional} size="small"  label="Insurer"
+            required={!field.isOptional} size="small" label={"Insurer"}
+            placeholder={field.options?.dataSource === CANVAS_TITLE ? "Search insurer..." : "Insurer"}
           />
         )}
       />
@@ -2849,6 +2850,9 @@ export const AppointmentBookingInput = ({ formResponseId, field, value, onChange
       field.options.userTags
       .flatMap(t => {
         // set dynamic tags if found
+        if (t === '{{logic}}') {
+          return new URL(window.location.href).searchParams.get('logic') || '{{logic}}'
+        }
         if (t.startsWith("{{field.") && t.endsWith(".value}}")) {
           const fieldId = t.replace('{{field.', '').replace(".value}}", '')
 
@@ -2873,6 +2877,9 @@ export const AppointmentBookingInput = ({ formResponseId, field, value, onChange
       field.options.userFilterTags
       .flatMap(t => {
         // set dynamic tags if found
+        if (t === '{{logic}}') {
+          return new URL(window.location.href).searchParams.get('logic') || '{{logic}}'
+        }
         if (t.startsWith("{{field.") && t.endsWith(".value}}")) {
           const fieldId = t.replace('{{field.', '').replace(".value}}", '')
 

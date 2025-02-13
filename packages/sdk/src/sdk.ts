@@ -320,6 +320,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     bulk_assignment: (args: extractFields<CustomActions['endusers']['bulk_assignment']['parameters']>) => (
       Promise<extractFields<CustomActions['endusers']['bulk_assignment']['returns']>>
     ),
+    related_contacts_report: (args: extractFields<CustomActions['endusers']['related_contacts_report']['parameters']>) => (
+      Promise<extractFields<CustomActions['endusers']['related_contacts_report']['returns']>>
+    ),
     get_report: (args: extractFields<CustomActions['endusers']['get_report']['parameters']>) => (
       Promise<extractFields<CustomActions['endusers']['get_report']['returns']>>
     ),
@@ -846,6 +849,7 @@ export class Session extends SessionManager {
     queries.endusers.bulk_update = a => this._PATCH(`/v1${schema.endusers.customActions.bulk_update.path}`, a)
     queries.endusers.bulk_assignment = a => this._PATCH(`/v1${schema.endusers.customActions.bulk_assignment.path}`, a)
     queries.endusers.get_report = a => this._GET(`/v1/${schema.endusers.customActions.get_report.path}`, a)
+    queries.endusers.related_contacts_report = a => this._GET(`/v1/${schema.endusers.customActions.related_contacts_report.path}`, a)
     queries.endusers.get_engagement_statistics = a => this._GET(`/v1/${schema.endusers.customActions.get_engagement_statistics.path}`, a)
     queries.endusers.get_engagement_statistics_by_userId = a => this._GET(`/v1/${schema.endusers.customActions.get_engagement_statistics_by_userId.path}`, a)
     queries.endusers.sync_zendesk = a => this._POST(`/v1${schema.endusers.customActions.sync_zendesk.path}`, a)

@@ -381,7 +381,10 @@ export var InsuranceInput = function (_a) {
                                 setQuery(v);
                             }
                             onChange(__assign(__assign({}, value), { payerName: v || '', payerId: ((_a = payers.find(function (p) { return p.name === v; })) === null || _a === void 0 ? void 0 : _a.id) || '', payerType: ((_b = payers.find(function (p) { return p.name === v; })) === null || _b === void 0 ? void 0 : _b.type) || '' }), field.id);
-                        }, renderInput: function (params) { return (_jsx(TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: defaultInputProps.sx }), required: !field.isOptional, size: "small", label: "Insurer" }))); } }) })), _jsx(Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: _jsx(TextField, { InputProps: defaultInputProps, required: !field.isOptional, fullWidth: true, value: (_g = value === null || value === void 0 ? void 0 : value.memberId) !== null && _g !== void 0 ? _g : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { memberId: e.target.value }), field.id); }, label: form_display_text_for_language(form, "Member ID", ''), size: "small" }) })), _jsx(Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: _jsx(TextField, { InputProps: defaultInputProps, required: false, fullWidth: true, value: (_h = value === null || value === void 0 ? void 0 : value.planName) !== null && _h !== void 0 ? _h : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { planName: e.target.value }), field.id); }, label: form_display_text_for_language(form, "Plan Name", ''), size: "small" }) })), _jsx(Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: _jsx(DateStringInput, { size: "small", label: "Plan Start Date", field: __assign(__assign({}, field), { isOptional: true }), value: (value === null || value === void 0 ? void 0 : value.startDate) || '', onChange: function (startDate) {
+                        }, renderInput: function (params) {
+                        var _a;
+                        return (_jsx(TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: defaultInputProps.sx }), required: !field.isOptional, size: "small", label: "Insurer", placeholder: ((_a = field.options) === null || _a === void 0 ? void 0 : _a.dataSource) === CANVAS_TITLE ? "Search insurer..." : "Insurer" })));
+                    } }) })), _jsx(Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: _jsx(TextField, { InputProps: defaultInputProps, required: !field.isOptional, fullWidth: true, value: (_g = value === null || value === void 0 ? void 0 : value.memberId) !== null && _g !== void 0 ? _g : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { memberId: e.target.value }), field.id); }, label: form_display_text_for_language(form, "Member ID", ''), size: "small" }) })), _jsx(Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: _jsx(TextField, { InputProps: defaultInputProps, required: false, fullWidth: true, value: (_h = value === null || value === void 0 ? void 0 : value.planName) !== null && _h !== void 0 ? _h : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { planName: e.target.value }), field.id); }, label: form_display_text_for_language(form, "Plan Name", ''), size: "small" }) })), _jsx(Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: _jsx(DateStringInput, { size: "small", label: "Plan Start Date", field: __assign(__assign({}, field), { isOptional: true }), value: (value === null || value === void 0 ? void 0 : value.startDate) || '', onChange: function (startDate) {
                         return onChange(__assign(__assign({}, value), { startDate: startDate }), field.id);
                     } }) })), ((_j = field.options) === null || _j === void 0 ? void 0 : _j.includeGroupNumber) &&
                 _jsx(Grid, __assign({ item: true, xs: 12 }, { children: _jsx(TextField, { InputProps: defaultInputProps, fullWidth: true, value: (_k = value === null || value === void 0 ? void 0 : value.groupNumber) !== null && _k !== void 0 ? _k : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { groupNumber: e.target.value }), field.id); }, label: form_display_text_for_language(form, "Group Number", ''), size: "small" }) })), _jsx(Grid, __assign({ item: true, xs: 12 }, { children: _jsx(StringSelector, { size: "small", label: "Relationship to Policy Owner", options: ((((_l = field.options) === null || _l === void 0 ? void 0 : _l.billingProvider) === CANVAS_TITLE || ((_m = field.options) === null || _m === void 0 ? void 0 : _m.dataSource) === CANVAS_TITLE)
@@ -1532,6 +1535,9 @@ export var AppointmentBookingInput = function (_a) {
             .flatMap(function (t) {
             var _a, _b;
             // set dynamic tags if found
+            if (t === '{{logic}}') {
+                return new URL(window.location.href).searchParams.get('logic') || '{{logic}}';
+            }
             if (t.startsWith("{{field.") && t.endsWith(".value}}")) {
                 var fieldId_1 = t.replace('{{field.', '').replace(".value}}", '');
                 var answer = (_a = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { return r.fieldId === fieldId_1; })) === null || _a === void 0 ? void 0 : _a.answer;
@@ -1554,6 +1560,9 @@ export var AppointmentBookingInput = function (_a) {
             .flatMap(function (t) {
             var _a, _b;
             // set dynamic tags if found
+            if (t === '{{logic}}') {
+                return new URL(window.location.href).searchParams.get('logic') || '{{logic}}';
+            }
             if (t.startsWith("{{field.") && t.endsWith(".value}}")) {
                 var fieldId_2 = t.replace('{{field.', '').replace(".value}}", '');
                 var answer = (_a = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { return r.fieldId === fieldId_2; })) === null || _a === void 0 ? void 0 : _a.answer;

@@ -232,11 +232,32 @@ export type VitalLabTest = {
     };
     "markers"?: [
         {
+            id: number;
             "name": "Thyroid Stimulating Hormone";
             "slug": "tsh";
             "description": "";
+            aoe?: {
+                questions: {
+                    id: number;
+                    required?: boolean;
+                    code: string;
+                    value: string;
+                    constraint?: string;
+                    type: 'choice' | 'multiple_choice' | 'numeric' | 'text';
+                    answers?: {
+                        id: string;
+                        code: string;
+                        value: string;
+                    }[];
+                }[];
+            };
         }
     ];
+};
+export type VitalAOEAnswer = {
+    marker_id: number;
+    question_id: number;
+    answer: string;
 };
 type BookingInfoEnduserFields = {
     state?: string;
@@ -587,6 +608,14 @@ export type CustomActions = {
             customTypeId?: string;
         }, {
             updated: Enduser[];
+        }>;
+        related_contacts_report: CustomAction<{
+            minimumRelationshipsCount: number;
+        }, {
+            report: {
+                enduserId: string;
+                count: number;
+            }[];
         }>;
         get_report: CustomAction<{
             queries: EndusersReportQueries;
@@ -1392,6 +1421,7 @@ export type CustomActions = {
             physicianUserId?: string;
             teamId?: string;
             activateBy?: string;
+            aoe_answers?: VitalAOEAnswer[];
         }, {
             order: EnduserOrder;
         }>;

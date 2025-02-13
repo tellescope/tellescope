@@ -74,6 +74,13 @@ var build_validator = function (escapeFunction, options) {
             return undefined;
         if (nullOk && fieldValue === null)
             return null;
+        // ensure this comes before emptyStringOk to ensure empty string types are coerced to empty array when empty list is ok
+        if (listOf && (fieldValue === null || fieldValue === void 0 ? void 0 : fieldValue.length) === 0) {
+            if (emptyListOk)
+                return [];
+            else
+                throw new Error("Expecting a list of values but list is empty");
+        }
         if ((emptyStringOk || isOptional) && fieldValue === '')
             return '';
         if (!emptyStringOk && fieldValue === '')
@@ -102,12 +109,6 @@ var build_validator = function (escapeFunction, options) {
         // asserts for listOf === true, that fieldValue typed as array
         if (listOf && !Array.isArray(fieldValue))
             throw "Expecting a list of values but got ".concat(escape_fieldValue(fieldValue));
-        if (listOf && (fieldValue === null || fieldValue === void 0 ? void 0 : fieldValue.length) === 0) {
-            if (emptyListOk)
-                return [];
-            else
-                throw new Error("Expecting a list of values but list is empty");
-        }
         if (toLower && typeof fieldValue === 'string') {
             fieldValue = fieldValue.toLowerCase();
         }
@@ -2351,7 +2352,8 @@ exports.automationActionValidator = (0, exports.orValidator)({
             dataFieldsMapping: (0, exports.listValidatorOptionalOrEmptyOk)((0, exports.objectValidator)({
                 iterable: exports.stringValidator,
                 tellescope: exports.stringValidator,
-            }))
+            })),
+            environment: exports.stringValidatorOptional,
         }, { emptyOk: false }),
     }),
     zendeskCreateTicket: (0, exports.objectValidator)({
@@ -2412,6 +2414,7 @@ exports.automationActionValidator = (0, exports.orValidator)({
             templateId: exports.mongoIdStringRequired,
             identifier: exports.stringValidator100,
             includeCareTeam: exports.booleanValidatorOptional,
+            userIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
         }),
     }),
     healthieSync: (0, exports.objectValidator)({

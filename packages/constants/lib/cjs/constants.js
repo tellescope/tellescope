@@ -16,6 +16,7 @@ exports.VITAL_RANGE_CLASSIFICATIONS = exports.TELLESCOPE_GENDERS = exports.INSUR
 exports.USER_PERSONAL_EMAIL_OVERRIDE = exports.PORTAL_PAGES_HIDDEN_BY_DEFAULT = exports.DOCUMENT_REFERENCE_CODINGS = exports.BUILT_IN_BOOLEANS_FOR_SET_FIELDS = exports.BUILT_INS_FOR_SET_FIELDS = exports.CURRENT_POLICY_VERION = exports.DAYS_OF_WEEK_STARTING_SUNDAY = exports.CANDID_MODIFIERS = exports.WEIGHT_UNITS = exports.VITAL_UNITS = exports.VITAL_UNITS_INFO = void 0;
 exports.ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
     'id': "ID",
+    'assignedTo': "Care Team",
     'fname': 'First Name',
     'lname': 'Last Name',
     'email': 'Email',
@@ -148,7 +149,7 @@ exports.ORGANIZATION_WIDE_INTEGRATIONS = [
     exports.CANVAS_TITLE,
     exports.PAGER_DUTY_TITLE,
     exports.SMART_METER_TITLE,
-    exports.ITERABLE_TITLE,
+    // ITERABLE_TITLE, // we now support multiple Iterable connections
     exports.CANDID_TITLE,
     exports.GOGO_MEDS_TITLE,
     exports.PHOTON_TITLE,

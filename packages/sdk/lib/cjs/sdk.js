@@ -447,6 +447,7 @@ var Session = /** @class */ (function (_super) {
         queries.endusers.bulk_update = function (a) { return _this._PATCH("/v1".concat(schema_1.schema.endusers.customActions.bulk_update.path), a); };
         queries.endusers.bulk_assignment = function (a) { return _this._PATCH("/v1".concat(schema_1.schema.endusers.customActions.bulk_assignment.path), a); };
         queries.endusers.get_report = function (a) { return _this._GET("/v1/".concat(schema_1.schema.endusers.customActions.get_report.path), a); };
+        queries.endusers.related_contacts_report = function (a) { return _this._GET("/v1/".concat(schema_1.schema.endusers.customActions.related_contacts_report.path), a); };
         queries.endusers.get_engagement_statistics = function (a) { return _this._GET("/v1/".concat(schema_1.schema.endusers.customActions.get_engagement_statistics.path), a); };
         queries.endusers.get_engagement_statistics_by_userId = function (a) { return _this._GET("/v1/".concat(schema_1.schema.endusers.customActions.get_engagement_statistics_by_userId.path), a); };
         queries.endusers.sync_zendesk = function (a) { return _this._POST("/v1".concat(schema_1.schema.endusers.customActions.sync_zendesk.path), a); };

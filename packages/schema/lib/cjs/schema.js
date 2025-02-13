@@ -472,6 +472,18 @@ exports.schema = (0, exports.build_schema)({
                     updated: { validator: 'endusers' },
                 },
             },
+            related_contacts_report: {
+                op: "custom", access: 'read', method: "get",
+                name: 'Related Contacts Report',
+                path: '/endusers/related-contacts-report',
+                description: "Builds a report about related contacts",
+                parameters: {
+                    minimumRelationshipsCount: { validator: validation_1.numberValidator },
+                },
+                returns: {
+                    report: { validator: (0, validation_1.listValidator)((0, validation_1.objectValidator)({ enduserId: validation_1.stringValidator, count: validation_1.numberValidator })), required: true }
+                },
+            },
             get_report: {
                 op: "custom", access: 'read', method: "get",
                 name: 'Report',
@@ -2447,7 +2459,7 @@ exports.schema = (0, exports.build_schema)({
                 validator: validation_1.numberValidator,
                 readonly: true,
                 initializer: exports.get_next_reminder_timestamp_for_ticket,
-            }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, calendarEventId: { validator: validation_1.mongoIdStringRequired }, observationId: { validator: validation_1.mongoIdStringRequired }, phoneCallId: { validator: validation_1.mongoIdStringRequired }, smsId: { validator: validation_1.mongoIdStringRequired }, orderId: { validator: validation_1.mongoIdStringRequired }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, restrictByState: { validator: validation_1.stateValidator }, restrictByTags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, restrictByTagsQualifier: { validator: validation_1.listQueryQualifiersValidator }, archiveReason: { validator: validation_1.stringValidator }, contextFormIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, contextEnduserFields: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk }, isTodo: { validator: validation_1.booleanValidator }, databaseRecordId: { validator: validation_1.mongoIdStringRequired }, databaseRecordCreator: { validator: validation_1.mongoIdStringRequired } })
+            }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, calendarEventId: { validator: validation_1.mongoIdStringRequired }, observationId: { validator: validation_1.mongoIdStringRequired }, phoneCallId: { validator: validation_1.mongoIdStringRequired }, smsId: { validator: validation_1.mongoIdStringRequired }, emailId: { validator: validation_1.mongoIdStringRequired }, orderId: { validator: validation_1.mongoIdStringRequired }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, restrictByState: { validator: validation_1.stateValidator }, restrictByTags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, restrictByTagsQualifier: { validator: validation_1.listQueryQualifiersValidator }, archiveReason: { validator: validation_1.stringValidator }, contextFormIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, contextEnduserFields: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk }, isTodo: { validator: validation_1.booleanValidator }, databaseRecordId: { validator: validation_1.mongoIdStringRequired }, databaseRecordCreator: { validator: validation_1.mongoIdStringRequired } })
     },
     meetings: {
         info: {},
@@ -5616,6 +5628,13 @@ exports.schema = (0, exports.build_schema)({
                     physicianUserId: { validator: validation_1.mongoIdStringRequired },
                     teamId: { validator: validation_1.stringValidator },
                     activateBy: { validator: validation_1.stringValidator },
+                    aoe_answers: {
+                        validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
+                            marker_id: validation_1.numberValidator,
+                            question_id: validation_1.numberValidator,
+                            answer: validation_1.stringValidator,
+                        })),
+                    }
                 },
                 returns: {
                     order: { validator: 'enduser_order', required: true },

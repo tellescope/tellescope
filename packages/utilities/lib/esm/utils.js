@@ -706,6 +706,45 @@ export var get_conditional_logic_values = function (conditions) {
     }
     return [];
 };
+export var replace_keys_and_values_in_object = function (value, replacer) {
+    var replacement = replacer(value);
+    if (replacement !== value)
+        return replacement;
+    if (Array.isArray(value)) {
+        return __spreadArray([], value, true).map(function (v) { return replace_keys_and_values_in_object(v, replacer); });
+    }
+    if (value && typeof value === 'object') {
+        var newValue = __assign({}, value);
+        for (var k in newValue) {
+            newValue[replace_keys_and_values_in_object(k, replacer)] = replace_keys_and_values_in_object(newValue[k], replacer);
+        }
+        return newValue;
+    }
+    return value;
+};
+// console.log(
+//   'replacement test case',
+//   JSON.stringify(
+//     replace_values_in_object(
+//       {
+//         a: 'replace_me',
+//         b: 'not_replaced',
+//         c: {
+//           d: 'replace_me',
+//           e: 'not_replaced',
+//           f: {
+//             g: 'replace_me',
+//             h: 'not_replaced',
+//           }
+//         },
+//         d: ['replace_me', 'not_replaced'],
+//         f: [{ f: 'replace_me' }, 'not_replaced'],
+//       },
+//       r => r === 'replace_me' ? 'REPLACED!' : r
+//     ), 
+//     null, 2
+//   )
+// )
 export var age_for_dob_mmddyyyy = function (mmddyyyy) {
     var _a = mmddyyyy.split('-').map(function (s) { return parseInt(s); }), mm = _a[0], dd = _a[1], yyyy = _a[2]; // ensure second argument to parseInt is not provided
     if (isNaN(mm) || isNaN(dd) || isNaN(yyyy))

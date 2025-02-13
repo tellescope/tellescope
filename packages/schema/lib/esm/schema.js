@@ -467,6 +467,18 @@ export var schema = build_schema({
                     updated: { validator: 'endusers' },
                 },
             },
+            related_contacts_report: {
+                op: "custom", access: 'read', method: "get",
+                name: 'Related Contacts Report',
+                path: '/endusers/related-contacts-report',
+                description: "Builds a report about related contacts",
+                parameters: {
+                    minimumRelationshipsCount: { validator: numberValidator },
+                },
+                returns: {
+                    report: { validator: listValidator(objectValidator({ enduserId: stringValidator, count: numberValidator })), required: true }
+                },
+            },
             get_report: {
                 op: "custom", access: 'read', method: "get",
                 name: 'Report',
@@ -2442,7 +2454,7 @@ export var schema = build_schema({
                 validator: numberValidator,
                 readonly: true,
                 initializer: get_next_reminder_timestamp_for_ticket,
-            }, references: { validator: listOfRelatedRecordsValidator, readonly: true }, calendarEventId: { validator: mongoIdStringValidator }, observationId: { validator: mongoIdStringValidator }, phoneCallId: { validator: mongoIdStringValidator }, smsId: { validator: mongoIdStringValidator }, orderId: { validator: mongoIdStringValidator }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, restrictByState: { validator: stateValidator }, restrictByTags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, restrictByTagsQualifier: { validator: listQueryQualifiersValidator }, archiveReason: { validator: stringValidator }, contextFormIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, contextEnduserFields: { validator: listOfUniqueStringsValidatorEmptyOk }, isTodo: { validator: booleanValidator }, databaseRecordId: { validator: mongoIdStringValidator }, databaseRecordCreator: { validator: mongoIdStringValidator } })
+            }, references: { validator: listOfRelatedRecordsValidator, readonly: true }, calendarEventId: { validator: mongoIdStringValidator }, observationId: { validator: mongoIdStringValidator }, phoneCallId: { validator: mongoIdStringValidator }, smsId: { validator: mongoIdStringValidator }, emailId: { validator: mongoIdStringValidator }, orderId: { validator: mongoIdStringValidator }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, restrictByState: { validator: stateValidator }, restrictByTags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, restrictByTagsQualifier: { validator: listQueryQualifiersValidator }, archiveReason: { validator: stringValidator }, contextFormIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, contextEnduserFields: { validator: listOfUniqueStringsValidatorEmptyOk }, isTodo: { validator: booleanValidator }, databaseRecordId: { validator: mongoIdStringValidator }, databaseRecordCreator: { validator: mongoIdStringValidator } })
     },
     meetings: {
         info: {},
@@ -5611,6 +5623,13 @@ export var schema = build_schema({
                     physicianUserId: { validator: mongoIdStringValidator },
                     teamId: { validator: stringValidator },
                     activateBy: { validator: stringValidator },
+                    aoe_answers: {
+                        validator: listValidatorOptionalOrEmptyOk(objectValidator({
+                            marker_id: numberValidator,
+                            question_id: numberValidator,
+                            answer: stringValidator,
+                        })),
+                    }
                 },
                 returns: {
                     order: { validator: 'enduser_order', required: true },

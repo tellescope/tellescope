@@ -186,6 +186,7 @@ export declare const plaintext_for_managed_content_record: (record: Pick<Managed
 export declare const shuffle_array_in_place: <T>(array: T[]) => void;
 export declare const evaluate_conditional_logic: <T extends string>(conditions: CompoundFilter<T>, evaluate: (key: string, value: T) => boolean) => boolean;
 export declare const get_conditional_logic_values: <T extends string>(conditions: CompoundFilter<T>) => any[];
+export declare const replace_keys_and_values_in_object: <T>(value: T, replacer: (v: any) => any) => T;
 export declare const age_for_dob_mmddyyyy: (mmddyyyy: string) => number | "";
 export declare const get_enduser_field_value_for_key: (enduser: Omit<Enduser, 'id'>, key: string) => any;
 export declare const evaluate_conditional_logic_for_enduser_fields: (enduser: Omit<Enduser, 'id'>, conditions: Record<string, any>) => boolean;

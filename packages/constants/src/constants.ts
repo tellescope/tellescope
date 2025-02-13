@@ -9,6 +9,7 @@ export type EnduserField = keyof Pick<Enduser, 'email' | 'phone' | 'fname' | 'ln
 
 export const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
   'id': "ID",
+  'assignedTo': "Care Team",
   'fname': 'First Name',
   'lname': 'Last Name',
   'email': 'Email',
@@ -155,7 +156,7 @@ export const ORGANIZATION_WIDE_INTEGRATIONS = [
   CANVAS_TITLE,
   PAGER_DUTY_TITLE,
   SMART_METER_TITLE,
-  ITERABLE_TITLE,
+  // ITERABLE_TITLE, // we now support multiple Iterable connections
   CANDID_TITLE,
   GOGO_MEDS_TITLE,
   PHOTON_TITLE,
