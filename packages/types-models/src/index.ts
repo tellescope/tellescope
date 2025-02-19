@@ -116,6 +116,9 @@ export type PortalSettings = {
     sendEmailNotificationsToEnduser?: boolean,
     sendSMSNotificationsToEnduser?: boolean,
   },
+  orders?: {
+    customOrderTrackingURL?: string,
+  }
 }
 
 export type WithLinkOpenTrackingIds = { linkOpenTrackingIds: string[] }
@@ -196,6 +199,7 @@ export type OrganizationSettings = {
     loopQueueCallSound?: boolean,
     showOrdersInSidebar?: boolean,
     showDiagnoses?: boolean,
+    showDeviceOrders?: boolean,
     requireObservationInvalidationReason?: boolean,
   },
   tickets?: {
@@ -3678,6 +3682,7 @@ export type AutomationTriggerEventBuilder <T, I, C> = { type: T, info: I, condit
 export type AutomationTriggerEvents = {
   'Form Submitted': AutomationTriggerEventBuilder<"Form Submitted", { 
     formId: string, 
+    otherFormIds?: string[],
     submitterType?: SessionType | 'Anyone', 
     publicIdentifier?: string,
     hasExpiredEvent?: boolean,

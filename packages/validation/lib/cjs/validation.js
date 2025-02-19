@@ -2582,7 +2582,10 @@ exports.portalSettingsValidator = (0, exports.objectValidator)({
         sendEmailNotificationsToEnduser: exports.booleanValidatorOptional,
         sendSMSNotificationsToEnduser: exports.booleanValidatorOptional,
         enduserInitiatedChatDefaultSubject: exports.stringValidator5000OptionalEmptyOkay,
-    }, { isOptional: true, emptyOk: true })
+    }, { isOptional: true, emptyOk: true }),
+    orders: (0, exports.objectValidator)({
+        customOrderTrackingURL: exports.stringValidatorOptionalEmptyOkay,
+    }, { isOptional: true, emptyOk: true }),
 });
 exports.organizationThemeValidator = (0, exports.objectValidator)({
     logoURL: exports.stringValidatorOptional,
@@ -3345,6 +3348,7 @@ exports.organizationSettingsValidator = (0, exports.objectValidator)({
         showOrdersInSidebar: exports.booleanValidatorOptional,
         showDiagnoses: exports.booleanValidatorOptional,
         requireObservationInvalidationReason: exports.booleanValidatorOptional,
+        showDeviceOrders: exports.booleanValidatorOptional,
     }, { isOptional: true }),
     tickets: (0, exports.objectValidator)({
         defaultJourneyDueDateOffsetInMS: exports.numberValidatorOptional,
@@ -3457,6 +3461,7 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
         type: (0, exports.exactMatchValidator)(['Form Submitted']),
         info: (0, exports.objectValidator)({
             formId: exports.mongoIdStringRequired,
+            otherFormIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
             publicIdentifier: exports.stringValidatorOptionalEmptyOkay,
             submitterType: exports.sessionTypeOrAnyoneValidatorOptional,
             hasExpiredEvent: exports.booleanValidatorOptional,

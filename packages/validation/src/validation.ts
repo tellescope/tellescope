@@ -3094,7 +3094,10 @@ export const portalSettingsValidator = objectValidator<PortalSettings>({
     sendEmailNotificationsToEnduser: booleanValidatorOptional,
     sendSMSNotificationsToEnduser: booleanValidatorOptional,
     enduserInitiatedChatDefaultSubject: stringValidator5000OptionalEmptyOkay,
-  }, { isOptional: true, emptyOk: true })
+  }, { isOptional: true, emptyOk: true }),
+  orders: objectValidator<PortalSettings['orders']>({
+    customOrderTrackingURL: stringValidatorOptionalEmptyOkay,
+  }, { isOptional: true, emptyOk: true }),
 })
 
 export const organizationThemeValidator = objectValidator<OrganizationTheme>({
@@ -3906,6 +3909,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     showOrdersInSidebar: booleanValidatorOptional,
     showDiagnoses: booleanValidatorOptional,
     requireObservationInvalidationReason: booleanValidatorOptional,
+    showDeviceOrders: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -4023,6 +4027,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['Form Submitted']),
     info: objectValidator<AutomationTriggerEvents['Form Submitted']['info']>({
       formId: mongoIdStringRequired,
+      otherFormIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
       publicIdentifier: stringValidatorOptionalEmptyOkay,
       submitterType: sessionTypeOrAnyoneValidatorOptional,
       hasExpiredEvent: booleanValidatorOptional,

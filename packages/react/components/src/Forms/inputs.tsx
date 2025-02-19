@@ -1767,9 +1767,10 @@ const useDatabaseChoices = ({ databaseId='', field, otherAnswers } : { databaseI
   const session = useResolvedSession()
   const [renderCount, setRenderCount] = useState(0)
 
+  // todo: make searchable, don't load all
   useEffect(() => {
     if (choicesForDatabase[databaseId]?.done) return
-    if (renderCount > 10) return // limit to 5000 entries / prevent infinite looping
+    if (renderCount > 100) return // limit to 50000 entries / prevent infinite looping
     const choices = choicesForDatabase[databaseId]?.records ?? []
     const lastId = choicesForDatabase[databaseId]?.lastId
 

@@ -1487,6 +1487,7 @@ export declare const vitalConfigurationRangesValidator: ValidatorDefinition<Vita
 export declare const AUTOMATION_TRIGGER_EVENT_TYPES: (keyof AutomationTriggerEvents)[];
 export declare const automationTriggerEventValidator: ValidatorDefinition<import("@tellescope/types-models").AutomationTriggerEventBuilder<"Form Submitted", {
     formId: string;
+    otherFormIds?: string[] | undefined;
     submitterType?: SessionType | "Anyone" | undefined;
     publicIdentifier?: string | undefined;
     hasExpiredEvent?: boolean | undefined;
@@ -2248,7 +2249,7 @@ export declare const enduserProfileWebhooksValidator: ValidatorDefinition<BasicW
 export declare const syncDirectionValidator: ValidatorDefinition<SyncDirection>;
 export declare const fieldSyncValidator: ValidatorDefinition<AthenaFieldSync>;
 export declare const fieldsSyncValidator: ValidatorDefinition<AthenaFieldSync[]>;
-export declare const athenaSubscriptionTypeValidator: ValidatorDefinition<"patients" | "appointments" | "orders" | "chart/healthhistory/problems" | "obepisode">;
+export declare const athenaSubscriptionTypeValidator: ValidatorDefinition<"orders" | "patients" | "appointments" | "chart/healthhistory/problems" | "obepisode">;
 export declare const athenaSubscriptionValidator: ValidatorDefinition<AthenaSubscription>;
 export declare const athenaSubscriptionsValidator: ValidatorDefinition<AthenaSubscription[]>;
 export declare const fieldMappingValidator: ValidatorDefinition<FieldMapping>;

@@ -2532,7 +2532,10 @@ export var portalSettingsValidator = objectValidator({
         sendEmailNotificationsToEnduser: booleanValidatorOptional,
         sendSMSNotificationsToEnduser: booleanValidatorOptional,
         enduserInitiatedChatDefaultSubject: stringValidator5000OptionalEmptyOkay,
-    }, { isOptional: true, emptyOk: true })
+    }, { isOptional: true, emptyOk: true }),
+    orders: objectValidator({
+        customOrderTrackingURL: stringValidatorOptionalEmptyOkay,
+    }, { isOptional: true, emptyOk: true }),
 });
 export var organizationThemeValidator = objectValidator({
     logoURL: stringValidatorOptional,
@@ -3293,6 +3296,7 @@ export var organizationSettingsValidator = objectValidator({
         showOrdersInSidebar: booleanValidatorOptional,
         showDiagnoses: booleanValidatorOptional,
         requireObservationInvalidationReason: booleanValidatorOptional,
+        showDeviceOrders: booleanValidatorOptional,
     }, { isOptional: true }),
     tickets: objectValidator({
         defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -3405,6 +3409,7 @@ export var automationTriggerEventValidator = orValidator({
         type: exactMatchValidator(['Form Submitted']),
         info: objectValidator({
             formId: mongoIdStringRequired,
+            otherFormIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
             publicIdentifier: stringValidatorOptionalEmptyOkay,
             submitterType: sessionTypeOrAnyoneValidatorOptional,
             hasExpiredEvent: booleanValidatorOptional,

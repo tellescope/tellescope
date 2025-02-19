@@ -863,12 +863,13 @@ var useDatabaseChoices = function (_a) {
     var _g = _a.databaseId, databaseId = _g === void 0 ? '' : _g, field = _a.field, otherAnswers = _a.otherAnswers;
     var session = useResolvedSession();
     var _h = useState(0), renderCount = _h[0], setRenderCount = _h[1];
+    // todo: make searchable, don't load all
     useEffect(function () {
         var _a, _b, _d, _e;
         if ((_a = choicesForDatabase[databaseId]) === null || _a === void 0 ? void 0 : _a.done)
             return;
-        if (renderCount > 10)
-            return; // limit to 5000 entries / prevent infinite looping
+        if (renderCount > 100)
+            return; // limit to 50000 entries / prevent infinite looping
         var choices = (_d = (_b = choicesForDatabase[databaseId]) === null || _b === void 0 ? void 0 : _b.records) !== null && _d !== void 0 ? _d : [];
         var lastId = (_e = choicesForDatabase[databaseId]) === null || _e === void 0 ? void 0 : _e.lastId;
         session.api.form_fields.load_choices_from_database({
