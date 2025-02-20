@@ -114,7 +114,7 @@ export declare const useTellescopeForm: ({ isPublicForm, form, urlLogicValue, cu
     isNextDisabled: () => boolean;
     isPreviousDisabled: () => boolean;
     goToPreviousField: () => void;
-    goToNextField: () => void;
+    goToNextField: (answer?: FormResponseValue['answer']) => void;
     submit: (options?: {
         onPreRedirect?: (() => void) | undefined;
         onFileUploadsDone?: (() => void) | undefined;

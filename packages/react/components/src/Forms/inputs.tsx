@@ -3073,7 +3073,9 @@ export const HiddenValueInput = ({ goToNextField, goToPreviousField, field, valu
       goToPreviousField?.()
     } else {
       onChange(field.title, field.id)
-      goToNextField?.()
+      console.log('going to next field for hidden value', field.title, !!goToNextField)
+      // pass value that is set after above onChange
+      goToNextField?.({ type: 'Hidden Value', value: field.title })
     }
   }, [value, onChange, field, goToNextField, goToPreviousField, isSinglePage])
 

@@ -1241,7 +1241,7 @@ var useTellescopeForm = function (_a) {
         return false;
     }, [activeField, validateField, uploadingFiles]);
     var autoAdvanceRef = (0, react_1.useRef)(false);
-    var goToNextField = (0, react_1.useCallback)(function () {
+    var goToNextField = (0, react_1.useCallback)(function (answer) {
         var _a, _b, _c;
         if (!currentValue)
             return;
@@ -1267,7 +1267,7 @@ var useTellescopeForm = function (_a) {
             session.api.form_responses.save_field_response({
                 accessCode: accessCode,
                 formResponseId: formResponseId,
-                response: currentValue,
+                response: __assign(__assign({}, currentValue), { answer: answer || currentValue.answer }),
             })
                 .catch(console.error);
         }

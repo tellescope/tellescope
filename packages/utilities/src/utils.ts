@@ -761,11 +761,12 @@ export const replace_keys_and_values_in_object = <T>(value: T, replacer: (v: any
     return [...value].map(v => replace_keys_and_values_in_object(v, replacer)) as T
   }
   if (value && typeof value === 'object') {
-    const newValue = { ...value }
-    for (const k in newValue) {
-      newValue[replace_keys_and_values_in_object(k, replacer)] = replace_keys_and_values_in_object(newValue[k], replacer)
+    // don't deep copy, so that we replace keys rather than adding new keys
+    const newValue = { } as Record<string, any>
+    for (const k in value) {
+      newValue[replace_keys_and_values_in_object(k, replacer)] = replace_keys_and_values_in_object(value[k], replacer)
     }
-    return newValue
+    return newValue as T
   }
 
   return value

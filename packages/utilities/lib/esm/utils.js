@@ -714,9 +714,10 @@ export var replace_keys_and_values_in_object = function (value, replacer) {
         return __spreadArray([], value, true).map(function (v) { return replace_keys_and_values_in_object(v, replacer); });
     }
     if (value && typeof value === 'object') {
-        var newValue = __assign({}, value);
-        for (var k in newValue) {
-            newValue[replace_keys_and_values_in_object(k, replacer)] = replace_keys_and_values_in_object(newValue[k], replacer);
+        // don't deep copy, so that we replace keys rather than adding new keys
+        var newValue = {};
+        for (var k in value) {
+            newValue[replace_keys_and_values_in_object(k, replacer)] = replace_keys_and_values_in_object(value[k], replacer);
         }
         return newValue;
     }

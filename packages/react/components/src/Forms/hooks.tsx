@@ -1290,7 +1290,7 @@ export const useTellescopeForm = ({ isPublicForm, form, urlLogicValue, customiza
   }, [activeField, validateField, uploadingFiles])
 
   const autoAdvanceRef = useRef(false)
-  const goToNextField = useCallback(() => {
+  const goToNextField = useCallback((answer?: FormResponseValue['answer']) => {
     if (!currentValue) return
     if (isNextDisabled() && currentValue?.answer.type !== 'Hidden Value') return
 
@@ -1313,7 +1313,10 @@ export const useTellescopeForm = ({ isPublicForm, form, urlLogicValue, customiza
       session.api.form_responses.save_field_response({
         accessCode,
         formResponseId,
-        response: currentValue,
+        response: {
+          ...currentValue,
+          answer: answer || currentValue.answer
+        },
       })
       .catch(console.error)
     }

@@ -1,9 +1,8 @@
-import { AnswerForType } from "@tellescope/types-models";
+import { AnswerForType, FormResponseValue } from "@tellescope/types-models";
 import { DatabaseRecord, Enduser, Form, FormField } from "@tellescope/types-client";
 import { FileBlob, TreeNode } from "@tellescope/types-utilities";
 import { JSXElementConstructor } from "react";
 import { Response } from "./hooks";
-import { FileUploadHandler } from "../inputs";
 
 export type FormFieldNode = TreeNode<FormField>
 
@@ -24,7 +23,7 @@ export interface FormInputProps<K extends keyof AnswerForType> {
   enduserId?: string,
   enduser?: Partial<Enduser>
   goToPreviousField?: () => void, 
-  goToNextField?: () => void, 
+  goToNextField?: (response?: FormResponseValue['answer']) => void, 
   isPreviousDisabled?: () => boolean,
   formResponseId?: string,
   rootResponseId?: string,

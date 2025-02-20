@@ -5671,7 +5671,7 @@ export var schema = build_schema({
             }, userId: { validator: mongoIdStringValidator }, title: { validator: stringValidator, required: true, examples: ['title'] }, status: { validator: stringValidator, required: true, examples: ['status'] }, description: { validator: stringValidator1000 }, frequency: { validator: stringValidator100 }, items: { validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     title: stringValidator,
                     tracking: stringValidatorOptional,
-                })) } })
+                })) }, tracking: { validator: stringValidatorOptional } })
     },
     vital_configurations: {
         info: {},

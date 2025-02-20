@@ -7987,7 +7987,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       items: { validator: listValidatorOptionalOrEmptyOk(objectValidator<{ title: string, tracking?: string }>({
         title: stringValidator,
         tracking: stringValidatorOptional,
-      }))}
+      }))},
+      tracking: { validator: stringValidatorOptional },
     }
   },
   vital_configurations: {

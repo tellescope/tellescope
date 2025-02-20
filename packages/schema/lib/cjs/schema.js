@@ -5676,7 +5676,7 @@ exports.schema = (0, exports.build_schema)({
             }, userId: { validator: validation_1.mongoIdStringRequired }, title: { validator: validation_1.stringValidator, required: true, examples: ['title'] }, status: { validator: validation_1.stringValidator, required: true, examples: ['status'] }, description: { validator: validation_1.stringValidator1000 }, frequency: { validator: validation_1.stringValidator100 }, items: { validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     title: validation_1.stringValidator,
                     tracking: validation_1.stringValidatorOptional,
-                })) } })
+                })) }, tracking: { validator: validation_1.stringValidatorOptional } })
     },
     vital_configurations: {
         info: {},
