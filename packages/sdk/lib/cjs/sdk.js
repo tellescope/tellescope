@@ -483,6 +483,7 @@ var Session = /** @class */ (function (_super) {
         queries.form_responses.save_field_response = function (args) { return _this._PATCH("/v1".concat(schema_1.schema.form_responses.customActions.save_field_response.path), args); };
         queries.form_responses.info_for_access_code = function (args) { return _this._GET("/v1".concat(schema_1.schema.form_responses.customActions.info_for_access_code.path), args); };
         queries.form_responses.stripe_details = function (args) { return _this._GET("/v1".concat(schema_1.schema.form_responses.customActions.stripe_details.path), args); };
+        queries.form_responses.chargebee_details = function (args) { return _this._GET("/v1".concat(schema_1.schema.form_responses.customActions.chargebee_details.path), args); };
         queries.form_responses.push_to_EHR = function (args) { return _this._POST("/v1".concat(schema_1.schema.form_responses.customActions.push_to_EHR.path), args); };
         queries.form_responses.get_report = function (a) { return _this._POST("/v1/".concat(schema_1.schema.form_responses.customActions.get_report.path), a); };
         queries.form_responses.get_enduser_statistics = function (a) { return _this._POST("/v1/".concat(schema_1.schema.form_responses.customActions.get_enduser_statistics.path), a); };

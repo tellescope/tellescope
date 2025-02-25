@@ -1757,6 +1757,7 @@ type EnduserQueries = {
         session_for_public_form: (args: extractFields<PublicActions['form_responses']['session_for_public_form']['parameters']>) => (Promise<extractFields<PublicActions['form_responses']['session_for_public_form']['returns']>>);
         info_for_access_code: (args: extractFields<CustomActions['form_responses']['info_for_access_code']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['info_for_access_code']['returns']>>);
         stripe_details: (args: extractFields<CustomActions['form_responses']['stripe_details']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['stripe_details']['returns']>>);
+        chargebee_details: (args: extractFields<CustomActions['form_responses']['chargebee_details']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['chargebee_details']['returns']>>);
     };
     meetings: {
         attendee_info: (args: {

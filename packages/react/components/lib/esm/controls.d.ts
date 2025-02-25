@@ -64,6 +64,8 @@ interface DownloadButton {
     Icon?: typeof DownloadIcon;
     label?: string;
     preferInBrowser?: boolean;
+    offsetX?: number;
+    offsetY?: number;
 }
 export declare const DownloadFileIconButton: ({ preferInBrowser, publicURL, secureName, label, Icon, onDownload, onError, ...props }: DownloadButton) => JSX.Element;
 interface UseModalIconButtonProps extends LabeledIconButtonProps {
@@ -74,7 +76,7 @@ export declare const useModalIconButton: (props: UseModalIconButtonProps) => {
     id?: string | undefined;
     ariaLabel?: string | undefined;
     disabled?: boolean | undefined;
-    color?: "primary" | "secondary" | "error" | "inherit" | "default" | "white" | undefined;
+    color?: "error" | "default" | "primary" | "secondary" | "inherit" | "white" | undefined;
     placement?: TooltipPlacement | undefined;
     onClick?: ((e: any) => void) | undefined;
     showArrow?: boolean | undefined;
@@ -95,7 +97,7 @@ export declare const IconModal: ({ open, setOpen, children, disabled, onClick, s
     id?: string | undefined;
     ariaLabel?: string | undefined;
     disabled?: boolean | undefined;
-    color?: "primary" | "secondary" | "error" | "inherit" | "default" | "white" | undefined;
+    color?: "error" | "default" | "primary" | "secondary" | "inherit" | "white" | undefined;
     placement?: TooltipPlacement | undefined;
     onClick?: ((e: any) => void) | undefined;
     showArrow?: boolean | undefined;

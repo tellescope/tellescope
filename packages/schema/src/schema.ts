@@ -313,6 +313,9 @@ import {
   enduserDiagnosisValidator,
   canvasCodingValidatorOptional,
   calendarEventAttendeesValidator,
+  developHealthDrugsValidator,
+  developHealthDiagnosesValidator,
+  developHealthMockResultValidator,
 } from "@tellescope/validation"
 
 import {
@@ -696,6 +699,7 @@ export type CustomActions = {
       { fieldId: string }, 
       { customerId: string, clientSecret: string, publishableKey: string, stripeAccount: string, businessName: string, answerText?: string, isCheckout?: boolean }
     >,
+    chargebee_details: CustomAction<{ fieldId: string }, { url: string }>,
     generate_pdf: CustomAction<
       { id: string }, 
       {  }
@@ -4389,7 +4393,7 @@ export const schema: SchemaV1 = build_schema({
     },
     defaultActions: DEFAULT_OPERATIONS,
     enduserActions: { 
-      prepare_form_response: {}, info_for_access_code: {}, submit_form_response: {}, stripe_details: {},
+      prepare_form_response: {}, info_for_access_code: {}, submit_form_response: {}, stripe_details: {}, chargebee_details: {},
       read: {}, readMany: {}, save_field_response: {},
       update: { } /* allows for hiding from client portal, storing partial responses while submitting form */ 
     },
@@ -4506,6 +4510,18 @@ export const schema: SchemaV1 = build_schema({
           stripeAccount: { validator: stringValidator, required: true },
           businessName: { validator: stringValidator, required: true },
           isCheckout: { validator: booleanValidator },
+        },
+      },
+      chargebee_details: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Chargebee details for form field',
+        path: '/form-responses/chargebee-details',
+        description: "Gets the relevant information for a Chargebee field",
+        parameters: { 
+          fieldId: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: {
+          url: { validator: stringValidator, required: true },
         },
       },
       get_report: {
@@ -8295,10 +8311,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           enduserId: { validator: mongoIdStringValidator, required: true },
           providerUserId: { validator: mongoIdStringValidator, required: true },
           insuranceType: { validator: stringValidator100, examples: ["Primary", "Secondary"] }, // Primary or Secondary
-          diagnoses: { // can't be empty
-            validator: listValidator(objectValidator<{ code: string }>({
-              code: stringValidator,
-            })),
+          diagnoses: { 
+            validator: developHealthDiagnosesValidator,
             required: true,
           },
           drug_history: {
@@ -8309,20 +8323,11 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
             required: true,
           }, 
           drugs: { // can't be empty
-            validator: listValidator(objectValidator<{ name: string, dosage: string, quantity: number }>({
-              name: stringValidator,
-              dosage: stringValidator,
-              quantity: numberValidator,
-            })),
+            validator: developHealthDrugsValidator,
             required: true,
           },
           use_patient_plan_fund_source_check: { validator: booleanValidator },
-          mock_result: {
-            validator: objectValidator<{ status: string, case: string }>({
-              status: stringValidator,
-              case: stringValidator,
-            }),
-          }
+          mock_result: { validator: developHealthMockResultValidator },
         },
         returns: {
           result: { validator: 'enduser_eligibility_result' as any, required: true },

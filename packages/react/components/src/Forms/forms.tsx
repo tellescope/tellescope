@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Button, CircularProgress, FileBlob, FileUploadHandler, Flex, LinearProgress, LoadingButton, Modal, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse, NextFieldLogicOptions } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
-import { AddressInput, AllergiesInput, AppointmentBookingInput, ConditionsInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, RichTextInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
+import { AddressInput, AllergiesInput, AppointmentBookingInput, ChargeebeeInput, ConditionsInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, RichTextInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
@@ -161,6 +161,7 @@ export const QuestionForField = ({
   const Signature = customInputs?.['signature'] ?? SignatureInput 
   const MultipleChoice = customInputs?.['multiple_choice'] ?? MultipleChoiceInput 
   const Stripe = customInputs?.['Stripe'] ?? StripeInput 
+  const Chargebee = customInputs?.['Chargebee'] ?? ChargeebeeInput 
   const File = customInputs?.['file'] ?? FileInput 
   const Files = customInputs?.['files'] ?? FilesInput 
   const Ranking = customInputs?.['ranking'] ?? RankingInput
@@ -286,6 +287,9 @@ export const QuestionForField = ({
         )
         : field.type === 'Stripe' ? (
           <Stripe field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} setCustomerId={setCustomerId} form={form} />
+        )
+        : field.type === 'Chargebee' ? (
+          <Chargebee field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Chargebee'>} setCustomerId={setCustomerId} form={form} />
         )
         : field.type === 'stringLong' ? (
           <StringLong field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string' | 'stringLong'>} form={form} />

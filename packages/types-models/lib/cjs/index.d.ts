@@ -390,6 +390,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     }[];
     groups?: string[];
     observationInvalidationReasons?: string[];
+    chargebeeEnvironments?: string[];
 }
 export type OrganizationTheme = {
     name: string;
@@ -755,6 +756,8 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
     lastDoseSpotSyncAt?: Date;
     diagnoses?: EnduserDiagnosis[];
     lockedFromPortal?: boolean;
+    chargebeeEnvironment?: string;
+    chargebeeId?: string;
 }
 export interface EnduserCustomType_readonly extends ClientRecord {
 }
@@ -1382,7 +1385,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
     discussionRoomId?: string;
 }
 export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' | 'dateString' | 'rating' | 'Time';
-export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance";
+export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance";
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType;
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic';
 export type PreviousFormFieldBuilder<T extends PreviousFormFieldType, V> = {
@@ -1497,6 +1500,8 @@ export type FormFieldOptions = FormFieldValidation & {
     observationDisplay?: string;
     observationUnit?: string;
     autoUploadFiles?: boolean;
+    chargebeeEnvironment?: string;
+    chargebeePlanId?: string;
 };
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>;
 export type FormFieldCalloutConditionComparison = 'Equals';
@@ -1842,6 +1847,9 @@ export type FormResponseAnswerHeight = FormResponseValueAnswerBuilder<'Height', 
 export type FormResponseAnswerRedirect = FormResponseValueAnswerBuilder<'Redirect', string>;
 export type FormResponseAnswerAllergies = FormResponseValueAnswerBuilder<'Allergies', AllergyResponse[]>;
 export type FormResponseAnswerConditions = FormResponseValueAnswerBuilder<'Conditions', ConditionResponse[]>;
+export type FormResponseAnswerChargebee = FormResponseValueAnswerBuilder<'Chargebee', {
+    url: string;
+}>;
 export type FormResponseAnswerSignatureValue = {
     fullName: string;
     signed: boolean;
@@ -1863,7 +1871,7 @@ export type FormResponseAnswerFileValue = {
 };
 export type FormResponseAnswerFile = FormResponseValueAnswerBuilder<'file', FormResponseAnswerFileValue>;
 export type FormResponseAnswerFiles = FormResponseValueAnswerBuilder<'files', FormResponseAnswerFileValue[]>;
-export type FormResponseValueAnswer = (FormResponseAnswerGroup | FormResponseAnswerTable | FormResponseAnswerDescription | FormResponseAnswerEmail | FormResponseAnswerNumber | FormResponseAnswerPhone | FormResponseAnswerString | FormResponseAnswerStringLong | FormResponseAnswerRichText | FormResponseAnswerSignature | FormResponseAnswerMultipleChoice | FormResponseAnswerFile | FormResponseAnswerFiles | FormResponseAnswerDate | FormResponseAnswerRating | FormResponseAnswerRanking | FormResponseAnswerDateString | FormResponseAnswerAddress | FormResponseAnswerTime | FormResponseAnswerStripe | FormResponseAnswerDropdown | FormResponseAnswerDatabaseSelect | FormResponseAnswerMedications | FormResponseAnswerRelatedContacts | FormResponseAnswerInsurance | FormResponseAnswerAppointmentBooking | FormResponseAnswerHeight | FormResponseAnswerRedirect | FormResponseAnswerHiddenValue | FormResponseAnswerEmotii | FormResponseAnswerAllergies | FormResponseAnswerConditions);
+export type FormResponseValueAnswer = (FormResponseAnswerGroup | FormResponseAnswerTable | FormResponseAnswerDescription | FormResponseAnswerEmail | FormResponseAnswerNumber | FormResponseAnswerPhone | FormResponseAnswerString | FormResponseAnswerStringLong | FormResponseAnswerRichText | FormResponseAnswerSignature | FormResponseAnswerMultipleChoice | FormResponseAnswerFile | FormResponseAnswerFiles | FormResponseAnswerDate | FormResponseAnswerRating | FormResponseAnswerRanking | FormResponseAnswerDateString | FormResponseAnswerAddress | FormResponseAnswerTime | FormResponseAnswerStripe | FormResponseAnswerDropdown | FormResponseAnswerDatabaseSelect | FormResponseAnswerMedications | FormResponseAnswerRelatedContacts | FormResponseAnswerInsurance | FormResponseAnswerAppointmentBooking | FormResponseAnswerHeight | FormResponseAnswerRedirect | FormResponseAnswerHiddenValue | FormResponseAnswerEmotii | FormResponseAnswerAllergies | FormResponseAnswerConditions | FormResponseAnswerChargebee);
 export type FormResponseValue = {
     fieldId: string;
     fieldTitle: string;
@@ -1904,6 +1912,7 @@ export type AnswerForType = {
     'Related Contacts': FormResponseAnswerRelatedContacts['value'];
     'Insurance': FormResponseAnswerInsurance['value'];
     'Appointment Booking': FormResponseAnswerAppointmentBooking['value'];
+    'Chargebee': FormResponseAnswerChargebee['value'];
     'Height': FormResponseAnswerHeight['value'];
     'Redirect': FormResponseAnswerRedirect['value'];
     'Hidden Value': FormResponseAnswerHiddenValue['value'];
@@ -2623,6 +2632,7 @@ export type ShareContentAutomationAction = AutomationActionBuilder<'shareContent
 }>;
 export type AddEnduserTagsAutomationAction = AutomationActionBuilder<'addEnduserTags', {
     tags: string[];
+    replaceExisting?: boolean;
 }>;
 export type RemoveEnduserTagsAutomationAction = AutomationActionBuilder<'removeEnduserTags', {
     tags: string[];
@@ -2633,6 +2643,7 @@ export type AddToJourneyAutomationAction = AutomationActionBuilder<'addToJourney
 export type RemoveFromJourneyAutomationAction = AutomationActionBuilder<'removeFromJourney', {
     journeyId: string;
 }>;
+export type RemoveFromAllJourneysAutomationAction = AutomationActionBuilder<'removeFromAllJourneys', {}>;
 export type IterableSendEmailAutomationAction = AutomationActionBuilder<'iterableSendEmail', {
     campaignId: string;
 }>;
@@ -2694,6 +2705,12 @@ export type SwitchToRelatedContactAutomationAction = AutomationActionBuilder<'sw
 }>;
 export type ElationSyncAutomationAction = AutomationActionBuilder<'elationSync', {}>;
 export type CanvasSyncAutomationAction = AutomationActionBuilder<'canvasSync', {}>;
+export type DevelopHealthMedicationEligibilityAutomationAction = AutomationActionBuilder<'developHealthMedEligibility', {
+    drugs: DevelopHealthDrug[];
+    diagnoses: DevelopHealthDiagnosis[];
+    providerUserId: string;
+    mock_result?: DevelopHealthMockResult;
+}>;
 export type IterableFieldsMapping = {
     iterable: string;
     tellescope: string;
@@ -2736,6 +2753,7 @@ export type AutomationActionForType = {
     'removeEnduserTags': RemoveEnduserTagsAutomationAction;
     'addToJourney': AddToJourneyAutomationAction;
     'removeFromJourney': RemoveFromJourneyAutomationAction;
+    removeFromAllJourneys: RemoveFromAllJourneysAutomationAction;
     'iterableSendEmail': IterableSendEmailAutomationAction;
     'iterableCustomEvent': IterableCustomEventAutomationAction;
     'zendeskCreateTicket': ZendeskCreateTicketAutomationAction;
@@ -2756,6 +2774,7 @@ export type AutomationActionForType = {
     'elationSync': ElationSyncAutomationAction;
     canvasSync: CanvasSyncAutomationAction;
     pushFormsToPortal: PushFormsAutomationAction;
+    developHealthMedEligibility: DevelopHealthMedicationEligibilityAutomationAction;
 };
 export type AutomationActionType = keyof AutomationActionForType;
 export type AutomationAction = AutomationActionForType[AutomationActionType];
@@ -3609,6 +3628,7 @@ export type AutomationTriggerActions = {
     "Remove From All Journeys": AutomationTriggerActionBuilder<'Remove From All Journeys', {}>;
     "Add Tags": AutomationTriggerActionBuilder<'Add Tags', {
         tags: string[];
+        replaceExisting?: boolean;
     }>;
     "Remove Tags": AutomationTriggerActionBuilder<'Remove Tags', {
         tags: string[];
@@ -3761,6 +3781,9 @@ export type AutomationTriggerEvents = {
     'Form Started': AutomationTriggerEventBuilder<"Form Started", {
         formIds?: string[];
     }, {}>;
+    "Eligibility Result Received": AutomationTriggerActionBuilder<'Eligibility Result Received', {
+        source: string;
+    }>;
 };
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents;
 export type AutomationTriggerEvent = AutomationTriggerEvents[AutomationTriggerEventType];
@@ -4815,6 +4838,7 @@ export type JourneyContext = {
     emailId?: string;
     databaseRecordId?: string;
     databaseRecordCreator?: string;
+    eligibilityResultId?: string;
 };
 export declare const TIMEZONE_MAP: {
     readonly "Africa/Abidjan": "+00:00";
@@ -5438,12 +5462,20 @@ export type TwilioQueue = {
     friendlyName: string;
     averageWaitTime: number;
 };
+export type DevelopHealthDrug = {
+    name: string;
+    dosage: string;
+    quantity: number;
+};
+export type DevelopHealthMockResult = {
+    status: string;
+    case: string;
+};
+export type DevelopHealthDiagnosis = {
+    code: string;
+};
 export type DevelopHealthRunBenefitVerificationBaseArguments = {
-    drugs: {
-        name: string;
-        dosage: string;
-        quantity: number;
-    }[];
+    drugs: DevelopHealthDrug[];
     drug_history: {
         currently_taking_drugs: {
             name: string;
@@ -5452,13 +5484,8 @@ export type DevelopHealthRunBenefitVerificationBaseArguments = {
             name: string;
         }[];
     };
-    diagnoses: {
-        code: string;
-    }[];
-    mock_result?: {
-        status: string;
-        case: string;
-    };
+    diagnoses: DevelopHealthDiagnosis[];
+    mock_result?: DevelopHealthMockResult;
     use_patient_plan_fund_source_check?: boolean;
 };
 export type ZendeskArticle = {

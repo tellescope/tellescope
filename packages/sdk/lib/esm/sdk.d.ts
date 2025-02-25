@@ -3574,6 +3574,7 @@ type Queries = {
         prepare_form_response: (args: extractFields<CustomActions['form_responses']['prepare_form_response']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['prepare_form_response']['returns']>>);
         info_for_access_code: (args: extractFields<CustomActions['form_responses']['info_for_access_code']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['info_for_access_code']['returns']>>);
         stripe_details: (args: extractFields<CustomActions['form_responses']['stripe_details']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['stripe_details']['returns']>>);
+        chargebee_details: (args: extractFields<CustomActions['form_responses']['chargebee_details']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['chargebee_details']['returns']>>);
         generate_pdf: (args: extractFields<CustomActions['form_responses']['generate_pdf']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['generate_pdf']['returns']>>);
         push_to_EHR: (args: extractFields<CustomActions['form_responses']['push_to_EHR']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['push_to_EHR']['returns']>>);
         get_report: (args: extractFields<CustomActions['form_responses']['get_report']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['get_report']['returns']>>);

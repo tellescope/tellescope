@@ -30,7 +30,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 import { TIMEZONES, USA_STATE_TO_TIMEZONE } from "@tellescope/types-models";
-import { ADMIN_ROLE, CANVAS_TITLE, get_inverse_relationship_type, MM_DD_YYYY_REGEX } from "@tellescope/constants";
+import { ADMIN_ROLE, CANVAS_TITLE, get_inverse_relationship_type, HEALTHIE_TITLE, MM_DD_YYYY_REGEX } from "@tellescope/constants";
 import sanitizeHtml from 'sanitize-html';
 import { DateTime } from "luxon";
 import { ObjectId } from "./ObjectId/objectid";
@@ -760,7 +760,7 @@ export var age_for_dob_mmddyyyy = function (mmddyyyy) {
     return actualAge;
 };
 export var get_enduser_field_value_for_key = function (enduser, key) {
-    var _a, _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
+    var _a, _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
     if (key === 'insurance.payerName')
         return (_a = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _a === void 0 ? void 0 : _a.payerName;
     if (key === 'insuranceSecondary.payerName')
@@ -805,6 +805,11 @@ export var get_enduser_field_value_for_key = function (enduser, key) {
         }
     }
     catch (err) { }
+    if (key === "Healthie ID") {
+        return (enduser.source === HEALTHIE_TITLE && enduser.externalId
+            ? enduser.externalId
+            : (_s = (_r = enduser.references) === null || _r === void 0 ? void 0 : _r.find(function (r) { return r.type === HEALTHIE_TITLE; })) === null || _s === void 0 ? void 0 : _s.id);
+    }
     return enduser === null || enduser === void 0 ? void 0 : enduser[key];
 };
 export var evaluate_conditional_logic_for_enduser_fields = function (enduser, conditions) { return (evaluate_conditional_logic(conditions, function (key, value) {

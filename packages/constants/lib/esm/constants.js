@@ -133,6 +133,7 @@ export var STRIPE_TITLE = "Stripe";
 export var EMOTII_TITLE = "Emotii";
 export var DEVELOP_HEALTH_TITLE = "Develop Health";
 export var KENDRA_TITLE = "Kendra";
+export var CHARGEBEE_TITLE = "Chargebee";
 export var ORGANIZATION_WIDE_INTEGRATIONS = [
     OPENAI_TITLE,
     ATHENA_TITLE,

@@ -303,6 +303,9 @@ import {
   ConditionResponse,
   PushFormsAutomationAction,
   FormResponseAnswerRichText,
+  DevelopHealthMedicationEligibilityAutomationAction,
+  RemoveFromAllJourneysAutomationAction,
+  FormResponseAnswerChargebee,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -1533,6 +1536,7 @@ const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
   Address: '',
   Time: '',
   Stripe: '',
+  Chargebee: '',
   Dropdown: '',
   "Database Select": '',
   Medications: '',
@@ -1550,6 +1554,7 @@ export const FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES) as FormFieldType[
 export const formFieldTypeValidator = exactMatchValidator<FormFieldType>(FORM_FIELD_TYPES)
 
 export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' | 'phoneNumber']: (value?: FormResponseValueAnswer[keyof FormResponseValueAnswer], options?: any, isOptional?: boolean) => any } = {
+  'Chargebee': objectAnyFieldsAnyValuesValidator.validate(),
   'Allergies': objectAnyFieldsAnyValuesValidator.validate(),
   'Conditions': objectAnyFieldsAnyValuesValidator.validate(),
   "Emotii": stringValidator.validate({ maxLength: 5000 }),
@@ -2132,6 +2137,12 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
       })
     ),
   }),
+  Chargebee: objectValidator<FormResponseAnswerChargebee>({
+    type: exactMatchValidator(['Chargebee']),
+    value: objectValidator<Required<FormResponseAnswerChargebee>['value']>({
+      url: stringValidatorOptional
+    }, { emptyOk: true, isOptional: true })
+  })
 })
 
 export const mmddyyyyRegex = /^\d{2}-\d{2}-\d{4}$/
@@ -2401,6 +2412,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   removeEnduserTags: '',
   addToJourney: '',
   removeFromJourney: '',
+  removeFromAllJourneys: '',
   iterableSendEmail: '',
   iterableCustomEvent: '',
   zendeskCreateTicket: '',
@@ -2418,6 +2430,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   switchToRelatedContact: '',
   canvasSync: '',
   elationSync: '',
+  developHealthMedEligibility: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -2672,7 +2685,30 @@ export const automationForMessageValidator = objectValidator<AutomationForMessag
   sendToDestinationOfRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
 }, { emptyOk: false })
 
+export const developHealthDrugsValidator = listValidator(objectValidator<{ name: string, dosage: string, quantity: number }>({
+  name: stringValidator,
+  dosage: stringValidator,
+  quantity: numberValidator,
+}))
+export const developHealthDiagnosesValidator = listValidatorEmptyOk(objectValidator<{ code: string }>({
+  code: stringValidator,
+}))
+export const developHealthMockResultValidator = objectValidator<{ status: string, case: string }>({
+  status: stringValidator,
+  case: stringValidator,
+}, { emptyOk: true, isOptional: true })
+
 export const automationActionValidator = orValidator<{ [K in AutomationActionType]: AutomationAction & { type: K } } >({
+  developHealthMedEligibility: objectValidator<DevelopHealthMedicationEligibilityAutomationAction>({
+    type: exactMatchValidator(['developHealthMedEligibility']),
+    info: objectValidator<DevelopHealthMedicationEligibilityAutomationAction['info']>({ 
+      drugs: developHealthDrugsValidator,
+      diagnoses: developHealthDiagnosesValidator,
+      mock_result: developHealthMockResultValidator,
+      providerUserId: mongoIdStringRequired,
+    }, { emptyOk: false }),
+    continueOnError: booleanValidatorOptional,
+  }),
   setEnduserStatus: objectValidator<SetEnduserStatusAutomationAction>({
     type: exactMatchValidator(['setEnduserStatus']),
     info: objectValidator<SetEnduserStatusInfo>({ status: stringValidator250 }, { emptyOk: false }),
@@ -2814,6 +2850,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     type: exactMatchValidator(['addEnduserTags']),
     info: objectValidator<AddEnduserTagsAutomationAction['info']>({ 
       tags: listOfStringsValidator, 
+      replaceExisting: booleanValidatorOptional,
     }, { emptyOk: false }),
   }),
   removeEnduserTags: objectValidator<RemoveEnduserTagsAutomationAction>({
@@ -2836,6 +2873,11 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     info: objectValidator<RemoveFromJourneyAutomationAction['info']>({ 
       journeyId: mongoIdStringRequired, 
     }, { emptyOk: false }),
+  }),
+  removeFromAllJourneys: objectValidator<RemoveFromAllJourneysAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['removeFromAllJourneys']),
+    info: objectValidator<RemoveFromAllJourneysAutomationAction['info']>({}, { emptyOk: true, isOptional: true }),
   }),
   iterableSendEmail: objectValidator<IterableSendEmailAutomationAction>({
     continueOnError: booleanValidatorOptional,
@@ -3007,6 +3049,7 @@ export const journeyContextValidator = objectValidator<JourneyContext>({
   publicIdentifier: stringValidatorOptional,
   databaseRecordId: mongoIdStringOptional,
   databaseRecordCreator: mongoIdStringOptional,
+  eligibilityResultId: mongoIdStringOptional,
 })
 
 export const relatedRecordValidator = objectValidator<RelatedRecord>({
@@ -3298,6 +3341,8 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   observationDisplay: stringValidatorOptionalEmptyOkay,
   observationUnit: stringValidatorOptionalEmptyOkay,
   autoUploadFiles: booleanValidatorOptional,
+  chargebeeEnvironment: stringValidatorOptional,
+  chargebeePlanId: stringValidatorOptional,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -4019,6 +4064,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Message Link Clicked": true,
   "Healthie Note Locked": true,
   "Database Entry Added": true,
+  "Eligibility Result Received": true,
 }
 export const AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES) as AutomationTriggerEventType[]
 
@@ -4280,6 +4326,12 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     }, { emptyOk: true }),
     conditions: optionalEmptyObjectValidator,
   }), 
+  "Eligibility Result Received": objectValidator<AutomationTriggerEvents["Eligibility Result Received"]>({
+    type: exactMatchValidator(['Eligibility Result Received']),
+    info: objectValidator<AutomationTriggerEvents['Eligibility Result Received']['info']>({
+      source: stringValidator100,
+    }),
+  }),
 })
 
 const _AUTOMATION_TRIGGER_ACTION_TYPES: { [K in AutomationTriggerActionType]: any } = {
@@ -4321,6 +4373,7 @@ export const automationTriggerActionValidator = orValidator<{ [K in AutomationTr
     type: exactMatchValidator(['Add Tags']),
     info: objectValidator<AutomationTriggerActions['Add Tags']['info']>({
       tags: listOfStringsValidator,
+      replaceExisting: booleanValidatorOptional,
     }),
   }),
   "Remove Tags": objectValidator<AutomationTriggerActions["Remove Tags"]>({
@@ -4378,7 +4431,7 @@ export const automationTriggerActionValidator = orValidator<{ [K in AutomationTr
     info: objectValidator<AutomationTriggerActions['Require Form Followups']['info']>({
       formIds: listOfUniqueStringsValidatorEmptyOk,
     }),
-  }), 
+  }),
 })
 
 

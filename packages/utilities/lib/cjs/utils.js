@@ -838,7 +838,7 @@ var age_for_dob_mmddyyyy = function (mmddyyyy) {
 };
 exports.age_for_dob_mmddyyyy = age_for_dob_mmddyyyy;
 var get_enduser_field_value_for_key = function (enduser, key) {
-    var _a, _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
+    var _a, _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
     if (key === 'insurance.payerName')
         return (_a = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _a === void 0 ? void 0 : _a.payerName;
     if (key === 'insuranceSecondary.payerName')
@@ -883,6 +883,11 @@ var get_enduser_field_value_for_key = function (enduser, key) {
         }
     }
     catch (err) { }
+    if (key === "Healthie ID") {
+        return (enduser.source === constants_1.HEALTHIE_TITLE && enduser.externalId
+            ? enduser.externalId
+            : (_s = (_r = enduser.references) === null || _r === void 0 ? void 0 : _r.find(function (r) { return r.type === constants_1.HEALTHIE_TITLE; })) === null || _s === void 0 ? void 0 : _s.id);
+    }
     return enduser === null || enduser === void 0 ? void 0 : enduser[key];
 };
 exports.get_enduser_field_value_for_key = get_enduser_field_value_for_key;

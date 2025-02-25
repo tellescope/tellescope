@@ -144,6 +144,7 @@ export const STRIPE_TITLE = "Stripe"
 export const EMOTII_TITLE = "Emotii"
 export const DEVELOP_HEALTH_TITLE = "Develop Health"
 export const KENDRA_TITLE = "Kendra"
+export const CHARGEBEE_TITLE = "Chargebee"
 
 export const ORGANIZATION_WIDE_INTEGRATIONS = [
   OPENAI_TITLE, 

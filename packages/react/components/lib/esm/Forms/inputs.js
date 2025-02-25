@@ -1857,5 +1857,41 @@ export var RichTextInput = function (_a) {
     var field = _a.field, value = _a.value, onChange = _a.onChange;
     return (_jsx(WYSIWYG, { initialHTML: value, onChange: function (v) { return onChange(v, field.id); }, style: { width: '100%' }, editorStyle: { width: '100%' } }));
 };
+export var ChargeebeeInput = function (_a) {
+    var field = _a.field, value = _a.value, onChange = _a.onChange, setCustomerId = _a.setCustomerId;
+    var session = useResolvedSession();
+    var _b = useState(''), url = _b[0], setUrl = _b[1];
+    var _d = useState(''), error = _d[0], setError = _d[1];
+    var _e = useState(0), loadCount = _e[0], setLoadCount = _e[1];
+    var fetchRef = useRef(false);
+    useEffect(function () {
+        if (fetchRef.current)
+            return;
+        fetchRef.current = true;
+        session.api.form_responses.chargebee_details({ fieldId: field.id })
+            .then(function (_a) {
+            var url = _a.url;
+            return setUrl(url);
+        })
+            .catch(setError);
+    }, [session]);
+    var loadAnswerRef = useRef(false);
+    useEffect(function () {
+        if (loadCount !== 2)
+            return;
+        if (loadAnswerRef.current)
+            return;
+        loadAnswerRef.current = true;
+        onChange({ url: url }, field.id);
+    }, [loadCount, url]);
+    if (error && typeof error === 'string')
+        return _jsx(Typography, __assign({ color: "error" }, { children: error }));
+    if (!url)
+        return _jsx(LinearProgress, {});
+    if (loadCount === 2) {
+        return (_jsxs(Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap" }, { children: [_jsx(CheckCircleOutline, { color: "success" }), _jsx(Typography, __assign({ sx: { ml: 1, fontSize: 20 } }, { children: "Your purchase was successful" }))] })));
+    }
+    return (_jsx("iframe", { src: url, title: "Checkout", style: { border: 'none', width: '100%', height: 700 }, onLoad: function () { return setLoadCount(function (l) { return l + 1; }); } }));
+};
 var templateObject_1, templateObject_2;
 //# sourceMappingURL=inputs.js.map

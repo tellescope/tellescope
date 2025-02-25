@@ -1129,6 +1129,7 @@ var _FORM_FIELD_TYPES = {
     Address: '',
     Time: '',
     Stripe: '',
+    Chargebee: '',
     Dropdown: '',
     "Database Select": '',
     Medications: '',
@@ -1145,6 +1146,7 @@ var _FORM_FIELD_TYPES = {
 export var FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES);
 export var formFieldTypeValidator = exactMatchValidator(FORM_FIELD_TYPES);
 export var FORM_FIELD_VALIDATORS_BY_TYPE = {
+    'Chargebee': objectAnyFieldsAnyValuesValidator.validate(),
     'Allergies': objectAnyFieldsAnyValuesValidator.validate(),
     'Conditions': objectAnyFieldsAnyValuesValidator.validate(),
     "Emotii": stringValidator.validate({ maxLength: 5000 }),
@@ -1694,6 +1696,12 @@ export var formResponseAnswerValidator = orValidator({
             system: stringValidator1000,
         })),
     }),
+    Chargebee: objectValidator({
+        type: exactMatchValidator(['Chargebee']),
+        value: objectValidator({
+            url: stringValidatorOptional
+        }, { emptyOk: true, isOptional: true })
+    })
 });
 export var mmddyyyyRegex = /^\d{2}-\d{2}-\d{4}$/;
 export var photonDisabledForEnduser = function (enduser) { return !(enduser.fname && enduser.lname && enduser.gender && enduser.phone
@@ -1906,6 +1914,7 @@ var _AUTOMATION_ACTIONS = {
     removeEnduserTags: '',
     addToJourney: '',
     removeFromJourney: '',
+    removeFromAllJourneys: '',
     iterableSendEmail: '',
     iterableCustomEvent: '',
     zendeskCreateTicket: '',
@@ -1923,6 +1932,7 @@ var _AUTOMATION_ACTIONS = {
     switchToRelatedContact: '',
     canvasSync: '',
     elationSync: '',
+    developHealthMedEligibility: '',
 };
 export var AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS);
 export var automationActionTypeValidator = exactMatchValidator(AUTOMATION_ACTIONS);
@@ -2124,7 +2134,29 @@ export var automationForMessageValidator = objectValidator({
     assignment: senderAssignmentStrategyValidatorOptional,
     sendToDestinationOfRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
 }, { emptyOk: false });
+export var developHealthDrugsValidator = listValidator(objectValidator({
+    name: stringValidator,
+    dosage: stringValidator,
+    quantity: numberValidator,
+}));
+export var developHealthDiagnosesValidator = listValidatorEmptyOk(objectValidator({
+    code: stringValidator,
+}));
+export var developHealthMockResultValidator = objectValidator({
+    status: stringValidator,
+    case: stringValidator,
+}, { emptyOk: true, isOptional: true });
 export var automationActionValidator = orValidator({
+    developHealthMedEligibility: objectValidator({
+        type: exactMatchValidator(['developHealthMedEligibility']),
+        info: objectValidator({
+            drugs: developHealthDrugsValidator,
+            diagnoses: developHealthDiagnosesValidator,
+            mock_result: developHealthMockResultValidator,
+            providerUserId: mongoIdStringRequired,
+        }, { emptyOk: false }),
+        continueOnError: booleanValidatorOptional,
+    }),
     setEnduserStatus: objectValidator({
         type: exactMatchValidator(['setEnduserStatus']),
         info: objectValidator({ status: stringValidator250 }, { emptyOk: false }),
@@ -2263,6 +2295,7 @@ export var automationActionValidator = orValidator({
         type: exactMatchValidator(['addEnduserTags']),
         info: objectValidator({
             tags: listOfStringsValidator,
+            replaceExisting: booleanValidatorOptional,
         }, { emptyOk: false }),
     }),
     removeEnduserTags: objectValidator({
@@ -2285,6 +2318,11 @@ export var automationActionValidator = orValidator({
         info: objectValidator({
             journeyId: mongoIdStringRequired,
         }, { emptyOk: false }),
+    }),
+    removeFromAllJourneys: objectValidator({
+        continueOnError: booleanValidatorOptional,
+        type: exactMatchValidator(['removeFromAllJourneys']),
+        info: objectValidator({}, { emptyOk: true, isOptional: true }),
     }),
     iterableSendEmail: objectValidator({
         continueOnError: booleanValidatorOptional,
@@ -2453,6 +2491,7 @@ export var journeyContextValidator = objectValidator({
     publicIdentifier: stringValidatorOptional,
     databaseRecordId: mongoIdStringOptional,
     databaseRecordCreator: mongoIdStringOptional,
+    eligibilityResultId: mongoIdStringOptional,
 });
 export var relatedRecordValidator = objectValidator({
     type: stringValidator100,
@@ -2716,6 +2755,8 @@ export var formFieldOptionsValidator = objectValidator({
     observationDisplay: stringValidatorOptionalEmptyOkay,
     observationUnit: stringValidatorOptionalEmptyOkay,
     autoUploadFiles: booleanValidatorOptional,
+    chargebeeEnvironment: stringValidatorOptional,
+    chargebeePlanId: stringValidatorOptional,
 });
 export var blockValidator = orValidator({
     h1: objectValidator({
@@ -3402,6 +3443,7 @@ var _AUTOMATION_TRIGGER_EVENT_TYPES = {
     "Message Link Clicked": true,
     "Healthie Note Locked": true,
     "Database Entry Added": true,
+    "Eligibility Result Received": true,
 };
 export var AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES);
 export var automationTriggerEventValidator = orValidator({
@@ -3662,6 +3704,12 @@ export var automationTriggerEventValidator = orValidator({
         }, { emptyOk: true }),
         conditions: optionalEmptyObjectValidator,
     }),
+    "Eligibility Result Received": objectValidator({
+        type: exactMatchValidator(['Eligibility Result Received']),
+        info: objectValidator({
+            source: stringValidator100,
+        }),
+    }),
 });
 var _AUTOMATION_TRIGGER_ACTION_TYPES = {
     "Add To Journey": true,
@@ -3701,6 +3749,7 @@ export var automationTriggerActionValidator = orValidator({
         type: exactMatchValidator(['Add Tags']),
         info: objectValidator({
             tags: listOfStringsValidator,
+            replaceExisting: booleanValidatorOptional,
         }),
     }),
     "Remove Tags": objectValidator({

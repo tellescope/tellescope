@@ -20,7 +20,7 @@ export declare const RatingInput: ({ field, value, onChange }: FormInputProps<'r
 export declare const RankingInput: ({ field, value, onChange }: FormInputProps<'ranking'>) => JSX.Element;
 export declare const DateInput: ({ field, value, onChange, placement, ...props }: {
     field: FormField;
-    placement?: "left" | "right" | "bottom" | "top" | undefined;
+    placement?: "top" | "left" | "right" | "bottom" | undefined;
 } & FormInputProps<"date"> & Styled) => JSX.Element;
 export declare const TableInput: ({ field, value, onChange, ...props }: FormInputProps<'Input Table'>) => JSX.Element;
 export declare const AutoFocusTextField: (props: TextFieldProps) => JSX.Element;
@@ -67,4 +67,7 @@ export declare const EmotiiInput: ({ goToNextField, goToPreviousField, field, va
 export declare const AllergiesInput: ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'Allergies'>) => JSX.Element;
 export declare const ConditionsInput: ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'Conditions'>) => JSX.Element;
 export declare const RichTextInput: ({ field, value, onChange }: FormInputProps<'Rich Text'>) => JSX.Element;
+export declare const ChargeebeeInput: ({ field, value, onChange, setCustomerId }: FormInputProps<"Chargebee"> & {
+    setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>;
+}) => JSX.Element;
 //# sourceMappingURL=inputs.d.ts.map

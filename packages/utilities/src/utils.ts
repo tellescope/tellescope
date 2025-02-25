@@ -1,5 +1,5 @@
 import { AllergyResponse, AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserInsurance, EnduserObservation, EnduserRelationship, File, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerAddress, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, LabeledField, ManagedContentRecord, MedicationResponse, Organization, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, TIMEZONES, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
-import { ADMIN_ROLE, CANVAS_TITLE, get_inverse_relationship_type, MM_DD_YYYY_REGEX } from "@tellescope/constants"
+import { ADMIN_ROLE, CANVAS_TITLE, get_inverse_relationship_type, HEALTHIE_TITLE, MM_DD_YYYY_REGEX } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 import { DateTime } from "luxon"
 
@@ -844,6 +844,14 @@ export const get_enduser_field_value_for_key = (enduser: Omit<Enduser, 'id'>, ke
       return ((enduser as any)._id as ObjectId).toString()
     }
   } catch(err) { }
+
+  if (key === "Healthie ID") {
+    return (
+      enduser.source === HEALTHIE_TITLE && enduser.externalId
+        ? enduser.externalId
+        : enduser.references?.find(r => r.type === HEALTHIE_TITLE)?.id
+    )
+  }
 
   return enduser?.[key as keyof typeof enduser] as any
 }

@@ -426,6 +426,11 @@ export type CustomActions = {
             answerText?: string;
             isCheckout?: boolean;
         }>;
+        chargebee_details: CustomAction<{
+            fieldId: string;
+        }, {
+            url: string;
+        }>;
         generate_pdf: CustomAction<{
             id: string;
         }, {}>;

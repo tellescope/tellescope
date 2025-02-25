@@ -310,6 +310,7 @@ var EnduserSession = /** @class */ (function (_super) {
         _this.api.form_responses.save_field_response = function (args) { return _this._PATCH("/v1".concat(schema.form_responses.customActions.save_field_response.path), args); };
         _this.api.form_responses.info_for_access_code = function (args) { return _this._GET("/v1".concat(schema.form_responses.customActions.info_for_access_code.path), args); };
         _this.api.form_responses.stripe_details = function (args) { return _this._GET("/v1".concat(schema.form_responses.customActions.stripe_details.path), args); };
+        _this.api.form_responses.chargebee_details = function (args) { return _this._GET("/v1".concat(schema.form_responses.customActions.chargebee_details.path), args); };
         // files have defaultQueries
         _this.api.files.prepare_file_upload = function (a) { return _this._POST("/v1/prepare-file-upload", a); };
         _this.api.files.confirm_file_upload = function (args) { return _this._POST("/v1".concat(schema.files.customActions.confirm_file_upload.path), args); };

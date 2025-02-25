@@ -64,6 +64,8 @@ interface DownloadButton {
     Icon?: typeof DownloadIcon;
     label?: string;
     preferInBrowser?: boolean;
+    offsetX?: number;
+    offsetY?: number;
 }
 export declare const DownloadFileIconButton: ({ preferInBrowser, publicURL, secureName, label, Icon, onDownload, onError, ...props }: DownloadButton) => JSX.Element;
 interface UseModalIconButtonProps extends LabeledIconButtonProps {

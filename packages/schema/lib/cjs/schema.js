@@ -2804,7 +2804,7 @@ exports.schema = (0, exports.build_schema)({
             }, canvasEncounterId: { validator: validation_1.stringValidator100 }, pushedToPortalAt: { validator: validation_1.dateValidatorOptional } }),
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         enduserActions: {
-            prepare_form_response: {}, info_for_access_code: {}, submit_form_response: {}, stripe_details: {},
+            prepare_form_response: {}, info_for_access_code: {}, submit_form_response: {}, stripe_details: {}, chargebee_details: {},
             read: {}, readMany: {}, save_field_response: {},
             update: {} /* allows for hiding from client portal, storing partial responses while submitting form */
         },
@@ -2921,6 +2921,18 @@ exports.schema = (0, exports.build_schema)({
                     stripeAccount: { validator: validation_1.stringValidator, required: true },
                     businessName: { validator: validation_1.stringValidator, required: true },
                     isCheckout: { validator: validation_1.booleanValidator },
+                },
+            },
+            chargebee_details: {
+                op: "custom", access: 'read', method: "get",
+                name: 'Chargebee details for form field',
+                path: '/form-responses/chargebee-details',
+                description: "Gets the relevant information for a Chargebee field",
+                parameters: {
+                    fieldId: { validator: validation_1.mongoIdStringRequired, required: true },
+                },
+                returns: {
+                    url: { validator: validation_1.stringValidator, required: true },
                 },
             },
             get_report: {
@@ -5886,9 +5898,7 @@ exports.schema = (0, exports.build_schema)({
                     providerUserId: { validator: validation_1.mongoIdStringRequired, required: true },
                     insuranceType: { validator: validation_1.stringValidator100, examples: ["Primary", "Secondary"] },
                     diagnoses: {
-                        validator: (0, validation_1.listValidator)((0, validation_1.objectValidator)({
-                            code: validation_1.stringValidator,
-                        })),
+                        validator: validation_1.developHealthDiagnosesValidator,
                         required: true,
                     },
                     drug_history: {
@@ -5899,20 +5909,11 @@ exports.schema = (0, exports.build_schema)({
                         required: true,
                     },
                     drugs: {
-                        validator: (0, validation_1.listValidator)((0, validation_1.objectValidator)({
-                            name: validation_1.stringValidator,
-                            dosage: validation_1.stringValidator,
-                            quantity: validation_1.numberValidator,
-                        })),
+                        validator: validation_1.developHealthDrugsValidator,
                         required: true,
                     },
                     use_patient_plan_fund_source_check: { validator: validation_1.booleanValidator },
-                    mock_result: {
-                        validator: (0, validation_1.objectValidator)({
-                            status: validation_1.stringValidator,
-                            case: validation_1.stringValidator,
-                        }),
-                    }
+                    mock_result: { validator: validation_1.developHealthMockResultValidator },
                 },
                 returns: {
                     result: { validator: 'enduser_eligibility_result', required: true },

@@ -142,6 +142,9 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
     stripe_details: (args: extractFields<CustomActions['form_responses']['stripe_details']['parameters']>) => (
       Promise<extractFields<CustomActions['form_responses']['stripe_details']['returns']>>
     ),
+    chargebee_details: (args: extractFields<CustomActions['form_responses']['chargebee_details']['parameters']>) => (
+      Promise<extractFields<CustomActions['form_responses']['chargebee_details']['returns']>>
+    ),
   },
   meetings: {
     attendee_info: (args: { id: string }) => Promise<{ attendee: Attendee, others: UserIdentity[] }>,
@@ -333,6 +336,7 @@ export class EnduserSession extends Session {
     this.api.form_responses.save_field_response     = args => this._PATCH(`/v1${schema.form_responses.customActions.save_field_response.path}`, args)
     this.api.form_responses.info_for_access_code    = args => this._GET(`/v1${schema.form_responses.customActions.info_for_access_code.path}`, args)
     this.api.form_responses.stripe_details          = args => this._GET(`/v1${schema.form_responses.customActions.stripe_details.path}`, args)
+    this.api.form_responses.chargebee_details       = args => this._GET(`/v1${schema.form_responses.customActions.chargebee_details.path}`, args)
 
     // files have defaultQueries
     this.api.files.prepare_file_upload = a => this._POST(`/v1/prepare-file-upload`, a)

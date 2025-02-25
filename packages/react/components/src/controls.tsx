@@ -206,6 +206,8 @@ interface DownloadButton {
   Icon?: typeof DownloadIcon
   label?: string,
   preferInBrowser?: boolean,
+  offsetX?: number,
+  offsetY?: number,
 }
 
 export const DownloadFileIconButton = ({ preferInBrowser, publicURL, secureName, label="Download File", Icon=DownloadIcon, onDownload, onError, ...props }: DownloadButton) => {

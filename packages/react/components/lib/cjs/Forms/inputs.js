@@ -97,7 +97,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RichTextInput = exports.ConditionsInput = exports.AllergiesInput = exports.EmotiiInput = exports.HiddenValueInput = exports.RedirectInput = exports.HeightInput = exports.AppointmentBookingInput = exports.RelatedContactsInput = exports.contact_is_valid = exports.MedicationsInput = exports.CanvasMedicationsInput = exports.DatabaseSelectInput = exports.DropdownInput = exports.Progress = exports.StripeInput = exports.MultipleChoiceInput = exports.FilesInput = exports.safe_create_url = exports.FileInput = exports.convertHEIC = exports.SignatureInput = exports.ESignatureTerms = exports.AddressInput = exports.TimeInput = exports.InsuranceInput = exports.NumberInput = exports.EmailInput = exports.PhoneInput = exports.StringLongInput = exports.StringInput = exports.DateStringInput = exports.AutoFocusTextField = exports.TableInput = exports.DateInput = exports.RankingInput = exports.RatingInput = exports.PdfViewer = exports.defaultButtonStyles = exports.defaultInputProps = exports.LanguageSelect = void 0;
+exports.ChargeebeeInput = exports.RichTextInput = exports.ConditionsInput = exports.AllergiesInput = exports.EmotiiInput = exports.HiddenValueInput = exports.RedirectInput = exports.HeightInput = exports.AppointmentBookingInput = exports.RelatedContactsInput = exports.contact_is_valid = exports.MedicationsInput = exports.CanvasMedicationsInput = exports.DatabaseSelectInput = exports.DropdownInput = exports.Progress = exports.StripeInput = exports.MultipleChoiceInput = exports.FilesInput = exports.safe_create_url = exports.FileInput = exports.convertHEIC = exports.SignatureInput = exports.ESignatureTerms = exports.AddressInput = exports.TimeInput = exports.InsuranceInput = exports.NumberInput = exports.EmailInput = exports.PhoneInput = exports.StringLongInput = exports.StringInput = exports.DateStringInput = exports.AutoFocusTextField = exports.TableInput = exports.DateInput = exports.RankingInput = exports.RatingInput = exports.PdfViewer = exports.defaultButtonStyles = exports.defaultInputProps = exports.LanguageSelect = void 0;
 var jsx_runtime_1 = require("react/jsx-runtime");
 var react_1 = __importStar(require("react"));
 var axios_1 = __importDefault(require("axios"));
@@ -1925,5 +1925,42 @@ var RichTextInput = function (_a) {
     return ((0, jsx_runtime_1.jsx)(wysiwyg_1.WYSIWYG, { initialHTML: value, onChange: function (v) { return onChange(v, field.id); }, style: { width: '100%' }, editorStyle: { width: '100%' } }));
 };
 exports.RichTextInput = RichTextInput;
+var ChargeebeeInput = function (_a) {
+    var field = _a.field, value = _a.value, onChange = _a.onChange, setCustomerId = _a.setCustomerId;
+    var session = (0, __1.useResolvedSession)();
+    var _b = (0, react_1.useState)(''), url = _b[0], setUrl = _b[1];
+    var _d = (0, react_1.useState)(''), error = _d[0], setError = _d[1];
+    var _e = (0, react_1.useState)(0), loadCount = _e[0], setLoadCount = _e[1];
+    var fetchRef = (0, react_1.useRef)(false);
+    (0, react_1.useEffect)(function () {
+        if (fetchRef.current)
+            return;
+        fetchRef.current = true;
+        session.api.form_responses.chargebee_details({ fieldId: field.id })
+            .then(function (_a) {
+            var url = _a.url;
+            return setUrl(url);
+        })
+            .catch(setError);
+    }, [session]);
+    var loadAnswerRef = (0, react_1.useRef)(false);
+    (0, react_1.useEffect)(function () {
+        if (loadCount !== 2)
+            return;
+        if (loadAnswerRef.current)
+            return;
+        loadAnswerRef.current = true;
+        onChange({ url: url }, field.id);
+    }, [loadCount, url]);
+    if (error && typeof error === 'string')
+        return (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ color: "error" }, { children: error }));
+    if (!url)
+        return (0, jsx_runtime_1.jsx)(LinearProgress_1.default, {});
+    if (loadCount === 2) {
+        return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap" }, { children: [(0, jsx_runtime_1.jsx)(icons_material_1.CheckCircleOutline, { color: "success" }), (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { ml: 1, fontSize: 20 } }, { children: "Your purchase was successful" }))] })));
+    }
+    return ((0, jsx_runtime_1.jsx)("iframe", { src: url, title: "Checkout", style: { border: 'none', width: '100%', height: 700 }, onLoad: function () { return setLoadCount(function (l) { return l + 1; }); } }));
+};
+exports.ChargeebeeInput = ChargeebeeInput;
 var templateObject_1, templateObject_2;
 //# sourceMappingURL=inputs.js.map
