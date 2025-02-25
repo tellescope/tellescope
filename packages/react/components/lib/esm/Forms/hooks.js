@@ -1336,6 +1336,25 @@ export var useTellescopeForm = function (_a) {
             })
                 .catch(console.error);
         }
+        var cbSaveField = fields.find(function (f) { return f.id === fieldId && (f.type === 'Chargebee'); });
+        if (cbSaveField && typeof value === 'object' && (formResponseId || accessCode)) {
+            session.api.form_responses.save_field_response({
+                accessCode: accessCode,
+                formResponseId: formResponseId,
+                response: {
+                    answer: {
+                        type: cbSaveField.type,
+                        value: value,
+                    },
+                    fieldId: cbSaveField.id,
+                    fieldTitle: cbSaveField.title,
+                    externalId: cbSaveField.externalId,
+                    fieldDescription: cbSaveField.description,
+                    fieldHtmlDescription: cbSaveField.htmlDescription,
+                },
+            })
+                .catch(console.error);
+        }
     }, [fields]);
     var onAddFile = useCallback(function (blobs, fieldId) {
         if (fieldId === void 0) { fieldId = activeField.value.id; }

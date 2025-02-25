@@ -1884,13 +1884,13 @@ export var ChargeebeeInput = function (_a) {
         loadAnswerRef.current = true;
         onChange({ url: url }, field.id);
     }, [loadCount, url]);
+    if (value || loadCount === 2) {
+        return (_jsxs(Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap" }, { children: [_jsx(CheckCircleOutline, { color: "success" }), _jsx(Typography, __assign({ sx: { ml: 1, fontSize: 20 } }, { children: "Your purchase was successful" }))] })));
+    }
     if (error && typeof error === 'string')
         return _jsx(Typography, __assign({ color: "error" }, { children: error }));
     if (!url)
         return _jsx(LinearProgress, {});
-    if (loadCount === 2) {
-        return (_jsxs(Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap" }, { children: [_jsx(CheckCircleOutline, { color: "success" }), _jsx(Typography, __assign({ sx: { ml: 1, fontSize: 20 } }, { children: "Your purchase was successful" }))] })));
-    }
     return (_jsx("iframe", { src: url, title: "Checkout", style: { border: 'none', width: '100%', height: 700 }, onLoad: function () { return setLoadCount(function (l) { return l + 1; }); } }));
 };
 var templateObject_1, templateObject_2;

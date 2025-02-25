@@ -1415,6 +1415,26 @@ export const useTellescopeForm = ({ isPublicForm, form, urlLogicValue, customiza
       })
       .catch(console.error)
     }
+
+    const cbSaveField = fields.find(f => f.id === fieldId && (f.type === 'Chargebee'))
+    if (cbSaveField && typeof value === 'object' && (formResponseId || accessCode)) {
+      session.api.form_responses.save_field_response({
+        accessCode,
+        formResponseId,
+        response: {
+          answer: {
+            type: cbSaveField.type as "Chargebee",
+            value,
+          } as any,
+          fieldId: cbSaveField.id,
+          fieldTitle: cbSaveField.title,
+          externalId: cbSaveField.externalId,
+          fieldDescription: cbSaveField.description,
+          fieldHtmlDescription: cbSaveField.htmlDescription,
+        },
+      })
+      .catch(console.error)
+    }
   }, [fields])
 
   const onAddFile = useCallback((blobs?: FileBlob | FileBlob[], fieldId=activeField.value.id) => {

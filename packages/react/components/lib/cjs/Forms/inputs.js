@@ -1952,13 +1952,13 @@ var ChargeebeeInput = function (_a) {
         loadAnswerRef.current = true;
         onChange({ url: url }, field.id);
     }, [loadCount, url]);
+    if (value || loadCount === 2) {
+        return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap" }, { children: [(0, jsx_runtime_1.jsx)(icons_material_1.CheckCircleOutline, { color: "success" }), (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { ml: 1, fontSize: 20 } }, { children: "Your purchase was successful" }))] })));
+    }
     if (error && typeof error === 'string')
         return (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ color: "error" }, { children: error }));
     if (!url)
         return (0, jsx_runtime_1.jsx)(LinearProgress_1.default, {});
-    if (loadCount === 2) {
-        return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap" }, { children: [(0, jsx_runtime_1.jsx)(icons_material_1.CheckCircleOutline, { color: "success" }), (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { ml: 1, fontSize: 20 } }, { children: "Your purchase was successful" }))] })));
-    }
     return ((0, jsx_runtime_1.jsx)("iframe", { src: url, title: "Checkout", style: { border: 'none', width: '100%', height: 700 }, onLoad: function () { return setLoadCount(function (l) { return l + 1; }); } }));
 };
 exports.ChargeebeeInput = ChargeebeeInput;

@@ -3342,9 +3342,7 @@ export const ChargeebeeInput = ({ field, value, onChange, setCustomerId }: FormI
     onChange({ url }, field.id)
   }, [loadCount, url])
 
-  if (error && typeof error === 'string') return <Typography color="error">{error}</Typography>
-  if (!url) return <LinearProgress />
-  if (loadCount === 2) {
+  if (value || loadCount === 2) {
     return (
       <Grid container alignItems="center" wrap="nowrap">
         <CheckCircleOutline color="success" />
@@ -3355,6 +3353,8 @@ export const ChargeebeeInput = ({ field, value, onChange, setCustomerId }: FormI
       </Grid>
     )
   }
+  if (error && typeof error === 'string') return <Typography color="error">{error}</Typography>
+  if (!url) return <LinearProgress />
   return (
     <iframe src={url} title="Checkout" style={{ border: 'none', width: '100%', height: 700 }} 
       onLoad={() => setLoadCount(l => l + 1)} 
