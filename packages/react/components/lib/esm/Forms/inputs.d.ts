@@ -20,7 +20,7 @@ export declare const RatingInput: ({ field, value, onChange }: FormInputProps<'r
 export declare const RankingInput: ({ field, value, onChange }: FormInputProps<'ranking'>) => JSX.Element;
 export declare const DateInput: ({ field, value, onChange, placement, ...props }: {
     field: FormField;
-    placement?: "left" | "right" | "bottom" | "top" | undefined;
+    placement?: "top" | "right" | "bottom" | "left" | undefined;
 } & FormInputProps<"date"> & Styled) => JSX.Element;
 export declare const TableInput: ({ field, value, onChange, ...props }: FormInputProps<'Input Table'>) => JSX.Element;
 export declare const AutoFocusTextField: (props: TextFieldProps) => JSX.Element;
@@ -52,7 +52,7 @@ export declare const Progress: ({ numerator, denominator, style }: {
     denominator: number;
 } & Styled) => JSX.Element;
 export declare const DropdownInput: ({ field, value, onChange }: FormInputProps<'Dropdown'>) => JSX.Element;
-export declare const DatabaseSelectInput: ({ field, value: _value, onChange, onDatabaseSelect, responses }: FormInputProps<"Database Select"> & {
+export declare const DatabaseSelectInput: ({ field, value: _value, onChange, onDatabaseSelect, responses, size }: FormInputProps<"Database Select"> & {
     responses: FormResponseValue[];
 }) => JSX.Element;
 export declare const CanvasMedicationsInput: ({ field, value, onChange }: FormInputProps<'Medications'>) => JSX.Element;

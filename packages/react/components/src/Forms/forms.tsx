@@ -967,7 +967,10 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
   const list = useListForFormFields(fields, responses, { form: props.form, gender: enduser?.gender })
 
   const includedFieldIds = (
-    Array.from(new Set([...list.map(f => f.id), ...(existingResponses ?? []).map(e => e.fieldId)])) 
+    Array.from(new Set([
+      ...list.map(f => f.id), 
+      ...(existingResponses ?? []).filter(e => !e.isPrepopulatedFromEnduserField).map(e => e.fieldId)
+    ]))
   )
 
   const handleSubmit = useCallback(async () => {

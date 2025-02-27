@@ -9050,6 +9050,104 @@ const ticket_tests = async () => {
   ])
 }
 
+const fromEmailOverride_tests = async () => {
+  log_header("fromEmailOvrride")
+
+  const enduser = await sdk.api.endusers.createOne({ email: 'test@tellescope.com' })
+
+  await async_test(
+    "fromEmailOverride missing",
+    () => sdk.api.emails.createOne({ 
+      logOnly: true,
+      subject: 'test',
+      enduserId: enduser.id,
+      textContent: '',
+    }),
+    passOnAnyResult
+  )
+  await async_test(
+    "fromEmailOverride missing bulk",
+    () => sdk.api.emails.createSome([{ 
+      logOnly: true,
+      subject: 'test',
+      enduserId: enduser.id,
+      textContent: '',
+    }]),
+    passOnAnyResult
+  )
+  await async_test(
+    "fromEmailOverride My Email",
+    () => sdk.api.emails.createOne({ 
+      logOnly: true,
+      subject: 'test',
+      enduserId: enduser.id,
+      textContent: '',
+      fromEmailOverride: "My Email"
+    }),
+    passOnAnyResult
+  )
+  await async_test(
+    "fromEmailOverride My Email (bulk)",
+    () => sdk.api.emails.createSome([{ 
+      logOnly: true,
+      subject: 'test',
+      enduserId: enduser.id,
+      textContent: '',
+      fromEmailOverride: "My Email"
+    }]),
+    passOnAnyResult
+  )
+  await async_test(
+    "fromEmailOverride test@",
+    () => sdk.api.emails.createOne({ 
+      logOnly: true,
+      subject: 'test',
+      enduserId: enduser.id,
+      textContent: '',
+      fromEmailOverride: "test@tellescope.com"
+    }),
+    passOnAnyResult
+  )
+  await async_test(
+    "fromEmailOverride test@ bulk",
+    () => sdk.api.emails.createSome([{ 
+      logOnly: true,
+      subject: 'test',
+      enduserId: enduser.id,
+      textContent: '',
+      fromEmailOverride: "test@tellescope.com"
+    }]),
+    passOnAnyResult
+  )
+  await async_test(
+    "fromEmailOverride fail@",
+    () => sdk.api.emails.createOne({ 
+      logOnly: true,
+      subject: 'test',
+      enduserId: enduser.id,
+      textContent: '',
+      fromEmailOverride: "fail@tellescope.com"
+    }),
+    handleAnyError
+  )
+  await async_test(
+    "fromEmailOverride fail@ bulk",
+    () => sdk.api.emails.createSome([{ 
+      logOnly: true,
+      subject: 'test',
+      enduserId: enduser.id,
+      textContent: '',
+      fromEmailOverride: "fail@tellescope.com"
+    }]),
+    handleAnyError
+  )
+
+
+  return await Promise.all([
+    sdk.api.endusers.deleteOne(enduser.id)
+  ])
+}
+
 (async () => {
   log_header("API")
 
@@ -9164,6 +9262,7 @@ const ticket_tests = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await fromEmailOverride_tests()
     await ticket_tests()
     await uniqueness_tests()
     await enduser_orders_tests()

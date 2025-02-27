@@ -1907,6 +1907,7 @@ exports.userDisplayInfoValidator = (0, exports.objectValidator)({
 exports.meetingDisplayInfoValidator = (0, exports.indexableValidator)(exports.mongoIdStringRequired, exports.userDisplayInfoValidator);
 exports.chatRoomUserInfoValidator = (0, exports.objectAnyFieldsValidator)((0, exports.objectValidator)({
     unreadCount: exports.nonNegNumberValidator,
+    markedUnread: exports.booleanValidatorOptional,
 }));
 var _LIST_QUERY_QUALIFIERS = {
     "One Of": '',
@@ -2699,6 +2700,7 @@ var _TABLE_INPUT_TYPES = {
     Date: '',
     Text: '',
     Select: '',
+    Database: '',
 };
 exports.TABLE_INPUT_TYPES = Object.keys(_TABLE_INPUT_TYPES);
 exports.tableInputTypesValidator = (0, exports.exactMatchValidator)(exports.TABLE_INPUT_TYPES);
@@ -2718,6 +2720,14 @@ exports.tableInputChoiceValidator = (0, exports.orValidator)({
         label: exports.stringValidator1000,
         info: (0, exports.objectValidator)({
             choices: exports.listOfStringsValidator,
+        }),
+    }),
+    Database: (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['Database']),
+        label: exports.stringValidator1000,
+        info: (0, exports.objectValidator)({
+            databaseId: exports.mongoIdStringRequired,
+            databaseLabel: exports.stringValidator1000,
         }),
     }),
 });
@@ -4230,6 +4240,7 @@ exports.analyticsQueryValidator = (0, exports.orValidator)({
                 to: exports.dateOptionalOrEmptyStringValidator,
             }, { isOptional: true }),
             tags: exports.listOfStringsWithQualifierValidatorOptional,
+            entityTypes: exports.listOfStringsValidatorOptionalOrEmptyOk,
         }, { isOptional: true, emptyOk: true }),
         info: (0, exports.orValidator)({
             "Total": (0, exports.objectValidator)({
@@ -4814,6 +4825,7 @@ exports.phoneTreeActionValidator = (0, exports.orValidator)({
             playback: exports.phonePlaybackValidatorOptional,
             duration: exports.numberValidatorOptional,
             addToCareTeam: exports.booleanValidatorOptional,
+            dialRecentAgent: exports.booleanValidatorOptional,
         }),
     }),
     "Forward Call": (0, exports.objectValidator)({
@@ -4828,6 +4840,7 @@ exports.phoneTreeActionValidator = (0, exports.orValidator)({
             weeklyAvailabilities: exports.weeklyAvailabilitiesValidator,
             timezone: exports.timezoneValidatorOptional,
             hasCareTeam: exports.booleanValidatorOptional,
+            hasOneCareTeamMember: exports.booleanValidatorOptional,
         }),
     }),
     "Select Care Team Member": (0, exports.objectValidator)({
@@ -4972,6 +4985,7 @@ exports.mmsMessagesValidator = (0, exports.listValidator)(exports.mmsMessageVali
 exports.groupMMSUserStateValidator = (0, exports.objectValidator)({
     numUnread: exports.nonNegNumberValidator,
     id: exports.stringValidator,
+    markedUnread: exports.booleanValidatorOptional,
 });
 exports.groupMMSUserStatesValidator = (0, exports.listValidatorOptionalOrEmptyOk)(exports.groupMMSUserStateValidator);
 var sortingFieldValidator = (0, exports.objectValidator)({

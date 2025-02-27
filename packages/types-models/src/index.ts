@@ -814,6 +814,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   lockedFromPortal?: boolean,
   chargebeeEnvironment?: string,
   chargebeeId?: string,
+  healthieSyncError?: string,
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
 }
@@ -1068,7 +1069,7 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
   replyTo?: string | null;  
   isBounce?: boolean,
   via?: string,
-  readBy?: { [index: string] : Date };
+  readBy?: { [index: string] : Date | '' };
   journeyContext?: JourneyContext,
   sendAt?: Date | '',
   pinnedAt?: Date | '',
@@ -1120,7 +1121,7 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
   autoResolveToFrom?: boolean,
   isAutoreply?: boolean,
   userId?: string, // defaults to self, but should allow future options to send as other user
-  readBy?: { [index: string] : Date };
+  readBy?: { [index: string] : Date | '' };
   hiddenBy?: { [index: string] : Date | '' };
   hiddenForAll?: boolean,
   error?: string,
@@ -1155,6 +1156,7 @@ export interface ChatRoom_readonly extends ClientRecord {
 }
 export type ChatRoomUserInfo = {
   unreadCount: number
+  markedUnread?: boolean,
 }
 export interface ChatRoom_required {}
 export interface ChatRoom_updatesDisabled {}
@@ -1212,7 +1214,7 @@ export interface ChatMessage_updatesDisabled {
 export interface ChatMessage extends ChatMessage_readonly, ChatMessage_required, ChatMessage_updatesDisabled, TextCommunication {
   senderId: string | null;
   html?: string,
-  readBy?: { [index: string] : Date };
+  readBy?: { [index: string] : Date | '' };
   hiddenBy?: { [index: string] : Date | '' };
   hiddenForAll?: boolean,
   attachments?: ChatAttachment[]
@@ -1461,6 +1463,7 @@ export type TableInputChoices = {
   Text: TableChoiceBuilder<'Text', {}>
   Select: TableChoiceBuilder<'Select', { choices: string[] }>
   Date: TableChoiceBuilder<'Date', { }> // dateString not datetime
+  Database: TableChoiceBuilder<'Database', { databaseId: string, databaseLabel: string }>
 }
 
 export type TableInputChoiceType = keyof TableInputChoices
@@ -3322,6 +3325,7 @@ export type AnalyticsQueryFilterForType = {
     }, 
     born?: DateRange,
     tags?: ListOfStringsWithQualifier,
+    entityTypes?: string[],
   },  
   "Calendar Events": {
     userIds?: string[],
@@ -3886,6 +3890,7 @@ export type PhoneTreeActions = {
     playback?: Partial<PhonePlayback>,
     duration?: number,
     addToCareTeam?: boolean,
+    dialRecentAgent?: boolean,
   }>
   "Select Care Team Member": PhoneTreeActionBuilder<"Select Care Team Member", { 
     playback?: Partial<PhonePlayback>,
@@ -3896,6 +3901,7 @@ export type PhoneTreeActions = {
     timezone?: Timezone,
     weeklyAvailabilities?: WeeklyAvailability[],
     hasCareTeam?: boolean,
+    hasOneCareTeamMember?: boolean,
   }>
   'Add to Queue': PhoneTreeActionBuilder<"Add to Queue", { queueId: string, playback?: Partial<PhonePlayback>, }>
 }
@@ -3983,7 +3989,7 @@ export interface TicketThreadComment_readonly extends ClientRecord {
   externalId?: string,
   source?: string,
   references?: RelatedRecord[]
-  readBy?: { [index: string] : Date };
+  readBy?: { [index: string] : Date | '' };
   timestamp?: Date,
   group?: string,
 }
@@ -4161,6 +4167,7 @@ export type GroupMMSMessage = {
 export type GroupMMSUserState = {
   id: string,
   numUnread: number,
+  markedUnread?: boolean,
 }
 
 // lots of readonly as we use custom endpoint to create and send messages

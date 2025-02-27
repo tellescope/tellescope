@@ -58,10 +58,10 @@ var checkboxStyle = {
 };
 export var TableHeader = function (_a) {
     var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
-    var fields = _a.fields, sorting = _a.sorting, setSorting = _a.setSorting, selectable = _a.selectable, allSelected = _a.allSelected, setAllSelected = _a.setAllSelected, style = _a.style, textStyle = _a.textStyle, horizontalPadding = _a.horizontalPadding, _m = _a.fontSize, fontSize = _m === void 0 ? 15 : _m, memoryId = _a.memoryId, widthOffsets = _a.widthOffsets, setWidthOffsets = _a.setWidthOffsets, onExport = _a.onExport, localFilters = _a.localFilters, setLocalFilters = _a.setLocalFilters, filterSuggestions = _a.filterSuggestions, _o = _a.minColumnWidth, minColumnWidth = _o === void 0 ? 75 : _o;
-    var _p = useState(-1), openFilter = _p[0], setOpenFilter = _p[1];
-    var _q = useState(0), startX = _q[0], setStartX = _q[1];
-    var _r = useState(), dragPosition = _r[0], setDragPosition = _r[1];
+    var fields = _a.fields, sorting = _a.sorting, setSorting = _a.setSorting, selectable = _a.selectable, allSelected = _a.allSelected, setAllSelected = _a.setAllSelected, style = _a.style, textStyle = _a.textStyle, horizontalPadding = _a.horizontalPadding, _m = _a.fontSize, fontSize = _m === void 0 ? 15 : _m, memoryId = _a.memoryId, widthOffsets = _a.widthOffsets, setWidthOffsets = _a.setWidthOffsets, onExport = _a.onExport, localFilters = _a.localFilters, setLocalFilters = _a.setLocalFilters, filterSuggestions = _a.filterSuggestions, _o = _a.minColumnWidth, minColumnWidth = _o === void 0 ? 75 : _o, _p = _a.columnResizeZIndex, columnResizeZIndex = _p === void 0 ? 1000 : _p;
+    var _q = useState(-1), openFilter = _q[0], setOpenFilter = _q[1];
+    var _r = useState(0), startX = _r[0], setStartX = _r[1];
+    var _s = useState(), dragPosition = _s[0], setDragPosition = _s[1];
     return (_jsxs(_Fragment, { children: [_jsx(Modal, __assign({ open: openFilter !== -1, setOpen: function (o) { return !o && setOpenFilter(-1); } }, { children: ((_b = fields[openFilter]) === null || _b === void 0 ? void 0 : _b.filterComponent)
                     || (_jsx(Flex, __assign({ flex: 1, justifyContent: "center" }, { children: ((_c = fields[openFilter]) === null || _c === void 0 ? void 0 : _c.filterType) === 'multi'
                             ? (_jsx(Autocomplete, { size: 'small', disablePortal: true, multiple: true, options: ((filterSuggestions === null || filterSuggestions === void 0 ? void 0 : filterSuggestions[(_e = (_d = fields[openFilter]) === null || _d === void 0 ? void 0 : _d.key) === null || _e === void 0 ? void 0 : _e.toString()]) || []).sort(), freeSolo: true, autoSelect // allow any input and select it on change
@@ -119,7 +119,7 @@ export var TableHeader = function (_a) {
                                                         height: '30px',
                                                         backgroundColor: '#22222266',
                                                         cursor: 'col-resize',
-                                                        zIndex: 1000,
+                                                        zIndex: columnResizeZIndex,
                                                         position: 'relative', right: '6px',
                                                     } }) })) }))] }), key));
                         }) })), onExport &&
@@ -286,7 +286,7 @@ export var Table = function (_a) {
     // description,
     _f = _a.TitleComponent, 
     // description,
-    TitleComponent = _f === void 0 ? TableTitle : _f, renderTitleComponent = _a.renderTitleComponent, fields = _a.fields, _g = _a.HeaderComponent, HeaderComponent = _g === void 0 ? TableHeader : _g, hover = _a.hover, hoveredColor = _a.hoveredColor, _h = _a.RowComponent, RowComponent = _h === void 0 ? TableRow : _h, _j = _a.footerStyle, footerStyle = _j === void 0 ? 'numbered' : _j, _k = _a.FooterComponent, FooterComponent = _k === void 0 ? footerStyle === 'numbered' ? TableFooterNumbered : TableFooter : _k, selectable = _a.selectable, selected = _a.selected, setSelected = _a.setSelected, allSelected = _a.allSelected, setAllSelected = _a.setAllSelected, allowUnselectItemsAfterSelectAll = _a.allowUnselectItemsAfterSelectAll, noWrap = _a.noWrap, maxWidth = _a.maxWidth, maxRowsHeight = _a.maxRowsHeight, memoryId = _a.memoryId, _paginated = _a.paginated, onReorder = _a.onReorder, virtualization = _a.virtualization, onExport = _a.onExport, sort = _a.sort, refreshFilterSuggestionsKey = _a.refreshFilterSuggestionsKey, minColumnWidth = _a.minColumnWidth;
+    TitleComponent = _f === void 0 ? TableTitle : _f, renderTitleComponent = _a.renderTitleComponent, fields = _a.fields, _g = _a.HeaderComponent, HeaderComponent = _g === void 0 ? TableHeader : _g, hover = _a.hover, hoveredColor = _a.hoveredColor, _h = _a.RowComponent, RowComponent = _h === void 0 ? TableRow : _h, _j = _a.footerStyle, footerStyle = _j === void 0 ? 'numbered' : _j, _k = _a.FooterComponent, FooterComponent = _k === void 0 ? footerStyle === 'numbered' ? TableFooterNumbered : TableFooter : _k, selectable = _a.selectable, selected = _a.selected, setSelected = _a.setSelected, allSelected = _a.allSelected, setAllSelected = _a.setAllSelected, allowUnselectItemsAfterSelectAll = _a.allowUnselectItemsAfterSelectAll, noWrap = _a.noWrap, maxWidth = _a.maxWidth, maxRowsHeight = _a.maxRowsHeight, memoryId = _a.memoryId, _paginated = _a.paginated, onReorder = _a.onReorder, virtualization = _a.virtualization, onExport = _a.onExport, sort = _a.sort, refreshFilterSuggestionsKey = _a.refreshFilterSuggestionsKey, minColumnWidth = _a.minColumnWidth, columnResizeZIndex = _a.columnResizeZIndex;
     var sortingStorageKey = (memoryId !== null && memoryId !== void 0 ? memoryId : '') + 'sorting';
     var cachedSortString = read_local_storage(sortingStorageKey);
     var localFilterStorageKey = (memoryId !== null && memoryId !== void 0 ? memoryId : '') + 'localfilter';
@@ -486,7 +486,7 @@ export var Table = function (_a) {
                             labels: fields.map(function (f) { return f.label; })
                         });
                     }
-                        : undefined, minColumnWidth: minColumnWidth })), 
+                        : undefined, minColumnWidth: minColumnWidth, columnResizeZIndex: columnResizeZIndex })), 
                 // handle load when scroll to bottom, when table not paginated
                 doneLoading: !paginated ? doneLoading : undefined, loadMore: !paginated ? loadMore : undefined, loadMoreOptions: loadMoreOptions, 
                 // renderProps={{ horizontalPadding }}

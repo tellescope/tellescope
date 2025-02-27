@@ -890,6 +890,25 @@ export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Endu
       //         : !!enduser.tags?.find(t => (value as ListOfStringsWithQualifier)?.values?.includes(t))
       //     )
       //   })()
+      : key === 'BMI' && typeof value === 'object'
+        ? (() => {
+          const height = parseInt(enduser.height?.value?.toString() || '0')
+          const weight = parseInt(enduser.weight?.value?.toString() || '0')
+
+          if (!(height && weight)) return false
+
+          const bmi = 703 * weight / (height * height)
+
+          const result = (
+            value?.['$lt'] !== undefined
+              ? (bmi < parseInt(value['$lt']))
+          : value?.['$gt'] !== undefined
+              ? (bmi > parseInt(value['$gt']))
+              : false
+          )
+
+          return result
+        })()
       : key === 'relationships' && typeof value === 'string'
         ? (
           !!enduser?.relationships?.find(r => r.type === get_inverse_relationship_type(value as any))
@@ -2285,7 +2304,7 @@ export const INVALID_PREPOPULATION_TYPES: FormFieldType[] = [
   // "Address", // split into different patient fields and non-trivial to pre-load  
 ]
 
-export const get_prepopulated_responses = (fields: FormField[], enduser: Enduser) => (
+export const get_prepopulated_responses = (fields: FormField[], enduser: Enduser, existingResponses?: FormResponseValue[]) => (
   fields
   .filter(v => (
     v.prepopulateFromFields && !INVALID_PREPOPULATION_TYPES.includes(v.type) && v.intakeField 
@@ -2305,6 +2324,7 @@ export const get_prepopulated_responses = (fields: FormField[], enduser: Enduser
     fieldDescription: v.description,
     fieldHtmlDescription: v.htmlDescription,
     sharedWithEnduser: v.sharedWithEnduser,
+    isPrepopulatedFromEnduserField: true,
     answer: (v.type === 'Address' && v.intakeField === 'Address')
       ? {
         type: 'Address',

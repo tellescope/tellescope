@@ -2349,6 +2349,7 @@ export const meetingDisplayInfoValidator = indexableValidator(mongoIdStringRequi
 
 export const chatRoomUserInfoValidator = objectAnyFieldsValidator(objectValidator<ChatRoomUserInfo>({
   unreadCount: nonNegNumberValidator,
+  markedUnread: booleanValidatorOptional,
 }))
 
 const _LIST_QUERY_QUALIFIERS: { [K in ListQueryQualifier]: any} = {
@@ -3230,6 +3231,7 @@ const _TABLE_INPUT_TYPES: { [K in TableInputChoiceType]: any } = {
   Date: '',
   Text: '',
   Select: '',
+  Database: '',
 }
 export const TABLE_INPUT_TYPES = Object.keys(_TABLE_INPUT_TYPES) as TableInputChoiceType[]
 export const tableInputTypesValidator = exactMatchValidator<TableInputChoiceType>(TABLE_INPUT_TYPES)
@@ -3250,6 +3252,14 @@ export const tableInputChoiceValidator = orValidator<{ [K in TableInputChoiceTyp
     label: stringValidator1000,
     info: objectValidator<TableInputChoices['Select']['info']>({
       choices: listOfStringsValidator,
+    }),
+  }),
+  Database: objectValidator<TableInputChoices['Database']>({
+    type: exactMatchValidator<'Database'>(['Database']),
+    label: stringValidator1000,
+    info: objectValidator<TableInputChoices['Database']['info']>({
+      databaseId: mongoIdStringRequired,
+      databaseLabel: stringValidator1000,
     }),
   }),
 })
@@ -4851,6 +4861,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
         to: dateOptionalOrEmptyStringValidator,
       }, { isOptional: true }),
       tags: listOfStringsWithQualifierValidatorOptional,
+      entityTypes: listOfStringsValidatorOptionalOrEmptyOk,
     }, { isOptional: true, emptyOk: true }),
     info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Endusers']]: AnalyticsQueryInfoForType['Endusers'][K] }>({
       "Total": objectValidator<AnalyticsQueryInfoForType['Endusers']['Total']>({
@@ -5494,6 +5505,7 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
       playback: phonePlaybackValidatorOptional,
       duration: numberValidatorOptional,
       addToCareTeam: booleanValidatorOptional,
+      dialRecentAgent: booleanValidatorOptional,
     }),
   }),
   "Forward Call": objectValidator<PhoneTreeActions["Forward Call"]>({
@@ -5508,6 +5520,7 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
       weeklyAvailabilities: weeklyAvailabilitiesValidator,
       timezone: timezoneValidatorOptional,
       hasCareTeam: booleanValidatorOptional,
+      hasOneCareTeamMember: booleanValidatorOptional,
     }),
   }),
   "Select Care Team Member": objectValidator<PhoneTreeActions["Select Care Team Member"]>({
@@ -5664,6 +5677,7 @@ export const mmsMessagesValidator = listValidator(mmsMessageValidator)
 export const groupMMSUserStateValidator = objectValidator<GroupMMSUserState>({
   numUnread: nonNegNumberValidator,
   id: stringValidator,
+  markedUnread: booleanValidatorOptional,
 })
 export const groupMMSUserStatesValidator = listValidatorOptionalOrEmptyOk(groupMMSUserStateValidator)
 

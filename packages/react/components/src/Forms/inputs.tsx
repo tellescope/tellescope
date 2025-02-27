@@ -355,6 +355,23 @@ export const TableInput = ({ field, value=[], onChange, ...props }: FormInputPro
                     </Select>
                   </FormControl>
                 )
+              : (v.type === 'Database' && v.info.databaseId && v.info.databaseLabel) ? (
+                <DatabaseSelectInput responses={[]} size="small"
+                  field={{
+                    ...field,
+                    options: { databaseId: v.info.databaseId, databaseLabel: v.info.databaseLabel },
+                    title: v.label,
+                  }}
+                  value={row.find((_, _i) => columnIndex === _i)?.entry ? [{
+                    text: JSON.parse(row.find((_, _i) => columnIndex === _i)?.entry || '{}').text || '',
+                    databaseId: JSON.parse(row.find((_, _i) => columnIndex === _i)?.entry || '{}').databaseId || '',
+                    recordId: JSON.parse(row.find((_, _i) => columnIndex === _i)?.entry || '{}').recordId || '',
+                  }] : []}
+                  onChange={
+                    (records) => handleChange(i, columnIndex, { label: v.label, entry: JSON.stringify(records?.[0] ?? '') })
+                  }
+                />
+              )
               : null
               } 
             </Grid>
@@ -1761,6 +1778,7 @@ const choicesForDatabase: {
     lastId?: string,
   }
 } = {}
+const preventRefetch: Record<string, boolean> = {}
 
 const LOAD_CHOICES_LIMIT = 500
 const useDatabaseChoices = ({ databaseId='', field, otherAnswers } : { databaseId?: string, field: FormField, otherAnswers?: DatabaseSelectResponse[] }) => {
@@ -1774,11 +1792,14 @@ const useDatabaseChoices = ({ databaseId='', field, otherAnswers } : { databaseI
     const choices = choicesForDatabase[databaseId]?.records ?? []
     const lastId = choicesForDatabase[databaseId]?.lastId
 
+    if (preventRefetch[databaseId + field.id + lastId]) return
+    preventRefetch[databaseId + field.id + lastId] = true
+
     session.api.form_fields.load_choices_from_database({
       fieldId: field.id,
       lastId,
       limit: LOAD_CHOICES_LIMIT,
-      databaseId, // doesn't do anything now, but avoids cache hit when editing to change databaseId for same field
+      databaseId, // overrides fieldId, supports using Database question in Table Input
     })
     .then(({ choices: newChoices }) => {
       choicesForDatabase[databaseId] = {
@@ -1795,6 +1816,7 @@ const useDatabaseChoices = ({ databaseId='', field, otherAnswers } : { databaseI
     })
     .catch(err => {
       console.error(err)
+      preventRefetch[databaseId + field.id + lastId] = false
     })
   }, [session, field, databaseId, renderCount])
 
@@ -1849,7 +1871,7 @@ const get_other_answers = (_value?: DatabaseSelectResponse[], typing?: string) =
   return []
 }
 
-export const DatabaseSelectInput = ({ field, value: _value, onChange, onDatabaseSelect, responses }: FormInputProps<'Database Select'> & {
+export const DatabaseSelectInput = ({ field, value: _value, onChange, onDatabaseSelect, responses, size }: FormInputProps<'Database Select'> & {
   responses: FormResponseValue[],
 }) => {
   const [typing, setTyping] = useState('')
@@ -1944,7 +1966,7 @@ export const DatabaseSelectInput = ({ field, value: _value, onChange, onDatabase
 
   if (!doneLoading) return <LinearProgress />
   return (
-    <Autocomplete id={field.id} freeSolo={false}
+    <Autocomplete id={field.id} freeSolo={false} size={size}
       componentsProps={{ popper: { sx: { wordBreak: "break-word" } } } }
       options={filteredChoices} multiple={true}
       getOptionLabel={o => (

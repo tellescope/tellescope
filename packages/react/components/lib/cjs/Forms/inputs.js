@@ -251,7 +251,7 @@ var TableInput = function (_a) {
     var iconWidth = '35px';
     var width = "calc(".concat((100 / length).toFixed(2), "% - calc(").concat(iconWidth, " / ").concat(length, "))");
     return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, direction: "column" }, { children: [value.map(function (row, i) { return ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", spacing: 1 }, { children: [choices.map(function (v, columnIndex) {
-                                var _a, _b, _d;
+                                var _a, _b, _d, _e, _f, _g, _h;
                                 return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, sx: { width: width } }, { children: v.type === 'Text'
                                         ? ((0, jsx_runtime_1.jsx)(material_1.TextField, { label: v.label, size: "small", fullWidth: true, title: v.label, InputProps: exports.defaultInputProps, value: (_a = row.find(function (c, _i) { return columnIndex === _i; })) === null || _a === void 0 ? void 0 : _a.entry, onChange: function (e) { return handleChange(i, columnIndex, { label: v.label, entry: e.target.value }); } }))
                                         : v.type === 'Date' ? ((0, jsx_runtime_1.jsx)(exports.DateStringInput, { label: v.label, size: "small", fullWidth: true, title: v.label, field: field, value: (_b = row.find(function (c, _i) { return columnIndex === _i; })) === null || _b === void 0 ? void 0 : _b.entry, onChange: function (entry) {
@@ -259,7 +259,12 @@ var TableInput = function (_a) {
                                                 return handleChange(i, columnIndex, { label: v.label, entry: entry });
                                             } }))
                                             : v.type === 'Select' ? ((0, jsx_runtime_1.jsxs)(material_1.FormControl, __assign({ size: "small", fullWidth: true }, { children: [(0, jsx_runtime_1.jsx)(material_1.InputLabel, __assign({ id: "demo-select-small" }, { children: v.label })), (0, jsx_runtime_1.jsxs)(material_1.Select, __assign({ label: v.label, size: "small", title: v.label, sx: exports.defaultInputProps.sx, value: (_d = row.find(function (c, _i) { return columnIndex === _i; })) === null || _d === void 0 ? void 0 : _d.entry, onChange: function (e) { return handleChange(i, columnIndex, { label: v.label, entry: e.target.value }); } }, { children: [(0, jsx_runtime_1.jsx)(material_1.MenuItem, __assign({ value: "" }, { children: (0, jsx_runtime_1.jsx)("em", { children: "None" }) })), v.info.choices.map(function (c) { return ((0, jsx_runtime_1.jsx)(material_1.MenuItem, __assign({ value: c }, { children: c }), c)); })] }))] })))
-                                                : null }), v.label));
+                                                : (v.type === 'Database' && v.info.databaseId && v.info.databaseLabel) ? ((0, jsx_runtime_1.jsx)(exports.DatabaseSelectInput, { responses: [], size: "small", field: __assign(__assign({}, field), { options: { databaseId: v.info.databaseId, databaseLabel: v.info.databaseLabel }, title: v.label }), value: ((_e = row.find(function (_, _i) { return columnIndex === _i; })) === null || _e === void 0 ? void 0 : _e.entry) ? [{
+                                                            text: JSON.parse(((_f = row.find(function (_, _i) { return columnIndex === _i; })) === null || _f === void 0 ? void 0 : _f.entry) || '{}').text || '',
+                                                            databaseId: JSON.parse(((_g = row.find(function (_, _i) { return columnIndex === _i; })) === null || _g === void 0 ? void 0 : _g.entry) || '{}').databaseId || '',
+                                                            recordId: JSON.parse(((_h = row.find(function (_, _i) { return columnIndex === _i; })) === null || _h === void 0 ? void 0 : _h.entry) || '{}').recordId || '',
+                                                        }] : [], onChange: function (records) { var _a; return handleChange(i, columnIndex, { label: v.label, entry: JSON.stringify((_a = records === null || records === void 0 ? void 0 : records[0]) !== null && _a !== void 0 ? _a : '') }); } }))
+                                                    : null }), v.label));
                             }), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, sx: { ml: 'auto', width: iconWidth } }, { children: (0, jsx_runtime_1.jsx)(__1.LabeledIconButton, { Icon: __1.CancelIcon, label: "Remove", onClick: function () { return handleRemove(i); }, disabled: !field.isOptional && value.length === 1 }) }))] }), i), (0, jsx_runtime_1.jsx)(material_1.Divider, { flexItem: true, sx: { my: 1 } })] })); }), (0, jsx_runtime_1.jsx)(material_1.Button, __assign({ variant: "outlined", size: "small", onClick: handleNewRow, sx: { width: 200 } }, { children: "Add new entry" }))] })));
 };
 exports.TableInput = TableInput;
@@ -912,6 +917,7 @@ var DropdownInput = function (_a) {
 };
 exports.DropdownInput = DropdownInput;
 var choicesForDatabase = {};
+var preventRefetch = {};
 var LOAD_CHOICES_LIMIT = 500;
 var useDatabaseChoices = function (_a) {
     var _b, _d, _e, _f;
@@ -927,6 +933,9 @@ var useDatabaseChoices = function (_a) {
             return; // limit to 50000 entries / prevent infinite looping
         var choices = (_d = (_b = choicesForDatabase[databaseId]) === null || _b === void 0 ? void 0 : _b.records) !== null && _d !== void 0 ? _d : [];
         var lastId = (_e = choicesForDatabase[databaseId]) === null || _e === void 0 ? void 0 : _e.lastId;
+        if (preventRefetch[databaseId + field.id + lastId])
+            return;
+        preventRefetch[databaseId + field.id + lastId] = true;
         session.api.form_fields.load_choices_from_database({
             fieldId: field.id,
             lastId: lastId,
@@ -946,6 +955,7 @@ var useDatabaseChoices = function (_a) {
         })
             .catch(function (err) {
             console.error(err);
+            preventRefetch[databaseId + field.id + lastId] = false;
         });
     }, [session, field, databaseId, renderCount]);
     return {
@@ -990,7 +1000,7 @@ var get_other_answers = function (_value, typing) {
 };
 var DatabaseSelectInput = function (_a) {
     var _b, _d, _e, _f;
-    var field = _a.field, _value = _a.value, onChange = _a.onChange, onDatabaseSelect = _a.onDatabaseSelect, responses = _a.responses;
+    var field = _a.field, _value = _a.value, onChange = _a.onChange, onDatabaseSelect = _a.onDatabaseSelect, responses = _a.responses, size = _a.size;
     var _g = (0, react_1.useState)(''), typing = _g[0], setTyping = _g[1];
     var _h = useDatabaseChoices({
         databaseId: (_b = field.options) === null || _b === void 0 ? void 0 : _b.databaseId,
@@ -1069,7 +1079,7 @@ var DatabaseSelectInput = function (_a) {
     }, [field, filteredChoicesWithPotentialDuplicates]);
     if (!doneLoading)
         return (0, jsx_runtime_1.jsx)(LinearProgress_1.default, {});
-    return ((0, jsx_runtime_1.jsx)(material_1.Autocomplete, { id: field.id, freeSolo: false, componentsProps: { popper: { sx: { wordBreak: "break-word" } } }, options: filteredChoices, multiple: true, getOptionLabel: function (o) { return (Array.isArray(o) // edge case
+    return ((0, jsx_runtime_1.jsx)(material_1.Autocomplete, { id: field.id, freeSolo: false, size: size, componentsProps: { popper: { sx: { wordBreak: "break-word" } } }, options: filteredChoices, multiple: true, getOptionLabel: function (o) { return (Array.isArray(o) // edge case
             ? ''
             : label_for_database_record(field, o)); }, value: value, onChange: function (_, v) {
             var _a, _b, _d, _e;

@@ -1138,7 +1138,12 @@ export var useTellescopeForm = function (_a) {
                     _k = (_4.sent()).accessCode;
                     _4.label = 13;
                 case 13: return [4 /*yield*/, _j.apply(_h, [(_l.accessCode = (_k),
-                            _l.responses = __spreadArray(__spreadArray([], responsesToSubmit_3, true), (existingResponses !== null && existingResponses !== void 0 ? existingResponses : []).filter(function (r) { return !responsesToSubmit_3.find(function (_r) { return r.fieldId === _r.fieldId; }); }), true),
+                            _l.responses = __spreadArray(__spreadArray([], responsesToSubmit_3, true), (existingResponses !== null && existingResponses !== void 0 ? existingResponses : []).filter(function (r) {
+                                return !responsesToSubmit_3.find(function (_r) { return r.fieldId === _r.fieldId; })
+                                    // but don't include responses which were populated from a patient field and not a prior response
+                                    // if these are edited, they would be included in responsesToSubmit
+                                    && !r.isPrepopulatedFromEnduserField;
+                            }), true),
                             _l.automationStepId = automationStepId,
                             _l.customerId = customerId,
                             _l.productIds = responsesToSubmit_3.flatMap(function (r) { var _a, _b, _c; return (_c = (_b = (_a = r.field) === null || _a === void 0 ? void 0 : _a.options) === null || _b === void 0 ? void 0 : _b.productIds) !== null && _c !== void 0 ? _c : []; }),

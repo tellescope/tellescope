@@ -348,7 +348,7 @@ interface UseTellescopeFormOptions {
   automationStepId?: string,
   form?: Form,
   fields: FormField[],
-  existingResponses?: FormResponse['responses'],
+  existingResponses?: (FormResponseValue & { isPrepopulatedFromEnduserField?: boolean })[],
   formResponseId?: string,
   isInternalNote?: boolean,
   formTitle?: string,
@@ -1213,7 +1213,12 @@ export const useTellescopeForm = ({ isPublicForm, form, urlLogicValue, customiza
             responses: [
               ...responsesToSubmit,
               // include existing responses in case previously saved as draft
-              ...(existingResponses ?? []).filter(r => !responsesToSubmit.find(_r => r.fieldId === _r.fieldId)),
+              ...(existingResponses ?? []).filter(r => 
+                !responsesToSubmit.find(_r => r.fieldId === _r.fieldId)
+                // but don't include responses which were populated from a patient field and not a prior response
+                // if these are edited, they would be included in responsesToSubmit
+                && !r.isPrepopulatedFromEnduserField
+              ),
             ],
             automationStepId,
             customerId,

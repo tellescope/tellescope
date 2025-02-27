@@ -132,6 +132,7 @@ export type TableField <T> = {
   filterIsActive?: boolean,
   filterComponent?: React.ReactNode,
   allowWidthAdjustment?: boolean,
+  columnResizeZIndex?: number,
 }
 export interface TableHeaderProps<T extends Item> extends Styled, HorizontalPadded, SelectionPropsOptional {
   fields: TableField<T>[],
@@ -147,6 +148,7 @@ export interface TableHeaderProps<T extends Item> extends Styled, HorizontalPadd
   setLocalFilters: React.Dispatch<React.SetStateAction<LocalFilter[]>>,
   filterSuggestions: Record<string, string[]>,
   minColumnWidth?: number,
+  columnResizeZIndex?: number,
 }
 export const TableHeader = <T extends Item>({ 
   fields, 
@@ -167,6 +169,7 @@ export const TableHeader = <T extends Item>({
   setLocalFilters,
   filterSuggestions,
   minColumnWidth=75,
+  columnResizeZIndex=1000,
 } : TableHeaderProps<T>) => { 
   const [openFilter, setOpenFilter] = useState(-1)
   const [startX, setStartX] = useState(0)
@@ -341,7 +344,7 @@ export const TableHeader = <T extends Item>({
                   height: '30px', 
                   backgroundColor: '#22222266', 
                   cursor: 'col-resize', 
-                  zIndex: 1000,
+                  zIndex: columnResizeZIndex,
                   position: 'relative', right: '6px',
                 }} />
               </Draggable>
@@ -725,6 +728,7 @@ export interface TableProps<T extends Item> extends WithTitle, WithHeader<T>, Wi
   loadMoreOptions?: LoadMoreOptions<T>,
   refreshFilterSuggestionsKey?: number,
   minColumnWidth?: number,
+  columnResizeZIndex?: number,
 }
 export const Table = <T extends Item>({
   items,
@@ -775,10 +779,11 @@ export const Table = <T extends Item>({
   onReorder,
   virtualization,
   onExport,
-
+  
   sort,
   refreshFilterSuggestionsKey,
   minColumnWidth,
+  columnResizeZIndex,
 }: TableProps<T> & Styled) => {
   const sortingStorageKey = (memoryId ?? '') + 'sorting'
   const cachedSortString = read_local_storage(sortingStorageKey)
@@ -1045,6 +1050,7 @@ export const Table = <T extends Item>({
               : undefined
             }
             minColumnWidth={minColumnWidth}
+            columnResizeZIndex={columnResizeZIndex}
           />
         )}
 

@@ -263,13 +263,14 @@ export declare const get_flattened_fields: <T extends object>(objects: T[], opti
 export declare const value_for_dotted_key: (v: any, key: string) => any;
 export declare const add_value_for_dotted_key: (_object: Record<any, any>, field: string, value: any) => void;
 export declare const INVALID_PREPOPULATION_TYPES: FormFieldType[];
-export declare const get_prepopulated_responses: (fields: FormField[], enduser: Enduser) => {
+export declare const get_prepopulated_responses: (fields: FormField[], enduser: Enduser, existingResponses?: FormResponseValue[]) => {
     fieldId: string;
     fieldTitle: string;
     externalId: string | undefined;
     fieldDescription: string | undefined;
     fieldHtmlDescription: string | undefined;
     sharedWithEnduser: boolean | undefined;
+    isPrepopulatedFromEnduserField: boolean;
     answer: any;
 }[];
 export declare const downloadFile: (data: Uint8Array | Blob | Buffer | string, options: {

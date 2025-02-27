@@ -1857,6 +1857,7 @@ export var userDisplayInfoValidator = objectValidator({
 export var meetingDisplayInfoValidator = indexableValidator(mongoIdStringRequired, userDisplayInfoValidator);
 export var chatRoomUserInfoValidator = objectAnyFieldsValidator(objectValidator({
     unreadCount: nonNegNumberValidator,
+    markedUnread: booleanValidatorOptional,
 }));
 var _LIST_QUERY_QUALIFIERS = {
     "One Of": '',
@@ -2649,6 +2650,7 @@ var _TABLE_INPUT_TYPES = {
     Date: '',
     Text: '',
     Select: '',
+    Database: '',
 };
 export var TABLE_INPUT_TYPES = Object.keys(_TABLE_INPUT_TYPES);
 export var tableInputTypesValidator = exactMatchValidator(TABLE_INPUT_TYPES);
@@ -2668,6 +2670,14 @@ export var tableInputChoiceValidator = orValidator({
         label: stringValidator1000,
         info: objectValidator({
             choices: listOfStringsValidator,
+        }),
+    }),
+    Database: objectValidator({
+        type: exactMatchValidator(['Database']),
+        label: stringValidator1000,
+        info: objectValidator({
+            databaseId: mongoIdStringRequired,
+            databaseLabel: stringValidator1000,
         }),
     }),
 });
@@ -4178,6 +4188,7 @@ export var analyticsQueryValidator = orValidator({
                 to: dateOptionalOrEmptyStringValidator,
             }, { isOptional: true }),
             tags: listOfStringsWithQualifierValidatorOptional,
+            entityTypes: listOfStringsValidatorOptionalOrEmptyOk,
         }, { isOptional: true, emptyOk: true }),
         info: orValidator({
             "Total": objectValidator({
@@ -4762,6 +4773,7 @@ export var phoneTreeActionValidator = orValidator({
             playback: phonePlaybackValidatorOptional,
             duration: numberValidatorOptional,
             addToCareTeam: booleanValidatorOptional,
+            dialRecentAgent: booleanValidatorOptional,
         }),
     }),
     "Forward Call": objectValidator({
@@ -4776,6 +4788,7 @@ export var phoneTreeActionValidator = orValidator({
             weeklyAvailabilities: weeklyAvailabilitiesValidator,
             timezone: timezoneValidatorOptional,
             hasCareTeam: booleanValidatorOptional,
+            hasOneCareTeamMember: booleanValidatorOptional,
         }),
     }),
     "Select Care Team Member": objectValidator({
@@ -4919,6 +4932,7 @@ export var mmsMessagesValidator = listValidator(mmsMessageValidator);
 export var groupMMSUserStateValidator = objectValidator({
     numUnread: nonNegNumberValidator,
     id: stringValidator,
+    markedUnread: booleanValidatorOptional,
 });
 export var groupMMSUserStatesValidator = listValidatorOptionalOrEmptyOk(groupMMSUserStateValidator);
 var sortingFieldValidator = objectValidator({

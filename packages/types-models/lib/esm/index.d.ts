@@ -758,6 +758,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
     lockedFromPortal?: boolean;
     chargebeeEnvironment?: string;
     chargebeeId?: string;
+    healthieSyncError?: string;
 }
 export interface EnduserCustomType_readonly extends ClientRecord {
 }
@@ -997,7 +998,7 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
     isBounce?: boolean;
     via?: string;
     readBy?: {
-        [index: string]: Date;
+        [index: string]: Date | '';
     };
     journeyContext?: JourneyContext;
     sendAt?: Date | '';
@@ -1053,7 +1054,7 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
     isAutoreply?: boolean;
     userId?: string;
     readBy?: {
-        [index: string]: Date;
+        [index: string]: Date | '';
     };
     hiddenBy?: {
         [index: string]: Date | '';
@@ -1088,6 +1089,7 @@ export interface ChatRoom_readonly extends ClientRecord {
 }
 export type ChatRoomUserInfo = {
     unreadCount: number;
+    markedUnread?: boolean;
 };
 export interface ChatRoom_required {
 }
@@ -1147,7 +1149,7 @@ export interface ChatMessage extends ChatMessage_readonly, ChatMessage_required,
     senderId: string | null;
     html?: string;
     readBy?: {
-        [index: string]: Date;
+        [index: string]: Date | '';
     };
     hiddenBy?: {
         [index: string]: Date | '';
@@ -1423,6 +1425,10 @@ export type TableInputChoices = {
         choices: string[];
     }>;
     Date: TableChoiceBuilder<'Date', {}>;
+    Database: TableChoiceBuilder<'Database', {
+        databaseId: string;
+        databaseLabel: string;
+    }>;
 };
 export type TableInputChoiceType = keyof TableInputChoices;
 export type TableInputChoice = TableInputChoices[TableInputChoiceType];
@@ -3320,6 +3326,7 @@ export type AnalyticsQueryFilterForType = {
         };
         born?: DateRange;
         tags?: ListOfStringsWithQualifier;
+        entityTypes?: string[];
     };
     "Calendar Events": {
         userIds?: string[];
@@ -3940,6 +3947,7 @@ export type PhoneTreeActions = {
         playback?: Partial<PhonePlayback>;
         duration?: number;
         addToCareTeam?: boolean;
+        dialRecentAgent?: boolean;
     }>;
     "Select Care Team Member": PhoneTreeActionBuilder<"Select Care Team Member", {
         playback?: Partial<PhonePlayback>;
@@ -3952,6 +3960,7 @@ export type PhoneTreeActions = {
         timezone?: Timezone;
         weeklyAvailabilities?: WeeklyAvailability[];
         hasCareTeam?: boolean;
+        hasOneCareTeamMember?: boolean;
     }>;
     'Add to Queue': PhoneTreeActionBuilder<"Add to Queue", {
         queueId: string;
@@ -4041,7 +4050,7 @@ export interface TicketThreadComment_readonly extends ClientRecord {
     source?: string;
     references?: RelatedRecord[];
     readBy?: {
-        [index: string]: Date;
+        [index: string]: Date | '';
     };
     timestamp?: Date;
     group?: string;
@@ -4231,6 +4240,7 @@ export type GroupMMSMessage = {
 export type GroupMMSUserState = {
     id: string;
     numUnread: number;
+    markedUnread?: boolean;
 };
 export interface GroupMMSConversation_readonly extends ClientRecord {
     externalId: string;

@@ -63,7 +63,9 @@ interface UseTellescopeFormOptions {
     automationStepId?: string;
     form?: Form;
     fields: FormField[];
-    existingResponses?: FormResponse['responses'];
+    existingResponses?: (FormResponseValue & {
+        isPrepopulatedFromEnduserField?: boolean;
+    })[];
     formResponseId?: string;
     isInternalNote?: boolean;
     formTitle?: string;
@@ -132,7 +134,9 @@ export declare const useTellescopeForm: ({ isPublicForm, form, urlLogicValue, cu
     validateField: (field: FormField) => any;
     validateResponsesForFields: (_fields?: any) => any;
     validateCurrentField: () => any;
-    existingResponses: FormResponseValue[] | undefined;
+    existingResponses: (FormResponseValue & {
+        isPrepopulatedFromEnduserField?: boolean | undefined;
+    })[] | undefined;
     repeats: Record<string, string | number>;
     setRepeats: import("react").Dispatch<import("react").SetStateAction<Record<string, string | number>>>;
     currentPageIndex: number;
