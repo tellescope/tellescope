@@ -90,7 +90,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.UserAndEnduserSelector = exports.DatabaseRecordSearch = exports.DatabaseSearch = exports.AppointmentBookingPagesSearch = exports.AppointmentLocationSearch = exports.CalendarEventTemplatesSearch = exports.ContentSearch = exports.MessageTemplateSnippetSearch = exports.EnduserOrUserSearch = exports.OrganizationSearch = exports.UserSearch = exports.ForumSearch = exports.TemplateSearch = exports.JourneySearch = exports.AutomationTriggerSearch = exports.FormGroupSearch = exports.FormSearch = exports.NotificationSearch = exports.TicketQueueSearch = exports.CallHoldQueueSearch = exports.DiagnosisCodeSearch = exports.AllergyCodeSearch = exports.AgentRecordSearch = exports.SuggestedContactSearch = exports.FileSearch = exports.FaxSearch = exports.PrescriptionRoutesSearch = exports.EnduserOrdersSearch = exports.ENDUSER_ORDERS_SEARCH_FILTER_KEY = exports.TicketSearch = exports.TICKET_SEARCH_FILTER_KEY = exports.ChatRoomSearch = exports.CHAT_ROOM_SEARCH = exports.EnduserSearch = exports.ModelSearchInput = exports.performBulkAction = exports.filter_for_query = exports.record_matches_for_query = exports.record_field_matches_query = exports.useFilters = exports.apply_filters = exports.filter_setter_for_key = void 0;
+exports.UserAndEnduserSelector = exports.DatabaseRecordSearch = exports.DatabaseSearch = exports.AppointmentBookingPagesSearch = exports.AppointmentLocationSearch = exports.CalendarEventTemplatesSearch = exports.ContentSearch = exports.MessageTemplateSnippetSearch = exports.EnduserOrUserSearch = exports.OrganizationSearch = exports.UserSearch = exports.ForumSearch = exports.TemplateSearch = exports.JourneySearch = exports.AutomationTriggerSearch = exports.FormGroupSearch = exports.FormSearch = exports.NotificationSearch = exports.TicketQueueSearch = exports.CallHoldQueueSearch = exports.DiagnosisCodeSearch = exports.AllergyCodeSearch = exports.AgentRecordSearch = exports.WaitlistSearch = exports.SuggestedContactSearch = exports.FileSearch = exports.FaxSearch = exports.PrescriptionRoutesSearch = exports.EnduserOrdersSearch = exports.ENDUSER_ORDERS_SEARCH_FILTER_KEY = exports.TicketSearch = exports.TICKET_SEARCH_FILTER_KEY = exports.ChatRoomSearch = exports.CHAT_ROOM_SEARCH = exports.EnduserSearch = exports.ModelSearchInput = exports.performBulkAction = exports.filter_for_query = exports.record_matches_for_query = exports.record_field_matches_query = exports.useFilters = exports.apply_filters = exports.filter_setter_for_key = void 0;
 var jsx_runtime_1 = require("react/jsx-runtime");
 var react_1 = __importStar(require("react"));
 var utilities_1 = require("@tellescope/utilities");
@@ -547,6 +547,12 @@ var SuggestedContactSearch = function (props) {
     return ((0, jsx_runtime_1.jsx)(exports.ModelSearchInput, __assign({ filterKey: "suggested-contact" }, props, { searchAPI: session.api.suggested_contacts.getSome, onLoad: addLocalElements })));
 };
 exports.SuggestedContactSearch = SuggestedContactSearch;
+var WaitlistSearch = function (props) {
+    var session = (0, _1.useSession)();
+    var _a = (0, _1.useWaitlists)({ dontFetch: true }), addLocalElements = _a[1].addLocalElements;
+    return ((0, jsx_runtime_1.jsx)(exports.ModelSearchInput, __assign({ filterKey: "waitlist" }, props, { searchAPI: session.api.waitlists.getSome, onLoad: addLocalElements })));
+};
+exports.WaitlistSearch = WaitlistSearch;
 var AgentRecordSearch = function (props) {
     var session = (0, _1.useSession)();
     var _a = (0, _1.useAgentRecords)({ dontFetch: true }), addLocalElements = _a[1].addLocalElements;

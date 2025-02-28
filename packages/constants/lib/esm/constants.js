@@ -214,6 +214,7 @@ export var READ_ONLY_DEFAULT = {
     delete: NO_ACCESS,
 };
 export var PROVIDER_PERMISSIONS = {
+    waitlists: READ_ONLY_ALL,
     agent_records: READ_ONLY_ALL,
     integration_logs: READ_ONLY_ALL,
     allergy_codes: READ_ONLY_ALL,
@@ -357,6 +358,7 @@ export var PROVIDER_PERMISSIONS = {
     },
 };
 export var ADMIN_PERMISSIONS = {
+    waitlists: FULL_ACCESS,
     integration_logs: READ_ONLY_ALL,
     agent_records: FULL_ACCESS,
     enduser_eligibility_results: FULL_ACCESS,

@@ -306,6 +306,7 @@ import {
   DevelopHealthMedicationEligibilityAutomationAction,
   RemoveFromAllJourneysAutomationAction,
   FormResponseAnswerChargebee,
+  CancelFutureAppointmentsAutomationAction,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -1214,6 +1215,7 @@ export const numberValidatorBuilder: ValidatorBuilder<number, { lower: number, u
 })
 
 export const nonNegNumberValidator = numberValidatorBuilder({ lower: 0, upper: 10000000000000 }) // max is 2286 in UTC MS
+export const positiveNumberValidator = numberValidatorBuilder({ lower: 1, upper: 10000000000000 }) // max is 2286 in UTC MS
 export const numberValidator = numberValidatorBuilder({ lower: -10000000000000, upper: 10000000000000 }) // max is 2286 in UTC MS
 export const numberValidatorOptional = numberValidatorBuilder({ lower: -10000000000000, upper: 10000000000000, isOptional: true, emptyStringOk: true }) // max is 2286 in UTC MS
 export const listOfNumbersValidatorUniqueOptionalOrEmptyOkay = listValidatorUniqueOptionalEmptyOkay(numberValidator, { isNumber: true })
@@ -2432,6 +2434,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   canvasSync: '',
   elationSync: '',
   developHealthMedEligibility: '',
+  cancelFutureAppointments: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -2900,6 +2903,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
         })
       ),
       environment: stringValidatorOptional,
+      customEmailField: stringValidatorOptional,
     }, { emptyOk: false }),
   }),
   zendeskCreateTicket: objectValidator<ZendeskCreateTicketAutomationAction>({
@@ -3032,6 +3036,11 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     info: objectValidator<PushFormsAutomationAction['info']>({ 
       formIds: listOfMongoIdStringValidator,
     }, { emptyOk: false }),
+  }),
+  cancelFutureAppointments: objectValidator<CancelFutureAppointmentsAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['cancelFutureAppointments']),
+    info: objectValidator<CancelFutureAppointmentsAutomationAction['info']>({ }, { emptyOk: true }),
   }),
 })
 
@@ -4358,6 +4367,8 @@ const _AUTOMATION_TRIGGER_ACTION_TYPES: { [K in AutomationTriggerActionType]: an
   "Canvas: Add Patient": true,
   "Zus: Delete Enrollment": true,
   "Require Form Followups": true,
+  "Add to Waitlist": true,
+  "Grant Access From Waitlist": true,
 }
 export const AUTOMATION_TRIGGER_ACTION_TYPES = Object.keys(_AUTOMATION_TRIGGER_ACTION_TYPES) as AutomationTriggerActionType[]
 
@@ -4440,6 +4451,19 @@ export const automationTriggerActionValidator = orValidator<{ [K in AutomationTr
     type: exactMatchValidator(['Require Form Followups']),
     info: objectValidator<AutomationTriggerActions['Require Form Followups']['info']>({
       formIds: listOfUniqueStringsValidatorEmptyOk,
+    }),
+  }),
+  "Add to Waitlist": objectValidator<AutomationTriggerActions["Add to Waitlist"]>({
+    type: exactMatchValidator(['Add to Waitlist']),
+    info: objectValidator<AutomationTriggerActions['Add to Waitlist']['info']>({
+      waitlistId: mongoIdStringRequired,
+    }),
+  }),
+  "Grant Access From Waitlist": objectValidator<AutomationTriggerActions["Grant Access From Waitlist"]>({
+    type: exactMatchValidator(['Grant Access From Waitlist']),
+    info: objectValidator<AutomationTriggerActions['Grant Access From Waitlist']['info']>({
+      waitlistId: mongoIdStringRequired,
+      count: numberValidator,
     }),
   }),
 })
@@ -4596,6 +4620,7 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   integration_logs: accessPermissionValidator,
   enduser_eligibility_results: accessPermissionValidator,
   agent_records: accessPermissionValidator,
+  waitlists: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
@@ -4687,6 +4712,7 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   integration_logs: numberValidatorOptional,
   enduser_eligibility_results: numberValidatorOptional,
   agent_records: numberValidatorOptional,
+  waitlists: numberValidatorOptional,
 }, { emptyOk: true })
 
 const _LOGIN_FLOW_RESULTS = {

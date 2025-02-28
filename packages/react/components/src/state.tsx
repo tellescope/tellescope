@@ -98,6 +98,7 @@ import {
   IntegrationLog,
   EnduserEligibilityResult,
   AgentRecord,
+  Waitlist,
 } from "@tellescope/types-client"
 
 import {
@@ -363,6 +364,7 @@ const allergyCodesSlice = createSliceForList<AllergyCode, 'allergy_codes'>('alle
 const integrationLogsSlice = createSliceForList<IntegrationLog, 'integration_logs'>('integration_logs')
 const enduserEligibilityResultsSlice = createSliceForList<EnduserEligibilityResult, 'enduser_eligibility_results'>('enduser_eligibility_results')
 const agentRecordsSlice = createSliceForList<AgentRecord, 'agent_records'>('agent_records')
+const waitlistsSlice = createSliceForList<Waitlist, 'waitlists'>('waitlists')
 
 const roleBasedAccessPermissionsSlice = createSliceForList<RoleBasedAccessPermission, 'role_based_access_permissions'>('role_based_access_permissions')
 
@@ -455,6 +457,7 @@ export const sharedConfig = {
     suggested_contacts: suggestedContactsSlice.reducer,
     diagnosis_codes: diagnosisCodesSlice.reducer,
     allergy_codes: allergyCodesSlice.reducer,
+    waitlists: waitlistsSlice.reducer,
   },
 }
 
@@ -528,9 +531,12 @@ export interface LoadMoreFunctions<T> {
 
 export const INACTIVE_SYNC_INTERVAL_IN_MS = 30000
 export const DEFAULT_SYNC_INTERVAL_IN_MS  = 15000
+export const MEDIUM_SYNC_INTERAVL         = 10000
 export const FAST_SYNC_INTERVAL           = 5000
 
 export const lastActiveForSync = { at: new Date(0), hasFocus: true }
+
+export const lastDataSync = { current : { numResults: 0, at: new Date(0), from: new Date(0), latency: 0, duration: 0 } }
 
 export const useDataSync____internal = () => {
   const session = useSession()
@@ -576,11 +582,31 @@ export const useDataSync____internal = () => {
         ...Object.values(loadTimings.current).filter(v => v > 999)
       )
 
+      const handleLoadedData = () => {
+        for (const handler of Object.values(handlers.current)) {
+          try {
+            handler?.()
+          } catch(err) { console.error(err) }
+        }
+      }
+
       if (lastFetch.current.getTime() + pollDurationInMS > Date.now()) {
         return
       }
 
-      session.sync({ from: lastFetch.current }).then(({ results }) => {
+      // ensure we don't miss updates due to latency
+      const from = new Date(lastFetch.current.getTime() - 1000) // large leeway could result in same data being fetched twice, but helps ensure nothing is dropped
+      lastFetch.current = new Date() // update before syncing, not after it returns
+
+      session
+      .sync({ from })
+      .then(({ results }) => {
+        lastDataSync.current = { 
+          numResults: results.length, at: lastFetch.current, from, 
+          latency: Date.now() - lastFetch.current.getTime(),
+          duration: pollDurationInMS,
+        }
+
         for (const r of results) {
           if (r.data === 'deleted') {
             if (!deleted.current[r.modelName]) {
@@ -599,14 +625,11 @@ export const useDataSync____internal = () => {
           }
         }
       })
-      .then(() => {
-        for (const handler of Object.values(handlers.current)) {
-          handler?.()
-        }
+      .then(handleLoadedData)
+      .catch(err => {
+        console.error('Sync error', err)
+        lastFetch.current = from // don't skip this interval yet
       })
-      .catch(console.error)
-
-      lastFetch.current = new Date()
     }, 1000)
 
     return () => { clearInterval(i) }
@@ -631,12 +654,31 @@ export const useDataSync____internal = () => {
   }, [])
 
   const setHandler = useCallback((key: string, handler: undefined | (() => void)) => {
+    // call handler when initially set in case results were loaded when there was no handler
+    if (!handlers.current[key] && handler) {
+      try {
+        // console.log("handle on add", key)
+        handler?.() 
+      } 
+      catch(err) { 
+        console.error(err) 
+      }
+    }
+
+    // console.log('setting handler', key)
     handlers.current[key] = handler
+  }, [])
+
+  const removeHandler = useCallback((key: string, handler: () => void) => {
+    if (handlers.current[key] !== handler) return // if a handler was overwritten, don't remove it
+
+    // console.log('removing handler', key)
+    delete handlers.current[key]
   }, [])
 
   return {
     setLoadTiming, 
-    setHandler,
+    setHandler, removeHandler,
     getLoaded, getDeleted,
     popLoaded, popDeleted,
   }
@@ -702,7 +744,7 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
   } & HookOptions<T>
 ): ListStateReturnType<T, ADD> => 
 {
-  const { setHandler, popDeleted, popLoaded } = useSyncContext() ?? {}
+  const { setHandler, popDeleted, popLoaded, removeHandler } = useSyncContext() ?? {}
   const { loadQuery, findOne, findByIds, addOne, addSome, updateOne, deleteOne } = apiCalls
   if (options?.refetchInMS !== undefined && options.refetchInMS < 5000) {
     throw new Error("refetchInMS must be greater than 5000")
@@ -790,7 +832,7 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     // context not provided
     if (!setHandler) return
 
-    setHandler(modelName, () => {
+    const handler = () => {
       if (state.status !== LoadingStatus.Loaded) return
       
       const deleted = popDeleted(modelName)
@@ -802,8 +844,12 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
       if (loaded?.length) {
         addLocalElements(loaded as any, { replaceIfMatch: true })
       }
-    })
-  }, [state.status, setHandler, addLocalElements, removeLocalElements, popDeleted, popLoaded])
+    }
+
+    setHandler(modelName, handler)
+
+    return () => { removeHandler(modelName, handler) }
+  }, [modelName, state.status, setHandler, removeHandler, addLocalElements, removeLocalElements, popDeleted, popLoaded])
 
   const findById: ListUpdateMethods<T, ADD>['findById'] = useCallback((id, options) => {
     if (!id) return undefined
@@ -980,7 +1026,7 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     const sortBy = loadOptions?.sortBy ?? options?.sortBy
 
     if (!loadQuery) return
-    if (options?.dontFetch) return
+    if (options?.dontFetch && !force) return
     const fetchKey = (loadFilter || sort || sortBy) ? JSON.stringify({ ...loadFilter, sort, sortBy }) + modelName : modelName
 
     if (didFetch(fetchKey, force, options?.refetchInMS)) return
@@ -2837,4 +2883,23 @@ export const useCalendarEventsForUser = (options={} as HookOptions<CalendarEvent
   }, [session, loadedRef, fetchEvents, addLocalElements])
 
   return [eventsLoading, { loadEvents, filtered }] as const
+}
+
+export const useWaitlists = (options={} as HookOptions<Waitlist>) => {
+  const session = useSession()
+
+  return useListStateHook('waitlists', useTypedSelector(s => s.waitlists), session, waitlistsSlice,
+    { 
+      loadQuery: session.api.waitlists.getSome,
+      findOne: session.api.waitlists.getOne,
+      findByIds: session.api.waitlists.getByIds,
+      addOne: session.api.waitlists.createOne,
+      addSome: session.api.waitlists.createSome,
+      deleteOne: session.api.waitlists.deleteOne,
+      updateOne: session.api.waitlists.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
 }

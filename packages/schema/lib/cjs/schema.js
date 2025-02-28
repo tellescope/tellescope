@@ -161,7 +161,7 @@ exports.schema = (0, exports.build_schema)({
             add_to_journey: {}, remove_from_journey: {}, begin_login_flow: {}, set_password: {},
             unsubscribe: {},
         },
-        fields: __assign(__assign({}, BuiltInFields), { healthie_dietitian_id: { validator: validation_1.stringValidator100 }, externalId: {
+        fields: __assign(__assign({}, BuiltInFields), { healthie_dietitian_id: { validator: validation_1.stringValidator100 }, mergedIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk, readonly: true, redactions: ['enduser'] }, externalId: {
                 validator: validation_1.stringValidator250,
                 examples: ['addfed3e-ddea-415b-b52b-df820c944dbb'],
             }, email: {
@@ -5953,8 +5953,28 @@ exports.schema = (0, exports.build_schema)({
                 returns: {}
             },
         },
-        enduserActions: { read: {}, readMany: {} },
         fields: __assign(__assign({}, BuiltInFields), { type: { validator: validation_1.stringValidator, required: true, examples: ['Article'] }, title: { validator: validation_1.stringValidator, required: true, examples: ['Article Title'] }, description: { validator: validation_1.stringValidator, required: true, examples: ["Article Description"] }, url: { validator: validation_1.stringValidator1000 }, content: { validator: validation_1.stringValidator100000OptionalEmptyOkay, examples: ["Article Content"] }, source: { validator: validation_1.stringValidator100 }, externalId: { validator: validation_1.stringValidator100 }, pages: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, embedding: { validator: (0, validation_1.listValidator)(validation_1.numberValidator) } })
+    },
+    waitlists: {
+        info: { description: '' },
+        constraints: { unique: [], relationship: [], access: [] },
+        defaultActions: constants_1.DEFAULT_OPERATIONS,
+        customActions: {
+            grant_access_from_waitlist: {
+                op: "custom", access: 'update', method: "post",
+                name: 'Remove from Waitlist',
+                path: '/waitlists/grant-access',
+                description: "Removes count from waitlist and adds to corresponding Journey",
+                parameters: {
+                    id: { validator: validation_1.mongoIdStringRequired, required: true },
+                    count: { validator: validation_1.positiveNumberValidator, required: true },
+                },
+                returns: {
+                    waitlist: { validator: 'waitlist', required: true },
+                },
+            },
+        },
+        fields: __assign(__assign({}, BuiltInFields), { title: { validator: validation_1.stringValidator, required: true, examples: ['Title'] }, journeyId: { validator: validation_1.mongoIdStringRequired, required: true, examples: [constants_1.PLACEHOLDER_ID] }, enduserIds: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay } })
     },
 });
 // export type SchemaType = typeof schema

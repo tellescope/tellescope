@@ -221,6 +221,7 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   allergy_codes: defaultQueries(s, 'allergy_codes'),
   integration_logs: defaultQueries(s, 'integration_logs'),
   enduser_eligibility_results: defaultQueries(s, 'enduser_eligibility_results'),
+  waitlists: defaultQueries(s, 'waitlists'),
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
@@ -791,6 +792,11 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
       Promise<extractFields<CustomActions['agent_records']['submit_support_ticket']['returns']>>
     ),
   },
+  waitlists: {
+    grant_access_from_waitlist: (args: extractFields<CustomActions['waitlists']['grant_access_from_waitlist']['parameters']>) => (
+      Promise<extractFields<CustomActions['waitlists']['grant_access_from_waitlist']['returns']>>
+    ),
+  },
 }
 
 // session info that's currently required/used on front-end but not part of base user model
@@ -1049,6 +1055,8 @@ export class Session extends SessionManager {
     queries.enduser_eligibility_results.develop_health_run_benefit_verification = args => this._POST(`/v1${schema.enduser_eligibility_results.customActions.develop_health_run_benefit_verification.path}`, args)
 
     queries.agent_records.submit_support_ticket = args => this._POST(`/v1${schema.agent_records.customActions.submit_support_ticket.path}`, args)
+
+    queries.waitlists.grant_access_from_waitlist = args => this._POST(`/v1${schema.waitlists.customActions.grant_access_from_waitlist.path}`, args)
 
     this.api = queries
   }

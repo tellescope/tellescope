@@ -10,6 +10,10 @@ export interface EnduserSessionOptions extends SessionOptions {
 }
 type EnduserAccessibleModels = ('endusers' | 'appointment_booking_pages' | 'users' | 'form_responses' | "chat_rooms" | 'chats' | 'files' | 'form_fields' | 'tickets' | 'calendar_events' | 'calendar_event_templates' | 'engagement_events' | "enduser_observations" | "forum_posts" | "forums" | "managed_content_records" | "managed_content_record_assignments" | "post_comments" | "post_likes" | "comment_likes" | 'meetings' | 'portal_customizations' | "calendar_event_RSVPs" | "care_plans" | "enduser_tasks" | 'integrations' | 'products' | 'purchases' | 'purchase_credits' | 'appointment_locations' | 'enduser_medications' | 'ticket_threads' | 'ticket_thread_comments' | 'enduser_orders' | 'enduser_problems' | 'diagnosis_codes' | 'allergy_codes' | 'forms' | 'enduser_eligibility_results');
 export declare const defaultQueries: <N extends keyof import("@tellescope/types-models").ModelForName>(s: EnduserSession, n: keyof ClientModelForName_required) => APIQuery<N, {
+    waitlists: import("@tellescope/types-models").Waitlist & {
+        id: string;
+        createdAt: Date;
+    };
     agent_records: import("@tellescope/types-models").AgentRecord & {
         id: string;
         createdAt: Date;
@@ -351,6 +355,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
 }[N], import("@tellescope/types-client").CreateFields<N, {
+    waitlists: import("@tellescope/types-models").Waitlist & {
+        id: string;
+        createdAt: Date;
+    };
     agent_records: import("@tellescope/types-models").AgentRecord & {
         id: string;
         createdAt: Date;
@@ -692,6 +700,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
 }[N]>, Omit<Partial<{
+    waitlists: import("@tellescope/types-models").Waitlist & {
+        id: string;
+        createdAt: Date;
+    };
     agent_records: import("@tellescope/types-models").AgentRecord & {
         id: string;
         createdAt: Date;
@@ -1033,6 +1045,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
 }[N]>, keyof {
+    waitlists: import("@tellescope/types-models").Waitlist_readonly & {
+        id: string;
+        createdAt: Date;
+    };
     agent_records: import("@tellescope/types-models").AgentRecord_readonly & {
         id: string;
         createdAt: Date;
@@ -1374,6 +1390,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
 }[N] | keyof {
+    waitlists: import("@tellescope/types-models").Waitlist_updatesDisabled & {
+        id: string;
+        createdAt: Date;
+    };
     agent_records: import("@tellescope/types-models").AgentRecord_updatesDisabled & {
         id: string;
         createdAt: Date;

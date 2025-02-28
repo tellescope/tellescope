@@ -70,7 +70,7 @@ import React, { useEffect, useCallback, useMemo, useState, useRef } from "react"
 import { objects_equivalent, read_local_storage, safeJSONParse, update_local_storage, user_display_name } from "@tellescope/utilities";
 import { ALL_ACCESS, UNSEARCHABLE_FIELDS } from "@tellescope/constants";
 import { useSearchAPI } from "./hooks";
-import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, ScrollingList, SearchTextInput, Typography, useAgentRecords, useAllergyCodes, useAppointmentBookingPages, useAppointmentLocations, useAutomationTriggers, useCalendarEventTemplates, useCallHoldQueues, useChatRooms, useDatabaseRecords, useDatabases, useDiagnosisCodes, useEnduserOrders, useEndusers, useFaxLogs, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useMessageTemplateSnippets, useNotifications, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useSuggestedContacts, useTemplates, useTicketQueues, useTickets, useUsers, value_is_loaded } from ".";
+import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, ScrollingList, SearchTextInput, Typography, useAgentRecords, useAllergyCodes, useAppointmentBookingPages, useAppointmentLocations, useAutomationTriggers, useCalendarEventTemplates, useCallHoldQueues, useChatRooms, useDatabaseRecords, useDatabases, useDiagnosisCodes, useEnduserOrders, useEndusers, useFaxLogs, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useMessageTemplateSnippets, useNotifications, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useSuggestedContacts, useTemplates, useTicketQueues, useTickets, useUsers, useWaitlists, value_is_loaded } from ".";
 /* FILTER / SEARCH */
 export var filter_setter_for_key = function (key, setFilters) { return function (f) { return setFilters(function (fs) {
     var _a;
@@ -504,6 +504,11 @@ export var SuggestedContactSearch = function (props) {
     var session = useSession();
     var _a = useSuggestedContacts({ dontFetch: true }), addLocalElements = _a[1].addLocalElements;
     return (_jsx(ModelSearchInput, __assign({ filterKey: "suggested-contact" }, props, { searchAPI: session.api.suggested_contacts.getSome, onLoad: addLocalElements })));
+};
+export var WaitlistSearch = function (props) {
+    var session = useSession();
+    var _a = useWaitlists({ dontFetch: true }), addLocalElements = _a[1].addLocalElements;
+    return (_jsx(ModelSearchInput, __assign({ filterKey: "waitlist" }, props, { searchAPI: session.api.waitlists.getSome, onLoad: addLocalElements })));
 };
 export var AgentRecordSearch = function (props) {
     var session = useSession();

@@ -337,6 +337,10 @@ export declare const TellescopeStoreContext: React.Context<ReactReduxContextValu
         id: string;
         createdAt: Date;
     })[]>;
+    waitlists: LoadedData<(import("@tellescope/types-models").Waitlist & {
+        id: string;
+        createdAt: Date;
+    })[]>;
 }, undefined, import("redux").AnyAction> & import("redux").Dispatch<import("redux").AnyAction>, import("redux").AnyAction>>;
 export declare const createTellescopeSelector: () => <Selected extends unknown>(selector: (state: import("@reduxjs/toolkit").ThunkDispatch<{
     agent_records: LoadedData<(import("@tellescope/types-models").AgentRecord & {
@@ -666,6 +670,10 @@ export declare const createTellescopeSelector: () => <Selected extends unknown>(
         createdAt: Date;
     })[]>;
     allergy_codes: LoadedData<(import("@tellescope/types-models").AllergyCode & {
+        id: string;
+        createdAt: Date;
+    })[]>;
+    waitlists: LoadedData<(import("@tellescope/types-models").Waitlist & {
         id: string;
         createdAt: Date;
     })[]>;
@@ -1102,6 +1110,10 @@ export declare const sharedConfig: {
             id: string;
             createdAt: Date;
         })[]>, import("redux").AnyAction>;
+        waitlists: import("redux").Reducer<LoadedData<(import("@tellescope/types-models").Waitlist & {
+            id: string;
+            createdAt: Date;
+        })[]>, import("redux").AnyAction>;
     };
 };
 export declare const useResetState: () => () => void;
@@ -1134,14 +1146,25 @@ export interface LoadMoreFunctions<T> {
 }
 export declare const INACTIVE_SYNC_INTERVAL_IN_MS = 30000;
 export declare const DEFAULT_SYNC_INTERVAL_IN_MS = 15000;
+export declare const MEDIUM_SYNC_INTERAVL = 10000;
 export declare const FAST_SYNC_INTERVAL = 5000;
 export declare const lastActiveForSync: {
     at: Date;
     hasFocus: boolean;
 };
+export declare const lastDataSync: {
+    current: {
+        numResults: number;
+        at: Date;
+        from: Date;
+        latency: number;
+        duration: number;
+    };
+};
 export declare const useDataSync____internal: () => {
     setLoadTiming: (key: string, loadTimeInMS: number) => void;
     setHandler: (key: string, handler: undefined | (() => void)) => void;
+    removeHandler: (key: string, handler: () => void) => void;
     getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").File & {
         id: string;
         createdAt: Date;
@@ -1383,6 +1406,9 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AllergyCode & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Waitlist & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").CallHoldQueue & {
@@ -1640,6 +1666,9 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AllergyCode & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Waitlist & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").CallHoldQueue & {
@@ -1663,6 +1692,7 @@ export declare const WithDataSync: ({ children }: {
 export declare const useSyncContext: () => {
     setLoadTiming: (key: string, loadTimeInMS: number) => void;
     setHandler: (key: string, handler: undefined | (() => void)) => void;
+    removeHandler: (key: string, handler: () => void) => void;
     getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").File & {
         id: string;
         createdAt: Date;
@@ -1904,6 +1934,9 @@ export declare const useSyncContext: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AllergyCode & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Waitlist & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").CallHoldQueue & {
@@ -2161,6 +2194,9 @@ export declare const useSyncContext: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AllergyCode & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Waitlist & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").CallHoldQueue & {
@@ -3353,5 +3389,18 @@ export declare const useCalendarEventsForUser: (options?: HookOptions<import("@t
         createdAt: Date;
     })[]>;
 }];
+export declare const useWaitlists: (options?: HookOptions<import("@tellescope/types-models").Waitlist & {
+    id: string;
+    createdAt: Date;
+}>) => ListStateReturnType<import("@tellescope/types-models").Waitlist & {
+    id: string;
+    createdAt: Date;
+}, import("@tellescope/types-client").CreateFields<"waitlists", import("@tellescope/types-models").Waitlist & {
+    id: string;
+    createdAt: Date;
+}> & {
+    sharedWithOrganizations?: string[][] | undefined;
+    _overrideUnique?: boolean | undefined;
+}>;
 export {};
 //# sourceMappingURL=state.d.ts.map

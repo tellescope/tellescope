@@ -219,6 +219,7 @@ exports.READ_ONLY_DEFAULT = {
     delete: exports.NO_ACCESS,
 };
 exports.PROVIDER_PERMISSIONS = {
+    waitlists: exports.READ_ONLY_ALL,
     agent_records: exports.READ_ONLY_ALL,
     integration_logs: exports.READ_ONLY_ALL,
     allergy_codes: exports.READ_ONLY_ALL,
@@ -362,6 +363,7 @@ exports.PROVIDER_PERMISSIONS = {
     },
 };
 exports.ADMIN_PERMISSIONS = {
+    waitlists: exports.FULL_ACCESS,
     integration_logs: exports.READ_ONLY_ALL,
     agent_records: exports.FULL_ACCESS,
     enduser_eligibility_results: exports.FULL_ACCESS,

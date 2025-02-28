@@ -240,6 +240,7 @@ var loadDefaultQueries = function (s) { return ({
     allergy_codes: (0, exports.defaultQueries)(s, 'allergy_codes'),
     integration_logs: (0, exports.defaultQueries)(s, 'integration_logs'),
     enduser_eligibility_results: (0, exports.defaultQueries)(s, 'enduser_eligibility_results'),
+    waitlists: (0, exports.defaultQueries)(s, 'waitlists'),
 }); };
 var Session = /** @class */ (function (_super) {
     __extends(Session, _super);
@@ -608,6 +609,7 @@ var Session = /** @class */ (function (_super) {
         queries.enduser_observations.acknowledge = function (args) { return _this._POST("/v1".concat(schema_1.schema.enduser_observations.customActions.acknowledge.path), args); };
         queries.enduser_eligibility_results.develop_health_run_benefit_verification = function (args) { return _this._POST("/v1".concat(schema_1.schema.enduser_eligibility_results.customActions.develop_health_run_benefit_verification.path), args); };
         queries.agent_records.submit_support_ticket = function (args) { return _this._POST("/v1".concat(schema_1.schema.agent_records.customActions.submit_support_ticket.path), args); };
+        queries.waitlists.grant_access_from_waitlist = function (args) { return _this._POST("/v1".concat(schema_1.schema.waitlists.customActions.grant_access_from_waitlist.path), args); };
         _this.api = queries;
         return _this;
     }

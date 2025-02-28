@@ -95,6 +95,7 @@ export type AllergyCode = ServerModelForName['allergy_codes']
 export type IntegrationLog = ServerModelForName['integration_logs']
 export type EnduserEligibilityResult = ServerModelForName['enduser_eligibility_results']
 export type AgentRecord = ServerModelForName['agent_records']
+export type Waitlist = ServerModelForName['waitlists']
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']

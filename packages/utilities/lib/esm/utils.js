@@ -344,13 +344,15 @@ export var get_time_values = function (date, options) {
     var month = ((options === null || options === void 0 ? void 0 : options.fullMonth) ? MONTHS_FULL : MONTHS)[monthNumber - 1];
     var hours = date.getHours();
     var minutesRaw = date.getMinutes();
+    var secondsRaw = date.getSeconds();
+    var seconds = secondsRaw >= 10 ? secondsRaw : "0".concat(secondsRaw);
     var minutes = minutesRaw >= 10 ? minutesRaw : "0".concat(minutesRaw);
     var year = date.getFullYear();
     var amPm = hours < 12 ? 'am' : 'pm';
     var hoursAmPm = (hours === 0
         ? 12
         : hours <= 12 ? hours : hours - 12);
-    return { dayOfMonth: dayOfMonth, monthNumber: monthNumber, month: month, hours: hours, hoursAmPm: hoursAmPm, amPm: amPm, minutes: minutes, year: year, };
+    return { dayOfMonth: dayOfMonth, monthNumber: monthNumber, month: month, hours: hours, hoursAmPm: hoursAmPm, amPm: amPm, minutes: minutes, year: year, seconds: seconds };
 };
 export var formatted_date = function (date) {
     var _a = get_time_values(date), dayOfMonth = _a.dayOfMonth, month = _a.month, year = _a.year, hoursAmPm = _a.hoursAmPm, amPm = _a.amPm, minutes = _a.minutes;
@@ -812,7 +814,8 @@ export var get_enduser_field_value_for_key = function (enduser, key) {
     }
     return enduser === null || enduser === void 0 ? void 0 : enduser[key];
 };
-export var evaluate_conditional_logic_for_enduser_fields = function (enduser, conditions) { return (evaluate_conditional_logic(conditions, function (key, value) {
+export var UPCOMING_EVENT_COUNT_KEY = '__upcomingEvents__';
+export var evaluate_conditional_logic_for_enduser_fields = function (enduser, conditions, o) { return (evaluate_conditional_logic(conditions, function (key, value) {
     var _a, _b, _d, _e, _f;
     return ((key === 'Age' && typeof value === 'object')
         ? (function () {
@@ -840,95 +843,142 @@ export var evaluate_conditional_logic_for_enduser_fields = function (enduser, co
         //         : !!enduser.tags?.find(t => (value as ListOfStringsWithQualifier)?.values?.includes(t))
         //     )
         //   })()
-        : key === 'BMI' && typeof value === 'object'
+        : (key === UPCOMING_EVENT_COUNT_KEY && typeof value === 'object')
             ? (function () {
-                var _a, _b, _d, _e;
-                var height = parseInt(((_b = (_a = enduser.height) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.toString()) || '0');
-                var weight = parseInt(((_e = (_d = enduser.weight) === null || _d === void 0 ? void 0 : _d.value) === null || _e === void 0 ? void 0 : _e.toString()) || '0');
-                if (!(height && weight))
-                    return false;
-                var bmi = 703 * weight / (height * height);
+                var _a, _b;
+                if (o === null || o === void 0 ? void 0 : o.ignoreUpcomingEvents)
+                    return true;
+                var upcomingEventCount = (_b = (_a = enduser._upcomingEvents) === null || _a === void 0 ? void 0 : _a.length) !== null && _b !== void 0 ? _b : 0;
                 var result = ((value === null || value === void 0 ? void 0 : value['$lt']) !== undefined
-                    ? (bmi < parseInt(value['$lt']))
+                    ? (upcomingEventCount < parseInt(value['$lt']))
                     : (value === null || value === void 0 ? void 0 : value['$gt']) !== undefined
-                        ? (bmi > parseInt(value['$gt']))
+                        ? (upcomingEventCount > parseInt(value['$gt']))
                         : false);
                 return result;
             })()
-            : key === 'relationships' && typeof value === 'string'
-                ? (!!((_a = enduser === null || enduser === void 0 ? void 0 : enduser.relationships) === null || _a === void 0 ? void 0 : _a.find(function (r) { return r.type === get_inverse_relationship_type(value); })))
-                : typeof value === 'object'
-                    ? (function () {
-                        var _a, _b, _d, _e, _f, _g, _h, _j, _k, _l;
-                        var k = Object.keys(value)[0];
-                        var v = Object.values(value)[0];
-                        if (key === 'Journeys' && (k === '$in' || k === '$nin')) {
-                            var isInJourney = ((_a = enduser === null || enduser === void 0 ? void 0 : enduser.journeys) === null || _a === void 0 ? void 0 : _a[v]) !== undefined;
-                            return ((k === '$in' && isInJourney)
-                                || (k === "$nin" && !isInJourney));
-                        }
-                        if (k === '$before' || k === '$after') {
-                            var vDate = v === '$now' ? new Date() : new Date(v);
-                            if (isNaN(vDate.getTime()))
-                                return false;
-                            var eDateField = (_d = (_b = enduser.fields) === null || _b === void 0 ? void 0 : _b[key]) !== null && _d !== void 0 ? _d : get_enduser_field_value_for_key(enduser, key);
-                            if (!eDateField)
-                                return false;
-                            if (typeof eDateField !== 'string')
-                                return false;
-                            var eDate = ((eDateField.includes('-') && eDateField.length === 10)
-                                ? new Date(MM_DD_YYYY_to_YYYY_MM_DD(eDateField))
-                                : new Date(eDateField));
-                            if (isNaN(eDate.getTime()))
-                                return false;
-                            return ((k === '$before' && eDate.getTime() < vDate.getTime())
-                                || (k === '$after' && eDate.getTime() > vDate.getTime()));
-                        }
-                        if (k === '$lt' || k === '$gt') {
-                            var enduserValue = (_e = enduser.fields) === null || _e === void 0 ? void 0 : _e[key];
-                            if (typeof enduserValue !== 'number')
-                                return false;
-                            var _v = (typeof v === 'number'
-                                ? v
-                                : parseInt(v));
-                            if (isNaN(_v))
-                                return false;
-                            return ((k === '$lt' && enduserValue < _v)
-                                || (k === '$gt' && enduserValue > _v));
-                        }
-                        if (k === '$contains' || k === '$doesNotContain') {
-                            var enduserValue = ((_g = (_f = enduser.fields) === null || _f === void 0 ? void 0 : _f[key]) !== null && _g !== void 0 ? _g : get_enduser_field_value_for_key(enduser, key));
-                            var contains = (Array.isArray(enduserValue)
-                                ? !!enduserValue.find(function (ev) { return typeof ev === 'string' && ev.includes(v); })
-                                : typeof enduserValue === 'string'
-                                    ? enduserValue.includes(v)
-                                    : enduserValue === v);
-                            return ((k === '$contains' && contains)
-                                || (k === '$doesNotContain' && !contains));
-                        }
-                        if (k === '$isSet' || k === '$isNotSet') {
-                            var enduserValue = ((_j = (_h = enduser.fields) === null || _h === void 0 ? void 0 : _h[key]) !== null && _j !== void 0 ? _j : get_enduser_field_value_for_key(enduser, key));
-                            var isSet = (Array.isArray(enduserValue)
-                                ? enduserValue.length > 0
-                                : !!enduserValue);
-                            return (k === "$isSet" && isSet) || (k === '$isNotSet' && !isSet);
-                        }
-                        // should negate the typeof value === 'string' (defaults to $equals) condition
-                        if (k === '$ne') {
-                            var enduserValue = ((_l = (_k = enduser.fields) === null || _k === void 0 ? void 0 : _k[key]) !== null && _l !== void 0 ? _l : get_enduser_field_value_for_key(enduser, key));
-                            return !(enduserValue === v
-                                || (Array.isArray(enduserValue) && (enduserValue).includes(v)));
-                        }
+            : key === 'BMI' && typeof value === 'object'
+                ? (function () {
+                    var _a, _b, _d, _e;
+                    var height = parseInt(((_b = (_a = enduser.height) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.toString()) || '0');
+                    var weight = parseInt(((_e = (_d = enduser.weight) === null || _d === void 0 ? void 0 : _d.value) === null || _e === void 0 ? void 0 : _e.toString()) || '0');
+                    if (!(height && weight))
                         return false;
-                    })()
-                    : typeof value === 'string'
-                        ? (((_d = (_b = enduser.fields) === null || _b === void 0 ? void 0 : _b[key]) !== null && _d !== void 0 ? _d : get_enduser_field_value_for_key(enduser, key)) === value
-                            || (Array.isArray((_e = enduser.fields) === null || _e === void 0 ? void 0 : _e[key])
-                                && ((_f = enduser === null || enduser === void 0 ? void 0 : enduser.fields) === null || _f === void 0 ? void 0 : _f[key]).includes(value))
-                            || (Array.isArray(get_enduser_field_value_for_key(enduser, key))
-                                && enduser[key].includes(value)))
-                        : false);
+                    var bmi = 703 * weight / (height * height);
+                    var result = ((value === null || value === void 0 ? void 0 : value['$lt']) !== undefined
+                        ? (bmi < parseInt(value['$lt']))
+                        : (value === null || value === void 0 ? void 0 : value['$gt']) !== undefined
+                            ? (bmi > parseInt(value['$gt']))
+                            : false);
+                    return result;
+                })()
+                : key === 'relationships' && typeof value === 'string'
+                    ? (!!((_a = enduser === null || enduser === void 0 ? void 0 : enduser.relationships) === null || _a === void 0 ? void 0 : _a.find(function (r) { return r.type === get_inverse_relationship_type(value); })))
+                    : typeof value === 'object'
+                        ? (function () {
+                            var _a, _b, _d, _e, _f, _g, _h, _j, _k, _l;
+                            var k = Object.keys(value)[0];
+                            var v = Object.values(value)[0];
+                            if (key === 'Journeys' && (k === '$in' || k === '$nin')) {
+                                var isInJourney = ((_a = enduser === null || enduser === void 0 ? void 0 : enduser.journeys) === null || _a === void 0 ? void 0 : _a[v]) !== undefined;
+                                return ((k === '$in' && isInJourney)
+                                    || (k === "$nin" && !isInJourney));
+                            }
+                            if (k === '$before' || k === '$after') {
+                                var vDate = v === '$now' ? new Date() : new Date(v);
+                                if (isNaN(vDate.getTime()))
+                                    return false;
+                                var eDateField = (_d = (_b = enduser.fields) === null || _b === void 0 ? void 0 : _b[key]) !== null && _d !== void 0 ? _d : get_enduser_field_value_for_key(enduser, key);
+                                if (!eDateField)
+                                    return false;
+                                if (typeof eDateField !== 'string')
+                                    return false;
+                                var eDate = ((eDateField.includes('-') && eDateField.length === 10)
+                                    ? new Date(MM_DD_YYYY_to_YYYY_MM_DD(eDateField))
+                                    : new Date(eDateField));
+                                if (isNaN(eDate.getTime()))
+                                    return false;
+                                return ((k === '$before' && eDate.getTime() < vDate.getTime())
+                                    || (k === '$after' && eDate.getTime() > vDate.getTime()));
+                            }
+                            if (k === '$lt' || k === '$gt') {
+                                var enduserValue = (_e = enduser.fields) === null || _e === void 0 ? void 0 : _e[key];
+                                if (typeof enduserValue !== 'number')
+                                    return false;
+                                var _v = (typeof v === 'number'
+                                    ? v
+                                    : parseInt(v));
+                                if (isNaN(_v))
+                                    return false;
+                                return ((k === '$lt' && enduserValue < _v)
+                                    || (k === '$gt' && enduserValue > _v));
+                            }
+                            if (k === '$contains' || k === '$doesNotContain') {
+                                var enduserValue = ((_g = (_f = enduser.fields) === null || _f === void 0 ? void 0 : _f[key]) !== null && _g !== void 0 ? _g : get_enduser_field_value_for_key(enduser, key));
+                                var contains = (Array.isArray(enduserValue)
+                                    ? !!enduserValue.find(function (ev) { return typeof ev === 'string' && ev.includes(v); })
+                                    : typeof enduserValue === 'string'
+                                        ? enduserValue.includes(v)
+                                        : enduserValue === v);
+                                return ((k === '$contains' && contains)
+                                    || (k === '$doesNotContain' && !contains));
+                            }
+                            if (k === '$isSet' || k === '$isNotSet') {
+                                var enduserValue = ((_j = (_h = enduser.fields) === null || _h === void 0 ? void 0 : _h[key]) !== null && _j !== void 0 ? _j : get_enduser_field_value_for_key(enduser, key));
+                                var isSet = (Array.isArray(enduserValue)
+                                    ? enduserValue.length > 0
+                                    : !!enduserValue);
+                                return (k === "$isSet" && isSet) || (k === '$isNotSet' && !isSet);
+                            }
+                            // should negate the typeof value === 'string' (defaults to $equals) condition
+                            if (k === '$ne') {
+                                var enduserValue = ((_l = (_k = enduser.fields) === null || _k === void 0 ? void 0 : _k[key]) !== null && _l !== void 0 ? _l : get_enduser_field_value_for_key(enduser, key));
+                                return !(enduserValue === v
+                                    || (Array.isArray(enduserValue) && (enduserValue).includes(v)));
+                            }
+                            return false;
+                        })()
+                        : typeof value === 'string'
+                            ? (((_d = (_b = enduser.fields) === null || _b === void 0 ? void 0 : _b[key]) !== null && _d !== void 0 ? _d : get_enduser_field_value_for_key(enduser, key)) === value
+                                || (Array.isArray((_e = enduser.fields) === null || _e === void 0 ? void 0 : _e[key])
+                                    && ((_f = enduser === null || enduser === void 0 ? void 0 : enduser.fields) === null || _f === void 0 ? void 0 : _f[key]).includes(value))
+                                || (Array.isArray(get_enduser_field_value_for_key(enduser, key))
+                                    && enduser[key].includes(value)))
+                            : false);
 })); };
+export var string_matches_key_or_value = function (value, match) {
+    if (typeof value === 'string') {
+        return value === match;
+    }
+    if (Array.isArray(value)) {
+        return value.find(function (v) { return string_matches_key_or_value(v, match); }) !== undefined;
+    }
+    if (value && typeof value === 'object') {
+        for (var k in value) {
+            if (k === match)
+                return true;
+            if (string_matches_key_or_value(value[k], match))
+                return true;
+        }
+    }
+    return false;
+};
+// console.log(
+//   'string match test case',
+//   string_matches_key_or_value(
+//     {
+//       $and: [
+//         {
+//           condition: {
+//             __upcomingEvents__: {
+//               $gt: 0,
+//             }
+//           }
+//         }
+//       ]
+//     }, 
+//     UPCOMING_EVENT_COUNT_KEY,
+//   )
+// )
 export var getLocalTimezone = function () { return Intl.DateTimeFormat().resolvedOptions().timeZone; };
 export var YYYY_MM_DD_to_MM_DD_YYYY = function (yyyyMmDd, delimiter) {
     if (delimiter === void 0) { delimiter = '-'; }

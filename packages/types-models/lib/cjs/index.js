@@ -61,6 +61,7 @@ exports.DIAGNOSIS_TYPE_MAPPING = {
     "LOI": "LOINC<190>",
 };
 exports.modelNameChecker = {
+    waitlists: true,
     agent_records: true,
     enduser_eligibility_results: true,
     integration_logs: true,

@@ -729,6 +729,7 @@ const run_generated_tests = async <N extends ModelName>({ queries, model, name, 
   || name === 'webhooks'
   || name === 'integration_logs' // readonly
   || name === 'automated_actions' // might process in background and cause false failure
+  || name === 'waitlists' // while waitlist updates are not stored in logs
   ) return 
   if (!defaultEnduser) defaultEnduser = await sdk.api.endusers.createOne({ email: 'default@tellescope.com', phone: "5555555555"  })
 
@@ -6607,6 +6608,76 @@ const agent_record_tests = async () => {
   ])
 }
 
+const waitlist_tests = async () => {
+  log_header("Waitlist Tests")
+
+  const e1 = await sdk.api.endusers.createOne({ fname: 'test1' })
+  const e2 = await sdk.api.endusers.createOne({ fname: 'test2' })
+  const e3 = await sdk.api.endusers.createOne({ fname: 'test3' })
+  const e4 = await sdk.api.endusers.createOne({ fname: 'test4' })
+  const e5 = await sdk.api.endusers.createOne({ fname: 'test5' })
+  const j = await sdk.api.journeys.createOne({ title: 'test' })
+  const list = await sdk.api.waitlists.createOne({ title: 'test', journeyId: j.id, enduserIds: [e1.id, e2.id, e3.id, e4.id, e5.id] })
+
+  await sdk.api.waitlists.grant_access_from_waitlist({ id: list.id, count: 2 })
+  await async_test(
+    `Waitlist remove updates enduserids`,
+    () => sdk.api.waitlists.getOne(list.id),
+    { onResult: l => l.enduserIds.length === 3 && l.enduserIds[0] === e3.id }
+  )
+
+  await async_test(
+    `Waitlist adds to Journey`,
+    () => pollForResults(
+      () => sdk.api.endusers.getSome(),
+      es => (
+           es.find(e => e.id === e1.id)?.journeys?.[j.id] !== undefined
+        && es.find(e => e.id === e2.id)?.journeys?.[j.id] !== undefined
+        && es.find(e => e.id === e3.id)?.journeys?.[j.id] === undefined
+        && es.find(e => e.id === e4.id)?.journeys?.[j.id] === undefined
+        && es.find(e => e.id === e5.id)?.journeys?.[j.id] === undefined
+      ),
+      25,
+      10,
+    ),
+    passOnAnyResult
+  )  
+  
+  await sdk.api.endusers.deleteOne(e3.id)
+  await async_test(
+    `Deleting enduser removes from Waitlist`,
+    () => pollForResults(
+      () => sdk.api.waitlists.getOne(list.id),
+      w => w.enduserIds.length === 2,
+      25,
+      10,
+    ),
+    passOnAnyResult
+  )  
+
+  await sdk.api.endusers.merge({ sourceEnduserId: e4.id, destinationEnduserId: e5.id })
+  await async_test(
+    `Deleting enduser via merge removes from Waitlist`,
+    () => pollForResults(
+      () => sdk.api.waitlists.getOne(list.id),
+      w => w.enduserIds.length === 1,
+      25,
+      10,
+    ),
+    passOnAnyResult
+  )
+
+  return (
+    Promise.all([
+      sdk.api.waitlists.deleteOne(list.id),
+      sdk.api.endusers.deleteOne(e1.id),
+      sdk.api.endusers.deleteOne(e2.id),
+      sdk.api.endusers.deleteOne(e5.id),
+      sdk.api.journeys.deleteOne(j.id),
+    ])
+  )
+}
+
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
   agent_records: agent_record_tests,
@@ -6694,6 +6765,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   portal_brandings: NO_TEST,
   message_template_snippets: NO_TEST,
   integration_logs: NO_TEST,
+  waitlists: waitlist_tests,
 };
 
 const TRACK_OPEN_IMAGE = Buffer.from(

@@ -105,6 +105,7 @@ import {
   TicketQueue,
   SMSMessage,
   EnduserEligibilityResult,
+  Waitlist,
 } from "@tellescope/types-client"
 
 import {
@@ -316,6 +317,7 @@ import {
   developHealthDrugsValidator,
   developHealthDiagnosesValidator,
   developHealthMockResultValidator,
+  positiveNumberValidator,
 } from "@tellescope/validation"
 
 import {
@@ -1103,6 +1105,9 @@ export type CustomActions = {
   agent_records: {
     submit_support_ticket: CustomAction<{ priority: string, message: string }, { }>,
   },
+  waitlists: {
+    grant_access_from_waitlist: CustomAction<{ id: string, count: number }, { waitlist: Waitlist }>,
+  },
 } 
 
 export type PublicActions = {
@@ -1277,6 +1282,7 @@ export const schema: SchemaV1 = build_schema({
     fields: {
       ...BuiltInFields,   
       healthie_dietitian_id: { validator: stringValidator100 },
+      mergedIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk, readonly: true, redactions: ['enduser'] },
       externalId: {
         validator: stringValidator250,
         examples: ['addfed3e-ddea-415b-b52b-df820c944dbb'],
@@ -8375,7 +8381,6 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         returns: {}
       },
     },
-    enduserActions: { read: {}, readMany: {} },
     fields: {
       ...BuiltInFields,
       type: { validator: stringValidator, required: true, examples: ['Article'] },
@@ -8389,6 +8394,34 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       embedding: { validator: listValidator(numberValidator) },
     }
   },
+  waitlists: {
+    info: { description: '' },
+    constraints: { unique: [], relationship: [], access: [] },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {
+      grant_access_from_waitlist: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Remove from Waitlist',
+        path: '/waitlists/grant-access',
+        description: "Removes count from waitlist and adds to corresponding Journey",
+        parameters: { 
+          id: { validator: mongoIdStringRequired, required: true },
+          count: { validator: positiveNumberValidator, required: true },
+        },
+        returns: {
+          waitlist: { validator: 'waitlist' as any, required: true },
+        },
+      },
+    },
+    fields: {
+      ...BuiltInFields,
+      title: { validator: stringValidator, required: true, examples: ['Title'] },
+      journeyId: { validator: mongoIdStringValidator, required: true, examples: [PLACEHOLDER_ID] },
+      enduserIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] },
+      tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+    }
+  },
+  
 })
 
 // export type SchemaType = typeof schema

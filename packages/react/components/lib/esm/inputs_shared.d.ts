@@ -3,7 +3,7 @@ import { Indexable, ScoreFilter } from "@tellescope/types-utilities";
 import { LoadFunction, LoadFunctionArguments } from "@tellescope/sdk";
 import { SearchAPIProps } from "./hooks";
 import { TextFieldProps } from "./mui";
-import { AgentRecord, AllergyCode, AppointmentBookingPage, AppointmentLocation, AutomationTrigger, CalendarEventTemplate, CallHoldQueue, ChatRoom, Database, DatabaseRecord, DiagnosisCode, Enduser, EnduserOrder, FaxLog, File, Form, FormGroup, Forum, Journey, ManagedContentRecord, MessageTemplateSnippet, Organization, PrescriptionRoute, SuggestedContact, Template, Ticket, TicketQueue, User, UserNotification } from "@tellescope/types-client";
+import { AgentRecord, AllergyCode, AppointmentBookingPage, AppointmentLocation, AutomationTrigger, CalendarEventTemplate, CallHoldQueue, ChatRoom, Database, DatabaseRecord, DiagnosisCode, Enduser, EnduserOrder, FaxLog, File, Form, FormGroup, Forum, Journey, ManagedContentRecord, MessageTemplateSnippet, Organization, PrescriptionRoute, SuggestedContact, Template, Ticket, TicketQueue, User, UserNotification, Waitlist } from "@tellescope/types-client";
 import { SxProps } from "@mui/material";
 export declare const filter_setter_for_key: <T>(key: string, setFilters: React.Dispatch<React.SetStateAction<Filters<T>>>) => (f: ScoreFilter<T>) => void;
 export declare const apply_filters: <T>(fs: Filters<T>, data: T[]) => T[];
@@ -106,6 +106,9 @@ export declare const FileSearch: (props: Omit<GenericSearchProps<File>, 'filterK
     filterKey?: string;
 }) => JSX.Element;
 export declare const SuggestedContactSearch: (props: Omit<GenericSearchProps<SuggestedContact>, 'filterKey'> & {
+    filterKey?: string;
+}) => JSX.Element;
+export declare const WaitlistSearch: (props: Omit<GenericSearchProps<Waitlist>, 'filterKey'> & {
     filterKey?: string;
 }) => JSX.Element;
 export declare const AgentRecordSearch: (props: Omit<GenericSearchProps<AgentRecord>, 'filterKey'> & {

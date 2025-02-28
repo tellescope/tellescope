@@ -322,6 +322,8 @@ export const get_time_values = (date: Date, options?: { fullMonth: boolean }) =>
   const month = (options?.fullMonth ? MONTHS_FULL : MONTHS)[monthNumber - 1]
   const hours = date.getHours()
   const minutesRaw = date.getMinutes()
+  const secondsRaw = date.getSeconds()
+  const seconds = secondsRaw >= 10 ? secondsRaw : `0${secondsRaw}`
   const minutes = minutesRaw >= 10 ? minutesRaw : `0${minutesRaw}`
   const year = date.getFullYear()
 
@@ -331,7 +333,7 @@ export const get_time_values = (date: Date, options?: { fullMonth: boolean }) =>
       ? 12
       : hours <= 12 ? hours : hours - 12
   )
-  return { dayOfMonth, monthNumber, month, hours, hoursAmPm, amPm, minutes, year,  }
+  return { dayOfMonth, monthNumber, month, hours, hoursAmPm, amPm, minutes, year, seconds }
 }
 
 export const formatted_date = (date: Date): string => {
@@ -856,7 +858,15 @@ export const get_enduser_field_value_for_key = (enduser: Omit<Enduser, 'id'>, ke
   return enduser?.[key as keyof typeof enduser] as any
 }
 
-export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Enduser, 'id'>, conditions: Record<string, any>) => (
+type EnduserAugmentations = {
+  _upcomingEvents?: any[]
+}
+
+export const UPCOMING_EVENT_COUNT_KEY = '__upcomingEvents__'
+
+export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Enduser, 'id'> & EnduserAugmentations, conditions: Record<string, any>, o?: {
+  ignoreUpcomingEvents?: boolean, // if this condition type should not be evaluated
+}) => (
   evaluate_conditional_logic(
     conditions, 
     (key, value: string | Record<string, any>) => (
@@ -890,6 +900,22 @@ export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Endu
       //         : !!enduser.tags?.find(t => (value as ListOfStringsWithQualifier)?.values?.includes(t))
       //     )
       //   })()
+      : (key === UPCOMING_EVENT_COUNT_KEY && typeof value === 'object')
+        ? (() => {
+          if (o?.ignoreUpcomingEvents) return true 
+
+          const upcomingEventCount = enduser._upcomingEvents?.length ?? 0
+
+          const result = (
+            value?.['$lt'] !== undefined
+              ? (upcomingEventCount < parseInt(value['$lt']))
+          : value?.['$gt'] !== undefined
+              ? (upcomingEventCount > parseInt(value['$gt']))
+              : false
+          )
+
+          return result
+        })()
       : key === 'BMI' && typeof value === 'object'
         ? (() => {
           const height = parseInt(enduser.height?.value?.toString() || '0')
@@ -1020,6 +1046,40 @@ export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Endu
     )  
   )
 )
+
+export const string_matches_key_or_value = <T>(value: T, match: string): boolean => {
+  if (typeof value === 'string') {
+    return value === match
+  }
+  if (Array.isArray(value)) {
+    return value.find(v => string_matches_key_or_value(v, match)) !== undefined
+  }
+  if (value && typeof value === 'object') {
+    for (const k in value) {
+      if (k === match) return true
+      if (string_matches_key_or_value(value[k], match)) return true
+    }
+  }
+
+  return false
+}
+// console.log(
+//   'string match test case',
+//   string_matches_key_or_value(
+//     {
+//       $and: [
+//         {
+//           condition: {
+//             __upcomingEvents__: {
+//               $gt: 0,
+//             }
+//           }
+//         }
+//       ]
+//     }, 
+//     UPCOMING_EVENT_COUNT_KEY,
+//   )
+// )
 
 export const getLocalTimezone = () => Intl.DateTimeFormat().resolvedOptions().timeZone as Timezone
 

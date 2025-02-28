@@ -5,8 +5,8 @@ import { LoadFunction, LoadFunctionArguments } from "@tellescope/sdk"
 import { ALL_ACCESS, UNSEARCHABLE_FIELDS } from "@tellescope/constants"
 import { SearchAPIProps, useSearchAPI } from "./hooks"
 import { TextFieldProps } from "./mui"
-import { AgentRecord, AllergyCode, AppointmentBookingPage, AppointmentLocation, AutomationTrigger, CalendarEventTemplate, CallHoldQueue, ChatRoom, Database, DatabaseRecord, DiagnosisCode, Enduser, EnduserOrder, FaxLog, File, Form, FormGroup, Forum, Journey, ManagedContentRecord, MessageTemplateSnippet, Organization, PrescriptionRoute, SuggestedContact, Template, Ticket, TicketQueue, User, UserNotification } from "@tellescope/types-client"
-import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, LoadingLinear, ScrollingList, SearchTextInput, Typography, useAgentRecords, useAllergyCodes, useAppointmentBookingPages, useAppointmentLocations, useAutomationTriggers, useCalendarEventTemplates, useCallHoldQueues, useChatRooms, useDatabaseRecords, useDatabases, useDiagnosisCodes, useEnduserOrders, useEndusers, useFaxLogs, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useMessageTemplateSnippets, useNotifications, useOrganization, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useSuggestedContacts, useTemplates, useTicketQueues, useTickets, useUsers, value_is_loaded } from "."
+import { AgentRecord, AllergyCode, AppointmentBookingPage, AppointmentLocation, AutomationTrigger, CalendarEventTemplate, CallHoldQueue, ChatRoom, Database, DatabaseRecord, DiagnosisCode, Enduser, EnduserOrder, FaxLog, File, Form, FormGroup, Forum, Journey, ManagedContentRecord, MessageTemplateSnippet, Organization, PrescriptionRoute, SuggestedContact, Template, Ticket, TicketQueue, User, UserNotification, Waitlist } from "@tellescope/types-client"
+import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, LoadingLinear, ScrollingList, SearchTextInput, Typography, useAgentRecords, useAllergyCodes, useAppointmentBookingPages, useAppointmentLocations, useAutomationTriggers, useCalendarEventTemplates, useCallHoldQueues, useChatRooms, useDatabaseRecords, useDatabases, useDiagnosisCodes, useEnduserOrders, useEndusers, useFaxLogs, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useMessageTemplateSnippets, useNotifications, useOrganization, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useSuggestedContacts, useTemplates, useTicketQueues, useTickets, useUsers, useWaitlists, value_is_loaded } from "."
 import { SxProps } from "@mui/material"
 import { AccessPermissions } from "@tellescope/types-models"
 
@@ -613,6 +613,17 @@ export const SuggestedContactSearch = (props: Omit<GenericSearchProps<SuggestedC
   return (
     <ModelSearchInput filterKey="suggested-contact" {...props} 
       searchAPI={session.api.suggested_contacts.getSome}
+      onLoad={addLocalElements}
+    />
+  )
+}
+
+export const WaitlistSearch = (props: Omit<GenericSearchProps<Waitlist>, 'filterKey'> & { filterKey?: string }) => {
+  const session = useSession()
+  const [, { addLocalElements }] = useWaitlists({ dontFetch: true })
+  return (
+    <ModelSearchInput filterKey="waitlist" {...props} 
+      searchAPI={session.api.waitlists.getSome}
       onLoad={addLocalElements}
     />
   )

@@ -835,6 +835,7 @@ export var numberValidatorBuilder = function (_a) {
     });
 };
 export var nonNegNumberValidator = numberValidatorBuilder({ lower: 0, upper: 10000000000000 }); // max is 2286 in UTC MS
+export var positiveNumberValidator = numberValidatorBuilder({ lower: 1, upper: 10000000000000 }); // max is 2286 in UTC MS
 export var numberValidator = numberValidatorBuilder({ lower: -10000000000000, upper: 10000000000000 }); // max is 2286 in UTC MS
 export var numberValidatorOptional = numberValidatorBuilder({ lower: -10000000000000, upper: 10000000000000, isOptional: true, emptyStringOk: true }); // max is 2286 in UTC MS
 export var listOfNumbersValidatorUniqueOptionalOrEmptyOkay = listValidatorUniqueOptionalEmptyOkay(numberValidator, { isNumber: true });
@@ -1934,6 +1935,7 @@ var _AUTOMATION_ACTIONS = {
     canvasSync: '',
     elationSync: '',
     developHealthMedEligibility: '',
+    cancelFutureAppointments: '',
 };
 export var AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS);
 export var automationActionTypeValidator = exactMatchValidator(AUTOMATION_ACTIONS);
@@ -2343,6 +2345,7 @@ export var automationActionValidator = orValidator({
                 tellescope: stringValidator,
             })),
             environment: stringValidatorOptional,
+            customEmailField: stringValidatorOptional,
         }, { emptyOk: false }),
     }),
     zendeskCreateTicket: objectValidator({
@@ -2475,6 +2478,11 @@ export var automationActionValidator = orValidator({
         info: objectValidator({
             formIds: listOfMongoIdStringValidator,
         }, { emptyOk: false }),
+    }),
+    cancelFutureAppointments: objectValidator({
+        continueOnError: booleanValidatorOptional,
+        type: exactMatchValidator(['cancelFutureAppointments']),
+        info: objectValidator({}, { emptyOk: true }),
     }),
 });
 export var journeyContextValidator = objectValidator({
@@ -3735,6 +3743,8 @@ var _AUTOMATION_TRIGGER_ACTION_TYPES = {
     "Canvas: Add Patient": true,
     "Zus: Delete Enrollment": true,
     "Require Form Followups": true,
+    "Add to Waitlist": true,
+    "Grant Access From Waitlist": true,
 };
 export var AUTOMATION_TRIGGER_ACTION_TYPES = Object.keys(_AUTOMATION_TRIGGER_ACTION_TYPES);
 export var automationTriggerActionValidator = orValidator({
@@ -3816,6 +3826,19 @@ export var automationTriggerActionValidator = orValidator({
         type: exactMatchValidator(['Require Form Followups']),
         info: objectValidator({
             formIds: listOfUniqueStringsValidatorEmptyOk,
+        }),
+    }),
+    "Add to Waitlist": objectValidator({
+        type: exactMatchValidator(['Add to Waitlist']),
+        info: objectValidator({
+            waitlistId: mongoIdStringRequired,
+        }),
+    }),
+    "Grant Access From Waitlist": objectValidator({
+        type: exactMatchValidator(['Grant Access From Waitlist']),
+        info: objectValidator({
+            waitlistId: mongoIdStringRequired,
+            count: numberValidator,
         }),
     }),
 });
@@ -3965,6 +3988,7 @@ export var accessPermissionsValidator = objectValidator({
     integration_logs: accessPermissionValidator,
     enduser_eligibility_results: accessPermissionValidator,
     agent_records: accessPermissionValidator,
+    waitlists: accessPermissionValidator,
     // deprecated but for backwards compatibility
     apiKeys: accessPermissionValidator,
 });
@@ -4054,6 +4078,7 @@ export var organizationLimitsValidator = objectValidator({
     integration_logs: numberValidatorOptional,
     enduser_eligibility_results: numberValidatorOptional,
     agent_records: numberValidatorOptional,
+    waitlists: numberValidatorOptional,
 }, { emptyOk: true });
 var _LOGIN_FLOW_RESULTS = {
     // "continue-set-password": true, // something we may turn on later / as requested

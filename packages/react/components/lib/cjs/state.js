@@ -90,9 +90,9 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.useConfigurations = exports.useTicketQueues = exports.useCallHoldQueues = exports.useEnduserProfileViews = exports.useGroupMMSConversations = exports.useEngagementEvents = exports.useCalendarEvents = exports.useVitalConfigurations = exports.useEnduserEncounters = exports.useFlowchartNotes = exports.useFormGroups = exports.useWebhookLogs = exports.useIntegrationLogs = exports.useEnduserOrders = exports.useEnduserMedications = exports.useEnduserProblems = exports.useDiagnosisCodes = exports.useAllergyCodes = exports.usePortalBrandings = exports.useMessageTemplateSnippets = exports.useFaxLogs = exports.useSuggestedContacts = exports.useAgentRecords = exports.useEnduserEligibilityResults = exports.useUserAndEnduserDisplayInfo = exports.useChatRoomDisplayInfo = exports.useListStateHook = exports.useSyncContext = exports.WithDataSync = exports.useDataSync____internal = exports.lastActiveForSync = exports.FAST_SYNC_INTERVAL = exports.DEFAULT_SYNC_INTERVAL_IN_MS = exports.INACTIVE_SYNC_INTERVAL_IN_MS = exports.ExtendedEnduserProvider = exports.EnduserProvider = exports.ExtendedUserProvider = exports.UserProvider = exports.useResetState = exports.sharedConfig = exports.createSliceForList = exports.remove_elements_in_array = exports.replace_elements_in_array = exports.update_elements_in_array = exports.add_elements_to_array = exports.toLoadedData = exports.WithFetchContext = exports.createTellescopeSelector = exports.TellescopeStoreContext = exports.resetStateAction = void 0;
-exports.useCalendarEventTemplates = exports.useEnduserTasks = exports.useCarePlans = exports.usePortalCustomizations = exports.useIntegrations = exports.useOrganization = exports.useOrganizations = exports.usePhoneCalls = exports.useEmailSyncDenials = exports.useTableViews = exports.useSuperbillProviders = exports.useSuperbills = exports.useTicketThreadComments = exports.useTicketThreads = exports.useRoleBasedAccessPermissions = exports.useCalendarEventRSVPs = exports.useCommentLikes = exports.usePostLikes = exports.usePostComments = exports.useForumPosts = exports.useForums = exports.useAssignedManagedContentRecords = exports.useManagedContentRecordAssignments = exports.useManagedContentRecords = exports.useEnduserObservations = exports.useUserDisplayInfo = exports.useFormResponses = exports.useFormFields = exports.useForms = exports.useTemplates = exports.useAvailabilityBlocks = exports.useNotes = exports.useAutomationSteps = exports.useUsers = exports.useJourneys = exports.useFiles = exports.useMeetings = exports.useTickets = exports.useEndusers = exports.useChats = exports.useChatRooms = exports.useEnduserCustomTypes = exports.useAnalyticsFrames = exports.useUserLogs = exports.useNotifications = exports.useSmsMessages = exports.useEmails = exports.useAutomatedActions = exports.useAutomationTriggers = exports.usePhoneTrees = void 0;
-exports.useCalendarEventsForUser = exports.usePrescriptionRoutes = exports.useBlockedPhones = exports.usePurchaseCredits = exports.usePurchases = exports.useProducts = exports.useDatabaseRecords = exports.useDatabases = exports.useAppointmentLocations = exports.useBackgroundErrors = exports.useEnduserViews = exports.useAppointmentBookingPages = void 0;
+exports.useCallHoldQueues = exports.useEnduserProfileViews = exports.useGroupMMSConversations = exports.useEngagementEvents = exports.useCalendarEvents = exports.useVitalConfigurations = exports.useEnduserEncounters = exports.useFlowchartNotes = exports.useFormGroups = exports.useWebhookLogs = exports.useIntegrationLogs = exports.useEnduserOrders = exports.useEnduserMedications = exports.useEnduserProblems = exports.useDiagnosisCodes = exports.useAllergyCodes = exports.usePortalBrandings = exports.useMessageTemplateSnippets = exports.useFaxLogs = exports.useSuggestedContacts = exports.useAgentRecords = exports.useEnduserEligibilityResults = exports.useUserAndEnduserDisplayInfo = exports.useChatRoomDisplayInfo = exports.useListStateHook = exports.useSyncContext = exports.WithDataSync = exports.useDataSync____internal = exports.lastDataSync = exports.lastActiveForSync = exports.FAST_SYNC_INTERVAL = exports.MEDIUM_SYNC_INTERAVL = exports.DEFAULT_SYNC_INTERVAL_IN_MS = exports.INACTIVE_SYNC_INTERVAL_IN_MS = exports.ExtendedEnduserProvider = exports.EnduserProvider = exports.ExtendedUserProvider = exports.UserProvider = exports.useResetState = exports.sharedConfig = exports.createSliceForList = exports.remove_elements_in_array = exports.replace_elements_in_array = exports.update_elements_in_array = exports.add_elements_to_array = exports.toLoadedData = exports.WithFetchContext = exports.createTellescopeSelector = exports.TellescopeStoreContext = exports.resetStateAction = void 0;
+exports.useCarePlans = exports.usePortalCustomizations = exports.useIntegrations = exports.useOrganization = exports.useOrganizations = exports.usePhoneCalls = exports.useEmailSyncDenials = exports.useTableViews = exports.useSuperbillProviders = exports.useSuperbills = exports.useTicketThreadComments = exports.useTicketThreads = exports.useRoleBasedAccessPermissions = exports.useCalendarEventRSVPs = exports.useCommentLikes = exports.usePostLikes = exports.usePostComments = exports.useForumPosts = exports.useForums = exports.useAssignedManagedContentRecords = exports.useManagedContentRecordAssignments = exports.useManagedContentRecords = exports.useEnduserObservations = exports.useUserDisplayInfo = exports.useFormResponses = exports.useFormFields = exports.useForms = exports.useTemplates = exports.useAvailabilityBlocks = exports.useNotes = exports.useAutomationSteps = exports.useUsers = exports.useJourneys = exports.useFiles = exports.useMeetings = exports.useTickets = exports.useEndusers = exports.useChats = exports.useChatRooms = exports.useEnduserCustomTypes = exports.useAnalyticsFrames = exports.useUserLogs = exports.useNotifications = exports.useSmsMessages = exports.useEmails = exports.useAutomatedActions = exports.useAutomationTriggers = exports.usePhoneTrees = exports.useConfigurations = exports.useTicketQueues = void 0;
+exports.useWaitlists = exports.useCalendarEventsForUser = exports.usePrescriptionRoutes = exports.useBlockedPhones = exports.usePurchaseCredits = exports.usePurchases = exports.useProducts = exports.useDatabaseRecords = exports.useDatabases = exports.useAppointmentLocations = exports.useBackgroundErrors = exports.useEnduserViews = exports.useAppointmentBookingPages = exports.useCalendarEventTemplates = exports.useEnduserTasks = void 0;
 var jsx_runtime_1 = require("react/jsx-runtime");
 var react_1 = __importStar(require("react"));
 var react_redux_1 = require("react-redux");
@@ -326,6 +326,7 @@ var allergyCodesSlice = (0, exports.createSliceForList)('allergy_codes');
 var integrationLogsSlice = (0, exports.createSliceForList)('integration_logs');
 var enduserEligibilityResultsSlice = (0, exports.createSliceForList)('enduser_eligibility_results');
 var agentRecordsSlice = (0, exports.createSliceForList)('agent_records');
+var waitlistsSlice = (0, exports.createSliceForList)('waitlists');
 var roleBasedAccessPermissionsSlice = (0, exports.createSliceForList)('role_based_access_permissions');
 var calendarEventRSVPsSlice = (0, exports.createSliceForList)('calendar_event_rsvps');
 var userLogsSlice = (0, exports.createSliceForList)('user_logs');
@@ -415,6 +416,7 @@ exports.sharedConfig = {
         suggested_contacts: suggestedContactsSlice.reducer,
         diagnosis_codes: diagnosisCodesSlice.reducer,
         allergy_codes: allergyCodesSlice.reducer,
+        waitlists: waitlistsSlice.reducer,
     },
 };
 var _store = (0, toolkit_1.configureStore)(exports.sharedConfig);
@@ -440,8 +442,10 @@ var ExtendedEnduserProvider = function (props) { return ((0, jsx_runtime_1.jsx)(
 exports.ExtendedEnduserProvider = ExtendedEnduserProvider;
 exports.INACTIVE_SYNC_INTERVAL_IN_MS = 30000;
 exports.DEFAULT_SYNC_INTERVAL_IN_MS = 15000;
+exports.MEDIUM_SYNC_INTERAVL = 10000;
 exports.FAST_SYNC_INTERVAL = 5000;
 exports.lastActiveForSync = { at: new Date(0), hasFocus: true };
+exports.lastDataSync = { current: { numResults: 0, at: new Date(0), from: new Date(0), latency: 0, duration: 0 } };
 var useDataSync____internal = function () {
     var session = (0, index_1.useSession)();
     var lastFetch = react_1.default.useRef(new Date());
@@ -481,11 +485,33 @@ var useDataSync____internal = function () {
         var i = setInterval(function () {
             var isActive = exports.lastActiveForSync.hasFocus && exports.lastActiveForSync.at.getTime() > (Date.now() - 1000 * 15);
             var pollDurationInMS = Math.min.apply(Math, __spreadArray([isActive ? exports.DEFAULT_SYNC_INTERVAL_IN_MS : exports.INACTIVE_SYNC_INTERVAL_IN_MS], Object.values(loadTimings.current).filter(function (v) { return v > 999; }), false));
+            var handleLoadedData = function () {
+                for (var _i = 0, _a = Object.values(handlers.current); _i < _a.length; _i++) {
+                    var handler = _a[_i];
+                    try {
+                        handler === null || handler === void 0 ? void 0 : handler();
+                    }
+                    catch (err) {
+                        console.error(err);
+                    }
+                }
+            };
             if (lastFetch.current.getTime() + pollDurationInMS > Date.now()) {
                 return;
             }
-            session.sync({ from: lastFetch.current }).then(function (_a) {
+            // ensure we don't miss updates due to latency
+            var from = new Date(lastFetch.current.getTime() - 1000); // large leeway could result in same data being fetched twice, but helps ensure nothing is dropped
+            lastFetch.current = new Date(); // update before syncing, not after it returns
+            session
+                .sync({ from: from })
+                .then(function (_a) {
                 var results = _a.results;
+                exports.lastDataSync.current = {
+                    numResults: results.length, at: lastFetch.current,
+                    from: from,
+                    latency: Date.now() - lastFetch.current.getTime(),
+                    duration: pollDurationInMS,
+                };
                 for (var _i = 0, results_1 = results; _i < results_1.length; _i++) {
                     var r = results_1[_i];
                     if (r.data === 'deleted') {
@@ -507,14 +533,11 @@ var useDataSync____internal = function () {
                     }
                 }
             })
-                .then(function () {
-                for (var _i = 0, _a = Object.values(handlers.current); _i < _a.length; _i++) {
-                    var handler = _a[_i];
-                    handler === null || handler === void 0 ? void 0 : handler();
-                }
-            })
-                .catch(console.error);
-            lastFetch.current = new Date();
+                .then(handleLoadedData)
+                .catch(function (err) {
+                console.error('Sync error', err);
+                lastFetch.current = from; // don't skip this interval yet
+            });
         }, 1000);
         return function () { clearInterval(i); };
     }, [session]);
@@ -534,11 +557,29 @@ var useDataSync____internal = function () {
         loadTimings.current[key] = loadTimeInMS;
     }, []);
     var setHandler = (0, react_1.useCallback)(function (key, handler) {
+        // call handler when initially set in case results were loaded when there was no handler
+        if (!handlers.current[key] && handler) {
+            try {
+                // console.log("handle on add", key)
+                handler === null || handler === void 0 ? void 0 : handler();
+            }
+            catch (err) {
+                console.error(err);
+            }
+        }
+        // console.log('setting handler', key)
         handlers.current[key] = handler;
+    }, []);
+    var removeHandler = (0, react_1.useCallback)(function (key, handler) {
+        if (handlers.current[key] !== handler)
+            return; // if a handler was overwritten, don't remove it
+        // console.log('removing handler', key)
+        delete handlers.current[key];
     }, []);
     return {
         setLoadTiming: setLoadTiming,
         setHandler: setHandler,
+        removeHandler: removeHandler,
         getLoaded: getLoaded,
         getDeleted: getDeleted,
         popLoaded: popLoaded,
@@ -559,7 +600,7 @@ var BULK_READ_DEFAULT_LIMIT = 1000; // 1000 is max
 var DONE_LOADING_TOKEN = 'doneLoading';
 var useListStateHook = function (modelName, state, session, slice, apiCalls, options) {
     var _a, _b, _c, _d;
-    var _e = (_a = (0, exports.useSyncContext)()) !== null && _a !== void 0 ? _a : {}, setHandler = _e.setHandler, popDeleted = _e.popDeleted, popLoaded = _e.popLoaded;
+    var _e = (_a = (0, exports.useSyncContext)()) !== null && _a !== void 0 ? _a : {}, setHandler = _e.setHandler, popDeleted = _e.popDeleted, popLoaded = _e.popLoaded, removeHandler = _e.removeHandler;
     var loadQuery = apiCalls.loadQuery, findOne = apiCalls.findOne, findByIds = apiCalls.findByIds, addOne = apiCalls.addOne, addSome = apiCalls.addSome, updateOne = apiCalls.updateOne, deleteOne = apiCalls.deleteOne;
     if ((options === null || options === void 0 ? void 0 : options.refetchInMS) !== undefined && options.refetchInMS < 5000) {
         throw new Error("refetchInMS must be greater than 5000");
@@ -683,7 +724,7 @@ var useListStateHook = function (modelName, state, session, slice, apiCalls, opt
         // context not provided
         if (!setHandler)
             return;
-        setHandler(modelName, function () {
+        var handler = function () {
             if (state.status !== types_utilities_1.LoadingStatus.Loaded)
                 return;
             var deleted = popDeleted(modelName);
@@ -694,8 +735,10 @@ var useListStateHook = function (modelName, state, session, slice, apiCalls, opt
             if (loaded === null || loaded === void 0 ? void 0 : loaded.length) {
                 addLocalElements(loaded, { replaceIfMatch: true });
             }
-        });
-    }, [state.status, setHandler, addLocalElements, removeLocalElements, popDeleted, popLoaded]);
+        };
+        setHandler(modelName, handler);
+        return function () { removeHandler(modelName, handler); };
+    }, [modelName, state.status, setHandler, removeHandler, addLocalElements, removeLocalElements, popDeleted, popLoaded]);
     var findById = (0, react_1.useCallback)(function (id, options) {
         if (!id)
             return undefined;
@@ -851,7 +894,7 @@ var useListStateHook = function (modelName, state, session, slice, apiCalls, opt
         var sortBy = (_c = loadOptions === null || loadOptions === void 0 ? void 0 : loadOptions.sortBy) !== null && _c !== void 0 ? _c : options === null || options === void 0 ? void 0 : options.sortBy;
         if (!loadQuery)
             return;
-        if (options === null || options === void 0 ? void 0 : options.dontFetch)
+        if ((options === null || options === void 0 ? void 0 : options.dontFetch) && !force)
             return;
         var fetchKey = (loadFilter || sort || sortBy) ? JSON.stringify(__assign(__assign({}, loadFilter), { sort: sort, sortBy: sortBy })) + modelName : modelName;
         if (didFetch(fetchKey, force, options === null || options === void 0 ? void 0 : options.refetchInMS))
@@ -2345,4 +2388,18 @@ var useCalendarEventsForUser = function (options) {
     return [eventsLoading, { loadEvents: loadEvents, filtered: filtered }];
 };
 exports.useCalendarEventsForUser = useCalendarEventsForUser;
+var useWaitlists = function (options) {
+    if (options === void 0) { options = {}; }
+    var session = (0, index_1.useSession)();
+    return (0, exports.useListStateHook)('waitlists', useTypedSelector(function (s) { return s.waitlists; }), session, waitlistsSlice, {
+        loadQuery: session.api.waitlists.getSome,
+        findOne: session.api.waitlists.getOne,
+        findByIds: session.api.waitlists.getByIds,
+        addOne: session.api.waitlists.createOne,
+        addSome: session.api.waitlists.createSome,
+        deleteOne: session.api.waitlists.deleteOne,
+        updateOne: session.api.waitlists.updateOne,
+    }, __assign({}, options));
+};
+exports.useWaitlists = useWaitlists;
 //# sourceMappingURL=state.js.map

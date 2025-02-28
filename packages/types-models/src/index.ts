@@ -2741,6 +2741,7 @@ export type ActiveCampaignAddToListsAutomationAction = AutomationActionBuilder<'
 export type SwitchToRelatedContactAutomationAction = AutomationActionBuilder<'switchToRelatedContact', { type: string, otherTypes?: string[] }>
 export type ElationSyncAutomationAction = AutomationActionBuilder<'elationSync', { }>
 export type CanvasSyncAutomationAction = AutomationActionBuilder<'canvasSync', {}>
+export type CancelFutureAppointmentsAutomationAction = AutomationActionBuilder<'cancelFutureAppointments', {}>
 export type DevelopHealthMedicationEligibilityAutomationAction = AutomationActionBuilder<'developHealthMedEligibility', {
   drugs: DevelopHealthDrug[],
   diagnoses: DevelopHealthDiagnosis[],
@@ -2757,6 +2758,7 @@ export type IterableCustomEventAutomationAction = AutomationActionBuilder<'itera
   description: string, // for logging in timeline 
   dataFieldsMapping?: IterableFieldsMapping[]
   environment?: string, // for additional API keys
+  customEmailField?: string, // for using custom field as built-in iterable email field
 }>
 
 export type EnduserFieldSetterType = 'Custom Value' | 'Current Timestamp' | 'Current Date' | "Increment Number"
@@ -2815,6 +2817,7 @@ export type AutomationActionForType = {
   canvasSync: CanvasSyncAutomationAction,
   pushFormsToPortal: PushFormsAutomationAction,
   developHealthMedEligibility: DevelopHealthMedicationEligibilityAutomationAction,
+  cancelFutureAppointments: CancelFutureAppointmentsAutomationAction,
 }
 export type AutomationActionType = keyof AutomationActionForType
 export type AutomationAction = AutomationActionForType[AutomationActionType]
@@ -3694,6 +3697,13 @@ export type AutomationTriggerActions = {
   "Require Form Followups": AutomationTriggerActionBuilder<'Require Form Followups', { 
     formIds: string[],
   }>,
+  "Add to Waitlist": AutomationTriggerActionBuilder<'Add to Waitlist', { 
+    waitlistId: string,
+  }>,
+  "Grant Access From Waitlist": AutomationTriggerActionBuilder<'Grant Access From Waitlist', { 
+    waitlistId: string,
+    count: number,
+  }>,
 }
 export type AutomationTriggerActionType = keyof AutomationTriggerActions
 export type AutomationTriggerAction = AutomationTriggerActions[AutomationTriggerActionType]
@@ -4352,7 +4362,19 @@ export interface AgentRecord extends AgentRecord_readonly, AgentRecord_required,
   // indexId?: string,
 }
 
+export interface Waitlist_readonly extends ClientRecord {}
+export interface Waitlist_required {
+  title: string,
+  journeyId: string,
+}
+export interface Waitlist_updatesDisabled {}
+export interface Waitlist extends Waitlist_readonly, Waitlist_required, Waitlist_updatesDisabled {
+  enduserIds: string[],
+  tags?: string[],
+}
+
 export type ModelForName_required = {
+  waitlists: Waitlist_required,
   agent_records: AgentRecord_required,
   enduser_eligibility_results: EnduserEligibilityResult_required,
   integration_logs: IntegrationLog_required,
@@ -4442,6 +4464,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  waitlists: Waitlist_readonly,
   agent_records: AgentRecord_readonly,
   enduser_eligibility_results: EnduserEligibilityResult_readonly,
   integration_logs: IntegrationLog_readonly,
@@ -4531,6 +4554,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  waitlists: Waitlist_updatesDisabled,
   agent_records: AgentRecord_updatesDisabled,
   enduser_eligibility_results: EnduserEligibilityResult_updatesDisabled,
   integration_logs: IntegrationLog_updatesDisabled,
@@ -4620,6 +4644,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly { 
+  waitlists: Waitlist,
   agent_records: AgentRecord,
   enduser_eligibility_results: EnduserEligibilityResult,
   integration_logs: IntegrationLog,
@@ -4719,6 +4744,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  waitlists: true,
   agent_records: true,
   enduser_eligibility_results: true,
   integration_logs: true,

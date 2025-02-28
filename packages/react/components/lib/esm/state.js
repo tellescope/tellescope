@@ -290,6 +290,7 @@ var allergyCodesSlice = createSliceForList('allergy_codes');
 var integrationLogsSlice = createSliceForList('integration_logs');
 var enduserEligibilityResultsSlice = createSliceForList('enduser_eligibility_results');
 var agentRecordsSlice = createSliceForList('agent_records');
+var waitlistsSlice = createSliceForList('waitlists');
 var roleBasedAccessPermissionsSlice = createSliceForList('role_based_access_permissions');
 var calendarEventRSVPsSlice = createSliceForList('calendar_event_rsvps');
 var userLogsSlice = createSliceForList('user_logs');
@@ -379,6 +380,7 @@ export var sharedConfig = {
         suggested_contacts: suggestedContactsSlice.reducer,
         diagnosis_codes: diagnosisCodesSlice.reducer,
         allergy_codes: allergyCodesSlice.reducer,
+        waitlists: waitlistsSlice.reducer,
     },
 };
 var _store = configureStore(sharedConfig);
@@ -399,8 +401,10 @@ export var EnduserProvider = function (props) { return (_jsx(WithFetchContext, {
 export var ExtendedEnduserProvider = function (props) { return (_jsx(WithFetchContext, { children: _jsx(Provider, __assign({ store: props.store, context: TellescopeStoreContext }, { children: props.children })) })); };
 export var INACTIVE_SYNC_INTERVAL_IN_MS = 30000;
 export var DEFAULT_SYNC_INTERVAL_IN_MS = 15000;
+export var MEDIUM_SYNC_INTERAVL = 10000;
 export var FAST_SYNC_INTERVAL = 5000;
 export var lastActiveForSync = { at: new Date(0), hasFocus: true };
+export var lastDataSync = { current: { numResults: 0, at: new Date(0), from: new Date(0), latency: 0, duration: 0 } };
 export var useDataSync____internal = function () {
     var session = useSession();
     var lastFetch = React.useRef(new Date());
@@ -440,11 +444,33 @@ export var useDataSync____internal = function () {
         var i = setInterval(function () {
             var isActive = lastActiveForSync.hasFocus && lastActiveForSync.at.getTime() > (Date.now() - 1000 * 15);
             var pollDurationInMS = Math.min.apply(Math, __spreadArray([isActive ? DEFAULT_SYNC_INTERVAL_IN_MS : INACTIVE_SYNC_INTERVAL_IN_MS], Object.values(loadTimings.current).filter(function (v) { return v > 999; }), false));
+            var handleLoadedData = function () {
+                for (var _i = 0, _a = Object.values(handlers.current); _i < _a.length; _i++) {
+                    var handler = _a[_i];
+                    try {
+                        handler === null || handler === void 0 ? void 0 : handler();
+                    }
+                    catch (err) {
+                        console.error(err);
+                    }
+                }
+            };
             if (lastFetch.current.getTime() + pollDurationInMS > Date.now()) {
                 return;
             }
-            session.sync({ from: lastFetch.current }).then(function (_a) {
+            // ensure we don't miss updates due to latency
+            var from = new Date(lastFetch.current.getTime() - 1000); // large leeway could result in same data being fetched twice, but helps ensure nothing is dropped
+            lastFetch.current = new Date(); // update before syncing, not after it returns
+            session
+                .sync({ from: from })
+                .then(function (_a) {
                 var results = _a.results;
+                lastDataSync.current = {
+                    numResults: results.length, at: lastFetch.current,
+                    from: from,
+                    latency: Date.now() - lastFetch.current.getTime(),
+                    duration: pollDurationInMS,
+                };
                 for (var _i = 0, results_1 = results; _i < results_1.length; _i++) {
                     var r = results_1[_i];
                     if (r.data === 'deleted') {
@@ -466,14 +492,11 @@ export var useDataSync____internal = function () {
                     }
                 }
             })
-                .then(function () {
-                for (var _i = 0, _a = Object.values(handlers.current); _i < _a.length; _i++) {
-                    var handler = _a[_i];
-                    handler === null || handler === void 0 ? void 0 : handler();
-                }
-            })
-                .catch(console.error);
-            lastFetch.current = new Date();
+                .then(handleLoadedData)
+                .catch(function (err) {
+                console.error('Sync error', err);
+                lastFetch.current = from; // don't skip this interval yet
+            });
         }, 1000);
         return function () { clearInterval(i); };
     }, [session]);
@@ -493,11 +516,29 @@ export var useDataSync____internal = function () {
         loadTimings.current[key] = loadTimeInMS;
     }, []);
     var setHandler = useCallback(function (key, handler) {
+        // call handler when initially set in case results were loaded when there was no handler
+        if (!handlers.current[key] && handler) {
+            try {
+                // console.log("handle on add", key)
+                handler === null || handler === void 0 ? void 0 : handler();
+            }
+            catch (err) {
+                console.error(err);
+            }
+        }
+        // console.log('setting handler', key)
         handlers.current[key] = handler;
+    }, []);
+    var removeHandler = useCallback(function (key, handler) {
+        if (handlers.current[key] !== handler)
+            return; // if a handler was overwritten, don't remove it
+        // console.log('removing handler', key)
+        delete handlers.current[key];
     }, []);
     return {
         setLoadTiming: setLoadTiming,
         setHandler: setHandler,
+        removeHandler: removeHandler,
         getLoaded: getLoaded,
         getDeleted: getDeleted,
         popLoaded: popLoaded,
@@ -515,7 +556,7 @@ var BULK_READ_DEFAULT_LIMIT = 1000; // 1000 is max
 var DONE_LOADING_TOKEN = 'doneLoading';
 export var useListStateHook = function (modelName, state, session, slice, apiCalls, options) {
     var _a, _b, _c, _d;
-    var _e = (_a = useSyncContext()) !== null && _a !== void 0 ? _a : {}, setHandler = _e.setHandler, popDeleted = _e.popDeleted, popLoaded = _e.popLoaded;
+    var _e = (_a = useSyncContext()) !== null && _a !== void 0 ? _a : {}, setHandler = _e.setHandler, popDeleted = _e.popDeleted, popLoaded = _e.popLoaded, removeHandler = _e.removeHandler;
     var loadQuery = apiCalls.loadQuery, findOne = apiCalls.findOne, findByIds = apiCalls.findByIds, addOne = apiCalls.addOne, addSome = apiCalls.addSome, updateOne = apiCalls.updateOne, deleteOne = apiCalls.deleteOne;
     if ((options === null || options === void 0 ? void 0 : options.refetchInMS) !== undefined && options.refetchInMS < 5000) {
         throw new Error("refetchInMS must be greater than 5000");
@@ -639,7 +680,7 @@ export var useListStateHook = function (modelName, state, session, slice, apiCal
         // context not provided
         if (!setHandler)
             return;
-        setHandler(modelName, function () {
+        var handler = function () {
             if (state.status !== LoadingStatus.Loaded)
                 return;
             var deleted = popDeleted(modelName);
@@ -650,8 +691,10 @@ export var useListStateHook = function (modelName, state, session, slice, apiCal
             if (loaded === null || loaded === void 0 ? void 0 : loaded.length) {
                 addLocalElements(loaded, { replaceIfMatch: true });
             }
-        });
-    }, [state.status, setHandler, addLocalElements, removeLocalElements, popDeleted, popLoaded]);
+        };
+        setHandler(modelName, handler);
+        return function () { removeHandler(modelName, handler); };
+    }, [modelName, state.status, setHandler, removeHandler, addLocalElements, removeLocalElements, popDeleted, popLoaded]);
     var findById = useCallback(function (id, options) {
         if (!id)
             return undefined;
@@ -807,7 +850,7 @@ export var useListStateHook = function (modelName, state, session, slice, apiCal
         var sortBy = (_c = loadOptions === null || loadOptions === void 0 ? void 0 : loadOptions.sortBy) !== null && _c !== void 0 ? _c : options === null || options === void 0 ? void 0 : options.sortBy;
         if (!loadQuery)
             return;
-        if (options === null || options === void 0 ? void 0 : options.dontFetch)
+        if ((options === null || options === void 0 ? void 0 : options.dontFetch) && !force)
             return;
         var fetchKey = (loadFilter || sort || sortBy) ? JSON.stringify(__assign(__assign({}, loadFilter), { sort: sort, sortBy: sortBy })) + modelName : modelName;
         if (didFetch(fetchKey, force, options === null || options === void 0 ? void 0 : options.refetchInMS))
@@ -2211,5 +2254,18 @@ export var useCalendarEventsForUser = function (options) {
             .catch(console.error);
     }, [session, loadedRef, fetchEvents, addLocalElements]);
     return [eventsLoading, { loadEvents: loadEvents, filtered: filtered }];
+};
+export var useWaitlists = function (options) {
+    if (options === void 0) { options = {}; }
+    var session = useSession();
+    return useListStateHook('waitlists', useTypedSelector(function (s) { return s.waitlists; }), session, waitlistsSlice, {
+        loadQuery: session.api.waitlists.getSome,
+        findOne: session.api.waitlists.getOne,
+        findByIds: session.api.waitlists.getByIds,
+        addOne: session.api.waitlists.createOne,
+        addSome: session.api.waitlists.createSome,
+        deleteOne: session.api.waitlists.deleteOne,
+        updateOne: session.api.waitlists.updateOne,
+    }, __assign({}, options));
 };
 //# sourceMappingURL=state.js.map

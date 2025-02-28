@@ -965,6 +965,7 @@ var run_generated_tests = function (_a) {
                         || name === 'webhooks'
                         || name === 'integration_logs' // readonly
                         || name === 'automated_actions' // might process in background and cause false failure
+                        || name === 'waitlists' // while waitlist updates are not stored in logs
                     )
                         return [2 /*return*/];
                     if (!!defaultEnduser) return [3 /*break*/, 2];
@@ -7852,6 +7853,71 @@ var agent_record_tests = function () { return __awaiter(void 0, void 0, void 0, 
         }
     });
 }); };
+var waitlist_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var e1, e2, e3, e4, e5, j, list;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                (0, testing_1.log_header)("Waitlist Tests");
+                return [4 /*yield*/, sdk.api.endusers.createOne({ fname: 'test1' })];
+            case 1:
+                e1 = _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({ fname: 'test2' })];
+            case 2:
+                e2 = _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({ fname: 'test3' })];
+            case 3:
+                e3 = _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({ fname: 'test4' })];
+            case 4:
+                e4 = _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({ fname: 'test5' })];
+            case 5:
+                e5 = _a.sent();
+                return [4 /*yield*/, sdk.api.journeys.createOne({ title: 'test' })];
+            case 6:
+                j = _a.sent();
+                return [4 /*yield*/, sdk.api.waitlists.createOne({ title: 'test', journeyId: j.id, enduserIds: [e1.id, e2.id, e3.id, e4.id, e5.id] })];
+            case 7:
+                list = _a.sent();
+                return [4 /*yield*/, sdk.api.waitlists.grant_access_from_waitlist({ id: list.id, count: 2 })];
+            case 8:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("Waitlist remove updates enduserids", function () { return sdk.api.waitlists.getOne(list.id); }, { onResult: function (l) { return l.enduserIds.length === 3 && l.enduserIds[0] === e3.id; } })];
+            case 9:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("Waitlist adds to Journey", function () { return pollForResults(function () { return sdk.api.endusers.getSome(); }, function (es) {
+                        var _a, _b, _c, _d, _f, _g, _h, _j, _k, _l;
+                        return (((_b = (_a = es.find(function (e) { return e.id === e1.id; })) === null || _a === void 0 ? void 0 : _a.journeys) === null || _b === void 0 ? void 0 : _b[j.id]) !== undefined
+                            && ((_d = (_c = es.find(function (e) { return e.id === e2.id; })) === null || _c === void 0 ? void 0 : _c.journeys) === null || _d === void 0 ? void 0 : _d[j.id]) !== undefined
+                            && ((_g = (_f = es.find(function (e) { return e.id === e3.id; })) === null || _f === void 0 ? void 0 : _f.journeys) === null || _g === void 0 ? void 0 : _g[j.id]) === undefined
+                            && ((_j = (_h = es.find(function (e) { return e.id === e4.id; })) === null || _h === void 0 ? void 0 : _h.journeys) === null || _j === void 0 ? void 0 : _j[j.id]) === undefined
+                            && ((_l = (_k = es.find(function (e) { return e.id === e5.id; })) === null || _k === void 0 ? void 0 : _k.journeys) === null || _l === void 0 ? void 0 : _l[j.id]) === undefined);
+                    }, 25, 10); }, passOnAnyResult)];
+            case 10:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.deleteOne(e3.id)];
+            case 11:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("Deleting enduser removes from Waitlist", function () { return pollForResults(function () { return sdk.api.waitlists.getOne(list.id); }, function (w) { return w.enduserIds.length === 2; }, 25, 10); }, passOnAnyResult)];
+            case 12:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.merge({ sourceEnduserId: e4.id, destinationEnduserId: e5.id })];
+            case 13:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("Deleting enduser via merge removes from Waitlist", function () { return pollForResults(function () { return sdk.api.waitlists.getOne(list.id); }, function (w) { return w.enduserIds.length === 1; }, 25, 10); }, passOnAnyResult)];
+            case 14:
+                _a.sent();
+                return [2 /*return*/, (Promise.all([
+                        sdk.api.waitlists.deleteOne(list.id),
+                        sdk.api.endusers.deleteOne(e1.id),
+                        sdk.api.endusers.deleteOne(e2.id),
+                        sdk.api.endusers.deleteOne(e5.id),
+                        sdk.api.journeys.deleteOne(j.id),
+                    ]))];
+        }
+    });
+}); };
 var NO_TEST = function () { };
 var tests = {
     agent_records: agent_record_tests,
@@ -7939,6 +8005,7 @@ var tests = {
     portal_brandings: NO_TEST,
     message_template_snippets: NO_TEST,
     integration_logs: NO_TEST,
+    waitlists: waitlist_tests,
 };
 var TRACK_OPEN_IMAGE = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", 'base64');
 var validate_schema = function () {
