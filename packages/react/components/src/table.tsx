@@ -38,7 +38,7 @@ import { PRIMARY_HEX } from "@tellescope/constants"
 
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import { Autocomplete } from "@mui/material"
-import { SortingField } from "@tellescope/types-models"
+import { ListQueryQualifier, SortingField } from "@tellescope/types-models"
 // import DragHandleIcon from '@mui/icons-material/DragHandle';
 
 const LIGHT_GRAY = "#fafafa"
@@ -101,6 +101,7 @@ const checkboxStyle: React.CSSProperties = {
 type LocalFilter = {
   query: string,
   values?: string[],
+  valuesQualifier?: ListQueryQualifier,
 }
 
 // export type SortType = 'infer'
@@ -183,6 +184,19 @@ export const TableHeader = <T extends Item>({
         <Flex flex={1} justifyContent="center">
         {fields[openFilter]?.filterType === 'multi'
           ? (
+            <>
+            <Autocomplete disableClearable disablePortal size={'small'} options={['One Of', 'All Of']} sx={{ width: 140, mr: 0.5 }}
+              onChange={(e, value) => {
+                setLocalFilters(fs => fs.map((f, i) => i === openFilter ? { ...f, valuesQualifier: value === 'All Of' ? 'All Of' : 'One Of' } : f))
+              }}
+              value={localFilters[openFilter]?.valuesQualifier === 'All Of' ? 'All Of' : 'One Of'}
+              renderInput={(params) => 
+                <TextField {...params} fullWidth autoFocus label={"Qualifier"} size={'small'}
+                  value={localFilters[openFilter]?.valuesQualifier === 'All Of' ? 'All Of' : 'One Of'}
+                />
+              }
+            />
+            
             <Autocomplete size={'small'}
               disablePortal multiple
               options={(filterSuggestions?.[fields[openFilter]?.key?.toString()] || []).sort()}
@@ -192,13 +206,14 @@ export const TableHeader = <T extends Item>({
               }}
               value={localFilters[openFilter]?.values ?? []}
               renderInput={(params) => 
-                <TextField {...params} autoFocus label={"Filter"} size={'small'} 
+                <TextField {...params} autoFocus label={"Filter by"} size={'small'} 
                   style={{ width: 400 }}
                   value={localFilters[openFilter]?.query ?? ''}
                   // onKeyUp={e => e.which === 13 && onEnterPress?.()}
                 />
               }
             />
+            </>
           ) : (
             <Autocomplete size={'small'}
               disablePortal
@@ -922,13 +937,16 @@ export const Table = <T extends Item>({
         const { getFilterValue, filterType } = fields[i]
         if (!getFilterValue) continue
 
-        const { query, values } = localFilters[i] ?? {}
+        const { query, values, valuesQualifier } = localFilters[i] ?? {}
 
         if (filterType === 'multi') {
           if (!values?.length) continue
 
           const filterValueOrValues = getFilterValue(v)
           const filterValues = Array.isArray(filterValueOrValues) ? filterValueOrValues : [filterValueOrValues]
+          if (valuesQualifier === 'All Of') {
+            return values.every(v => filterValues.includes(v))
+          }
           if (!filterValues.find(v => values.includes(v))) {
             return false
           }

@@ -118,7 +118,10 @@ export type PortalSettings = {
   },
   orders?: {
     customOrderTrackingURL?: string,
-  }
+  },
+  documents?: {
+    hideMissingAnswers?: boolean,
+  },
 }
 
 export type WithLinkOpenTrackingIds = { linkOpenTrackingIds: string[] }
@@ -1538,7 +1541,10 @@ export type FormFieldOptions = FormFieldValidation & {
   saveIntakeOnPartial?: boolean,
   stripeKey?: string, // publishable key of custom stripe API keys
   dataSource?: string, // e.g. Canvas for Allergies
-  canvasDocumentCoding?: Pick<CanvasCoding, 'system' | 'code'>
+  canvasDocumentCoding?: Pick<CanvasCoding, 'system' | 'code'> // for category
+  canvasDocumentType?: CanvasCoding, // for type
+  canvasDocumentComment?: string,
+  canvasReviewMode?: string,
   esignatureTermsCompanyName?: string,
   observationCode?: string,
   observationDisplay?: string,

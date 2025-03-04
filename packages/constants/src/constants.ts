@@ -1050,6 +1050,37 @@ export const DOCUMENT_REFERENCE_CODINGS = [
   },
 ]
 
+export const DOCUMENT_TYPE_CODINGS = [
+  // read-only can't be posted to Canvas API
+  // { system: "http://loinc.org", code: "51852-2", display: "Letters (read-only)" },
+  // { system: "http://loinc.org", code: "34895-3", display: "Educational Material (read-only)" },
+  // { system: "http://loinc.org", code: "94093-2", display: "Invoices/Itemized Bill (read-only)" },
+  { system: "http://loinc.org", code: "53243-2", display: "Advance Beneficiary Notice" },
+  { system: "http://loinc.org", code: "42348-3", display: "Advance Directive / Living Will" },
+  { system: "http://loinc.org", code: "91983-7", display: "Care Management" },
+  { system: "http://loinc.org", code: "53245-7", display: "CDL (Commercial Driver License)" },
+  { system: "http://loinc.org", code: "96335-5", display: "Emergency Department Report" },
+  { system: "http://loinc.org", code: "11503-0", display: "External Medical Records" },
+  { system: "http://loinc.org", code: "75503-3", display: "Home Care Report" },
+  { system: "http://loinc.org", code: "34105-7", display: "Hospital Discharge Summary" },
+  { system: "http://loinc.org", code: "47039-3", display: "Hospital History & Physical" },
+  { system: "http://loinc.org", code: "64290-0", display: "Insurance Card" },
+  { system: "http://loinc.org", code: "52034-6", display: "Insurer Prior Authorization" },
+  { system: "http://loinc.org", code: "34113-1", display: "Nursing Home" },
+  { system: "http://loinc.org", code: "11504-8", display: "Operative Report" },
+  { system: "http://loinc.org", code: "80570-5", display: "Patient Agreement" },
+  { system: "http://loinc.org", code: "64285-0", display: "Patient Clinical Intake Form" },
+  { system: "http://loinc.org", code: "51848-0", display: "Physical Exams" },
+  { system: "http://loinc.org", code: "46209-3", display: "POLST (Provider Order for Life Sustaining-Treatment)" },
+  { system: "http://loinc.org", code: "64298-3", display: "Power of Attorney" },
+  { system: "http://loinc.org", code: "57833-6", display: "Prescription Refill Request" },
+  { system: "http://loinc.org", code: "34823-5", display: "Rehabilitation Report" },
+  { system: "http://loinc.org", code: "101904-1", display: "Release of Information Request" },
+  { system: "http://loinc.org", code: "34109-9", display: "Uncategorized Clinical Document" },
+  { system: "http://loinc.org", code: "51851-4", display: "Uncategorized Administrative Document" },
+  { system: "http://loinc.org", code: "52070-0", display: "Worker's Compensation Documents" },
+]
+
 export const PORTAL_PAGES_HIDDEN_BY_DEFAULT = [
   "Orders", "Vitals",
 ]

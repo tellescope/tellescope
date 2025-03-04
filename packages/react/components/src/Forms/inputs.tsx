@@ -1755,7 +1755,11 @@ export const DropdownInput = ({ field, value, onChange }: FormInputProps<'Dropdo
               ? onChange(e.target.value ? [e.target.value] : [], field.id)
               : undefined
           )}
-          placeholder={field.placeholder + ((!field.title && !field.isOptional) ? '*' : '')}
+          placeholder={
+            field.placeholder
+              ? field.placeholder + ((!field.title && !field.isOptional) ? '*' : '')
+              : undefined
+          }
           label={
             (!field.options?.radio && field.options?.other)
               ? "Press enter to save a custom value"

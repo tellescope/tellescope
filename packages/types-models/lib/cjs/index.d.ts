@@ -96,6 +96,9 @@ export type PortalSettings = {
     orders?: {
         customOrderTrackingURL?: string;
     };
+    documents?: {
+        hideMissingAnswers?: boolean;
+    };
 };
 export type WithLinkOpenTrackingIds = {
     linkOpenTrackingIds: string[];
@@ -1501,6 +1504,9 @@ export type FormFieldOptions = FormFieldValidation & {
     stripeKey?: string;
     dataSource?: string;
     canvasDocumentCoding?: Pick<CanvasCoding, 'system' | 'code'>;
+    canvasDocumentType?: CanvasCoding;
+    canvasDocumentComment?: string;
+    canvasReviewMode?: string;
     esignatureTermsCompanyName?: string;
     observationCode?: string;
     observationDisplay?: string;

@@ -3151,6 +3151,9 @@ export const portalSettingsValidator = objectValidator<PortalSettings>({
   orders: objectValidator<PortalSettings['orders']>({
     customOrderTrackingURL: stringValidatorOptionalEmptyOkay,
   }, { isOptional: true, emptyOk: true }),
+  documents: objectValidator<PortalSettings['documents']>({
+    hideMissingAnswers: booleanValidatorOptional,
+  }, { isOptional: true, emptyOk: true }),
 })
 
 export const organizationThemeValidator = objectValidator<OrganizationTheme>({
@@ -3333,6 +3336,13 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
     code: stringValidator,
     system: stringValidator,
   }, { isOptional: true, emptyOk: true }),
+  canvasDocumentType: objectValidator<FormFieldOptions['canvasDocumentType']>({
+    code: stringValidator,
+    system: stringValidator,
+    display: stringValidator,
+  }, { isOptional: true, emptyOk: true }),
+  canvasDocumentComment: stringValidatorOptional,
+  canvasReviewMode: stringValidatorOptional,
   customPriceMessage: stringValidatorOptional,
   billingProvider: stringValidatorOptional,
   addressFields: listOfStringsValidatorOptionalOrEmptyOk,

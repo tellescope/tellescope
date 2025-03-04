@@ -37,7 +37,7 @@ import {
 } from "@tellescope/validation"
 
 import { Session, APIQuery, EnduserSession } from "../sdk"
-import { FORM_LOGIC_CALCULATED_FIELDS, get_flattened_fields, responses_satisfy_conditions, weighted_round_robin } from "@tellescope/utilities"
+import { FORM_LOGIC_CALCULATED_FIELDS, get_flattened_fields, responses_satisfy_conditions, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities"
 import { DEFAULT_OPERATIONS, PLACEHOLDER_ID, ZOOM_TITLE } from "@tellescope/constants"
 import { 
   schema, 
@@ -9220,6 +9220,15 @@ const fromEmailOverride_tests = async () => {
   ])
 }
 
+const date_parsing_tests = () => {
+  log_header("Date Parsing Tests")
+
+  assert(YYYY_MM_DD_to_MM_DD_YYYY('') === '', 'YYYY_MM_DD_to_MM_DD_YYYY fails', 'YYYY_MM_DD_to_MM_DD_YYYY empty string')
+  assert(YYYY_MM_DD_to_MM_DD_YYYY(undefined!) === '', 'YYYY_MM_DD_to_MM_DD_YYYY fails', 'YYYY_MM_DD_to_MM_DD_YYYY undefined')
+  assert(YYYY_MM_DD_to_MM_DD_YYYY(null!) === '', 'YYYY_MM_DD_to_MM_DD_YYYY fails', 'YYYY_MM_DD_to_MM_DD_YYYY null')
+  assert(YYYY_MM_DD_to_MM_DD_YYYY('2024-07-09') === '07-09-2024', 'YYYY_MM_DD_to_MM_DD_YYYY fails', 'YYYY_MM_DD_to_MM_DD_YYYY')
+}
+
 (async () => {
   log_header("API")
 
@@ -9334,6 +9343,7 @@ const fromEmailOverride_tests = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await date_parsing_tests()
     await fromEmailOverride_tests()
     await ticket_tests()
     await uniqueness_tests()

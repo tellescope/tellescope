@@ -2,7 +2,7 @@ import React, { CSSProperties, JSXElementConstructor } from "react";
 import { Elevated, Styled } from "./mui";
 import { Item, ItemClickable, ScrollingListProps } from "./layout";
 import { LoadMoreFunctions, LoadMoreOptions } from "./state";
-import { SortingField } from "@tellescope/types-models";
+import { ListQueryQualifier, SortingField } from "@tellescope/types-models";
 export declare const GRAY = "#EFEFEF";
 export interface HorizontalPadded {
     horizontalPadding?: number;
@@ -17,6 +17,7 @@ export declare const TableTitle: ({ title, description, actionsComponent, style,
 type LocalFilter = {
     query: string;
     values?: string[];
+    valuesQualifier?: ListQueryQualifier;
 };
 export type Sorting = {
     field: string;

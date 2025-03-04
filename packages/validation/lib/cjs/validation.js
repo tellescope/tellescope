@@ -2634,6 +2634,9 @@ exports.portalSettingsValidator = (0, exports.objectValidator)({
     orders: (0, exports.objectValidator)({
         customOrderTrackingURL: exports.stringValidatorOptionalEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
+    documents: (0, exports.objectValidator)({
+        hideMissingAnswers: exports.booleanValidatorOptional,
+    }, { isOptional: true, emptyOk: true }),
 });
 exports.organizationThemeValidator = (0, exports.objectValidator)({
     logoURL: exports.stringValidatorOptional,
@@ -2796,6 +2799,13 @@ exports.formFieldOptionsValidator = (0, exports.objectValidator)({
         code: exports.stringValidator,
         system: exports.stringValidator,
     }, { isOptional: true, emptyOk: true }),
+    canvasDocumentType: (0, exports.objectValidator)({
+        code: exports.stringValidator,
+        system: exports.stringValidator,
+        display: exports.stringValidator,
+    }, { isOptional: true, emptyOk: true }),
+    canvasDocumentComment: exports.stringValidatorOptional,
+    canvasReviewMode: exports.stringValidatorOptional,
     customPriceMessage: exports.stringValidatorOptional,
     billingProvider: exports.stringValidatorOptional,
     addressFields: exports.listOfStringsValidatorOptionalOrEmptyOk,

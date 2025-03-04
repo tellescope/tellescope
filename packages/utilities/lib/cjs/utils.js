@@ -412,7 +412,8 @@ var get_add_to_gcal_link = function (event) {
     var startString = "".concat(start.toFormat('yyyyLLdd'), "T").concat(start.toFormat('HHmmss'), "Z");
     var endString = "".concat(end.toFormat('yyyyLLdd'), "T").concat(end.toFormat('HHmmss'), "Z");
     var description = event.displayDescription || event.description || '';
-    return ("https://calendar.google.com/calendar/render?action=TEMPLATE&text=".concat((event.displayTitle || event.title).replaceAll(' ', '+'), "&details=").concat(event.videoURL || '').concat(event.videoURL ? '<br/>' : '').concat(description, "&dates=").concat(startString, "/").concat(endString));
+    var videoURL = (event.videoURL || event.externalVideoURL || event.healthieZoomJoinURL);
+    return ("https://calendar.google.com/calendar/render?action=TEMPLATE&text=".concat((event.displayTitle || event.title).replaceAll(' ', '+'), "&details=").concat(videoURL || '').concat(videoURL ? '<br/>' : '').concat(description, "&dates=").concat(startString, "/").concat(endString));
 };
 exports.get_add_to_gcal_link = get_add_to_gcal_link;
 var formatted_date_hh_mm = function (date) {
@@ -1064,6 +1065,8 @@ var getLocalTimezone = function () { return Intl.DateTimeFormat().resolvedOption
 exports.getLocalTimezone = getLocalTimezone;
 var YYYY_MM_DD_to_MM_DD_YYYY = function (yyyyMmDd, delimiter) {
     if (delimiter === void 0) { delimiter = '-'; }
+    if (!yyyyMmDd)
+        return ''; // also handles null/undefined if provided mistakenly
     var _a = yyyyMmDd.split(delimiter), yyyy = _a[0], mm = _a[1], dd = _a[2];
     return "".concat(mm, "-").concat(dd, "-").concat(yyyy);
 };

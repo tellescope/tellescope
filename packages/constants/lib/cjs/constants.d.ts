@@ -178,6 +178,11 @@ export declare const DOCUMENT_REFERENCE_CODINGS: {
     system: string;
     code: string;
 }[];
+export declare const DOCUMENT_TYPE_CODINGS: {
+    system: string;
+    code: string;
+    display: string;
+}[];
 export declare const PORTAL_PAGES_HIDDEN_BY_DEFAULT: string[];
 export declare const USER_PERSONAL_EMAIL_OVERRIDE = "personal@tellescope.com";
 //# sourceMappingURL=constants.d.ts.map

@@ -13,7 +13,7 @@ var __assign = (this && this.__assign) || function () {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.GOGO_MEDS_TITLE = exports.CANDID_TITLE = exports.MFAX_TITLE = exports.CANVAS_TITLE = exports.OPEN_LOOP_TITLE = exports.ZUS_TITLE = exports.ELATION_TITLE = exports.VITAL_TITLE = exports.PHOTON_TITLE = exports.PHASE_ZERO_TITLE = exports.MEDPLUM_TITLE = exports.ITERABLE_TITLE = exports.HEALTHIE_TITLE = exports.OPENAI_TITLE = exports.ZOOM_URI_ENDING = exports.ZOOM_TITLE = exports.ZOHO_URI_ENDING = exports.ZOHO_TITLE = exports.MICROSOFT_OIDC_URI_ENDING = exports.OUTLOOK_REDIRECT_URI_ENDING = exports.MICROSOFT_INTEGRATIONS_TITLE = exports.OUTLOOK_INTEGRATIONS_TITLE = exports.DIALPAD_REDIRECT_URI_ENDING = exports.DIALPAD_INTEGRATIONS_TITLE = exports.SQUARE_REDIRECT_URI_ENDING = exports.SQUARE_INTEGRATIONS_TITLE = exports.DR_CHRONO_REDIRECT_URI_ENDING = exports.DR_CHRONO_INTEGRATIONS_TITLE = exports.SMART_METER_TITLE = exports.PAGER_DUTY_TITLE = exports.GOOGLE_INTEGRATIONS_TITLE = exports.MM_DD_YYYY_REGEX = exports.QUESTION_GROUP_VALUE_PLACEHOLDER = exports.UNSEARCHABLE_FIELDS = exports.SECONDS_IN_ONE_YEAR = exports.ENDUSER_SESSION_TYPE = exports.USER_SESSION_TYPE = exports.PLACEHOLDER_ID = exports.ACCESS_ACTION_FOR_OPERATION = exports.DEFAULT_OPERATIONS = exports.CREATOR_ONLY_ACCESS = exports.BUSINESS_TYPE = exports.ADMIN_ROLE = exports.WARNING_HEX = exports.ERROR_HEX = exports.SECONDARY_HEX = exports.PRIMARY_HEX = exports.ENDUSER_FIELD_TYPES = exports.READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME = exports.ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = void 0;
 exports.TELLESCOPE_GENDERS = exports.INSURANCE_RELATIONSHIPS_CANVAS = exports.INSURANCE_RELATIONSHIPS_CANVAS_MAPPING = exports.INSURANCE_RELATIONSHIPS_ALPHABETICAL = exports.INSURANCE_RELATIONSHIPS = exports.INSURANCE_RELATIONSHIPS_TO_CODE = exports.get_inverse_relationship_type = exports.RELATIONSHIP_TYPES = exports.AUTOMATED_ACTION_CANCEL_REASONS = exports.HELPDESK_TICKET_CLOSE_REASONS = exports.CPT_CODES = exports.PORTAL_DEFAULT_REGISTER_DESCRIPTION = exports.PORTAL_DEFAULT_REGISTER_TITLE = exports.PORTAL_DEFAULT_LOGIN_DESCRIPTION = exports.PORTAL_DEFAULT_LOGIN_TITLE = exports.PORTAL_DEFAULT_LANDING_TITLE = exports.ADMIN_PERMISSIONS = exports.PROVIDER_PERMISSIONS = exports.READ_ONLY_DEFAULT = exports.READ_ONLY_ASSIGNED = exports.READ_ONLY_ALL = exports.INACCESSIBLE = exports.DEFAULT_ONLY_ACCESS = exports.ASSIGNED_AND_DEFAULT_ACCESS_ALL_CREATE = exports.ASSIGNED_AND_DEFAULT_ACCESS = exports.FULL_ACCESS = exports.NO_ACCESS = exports.DEFAULT_ACCESS = exports.ASSIGNED_ACCESS = exports.ALL_ACCESS = exports.UNIQUENESS_VIOLATION = exports.EMAIL_SYNC_FREQUENCY_IN_MS = exports.ONE_WEEK_IN_MS = exports.ONE_DAY_IN_MS = exports.ONE_HOUR_IN_MS = exports.ONE_MINUTE_IN_MS = exports.ORGANIZATION_WIDE_INTEGRATIONS = exports.CHARGEBEE_TITLE = exports.KENDRA_TITLE = exports.DEVELOP_HEALTH_TITLE = exports.EMOTII_TITLE = exports.STRIPE_TITLE = exports.FULLSCRIPT_REDIRECT_URI_ENDING = exports.FULLSCRIPT_INTEGRATIONS_TITLE = exports.ZENDESK_REDIRECT_URI_ENDING = exports.ZENDESK_INTEGRATIONS_TITLE = exports.ACTIVE_CAMPAIGN_TITLE = exports.DOCSUMO_TITLE = exports.DOSESPOT_TITLE = exports.ATHENA_TITLE = void 0;
-exports.USER_PERSONAL_EMAIL_OVERRIDE = exports.PORTAL_PAGES_HIDDEN_BY_DEFAULT = exports.DOCUMENT_REFERENCE_CODINGS = exports.BUILT_IN_BOOLEANS_FOR_SET_FIELDS = exports.BUILT_INS_FOR_SET_FIELDS = exports.CURRENT_POLICY_VERION = exports.DAYS_OF_WEEK_STARTING_SUNDAY = exports.CANDID_MODIFIERS = exports.WEIGHT_UNITS = exports.VITAL_UNITS = exports.VITAL_UNITS_INFO = exports.VITAL_RANGE_CLASSIFICATIONS = void 0;
+exports.USER_PERSONAL_EMAIL_OVERRIDE = exports.PORTAL_PAGES_HIDDEN_BY_DEFAULT = exports.DOCUMENT_TYPE_CODINGS = exports.DOCUMENT_REFERENCE_CODINGS = exports.BUILT_IN_BOOLEANS_FOR_SET_FIELDS = exports.BUILT_INS_FOR_SET_FIELDS = exports.CURRENT_POLICY_VERION = exports.DAYS_OF_WEEK_STARTING_SUNDAY = exports.CANDID_MODIFIERS = exports.WEIGHT_UNITS = exports.VITAL_UNITS = exports.VITAL_UNITS_INFO = exports.VITAL_RANGE_CLASSIFICATIONS = void 0;
 exports.ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
     'id': "ID",
     'assignedTo': "Care Team",
@@ -992,6 +992,36 @@ exports.DOCUMENT_REFERENCE_CODINGS = [
         "system": "http://schemas.canvasmedical.com/fhir/document-reference-category",
         "code": "uncategorizedclinicaldocument"
     },
+];
+exports.DOCUMENT_TYPE_CODINGS = [
+    // read-only can't be posted to Canvas API
+    // { system: "http://loinc.org", code: "51852-2", display: "Letters (read-only)" },
+    // { system: "http://loinc.org", code: "34895-3", display: "Educational Material (read-only)" },
+    // { system: "http://loinc.org", code: "94093-2", display: "Invoices/Itemized Bill (read-only)" },
+    { system: "http://loinc.org", code: "53243-2", display: "Advance Beneficiary Notice" },
+    { system: "http://loinc.org", code: "42348-3", display: "Advance Directive / Living Will" },
+    { system: "http://loinc.org", code: "91983-7", display: "Care Management" },
+    { system: "http://loinc.org", code: "53245-7", display: "CDL (Commercial Driver License)" },
+    { system: "http://loinc.org", code: "96335-5", display: "Emergency Department Report" },
+    { system: "http://loinc.org", code: "11503-0", display: "External Medical Records" },
+    { system: "http://loinc.org", code: "75503-3", display: "Home Care Report" },
+    { system: "http://loinc.org", code: "34105-7", display: "Hospital Discharge Summary" },
+    { system: "http://loinc.org", code: "47039-3", display: "Hospital History & Physical" },
+    { system: "http://loinc.org", code: "64290-0", display: "Insurance Card" },
+    { system: "http://loinc.org", code: "52034-6", display: "Insurer Prior Authorization" },
+    { system: "http://loinc.org", code: "34113-1", display: "Nursing Home" },
+    { system: "http://loinc.org", code: "11504-8", display: "Operative Report" },
+    { system: "http://loinc.org", code: "80570-5", display: "Patient Agreement" },
+    { system: "http://loinc.org", code: "64285-0", display: "Patient Clinical Intake Form" },
+    { system: "http://loinc.org", code: "51848-0", display: "Physical Exams" },
+    { system: "http://loinc.org", code: "46209-3", display: "POLST (Provider Order for Life Sustaining-Treatment)" },
+    { system: "http://loinc.org", code: "64298-3", display: "Power of Attorney" },
+    { system: "http://loinc.org", code: "57833-6", display: "Prescription Refill Request" },
+    { system: "http://loinc.org", code: "34823-5", display: "Rehabilitation Report" },
+    { system: "http://loinc.org", code: "101904-1", display: "Release of Information Request" },
+    { system: "http://loinc.org", code: "34109-9", display: "Uncategorized Clinical Document" },
+    { system: "http://loinc.org", code: "51851-4", display: "Uncategorized Administrative Document" },
+    { system: "http://loinc.org", code: "52070-0", display: "Worker's Compensation Documents" },
 ];
 exports.PORTAL_PAGES_HIDDEN_BY_DEFAULT = [
     "Orders", "Vitals",

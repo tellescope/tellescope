@@ -57,25 +57,30 @@ var checkboxStyle = {
     right: '10px',
 };
 export var TableHeader = function (_a) {
-    var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l;
-    var fields = _a.fields, sorting = _a.sorting, setSorting = _a.setSorting, selectable = _a.selectable, allSelected = _a.allSelected, setAllSelected = _a.setAllSelected, style = _a.style, textStyle = _a.textStyle, horizontalPadding = _a.horizontalPadding, _m = _a.fontSize, fontSize = _m === void 0 ? 15 : _m, memoryId = _a.memoryId, widthOffsets = _a.widthOffsets, setWidthOffsets = _a.setWidthOffsets, onExport = _a.onExport, localFilters = _a.localFilters, setLocalFilters = _a.setLocalFilters, filterSuggestions = _a.filterSuggestions, _o = _a.minColumnWidth, minColumnWidth = _o === void 0 ? 75 : _o, _p = _a.columnResizeZIndex, columnResizeZIndex = _p === void 0 ? 1000 : _p;
-    var _q = useState(-1), openFilter = _q[0], setOpenFilter = _q[1];
-    var _r = useState(0), startX = _r[0], setStartX = _r[1];
-    var _s = useState(), dragPosition = _s[0], setDragPosition = _s[1];
+    var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+    var fields = _a.fields, sorting = _a.sorting, setSorting = _a.setSorting, selectable = _a.selectable, allSelected = _a.allSelected, setAllSelected = _a.setAllSelected, style = _a.style, textStyle = _a.textStyle, horizontalPadding = _a.horizontalPadding, _o = _a.fontSize, fontSize = _o === void 0 ? 15 : _o, memoryId = _a.memoryId, widthOffsets = _a.widthOffsets, setWidthOffsets = _a.setWidthOffsets, onExport = _a.onExport, localFilters = _a.localFilters, setLocalFilters = _a.setLocalFilters, filterSuggestions = _a.filterSuggestions, _p = _a.minColumnWidth, minColumnWidth = _p === void 0 ? 75 : _p, _q = _a.columnResizeZIndex, columnResizeZIndex = _q === void 0 ? 1000 : _q;
+    var _r = useState(-1), openFilter = _r[0], setOpenFilter = _r[1];
+    var _s = useState(0), startX = _s[0], setStartX = _s[1];
+    var _t = useState(), dragPosition = _t[0], setDragPosition = _t[1];
     return (_jsxs(_Fragment, { children: [_jsx(Modal, __assign({ open: openFilter !== -1, setOpen: function (o) { return !o && setOpenFilter(-1); } }, { children: ((_b = fields[openFilter]) === null || _b === void 0 ? void 0 : _b.filterComponent)
                     || (_jsx(Flex, __assign({ flex: 1, justifyContent: "center" }, { children: ((_c = fields[openFilter]) === null || _c === void 0 ? void 0 : _c.filterType) === 'multi'
-                            ? (_jsx(Autocomplete, { size: 'small', disablePortal: true, multiple: true, options: ((filterSuggestions === null || filterSuggestions === void 0 ? void 0 : filterSuggestions[(_e = (_d = fields[openFilter]) === null || _d === void 0 ? void 0 : _d.key) === null || _e === void 0 ? void 0 : _e.toString()]) || []).sort(), freeSolo: true, autoSelect // allow any input and select it on change
-                                : true, onChange: function (e, values) {
-                                    if (values === void 0) { values = []; }
-                                    setLocalFilters(function (fs) { return fs.map(function (f, i) { return i === openFilter ? { query: '', values: values } : f; }); });
-                                }, value: (_g = (_f = localFilters[openFilter]) === null || _f === void 0 ? void 0 : _f.values) !== null && _g !== void 0 ? _g : [], renderInput: function (params) {
-                                    var _a, _b;
-                                    return _jsx(TextField, __assign({}, params, { autoFocus: true, label: "Filter", size: 'small', style: { width: 400 }, value: (_b = (_a = localFilters[openFilter]) === null || _a === void 0 ? void 0 : _a.query) !== null && _b !== void 0 ? _b : '' }));
-                                } })) : (_jsx(Autocomplete, { size: 'small', disablePortal: true, options: ((filterSuggestions === null || filterSuggestions === void 0 ? void 0 : filterSuggestions[(_j = (_h = fields[openFilter]) === null || _h === void 0 ? void 0 : _h.key) === null || _j === void 0 ? void 0 : _j.toString()]) || []).sort(), freeSolo: true, autoSelect // allow any input and select it on change
+                            ? (_jsxs(_Fragment, { children: [_jsx(Autocomplete, { disableClearable: true, disablePortal: true, size: 'small', options: ['One Of', 'All Of'], sx: { width: 140, mr: 0.5 }, onChange: function (e, value) {
+                                            setLocalFilters(function (fs) { return fs.map(function (f, i) { return i === openFilter ? __assign(__assign({}, f), { valuesQualifier: value === 'All Of' ? 'All Of' : 'One Of' }) : f; }); });
+                                        }, value: ((_d = localFilters[openFilter]) === null || _d === void 0 ? void 0 : _d.valuesQualifier) === 'All Of' ? 'All Of' : 'One Of', renderInput: function (params) {
+                                            var _a;
+                                            return _jsx(TextField, __assign({}, params, { fullWidth: true, autoFocus: true, label: "Qualifier", size: 'small', value: ((_a = localFilters[openFilter]) === null || _a === void 0 ? void 0 : _a.valuesQualifier) === 'All Of' ? 'All Of' : 'One Of' }));
+                                        } }), _jsx(Autocomplete, { size: 'small', disablePortal: true, multiple: true, options: ((filterSuggestions === null || filterSuggestions === void 0 ? void 0 : filterSuggestions[(_f = (_e = fields[openFilter]) === null || _e === void 0 ? void 0 : _e.key) === null || _f === void 0 ? void 0 : _f.toString()]) || []).sort(), freeSolo: true, autoSelect // allow any input and select it on change
+                                        : true, onChange: function (e, values) {
+                                            if (values === void 0) { values = []; }
+                                            setLocalFilters(function (fs) { return fs.map(function (f, i) { return i === openFilter ? { query: '', values: values } : f; }); });
+                                        }, value: (_h = (_g = localFilters[openFilter]) === null || _g === void 0 ? void 0 : _g.values) !== null && _h !== void 0 ? _h : [], renderInput: function (params) {
+                                            var _a, _b;
+                                            return _jsx(TextField, __assign({}, params, { autoFocus: true, label: "Filter by", size: 'small', style: { width: 400 }, value: (_b = (_a = localFilters[openFilter]) === null || _a === void 0 ? void 0 : _a.query) !== null && _b !== void 0 ? _b : '' }));
+                                        } })] })) : (_jsx(Autocomplete, { size: 'small', disablePortal: true, options: ((filterSuggestions === null || filterSuggestions === void 0 ? void 0 : filterSuggestions[(_k = (_j = fields[openFilter]) === null || _j === void 0 ? void 0 : _j.key) === null || _k === void 0 ? void 0 : _k.toString()]) || []).sort(), freeSolo: true, autoSelect // allow any input and select it on change
                             : true, onChange: function (e, _query) {
                                 var query = _query || '';
                                 setLocalFilters(function (fs) { return fs.map(function (f, i) { return i === openFilter ? { query: query } : f; }); });
-                            }, value: (_l = (_k = localFilters[openFilter]) === null || _k === void 0 ? void 0 : _k.query) !== null && _l !== void 0 ? _l : '', renderInput: function (params) {
+                            }, value: (_m = (_l = localFilters[openFilter]) === null || _l === void 0 ? void 0 : _l.query) !== null && _m !== void 0 ? _m : '', renderInput: function (params) {
                                 var _a, _b;
                                 return _jsx(TextField, __assign({}, params, { autoFocus: true, label: "Filter", size: 'small', style: { width: 400 }, value: (_b = (_a = localFilters[openFilter]) === null || _a === void 0 ? void 0 : _a.query) !== null && _b !== void 0 ? _b : '' }));
                             } })) }))) })), _jsxs(Flex, __assign({ alignItems: "center", style: __assign({ paddingLeft: horizontalPadding, paddingRight: horizontalPadding, minHeight: ROW_HEIGHT, backgroundColor: DARK_GRAY }, style) }, { children: [selectable &&
@@ -411,13 +416,16 @@ export var Table = function (_a) {
                 var _b = fields[i], getFilterValue = _b.getFilterValue, filterType = _b.filterType;
                 if (!getFilterValue)
                     return "continue";
-                var _c = (_a = localFilters[i]) !== null && _a !== void 0 ? _a : {}, query = _c.query, values = _c.values;
+                var _c = (_a = localFilters[i]) !== null && _a !== void 0 ? _a : {}, query = _c.query, values = _c.values, valuesQualifier = _c.valuesQualifier;
                 if (filterType === 'multi') {
                     if (!(values === null || values === void 0 ? void 0 : values.length))
                         return "continue";
                     var filterValueOrValues = getFilterValue(v);
-                    var filterValues = Array.isArray(filterValueOrValues) ? filterValueOrValues : [filterValueOrValues];
-                    if (!filterValues.find(function (v) { return values.includes(v); })) {
+                    var filterValues_1 = Array.isArray(filterValueOrValues) ? filterValueOrValues : [filterValueOrValues];
+                    if (valuesQualifier === 'All Of') {
+                        return { value: values.every(function (v) { return filterValues_1.includes(v); }) };
+                    }
+                    if (!filterValues_1.find(function (v) { return values.includes(v); })) {
                         return { value: false };
                     }
                 }

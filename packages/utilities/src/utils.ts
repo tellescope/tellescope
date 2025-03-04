@@ -351,14 +351,15 @@ export const formatted_date = (date: Date): string => {
   return `${month} ${dayOfMonth} ${year}, ${hoursAmPm}:${minutes}${amPm}`
 }
 
-export const get_add_to_gcal_link = (event: Pick<CalendarEvent, "startTimeInMS" | 'durationInMinutes' | 'title' |'videoURL' | 'description' | 'displayDescription' | 'displayTitle'>) => {
+export const get_add_to_gcal_link = (event: Pick<CalendarEvent, "startTimeInMS" | 'durationInMinutes' | 'title' |'videoURL' | 'description' | 'displayDescription' | 'displayTitle' | 'healthieZoomJoinURL' | 'externalVideoURL'>) => {
   const start = DateTime.fromMillis(event.startTimeInMS, { zone: 'UTC' })
   const end   = DateTime.fromMillis(event.startTimeInMS + event.durationInMinutes * 60 * 1000, { zone: 'UTC' })
   const startString = `${start.toFormat('yyyyLLdd')}T${start.toFormat('HHmmss')}Z`
   const endString = `${end.toFormat('yyyyLLdd')}T${end.toFormat('HHmmss')}Z`
   const description = event.displayDescription || event.description || '' 
+  const videoURL = (event.videoURL || event.externalVideoURL || event.healthieZoomJoinURL)
   return (
-`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${(event.displayTitle || event.title).replaceAll(' ', '+')}&details=${event.videoURL || ''}${event.videoURL ? '<br/>' : ''}${description}&dates=${startString}/${endString}`
+`https://calendar.google.com/calendar/render?action=TEMPLATE&text=${(event.displayTitle || event.title).replaceAll(' ', '+')}&details=${videoURL || ''}${videoURL ? '<br/>' : ''}${description}&dates=${startString}/${endString}`
   )
 }
 
@@ -1084,6 +1085,8 @@ export const string_matches_key_or_value = <T>(value: T, match: string): boolean
 export const getLocalTimezone = () => Intl.DateTimeFormat().resolvedOptions().timeZone as Timezone
 
 export const YYYY_MM_DD_to_MM_DD_YYYY = (yyyyMmDd: string, delimiter='-') => {
+  if (!yyyyMmDd) return '' // also handles null/undefined if provided mistakenly
+  
   const [yyyy, mm, dd] = yyyyMmDd.split(delimiter)
   return `${mm}-${dd}-${yyyy}`
 }

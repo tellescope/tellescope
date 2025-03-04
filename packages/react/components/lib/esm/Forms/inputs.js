@@ -856,7 +856,9 @@ export var DropdownInput = function (_a) {
                     return ((((_a = field.options) === null || _a === void 0 ? void 0 : _a.radio) && field.options.other)
                         ? onChange(e.target.value ? [e.target.value] : [], field.id)
                         : undefined);
-                }, placeholder: field.placeholder + ((!field.title && !field.isOptional) ? '*' : ''), label: (!((_a = field.options) === null || _a === void 0 ? void 0 : _a.radio) && ((_b = field.options) === null || _b === void 0 ? void 0 : _b.other))
+                }, placeholder: field.placeholder
+                    ? field.placeholder + ((!field.title && !field.isOptional) ? '*' : '')
+                    : undefined, label: (!((_a = field.options) === null || _a === void 0 ? void 0 : _a.radio) && ((_b = field.options) === null || _b === void 0 ? void 0 : _b.other))
                     ? "Press enter to save a custom value"
                     : '' }));
         } }));

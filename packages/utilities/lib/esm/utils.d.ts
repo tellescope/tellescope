@@ -109,7 +109,7 @@ export declare const get_time_values: (date: Date, options?: {
     seconds: string | number;
 };
 export declare const formatted_date: (date: Date) => string;
-export declare const get_add_to_gcal_link: (event: Pick<CalendarEvent, "startTimeInMS" | 'durationInMinutes' | 'title' | 'videoURL' | 'description' | 'displayDescription' | 'displayTitle'>) => string;
+export declare const get_add_to_gcal_link: (event: Pick<CalendarEvent, "startTimeInMS" | 'durationInMinutes' | 'title' | 'videoURL' | 'description' | 'displayDescription' | 'displayTitle' | 'healthieZoomJoinURL' | 'externalVideoURL'>) => string;
 export declare const formatted_date_hh_mm: (date: Date) => string;
 /** @deprecated uses month name instead of number */
 export declare const yyyy_mm_dd: (date: Date) => string;
