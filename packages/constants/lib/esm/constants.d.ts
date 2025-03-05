@@ -185,4 +185,5 @@ export declare const DOCUMENT_TYPE_CODINGS: {
 }[];
 export declare const PORTAL_PAGES_HIDDEN_BY_DEFAULT: string[];
 export declare const USER_PERSONAL_EMAIL_OVERRIDE = "personal@tellescope.com";
+export declare const TELLESCOPE_PORTAL_SOURCE = "Tellescope Portal";
 //# sourceMappingURL=constants.d.ts.map

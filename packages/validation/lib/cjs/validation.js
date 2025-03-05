@@ -2007,6 +2007,7 @@ var sharedReminderValidators = {
     msBeforeStartTime: exports.numberValidator,
     didRemind: exports.booleanValidatorOptional,
     dontSendIfPassed: exports.booleanValidatorOptional,
+    dontSendIfJoined: exports.booleanValidatorOptional,
 };
 exports.calendarEventReminderValidator = (0, exports.orValidator)({
     webhook: (0, exports.objectValidator)(__assign({ info: (0, exports.objectValidator)({}, { emptyOk: true, isOptional: true }), type: (0, exports.exactMatchValidator)(['webhook']) }, sharedReminderValidators)),
@@ -2551,6 +2552,7 @@ exports.journeyContextValidator = (0, exports.objectValidator)({
     databaseRecordId: exports.mongoIdStringOptional,
     databaseRecordCreator: exports.mongoIdStringOptional,
     eligibilityResultId: exports.mongoIdStringOptional,
+    fileId: exports.mongoIdStringOptional,
 });
 exports.relatedRecordValidator = (0, exports.objectValidator)({
     type: exports.stringValidator100,
@@ -3524,6 +3526,7 @@ var _AUTOMATION_TRIGGER_EVENT_TYPES = {
     "Healthie Note Locked": true,
     "Database Entry Added": true,
     "Eligibility Result Received": true,
+    "File Added": true,
 };
 exports.AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES);
 exports.automationTriggerEventValidator = (0, exports.orValidator)({
@@ -3789,6 +3792,14 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
         info: (0, exports.objectValidator)({
             source: exports.stringValidator100,
         }),
+        conditions: exports.optionalEmptyObjectValidator,
+    }),
+    "File Added": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['File Added']),
+        info: (0, exports.objectValidator)({
+            source: exports.stringValidator100,
+        }),
+        conditions: exports.optionalEmptyObjectValidator,
     }),
 });
 var _AUTOMATION_TRIGGER_ACTION_TYPES = {

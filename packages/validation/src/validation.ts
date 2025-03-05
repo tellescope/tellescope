@@ -2459,6 +2459,7 @@ const sharedReminderValidators = {
   msBeforeStartTime: numberValidator,
   didRemind: booleanValidatorOptional,
   dontSendIfPassed: booleanValidatorOptional,
+  dontSendIfJoined: booleanValidatorOptional,
 }
 
 export const calendarEventReminderValidator = orValidator<{ [K in CalendarEventReminderType]: CalendarEventReminderInfoForType[K] } >({
@@ -3060,6 +3061,7 @@ export const journeyContextValidator = objectValidator<JourneyContext>({
   databaseRecordId: mongoIdStringOptional,
   databaseRecordCreator: mongoIdStringOptional,
   eligibilityResultId: mongoIdStringOptional,
+  fileId: mongoIdStringOptional,
 })
 
 export const relatedRecordValidator = objectValidator<RelatedRecord>({
@@ -4094,6 +4096,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Healthie Note Locked": true,
   "Database Entry Added": true,
   "Eligibility Result Received": true,
+  "File Added": true,
 }
 export const AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES) as AutomationTriggerEventType[]
 
@@ -4360,6 +4363,14 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     info: objectValidator<AutomationTriggerEvents['Eligibility Result Received']['info']>({
       source: stringValidator100,
     }),
+    conditions: optionalEmptyObjectValidator,
+  }),
+  "File Added": objectValidator<AutomationTriggerEvents["File Added"]>({
+    type: exactMatchValidator(['File Added']),
+    info: objectValidator<AutomationTriggerEvents['File Added']['info']>({
+      source: stringValidator100,
+    }),
+    conditions: optionalEmptyObjectValidator,
   }),
 })
 

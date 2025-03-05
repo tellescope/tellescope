@@ -394,6 +394,8 @@ export interface Organization extends Organization_readonly, Organization_requir
     groups?: string[];
     observationInvalidationReasons?: string[];
     chargebeeEnvironments?: string[];
+    customNotificationTypes?: string[];
+    hasConnectedMedplum?: boolean;
 }
 export type OrganizationTheme = {
     name: string;
@@ -558,6 +560,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
     pushNotificationDestinations?: string[];
     drChronoId?: string;
     canvasId?: string;
+    medplumId?: string;
     zoomId?: string;
     zendeskId?: number;
     tags?: string[];
@@ -1336,6 +1339,7 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
     restrictByTagsQualifier?: ListQueryQualifier;
     archiveReason?: string;
     contextFormIds?: string[];
+    triggerFileId?: string;
     orderId?: string;
     contextEnduserFields?: string[];
     isTodo?: boolean;
@@ -1710,6 +1714,8 @@ export interface Integration extends Integration_readonly, Integration_required,
     default_dietitian_id?: string;
     dontPushCalendarEvent?: boolean;
     dontPullCalendarEvent?: boolean;
+    pushAddedTags?: boolean;
+    pushRemovedTags?: boolean;
 }
 export type BuildDatabaseRecordField<K extends string, V, O> = {
     type: K;
@@ -2056,6 +2062,7 @@ type BuildCalendarEventReminderInfo<T, I> = {
     msBeforeStartTime: number;
     dontSendIfPassed?: boolean;
     didRemind?: boolean;
+    dontSendIfJoined?: boolean;
 };
 export type CalendarEventReminderInfoForType = {
     "webhook": BuildCalendarEventReminderInfo<'webhook', {}>;
@@ -2182,6 +2189,10 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
     startLinkToken?: string;
     canvasEncounterId?: string;
     allowGroupReschedule?: boolean;
+    joinedVideoCall?: {
+        id: string;
+        at: Date;
+    }[];
 }
 export type PaymentProcessor = 'Square' | 'Stripe';
 export interface Product_readonly extends ClientRecord {
@@ -3804,9 +3815,12 @@ export type AutomationTriggerEvents = {
     'Form Started': AutomationTriggerEventBuilder<"Form Started", {
         formIds?: string[];
     }, {}>;
-    "Eligibility Result Received": AutomationTriggerActionBuilder<'Eligibility Result Received', {
+    "Eligibility Result Received": AutomationTriggerEventBuilder<'Eligibility Result Received', {
         source: string;
-    }>;
+    }, {}>;
+    'File Added': AutomationTriggerEventBuilder<"File Added", {
+        source: string;
+    }, {}>;
 };
 export type AutomationTriggerEventType = keyof AutomationTriggerEvents;
 export type AutomationTriggerEvent = AutomationTriggerEvents[AutomationTriggerEventType];
@@ -4881,6 +4895,7 @@ export type JourneyContext = {
     databaseRecordId?: string;
     databaseRecordCreator?: string;
     eligibilityResultId?: string;
+    fileId?: string;
 };
 export declare const TIMEZONE_MAP: {
     readonly "Africa/Abidjan": "+00:00";

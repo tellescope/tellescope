@@ -293,4 +293,5 @@ export declare const should_show_unsubmitted_form_response_for_interval: (fr: Fo
     createdAt: any;
 }) => boolean;
 export declare const get_canvas_id: (v: Pick<Enduser, 'source' | 'externalId' | 'references'>) => string | undefined;
+export declare const to_human_readable_phone_number: (phone?: string) => string;
 //# sourceMappingURL=utils.d.ts.map

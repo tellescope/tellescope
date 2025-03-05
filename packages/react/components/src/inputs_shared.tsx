@@ -1,6 +1,6 @@
 import React, { useEffect, useCallback, useMemo, useState, useRef } from "react"
 import { Indexable, ScoreFilter } from "@tellescope/types-utilities"
-import { objects_equivalent, read_local_storage, safeJSONParse, update_local_storage, user_display_name } from "@tellescope/utilities"
+import { objects_equivalent, read_local_storage, safeJSONParse, to_human_readable_phone_number, update_local_storage, user_display_name } from "@tellescope/utilities"
 import { LoadFunction, LoadFunctionArguments } from "@tellescope/sdk"
 import { ALL_ACCESS, UNSEARCHABLE_FIELDS } from "@tellescope/constants"
 import { SearchAPIProps, useSearchAPI } from "./hooks"
@@ -221,6 +221,15 @@ export const filter_for_query = <T,>(query: string, getAdditionalFields?: (v: T)
       }       
       if (typeof value !== 'string') continue
       if (value.toUpperCase().includes(query.toUpperCase())) {
+        score +=1
+        continue
+      }
+      // for phone number search, replace human-readable entries which are not stored
+      const onlyNumbers = query.replaceAll(/[^0-9]/g, '')
+      if ( 
+        onlyNumbers.length >= 3 &&
+        value.toUpperCase().includes(onlyNumbers)
+      ) {
         score +=1
         continue
       }

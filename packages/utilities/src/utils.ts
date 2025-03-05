@@ -2479,3 +2479,15 @@ export const get_canvas_id = (v: Pick<Enduser, 'source' | 'externalId' | 'refere
     ? v.externalId
     : v.references?.find(r => r.type === CANVAS_TITLE)?.id
 )
+
+export const to_human_readable_phone_number = (phone?: string) => {
+  if (!phone) { return '' }
+  
+  if (phone.length === 10) {
+    return `(${phone.substring(0, 3)}) ${phone.substring(3, 6)}-${phone.substring(6)}`
+  }
+
+  const countryCode = phone.substring(0, phone.length - 10)
+  const withoutCountryCode = phone.replace(countryCode, '')
+  return `${countryCode.startsWith('+') ? '' : '+'}${countryCode} (${withoutCountryCode.substring(0, 3)}) ${withoutCountryCode.substring(3, 6)}-${withoutCountryCode.substring(6)}`
+}

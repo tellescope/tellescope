@@ -1957,6 +1957,7 @@ var sharedReminderValidators = {
     msBeforeStartTime: numberValidator,
     didRemind: booleanValidatorOptional,
     dontSendIfPassed: booleanValidatorOptional,
+    dontSendIfJoined: booleanValidatorOptional,
 };
 export var calendarEventReminderValidator = orValidator({
     webhook: objectValidator(__assign({ info: objectValidator({}, { emptyOk: true, isOptional: true }), type: exactMatchValidator(['webhook']) }, sharedReminderValidators)),
@@ -2501,6 +2502,7 @@ export var journeyContextValidator = objectValidator({
     databaseRecordId: mongoIdStringOptional,
     databaseRecordCreator: mongoIdStringOptional,
     eligibilityResultId: mongoIdStringOptional,
+    fileId: mongoIdStringOptional,
 });
 export var relatedRecordValidator = objectValidator({
     type: stringValidator100,
@@ -3472,6 +3474,7 @@ var _AUTOMATION_TRIGGER_EVENT_TYPES = {
     "Healthie Note Locked": true,
     "Database Entry Added": true,
     "Eligibility Result Received": true,
+    "File Added": true,
 };
 export var AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES);
 export var automationTriggerEventValidator = orValidator({
@@ -3737,6 +3740,14 @@ export var automationTriggerEventValidator = orValidator({
         info: objectValidator({
             source: stringValidator100,
         }),
+        conditions: optionalEmptyObjectValidator,
+    }),
+    "File Added": objectValidator({
+        type: exactMatchValidator(['File Added']),
+        info: objectValidator({
+            source: stringValidator100,
+        }),
+        conditions: optionalEmptyObjectValidator,
     }),
 });
 var _AUTOMATION_TRIGGER_ACTION_TYPES = {

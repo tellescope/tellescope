@@ -155,6 +155,7 @@ export const ORGANIZATION_WIDE_INTEGRATIONS = [
   ELATION_TITLE, 
   HEALTHIE_TITLE,
   CANVAS_TITLE,
+  MEDPLUM_TITLE,
   PAGER_DUTY_TITLE,
   SMART_METER_TITLE,
   // ITERABLE_TITLE, // we now support multiple Iterable connections
@@ -1086,3 +1087,5 @@ export const PORTAL_PAGES_HIDDEN_BY_DEFAULT = [
 ]
 
 export const USER_PERSONAL_EMAIL_OVERRIDE = "personal@tellescope.com"
+
+export const TELLESCOPE_PORTAL_SOURCE = "Tellescope Portal"

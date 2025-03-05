@@ -279,6 +279,13 @@ var filter_for_query = function (query, getAdditionalFields) {
                 score += 1;
                 continue;
             }
+            // for phone number search, replace human-readable entries which are not stored
+            var onlyNumbers = query.replaceAll(/[^0-9]/g, '');
+            if (onlyNumbers.length >= 3 &&
+                value.toUpperCase().includes(onlyNumbers)) {
+                score += 1;
+                continue;
+            }
         }
         return score;
     };

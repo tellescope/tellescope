@@ -2004,6 +2004,8 @@ export const schema: SchemaV1 = build_schema({
       default_dietitian_id: { validator: stringValidator100 },
       dontPushCalendarEvent: { validator: booleanValidator },
       dontPullCalendarEvent: { validator: booleanValidator },
+      pushAddedTags: { validator: booleanValidator },
+      pushRemovedTags: { validator: booleanValidator },
     },
     customActions: {
       update_zoom: {
@@ -3497,6 +3499,7 @@ export const schema: SchemaV1 = build_schema({
         }))
       },
       canvasId: { validator: stringValidator100 },
+      medplumId: { validator: stringValidator100 },
       dashboardView: { validator: customDashboardViewValidator },
       hideFromCalendarView: { validator: booleanValidator },
       requireSSO: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
@@ -3920,6 +3923,7 @@ export const schema: SchemaV1 = build_schema({
       isTodo: { validator: booleanValidator },
       databaseRecordId: { validator: mongoIdStringValidator },
       databaseRecordCreator: { validator: mongoIdStringValidator },
+      triggerFileId: { validator: mongoIdStringValidator },
     }
   },
   meetings: {
@@ -5216,6 +5220,12 @@ export const schema: SchemaV1 = build_schema({
       startLinkToken: { validator: stringValidator250 },
       canvasEncounterId: { validator: stringValidator100 },
       allowGroupReschedule: { validator: booleanValidator },
+      joinedVideoCall: { 
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ id: string, at: Date }>({
+          id: mongoIdStringRequired, 
+          at: dateValidator,
+        }))
+      }
     }
   },
   calendar_event_templates: {
@@ -6362,6 +6372,7 @@ export const schema: SchemaV1 = build_schema({
       groups: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       canvasURL: { validator: stringValidator },
       observationInvalidationReasons: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      customNotificationTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
     },
   },
   databases: {

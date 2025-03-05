@@ -579,6 +579,7 @@ export declare const calendarEventReminderValidator: ValidatorDefinition<{
     msBeforeStartTime: number;
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
+    dontSendIfJoined?: boolean | undefined;
 } | {
     type: "add-to-journey";
     info: {
@@ -587,6 +588,7 @@ export declare const calendarEventReminderValidator: ValidatorDefinition<{
     msBeforeStartTime: number;
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
+    dontSendIfJoined?: boolean | undefined;
 } | {
     type: "Remove From Journey";
     info: {
@@ -595,18 +597,21 @@ export declare const calendarEventReminderValidator: ValidatorDefinition<{
     msBeforeStartTime: number;
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
+    dontSendIfJoined?: boolean | undefined;
 } | {
     type: "enduser-notification";
     info: CalendarEventReminderNotificationInfo;
     msBeforeStartTime: number;
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
+    dontSendIfJoined?: boolean | undefined;
 } | {
     type: "user-notification";
     info: CalendarEventReminderNotificationInfo;
     msBeforeStartTime: number;
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
+    dontSendIfJoined?: boolean | undefined;
 } | {
     type: "create-ticket";
     info: {
@@ -615,6 +620,7 @@ export declare const calendarEventReminderValidator: ValidatorDefinition<{
     msBeforeStartTime: number;
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
+    dontSendIfJoined?: boolean | undefined;
 }>;
 export declare const listOfCalendarEventRemindersValidator: ValidatorDefinition<({
     type: "webhook";
@@ -622,6 +628,7 @@ export declare const listOfCalendarEventRemindersValidator: ValidatorDefinition<
     msBeforeStartTime: number;
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
+    dontSendIfJoined?: boolean | undefined;
 } | {
     type: "add-to-journey";
     info: {
@@ -630,6 +637,7 @@ export declare const listOfCalendarEventRemindersValidator: ValidatorDefinition<
     msBeforeStartTime: number;
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
+    dontSendIfJoined?: boolean | undefined;
 } | {
     type: "Remove From Journey";
     info: {
@@ -638,18 +646,21 @@ export declare const listOfCalendarEventRemindersValidator: ValidatorDefinition<
     msBeforeStartTime: number;
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
+    dontSendIfJoined?: boolean | undefined;
 } | {
     type: "enduser-notification";
     info: CalendarEventReminderNotificationInfo;
     msBeforeStartTime: number;
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
+    dontSendIfJoined?: boolean | undefined;
 } | {
     type: "user-notification";
     info: CalendarEventReminderNotificationInfo;
     msBeforeStartTime: number;
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
+    dontSendIfJoined?: boolean | undefined;
 } | {
     type: "create-ticket";
     info: {
@@ -658,6 +669,7 @@ export declare const listOfCalendarEventRemindersValidator: ValidatorDefinition<
     msBeforeStartTime: number;
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
+    dontSendIfJoined?: boolean | undefined;
 })[]>;
 export declare const cancelConditionValidator: ValidatorDefinition<({
     type: "formResponse";
@@ -1594,9 +1606,11 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
     answersCondition?: Record<string, any> | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Database Entry Added", {
     databaseId: string;
-}, {}> | import("@tellescope/types-models").AutomationTriggerActionBuilder<"Eligibility Result Received", {
+}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Eligibility Result Received", {
     source: string;
-}>>;
+}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"File Added", {
+    source: string;
+}, {}>>;
 export declare const AUTOMATION_TRIGGER_ACTION_TYPES: (keyof AutomationTriggerActions)[];
 export declare const automationTriggerActionValidator: ValidatorDefinition<import("@tellescope/types-models").AutomationTriggerActionBuilder<"Add To Journey", {
     journeyId: string;

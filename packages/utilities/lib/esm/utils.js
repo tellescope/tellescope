@@ -2344,4 +2344,15 @@ export var get_canvas_id = function (v) {
         ? v.externalId
         : (_b = (_a = v.references) === null || _a === void 0 ? void 0 : _a.find(function (r) { return r.type === CANVAS_TITLE; })) === null || _b === void 0 ? void 0 : _b.id);
 };
+export var to_human_readable_phone_number = function (phone) {
+    if (!phone) {
+        return '';
+    }
+    if (phone.length === 10) {
+        return "(".concat(phone.substring(0, 3), ") ").concat(phone.substring(3, 6), "-").concat(phone.substring(6));
+    }
+    var countryCode = phone.substring(0, phone.length - 10);
+    var withoutCountryCode = phone.replace(countryCode, '');
+    return "".concat(countryCode.startsWith('+') ? '' : '+').concat(countryCode, " (").concat(withoutCountryCode.substring(0, 3), ") ").concat(withoutCountryCode.substring(3, 6), "-").concat(withoutCountryCode.substring(6));
+};
 //# sourceMappingURL=utils.js.map

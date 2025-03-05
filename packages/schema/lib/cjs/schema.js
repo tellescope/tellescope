@@ -778,7 +778,7 @@ exports.schema = (0, exports.build_schema)({
                         info: {}
                     }
                 ]
-            }, lastSync: { validator: validation_1.nonNegNumberValidator }, emailDisabled: { validator: validation_1.booleanValidator }, syncUnrecognizedSenders: { validator: validation_1.booleanValidator }, createEndusersForUnrecognizedSenders: { validator: validation_1.booleanValidator }, calendars: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, environment: { validator: validation_1.stringValidator100 }, webhooksSecret: { validator: validation_1.stringValidator }, shouldCreateNotifications: { validator: validation_1.booleanValidator }, disableEnduserAutoSync: { validator: validation_1.booleanValidator }, disableTicketAutoSync: { validator: validation_1.booleanValidator }, redactExternalEvents: { validator: validation_1.booleanValidator }, syncEnduserFiles: { validator: validation_1.booleanValidator }, pushCalendarDetails: { validator: validation_1.booleanValidator }, defaultAttendeeId: { validator: validation_1.mongoIdStringRequired }, sendEmailOnSync: { validator: validation_1.booleanValidator }, enduserFieldMapping: { validator: validation_1.fieldMappingsValidator }, default_dietitian_id: { validator: validation_1.stringValidator100 }, dontPushCalendarEvent: { validator: validation_1.booleanValidator }, dontPullCalendarEvent: { validator: validation_1.booleanValidator } }),
+            }, lastSync: { validator: validation_1.nonNegNumberValidator }, emailDisabled: { validator: validation_1.booleanValidator }, syncUnrecognizedSenders: { validator: validation_1.booleanValidator }, createEndusersForUnrecognizedSenders: { validator: validation_1.booleanValidator }, calendars: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, environment: { validator: validation_1.stringValidator100 }, webhooksSecret: { validator: validation_1.stringValidator }, shouldCreateNotifications: { validator: validation_1.booleanValidator }, disableEnduserAutoSync: { validator: validation_1.booleanValidator }, disableTicketAutoSync: { validator: validation_1.booleanValidator }, redactExternalEvents: { validator: validation_1.booleanValidator }, syncEnduserFiles: { validator: validation_1.booleanValidator }, pushCalendarDetails: { validator: validation_1.booleanValidator }, defaultAttendeeId: { validator: validation_1.mongoIdStringRequired }, sendEmailOnSync: { validator: validation_1.booleanValidator }, enduserFieldMapping: { validator: validation_1.fieldMappingsValidator }, default_dietitian_id: { validator: validation_1.stringValidator100 }, dontPushCalendarEvent: { validator: validation_1.booleanValidator }, dontPullCalendarEvent: { validator: validation_1.booleanValidator }, pushAddedTags: { validator: validation_1.booleanValidator }, pushRemovedTags: { validator: validation_1.booleanValidator } }),
         customActions: {
             update_zoom: {
                 adminOnly: true,
@@ -2120,7 +2120,7 @@ exports.schema = (0, exports.build_schema)({
                     field: validation_1.stringValidator100,
                     value: validation_1.stringValidator5000,
                 }))
-            }, canvasId: { validator: validation_1.stringValidator100 }, dashboardView: { validator: validation_1.customDashboardViewValidator }, hideFromCalendarView: { validator: validation_1.booleanValidator }, requireSSO: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay } })
+            }, canvasId: { validator: validation_1.stringValidator100 }, medplumId: { validator: validation_1.stringValidator100 }, dashboardView: { validator: validation_1.customDashboardViewValidator }, hideFromCalendarView: { validator: validation_1.booleanValidator }, requireSSO: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay } })
     },
     templates: {
         info: {},
@@ -2459,7 +2459,7 @@ exports.schema = (0, exports.build_schema)({
                 validator: validation_1.numberValidator,
                 readonly: true,
                 initializer: exports.get_next_reminder_timestamp_for_ticket,
-            }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, calendarEventId: { validator: validation_1.mongoIdStringRequired }, observationId: { validator: validation_1.mongoIdStringRequired }, phoneCallId: { validator: validation_1.mongoIdStringRequired }, smsId: { validator: validation_1.mongoIdStringRequired }, emailId: { validator: validation_1.mongoIdStringRequired }, orderId: { validator: validation_1.mongoIdStringRequired }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, restrictByState: { validator: validation_1.stateValidator }, restrictByTags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, restrictByTagsQualifier: { validator: validation_1.listQueryQualifiersValidator }, archiveReason: { validator: validation_1.stringValidator }, contextFormIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, contextEnduserFields: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk }, isTodo: { validator: validation_1.booleanValidator }, databaseRecordId: { validator: validation_1.mongoIdStringRequired }, databaseRecordCreator: { validator: validation_1.mongoIdStringRequired } })
+            }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, calendarEventId: { validator: validation_1.mongoIdStringRequired }, observationId: { validator: validation_1.mongoIdStringRequired }, phoneCallId: { validator: validation_1.mongoIdStringRequired }, smsId: { validator: validation_1.mongoIdStringRequired }, emailId: { validator: validation_1.mongoIdStringRequired }, orderId: { validator: validation_1.mongoIdStringRequired }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, restrictByState: { validator: validation_1.stateValidator }, restrictByTags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, restrictByTagsQualifier: { validator: validation_1.listQueryQualifiersValidator }, archiveReason: { validator: validation_1.stringValidator }, contextFormIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, contextEnduserFields: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk }, isTodo: { validator: validation_1.booleanValidator }, databaseRecordId: { validator: validation_1.mongoIdStringRequired }, databaseRecordCreator: { validator: validation_1.mongoIdStringRequired }, triggerFileId: { validator: validation_1.mongoIdStringRequired } })
     },
     meetings: {
         info: {},
@@ -3502,7 +3502,12 @@ exports.schema = (0, exports.build_schema)({
                     identifier: validation_1.stringValidator100,
                     byEnduserExternal: validation_1.booleanValidatorOptional,
                 }),
-            }, cancelReason: { validator: validation_1.stringValidator5000 }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, dontBlockAvailability: { validator: validation_1.booleanValidator }, previousStartTimes: { validator: validation_1.listOfNumbersValidatorUniqueOptionalOrEmptyOkay }, requirePortalCancelReason: { validator: validation_1.booleanValidator }, startLinkToken: { validator: validation_1.stringValidator250 }, canvasEncounterId: { validator: validation_1.stringValidator100 }, allowGroupReschedule: { validator: validation_1.booleanValidator } })
+            }, cancelReason: { validator: validation_1.stringValidator5000 }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, dontBlockAvailability: { validator: validation_1.booleanValidator }, previousStartTimes: { validator: validation_1.listOfNumbersValidatorUniqueOptionalOrEmptyOkay }, requirePortalCancelReason: { validator: validation_1.booleanValidator }, startLinkToken: { validator: validation_1.stringValidator250 }, canvasEncounterId: { validator: validation_1.stringValidator100 }, allowGroupReschedule: { validator: validation_1.booleanValidator }, joinedVideoCall: {
+                validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
+                    id: validation_1.mongoIdStringRequired,
+                    at: validation_1.dateValidator,
+                }))
+            } })
     },
     calendar_event_templates: {
         info: {},
@@ -4425,7 +4430,7 @@ exports.schema = (0, exports.build_schema)({
                     id: validation_1.stringValidator100,
                     name: validation_1.stringValidator,
                 }))
-            }, groups: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: validation_1.stringValidator }, observationInvalidationReasons: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay } }),
+            }, groups: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: validation_1.stringValidator }, observationInvalidationReasons: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay } }),
     },
     databases: {
         info: {},

@@ -143,6 +143,7 @@ export var ORGANIZATION_WIDE_INTEGRATIONS = [
     ELATION_TITLE,
     HEALTHIE_TITLE,
     CANVAS_TITLE,
+    MEDPLUM_TITLE,
     PAGER_DUTY_TITLE,
     SMART_METER_TITLE,
     // ITERABLE_TITLE, // we now support multiple Iterable connections
@@ -1021,4 +1022,5 @@ export var PORTAL_PAGES_HIDDEN_BY_DEFAULT = [
     "Orders", "Vitals",
 ];
 export var USER_PERSONAL_EMAIL_OVERRIDE = "personal@tellescope.com";
+export var TELLESCOPE_PORTAL_SOURCE = "Tellescope Portal";
 //# sourceMappingURL=constants.js.map
