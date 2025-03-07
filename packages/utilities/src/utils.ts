@@ -2491,3 +2491,13 @@ export const to_human_readable_phone_number = (phone?: string) => {
   const withoutCountryCode = phone.replace(countryCode, '')
   return `${countryCode.startsWith('+') ? '' : '+'}${countryCode} (${withoutCountryCode.substring(0, 3)}) ${withoutCountryCode.substring(3, 6)}-${withoutCountryCode.substring(6)}`
 }
+
+export const enrich_doxy_url = (url: string, e?: Enduser) => {
+  if (!e) return url
+  if (!url?.includes('doxy.me')) return url
+  if (url.includes('?')) return url // already has query params
+
+  return (
+    `${url}?username=${e.fname || ''}${e.fname && ' '}${e.lname || ''}&autocheckin=false&pid=${e.references?.find(r => r.type === HEALTHIE_TITLE)?.id || e.id}`
+  )
+}

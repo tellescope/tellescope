@@ -2268,6 +2268,7 @@ export const schema: SchemaV1 = build_schema({
     info: {},
     fields: {
       ...BuiltInFields,
+      archivedAt: { validator: dateOptionalOrEmptyStringValidator },
       title: {
         validator: stringValidator100,
         required: true,
@@ -3573,6 +3574,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields, 
+      archivedAt: { validator: dateOptionalOrEmptyStringValidator },
       title: {
         validator: stringValidator100,
         required: true,
@@ -4147,6 +4149,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields, 
+      archivedAt: { validator: dateOptionalOrEmptyStringValidator },
       title: {
         validator: stringValidator250,
         required: true,
@@ -5240,6 +5243,7 @@ export const schema: SchemaV1 = build_schema({
     enduserActions: { read: {}, readMany: {} },
     fields: {
       ...BuiltInFields, 
+      archivedAt: { validator: dateOptionalOrEmptyStringValidator },
       allowGroupReschedule: { validator: booleanValidator },
       dontAutoSyncPatientToHealthie: { validator: booleanValidator },
       title: {
@@ -6643,6 +6647,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields, 
+      archivedAt: { validator: dateOptionalOrEmptyStringValidator },
       title: {
         validator: stringValidator100,
         required: true,
@@ -7406,6 +7411,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, 
       availabilityTimezone: { validator: timezoneValidator },
       weeklyAvailabilities: { validator: weeklyAvailabilitiesValidator },
+      archivedAt: { validator: dateOptionalOrEmptyStringValidator },
     }
   },
   superbill_providers: {

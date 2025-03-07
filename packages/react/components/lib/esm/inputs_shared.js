@@ -104,7 +104,7 @@ export var apply_filters = function (fs, data) {
         : filtered);
 };
 export var useFilters = function (args) {
-    var _a = args !== null && args !== void 0 ? args : {}, onFilterChange = _a.onFilterChange, reload = _a.reload, memoryId = _a.memoryId, initialFilters = _a.initialFilters, deserialize = _a.deserialize;
+    var _a = args !== null && args !== void 0 ? args : {}, onFilterChange = _a.onFilterChange, reload = _a.reload, memoryId = _a.memoryId, initialFilters = _a.initialFilters, deserialize = _a.deserialize, showArchived = _a.showArchived;
     if (memoryId && !deserialize)
         console.warn("memoryId provided without deserialize");
     var _b = React.useState(initialFilters || ((memoryId && deserialize)
@@ -135,7 +135,9 @@ export var useFilters = function (args) {
         prevFilterRef.current = filters;
         onFilterChange(filters);
     }, [filters, onFilterChange]);
-    var applyFilters = useCallback(function (data) { return apply_filters(filters, data); }, [filters]);
+    var applyFilters = useCallback((function (data) { return apply_filters(filters, data).filter(function (v) {
+        return (showArchived !== null && showArchived !== void 0 ? showArchived : true) ? true : !v.archivedAt;
+    }); }), [filters, showArchived]);
     var compoundApiFilter = useMemo(function () {
         var _a, _b;
         var toReturn = (Object.values(filters).map(function (f) { return f.apiFilter; }).filter(function (a) { return !!a; }).length === 0
@@ -488,7 +490,6 @@ export var PrescriptionRoutesSearch = function (props) {
 export var FaxSearch = function (props) {
     var session = useSession();
     var _a = useFaxLogs(), addLocalElements = _a[1].addLocalElements;
-    // const [, { findById: findEnduser }] = useEndusers() 
     return (_jsx(ModelSearchInput, __assign({ filterKey: "fax_logs" }, props, { searchAPI: session.api.fax_logs.getSome, onLoad: addLocalElements })));
 };
 export var FileSearch = function (props) {

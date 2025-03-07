@@ -963,6 +963,7 @@ export interface Journey extends Journey_readonly, Journey_required, Journey_upd
     description?: string;
     onIncomingEnduserCommunication?: 'Remove' | '';
     tags?: string[];
+    archivedAt?: Date | '';
 }
 export interface TextCommunication extends WithLinkOpenTrackingIds {
     automationStepId?: string;
@@ -1198,6 +1199,7 @@ export interface MessageTemplate extends MessageTemplate_readonly, MessageTempla
     forEntityTypes?: string[];
     hideFromCompose?: boolean;
     tags?: string[];
+    archivedAt?: Date | '';
 }
 export interface MessageTemplateSnippet_readonly extends ClientRecord {
 }
@@ -1596,6 +1598,7 @@ export interface Form_required {
 export interface Form_updatesDisabled {
 }
 export interface Form extends Form_readonly, Form_required, Form_updatesDisabled {
+    archivedAt?: Date | '';
     displayTitle?: string;
     description?: string;
     customSubject?: string;
@@ -2278,6 +2281,7 @@ export interface CalendarEventTemplate_required {
 export interface CalendarEventTemplate_updatesDisabled {
 }
 export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, CalendarEventTemplate_required, CalendarEventTemplate_updatesDisabled {
+    archivedAt?: Date | '';
     type?: string;
     enableVideoCall?: boolean;
     videoIntegration?: VideoIntegrationType;
@@ -2392,6 +2396,7 @@ export interface AppointmentBookingPage extends AppointmentBookingPage_readonly,
     publicUserFilterTags?: string[];
     appointmentSlotsMaxHeight?: number;
     includeRelatedContactTypes?: string[];
+    archivedAt?: Date | '';
 }
 export interface CalendarEventRSVP_readonly extends ClientRecord {
     creatorType: SessionType;
@@ -3843,6 +3848,7 @@ export interface AutomationTrigger extends AutomationTrigger_readonly, Automatio
     tags?: string[];
     availabilityTimezone?: Timezone;
     weeklyAvailabilities?: WeeklyAvailability[];
+    archivedAt?: Date | '';
 }
 export type Address = {
     lineOne: string;

@@ -46,8 +46,18 @@ export const apply_filters = <T,>(fs: Filters<T>, data: T[]): T[] => {
   )
 }
 
-export const useFilters = <T,>(args?: { memoryId?: string, initialFilters?: Filters<T>, reload?: boolean, deserialize?: (fs: Filters<T>) => Filters<T>, onFilterChange?: (fs: Filters<T>) => void }) => {
-  const { onFilterChange, reload, memoryId, initialFilters, deserialize } = args ?? {}
+export const useFilters = <T,>(
+  args?: 
+  { 
+    memoryId?: string, 
+    initialFilters?: Filters<T>, 
+    reload?: boolean, 
+    deserialize?: (fs: Filters<T>) => Filters<T>, 
+    onFilterChange?: (fs: Filters<T>) => void,
+    showArchived?: boolean,
+  }
+) => {
+  const { onFilterChange, reload, memoryId, initialFilters, deserialize, showArchived, } = args ?? {}
   if (memoryId && !deserialize) console.warn("memoryId provided without deserialize")
 
   const [filters, setFilters] = React.useState<Filters<T>>(
@@ -88,7 +98,13 @@ export const useFilters = <T,>(args?: { memoryId?: string, initialFilters?: Filt
     onFilterChange(filters)
   }, [filters, onFilterChange])
 
-  const applyFilters = useCallback((data: T[]) => apply_filters(filters, data), [filters])
+  const applyFilters = useCallback((
+      (data: T[]) => apply_filters(filters, data).filter(v => 
+        (showArchived ?? true) ? true : !(v as any).archivedAt
+      )
+    ),
+    [filters, showArchived]
+  )
 
   const compoundApiFilter = useMemo(() => {
     let toReturn: LoadFunctionArguments<T> | null = (
@@ -569,24 +585,11 @@ export const PrescriptionRoutesSearch = (props: Omit<GenericSearchProps<Prescrip
 export const FaxSearch = (props: Omit<GenericSearchProps<FaxLog>, 'filterKey'> & { filterKey?: string }) => {
   const session = useSession()
   const [, { addLocalElements }] = useFaxLogs()
-  // const [, { findById: findEnduser }] = useEndusers() 
 
   return (
     <ModelSearchInput filterKey="fax_logs" {...props} 
       searchAPI={session.api.fax_logs.getSome}
       onLoad={addLocalElements}
-      // attachSearchableFields={t => {
-      //   const enduser = t.enduserId ? findEnduser(t.enduserId, { batch: true }) : undefined
-      //   if (!enduser) return undefined
-
-      //   const toJoin = {
-      //     fname: enduser.fname,
-      //     lname: enduser.lname,
-      //     fullname: `${enduser.fname} ${enduser.lname}`,
-      //   } 
-
-      //   return toJoin
-      // }}
     />
   )
 }

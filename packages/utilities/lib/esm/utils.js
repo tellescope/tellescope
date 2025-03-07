@@ -2355,4 +2355,14 @@ export var to_human_readable_phone_number = function (phone) {
     var withoutCountryCode = phone.replace(countryCode, '');
     return "".concat(countryCode.startsWith('+') ? '' : '+').concat(countryCode, " (").concat(withoutCountryCode.substring(0, 3), ") ").concat(withoutCountryCode.substring(3, 6), "-").concat(withoutCountryCode.substring(6));
 };
+export var enrich_doxy_url = function (url, e) {
+    var _a, _b;
+    if (!e)
+        return url;
+    if (!(url === null || url === void 0 ? void 0 : url.includes('doxy.me')))
+        return url;
+    if (url.includes('?'))
+        return url; // already has query params
+    return ("".concat(url, "?username=").concat(e.fname || '').concat(e.fname && ' ').concat(e.lname || '', "&autocheckin=false&pid=").concat(((_b = (_a = e.references) === null || _a === void 0 ? void 0 : _a.find(function (r) { return r.type === HEALTHIE_TITLE; })) === null || _b === void 0 ? void 0 : _b.id) || e.id));
+};
 //# sourceMappingURL=utils.js.map

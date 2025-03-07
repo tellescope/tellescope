@@ -1031,7 +1031,7 @@ exports.schema = (0, exports.build_schema)({
     },
     journeys: {
         info: {},
-        fields: __assign(__assign({}, BuiltInFields), { title: {
+        fields: __assign(__assign({}, BuiltInFields), { archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
                 validator: validation_1.stringValidator100,
                 required: true,
                 examples: ['Test']
@@ -2188,7 +2188,7 @@ exports.schema = (0, exports.build_schema)({
                 },
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { title: {
+        fields: __assign(__assign({}, BuiltInFields), { archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
                 validator: validation_1.stringValidator100,
                 required: true,
                 examples: ["Template Name"],
@@ -2661,7 +2661,7 @@ exports.schema = (0, exports.build_schema)({
                 },
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { title: {
+        fields: __assign(__assign({}, BuiltInFields), { archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
                 validator: validation_1.stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -3519,7 +3519,7 @@ exports.schema = (0, exports.build_schema)({
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: { read: {}, readMany: {} },
-        fields: __assign(__assign({}, BuiltInFields), { allowGroupReschedule: { validator: validation_1.booleanValidator }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: validation_1.booleanValidator }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, title: {
                 validator: validation_1.stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -4654,7 +4654,7 @@ exports.schema = (0, exports.build_schema)({
         enduserActions: {
             read: {}, readMany: {}, validate_access_token: {},
         },
-        fields: __assign(__assign({}, BuiltInFields), { title: {
+        fields: __assign(__assign({}, BuiltInFields), { archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
                 validator: validation_1.stringValidator100,
                 required: true,
                 examples: ["Appointment Booking Title"]
@@ -5229,7 +5229,7 @@ exports.schema = (0, exports.build_schema)({
             //     onDependencyDelete: 'delete',
             //   }]
             // },
-            triggerNextAt: { validator: validation_1.dateValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, availabilityTimezone: { validator: validation_1.timezoneValidator }, weeklyAvailabilities: { validator: validation_1.weeklyAvailabilitiesValidator } })
+            triggerNextAt: { validator: validation_1.dateValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, availabilityTimezone: { validator: validation_1.timezoneValidator }, weeklyAvailabilities: { validator: validation_1.weeklyAvailabilitiesValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator } })
     },
     superbill_providers: {
         info: {},

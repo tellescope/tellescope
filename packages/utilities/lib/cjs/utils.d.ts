@@ -294,4 +294,5 @@ export declare const should_show_unsubmitted_form_response_for_interval: (fr: Fo
 }) => boolean;
 export declare const get_canvas_id: (v: Pick<Enduser, 'source' | 'externalId' | 'references'>) => string | undefined;
 export declare const to_human_readable_phone_number: (phone?: string) => string;
+export declare const enrich_doxy_url: (url: string, e?: Enduser) => string;
 //# sourceMappingURL=utils.d.ts.map

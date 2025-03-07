@@ -13,6 +13,7 @@ export declare const useFilters: <T>(args?: {
     reload?: boolean | undefined;
     deserialize?: ((fs: Filters<T>) => Filters<T>) | undefined;
     onFilterChange?: ((fs: Filters<T>) => void) | undefined;
+    showArchived?: boolean | undefined;
 } | undefined) => {
     filters: Filters<T>;
     compoundApiFilter: LoadFunctionArguments<T> | null;

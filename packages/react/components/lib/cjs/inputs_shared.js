@@ -132,7 +132,7 @@ var apply_filters = function (fs, data) {
 };
 exports.apply_filters = apply_filters;
 var useFilters = function (args) {
-    var _a = args !== null && args !== void 0 ? args : {}, onFilterChange = _a.onFilterChange, reload = _a.reload, memoryId = _a.memoryId, initialFilters = _a.initialFilters, deserialize = _a.deserialize;
+    var _a = args !== null && args !== void 0 ? args : {}, onFilterChange = _a.onFilterChange, reload = _a.reload, memoryId = _a.memoryId, initialFilters = _a.initialFilters, deserialize = _a.deserialize, showArchived = _a.showArchived;
     if (memoryId && !deserialize)
         console.warn("memoryId provided without deserialize");
     var _b = react_1.default.useState(initialFilters || ((memoryId && deserialize)
@@ -163,7 +163,9 @@ var useFilters = function (args) {
         prevFilterRef.current = filters;
         onFilterChange(filters);
     }, [filters, onFilterChange]);
-    var applyFilters = (0, react_1.useCallback)(function (data) { return (0, exports.apply_filters)(filters, data); }, [filters]);
+    var applyFilters = (0, react_1.useCallback)((function (data) { return (0, exports.apply_filters)(filters, data).filter(function (v) {
+        return (showArchived !== null && showArchived !== void 0 ? showArchived : true) ? true : !v.archivedAt;
+    }); }), [filters, showArchived]);
     var compoundApiFilter = (0, react_1.useMemo)(function () {
         var _a, _b;
         var toReturn = (Object.values(filters).map(function (f) { return f.apiFilter; }).filter(function (a) { return !!a; }).length === 0
@@ -527,7 +529,6 @@ exports.PrescriptionRoutesSearch = PrescriptionRoutesSearch;
 var FaxSearch = function (props) {
     var session = (0, _1.useSession)();
     var _a = (0, _1.useFaxLogs)(), addLocalElements = _a[1].addLocalElements;
-    // const [, { findById: findEnduser }] = useEndusers() 
     return ((0, jsx_runtime_1.jsx)(exports.ModelSearchInput, __assign({ filterKey: "fax_logs" }, props, { searchAPI: session.api.fax_logs.getSome, onLoad: addLocalElements })));
 };
 exports.FaxSearch = FaxSearch;
