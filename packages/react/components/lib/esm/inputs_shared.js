@@ -197,6 +197,12 @@ export var record_matches_for_query = function (records, query) {
     }
     return matches;
 };
+var is_phone_prefix = function (s) {
+    if (s.length <= 3)
+        return false;
+    // has ONLY numbers, (), +, - and spaces
+    return /^[ 0-9()+-]+$/.test(s);
+};
 export var filter_for_query = function (query, getAdditionalFields) {
     var baseFilter = function (record) {
         if (!record)
@@ -251,11 +257,13 @@ export var filter_for_query = function (query, getAdditionalFields) {
                 continue;
             }
             // for phone number search, replace human-readable entries which are not stored
-            var onlyNumbers = query.replaceAll(/[^0-9]/g, '');
-            if (onlyNumbers.length >= 3 &&
-                value.toUpperCase().includes(onlyNumbers)) {
-                score += 1;
-                continue;
+            if (is_phone_prefix(query)) {
+                var onlyNumbers = query.replaceAll(/[^0-9]/g, '');
+                if (onlyNumbers.length >= 3 &&
+                    value.toUpperCase().includes(onlyNumbers)) {
+                    score += 1;
+                    continue;
+                }
             }
         }
         return score;

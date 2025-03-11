@@ -680,6 +680,11 @@ export type CustomActions = {
         }, {
             link: string;
         }>;
+        customer_io_sync: CustomAction<{
+            enduserIds: string[];
+            event?: string;
+            trackProperties?: string[];
+        }, {}>;
     };
     users: {
         display_info: CustomAction<{}, {

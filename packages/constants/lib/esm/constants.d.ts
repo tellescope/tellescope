@@ -119,6 +119,7 @@ export declare const EMOTII_TITLE = "Emotii";
 export declare const DEVELOP_HEALTH_TITLE = "Develop Health";
 export declare const KENDRA_TITLE = "Kendra";
 export declare const CHARGEBEE_TITLE = "Chargebee";
+export declare const CUSTOMER_IO_TITLE = "Customer IO";
 export declare const ORGANIZATION_WIDE_INTEGRATIONS: string[];
 export declare const ONE_MINUTE_IN_MS: number;
 export declare const ONE_HOUR_IN_MS: number;

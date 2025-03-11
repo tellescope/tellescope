@@ -340,6 +340,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedDocsumo?: boolean,
   hasConnectedEmotii?: boolean,
   hasConnectedDevelopHealth?: boolean,
+  hasConnectedCustomerIO?: boolean,
   hasConfiguredZoom?: boolean,
   hasTicketQueues?: boolean,
   vitalTeamId?: string,
@@ -1438,6 +1439,8 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
   pinnedAt?: Date | '',
   tags?: string[],
   discussionRoomId?: string,
+  source?: string,
+  externalId?: string,
 }
 
 export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time'
@@ -2789,6 +2792,11 @@ export type EnduserFieldSetter = {
 export type SetEnduserFieldsAutomationAction = AutomationActionBuilder<'setEnduserFields', {
   fields: EnduserFieldSetter[]
 }>
+export type CustomerIOIdentifyAction = AutomationActionBuilder<'customerIOIdentify', {}>
+export type CustomerIOTrackAction = AutomationActionBuilder<'customerIOTrack', {
+  event: string,
+  trackProperties?: string[]
+}>
 
 export type AutomationConditionType = 'atJourneyState' // deprecated
 export type AutomationConditionBuilder <T extends AutomationConditionType, V extends object>  = {
@@ -2836,6 +2844,8 @@ export type AutomationActionForType = {
   pushFormsToPortal: PushFormsAutomationAction,
   developHealthMedEligibility: DevelopHealthMedicationEligibilityAutomationAction,
   cancelFutureAppointments: CancelFutureAppointmentsAutomationAction,
+  customerIOIdentify: CustomerIOIdentifyAction,
+  customerIOTrack: CustomerIOTrackAction,
 }
 export type AutomationActionType = keyof AutomationActionForType
 export type AutomationAction = AutomationActionForType[AutomationActionType]

@@ -273,6 +273,18 @@ export var schema = build_schema({
                 redactions: ['enduser']
             }, unsubscribedFromPhones: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay, redactions: ['enduser'] }, lockedFromPortal: { validator: booleanValidator } }),
         customActions: {
+            customer_io_sync: {
+                op: "custom", access: 'update', method: "post",
+                name: 'Identify or Track via customer.io',
+                path: '/customer-io/sync',
+                description: "Identify or Track via customer.io",
+                parameters: {
+                    enduserIds: { validator: listOfMongoIdStringValidator, required: true },
+                    event: { validator: stringValidator },
+                    trackProperties: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+                },
+                returns: {},
+            },
             add_to_healthie_course: {
                 op: "custom", access: 'update', method: "post",
                 name: 'Add to Healthie Course (Program)',
@@ -2616,7 +2628,7 @@ export var schema = build_schema({
                 examples: ["Text"],
             }, fields: {
                 validator: fieldsValidator,
-            }, pinnedAt: { validator: dateOptionalOrEmptyStringValidator }, tags: { validator: listOfStringsValidatorOptionalOrEmptyOk }, discussionRoomId: { validator: mongoIdStringValidator } })
+            }, pinnedAt: { validator: dateOptionalOrEmptyStringValidator }, tags: { validator: listOfStringsValidatorOptionalOrEmptyOk }, discussionRoomId: { validator: mongoIdStringValidator }, source: { validator: stringValidator }, externalId: { validator: stringValidator } })
     },
     forms: {
         info: {},

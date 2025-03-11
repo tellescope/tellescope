@@ -145,6 +145,7 @@ export const EMOTII_TITLE = "Emotii"
 export const DEVELOP_HEALTH_TITLE = "Develop Health"
 export const KENDRA_TITLE = "Kendra"
 export const CHARGEBEE_TITLE = "Chargebee"
+export const CUSTOMER_IO_TITLE = "Customer IO"
 
 export const ORGANIZATION_WIDE_INTEGRATIONS = [
   OPENAI_TITLE, 
@@ -167,6 +168,7 @@ export const ORGANIZATION_WIDE_INTEGRATIONS = [
   ACTIVE_CAMPAIGN_TITLE,
   EMOTII_TITLE,
   DEVELOP_HEALTH_TITLE,
+  CUSTOMER_IO_TITLE,
 ]
 
 export const ONE_MINUTE_IN_MS = 1000 * 60

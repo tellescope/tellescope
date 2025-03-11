@@ -1936,6 +1936,8 @@ var _AUTOMATION_ACTIONS = {
     elationSync: '',
     developHealthMedEligibility: '',
     cancelFutureAppointments: '',
+    customerIOIdentify: '',
+    customerIOTrack: '',
 };
 export var AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS);
 export var automationActionTypeValidator = exactMatchValidator(AUTOMATION_ACTIONS);
@@ -2484,6 +2486,19 @@ export var automationActionValidator = orValidator({
         continueOnError: booleanValidatorOptional,
         type: exactMatchValidator(['cancelFutureAppointments']),
         info: objectValidator({}, { emptyOk: true }),
+    }),
+    customerIOIdentify: objectValidator({
+        continueOnError: booleanValidatorOptional,
+        type: exactMatchValidator(['customerIOIdentify']),
+        info: objectValidator({}, { emptyOk: true }),
+    }),
+    customerIOTrack: objectValidator({
+        continueOnError: booleanValidatorOptional,
+        type: exactMatchValidator(['customerIOTrack']),
+        info: objectValidator({
+            event: stringValidator,
+            trackProperties: listOfStringsValidatorOptionalOrEmptyOk,
+        }, { emptyOk: false }),
     }),
 });
 export var journeyContextValidator = objectValidator({

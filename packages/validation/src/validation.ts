@@ -307,6 +307,8 @@ import {
   RemoveFromAllJourneysAutomationAction,
   FormResponseAnswerChargebee,
   CancelFutureAppointmentsAutomationAction,
+  CustomerIOIdentifyAction,
+  CustomerIOTrackAction,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -2435,6 +2437,8 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   elationSync: '',
   developHealthMedEligibility: '',
   cancelFutureAppointments: '',
+  customerIOIdentify: '',
+  customerIOTrack: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -3042,6 +3046,19 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['cancelFutureAppointments']),
     info: objectValidator<CancelFutureAppointmentsAutomationAction['info']>({ }, { emptyOk: true }),
+  }),
+  customerIOIdentify: objectValidator<CustomerIOIdentifyAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['customerIOIdentify']),
+    info: objectValidator<CustomerIOIdentifyAction['info']>({ }, { emptyOk: true }),
+  }),
+  customerIOTrack: objectValidator<CustomerIOTrackAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['customerIOTrack']),
+    info: objectValidator<CustomerIOTrackAction['info']>({ 
+      event: stringValidator,
+      trackProperties: listOfStringsValidatorOptionalOrEmptyOk,
+    }, { emptyOk: false }),
   }),
 })
 

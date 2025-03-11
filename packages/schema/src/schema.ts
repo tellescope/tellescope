@@ -825,6 +825,7 @@ export type CustomActions = {
     sync_zendesk: CustomAction<{ enduserId: string }, { }>,
     get_journeys_report: CustomAction<{ }, { report: Record<string, any> }>,
     dosespot: CustomAction<{ enduserId: string }, { link: string }>,
+    customer_io_sync: CustomAction<{ enduserIds: string[], event?: string, trackProperties?: string[]  }, { }>,
   },
   users: {
     display_info: CustomAction<{ }, { fname: string, lname: string, id: string }[]>,
@@ -1473,6 +1474,20 @@ export const schema: SchemaV1 = build_schema({
       // },
     }, 
     customActions: {
+      customer_io_sync: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Identify or Track via customer.io',
+        path: '/customer-io/sync',
+        description: "Identify or Track via customer.io",
+        parameters: { 
+          enduserIds: { validator: listOfMongoIdStringValidator, required: true },
+          event: { validator: stringValidator },
+          trackProperties: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+        },
+        returns: {
+
+        },
+      }, 
       add_to_healthie_course: {
         op: "custom", access: 'update', method: "post",
         name: 'Add to Healthie Course (Program)',
@@ -4107,6 +4122,8 @@ export const schema: SchemaV1 = build_schema({
       pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       discussionRoomId: { validator: mongoIdStringValidator },
+      source: { validator: stringValidator },
+      externalId: { validator: stringValidator },
     }
   },
   forms: {

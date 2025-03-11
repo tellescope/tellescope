@@ -184,6 +184,13 @@ export const record_matches_for_query = <T,>(records: T[], query: string) => {
   return matches
 }
 
+const is_phone_prefix = (s: string) => {
+  if (s.length <= 3) return false
+
+  // has ONLY numbers, (), +, - and spaces
+  return /^[ 0-9()+-]+$/.test(s)
+}
+
 export const filter_for_query = <T,>(query: string, getAdditionalFields?: (v: T) => Indexable | undefined): FilterWithData<T> => {
   const baseFilter = (record: Indexable): number => {
     if (!record) return 0
@@ -241,13 +248,15 @@ export const filter_for_query = <T,>(query: string, getAdditionalFields?: (v: T)
         continue
       }
       // for phone number search, replace human-readable entries which are not stored
-      const onlyNumbers = query.replaceAll(/[^0-9]/g, '')
-      if ( 
-        onlyNumbers.length >= 3 &&
-        value.toUpperCase().includes(onlyNumbers)
-      ) {
-        score +=1
-        continue
+      if (is_phone_prefix(query)) {
+        const onlyNumbers = query.replaceAll(/[^0-9]/g, '')
+        if ( 
+          onlyNumbers.length >= 3 &&
+          value.toUpperCase().includes(onlyNumbers)
+        ) {
+          score +=1
+          continue
+        } 
       }
     }
 

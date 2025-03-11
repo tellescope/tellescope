@@ -278,6 +278,18 @@ exports.schema = (0, exports.build_schema)({
                 redactions: ['enduser']
             }, unsubscribedFromPhones: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay, redactions: ['enduser'] }, lockedFromPortal: { validator: validation_1.booleanValidator } }),
         customActions: {
+            customer_io_sync: {
+                op: "custom", access: 'update', method: "post",
+                name: 'Identify or Track via customer.io',
+                path: '/customer-io/sync',
+                description: "Identify or Track via customer.io",
+                parameters: {
+                    enduserIds: { validator: validation_1.listOfMongoIdStringValidator, required: true },
+                    event: { validator: validation_1.stringValidator },
+                    trackProperties: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk },
+                },
+                returns: {},
+            },
             add_to_healthie_course: {
                 op: "custom", access: 'update', method: "post",
                 name: 'Add to Healthie Course (Program)',
@@ -2621,7 +2633,7 @@ exports.schema = (0, exports.build_schema)({
                 examples: ["Text"],
             }, fields: {
                 validator: validation_1.fieldsValidator,
-            }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, tags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, discussionRoomId: { validator: validation_1.mongoIdStringRequired } })
+            }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, tags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, discussionRoomId: { validator: validation_1.mongoIdStringRequired }, source: { validator: validation_1.stringValidator }, externalId: { validator: validation_1.stringValidator } })
     },
     forms: {
         info: {},

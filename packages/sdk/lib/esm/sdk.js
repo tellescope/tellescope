@@ -435,6 +435,7 @@ var Session = /** @class */ (function (_super) {
         queries.endusers.get_journeys_report = function (a) { return _this._POST("/v1".concat(schema.endusers.customActions.get_journeys_report.path), a); };
         queries.endusers.check_eligibility = function (a) { return _this._POST("/v1".concat(schema.endusers.customActions.check_eligibility.path), a); };
         queries.endusers.dosespot = function (a) { return _this._POST("/v1".concat(schema.endusers.customActions.dosespot.path), a); };
+        queries.endusers.customer_io_sync = function (a) { return _this._POST("/v1".concat(schema.endusers.customActions.customer_io_sync.path), a); };
         queries.users.display_names = function () { return _this._GET("/v1/user-display-names"); };
         queries.users.begin_sso = function (a) { return _this._POST("/v1/".concat(schema.users.publicActions.begin_sso.path), a); };
         queries.users.complete_sso = function (a) { return _this._POST("/v1/".concat(schema.users.publicActions.complete_sso.path), a); };
