@@ -4003,6 +4003,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     showDiagnoses: booleanValidatorOptional,
     requireObservationInvalidationReason: booleanValidatorOptional,
     showDeviceOrders: booleanValidatorOptional,
+    defaultHideFilesFromPortal: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -4044,6 +4045,9 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
   }, { isOptional: true, emptyOk: true, }),
   users: objectValidator<OrganizationSettings['users']>({
     sessionDurationInHours: numberValidatorOptional,
+  }, { isOptional: true, emptyOk: true, }),
+  integrations: objectValidator<OrganizationSettings['integrations']>({
+    vitalLabOrderPhysicianOptional: booleanValidatorOptional,
   }, { isOptional: true, emptyOk: true, }),
 })
 
@@ -4896,18 +4900,20 @@ export const formScoringValidator = listValidatorOptionalOrEmptyOk(objectValidat
 export const basicFilterValidator = objectAnyFieldsAnyValuesValidator
 export const compoundFilterValidator = objectAnyFieldsAnyValuesValidator
 
+const enduserFieldsAnalyticsValidator = listValidatorOptionalOrEmptyOk(objectValidator({
+  key: stringValidator1000,
+  value: stringValidator5000EmptyOkay,
+  range: dateRangeOptionalValidator, 
+  operator: stringValidatorOptional,
+}))
+
 export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: AnalyticsQueryForType[K] } >({
   Endusers: objectValidator<AnalyticsQueryForType['Endusers']>({
     resource: exactMatchValidator<'Endusers'>(['Endusers']),
     filter: objectValidator<AnalyticsQueryFilterForType['Endusers']>({
       activeSince: dateOptionalOrEmptyStringValidator,
       gender: tellescopeGenderOptionalValidator,
-      fields: listValidatorOptionalOrEmptyOk(objectValidator({
-        key: stringValidator1000,
-        value: stringValidator5000EmptyOkay,
-        range: dateRangeOptionalValidator, 
-        operator: stringValidatorOptional,
-      })),
+      fields: enduserFieldsAnalyticsValidator,
       "Submitted Forms": objectValidator<AnalyticsQueryFilterForType['Endusers']['Submitted Forms']>({
         qualifier: listQueryQualifiersValidator,
         formIds: listOfMongoIdStringValidator,
@@ -4983,6 +4989,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       State: booleanValidatorOptional,
       Phone: booleanValidatorOptional,
       "Scheduled By": booleanValidatorOptional,
+      alsoGroupByHost: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
@@ -5076,6 +5083,8 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
     filter: objectValidator<AnalyticsQueryFilterForType['Tickets']>({ 
       closeReasons: listOfStringsValidatorOptionalOrEmptyOk,
       titles: listOfStringsValidatorOptionalOrEmptyOk,
+      userTags: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
+      enduserFields: enduserFieldsAnalyticsValidator,
     }, { isOptional: true, emptyOk: true }),
     info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Tickets']]: AnalyticsQueryInfoForType['Tickets'][K] }>({
       "Total": objectValidator<AnalyticsQueryInfoForType['Tickets']['Total']>({

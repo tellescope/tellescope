@@ -1719,12 +1719,7 @@ export declare const analyticsQueryValidator: ValidatorDefinition<{
             formIds: string[];
             formResponseCondition?: import("@tellescope/types-models").CompoundFilter<string> | undefined;
         } | undefined;
-        fields?: {
-            key: string;
-            value: string;
-            operator?: string | undefined;
-            range?: "" | DateRange | undefined;
-        }[] | undefined;
+        fields?: import("@tellescope/types-models").AnalyticsEnduserFilterField[] | undefined;
         gender?: TellescopeGender | undefined;
         assignedTo?: {
             qualifier: ListQueryQualifier;
@@ -1756,6 +1751,7 @@ export declare const analyticsQueryValidator: ValidatorDefinition<{
     grouping?: ({
         Type: boolean;
         "Scheduled By"?: boolean | undefined;
+        alsoGroupByHost?: boolean | undefined;
     } & import("@tellescope/types-models").EnduserGrouping & {
         Enduser: string;
     }) | undefined;
@@ -1811,6 +1807,8 @@ export declare const analyticsQueryValidator: ValidatorDefinition<{
     filter?: {
         titles?: string[] | undefined;
         closeReasons?: string[] | undefined;
+        userTags?: ListOfStringsWithQualifier | undefined;
+        enduserFields?: import("@tellescope/types-models").AnalyticsEnduserFilterField[] | undefined;
     } | undefined;
     grouping?: ({
         Owner?: boolean | undefined;
@@ -1931,12 +1929,7 @@ export declare const analyticsQueriesValidatorOptional: ValidatorDefinition<({
             formIds: string[];
             formResponseCondition?: import("@tellescope/types-models").CompoundFilter<string> | undefined;
         } | undefined;
-        fields?: {
-            key: string;
-            value: string;
-            operator?: string | undefined;
-            range?: "" | DateRange | undefined;
-        }[] | undefined;
+        fields?: import("@tellescope/types-models").AnalyticsEnduserFilterField[] | undefined;
         gender?: TellescopeGender | undefined;
         assignedTo?: {
             qualifier: ListQueryQualifier;
@@ -1968,6 +1961,7 @@ export declare const analyticsQueriesValidatorOptional: ValidatorDefinition<({
     grouping?: ({
         Type: boolean;
         "Scheduled By"?: boolean | undefined;
+        alsoGroupByHost?: boolean | undefined;
     } & import("@tellescope/types-models").EnduserGrouping & {
         Enduser: string;
     }) | undefined;
@@ -2023,6 +2017,8 @@ export declare const analyticsQueriesValidatorOptional: ValidatorDefinition<({
     filter?: {
         titles?: string[] | undefined;
         closeReasons?: string[] | undefined;
+        userTags?: ListOfStringsWithQualifier | undefined;
+        enduserFields?: import("@tellescope/types-models").AnalyticsEnduserFilterField[] | undefined;
     } | undefined;
     grouping?: ({
         Owner?: boolean | undefined;

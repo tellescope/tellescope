@@ -3383,6 +3383,7 @@ export var organizationSettingsValidator = objectValidator({
         showDiagnoses: booleanValidatorOptional,
         requireObservationInvalidationReason: booleanValidatorOptional,
         showDeviceOrders: booleanValidatorOptional,
+        defaultHideFilesFromPortal: booleanValidatorOptional,
     }, { isOptional: true }),
     tickets: objectValidator({
         defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -3424,6 +3425,9 @@ export var organizationSettingsValidator = objectValidator({
     }, { isOptional: true, emptyOk: true, }),
     users: objectValidator({
         sessionDurationInHours: numberValidatorOptional,
+    }, { isOptional: true, emptyOk: true, }),
+    integrations: objectValidator({
+        vitalLabOrderPhysicianOptional: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true, }),
 });
 export var calendarEventPortalSettingsValidator = objectValidator({
@@ -4220,18 +4224,19 @@ export var formScoringValidator = listValidatorOptionalOrEmptyOk(objectValidator
 // }, { ...o, listOf: false })
 export var basicFilterValidator = objectAnyFieldsAnyValuesValidator;
 export var compoundFilterValidator = objectAnyFieldsAnyValuesValidator;
+var enduserFieldsAnalyticsValidator = listValidatorOptionalOrEmptyOk(objectValidator({
+    key: stringValidator1000,
+    value: stringValidator5000EmptyOkay,
+    range: dateRangeOptionalValidator,
+    operator: stringValidatorOptional,
+}));
 export var analyticsQueryValidator = orValidator({
     Endusers: objectValidator({
         resource: exactMatchValidator(['Endusers']),
         filter: objectValidator({
             activeSince: dateOptionalOrEmptyStringValidator,
             gender: tellescopeGenderOptionalValidator,
-            fields: listValidatorOptionalOrEmptyOk(objectValidator({
-                key: stringValidator1000,
-                value: stringValidator5000EmptyOkay,
-                range: dateRangeOptionalValidator,
-                operator: stringValidatorOptional,
-            })),
+            fields: enduserFieldsAnalyticsValidator,
             "Submitted Forms": objectValidator({
                 qualifier: listQueryQualifiersValidator,
                 formIds: listOfMongoIdStringValidator,
@@ -4307,6 +4312,7 @@ export var analyticsQueryValidator = orValidator({
             State: booleanValidatorOptional,
             Phone: booleanValidatorOptional,
             "Scheduled By": booleanValidatorOptional,
+            alsoGroupByHost: booleanValidatorOptional,
         }, { isOptional: true, emptyOk: true }),
         range: objectValidator({
             interval: exactMatchValidator(['Daily', 'Weekly', 'Monthly', 'Hourly']),
@@ -4400,6 +4406,8 @@ export var analyticsQueryValidator = orValidator({
         filter: objectValidator({
             closeReasons: listOfStringsValidatorOptionalOrEmptyOk,
             titles: listOfStringsValidatorOptionalOrEmptyOk,
+            userTags: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
+            enduserFields: enduserFieldsAnalyticsValidator,
         }, { isOptional: true, emptyOk: true }),
         info: orValidator({
             "Total": objectValidator({

@@ -204,6 +204,7 @@ export type OrganizationSettings = {
     showDiagnoses?: boolean,
     showDeviceOrders?: boolean,
     requireObservationInvalidationReason?: boolean,
+    defaultHideFilesFromPortal?: boolean,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
@@ -242,7 +243,10 @@ export type OrganizationSettings = {
   },
   users?: {
     sessionDurationInHours?: number,
-  }
+  },
+  integrations?: {
+    vitalLabOrderPhysicianOptional?: boolean,
+  },
 }
 
 export type OrganizationLimits = {
@@ -1262,6 +1266,7 @@ export interface MessageTemplate extends MessageTemplate_readonly, MessageTempla
   hideFromCompose?: boolean,
   tags?: string[],
   archivedAt?: Date | '',
+  mmsAttachmentURLs?: string[],
 }
 
 export interface MessageTemplateSnippet_readonly extends ClientRecord {}
@@ -1441,6 +1446,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
   discussionRoomId?: string,
   source?: string,
   externalId?: string,
+  hiddenFromTimeline?: boolean,
 }
 
 export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time'
@@ -1694,6 +1700,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   allowPortalSubmission?: boolean,
   canvasNoteCoding?: Partial<CanvasCoding>,
   syncToCanvasAsDataImport?: boolean,
+  matchCareTeamTagsForCanvasPractitionerResolution?: ListOfStringsWithQualifier,
 }
 
 export interface FormGroup_readonly extends ClientRecord {}
@@ -2067,6 +2074,7 @@ export interface FormResponse_updatesDisabled {
   automationStepId?: string, 
 }
 export interface FormResponse extends FormResponse_readonly, FormResponse_required, FormResponse_updatesDisabled, EnduserPortalVisibility {
+  hiddenFromTimeline?: boolean,
   draftSavedAt?: Date,
   draftSavedBy?: string,
   sharedVia?: CommunicationsChannel,
@@ -3340,6 +3348,8 @@ export type AnalyticsQueryInfo = AnalyticsQueryInfoForType[AnalyticsQueryInfoTyp
 
 export type ListQueryQualifier = 'All Of' | 'One Of'
 
+export type AnalyticsEnduserFilterField = { key: string, value: string, operator?: string, range?: DateRange | '' }
+
 export type AnalyticsQueryFilterForType = {
   "Endusers": {
     activeSince?: Date | '',
@@ -3348,7 +3358,7 @@ export type AnalyticsQueryFilterForType = {
       formIds: string[],
       formResponseCondition?: CompoundFilter<string>,
     }, 
-    fields?: { key: string, value: string, operator?: string, range?: DateRange | '' }[],
+    fields?: AnalyticsEnduserFilterField[],
     gender?: TellescopeGender,
     assignedTo?: {
       qualifier: ListQueryQualifier,
@@ -3379,6 +3389,8 @@ export type AnalyticsQueryFilterForType = {
   "Tickets": { 
     titles?: string[],
     closeReasons?: string[],
+    userTags?: ListOfStringsWithQualifier,
+    enduserFields?: AnalyticsEnduserFilterField[],
   },
   "Phone Calls": { },
   "Meetings": { },
@@ -3411,6 +3423,7 @@ export type AnalyticsQueryGroupingForType = {
   "Calendar Events": {
     Type: boolean,
     "Scheduled By"?: boolean,
+    alsoGroupByHost?: boolean, // for further breaking down a grouping by host
   } & EnduserGrouping & { Enduser: string },
   "Form Responses": {
     "Submitted By"?: boolean,
@@ -3581,6 +3594,7 @@ export const resource_to_modelName: { [K in AnalyticsQueryType] : ModelName } = 
 
 export type AnalyticsQueryOptions = {
   createdRange?: DateRange,
+  createdAvailabilities?: WeeklyAvailability[],
   updatedRange?: DateRange,
   overrideGlobalRange?: boolean,
   groupByCareTeam?: boolean, // supports multi-grouping for both care team and a normal field

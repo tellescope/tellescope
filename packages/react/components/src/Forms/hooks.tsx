@@ -636,7 +636,9 @@ export const useTellescopeForm = ({ isPublicForm, form, urlLogicValue, customiza
                               ? parseInt(f.options.default)
                               : (f.options?.from || 1)
                           )
-                        : '' as any // null flag that the response was not filled out
+                        : f.type === 'Related Contacts'
+                          ? (f.isOptional ? [] : [{}])
+                          : '' as any // null flag that the response was not filled out
           )
         ),
       } as FormResponseValueAnswer,
@@ -923,6 +925,9 @@ export const useTellescopeForm = ({ isPublicForm, form, urlLogicValue, customiza
         const errorMessage = contact_is_valid(contact)
         if (errorMessage) {
           return `Contact ${i+1}: ${errorMessage}`
+        }
+        if (Object.values(contact).every(v => !v)) {
+          return `Contact ${i+1}: At least one field is required`
         }
       }
     }

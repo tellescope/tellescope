@@ -57,6 +57,7 @@ export interface FileDetails {
     type: string;
     enduserId?: string;
     source?: string;
+    hiddenFromEnduser?: boolean;
 }
 export interface FileBuffer extends Buffer, FileDetails {
 }

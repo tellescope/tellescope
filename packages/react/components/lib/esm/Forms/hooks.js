@@ -560,7 +560,9 @@ export var useTellescopeForm = function (_a) {
                                     ? ((((_u = f.options) === null || _u === void 0 ? void 0 : _u.default) && !isNaN(parseInt(f.options.default)))
                                         ? parseInt(f.options.default)
                                         : (((_v = f.options) === null || _v === void 0 ? void 0 : _v.from) || 1))
-                                    : '' // null flag that the response was not filled out
+                                    : f.type === 'Related Contacts'
+                                        ? (f.isOptional ? [] : [{}])
+                                        : '' // null flag that the response was not filled out
                 )),
             },
             field: f,
@@ -791,6 +793,9 @@ export var useTellescopeForm = function (_a) {
                 var errorMessage = contact_is_valid(contact);
                 if (errorMessage) {
                     return "Contact ".concat(i + 1, ": ").concat(errorMessage);
+                }
+                if (Object.values(contact).every(function (v) { return !v; })) {
+                    return "Contact ".concat(i + 1, ": At least one field is required");
                 }
             }
         }

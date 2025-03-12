@@ -1400,7 +1400,11 @@ export var RelatedContactsInput = function (_a) {
     var field = _a.field, _value = _a.value, onChange = _a.onChange, props = __rest(_a, ["field", "value", "onChange"]);
     // safeguard against any rogue values like empty string
     var value = Array.isArray(_value) ? _value : [];
-    var _s = useState(-1), editing = _s[0], setEditing = _s[1];
+    var _s = useState(value.length === 1 ? 0 : -1), editing = _s[0], setEditing = _s[1];
+    var handleAddContact = useCallback(function () {
+        onChange(__spreadArray(__spreadArray([], value, true), [{}], false), field.id, true);
+        setEditing(value.length);
+    }, [onChange, value, field === null || field === void 0 ? void 0 : field.id]);
     if (value[editing]) {
         var _t = value[editing], fname = _t.fname, lname = _t.lname, email = _t.email, phone = _t.phone, _u = _t.fields, fields_1 = _u === void 0 ? {} : _u, _w = _t.dateOfBirth, dateOfBirth = _w === void 0 ? '' : _w, relationships = _t.relationships;
         var errorMessage = contact_is_valid(value[editing]);
@@ -1410,14 +1414,14 @@ export var RelatedContactsInput = function (_a) {
                                 _jsx(Grid, __assign({ item: true, xs: 4 }, { children: _jsx(DateStringInput, { value: dateOfBirth, field: __assign(__assign({}, field), { isOptional: true }), size: "small", label: "Date of Birth (MM-DD-YYYY)", onChange: function (dateOfBirth) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { dateOfBirth: dateOfBirth }) : v; }), field.id); } }) })), !((_m = (_l = field.options) === null || _l === void 0 ? void 0 : _l.hiddenDefaultFields) === null || _m === void 0 ? void 0 : _m.includes('Email')) &&
                                 _jsx(Grid, __assign({ item: true, xs: 4 }, { children: _jsx(TextField, { label: "Email", size: "small", fullWidth: true, type: "email", InputProps: defaultInputProps, value: email, onChange: function (e) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { email: e.target.value }) : v; }), field.id); } }) })), !((_p = (_o = field.options) === null || _o === void 0 ? void 0 : _o.hiddenDefaultFields) === null || _p === void 0 ? void 0 : _p.includes('Phone Number')) &&
                                 _jsx(Grid, __assign({ item: true, xs: 4 }, { children: _jsx(TextField, { label: "Phone Number", size: "small", fullWidth: true, InputProps: defaultInputProps, value: phone, onChange: function (e) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { phone: e.target.value }) : v; }), field.id); } }) }))] })) })), (((_q = field.options) === null || _q === void 0 ? void 0 : _q.tableChoices) || []).length > 0 &&
-                    _jsx(Grid, __assign({ item: true }, { children: _jsx(Grid, __assign({ container: true, spacing: 1 }, { children: (((_r = field.options) === null || _r === void 0 ? void 0 : _r.tableChoices) || []).map(function (_a) {
+                    _jsx(Grid, __assign({ item: true }, { children: _jsx(Grid, __assign({ container: true, spacing: 1 }, { children: (((_r = field.options) === null || _r === void 0 ? void 0 : _r.tableChoices) || []).map(function (_a, i) {
                                 var info = _a.info, label = _a.label, type = _a.type;
                                 return (_jsx(Grid, __assign({ item: true, xs: 6 }, { children: type === 'Text'
                                         ? (_jsx(TextField, { label: label, size: "small", fullWidth: true, InputProps: defaultInputProps, value: fields_1[label] || '', onChange: function (e) { return onChange(value.map(function (v, i) {
                                                 var _a;
                                                 return i === editing ? __assign(__assign({}, v), { fields: __assign(__assign({}, fields_1), (_a = {}, _a[label] = e.target.value, _a)) }) : v;
                                             }), field.id); } }))
-                                        : type === 'Date' ? (_jsx(DateStringInput, { label: label, size: "small", fullWidth: true, field: field, value: fields_1[label] || '', onChange: function (e) {
+                                        : type === 'Date' ? (_jsx(DateStringInput, { label: label, size: "small", fullWidth: true, field: __assign(__assign({}, field), { isOptional: true }), value: fields_1[label] || '', onChange: function (e) {
                                                 if (e === void 0) { e = ''; }
                                                 return onChange(value.map(function (v, i) {
                                                     var _a;
@@ -1428,14 +1432,11 @@ export var RelatedContactsInput = function (_a) {
                                                             var _a;
                                                             return i === editing ? __assign(__assign({}, v), { fields: __assign(__assign({}, fields_1), (_a = {}, _a[label] = e.target.value, _a)) }) : v;
                                                         }), field.id); } }, { children: [_jsx(MenuItem, __assign({ value: "" }, { children: _jsx("em", { children: "None" }) })), info.choices.map(function (c) { return (_jsx(MenuItem, __assign({ value: c }, { children: c }), c)); })] }))] })))
-                                                : null })));
+                                                : null }), i));
                             }) })) })), _jsx(Grid, __assign({ item: true, sx: { my: 0.75 } }, { children: _jsx(Button, __assign({ variant: "outlined", onClick: function () { return setEditing(-1); }, size: "small" }, { children: "Save Contact" })) })), errorMessage &&
                     _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ color: "error" }, { children: errorMessage })) }))] })));
     }
-    return (_jsxs(Grid, __assign({ container: true, direction: "column", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: value.map(function (contact, i) { return (_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between", wrap: "nowrap", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center" }, { children: [_jsx(IconButton, __assign({ onClick: function () { return setEditing(i); }, color: "primary", size: "small" }, { children: _jsx(Edit, {}) })), _jsx(Typography, __assign({ noWrap: true }, { children: user_display_name(contact) || "Unnamed Contact ".concat(i + 1) }))] })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(LabeledIconButton, { Icon: Delete, label: "Remove", onClick: function () { return onChange(value.filter(function (v, _i) { return i !== _i; }), field.id); } }) }))] })) }), i)); }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Button, __assign({ variant: "contained", onClick: function () {
-                        onChange(__spreadArray(__spreadArray([], value, true), [{}], false), field.id, true);
-                        setEditing(value.length);
-                    } }, { children: "Add Contact" })) }))] })));
+    return (_jsxs(Grid, __assign({ container: true, direction: "column", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: value.map(function (contact, i) { return (_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between", wrap: "nowrap", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center" }, { children: [_jsx(IconButton, __assign({ onClick: function () { return setEditing(i); }, color: "primary", size: "small" }, { children: _jsx(Edit, {}) })), _jsx(Typography, __assign({ noWrap: true }, { children: user_display_name(contact) || "Unnamed Contact ".concat(i + 1) }))] })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(LabeledIconButton, { Icon: Delete, label: "Remove", onClick: function () { return onChange(value.filter(function (v, _i) { return i !== _i; }), field.id); } }) }))] })) }), i)); }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Button, __assign({ variant: "contained", onClick: handleAddContact }, { children: "Add Contact" })) }))] })));
 };
 export var AppointmentBookingInput = function (_a) {
     var _b, _d, _e, _f, _g, _h, _j, _k, _l;

@@ -2573,7 +2573,12 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
   // safeguard against any rogue values like empty string
   const value = Array.isArray(_value) ? _value : []
 
-  const [editing, setEditing] = useState(-1)
+  const [editing, setEditing] = useState(value.length === 1 ? 0 : -1)
+
+  const handleAddContact = useCallback(() => {
+    onChange([...value, {}], field.id, true)
+    setEditing(value.length)
+  }, [onChange, value, field?.id])
 
   if (value[editing]) {
     const { fname, lname, email, phone, fields={}, dateOfBirth='', relationships } = value[editing]
@@ -2644,8 +2649,8 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
         {(field.options?.tableChoices || []).length > 0 && 
           <Grid item>
           <Grid container spacing={1}>
-          {(field.options?.tableChoices || []).map(({ info, label, type}) => (
-            <Grid item xs={6}>
+          {(field.options?.tableChoices || []).map(({ info, label, type}, i) => (
+            <Grid item xs={6} key={i}>
             {type === 'Text'
                 ? (
                   <TextField label={label} size="small" fullWidth
@@ -2656,7 +2661,7 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
                 )
                 : type === 'Date' ? (
                   <DateStringInput label={label} size="small" fullWidth
-                    field={field}
+                    field={{ ...field, isOptional: true }}
                     value={fields[label] as string || ''} 
                     onChange={(e='') => onChange(value.map((v, i) => i === editing ? { ...v, fields: { ...fields, [label]: e } } : v), field.id)}
                   />
@@ -2729,10 +2734,7 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
       </Grid>
 
       <Grid item>
-        <Button variant="contained" onClick={() => {
-          onChange([...value, {}], field.id, true)
-          setEditing(value.length)
-        }}>
+        <Button variant="contained" onClick={handleAddContact}>
           Add Contact
         </Button>
       </Grid>

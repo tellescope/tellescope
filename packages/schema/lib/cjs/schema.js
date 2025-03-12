@@ -2200,7 +2200,7 @@ exports.schema = (0, exports.build_schema)({
                 },
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, mmsAttachmentURLs: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk }, title: {
                 validator: validation_1.stringValidator100,
                 required: true,
                 examples: ["Template Name"],
@@ -2281,6 +2281,7 @@ exports.schema = (0, exports.build_schema)({
                     },
                     source: { validator: validation_1.stringValidator100 },
                     externalId: { validator: validation_1.stringValidator100 },
+                    hiddenFromEnduser: { validator: validation_1.booleanValidator },
                 },
                 returns: {
                     presignedUpload: {
@@ -2613,7 +2614,7 @@ exports.schema = (0, exports.build_schema)({
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { enduserId: {
+        fields: __assign(__assign({}, BuiltInFields), { hiddenFromTimeline: { validator: validation_1.booleanValidator }, enduserId: {
                 validator: validation_1.mongoIdStringRequired,
                 required: true,
                 examples: [constants_1.PLACEHOLDER_ID],
@@ -2686,7 +2687,7 @@ exports.schema = (0, exports.build_schema)({
                     score: validation_1.stringValidator100,
                     externalId: validation_1.stringValidator100,
                 }))
-            }, hideAfterUnsubmittedInMS: { validator: validation_1.numberValidator }, hideFromCompose: { validator: validation_1.booleanValidator }, enduserFieldsToAppendForSync: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk }, allowPortalSubmission: { validator: validation_1.booleanValidator }, canvasNoteCoding: { validator: validation_1.canvasCodingValidatorOptional }, syncToCanvasAsDataImport: { validator: validation_1.booleanValidator } })
+            }, hideAfterUnsubmittedInMS: { validator: validation_1.numberValidator }, hideFromCompose: { validator: validation_1.booleanValidator }, enduserFieldsToAppendForSync: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk }, allowPortalSubmission: { validator: validation_1.booleanValidator }, canvasNoteCoding: { validator: validation_1.canvasCodingValidatorOptional }, syncToCanvasAsDataImport: { validator: validation_1.booleanValidator }, matchCareTeamTagsForCanvasPractitionerResolution: { validator: validation_1.listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay } })
     },
     form_fields: {
         info: {
@@ -2776,7 +2777,7 @@ exports.schema = (0, exports.build_schema)({
             unique: [],
             relationship: [],
         },
-        fields: __assign(__assign({}, BuiltInFields), { discussionRoomId: { validator: validation_1.mongoIdStringRequired }, formId: {
+        fields: __assign(__assign({}, BuiltInFields), { discussionRoomId: { validator: validation_1.mongoIdStringRequired }, hiddenFromTimeline: { validator: validation_1.booleanValidator }, formId: {
                 validator: validation_1.stringValidator100,
                 required: true,
                 dependencies: [
@@ -5002,6 +5003,7 @@ exports.schema = (0, exports.build_schema)({
                 parameters: {
                     query: { validator: validation_1.analyticsQueryValidator, required: true },
                     createdRange: { validator: validation_1.dateRangeValidator },
+                    createdAvailabilities: { validator: validation_1.weeklyAvailabilitiesValidator },
                     updatedRange: { validator: validation_1.dateRangeValidator },
                     groupByCareTeam: { validator: validation_1.booleanValidator },
                 },
@@ -5025,7 +5027,7 @@ exports.schema = (0, exports.build_schema)({
             },
         },
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { title: {
+        fields: __assign(__assign({}, BuiltInFields), { createdAvailabilities: { validator: validation_1.weeklyAvailabilitiesValidator }, title: {
                 validator: validation_1.stringValidator100,
                 examples: ["Example Title"]
             }, query: {

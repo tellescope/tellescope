@@ -399,12 +399,12 @@ var Session = /** @class */ (function (_super) {
             });
         }); };
         _this.prepare_and_upload_file = function (details, file) { return __awaiter(_this, void 0, void 0, function () {
-            var name, size, type, enduserId, publicRead, publicName, source, isCalledOut, externalId, _a, presignedUpload, createdFile;
+            var name, size, type, enduserId, publicRead, publicName, source, isCalledOut, externalId, hiddenFromEnduser, _a, presignedUpload, createdFile;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
-                        name = details.name, size = details.size, type = details.type, enduserId = details.enduserId, publicRead = details.publicRead, publicName = details.publicName, source = details.source, isCalledOut = details.isCalledOut, externalId = details.externalId;
-                        return [4 /*yield*/, this.api.files.prepare_file_upload({ name: name, size: size, type: type, enduserId: enduserId, publicRead: publicRead, publicName: publicName, source: source, isCalledOut: isCalledOut, externalId: externalId })];
+                        name = details.name, size = details.size, type = details.type, enduserId = details.enduserId, publicRead = details.publicRead, publicName = details.publicName, source = details.source, isCalledOut = details.isCalledOut, externalId = details.externalId, hiddenFromEnduser = details.hiddenFromEnduser;
+                        return [4 /*yield*/, this.api.files.prepare_file_upload({ name: name, size: size, type: type, enduserId: enduserId, publicRead: publicRead, publicName: publicName, source: source, isCalledOut: isCalledOut, externalId: externalId, hiddenFromEnduser: hiddenFromEnduser })];
                     case 1:
                         _a = _b.sent(), presignedUpload = _a.presignedUpload, createdFile = _a.file;
                         return [4 /*yield*/, this.UPLOAD(presignedUpload, file)];

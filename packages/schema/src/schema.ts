@@ -73,6 +73,7 @@ import {
   GroupCancellation,
   FormResponseFollowup,
   DevelopHealthRunBenefitVerificationBaseArguments,
+  WeeklyAvailability,
 } from "@tellescope/types-models"
 
 import {
@@ -318,6 +319,7 @@ import {
   developHealthDiagnosesValidator,
   developHealthMockResultValidator,
   positiveNumberValidator,
+  listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
 } from "@tellescope/validation"
 
 import {
@@ -652,6 +654,7 @@ export type CustomActions = {
       source?: string,
       externalId?: string,
       isCalledOut?: boolean,
+      hiddenFromEnduser?: boolean,
     }, 
       { presignedUpload: object, file: File }
     >,
@@ -1001,6 +1004,7 @@ export type CustomActions = {
     get_result_for_query: CustomAction<{ 
       query: AnalyticsQuery,
       createdRange?: DateRange,
+      createdAvailabilities?: WeeklyAvailability[],
       updatedRange?: DateRange,
       groupByCareTeam?: boolean,
     }, AnalyticsQueryResult>, 
@@ -3590,6 +3594,7 @@ export const schema: SchemaV1 = build_schema({
     fields: {
       ...BuiltInFields, 
       archivedAt: { validator: dateOptionalOrEmptyStringValidator },
+      mmsAttachmentURLs: { validator: listOfUniqueStringsValidatorEmptyOk }, 
       title: {
         validator: stringValidator100,
         required: true,
@@ -3698,6 +3703,7 @@ export const schema: SchemaV1 = build_schema({
           },
           source: { validator: stringValidator100 },
           externalId: { validator: stringValidator100 },
+          hiddenFromEnduser: { validator: booleanValidator },
         },
         returns: { 
           presignedUpload: {
@@ -4094,6 +4100,7 @@ export const schema: SchemaV1 = build_schema({
     enduserActions: {},
     fields: {
       ...BuiltInFields, 
+      hiddenFromTimeline: { validator: booleanValidator },
       enduserId: {
         validator: mongoIdStringValidator,
         required: true,
@@ -4228,6 +4235,7 @@ export const schema: SchemaV1 = build_schema({
       allowPortalSubmission: { validator: booleanValidator },
       canvasNoteCoding: { validator: canvasCodingValidatorOptional },
       syncToCanvasAsDataImport: { validator: booleanValidator },
+      matchCareTeamTagsForCanvasPractitionerResolution: { validator: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay },
     }
   },
   form_fields: {
@@ -4347,6 +4355,7 @@ export const schema: SchemaV1 = build_schema({
     fields: {
       ...BuiltInFields, 
       discussionRoomId: { validator: mongoIdStringValidator },
+      hiddenFromTimeline: { validator: booleanValidator },
       formId: {
         validator: stringValidator100, // allow other external id types here too, not just mongoid
         required: true,
@@ -7122,6 +7131,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         parameters: { 
           query: { validator: analyticsQueryValidator, required: true },
           createdRange: { validator: dateRangeValidator },
+          createdAvailabilities: { validator: weeklyAvailabilitiesValidator },
           updatedRange: { validator: dateRangeValidator },
           groupByCareTeam: { validator: booleanValidator },
         },
@@ -7147,6 +7157,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     enduserActions: { },
     fields: {
       ...BuiltInFields, 
+      createdAvailabilities: { validator: weeklyAvailabilitiesValidator },
       title: {
         validator: stringValidator100,
         examples: ["Example Title"]
