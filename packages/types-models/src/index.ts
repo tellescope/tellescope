@@ -205,6 +205,7 @@ export type OrganizationSettings = {
     showDeviceOrders?: boolean,
     requireObservationInvalidationReason?: boolean,
     defaultHideFilesFromPortal?: boolean,
+    hideUnorderedFullscriptMeds?: boolean,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
@@ -396,6 +397,8 @@ export interface Organization extends Organization_readonly, Organization_requir
   chargebeeEnvironments?: string[],
   customNotificationTypes?: string[],
   hasConnectedMedplum?: boolean,
+  customPortalLoginEmailSubject?: string,
+  customPortalLoginEmailHTML?: string,
   // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {
@@ -1103,6 +1106,7 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
   assignedTo?: string[],
   canvasId?: string,
   discussionRoomId?: string,
+  markedUnreadForAll?: boolean,
   // sentAt: string, // only outgoing
 }
 
@@ -1154,6 +1158,7 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
   canvasId?: string,
   discussionRoomId?: string,
   mediaURLs?: string[],
+  markedUnreadForAll?: boolean,
   // usingPublicNumber?: boolean, // flagged on outgoing messages from public number
   // sentAt: string, // only outgoing
 }
@@ -1173,6 +1178,7 @@ export type ChatRoomUserInfo = {
 export interface ChatRoom_required {}
 export interface ChatRoom_updatesDisabled {}
 export interface ChatRoom extends ChatRoom_readonly, ChatRoom_required, ChatRoom_updatesDisabled {
+  markedUnreadForAll?: boolean,
   description?: string;
   type?: ChatRoomType; 
   userIds?: string[];
@@ -1196,6 +1202,7 @@ export interface ChatRoom extends ChatRoom_readonly, ChatRoom_required, ChatRoom
   source?: string,
   externalId?: string,
   references?: RelatedRecord[] // internal, for storing built-in integrations info
+  journeyId?: string,
 }
 
 export type ChatAttachmentType = 'image' | 'video' | 'file' | string 
@@ -1242,6 +1249,7 @@ export interface ChatMessage extends ChatMessage_readonly, ChatMessage_required,
   references?: RelatedRecord[] // internal, for storing built-in integrations info
   sendAt?: Date | '',
   isDraft?: boolean,
+  journeyId?: string,
 }
 
 export type MessageTemplateType = 'enduser' | 'Reply' | 'team'  // default to 'enduser'
@@ -3267,6 +3275,7 @@ export interface PhoneCall_readonly extends ClientRecord {
 export interface PhoneCall_required {}
 export interface PhoneCall_updatesDisabled {}
 export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, PhoneCall_updatesDisabled {
+  markedUnreadForAll?: boolean,
   enduserId: string,
   externalId: string,
   from: string,
@@ -4073,6 +4082,7 @@ export interface TicketThreadComment extends TicketThreadComment_readonly, Ticke
   hiddenForAll?: boolean,
   ticketIds?: string[], 
   tags?: string[],
+  markedUnreadForAll?: boolean,
 }
 
 export interface Configuration_readonly extends ClientRecord {}
@@ -4245,6 +4255,7 @@ export interface GroupMMSConversation_updatesDisabled {}
 export interface GroupMMSConversation_required {
 }
 export interface GroupMMSConversation extends GroupMMSConversation_readonly, GroupMMSConversation_required, GroupMMSConversation_updatesDisabled {
+  markedUnreadForAll?: boolean,
 }
 
 export type VitalComparisons = {

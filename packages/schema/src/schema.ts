@@ -855,7 +855,7 @@ export type CustomActions = {
     join_room: CustomAction<{ id: string }, { room: ChatRoom }>,
     display_info: CustomAction<{ id: string }, { id: string, display_info: { [index: string]: UserDisplayInfo } }>,
     mark_read: CustomAction<{ id: string }, { updated: ChatRoom }>,
-    send_healthie_chat: CustomAction<HealthieSendChatAutomationAction['info'] & { enduserId: string }, { room: ChatRoom }>,
+    send_healthie_chat: CustomAction<HealthieSendChatAutomationAction['info'] & { enduserId: string, journeyId?: string }, { room: ChatRoom }>,
   },
   meetings: {
     start_meeting: CustomAction<{ attendees?: UserIdentity[], publicRead?: boolean }, { id: string, meeting: { Meeting: MeetingInfo }, host: Attendee }>, 
@@ -2425,6 +2425,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields,   
+      markedUnreadForAll: { validator: booleanValidator },
       logOnly: {
         validator: booleanValidator,
         examples: [true],
@@ -2719,6 +2720,7 @@ export const schema: SchemaV1 = build_schema({
     fields: {
       ...BuiltInFields,   
       autoResolveToFrom: { validator: booleanValidator },
+      markedUnreadForAll: { validator: booleanValidator },
       logOnly: {
         validator: booleanValidator,
         examples: [true],
@@ -2816,6 +2818,8 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields,
+      markedUnreadForAll: { validator: booleanValidator },
+      journeyId: { validator: mongoIdStringValidator },
       assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       title: {
         validator: stringValidator100,
@@ -2933,6 +2937,7 @@ export const schema: SchemaV1 = build_schema({
           templateId: { validator: mongoIdStringRequired, required: true },
           includeCareTeam: { validator: booleanValidator, required: true },
           enduserId: { validator: mongoIdStringRequired, required: true },
+          journeyId: { validator: mongoIdStringRequired },
         },
         returns: { 
           room: { validator:  'Room' }, 
@@ -2961,6 +2966,7 @@ export const schema: SchemaV1 = build_schema({
     customActions: {},
     fields: {
       ...BuiltInFields,
+      journeyId: { validator: mongoIdStringValidator },
       roomId: {
         validator: mongoIdStringValidator,
         required: true,
@@ -7069,6 +7075,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     enduserActions: { },
     fields: {
       ...BuiltInFields, 
+      markedUnreadForAll: { validator: booleanValidator },
       enduserId: { 
         validator: mongoIdStringValidator,
         examples: [PLACEHOLDER_ID],
@@ -7762,6 +7769,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     enduserActions: {},
     fields: {
       ...BuiltInFields, 
+      markedUnreadForAll: { validator: booleanValidator },
       externalId: { validator: stringValidator100, },
       source: { validator: stringValidator100, },
       ticketThreadId: { 
@@ -7882,6 +7890,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     enduserActions: {},
     fields: {
       ...BuiltInFields, 
+      markedUnreadForAll: { validator: booleanValidator },
       userIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] },
       enduserIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] },
       externalId: { validator: stringValidator, readonly: true }, 

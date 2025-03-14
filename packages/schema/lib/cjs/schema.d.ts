@@ -785,6 +785,7 @@ export type CustomActions = {
         }>;
         send_healthie_chat: CustomAction<HealthieSendChatAutomationAction['info'] & {
             enduserId: string;
+            journeyId?: string;
         }, {
             room: ChatRoom;
         }>;

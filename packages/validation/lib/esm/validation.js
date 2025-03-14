@@ -3384,6 +3384,7 @@ export var organizationSettingsValidator = objectValidator({
         requireObservationInvalidationReason: booleanValidatorOptional,
         showDeviceOrders: booleanValidatorOptional,
         defaultHideFilesFromPortal: booleanValidatorOptional,
+        hideUnorderedFullscriptMeds: booleanValidatorOptional,
     }, { isOptional: true }),
     tickets: objectValidator({
         defaultJourneyDueDateOffsetInMS: numberValidatorOptional,

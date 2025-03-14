@@ -4004,6 +4004,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     requireObservationInvalidationReason: booleanValidatorOptional,
     showDeviceOrders: booleanValidatorOptional,
     defaultHideFilesFromPortal: booleanValidatorOptional,
+    hideUnorderedFullscriptMeds: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,

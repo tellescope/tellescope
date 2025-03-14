@@ -1167,7 +1167,7 @@ export var schema = build_schema({
                 { type: 'filter', field: 'userId' },
             ]
         },
-        fields: __assign(__assign({}, BuiltInFields), { logOnly: {
+        fields: __assign(__assign({}, BuiltInFields), { markedUnreadForAll: { validator: booleanValidator }, logOnly: {
                 validator: booleanValidator,
                 examples: [true],
                 initializer: function () { return false; },
@@ -1422,7 +1422,7 @@ export var schema = build_schema({
                 { type: 'filter', field: 'userId' },
             ]
         },
-        fields: __assign(__assign({}, BuiltInFields), { autoResolveToFrom: { validator: booleanValidator }, logOnly: {
+        fields: __assign(__assign({}, BuiltInFields), { autoResolveToFrom: { validator: booleanValidator }, markedUnreadForAll: { validator: booleanValidator }, logOnly: {
                 validator: booleanValidator,
                 examples: [true],
                 initializer: function () { return false; },
@@ -1485,7 +1485,7 @@ export var schema = build_schema({
                 { type: 'filter', field: 'enduserIds' },
             ]
         },
-        fields: __assign(__assign({}, BuiltInFields), { assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { markedUnreadForAll: { validator: booleanValidator }, journeyId: { validator: mongoIdStringValidator }, assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, title: {
                 validator: stringValidator100,
             }, numMessages: {
                 validator: nonNegNumberValidator,
@@ -1578,6 +1578,7 @@ export var schema = build_schema({
                     templateId: { validator: mongoIdStringRequired, required: true },
                     includeCareTeam: { validator: booleanValidator, required: true },
                     enduserId: { validator: mongoIdStringRequired, required: true },
+                    journeyId: { validator: mongoIdStringRequired },
                 },
                 returns: {
                     room: { validator: 'Room' },
@@ -1604,7 +1605,7 @@ export var schema = build_schema({
         },
         enduserActions: { create: {}, read: {}, readMany: {} },
         customActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { roomId: {
+        fields: __assign(__assign({}, BuiltInFields), { journeyId: { validator: mongoIdStringValidator }, roomId: {
                 validator: mongoIdStringValidator,
                 required: true,
                 updatesDisabled: true,
@@ -4961,7 +4962,7 @@ export var schema = build_schema({
             // },
         },
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { enduserId: {
+        fields: __assign(__assign({}, BuiltInFields), { markedUnreadForAll: { validator: booleanValidator }, enduserId: {
                 validator: mongoIdStringValidator,
                 examples: [PLACEHOLDER_ID],
                 required: true,
@@ -5482,7 +5483,7 @@ export var schema = build_schema({
         defaultActions: DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { externalId: { validator: stringValidator100, }, source: { validator: stringValidator100, }, ticketThreadId: {
+        fields: __assign(__assign({}, BuiltInFields), { markedUnreadForAll: { validator: booleanValidator }, externalId: { validator: stringValidator100, }, source: { validator: stringValidator100, }, ticketThreadId: {
                 validator: mongoIdStringValidator, required: true, examples: [PLACEHOLDER_ID],
                 dependencies: [{
                         dependsOn: ['ticket_threads'],
@@ -5567,7 +5568,7 @@ export var schema = build_schema({
             },
         },
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { userIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] }, enduserIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] }, externalId: { validator: stringValidator, readonly: true }, phoneNumber: { validator: stringValidator, readonly: true }, destinations: { validator: listOfStringsValidator, readonly: true }, title: { validator: stringValidator, readonly: true }, messages: { validator: mmsMessagesValidator, readonly: true }, userStates: { validator: groupMMSUserStatesValidator }, tags: { validator: listOfStringsValidatorEmptyOk }, suggestedReply: { validator: stringValidator5000EmptyOkay }, hiddenBy: { validator: idStringToDateValidator }, hiddenForAll: { validator: booleanValidator }, assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, pinnedAt: { validator: dateOptionalOrEmptyStringValidator } }),
+        fields: __assign(__assign({}, BuiltInFields), { markedUnreadForAll: { validator: booleanValidator }, userIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] }, enduserIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] }, externalId: { validator: stringValidator, readonly: true }, phoneNumber: { validator: stringValidator, readonly: true }, destinations: { validator: listOfStringsValidator, readonly: true }, title: { validator: stringValidator, readonly: true }, messages: { validator: mmsMessagesValidator, readonly: true }, userStates: { validator: groupMMSUserStatesValidator }, tags: { validator: listOfStringsValidatorEmptyOk }, suggestedReply: { validator: stringValidator5000EmptyOkay }, hiddenBy: { validator: idStringToDateValidator }, hiddenForAll: { validator: booleanValidator }, assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, pinnedAt: { validator: dateOptionalOrEmptyStringValidator } }),
     },
     enduser_encounters: {
         info: {

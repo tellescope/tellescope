@@ -3436,6 +3436,7 @@ exports.organizationSettingsValidator = (0, exports.objectValidator)({
         requireObservationInvalidationReason: exports.booleanValidatorOptional,
         showDeviceOrders: exports.booleanValidatorOptional,
         defaultHideFilesFromPortal: exports.booleanValidatorOptional,
+        hideUnorderedFullscriptMeds: exports.booleanValidatorOptional,
     }, { isOptional: true }),
     tickets: (0, exports.objectValidator)({
         defaultJourneyDueDateOffsetInMS: exports.numberValidatorOptional,
