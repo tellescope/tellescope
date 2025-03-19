@@ -3087,9 +3087,18 @@ export const RedirectInput = ({ enduserId, groupId, groupInsance, rootResponseId
   return null
 }
 
-export const HiddenValueInput = ({ goToNextField, goToPreviousField, field, value, onChange, form, isSinglePage, }: FormInputProps<'email'>) => {
+export const HiddenValueInput = ({ goToNextField, goToPreviousField, field, value, onChange, isSinglePage, groupFields }: FormInputProps<'email'>) => {
   let lastRef = useRef(0)
   let lastIdRef = useRef('')
+
+  // in a Question Group, only the first Hidden Value should navigate
+  // AND, it should only navigate if the group only contains hidden values
+  const firstHiddenValue = groupFields?.find(v => v.type === 'Hidden Value')
+  const dontNavigate = (
+    (firstHiddenValue && firstHiddenValue?.id !== field.id) // is in a group, but not the first hidden value
+  || !!(groupFields?.find(v => v.type !== 'Hidden Value')) // group contains at least 1 non-hidden value
+  )
+
   useEffect(() => {
     if (lastRef.current > Date.now() - 1000 && lastIdRef.current === field.id) return
     lastRef.current = Date.now()
@@ -3098,14 +3107,19 @@ export const HiddenValueInput = ({ goToNextField, goToPreviousField, field, valu
     if (value) {
       if (isSinglePage) return
       onChange('', field.id)
+
+      if (dontNavigate) return
       goToPreviousField?.()
     } else {
       onChange(field.title, field.id)
-      console.log('going to next field for hidden value', field.title, !!goToNextField)
+
+      if (dontNavigate) return
+
       // pass value that is set after above onChange
+      console.log('going to next field for hidden value', field.title, !!goToNextField)
       goToNextField?.({ type: 'Hidden Value', value: field.title })
     }
-  }, [value, onChange, field, goToNextField, goToPreviousField, isSinglePage])
+  }, [value, onChange, field, goToNextField, goToPreviousField, isSinglePage, dontNavigate])
 
   return <></>
 }

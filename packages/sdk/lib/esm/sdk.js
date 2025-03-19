@@ -412,6 +412,7 @@ var Session = /** @class */ (function (_super) {
         queries.journeys.get_journey_statistics = function (a) { return _this._GET("/v1".concat(schema.journeys.customActions.get_journey_statistics.path), a); };
         queries.enduser_orders.get_available_tests = function (a) { return _this._GET("/v1".concat(schema.enduser_orders.customActions.get_available_tests.path), a); };
         queries.enduser_orders.create_lab_order = function (a) { return _this._POST("/v1".concat(schema.enduser_orders.customActions.create_lab_order.path), a); };
+        queries.enduser_orders.cancel_order = function (a) { return _this._POST("/v1".concat(schema.enduser_orders.customActions.cancel_order.path), a); };
         queries.enduser_orders.create_go_go_meds_order = function (a) { return _this._POST("/v1".concat(schema.enduser_orders.customActions.create_go_go_meds_order.path), a); };
         queries.enduser_orders.create_smart_meter_order = function (a) { return _this._POST("/v1".concat(schema.enduser_orders.customActions.create_smart_meter_order.path), a); };
         queries.endusers.set_password = function (args) { return _this._POST("/v1/set-enduser-password", args); };

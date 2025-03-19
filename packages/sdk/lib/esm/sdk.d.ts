@@ -3523,6 +3523,7 @@ type Queries = {
     enduser_orders: {
         get_available_tests: (args: extractFields<CustomActions['enduser_orders']['get_available_tests']['parameters']>) => (Promise<extractFields<CustomActions['enduser_orders']['get_available_tests']['returns']>>);
         create_lab_order: (args: extractFields<CustomActions['enduser_orders']['create_lab_order']['parameters']>) => (Promise<extractFields<CustomActions['enduser_orders']['create_lab_order']['returns']>>);
+        cancel_order: (args: extractFields<CustomActions['enduser_orders']['cancel_order']['parameters']>) => (Promise<extractFields<CustomActions['enduser_orders']['cancel_order']['returns']>>);
         create_go_go_meds_order: (args: extractFields<CustomActions['enduser_orders']['create_go_go_meds_order']['parameters']>) => (Promise<extractFields<CustomActions['enduser_orders']['create_go_go_meds_order']['returns']>>);
         create_smart_meter_order: (args: extractFields<CustomActions['enduser_orders']['create_smart_meter_order']['parameters']>) => (Promise<extractFields<CustomActions['enduser_orders']['create_smart_meter_order']['returns']>>);
     };

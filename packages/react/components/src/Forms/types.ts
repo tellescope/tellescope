@@ -35,6 +35,7 @@ export interface FormInputProps<K extends keyof AnswerForType> {
   handleFileUpload?: (blob: FileBlob, fieldId: string) => Promise<any>,
   uploadingFiles?: { fieldId: string }[]
   setUploadingFiles?: React.Dispatch<React.SetStateAction<{ fieldId: string }[]>>,
+  groupFields?: FormField[],
 }
 
 export type FormInputs = { 

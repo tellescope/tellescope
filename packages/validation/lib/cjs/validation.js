@@ -2644,6 +2644,7 @@ exports.portalSettingsValidator = (0, exports.objectValidator)({
     }, { isOptional: true, emptyOk: true, }),
     communication: (0, exports.objectValidator)({
         allowEnduserInitiatedChat: exports.booleanValidatorOptional,
+        allowChatCareTeamSelection: exports.booleanValidatorOptional,
         sendEmailNotificationsToEnduser: exports.booleanValidatorOptional,
         sendSMSNotificationsToEnduser: exports.booleanValidatorOptional,
         enduserInitiatedChatDefaultSubject: exports.stringValidator5000OptionalEmptyOkay,
@@ -2653,6 +2654,8 @@ exports.portalSettingsValidator = (0, exports.objectValidator)({
     }, { isOptional: true, emptyOk: true }),
     documents: (0, exports.objectValidator)({
         hideMissingAnswers: exports.booleanValidatorOptional,
+        availableFormsTitle: exports.stringValidatorOptionalEmptyOkay,
+        outstandingFormsTitle: exports.stringValidatorOptionalEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
 });
 exports.organizationThemeValidator = (0, exports.objectValidator)({
@@ -3437,6 +3440,7 @@ exports.organizationSettingsValidator = (0, exports.objectValidator)({
         showDeviceOrders: exports.booleanValidatorOptional,
         defaultHideFilesFromPortal: exports.booleanValidatorOptional,
         hideUnorderedFullscriptMeds: exports.booleanValidatorOptional,
+        detailField: exports.stringValidatorOptional,
     }, { isOptional: true }),
     tickets: (0, exports.objectValidator)({
         defaultJourneyDueDateOffsetInMS: exports.numberValidatorOptional,

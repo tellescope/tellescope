@@ -1172,7 +1172,7 @@ exports.schema = (0, exports.build_schema)({
                 { type: 'filter', field: 'userId' },
             ]
         },
-        fields: __assign(__assign({}, BuiltInFields), { markedUnreadForAll: { validator: validation_1.booleanValidator }, logOnly: {
+        fields: __assign(__assign({}, BuiltInFields), { markedUnreadForAll: { validator: validation_1.booleanValidator }, inboxStatus: { validator: validation_1.stringValidator100 }, logOnly: {
                 validator: validation_1.booleanValidator,
                 examples: [true],
                 initializer: function () { return false; },
@@ -1427,7 +1427,7 @@ exports.schema = (0, exports.build_schema)({
                 { type: 'filter', field: 'userId' },
             ]
         },
-        fields: __assign(__assign({}, BuiltInFields), { autoResolveToFrom: { validator: validation_1.booleanValidator }, markedUnreadForAll: { validator: validation_1.booleanValidator }, logOnly: {
+        fields: __assign(__assign({}, BuiltInFields), { autoResolveToFrom: { validator: validation_1.booleanValidator }, markedUnreadForAll: { validator: validation_1.booleanValidator }, inboxStatus: { validator: validation_1.stringValidator100 }, logOnly: {
                 validator: validation_1.booleanValidator,
                 examples: [true],
                 initializer: function () { return false; },
@@ -1490,7 +1490,7 @@ exports.schema = (0, exports.build_schema)({
                 { type: 'filter', field: 'enduserIds' },
             ]
         },
-        fields: __assign(__assign({}, BuiltInFields), { markedUnreadForAll: { validator: validation_1.booleanValidator }, journeyId: { validator: validation_1.mongoIdStringRequired }, assignedTo: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { markedUnreadForAll: { validator: validation_1.booleanValidator }, inboxStatus: { validator: validation_1.stringValidator100 }, journeyId: { validator: validation_1.mongoIdStringRequired }, assignedTo: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, title: {
                 validator: validation_1.stringValidator100,
             }, numMessages: {
                 validator: validation_1.nonNegNumberValidator,
@@ -3461,7 +3461,7 @@ exports.schema = (0, exports.build_schema)({
             get_appointment_availability: {}, book_appointment: {}, stripe_details: {},
             session_for_public_appointment_booking: {}, download_ics_file: {},
         },
-        fields: __assign(__assign({}, BuiltInFields), { title: {
+        fields: __assign(__assign({}, BuiltInFields), { actualDuration: { validator: validation_1.nonNegNumberValidator }, dontSyncToCanvas: { validator: validation_1.booleanValidator }, title: {
                 validator: validation_1.stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -3533,7 +3533,7 @@ exports.schema = (0, exports.build_schema)({
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: { read: {}, readMany: {} },
-        fields: __assign(__assign({}, BuiltInFields), { archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: validation_1.booleanValidator }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { dontSyncToCanvas: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: validation_1.booleanValidator }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, title: {
                 validator: validation_1.stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -4967,7 +4967,7 @@ exports.schema = (0, exports.build_schema)({
             // },
         },
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { markedUnreadForAll: { validator: validation_1.booleanValidator }, enduserId: {
+        fields: __assign(__assign({}, BuiltInFields), { markedUnreadForAll: { validator: validation_1.booleanValidator }, inboxStatus: { validator: validation_1.stringValidator100 }, enduserId: {
                 validator: validation_1.mongoIdStringRequired,
                 examples: [constants_1.PLACEHOLDER_ID],
                 required: true,
@@ -5488,7 +5488,7 @@ exports.schema = (0, exports.build_schema)({
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { markedUnreadForAll: { validator: validation_1.booleanValidator }, externalId: { validator: validation_1.stringValidator100, }, source: { validator: validation_1.stringValidator100, }, ticketThreadId: {
+        fields: __assign(__assign({}, BuiltInFields), { markedUnreadForAll: { validator: validation_1.booleanValidator }, inboxStatus: { validator: validation_1.stringValidator100 }, externalId: { validator: validation_1.stringValidator100, }, source: { validator: validation_1.stringValidator100, }, ticketThreadId: {
                 validator: validation_1.mongoIdStringRequired, required: true, examples: [constants_1.PLACEHOLDER_ID],
                 dependencies: [{
                         dependsOn: ['ticket_threads'],
@@ -5573,7 +5573,7 @@ exports.schema = (0, exports.build_schema)({
             },
         },
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { markedUnreadForAll: { validator: validation_1.booleanValidator }, userIds: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, enduserIds: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, externalId: { validator: validation_1.stringValidator, readonly: true }, phoneNumber: { validator: validation_1.stringValidator, readonly: true }, destinations: { validator: validation_1.listOfStringsValidator, readonly: true }, title: { validator: validation_1.stringValidator, readonly: true }, messages: { validator: validation_1.mmsMessagesValidator, readonly: true }, userStates: { validator: validation_1.groupMMSUserStatesValidator }, tags: { validator: validation_1.listOfStringsValidatorEmptyOk }, suggestedReply: { validator: validation_1.stringValidator5000EmptyOkay }, hiddenBy: { validator: validation_1.idStringToDateValidator }, hiddenForAll: { validator: validation_1.booleanValidator }, assignedTo: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator } }),
+        fields: __assign(__assign({}, BuiltInFields), { markedUnreadForAll: { validator: validation_1.booleanValidator }, inboxStatus: { validator: validation_1.stringValidator100 }, userIds: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, enduserIds: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, externalId: { validator: validation_1.stringValidator, readonly: true }, phoneNumber: { validator: validation_1.stringValidator, readonly: true }, destinations: { validator: validation_1.listOfStringsValidator, readonly: true }, title: { validator: validation_1.stringValidator, readonly: true }, messages: { validator: validation_1.mmsMessagesValidator, readonly: true }, userStates: { validator: validation_1.groupMMSUserStatesValidator }, tags: { validator: validation_1.listOfStringsValidatorEmptyOk }, suggestedReply: { validator: validation_1.stringValidator5000EmptyOkay }, hiddenBy: { validator: validation_1.idStringToDateValidator }, hiddenForAll: { validator: validation_1.booleanValidator }, assignedTo: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator } }),
     },
     enduser_encounters: {
         info: {
@@ -5670,6 +5670,18 @@ exports.schema = (0, exports.build_schema)({
                 },
                 returns: {
                     order: { validator: 'enduser_order', required: true },
+                }
+            },
+            cancel_order: {
+                op: "custom", access: 'create', method: "post",
+                name: 'Cancel Order',
+                path: '/enduser-orders/cancel-lab-order',
+                description: "Cancels a lab order via Junction (formerly Vital)",
+                parameters: {
+                    orderId: { validator: validation_1.mongoIdStringRequired, required: true },
+                },
+                returns: {
+                    order: { validator: 'enduser_order' },
                 }
             },
             create_go_go_meds_order: {

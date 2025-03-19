@@ -2245,6 +2245,7 @@ export interface ListUpdateMethods<T, ADD> extends LoadMoreFunctions<T> {
     getOldestLoadedId: () => string | undefined;
     setOldestLoadedId: (id: string) => void;
     loadRecentlyCreated: () => Promise<T[]>;
+    loadRecentlyUpdated: () => Promise<T[]>;
     recentlyCreatedFetch: Date;
 }
 export type ListStateReturnType<T extends {

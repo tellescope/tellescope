@@ -112,6 +112,7 @@ export type PortalSettings = {
   },
   communication?: {
     allowEnduserInitiatedChat?: boolean,
+    allowChatCareTeamSelection?: boolean,
     enduserInitiatedChatDefaultSubject?: string,
     sendEmailNotificationsToEnduser?: boolean,
     sendSMSNotificationsToEnduser?: boolean,
@@ -121,6 +122,8 @@ export type PortalSettings = {
   },
   documents?: {
     hideMissingAnswers?: boolean,
+    outstandingFormsTitle?: string,
+    availableFormsTitle?: string,
   },
 }
 
@@ -206,6 +209,7 @@ export type OrganizationSettings = {
     requireObservationInvalidationReason?: boolean,
     defaultHideFilesFromPortal?: boolean,
     hideUnorderedFullscriptMeds?: boolean,
+    detailField?: string,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
@@ -1107,6 +1111,7 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
   canvasId?: string,
   discussionRoomId?: string,
   markedUnreadForAll?: boolean,
+  inboxStatus?: string,
   // sentAt: string, // only outgoing
 }
 
@@ -1159,6 +1164,7 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
   discussionRoomId?: string,
   mediaURLs?: string[],
   markedUnreadForAll?: boolean,
+  inboxStatus?: string,
   // usingPublicNumber?: boolean, // flagged on outgoing messages from public number
   // sentAt: string, // only outgoing
 }
@@ -1179,6 +1185,7 @@ export interface ChatRoom_required {}
 export interface ChatRoom_updatesDisabled {}
 export interface ChatRoom extends ChatRoom_readonly, ChatRoom_required, ChatRoom_updatesDisabled {
   markedUnreadForAll?: boolean,
+  inboxStatus?: string,
   description?: string;
   type?: ChatRoomType; 
   userIds?: string[];
@@ -2204,6 +2211,8 @@ export interface CalendarEvent_required {
 }
 export interface CalendarEvent_updatesDisabled {}
 export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_required, CalendarEvent_updatesDisabled {
+  actualDuration?: number,
+  dontSyncToCanvas?: boolean,
   reason?: string, // reason for booking, patient-entered
   cancelReason?: string,
   attendees: (UserIdentity & { joinLinkToken?: string })[],
@@ -2363,6 +2372,7 @@ export interface CalendarEventTemplate_required {
 }
 export interface CalendarEventTemplate_updatesDisabled {}
 export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, CalendarEventTemplate_required, CalendarEventTemplate_updatesDisabled {
+  dontSyncToCanvas?: boolean,
   archivedAt?: Date | '',
   type?: string,
   enableVideoCall?: boolean,
@@ -3276,6 +3286,7 @@ export interface PhoneCall_required {}
 export interface PhoneCall_updatesDisabled {}
 export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, PhoneCall_updatesDisabled {
   markedUnreadForAll?: boolean,
+  inboxStatus?: string,
   enduserId: string,
   externalId: string,
   from: string,
@@ -4083,6 +4094,7 @@ export interface TicketThreadComment extends TicketThreadComment_readonly, Ticke
   ticketIds?: string[], 
   tags?: string[],
   markedUnreadForAll?: boolean,
+  inboxStatus?: string,
 }
 
 export interface Configuration_readonly extends ClientRecord {}
@@ -4256,6 +4268,7 @@ export interface GroupMMSConversation_required {
 }
 export interface GroupMMSConversation extends GroupMMSConversation_readonly, GroupMMSConversation_required, GroupMMSConversation_updatesDisabled {
   markedUnreadForAll?: boolean,
+  inboxStatus?: string,
 }
 
 export type VitalComparisons = {

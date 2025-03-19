@@ -573,6 +573,10 @@ export var useListStateHook = function (modelName, state, session, slice, apiCal
     if (now.getTime() === recentlyCreatedFetch.current.getTime()) {
         setLastDate("".concat(modelName, "-recentlyCreatedFetch"), now);
     }
+    var recentlyUpdatedFetch = useRef(getLastDate("".concat(modelName, "-recentlyUpdatedFetch")) || now);
+    if (now.getTime() === recentlyUpdatedFetch.current.getTime()) {
+        setLastDate("".concat(modelName, "-recentlyUpdatedFetch"), now);
+    }
     var addLocalElement = useCallback(function (e, o) {
         var _a;
         dispatch(slice.actions.add({ value: e, options: o }));
@@ -989,6 +993,35 @@ export var useListStateHook = function (modelName, state, session, slice, apiCal
             }
         });
     }); }, [session.api, modelName, addLocalElements, loadQuery, setLastDate]);
+    var loadRecentlyUpdated = React.useCallback(function () { return __awaiter(void 0, void 0, void 0, function () {
+        var fromUpdated, created, err_3;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    if (!loadQuery)
+                        return [2 /*return*/, []];
+                    fromUpdated = recentlyUpdatedFetch.current;
+                    if (fromUpdated.getTime() + 1000 > Date.now())
+                        return [2 /*return*/, []]; // throttle by 1 sec
+                    recentlyUpdatedFetch.current = new Date();
+                    setLastDate("".concat(modelName, "-recentlyUpdatedFetch"), recentlyUpdatedFetch.current);
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, loadQuery({ fromUpdated: fromUpdated })];
+                case 2:
+                    created = _a.sent();
+                    if (created.length === 0)
+                        return [2 /*return*/, []];
+                    return [2 /*return*/, addLocalElements(created, { replaceIfMatch: true })];
+                case 3:
+                    err_3 = _a.sent();
+                    console.error(err_3);
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/, []];
+            }
+        });
+    }); }, [session.api, modelName, addLocalElements, loadQuery, setLastDate]);
     return [
         state,
         {
@@ -1015,6 +1048,7 @@ export var useListStateHook = function (modelName, state, session, slice, apiCal
             setOldestLoadedId: setOldestLoadedId,
             getOldestLoadedId: getOldestLoadedId,
             loadRecentlyCreated: loadRecentlyCreated,
+            loadRecentlyUpdated: loadRecentlyUpdated,
             recentlyCreatedFetch: recentlyCreatedFetch.current,
         }
     ];

@@ -250,6 +250,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     create_lab_order: (args: extractFields<CustomActions['enduser_orders']['create_lab_order']['parameters']>) => (
       Promise<extractFields<CustomActions['enduser_orders']['create_lab_order']['returns']>>
     ),
+    cancel_order: (args: extractFields<CustomActions['enduser_orders']['cancel_order']['parameters']>) => (
+      Promise<extractFields<CustomActions['enduser_orders']['cancel_order']['returns']>>
+    ),
     create_go_go_meds_order: (args: extractFields<CustomActions['enduser_orders']['create_go_go_meds_order']['parameters']>) => (
       Promise<extractFields<CustomActions['enduser_orders']['create_go_go_meds_order']['returns']>>
     ),
@@ -847,6 +850,7 @@ export class Session extends SessionManager {
 
     queries.enduser_orders.get_available_tests = a => this._GET(`/v1${schema.enduser_orders.customActions.get_available_tests.path}`, a)
     queries.enduser_orders.create_lab_order = a => this._POST(`/v1${schema.enduser_orders.customActions.create_lab_order.path}`, a)
+    queries.enduser_orders.cancel_order = a => this._POST(`/v1${schema.enduser_orders.customActions.cancel_order.path}`, a)
     queries.enduser_orders.create_go_go_meds_order = a => this._POST(`/v1${schema.enduser_orders.customActions.create_go_go_meds_order.path}`, a)
     queries.enduser_orders.create_smart_meter_order = a => this._POST(`/v1${schema.enduser_orders.customActions.create_smart_meter_order.path}`, a)
 

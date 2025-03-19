@@ -1089,6 +1089,7 @@ export type CustomActions = {
       activateBy?: string,
       aoe_answers?: VitalAOEAnswer[]
     }, { order: EnduserOrder }>,
+    cancel_order: CustomAction<{ orderId: string }, { order?: EnduserOrder }>,
     create_go_go_meds_order: CustomAction<{ 
       enduserId: string,
       PrescriptionImage: string,
@@ -2426,6 +2427,7 @@ export const schema: SchemaV1 = build_schema({
     fields: {
       ...BuiltInFields,   
       markedUnreadForAll: { validator: booleanValidator },
+      inboxStatus: { validator: stringValidator100 },
       logOnly: {
         validator: booleanValidator,
         examples: [true],
@@ -2721,6 +2723,7 @@ export const schema: SchemaV1 = build_schema({
       ...BuiltInFields,   
       autoResolveToFrom: { validator: booleanValidator },
       markedUnreadForAll: { validator: booleanValidator },
+      inboxStatus: { validator: stringValidator100 },
       logOnly: {
         validator: booleanValidator,
         examples: [true],
@@ -2819,6 +2822,7 @@ export const schema: SchemaV1 = build_schema({
     fields: {
       ...BuiltInFields,
       markedUnreadForAll: { validator: booleanValidator },
+      inboxStatus: { validator: stringValidator100 },
       journeyId: { validator: mongoIdStringValidator },
       assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       title: {
@@ -5128,6 +5132,8 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields, 
+      actualDuration: { validator: nonNegNumberValidator },
+      dontSyncToCanvas: { validator: booleanValidator },
       title: {
         validator: stringValidator250,
         required: true,
@@ -5275,6 +5281,7 @@ export const schema: SchemaV1 = build_schema({
     enduserActions: { read: {}, readMany: {} },
     fields: {
       ...BuiltInFields, 
+      dontSyncToCanvas: { validator: booleanValidator },
       archivedAt: { validator: dateOptionalOrEmptyStringValidator },
       allowGroupReschedule: { validator: booleanValidator },
       dontAutoSyncPatientToHealthie: { validator: booleanValidator },
@@ -7076,6 +7083,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     fields: {
       ...BuiltInFields, 
       markedUnreadForAll: { validator: booleanValidator },
+      inboxStatus: { validator: stringValidator100 },
       enduserId: { 
         validator: mongoIdStringValidator,
         examples: [PLACEHOLDER_ID],
@@ -7770,6 +7778,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     fields: {
       ...BuiltInFields, 
       markedUnreadForAll: { validator: booleanValidator },
+      inboxStatus: { validator: stringValidator100 },
       externalId: { validator: stringValidator100, },
       source: { validator: stringValidator100, },
       ticketThreadId: { 
@@ -7891,6 +7900,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     fields: {
       ...BuiltInFields, 
       markedUnreadForAll: { validator: booleanValidator },
+      inboxStatus: { validator: stringValidator100 },
       userIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] },
       enduserIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] },
       externalId: { validator: stringValidator, readonly: true }, 
@@ -8015,6 +8025,18 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         },
         returns: { 
           order: { validator: 'enduser_order' as any, required: true },
+        } 
+      },
+      cancel_order: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Cancel Order',
+        path: '/enduser-orders/cancel-lab-order',
+        description: "Cancels a lab order via Junction (formerly Vital)",
+        parameters: { 
+          orderId: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: { 
+          order: { validator: 'enduser_order' as any },
         } 
       },
       create_go_go_meds_order: {

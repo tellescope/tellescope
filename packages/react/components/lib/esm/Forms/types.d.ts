@@ -36,6 +36,7 @@ export interface FormInputProps<K extends keyof AnswerForType> {
     setUploadingFiles?: React.Dispatch<React.SetStateAction<{
         fieldId: string;
     }[]>>;
+    groupFields?: FormField[];
 }
 export type FormInputs = {
     [K in keyof AnswerForType]: JSXElementConstructor<FormInputProps<K>>;

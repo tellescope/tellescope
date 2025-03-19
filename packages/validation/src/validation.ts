@@ -3163,6 +3163,7 @@ export const portalSettingsValidator = objectValidator<PortalSettings>({
   }, { isOptional: true, emptyOk: true, }),
   communication: objectValidator<PortalSettings['communication']>({
     allowEnduserInitiatedChat: booleanValidatorOptional,
+    allowChatCareTeamSelection: booleanValidatorOptional,
     sendEmailNotificationsToEnduser: booleanValidatorOptional,
     sendSMSNotificationsToEnduser: booleanValidatorOptional,
     enduserInitiatedChatDefaultSubject: stringValidator5000OptionalEmptyOkay,
@@ -3172,6 +3173,8 @@ export const portalSettingsValidator = objectValidator<PortalSettings>({
   }, { isOptional: true, emptyOk: true }),
   documents: objectValidator<PortalSettings['documents']>({
     hideMissingAnswers: booleanValidatorOptional,
+    availableFormsTitle: stringValidatorOptionalEmptyOkay,
+    outstandingFormsTitle: stringValidatorOptionalEmptyOkay,
   }, { isOptional: true, emptyOk: true }),
 })
 
@@ -4005,6 +4008,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     showDeviceOrders: booleanValidatorOptional,
     defaultHideFilesFromPortal: booleanValidatorOptional,
     hideUnorderedFullscriptMeds: booleanValidatorOptional,
+    detailField: stringValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,

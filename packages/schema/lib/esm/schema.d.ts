@@ -1438,6 +1438,11 @@ export type CustomActions = {
         }, {
             order: EnduserOrder;
         }>;
+        cancel_order: CustomAction<{
+            orderId: string;
+        }, {
+            order?: EnduserOrder;
+        }>;
         create_go_go_meds_order: CustomAction<{
             enduserId: string;
             PrescriptionImage: string;

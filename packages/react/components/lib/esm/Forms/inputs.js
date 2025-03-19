@@ -1687,9 +1687,15 @@ export var RedirectInput = function (_a) {
     return null;
 };
 export var HiddenValueInput = function (_a) {
-    var goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, isSinglePage = _a.isSinglePage;
+    var goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, field = _a.field, value = _a.value, onChange = _a.onChange, isSinglePage = _a.isSinglePage, groupFields = _a.groupFields;
     var lastRef = useRef(0);
     var lastIdRef = useRef('');
+    // in a Question Group, only the first Hidden Value should navigate
+    // AND, it should only navigate if the group only contains hidden values
+    var firstHiddenValue = groupFields === null || groupFields === void 0 ? void 0 : groupFields.find(function (v) { return v.type === 'Hidden Value'; });
+    var dontNavigate = ((firstHiddenValue && (firstHiddenValue === null || firstHiddenValue === void 0 ? void 0 : firstHiddenValue.id) !== field.id) // is in a group, but not the first hidden value
+        || !!(groupFields === null || groupFields === void 0 ? void 0 : groupFields.find(function (v) { return v.type !== 'Hidden Value'; })) // group contains at least 1 non-hidden value
+    );
     useEffect(function () {
         if (lastRef.current > Date.now() - 1000 && lastIdRef.current === field.id)
             return;
@@ -1699,15 +1705,19 @@ export var HiddenValueInput = function (_a) {
             if (isSinglePage)
                 return;
             onChange('', field.id);
+            if (dontNavigate)
+                return;
             goToPreviousField === null || goToPreviousField === void 0 ? void 0 : goToPreviousField();
         }
         else {
             onChange(field.title, field.id);
-            console.log('going to next field for hidden value', field.title, !!goToNextField);
+            if (dontNavigate)
+                return;
             // pass value that is set after above onChange
+            console.log('going to next field for hidden value', field.title, !!goToNextField);
             goToNextField === null || goToNextField === void 0 ? void 0 : goToNextField({ type: 'Hidden Value', value: field.title });
         }
-    }, [value, onChange, field, goToNextField, goToPreviousField, isSinglePage]);
+    }, [value, onChange, field, goToNextField, goToPreviousField, isSinglePage, dontNavigate]);
     return _jsx(_Fragment, {});
 };
 export var EmotiiInput = function (_a) {

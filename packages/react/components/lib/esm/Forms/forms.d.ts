@@ -40,7 +40,7 @@ export declare const TellescopeForm: (props: TellescopeFormProps & Styled & {
     theme?: OrganizationTheme;
     inputStyle?: React.CSSProperties;
 }) => JSX.Element;
-export declare const QuestionForField: ({ form, value, field, file, responses, selectedFiles, onAddFile, onFieldChange, customInputs, fields, validateField, repeats, onRepeatsChange, setCustomerId, handleDatabaseSelect, enduser, goToPreviousField, isPreviousDisabled, enduserId, formResponseId, submit, groupId, groupInstance, goToNextField, spacing, isSinglePage, rootResponseId, isInQuestionGroup, logicOptions, uploadingFiles, setUploadingFiles, handleFileUpload, }: {
+export declare const QuestionForField: ({ form, value, field, file, responses, selectedFiles, onAddFile, onFieldChange, customInputs, fields, validateField, repeats, onRepeatsChange, setCustomerId, handleDatabaseSelect, enduser, goToPreviousField, isPreviousDisabled, enduserId, formResponseId, submit, groupId, groupInstance, goToNextField, spacing, isSinglePage, rootResponseId, isInQuestionGroup, logicOptions, uploadingFiles, setUploadingFiles, handleFileUpload, groupFields, }: {
     spacing?: number | undefined;
     form?: (import("@tellescope/types-models").Form & {
         id: string;
@@ -54,6 +54,7 @@ export declare const QuestionForField: ({ form, value, field, file, responses, s
     setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>;
     isSinglePage?: boolean | undefined;
     isInQuestionGroup?: boolean | undefined;
+    questionGroupSize?: number | undefined;
     logicOptions?: NextFieldLogicOptions | undefined;
     handleFileUpload: (blob: FileBlob, fieldId: string) => Promise<any>;
     uploadingFiles: {
@@ -62,6 +63,10 @@ export declare const QuestionForField: ({ form, value, field, file, responses, s
     setUploadingFiles: React.Dispatch<React.SetStateAction<{
         fieldId: string;
     }[]>>;
+    groupFields?: (import("@tellescope/types-models").FormField & {
+        id: string;
+        createdAt: Date;
+    })[] | undefined;
 } & Pick<TellescopeFormProps, "enduserId" | "enduser" | "fields" | "rootResponseId" | "groupId" | "groupInstance" | "responses" | "submit" | "formResponseId" | "selectedFiles" | "goToPreviousField" | "goToNextField" | "isPreviousDisabled" | "handleDatabaseSelect" | "onAddFile" | "onFieldChange" | "customInputs" | "validateField">) => JSX.Element | null;
 export declare const TellescopeSingleQuestionFlow: typeof TellescopeForm;
 export declare const DEFAULT_THANKS_MESSAGE = "Your response was successfully recorded";

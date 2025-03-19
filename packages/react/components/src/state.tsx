@@ -719,6 +719,7 @@ export interface ListUpdateMethods <T, ADD> extends LoadMoreFunctions<T> {
   getOldestLoadedId: () => string | undefined,
   setOldestLoadedId: (id: string) => void,
   loadRecentlyCreated: () => Promise<T[]>,
+  loadRecentlyUpdated: () => Promise<T[]>,
   recentlyCreatedFetch: Date,
 }
 export type ListStateReturnType <T extends { id: string | number }, ADD=Partial<T>> = [LoadedData<T[]>, ListUpdateMethods<T, ADD>]
@@ -763,6 +764,10 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
   const recentlyCreatedFetch = useRef(getLastDate(`${modelName}-recentlyCreatedFetch`) || now)
   if (now.getTime() === recentlyCreatedFetch.current.getTime()) {
     setLastDate(`${modelName}-recentlyCreatedFetch`, now)
+  }
+  const recentlyUpdatedFetch = useRef(getLastDate(`${modelName}-recentlyUpdatedFetch`) || now)
+  if (now.getTime() === recentlyUpdatedFetch.current.getTime()) {
+    setLastDate(`${modelName}-recentlyUpdatedFetch`, now)
   }
 
   const addLocalElement = useCallback((e: T, o?: AddOptions) => {
@@ -1163,6 +1168,25 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
 
     return []
   }, [session.api, modelName, addLocalElements, loadQuery, setLastDate])
+
+  const loadRecentlyUpdated = React.useCallback(async () => {
+    if (!loadQuery) return []
+
+    const fromUpdated = recentlyUpdatedFetch.current
+
+    if (fromUpdated.getTime() + 1000 > Date.now()) return [] // throttle by 1 sec
+    recentlyUpdatedFetch.current = new Date()
+    setLastDate(`${modelName}-recentlyUpdatedFetch`, recentlyUpdatedFetch.current)
+
+    try {
+      const created = await loadQuery({ fromUpdated })
+      if (created.length === 0) return []
+
+      return addLocalElements(created, { replaceIfMatch: true })
+    } catch(err) { console.error(err) }
+
+    return []
+  }, [session.api, modelName, addLocalElements, loadQuery, setLastDate])
   
   return [
     state,
@@ -1171,7 +1195,7 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
       createElement, createElements, updateElement, updateLocalElement, updateLocalElements, findByFilter, findById, removeElement, removeLocalElements,
       reload, loadMore, doneLoading, filtered, 
       getOldestLoadedDate, setOldestLoadedDate, setOldestLoadedId, getOldestLoadedId,
-      loadRecentlyCreated,
+      loadRecentlyCreated, loadRecentlyUpdated,
       recentlyCreatedFetch: recentlyCreatedFetch.current,
     }
   ]

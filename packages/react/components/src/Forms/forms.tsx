@@ -136,6 +136,7 @@ export const QuestionForField = ({
   isInQuestionGroup,
   logicOptions,
   uploadingFiles, setUploadingFiles, handleFileUpload,
+  groupFields,
 } : {
   spacing?: number,
   form?: Form,
@@ -147,10 +148,12 @@ export const QuestionForField = ({
   setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>,
   isSinglePage?: boolean,
   isInQuestionGroup?: boolean,
+  questionGroupSize?: number,
   logicOptions?: NextFieldLogicOptions,
   handleFileUpload: (blob: FileBlob, fieldId: string) => Promise<any>,
   uploadingFiles: { fieldId: string }[]
   setUploadingFiles: React.Dispatch<React.SetStateAction<{ fieldId: string }[]>>,
+  groupFields?: FormField[],
 } & Pick<TellescopeFormProps, "rootResponseId" | "goToNextField" | "groupId" | "groupInstance" | "submit" | "formResponseId" | 'enduserId' | 'isPreviousDisabled' | 'goToPreviousField' | 'enduser' | 'handleDatabaseSelect' | 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField'>) => {
   const String = customInputs?.['string'] ?? StringInput
   const StringLong = customInputs?.['stringLong'] ?? StringLongInput
@@ -256,7 +259,7 @@ export const QuestionForField = ({
           <DateStringInput field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string'>} form={form} />
         )
         : field.type === 'Hidden Value' ? (
-          <HiddenValue isSinglePage={isSinglePage} goToNextField={goToNextField} goToPreviousField={goToPreviousField} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} form={form} />
+          <HiddenValue groupFields={groupFields} isSinglePage={isSinglePage} goToNextField={goToNextField} goToPreviousField={goToPreviousField} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} form={form} />
         )
         : field.type === 'Address' ? (
           <Address field={field} disabled={value.disabled} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form} />
@@ -350,7 +353,7 @@ export const QuestionForField = ({
         )
         : field.type === 'Question Group' ? (
           <Flex column flex={1}>
-          {(field.options?.subFields ?? []).map(({ id }) => {
+          {(field.options?.subFields ?? []).map(({ id }, indexInGroup) => {
             const match = fields.find(f => f.id === id)
             if (!match) return null
 
@@ -371,7 +374,11 @@ export const QuestionForField = ({
                   validateField={validateField} enduserId={enduserId}
                   spacing={field.options?.groupPadding}
                   logicOptions={logicOptions}
-                  isInQuestionGroup
+                  isInQuestionGroup 
+                  groupFields={
+                    fields.filter(f => field.options?.subFields?.find(s => s.id === f.id))
+                  }
+                  questionGroupSize={field.options?.subFields?.length}
                   uploadingFiles={uploadingFiles} setUploadingFiles={setUploadingFiles}
                   handleFileUpload={handleFileUpload}
                 />
