@@ -518,7 +518,7 @@ export var useTellescopeForm = function (_a) {
     // placeholders for initial fields, reset when fields prop changes, since questions are now different (e.g. different form selected) 
     var fieldInitRef = useRef('');
     var initializeFields = useCallback(function () { return (fields.map(function (f) {
-        var _a, _b, _c, _d, _e, _g, _h, _j, _k, _l, _m, _o, _p, _q, _t, _u, _v;
+        var _a, _b, _c, _d, _e, _g, _h, _j, _k, _l, _m, _o, _p, _q, _t, _u, _v, _w, _x;
         return ({
             fieldId: f.id,
             fieldTitle: f.title,
@@ -561,7 +561,7 @@ export var useTellescopeForm = function (_a) {
                                         ? parseInt(f.options.default)
                                         : (((_v = f.options) === null || _v === void 0 ? void 0 : _v.from) || 1))
                                     : f.type === 'Related Contacts'
-                                        ? (f.isOptional ? [] : [{}])
+                                        ? (f.isOptional ? [] : [{ relationships: ((_x = (_w = f === null || f === void 0 ? void 0 : f.options) === null || _w === void 0 ? void 0 : _w.relatedContactTypes) === null || _x === void 0 ? void 0 : _x.length) === 1 ? [{ type: f.options.relatedContactTypes[0], id: '' }] : [] }])
                                         : '' // null flag that the response was not filled out
                 )),
             },

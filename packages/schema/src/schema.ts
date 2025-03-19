@@ -3421,6 +3421,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields, 
+      defaultLocationId: { validator: mongoIdStringValidator },
       email: {
         validator: emailValidator,
         required: true,

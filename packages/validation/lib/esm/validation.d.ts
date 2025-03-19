@@ -744,6 +744,12 @@ export declare const ticketActionValidator: ValidatorDefinition<(import("@telles
     emailId?: string | undefined;
 }> & {
     type: "Send Email";
+}) | (import("@tellescope/types-models").TicketActionBuilder<"Send Chat", {
+    templateId: string;
+    chatId?: string | undefined;
+    chatRoomId?: string | undefined;
+}> & {
+    type: "Send Chat";
 })>;
 export declare const ticketActionsValidator: ValidatorDefinition<((import("@tellescope/types-models").TicketActionBuilder<"Complete Form", {
     formId: string;
@@ -762,6 +768,12 @@ export declare const ticketActionsValidator: ValidatorDefinition<((import("@tell
     emailId?: string | undefined;
 }> & {
     type: "Send Email";
+}) | (import("@tellescope/types-models").TicketActionBuilder<"Send Chat", {
+    templateId: string;
+    chatId?: string | undefined;
+    chatRoomId?: string | undefined;
+}> & {
+    type: "Send Chat";
 }))[]>;
 export declare const senderAssignmentStrategyValidatorOptional: ValidatorDefinition<SenderAssignmentStrategy>;
 export declare const smartMeterLinesValidator: ValidatorDefinition<SmartMeterOrderLineItem[]>;
@@ -1286,6 +1298,7 @@ export declare const portalBlockValidator: ValidatorDefinition<{
     info: {
         title: string;
         roles?: string[] | undefined;
+        showAll?: boolean | undefined;
     };
 } | {
     type: "text";
@@ -1321,6 +1334,7 @@ export declare const portalBlocksValidator: ValidatorDefinition<({
     info: {
         title: string;
         roles?: string[] | undefined;
+        showAll?: boolean | undefined;
     };
 } | {
     type: "text";
@@ -1544,7 +1558,10 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
     intervalInMS: number;
     templateIds?: string[] | undefined;
     titles?: string[] | undefined;
-}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Purchase Made", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Refund Issued", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Subscription Ended", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Message Delivery Failure", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Incoming Message", {
+}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Purchase Made", {
+    titles?: string[] | undefined;
+    productIds?: string[] | undefined;
+}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Refund Issued", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Subscription Ended", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Message Delivery Failure", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Incoming Message", {
     noCareTeam?: boolean | undefined;
     destinations?: string[] | undefined;
     channels?: string[] | undefined;

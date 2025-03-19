@@ -536,6 +536,7 @@ export interface User_updatesDisabled {
     verifiedEmail: boolean;
 }
 export interface User extends User_required, User_readonly, User_updatesDisabled {
+    defaultLocationId?: string;
     termsSigned?: Date;
     termsVersion?: string;
     externalId?: string;
@@ -1281,6 +1282,11 @@ export type TicketActions = {
         templateId: string;
         emailId?: string;
     }>;
+    "Send Chat": TicketActionBuilder<'Send Chat', {
+        templateId: string;
+        chatId?: string;
+        chatRoomId?: string;
+    }>;
 };
 export type TicketActionType = keyof TicketActions;
 export type TicketAction = TicketActions[TicketActionType];
@@ -1544,6 +1550,7 @@ export type FormFieldOptions = FormFieldValidation & {
     autoUploadFiles?: boolean;
     chargebeeEnvironment?: string;
     chargebeePlanId?: string;
+    relatedContactTypes?: string[];
 };
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>;
 export type FormFieldCalloutConditionComparison = 'Equals';
@@ -3011,6 +3018,7 @@ export type PortalBlockForType = {
     careTeam: BuildPortalBlockInfo<'careTeam', {
         title: string;
         roles?: string[];
+        showAll?: boolean;
     }>;
     carePlan: BuildPortalBlockInfo<'carePlan', {}>;
     education: BuildPortalBlockInfo<'education', {}>;
@@ -3756,7 +3764,10 @@ export type AutomationTriggerEvents = {
         formId: string;
         intervalInMS: number;
     }, {}>;
-    'Purchase Made': AutomationTriggerEventBuilder<"Purchase Made", {}, {}>;
+    'Purchase Made': AutomationTriggerEventBuilder<"Purchase Made", {
+        titles?: string[];
+        productIds?: string[];
+    }, {}>;
     'Refund Issued': AutomationTriggerEventBuilder<"Refund Issued", {}, {}>;
     'Subscription Ended': AutomationTriggerEventBuilder<"Subscription Ended", {}, {}>;
     'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", {

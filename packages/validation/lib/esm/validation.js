@@ -422,7 +422,7 @@ export var objectAnyFieldsValidator = function (valueValidator) { return ({
                     validated[field] = numberValidator.validate()(object[field]);
                 }
                 else if (typeof object[field] === 'string') {
-                    validated[field] = stringValidator.validate()(object[field]);
+                    validated[field] = stringValidator.validate({ emptyStringOk: true })(object[field]);
                 }
                 else if (object[field] === null) {
                     validated[field] = null;
@@ -2118,6 +2118,16 @@ export var ticketActionValidator = orValidator({
         completedAt: dateOptionalOrEmptyStringValidator,
         optional: booleanValidatorOptional,
     }),
+    "Send Chat": objectValidator({
+        type: exactMatchValidator(['Send Chat']),
+        info: objectValidator({
+            templateId: mongoIdStringRequired,
+            chatId: mongoIdStringOptional,
+            chatRoomId: mongoIdStringOptional,
+        }, { emptyOk: false }),
+        completedAt: dateOptionalOrEmptyStringValidator,
+        optional: booleanValidatorOptional,
+    }),
 });
 export var ticketActionsValidator = listValidatorOptionalOrEmptyOk(ticketActionValidator);
 export var senderAssignmentStrategyValidatorOptional = orValidator({
@@ -2805,6 +2815,7 @@ export var formFieldOptionsValidator = objectValidator({
     autoUploadFiles: booleanValidatorOptional,
     chargebeeEnvironment: stringValidatorOptional,
     chargebeePlanId: stringValidatorOptional,
+    relatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
 });
 export var blockValidator = orValidator({
     h1: objectValidator({
@@ -3134,6 +3145,7 @@ export var portalBlockValidator = orValidator({
         info: objectValidator({
             title: stringValidator,
             roles: listOfStringsValidatorOptionalOrEmptyOk,
+            showAll: booleanValidatorOptional,
             // members: listValidatorEmptyOk(
             //   objectValidator<CareTeamMemberPortalCustomizationInfo>({
             //     title: stringValidator(),
@@ -3555,7 +3567,10 @@ export var automationTriggerEventValidator = orValidator({
     }),
     "Purchase Made": objectValidator({
         type: exactMatchValidator(['Purchase Made']),
-        info: optionalEmptyObjectValidator,
+        info: objectValidator({
+            titles: listOfStringsValidatorOptionalOrEmptyOk,
+            productIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+        }),
         conditions: optionalEmptyObjectValidator,
     }),
     "Refund Issued": objectValidator({

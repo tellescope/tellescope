@@ -2072,7 +2072,7 @@ exports.schema = (0, exports.build_schema)({
                 },
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { email: {
+        fields: __assign(__assign({}, BuiltInFields), { defaultLocationId: { validator: validation_1.mongoIdStringRequired }, email: {
                 validator: validation_1.emailValidator,
                 required: true,
                 examples: ['test@tellescope.com'],

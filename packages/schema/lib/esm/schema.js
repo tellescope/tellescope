@@ -2067,7 +2067,7 @@ export var schema = build_schema({
                 },
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { email: {
+        fields: __assign(__assign({}, BuiltInFields), { defaultLocationId: { validator: mongoIdStringValidator }, email: {
                 validator: emailValidator,
                 required: true,
                 examples: ['test@tellescope.com'],

@@ -873,6 +873,7 @@ const StringSelector = ({ options, value, onChange, required, getDisplayValue, .
   size?: "small",
   required?: boolean,
   getDisplayValue?: (v: string) => string,
+  disabled?: boolean,
 }) => (
   <FormControl fullWidth size={props.size} required={required}>
     <InputLabel>{props.label}</InputLabel>
@@ -2576,9 +2577,14 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
   const [editing, setEditing] = useState(value.length === 1 ? 0 : -1)
 
   const handleAddContact = useCallback(() => {
-    onChange([...value, {}], field.id, true)
+    onChange([
+      ...value, 
+      { relationships: field?.options?.relatedContactTypes?.length === 1 ? [{ type: field.options.relatedContactTypes[0] as EnduserRelationship['type'], id: ''! } ] : [] }], 
+      field.id, 
+      true
+    )
     setEditing(value.length)
-  }, [onChange, value, field?.id])
+  }, [onChange, value, field?.id, field?.options?.relatedContactTypes])
 
   if (value[editing]) {
     const { fname, lname, email, phone, fields={}, dateOfBirth='', relationships } = value[editing]
@@ -2607,7 +2613,8 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
           }
 
           <Grid item xs={4}>
-            <StringSelector options={RELATIONSHIP_TYPES} label="Relationship" size="small"
+            <StringSelector options={field.options?.relatedContactTypes?.length ? field.options.relatedContactTypes : RELATIONSHIP_TYPES} label="Relationship" size="small"
+              disabled={field?.options?.relatedContactTypes?.length === 1}
               value={relationships?.[0]?.type ?? ''} 
               onChange={type => onChange(value.map((v, i) => i === editing ? { ...v, relationships: [{ type: type as EnduserRelationship['type'], id: '' /* to be filled on server-side */ }] } : v), field.id)}
             />

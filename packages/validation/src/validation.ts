@@ -822,7 +822,7 @@ export const objectAnyFieldsValidator = <T>(valueValidator?: ValidatorDefinition
         } else if (typeof object[field] === 'number') {
           validated[field] = numberValidator.validate()(object[field])
         } else if (typeof object[field] === 'string') {
-          validated[field] = stringValidator.validate()(object[field])
+          validated[field] = stringValidator.validate({ emptyStringOk: true })(object[field])
         } else if (object[field] === null) {
           validated[field] = null
         } else {
@@ -2666,6 +2666,16 @@ export const ticketActionValidator = orValidator<{ [K in TicketActionType]: Tick
     completedAt: dateOptionalOrEmptyStringValidator,
     optional: booleanValidatorOptional,
   }),
+  "Send Chat": objectValidator<TicketActions['Send Chat']>({
+    type: exactMatchValidator(['Send Chat']),
+    info: objectValidator<TicketActions['Send Chat']['info']>({ 
+      templateId: mongoIdStringRequired,
+      chatId: mongoIdStringOptional,
+      chatRoomId: mongoIdStringOptional,
+    }, { emptyOk: false }),
+    completedAt: dateOptionalOrEmptyStringValidator,
+    optional: booleanValidatorOptional,
+  }),
 })
 export const ticketActionsValidator = listValidatorOptionalOrEmptyOk(ticketActionValidator)
 
@@ -3394,6 +3404,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   autoUploadFiles: booleanValidatorOptional,
   chargebeeEnvironment: stringValidatorOptional,
   chargebeePlanId: stringValidatorOptional,
+  relatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -3735,6 +3746,7 @@ export const portalBlockValidator = orValidator<{ [K in PortalBlockType]: Portal
     info: objectValidator<PortalBlockForType['careTeam']['info']>({
       title: stringValidator,
       roles: listOfStringsValidatorOptionalOrEmptyOk,
+      showAll: booleanValidatorOptional,
       // members: listValidatorEmptyOk(
       //   objectValidator<CareTeamMemberPortalCustomizationInfo>({
       //     title: stringValidator(),
@@ -4180,7 +4192,10 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
   }), 
   "Purchase Made": objectValidator<AutomationTriggerEvents["Purchase Made"]>({
     type: exactMatchValidator(['Purchase Made']),
-    info: optionalEmptyObjectValidator,
+    info: objectValidator<AutomationTriggerEvents['Purchase Made']['info']>({
+      titles: listOfStringsValidatorOptionalOrEmptyOk,
+      productIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+    }),
     conditions: optionalEmptyObjectValidator,
   }), 
   "Refund Issued": objectValidator<AutomationTriggerEvents["Refund Issued"]>({
