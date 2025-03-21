@@ -226,14 +226,15 @@ interface LoadingButtonProps extends SubmitButtonOptions {
   uniquenessError?: string,
   onError?: OnApiError,
   onClick?: ((...args: any[]) => void) | (() => Promise<any>),
+  muiColor?: string,
 }
-export const LoadingButton = ({ disabled, uniquenessError, throwOnError, variant="contained", onError, submitting, onClick, submitText="Submit", submittingText="Submitting", type, style={ marginTop: 5, width: '100%' } }: LoadingButtonProps & Styled & { type?: 'submit'}) => {
+export const LoadingButton = ({ muiColor, disabled, uniquenessError, throwOnError, variant="contained", onError, submitting, onClick, submitText="Submit", submittingText="Submitting", type, style={ marginTop: 5, width: '100%' } }: LoadingButtonProps & Styled & { type?: 'submit'}) => {
   const { errorDisplay, handleAPIError, loading } = useHandleError({ onError, uniquenessError })
   const formLoading = React.useContext(WithHTMLFormContext)?.loading
 
   return (
     <>
-    <Button color="primary" variant={variant} type={type} onClick={() => handleAPIError(async () => {
+    <Button color={muiColor as any || "primary"} variant={variant} type={type} onClick={() => handleAPIError(async () => {
       if (!onClick) return
       await onClick()
     })}

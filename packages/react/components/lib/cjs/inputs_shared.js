@@ -368,13 +368,20 @@ var performBulkAction = function (_a) {
 };
 exports.performBulkAction = performBulkAction;
 var ModelSearchInput = function (_a) {
+    var _b, _c, _d;
     var filterKey = _a.filterKey, setFilters = _a.setFilters, searchAPI = _a.searchAPI, onLoad = _a.onLoad, attachSearchableFields = _a.attachSearchableFields, 
     // @ts-ignore remove from props if provided by mistake
     activeFilterCount = _a.activeFilterCount, 
     // @ts-ignore remove from props if provided by mistake
     compoundApiFilter = _a.compoundApiFilter, value = _a.value, onChange = _a.onChange, props = __rest(_a, ["filterKey", "setFilters", "searchAPI", "onLoad", "attachSearchableFields", "activeFilterCount", "compoundApiFilter", "value", "onChange"]);
+    var dontPersist = false;
+    try { // may fail to load if enduser session
+        var organizationLoading = (0, _1.useOrganization)()[0];
+        dontPersist = !!((0, _1.value_is_loaded)(organizationLoading) ? (_d = (_c = (_b = organizationLoading.value) === null || _b === void 0 ? void 0 : _b.settings) === null || _c === void 0 ? void 0 : _c.interface) === null || _d === void 0 ? void 0 : _d.dontPersistSearches : undefined);
+    }
+    catch (err) { }
     var cacheKey = "search-cache-".concat(filterKey);
-    var _b = (0, react_1.useState)((0, utilities_1.read_local_storage)(cacheKey) || ''), _query = _b[0], _setQuery = _b[1];
+    var _e = (0, react_1.useState)(dontPersist ? '' : ((0, utilities_1.read_local_storage)(cacheKey) || '')), _query = _e[0], _setQuery = _e[1];
     var query = value !== null && value !== void 0 ? value : _query;
     var setQuery = onChange !== null && onChange !== void 0 ? onChange : _setQuery;
     var filterOnLoadRef = (0, react_1.useRef)(!!query);

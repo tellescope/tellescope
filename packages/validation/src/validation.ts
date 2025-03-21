@@ -4021,6 +4021,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     defaultHideFilesFromPortal: booleanValidatorOptional,
     hideUnorderedFullscriptMeds: booleanValidatorOptional,
     detailField: stringValidatorOptional,
+    showDownloadCallRecordings: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -4065,6 +4066,9 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
   }, { isOptional: true, emptyOk: true, }),
   integrations: objectValidator<OrganizationSettings['integrations']>({
     vitalLabOrderPhysicianOptional: booleanValidatorOptional,
+  }, { isOptional: true, emptyOk: true, }),
+  interface: objectValidator<OrganizationSettings['interface']>({
+    dontPersistSearches: booleanValidatorOptional,
   }, { isOptional: true, emptyOk: true, }),
 })
 

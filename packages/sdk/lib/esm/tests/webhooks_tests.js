@@ -45,6 +45,17 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
+var __rest = (this && this.__rest) || function (s, e) {
+    var t = {};
+    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
+        t[p] = s[p];
+    if (s != null && typeof Object.getOwnPropertySymbols === "function")
+        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
+            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
+                t[p[i]] = s[p[i]];
+        }
+    return t;
+};
 import express from "express";
 import bodyParser from 'body-parser';
 import crypto from "crypto";
@@ -287,7 +298,7 @@ var endusers_tests = function (isSubscribed) { return __awaiter(void 0, void 0, 
             case 8:
                 _a.sent();
                 if (!isSubscribed) return [3 /*break*/, 10];
-                return [4 /*yield*/, sdk.api.webhooks.update({ subscriptionUpdates: __assign(__assign({}, emptySubscription), { chats: { create: true }, meetings: { create: true, update: true, delete: false } }) })];
+                return [4 /*yield*/, sdk.api.webhooks.update({ subscriptionUpdates: __assign(__assign({}, emptySubscription), { chats: { create: true, update: false, delete: false }, meetings: { create: true, update: true, delete: false } }) })];
             case 9:
                 _a.sent();
                 _a.label = 10;
@@ -446,14 +457,14 @@ var test_automation_webhooks = function () { return __awaiter(void 0, void 0, vo
             case 3:
                 enduser = _b.sent();
                 // wait long enough for automation to process and send webhook
-                return [4 /*yield*/, wait(undefined, AUTOMATION_POLLING_DELAY_MS)];
+                return [4 /*yield*/, wait(undefined, 7000)];
             case 4:
                 // wait long enough for automation to process and send webhook
                 _b.sent();
                 return [4 /*yield*/, check_next_webhook(function (_a) {
-                        var message = _a.message;
+                        var message = _a.message, rest = __rest(_a, ["message"]);
                         return message === testMessage;
-                    }, 'Automation webhook received', 'Automation webhook error', true)
+                    }, 'Automation webhook received', 'Automation webhook error', true, false)
                     // cleanup
                 ];
             case 5:
@@ -508,7 +519,7 @@ var calendar_event_reminders_tests = function (isSubscribed) { return __awaiter(
                 calendarEvent = _a.sent();
                 CALENDAR_EVENT_WEBHOOK_COUNT = sampleCalendarEventReminders.length;
                 // wait long enough for automation to process and send webhook
-                return [4 /*yield*/, wait(undefined, AUTOMATION_POLLING_DELAY_MS)];
+                return [4 /*yield*/, wait(undefined, AUTOMATION_POLLING_DELAY_MS * 2)];
             case 2:
                 // wait long enough for automation to process and send webhook
                 _a.sent();
@@ -629,7 +640,7 @@ var self_serve_appointment_booking_tests = function () { return __awaiter(void 0
         switch (_a.label) {
             case 0:
                 log_header("Self Serve Appointment Booking");
-                return [4 /*yield*/, sdk.api.webhooks.update({ subscriptionUpdates: __assign(__assign({}, emptySubscription), { calendar_events: { create: true, update: true } })
+                return [4 /*yield*/, sdk.api.webhooks.update({ subscriptionUpdates: __assign(__assign({}, emptySubscription), { calendar_events: { create: true, update: true, delete: false } })
                     })];
             case 1:
                 _a.sent();

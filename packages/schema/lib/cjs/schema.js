@@ -4444,7 +4444,7 @@ exports.schema = (0, exports.build_schema)({
                     id: validation_1.stringValidator100,
                     name: validation_1.stringValidator,
                 }))
-            }, groups: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: validation_1.stringValidator }, observationInvalidationReasons: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay } }),
+            }, groups: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: validation_1.stringValidator }, observationInvalidationReasons: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay } }),
     },
     databases: {
         info: {},

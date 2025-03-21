@@ -70,7 +70,7 @@ import React, { useEffect, useCallback, useMemo, useState, useRef } from "react"
 import { objects_equivalent, read_local_storage, safeJSONParse, update_local_storage, user_display_name } from "@tellescope/utilities";
 import { ALL_ACCESS, UNSEARCHABLE_FIELDS } from "@tellescope/constants";
 import { useSearchAPI } from "./hooks";
-import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, ScrollingList, SearchTextInput, Typography, useAgentRecords, useAllergyCodes, useAppointmentBookingPages, useAppointmentLocations, useAutomationTriggers, useCalendarEventTemplates, useCallHoldQueues, useChatRooms, useDatabaseRecords, useDatabases, useDiagnosisCodes, useEnduserOrders, useEndusers, useFaxLogs, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useMessageTemplateSnippets, useNotifications, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useSuggestedContacts, useTemplates, useTicketQueues, useTickets, useUsers, useWaitlists, value_is_loaded } from ".";
+import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, ScrollingList, SearchTextInput, Typography, useAgentRecords, useAllergyCodes, useAppointmentBookingPages, useAppointmentLocations, useAutomationTriggers, useCalendarEventTemplates, useCallHoldQueues, useChatRooms, useDatabaseRecords, useDatabases, useDiagnosisCodes, useEnduserOrders, useEndusers, useFaxLogs, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useMessageTemplateSnippets, useNotifications, useOrganization, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useSuggestedContacts, useTemplates, useTicketQueues, useTickets, useUsers, useWaitlists, value_is_loaded } from ".";
 /* FILTER / SEARCH */
 export var filter_setter_for_key = function (key, setFilters) { return function (f) { return setFilters(function (fs) {
     var _a;
@@ -335,13 +335,20 @@ export var performBulkAction = function (_a) {
     });
 };
 export var ModelSearchInput = function (_a) {
+    var _b, _c, _d;
     var filterKey = _a.filterKey, setFilters = _a.setFilters, searchAPI = _a.searchAPI, onLoad = _a.onLoad, attachSearchableFields = _a.attachSearchableFields, 
     // @ts-ignore remove from props if provided by mistake
     activeFilterCount = _a.activeFilterCount, 
     // @ts-ignore remove from props if provided by mistake
     compoundApiFilter = _a.compoundApiFilter, value = _a.value, onChange = _a.onChange, props = __rest(_a, ["filterKey", "setFilters", "searchAPI", "onLoad", "attachSearchableFields", "activeFilterCount", "compoundApiFilter", "value", "onChange"]);
+    var dontPersist = false;
+    try { // may fail to load if enduser session
+        var organizationLoading = useOrganization()[0];
+        dontPersist = !!(value_is_loaded(organizationLoading) ? (_d = (_c = (_b = organizationLoading.value) === null || _b === void 0 ? void 0 : _b.settings) === null || _c === void 0 ? void 0 : _c.interface) === null || _d === void 0 ? void 0 : _d.dontPersistSearches : undefined);
+    }
+    catch (err) { }
     var cacheKey = "search-cache-".concat(filterKey);
-    var _b = useState(read_local_storage(cacheKey) || ''), _query = _b[0], _setQuery = _b[1];
+    var _e = useState(dontPersist ? '' : (read_local_storage(cacheKey) || '')), _query = _e[0], _setQuery = _e[1];
     var query = value !== null && value !== void 0 ? value : _query;
     var setQuery = onChange !== null && onChange !== void 0 ? onChange : _setQuery;
     var filterOnLoadRef = useRef(!!query);

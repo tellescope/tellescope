@@ -3453,6 +3453,7 @@ exports.organizationSettingsValidator = (0, exports.objectValidator)({
         defaultHideFilesFromPortal: exports.booleanValidatorOptional,
         hideUnorderedFullscriptMeds: exports.booleanValidatorOptional,
         detailField: exports.stringValidatorOptional,
+        showDownloadCallRecordings: exports.booleanValidatorOptional,
     }, { isOptional: true }),
     tickets: (0, exports.objectValidator)({
         defaultJourneyDueDateOffsetInMS: exports.numberValidatorOptional,
@@ -3497,6 +3498,9 @@ exports.organizationSettingsValidator = (0, exports.objectValidator)({
     }, { isOptional: true, emptyOk: true, }),
     integrations: (0, exports.objectValidator)({
         vitalLabOrderPhysicianOptional: exports.booleanValidatorOptional,
+    }, { isOptional: true, emptyOk: true, }),
+    interface: (0, exports.objectValidator)({
+        dontPersistSearches: exports.booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true, }),
 });
 exports.calendarEventPortalSettingsValidator = (0, exports.objectValidator)({

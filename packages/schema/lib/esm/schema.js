@@ -4439,7 +4439,7 @@ export var schema = build_schema({
                     id: stringValidator100,
                     name: stringValidator,
                 }))
-            }, groups: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: stringValidator }, observationInvalidationReasons: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay } }),
+            }, groups: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: stringValidator }, observationInvalidationReasons: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay } }),
     },
     databases: {
         info: {},

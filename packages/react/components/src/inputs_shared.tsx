@@ -394,8 +394,14 @@ export const ModelSearchInput = <T,>({
 
   ...props 
 } : ModelSearchProps<T>) => {
+  let dontPersist = false
+  try { // may fail to load if enduser session
+    const [organizationLoading] = useOrganization()
+    dontPersist = !!(value_is_loaded(organizationLoading) ? organizationLoading.value?.settings?.interface?.dontPersistSearches : undefined  )
+  } catch(err) {}
+
   const cacheKey = `search-cache-${filterKey}`
-  const [_query, _setQuery] = useState(read_local_storage(cacheKey) || '')
+  const [_query, _setQuery] = useState(dontPersist ? '' : (read_local_storage(cacheKey) || ''))
 
   const query = value ?? _query
   const setQuery = onChange ?? _setQuery

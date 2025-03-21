@@ -9229,6 +9229,55 @@ const date_parsing_tests = () => {
   assert(YYYY_MM_DD_to_MM_DD_YYYY('2024-07-09') === '07-09-2024', 'YYYY_MM_DD_to_MM_DD_YYYY fails', 'YYYY_MM_DD_to_MM_DD_YYYY')
 }
 
+const test_form_response_search = async () => {
+  log_header("Form Response Search Tests")
+
+  const f = await sdk.api.forms.createOne({ title: 'KEYWORD for search', allowPublicURL: true })
+  const e = await sdk.api.endusers.createOne({ email: 'test@tellescope.com' })
+
+  const fr = await sdk.api.form_responses.prepare_form_response({
+    enduserId: e.id,
+    formId: f.id,
+  })
+  await sdk.api.form_responses.submit_form_response({
+    accessCode: fr.accessCode,
+    responses: [
+      {
+        fieldId: '',
+        fieldTitle: 'unsearchable',
+        answer: {
+          type: 'string',
+          value: 'unsearchable',
+        }
+      }
+    ],
+  })
+
+
+  await async_test(
+    "Search for searchable title",
+    () => sdk.api.form_responses.getSome({ search: { query: 'KEYWORD' } }),
+    { onResult: r => r.length === 1 },
+  )
+
+  await async_test(
+    "Search for email",
+    () => sdk.api.form_responses.getSome({ search: { query: 'test@tellescope.com' } }),
+    { onResult: r => r.length === 1 },
+  )
+
+  await async_test(
+    "Search for unsearchable field",
+    () => sdk.api.form_responses.getSome({ search: { query: 'unsearchable' } }),
+    { onResult: r => r.length === 0 },
+  )
+
+  return await Promise.all([
+    sdk.api.forms.deleteOne(f.id),
+    sdk.api.endusers.deleteOne(e.id),
+  ])
+}
+
 (async () => {
   log_header("API")
 
@@ -9343,6 +9392,7 @@ const date_parsing_tests = () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await test_form_response_search()
     await date_parsing_tests()
     await fromEmailOverride_tests()
     await ticket_tests()

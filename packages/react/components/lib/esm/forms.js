@@ -133,10 +133,10 @@ export var FormikSubmitButton = function (_a) {
 };
 export var LoadingButton = function (_a) {
     var _b;
-    var disabled = _a.disabled, uniquenessError = _a.uniquenessError, throwOnError = _a.throwOnError, _c = _a.variant, variant = _c === void 0 ? "contained" : _c, onError = _a.onError, submitting = _a.submitting, onClick = _a.onClick, _d = _a.submitText, submitText = _d === void 0 ? "Submit" : _d, _e = _a.submittingText, submittingText = _e === void 0 ? "Submitting" : _e, type = _a.type, _f = _a.style, style = _f === void 0 ? { marginTop: 5, width: '100%' } : _f;
+    var muiColor = _a.muiColor, disabled = _a.disabled, uniquenessError = _a.uniquenessError, throwOnError = _a.throwOnError, _c = _a.variant, variant = _c === void 0 ? "contained" : _c, onError = _a.onError, submitting = _a.submitting, onClick = _a.onClick, _d = _a.submitText, submitText = _d === void 0 ? "Submit" : _d, _e = _a.submittingText, submittingText = _e === void 0 ? "Submitting" : _e, type = _a.type, _f = _a.style, style = _f === void 0 ? { marginTop: 5, width: '100%' } : _f;
     var _g = useHandleError({ onError: onError, uniquenessError: uniquenessError }), errorDisplay = _g.errorDisplay, handleAPIError = _g.handleAPIError, loading = _g.loading;
     var formLoading = (_b = React.useContext(WithHTMLFormContext)) === null || _b === void 0 ? void 0 : _b.loading;
-    return (_jsxs(_Fragment, { children: [_jsxs(Button, __assign({ color: "primary", variant: variant, type: type, onClick: function () { return handleAPIError(function () { return __awaiter(void 0, void 0, void 0, function () {
+    return (_jsxs(_Fragment, { children: [_jsxs(Button, __assign({ color: muiColor || "primary", variant: variant, type: type, onClick: function () { return handleAPIError(function () { return __awaiter(void 0, void 0, void 0, function () {
                     return __generator(this, function (_a) {
                         switch (_a.label) {
                             case 0:

@@ -197,6 +197,7 @@ export type OrganizationSettings = {
         defaultHideFilesFromPortal?: boolean;
         hideUnorderedFullscriptMeds?: boolean;
         detailField?: string;
+        showDownloadCallRecordings?: boolean;
     };
     tickets?: {
         defaultJourneyDueDateOffsetInMS?: number | '';
@@ -236,6 +237,9 @@ export type OrganizationSettings = {
     };
     integrations?: {
         vitalLabOrderPhysicianOptional?: boolean;
+    };
+    interface?: {
+        dontPersistSearches?: boolean;
     };
 };
 export type OrganizationLimits = {
@@ -408,6 +412,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     hasConnectedMedplum?: boolean;
     customPortalLoginEmailSubject?: string;
     customPortalLoginEmailHTML?: string;
+    customerIOFields?: string[];
 }
 export type OrganizationTheme = {
     name: string;

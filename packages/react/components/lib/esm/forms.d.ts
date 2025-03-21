@@ -85,8 +85,9 @@ interface LoadingButtonProps extends SubmitButtonOptions {
     uniquenessError?: string;
     onError?: OnApiError;
     onClick?: ((...args: any[]) => void) | (() => Promise<any>);
+    muiColor?: string;
 }
-export declare const LoadingButton: ({ disabled, uniquenessError, throwOnError, variant, onError, submitting, onClick, submitText, submittingText, type, style }: LoadingButtonProps & Styled & {
+export declare const LoadingButton: ({ muiColor, disabled, uniquenessError, throwOnError, variant, onError, submitting, onClick, submitText, submittingText, type, style }: LoadingButtonProps & Styled & {
     type?: "submit" | undefined;
 }) => JSX.Element;
 export declare const SubmitButton: ({ onClick, ...props }: LoadingButtonProps & Styled) => JSX.Element;

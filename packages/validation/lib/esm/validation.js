@@ -3401,6 +3401,7 @@ export var organizationSettingsValidator = objectValidator({
         defaultHideFilesFromPortal: booleanValidatorOptional,
         hideUnorderedFullscriptMeds: booleanValidatorOptional,
         detailField: stringValidatorOptional,
+        showDownloadCallRecordings: booleanValidatorOptional,
     }, { isOptional: true }),
     tickets: objectValidator({
         defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -3445,6 +3446,9 @@ export var organizationSettingsValidator = objectValidator({
     }, { isOptional: true, emptyOk: true, }),
     integrations: objectValidator({
         vitalLabOrderPhysicianOptional: booleanValidatorOptional,
+    }, { isOptional: true, emptyOk: true, }),
+    interface: objectValidator({
+        dontPersistSearches: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true, }),
 });
 export var calendarEventPortalSettingsValidator = objectValidator({

@@ -6417,6 +6417,7 @@ export const schema: SchemaV1 = build_schema({
       canvasURL: { validator: stringValidator },
       observationInvalidationReasons: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       customNotificationTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      customerIOFields: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
     },
   },
   databases: {

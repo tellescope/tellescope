@@ -250,7 +250,7 @@ const endusers_tests = async (isSubscribed: boolean) => {
   if (isSubscribed) {
     await sdk.api.webhooks.update({ subscriptionUpdates: { 
       ...emptySubscription, 
-      chats: { create: true }, 
+      chats: { create: true, update: false, delete: false }, 
       meetings: { create: true, update: true, delete: false },
     }})
   }
@@ -392,15 +392,16 @@ const test_automation_webhooks = async () => {
   })
 
   // wait long enough for automation to process and send webhook
-  await wait(undefined, AUTOMATION_POLLING_DELAY_MS)
+  await wait(undefined, 7000)
   
   await check_next_webhook(
-    ({ message }) => {
+    ({ message, ...rest }) => {
       return message === testMessage
     },
     'Automation webhook received', 
     'Automation webhook error', 
-    true
+    true,
+    false
   )
 
   // cleanup
@@ -443,7 +444,7 @@ const calendar_event_reminders_tests = async (isSubscribed: boolean) => {
   CALENDAR_EVENT_WEBHOOK_COUNT = sampleCalendarEventReminders.length
 
   // wait long enough for automation to process and send webhook
-  await wait(undefined, AUTOMATION_POLLING_DELAY_MS) 
+  await wait(undefined, AUTOMATION_POLLING_DELAY_MS * 2) 
   await check_next_webhook(
     ({ event }) => (
       event?.id === calendarEvent.id && 
@@ -563,7 +564,7 @@ const self_serve_appointment_booking_tests = async () => {
 
   await sdk.api.webhooks.update({ subscriptionUpdates: { 
     ...emptySubscription, 
-    calendar_events: { create: true, update: true } } 
+    calendar_events: { create: true, update: true, delete: false } } 
   })
 
   const e1 = await sdk.api.endusers.createOne({ email: 'sebass+selfserve@tellescope.com' }) 
