@@ -39,6 +39,7 @@ import { PRIMARY_HEX } from "@tellescope/constants"
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import { Autocomplete } from "@mui/material"
 import { ListQueryQualifier, SortingField } from "@tellescope/types-models"
+import { LoadingButton } from "./forms"
 // import DragHandleIcon from '@mui/icons-material/DragHandle';
 
 const LIGHT_GRAY = "#fafafa"
@@ -150,6 +151,7 @@ export interface TableHeaderProps<T extends Item> extends Styled, HorizontalPadd
   filterSuggestions: Record<string, string[]>,
   minColumnWidth?: number,
   columnResizeZIndex?: number,
+  headerHeight?: number,
 }
 export const TableHeader = <T extends Item>({ 
   fields, 
@@ -171,6 +173,7 @@ export const TableHeader = <T extends Item>({
   filterSuggestions,
   minColumnWidth=75,
   columnResizeZIndex=1000,
+  headerHeight=ROW_HEIGHT,
 } : TableHeaderProps<T>) => { 
   const [openFilter, setOpenFilter] = useState(-1)
   const [startX, setStartX] = useState(0)
@@ -241,7 +244,7 @@ export const TableHeader = <T extends Item>({
 
     <Flex alignItems="center" style={{ 
       paddingLeft: horizontalPadding, paddingRight: horizontalPadding,
-      minHeight: ROW_HEIGHT,
+      minHeight: headerHeight,
       backgroundColor: DARK_GRAY,
       ...style 
     }}>
@@ -405,6 +408,7 @@ export interface TableRowProps<T extends Item> extends Styled, HorizontalPadded,
   textStyle?: CSSProperties,
   widthOffsets: Record<string, number>,
   minColumnWidth?: number,
+  rowHeight?: number,
 }
 export const TableRow = <T extends Item>({ 
   item, indices, fields, onClick, onPress, hover, 
@@ -422,13 +426,14 @@ export const TableRow = <T extends Item>({
   allowUnselectItemsAfterSelectAll,
   setAllSelected,
   minColumnWidth=75,
+  rowHeight=ROW_HEIGHT,
 } : TableRowProps<T>) => (
   <WithHover hoveredColor={hoveredColor ?? GRAY} notHoveredColor={notHoveredColor} disabled={!hover} flex>
     <Flex flex={1} alignItems="center"
       onClick={() => (onClick ?? onPress)?.(item)}
       style={{ 
         paddingLeft: horizontalPadding, paddingRight: horizontalPadding, 
-        minHeight: ROW_HEIGHT,
+        minHeight: rowHeight,
         ...style,
         backgroundColor: undefined, // leave in parent component
       }}
@@ -717,6 +722,7 @@ export interface TableProps<T extends Item> extends WithTitle, WithHeader<T>, Wi
   titleStyle?: React.CSSProperties,
   // description?: string,
   titleActionsComponent?: React.ReactNode,
+  titleComponentHeight?: number,
   noPaper?: boolean,
   emptyText?: string,
   emptyComponent?: React.ReactElement,
@@ -744,10 +750,13 @@ export interface TableProps<T extends Item> extends WithTitle, WithHeader<T>, Wi
   refreshFilterSuggestionsKey?: number,
   minColumnWidth?: number,
   columnResizeZIndex?: number,
+  rowHeight?: number,
+  headerHeight?: number,
 }
 export const Table = <T extends Item>({
   items,
   emptyText,
+  titleComponentHeight,
   emptyComponent,
   noPaper,
   pageOptions={ paginated: true },
@@ -762,7 +771,7 @@ export const Table = <T extends Item>({
   doneLoading,
   loadMoreOptions,
   // onClearFilter,
-  filterCounts,
+  filterCounts: _filterCounts,
 
   title,
   titleStyle,
@@ -772,11 +781,13 @@ export const Table = <T extends Item>({
   renderTitleComponent,
   fields,
   HeaderComponent=TableHeader,
+  headerHeight,
   hover,
   hoveredColor,
   RowComponent=TableRow,
   footerStyle='numbered',
   FooterComponent=footerStyle === 'numbered' ? TableFooterNumbered : TableFooter, 
+  rowHeight,
 
   selectable,
   selected,
@@ -965,6 +976,9 @@ export const Table = <T extends Item>({
     })
   }, [sorted, localFilters, fields])
 
+  // make sure filterCounts incorporates column filters whose state is in Table, not parent component
+  const filterCounts = _filterCounts ? { ..._filterCounts, filtered: filtered.length } : undefined
+
   const headerFilterIsActive = (
      !!(fields.find(f => f.filterIsActive) || localFilters.find(f => f?.query))
   )
@@ -1039,6 +1053,7 @@ export const Table = <T extends Item>({
         virtualization={virtualization}
         header={fields && HeaderComponent && fields.length > 0 && (items.length > 0 || headerFilterIsActive) && (
           <HeaderComponent selectable={selectable} allSelected={allSelected} allowUnselectItemsAfterSelectAll={allowUnselectItemsAfterSelectAll}
+            headerHeight={headerHeight}
             setAllSelected={v =>  {
               setAllSelected?.(v)
               if (v) {
@@ -1080,14 +1095,25 @@ export const Table = <T extends Item>({
         // renderProps={{ horizontalPadding }}
         emptyText={emptyComponent ?? (
           (emptyText || headerFilterIsActive)
-            ? <Typography style={{ padding: horizontalPadding }}>
+            ? (
+              <>
+              <Typography style={{ padding: horizontalPadding }}>
                 {emptyText || 'No results found the current filter'}
               </Typography> 
+
+              <div style={{ paddingLeft: horizontalPadding, paddingBottom: horizontalPadding }}>
+              <LoadingButton submitText="Load Older Data" submittingText="Loading..."
+                disabled={doneLoading?.()} onClick={loadMore} 
+                variant="outlined" style={{ width: 200, textAlign: 'center', marginTop: 10 }}
+              />
+              </div>
+              </>
+            )
             : undefined
           )
         }
         Item={({ item, index }) => ( // index within this list, e.g. a single page
-          <RowComponent widthOffsets={widthOffsets}
+          <RowComponent widthOffsets={widthOffsets} rowHeight={rowHeight}
             selectable={selectable} selected={selected} setSelected={setSelected} allSelected={allSelected} setAllSelected={setAllSelected} allowUnselectItemsAfterSelectAll={allowUnselectItemsAfterSelectAll}
             key={item.id} item={item} 
             indices={{ 

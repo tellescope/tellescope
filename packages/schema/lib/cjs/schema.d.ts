@@ -686,6 +686,10 @@ export type CustomActions = {
             event?: string;
             trackProperties?: string[];
         }, {}>;
+        rename_stored_custom_fields: CustomAction<{
+            existingName: string;
+            newName: string;
+        }, {}>;
     };
     users: {
         display_info: CustomAction<{}, {

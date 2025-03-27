@@ -67,10 +67,435 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React, { useEffect, useCallback, useMemo, useState, useRef } from "react";
-import { objects_equivalent, read_local_storage, safeJSONParse, update_local_storage, user_display_name } from "@tellescope/utilities";
-import { ALL_ACCESS, UNSEARCHABLE_FIELDS } from "@tellescope/constants";
+import { is_full_iso_string_heuristic, object_is_empty, objects_equivalent, read_local_storage, replace_keys_and_values_in_object, safeJSONParse, update_local_storage, user_display_name, value_for_dotted_key } from "@tellescope/utilities";
+import { ALL_ACCESS, HEALTHIE_TITLE, UNSEARCHABLE_FIELDS } from "@tellescope/constants";
 import { useSearchAPI } from "./hooks";
 import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, ScrollingList, SearchTextInput, Typography, useAgentRecords, useAllergyCodes, useAppointmentBookingPages, useAppointmentLocations, useAutomationTriggers, useCalendarEventTemplates, useCallHoldQueues, useChatRooms, useDatabaseRecords, useDatabases, useDiagnosisCodes, useEnduserOrders, useEndusers, useFaxLogs, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useMessageTemplateSnippets, useNotifications, useOrganization, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useSuggestedContacts, useTemplates, useTicketQueues, useTickets, useUsers, useWaitlists, value_is_loaded } from ".";
+export var enduser_condition_to_mongodb_filter = function (condition, customFields) {
+    var _a, _b;
+    if (!condition) {
+        return condition;
+    }
+    if (condition.$and) {
+        return { $and: condition.$and.map(function (v) { return enduser_condition_to_mongodb_filter(v, customFields); }) };
+    }
+    if (condition.$or) {
+        return { $or: condition.$or.map(function (v) { return enduser_condition_to_mongodb_filter(v, customFields); }) };
+    }
+    if (condition.$nor) {
+        return { $nor: condition.$nor.map(function (v) { return enduser_condition_to_mongodb_filter(v, customFields); }) };
+    }
+    if (condition.$not) {
+        return { $not: enduser_condition_to_mongodb_filter(condition.$not, customFields) };
+    }
+    if (condition && typeof condition === 'object' && condition.constructor === Object) {
+        var updated = {};
+        for (var _i = 0, _c = Object.entries(condition); _i < _c.length; _i++) {
+            var _d = _c[_i], _key = _d[0], _value = _d[1];
+            var key = customFields.includes(_key) ? "fields.".concat(_key) : _key;
+            var value = enduser_condition_to_mongodb_filter(_value, customFields);
+            // console.log(key, _value, value)
+            if (key === 'condition') {
+                var toReturn = enduser_condition_to_mongodb_filter(value, customFields);
+                delete updated.condition;
+                return toReturn;
+            } // base case is comparison to value, so just return it
+            // journeys currently have a special ui/syntax in filter
+            if (key === 'Journeys') {
+                if ((typeof (value === null || value === void 0 ? void 0 : value.$in)) === 'string') {
+                    return _a = {}, _a["journeys.".concat(value.$in)] = { $exists: true }, _a;
+                }
+                else if ((typeof (value === null || value === void 0 ? void 0 : value.$nin)) === 'string') {
+                    return _b = {}, _b["journeys.".concat(value.$nin)] = { $exists: false }, _b;
+                }
+            }
+            if (key === 'Healthie ID') {
+                // $setSet ($nin null, '')
+                if (value === null || value === void 0 ? void 0 : value.$nin)
+                    return { $or: [{ source: HEALTHIE_TITLE, externalId: { $nin: [null, ''] } }, { 'references.type': HEALTHIE_TITLE }] };
+                // $isNotSet ($in null, '')
+                if (value === null || value === void 0 ? void 0 : value.$in)
+                    return { $and: [{ source: { $ne: HEALTHIE_TITLE } }, { 'references.type': { $ne: HEALTHIE_TITLE } }] };
+            }
+            // ensure to parse string to number values
+            if (key === 'height') {
+                return {
+                    'height.value': replace_keys_and_values_in_object(value, function (v) { return typeof v === 'string' && !v.startsWith('$') ? parseFloat(v) : v; })
+                };
+            }
+            if (key === 'weight') {
+                return {
+                    'weight.value': replace_keys_and_values_in_object(value, function (v) { return typeof v === 'string' && !v.startsWith('$') ? parseFloat(v) : v; })
+                };
+            }
+            if (key === "relationships") {
+                return {
+                    'relationships.type': value
+                };
+            }
+            // case for isSet and isNotSet includes empty string as unset value
+            if (key === '$isSet') {
+                updated.$nin = [null, '', []];
+            }
+            else if (key === '$isNotSet') {
+                updated.$in = [null, '', []];
+            }
+            else if (key === '$contains') {
+                updated.$regex = value;
+            }
+            else if (key === '$doesNotContain') {
+                updated.$not = { $regex: value };
+            }
+            else if (key === '$before') {
+                updated.$lt = value;
+            }
+            else if (key === '$after') {
+                updated.$gt = value;
+            }
+            else {
+                updated[key] = value;
+            }
+        }
+        return updated;
+    }
+    return condition;
+};
+export var mongo_db_filter_to_enduser_condition = function (filter) {
+    var _a;
+    var _b, _c;
+    if (!filter) {
+        return filter;
+    }
+    if (objects_equivalent(filter, {
+        "$and": [
+            {
+                "source": {
+                    "$ne": "Healthie"
+                }
+            },
+            {
+                "references.type": {
+                    "$ne": "Healthie"
+                }
+            }
+        ]
+    })) {
+        return { condition: { 'Healthie ID': { $isNotSet: 'Value' } } };
+    }
+    if (objects_equivalent(filter, {
+        "$or": [
+            {
+                "source": "Healthie",
+                "externalId": {
+                    "$nin": [
+                        null,
+                        ""
+                    ]
+                }
+            },
+            {
+                "references.type": "Healthie"
+            }
+        ]
+    })) {
+        return { condition: { 'Healthie ID': { $isSet: 'Value' } } };
+    }
+    if (filter.$and) {
+        return { $and: filter.$and.map(function (v) { return mongo_db_filter_to_enduser_condition(v); }) };
+    }
+    if (filter.$or) {
+        return { $or: filter.$or.map(function (v) { return mongo_db_filter_to_enduser_condition(v); }) };
+    }
+    if (filter.$nor) {
+        return { $nor: filter.$nor.map(function (v) { return mongo_db_filter_to_enduser_condition(v); }) };
+    }
+    if (filter.$not) {
+        return { $not: mongo_db_filter_to_enduser_condition(filter.$not) };
+    }
+    if (filter && typeof filter === 'object' && filter.constructor === Object) {
+        if (object_is_empty(filter))
+            return filter;
+        var updated = { condition: {} };
+        for (var _i = 0, _d = Object.entries(filter); _i < _d.length; _i++) {
+            var _e = _d[_i], _key = _e[0], value = _e[1];
+            var key = ((typeof _key === 'string' && _key.startsWith('fields.')) ? _key.replace('fields.', '')
+                : _key === 'height.value' ? 'height'
+                    : _key === 'weight.value' ? 'weight'
+                        : _key === 'relationships.type' ? 'relationships'
+                            : _key);
+            if (value && typeof value === 'object' && value.constructor === Object) {
+                updated.condition[key] = {};
+                if (Object.keys(value)[0] === '$exists') {
+                    if (key.startsWith('journeys.')) {
+                        // journeys currently have a special ui/syntax in filter
+                        updated.condition['Journeys'] = (_a = {}, _a[value.$exists ? '$in' : '$nin'] = key.split('.')[1], _a);
+                    }
+                    else if (value.$exists) {
+                        updated.condition[key]['$isSet'] = "Value";
+                    }
+                    else {
+                        updated.condition[key]['$isNotSet'] = "Value";
+                    }
+                }
+                // case for isSet and isNotSet includes empty string as unset value
+                else if (Array.isArray(value.$in) && value.$in.length === 3 && value.$in.includes(null) && value.$in.includes('') && value.$in.find(function (v) { return Array.isArray(v) && v.length === 0; })) {
+                    updated.condition[key]['$isNotSet'] = "Value";
+                }
+                else if (Array.isArray(value.$nin) && value.$nin.length === 3 && value.$nin.includes(null) && value.$nin.includes('') && value.$nin.find(function (v) { return Array.isArray(v) && v.length === 0; })) {
+                    updated.condition[key]['$isSet'] = "Value";
+                }
+                else if (Object.keys(value)[0] === '$gt' && (value.$gt instanceof Date || is_full_iso_string_heuristic(value.$gt) || value.$gt === '$now')) {
+                    updated.condition[key]['$after'] = value.$gt;
+                }
+                else if (Object.keys(value)[0] === '$lt' && (value.$lt instanceof Date || is_full_iso_string_heuristic(value.$lt) || value.$lt === '$now')) {
+                    updated.condition[key]['$before'] = value.$lt;
+                }
+                else if (Object.keys(value)[0] === '$regex') {
+                    updated.condition[key]['$contains'] = value.$regex;
+                }
+                else if (Object.keys(value)[0] === '$not' && ((_c = Object.keys((_b = value.$not) !== null && _b !== void 0 ? _b : {})) === null || _c === void 0 ? void 0 : _c[0]) === '$regex') {
+                    updated.condition[key]['$doesNotContain'] = value.$not.$regex;
+                }
+                else {
+                    updated.condition[key] = value;
+                }
+            }
+            else {
+                updated.condition[key] = value;
+            }
+        }
+        return updated;
+    }
+    return filter;
+};
+export var list_of_strings_with_qualifier_to_mongodb_filter = function (tags) {
+    if ((tags === null || tags === void 0 ? void 0 : tags.qualifier) === 'All Of') {
+        return { $all: tags.values || [] };
+    }
+    return { $in: (tags === null || tags === void 0 ? void 0 : tags.values) || [] };
+};
+export var mongo_db_filter_to_list_of_strings_with_qualifier = function (filter) {
+    var defaultValue = { qualifier: 'One Of', values: [] };
+    if (!filter) {
+        return defaultValue;
+    }
+    if (filter.$all) {
+        return { values: filter.$all, qualifier: 'All Of' };
+    }
+    if (filter.$in) {
+        return { values: filter.$in, qualifier: 'One Of' };
+    }
+    return defaultValue;
+};
+export var apply_mongodb_style_filter = function (data, filter, options) {
+    var matchesFilter = function (item, filter) {
+        if (!options.showArchived && (item === null || item === void 0 ? void 0 : item.archivedAt))
+            return false;
+        var _loop_1 = function (key, condition) {
+            if (key === "$and") {
+                if (!Array.isArray(condition) || !condition.every(function (subFilter) { return matchesFilter(item, subFilter); })) {
+                    return { value: false };
+                }
+            }
+            else if (key === "$or") {
+                if (!Array.isArray(condition) || !condition.some(function (subFilter) { return matchesFilter(item, subFilter); })) {
+                    return { value: false };
+                }
+            }
+            else if (key === "$nor") {
+                if (!Array.isArray(condition) || condition.some(function (subFilter) { return matchesFilter(item, subFilter); })) {
+                    return { value: false };
+                }
+            }
+            else if (key === "$not") {
+                if (typeof condition !== "object" || matchesFilter(item, condition)) {
+                    return { value: false };
+                }
+            }
+            else {
+                var value_1 = value_for_dotted_key(item, key, { handleArray: true });
+                // console.log('checking value', key, value, condition)
+                // to be consistent with mongodb, $in/$nin should match null and undefined
+                var modifyArrayOperandForNull = function (v) { return (__spreadArray(__spreadArray([], v, true), (v.includes(null) ? [undefined] : []), true)); };
+                if (Array.isArray(value_1)) {
+                    if (typeof condition === "object" && condition !== null) {
+                        for (var _c = 0, _d = Object.entries(condition); _c < _d.length; _c++) {
+                            var _e = _d[_c], operator = _e[0], operand = _e[1];
+                            // handle empty array
+                            if (Array.isArray(value_1) && value_1.length === 0) {
+                                if (operator === '$eq' && Array.isArray(operand) && operand.length === 0) {
+                                    continue;
+                                }
+                                if (operator === '$ne' && Array.isArray(operand) && operand.length === 0) {
+                                    return { value: false };
+                                }
+                                if (Array.isArray(operand) && operand.find(function (a) { return Array.isArray(a) && a.length === 0; })) {
+                                    if (operator === '$in') {
+                                        continue;
+                                    }
+                                    if (operator === '$nin') {
+                                        return { value: false };
+                                    }
+                                }
+                            }
+                            if (operator === '$eq' && !value_1.includes(operand))
+                                return { value: false };
+                            if (operator === '$ne' && value_1.includes(operand))
+                                return { value: false };
+                            if (operator === "$in" && Array.isArray(operand) && !modifyArrayOperandForNull(operand).some(function (o) { return value_1.includes(o); }))
+                                return { value: false };
+                            if (operator === "$nin" && Array.isArray(operand) && modifyArrayOperandForNull(operand).some(function (o) { return value_1.includes(o); }))
+                                return { value: false };
+                            if (operator === "$all" && Array.isArray(operand) && !operand.every(function (o) { return value_1.includes(o); }))
+                                return { value: false };
+                            if (operator === '$all' && condition.length === 0)
+                                return { value: false };
+                            if (operator === '$all' && Array.isArray(operand) && operand.length === 0)
+                                return { value: false };
+                            if (operator === "$size" && value_1.length !== operand)
+                                return { value: false };
+                            if (operator === '$exists' && operand === false)
+                                return { value: false };
+                        }
+                    }
+                    else {
+                        if (!value_1.includes(condition))
+                            return { value: false };
+                    }
+                }
+                else {
+                    if (typeof condition === "object" && condition !== null) {
+                        for (var _f = 0, _g = Object.entries(condition); _f < _g.length; _f++) {
+                            var _h = _g[_f], operator = _h[0], operand = _h[1];
+                            var numberValue = (is_full_iso_string_heuristic(value_1 === null || value_1 === void 0 ? void 0 : value_1.toString())
+                                ? new Date(value_1).getTime()
+                                : parseFloat(value_1));
+                            var parsedOperandForNumber = (is_full_iso_string_heuristic(operand === null || operand === void 0 ? void 0 : operand.toString())
+                                ? new Date(operand).getTime()
+                                : operand === '$now'
+                                    ? new Date().getTime()
+                                    : parseFloat(operand));
+                            if (operator === "$eq" && value_1 !== operand)
+                                return { value: false };
+                            if (operator === "$ne" && value_1 === operand)
+                                return { value: false };
+                            if (operator === "$in" && (!Array.isArray(operand) || !(modifyArrayOperandForNull(operand).includes(value_1))))
+                                return { value: false };
+                            if (operator === "$nin" && !(Array.isArray(operand) && !modifyArrayOperandForNull(operand).includes(value_1)))
+                                return { value: false };
+                            if (operator === "$exists" && ((operand && value_1 === undefined) || (!operand && value_1 !== undefined)))
+                                return { value: false };
+                            if (operator === "$regex" && !(typeof value_1 === "string" && new RegExp(operand).test(value_1)))
+                                return { value: false };
+                            if (operator === "$gt" && (numberValue <= parseFloat(parsedOperandForNumber) || isNaN(numberValue) || numberValue === null || numberValue === undefined))
+                                return { value: false };
+                            if (operator === "$gte" && (numberValue < parseFloat(parsedOperandForNumber) || isNaN(numberValue) || numberValue === null || numberValue === undefined))
+                                return { value: false };
+                            if (operator === "$lt" && (numberValue >= parseFloat(parsedOperandForNumber) || isNaN(numberValue) || numberValue === null || numberValue === undefined))
+                                return { value: false };
+                            if (operator === "$lte" && (numberValue > parseFloat(parsedOperandForNumber) || isNaN(numberValue) || numberValue === null || numberValue === undefined))
+                                return { value: false };
+                            // only valid for lists, shoujld return false by default
+                            if (operator === '$all')
+                                return { value: false };
+                        }
+                    }
+                    else {
+                        if (value_1 !== condition)
+                            return { value: false };
+                    }
+                }
+            }
+        };
+        for (var _i = 0, _a = Object.entries(filter); _i < _a.length; _i++) {
+            var _b = _a[_i], key = _b[0], condition = _b[1];
+            var state_1 = _loop_1(key, condition);
+            if (typeof state_1 === "object")
+                return state_1.value;
+        }
+        return true;
+    };
+    try {
+        return data.filter(function (item) { return matchesFilter(item, filter); });
+    }
+    catch (err) {
+        console.error("Filter error:", err);
+    }
+    return data;
+};
+export var remove_inactive_filters = function (filters) { return (filters.map(function (f) {
+    // gpt4o
+    var cleanedFilter = Object.entries(f).reduce(function (acc, _a) {
+        var key = _a[0], value = _a[1];
+        if (key === "$and" || key === "$or") {
+            var subFilters = Array.isArray(value) ? value.filter(function (sub) { return Object.keys(sub).length > 0; }) : [];
+            if (subFilters.length > 0) {
+                acc[key] = subFilters;
+            }
+        }
+        else if (key === "$in" || key === "$all") {
+            if (Array.isArray(value) && value.length > 0) {
+                acc[key] = value;
+            }
+        }
+        else if (key === "$exists" || key === "$not") {
+            acc[key] = value;
+        }
+        else if (typeof value === "object" && value !== null) {
+            var nestedFilter = remove_inactive_filters([value])[0];
+            if (nestedFilter && Object.keys(nestedFilter).length > 0) {
+                acc[key] = nestedFilter;
+            }
+        }
+        else {
+            acc[key] = value;
+        }
+        return acc;
+    }, {});
+    return Object.keys(cleanedFilter).length > 0 ? cleanedFilter : null;
+})
+    .filter(function (v) { return v && !object_is_empty(v); })); };
+export var useFiltersV2 = function (args) {
+    var _a = args !== null && args !== void 0 ? args : {}, onFilterChange = _a.onFilterChange, reload = _a.reload, memoryId = _a.memoryId, initialFilters = _a.initialFilters, showArchived = _a.showArchived;
+    var loadFilters = useCallback(function () { return (initialFilters || (memoryId
+        ? (safeJSONParse(read_local_storage(memoryId)) || {})
+        : {})); }, [initialFilters, memoryId]);
+    var _b = React.useState(loadFilters()), filters = _b[0], setFilters = _b[1];
+    var didReloadRef = useRef(false);
+    useEffect(function () {
+        if (!reload)
+            return;
+        if (didReloadRef.current)
+            return;
+        didReloadRef.current = true;
+        setFilters(loadFilters);
+    }, [reload, loadFilters]);
+    useEffect(function () {
+        if (!memoryId)
+            return;
+        update_local_storage(memoryId, JSON.stringify(filters));
+    }, [filters, memoryId]);
+    var prevFilterRef = React.useRef(filters);
+    useEffect(function () {
+        if (!onFilterChange)
+            return;
+        if (objects_equivalent(prevFilterRef.current, filters))
+            return;
+        prevFilterRef.current = filters;
+        onFilterChange(filters);
+    }, [filters, onFilterChange]);
+    var mdbFilter = useMemo(function () { return ({
+        $and: remove_inactive_filters(Object.values(filters))
+    }); }, [filters]);
+    var applyFilters = useCallback((function (data) { return apply_mongodb_style_filter(data, mdbFilter, { showArchived: !!showArchived }); }), [mdbFilter, showArchived]);
+    return {
+        mdbFilter: mdbFilter,
+        filters: filters,
+        setFilters: setFilters,
+        applyFilters: applyFilters,
+        activeFilterCount: Object.values(filters).filter(function (f) { return !!f.filter; }).length
+    };
+};
 /* FILTER / SEARCH */
 export var filter_setter_for_key = function (key, setFilters) { return function (f) { return setFilters(function (fs) {
     var _a;
@@ -226,7 +651,6 @@ export var filter_for_query = function (query, getAdditionalFields) {
         }
         var toAdd = getAdditionalFields === null || getAdditionalFields === void 0 ? void 0 : getAdditionalFields(record);
         var joined = __assign(__assign({}, toAdd), record);
-        // console.log(JSON.stringify(joined, null, 2))
         for (var field in joined) {
             var value = joined[field];
             // exact match is useful for things like id match and easy heuristic check for others

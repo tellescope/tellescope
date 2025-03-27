@@ -3449,6 +3449,7 @@ export var organizationSettingsValidator = objectValidator({
     }, { isOptional: true, emptyOk: true, }),
     interface: objectValidator({
         dontPersistSearches: booleanValidatorOptional,
+        showEndusersV2: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true, }),
 });
 export var calendarEventPortalSettingsValidator = objectValidator({

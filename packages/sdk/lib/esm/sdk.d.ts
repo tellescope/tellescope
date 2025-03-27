@@ -3546,6 +3546,7 @@ type Queries = {
     };
     endusers: {
         customer_io_sync: (args: extractFields<CustomActions['endusers']['customer_io_sync']['parameters']>) => (Promise<extractFields<CustomActions['endusers']['customer_io_sync']['returns']>>);
+        rename_stored_custom_fields: (args: extractFields<CustomActions['endusers']['rename_stored_custom_fields']['parameters']>) => (Promise<extractFields<CustomActions['endusers']['rename_stored_custom_fields']['returns']>>);
         add_to_healthie_course: (args: extractFields<CustomActions['endusers']['add_to_healthie_course']['parameters']>) => (Promise<extractFields<CustomActions['endusers']['add_to_healthie_course']['returns']>>);
         dosespot: (args: extractFields<CustomActions['endusers']['dosespot']['parameters']>) => (Promise<extractFields<CustomActions['endusers']['dosespot']['returns']>>);
         check_eligibility: (args: extractFields<CustomActions['endusers']['check_eligibility']['parameters']>) => (Promise<extractFields<CustomActions['endusers']['check_eligibility']['returns']>>);
@@ -3886,7 +3887,6 @@ export declare class Session extends SessionManager {
         exp: number;
         allowedPaths?: string[] | undefined;
         requiresMFA?: boolean | undefined;
-        users?: number | undefined;
         waitlists?: number | undefined;
         agent_records?: number | undefined;
         enduser_eligibility_results?: number | undefined;
@@ -3930,6 +3930,7 @@ export declare class Session extends SessionManager {
         sms_messages?: number | undefined;
         chat_rooms?: number | undefined;
         chats?: number | undefined;
+        users?: number | undefined;
         templates?: number | undefined;
         files?: number | undefined;
         tickets?: number | undefined;
@@ -4036,7 +4037,6 @@ export declare class Session extends SessionManager {
         exp: number;
         allowedPaths?: string[] | undefined;
         requiresMFA?: boolean | undefined;
-        users?: number | undefined;
         waitlists?: number | undefined;
         agent_records?: number | undefined;
         enduser_eligibility_results?: number | undefined;
@@ -4080,6 +4080,7 @@ export declare class Session extends SessionManager {
         sms_messages?: number | undefined;
         chat_rooms?: number | undefined;
         chats?: number | undefined;
+        users?: number | undefined;
         templates?: number | undefined;
         files?: number | undefined;
         tickets?: number | undefined;

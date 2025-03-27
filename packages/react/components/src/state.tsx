@@ -165,7 +165,7 @@ export const WithFetchContext = ( { children } : { children: React.ReactNode }) 
 }
 
 // doesn't throw
-export const toLoadedData = async <T,>(p: () => Promise<T>): Promise<{
+export const toLoadedData = async <T,>(p: () => Promise<T>, o?: { valueOnError?: T }): Promise<{
   status: LoadingStatus.Loaded, value: T,
 } | {
   status: LoadingStatus.Error, value: APIError
@@ -173,6 +173,7 @@ export const toLoadedData = async <T,>(p: () => Promise<T>): Promise<{
   try {
     return { status: LoadingStatus.Loaded, value: await p() }
   } catch(err: any) {
+    if (o?.valueOnError) { return { status: LoadingStatus.Loaded, value: o.valueOnError } }
     return { status: LoadingStatus.Error, value: err }
   }
 }
@@ -522,6 +523,7 @@ export interface LoadMoreOptions <T> {
   key?: string,
   limit?: number,
   filter?: ReadFilter<T> | undefined
+  mdbFilter?: Record<string, any>,
 }
 
 export interface LoadMoreFunctions<T> {
@@ -1030,25 +1032,25 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     const sort = loadOptions?.sort ?? options?.sort
     const sortBy = loadOptions?.sortBy ?? options?.sortBy
 
+    const _mdbFilter = loadOptions?.mdbFilter || options?.mdbFilter
+    const mdbFilter = (_mdbFilter && _mdbFilter?.$and?.length) ? _mdbFilter : undefined
+
     if (!loadQuery) return
     if (options?.dontFetch && !force) return
-    const fetchKey = (loadFilter || sort || sortBy) ? JSON.stringify({ ...loadFilter, sort, sortBy }) + modelName : modelName
+    const fetchKey = (mdbFilter || loadFilter || sort || sortBy) ? JSON.stringify({ ...mdbFilter, ...loadFilter, sort, sortBy }) + modelName : modelName
 
     if (didFetch(fetchKey, force, options?.refetchInMS)) return
     setFetched(fetchKey, true)
 
     const limit = options?.limit || DEFAULT_FETCH_LIMIT
-    toLoadedData(() => loadQuery({ filter: loadFilter, limit, sort, sortBy })).then(
+    toLoadedData(() => loadQuery({ mdbFilter, filter: loadFilter, limit, sort, sortBy }), { valueOnError: mdbFilter ? [] : undefined }).then(
       es => {
         if (es.status === LoadingStatus.Loaded) {
-          if (es.value.length < limit && !loadFilter) {
+          if (es.value.length < limit && !loadFilter && !mdbFilter) {
             setFetched('id' + modelName + DONE_LOADING_TOKEN, true) 
           }
           if (es.value.length) { // don't store oldest record from a filter, may skip some pages
-            setLastId(
-              modelName + (loadFilter ? JSON.stringify(loadFilter): ''), 
-              es.value[es.value.length - 1]?.id?.toString()
-            )
+            setLastId(fetchKey, es.value[es.value.length - 1]?.id?.toString())
             const createdAt: any = (es.value[es.value.length - 1] as any).createdAt;
             if (typeof createdAt === 'string' || createdAt instanceof Date) {
               setLastDate(modelName, new Date(createdAt))
@@ -1074,49 +1076,39 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
   const reload: ListUpdateMethods <T, ADD>['reload'] = useCallback(options => load(true, { ...options, reloading: true }), [load])
 
   useEffect(() => {
-    load(false)
-  }, [load])
-
-  useEffect(() => {
-    if (didFetch(modelName + 'socket')) return
-    setFetched(modelName + 'socket', true, false)
- 
-    session.handle_events({
-      // create, update, and delete must go in this order 
-      // e.g. to ensure delete events are processed last, so deleted records don't appear as created
-      [`created-${modelName}`]: addLocalElements,
-      [`updated-${modelName}`]: es => {
-        const idToUpdates = {} as Indexable<Partial<T>>
-        for (const { id, ...e } of es) {
-          idToUpdates[id] = e 
-        }
-        updateLocalElements(idToUpdates)
-      },
-      [`deleted-${modelName}`]: removeLocalElements,
-    })
-
-    return () => { 
-      setFetched(modelName + 'socket', false, false)
-      session.removeListenersForEvent(`created-${modelName}`)
-      session.removeListenersForEvent(`updated-${modelName}`)
-      session.removeListenersForEvent(`deleted-${modelName}`)
+    if (options?.unbounceMS) {
+      const i = setTimeout(() => load(false), options.unbounceMS)
+      return () => { clearTimeout(i) }
     }
-  }, [session, addLocalElement, updateLocalElements, removeLocalElements, modelName, didFetch])
+    load(false)
+  }, [load, options?.unbounceMS])
 
   const doneLoading = useCallback((key="id") => (
     didFetch(key + modelName + DONE_LOADING_TOKEN)
   ), [didFetch, modelName])
 
   const loadMore = useCallback(async (loadOptions?: LoadMoreOptions<T>) => {
-    const filter = loadOptions?.filter ?? options?.loadFilter
+    const sort = options?.sort
+    const sortBy = options?.sortBy
 
-    const lastId = getLastId(
-      modelName + (filter ? JSON.stringify(filter) : ""), 
+    const _filter = loadOptions?.filter ?? options?.loadFilter    
+    const filter = (_filter && object_is_empty(_filter)) ? undefined : _filter
+
+    const _mdbFilter = loadOptions?.mdbFilter || options?.mdbFilter
+    const mdbFilter = (_mdbFilter && _mdbFilter?.$and?.length) ? _mdbFilter : undefined
+
+    const mdbFilterIsActive = (mdbFilter && mdbFilter?.$and?.length)
+    const filterKey = (
+      (mdbFilter || filter || sort || sortBy) 
+        ? JSON.stringify({ ...mdbFilter, ...filter, sort, sortBy }) + modelName 
+        : modelName
     )
+
+    const lastId = getLastId(filterKey)
     if (!lastId) return
     if (!loadQuery) return
-    if (didFetch(modelName + 'lastId' + lastId)) return
-    setFetched(modelName + 'lastId' + lastId, true)
+    if (didFetch(filterKey + 'lastId' + lastId)) return
+    setFetched(filterKey + 'lastId' + lastId, true)
 
     // todo: support for updatedAt as well, and more?
     const key = loadOptions?.key ?? 'id' 
@@ -1128,18 +1120,16 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
       lastId,
       limit, 
       filter,
+      mdbFilter: mdbFilterIsActive ? mdbFilter : undefined,
     })).then(
       es => {
         if (es.status === LoadingStatus.Loaded) {
-          if (es.value.length < limit) {
+          if (es.value.length < limit && !mdbFilter && (!filter || object_is_empty(filter))) {
             setFetched(key + modelName + DONE_LOADING_TOKEN, true) 
           }
           const newLastId = es.value[es.value.length - 1]?.id?.toString()
           if (newLastId) {
-            setLastId(
-              modelName + (filter ? JSON.stringify(filter) : ""), 
-              newLastId
-            )
+            setLastId(filterKey, newLastId)
           }
 
           dispatch(slice.actions.addSome({ value: es.value, options: { replaceIfMatch: true, addTo: 'end' } }))
@@ -1148,7 +1138,7 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
         }
       }
     )
-  }, [getLastId, modelName, loadQuery, didFetch, setFetched])
+  }, [getLastId, modelName, loadQuery, didFetch, setFetched, options?.mdbFilter, options?.loadFilter, options?.sort, options?.sortBy, options?.limit, dispatch])
 
   const loadRecentlyCreated = React.useCallback(async () => {
     if (!loadQuery) return []
@@ -1206,10 +1196,12 @@ export type HookOptions<T> = {
   sortBy?: SortBy,
   limit?: number,
   loadFilter?: ReadFilter<T>,
+  mdbFilter?: Record<string, any>,
   refetchInMS?: number,
   dontFetch?: boolean,
   addTo?: AddOptions['addTo'],
   onBulkRead?: (matches: T[]) => void,
+  unbounceMS?: number,
 }
 
 export const useChatRoomDisplayInfo = (roomId: string, options={} as HookOptions<ChatRoomDisplayInfo>) => {

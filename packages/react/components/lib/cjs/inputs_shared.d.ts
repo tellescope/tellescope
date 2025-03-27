@@ -5,6 +5,49 @@ import { SearchAPIProps } from "./hooks";
 import { TextFieldProps } from "./mui";
 import { AgentRecord, AllergyCode, AppointmentBookingPage, AppointmentLocation, AutomationTrigger, CalendarEventTemplate, CallHoldQueue, ChatRoom, Database, DatabaseRecord, DiagnosisCode, Enduser, EnduserOrder, FaxLog, File, Form, FormGroup, Forum, Journey, ManagedContentRecord, MessageTemplateSnippet, Organization, PrescriptionRoute, SuggestedContact, Template, Ticket, TicketQueue, User, UserNotification, Waitlist } from "@tellescope/types-client";
 import { SxProps } from "@mui/material";
+import { ListOfStringsWithQualifier } from "@tellescope/types-models";
+export type FilterV2 = Record<string, any>;
+export type FiltersV2 = Record<string, FilterV2>;
+export type FilterV2Options = {
+    showArchived: boolean;
+};
+export declare const enduser_condition_to_mongodb_filter: (condition: Record<string, any> | undefined, customFields: string[]) => Record<string, any> | undefined;
+export declare const mongo_db_filter_to_enduser_condition: (filter?: FilterV2) => Record<string, any> | undefined;
+export declare const list_of_strings_with_qualifier_to_mongodb_filter: (tags?: ListOfStringsWithQualifier) => {
+    $all: string[];
+    $in?: undefined;
+} | {
+    $in: string[];
+    $all?: undefined;
+};
+export declare const mongo_db_filter_to_list_of_strings_with_qualifier: (filter?: FilterV2) => ListOfStringsWithQualifier;
+export interface FilterComponentWithDefaultKeyV2 {
+    filters: FiltersV2;
+    setFilters: React.Dispatch<React.SetStateAction<FiltersV2>>;
+    onKeyDown?: (e: {
+        code: string;
+    }) => void;
+}
+export interface FilterComponentV2 extends FilterComponentWithDefaultKeyV2 {
+    filterKey: string;
+}
+export declare const apply_mongodb_style_filter: <T>(data: T[], filter: FilterV2, options: FilterV2Options) => T[];
+export declare const remove_inactive_filters: (filters: Record<string, any>[]) => (Record<string, any> | null)[];
+export declare const useFiltersV2: <T>(args?: {
+    memoryId?: string | undefined;
+    initialFilters?: FiltersV2 | undefined;
+    reload?: boolean | undefined;
+    onFilterChange?: ((fs: FiltersV2) => void) | undefined;
+    showArchived?: boolean | undefined;
+} | undefined) => {
+    mdbFilter: {
+        $and: (Record<string, any> | null)[];
+    };
+    filters: FiltersV2;
+    setFilters: React.Dispatch<React.SetStateAction<FiltersV2>>;
+    applyFilters: (data: T[]) => T[];
+    activeFilterCount: number;
+};
 export declare const filter_setter_for_key: <T>(key: string, setFilters: React.Dispatch<React.SetStateAction<Filters<T>>>) => (f: ScoreFilter<T>) => void;
 export declare const apply_filters: <T>(fs: Filters<T>, data: T[]) => T[];
 export declare const useFilters: <T>(args?: {

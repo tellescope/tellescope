@@ -684,7 +684,9 @@ type WithId = {
 export declare const WithFetchContext: ({ children }: {
     children: React.ReactNode;
 }) => JSX.Element;
-export declare const toLoadedData: <T>(p: () => Promise<T>) => Promise<{
+export declare const toLoadedData: <T>(p: () => Promise<T>, o?: {
+    valueOnError?: T | undefined;
+} | undefined) => Promise<{
     status: LoadingStatus.Loaded;
     value: T;
 } | {
@@ -1139,6 +1141,7 @@ export interface LoadMoreOptions<T> {
     key?: string;
     limit?: number;
     filter?: ReadFilter<T> | undefined;
+    mdbFilter?: Record<string, any>;
 }
 export interface LoadMoreFunctions<T> {
     loadMore: (options?: LoadMoreOptions<T>) => Promise<void>;
@@ -2280,10 +2283,12 @@ export type HookOptions<T> = {
     sortBy?: SortBy;
     limit?: number;
     loadFilter?: ReadFilter<T>;
+    mdbFilter?: Record<string, any>;
     refetchInMS?: number;
     dontFetch?: boolean;
     addTo?: AddOptions['addTo'];
     onBulkRead?: (matches: T[]) => void;
+    unbounceMS?: number;
 };
 export declare const useChatRoomDisplayInfo: (roomId: string, options?: HookOptions<ChatRoomDisplayInfo>) => [LoadedData<{
     [index: string]: UserDisplayInfo;

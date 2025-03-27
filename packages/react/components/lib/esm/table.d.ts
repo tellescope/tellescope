@@ -66,8 +66,9 @@ export interface TableHeaderProps<T extends Item> extends Styled, HorizontalPadd
     filterSuggestions: Record<string, string[]>;
     minColumnWidth?: number;
     columnResizeZIndex?: number;
+    headerHeight?: number;
 }
-export declare const TableHeader: <T extends Item>({ fields, sorting, setSorting, selectable, allSelected, setAllSelected, style, textStyle, horizontalPadding, fontSize, memoryId, widthOffsets, setWidthOffsets, onExport, localFilters, setLocalFilters, filterSuggestions, minColumnWidth, columnResizeZIndex, }: TableHeaderProps<T>) => JSX.Element;
+export declare const TableHeader: <T extends Item>({ fields, sorting, setSorting, selectable, allSelected, setAllSelected, style, textStyle, horizontalPadding, fontSize, memoryId, widthOffsets, setWidthOffsets, onExport, localFilters, setLocalFilters, filterSuggestions, minColumnWidth, columnResizeZIndex, headerHeight, }: TableHeaderProps<T>) => JSX.Element;
 export interface TableRowProps<T extends Item> extends Styled, HorizontalPadded, ItemClickable<T>, SelectionPropsOptional {
     item: T;
     indices: Indices;
@@ -79,8 +80,9 @@ export interface TableRowProps<T extends Item> extends Styled, HorizontalPadded,
     textStyle?: CSSProperties;
     widthOffsets: Record<string, number>;
     minColumnWidth?: number;
+    rowHeight?: number;
 }
-export declare const TableRow: <T extends Item>({ item, indices, fields, onClick, onPress, hover, hoveredColor, notHoveredColor, horizontalPadding, style, textStyle, selectable, allSelected, selected, setSelected, fontSize, widthOffsets, allowUnselectItemsAfterSelectAll, setAllSelected, minColumnWidth, }: TableRowProps<T>) => JSX.Element;
+export declare const TableRow: <T extends Item>({ item, indices, fields, onClick, onPress, hover, hoveredColor, notHoveredColor, horizontalPadding, style, textStyle, selectable, allSelected, selected, setSelected, fontSize, widthOffsets, allowUnselectItemsAfterSelectAll, setAllSelected, minColumnWidth, rowHeight, }: TableRowProps<T>) => JSX.Element;
 export interface PaginationOptions<T> {
     paginated?: boolean;
     pageSize?: number;
@@ -140,6 +142,7 @@ export interface TableProps<T extends Item> extends WithTitle, WithHeader<T>, Wi
     items: T[];
     titleStyle?: React.CSSProperties;
     titleActionsComponent?: React.ReactNode;
+    titleComponentHeight?: number;
     noPaper?: boolean;
     emptyText?: string;
     emptyComponent?: React.ReactElement;
@@ -172,7 +175,9 @@ export interface TableProps<T extends Item> extends WithTitle, WithHeader<T>, Wi
     refreshFilterSuggestionsKey?: number;
     minColumnWidth?: number;
     columnResizeZIndex?: number;
+    rowHeight?: number;
+    headerHeight?: number;
 }
-export declare const Table: <T extends Item>({ items, emptyText, emptyComponent, noPaper, pageOptions, style, horizontalPadding, elevation, headerFontSize, rowFontSize, onClick, onPress, loadMore, doneLoading, loadMoreOptions, filterCounts, title, titleStyle, titleActionsComponent, TitleComponent, renderTitleComponent, fields, HeaderComponent, hover, hoveredColor, RowComponent, footerStyle, FooterComponent, selectable, selected, setSelected, allSelected, setAllSelected, allowUnselectItemsAfterSelectAll, noWrap, maxWidth, maxRowsHeight, memoryId, paginated: _paginated, onReorder, virtualization, onExport, sort, refreshFilterSuggestionsKey, minColumnWidth, columnResizeZIndex, }: TableProps<T> & Styled) => JSX.Element;
+export declare const Table: <T extends Item>({ items, emptyText, titleComponentHeight, emptyComponent, noPaper, pageOptions, style, horizontalPadding, elevation, headerFontSize, rowFontSize, onClick, onPress, loadMore, doneLoading, loadMoreOptions, filterCounts: _filterCounts, title, titleStyle, titleActionsComponent, TitleComponent, renderTitleComponent, fields, HeaderComponent, headerHeight, hover, hoveredColor, RowComponent, footerStyle, FooterComponent, rowHeight, selectable, selected, setSelected, allSelected, setAllSelected, allowUnselectItemsAfterSelectAll, noWrap, maxWidth, maxRowsHeight, memoryId, paginated: _paginated, onReorder, virtualization, onExport, sort, refreshFilterSuggestionsKey, minColumnWidth, columnResizeZIndex, }: TableProps<T> & Styled) => JSX.Element;
 export {};
 //# sourceMappingURL=table.d.ts.map

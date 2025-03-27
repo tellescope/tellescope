@@ -94,6 +94,7 @@ var react_beautiful_dnd_1 = require("react-beautiful-dnd");
 var DragIndicator_1 = __importDefault(require("@mui/icons-material/DragIndicator"));
 var react_window_1 = require("react-window");
 var CMS_1 = require("./CMS");
+var _1 = require(".");
 exports.IN_REACT_WEB = true;
 var ConditionalWrap = function (_a) {
     var condition = _a.condition, Wrapper = _a.Wrapper, wrapperProps = _a.wrapperProps, children = _a.children;
@@ -243,10 +244,11 @@ var ScrollingList = function (_a) {
                                 if ((doneLoading === null || doneLoading === void 0 ? void 0 : doneLoading()) || !loadMore)
                                     return;
                                 setLoading(true);
-                                loadMore(loadMoreOptions).finally(function () { return setLoading(false); });
+                                loadMore(loadMoreOptions).catch(console.error).finally(function () { return setLoading(false); });
                             } }, { children: function (_a) {
                                 var data = _a.data, index = _a.index, style = _a.style;
-                                return ((0, jsx_runtime_1.jsx)("div", __assign({ style: style }, { children: (0, jsx_runtime_1.jsx)(Item, { item: data[index], index: index }, data[index].id) })));
+                                return ((0, jsx_runtime_1.jsxs)("div", __assign({ style: style }, { children: [(0, jsx_runtime_1.jsx)(Item, { item: data[index], index: index }, data[index].id), index === items.length - 1 && loadMore &&
+                                            (0, jsx_runtime_1.jsx)("div", __assign({ style: { textAlign: 'center' } }, { children: (0, jsx_runtime_1.jsx)(_1.LoadingButton, { submitText: "Load Older Data", submittingText: "Loading...", disabled: doneLoading === null || doneLoading === void 0 ? void 0 : doneLoading(), onClick: loadMore, variant: "outlined", style: { width: 200, textAlign: 'center', marginTop: 10 } }) }))] })));
                             } }))) : (items.map(function (item, index) { return ((0, jsx_runtime_1.jsx)(Item, { item: item, index: index }, item.id)); })), loading && (0, jsx_runtime_1.jsx)(mui_1.LinearProgress, { style: { position: 'relative', bottom: 3, minHeight: 7 } })] }))] })));
 };
 exports.ScrollingList = ScrollingList;

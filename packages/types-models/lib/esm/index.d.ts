@@ -240,6 +240,7 @@ export type OrganizationSettings = {
     };
     interface?: {
         dontPersistSearches?: boolean;
+        showEndusersV2?: boolean;
     };
 };
 export type OrganizationLimits = {

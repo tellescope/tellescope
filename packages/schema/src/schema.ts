@@ -829,6 +829,7 @@ export type CustomActions = {
     get_journeys_report: CustomAction<{ }, { report: Record<string, any> }>,
     dosespot: CustomAction<{ enduserId: string }, { link: string }>,
     customer_io_sync: CustomAction<{ enduserIds: string[], event?: string, trackProperties?: string[]  }, { }>,
+    rename_stored_custom_fields: CustomAction<{ existingName: string, newName: string }, { }>,
   },
   users: {
     display_info: CustomAction<{ }, { fname: string, lname: string, id: string }[]>,
@@ -1479,6 +1480,17 @@ export const schema: SchemaV1 = build_schema({
       // },
     }, 
     customActions: {
+      rename_stored_custom_fields: {
+        op: "custom", access: 'update', method: "patch",
+        name: 'Rename Custom Field',
+        path: '/endusers/rename-stored-custom-field',
+        description: "Rename a stored custom field for every Enduser",
+        parameters: { 
+          existingName: { validator: stringValidator, required: true },
+          newName: { validator: stringValidator, required: true },
+        },
+        returns: {},
+      }, 
       customer_io_sync: {
         op: "custom", access: 'update', method: "post",
         name: 'Identify or Track via customer.io',

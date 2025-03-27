@@ -69,17 +69,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var __rest = (this && this.__rest) || function (s, e) {
-    var t = {};
-    for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
-        t[p] = s[p];
-    if (s != null && typeof Object.getOwnPropertySymbols === "function")
-        for (var i = 0, p = Object.getOwnPropertySymbols(s); i < p.length; i++) {
-            if (e.indexOf(p[i]) < 0 && Object.prototype.propertyIsEnumerable.call(s, p[i]))
-                t[p[i]] = s[p[i]];
-        }
-    return t;
-};
 var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
         if (ar || !(i in from)) {
@@ -140,7 +129,7 @@ var WithFetchContext = function (_a) {
 };
 exports.WithFetchContext = WithFetchContext;
 // doesn't throw
-var toLoadedData = function (p) { return __awaiter(void 0, void 0, void 0, function () {
+var toLoadedData = function (p, o) { return __awaiter(void 0, void 0, void 0, function () {
     var err_1;
     var _a;
     return __generator(this, function (_b) {
@@ -152,6 +141,9 @@ var toLoadedData = function (p) { return __awaiter(void 0, void 0, void 0, funct
             case 1: return [2 /*return*/, (_a.value = _b.sent(), _a)];
             case 2:
                 err_1 = _b.sent();
+                if (o === null || o === void 0 ? void 0 : o.valueOnError) {
+                    return [2 /*return*/, { status: types_utilities_1.LoadingStatus.Loaded, value: o.valueOnError }];
+                }
                 return [2 /*return*/, { status: types_utilities_1.LoadingStatus.Error, value: err_1 }];
             case 3: return [2 /*return*/];
         }
@@ -889,30 +881,32 @@ var useListStateHook = function (modelName, state, session, slice, apiCalls, opt
     }, [state]);
     var cantRead = (session.type === 'user' && !((_d = (_c = (_b = session === null || session === void 0 ? void 0 : session.userInfo) === null || _b === void 0 ? void 0 : _b.access) === null || _c === void 0 ? void 0 : _c[modelName]) === null || _d === void 0 ? void 0 : _d.read));
     var load = (0, react_1.useCallback)(function (force, loadOptions) {
-        var _a, _b, _c;
+        var _a, _b, _c, _d;
         if (cantRead)
             return;
         var _loadFilter = (_a = loadOptions === null || loadOptions === void 0 ? void 0 : loadOptions.loadFilter) !== null && _a !== void 0 ? _a : options === null || options === void 0 ? void 0 : options.loadFilter;
         var loadFilter = (_loadFilter && (0, utilities_1.object_is_empty)(_loadFilter)) ? undefined : _loadFilter;
         var sort = (_b = loadOptions === null || loadOptions === void 0 ? void 0 : loadOptions.sort) !== null && _b !== void 0 ? _b : options === null || options === void 0 ? void 0 : options.sort;
         var sortBy = (_c = loadOptions === null || loadOptions === void 0 ? void 0 : loadOptions.sortBy) !== null && _c !== void 0 ? _c : options === null || options === void 0 ? void 0 : options.sortBy;
+        var _mdbFilter = (loadOptions === null || loadOptions === void 0 ? void 0 : loadOptions.mdbFilter) || (options === null || options === void 0 ? void 0 : options.mdbFilter);
+        var mdbFilter = (_mdbFilter && ((_d = _mdbFilter === null || _mdbFilter === void 0 ? void 0 : _mdbFilter.$and) === null || _d === void 0 ? void 0 : _d.length)) ? _mdbFilter : undefined;
         if (!loadQuery)
             return;
         if ((options === null || options === void 0 ? void 0 : options.dontFetch) && !force)
             return;
-        var fetchKey = (loadFilter || sort || sortBy) ? JSON.stringify(__assign(__assign({}, loadFilter), { sort: sort, sortBy: sortBy })) + modelName : modelName;
+        var fetchKey = (mdbFilter || loadFilter || sort || sortBy) ? JSON.stringify(__assign(__assign(__assign({}, mdbFilter), loadFilter), { sort: sort, sortBy: sortBy })) + modelName : modelName;
         if (didFetch(fetchKey, force, options === null || options === void 0 ? void 0 : options.refetchInMS))
             return;
         setFetched(fetchKey, true);
         var limit = (options === null || options === void 0 ? void 0 : options.limit) || DEFAULT_FETCH_LIMIT;
-        (0, exports.toLoadedData)(function () { return loadQuery({ filter: loadFilter, limit: limit, sort: sort, sortBy: sortBy }); }).then(function (es) {
+        (0, exports.toLoadedData)(function () { return loadQuery({ mdbFilter: mdbFilter, filter: loadFilter, limit: limit, sort: sort, sortBy: sortBy }); }, { valueOnError: mdbFilter ? [] : undefined }).then(function (es) {
             var _a, _b;
             if (es.status === types_utilities_1.LoadingStatus.Loaded) {
-                if (es.value.length < limit && !loadFilter) {
+                if (es.value.length < limit && !loadFilter && !mdbFilter) {
                     setFetched('id' + modelName + DONE_LOADING_TOKEN, true);
                 }
                 if (es.value.length) { // don't store oldest record from a filter, may skip some pages
-                    setLastId(modelName + (loadFilter ? JSON.stringify(loadFilter) : ''), (_b = (_a = es.value[es.value.length - 1]) === null || _a === void 0 ? void 0 : _a.id) === null || _b === void 0 ? void 0 : _b.toString());
+                    setLastId(fetchKey, (_b = (_a = es.value[es.value.length - 1]) === null || _a === void 0 ? void 0 : _a.id) === null || _b === void 0 ? void 0 : _b.toString());
                     var createdAt = es.value[es.value.length - 1].createdAt;
                     if (typeof createdAt === 'string' || createdAt instanceof Date) {
                         setLastDate(modelName, new Date(createdAt));
@@ -935,70 +929,57 @@ var useListStateHook = function (modelName, state, session, slice, apiCalls, opt
     var getOldestLoadedDate = function () { return getLastDate(modelName); };
     var reload = (0, react_1.useCallback)(function (options) { return load(true, __assign(__assign({}, options), { reloading: true })); }, [load]);
     (0, react_1.useEffect)(function () {
+        if (options === null || options === void 0 ? void 0 : options.unbounceMS) {
+            var i_1 = setTimeout(function () { return load(false); }, options.unbounceMS);
+            return function () { clearTimeout(i_1); };
+        }
         load(false);
-    }, [load]);
-    (0, react_1.useEffect)(function () {
-        var _a;
-        if (didFetch(modelName + 'socket'))
-            return;
-        setFetched(modelName + 'socket', true, false);
-        session.handle_events((_a = {},
-            // create, update, and delete must go in this order 
-            // e.g. to ensure delete events are processed last, so deleted records don't appear as created
-            _a["created-".concat(modelName)] = addLocalElements,
-            _a["updated-".concat(modelName)] = function (es) {
-                var idToUpdates = {};
-                for (var _i = 0, es_1 = es; _i < es_1.length; _i++) {
-                    var _a = es_1[_i];
-                    var id = _a.id, e = __rest(_a, ["id"]);
-                    idToUpdates[id] = e;
-                }
-                updateLocalElements(idToUpdates);
-            },
-            _a["deleted-".concat(modelName)] = removeLocalElements,
-            _a));
-        return function () {
-            setFetched(modelName + 'socket', false, false);
-            session.removeListenersForEvent("created-".concat(modelName));
-            session.removeListenersForEvent("updated-".concat(modelName));
-            session.removeListenersForEvent("deleted-".concat(modelName));
-        };
-    }, [session, addLocalElement, updateLocalElements, removeLocalElements, modelName, didFetch]);
+    }, [load, options === null || options === void 0 ? void 0 : options.unbounceMS]);
     var doneLoading = (0, react_1.useCallback)(function (key) {
         if (key === void 0) { key = "id"; }
         return (didFetch(key + modelName + DONE_LOADING_TOKEN));
     }, [didFetch, modelName]);
     var loadMore = (0, react_1.useCallback)(function (loadOptions) { return __awaiter(void 0, void 0, void 0, function () {
-        var filter, lastId, key, limit;
-        var _a, _b, _c, _d;
-        return __generator(this, function (_e) {
-            filter = (_a = loadOptions === null || loadOptions === void 0 ? void 0 : loadOptions.filter) !== null && _a !== void 0 ? _a : options === null || options === void 0 ? void 0 : options.loadFilter;
-            lastId = getLastId(modelName + (filter ? JSON.stringify(filter) : ""));
+        var sort, sortBy, _filter, filter, _mdbFilter, mdbFilter, mdbFilterIsActive, filterKey, lastId, key, limit;
+        var _a, _b, _c, _d, _e, _f;
+        return __generator(this, function (_g) {
+            sort = options === null || options === void 0 ? void 0 : options.sort;
+            sortBy = options === null || options === void 0 ? void 0 : options.sortBy;
+            _filter = (_a = loadOptions === null || loadOptions === void 0 ? void 0 : loadOptions.filter) !== null && _a !== void 0 ? _a : options === null || options === void 0 ? void 0 : options.loadFilter;
+            filter = (_filter && (0, utilities_1.object_is_empty)(_filter)) ? undefined : _filter;
+            _mdbFilter = (loadOptions === null || loadOptions === void 0 ? void 0 : loadOptions.mdbFilter) || (options === null || options === void 0 ? void 0 : options.mdbFilter);
+            mdbFilter = (_mdbFilter && ((_b = _mdbFilter === null || _mdbFilter === void 0 ? void 0 : _mdbFilter.$and) === null || _b === void 0 ? void 0 : _b.length)) ? _mdbFilter : undefined;
+            mdbFilterIsActive = (mdbFilter && ((_c = mdbFilter === null || mdbFilter === void 0 ? void 0 : mdbFilter.$and) === null || _c === void 0 ? void 0 : _c.length));
+            filterKey = ((mdbFilter || filter || sort || sortBy)
+                ? JSON.stringify(__assign(__assign(__assign({}, mdbFilter), filter), { sort: sort, sortBy: sortBy })) + modelName
+                : modelName);
+            lastId = getLastId(filterKey);
             if (!lastId)
                 return [2 /*return*/];
             if (!loadQuery)
                 return [2 /*return*/];
-            if (didFetch(modelName + 'lastId' + lastId))
+            if (didFetch(filterKey + 'lastId' + lastId))
                 return [2 /*return*/];
-            setFetched(modelName + 'lastId' + lastId, true);
-            key = (_b = loadOptions === null || loadOptions === void 0 ? void 0 : loadOptions.key) !== null && _b !== void 0 ? _b : 'id';
+            setFetched(filterKey + 'lastId' + lastId, true);
+            key = (_d = loadOptions === null || loadOptions === void 0 ? void 0 : loadOptions.key) !== null && _d !== void 0 ? _d : 'id';
             if (key !== 'id')
                 console.warn("Unrecognized key provided");
-            limit = (_d = (_c = loadOptions === null || loadOptions === void 0 ? void 0 : loadOptions.limit) !== null && _c !== void 0 ? _c : options === null || options === void 0 ? void 0 : options.limit) !== null && _d !== void 0 ? _d : DEFAULT_FETCH_LIMIT;
+            limit = (_f = (_e = loadOptions === null || loadOptions === void 0 ? void 0 : loadOptions.limit) !== null && _e !== void 0 ? _e : options === null || options === void 0 ? void 0 : options.limit) !== null && _f !== void 0 ? _f : DEFAULT_FETCH_LIMIT;
             return [2 /*return*/, (0, exports.toLoadedData)(function () { return loadQuery({
                     // lastId: !options?.filter ? oldestRecord?.id?.toString() : undefined,  // don't provide a lastId when there's a filter, filter could include that on its own
                     lastId: lastId,
                     limit: limit,
                     filter: filter,
+                    mdbFilter: mdbFilterIsActive ? mdbFilter : undefined,
                 }); }).then(function (es) {
                     var _a, _b;
                     if (es.status === types_utilities_1.LoadingStatus.Loaded) {
-                        if (es.value.length < limit) {
+                        if (es.value.length < limit && !mdbFilter && (!filter || (0, utilities_1.object_is_empty)(filter))) {
                             setFetched(key + modelName + DONE_LOADING_TOKEN, true);
                         }
                         var newLastId = (_b = (_a = es.value[es.value.length - 1]) === null || _a === void 0 ? void 0 : _a.id) === null || _b === void 0 ? void 0 : _b.toString();
                         if (newLastId) {
-                            setLastId(modelName + (filter ? JSON.stringify(filter) : ""), newLastId);
+                            setLastId(filterKey, newLastId);
                         }
                         dispatch(slice.actions.addSome({ value: es.value, options: { replaceIfMatch: true, addTo: 'end' } }));
                     }
@@ -1007,7 +988,7 @@ var useListStateHook = function (modelName, state, session, slice, apiCalls, opt
                     }
                 })];
         });
-    }); }, [getLastId, modelName, loadQuery, didFetch, setFetched]);
+    }); }, [getLastId, modelName, loadQuery, didFetch, setFetched, options === null || options === void 0 ? void 0 : options.mdbFilter, options === null || options === void 0 ? void 0 : options.loadFilter, options === null || options === void 0 ? void 0 : options.sort, options === null || options === void 0 ? void 0 : options.sortBy, options === null || options === void 0 ? void 0 : options.limit, dispatch]);
     var loadRecentlyCreated = react_1.default.useCallback(function () { return __awaiter(void 0, void 0, void 0, function () {
         var from, created, err_2;
         return __generator(this, function (_a) {

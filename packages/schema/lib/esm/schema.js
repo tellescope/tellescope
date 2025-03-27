@@ -273,6 +273,17 @@ export var schema = build_schema({
                 redactions: ['enduser']
             }, unsubscribedFromPhones: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay, redactions: ['enduser'] }, lockedFromPortal: { validator: booleanValidator } }),
         customActions: {
+            rename_stored_custom_fields: {
+                op: "custom", access: 'update', method: "patch",
+                name: 'Rename Custom Field',
+                path: '/endusers/rename-stored-custom-field',
+                description: "Rename a stored custom field for every Enduser",
+                parameters: {
+                    existingName: { validator: stringValidator, required: true },
+                    newName: { validator: stringValidator, required: true },
+                },
+                returns: {},
+            },
             customer_io_sync: {
                 op: "custom", access: 'update', method: "post",
                 name: 'Identify or Track via customer.io',

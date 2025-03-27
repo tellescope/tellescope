@@ -511,10 +511,11 @@ var useTellescopeForm = function (_a) {
         // prevents recursing on an already explored node (there shouldn't be loops anyway, but just in case)
         if (explored.includes(field.id))
             return 0;
+        explored.push(field.id); // make sure to push this node to prevent future exploration
         var children = fields.filter(function (f) { return (f.previousFields.find(function (f) { return f.type !== 'root' && f.info.fieldId === field.id; })); });
         if (children.length === 0)
             return 0;
-        return (1 + Math.max.apply(Math, children.map(function (c) { return getNumberOfRemainingPages(c, __spreadArray(__spreadArray([], explored, true), [field.id], false)); })));
+        return (1 + Math.max.apply(Math, children.map(function (c) { return getNumberOfRemainingPages(c, explored); })));
     }, [activeField, fields]);
     (0, react_1.useEffect)(function () {
         if (!ga4measurementId)

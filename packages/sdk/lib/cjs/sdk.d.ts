@@ -3546,6 +3546,7 @@ type Queries = {
     };
     endusers: {
         customer_io_sync: (args: extractFields<CustomActions['endusers']['customer_io_sync']['parameters']>) => (Promise<extractFields<CustomActions['endusers']['customer_io_sync']['returns']>>);
+        rename_stored_custom_fields: (args: extractFields<CustomActions['endusers']['rename_stored_custom_fields']['parameters']>) => (Promise<extractFields<CustomActions['endusers']['rename_stored_custom_fields']['returns']>>);
         add_to_healthie_course: (args: extractFields<CustomActions['endusers']['add_to_healthie_course']['parameters']>) => (Promise<extractFields<CustomActions['endusers']['add_to_healthie_course']['returns']>>);
         dosespot: (args: extractFields<CustomActions['endusers']['dosespot']['parameters']>) => (Promise<extractFields<CustomActions['endusers']['dosespot']['returns']>>);
         check_eligibility: (args: extractFields<CustomActions['endusers']['check_eligibility']['parameters']>) => (Promise<extractFields<CustomActions['endusers']['check_eligibility']['returns']>>);

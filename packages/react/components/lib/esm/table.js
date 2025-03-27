@@ -39,6 +39,7 @@ import Draggable from 'react-draggable'; // The default
 import { PRIMARY_HEX } from "@tellescope/constants";
 import CloudDownloadIcon from '@mui/icons-material/CloudDownload';
 import { Autocomplete } from "@mui/material";
+import { LoadingButton } from "./forms";
 // import DragHandleIcon from '@mui/icons-material/DragHandle';
 var LIGHT_GRAY = "#fafafa";
 export var GRAY = "#EFEFEF";
@@ -58,10 +59,10 @@ var checkboxStyle = {
 };
 export var TableHeader = function (_a) {
     var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
-    var fields = _a.fields, sorting = _a.sorting, setSorting = _a.setSorting, selectable = _a.selectable, allSelected = _a.allSelected, setAllSelected = _a.setAllSelected, style = _a.style, textStyle = _a.textStyle, horizontalPadding = _a.horizontalPadding, _o = _a.fontSize, fontSize = _o === void 0 ? 15 : _o, memoryId = _a.memoryId, widthOffsets = _a.widthOffsets, setWidthOffsets = _a.setWidthOffsets, onExport = _a.onExport, localFilters = _a.localFilters, setLocalFilters = _a.setLocalFilters, filterSuggestions = _a.filterSuggestions, _p = _a.minColumnWidth, minColumnWidth = _p === void 0 ? 75 : _p, _q = _a.columnResizeZIndex, columnResizeZIndex = _q === void 0 ? 1000 : _q;
-    var _r = useState(-1), openFilter = _r[0], setOpenFilter = _r[1];
-    var _s = useState(0), startX = _s[0], setStartX = _s[1];
-    var _t = useState(), dragPosition = _t[0], setDragPosition = _t[1];
+    var fields = _a.fields, sorting = _a.sorting, setSorting = _a.setSorting, selectable = _a.selectable, allSelected = _a.allSelected, setAllSelected = _a.setAllSelected, style = _a.style, textStyle = _a.textStyle, horizontalPadding = _a.horizontalPadding, _o = _a.fontSize, fontSize = _o === void 0 ? 15 : _o, memoryId = _a.memoryId, widthOffsets = _a.widthOffsets, setWidthOffsets = _a.setWidthOffsets, onExport = _a.onExport, localFilters = _a.localFilters, setLocalFilters = _a.setLocalFilters, filterSuggestions = _a.filterSuggestions, _p = _a.minColumnWidth, minColumnWidth = _p === void 0 ? 75 : _p, _q = _a.columnResizeZIndex, columnResizeZIndex = _q === void 0 ? 1000 : _q, _r = _a.headerHeight, headerHeight = _r === void 0 ? ROW_HEIGHT : _r;
+    var _s = useState(-1), openFilter = _s[0], setOpenFilter = _s[1];
+    var _t = useState(0), startX = _t[0], setStartX = _t[1];
+    var _u = useState(), dragPosition = _u[0], setDragPosition = _u[1];
     return (_jsxs(_Fragment, { children: [_jsx(Modal, __assign({ open: openFilter !== -1, setOpen: function (o) { return !o && setOpenFilter(-1); } }, { children: ((_b = fields[openFilter]) === null || _b === void 0 ? void 0 : _b.filterComponent)
                     || (_jsx(Flex, __assign({ flex: 1, justifyContent: "center" }, { children: ((_c = fields[openFilter]) === null || _c === void 0 ? void 0 : _c.filterType) === 'multi'
                             ? (_jsxs(_Fragment, { children: [_jsx(Autocomplete, { disableClearable: true, disablePortal: true, size: 'small', options: ['One Of', 'All Of'], sx: { width: 140, mr: 0.5 }, onChange: function (e, value) {
@@ -83,7 +84,7 @@ export var TableHeader = function (_a) {
                             }, value: (_m = (_l = localFilters[openFilter]) === null || _l === void 0 ? void 0 : _l.query) !== null && _m !== void 0 ? _m : '', renderInput: function (params) {
                                 var _a, _b;
                                 return _jsx(TextField, __assign({}, params, { autoFocus: true, label: "Filter", size: 'small', style: { width: 400 }, value: (_b = (_a = localFilters[openFilter]) === null || _a === void 0 ? void 0 : _a.query) !== null && _b !== void 0 ? _b : '' }));
-                            } })) }))) })), _jsxs(Flex, __assign({ alignItems: "center", style: __assign({ paddingLeft: horizontalPadding, paddingRight: horizontalPadding, minHeight: ROW_HEIGHT, backgroundColor: DARK_GRAY }, style) }, { children: [selectable &&
+                            } })) }))) })), _jsxs(Flex, __assign({ alignItems: "center", style: __assign({ paddingLeft: horizontalPadding, paddingRight: horizontalPadding, minHeight: headerHeight, backgroundColor: DARK_GRAY }, style) }, { children: [selectable &&
                         _jsx(Flex, __assign({ style: checkboxStyle }, { children: setAllSelected ? _jsx(Checkbox, { checked: allSelected, onChange: setAllSelected }) : _jsx(Flex, { style: { width: 42 } }) })), _jsx(Flex, __assign({ flex: 1, wrap: "nowrap" }, { children: fields.map(function (_a, i) {
                             var _b, _c, _d, _e, _f, _g;
                             var key = _a.key, label = _a.label, textAlign = _a.textAlign, width = _a.width, getSortValue = _a.getSortValue, hidden = _a.hidden, style = _a.style, filterIsActive = _a.filterIsActive, filterComponent = _a.filterComponent, allowWidthAdjustment = _a.allowWidthAdjustment, getFilterValue = _a.getFilterValue;
@@ -153,8 +154,8 @@ var get_display_value = function (item, key, indices, render, options) {
     throw new Error("Missing renderer in renderFields for key ".concat(key, ". The given value is not a valid React Element and does not have a toString() method."));
 };
 export var TableRow = function (_a) {
-    var item = _a.item, indices = _a.indices, fields = _a.fields, onClick = _a.onClick, onPress = _a.onPress, hover = _a.hover, hoveredColor = _a.hoveredColor, notHoveredColor = _a.notHoveredColor, horizontalPadding = _a.horizontalPadding, style = _a.style, textStyle = _a.textStyle, selectable = _a.selectable, allSelected = _a.allSelected, selected = _a.selected, setSelected = _a.setSelected, _b = _a.fontSize, fontSize = _b === void 0 ? 14 : _b, widthOffsets = _a.widthOffsets, allowUnselectItemsAfterSelectAll = _a.allowUnselectItemsAfterSelectAll, setAllSelected = _a.setAllSelected, _c = _a.minColumnWidth, minColumnWidth = _c === void 0 ? 75 : _c;
-    return (_jsx(WithHover, __assign({ hoveredColor: hoveredColor !== null && hoveredColor !== void 0 ? hoveredColor : GRAY, notHoveredColor: notHoveredColor, disabled: !hover, flex: true }, { children: _jsxs(Flex, __assign({ flex: 1, alignItems: "center", onClick: function () { var _a; return (_a = (onClick !== null && onClick !== void 0 ? onClick : onPress)) === null || _a === void 0 ? void 0 : _a(item); }, style: __assign(__assign({ paddingLeft: horizontalPadding, paddingRight: horizontalPadding, minHeight: ROW_HEIGHT }, style), { backgroundColor: undefined }) }, { children: [selectable && setSelected &&
+    var item = _a.item, indices = _a.indices, fields = _a.fields, onClick = _a.onClick, onPress = _a.onPress, hover = _a.hover, hoveredColor = _a.hoveredColor, notHoveredColor = _a.notHoveredColor, horizontalPadding = _a.horizontalPadding, style = _a.style, textStyle = _a.textStyle, selectable = _a.selectable, allSelected = _a.allSelected, selected = _a.selected, setSelected = _a.setSelected, _b = _a.fontSize, fontSize = _b === void 0 ? 14 : _b, widthOffsets = _a.widthOffsets, allowUnselectItemsAfterSelectAll = _a.allowUnselectItemsAfterSelectAll, setAllSelected = _a.setAllSelected, _c = _a.minColumnWidth, minColumnWidth = _c === void 0 ? 75 : _c, _d = _a.rowHeight, rowHeight = _d === void 0 ? ROW_HEIGHT : _d;
+    return (_jsx(WithHover, __assign({ hoveredColor: hoveredColor !== null && hoveredColor !== void 0 ? hoveredColor : GRAY, notHoveredColor: notHoveredColor, disabled: !hover, flex: true }, { children: _jsxs(Flex, __assign({ flex: 1, alignItems: "center", onClick: function () { var _a; return (_a = (onClick !== null && onClick !== void 0 ? onClick : onPress)) === null || _a === void 0 ? void 0 : _a(item); }, style: __assign(__assign({ paddingLeft: horizontalPadding, paddingRight: horizontalPadding, minHeight: rowHeight }, style), { backgroundColor: undefined }) }, { children: [selectable && setSelected &&
                     _jsx(Flex, __assign({ style: checkboxStyle }, { children: _jsx(Checkbox, { disabled: allSelected && !allowUnselectItemsAfterSelectAll, checked: allSelected || (selected === null || selected === void 0 ? void 0 : selected.includes(item.id.toString())), onChange: function () {
                                 // if allowUnselectItemsAfterSelectAll, checking box should disable all selected
                                 if (allSelected) {
@@ -285,13 +286,13 @@ export var TableFooterNumbered = function (_a) {
 };
 var BORDER_STYLE = "1px solid ".concat(GRAY);
 export var Table = function (_a) {
-    var items = _a.items, emptyText = _a.emptyText, emptyComponent = _a.emptyComponent, noPaper = _a.noPaper, _b = _a.pageOptions, pageOptions = _b === void 0 ? { paginated: true } : _b, _c = _a.style, style = _c === void 0 ? {} : _c, _d = _a.horizontalPadding, horizontalPadding = _d === void 0 ? 20 : _d, _e = _a.elevation, elevation = _e === void 0 ? 5 : _e, headerFontSize = _a.headerFontSize, rowFontSize = _a.rowFontSize, onClick = _a.onClick, onPress = _a.onPress, loadMore = _a.loadMore, doneLoading = _a.doneLoading, loadMoreOptions = _a.loadMoreOptions, 
+    var items = _a.items, emptyText = _a.emptyText, titleComponentHeight = _a.titleComponentHeight, emptyComponent = _a.emptyComponent, noPaper = _a.noPaper, _b = _a.pageOptions, pageOptions = _b === void 0 ? { paginated: true } : _b, _c = _a.style, style = _c === void 0 ? {} : _c, _d = _a.horizontalPadding, horizontalPadding = _d === void 0 ? 20 : _d, _e = _a.elevation, elevation = _e === void 0 ? 5 : _e, headerFontSize = _a.headerFontSize, rowFontSize = _a.rowFontSize, onClick = _a.onClick, onPress = _a.onPress, loadMore = _a.loadMore, doneLoading = _a.doneLoading, loadMoreOptions = _a.loadMoreOptions, 
     // onClearFilter,
-    filterCounts = _a.filterCounts, title = _a.title, titleStyle = _a.titleStyle, titleActionsComponent = _a.titleActionsComponent, 
+    _filterCounts = _a.filterCounts, title = _a.title, titleStyle = _a.titleStyle, titleActionsComponent = _a.titleActionsComponent, 
     // description,
     _f = _a.TitleComponent, 
     // description,
-    TitleComponent = _f === void 0 ? TableTitle : _f, renderTitleComponent = _a.renderTitleComponent, fields = _a.fields, _g = _a.HeaderComponent, HeaderComponent = _g === void 0 ? TableHeader : _g, hover = _a.hover, hoveredColor = _a.hoveredColor, _h = _a.RowComponent, RowComponent = _h === void 0 ? TableRow : _h, _j = _a.footerStyle, footerStyle = _j === void 0 ? 'numbered' : _j, _k = _a.FooterComponent, FooterComponent = _k === void 0 ? footerStyle === 'numbered' ? TableFooterNumbered : TableFooter : _k, selectable = _a.selectable, selected = _a.selected, setSelected = _a.setSelected, allSelected = _a.allSelected, setAllSelected = _a.setAllSelected, allowUnselectItemsAfterSelectAll = _a.allowUnselectItemsAfterSelectAll, noWrap = _a.noWrap, maxWidth = _a.maxWidth, maxRowsHeight = _a.maxRowsHeight, memoryId = _a.memoryId, _paginated = _a.paginated, onReorder = _a.onReorder, virtualization = _a.virtualization, onExport = _a.onExport, sort = _a.sort, refreshFilterSuggestionsKey = _a.refreshFilterSuggestionsKey, minColumnWidth = _a.minColumnWidth, columnResizeZIndex = _a.columnResizeZIndex;
+    TitleComponent = _f === void 0 ? TableTitle : _f, renderTitleComponent = _a.renderTitleComponent, fields = _a.fields, _g = _a.HeaderComponent, HeaderComponent = _g === void 0 ? TableHeader : _g, headerHeight = _a.headerHeight, hover = _a.hover, hoveredColor = _a.hoveredColor, _h = _a.RowComponent, RowComponent = _h === void 0 ? TableRow : _h, _j = _a.footerStyle, footerStyle = _j === void 0 ? 'numbered' : _j, _k = _a.FooterComponent, FooterComponent = _k === void 0 ? footerStyle === 'numbered' ? TableFooterNumbered : TableFooter : _k, rowHeight = _a.rowHeight, selectable = _a.selectable, selected = _a.selected, setSelected = _a.setSelected, allSelected = _a.allSelected, setAllSelected = _a.setAllSelected, allowUnselectItemsAfterSelectAll = _a.allowUnselectItemsAfterSelectAll, noWrap = _a.noWrap, maxWidth = _a.maxWidth, maxRowsHeight = _a.maxRowsHeight, memoryId = _a.memoryId, _paginated = _a.paginated, onReorder = _a.onReorder, virtualization = _a.virtualization, onExport = _a.onExport, sort = _a.sort, refreshFilterSuggestionsKey = _a.refreshFilterSuggestionsKey, minColumnWidth = _a.minColumnWidth, columnResizeZIndex = _a.columnResizeZIndex;
     var sortingStorageKey = (memoryId !== null && memoryId !== void 0 ? memoryId : '') + 'sorting';
     var cachedSortString = read_local_storage(sortingStorageKey);
     var localFilterStorageKey = (memoryId !== null && memoryId !== void 0 ? memoryId : '') + 'localfilter';
@@ -447,6 +448,8 @@ export var Table = function (_a) {
             return true;
         });
     }, [sorted, localFilters, fields]);
+    // make sure filterCounts incorporates column filters whose state is in Table, not parent component
+    var filterCounts = _filterCounts ? __assign(__assign({}, _filterCounts), { filtered: filtered.length }) : undefined;
     var headerFilterIsActive = (!!(fields.find(function (f) { return f.filterIsActive; }) || localFilters.find(function (f) { return f === null || f === void 0 ? void 0 : f.query; })));
     var draggable = (onReorder && sorting.length === 0);
     var ListComponent = useMemo(function () { return (draggable
@@ -476,7 +479,7 @@ export var Table = function (_a) {
                 _jsxs(Typography, __assign({ style: {
                         fontSize: 14, color: PRIMARY_HEX,
                         textAlign: 'center', textDecoration: 'underline',
-                    } }, { children: ["Showing ", filterCounts.filtered, " of ", filterCounts.total, " loaded records due to filters"] })), _jsx(ListComponent, { items: filtered, onReorder: onReorder, noWrap: noWrap, maxHeight: maxRowsHeight, maxWidth: maxWidth, virtualization: virtualization, header: fields && HeaderComponent && fields.length > 0 && (items.length > 0 || headerFilterIsActive) && (_jsx(HeaderComponent, { selectable: selectable, allSelected: allSelected, allowUnselectItemsAfterSelectAll: allowUnselectItemsAfterSelectAll, setAllSelected: function (v) {
+                    } }, { children: ["Showing ", filterCounts.filtered, " of ", filterCounts.total, " loaded records due to filters"] })), _jsx(ListComponent, { items: filtered, onReorder: onReorder, noWrap: noWrap, maxHeight: maxRowsHeight, maxWidth: maxWidth, virtualization: virtualization, header: fields && HeaderComponent && fields.length > 0 && (items.length > 0 || headerFilterIsActive) && (_jsx(HeaderComponent, { selectable: selectable, allSelected: allSelected, allowUnselectItemsAfterSelectAll: allowUnselectItemsAfterSelectAll, headerHeight: headerHeight, setAllSelected: function (v) {
                         setAllSelected === null || setAllSelected === void 0 ? void 0 : setAllSelected(v);
                         if (v) {
                             setSelected === null || setSelected === void 0 ? void 0 : setSelected(filtered.map(function (v) { return v.id.toString(); }));
@@ -499,12 +502,12 @@ export var Table = function (_a) {
                 doneLoading: !paginated ? doneLoading : undefined, loadMore: !paginated ? loadMore : undefined, loadMoreOptions: loadMoreOptions, 
                 // renderProps={{ horizontalPadding }}
                 emptyText: emptyComponent !== null && emptyComponent !== void 0 ? emptyComponent : ((emptyText || headerFilterIsActive)
-                    ? _jsx(Typography, __assign({ style: { padding: horizontalPadding } }, { children: emptyText || 'No results found the current filter' }))
+                    ? (_jsxs(_Fragment, { children: [_jsx(Typography, __assign({ style: { padding: horizontalPadding } }, { children: emptyText || 'No results found the current filter' })), _jsx("div", __assign({ style: { paddingLeft: horizontalPadding, paddingBottom: horizontalPadding } }, { children: _jsx(LoadingButton, { submitText: "Load Older Data", submittingText: "Loading...", disabled: doneLoading === null || doneLoading === void 0 ? void 0 : doneLoading(), onClick: loadMore, variant: "outlined", style: { width: 200, textAlign: 'center', marginTop: 10 } }) }))] }))
                     : undefined), Item: function (_a) {
                     var _b;
                     var item = _a.item, index = _a.index;
                     return ( // index within this list, e.g. a single page
-                    _jsx(RowComponent, { widthOffsets: widthOffsets, selectable: selectable, selected: selected, setSelected: setSelected, allSelected: allSelected, setAllSelected: setAllSelected, allowUnselectItemsAfterSelectAll: allowUnselectItemsAfterSelectAll, item: item, indices: {
+                    _jsx(RowComponent, { widthOffsets: widthOffsets, rowHeight: rowHeight, selectable: selectable, selected: selected, setSelected: setSelected, allSelected: allSelected, setAllSelected: setAllSelected, allowUnselectItemsAfterSelectAll: allowUnselectItemsAfterSelectAll, item: item, indices: {
                             // selectedPage indexed by zero
                             index: index + paginationProps.selectedPage * ((_b = pageOptions.pageSize) !== null && _b !== void 0 ? _b : DEFAULT_PAGE_SIZE),
                             indexOfPage: index

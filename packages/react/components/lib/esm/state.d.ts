@@ -684,7 +684,9 @@ type WithId = {
 export declare const WithFetchContext: ({ children }: {
     children: React.ReactNode;
 }) => JSX.Element;
-export declare const toLoadedData: <T>(p: () => Promise<T>) => Promise<{
+export declare const toLoadedData: <T>(p: () => Promise<T>, o?: {
+    valueOnError?: T | undefined;
+} | undefined) => Promise<{
     status: LoadingStatus.Loaded;
     value: T;
 } | {
@@ -1139,6 +1141,7 @@ export interface LoadMoreOptions<T> {
     key?: string;
     limit?: number;
     filter?: ReadFilter<T> | undefined;
+    mdbFilter?: Record<string, any>;
 }
 export interface LoadMoreFunctions<T> {
     loadMore: (options?: LoadMoreOptions<T>) => Promise<void>;
@@ -1165,13 +1168,7 @@ export declare const useDataSync____internal: () => {
     setLoadTiming: (key: string, loadTimeInMS: number) => void;
     setHandler: (key: string, handler: undefined | (() => void)) => void;
     removeHandler: (key: string, handler: () => void) => void;
-    getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").File & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Enduser & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").User & {
+    getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").Waitlist & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AgentRecord & {
@@ -1180,7 +1177,16 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").EnduserEligibilityResult & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").IntegrationLog & {
+    }) | (import("@tellescope/types-models").CallHoldQueue & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").EnduserEncounter & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").EnduserOrder & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").GroupMMSConversation & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").TicketQueue & {
@@ -1189,34 +1195,16 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").AutomationTrigger & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").AutomatedAction & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").EnduserView & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").BackgroundError & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").AvailabilityBlock & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").ChatRoom & {
+    }) | (import("@tellescope/types-models").AnalyticsFrame & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").ChatMessage & {
+    }) | (import("@tellescope/types-models").Enduser & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").CalendarEvent & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").CalendarEventTemplate & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Configuration & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").EngagementEvent & {
+    }) | (import("@tellescope/types-models").Journey & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Email & {
@@ -1225,19 +1213,22 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").SMSMessage & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").UserNotification & {
+    }) | (import("@tellescope/types-models").ChatRoom & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").User & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").MessageTemplate & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").File & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Ticket & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Meeting & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Note & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").MessageTemplate & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Form & {
@@ -1249,13 +1240,70 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").FormResponse & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").Journey & {
+    }) | (import("@tellescope/types-models").CalendarEvent & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").AutomationStep & {
+    }) | (import("@tellescope/types-models").WebHook & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").UserNotification & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").EnduserObservation & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").ManagedContentRecord & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").PostLike & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Organization & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Integration & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").AppointmentBookingPage & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Product & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Purchase & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").PhoneCall & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").IntegrationLog & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").AutomatedAction & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").EnduserView & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").BackgroundError & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").ChatMessage & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").CalendarEventTemplate & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Configuration & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").EngagementEvent & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Note & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").AutomationStep & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").ForumPost & {
@@ -1264,25 +1312,13 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").Forum & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").ManagedContentRecord & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").ManagedContentRecordAssignment & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").PostComment & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").PostLike & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").CommentLike & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Integration & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Organization & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").CalendarEventRSVP & {
@@ -1306,28 +1342,13 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").RoleBasedAccessPermission & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").AppointmentBookingPage & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").AppointmentLocation & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Product & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Purchase & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").PurchaseCredit & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").PhoneCall & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").PhoneTree & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").AnalyticsFrame & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Superbill & {
@@ -1358,15 +1379,6 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").TicketThreadComment & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").GroupMMSConversation & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").EnduserOrder & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").EnduserEncounter & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").VitalConfiguration & {
@@ -1406,15 +1418,6 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AllergyCode & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Waitlist & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").CallHoldQueue & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").WebHook & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").APIKey & {
@@ -1425,13 +1428,7 @@ export declare const useDataSync____internal: () => {
         createdAt: Date;
     }))[];
     getDeleted: <T_1 extends string>(modelName: T_1) => string[];
-    popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").File & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Enduser & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").User & {
+    popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").Waitlist & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AgentRecord & {
@@ -1440,7 +1437,16 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").EnduserEligibilityResult & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").IntegrationLog & {
+    }) | (import("@tellescope/types-models").CallHoldQueue & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").EnduserEncounter & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").EnduserOrder & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").GroupMMSConversation & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").TicketQueue & {
@@ -1449,34 +1455,16 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").AutomationTrigger & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").AutomatedAction & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").EnduserView & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").BackgroundError & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").AvailabilityBlock & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").ChatRoom & {
+    }) | (import("@tellescope/types-models").AnalyticsFrame & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").ChatMessage & {
+    }) | (import("@tellescope/types-models").Enduser & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").CalendarEvent & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").CalendarEventTemplate & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Configuration & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").EngagementEvent & {
+    }) | (import("@tellescope/types-models").Journey & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Email & {
@@ -1485,19 +1473,22 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").SMSMessage & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").UserNotification & {
+    }) | (import("@tellescope/types-models").ChatRoom & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").User & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").MessageTemplate & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").File & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Ticket & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Meeting & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Note & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").MessageTemplate & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Form & {
@@ -1509,13 +1500,70 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").FormResponse & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").Journey & {
+    }) | (import("@tellescope/types-models").CalendarEvent & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").AutomationStep & {
+    }) | (import("@tellescope/types-models").WebHook & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").UserNotification & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").EnduserObservation & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").ManagedContentRecord & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").PostLike & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Organization & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Integration & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").AppointmentBookingPage & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Product & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Purchase & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").PhoneCall & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").IntegrationLog & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").AutomatedAction & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").EnduserView & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").BackgroundError & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").ChatMessage & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").CalendarEventTemplate & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Configuration & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").EngagementEvent & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Note & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").AutomationStep & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").ForumPost & {
@@ -1524,25 +1572,13 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").Forum & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").ManagedContentRecord & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").ManagedContentRecordAssignment & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").PostComment & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").PostLike & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").CommentLike & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Integration & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Organization & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").CalendarEventRSVP & {
@@ -1566,28 +1602,13 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").RoleBasedAccessPermission & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").AppointmentBookingPage & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").AppointmentLocation & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Product & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Purchase & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").PurchaseCredit & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").PhoneCall & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").PhoneTree & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").AnalyticsFrame & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Superbill & {
@@ -1618,15 +1639,6 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").TicketThreadComment & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").GroupMMSConversation & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").EnduserOrder & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").EnduserEncounter & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").VitalConfiguration & {
@@ -1666,15 +1678,6 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AllergyCode & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Waitlist & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").CallHoldQueue & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").WebHook & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").APIKey & {
@@ -1693,13 +1696,7 @@ export declare const useSyncContext: () => {
     setLoadTiming: (key: string, loadTimeInMS: number) => void;
     setHandler: (key: string, handler: undefined | (() => void)) => void;
     removeHandler: (key: string, handler: () => void) => void;
-    getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").File & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Enduser & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").User & {
+    getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").Waitlist & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AgentRecord & {
@@ -1708,7 +1705,16 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").EnduserEligibilityResult & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").IntegrationLog & {
+    }) | (import("@tellescope/types-models").CallHoldQueue & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").EnduserEncounter & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").EnduserOrder & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").GroupMMSConversation & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").TicketQueue & {
@@ -1717,34 +1723,16 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").AutomationTrigger & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").AutomatedAction & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").EnduserView & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").BackgroundError & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").AvailabilityBlock & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").ChatRoom & {
+    }) | (import("@tellescope/types-models").AnalyticsFrame & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").ChatMessage & {
+    }) | (import("@tellescope/types-models").Enduser & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").CalendarEvent & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").CalendarEventTemplate & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Configuration & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").EngagementEvent & {
+    }) | (import("@tellescope/types-models").Journey & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Email & {
@@ -1753,19 +1741,22 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").SMSMessage & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").UserNotification & {
+    }) | (import("@tellescope/types-models").ChatRoom & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").User & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").MessageTemplate & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").File & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Ticket & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Meeting & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Note & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").MessageTemplate & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Form & {
@@ -1777,13 +1768,70 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").FormResponse & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").Journey & {
+    }) | (import("@tellescope/types-models").CalendarEvent & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").AutomationStep & {
+    }) | (import("@tellescope/types-models").WebHook & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").UserNotification & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").EnduserObservation & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").ManagedContentRecord & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").PostLike & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Organization & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Integration & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").AppointmentBookingPage & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Product & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Purchase & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").PhoneCall & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").IntegrationLog & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").AutomatedAction & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").EnduserView & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").BackgroundError & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").ChatMessage & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").CalendarEventTemplate & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Configuration & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").EngagementEvent & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Note & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").AutomationStep & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").ForumPost & {
@@ -1792,25 +1840,13 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").Forum & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").ManagedContentRecord & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").ManagedContentRecordAssignment & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").PostComment & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").PostLike & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").CommentLike & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Integration & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Organization & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").CalendarEventRSVP & {
@@ -1834,28 +1870,13 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").RoleBasedAccessPermission & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").AppointmentBookingPage & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").AppointmentLocation & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Product & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Purchase & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").PurchaseCredit & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").PhoneCall & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").PhoneTree & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").AnalyticsFrame & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Superbill & {
@@ -1886,15 +1907,6 @@ export declare const useSyncContext: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").TicketThreadComment & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").GroupMMSConversation & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").EnduserOrder & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").EnduserEncounter & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").VitalConfiguration & {
@@ -1934,15 +1946,6 @@ export declare const useSyncContext: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AllergyCode & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Waitlist & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").CallHoldQueue & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").WebHook & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").APIKey & {
@@ -1953,13 +1956,7 @@ export declare const useSyncContext: () => {
         createdAt: Date;
     }))[];
     getDeleted: <T_1 extends string>(modelName: T_1) => string[];
-    popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").File & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Enduser & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").User & {
+    popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").Waitlist & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AgentRecord & {
@@ -1968,7 +1965,16 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").EnduserEligibilityResult & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").IntegrationLog & {
+    }) | (import("@tellescope/types-models").CallHoldQueue & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").EnduserEncounter & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").EnduserOrder & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").GroupMMSConversation & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").TicketQueue & {
@@ -1977,34 +1983,16 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").AutomationTrigger & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").AutomatedAction & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").EnduserView & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").BackgroundError & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").AvailabilityBlock & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").ChatRoom & {
+    }) | (import("@tellescope/types-models").AnalyticsFrame & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").ChatMessage & {
+    }) | (import("@tellescope/types-models").Enduser & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").CalendarEvent & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").CalendarEventTemplate & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Configuration & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").EngagementEvent & {
+    }) | (import("@tellescope/types-models").Journey & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Email & {
@@ -2013,19 +2001,22 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").SMSMessage & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").UserNotification & {
+    }) | (import("@tellescope/types-models").ChatRoom & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").User & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").MessageTemplate & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").File & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Ticket & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Meeting & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Note & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").MessageTemplate & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Form & {
@@ -2037,13 +2028,70 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").FormResponse & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").Journey & {
+    }) | (import("@tellescope/types-models").CalendarEvent & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").AutomationStep & {
+    }) | (import("@tellescope/types-models").WebHook & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").UserNotification & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").EnduserObservation & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").ManagedContentRecord & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").PostLike & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Organization & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Integration & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").AppointmentBookingPage & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Product & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Purchase & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").PhoneCall & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").IntegrationLog & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").AutomatedAction & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").EnduserView & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").BackgroundError & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").ChatMessage & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").CalendarEventTemplate & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Configuration & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").EngagementEvent & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Note & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").AutomationStep & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").ForumPost & {
@@ -2052,25 +2100,13 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").Forum & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").ManagedContentRecord & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").ManagedContentRecordAssignment & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").PostComment & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").PostLike & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").CommentLike & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Integration & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Organization & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").CalendarEventRSVP & {
@@ -2094,28 +2130,13 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").RoleBasedAccessPermission & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").AppointmentBookingPage & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").AppointmentLocation & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Product & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Purchase & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").PurchaseCredit & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").PhoneCall & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").PhoneTree & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").AnalyticsFrame & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Superbill & {
@@ -2146,15 +2167,6 @@ export declare const useSyncContext: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").TicketThreadComment & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").GroupMMSConversation & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").EnduserOrder & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").EnduserEncounter & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").VitalConfiguration & {
@@ -2194,15 +2206,6 @@ export declare const useSyncContext: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AllergyCode & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Waitlist & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").CallHoldQueue & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").WebHook & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").APIKey & {
@@ -2280,10 +2283,12 @@ export type HookOptions<T> = {
     sortBy?: SortBy;
     limit?: number;
     loadFilter?: ReadFilter<T>;
+    mdbFilter?: Record<string, any>;
     refetchInMS?: number;
     dontFetch?: boolean;
     addTo?: AddOptions['addTo'];
     onBulkRead?: (matches: T[]) => void;
+    unbounceMS?: number;
 };
 export declare const useChatRoomDisplayInfo: (roomId: string, options?: HookOptions<ChatRoomDisplayInfo>) => [LoadedData<{
     [index: string]: UserDisplayInfo;

@@ -4069,6 +4069,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
   }, { isOptional: true, emptyOk: true, }),
   interface: objectValidator<OrganizationSettings['interface']>({
     dontPersistSearches: booleanValidatorOptional,
+    showEndusersV2: booleanValidatorOptional,
   }, { isOptional: true, emptyOk: true, }),
 })
 

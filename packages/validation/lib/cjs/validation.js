@@ -3501,6 +3501,7 @@ exports.organizationSettingsValidator = (0, exports.objectValidator)({
     }, { isOptional: true, emptyOk: true, }),
     interface: (0, exports.objectValidator)({
         dontPersistSearches: exports.booleanValidatorOptional,
+        showEndusersV2: exports.booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true, }),
 });
 exports.calendarEventPortalSettingsValidator = (0, exports.objectValidator)({

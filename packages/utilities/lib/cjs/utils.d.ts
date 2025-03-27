@@ -268,7 +268,9 @@ export declare const get_flattened_fields: <T extends object>(objects: T[], opti
     maxDepth?: number | undefined;
     depth?: number | undefined;
 } | undefined) => string[];
-export declare const value_for_dotted_key: (v: any, key: string) => any;
+export declare const value_for_dotted_key: (v: any, key: string, o?: {
+    handleArray?: boolean;
+}) => any;
 export declare const add_value_for_dotted_key: (_object: Record<any, any>, field: string, value: any) => void;
 export declare const INVALID_PREPOPULATION_TYPES: FormFieldType[];
 export declare const get_prepopulated_responses: (fields: FormField[], enduser: Enduser, existingResponses?: FormResponseValue[]) => {

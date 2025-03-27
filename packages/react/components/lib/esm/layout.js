@@ -65,6 +65,7 @@ import { DragDropContext, Draggable, Droppable } from "react-beautiful-dnd";
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import { FixedSizeList } from 'react-window';
 import { usePageWidth } from "./CMS";
+import { LoadingButton } from ".";
 export var IN_REACT_WEB = true;
 export var ConditionalWrap = function (_a) {
     var condition = _a.condition, Wrapper = _a.Wrapper, wrapperProps = _a.wrapperProps, children = _a.children;
@@ -202,10 +203,11 @@ export var ScrollingList = function (_a) {
                                 if ((doneLoading === null || doneLoading === void 0 ? void 0 : doneLoading()) || !loadMore)
                                     return;
                                 setLoading(true);
-                                loadMore(loadMoreOptions).finally(function () { return setLoading(false); });
+                                loadMore(loadMoreOptions).catch(console.error).finally(function () { return setLoading(false); });
                             } }, { children: function (_a) {
                                 var data = _a.data, index = _a.index, style = _a.style;
-                                return (_jsx("div", __assign({ style: style }, { children: _jsx(Item, { item: data[index], index: index }, data[index].id) })));
+                                return (_jsxs("div", __assign({ style: style }, { children: [_jsx(Item, { item: data[index], index: index }, data[index].id), index === items.length - 1 && loadMore &&
+                                            _jsx("div", __assign({ style: { textAlign: 'center' } }, { children: _jsx(LoadingButton, { submitText: "Load Older Data", submittingText: "Loading...", disabled: doneLoading === null || doneLoading === void 0 ? void 0 : doneLoading(), onClick: loadMore, variant: "outlined", style: { width: 200, textAlign: 'center', marginTop: 10 } }) }))] })));
                             } }))) : (items.map(function (item, index) { return (_jsx(Item, { item: item, index: index }, item.id)); })), loading && _jsx(LinearProgress, { style: { position: 'relative', bottom: 3, minHeight: 7 } })] }))] })));
 };
 var getListStyle = function (isDraggingOver) { return ({

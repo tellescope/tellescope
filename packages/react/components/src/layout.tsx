@@ -14,6 +14,7 @@ import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import { FixedSizeList } from 'react-window';
 import { usePageWidth } from "./CMS";
 import { LoadMoreOptions } from "./state";
+import { LoadingButton } from ".";
 
 export const IN_REACT_WEB = true
 
@@ -400,12 +401,20 @@ export const ScrollingList = <T extends { id: string | number }>({
                 if (doneLoading?.() || !loadMore) return
 
                 setLoading(true)
-                loadMore(loadMoreOptions).finally(() => setLoading(false))
+                loadMore(loadMoreOptions).catch(console.error).finally(() => setLoading(false))
               }}
             >
               {({ data, index, style }) => (
                 <div style={style}>
                   <Item key={data[index].id} item={data[index]} index={index} />
+                  {index === items.length -1 && loadMore &&
+                    <div style={{ textAlign: 'center' }}>
+                    <LoadingButton submitText="Load Older Data" submittingText="Loading..."
+                      disabled={doneLoading?.()} onClick={loadMore} 
+                      variant="outlined" style={{ width: 200, textAlign: 'center', marginTop: 10 }}
+                    />
+                    </div>
+                  }
                 </div>
               )}
             </FixedSizeList>

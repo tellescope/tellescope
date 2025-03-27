@@ -552,6 +552,7 @@ export const useTellescopeForm = ({ isPublicForm, form, urlLogicValue, customiza
   const getNumberOfRemainingPages: (field?: FormField, explored?: string[]) => number = useCallback((field=activeField.value, explored=[]) => {
     // prevents recursing on an already explored node (there shouldn't be loops anyway, but just in case)
     if (explored.includes(field.id)) return 0
+    explored.push(field.id) // make sure to push this node to prevent future exploration
 
     const children = fields.filter(
       f => (
@@ -562,7 +563,7 @@ export const useTellescopeForm = ({ isPublicForm, form, urlLogicValue, customiza
 
     return (
       1 + Math.max(
-        ...children.map(c => getNumberOfRemainingPages(c, [...explored, field.id]))
+        ...children.map(c => getNumberOfRemainingPages(c, explored))
       )
     )
   }, [activeField, fields])

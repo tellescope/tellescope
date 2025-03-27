@@ -792,7 +792,8 @@ var replace_keys_and_values_in_object = function (value, replacer) {
     if (Array.isArray(value)) {
         return __spreadArray([], value, true).map(function (v) { return (0, exports.replace_keys_and_values_in_object)(v, replacer); });
     }
-    if (value && typeof value === 'object') {
+    // make sure it's a basic object (constructor === Object) and not a Class, Date, etc.
+    if (value && typeof value === 'object' && value.constructor === Object) {
         // don't deep copy, so that we replace keys rather than adding new keys
         var newValue = {};
         for (var k in value) {
@@ -2334,9 +2335,12 @@ var get_flattened_fields = function (objects, options) {
     return fields;
 };
 exports.get_flattened_fields = get_flattened_fields;
-var value_for_dotted_key = function (v, key) {
+var value_for_dotted_key = function (v, key, o) {
     var value = v;
     var keys = key.split('.');
+    if ((o === null || o === void 0 ? void 0 : o.handleArray) && keys.length >= 2 && Array.isArray(value[keys[0]])) {
+        return value[keys[0]].map(function (v) { return (0, exports.value_for_dotted_key)(v, keys.slice(1).join('.'), o); });
+    }
     for (var _i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
         var k = keys_1[_i];
         value = value === null || value === void 0 ? void 0 : value[k];

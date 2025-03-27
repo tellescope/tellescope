@@ -763,7 +763,8 @@ export const replace_keys_and_values_in_object = <T>(value: T, replacer: (v: any
   if (Array.isArray(value)) {
     return [...value].map(v => replace_keys_and_values_in_object(v, replacer)) as T
   }
-  if (value && typeof value === 'object') {
+  // make sure it's a basic object (constructor === Object) and not a Class, Date, etc.
+  if (value && typeof value === 'object' && value.constructor === Object) {
     // don't deep copy, so that we replace keys rather than adding new keys
     const newValue = { } as Record<string, any>
     for (const k in value) {
@@ -2333,9 +2334,14 @@ export const get_flattened_fields = <T extends object>(objects: T[], options?: {
   return fields
 }
 
-export const value_for_dotted_key = (v: any, key: string) => {
+export const value_for_dotted_key = (v: any, key: string, o?: { handleArray?: boolean }) => {
   let value = v
   const keys = key.split('.')
+
+  if (o?.handleArray && keys.length >= 2 && Array.isArray(value[keys[0]])) {
+    return value[keys[0]].map((v: any) => value_for_dotted_key(v, keys.slice(1).join('.'), o))
+  }
+
   for (const k of keys) {
     value = value?.[k]
   }

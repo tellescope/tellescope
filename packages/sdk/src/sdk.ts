@@ -295,6 +295,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     customer_io_sync: (args: extractFields<CustomActions['endusers']['customer_io_sync']['parameters']>) => (
       Promise<extractFields<CustomActions['endusers']['customer_io_sync']['returns']>>
     ),
+    rename_stored_custom_fields: (args: extractFields<CustomActions['endusers']['rename_stored_custom_fields']['parameters']>) => (
+      Promise<extractFields<CustomActions['endusers']['rename_stored_custom_fields']['returns']>>
+    ),
     add_to_healthie_course: (args: extractFields<CustomActions['endusers']['add_to_healthie_course']['parameters']>) => (
       Promise<extractFields<CustomActions['endusers']['add_to_healthie_course']['returns']>>
     ),
@@ -873,6 +876,7 @@ export class Session extends SessionManager {
     queries.endusers.check_eligibility = a => this._POST(`/v1${schema.endusers.customActions.check_eligibility.path}`, a)
     queries.endusers.dosespot = a => this._POST(`/v1${schema.endusers.customActions.dosespot.path}`, a)
     queries.endusers.customer_io_sync = a => this._POST(`/v1${schema.endusers.customActions.customer_io_sync.path}`, a)
+    queries.endusers.rename_stored_custom_fields = a => this._PATCH(`/v1${schema.endusers.customActions.rename_stored_custom_fields.path}`, a)
 
     queries.users.display_names = () => this._GET<{}, { fname: string, lname: string, id: string }[]>(`/v1/user-display-names`)
     queries.users.begin_sso = a => this._POST(`/v1/${schema.users.publicActions.begin_sso.path}`, a)
