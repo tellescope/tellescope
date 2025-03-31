@@ -4022,6 +4022,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     hideUnorderedFullscriptMeds: booleanValidatorOptional,
     detailField: stringValidatorOptional,
     showDownloadCallRecordings: booleanValidatorOptional,
+    launchDosespotWebhookURL: stringValidatorOptionalEmptyOkay,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,

@@ -1100,7 +1100,7 @@ export const useTellescopeForm = ({ isPublicForm, form, urlLogicValue, customiza
     // ensure Question Group responses are included
 
     for (const r of responsesToSubmit) {
-      if (r.answer.type !== 'Question Group') continue
+      if (r?.answer?.type !== 'Question Group') continue
 
       for (const f of r.answer.value ?? []) {
         const match = responses.find(r => r.fieldId === f?.id)

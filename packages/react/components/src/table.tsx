@@ -977,7 +977,7 @@ export const Table = <T extends Item>({
   }, [sorted, localFilters, fields])
 
   // make sure filterCounts incorporates column filters whose state is in Table, not parent component
-  const filterCounts = _filterCounts ? { ..._filterCounts, filtered: filtered.length } : undefined
+  const filterCounts = (_filterCounts && !paginated) ? { ..._filterCounts, filtered: filtered.length } : undefined
 
   const headerFilterIsActive = (
      !!(fields.find(f => f.filterIsActive) || localFilters.find(f => f?.query))
@@ -1101,12 +1101,13 @@ export const Table = <T extends Item>({
                 {emptyText || 'No results found the current filter'}
               </Typography> 
 
-              <div style={{ paddingLeft: horizontalPadding, paddingBottom: horizontalPadding }}>
-              <LoadingButton submitText="Load Older Data" submittingText="Loading..."
-                disabled={doneLoading?.()} onClick={loadMore} 
-                variant="outlined" style={{ width: 200, textAlign: 'center', marginTop: 10 }}
-              />
-              </div>
+              {loadMore && !doneLoading?.() &&
+                <div style={{ paddingLeft: horizontalPadding, paddingBottom: horizontalPadding }}>
+                <LoadingButton submitText="Load Older Data" submittingText="Loading..." onClick={loadMore} 
+                  variant="outlined" style={{ width: 200, textAlign: 'center', marginTop: 10 }}
+                />
+                </div>
+              }
               </>
             )
             : undefined

@@ -3402,6 +3402,7 @@ export var organizationSettingsValidator = objectValidator({
         hideUnorderedFullscriptMeds: booleanValidatorOptional,
         detailField: stringValidatorOptional,
         showDownloadCallRecordings: booleanValidatorOptional,
+        launchDosespotWebhookURL: stringValidatorOptionalEmptyOkay,
     }, { isOptional: true }),
     tickets: objectValidator({
         defaultJourneyDueDateOffsetInMS: numberValidatorOptional,

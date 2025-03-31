@@ -971,10 +971,10 @@ export var useTellescopeForm = function (_a) {
     var showSubmit = activeField.children.length === 0 || !nextField;
     var getResponsesWithQuestionGroupAnswers = useCallback(function (responsesToSubmit) {
         // ensure Question Group responses are included
-        var _a;
+        var _a, _b;
         for (var _i = 0, responsesToSubmit_1 = responsesToSubmit; _i < responsesToSubmit_1.length; _i++) {
             var r = responsesToSubmit_1[_i];
-            if (r.answer.type !== 'Question Group')
+            if (((_a = r === null || r === void 0 ? void 0 : r.answer) === null || _a === void 0 ? void 0 : _a.type) !== 'Question Group')
                 continue;
             var _loop_8 = function (f) {
                 var match = responses.find(function (r) { return r.fieldId === (f === null || f === void 0 ? void 0 : f.id); });
@@ -982,8 +982,8 @@ export var useTellescopeForm = function (_a) {
                     return "continue";
                 responsesToSubmit.push(match);
             };
-            for (var _b = 0, _c = (_a = r.answer.value) !== null && _a !== void 0 ? _a : []; _b < _c.length; _b++) {
-                var f = _c[_b];
+            for (var _c = 0, _d = (_b = r.answer.value) !== null && _b !== void 0 ? _b : []; _c < _d.length; _c++) {
+                var f = _d[_c];
                 _loop_8(f);
             }
         }

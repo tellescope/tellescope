@@ -1870,7 +1870,7 @@ var chat_tests = function () { return __awaiter(void 0, void 0, void 0, function
     });
 }); };
 var enduserAccessTests = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var email, password, enduser, enduser2, uInfo, originalAuthToken, _loop_1, _a, _b, _c, _i, n, ticketAccessible, ticketInaccessible;
+    var email, password, enduser, enduser2, uInfo, originalAuthToken, _loop_1, _a, _b, _c, _i, n, ticketAccessible, ticketInaccessible, hiddenTemplate, shownTemplate, hiddenForm, shownForm, hiddenEvent, shownEvent, attendedEvent, hiddenForum, shownForum;
     var _d, _f, _g, _h, _j, _k;
     return __generator(this, function (_l) {
         switch (_l.label) {
@@ -1971,41 +1971,128 @@ var enduserAccessTests = function () { return __awaiter(void 0, void 0, void 0, 
             case 10:
                 _i++;
                 return [3 /*break*/, 8];
-            case 11: return [4 /*yield*/, async_test("enduser can update self", function () { return enduserSDK.api.endusers.updateOne(enduser.id, { fname: "Sebastian", lname: "Coates" }); }, { onResult: function (e) { return e.id === enduser.id && e.fname === 'Sebastian' && e.lname === "Coates"; } })];
+            case 11: return [4 /*yield*/, async_test("enduser can find self", function () { return enduserSDK.api.endusers.getOne(enduser.id); }, { onResult: function (e) { return e.id === enduser.id; } })];
             case 12:
                 _l.sent();
-                return [4 /*yield*/, async_test("enduser can't update other enduser", function () { return enduserSDK.api.endusers.updateOne(enduser2.id, { fname: "Shouldn't Work" }); }, { shouldError: true, onError: function (e) { return e.message === "Endusers may only update their own profile"; } })];
+                return [4 /*yield*/, async_test("enduser can update self", function () { return enduserSDK.api.endusers.updateOne(enduser.id, { fname: "Sebastian", lname: "Coates" }); }, { onResult: function (e) { return e.id === enduser.id && e.fname === 'Sebastian' && e.lname === "Coates"; } })];
             case 13:
                 _l.sent();
-                return [4 /*yield*/, sdk.api.tickets.createOne({ enduserId: enduser.id, title: "Accessible ticket" })];
+                return [4 /*yield*/, async_test("enduser can't update other enduser", function () { return enduserSDK.api.endusers.updateOne(enduser2.id, { fname: "Shouldn't Work" }); }, { shouldError: true, onError: function (e) { return e.message === "Endusers may only update their own profile"; } })];
             case 14:
+                _l.sent();
+                return [4 /*yield*/, sdk.api.tickets.createOne({ enduserId: enduser.id, title: "Accessible ticket" })];
+            case 15:
                 ticketAccessible = _l.sent();
                 return [4 /*yield*/, sdk.api.tickets.createOne({ enduserId: enduser2.id, title: "Inaccessible ticket" })];
-            case 15:
+            case 16:
                 ticketInaccessible = _l.sent();
                 return [4 /*yield*/, async_test("enduser cannot create ticket for another enduser", function () { return enduserSDK.api.tickets.createOne({ enduserId: sdk.userInfo.id, title: "Error on Creation" }); }, { shouldError: true, onError: function (e) { return !!e.message; } })];
-            case 16:
-                _l.sent();
-                return [4 /*yield*/, async_test("enduser-access default, no access constraints, matching enduserId", function () { return enduserSDK.api.tickets.getOne(ticketAccessible.id); }, { onResult: function (t) { return t.id === ticketAccessible.id; } })];
             case 17:
                 _l.sent();
-                return [4 /*yield*/, async_test("no-enduser-access default, no access constraints, non-matching enduserId", function () { return enduserSDK.api.tickets.getOne(ticketInaccessible.id); }, { shouldError: true, onError: function (e) { return e.message.startsWith("Could not find"); } })];
+                return [4 /*yield*/, async_test("enduser-access default, no access constraints, matching enduserId", function () { return enduserSDK.api.tickets.getOne(ticketAccessible.id); }, { onResult: function (t) { return t.id === ticketAccessible.id; } })];
             case 18:
                 _l.sent();
-                return [4 /*yield*/, async_test("no-enduser-access default, no access constraints, get many", function () { return enduserSDK.api.tickets.getSome(); }, { onResult: function (ts) { return ts.length === 1; } })];
+                return [4 /*yield*/, async_test("no-enduser-access default, no access constraints, non-matching enduserId", function () { return enduserSDK.api.tickets.getOne(ticketInaccessible.id); }, { shouldError: true, onError: function (e) { return e.message.startsWith("Could not find"); } })];
             case 19:
                 _l.sent();
-                return [4 /*yield*/, sdk.api.tickets.deleteOne(ticketAccessible.id)];
+                return [4 /*yield*/, async_test("no-enduser-access default, no access constraints, get many", function () { return enduserSDK.api.tickets.getSome(); }, { onResult: function (ts) { return ts.length === 1; } })];
             case 20:
                 _l.sent();
-                return [4 /*yield*/, sdk.api.tickets.deleteOne(ticketInaccessible.id)];
+                return [4 /*yield*/, sdk.api.calendar_event_templates.createOne({
+                        title: "hidden", durationInMinutes: 5,
+                        enableSelfScheduling: false,
+                    })];
             case 21:
+                hiddenTemplate = _l.sent();
+                return [4 /*yield*/, sdk.api.calendar_event_templates.createOne({
+                        title: "shown", durationInMinutes: 5,
+                        enableSelfScheduling: true,
+                    })];
+            case 22:
+                shownTemplate = _l.sent();
+                return [4 /*yield*/, async_test("Filter calendar event templates", function () { return enduserSDK.api.calendar_event_templates.getSome(); }, { onResult: function (vs) { return vs.length === 1 && !vs.find(function (v) { return v.id === hiddenTemplate.id; }); } })];
+            case 23:
+                _l.sent();
+                return [4 /*yield*/, sdk.api.forms.createOne({
+                        title: "hidden", allowPortalSubmission: false,
+                    })];
+            case 24:
+                hiddenForm = _l.sent();
+                return [4 /*yield*/, sdk.api.forms.createOne({
+                        title: "shown", allowPortalSubmission: true,
+                    })];
+            case 25:
+                shownForm = _l.sent();
+                return [4 /*yield*/, async_test("Filter forms", function () { return enduserSDK.api.forms.getSome(); }, { onResult: function (vs) { return vs.length === 1 && !vs.find(function (v) { return v.id === hiddenForm.id; }); } })];
+            case 26:
+                _l.sent();
+                return [4 /*yield*/, sdk.api.calendar_events.createOne({
+                        title: "hidden", startTimeInMS: Date.now(), durationInMinutes: 5,
+                    })];
+            case 27:
+                hiddenEvent = _l.sent();
+                return [4 /*yield*/, sdk.api.calendar_events.createOne({
+                        title: "shown", startTimeInMS: Date.now(), durationInMinutes: 5,
+                        publicRead: true,
+                    })];
+            case 28:
+                shownEvent = _l.sent();
+                return [4 /*yield*/, sdk.api.calendar_events.createOne({
+                        title: "shown", startTimeInMS: Date.now(), durationInMinutes: 5,
+                        attendees: [{ id: enduser.id, type: 'enduser' }],
+                    })];
+            case 29:
+                attendedEvent = _l.sent();
+                return [4 /*yield*/, async_test("Filter calendar events", function () { return enduserSDK.api.calendar_events.getSome(); }, { onResult: function (vs) { return vs.length === 2 && !vs.find(function (v) { return v.id === hiddenEvent.id; }); } })];
+            case 30:
+                _l.sent();
+                return [4 /*yield*/, sdk.api.forums.createOne({ title: "Hidden Forum", publicRead: false })];
+            case 31:
+                hiddenForum = _l.sent();
+                return [4 /*yield*/, sdk.api.forums.createOne({ title: "Forum", publicRead: true })];
+            case 32:
+                shownForum = _l.sent();
+                return [4 /*yield*/, async_test("Filter forums", function () { return enduserSDK.api.forums.getSome(); }, { onResult: function (vs) { return vs.length === 1 && !vs.find(function (v) { return v.id === hiddenForum.id; }); } })];
+            case 33:
+                _l.sent();
+                return [4 /*yield*/, sdk.api.tickets.deleteOne(ticketAccessible.id)];
+            case 34:
+                _l.sent();
+                return [4 /*yield*/, sdk.api.tickets.deleteOne(ticketInaccessible.id)];
+            case 35:
                 _l.sent();
                 return [4 /*yield*/, sdk.api.endusers.deleteOne(enduser.id)];
-            case 22:
+            case 36:
                 _l.sent();
                 return [4 /*yield*/, sdk.api.endusers.deleteOne(enduser2.id)];
-            case 23:
+            case 37:
+                _l.sent();
+                return [4 /*yield*/, sdk.api.calendar_event_templates.deleteOne(hiddenTemplate.id)];
+            case 38:
+                _l.sent();
+                return [4 /*yield*/, sdk.api.calendar_event_templates.deleteOne(shownTemplate.id)];
+            case 39:
+                _l.sent();
+                return [4 /*yield*/, sdk.api.forms.deleteOne(hiddenForm.id)];
+            case 40:
+                _l.sent();
+                return [4 /*yield*/, sdk.api.forms.deleteOne(shownForm.id)];
+            case 41:
+                _l.sent();
+                return [4 /*yield*/, sdk.api.calendar_events.deleteOne(hiddenEvent.id)];
+            case 42:
+                _l.sent();
+                return [4 /*yield*/, sdk.api.calendar_events.deleteOne(shownEvent.id)];
+            case 43:
+                _l.sent();
+                return [4 /*yield*/, sdk.api.calendar_events.deleteOne(attendedEvent.id)];
+            case 44:
+                _l.sent();
+                return [4 /*yield*/, sdk.api.forums.deleteOne(hiddenForum.id)];
+            case 45:
+                _l.sent();
+                return [4 /*yield*/, sdk.api.forums.deleteOne(shownForum.id)];
+            case 46:
                 _l.sent();
                 return [2 /*return*/];
         }
@@ -10807,161 +10894,161 @@ var test_form_response_search = function () { return __awaiter(void 0, void 0, v
                 return [4 /*yield*/, sync_tests()]; // should come directly after setup to avoid extra sync values
             case 16:
                 _l.sent(); // should come directly after setup to avoid extra sync values
-                return [4 /*yield*/, test_form_response_search()];
+                return [4 /*yield*/, enduserAccessTests()];
             case 17:
                 _l.sent();
-                return [4 /*yield*/, date_parsing_tests()];
+                return [4 /*yield*/, test_form_response_search()];
             case 18:
                 _l.sent();
-                return [4 /*yield*/, fromEmailOverride_tests()];
+                return [4 /*yield*/, date_parsing_tests()];
             case 19:
                 _l.sent();
-                return [4 /*yield*/, ticket_tests()];
+                return [4 /*yield*/, fromEmailOverride_tests()];
             case 20:
                 _l.sent();
-                return [4 /*yield*/, uniqueness_tests()];
+                return [4 /*yield*/, ticket_tests()];
             case 21:
                 _l.sent();
-                return [4 /*yield*/, enduser_orders_tests()];
+                return [4 /*yield*/, uniqueness_tests()];
             case 22:
                 _l.sent();
-                return [4 /*yield*/, calendar_event_care_team_tests()];
+                return [4 /*yield*/, enduser_orders_tests()];
             case 23:
                 _l.sent();
-                return [4 /*yield*/, merge_enduser_tests()];
+                return [4 /*yield*/, calendar_event_care_team_tests()];
             case 24:
                 _l.sent();
-                return [4 /*yield*/, input_modifier_tests()];
+                return [4 /*yield*/, merge_enduser_tests()];
             case 25:
                 _l.sent();
-                return [4 /*yield*/, formsort_tests()];
+                return [4 /*yield*/, input_modifier_tests()];
             case 26:
                 _l.sent();
-                return [4 /*yield*/, switch_to_related_contacts_tests()];
+                return [4 /*yield*/, formsort_tests()];
             case 27:
                 _l.sent();
-                return [4 /*yield*/, redaction_tests()];
+                return [4 /*yield*/, switch_to_related_contacts_tests()];
             case 28:
                 _l.sent();
-                return [4 /*yield*/, self_serve_appointment_booking_tests()];
+                return [4 /*yield*/, redaction_tests()];
             case 29:
                 _l.sent();
-                return [4 /*yield*/, no_chained_triggers_tests()];
+                return [4 /*yield*/, self_serve_appointment_booking_tests()];
             case 30:
                 _l.sent();
-                return [4 /*yield*/, rate_limit_tests()];
+                return [4 /*yield*/, no_chained_triggers_tests()];
             case 31:
                 _l.sent();
-                return [4 /*yield*/, mdb_filter_tests()];
+                return [4 /*yield*/, rate_limit_tests()];
             case 32:
                 _l.sent();
-                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
+                return [4 /*yield*/, mdb_filter_tests()];
             case 33:
                 _l.sent();
-                return [4 /*yield*/, superadmin_tests()];
+                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
             case 34:
                 _l.sent();
-                return [4 /*yield*/, ticket_queue_tests()];
+                return [4 /*yield*/, superadmin_tests()];
             case 35:
                 _l.sent();
-                return [4 /*yield*/, vital_trigger_tests()];
+                return [4 /*yield*/, ticket_queue_tests()];
             case 36:
                 _l.sent();
-                return [4 /*yield*/, close_reasons_no_duplicates_tests()];
+                return [4 /*yield*/, vital_trigger_tests()];
             case 37:
                 _l.sent();
-                return [4 /*yield*/, register_as_enduser_tests()];
+                return [4 /*yield*/, close_reasons_no_duplicates_tests()];
             case 38:
                 _l.sent();
-                return [4 /*yield*/, lockout_tests()];
+                return [4 /*yield*/, register_as_enduser_tests()];
             case 39:
+                _l.sent();
+                return [4 /*yield*/, lockout_tests()];
+            case 40:
                 _l.sent();
                 return [4 /*yield*/, delete_user_tests()
                     // await test_send_with_template()
                 ];
-            case 40:
+            case 41:
                 _l.sent();
                 // await test_send_with_template()
                 return [4 /*yield*/, bulk_read_tests()];
-            case 41:
+            case 42:
                 // await test_send_with_template()
                 _l.sent();
                 return [4 /*yield*/, ticket_reminder_tests()];
-            case 42:
-                _l.sent();
-                return [4 /*yield*/, enduser_access_tags_tests()];
             case 43:
                 _l.sent();
-                return [4 /*yield*/, marketing_email_unsubscribe_tests()];
+                return [4 /*yield*/, enduser_access_tags_tests()];
             case 44:
                 _l.sent();
-                return [4 /*yield*/, unique_strings_tests()];
+                return [4 /*yield*/, marketing_email_unsubscribe_tests()];
             case 45:
                 _l.sent();
-                return [4 /*yield*/, alternate_phones_tests()];
+                return [4 /*yield*/, unique_strings_tests()];
             case 46:
                 _l.sent();
-                return [4 /*yield*/, field_equals_trigger_tests()];
+                return [4 /*yield*/, alternate_phones_tests()];
             case 47:
                 _l.sent();
-                return [4 /*yield*/, role_based_access_tests()];
+                return [4 /*yield*/, field_equals_trigger_tests()];
             case 48:
                 _l.sent();
-                return [4 /*yield*/, automation_trigger_tests()];
+                return [4 /*yield*/, role_based_access_tests()];
             case 49:
                 _l.sent();
-                return [4 /*yield*/, enduser_session_tests()];
+                return [4 /*yield*/, automation_trigger_tests()];
             case 50:
                 _l.sent();
-                return [4 /*yield*/, nextReminderInMS_tests()];
+                return [4 /*yield*/, enduser_session_tests()];
             case 51:
                 _l.sent();
-                return [4 /*yield*/, search_tests()];
+                return [4 /*yield*/, nextReminderInMS_tests()];
             case 52:
                 _l.sent();
-                return [4 /*yield*/, wait_for_trigger_tests()];
+                return [4 /*yield*/, search_tests()];
             case 53:
                 _l.sent();
-                return [4 /*yield*/, pdf_generation()];
+                return [4 /*yield*/, wait_for_trigger_tests()];
             case 54:
                 _l.sent();
-                return [4 /*yield*/, remove_from_journey_on_incoming_comms_tests()];
+                return [4 /*yield*/, pdf_generation()];
             case 55:
                 _l.sent();
-                return [4 /*yield*/, auto_reply_tests()];
+                return [4 /*yield*/, remove_from_journey_on_incoming_comms_tests()];
             case 56:
                 _l.sent();
-                return [4 /*yield*/, sub_organization_enduser_tests()];
+                return [4 /*yield*/, auto_reply_tests()];
             case 57:
                 _l.sent();
-                return [4 /*yield*/, sub_organization_tests()];
+                return [4 /*yield*/, sub_organization_enduser_tests()];
             case 58:
                 _l.sent();
-                return [4 /*yield*/, filter_by_date_tests()];
+                return [4 /*yield*/, sub_organization_tests()];
             case 59:
                 _l.sent();
-                return [4 /*yield*/, generate_user_auth_tests()];
+                return [4 /*yield*/, filter_by_date_tests()];
             case 60:
                 _l.sent();
-                return [4 /*yield*/, generateEnduserAuthTests()];
+                return [4 /*yield*/, generate_user_auth_tests()];
             case 61:
                 _l.sent();
-                return [4 /*yield*/, public_form_tests()];
+                return [4 /*yield*/, generateEnduserAuthTests()];
             case 62:
                 _l.sent();
-                return [4 /*yield*/, badInputTests()];
+                return [4 /*yield*/, public_form_tests()];
             case 63:
                 _l.sent();
-                return [4 /*yield*/, filterTests()];
+                return [4 /*yield*/, badInputTests()];
             case 64:
                 _l.sent();
-                return [4 /*yield*/, updatesTests()];
+                return [4 /*yield*/, filterTests()];
             case 65:
                 _l.sent();
-                return [4 /*yield*/, threadKeyTests()];
+                return [4 /*yield*/, updatesTests()];
             case 66:
                 _l.sent();
-                return [4 /*yield*/, enduserAccessTests()];
+                return [4 /*yield*/, threadKeyTests()];
             case 67:
                 _l.sent();
                 return [3 /*break*/, 69];

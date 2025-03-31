@@ -1553,6 +1553,11 @@ const enduserAccessTests = async () => {
   }
 
   await async_test(
+    `enduser can find self`,
+    () => enduserSDK.api.endusers.getOne(enduser.id),
+    { onResult: e => e.id === enduser.id }
+  )
+  await async_test(
     `enduser can update self`,
     () => enduserSDK.api.endusers.updateOne(enduser.id, { fname: "Sebastian", lname: "Coates" }), 
     { onResult: e => e.id === enduser.id && e.fname === 'Sebastian' && e.lname === "Coates" }
@@ -1586,10 +1591,70 @@ const enduserAccessTests = async () => {
     { onResult: ts => ts.length === 1 }
   )
 
+  const hiddenTemplate = await sdk.api.calendar_event_templates.createOne({ 
+    title: "hidden", durationInMinutes: 5,
+    enableSelfScheduling: false,
+  })
+  const shownTemplate = await sdk.api.calendar_event_templates.createOne({ 
+    title: "shown", durationInMinutes: 5,
+    enableSelfScheduling: true,
+  })
+  await async_test(
+    `Filter calendar event templates`,
+    () => enduserSDK.api.calendar_event_templates.getSome(),
+    { onResult: vs => vs.length === 1 && !vs.find(v => v.id === hiddenTemplate.id) }
+  )
+
+  const hiddenForm = await sdk.api.forms.createOne({ 
+    title: "hidden", allowPortalSubmission: false,
+  })
+  const shownForm = await sdk.api.forms.createOne({ 
+    title: "shown", allowPortalSubmission: true,
+  })
+  await async_test(
+    `Filter forms`,
+    () => enduserSDK.api.forms.getSome(),
+    { onResult: vs => vs.length === 1 && !vs.find(v => v.id === hiddenForm.id) }
+  )
+
+  const hiddenEvent = await sdk.api.calendar_events.createOne({
+    title: "hidden", startTimeInMS: Date.now(), durationInMinutes: 5,
+  })
+  const shownEvent = await sdk.api.calendar_events.createOne({
+    title: "shown", startTimeInMS: Date.now(), durationInMinutes: 5,
+    publicRead: true,
+  })
+  const attendedEvent = await sdk.api.calendar_events.createOne({
+    title: "shown", startTimeInMS: Date.now(), durationInMinutes: 5,
+    attendees: [{ id: enduser.id, type: 'enduser' }],
+  })
+  await async_test(
+    `Filter calendar events`,
+    () => enduserSDK.api.calendar_events.getSome(),
+    { onResult: vs => vs.length === 2 && !vs.find(v => v.id === hiddenEvent.id) }
+  )
+
+  const hiddenForum = await sdk.api.forums.createOne({ title: "Hidden Forum", publicRead: false })
+  const shownForum = await sdk.api.forums.createOne({ title: "Forum", publicRead: true })
+  await async_test(
+    `Filter forums`,
+    () => enduserSDK.api.forums.getSome(),
+    { onResult: vs => vs.length === 1 && !vs.find(v => v.id === hiddenForum.id) }
+  )
+
   await sdk.api.tickets.deleteOne(ticketAccessible.id)
   await sdk.api.tickets.deleteOne(ticketInaccessible.id)
   await sdk.api.endusers.deleteOne(enduser.id)
   await sdk.api.endusers.deleteOne(enduser2.id)
+  await sdk.api.calendar_event_templates.deleteOne(hiddenTemplate.id)
+  await sdk.api.calendar_event_templates.deleteOne(shownTemplate.id)
+  await sdk.api.forms.deleteOne(hiddenForm.id)
+  await sdk.api.forms.deleteOne(shownForm.id)
+  await sdk.api.calendar_events.deleteOne(hiddenEvent.id)
+  await sdk.api.calendar_events.deleteOne(shownEvent.id)
+  await sdk.api.calendar_events.deleteOne(attendedEvent.id)
+  await sdk.api.forums.deleteOne(hiddenForum.id)
+  await sdk.api.forums.deleteOne(shownForum.id)
 }
 
 const files_tests = async () => {
@@ -9392,6 +9457,7 @@ const test_form_response_search = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await enduserAccessTests()
     await test_form_response_search()
     await date_parsing_tests()
     await fromEmailOverride_tests()
@@ -9443,7 +9509,6 @@ const test_form_response_search = async () => {
     await filterTests()
     await updatesTests()
     await threadKeyTests()
-    await enduserAccessTests()
   } catch(err: any) {
     console.error("Failed during custom test")
     if (err.message && err.info) {

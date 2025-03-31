@@ -7630,6 +7630,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       pharmacyName: { validator: stringValidator1000 },
       prescriberName: { validator: stringValidator1000 },
       reasonForTaking: { validator: stringValidator },
+      directions: { validator: stringValidator },
     }
   },
   phone_trees: {

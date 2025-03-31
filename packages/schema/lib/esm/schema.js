@@ -5372,7 +5372,7 @@ export var schema = build_schema({
                     frequencyDescriptor: stringValidatorOptional,
                     description: stringValidatorOptional,
                 }),
-            }, source: { validator: stringValidator1000Optional }, externalId: { validator: stringValidator250 }, notes: { validator: stringValidator }, references: { validator: listOfRelatedRecordsValidator, readonly: true }, orderStatus: { validator: stringValidator1000 }, pharmacyName: { validator: stringValidator1000 }, prescriberName: { validator: stringValidator1000 }, reasonForTaking: { validator: stringValidator } })
+            }, source: { validator: stringValidator1000Optional }, externalId: { validator: stringValidator250 }, notes: { validator: stringValidator }, references: { validator: listOfRelatedRecordsValidator, readonly: true }, orderStatus: { validator: stringValidator1000 }, pharmacyName: { validator: stringValidator1000 }, prescriberName: { validator: stringValidator1000 }, reasonForTaking: { validator: stringValidator }, directions: { validator: stringValidator } })
     },
     phone_trees: {
         info: {},

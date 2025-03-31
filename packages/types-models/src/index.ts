@@ -211,6 +211,7 @@ export type OrganizationSettings = {
     hideUnorderedFullscriptMeds?: boolean,
     detailField?: string,
     showDownloadCallRecordings?: boolean,
+    launchDosespotWebhookURL?: string,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
@@ -898,6 +899,7 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
   pharmacyId?: string,
   orderStatus?: string,
   reasonForTaking?: string,
+  directions?: string,
 }
 
 export interface APIKey_readonly extends ClientRecord { 
@@ -1301,7 +1303,7 @@ export interface MessageTemplateSnippet extends MessageTemplateSnippet_readonly,
 
 export interface File_readonly extends ClientRecord {
   secureName: string,
-  publicRead?: boolean, // set on prepare_file_upload and cannot be changed without messing up assumptions in access
+  publicRead?: boolean, // NOT FOR ENDUSER-wide ACCESS. in portal set on prepare_file_upload and cannot be changed without messing up assumptions in access
   viewsById?: Record<string, {
     recentlyViewedAt: Date,
     type: 'user' | 'enduser'
@@ -2387,9 +2389,9 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   enableVideoCall?: boolean,
   videoIntegration?: VideoIntegrationType,
   generateZoomLinkWhenBooked?: boolean,
-  enableSelfScheduling?: boolean,
+  enableSelfScheduling?: boolean, // deprecated in favor of appointment booking pages modelss
   restrictedByState?: boolean,
-  publicRead?: boolean,
+  publicRead?: boolean, // not for enduser-wide access (until copied to a created calendar event)
   description?: string,
   reminders?: CalendarEventReminder[],
   image?: string,

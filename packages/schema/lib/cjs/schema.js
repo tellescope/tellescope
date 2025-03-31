@@ -5377,7 +5377,7 @@ exports.schema = (0, exports.build_schema)({
                     frequencyDescriptor: validation_1.stringValidatorOptional,
                     description: validation_1.stringValidatorOptional,
                 }),
-            }, source: { validator: validation_1.stringValidator1000Optional }, externalId: { validator: validation_1.stringValidator250 }, notes: { validator: validation_1.stringValidator }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, orderStatus: { validator: validation_1.stringValidator1000 }, pharmacyName: { validator: validation_1.stringValidator1000 }, prescriberName: { validator: validation_1.stringValidator1000 }, reasonForTaking: { validator: validation_1.stringValidator } })
+            }, source: { validator: validation_1.stringValidator1000Optional }, externalId: { validator: validation_1.stringValidator250 }, notes: { validator: validation_1.stringValidator }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, orderStatus: { validator: validation_1.stringValidator1000 }, pharmacyName: { validator: validation_1.stringValidator1000 }, prescriberName: { validator: validation_1.stringValidator1000 }, reasonForTaking: { validator: validation_1.stringValidator }, directions: { validator: validation_1.stringValidator } })
     },
     phone_trees: {
         info: {},

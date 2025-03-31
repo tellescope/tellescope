@@ -484,7 +484,7 @@ var Table = function (_a) {
         });
     }, [sorted, localFilters, fields]);
     // make sure filterCounts incorporates column filters whose state is in Table, not parent component
-    var filterCounts = _filterCounts ? __assign(__assign({}, _filterCounts), { filtered: filtered.length }) : undefined;
+    var filterCounts = (_filterCounts && !paginated) ? __assign(__assign({}, _filterCounts), { filtered: filtered.length }) : undefined;
     var headerFilterIsActive = (!!(fields.find(function (f) { return f.filterIsActive; }) || localFilters.find(function (f) { return f === null || f === void 0 ? void 0 : f.query; })));
     var draggable = (onReorder && sorting.length === 0);
     var ListComponent = (0, react_1.useMemo)(function () { return (draggable
@@ -537,7 +537,8 @@ var Table = function (_a) {
                 doneLoading: !paginated ? doneLoading : undefined, loadMore: !paginated ? loadMore : undefined, loadMoreOptions: loadMoreOptions, 
                 // renderProps={{ horizontalPadding }}
                 emptyText: emptyComponent !== null && emptyComponent !== void 0 ? emptyComponent : ((emptyText || headerFilterIsActive)
-                    ? ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(mui_1.Typography, __assign({ style: { padding: horizontalPadding } }, { children: emptyText || 'No results found the current filter' })), (0, jsx_runtime_1.jsx)("div", __assign({ style: { paddingLeft: horizontalPadding, paddingBottom: horizontalPadding } }, { children: (0, jsx_runtime_1.jsx)(forms_1.LoadingButton, { submitText: "Load Older Data", submittingText: "Loading...", disabled: doneLoading === null || doneLoading === void 0 ? void 0 : doneLoading(), onClick: loadMore, variant: "outlined", style: { width: 200, textAlign: 'center', marginTop: 10 } }) }))] }))
+                    ? ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(mui_1.Typography, __assign({ style: { padding: horizontalPadding } }, { children: emptyText || 'No results found the current filter' })), loadMore && !(doneLoading === null || doneLoading === void 0 ? void 0 : doneLoading()) &&
+                                (0, jsx_runtime_1.jsx)("div", __assign({ style: { paddingLeft: horizontalPadding, paddingBottom: horizontalPadding } }, { children: (0, jsx_runtime_1.jsx)(forms_1.LoadingButton, { submitText: "Load Older Data", submittingText: "Loading...", onClick: loadMore, variant: "outlined", style: { width: 200, textAlign: 'center', marginTop: 10 } }) }))] }))
                     : undefined), Item: function (_a) {
                     var _b;
                     var item = _a.item, index = _a.index;

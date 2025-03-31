@@ -407,7 +407,7 @@ export const ScrollingList = <T extends { id: string | number }>({
               {({ data, index, style }) => (
                 <div style={style}>
                   <Item key={data[index].id} item={data[index]} index={index} />
-                  {index === items.length -1 && loadMore &&
+                  {index === items.length -1 && loadMore && !doneLoading?.() &&
                     <div style={{ textAlign: 'center' }}>
                     <LoadingButton submitText="Load Older Data" submittingText="Loading..."
                       disabled={doneLoading?.()} onClick={loadMore} 

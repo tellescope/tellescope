@@ -3386,7 +3386,9 @@ export declare const useCalendarEventsForUser: (options?: HookOptions<import("@t
     id: string;
     createdAt: Date;
 })[]>, {
-    readonly loadEvents: (options?: LoadEventOptions) => void;
+    readonly loadEvents: (options?: LoadEventOptions & {
+        to?: Date;
+    }) => Promise<void>;
     readonly filtered: (filter: (value: import("@tellescope/types-models").CalendarEvent & {
         id: string;
         createdAt: Date;

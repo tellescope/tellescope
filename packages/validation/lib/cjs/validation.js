@@ -3454,6 +3454,7 @@ exports.organizationSettingsValidator = (0, exports.objectValidator)({
         hideUnorderedFullscriptMeds: exports.booleanValidatorOptional,
         detailField: exports.stringValidatorOptional,
         showDownloadCallRecordings: exports.booleanValidatorOptional,
+        launchDosespotWebhookURL: exports.stringValidatorOptionalEmptyOkay,
     }, { isOptional: true }),
     tickets: (0, exports.objectValidator)({
         defaultJourneyDueDateOffsetInMS: exports.numberValidatorOptional,

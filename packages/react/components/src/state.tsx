@@ -1049,6 +1049,9 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
           if (es.value.length < limit && !loadFilter && !mdbFilter) {
             setFetched('id' + modelName + DONE_LOADING_TOKEN, true) 
           }
+          else if (es.value.length < limit) {
+            setFetched(fetchKey + DONE_LOADING_TOKEN, true) 
+          }
           if (es.value.length) { // don't store oldest record from a filter, may skip some pages
             setLastId(fetchKey, es.value[es.value.length - 1]?.id?.toString())
             const createdAt: any = (es.value[es.value.length - 1] as any).createdAt;
@@ -1083,9 +1086,28 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     load(false)
   }, [load, options?.unbounceMS])
 
-  const doneLoading = useCallback((key="id") => (
-    didFetch(key + modelName + DONE_LOADING_TOKEN)
-  ), [didFetch, modelName])
+  const doneLoading = useCallback((key="id") => {
+    const unfileteredCase = didFetch(key + modelName + DONE_LOADING_TOKEN)
+    if (unfileteredCase) return true
+
+    const sort = options?.sort
+    const sortBy = options?.sortBy
+
+    const _filter = options?.loadFilter    
+    const filter = (_filter && object_is_empty(_filter)) ? undefined : _filter
+
+    const _mdbFilter = options?.mdbFilter
+    const mdbFilter = (_mdbFilter && _mdbFilter?.$and?.length) ? _mdbFilter : undefined
+
+    const filterKey = (
+      (mdbFilter || filter || sort || sortBy) 
+        ? JSON.stringify({ ...mdbFilter, ...filter, sort, sortBy }) + modelName 
+        : modelName
+    )
+    if (didFetch(filterKey + DONE_LOADING_TOKEN)) return true
+
+    return false
+  }, [didFetch, modelName, options?.loadFilter, options?.mdbFilter, options?.sort, options?.sortBy])
 
   const loadMore = useCallback(async (loadOptions?: LoadMoreOptions<T>) => {
     const sort = options?.sort
@@ -1126,6 +1148,9 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
         if (es.status === LoadingStatus.Loaded) {
           if (es.value.length < limit && !mdbFilter && (!filter || object_is_empty(filter))) {
             setFetched(key + modelName + DONE_LOADING_TOKEN, true) 
+          }
+          else if (es.value.length < limit) {
+            setFetched(filterKey + DONE_LOADING_TOKEN, true) 
           }
           const newLastId = es.value[es.value.length - 1]?.id?.toString()
           if (newLastId) {
@@ -2888,14 +2913,35 @@ export const useCalendarEventsForUser = (options={} as HookOptions<CalendarEvent
 
   const [eventsLoading, { addLocalElements, filtered }] = useCalendarEvents()
 
-  const loadEvents = useCallback((options?: LoadEventOptions) => {
+  const loadEvents = useCallback(async (options?: LoadEventOptions & { to?: Date }) => {
     const key = JSON.stringify(options ?? {})
     if (loadedRef.current[key]) return
     loadedRef.current[key] = Date.now()
 
-    fetchEvents(options)
-    .then(es => addLocalElements(es, { replaceIfMatch: true }))
-    .catch(console.error)
+    const load = (from?: Date) => (
+      console.log('Loading events from', from, 'to', options?.to),
+      fetchEvents({ ...options, from })
+      .then(es => addLocalElements(es, { replaceIfMatch: true }))
+      .catch(console.error)
+    )
+
+    let i = 0
+    let from = options?.from
+    while (i < 10) {
+      i++
+      const loaded = await load(from)
+
+      const to = options?.to
+      if (!to) { break }
+      if (!loaded) { break }
+      if (loaded.length === 0) { break }
+
+      if (loaded.find(e => new Date(e.startTimeInMS).getTime() > to.getTime())) {
+        break
+      }
+      // else continue to loop (up to 10 times) until we find events after the to date
+      from = new Date(Math.max(...loaded.map(e => e.startTimeInMS)))
+    }
   }, [session, loadedRef, fetchEvents, addLocalElements])
 
   return [eventsLoading, { loadEvents, filtered }] as const

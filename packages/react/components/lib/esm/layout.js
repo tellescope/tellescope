@@ -206,7 +206,7 @@ export var ScrollingList = function (_a) {
                                 loadMore(loadMoreOptions).catch(console.error).finally(function () { return setLoading(false); });
                             } }, { children: function (_a) {
                                 var data = _a.data, index = _a.index, style = _a.style;
-                                return (_jsxs("div", __assign({ style: style }, { children: [_jsx(Item, { item: data[index], index: index }, data[index].id), index === items.length - 1 && loadMore &&
+                                return (_jsxs("div", __assign({ style: style }, { children: [_jsx(Item, { item: data[index], index: index }, data[index].id), index === items.length - 1 && loadMore && !(doneLoading === null || doneLoading === void 0 ? void 0 : doneLoading()) &&
                                             _jsx("div", __assign({ style: { textAlign: 'center' } }, { children: _jsx(LoadingButton, { submitText: "Load Older Data", submittingText: "Loading...", disabled: doneLoading === null || doneLoading === void 0 ? void 0 : doneLoading(), onClick: loadMore, variant: "outlined", style: { width: 200, textAlign: 'center', marginTop: 10 } }) }))] })));
                             } }))) : (items.map(function (item, index) { return (_jsx(Item, { item: item, index: index }, item.id)); })), loading && _jsx(LinearProgress, { style: { position: 'relative', bottom: 3, minHeight: 7 } })] }))] })));
 };

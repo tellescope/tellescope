@@ -861,6 +861,9 @@ export var useListStateHook = function (modelName, state, session, slice, apiCal
                 if (es.value.length < limit && !loadFilter && !mdbFilter) {
                     setFetched('id' + modelName + DONE_LOADING_TOKEN, true);
                 }
+                else if (es.value.length < limit) {
+                    setFetched(fetchKey + DONE_LOADING_TOKEN, true);
+                }
                 if (es.value.length) { // don't store oldest record from a filter, may skip some pages
                     setLastId(fetchKey, (_b = (_a = es.value[es.value.length - 1]) === null || _a === void 0 ? void 0 : _a.id) === null || _b === void 0 ? void 0 : _b.toString());
                     var createdAt = es.value[es.value.length - 1].createdAt;
@@ -892,9 +895,24 @@ export var useListStateHook = function (modelName, state, session, slice, apiCal
         load(false);
     }, [load, options === null || options === void 0 ? void 0 : options.unbounceMS]);
     var doneLoading = useCallback(function (key) {
+        var _a;
         if (key === void 0) { key = "id"; }
-        return (didFetch(key + modelName + DONE_LOADING_TOKEN));
-    }, [didFetch, modelName]);
+        var unfileteredCase = didFetch(key + modelName + DONE_LOADING_TOKEN);
+        if (unfileteredCase)
+            return true;
+        var sort = options === null || options === void 0 ? void 0 : options.sort;
+        var sortBy = options === null || options === void 0 ? void 0 : options.sortBy;
+        var _filter = options === null || options === void 0 ? void 0 : options.loadFilter;
+        var filter = (_filter && object_is_empty(_filter)) ? undefined : _filter;
+        var _mdbFilter = options === null || options === void 0 ? void 0 : options.mdbFilter;
+        var mdbFilter = (_mdbFilter && ((_a = _mdbFilter === null || _mdbFilter === void 0 ? void 0 : _mdbFilter.$and) === null || _a === void 0 ? void 0 : _a.length)) ? _mdbFilter : undefined;
+        var filterKey = ((mdbFilter || filter || sort || sortBy)
+            ? JSON.stringify(__assign(__assign(__assign({}, mdbFilter), filter), { sort: sort, sortBy: sortBy })) + modelName
+            : modelName);
+        if (didFetch(filterKey + DONE_LOADING_TOKEN))
+            return true;
+        return false;
+    }, [didFetch, modelName, options === null || options === void 0 ? void 0 : options.loadFilter, options === null || options === void 0 ? void 0 : options.mdbFilter, options === null || options === void 0 ? void 0 : options.sort, options === null || options === void 0 ? void 0 : options.sortBy]);
     var loadMore = useCallback(function (loadOptions) { return __awaiter(void 0, void 0, void 0, function () {
         var sort, sortBy, _filter, filter, _mdbFilter, mdbFilter, mdbFilterIsActive, filterKey, lastId, key, limit;
         var _a, _b, _c, _d, _e, _f;
@@ -932,6 +950,9 @@ export var useListStateHook = function (modelName, state, session, slice, apiCal
                     if (es.status === LoadingStatus.Loaded) {
                         if (es.value.length < limit && !mdbFilter && (!filter || object_is_empty(filter))) {
                             setFetched(key + modelName + DONE_LOADING_TOKEN, true);
+                        }
+                        else if (es.value.length < limit) {
+                            setFetched(filterKey + DONE_LOADING_TOKEN, true);
                         }
                         var newLastId = (_b = (_a = es.value[es.value.length - 1]) === null || _a === void 0 ? void 0 : _a.id) === null || _b === void 0 ? void 0 : _b.toString();
                         if (newLastId) {
@@ -2259,15 +2280,62 @@ export var useCalendarEventsForUser = function (options) {
         });
     }); }, [options, session]);
     var _a = useCalendarEvents(), eventsLoading = _a[0], _b = _a[1], addLocalElements = _b.addLocalElements, filtered = _b.filtered;
-    var loadEvents = useCallback(function (options) {
-        var key = JSON.stringify(options !== null && options !== void 0 ? options : {});
-        if (loadedRef.current[key])
-            return;
-        loadedRef.current[key] = Date.now();
-        fetchEvents(options)
-            .then(function (es) { return addLocalElements(es, { replaceIfMatch: true }); })
-            .catch(console.error);
-    }, [session, loadedRef, fetchEvents, addLocalElements]);
+    var loadEvents = useCallback(function (options) { return __awaiter(void 0, void 0, void 0, function () {
+        var key, load, i, from, _loop_1, state_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    key = JSON.stringify(options !== null && options !== void 0 ? options : {});
+                    if (loadedRef.current[key])
+                        return [2 /*return*/];
+                    loadedRef.current[key] = Date.now();
+                    load = function (from) { return (console.log('Loading events from', from, 'to', options === null || options === void 0 ? void 0 : options.to),
+                        fetchEvents(__assign(__assign({}, options), { from: from }))
+                            .then(function (es) { return addLocalElements(es, { replaceIfMatch: true }); })
+                            .catch(console.error)); };
+                    i = 0;
+                    from = options === null || options === void 0 ? void 0 : options.from;
+                    _loop_1 = function () {
+                        var loaded, to;
+                        return __generator(this, function (_b) {
+                            switch (_b.label) {
+                                case 0:
+                                    i++;
+                                    return [4 /*yield*/, load(from)];
+                                case 1:
+                                    loaded = _b.sent();
+                                    to = options === null || options === void 0 ? void 0 : options.to;
+                                    if (!to) {
+                                        return [2 /*return*/, "break"];
+                                    }
+                                    if (!loaded) {
+                                        return [2 /*return*/, "break"];
+                                    }
+                                    if (loaded.length === 0) {
+                                        return [2 /*return*/, "break"];
+                                    }
+                                    if (loaded.find(function (e) { return new Date(e.startTimeInMS).getTime() > to.getTime(); })) {
+                                        return [2 /*return*/, "break"];
+                                    }
+                                    // else continue to loop (up to 10 times) until we find events after the to date
+                                    from = new Date(Math.max.apply(Math, loaded.map(function (e) { return e.startTimeInMS; })));
+                                    return [2 /*return*/];
+                            }
+                        });
+                    };
+                    _a.label = 1;
+                case 1:
+                    if (!(i < 10)) return [3 /*break*/, 3];
+                    return [5 /*yield**/, _loop_1()];
+                case 2:
+                    state_1 = _a.sent();
+                    if (state_1 === "break")
+                        return [3 /*break*/, 3];
+                    return [3 /*break*/, 1];
+                case 3: return [2 /*return*/];
+            }
+        });
+    }); }, [session, loadedRef, fetchEvents, addLocalElements]);
     return [eventsLoading, { loadEvents: loadEvents, filtered: filtered }];
 };
 export var useWaitlists = function (options) {

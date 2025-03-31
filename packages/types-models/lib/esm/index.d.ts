@@ -198,6 +198,7 @@ export type OrganizationSettings = {
         hideUnorderedFullscriptMeds?: boolean;
         detailField?: string;
         showDownloadCallRecordings?: boolean;
+        launchDosespotWebhookURL?: string;
     };
     tickets?: {
         defaultJourneyDueDateOffsetInMS?: number | '';
@@ -844,6 +845,7 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
     pharmacyId?: string;
     orderStatus?: string;
     reasonForTaking?: string;
+    directions?: string;
 }
 export interface APIKey_readonly extends ClientRecord {
     hashedKey: string;
