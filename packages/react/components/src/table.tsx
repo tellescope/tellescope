@@ -626,6 +626,7 @@ export const TableFooterNumbered = <T,>({ horizontalPadding, loadMore, loadMoreO
   useEffect(() => {
     if (!(loadMore && doneLoading)) return 
     if (doneLoading()) return
+    if (previousDisabled) return // return if on the first page
     if (!nextDisabled) return // return if not on last page
 
     loadMore(loadMoreOptions)

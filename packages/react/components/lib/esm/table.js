@@ -273,6 +273,8 @@ export var TableFooterNumbered = function (_a) {
             return;
         if (doneLoading())
             return;
+        if (previousDisabled)
+            return; // return if on the first page
         if (!nextDisabled)
             return; // return if not on last page
         loadMore(loadMoreOptions);

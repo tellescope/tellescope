@@ -10728,17 +10728,20 @@ var test_form_response_search = function () { return __awaiter(void 0, void 0, v
                 return [4 /*yield*/, async_test("Search for searchable title", function () { return sdk.api.form_responses.getSome({ search: { query: 'KEYWORD' } }); }, { onResult: function (r) { return r.length === 1; } })];
             case 5:
                 _a.sent();
-                return [4 /*yield*/, async_test("Search for email", function () { return sdk.api.form_responses.getSome({ search: { query: 'test@tellescope.com' } }); }, { onResult: function (r) { return r.length === 1; } })];
+                return [4 /*yield*/, async_test("Search for searchable title (case sensitivity)", function () { return sdk.api.form_responses.getSome({ search: { query: 'kEYWORD' } }); }, { onResult: function (r) { return r.length === 0; } })];
             case 6:
                 _a.sent();
-                return [4 /*yield*/, async_test("Search for unsearchable field", function () { return sdk.api.form_responses.getSome({ search: { query: 'unsearchable' } }); }, { onResult: function (r) { return r.length === 0; } })];
+                return [4 /*yield*/, async_test("Search for email", function () { return sdk.api.form_responses.getSome({ search: { query: 'test@tellescope.com' } }); }, { onResult: function (r) { return r.length === 1; } })];
             case 7:
+                _a.sent();
+                return [4 /*yield*/, async_test("Search for unsearchable field", function () { return sdk.api.form_responses.getSome({ search: { query: 'unsearchable' } }); }, { onResult: function (r) { return r.length === 0; } })];
+            case 8:
                 _a.sent();
                 return [4 /*yield*/, Promise.all([
                         sdk.api.forms.deleteOne(f.id),
                         sdk.api.endusers.deleteOne(e.id),
                     ])];
-            case 8: return [2 /*return*/, _a.sent()];
+            case 9: return [2 /*return*/, _a.sent()];
         }
     });
 }); };

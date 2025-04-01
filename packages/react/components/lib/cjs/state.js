@@ -2446,6 +2446,13 @@ var useCalendarEventsForUser = function (options) {
                                     if (loaded.length === 0) {
                                         return [2 /*return*/, "break"];
                                     }
+                                    if ((options === null || options === void 0 ? void 0 : options.limit) && loaded.length < (options === null || options === void 0 ? void 0 : options.limit)) {
+                                        return [2 /*return*/, "break"];
+                                    }
+                                    // default limit on backend is 500 per user included, so this is a very safe default
+                                    if (!(options === null || options === void 0 ? void 0 : options.limit) && loaded.length < 100) {
+                                        return [2 /*return*/, "break"];
+                                    }
                                     if (loaded.find(function (e) { return new Date(e.startTimeInMS).getTime() > to.getTime(); })) {
                                         return [2 /*return*/, "break"];
                                     }

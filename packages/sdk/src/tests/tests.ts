@@ -9324,6 +9324,11 @@ const test_form_response_search = async () => {
     () => sdk.api.form_responses.getSome({ search: { query: 'KEYWORD' } }),
     { onResult: r => r.length === 1 },
   )
+  await async_test(
+    "Search for searchable title (case sensitivity)",
+    () => sdk.api.form_responses.getSome({ search: { query: 'kEYWORD' } }),
+    { onResult: r => r.length === 0 },
+  )
 
   await async_test(
     "Search for email",

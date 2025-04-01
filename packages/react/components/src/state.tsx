@@ -2936,6 +2936,15 @@ export const useCalendarEventsForUser = (options={} as HookOptions<CalendarEvent
       if (!loaded) { break }
       if (loaded.length === 0) { break }
 
+      if (options?.limit && loaded.length < options?.limit) {
+        break;
+      }
+
+      // default limit on backend is 500 per user included, so this is a very safe default
+      if (!options?.limit && loaded.length < 100) {
+        break;
+      }
+
       if (loaded.find(e => new Date(e.startTimeInMS).getTime() > to.getTime())) {
         break
       }
