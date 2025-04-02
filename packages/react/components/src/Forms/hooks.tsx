@@ -1301,7 +1301,8 @@ export const useTellescopeForm = ({ isPublicForm, form, urlLogicValue, customiza
   }, [activeField, validateField, uploadingFiles])
 
   const autoAdvanceRef = useRef(false)
-  const goToNextField = useCallback((answer?: FormResponseValue['answer']) => {
+  // don't make option, to avoid user passing invalid data, like an onclick event
+  const goToNextField = useCallback((answer: FormResponseValue['answer'] | undefined) => {
     if (!currentValue) return
     if (isNextDisabled() && currentValue?.answer.type !== 'Hidden Value') return
 

@@ -1252,6 +1252,7 @@ var useTellescopeForm = function (_a) {
         return false;
     }, [activeField, validateField, uploadingFiles]);
     var autoAdvanceRef = (0, react_1.useRef)(false);
+    // don't make option, to avoid user passing invalid data, like an onclick event
     var goToNextField = (0, react_1.useCallback)(function (answer) {
         var _a, _b, _c;
         if (!currentValue)

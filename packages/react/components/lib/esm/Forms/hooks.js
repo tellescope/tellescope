@@ -1233,6 +1233,7 @@ export var useTellescopeForm = function (_a) {
         return false;
     }, [activeField, validateField, uploadingFiles]);
     var autoAdvanceRef = useRef(false);
+    // don't make option, to avoid user passing invalid data, like an onclick event
     var goToNextField = useCallback(function (answer) {
         var _a, _b, _c;
         if (!currentValue)

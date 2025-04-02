@@ -323,7 +323,7 @@ var TellescopeSingleQuestionFlow = function (_a) {
                 return; // ensure enter is allowed in stringLong at end of a question group before next
             if (isNextDisabled())
                 return;
-            goToNextField();
+            goToNextField(undefined);
         }
     }, [activeField, isNextDisabled, goToNextField, isPreviousDisabled, goToPreviousField]);
     (0, react_1.useEffect)(function () {
@@ -347,7 +347,7 @@ var TellescopeSingleQuestionFlow = function (_a) {
                                     : "Submitting...", style: __assign(__assign({}, inputs_1.defaultButtonStyles), { minWidth: 150, width: '50%', maxWidth: 250 }), 
                                 // @ts-ignore
                                 color: (_d = theme.themeColor) !== null && _d !== void 0 ? _d : constants_1.PRIMARY_HEX }))
-                            : ((0, jsx_runtime_1.jsx)(index_1.Button, __assign({ variant: "contained", disabled: isNextDisabled(), onClick: goToNextField, style: __assign(__assign({}, inputs_1.defaultButtonStyles), { width: 100 }) }, { children: (0, index_1.form_display_text_for_language)(form, "Next") })))] })), !(customization === null || customization === void 0 ? void 0 : customization.hideProgressBar) &&
+                            : ((0, jsx_runtime_1.jsx)(index_1.Button, __assign({ variant: "contained", disabled: isNextDisabled(), onClick: function () { return goToNextField(undefined); }, style: __assign(__assign({}, inputs_1.defaultButtonStyles), { width: 100 }) }, { children: (0, index_1.form_display_text_for_language)(form, "Next") })))] })), !(customization === null || customization === void 0 ? void 0 : customization.hideProgressBar) &&
                     (0, jsx_runtime_1.jsx)(inputs_1.Progress, { numerator: currentPageIndex + (validateCurrentField() ? 0 : 1), denominator: currentPageIndex + 1 + numRemainingPages, style: { marginTop: '15px' } }), (0, jsx_runtime_1.jsx)(index_1.Typography, __assign({ color: "error", style: { alignText: 'center', marginTop: 3 } }, { children: submitErrorMessage }))] }))));
 };
 exports.TellescopeSingleQuestionFlow = TellescopeSingleQuestionFlow;

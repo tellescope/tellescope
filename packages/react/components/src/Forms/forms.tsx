@@ -531,7 +531,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
       if (activeField.value.type === 'stringLong') return // 
       if (activeField.value.type === 'Question Group') return // ensure enter is allowed in stringLong at end of a question group before next
       if (isNextDisabled()) return
-      goToNextField()
+      goToNextField(undefined)
     } 
   }, [activeField, isNextDisabled, goToNextField, isPreviousDisabled, goToPreviousField])
 
@@ -617,7 +617,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
               />
             )
             : (
-              <Button variant="contained" disabled={isNextDisabled()} onClick={goToNextField} 
+              <Button variant="contained" disabled={isNextDisabled()} onClick={() => goToNextField(undefined)} 
                 style={{ ...defaultButtonStyles, width: 100 }}
               >
                 {form_display_text_for_language(form, "Next")}

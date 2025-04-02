@@ -76,7 +76,7 @@ export declare const useModalIconButton: (props: UseModalIconButtonProps) => {
     id?: string | undefined;
     ariaLabel?: string | undefined;
     disabled?: boolean | undefined;
-    color?: "error" | "primary" | "secondary" | "inherit" | "white" | "default" | undefined;
+    color?: "default" | "error" | "primary" | "inherit" | "white" | "secondary" | undefined;
     placement?: TooltipPlacement | undefined;
     onClick?: ((e: any) => void) | undefined;
     showArrow?: boolean | undefined;
@@ -97,7 +97,7 @@ export declare const IconModal: ({ open, setOpen, children, disabled, onClick, s
     id?: string | undefined;
     ariaLabel?: string | undefined;
     disabled?: boolean | undefined;
-    color?: "error" | "primary" | "secondary" | "inherit" | "white" | "default" | undefined;
+    color?: "default" | "error" | "primary" | "inherit" | "white" | "secondary" | undefined;
     placement?: TooltipPlacement | undefined;
     onClick?: ((e: any) => void) | undefined;
     showArrow?: boolean | undefined;

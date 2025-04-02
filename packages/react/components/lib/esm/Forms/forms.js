@@ -294,7 +294,7 @@ export var TellescopeSingleQuestionFlow = function (_a) {
                 return; // ensure enter is allowed in stringLong at end of a question group before next
             if (isNextDisabled())
                 return;
-            goToNextField();
+            goToNextField(undefined);
         }
     }, [activeField, isNextDisabled, goToNextField, isPreviousDisabled, goToPreviousField]);
     useEffect(function () {
@@ -318,7 +318,7 @@ export var TellescopeSingleQuestionFlow = function (_a) {
                                     : "Submitting...", style: __assign(__assign({}, defaultButtonStyles), { minWidth: 150, width: '50%', maxWidth: 250 }), 
                                 // @ts-ignore
                                 color: (_d = theme.themeColor) !== null && _d !== void 0 ? _d : PRIMARY_HEX }))
-                            : (_jsx(Button, __assign({ variant: "contained", disabled: isNextDisabled(), onClick: goToNextField, style: __assign(__assign({}, defaultButtonStyles), { width: 100 }) }, { children: form_display_text_for_language(form, "Next") })))] })), !(customization === null || customization === void 0 ? void 0 : customization.hideProgressBar) &&
+                            : (_jsx(Button, __assign({ variant: "contained", disabled: isNextDisabled(), onClick: function () { return goToNextField(undefined); }, style: __assign(__assign({}, defaultButtonStyles), { width: 100 }) }, { children: form_display_text_for_language(form, "Next") })))] })), !(customization === null || customization === void 0 ? void 0 : customization.hideProgressBar) &&
                     _jsx(Progress, { numerator: currentPageIndex + (validateCurrentField() ? 0 : 1), denominator: currentPageIndex + 1 + numRemainingPages, style: { marginTop: '15px' } }), _jsx(Typography, __assign({ color: "error", style: { alignText: 'center', marginTop: 3 } }, { children: submitErrorMessage }))] }))));
 };
 export var DEFAULT_THANKS_MESSAGE = "Your response was successfully recorded";
