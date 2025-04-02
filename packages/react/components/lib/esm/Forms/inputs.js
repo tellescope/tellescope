@@ -282,7 +282,25 @@ export var EmailInput = function (_a) {
 };
 export var NumberInput = function (_a) {
     var field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "form"]);
-    return (_jsx(AutoFocusTextField, __assign({}, props, { required: !field.isOptional, fullWidth: true, type: "number", value: value, onChange: function (e) { return onChange(parseInt(e.target.value), field.id); }, label: (!field.title && field.placeholder) ? field.placeholder : props.label, placeholder: field.placeholder || form_display_text_for_language(form, "Enter a number...", ''), sx: {
+    // Prevent the default scroll behavior when focused on this input
+    var inputRef = useRef(null);
+    useEffect(function () {
+        var _a;
+        var handleWheel = function (e) {
+            var _a;
+            (_a = e === null || e === void 0 ? void 0 : e.preventDefault) === null || _a === void 0 ? void 0 : _a.call(e);
+        };
+        // Get the actual input element inside the TextField
+        var inputElement = (_a = inputRef.current) === null || _a === void 0 ? void 0 : _a.querySelector('input');
+        if (inputElement) {
+            inputElement.addEventListener('wheel', handleWheel, { passive: false });
+            // Clean up event listener when component unmounts
+            return function () {
+                inputElement.removeEventListener('wheel', handleWheel);
+            };
+        }
+    }, []);
+    return (_jsx(TextField, __assign({ ref: inputRef, autoFocus: true, InputProps: defaultInputProps }, props, { required: !field.isOptional, fullWidth: true, type: "number", value: value, onChange: function (e) { return onChange(parseInt(e.target.value), field.id); }, label: (!field.title && field.placeholder) ? field.placeholder : props.label, placeholder: field.placeholder || form_display_text_for_language(form, "Enter a number...", ''), onScroll: function (e) { return e.preventDefault(); }, sx: {
             '& input[type=number]': {
                 '-moz-appearance': 'textfield'
             },

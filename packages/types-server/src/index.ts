@@ -244,6 +244,10 @@ export interface ElectronicSignature extends InternalBusinessRecord {
   url?: string,
 }
 
+export interface MFaxWebhookLog extends InternalBusinessRecord {
+  value: string
+}
+
 export interface GmailWebhookLog extends InternalBusinessRecord {
   type: string, 
   to: string,

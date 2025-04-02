@@ -213,6 +213,9 @@ export interface ElectronicSignature extends InternalBusinessRecord {
     pdfSecureName?: string;
     url?: string;
 }
+export interface MFaxWebhookLog extends InternalBusinessRecord {
+    value: string;
+}
 export interface GmailWebhookLog extends InternalBusinessRecord {
     type: string;
     to: string;

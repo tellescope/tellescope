@@ -485,26 +485,49 @@ export const EmailInput = ({ field, value, onChange, form, ...props }: FormInput
   />
 )
 
-export const NumberInput = ({ field, value, onChange, form, ...props }: FormInputProps<'number'>) => (
-  <AutoFocusTextField {...props} required={!field.isOptional} fullWidth type="number" value={value} 
-    onChange={e => onChange(parseInt(e.target.value), field.id)}  
-    label={(!field.title && field.placeholder) ? field.placeholder : props.label}
-    placeholder={field.placeholder || form_display_text_for_language(form, "Enter a number...", '')}
-    sx={{
-      '& input[type=number]': {
-        '-moz-appearance': 'textfield'
-      },
-      '& input[type=number]::-webkit-outer-spin-button': {
-          '-webkit-appearance': 'none',
-          margin: 0
-      },
-      '& input[type=number]::-webkit-inner-spin-button': {
-          '-webkit-appearance': 'none',
-          margin: 0
-      }
-    }}
-  />
-)
+export const NumberInput = ({ field, value, onChange, form, ...props }: FormInputProps<'number'>) => {
+  // Prevent the default scroll behavior when focused on this input
+  const inputRef = useRef<HTMLInputElement>(null); 
+  useEffect(() => {
+    const handleWheel = (e: any) => {
+      e?.preventDefault?.();
+    };
+    
+    // Get the actual input element inside the TextField
+    const inputElement = inputRef.current?.querySelector('input');
+    
+    if (inputElement) {
+      inputElement.addEventListener('wheel', handleWheel, { passive: false });
+      
+      // Clean up event listener when component unmounts
+      return () => {
+        inputElement.removeEventListener('wheel', handleWheel);
+      };
+    }
+  }, []);
+
+  return (
+    <TextField ref={inputRef} autoFocus InputProps={defaultInputProps} {...props} required={!field.isOptional} fullWidth type="number" value={value} 
+      onChange={e => onChange(parseInt(e.target.value), field.id)}  
+      label={(!field.title && field.placeholder) ? field.placeholder : props.label}
+      placeholder={field.placeholder || form_display_text_for_language(form, "Enter a number...", '')}
+      onScroll={e => e.preventDefault()} // prevent scroll on number input
+      sx={{
+        '& input[type=number]': {
+          '-moz-appearance': 'textfield'
+        },
+        '& input[type=number]::-webkit-outer-spin-button': {
+            '-webkit-appearance': 'none',
+            margin: 0
+        },
+        '& input[type=number]::-webkit-inner-spin-button': {
+            '-webkit-appearance': 'none',
+            margin: 0
+        }
+      }}
+    />
+  )
+}
 
 export const InsuranceInput = ({ field, value, onChange, form, responses, enduser, ...props }: FormInputProps<'Insurance'>) => {
   const session = useResolvedSession()
