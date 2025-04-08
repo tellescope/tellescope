@@ -1608,6 +1608,7 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
     inputs?: string[] | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Order Created", {
     titles?: string[] | undefined;
+    fills?: string[] | undefined;
     partialFrequency?: string | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Problem Created", {
     titles?: string[] | undefined;
@@ -1631,6 +1632,8 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
     source: string;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"File Added", {
     source: string;
+}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Tag Added", {
+    tag: string;
 }, {}>>;
 export declare const AUTOMATION_TRIGGER_ACTION_TYPES: (keyof AutomationTriggerActions)[];
 export declare const automationTriggerActionValidator: ValidatorDefinition<import("@tellescope/types-models").AutomationTriggerActionBuilder<"Add To Journey", {

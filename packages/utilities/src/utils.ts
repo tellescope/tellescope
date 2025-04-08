@@ -1803,8 +1803,19 @@ export const responses_satisfy_conditions = (responses: FormResponseValue[], con
           }
         }
 
-        const number = parseInt(conditionValue)  
-        const answerNumber = answer.value as number
+        const number = (
+          typeof conditionValue === 'string' && conditionValue.startsWith("$JS(") && conditionValue.endsWith(")")
+            ? new Function('answer', conditionValue.substring(4, conditionValue.length - 1))(answer)
+            : parseInt(conditionValue)
+        )
+        const answerNumber = (
+          (answer.type === 'date' && answer.value)
+            ? new Date(answer.value).getTime()
+          : (answer.type === 'dateString' && answer.value)
+            ? new Date(MM_DD_YYYY_to_YYYY_MM_DD(answer.value)).getTime()
+            : answer.value as number
+        )
+
         if (isNaN(number)) return false
         if (typeof answerNumber !== 'number') return false
 

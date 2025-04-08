@@ -3455,6 +3455,7 @@ exports.organizationSettingsValidator = (0, exports.objectValidator)({
         detailField: exports.stringValidatorOptional,
         showDownloadCallRecordings: exports.booleanValidatorOptional,
         launchDosespotWebhookURL: exports.stringValidatorOptionalEmptyOkay,
+        reverseTimeline: exports.booleanValidatorOptional,
     }, { isOptional: true }),
     tickets: (0, exports.objectValidator)({
         defaultJourneyDueDateOffsetInMS: exports.numberValidatorOptional,
@@ -3545,6 +3546,7 @@ var _AUTOMATION_TRIGGER_EVENT_TYPES = {
     "Appointment Completed": true,
     "Appointment Rescheduled": true,
     "Field Equals": true,
+    "Tag Added": true,
     "Contact Created": true,
     "No Recent Appointment": true,
     "Medication Added": true,
@@ -3770,6 +3772,7 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
         type: (0, exports.exactMatchValidator)(['Order Created']),
         info: (0, exports.objectValidator)({
             titles: exports.listOfStringsValidatorOptionalOrEmptyOk,
+            fills: exports.listOfStringsValidatorOptionalOrEmptyOk,
             partialFrequency: exports.stringValidatorOptional,
         }),
         conditions: exports.optionalEmptyObjectValidator,
@@ -3843,6 +3846,13 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
         type: (0, exports.exactMatchValidator)(['File Added']),
         info: (0, exports.objectValidator)({
             source: exports.stringValidator100,
+        }),
+        conditions: exports.optionalEmptyObjectValidator,
+    }),
+    "Tag Added": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['Tag Added']),
+        info: (0, exports.objectValidator)({
+            tag: exports.stringValidator100,
         }),
         conditions: exports.optionalEmptyObjectValidator,
     }),

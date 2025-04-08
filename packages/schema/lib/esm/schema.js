@@ -2784,7 +2784,7 @@ export var schema = build_schema({
             unique: [],
             relationship: [],
         },
-        fields: __assign(__assign({}, BuiltInFields), { discussionRoomId: { validator: mongoIdStringValidator }, hiddenFromTimeline: { validator: booleanValidator }, formId: {
+        fields: __assign(__assign({}, BuiltInFields), { discussionRoomId: { validator: mongoIdStringValidator }, hiddenFromTimeline: { validator: booleanValidator }, lockedAt: { validator: dateValidator }, formId: {
                 validator: stringValidator100,
                 required: true,
                 dependencies: [
@@ -4534,7 +4534,7 @@ export var schema = build_schema({
                 required: true,
                 examples: [[]],
                 validator: portalBlocksValidator,
-            }, disabled: { validator: booleanValidator }, mobileBottomNavigationPosition: { validator: nonNegNumberValidator }, headerImageURL: { validator: stringValidator1000 }, iframeURL: { validator: stringValidator1000 }, iconURL: { validator: stringValidator1000 }, activeIconURL: { validator: stringValidator1000 }, showStripePortalLink: { validator: booleanValidator }, hideCancellatation: { validator: booleanValidator }, hiddenEventTitles: { validator: listOfStringsValidatorEmptyOk }, hiddenFormIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk } }),
+            }, disabled: { validator: booleanValidator }, mobileBottomNavigationPosition: { validator: nonNegNumberValidator }, headerImageURL: { validator: stringValidator1000 }, iframeURL: { validator: stringValidator1000 }, iconURL: { validator: stringValidator1000 }, activeIconURL: { validator: stringValidator1000 }, showStripePortalLink: { validator: booleanValidator }, hideCancellatation: { validator: booleanValidator }, hideReschedule: { validator: booleanValidator }, hiddenEventTitles: { validator: listOfStringsValidatorEmptyOk }, hiddenFormIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk } }),
     },
     enduser_tasks: {
         info: {},
@@ -5726,7 +5726,7 @@ export var schema = build_schema({
             }, userId: { validator: mongoIdStringValidator }, title: { validator: stringValidator, required: true, examples: ['title'] }, status: { validator: stringValidator, required: true, examples: ['status'] }, description: { validator: stringValidator1000 }, frequency: { validator: stringValidator100 }, items: { validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     title: stringValidator,
                     tracking: stringValidatorOptional,
-                })) }, tracking: { validator: stringValidatorOptional } })
+                })) }, tracking: { validator: stringValidatorOptional }, fill: { validator: stringValidatorOptional } })
     },
     vital_configurations: {
         info: {},

@@ -2789,7 +2789,7 @@ exports.schema = (0, exports.build_schema)({
             unique: [],
             relationship: [],
         },
-        fields: __assign(__assign({}, BuiltInFields), { discussionRoomId: { validator: validation_1.mongoIdStringRequired }, hiddenFromTimeline: { validator: validation_1.booleanValidator }, formId: {
+        fields: __assign(__assign({}, BuiltInFields), { discussionRoomId: { validator: validation_1.mongoIdStringRequired }, hiddenFromTimeline: { validator: validation_1.booleanValidator }, lockedAt: { validator: validation_1.dateValidator }, formId: {
                 validator: validation_1.stringValidator100,
                 required: true,
                 dependencies: [
@@ -4539,7 +4539,7 @@ exports.schema = (0, exports.build_schema)({
                 required: true,
                 examples: [[]],
                 validator: validation_1.portalBlocksValidator,
-            }, disabled: { validator: validation_1.booleanValidator }, mobileBottomNavigationPosition: { validator: validation_1.nonNegNumberValidator }, headerImageURL: { validator: validation_1.stringValidator1000 }, iframeURL: { validator: validation_1.stringValidator1000 }, iconURL: { validator: validation_1.stringValidator1000 }, activeIconURL: { validator: validation_1.stringValidator1000 }, showStripePortalLink: { validator: validation_1.booleanValidator }, hideCancellatation: { validator: validation_1.booleanValidator }, hiddenEventTitles: { validator: validation_1.listOfStringsValidatorEmptyOk }, hiddenFormIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk } }),
+            }, disabled: { validator: validation_1.booleanValidator }, mobileBottomNavigationPosition: { validator: validation_1.nonNegNumberValidator }, headerImageURL: { validator: validation_1.stringValidator1000 }, iframeURL: { validator: validation_1.stringValidator1000 }, iconURL: { validator: validation_1.stringValidator1000 }, activeIconURL: { validator: validation_1.stringValidator1000 }, showStripePortalLink: { validator: validation_1.booleanValidator }, hideCancellatation: { validator: validation_1.booleanValidator }, hideReschedule: { validator: validation_1.booleanValidator }, hiddenEventTitles: { validator: validation_1.listOfStringsValidatorEmptyOk }, hiddenFormIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk } }),
     },
     enduser_tasks: {
         info: {},
@@ -5731,7 +5731,7 @@ exports.schema = (0, exports.build_schema)({
             }, userId: { validator: validation_1.mongoIdStringRequired }, title: { validator: validation_1.stringValidator, required: true, examples: ['title'] }, status: { validator: validation_1.stringValidator, required: true, examples: ['status'] }, description: { validator: validation_1.stringValidator1000 }, frequency: { validator: validation_1.stringValidator100 }, items: { validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     title: validation_1.stringValidator,
                     tracking: validation_1.stringValidatorOptional,
-                })) }, tracking: { validator: validation_1.stringValidatorOptional } })
+                })) }, tracking: { validator: validation_1.stringValidatorOptional }, fill: { validator: validation_1.stringValidatorOptional } })
     },
     vital_configurations: {
         info: {},

@@ -4023,6 +4023,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     detailField: stringValidatorOptional,
     showDownloadCallRecordings: booleanValidatorOptional,
     launchDosespotWebhookURL: stringValidatorOptionalEmptyOkay,
+    reverseTimeline: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -4117,6 +4118,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Appointment Completed": true,
   "Appointment Rescheduled": true,
   "Field Equals": true,
+  "Tag Added": true,
   "Contact Created": true,
   "No Recent Appointment": true,
   "Medication Added": true,
@@ -4343,6 +4345,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['Order Created']),
     info: objectValidator<AutomationTriggerEvents['Order Created']['info']>({
       titles: listOfStringsValidatorOptionalOrEmptyOk,
+      fills: listOfStringsValidatorOptionalOrEmptyOk,
       partialFrequency: stringValidatorOptional,
     }),
     conditions: optionalEmptyObjectValidator,
@@ -4416,6 +4419,13 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['File Added']),
     info: objectValidator<AutomationTriggerEvents['File Added']['info']>({
       source: stringValidator100,
+    }),
+    conditions: optionalEmptyObjectValidator,
+  }),
+  "Tag Added": objectValidator<AutomationTriggerEvents["Tag Added"]>({
+    type: exactMatchValidator(['Tag Added']),
+    info: objectValidator<AutomationTriggerEvents['Tag Added']['info']>({
+      tag: stringValidator100,
     }),
     conditions: optionalEmptyObjectValidator,
   }),

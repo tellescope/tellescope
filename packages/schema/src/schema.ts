@@ -4379,6 +4379,7 @@ export const schema: SchemaV1 = build_schema({
       ...BuiltInFields, 
       discussionRoomId: { validator: mongoIdStringValidator },
       hiddenFromTimeline: { validator: booleanValidator },
+      lockedAt: { validator: dateValidator },
       formId: {
         validator: stringValidator100, // allow other external id types here too, not just mongoid
         required: true,
@@ -6535,6 +6536,7 @@ export const schema: SchemaV1 = build_schema({
       activeIconURL: { validator: stringValidator1000 },
       showStripePortalLink: { validator: booleanValidator },
       hideCancellatation: { validator: booleanValidator },
+      hideReschedule: { validator: booleanValidator },
       hiddenEventTitles: { validator: listOfStringsValidatorEmptyOk },
       hiddenFormIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
     },
@@ -8102,6 +8104,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         tracking: stringValidatorOptional,
       }))},
       tracking: { validator: stringValidatorOptional },
+      fill: { validator: stringValidatorOptional },
     }
   },
   vital_configurations: {

@@ -274,47 +274,50 @@ var setup_tests = function () { return __awaiter(void 0, void 0, void 0, functio
             case 28:
                 // ensure that going to "Non-Admin" triggers a role change
                 _a.sent();
-                return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)];
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 1000)]; // wait for role change to propagate so authenticate does fail next
             case 29:
+                _a.sent(); // wait for role change to propagate so authenticate does fail next
+                return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)];
+            case 30:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('non admin authenticated', sdkNonAdmin.test_authenticated, { expectedResult: 'Authenticated!' })
                     // reset nonAdmin role to a default non-admin
                 ];
-            case 30:
+            case 31:
                 _a.sent();
                 // reset nonAdmin role to a default non-admin
                 return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Non-Admin'] }, { replaceObjectFields: true })];
-            case 31:
+            case 32:
                 // reset nonAdmin role to a default non-admin
                 _a.sent();
                 // should be unauthenticated due to role change
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 100)];
-            case 32:
+            case 33:
                 // reset nonAdmin role to a default non-admin
                 // should be unauthenticated due to role change
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('role change causes deauthentication', sdkNonAdmin.test_authenticated, handleAnyError)
                     // reauthenticate
                 ];
-            case 33:
+            case 34:
                 _a.sent();
                 // reauthenticate
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 1000)];
-            case 34:
+            case 35:
                 // reauthenticate
                 _a.sent();
                 return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)
                     // may do some stuff in background after returning
                 ];
-            case 35:
+            case 36:
                 _a.sent();
                 // may do some stuff in background after returning
                 return [4 /*yield*/, (0, testing_1.async_test)('reset_db', function () { return sdk.reset_db(); }, passOnVoid)];
-            case 36:
+            case 37:
                 // may do some stuff in background after returning
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 250)];
-            case 37:
+            case 38:
                 _a.sent();
                 return [2 /*return*/];
         }
@@ -1639,48 +1642,63 @@ var chat_room_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                 return [4 /*yield*/, (0, testing_1.async_test)("user_display_info for room (for enduser)", function () { return enduserSDK.api.chat_rooms.display_info({ id: room.id }); }, { onResult: function (r) { return r.id === room.id && verifyRoomDisplayInfo(r.display_info); } })];
             case 12:
                 _k.sent();
-                return [4 /*yield*/, sdk.api.chat_rooms.deleteOne(room.id)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non admin can't get room without enduser", function () { return sdkNonAdmin.api.chat_rooms.getOne({ id: room.id }); }, handleAnyError)];
             case 13:
                 _k.sent();
-                return [4 /*yield*/, sdk.api.chat_rooms.createOne({})];
+                return [4 /*yield*/, (0, testing_1.async_test)("non admin can't get chats from room without enduser", function () { return sdkNonAdmin.api.chats.getSome({ filter: { roomId: room.id } }); }, handleAnyError)];
             case 14:
-                emptyRoom = _k.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("get-chat-room (creator can access, even when not in userIds)", function () { return sdk.api.chat_rooms.getOne(emptyRoom.id); }, { onResult: function (r) { return r.id === emptyRoom.id; } })];
+                _k.sent();
+                return [4 /*yield*/, sdk.api.endusers.updateOne(enduser.id, { assignedTo: [sdkNonAdmin.userInfo.id] })];
             case 15:
                 _k.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("get-chat-room (not in empty room)", function () { return sdk2.api.chat_rooms.getOne(emptyRoom.id); }, { shouldError: true, onError: function (e) { return e.message === "Could not find a record for the given id"; } })];
+                return [4 /*yield*/, (0, testing_1.async_test)("non admin can get room with enduser", function () { return sdkNonAdmin.api.chat_rooms.getOne(room.id); }, passOnAnyResult)];
             case 16:
+                _k.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("non admin can get chats from room with enduser", function () { return sdkNonAdmin.api.chats.getSome({ filter: { roomId: room.id } }); }, passOnAnyResult)];
+            case 17:
+                _k.sent();
+                return [4 /*yield*/, sdk.api.chat_rooms.deleteOne(room.id)];
+            case 18:
+                _k.sent();
+                return [4 /*yield*/, sdk.api.chat_rooms.createOne({})];
+            case 19:
+                emptyRoom = _k.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("get-chat-room (creator can access, even when not in userIds)", function () { return sdk.api.chat_rooms.getOne(emptyRoom.id); }, { onResult: function (r) { return r.id === emptyRoom.id; } })];
+            case 20:
+                _k.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("get-chat-room (not in empty room)", function () { return sdk2.api.chat_rooms.getOne(emptyRoom.id); }, { shouldError: true, onError: function (e) { return e.message === "Could not find a record for the given id"; } })];
+            case 21:
                 _k.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("join-room", function () { return sdk2.api.chat_rooms.join_room({ id: emptyRoom.id }); }, { onResult: function (_a) {
                             var room = _a.room;
                             return room.id === emptyRoom.id;
                         } })];
-            case 17:
-                _k.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("get-chat-room (join successful)", function () { return sdk2.api.chat_rooms.getOne(emptyRoom.id); }, { onResult: function (r) { return r.id === emptyRoom.id; } })];
-            case 18:
-                _k.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("create-chat (join successful)", function () { return sdk2.api.chats.createOne({ roomId: emptyRoom.id, message: 'test' }); }, passOnAnyResult)];
-            case 19:
-                _k.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("get-chat (join successful)", function () { return sdk2.api.chats.getSome({ filter: { roomId: emptyRoom.id } }); }, { onResult: function (r) { return r.length > 0; } })];
-            case 20:
-                _k.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("[bulk] get-chat-room (join successful)", function () { return sdk2.bulk_load({ load: [{ model: 'chat_rooms' }] }); }, { onResult: function (r) { var _a, _b, _c; return (_c = (_b = (_a = r.results) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.records) === null || _c === void 0 ? void 0 : _c.find(function (r) { return r.id === emptyRoom.id; }); } })];
-            case 21:
-                _k.sent();
-                return [4 /*yield*/, enduserSDK.logout()];
             case 22:
                 _k.sent();
-                return [4 /*yield*/, sdk.api.endusers.getOne(enduser.id)];
+                return [4 /*yield*/, (0, testing_1.async_test)("get-chat-room (join successful)", function () { return sdk2.api.chat_rooms.getOne(emptyRoom.id); }, { onResult: function (r) { return r.id === emptyRoom.id; } })];
             case 23:
+                _k.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("create-chat (join successful)", function () { return sdk2.api.chats.createOne({ roomId: emptyRoom.id, message: 'test' }); }, passOnAnyResult)];
+            case 24:
+                _k.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("get-chat (join successful)", function () { return sdk2.api.chats.getSome({ filter: { roomId: emptyRoom.id } }); }, { onResult: function (r) { return r.length > 0; } })];
+            case 25:
+                _k.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("[bulk] get-chat-room (join successful)", function () { return sdk2.bulk_load({ load: [{ model: 'chat_rooms' }] }); }, { onResult: function (r) { var _a, _b, _c; return (_c = (_b = (_a = r.results) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.records) === null || _c === void 0 ? void 0 : _c.find(function (r) { return r.id === emptyRoom.id; }); } })];
+            case 26:
+                _k.sent();
+                return [4 /*yield*/, enduserSDK.logout()];
+            case 27:
+                _k.sent();
+                return [4 /*yield*/, sdk.api.endusers.getOne(enduser.id)];
+            case 28:
                 loggedOutEnduser = _k.sent();
                 (0, testing_1.assert)(new Date(loggedOutEnduser.lastLogout).getTime() > Date.now() - 100, 'lastLogout fail for enduser', 'lastLogout for enduser');
                 return [4 /*yield*/, sdk.api.endusers.deleteOne(enduser.id)];
-            case 24:
+            case 29:
                 _k.sent();
                 return [4 /*yield*/, sdk.api.chat_rooms.deleteOne(emptyRoom.id)];
-            case 25:
+            case 30:
                 _k.sent();
                 return [2 /*return*/];
         }
@@ -4047,13 +4065,239 @@ var formSubmittedTriggerTests = function () { return __awaiter(void 0, void 0, v
         }
     });
 }); };
+var order_created_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var t1, t2, t3, t4, e;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                (0, testing_1.log_header)("Automation Trigger Tests (Order Created)");
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        event: { type: 'Order Created', info: {} },
+                        action: { type: 'Add Tags', info: { tags: ['No conditions'] } },
+                        status: 'Active',
+                        title: "No conditions"
+                    })];
+            case 1:
+                t1 = _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        event: { type: 'Order Created', info: { titles: ['Title'] } },
+                        action: { type: 'Add Tags', info: { tags: ['Title'] } },
+                        status: 'Active',
+                        title: "Title Condition"
+                    })];
+            case 2:
+                t2 = _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        event: { type: 'Order Created', info: { fills: ['Fill'] } },
+                        action: { type: 'Add Tags', info: { tags: ['Fill'] } },
+                        status: 'Active',
+                        title: "Fill Condition"
+                    })];
+            case 3:
+                t3 = _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        event: { type: 'Order Created', info: { partialFrequency: 'freq' } },
+                        action: { type: 'Add Tags', info: { tags: ['Frequency'] } },
+                        status: 'Active',
+                        title: "Frequency Condition"
+                    })];
+            case 4:
+                t4 = _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({})];
+            case 5:
+                e = _a.sent();
+                return [4 /*yield*/, sdk.api.enduser_orders.createOne({ status: 'test', source: 'test', title: 'nomatch', fill: 'nomatch', frequency: 'nomatch', externalId: '1', enduserId: e.id })];
+            case 6:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
+            case 7:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, (0, testing_1.async_test)("First tag is added", function () { return sdk.api.endusers.getOne(e.id); }, { onResult: function (e) {
+                            var _a, _b, _c, _d, _f;
+                            return !!(((_a = e.tags) === null || _a === void 0 ? void 0 : _a.length) === 1
+                                && ((_b = e.tags) === null || _b === void 0 ? void 0 : _b.includes('No conditions'))
+                                && !((_c = e.tags) === null || _c === void 0 ? void 0 : _c.includes('Title'))
+                                && !((_d = e.tags) === null || _d === void 0 ? void 0 : _d.includes('Fill'))
+                                && !((_f = e.tags) === null || _f === void 0 ? void 0 : _f.includes('Frequency')));
+                        } })];
+            case 8:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.enduser_orders.createOne({ status: 'test', source: 'test', externalId: '2', enduserId: e.id, title: "Title" })];
+            case 9:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
+            case 10:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, (0, testing_1.async_test)("Second tag is added", function () { return sdk.api.endusers.getOne(e.id); }, { onResult: function (e) {
+                            var _a, _b, _c, _d, _f;
+                            return !!(((_a = e.tags) === null || _a === void 0 ? void 0 : _a.length) === 2
+                                && ((_b = e.tags) === null || _b === void 0 ? void 0 : _b.includes('No conditions'))
+                                && ((_c = e.tags) === null || _c === void 0 ? void 0 : _c.includes('Title'))
+                                && !((_d = e.tags) === null || _d === void 0 ? void 0 : _d.includes('Fill'))
+                                && !((_f = e.tags) === null || _f === void 0 ? void 0 : _f.includes('Frequency')));
+                        } })];
+            case 11:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.enduser_orders.createOne({ status: 'test', source: 'test', externalId: '3', enduserId: e.id, title: "Title", fill: "Fill" })];
+            case 12:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
+            case 13:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, (0, testing_1.async_test)("Third tag is added", function () { return sdk.api.endusers.getOne(e.id); }, { onResult: function (e) {
+                            var _a, _b, _c, _d, _f;
+                            return !!(((_a = e.tags) === null || _a === void 0 ? void 0 : _a.length) === 3
+                                && ((_b = e.tags) === null || _b === void 0 ? void 0 : _b.includes('No conditions'))
+                                && ((_c = e.tags) === null || _c === void 0 ? void 0 : _c.includes('Title'))
+                                && ((_d = e.tags) === null || _d === void 0 ? void 0 : _d.includes('Fill'))
+                                && !((_f = e.tags) === null || _f === void 0 ? void 0 : _f.includes('Frequency')));
+                        } })];
+            case 14:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.enduser_orders.createOne({ status: 'test', source: 'test', externalId: '4', enduserId: e.id, title: "Title", fill: "Fill", frequency: '1029freq--29' })];
+            case 15:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
+            case 16:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, (0, testing_1.async_test)("Fourth tag is added", function () { return sdk.api.endusers.getOne(e.id); }, { onResult: function (e) {
+                            var _a, _b, _c, _d, _f;
+                            return !!(((_a = e.tags) === null || _a === void 0 ? void 0 : _a.length) === 4
+                                && ((_b = e.tags) === null || _b === void 0 ? void 0 : _b.includes('No conditions'))
+                                && ((_c = e.tags) === null || _c === void 0 ? void 0 : _c.includes('Title'))
+                                && ((_d = e.tags) === null || _d === void 0 ? void 0 : _d.includes('Fill'))
+                                && ((_f = e.tags) === null || _f === void 0 ? void 0 : _f.includes('Frequency')));
+                        } })];
+            case 17:
+                _a.sent();
+                return [4 /*yield*/, Promise.all([
+                        sdk.api.automation_triggers.deleteOne(t1.id),
+                        sdk.api.automation_triggers.deleteOne(t2.id),
+                        sdk.api.automation_triggers.deleteOne(t3.id),
+                        sdk.api.automation_triggers.deleteOne(t4.id),
+                        sdk.api.endusers.deleteOne(e.id),
+                    ])];
+            case 18:
+                _a.sent();
+                return [2 /*return*/];
+        }
+    });
+}); };
+var tag_added_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var t1, t2, t3, e;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                (0, testing_1.log_header)("Automation Trigger Tests (Tag Added)");
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        event: { type: 'Tag Added', info: { tag: "1" } },
+                        action: { type: 'Add Tags', info: { tags: ['1 Added'] } },
+                        status: 'Active',
+                        title: "No conditions"
+                    })];
+            case 1:
+                t1 = _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        event: { type: 'Tag Added', info: { tag: "2" } },
+                        action: { type: 'Add Tags', info: { tags: ['2 Added'] } },
+                        status: 'Active',
+                        title: "Title Condition"
+                    })];
+            case 2:
+                t2 = _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        event: { type: 'Tag Added', info: { tag: "3" } },
+                        action: { type: 'Add Tags', info: { tags: ['3 Added'] } },
+                        status: 'Active',
+                        title: "Fill Condition"
+                    })];
+            case 3:
+                t3 = _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({})];
+            case 4:
+                e = _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.updateOne(e.id, { fname: 'no tags added' })];
+            case 5:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
+            case 6:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, (0, testing_1.async_test)("No tags added", function () { return sdk.api.endusers.getOne(e.id); }, { onResult: function (e) { var _a; return !((_a = e.tags) === null || _a === void 0 ? void 0 : _a.length); } })];
+            case 7:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.updateOne(e.id, { tags: ['1'] })];
+            case 8:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
+            case 9:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, (0, testing_1.async_test)("Tag 1 added", function () { return sdk.api.endusers.getOne(e.id); }, { onResult: function (e) {
+                            var _a;
+                            return !!(((_a = e.tags) === null || _a === void 0 ? void 0 : _a.length) === 2
+                                && e.tags.includes('1')
+                                && e.tags.includes('1 Added'));
+                        } })];
+            case 10:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.updateOne(e.id, { tags: ['4'] })];
+            case 11:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
+            case 12:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, (0, testing_1.async_test)('Unrecognized tag added', function () { return sdk.api.endusers.getOne(e.id); }, { onResult: function (e) {
+                            var _a;
+                            return !!(((_a = e.tags) === null || _a === void 0 ? void 0 : _a.length) === 3
+                                && e.tags.includes('1')
+                                && e.tags.includes('1 Added')
+                                && e.tags.includes('4'));
+                        } })];
+            case 13:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.updateOne(e.id, { tags: ['2', '3'] })];
+            case 14:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
+            case 15:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, (0, testing_1.async_test)("Tag 2 and 3 added", function () { return sdk.api.endusers.getOne(e.id); }, { onResult: function (e) {
+                            var _a;
+                            return !!(((_a = e.tags) === null || _a === void 0 ? void 0 : _a.length) === 7
+                                && e.tags.includes('1')
+                                && e.tags.includes('1 Added')
+                                && e.tags.includes('4')
+                                && e.tags.includes('2')
+                                && e.tags.includes('3')
+                                && e.tags.includes('2 Added')
+                                && e.tags.includes('3 Added'));
+                        } })];
+            case 16:
+                _a.sent();
+                return [4 /*yield*/, Promise.all([
+                        sdk.api.automation_triggers.deleteOne(t1.id),
+                        sdk.api.automation_triggers.deleteOne(t2.id),
+                        sdk.api.automation_triggers.deleteOne(t3.id),
+                        sdk.api.endusers.deleteOne(e.id),
+                    ])];
+            case 17:
+                _a.sent();
+                return [2 /*return*/];
+        }
+    });
+}); };
 var automation_trigger_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 (0, testing_1.log_header)("Automation Trigger Tests");
-                return [4 /*yield*/, formSubmittedTriggerTests()];
+                return [4 /*yield*/, tag_added_tests()];
             case 1:
+                _a.sent();
+                return [4 /*yield*/, order_created_tests()];
+            case 2:
+                _a.sent();
+                return [4 /*yield*/, formSubmittedTriggerTests()];
+            case 3:
                 _a.sent();
                 return [2 /*return*/];
         }
@@ -4148,11 +4392,17 @@ var form_response_tests = function () { return __awaiter(void 0, void 0, void 0,
                 // assert(triggeredAutomation?.event?.type === 'formResponse', 'no form response event', 'form response event triggered')
                 (0, testing_1.assert)(((_a = enduserWithUpdate === null || enduserWithUpdate === void 0 ? void 0 : enduserWithUpdate.fields) === null || _a === void 0 ? void 0 : _a[stringIntakeField]) === stringResponse, 'no enduser update', 'enduser updated');
                 (0, testing_1.assert)(((_b = recordedResponse === null || recordedResponse === void 0 ? void 0 : recordedResponse.responses) === null || _b === void 0 ? void 0 : _b.length) === 1 && ((_c = recordedResponse.responses[0]) === null || _c === void 0 ? void 0 : _c.answer.value) === stringResponse, 'response not recorded', 'response recorded');
-                return [4 /*yield*/, sdk.api.endusers.deleteOne(enduser.id)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Can set lockedAt field on form response", function () { return sdk.api.form_responses.updateOne(recordedResponse.id, { lockedAt: new Date() }); }, { onResult: function (r) { return !!r.lockedAt; } })];
             case 14:
                 _d.sent();
-                return [4 /*yield*/, sdk.api.forms.deleteOne(form.id)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Can unset lockedAt", function () { return sdk.api.form_responses.updateOne(recordedResponse.id, { lockedAt: '' }); }, { onResult: function (r) { return !r.lockedAt; } })];
             case 15:
+                _d.sent();
+                return [4 /*yield*/, sdk.api.endusers.deleteOne(enduser.id)];
+            case 16:
+                _d.sent();
+                return [4 /*yield*/, sdk.api.forms.deleteOne(form.id)];
+            case 17:
                 _d.sent();
                 return [2 /*return*/];
         }
@@ -6055,7 +6305,7 @@ var wait_for_trigger_tests = function () { return __awaiter(void 0, void 0, void
                 return [4 /*yield*/, sdk.api.endusers.updateOne(eNoTrigger.id, { fields: { Test: 'Trigger' } })];
             case 10:
                 _b.sent();
-                return [4 /*yield*/, (0, testing_1.wait)(undefined, 5000)
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 8000)
                     // TODO - Test a delayed action which comes after the triggered action
                 ];
             case 11:
@@ -10946,92 +11196,92 @@ var test_form_response_search = function () { return __awaiter(void 0, void 0, v
                 return [4 /*yield*/, sync_tests()]; // should come directly after setup to avoid extra sync values
             case 16:
                 _l.sent(); // should come directly after setup to avoid extra sync values
-                return [4 /*yield*/, enduserAccessTests()];
+                return [4 /*yield*/, enduser_access_tags_tests()];
             case 17:
                 _l.sent();
-                return [4 /*yield*/, test_form_response_search()];
+                return [4 /*yield*/, enduserAccessTests()];
             case 18:
                 _l.sent();
-                return [4 /*yield*/, date_parsing_tests()];
+                return [4 /*yield*/, test_form_response_search()];
             case 19:
                 _l.sent();
-                return [4 /*yield*/, fromEmailOverride_tests()];
+                return [4 /*yield*/, date_parsing_tests()];
             case 20:
                 _l.sent();
-                return [4 /*yield*/, ticket_tests()];
+                return [4 /*yield*/, fromEmailOverride_tests()];
             case 21:
                 _l.sent();
-                return [4 /*yield*/, uniqueness_tests()];
+                return [4 /*yield*/, ticket_tests()];
             case 22:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.enduser_orders_tests)()];
+                return [4 /*yield*/, uniqueness_tests()];
             case 23:
                 _l.sent();
-                return [4 /*yield*/, calendar_event_care_team_tests()];
+                return [4 /*yield*/, (0, exports.enduser_orders_tests)()];
             case 24:
                 _l.sent();
-                return [4 /*yield*/, merge_enduser_tests()];
+                return [4 /*yield*/, calendar_event_care_team_tests()];
             case 25:
                 _l.sent();
-                return [4 /*yield*/, input_modifier_tests()];
+                return [4 /*yield*/, merge_enduser_tests()];
             case 26:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.formsort_tests)()];
+                return [4 /*yield*/, input_modifier_tests()];
             case 27:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.switch_to_related_contacts_tests)()];
+                return [4 /*yield*/, (0, exports.formsort_tests)()];
             case 28:
                 _l.sent();
-                return [4 /*yield*/, redaction_tests()];
+                return [4 /*yield*/, (0, exports.switch_to_related_contacts_tests)()];
             case 29:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.self_serve_appointment_booking_tests)()];
+                return [4 /*yield*/, redaction_tests()];
             case 30:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.no_chained_triggers_tests)()];
+                return [4 /*yield*/, (0, exports.self_serve_appointment_booking_tests)()];
             case 31:
                 _l.sent();
-                return [4 /*yield*/, rate_limit_tests()];
+                return [4 /*yield*/, (0, exports.no_chained_triggers_tests)()];
             case 32:
                 _l.sent();
-                return [4 /*yield*/, mdb_filter_tests()];
+                return [4 /*yield*/, rate_limit_tests()];
             case 33:
                 _l.sent();
-                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
+                return [4 /*yield*/, mdb_filter_tests()];
             case 34:
                 _l.sent();
-                return [4 /*yield*/, superadmin_tests()];
+                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
             case 35:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.ticket_queue_tests)()];
+                return [4 /*yield*/, superadmin_tests()];
             case 36:
                 _l.sent();
-                return [4 /*yield*/, vital_trigger_tests()];
+                return [4 /*yield*/, (0, exports.ticket_queue_tests)()];
             case 37:
                 _l.sent();
-                return [4 /*yield*/, close_reasons_no_duplicates_tests()];
+                return [4 /*yield*/, vital_trigger_tests()];
             case 38:
                 _l.sent();
-                return [4 /*yield*/, register_as_enduser_tests()];
+                return [4 /*yield*/, close_reasons_no_duplicates_tests()];
             case 39:
                 _l.sent();
-                return [4 /*yield*/, lockout_tests()];
+                return [4 /*yield*/, register_as_enduser_tests()];
             case 40:
+                _l.sent();
+                return [4 /*yield*/, lockout_tests()];
+            case 41:
                 _l.sent();
                 return [4 /*yield*/, delete_user_tests()
                     // await test_send_with_template()
                 ];
-            case 41:
+            case 42:
                 _l.sent();
                 // await test_send_with_template()
                 return [4 /*yield*/, bulk_read_tests()];
-            case 42:
+            case 43:
                 // await test_send_with_template()
                 _l.sent();
                 return [4 /*yield*/, (0, exports.ticket_reminder_tests)()];
-            case 43:
-                _l.sent();
-                return [4 /*yield*/, enduser_access_tags_tests()];
             case 44:
                 _l.sent();
                 return [4 /*yield*/, marketing_email_unsubscribe_tests()];

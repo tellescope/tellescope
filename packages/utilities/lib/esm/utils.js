@@ -1654,8 +1654,14 @@ export var responses_satisfy_conditions = function (responses, conditions, optio
                         }
                     }
                 }
-                var number = parseInt(conditionValue_1);
-                var answerNumber = answer.value;
+                var number = (typeof conditionValue_1 === 'string' && conditionValue_1.startsWith("$JS(") && conditionValue_1.endsWith(")")
+                    ? new Function('answer', conditionValue_1.substring(4, conditionValue_1.length - 1))(answer)
+                    : parseInt(conditionValue_1));
+                var answerNumber = ((answer.type === 'date' && answer.value)
+                    ? new Date(answer.value).getTime()
+                    : (answer.type === 'dateString' && answer.value)
+                        ? new Date(MM_DD_YYYY_to_YYYY_MM_DD(answer.value)).getTime()
+                        : answer.value);
                 if (isNaN(number))
                     return false;
                 if (typeof answerNumber !== 'number')

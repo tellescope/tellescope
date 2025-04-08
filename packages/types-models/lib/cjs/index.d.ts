@@ -199,6 +199,7 @@ export type OrganizationSettings = {
         detailField?: string;
         showDownloadCallRecordings?: boolean;
         launchDosespotWebhookURL?: string;
+        reverseTimeline?: boolean;
     };
     tickets?: {
         defaultJourneyDueDateOffsetInMS?: number | '';
@@ -3061,6 +3062,7 @@ export interface PortalCustomization extends PortalCustomization_readonly, Porta
     activeIconURL?: string;
     showStripePortalLink?: boolean;
     hideCancellatation?: boolean;
+    hideReschedule?: boolean;
     hiddenEventTitles?: string[];
     hiddenFormIds?: string[];
 }
@@ -3786,6 +3788,9 @@ export type AutomationTriggerEvents = {
         field: string;
         value: string;
     }, {}>;
+    'Tag Added': AutomationTriggerEventBuilder<"Tag Added", {
+        tag: string;
+    }, {}>;
     'Contact Created': AutomationTriggerEventBuilder<"Contact Created", {}, {}>;
     'Appointment Created': AutomationTriggerEventBuilder<"Appointment Created", {
         titles?: string[];
@@ -3844,6 +3849,7 @@ export type AutomationTriggerEvents = {
     }, {}>;
     'Order Created': AutomationTriggerEventBuilder<"Order Created", {
         titles?: string[];
+        fills?: string[];
         partialFrequency?: string;
     }, {}>;
     'Problem Created': AutomationTriggerEventBuilder<"Problem Created", {
@@ -4218,14 +4224,14 @@ export interface EnduserOrder_readonly extends ClientRecord {
 export interface EnduserOrder_updatesDisabled {
 }
 export interface EnduserOrder_required {
-}
-export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_required, EnduserOrder_updatesDisabled {
     externalId: string;
     source: string;
     title: string;
-    description?: string;
     status: string;
     enduserId: string;
+}
+export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_required, EnduserOrder_updatesDisabled {
+    description?: string;
     userId?: string;
     error?: string;
     items?: {
@@ -4237,6 +4243,7 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
     shippedDate?: string;
     frequency?: string;
     activateBy?: string;
+    fill?: string;
 }
 export interface EnduserProblem_readonly extends ClientRecord {
 }

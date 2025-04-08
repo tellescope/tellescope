@@ -223,6 +223,8 @@ const setup_tests = async () => {
   // ensure that going to "Non-Admin" triggers a role change
   await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Test'] }, { replaceObjectFields: true })
   
+  await wait(undefined, 1000) // wait for role change to propagate so authenticate does fail next
+
   await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)
   await async_test('non admin authenticated', sdkNonAdmin.test_authenticated, { expectedResult: 'Authenticated!' })
 
@@ -1276,6 +1278,28 @@ const chat_room_tests = async () => {
     () => enduserSDK.api.chat_rooms.display_info({ id: room.id }), 
     { onResult: r => r.id === room.id && verifyRoomDisplayInfo(r.display_info) }
   )
+  await async_test(
+    "non admin can't get room without enduser",
+    () => sdkNonAdmin.api.chat_rooms.getOne({ id: room.id }),
+    handleAnyError
+  )
+  await async_test(
+    "non admin can't get chats from room without enduser",
+    () => sdkNonAdmin.api.chats.getSome({ filter: { roomId: room.id } }),
+    handleAnyError
+  )
+  await sdk.api.endusers.updateOne(enduser.id, { assignedTo: [sdkNonAdmin.userInfo.id] })
+  await async_test(
+    "non admin can get room with enduser",
+    () => sdkNonAdmin.api.chat_rooms.getOne(room.id),
+    passOnAnyResult
+  )
+  await async_test(
+    "non admin can get chats from room with enduser",
+    () => sdkNonAdmin.api.chats.getSome({ filter: { roomId: room.id } }),
+    passOnAnyResult
+  )
+
   await sdk.api.chat_rooms.deleteOne(room.id)
 
   
@@ -3281,10 +3305,190 @@ const formSubmittedTriggerTests = async () => {
   ])
 }
 
+const order_created_tests = async () => {
+  log_header("Automation Trigger Tests (Order Created)")
+
+  const t1 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Created', info: {} },
+    action: { type: 'Add Tags', info: { tags: ['No conditions'] }},
+    status: 'Active',
+    title: "No conditions"
+  })
+  const t2 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Created', info: { titles: ['Title'] } },
+    action: { type: 'Add Tags', info: { tags: ['Title'] }},
+    status: 'Active',
+    title: "Title Condition"
+  })
+  const t3 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Created', info: { fills: ['Fill'] } },
+    action: { type: 'Add Tags', info: { tags: ['Fill'] }},
+    status: 'Active',
+    title: "Fill Condition"
+  })
+  const t4 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Created', info: { partialFrequency: 'freq' } },
+    action: { type: 'Add Tags', info: { tags: ['Frequency'] }},
+    status: 'Active',
+    title: "Frequency Condition"
+  })
+
+  const e = await sdk.api.endusers.createOne({})
+
+  await sdk.api.enduser_orders.createOne({ status: 'test', source: 'test', title: 'nomatch', fill: 'nomatch', frequency: 'nomatch', externalId: '1', enduserId: e.id })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "First tag is added",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!(
+       e.tags?.length === 1
+    && e.tags?.includes('No conditions')
+    && !e.tags?.includes('Title')
+    && !e.tags?.includes('Fill')
+    && !e.tags?.includes('Frequency')
+    ) }
+  )
+
+  await sdk.api.enduser_orders.createOne({ status: 'test', source: 'test', externalId: '2', enduserId: e.id, title: "Title" })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Second tag is added",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!(
+       e.tags?.length === 2
+    && e.tags?.includes('No conditions')
+    && e.tags?.includes('Title')
+    && !e.tags?.includes('Fill')
+    && !e.tags?.includes('Frequency')
+    ) }
+  )
+
+  await sdk.api.enduser_orders.createOne({ status: 'test', source: 'test', externalId: '3', enduserId: e.id, title: "Title", fill: "Fill" })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Third tag is added",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!(
+       e.tags?.length === 3
+    && e.tags?.includes('No conditions')
+    && e.tags?.includes('Title')
+    && e.tags?.includes('Fill')
+    && !e.tags?.includes('Frequency')
+    ) }
+  )
+
+  await sdk.api.enduser_orders.createOne({ status: 'test', source: 'test', externalId: '4', enduserId: e.id, title: "Title", fill: "Fill", frequency: '1029freq--29' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Fourth tag is added",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!(
+       e.tags?.length === 4
+    && e.tags?.includes('No conditions')
+    && e.tags?.includes('Title')
+    && e.tags?.includes('Fill')
+    && e.tags?.includes('Frequency')
+    ) }
+  )
+
+  await Promise.all([
+    sdk.api.automation_triggers.deleteOne(t1.id),
+    sdk.api.automation_triggers.deleteOne(t2.id),
+    sdk.api.automation_triggers.deleteOne(t3.id),
+    sdk.api.automation_triggers.deleteOne(t4.id),
+    sdk.api.endusers.deleteOne(e.id),
+  ])
+}
+
+const tag_added_tests = async () => {
+  log_header("Automation Trigger Tests (Tag Added)")
+
+  const t1 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Tag Added', info: { tag: "1" } },
+    action: { type: 'Add Tags', info: { tags: ['1 Added'] }},
+    status: 'Active',
+    title: "No conditions"
+  })
+  const t2 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Tag Added', info: { tag: "2" } },
+    action: { type: 'Add Tags', info: { tags: ['2 Added'] }},
+    status: 'Active',
+    title: "Title Condition"
+  })
+  const t3 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Tag Added', info: { tag: "3" } },
+    action: { type: 'Add Tags', info: { tags: ['3 Added'] }},
+    status: 'Active',
+    title: "Fill Condition"
+  })
+
+  const e = await sdk.api.endusers.createOne({})
+
+  await sdk.api.endusers.updateOne(e.id, { fname: 'no tags added'})
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "No tags added",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !e.tags?.length }
+  )
+
+  await sdk.api.endusers.updateOne(e.id, { tags: ['1'] })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Tag 1 added",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!(
+       e.tags?.length === 2
+      && e.tags.includes('1')
+      && e.tags.includes('1 Added')
+    ) }
+  )
+
+  await sdk.api.endusers.updateOne(e.id, { tags: ['4'] })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    'Unrecognized tag added',
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!(
+        e.tags?.length === 3
+      && e.tags.includes('1')
+      && e.tags.includes('1 Added')
+      && e.tags.includes('4')
+    )}
+  )
+
+  await sdk.api.endusers.updateOne(e.id, { tags: ['2', '3'] })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Tag 2 and 3 added",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!(
+        e.tags?.length === 7
+      && e.tags.includes('1')
+      && e.tags.includes('1 Added')
+      && e.tags.includes('4')
+      && e.tags.includes('2')
+      && e.tags.includes('3')
+      && e.tags.includes('2 Added')
+      && e.tags.includes('3 Added')
+    )}
+  )
+
+
+  await Promise.all([
+    sdk.api.automation_triggers.deleteOne(t1.id),
+    sdk.api.automation_triggers.deleteOne(t2.id),
+    sdk.api.automation_triggers.deleteOne(t3.id),
+    sdk.api.endusers.deleteOne(e.id),
+  ])
+}
+
 const automation_trigger_tests = async () => {
   log_header("Automation Trigger Tests")
 
-  await formSubmittedTriggerTests()
+  await tag_added_tests()
+  await order_created_tests()
+  await formSubmittedTriggerTests() 
 }
 
 const form_response_tests = async () => {
@@ -3361,6 +3565,18 @@ const form_response_tests = async () => {
     recordedResponse?.responses?.length === 1 && recordedResponse.responses[0]?.answer.value === stringResponse, 
     'response not recorded', 
     'response recorded'
+  )
+
+  await async_test(
+    "Can set lockedAt field on form response",
+    () => sdk.api.form_responses.updateOne(recordedResponse.id, { lockedAt: new Date() }),
+    { onResult: r => !!r.lockedAt }
+  )
+
+  await async_test(
+    "Can unset lockedAt",
+    () => sdk.api.form_responses.updateOne(recordedResponse.id, { lockedAt: '' }),
+    { onResult: r => !r.lockedAt }
   )
 
   await sdk.api.endusers.deleteOne(enduser.id)
@@ -5118,7 +5334,7 @@ const wait_for_trigger_tests = async () => {
 
   await sdk.api.endusers.updateOne(eTrigger.id, { fields: { Test: 'Trigger' } })
   await sdk.api.endusers.updateOne(eNoTrigger.id, { fields: { Test: 'Trigger' } })
-  await wait(undefined, 5000)
+  await wait(undefined, 8000)
   
   // TODO - Test a delayed action which comes after the triggered action
 
@@ -9462,6 +9678,7 @@ const test_form_response_search = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await enduser_access_tags_tests()
     await enduserAccessTests()
     await test_form_response_search()
     await date_parsing_tests()
@@ -9490,7 +9707,6 @@ const test_form_response_search = async () => {
     // await test_send_with_template()
     await bulk_read_tests()
     await ticket_reminder_tests()
-    await enduser_access_tags_tests()
     await marketing_email_unsubscribe_tests()
     await unique_strings_tests()
     await alternate_phones_tests()
