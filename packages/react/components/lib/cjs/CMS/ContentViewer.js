@@ -24,7 +24,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.html_for_article = exports.ArticleViewer = exports.correct_youtube_link_for_embed = exports.usePageWidth = exports.usePageHeight = void 0;
+exports.html_for_article = exports.ArticleViewer = exports.correct_youtube_link_for_embed = exports.usePageWidth = exports.usePageHeight = exports.usePageContentHeight = void 0;
 var jsx_runtime_1 = require("react/jsx-runtime");
 var react_1 = require("react");
 var utilities_1 = require("@tellescope/utilities");
@@ -32,6 +32,62 @@ var material_1 = require("@mui/material");
 var components_1 = require("./components");
 var css_1 = require("@emotion/css");
 var state_1 = require("../state");
+/**
+ * A hook that tracks the height of page content and updates when content changes.
+ * @param options - Configuration options
+ * @returns Current content height in pixels
+ */
+var usePageContentHeight = function (options) {
+    if (options === void 0) { options = {}; }
+    var _a = options.debounceTime, debounceTime = _a === void 0 ? 100 : _a, _b = options.targetSelector, targetSelector = _b === void 0 ? 'body' : _b;
+    var _c = (0, react_1.useState)(0), contentHeight = _c[0], setContentHeight = _c[1];
+    var debounceTimerRef = (0, react_1.useRef)(null);
+    var observerRef = (0, react_1.useRef)(null);
+    (0, react_1.useEffect)(function () {
+        // Function to measure content height
+        var updateContentHeight = function () {
+            var targetElement = document.querySelector(targetSelector);
+            if (targetElement) {
+                // Use scrollHeight to get the total height including overflow content
+                var height = targetElement.scrollHeight;
+                setContentHeight(height);
+            }
+        };
+        // Debounced update function
+        var debouncedUpdate = function () {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+            debounceTimerRef.current = setTimeout(function () {
+                updateContentHeight();
+            }, debounceTime);
+        };
+        // Initial measurement
+        updateContentHeight();
+        // Set up mutation observer to detect content changes
+        observerRef.current = new MutationObserver(debouncedUpdate);
+        var targetElement = document.querySelector(targetSelector);
+        if (targetElement) {
+            observerRef.current.observe(targetElement, {
+                childList: true,
+                subtree: true,
+                characterData: true,
+                attributes: true // Watch for changes in attributes (may affect layout)
+            });
+        }
+        // Cleanup
+        return function () {
+            if (observerRef.current) {
+                observerRef.current.disconnect();
+            }
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+            }
+        };
+    }, [debounceTime, targetSelector]);
+    return contentHeight;
+};
+exports.usePageContentHeight = usePageContentHeight;
 var usePageHeight = function () {
     var _a = (0, react_1.useState)(window.innerHeight), height = _a[0], setHeight = _a[1];
     (0, react_1.useEffect)(function () {

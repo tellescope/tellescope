@@ -2815,6 +2815,7 @@ export var formFieldOptionsValidator = objectValidator({
     autoUploadFiles: booleanValidatorOptional,
     chargebeeEnvironment: stringValidatorOptional,
     chargebeePlanId: stringValidatorOptional,
+    chargebeeItemId: stringValidatorOptional,
     relatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
 });
 export var blockValidator = orValidator({
@@ -4444,6 +4445,7 @@ export var analyticsQueryValidator = orValidator({
             titles: listOfStringsValidatorOptionalOrEmptyOk,
             userTags: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
             enduserFields: enduserFieldsAnalyticsValidator,
+            closedAtRange: dateRangeOptionalValidator,
         }, { isOptional: true, emptyOk: true }),
         info: orValidator({
             "Total": objectValidator({

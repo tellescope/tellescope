@@ -1397,6 +1397,7 @@ export type CustomActions = {
             productIds?: string[];
             cost?: Purchase['cost'];
             stripeKey?: string;
+            description?: string;
         }, {}>;
     };
     group_mms_conversations: {

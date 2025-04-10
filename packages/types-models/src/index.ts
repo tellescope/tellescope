@@ -1593,6 +1593,7 @@ export type FormFieldOptions = FormFieldValidation & {
   autoUploadFiles?: boolean,
   chargebeeEnvironment?: string,
   chargebeePlanId?: string,
+  chargebeeItemId?: string,
   relatedContactTypes?: string[],
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
@@ -3425,6 +3426,7 @@ export type AnalyticsQueryFilterForType = {
     closeReasons?: string[],
     userTags?: ListOfStringsWithQualifier,
     enduserFields?: AnalyticsEnduserFilterField[],
+    closedAtRange?: DateRange,
   },
   "Phone Calls": { },
   "Meetings": { },

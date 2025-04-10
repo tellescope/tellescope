@@ -6,6 +6,90 @@ import { PDFBlockUI } from "./components"
 import { css } from "@emotion/css"
 import { useManagedContentRecords } from "../state"
 
+interface UseContentHeightOptions {
+  /**
+   * Debounce time in milliseconds for resize observation
+   * @default 100
+   */
+  debounceTime?: number;
+  
+  /**
+   * CSS selector for the element to observe
+   * @default 'body'
+   */
+  targetSelector?: string;
+}
+
+/**
+ * A hook that tracks the height of page content and updates when content changes.
+ * @param options - Configuration options
+ * @returns Current content height in pixels
+ */
+export const usePageContentHeight = (options: UseContentHeightOptions = {}): number => {
+  const { 
+    debounceTime = 100,
+    targetSelector = 'body'
+  } = options;
+  
+  const [contentHeight, setContentHeight] = useState<number>(0);
+  const debounceTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const observerRef = useRef<MutationObserver | null>(null);
+  
+  useEffect(() => {
+    // Function to measure content height
+    const updateContentHeight = (): void => {
+      const targetElement = document.querySelector(targetSelector);
+      
+      if (targetElement) {
+        // Use scrollHeight to get the total height including overflow content
+        const height = targetElement.scrollHeight;
+        setContentHeight(height);
+      }
+    };
+    
+    // Debounced update function
+    const debouncedUpdate = (): void => {
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+      
+      debounceTimerRef.current = setTimeout(() => {
+        updateContentHeight();
+      }, debounceTime);
+    };
+    
+    // Initial measurement
+    updateContentHeight();
+    
+    // Set up mutation observer to detect content changes
+    observerRef.current = new MutationObserver(debouncedUpdate);
+    
+    const targetElement = document.querySelector(targetSelector);
+    if (targetElement) {
+      observerRef.current.observe(targetElement, {
+        childList: true,     // Watch for changes in direct children
+        subtree: true,       // Watch for changes in the entire subtree
+        characterData: true, // Watch for changes in text content
+        attributes: true     // Watch for changes in attributes (may affect layout)
+      });
+    }
+    
+    // Cleanup
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+      
+      if (debounceTimerRef.current) {
+        clearTimeout(debounceTimerRef.current);
+      }
+    };
+  }, [debounceTime, targetSelector]);
+  
+  return contentHeight;
+}
+
+
 export const usePageHeight = () => {
   const [height, setHeight] = useState(window.innerHeight)
 

@@ -1829,6 +1829,7 @@ export declare const analyticsQueryValidator: ValidatorDefinition<{
         closeReasons?: string[] | undefined;
         userTags?: ListOfStringsWithQualifier | undefined;
         enduserFields?: import("@tellescope/types-models").AnalyticsEnduserFilterField[] | undefined;
+        closedAtRange?: DateRange | undefined;
     } | undefined;
     grouping?: ({
         Owner?: boolean | undefined;
@@ -2039,6 +2040,7 @@ export declare const analyticsQueriesValidatorOptional: ValidatorDefinition<({
         closeReasons?: string[] | undefined;
         userTags?: ListOfStringsWithQualifier | undefined;
         enduserFields?: import("@tellescope/types-models").AnalyticsEnduserFilterField[] | undefined;
+        closedAtRange?: DateRange | undefined;
     } | undefined;
     grouping?: ({
         Owner?: boolean | undefined;

@@ -4775,6 +4775,7 @@ export var schema = build_schema({
                     productIds: { validator: listOfMongoIdStringValidatorEmptyOk },
                     cost: { validator: costValidator },
                     stripeKey: { validator: stringValidator },
+                    description: { validator: stringValidator },
                 },
                 returns: {},
             },

@@ -3404,6 +3404,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   autoUploadFiles: booleanValidatorOptional,
   chargebeeEnvironment: stringValidatorOptional,
   chargebeePlanId: stringValidatorOptional,
+  chargebeeItemId: stringValidatorOptional,
   relatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
 })
 
@@ -5121,6 +5122,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       titles: listOfStringsValidatorOptionalOrEmptyOk,
       userTags: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
       enduserFields: enduserFieldsAnalyticsValidator,
+      closedAtRange: dateRangeOptionalValidator,
     }, { isOptional: true, emptyOk: true }),
     info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Tickets']]: AnalyticsQueryInfoForType['Tickets'][K] }>({
       "Total": objectValidator<AnalyticsQueryInfoForType['Tickets']['Total']>({

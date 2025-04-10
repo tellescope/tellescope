@@ -4780,6 +4780,7 @@ exports.schema = (0, exports.build_schema)({
                     productIds: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk },
                     cost: { validator: validation_1.costValidator },
                     stripeKey: { validator: validation_1.stringValidator },
+                    description: { validator: validation_1.stringValidator },
                 },
                 returns: {},
             },

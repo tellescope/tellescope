@@ -597,7 +597,7 @@ export const useDataSync____internal = () => {
       }
 
       // ensure we don't miss updates due to latency
-      const from = new Date(lastFetch.current.getTime() - 1000) // large leeway could result in same data being fetched twice, but helps ensure nothing is dropped
+      const from = new Date(lastFetch.current.getTime() - 3000) // large leeway could result in same data being fetched twice, but helps ensure nothing is dropped
       lastFetch.current = new Date() // update before syncing, not after it returns
 
       session
