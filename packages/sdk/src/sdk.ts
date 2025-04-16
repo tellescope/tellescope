@@ -679,6 +679,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     get_custom_report: (args: extractFields<CustomActions['analytics_frames']['get_custom_report']['parameters']>) => (
       Promise<extractFields<CustomActions['analytics_frames']['get_custom_report']['returns']>>
     ),
+    update_indexes: (args: extractFields<CustomActions['analytics_frames']['update_indexes']['parameters']>) => (
+      Promise<extractFields<CustomActions['analytics_frames']['update_indexes']['returns']>>
+    ),
   },
   emails: {
     sync_integrations: (args: extractFields<CustomActions['emails']['sync_integrations']['parameters']>) => (
@@ -1023,6 +1026,7 @@ export class Session extends SessionManager {
     
     queries.analytics_frames.get_result_for_query = a => this._GET(`/v1${schema.analytics_frames.customActions.get_result_for_query.path}`, a)
     queries.analytics_frames.get_custom_report = a => this._GET(`/v1${schema.analytics_frames.customActions.get_custom_report.path}`, a)
+    queries.analytics_frames.update_indexes = a => this._PATCH(`/v1${schema.analytics_frames.customActions.update_indexes.path}`, a)
 
     queries.availability_blocks.update_order = a => this._POST(`/v1/${schema.availability_blocks.customActions.update_order.path}`, a)
     queries.availability_blocks.handle_autoreply = a => this._POST(`/v1/${schema.availability_blocks.customActions.handle_autoreply.path}`, a)

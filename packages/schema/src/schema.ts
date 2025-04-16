@@ -1010,6 +1010,7 @@ export type CustomActions = {
       groupByCareTeam?: boolean,
     }, AnalyticsQueryResult>, 
     get_custom_report: CustomAction<{ key: string, lastId?: string, limit?: number }, { report: any }>, 
+    update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
   },
   managed_content_records: {
     generate_embedding: CustomAction<{ id: string }, { updated: ManagedContentRecord }>, 
@@ -3954,6 +3955,8 @@ export const schema: SchemaV1 = build_schema({
       },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
       calendarEventId: { validator: mongoIdStringValidator },
+      calendarEventTitle: { validator: stringValidator },
+      calendarEventStartTimeInMS: { validator: nonNegNumberValidator },
       observationId: { validator: mongoIdStringValidator },
       phoneCallId: { validator: mongoIdStringValidator },
       smsId: { validator: mongoIdStringValidator },
@@ -5248,6 +5251,7 @@ export const schema: SchemaV1 = build_schema({
       canvasLocationId: { validator: stringValidator100 },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
       completedAt: { validator: dateValidatorOptional },
+      confirmedAt: { validator: dateValidatorOptional },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       cancelledGroupAttendees: {
         validator: listValidatorOptionalOrEmptyOk(objectValidator<GroupCancellation>({
@@ -7155,6 +7159,16 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     },
     defaultActions: DEFAULT_OPERATIONS,
     customActions: { 
+      update_indexes: {
+        op: "custom", access: 'update', method: "patch",
+        name: 'Update Indexes',
+        path: '/analytics-frames/update-indexes',
+        description: "Updates indexes for a number of analytics frames to adjust the default sorting",
+        parameters: { 
+          updates: { validator: indexUpdatesValidator, required: true },
+        },
+        returns: {},
+      },
       get_result_for_query: {
         op: "custom", access: 'read', method: "get", 
         name: 'Get analytics for query',

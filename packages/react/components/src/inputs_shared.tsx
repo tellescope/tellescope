@@ -6,7 +6,7 @@ import { ALL_ACCESS, HEALTHIE_TITLE, UNSEARCHABLE_FIELDS } from "@tellescope/con
 import { SearchAPIProps, useSearchAPI } from "./hooks"
 import { TextFieldProps } from "./mui"
 import { AgentRecord, AllergyCode, AppointmentBookingPage, AppointmentLocation, AutomationTrigger, CalendarEventTemplate, CallHoldQueue, ChatRoom, Database, DatabaseRecord, DiagnosisCode, Enduser, EnduserOrder, FaxLog, File, Form, FormGroup, Forum, Journey, ManagedContentRecord, MessageTemplateSnippet, Organization, PrescriptionRoute, SuggestedContact, Template, Ticket, TicketQueue, User, UserNotification, Waitlist } from "@tellescope/types-client"
-import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, ScrollingList, SearchTextInput, Typography, useAgentRecords, useAllergyCodes, useAppointmentBookingPages, useAppointmentLocations, useAutomationTriggers, useCalendarEventTemplates, useCallHoldQueues, useChatRooms, useDatabaseRecords, useDatabases, useDiagnosisCodes, useEnduserOrders, useEndusers, useFaxLogs, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useMessageTemplateSnippets, useNotifications, useOrganization, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useSuggestedContacts, useTemplates, useTicketQueues, useTickets, useUsers, useWaitlists, value_is_loaded } from "."
+import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, ScrollingList, SearchTextInput, Typography, useAgentRecords, useAllergyCodes, useAppointmentBookingPages, useAppointmentLocations, useAutomationTriggers, useCalendarEventTemplates, useCallHoldQueues, useChatRooms, useDatabaseRecords, useDatabases, useDiagnosisCodes, useEnduserCustomTypes, useEnduserOrders, useEndusers, useFaxLogs, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useMessageTemplateSnippets, useNotifications, useOrganization, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useSuggestedContacts, useTemplates, useTicketQueues, useTickets, useUsers, useWaitlists, value_is_loaded } from "."
 import { SxProps } from "@mui/material"
 import { AccessPermissions, ListOfStringsWithQualifier } from "@tellescope/types-models"
 
@@ -1374,6 +1374,7 @@ export interface UserAndEnduserSelectorProps {
   limitToUsers?: User[],
   dontIncludeSelf: boolean,
   virtualizationHeight?: number,
+  showEntityType?: boolean,
 }
 export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserSelectorProps> = ({
   titleInput,
@@ -1394,12 +1395,17 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
   limitToUsers,
   dontIncludeSelf,
   virtualizationHeight,
+  showEntityType,
 }) => {
   const session = useResolvedSession()
   const [endusersLoading, { loadMore: loadMoreEndusers, doneLoading: doneLoadingEndusers }] = useEndusers()
   const [usersLoading, { loadMore: loadMoreUsers, doneLoading: doneLoadingUsers }] = useUsers({
     dontFetch: !!limitToUsers
   })
+  const [typesLoading] = useEnduserCustomTypes({ dontFetch: !showEntityType })
+  const entityTypes = useMemo(() => (
+    value_is_loaded(typesLoading) ? typesLoading.value : [] 
+  ),[typesLoading])
 
   const doneLoading = useCallback(() => 
     (excludeUsers || doneLoadingUsers()) && (excludeEndusers || doneLoadingEndusers()), 
@@ -1534,11 +1540,22 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
             >
               <Checkbox checked={selected.includes(user.id)} />
 
-              <Typography style={{ 
-                fontWeight: selected.includes(user.id) ? 'bold' : undefined,
-              }}>
-                {user_display_name(user)}
-              </Typography>
+              <Flex flex={1} column alignItems="flex-end" justifyContent="center">
+                <Typography style={{ 
+                  fontWeight: selected.includes(user.id) ? 'bold' : undefined,
+                }}>
+                  {user_display_name(user)}
+                </Typography>
+
+                {showEntityType && (user as Enduser).customTypeId &&
+                  <Typography style={{ 
+                    fontWeight: selected.includes(user.id) ? 'bold' : undefined,
+                    fontSize: 12.5,
+                  }}>
+                    {entityTypes.find(t => t.id === (user as Enduser).customTypeId)?.title}
+                  </Typography> 
+                }
+              </Flex>
             </Flex>
             </HoverPaper>
           )} 

@@ -322,7 +322,7 @@ export const QuestionForField = ({
           <Dropdown field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Dropdown'>} form={form}/>
         )
         : field.type === 'Database Select' ? (
-          <DatabaseSelect field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Database Select'>} 
+          <DatabaseSelect field={field} disabled={value.disabled} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Database Select'>} 
             onDatabaseSelect={handleDatabaseSelect}
             responses={responses} form={form}
           />

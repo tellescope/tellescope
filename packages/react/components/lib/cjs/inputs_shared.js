@@ -1164,12 +1164,14 @@ var DatabaseRecordSearch = function (_a) {
 exports.DatabaseRecordSearch = DatabaseRecordSearch;
 var SEARCHBAR_MIN_WIDTH = '125px';
 var UserAndEnduserSelector = function (_a) {
-    var titleInput = _a.titleInput, excludeEndusers = _a.excludeEndusers, excludeUsers = _a.excludeUsers, onGoBack = _a.onGoBack, onSelect = _a.onSelect, showTitleInput = _a.showTitleInput, hiddenIds = _a.hiddenIds, _b = _a.title, title = _b === void 0 ? "Select Members" : _b, minHeight = _a.minHeight, _c = _a.maxHeight, maxHeight = _c === void 0 ? '50vh' : _c, _d = _a.searchBarPlacement, searchBarPlacement = _d === void 0 ? "top" : _d, _e = _a.initialSelected, initialSelected = _e === void 0 ? [] : _e, _f = _a.buttonText, buttonText = _f === void 0 ? "Create" : _f, filter = _a.filter, radio = _a.radio, limitToUsers = _a.limitToUsers, dontIncludeSelf = _a.dontIncludeSelf, virtualizationHeight = _a.virtualizationHeight;
+    var titleInput = _a.titleInput, excludeEndusers = _a.excludeEndusers, excludeUsers = _a.excludeUsers, onGoBack = _a.onGoBack, onSelect = _a.onSelect, showTitleInput = _a.showTitleInput, hiddenIds = _a.hiddenIds, _b = _a.title, title = _b === void 0 ? "Select Members" : _b, minHeight = _a.minHeight, _c = _a.maxHeight, maxHeight = _c === void 0 ? '50vh' : _c, _d = _a.searchBarPlacement, searchBarPlacement = _d === void 0 ? "top" : _d, _e = _a.initialSelected, initialSelected = _e === void 0 ? [] : _e, _f = _a.buttonText, buttonText = _f === void 0 ? "Create" : _f, filter = _a.filter, radio = _a.radio, limitToUsers = _a.limitToUsers, dontIncludeSelf = _a.dontIncludeSelf, virtualizationHeight = _a.virtualizationHeight, showEntityType = _a.showEntityType;
     var session = (0, _1.useResolvedSession)();
     var _g = (0, _1.useEndusers)(), endusersLoading = _g[0], _h = _g[1], loadMoreEndusers = _h.loadMore, doneLoadingEndusers = _h.doneLoading;
     var _j = (0, _1.useUsers)({
         dontFetch: !!limitToUsers
     }), usersLoading = _j[0], _k = _j[1], loadMoreUsers = _k.loadMore, doneLoadingUsers = _k.doneLoading;
+    var typesLoading = (0, _1.useEnduserCustomTypes)({ dontFetch: !showEntityType })[0];
+    var entityTypes = (0, react_1.useMemo)(function () { return ((0, _1.value_is_loaded)(typesLoading) ? typesLoading.value : []); }, [typesLoading]);
     var doneLoading = (0, react_1.useCallback)(function () {
         return (excludeUsers || doneLoadingUsers()) && (excludeEndusers || doneLoadingEndusers());
     }, [doneLoadingEndusers, excludeUsers, excludeEndusers, doneLoadingUsers]);
@@ -1236,6 +1238,7 @@ var UserAndEnduserSelector = function (_a) {
                             : {}, titleActionsComponent: searchBarPlacement === 'top'
                             ? (0, jsx_runtime_1.jsx)(_1.Flex, __assign({ flex: 1, justifyContent: "flex-end", style: { marginLeft: 'auto' } }, { children: searchbar }))
                             : undefined, itemContainerStyle: { padding: 4 }, Item: function (_a) {
+                            var _b;
                             var user = _a.item;
                             return ((0, jsx_runtime_1.jsx)(_1.HoverPaper, __assign({ style: { marginBottom: 4 } }, { children: (0, jsx_runtime_1.jsxs)(_1.Flex, __assign({ flex: 1, alignItems: "center", justifyContent: "space-between", onClick: function () {
                                         return radio
@@ -1249,9 +1252,13 @@ var UserAndEnduserSelector = function (_a) {
                                                 : __spreadArray([user.id], ss, true)); });
                                     }, style: {
                                         paddingLeft: 5, paddingRight: 5,
-                                    } }, { children: [(0, jsx_runtime_1.jsx)(_1.Checkbox, { checked: selected.includes(user.id) }), (0, jsx_runtime_1.jsx)(_1.Typography, __assign({ style: {
-                                                fontWeight: selected.includes(user.id) ? 'bold' : undefined,
-                                            } }, { children: (0, utilities_1.user_display_name)(user) }))] })) })));
+                                    } }, { children: [(0, jsx_runtime_1.jsx)(_1.Checkbox, { checked: selected.includes(user.id) }), (0, jsx_runtime_1.jsxs)(_1.Flex, __assign({ flex: 1, column: true, alignItems: "flex-end", justifyContent: "center" }, { children: [(0, jsx_runtime_1.jsx)(_1.Typography, __assign({ style: {
+                                                        fontWeight: selected.includes(user.id) ? 'bold' : undefined,
+                                                    } }, { children: (0, utilities_1.user_display_name)(user) })), showEntityType && user.customTypeId &&
+                                                    (0, jsx_runtime_1.jsx)(_1.Typography, __assign({ style: {
+                                                            fontWeight: selected.includes(user.id) ? 'bold' : undefined,
+                                                            fontSize: 12.5,
+                                                        } }, { children: (_b = entityTypes.find(function (t) { return t.id === user.customTypeId; })) === null || _b === void 0 ? void 0 : _b.title }))] }))] })) })));
                         } }), searchBarPlacement === 'bottom' &&
                         (0, jsx_runtime_1.jsx)(_1.Flex, __assign({ alignSelf: "flex-end", style: { marginTop: 4, width: '100%' } }, { children: searchbar }))] })));
         } }));

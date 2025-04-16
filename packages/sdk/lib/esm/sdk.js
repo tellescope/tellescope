@@ -563,6 +563,7 @@ var Session = /** @class */ (function (_super) {
         queries.templates.embedding_search = function (a) { return _this._POST("/v1/".concat(schema.templates.customActions.embedding_search.path), a); };
         queries.analytics_frames.get_result_for_query = function (a) { return _this._GET("/v1".concat(schema.analytics_frames.customActions.get_result_for_query.path), a); };
         queries.analytics_frames.get_custom_report = function (a) { return _this._GET("/v1".concat(schema.analytics_frames.customActions.get_custom_report.path), a); };
+        queries.analytics_frames.update_indexes = function (a) { return _this._PATCH("/v1".concat(schema.analytics_frames.customActions.update_indexes.path), a); };
         queries.availability_blocks.update_order = function (a) { return _this._POST("/v1/".concat(schema.availability_blocks.customActions.update_order.path), a); };
         queries.availability_blocks.handle_autoreply = function (a) { return _this._POST("/v1/".concat(schema.availability_blocks.customActions.handle_autoreply.path), a); };
         queries.managed_content_records.load_unauthenticated = function (a) { return _this._GET("/v1/".concat(schema.managed_content_records.publicActions.load_unauthenticated.path), a); };

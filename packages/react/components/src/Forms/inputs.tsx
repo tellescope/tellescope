@@ -1899,7 +1899,7 @@ const get_other_answers = (_value?: DatabaseSelectResponse[], typing?: string) =
   return []
 }
 
-export const DatabaseSelectInput = ({ field, value: _value, onChange, onDatabaseSelect, responses, size }: FormInputProps<'Database Select'> & {
+export const DatabaseSelectInput = ({ field, value: _value, onChange, onDatabaseSelect, responses, size, disabled }: FormInputProps<'Database Select'> & {
   responses: FormResponseValue[],
 }) => {
   const [typing, setTyping] = useState('')
@@ -2003,6 +2003,7 @@ export const DatabaseSelectInput = ({ field, value: _value, onChange, onDatabase
           : label_for_database_record(field, o)
       )}
       value={value}
+      disabled={disabled}
       onChange={(_, v) => {
         if (v.length && onDatabaseSelect) {
           onDatabaseSelect(v)

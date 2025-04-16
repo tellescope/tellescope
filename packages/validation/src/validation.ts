@@ -309,6 +309,10 @@ import {
   CancelFutureAppointmentsAutomationAction,
   CustomerIOIdentifyAction,
   CustomerIOTrackAction,
+  AddAccessTagsAutomationAction,
+  RemoveAccessTagsAutomationAction,
+  CancelCurrentEventAction,
+  ConfirmCurrentEventAction,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -1991,6 +1995,9 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
   }, {
     inputModifier: (o => {
       if (typeof o?.value === 'number') { return { ...o, value: o.value.toString() } }
+      if (Array.isArray(o?.value) && o.value.length === 1 && typeof o?.value[0] === 'string') {
+        return { ...o, value: o.value[0] }
+      }
       return o
     })
   }),
@@ -2439,6 +2446,10 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   cancelFutureAppointments: '',
   customerIOIdentify: '',
   customerIOTrack: '',
+  addAccessTags: '',
+  removeAccessTags: '',
+  cancelCurrentEvent: '',
+  confirmCurrentEvent: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -2879,6 +2890,21 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       tags: listOfStringsValidator, 
     }, { emptyOk: false }),
   }),
+  addAccessTags: objectValidator<AddAccessTagsAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['addAccessTags']),
+    info: objectValidator<AddAccessTagsAutomationAction['info']>({ 
+      tags: listOfStringsValidator, 
+      replaceExisting: booleanValidatorOptional,
+    }, { emptyOk: false }),
+  }),
+  removeAccessTags: objectValidator<RemoveAccessTagsAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['removeAccessTags']),
+    info: objectValidator<RemoveAccessTagsAutomationAction['info']>({ 
+      tags: listOfStringsValidator, 
+    }, { emptyOk: false }),
+  }),
   addToJourney: objectValidator<AddToJourneyAutomationAction>({
     continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['addToJourney']),
@@ -3069,6 +3095,16 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       event: stringValidator,
       trackProperties: listOfStringsValidatorOptionalOrEmptyOk,
     }, { emptyOk: false }),
+  }),
+  cancelCurrentEvent: objectValidator<CancelCurrentEventAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['cancelCurrentEvent']),
+    info: objectValidator<CancelCurrentEventAction['info']>({}, { emptyOk: true, isOptional: true }),
+  }),
+  confirmCurrentEvent: objectValidator<ConfirmCurrentEventAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['confirmCurrentEvent']),
+    info: objectValidator<ConfirmCurrentEventAction['info']>({}, { emptyOk: true, isOptional: true }),
   }),
 })
 
@@ -3988,6 +4024,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     recordCalls: booleanValidatorOptional,
     transcribeCalls: booleanValidatorOptional,
     showFreeNote: booleanValidatorOptional,
+    autoSaveFreeNote: booleanValidatorOptional,
     canDeleteFreeNote: booleanValidatorOptional,
     customFields: customEnduserFieldsValidatorOptionalOrEmpty,
     builtinFields: buildInFieldsValidator,
@@ -4011,6 +4048,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     alwaysShowInsurance: booleanValidatorOptional,
     defaultToOutboundConferenceCall: booleanValidatorOptional,
     sharedInboxReadStatus: booleanValidatorOptional,
+    dontMarkReadForAssigned: booleanValidatorOptional,
     matchEmailAndNames: booleanValidatorOptional,
     hideNotesFromComposeForm: booleanValidatorOptional,
     showSalesforceId: booleanValidatorOptional,
@@ -4261,6 +4299,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     info: objectValidator<AutomationTriggerEvents['Appointment Cancelled']['info']>({
       titles: listOfStringsValidatorOptionalOrEmptyOk,
       by: exactMatchValidatorOptional(['', 'enduser', 'user']),
+      templateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -4323,6 +4362,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     info: objectValidator<AutomationTriggerEvents['Order Status Equals']['info']>({
       source: stringValidator100,
       status: stringValidator100,
+      fills: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 

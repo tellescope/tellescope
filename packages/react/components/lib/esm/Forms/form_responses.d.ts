@@ -1,3 +1,4 @@
+/// <reference types="react" />
 import { Enduser, FormResponse } from "@tellescope/types-client";
 import { FormResponseAnswerAddress, FormResponseValueAnswer } from "@tellescope/types-models";
 export declare const AddressDisplay: ({ value }: {

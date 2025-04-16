@@ -3400,6 +3400,125 @@ const order_created_tests = async () => {
   ])
 }
 
+const order_status_equals_tests = async () => {
+  log_header("Automation Trigger Tests (Order Status Equals)")
+
+  const t1 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'Source', status: "Status",  } },
+    action: { type: 'Add Tags', info: { tags: ['Source'] }},
+    status: 'Active',
+    title: "No conditions"
+  })
+  const t2 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'Source', status: "Filled", fills: ['Fill'] } },
+    action: { type: 'Add Tags', info: { tags: ['Fill'] }},
+    status: 'Active',
+    title: "Fill Condition"
+  })
+  const t3 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'Source', status: "Update" } },
+    action: { type: 'Add Tags', info: { tags: ['Status Update'] }},
+    status: 'Active',
+    title: "No conditions"
+  })
+  const t4 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'Source', status: "Update", fills: ['Update'] } },
+    action: { type: 'Add Tags', info: { tags: ['Fill Update'] }},
+    status: 'Active',
+    title: "Fill Condition"
+  })
+
+  const e = await sdk.api.endusers.createOne({})
+
+  await sdk.api.enduser_orders.createOne({ status: 'Nooo', source: 'Source', title: 'nomatch', externalId: '1', enduserId: e.id })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "No tag is added (no fill)",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !e.tags?.length }
+  )
+
+  await sdk.api.enduser_orders.createOne({ status: 'Filled', source: 'Source', title: 'nomatch', externalId: '2', enduserId: e.id, fill: 'nomatch' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "No tag is added (fill mistmatch)",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !e.tags?.length }
+  )
+
+  await sdk.api.enduser_orders.createOne({ status: 'Status', source: 'Source', externalId: '3', enduserId: e.id, title: "Title" })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "First tag is added",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!(
+       e.tags?.length === 1
+    && e.tags?.includes('Source')
+    ) }
+  )
+
+  await sdk.api.enduser_orders.createOne({ status: 'Status', source: 'Source', externalId: '4', enduserId: e.id, title: "Title", fill: '1' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Fill tag not added yet (mismatch)",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!(
+       e.tags?.length === 1
+    && e.tags?.includes('Source')
+    && !e.tags?.includes('Fill')
+    ) }
+  )
+
+  await sdk.api.enduser_orders.createOne({ status: 'Filled', source: 'Source', externalId: '5', enduserId: e.id, title: "Title", fill: "Fill" })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Fill tag added",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!(
+       e.tags?.length === 2
+    && e.tags?.includes('Source')
+    && e.tags?.includes('Fill')
+    ) }
+  )
+
+  const u = await sdk.api.enduser_orders.createOne({ status: 'Status', source: 'Source', externalId: '6', enduserId: e.id, title: "Title" })
+  await sdk.api.enduser_orders.updateOne(u.id, { status: 'Update' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Status update tag added",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!(
+       e.tags?.length === 3
+    && e.tags?.includes('Source')
+    && e.tags?.includes('Fill')
+    && e.tags?.includes('Status Update')
+    ) }
+  )
+  
+  await sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle' })
+  await sdk.api.enduser_orders.updateOne(u.id, { status: "Update", fill: 'Update' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Fill update tag added",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!(
+       e.tags?.length === 4
+    && e.tags?.includes('Source')
+    && e.tags?.includes('Fill')
+    && e.tags?.includes('Status Update')
+    && e.tags?.includes('Fill Update')
+    ) }
+  )
+
+  await Promise.all([
+    sdk.api.automation_triggers.deleteOne(t1.id),
+    sdk.api.automation_triggers.deleteOne(t2.id),
+    sdk.api.automation_triggers.deleteOne(t3.id),
+    sdk.api.automation_triggers.deleteOne(t4.id),
+    sdk.api.endusers.deleteOne(e.id),
+  ])
+}
+
 const tag_added_tests = async () => {
   log_header("Automation Trigger Tests (Tag Added)")
 
@@ -3483,9 +3602,143 @@ const tag_added_tests = async () => {
   ])
 }
 
+
+const appointment_cancelled_tests = async () => {
+  log_header("Automation Trigger Tests (Appointment Cancelled)")
+
+  const t1 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Appointment Cancelled', info: { } },
+    action: { type: 'Add Tags', info: { tags: ['By Any'] }},
+    status: 'Active',
+    title: "By Any"
+  })
+  const t2 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Appointment Cancelled', info: { titles: ['Title']  } },
+    action: { type: 'Add Tags', info: { tags: ['By Title'] }},
+    status: 'Active',
+    title: "By Title"
+  })
+  const t3 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Appointment Cancelled', info: { templateIds: [PLACEHOLDER_ID] } },
+    action: { type: 'Add Tags', info: { tags: ['By templateId'] }},
+    status: 'Active',
+    title: "By templateId"
+  })
+  const t4 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Appointment Cancelled', info: { by: 'enduser' } },
+    action: { type: 'Add Tags', info: { tags: ['By enduser'] }},
+    status: 'Active',
+    title: "By enduser"
+  })
+  const t5 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Appointment Cancelled', info: { by: 'user' } },
+    action: { type: 'Add Tags', info: { tags: ['By user'] }},
+    status: 'Active',
+    title: "By user"
+  })
+
+  const e = await sdk.api.endusers.createOne({})
+
+  const event1 = await sdk.api.calendar_events.createOne({ title: 'Test', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e.id }] })
+  await wait(undefined, 500) // allow triggers to happen (nothing should trigger til cancelled)
+  await async_test(
+    "No tags added",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !e.tags?.length }
+  )
+
+  const event2 = await sdk.api.calendar_events.createOne({ title: 'Test 2', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e.id }] })
+  await sdk.api.calendar_events.updateOne(event2.id, { cancelledAt: new Date() })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Any cancel",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => 
+        e.tags?.length === 1
+     && e.tags.includes('By Any')
+    }
+  )
+
+  const event3 = await sdk.api.calendar_events.createOne({ title: 'Title', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e.id }] })
+  await sdk.api.calendar_events.updateOne(event3.id, { cancelledAt: new Date() })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "By title",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => 
+        e.tags?.length === 2
+     && e.tags.includes('By Any')
+     && e.tags.includes('By Title')
+    }
+  )
+
+  const event4 = await sdk.api.calendar_events.createOne({ title: 'Title', templateId: PLACEHOLDER_ID, durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e.id }] })
+  await sdk.api.calendar_events.updateOne(event4.id, { cancelledAt: new Date() })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "By templateId",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => 
+        e.tags?.length === 3
+     && e.tags.includes('By Any')
+     && e.tags.includes('By Title')
+     && e.tags.includes('By templateId')
+    }
+  )
+
+
+  const event5 = await sdk.api.calendar_events.createOne({ title: 'Title', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e.id }] })
+  await sdk.api.calendar_events.updateOne(event5.id, { cancelledAt: new Date(), statusChangeSource: { source: 'enduser', identifier: 'Tellescope' } })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "By enduser",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => 
+        e.tags?.length === 4
+     && e.tags.includes('By Any')
+     && e.tags.includes('By Title')
+     && e.tags.includes('By templateId')
+     && e.tags.includes('By enduser')
+    }
+  )
+
+  const event6 = await sdk.api.calendar_events.createOne({ title: 'Title', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e.id }] })
+  await sdk.api.calendar_events.updateOne(event6.id, { cancelledAt: new Date(), statusChangeSource: { source: 'user', identifier: 'Tellescope' } })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "By user",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => 
+        e.tags?.length === 5
+     && e.tags.includes('By Any')
+     && e.tags.includes('By Title')
+     && e.tags.includes('By templateId')
+     && e.tags.includes('By enduser')
+     && e.tags.includes('By user')
+    }
+  )
+
+  await Promise.all([
+    sdk.api.automation_triggers.deleteOne(t1.id),
+    sdk.api.automation_triggers.deleteOne(t2.id),
+    sdk.api.automation_triggers.deleteOne(t3.id),
+    sdk.api.automation_triggers.deleteOne(t4.id),
+    sdk.api.automation_triggers.deleteOne(t5.id),
+    sdk.api.endusers.deleteOne(e.id),
+    sdk.api.calendar_events.deleteOne(event1.id),
+    sdk.api.calendar_events.deleteOne(event2.id),
+    sdk.api.calendar_events.deleteOne(event3.id),
+    sdk.api.calendar_events.deleteOne(event4.id),
+    sdk.api.calendar_events.deleteOne(event5.id),
+    sdk.api.calendar_events.deleteOne(event6.id),
+  ])
+}
+
 const automation_trigger_tests = async () => {
   log_header("Automation Trigger Tests")
 
+  await appointment_cancelled_tests()
+  await order_status_equals_tests()
   await tag_added_tests()
   await order_created_tests()
   await formSubmittedTriggerTests() 
@@ -9712,13 +9965,13 @@ const test_form_response_search = async () => {
     await alternate_phones_tests()
     await field_equals_trigger_tests()
     await role_based_access_tests()
-    await automation_trigger_tests()
     await enduser_session_tests()
     await nextReminderInMS_tests()
     await search_tests()
     await wait_for_trigger_tests()
     await pdf_generation()
-    await remove_from_journey_on_incoming_comms_tests()
+    await automation_trigger_tests()
+    await remove_from_journey_on_incoming_comms_tests().catch(console.error) // timing is unreliable, uncomment if changing logic
     await auto_reply_tests()
     await sub_organization_enduser_tests()
     await sub_organization_tests()

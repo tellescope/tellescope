@@ -52,7 +52,7 @@ export declare const Progress: ({ numerator, denominator, style }: {
     denominator: number;
 } & Styled) => JSX.Element;
 export declare const DropdownInput: ({ field, value, onChange }: FormInputProps<'Dropdown'>) => JSX.Element;
-export declare const DatabaseSelectInput: ({ field, value: _value, onChange, onDatabaseSelect, responses, size }: FormInputProps<"Database Select"> & {
+export declare const DatabaseSelectInput: ({ field, value: _value, onChange, onDatabaseSelect, responses, size, disabled }: FormInputProps<"Database Select"> & {
     responses: FormResponseValue[];
 }) => JSX.Element;
 export declare const CanvasMedicationsInput: ({ field, value, onChange }: FormInputProps<'Medications'>) => JSX.Element;

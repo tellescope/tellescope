@@ -80,7 +80,7 @@ export declare const performBulkAction: <T extends {
 }) => Promise<Omit<R & {
     error?: string | undefined;
     successCount?: number | undefined;
-}, "error" | "successCount">[]>;
+}, "successCount" | "error">[]>;
 export interface BulkActionProps<T> {
     allSelected?: boolean;
     selected?: string[];
@@ -248,6 +248,7 @@ export interface UserAndEnduserSelectorProps {
     limitToUsers?: User[];
     dontIncludeSelf: boolean;
     virtualizationHeight?: number;
+    showEntityType?: boolean;
 }
 export declare const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserSelectorProps>;
 export {};

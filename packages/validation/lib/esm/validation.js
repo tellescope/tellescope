@@ -1551,6 +1551,9 @@ export var formResponseAnswerValidator = orValidator({
             if (typeof (o === null || o === void 0 ? void 0 : o.value) === 'number') {
                 return __assign(__assign({}, o), { value: o.value.toString() });
             }
+            if (Array.isArray(o === null || o === void 0 ? void 0 : o.value) && o.value.length === 1 && typeof (o === null || o === void 0 ? void 0 : o.value[0]) === 'string') {
+                return __assign(__assign({}, o), { value: o.value[0] });
+            }
             return o;
         })
     }),
@@ -1938,6 +1941,10 @@ var _AUTOMATION_ACTIONS = {
     cancelFutureAppointments: '',
     customerIOIdentify: '',
     customerIOTrack: '',
+    addAccessTags: '',
+    removeAccessTags: '',
+    cancelCurrentEvent: '',
+    confirmCurrentEvent: '',
 };
 export var AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS);
 export var automationActionTypeValidator = exactMatchValidator(AUTOMATION_ACTIONS);
@@ -2321,6 +2328,21 @@ export var automationActionValidator = orValidator({
             tags: listOfStringsValidator,
         }, { emptyOk: false }),
     }),
+    addAccessTags: objectValidator({
+        continueOnError: booleanValidatorOptional,
+        type: exactMatchValidator(['addAccessTags']),
+        info: objectValidator({
+            tags: listOfStringsValidator,
+            replaceExisting: booleanValidatorOptional,
+        }, { emptyOk: false }),
+    }),
+    removeAccessTags: objectValidator({
+        continueOnError: booleanValidatorOptional,
+        type: exactMatchValidator(['removeAccessTags']),
+        info: objectValidator({
+            tags: listOfStringsValidator,
+        }, { emptyOk: false }),
+    }),
     addToJourney: objectValidator({
         continueOnError: booleanValidatorOptional,
         type: exactMatchValidator(['addToJourney']),
@@ -2509,6 +2531,16 @@ export var automationActionValidator = orValidator({
             event: stringValidator,
             trackProperties: listOfStringsValidatorOptionalOrEmptyOk,
         }, { emptyOk: false }),
+    }),
+    cancelCurrentEvent: objectValidator({
+        continueOnError: booleanValidatorOptional,
+        type: exactMatchValidator(['cancelCurrentEvent']),
+        info: objectValidator({}, { emptyOk: true, isOptional: true }),
+    }),
+    confirmCurrentEvent: objectValidator({
+        continueOnError: booleanValidatorOptional,
+        type: exactMatchValidator(['confirmCurrentEvent']),
+        info: objectValidator({}, { emptyOk: true, isOptional: true }),
     }),
 });
 export var journeyContextValidator = objectValidator({
@@ -3368,6 +3400,7 @@ export var organizationSettingsValidator = objectValidator({
         recordCalls: booleanValidatorOptional,
         transcribeCalls: booleanValidatorOptional,
         showFreeNote: booleanValidatorOptional,
+        autoSaveFreeNote: booleanValidatorOptional,
         canDeleteFreeNote: booleanValidatorOptional,
         customFields: customEnduserFieldsValidatorOptionalOrEmpty,
         builtinFields: buildInFieldsValidator,
@@ -3391,6 +3424,7 @@ export var organizationSettingsValidator = objectValidator({
         alwaysShowInsurance: booleanValidatorOptional,
         defaultToOutboundConferenceCall: booleanValidatorOptional,
         sharedInboxReadStatus: booleanValidatorOptional,
+        dontMarkReadForAssigned: booleanValidatorOptional,
         matchEmailAndNames: booleanValidatorOptional,
         hideNotesFromComposeForm: booleanValidatorOptional,
         showSalesforceId: booleanValidatorOptional,
@@ -3636,6 +3670,7 @@ export var automationTriggerEventValidator = orValidator({
         info: objectValidator({
             titles: listOfStringsValidatorOptionalOrEmptyOk,
             by: exactMatchValidatorOptional(['', 'enduser', 'user']),
+            templateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
         }),
         conditions: optionalEmptyObjectValidator,
     }),
@@ -3698,6 +3733,7 @@ export var automationTriggerEventValidator = orValidator({
         info: objectValidator({
             source: stringValidator100,
             status: stringValidator100,
+            fills: listOfStringsValidatorOptionalOrEmptyOk,
         }),
         conditions: optionalEmptyObjectValidator,
     }),

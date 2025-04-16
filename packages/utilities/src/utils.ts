@@ -906,7 +906,13 @@ export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Endu
         ? (() => {
           if (o?.ignoreUpcomingEvents) return true 
 
-          const upcomingEventCount = enduser._upcomingEvents?.length ?? 0
+          const templateIds = value?.['$templateIds'] ?? [] as string[]
+
+          const upcomingEventCount = (
+            (enduser._upcomingEvents || [])
+            .filter(e => templateIds.length === 0 || templateIds.includes(e.templateId))
+            .length 
+          ) ?? 0
 
           const result = (
             value?.['$lt'] !== undefined

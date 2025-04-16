@@ -929,7 +929,10 @@ var evaluate_conditional_logic_for_enduser_fields = function (enduser, condition
                 var _a, _b;
                 if (o === null || o === void 0 ? void 0 : o.ignoreUpcomingEvents)
                     return true;
-                var upcomingEventCount = (_b = (_a = enduser._upcomingEvents) === null || _a === void 0 ? void 0 : _a.length) !== null && _b !== void 0 ? _b : 0;
+                var templateIds = (_a = value === null || value === void 0 ? void 0 : value['$templateIds']) !== null && _a !== void 0 ? _a : [];
+                var upcomingEventCount = (_b = ((enduser._upcomingEvents || [])
+                    .filter(function (e) { return templateIds.length === 0 || templateIds.includes(e.templateId); })
+                    .length)) !== null && _b !== void 0 ? _b : 0;
                 var result = ((value === null || value === void 0 ? void 0 : value['$lt']) !== undefined
                     ? (upcomingEventCount < parseInt(value['$lt']))
                     : (value === null || value === void 0 ? void 0 : value['$gt']) !== undefined

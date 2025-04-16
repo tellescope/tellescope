@@ -1597,6 +1597,9 @@ exports.formResponseAnswerValidator = (0, exports.orValidator)({
             if (typeof (o === null || o === void 0 ? void 0 : o.value) === 'number') {
                 return __assign(__assign({}, o), { value: o.value.toString() });
             }
+            if (Array.isArray(o === null || o === void 0 ? void 0 : o.value) && o.value.length === 1 && typeof (o === null || o === void 0 ? void 0 : o.value[0]) === 'string') {
+                return __assign(__assign({}, o), { value: o.value[0] });
+            }
             return o;
         })
     }),
@@ -1988,6 +1991,10 @@ var _AUTOMATION_ACTIONS = {
     cancelFutureAppointments: '',
     customerIOIdentify: '',
     customerIOTrack: '',
+    addAccessTags: '',
+    removeAccessTags: '',
+    cancelCurrentEvent: '',
+    confirmCurrentEvent: '',
 };
 exports.AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS);
 exports.automationActionTypeValidator = (0, exports.exactMatchValidator)(exports.AUTOMATION_ACTIONS);
@@ -2371,6 +2378,21 @@ exports.automationActionValidator = (0, exports.orValidator)({
             tags: exports.listOfStringsValidator,
         }, { emptyOk: false }),
     }),
+    addAccessTags: (0, exports.objectValidator)({
+        continueOnError: exports.booleanValidatorOptional,
+        type: (0, exports.exactMatchValidator)(['addAccessTags']),
+        info: (0, exports.objectValidator)({
+            tags: exports.listOfStringsValidator,
+            replaceExisting: exports.booleanValidatorOptional,
+        }, { emptyOk: false }),
+    }),
+    removeAccessTags: (0, exports.objectValidator)({
+        continueOnError: exports.booleanValidatorOptional,
+        type: (0, exports.exactMatchValidator)(['removeAccessTags']),
+        info: (0, exports.objectValidator)({
+            tags: exports.listOfStringsValidator,
+        }, { emptyOk: false }),
+    }),
     addToJourney: (0, exports.objectValidator)({
         continueOnError: exports.booleanValidatorOptional,
         type: (0, exports.exactMatchValidator)(['addToJourney']),
@@ -2559,6 +2581,16 @@ exports.automationActionValidator = (0, exports.orValidator)({
             event: exports.stringValidator,
             trackProperties: exports.listOfStringsValidatorOptionalOrEmptyOk,
         }, { emptyOk: false }),
+    }),
+    cancelCurrentEvent: (0, exports.objectValidator)({
+        continueOnError: exports.booleanValidatorOptional,
+        type: (0, exports.exactMatchValidator)(['cancelCurrentEvent']),
+        info: (0, exports.objectValidator)({}, { emptyOk: true, isOptional: true }),
+    }),
+    confirmCurrentEvent: (0, exports.objectValidator)({
+        continueOnError: exports.booleanValidatorOptional,
+        type: (0, exports.exactMatchValidator)(['confirmCurrentEvent']),
+        info: (0, exports.objectValidator)({}, { emptyOk: true, isOptional: true }),
     }),
 });
 exports.journeyContextValidator = (0, exports.objectValidator)({
@@ -3420,6 +3452,7 @@ exports.organizationSettingsValidator = (0, exports.objectValidator)({
         recordCalls: exports.booleanValidatorOptional,
         transcribeCalls: exports.booleanValidatorOptional,
         showFreeNote: exports.booleanValidatorOptional,
+        autoSaveFreeNote: exports.booleanValidatorOptional,
         canDeleteFreeNote: exports.booleanValidatorOptional,
         customFields: exports.customEnduserFieldsValidatorOptionalOrEmpty,
         builtinFields: exports.buildInFieldsValidator,
@@ -3443,6 +3476,7 @@ exports.organizationSettingsValidator = (0, exports.objectValidator)({
         alwaysShowInsurance: exports.booleanValidatorOptional,
         defaultToOutboundConferenceCall: exports.booleanValidatorOptional,
         sharedInboxReadStatus: exports.booleanValidatorOptional,
+        dontMarkReadForAssigned: exports.booleanValidatorOptional,
         matchEmailAndNames: exports.booleanValidatorOptional,
         hideNotesFromComposeForm: exports.booleanValidatorOptional,
         showSalesforceId: exports.booleanValidatorOptional,
@@ -3688,6 +3722,7 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
         info: (0, exports.objectValidator)({
             titles: exports.listOfStringsValidatorOptionalOrEmptyOk,
             by: (0, exports.exactMatchValidatorOptional)(['', 'enduser', 'user']),
+            templateIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
         }),
         conditions: exports.optionalEmptyObjectValidator,
     }),
@@ -3750,6 +3785,7 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
         info: (0, exports.objectValidator)({
             source: exports.stringValidator100,
             status: exports.stringValidator100,
+            fills: exports.listOfStringsValidatorOptionalOrEmptyOk,
         }),
         conditions: exports.optionalEmptyObjectValidator,
     }),

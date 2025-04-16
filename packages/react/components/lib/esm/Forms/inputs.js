@@ -965,7 +965,7 @@ var get_other_answers = function (_value, typing) {
 };
 export var DatabaseSelectInput = function (_a) {
     var _b, _d, _e, _f;
-    var field = _a.field, _value = _a.value, onChange = _a.onChange, onDatabaseSelect = _a.onDatabaseSelect, responses = _a.responses, size = _a.size;
+    var field = _a.field, _value = _a.value, onChange = _a.onChange, onDatabaseSelect = _a.onDatabaseSelect, responses = _a.responses, size = _a.size, disabled = _a.disabled;
     var _g = useState(''), typing = _g[0], setTyping = _g[1];
     var _h = useDatabaseChoices({
         databaseId: (_b = field.options) === null || _b === void 0 ? void 0 : _b.databaseId,
@@ -1046,7 +1046,7 @@ export var DatabaseSelectInput = function (_a) {
         return _jsx(LinearProgress, {});
     return (_jsx(Autocomplete, { id: field.id, freeSolo: false, size: size, componentsProps: { popper: { sx: { wordBreak: "break-word" } } }, options: filteredChoices, multiple: true, getOptionLabel: function (o) { return (Array.isArray(o) // edge case
             ? ''
-            : label_for_database_record(field, o)); }, value: value, onChange: function (_, v) {
+            : label_for_database_record(field, o)); }, value: value, disabled: disabled, onChange: function (_, v) {
             var _a, _b, _d, _e;
             if (v.length && onDatabaseSelect) {
                 onDatabaseSelect(v);

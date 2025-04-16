@@ -3737,6 +3737,7 @@ type Queries = {
     analytics_frames: {
         get_result_for_query: (args: extractFields<CustomActions['analytics_frames']['get_result_for_query']['parameters']>) => (Promise<extractFields<CustomActions['analytics_frames']['get_result_for_query']['returns']>>);
         get_custom_report: (args: extractFields<CustomActions['analytics_frames']['get_custom_report']['parameters']>) => (Promise<extractFields<CustomActions['analytics_frames']['get_custom_report']['returns']>>);
+        update_indexes: (args: extractFields<CustomActions['analytics_frames']['update_indexes']['parameters']>) => (Promise<extractFields<CustomActions['analytics_frames']['update_indexes']['returns']>>);
     };
     emails: {
         sync_integrations: (args: extractFields<CustomActions['emails']['sync_integrations']['parameters']>) => (Promise<extractFields<CustomActions['emails']['sync_integrations']['returns']>>);

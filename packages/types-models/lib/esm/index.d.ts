@@ -165,6 +165,7 @@ export type OrganizationSettings = {
         disableAutoreplyForCustomEntities?: boolean;
         tags?: string[];
         showFreeNote?: boolean;
+        autoSaveFreeNote?: boolean;
         canDeleteFreeNote?: boolean;
         recordCalls?: boolean;
         recordCallAudioPlayback?: string;
@@ -186,6 +187,7 @@ export type OrganizationSettings = {
         alwaysShowInsurance?: boolean;
         defaultToOutboundConferenceCall?: boolean;
         sharedInboxReadStatus?: boolean;
+        dontMarkReadForAssigned?: boolean;
         matchEmailAndNames?: boolean;
         hideNotesFromComposeForm?: boolean;
         showSalesforceId?: boolean;
@@ -1370,6 +1372,8 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
     smsId?: string;
     emailId?: string;
     calendarEventId?: string;
+    calendarEventTitle?: string;
+    calendarEventStartTimeInMS?: number;
     observationId?: string;
     tags?: string[];
     restrictByState?: string;
@@ -2241,6 +2245,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
         id: string;
         at: Date;
     }[];
+    confirmedAt?: Date | '';
 }
 export type PaymentProcessor = 'Square' | 'Stripe';
 export interface Product_readonly extends ClientRecord {
@@ -2797,6 +2802,13 @@ export type IterableCustomEventAutomationAction = AutomationActionBuilder<'itera
     environment?: string;
     customEmailField?: string;
 }>;
+export type AddAccessTagsAutomationAction = AutomationActionBuilder<'addAccessTags', {
+    tags: string[];
+    replaceExisting?: boolean;
+}>;
+export type RemoveAccessTagsAutomationAction = AutomationActionBuilder<'removeAccessTags', {
+    tags: string[];
+}>;
 export type EnduserFieldSetterType = 'Custom Value' | 'Current Timestamp' | 'Current Date' | "Increment Number";
 export type EnduserFieldSetter = {
     name: string;
@@ -2812,6 +2824,8 @@ export type CustomerIOTrackAction = AutomationActionBuilder<'customerIOTrack', {
     event: string;
     trackProperties?: string[];
 }>;
+export type CancelCurrentEventAction = AutomationActionBuilder<'cancelCurrentEvent', {}>;
+export type ConfirmCurrentEventAction = AutomationActionBuilder<'confirmCurrentEvent', {}>;
 export type AutomationConditionType = 'atJourneyState';
 export type AutomationConditionBuilder<T extends AutomationConditionType, V extends object> = {
     type: T;
@@ -2832,6 +2846,8 @@ export type AutomationActionForType = {
     'notifyTeam': NotifyTeamAutomationAction;
     'addEnduserTags': AddEnduserTagsAutomationAction;
     'removeEnduserTags': RemoveEnduserTagsAutomationAction;
+    'addAccessTags': AddAccessTagsAutomationAction;
+    'removeAccessTags': RemoveAccessTagsAutomationAction;
     'addToJourney': AddToJourneyAutomationAction;
     'removeFromJourney': RemoveFromJourneyAutomationAction;
     removeFromAllJourneys: RemoveFromAllJourneysAutomationAction;
@@ -2859,6 +2875,8 @@ export type AutomationActionForType = {
     cancelFutureAppointments: CancelFutureAppointmentsAutomationAction;
     customerIOIdentify: CustomerIOIdentifyAction;
     customerIOTrack: CustomerIOTrackAction;
+    cancelCurrentEvent: CancelCurrentEventAction;
+    confirmCurrentEvent: ConfirmCurrentEventAction;
 };
 export type AutomationActionType = keyof AutomationActionForType;
 export type AutomationAction = AutomationActionForType[AutomationActionType];
@@ -3596,6 +3614,7 @@ export interface AnalyticsFrame extends AnalyticsFrame_readonly, AnalyticsFrame_
     orderedLabels?: string[];
     visibleForRoles?: string[];
     visibleForUserIds?: string[];
+    index?: number;
 }
 export interface BackgroundError_readonly extends ClientRecord {
 }
@@ -3804,6 +3823,7 @@ export type AutomationTriggerEvents = {
     }, {}>;
     'Appointment Cancelled': AutomationTriggerEventBuilder<"Appointment Cancelled", {
         titles?: string[];
+        templateIds?: string[];
         by?: '' | 'enduser' | 'user';
     }, {}>;
     'Appointment Rescheduled': AutomationTriggerEventBuilder<"Appointment Rescheduled", {
@@ -3840,6 +3860,7 @@ export type AutomationTriggerEvents = {
     'Order Status Equals': AutomationTriggerEventBuilder<"Order Status Equals", {
         source: string;
         status: string;
+        fills?: string[];
     }, {}>;
     'Missed Call': AutomationTriggerEventBuilder<"Missed Call", {
         phoneNumbers?: string[];

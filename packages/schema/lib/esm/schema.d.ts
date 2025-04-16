@@ -1246,6 +1246,12 @@ export type CustomActions = {
         }, {
             report: any;
         }>;
+        update_indexes: CustomAction<{
+            updates: {
+                id: string;
+                index: number;
+            }[];
+        }, {}>;
     };
     managed_content_records: {
         generate_embedding: CustomAction<{

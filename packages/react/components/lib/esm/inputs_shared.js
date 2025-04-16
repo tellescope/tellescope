@@ -70,7 +70,7 @@ import React, { useEffect, useCallback, useMemo, useState, useRef } from "react"
 import { is_full_iso_string_heuristic, object_is_empty, objects_equivalent, read_local_storage, replace_keys_and_values_in_object, safeJSONParse, update_local_storage, user_display_name, value_for_dotted_key } from "@tellescope/utilities";
 import { ALL_ACCESS, HEALTHIE_TITLE, UNSEARCHABLE_FIELDS } from "@tellescope/constants";
 import { useSearchAPI } from "./hooks";
-import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, ScrollingList, SearchTextInput, Typography, useAgentRecords, useAllergyCodes, useAppointmentBookingPages, useAppointmentLocations, useAutomationTriggers, useCalendarEventTemplates, useCallHoldQueues, useChatRooms, useDatabaseRecords, useDatabases, useDiagnosisCodes, useEnduserOrders, useEndusers, useFaxLogs, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useMessageTemplateSnippets, useNotifications, useOrganization, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useSuggestedContacts, useTemplates, useTicketQueues, useTickets, useUsers, useWaitlists, value_is_loaded } from ".";
+import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, ScrollingList, SearchTextInput, Typography, useAgentRecords, useAllergyCodes, useAppointmentBookingPages, useAppointmentLocations, useAutomationTriggers, useCalendarEventTemplates, useCallHoldQueues, useChatRooms, useDatabaseRecords, useDatabases, useDiagnosisCodes, useEnduserCustomTypes, useEnduserOrders, useEndusers, useFaxLogs, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useMessageTemplateSnippets, useNotifications, useOrganization, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useSuggestedContacts, useTemplates, useTicketQueues, useTickets, useUsers, useWaitlists, value_is_loaded } from ".";
 export var enduser_condition_to_mongodb_filter = function (condition, customFields) {
     var _a, _b;
     if (!condition) {
@@ -1092,12 +1092,14 @@ export var DatabaseRecordSearch = function (_a) {
 };
 var SEARCHBAR_MIN_WIDTH = '125px';
 export var UserAndEnduserSelector = function (_a) {
-    var titleInput = _a.titleInput, excludeEndusers = _a.excludeEndusers, excludeUsers = _a.excludeUsers, onGoBack = _a.onGoBack, onSelect = _a.onSelect, showTitleInput = _a.showTitleInput, hiddenIds = _a.hiddenIds, _b = _a.title, title = _b === void 0 ? "Select Members" : _b, minHeight = _a.minHeight, _c = _a.maxHeight, maxHeight = _c === void 0 ? '50vh' : _c, _d = _a.searchBarPlacement, searchBarPlacement = _d === void 0 ? "top" : _d, _e = _a.initialSelected, initialSelected = _e === void 0 ? [] : _e, _f = _a.buttonText, buttonText = _f === void 0 ? "Create" : _f, filter = _a.filter, radio = _a.radio, limitToUsers = _a.limitToUsers, dontIncludeSelf = _a.dontIncludeSelf, virtualizationHeight = _a.virtualizationHeight;
+    var titleInput = _a.titleInput, excludeEndusers = _a.excludeEndusers, excludeUsers = _a.excludeUsers, onGoBack = _a.onGoBack, onSelect = _a.onSelect, showTitleInput = _a.showTitleInput, hiddenIds = _a.hiddenIds, _b = _a.title, title = _b === void 0 ? "Select Members" : _b, minHeight = _a.minHeight, _c = _a.maxHeight, maxHeight = _c === void 0 ? '50vh' : _c, _d = _a.searchBarPlacement, searchBarPlacement = _d === void 0 ? "top" : _d, _e = _a.initialSelected, initialSelected = _e === void 0 ? [] : _e, _f = _a.buttonText, buttonText = _f === void 0 ? "Create" : _f, filter = _a.filter, radio = _a.radio, limitToUsers = _a.limitToUsers, dontIncludeSelf = _a.dontIncludeSelf, virtualizationHeight = _a.virtualizationHeight, showEntityType = _a.showEntityType;
     var session = useResolvedSession();
     var _g = useEndusers(), endusersLoading = _g[0], _h = _g[1], loadMoreEndusers = _h.loadMore, doneLoadingEndusers = _h.doneLoading;
     var _j = useUsers({
         dontFetch: !!limitToUsers
     }), usersLoading = _j[0], _k = _j[1], loadMoreUsers = _k.loadMore, doneLoadingUsers = _k.doneLoading;
+    var typesLoading = useEnduserCustomTypes({ dontFetch: !showEntityType })[0];
+    var entityTypes = useMemo(function () { return (value_is_loaded(typesLoading) ? typesLoading.value : []); }, [typesLoading]);
     var doneLoading = useCallback(function () {
         return (excludeUsers || doneLoadingUsers()) && (excludeEndusers || doneLoadingEndusers());
     }, [doneLoadingEndusers, excludeUsers, excludeEndusers, doneLoadingUsers]);
@@ -1164,6 +1166,7 @@ export var UserAndEnduserSelector = function (_a) {
                             : {}, titleActionsComponent: searchBarPlacement === 'top'
                             ? _jsx(Flex, __assign({ flex: 1, justifyContent: "flex-end", style: { marginLeft: 'auto' } }, { children: searchbar }))
                             : undefined, itemContainerStyle: { padding: 4 }, Item: function (_a) {
+                            var _b;
                             var user = _a.item;
                             return (_jsx(HoverPaper, __assign({ style: { marginBottom: 4 } }, { children: _jsxs(Flex, __assign({ flex: 1, alignItems: "center", justifyContent: "space-between", onClick: function () {
                                         return radio
@@ -1177,9 +1180,13 @@ export var UserAndEnduserSelector = function (_a) {
                                                 : __spreadArray([user.id], ss, true)); });
                                     }, style: {
                                         paddingLeft: 5, paddingRight: 5,
-                                    } }, { children: [_jsx(Checkbox, { checked: selected.includes(user.id) }), _jsx(Typography, __assign({ style: {
-                                                fontWeight: selected.includes(user.id) ? 'bold' : undefined,
-                                            } }, { children: user_display_name(user) }))] })) })));
+                                    } }, { children: [_jsx(Checkbox, { checked: selected.includes(user.id) }), _jsxs(Flex, __assign({ flex: 1, column: true, alignItems: "flex-end", justifyContent: "center" }, { children: [_jsx(Typography, __assign({ style: {
+                                                        fontWeight: selected.includes(user.id) ? 'bold' : undefined,
+                                                    } }, { children: user_display_name(user) })), showEntityType && user.customTypeId &&
+                                                    _jsx(Typography, __assign({ style: {
+                                                            fontWeight: selected.includes(user.id) ? 'bold' : undefined,
+                                                            fontSize: 12.5,
+                                                        } }, { children: (_b = entityTypes.find(function (t) { return t.id === user.customTypeId; })) === null || _b === void 0 ? void 0 : _b.title }))] }))] })) })));
                         } }), searchBarPlacement === 'bottom' &&
                         _jsx(Flex, __assign({ alignSelf: "flex-end", style: { marginTop: 4, width: '100%' } }, { children: searchbar }))] })));
         } }));
