@@ -1,7 +1,7 @@
 /// <reference types="validator" />
 import { ObjectId } from "@tellescope/utilities";
 import { CUD as CUDType, CustomUpdateOptions, Indexable, JSONType } from "@tellescope/types-utilities";
-import { FilterType, CustomField, Preference, JourneyState, JourneyStatePriority, EmailEncoding, ChatRoomType, MessageTemplateType, MeetingStatus, SessionType, AttendeeInfo, MeetingInfo, CUDSubscription, FormField, AutomationEventType, FormResponseAutomationEvent, AutomationForMessage, SendEmailAutomationAction, SendSMSAutomationAction, SendFormAutomationAction, SendWebhookAutomationAction, AutomatedActionStatus, ChatAttachment, FormFieldType, FormResponseValue, MessageTemplateMode, AtJourneyStateAutomationCondition, ChatRoomUserInfo, RelatedRecord, SearchOptions, AfterActionAutomationEvent, OnJourneyStartAutomationEvent, UnitOfTime, CreateTicketAutomationAction, FormUnsubmittedEvent, CancelCondition, FormSubmitCancellationConditionInfo, SetEnduserStatusAutomationAction, NotificationPreference, ObservationStatusCode, ObservationValue, TicketCompletedAutomationEvent, FormResponseValueAnswer, PreviousFormFieldAfter, PreviousFormFieldRoot, FormResponseAnswerEmail, FormResponseAnswerFile, FormResponseAnswerMultipleChoice, FormResponseAnswerNumber, FormResponseAnswerPhone, FormResponseAnswerString, FormResponseAnswerSignature, OrganizationTheme, ManagedContentRecordType, FlowchartUI, PreviousFormFieldEquals, IntegrationAuthentication, FormResponseAnswerRating, FormResponseAnswerDate, FormResponseAnswerRanking, FormFieldOptions, BlockType, BlockContentH1, BlockContentHTML, BlockContentImage, BlockContentYoutube, BlockContentH2, PortalSettings, BlockContentPDF, OrganizationAccess, CalendarEventReminderNotificationInfo, PortalPage, PortalBlockForType, EnduserTaskForEvent, EnduserFormResponseForEvent, StateCredentialInfo, BaseAvailabilityBlock, WeeklyAvailability, FormType, FormResponseAnswerStringLong, ManagedContentRecordAssignmentType, GenericAttachment, CommunicationsChannel, AccessPermissions, AccessForResource, AccessType, BlockContentIFrame, OrganizationLimits, OrganizationSettings, GenericQuantityWithUnit, CustomEnduserFields, FormResponseAnswerDateString, TellescopeGender, AppointmentTerm, PaymentProcessor, FormsUnsubmittedEvent, FormResponsesAutomationEvent, JourneyContext, AnalyticsQueryForType, DateRange, FormResponseAnswerGroup, FormResponseAnswerDescription, FormResponseAnswerTable, TableInputChoices, CalendarEventPortalSettings, IndexUpdate, FormResponseAnswerAddress, ListQueryQualifier, AutomationTriggerEvents, AutomationTriggerActions, AutomationTriggerStatus, EnduserBuiltInField, AnalyticsQueryResultValue, AnalyticsQueryRange, SuperbillPatientInfo, SuperbillLineItem, VideoIntegrationType, VALID_STATES, ScheduledJourney, FormScoring, UserCallRoutingBehavior, UserUIRestrictions, ExternalChatGPTMessage, FormResponseAnswerTime, Insurance, SetEnduserFieldsAutomationAction, EnduserFieldSetter, PhoneTreeNode, Enduser, FormResponseAnswerStripe, PhoneTreeEnduserCondition, WaitForTriggerAutomationEvent, ShareContentAutomationAction, FormResponseAnswerDropdown, NotifyTeamAutomationAction, ListOfStringsWithQualifier, FormResponseAnswerFiles, FormResponseAnswerDatabaseSelect, AddEnduserTagsAutomationAction, AddToJourneyAutomationAction, FormResponseAnswerMedications, Language, RemoveFromJourneyAutomationAction, TableViewColumn, FormFieldCalloutCondition, EnduserReportQuery, FormResponsesReportQuery, TicketSnooze, IterableSendEmailAutomationAction, IterableCustomEventAutomationAction, ZendeskCreateTicketAutomationAction, CreateCarePlanAutomationAction, CompleteCarePlanAutomationAction, ZusSyncAutomationAction, FormResponseAnswerRelatedContacts, PreviousFormCompoundLogic, GroupMMSMessage, GroupMMSUserState, ImageAttachment, SortingField, TicketReminder, EnduserInsurance, FormResponseAnswerInsurance, Diagnosis, FormResponseAnswerAppointmentBooking, CanvasCoding, VitalConfigurationRange, PagerDutyCreateIncidentAutomationAction, SenderAssignmentStrategy, SmartMeterPlaceOrderAutomationAction, SmartMeterOrderLineItem, FormFieldFeedback, CandidProcedureCode, BasicWebhook, RemoveEnduserTagsAutomationAction, HealthieSyncAutomationAction, SyncDirection, AthenaFieldSync, AthenaSubscription, CompleteTicketsAutomationAction, ChangeContactTypeAutomationAction, FormResponseAnswerHeight, FormResponseAnswerRedirect, BlockContentLink, FormResponseAnswerHiddenValue, HealthieAddToCourseAutomationAction, LabeledField, HealthieSendChatAutomationAction, ZusPullAutomationAction, FieldMapping, ActiveCampaignSyncAutomationAction, AnalyticsFrameGroupingCategory, FormResponseAnswerEmotii, BookingRestrictions, SwitchToRelatedContactAutomationAction, ElationSyncAutomationAction, CanvasSyncAutomationAction, EnduserDiagnosis, SendChatAutomationAction, FormResponseAnswerAllergies, FormResponseAnswerConditions, ActiveCampaignAddToListsAutomationAction, PushFormsAutomationAction, FormResponseAnswerRichText, DevelopHealthMedicationEligibilityAutomationAction, RemoveFromAllJourneysAutomationAction, FormResponseAnswerChargebee, CancelFutureAppointmentsAutomationAction, CustomerIOIdentifyAction, CustomerIOTrackAction, AddAccessTagsAutomationAction, RemoveAccessTagsAutomationAction, CancelCurrentEventAction, ConfirmCurrentEventAction } from "@tellescope/types-models";
+import { FilterType, CustomField, Preference, JourneyState, JourneyStatePriority, EmailEncoding, ChatRoomType, MessageTemplateType, MeetingStatus, SessionType, AttendeeInfo, MeetingInfo, CUDSubscription, FormField, AutomationEventType, FormResponseAutomationEvent, AutomationForMessage, SendEmailAutomationAction, SendSMSAutomationAction, SendFormAutomationAction, SendWebhookAutomationAction, AutomatedActionStatus, ChatAttachment, FormFieldType, FormResponseValue, MessageTemplateMode, AtJourneyStateAutomationCondition, ChatRoomUserInfo, RelatedRecord, SearchOptions, AfterActionAutomationEvent, OnJourneyStartAutomationEvent, UnitOfTime, CreateTicketAutomationAction, FormUnsubmittedEvent, CancelCondition, FormSubmitCancellationConditionInfo, SetEnduserStatusAutomationAction, NotificationPreference, ObservationStatusCode, ObservationValue, TicketCompletedAutomationEvent, FormResponseValueAnswer, PreviousFormFieldAfter, PreviousFormFieldRoot, FormResponseAnswerEmail, FormResponseAnswerFile, FormResponseAnswerMultipleChoice, FormResponseAnswerNumber, FormResponseAnswerPhone, FormResponseAnswerString, FormResponseAnswerSignature, OrganizationTheme, ManagedContentRecordType, FlowchartUI, PreviousFormFieldEquals, IntegrationAuthentication, FormResponseAnswerRating, FormResponseAnswerDate, FormResponseAnswerRanking, FormFieldOptions, BlockType, BlockContentH1, BlockContentHTML, BlockContentImage, BlockContentYoutube, BlockContentH2, PortalSettings, BlockContentPDF, OrganizationAccess, CalendarEventReminderNotificationInfo, PortalPage, PortalBlockForType, EnduserTaskForEvent, EnduserFormResponseForEvent, StateCredentialInfo, BaseAvailabilityBlock, WeeklyAvailability, FormType, FormResponseAnswerStringLong, ManagedContentRecordAssignmentType, GenericAttachment, CommunicationsChannel, AccessPermissions, AccessForResource, AccessType, BlockContentIFrame, OrganizationLimits, OrganizationSettings, GenericQuantityWithUnit, CustomEnduserFields, FormResponseAnswerDateString, TellescopeGender, AppointmentTerm, PaymentProcessor, FormsUnsubmittedEvent, FormResponsesAutomationEvent, JourneyContext, AnalyticsQueryForType, DateRange, FormResponseAnswerGroup, FormResponseAnswerDescription, FormResponseAnswerTable, TableInputChoices, CalendarEventPortalSettings, IndexUpdate, FormResponseAnswerAddress, ListQueryQualifier, AutomationTriggerEvents, AutomationTriggerActions, AutomationTriggerStatus, EnduserBuiltInField, AnalyticsQueryResultValue, AnalyticsQueryRange, SuperbillPatientInfo, SuperbillLineItem, VideoIntegrationType, VALID_STATES, ScheduledJourney, FormScoring, UserCallRoutingBehavior, UserUIRestrictions, ExternalChatGPTMessage, FormResponseAnswerTime, Insurance, SetEnduserFieldsAutomationAction, EnduserFieldSetter, PhoneTreeNode, Enduser, FormResponseAnswerStripe, PhoneTreeEnduserCondition, WaitForTriggerAutomationEvent, ShareContentAutomationAction, FormResponseAnswerDropdown, NotifyTeamAutomationAction, ListOfStringsWithQualifier, FormResponseAnswerFiles, FormResponseAnswerDatabaseSelect, AddEnduserTagsAutomationAction, AddToJourneyAutomationAction, FormResponseAnswerMedications, Language, RemoveFromJourneyAutomationAction, TableViewColumn, FormFieldCalloutCondition, EnduserReportQuery, FormResponsesReportQuery, TicketSnooze, IterableSendEmailAutomationAction, IterableCustomEventAutomationAction, ZendeskCreateTicketAutomationAction, CreateCarePlanAutomationAction, CompleteCarePlanAutomationAction, ZusSyncAutomationAction, FormResponseAnswerRelatedContacts, PreviousFormCompoundLogic, GroupMMSMessage, GroupMMSUserState, ImageAttachment, SortingField, TicketReminder, EnduserInsurance, FormResponseAnswerInsurance, Diagnosis, FormResponseAnswerAppointmentBooking, CanvasCoding, VitalConfigurationRange, PagerDutyCreateIncidentAutomationAction, SenderAssignmentStrategy, SmartMeterPlaceOrderAutomationAction, SmartMeterOrderLineItem, FormFieldFeedback, CandidProcedureCode, BasicWebhook, RemoveEnduserTagsAutomationAction, HealthieSyncAutomationAction, SyncDirection, AthenaFieldSync, AthenaSubscription, CompleteTicketsAutomationAction, ChangeContactTypeAutomationAction, FormResponseAnswerHeight, FormResponseAnswerRedirect, BlockContentLink, FormResponseAnswerHiddenValue, HealthieAddToCourseAutomationAction, LabeledField, HealthieSendChatAutomationAction, ZusPullAutomationAction, FieldMapping, ActiveCampaignSyncAutomationAction, AnalyticsFrameGroupingCategory, FormResponseAnswerEmotii, BookingRestrictions, SwitchToRelatedContactAutomationAction, ElationSyncAutomationAction, CanvasSyncAutomationAction, EnduserDiagnosis, SendChatAutomationAction, FormResponseAnswerAllergies, FormResponseAnswerConditions, ActiveCampaignAddToListsAutomationAction, PushFormsAutomationAction, FormResponseAnswerRichText, DevelopHealthMedicationEligibilityAutomationAction, RemoveFromAllJourneysAutomationAction, FormResponseAnswerChargebee, CancelFutureAppointmentsAutomationAction, CustomerIOIdentifyAction, CustomerIOTrackAction, AddAccessTagsAutomationAction, RemoveAccessTagsAutomationAction, CancelCurrentEventAction, ConfirmCurrentEventAction, CanvasCreateNoteAutomationAction } from "@tellescope/types-models";
 import { UserDisplayInfo } from "@tellescope/types-client";
 export declare const isDate: typeof import("validator").isDate, isEmail: typeof import("validator/lib/isEmail").default, isMobilePhone: typeof import("validator").isMobilePhone, isSlug: typeof import("validator").isSlug, isMongoId: typeof import("validator").isMongoId, isMimeType: typeof import("validator").isMimeType, isURL: typeof import("validator/lib/isURL").default;
 import { ACTIVE_CAMPAIGN_TITLE, ATHENA_TITLE, CANDID_TITLE, CANVAS_TITLE, DEVELOP_HEALTH_TITLE, DOCSUMO_TITLE, DOSESPOT_TITLE, EMOTII_TITLE, FULLSCRIPT_INTEGRATIONS_TITLE, GOGO_MEDS_TITLE, MFAX_TITLE, OUTLOOK_INTEGRATIONS_TITLE, PAGER_DUTY_TITLE, SMART_METER_TITLE, SQUARE_INTEGRATIONS_TITLE, STRIPE_TITLE, ZENDESK_INTEGRATIONS_TITLE, ZOHO_TITLE, ZOOM_TITLE, ZUS_TITLE } from "@tellescope/constants";
@@ -790,6 +790,8 @@ export declare const developHealthMockResultValidator: ValidatorDefinition<{
     status: string;
     case: string;
 }>;
+export declare const canvasCodingValidator: ValidatorDefinition<CanvasCoding>;
+export declare const canvasCodingValidatorOptional: ValidatorDefinition<CanvasCoding>;
 export declare const automationActionValidator: ValidatorDefinition<(DevelopHealthMedicationEligibilityAutomationAction & {
     type: "developHealthMedEligibility";
 }) | (SetEnduserStatusAutomationAction & {
@@ -850,6 +852,8 @@ export declare const automationActionValidator: ValidatorDefinition<(DevelopHeal
     type: "elationSync";
 }) | (CanvasSyncAutomationAction & {
     type: "canvasSync";
+}) | (CanvasCreateNoteAutomationAction & {
+    type: "canvasCreateNote";
 }) | (HealthieAddToCourseAutomationAction & {
     type: "healthieAddToCourse";
 }) | (HealthieSendChatAutomationAction & {
@@ -924,8 +928,6 @@ export declare const tableInputChoiceValidator: ValidatorDefinition<import("@tel
     databaseLabel: string;
 }>>;
 export declare const formFieldFeedbackValidator: ValidatorDefinition<FormFieldFeedback>;
-export declare const canvasCodingValidator: ValidatorDefinition<CanvasCoding>;
-export declare const canvasCodingValidatorOptional: ValidatorDefinition<CanvasCoding>;
 export declare const formFieldOptionsValidator: ValidatorDefinition<FormFieldOptions>;
 export declare const blockValidator: ValidatorDefinition<(BlockContentH1 & {
     type: "h1";
@@ -1456,6 +1458,13 @@ export declare const customEnduserFieldValidator: ValidatorDefinition<{
     required?: boolean | undefined;
     hiddenFromProfile?: boolean | undefined;
     requireConfirmation?: boolean | undefined;
+} | {
+    type: "Checkbox";
+    info: {};
+    field: string;
+    required?: boolean | undefined;
+    hiddenFromProfile?: boolean | undefined;
+    requireConfirmation?: boolean | undefined;
 }>;
 export declare const customEnduserFieldsValidatorOptionalOrEmpty: ValidatorDefinition<({
     type: "Select";
@@ -1527,6 +1536,13 @@ export declare const customEnduserFieldsValidatorOptionalOrEmpty: ValidatorDefin
     required?: boolean | undefined;
     hiddenFromProfile?: boolean | undefined;
     requireConfirmation?: boolean | undefined;
+} | {
+    type: "Checkbox";
+    info: {};
+    field: string;
+    required?: boolean | undefined;
+    hiddenFromProfile?: boolean | undefined;
+    requireConfirmation?: boolean | undefined;
 })[]>;
 export declare const buildInFieldsValidator: ValidatorDefinition<EnduserBuiltInField[]>;
 export declare const customDashboardViewValidator: ValidatorDefinition<import("@tellescope/types-models").CustomDashboardView | undefined>;
@@ -1580,12 +1596,14 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Appointment Created", {
     titles?: string[] | undefined;
     templateIds?: string[] | undefined;
+    excludeTemplateIds?: string[] | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Appointment Completed", {
     titles?: string[] | undefined;
     templateIds?: string[] | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Appointment Cancelled", {
     titles?: string[] | undefined;
     templateIds?: string[] | undefined;
+    excludeTemplateIds?: string[] | undefined;
     by?: "" | "enduser" | "user" | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Appointment Rescheduled", {
     titles?: string[] | undefined;
@@ -1674,6 +1692,8 @@ export declare const automationTriggerActionValidator: ValidatorDefinition<impor
 }> | import("@tellescope/types-models").AutomationTriggerActionBuilder<"Grant Access From Waitlist", {
     waitlistId: string;
     count: number;
+}> | import("@tellescope/types-models").AutomationTriggerActionBuilder<"Reply to Chat", {
+    message: string;
 }>>;
 export declare const AUTOMATION_TRIGGER_STATUSES: AutomationTriggerStatus[];
 export declare const automatioNTriggerStatusValidator: ValidatorDefinition<AutomationTriggerStatus>;

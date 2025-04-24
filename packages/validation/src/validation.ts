@@ -313,6 +313,7 @@ import {
   RemoveAccessTagsAutomationAction,
   CancelCurrentEventAction,
   ConfirmCurrentEventAction,
+  CanvasCreateNoteAutomationAction,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -2441,6 +2442,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   activeCampaignAddToLists: '',
   switchToRelatedContact: '',
   canvasSync: '',
+  canvasCreateNote: '',
   elationSync: '',
   developHealthMedEligibility: '',
   cancelFutureAppointments: '',
@@ -2560,6 +2562,7 @@ const delayValidation = {
   unit: UnitOfTimeValidator, // for UI only
   cancelConditions: cancelConditionsValidatorOptional,
   officeHoursOnly: booleanValidatorOptional,
+  useEnduserTimezone: booleanValidatorOptional,
   abTestCondition: stringValidatorOptionalEmptyOkay,
 }
 
@@ -2728,6 +2731,18 @@ export const developHealthMockResultValidator = objectValidator<{ status: string
   case: stringValidator,
 }, { emptyOk: true, isOptional: true })
 
+export const canvasCodingValidator = objectValidator<CanvasCoding>({
+  code: stringValidator,
+  display: stringValidator,
+  system: stringValidator,
+}, { })
+
+export const canvasCodingValidatorOptional = objectValidator<CanvasCoding>({
+  code: stringValidatorOptional,
+  display: stringValidatorOptional,
+  system: stringValidatorOptional,
+}, { })
+
 export const automationActionValidator = orValidator<{ [K in AutomationActionType]: AutomationAction & { type: K } } >({
   developHealthMedEligibility: objectValidator<DevelopHealthMedicationEligibilityAutomationAction>({
     type: exactMatchValidator(['developHealthMedEligibility']),
@@ -2765,7 +2780,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     info: objectValidator<NotifyTeamAutomationAction['info']>(
       { 
         templateId: mongoIdStringRequired,
-        forAssigned: booleanValidator,
+        forAssigned: booleanValidatorOptional,
         roles: listOfStringsValidatorOptionalOrEmptyOk,
         tags: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
       }, 
@@ -2851,6 +2866,8 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       tags: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
       contextFormIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
       contextEnduserFields: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
+      contextContentIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+      disableEditTitle: booleanValidatorOptional,
     }, { emptyOk: false }),
   }),
   sendWebhook: objectValidator<SendWebhookAutomationAction>({
@@ -3023,6 +3040,15 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     type: exactMatchValidator(['canvasSync']),
     info: objectValidator<CanvasSyncAutomationAction['info']>({ }, { emptyOk: true }),
   }),
+  canvasCreateNote: objectValidator<CanvasCreateNoteAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['canvasCreateNote']),
+    info: objectValidator<CanvasCreateNoteAutomationAction['info']>({
+      formIds: listOfMongoIdStringValidator,
+      matchCareTeamTagsForCanvasPractitionerResolution: listOfStringsWithQualifierValidator,
+      noteCoding: canvasCodingValidator,
+    }),
+  }), 
   healthieAddToCourse: objectValidator<HealthieAddToCourseAutomationAction>({
     continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['healthieAddToCourse']),
@@ -3125,6 +3151,7 @@ export const journeyContextValidator = objectValidator<JourneyContext>({
   databaseRecordCreator: mongoIdStringOptional,
   eligibilityResultId: mongoIdStringOptional,
   fileId: mongoIdStringOptional,
+  chatRoomId: mongoIdStringOptional,
 })
 
 export const relatedRecordValidator = objectValidator<RelatedRecord>({
@@ -3348,18 +3375,6 @@ export const formFieldFeedbackValidator = objectValidator<FormFieldFeedback>({
   ifEquals: stringValidator,
   display: stringValidator,
 })
-
-export const canvasCodingValidator = objectValidator<CanvasCoding>({
-  code: stringValidator,
-  display: stringValidator,
-  system: stringValidator,
-}, { })
-
-export const canvasCodingValidatorOptional = objectValidator<CanvasCoding>({
-  code: stringValidatorOptional,
-  display: stringValidatorOptional,
-  system: stringValidatorOptional,
-}, { })
 
 export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   default: stringValidatorOptional,
@@ -3876,6 +3891,7 @@ export const weeklyAvailabilityValidator = objectValidator<WeeklyAvailability>({
   validTemplateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
   intervalInMinutes: numberValidatorOptional,
   priority: numberValidatorOptional,
+  bufferStartMinutes: numberValidatorOptional,
 })
 export const weeklyAvailabilitiesValidator = listValidatorEmptyOk(weeklyAvailabilityValidator)
 
@@ -3896,6 +3912,7 @@ const _CUSTOM_ENDUSER_FIELD_TYPES: { [K in CustomEnduserFieldType]: any } = {
   Table: true,
   File: true,
   Number: true,
+  Checkbox: true,
 }
 export const CUSTOM_ENDUSER_FIELD_TYPES = Object.keys(_CUSTOM_ENDUSER_FIELD_TYPES) as CustomEnduserFieldType[]
 export const customEnduserFieldTypeValidator = exactMatchValidator<CustomEnduserFieldType>(CUSTOM_ENDUSER_FIELD_TYPES)
@@ -3988,6 +4005,14 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     info: objectValidator<CustomEnduserFields['Table']['info']>({
       columns: listValidator(tableInputChoiceValidator),
     }),
+    field: stringValidator,
+    required: booleanValidatorOptional,
+    hiddenFromProfile: booleanValidatorOptional,
+    requireConfirmation: booleanValidatorOptional,
+  }), 
+  "Checkbox": objectValidator<CustomEnduserFields["Checkbox"]>({
+    type: exactMatchValidator(["Checkbox"]),
+    info: optionalEmptyObjectValidator,
     field: stringValidator,
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
@@ -4283,6 +4308,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     info: objectValidator<AutomationTriggerEvents['Appointment Created']['info']>({
       titles: listOfStringsValidatorOptionalOrEmptyOk,
       templateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+      excludeTemplateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -4300,6 +4326,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
       titles: listOfStringsValidatorOptionalOrEmptyOk,
       by: exactMatchValidatorOptional(['', 'enduser', 'user']),
       templateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+      excludeTemplateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -4488,6 +4515,7 @@ const _AUTOMATION_TRIGGER_ACTION_TYPES: { [K in AutomationTriggerActionType]: an
   "Require Form Followups": true,
   "Add to Waitlist": true,
   "Grant Access From Waitlist": true,
+  "Reply to Chat": true,
 }
 export const AUTOMATION_TRIGGER_ACTION_TYPES = Object.keys(_AUTOMATION_TRIGGER_ACTION_TYPES) as AutomationTriggerActionType[]
 
@@ -4583,6 +4611,12 @@ export const automationTriggerActionValidator = orValidator<{ [K in AutomationTr
     info: objectValidator<AutomationTriggerActions['Grant Access From Waitlist']['info']>({
       waitlistId: mongoIdStringRequired,
       count: numberValidator,
+    }),
+  }),
+  "Reply to Chat": objectValidator<AutomationTriggerActions["Reply to Chat"]>({
+    type: exactMatchValidator(['Reply to Chat']),
+    info: objectValidator<AutomationTriggerActions['Reply to Chat']['info']>({
+      message: stringValidator,
     }),
   }),
 })

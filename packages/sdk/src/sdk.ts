@@ -454,6 +454,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     push_to_EHR: (args: extractFields<CustomActions['form_responses']['push_to_EHR']['parameters']>) => (
       Promise<extractFields<CustomActions['form_responses']['push_to_EHR']['returns']>>
     ),
+    create_canvas_note: (args: extractFields<CustomActions['form_responses']['create_canvas_note']['parameters']>) => (
+      Promise<extractFields<CustomActions['form_responses']['create_canvas_note']['returns']>>
+    ),
     get_report: (args: extractFields<CustomActions['form_responses']['get_report']['parameters']>) => (
       Promise<extractFields<CustomActions['form_responses']['get_report']['returns']>>
     ),
@@ -917,6 +920,7 @@ export class Session extends SessionManager {
     queries.form_responses.stripe_details = (args) => this._GET(`/v1${schema.form_responses.customActions.stripe_details.path}`, args)
     queries.form_responses.chargebee_details = (args) => this._GET(`/v1${schema.form_responses.customActions.chargebee_details.path}`, args)
     queries.form_responses.push_to_EHR = (args) => this._POST(`/v1${schema.form_responses.customActions.push_to_EHR.path}`, args)
+    queries.form_responses.create_canvas_note = (args) => this._POST(`/v1${schema.form_responses.customActions.create_canvas_note.path}`, args)
     queries.form_responses.get_report = a => this._POST(`/v1/${schema.form_responses.customActions.get_report.path}`, a)
     queries.form_responses.get_enduser_statistics = a => this._POST(`/v1/${schema.form_responses.customActions.get_enduser_statistics.path}`, a)
     queries.form_responses.get_enduser_statistics_by_submitter = a => this._POST(`/v1/${schema.form_responses.customActions.get_enduser_statistics_by_submitter.path}`, a)

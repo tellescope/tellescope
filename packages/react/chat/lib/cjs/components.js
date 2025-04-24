@@ -84,7 +84,7 @@ var HTMLMessage = function (_a) {
 };
 exports.HTMLMessage = HTMLMessage;
 var SendMessage = function (_a) {
-    var roomId = _a.roomId, _b = _a.Icon, Icon = _b === void 0 ? react_components_1.SendIcon : _b, onNewMessage = _a.onNewMessage, _c = _a.placeholderText, placeholderText = _c === void 0 ? "Enter a message" : _c, _d = _a.style, style = _d === void 0 ? {} : _d, sendOnEnterPress = _a.sendOnEnterPress, multiline = _a.multiline, maxRows = _a.maxRows, size = _a.size, getAttachments = _a.getAttachments;
+    var roomId = _a.roomId, _b = _a.Icon, Icon = _b === void 0 ? react_components_1.SendIcon : _b, onNewMessage = _a.onNewMessage, _c = _a.placeholderText, placeholderText = _c === void 0 ? "Enter a message" : _c, _d = _a.style, style = _d === void 0 ? {} : _d, sendOnEnterPress = _a.sendOnEnterPress, multiline = _a.multiline, maxRows = _a.maxRows, size = _a.size, getAttachments = _a.getAttachments, inputRef = _a.inputRef;
     var _e = (0, react_1.useState)(''), message = _e[0], setMessage = _e[1];
     var _f = (0, react_1.useState)(false), sending = _f[0], setSending = _f[1];
     var _g = (0, react_1.useState)(false), disabled = _g[0], setDisabled = _g[1];
@@ -124,7 +124,7 @@ var SendMessage = function (_a) {
         window.addEventListener('keypress', handleSend);
         return function () { window.removeEventListener('keypress', handleSend); };
     }, [sendOnEnterPress, chatFocused, message, roomId]);
-    return ((0, jsx_runtime_1.jsxs)(react_components_1.Flex, __assign({ row: true, flex: 1, alignContent: "center", style: style }, { children: [(0, jsx_runtime_1.jsx)(react_components_1.Flex, __assign({ column: true, flex: 1 }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField, { variant: "outlined", value: message, disabled: sending, size: size, onChange: function (e) { return setMessage(e.target.value); }, "aria-label": "Enter a message", multiline: multiline, maxRows: maxRows, placeholder: placeholderText, onFocus: function () { return setChatFocused(true); }, onBlur: function () { return setChatFocused(false); } }) })), (0, jsx_runtime_1.jsx)(react_components_1.Flex, __assign({ column: true, alignSelf: "center" }, { children: (0, jsx_runtime_1.jsx)(react_components_1.AsyncIconButton, { label: "send", Icon: Icon, disabled: message === '' || disabled, action: function () { return __awaiter(void 0, void 0, void 0, function () {
+    return ((0, jsx_runtime_1.jsxs)(react_components_1.Flex, __assign({ row: true, flex: 1, alignContent: "center", style: style }, { children: [(0, jsx_runtime_1.jsx)(react_components_1.Flex, __assign({ column: true, flex: 1 }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField, { variant: "outlined", value: message, disabled: sending, size: size, ref: inputRef, onChange: function (e) { return setMessage(e.target.value); }, "aria-label": "Enter a message", multiline: multiline, maxRows: maxRows, placeholder: placeholderText, onFocus: function () { return setChatFocused(true); }, onBlur: function () { return setChatFocused(false); } }) })), (0, jsx_runtime_1.jsx)(react_components_1.Flex, __assign({ column: true, alignSelf: "center" }, { children: (0, jsx_runtime_1.jsx)(react_components_1.AsyncIconButton, { label: "send", Icon: Icon, disabled: message === '' || disabled, action: function () { return __awaiter(void 0, void 0, void 0, function () {
                         var attachments;
                         return __generator(this, function (_a) {
                             switch (_a.label) {

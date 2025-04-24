@@ -18,7 +18,8 @@ interface SendMessage_T {
     maxRows?: number;
     size?: 'small';
     getAttachments?: () => Promise<ChatAttachment[]>;
+    inputRef?: React.Ref<HTMLInputElement>;
 }
-export declare const SendMessage: ({ roomId, Icon, onNewMessage, placeholderText, style, sendOnEnterPress, multiline, maxRows, size, getAttachments }: SendMessage_T) => JSX.Element;
+export declare const SendMessage: ({ roomId, Icon, onNewMessage, placeholderText, style, sendOnEnterPress, multiline, maxRows, size, getAttachments, inputRef, }: SendMessage_T) => JSX.Element;
 export {};
 //# sourceMappingURL=components.d.ts.map

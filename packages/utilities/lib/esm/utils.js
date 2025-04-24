@@ -531,6 +531,9 @@ export var form_response_value_to_string = function (value, options) {
     var _a, _b, _d, _e, _f, _g;
     if (value === null || value === undefined)
         return '';
+    if (value && typeof value === 'string' && is_checkbox_custom_field_value(value)) {
+        return "✅";
+    }
     var maybeDate = (((options === null || options === void 0 ? void 0 : options.convertISODate) && typeof value === 'string')
         ? is_full_iso_string_heuristic(value)
         : undefined);
@@ -2377,5 +2380,15 @@ export var enrich_doxy_url = function (url, e) {
     if (url.includes('?'))
         return url; // already has query params
     return ("".concat(url, "?username=").concat(e.fname || '').concat(e.fname && ' ').concat(e.lname || '', "&autocheckin=false&pid=").concat(((_b = (_a = e.references) === null || _a === void 0 ? void 0 : _a.find(function (r) { return r.type === HEALTHIE_TITLE; })) === null || _b === void 0 ? void 0 : _b.id) || e.id));
+};
+export var is_checkbox_custom_field_value = function (value) {
+    var _a;
+    if (!value)
+        return false;
+    if (typeof value !== 'string')
+        return false;
+    if (value.startsWith('checkbox:') && ((_a = value.split(':')[1]) === null || _a === void 0 ? void 0 : _a.length) === 24) {
+        return true;
+    }
 };
 //# sourceMappingURL=utils.js.map

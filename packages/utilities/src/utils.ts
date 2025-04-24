@@ -537,6 +537,10 @@ export const is_table_input_response = (v: any): v is TableInputCell[][] => (
 export const form_response_value_to_string = (value: FormResponseValueAnswer['value'] | string | boolean | number | null | undefined | object, options?: { convertISODate?: boolean }): string => {
   if (value === null || value === undefined) return ''
 
+  if (value && typeof value === 'string' && is_checkbox_custom_field_value(value)) {
+    return "✅"
+  }
+
   const maybeDate = (
     (options?.convertISODate && typeof value === 'string')
       ? is_full_iso_string_heuristic(value) 
@@ -2523,4 +2527,13 @@ export const enrich_doxy_url = (url: string, e?: Enduser) => {
   return (
     `${url}?username=${e.fname || ''}${e.fname && ' '}${e.lname || ''}&autocheckin=false&pid=${e.references?.find(r => r.type === HEALTHIE_TITLE)?.id || e.id}`
   )
+}
+
+export const is_checkbox_custom_field_value = (value?: string) => {
+  if (!value) return false
+  if (typeof value !== 'string') return false
+
+  if (value.startsWith('checkbox:') && value.split(':')[1]?.length === 24) {
+    return true
+  }
 }

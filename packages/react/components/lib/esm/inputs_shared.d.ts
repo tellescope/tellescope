@@ -80,7 +80,7 @@ export declare const performBulkAction: <T extends {
 }) => Promise<Omit<R & {
     error?: string | undefined;
     successCount?: number | undefined;
-}, "successCount" | "error">[]>;
+}, "error" | "successCount">[]>;
 export interface BulkActionProps<T> {
     allSelected?: boolean;
     selected?: string[];

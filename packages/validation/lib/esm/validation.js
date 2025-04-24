@@ -1936,6 +1936,7 @@ var _AUTOMATION_ACTIONS = {
     activeCampaignAddToLists: '',
     switchToRelatedContact: '',
     canvasSync: '',
+    canvasCreateNote: '',
     elationSync: '',
     developHealthMedEligibility: '',
     cancelFutureAppointments: '',
@@ -2023,6 +2024,7 @@ var delayValidation = {
     unit: UnitOfTimeValidator,
     cancelConditions: cancelConditionsValidatorOptional,
     officeHoursOnly: booleanValidatorOptional,
+    useEnduserTimezone: booleanValidatorOptional,
     abTestCondition: stringValidatorOptionalEmptyOkay,
 };
 export var automationEventValidator = orValidator({
@@ -2169,6 +2171,16 @@ export var developHealthMockResultValidator = objectValidator({
     status: stringValidator,
     case: stringValidator,
 }, { emptyOk: true, isOptional: true });
+export var canvasCodingValidator = objectValidator({
+    code: stringValidator,
+    display: stringValidator,
+    system: stringValidator,
+}, {});
+export var canvasCodingValidatorOptional = objectValidator({
+    code: stringValidatorOptional,
+    display: stringValidatorOptional,
+    system: stringValidatorOptional,
+}, {});
 export var automationActionValidator = orValidator({
     developHealthMedEligibility: objectValidator({
         type: exactMatchValidator(['developHealthMedEligibility']),
@@ -2205,7 +2217,7 @@ export var automationActionValidator = orValidator({
         type: exactMatchValidator(['notifyTeam']),
         info: objectValidator({
             templateId: mongoIdStringRequired,
-            forAssigned: booleanValidator,
+            forAssigned: booleanValidatorOptional,
             roles: listOfStringsValidatorOptionalOrEmptyOk,
             tags: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
         }, { emptyOk: false }),
@@ -2289,6 +2301,8 @@ export var automationActionValidator = orValidator({
             tags: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
             contextFormIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
             contextEnduserFields: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
+            contextContentIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+            disableEditTitle: booleanValidatorOptional,
         }, { emptyOk: false }),
     }),
     sendWebhook: objectValidator({
@@ -2459,6 +2473,15 @@ export var automationActionValidator = orValidator({
         type: exactMatchValidator(['canvasSync']),
         info: objectValidator({}, { emptyOk: true }),
     }),
+    canvasCreateNote: objectValidator({
+        continueOnError: booleanValidatorOptional,
+        type: exactMatchValidator(['canvasCreateNote']),
+        info: objectValidator({
+            formIds: listOfMongoIdStringValidator,
+            matchCareTeamTagsForCanvasPractitionerResolution: listOfStringsWithQualifierValidator,
+            noteCoding: canvasCodingValidator,
+        }),
+    }),
     healthieAddToCourse: objectValidator({
         continueOnError: booleanValidatorOptional,
         type: exactMatchValidator(['healthieAddToCourse']),
@@ -2560,6 +2583,7 @@ export var journeyContextValidator = objectValidator({
     databaseRecordCreator: mongoIdStringOptional,
     eligibilityResultId: mongoIdStringOptional,
     fileId: mongoIdStringOptional,
+    chatRoomId: mongoIdStringOptional,
 });
 export var relatedRecordValidator = objectValidator({
     type: stringValidator100,
@@ -2758,16 +2782,6 @@ export var formFieldFeedbackValidator = objectValidator({
     ifEquals: stringValidator,
     display: stringValidator,
 });
-export var canvasCodingValidator = objectValidator({
-    code: stringValidator,
-    display: stringValidator,
-    system: stringValidator,
-}, {});
-export var canvasCodingValidatorOptional = objectValidator({
-    code: stringValidatorOptional,
-    display: stringValidatorOptional,
-    system: stringValidatorOptional,
-}, {});
 export var formFieldOptionsValidator = objectValidator({
     default: stringValidatorOptional,
     bookingPageId: stringValidatorOptional,
@@ -3263,6 +3277,7 @@ export var weeklyAvailabilityValidator = objectValidator({
     validTemplateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
     intervalInMinutes: numberValidatorOptional,
     priority: numberValidatorOptional,
+    bufferStartMinutes: numberValidatorOptional,
 });
 export var weeklyAvailabilitiesValidator = listValidatorEmptyOk(weeklyAvailabilityValidator);
 export var timezoneValidator = exactMatchValidator(Object.keys(TIMEZONE_MAP));
@@ -3280,6 +3295,7 @@ var _CUSTOM_ENDUSER_FIELD_TYPES = {
     Table: true,
     File: true,
     Number: true,
+    Checkbox: true,
 };
 export var CUSTOM_ENDUSER_FIELD_TYPES = Object.keys(_CUSTOM_ENDUSER_FIELD_TYPES);
 export var customEnduserFieldTypeValidator = exactMatchValidator(CUSTOM_ENDUSER_FIELD_TYPES);
@@ -3369,6 +3385,14 @@ export var customEnduserFieldValidator = orValidator({
         info: objectValidator({
             columns: listValidator(tableInputChoiceValidator),
         }),
+        field: stringValidator,
+        required: booleanValidatorOptional,
+        hiddenFromProfile: booleanValidatorOptional,
+        requireConfirmation: booleanValidatorOptional,
+    }),
+    "Checkbox": objectValidator({
+        type: exactMatchValidator(["Checkbox"]),
+        info: optionalEmptyObjectValidator,
         field: stringValidator,
         required: booleanValidatorOptional,
         hiddenFromProfile: booleanValidatorOptional,
@@ -3654,6 +3678,7 @@ export var automationTriggerEventValidator = orValidator({
         info: objectValidator({
             titles: listOfStringsValidatorOptionalOrEmptyOk,
             templateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+            excludeTemplateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
         }),
         conditions: optionalEmptyObjectValidator,
     }),
@@ -3671,6 +3696,7 @@ export var automationTriggerEventValidator = orValidator({
             titles: listOfStringsValidatorOptionalOrEmptyOk,
             by: exactMatchValidatorOptional(['', 'enduser', 'user']),
             templateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+            excludeTemplateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
         }),
         conditions: optionalEmptyObjectValidator,
     }),
@@ -3858,6 +3884,7 @@ var _AUTOMATION_TRIGGER_ACTION_TYPES = {
     "Require Form Followups": true,
     "Add to Waitlist": true,
     "Grant Access From Waitlist": true,
+    "Reply to Chat": true,
 };
 export var AUTOMATION_TRIGGER_ACTION_TYPES = Object.keys(_AUTOMATION_TRIGGER_ACTION_TYPES);
 export var automationTriggerActionValidator = orValidator({
@@ -3952,6 +3979,12 @@ export var automationTriggerActionValidator = orValidator({
         info: objectValidator({
             waitlistId: mongoIdStringRequired,
             count: numberValidator,
+        }),
+    }),
+    "Reply to Chat": objectValidator({
+        type: exactMatchValidator(['Reply to Chat']),
+        info: objectValidator({
+            message: stringValidator,
         }),
     }),
 });

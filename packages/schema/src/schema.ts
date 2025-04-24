@@ -74,6 +74,7 @@ import {
   FormResponseFollowup,
   DevelopHealthRunBenefitVerificationBaseArguments,
   WeeklyAvailability,
+  CanvasCreateNoteAutomationAction,
 } from "@tellescope/types-models"
 
 import {
@@ -636,6 +637,7 @@ export type CustomActions = {
         subject?: string,
         automationStepId?: string,
         journeyContext?: JourneyContext,
+        relatedContactId?: string,
       }, 
       { plaintext: string, subject: string, html: string } & WithLinkOpenTrackingIds
     >,
@@ -716,6 +718,7 @@ export type CustomActions = {
       }, 
       {  }
     >,
+    create_canvas_note: CustomAction<CanvasCreateNoteAutomationAction['info'] & { enduserId: string }, {}>,
     get_report: CustomAction<{ 
       queries: FormResponsesReportQueries, 
       formIds?: string[],
@@ -1328,7 +1331,7 @@ export const schema: SchemaV1 = build_schema({
       hashedPassword: {
         validator: stringValidator100,
         readonly: true,
-        redactions: ['all'], // todo: add more redactions
+        redactions: ['all'],
       },
       fname: { 
         validator: nameValidator,
@@ -2039,6 +2042,7 @@ export const schema: SchemaV1 = build_schema({
       dontPullCalendarEvent: { validator: booleanValidator },
       pushAddedTags: { validator: booleanValidator },
       pushRemovedTags: { validator: booleanValidator },
+      overwriteAddress: { validator: booleanValidator },
     },
     customActions: {
       update_zoom: {
@@ -2439,6 +2443,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields,   
+      relatedContactId: { validator: mongoIdStringValidator },
       markedUnreadForAll: { validator: booleanValidator },
       inboxStatus: { validator: stringValidator100 },
       logOnly: {
@@ -2734,6 +2739,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields,   
+      relatedContactId: { validator: mongoIdStringValidator },
       autoResolveToFrom: { validator: booleanValidator },
       markedUnreadForAll: { validator: booleanValidator },
       inboxStatus: { validator: stringValidator100 },
@@ -3494,8 +3500,9 @@ export const schema: SchemaV1 = build_schema({
       hashedPass: {
         validator: stringValidator,
         readonly: true, // update via separate password reset function
-        redactions: ['enduser'],
+        redactions: ['all'],
       },
+      hashedInviteCode: { validator: stringValidator100, readonly: true, redactions: ['all'] },
       notificationPreferences: {
         validator: notificationPreferencesValidator,
         redactions: ['enduser'],
@@ -3571,6 +3578,7 @@ export const schema: SchemaV1 = build_schema({
           channel: { validator: communicationsChannelValidator },
           automationStepId: { validator: mongoIdStringValidator },
           journeyContext: { validator: journeyContextValidator },
+          relatedContactId: { validator: mongoIdStringValidator },
         },
         returns: { 
           plaintext: { validator: stringValidator25000, required: true },
@@ -3664,6 +3672,7 @@ export const schema: SchemaV1 = build_schema({
     enduserActions: { prepare_file_upload: {}, confirm_file_upload: {}, file_download_URL: {}, read: {}, readMany: {}, delete: {}, update: { } /* allow to hide from client side */ },
     fields: {
       ...BuiltInFields, 
+      source: { validator: stringValidator100 },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, 
       name: {
         validator: stringValidator250,
@@ -3968,11 +3977,13 @@ export const schema: SchemaV1 = build_schema({
       restrictByTagsQualifier: { validator: listQueryQualifiersValidator },
       archiveReason: { validator: stringValidator },
       contextFormIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+      contextContentIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
       contextEnduserFields: { validator: listOfUniqueStringsValidatorEmptyOk },
       isTodo: { validator: booleanValidator },
       databaseRecordId: { validator: mongoIdStringValidator },
       databaseRecordCreator: { validator: mongoIdStringValidator },
       triggerFileId: { validator: mongoIdStringValidator },
+      disableEditTitle: { validator: booleanValidator },
     }
   },
   meetings: {
@@ -4199,6 +4210,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields, 
+      dontSyncToCanvasOnSubmission: { validator: booleanValidator },
       archivedAt: { validator: dateOptionalOrEmptyStringValidator },
       title: {
         validator: stringValidator250,
@@ -4354,7 +4366,7 @@ export const schema: SchemaV1 = build_schema({
       isOptional: { validator: booleanValidator },
       fullZIP: { validator: booleanValidator },
       isInGroup: { validator: booleanValidator },
-      externalId: { validator: stringValidator100 },
+      externalId: { validator: stringValidator1000 },
       sharedWithEnduser: { validator: booleanValidator },
       calloutConditions: { validator: formFieldCalloutConditionsValidator },
       highlightOnTimeline: { validator: booleanValidator },
@@ -4511,6 +4523,23 @@ export const schema: SchemaV1 = build_schema({
         parameters: { 
           id: { validator: mongoIdStringValidator, required: true },
           addedResponses: { validator: formResponsesValidator }
+        },
+        returns: { },
+      },
+      create_canvas_note: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Create Canvas Note',
+        path: '/form-responses/create-canvasnote',
+        description: "Compiles FormResponses and creates a Note in Canvas",
+        warnings: ['This returns early as the sync process can take a while for many form responses'],
+        parameters: { 
+          enduserId: { validator: mongoIdStringValidator, required: true },
+          formIds: { validator: listOfMongoIdStringValidator, required: true },
+          noteCoding: { validator: canvasCodingValidator, required: true },
+          matchCareTeamTagsForCanvasPractitionerResolution: { 
+            validator: listOfStringsWithQualifierValidator,
+            required: true,
+          },
         },
         returns: { },
       },
@@ -5149,6 +5178,8 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields, 
+      preventCancelMinutesInAdvance: { validator: numberValidator },
+      preventRescheduleMinutesInAdvance: { validator: numberValidator },
       actualDuration: { validator: nonNegNumberValidator },
       dontSyncToCanvas: { validator: booleanValidator },
       title: {
@@ -5299,6 +5330,8 @@ export const schema: SchemaV1 = build_schema({
     enduserActions: { read: {}, readMany: {} },
     fields: {
       ...BuiltInFields, 
+      preventCancelMinutesInAdvance: { validator: numberValidator },
+      preventRescheduleMinutesInAdvance: { validator: numberValidator },
       dontSyncToCanvas: { validator: booleanValidator },
       archivedAt: { validator: dateOptionalOrEmptyStringValidator },
       allowGroupReschedule: { validator: booleanValidator },
@@ -6405,6 +6438,7 @@ export const schema: SchemaV1 = build_schema({
         })
       },
       canvasSyncEmailConsent: { validator: booleanValidator },
+      canvasSyncPhoneConsent: { validator: booleanValidator },
       enforceMFA: { validator: booleanValidator },
       replyToEnduserTransactionalEmails: { validator: emailValidator },
       customTermsOfService: { validator: stringValidator },
@@ -6435,6 +6469,7 @@ export const schema: SchemaV1 = build_schema({
       observationInvalidationReasons: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       customNotificationTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       customerIOFields: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      createEnduserForms: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
     },
   },
   databases: {

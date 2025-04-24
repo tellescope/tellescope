@@ -131,6 +131,7 @@ export type CustomEnduserFields = {
     "Table": BuildCustomEnduserField<"Table", {
         columns: TableInputChoice[];
     }>;
+    'Checkbox': BuildCustomEnduserField<'Checkbox', {}>;
 };
 export type CustomEnduserFieldType = keyof CustomEnduserFields;
 export type CustomEnduserField = CustomEnduserFields[CustomEnduserFieldType];
@@ -390,6 +391,7 @@ export interface Organization extends Organization_readonly, Organization_requir
         questionId: string;
     };
     canvasSyncEmailConsent?: boolean;
+    canvasSyncPhoneConsent?: boolean;
     dosespotClinics?: {
         id: string;
         name: string;
@@ -418,6 +420,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     customPortalLoginEmailSubject?: string;
     customPortalLoginEmailHTML?: string;
     customerIOFields?: string[];
+    createEnduserForms?: string[];
 }
 export type OrganizationTheme = {
     name: string;
@@ -512,6 +515,7 @@ export type WeeklyAvailability = {
     startTimeInMinutes: number;
     endTimeInMinutes: number;
     intervalInMinutes?: number;
+    bufferStartMinutes?: number;
     active?: DateRange;
     locationId?: string;
     locationIds?: string[];
@@ -1056,6 +1060,7 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
     discussionRoomId?: string;
     markedUnreadForAll?: boolean;
     inboxStatus?: string;
+    relatedContactId?: string;
 }
 export interface SMSMessage_readonly extends ClientRecord {
     delivered: boolean;
@@ -1113,6 +1118,7 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
     mediaURLs?: string[];
     markedUnreadForAll?: boolean;
     inboxStatus?: string;
+    relatedContactId?: string;
 }
 export type ChatRoomType = 'internal' | 'external' | 'Group Chat';
 export interface ChatRoom_readonly extends ClientRecord {
@@ -1251,7 +1257,6 @@ export interface File_readonly extends ClientRecord {
         recentlyViewedAt: Date;
         type: 'user' | 'enduser';
     }>;
-    source?: string;
     externalId?: string;
     timestamp?: Date;
     confirmedAt?: Date;
@@ -1329,6 +1334,7 @@ export interface Ticket_required {
 export interface Ticket_updatesDisabled {
 }
 export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updatesDisabled {
+    disableEditTitle?: boolean;
     queueId?: string;
     dequeuedAt?: Date | '';
     dequeuedFrom?: string;
@@ -1381,6 +1387,7 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
     restrictByTagsQualifier?: ListQueryQualifier;
     archiveReason?: string;
     contextFormIds?: string[];
+    contextContentIds?: string[];
     triggerFileId?: string;
     orderId?: string;
     contextEnduserFields?: string[];
@@ -1694,6 +1701,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
     canvasNoteCoding?: Partial<CanvasCoding>;
     syncToCanvasAsDataImport?: boolean;
     matchCareTeamTagsForCanvasPractitionerResolution?: ListOfStringsWithQualifier;
+    dontSyncToCanvasOnSubmission?: boolean;
 }
 export interface FormGroup_readonly extends ClientRecord {
 }
@@ -1765,6 +1773,7 @@ export interface Integration extends Integration_readonly, Integration_required,
     dontPullCalendarEvent?: boolean;
     pushAddedTags?: boolean;
     pushRemovedTags?: boolean;
+    overwriteAddress?: boolean;
 }
 export type BuildDatabaseRecordField<K extends string, V, O> = {
     type: K;
@@ -2246,6 +2255,8 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
         at: Date;
     }[];
     confirmedAt?: Date | '';
+    preventRescheduleMinutesInAdvance?: number;
+    preventCancelMinutesInAdvance?: number;
 }
 export type PaymentProcessor = 'Square' | 'Stripe';
 export interface Product_readonly extends ClientRecord {
@@ -2368,6 +2379,8 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
     requiresEnduser?: boolean;
     requirePortalCancelReason?: boolean;
     allowGroupReschedule?: boolean;
+    preventRescheduleMinutesInAdvance?: number;
+    preventCancelMinutesInAdvance?: number;
 }
 export interface AppointmentLocation_readonly extends ClientRecord {
 }
@@ -2576,6 +2589,7 @@ export type AfterActionEventInfo = {
     delay: number;
     unit: UnitOfTime;
     officeHoursOnly?: boolean;
+    useEnduserTimezone?: boolean;
     cancelConditions?: CancelCondition[];
     abTestCondition?: string;
 };
@@ -2688,6 +2702,8 @@ export type CreateTicketActionInfo = {
     tags?: string[];
     contextFormIds?: string[];
     contextEnduserFields?: string[];
+    contextContentIds?: string[];
+    disableEditTitle?: boolean;
 };
 export type SendEmailAutomationAction = AutomationActionBuilder<'sendEmail', AutomationForMessage & {
     fromEmailOverride?: string;
@@ -2784,6 +2800,11 @@ export type SwitchToRelatedContactAutomationAction = AutomationActionBuilder<'sw
 }>;
 export type ElationSyncAutomationAction = AutomationActionBuilder<'elationSync', {}>;
 export type CanvasSyncAutomationAction = AutomationActionBuilder<'canvasSync', {}>;
+export type CanvasCreateNoteAutomationAction = AutomationActionBuilder<'canvasCreateNote', {
+    formIds: string[];
+    matchCareTeamTagsForCanvasPractitionerResolution: ListOfStringsWithQualifier;
+    noteCoding: CanvasCoding;
+}>;
 export type CancelFutureAppointmentsAutomationAction = AutomationActionBuilder<'cancelFutureAppointments', {}>;
 export type DevelopHealthMedicationEligibilityAutomationAction = AutomationActionBuilder<'developHealthMedEligibility', {
     drugs: DevelopHealthDrug[];
@@ -2870,6 +2891,7 @@ export type AutomationActionForType = {
     switchToRelatedContact: SwitchToRelatedContactAutomationAction;
     'elationSync': ElationSyncAutomationAction;
     canvasSync: CanvasSyncAutomationAction;
+    canvasCreateNote: CanvasCreateNoteAutomationAction;
     pushFormsToPortal: PushFormsAutomationAction;
     developHealthMedEligibility: DevelopHealthMedicationEligibilityAutomationAction;
     cancelFutureAppointments: CancelFutureAppointmentsAutomationAction;
@@ -3775,6 +3797,9 @@ export type AutomationTriggerActions = {
         waitlistId: string;
         count: number;
     }>;
+    "Reply to Chat": AutomationTriggerActionBuilder<'Reply to Chat', {
+        message: string;
+    }>;
 };
 export type AutomationTriggerActionType = keyof AutomationTriggerActions;
 export type AutomationTriggerAction = AutomationTriggerActions[AutomationTriggerActionType];
@@ -3816,6 +3841,7 @@ export type AutomationTriggerEvents = {
     'Appointment Created': AutomationTriggerEventBuilder<"Appointment Created", {
         titles?: string[];
         templateIds?: string[];
+        excludeTemplateIds?: string[];
     }, {}>;
     'Appointment Completed': AutomationTriggerEventBuilder<"Appointment Completed", {
         titles?: string[];
@@ -3824,6 +3850,7 @@ export type AutomationTriggerEvents = {
     'Appointment Cancelled': AutomationTriggerEventBuilder<"Appointment Cancelled", {
         titles?: string[];
         templateIds?: string[];
+        excludeTemplateIds?: string[];
         by?: '' | 'enduser' | 'user';
     }, {}>;
     'Appointment Rescheduled': AutomationTriggerEventBuilder<"Appointment Rescheduled", {
@@ -4998,6 +5025,7 @@ export type JourneyContext = {
     databaseRecordCreator?: string;
     eligibilityResultId?: string;
     fileId?: string;
+    chatRoomId?: string;
 };
 export declare const TIMEZONE_MAP: {
     readonly "Africa/Abidjan": "+00:00";

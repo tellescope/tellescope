@@ -57,7 +57,7 @@ export var HTMLMessage = function (_a) {
         } }));
 };
 export var SendMessage = function (_a) {
-    var roomId = _a.roomId, _b = _a.Icon, Icon = _b === void 0 ? SendIcon : _b, onNewMessage = _a.onNewMessage, _c = _a.placeholderText, placeholderText = _c === void 0 ? "Enter a message" : _c, _d = _a.style, style = _d === void 0 ? {} : _d, sendOnEnterPress = _a.sendOnEnterPress, multiline = _a.multiline, maxRows = _a.maxRows, size = _a.size, getAttachments = _a.getAttachments;
+    var roomId = _a.roomId, _b = _a.Icon, Icon = _b === void 0 ? SendIcon : _b, onNewMessage = _a.onNewMessage, _c = _a.placeholderText, placeholderText = _c === void 0 ? "Enter a message" : _c, _d = _a.style, style = _d === void 0 ? {} : _d, sendOnEnterPress = _a.sendOnEnterPress, multiline = _a.multiline, maxRows = _a.maxRows, size = _a.size, getAttachments = _a.getAttachments, inputRef = _a.inputRef;
     var _e = useState(''), message = _e[0], setMessage = _e[1];
     var _f = useState(false), sending = _f[0], setSending = _f[1];
     var _g = useState(false), disabled = _g[0], setDisabled = _g[1];
@@ -97,7 +97,7 @@ export var SendMessage = function (_a) {
         window.addEventListener('keypress', handleSend);
         return function () { window.removeEventListener('keypress', handleSend); };
     }, [sendOnEnterPress, chatFocused, message, roomId]);
-    return (_jsxs(Flex, __assign({ row: true, flex: 1, alignContent: "center", style: style }, { children: [_jsx(Flex, __assign({ column: true, flex: 1 }, { children: _jsx(TextField, { variant: "outlined", value: message, disabled: sending, size: size, onChange: function (e) { return setMessage(e.target.value); }, "aria-label": "Enter a message", multiline: multiline, maxRows: maxRows, placeholder: placeholderText, onFocus: function () { return setChatFocused(true); }, onBlur: function () { return setChatFocused(false); } }) })), _jsx(Flex, __assign({ column: true, alignSelf: "center" }, { children: _jsx(AsyncIconButton, { label: "send", Icon: Icon, disabled: message === '' || disabled, action: function () { return __awaiter(void 0, void 0, void 0, function () {
+    return (_jsxs(Flex, __assign({ row: true, flex: 1, alignContent: "center", style: style }, { children: [_jsx(Flex, __assign({ column: true, flex: 1 }, { children: _jsx(TextField, { variant: "outlined", value: message, disabled: sending, size: size, ref: inputRef, onChange: function (e) { return setMessage(e.target.value); }, "aria-label": "Enter a message", multiline: multiline, maxRows: maxRows, placeholder: placeholderText, onFocus: function () { return setChatFocused(true); }, onBlur: function () { return setChatFocused(false); } }) })), _jsx(Flex, __assign({ column: true, alignSelf: "center" }, { children: _jsx(AsyncIconButton, { label: "send", Icon: Icon, disabled: message === '' || disabled, action: function () { return __awaiter(void 0, void 0, void 0, function () {
                         var attachments;
                         return __generator(this, function (_a) {
                             switch (_a.label) {

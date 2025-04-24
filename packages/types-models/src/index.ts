@@ -147,6 +147,7 @@ export type CustomEnduserFields = {
   "File": BuildCustomEnduserField<'File', { }>,
   'Auto Detect': BuildCustomEnduserField<'Auto Detect', { }>,
   "Table": BuildCustomEnduserField<"Table", { columns: TableInputChoice[] }>
+  'Checkbox': BuildCustomEnduserField<'Checkbox', { }>,
 }
 export type CustomEnduserFieldType = keyof CustomEnduserFields
 export type CustomEnduserField = CustomEnduserFields[CustomEnduserFieldType]
@@ -394,6 +395,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     questionId: string,
   },
   canvasSyncEmailConsent?: boolean,
+  canvasSyncPhoneConsent?: boolean,
   dosespotClinics?: { id: string, name: string }[],
   answersSyncToPortal?: { id: string, questions: string[] }[]
   externalFormIdsToSync?: string[],
@@ -413,6 +415,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   customPortalLoginEmailSubject?: string,
   customPortalLoginEmailHTML?: string,
   customerIOFields?: string[],
+  createEnduserForms?: string[],
   // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {
@@ -517,6 +520,7 @@ export type WeeklyAvailability = {
   startTimeInMinutes: number,
   endTimeInMinutes: number,
   intervalInMinutes?: number,
+  bufferStartMinutes?: number,
   active?: DateRange,
   locationId?: string, // deprecated
   locationIds?: string[],
@@ -1124,6 +1128,7 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
   discussionRoomId?: string,
   markedUnreadForAll?: boolean,
   inboxStatus?: string,
+  relatedContactId?: string,
   // sentAt: string, // only outgoing
 }
 
@@ -1177,6 +1182,7 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
   mediaURLs?: string[],
   markedUnreadForAll?: boolean,
   inboxStatus?: string,
+  relatedContactId?: string,
   // usingPublicNumber?: boolean, // flagged on outgoing messages from public number
   // sentAt: string, // only outgoing
 }
@@ -1311,7 +1317,6 @@ export interface File_readonly extends ClientRecord {
     recentlyViewedAt: Date,
     type: 'user' | 'enduser'
   }>,
-  source?: string
   externalId?: string,
   timestamp?: Date,
   confirmedAt?: Date,
@@ -1375,6 +1380,7 @@ export interface Ticket_required {
 }
 export interface Ticket_updatesDisabled {}
 export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updatesDisabled {
+  disableEditTitle?: boolean,
   queueId?: string,
   dequeuedAt?: Date | '',
   dequeuedFrom?: string, // for reporting later without affecting access permissions
@@ -1427,6 +1433,7 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
   restrictByTagsQualifier?: ListQueryQualifier,
   archiveReason?: string,
   contextFormIds?: string[],
+  contextContentIds?: string[],
   triggerFileId?: string,
   orderId?: string,
   contextEnduserFields?: string[],
@@ -1733,6 +1740,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   canvasNoteCoding?: Partial<CanvasCoding>,
   syncToCanvasAsDataImport?: boolean,
   matchCareTeamTagsForCanvasPractitionerResolution?: ListOfStringsWithQualifier,
+  dontSyncToCanvasOnSubmission?: boolean,
 }
 
 export interface FormGroup_readonly extends ClientRecord {}
@@ -1806,6 +1814,7 @@ export interface Integration extends Integration_readonly, Integration_required,
   dontPullCalendarEvent?: boolean,
   pushAddedTags?: boolean,
   pushRemovedTags?: boolean,
+  overwriteAddress?: boolean,
 }
 
 export type BuildDatabaseRecordField <K extends string, V, O> = { type: K, value: V, options: O & { width?: string } }
@@ -2310,6 +2319,8 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   allowGroupReschedule?: boolean, // allows a patient to reschedule even if there are multiple attendees (e.g. 1 + care giver)
   joinedVideoCall?: { id: string, at: Date }[],
   confirmedAt?: Date | '',
+  preventRescheduleMinutesInAdvance?: number,
+  preventCancelMinutesInAdvance?: number,
   // isAllDay?: boolean,
 }
 
@@ -2431,6 +2442,8 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   requiresEnduser?: boolean,
   requirePortalCancelReason?: boolean,
   allowGroupReschedule?: boolean, // allows a patient to reschedule even if there are multiple attendees (e.g. 1 + care giver)
+  preventRescheduleMinutesInAdvance?: number,
+  preventCancelMinutesInAdvance?: number,
 }
 
 export interface AppointmentLocation_readonly extends ClientRecord {}
@@ -2625,6 +2638,7 @@ export type AfterActionEventInfo = {
   delay: number, // for displaying in editor
   unit: UnitOfTime, // for displaying in editor
   officeHoursOnly?: boolean,
+  useEnduserTimezone?: boolean,
   cancelConditions?: CancelCondition[]
   abTestCondition?: string,
 }
@@ -2746,6 +2760,8 @@ export type CreateTicketActionInfo = {
   tags?: string[],
   contextFormIds?: string[],
   contextEnduserFields?: string[],
+  contextContentIds?: string[],
+  disableEditTitle?: boolean,
 }
 
 export type SendEmailAutomationAction = AutomationActionBuilder<'sendEmail', AutomationForMessage & { fromEmailOverride?: string }>
@@ -2806,6 +2822,11 @@ export type ActiveCampaignAddToListsAutomationAction = AutomationActionBuilder<'
 export type SwitchToRelatedContactAutomationAction = AutomationActionBuilder<'switchToRelatedContact', { type: string, otherTypes?: string[] }>
 export type ElationSyncAutomationAction = AutomationActionBuilder<'elationSync', { }>
 export type CanvasSyncAutomationAction = AutomationActionBuilder<'canvasSync', {}>
+export type CanvasCreateNoteAutomationAction = AutomationActionBuilder<'canvasCreateNote', { 
+  formIds: string[],
+  matchCareTeamTagsForCanvasPractitionerResolution: ListOfStringsWithQualifier,
+  noteCoding: CanvasCoding, 
+}>
 export type CancelFutureAppointmentsAutomationAction = AutomationActionBuilder<'cancelFutureAppointments', {}>
 export type DevelopHealthMedicationEligibilityAutomationAction = AutomationActionBuilder<'developHealthMedEligibility', {
   drugs: DevelopHealthDrug[],
@@ -2891,6 +2912,7 @@ export type AutomationActionForType = {
   switchToRelatedContact: SwitchToRelatedContactAutomationAction,
   'elationSync': ElationSyncAutomationAction,
   canvasSync: CanvasSyncAutomationAction,
+  canvasCreateNote: CanvasCreateNoteAutomationAction,
   pushFormsToPortal: PushFormsAutomationAction,
   developHealthMedEligibility: DevelopHealthMedicationEligibilityAutomationAction,
   cancelFutureAppointments: CancelFutureAppointmentsAutomationAction,
@@ -3796,6 +3818,9 @@ export type AutomationTriggerActions = {
     waitlistId: string,
     count: number,
   }>,
+  "Reply to Chat": AutomationTriggerActionBuilder<'Reply to Chat', { 
+    message: string,
+  }>,
 }
 export type AutomationTriggerActionType = keyof AutomationTriggerActions
 export type AutomationTriggerAction = AutomationTriggerActions[AutomationTriggerActionType]
@@ -3818,11 +3843,12 @@ export type AutomationTriggerEvents = {
   'Field Equals': AutomationTriggerEventBuilder<"Field Equals", { field: string, value: string }, { }>,
   'Tag Added': AutomationTriggerEventBuilder<"Tag Added", { tag: string }, { }>,
   'Contact Created': AutomationTriggerEventBuilder<"Contact Created", { }, { }>,
-  'Appointment Created': AutomationTriggerEventBuilder<"Appointment Created", { titles?: string[], templateIds?: string[] }, {}>,
+  'Appointment Created': AutomationTriggerEventBuilder<"Appointment Created", { titles?: string[], templateIds?: string[], excludeTemplateIds?: string[] }, {}>,
   'Appointment Completed': AutomationTriggerEventBuilder<"Appointment Completed", { titles?: string[], templateIds?: string[] }, {}>,
   'Appointment Cancelled': AutomationTriggerEventBuilder<"Appointment Cancelled", { 
     titles?: string[], 
     templateIds?: string[],
+    excludeTemplateIds?: string[],
     by?: '' | 'enduser' | 'user', // only implemented for enduser for now
   }, {}>,
   'Appointment Rescheduled': AutomationTriggerEventBuilder<"Appointment Rescheduled", { titles?: string[] }, {}>,
@@ -4970,6 +4996,7 @@ export type JourneyContext = {
   databaseRecordCreator?: string,
   eligibilityResultId?: string,
   fileId?: string,
+  chatRoomId?: string,
 }
 
 // https://gist.github.com/aviflax/a4093965be1cd008f172/ 

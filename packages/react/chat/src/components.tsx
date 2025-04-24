@@ -39,6 +39,7 @@ interface SendMessage_T {
   maxRows?: number,
   size?: 'small',
   getAttachments?: () => Promise<ChatAttachment[]>
+  inputRef?: React.Ref<HTMLInputElement>
 }
 export const SendMessage = ({ 
   roomId, 
@@ -50,7 +51,8 @@ export const SendMessage = ({
   multiline,
   maxRows,
   size,
-  getAttachments
+  getAttachments,
+  inputRef,
 }: SendMessage_T) => {
   const [message, setMessage] = useState('')
   const [sending, setSending] = useState(false)
@@ -89,7 +91,7 @@ export const SendMessage = ({
     <Flex row flex={1} alignContent="center" style={style}>
       <Flex column flex={1}>
         <TextField variant="outlined" value={message} disabled={sending}
-          size={size}
+          size={size} ref={inputRef}
           onChange={e => setMessage(e.target.value)}
           aria-label="Enter a message" 
           multiline={multiline} maxRows={maxRows}

@@ -3718,12 +3718,54 @@ const appointment_cancelled_tests = async () => {
     }
   )
 
+  const t6 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Appointment Cancelled', info: { excludeTemplateIds: [PLACEHOLDER_ID] } },
+    action: { type: 'Add Tags', info: { tags: ['By excluded templateId'] }},
+    status: 'Active',
+    title: "By excluded templateId"
+  })
+
+  const event7 = await sdk.api.calendar_events.createOne({ title: 'Title', templateId: PLACEHOLDER_ID, durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e.id }] })
+  await sdk.api.calendar_events.updateOne(event7.id, { cancelledAt: new Date() })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Dont trigger when excluded templateId is provided",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => 
+        e.tags?.length === 5
+     && e.tags.includes('By Any')
+     && e.tags.includes('By Title')
+     && e.tags.includes('By templateId')
+     && e.tags.includes('By enduser')
+     && e.tags.includes('By user')
+    }
+  )
+
+  const event8 = await sdk.api.calendar_events.createOne({ title: 'Title', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e.id }] })
+  await sdk.api.calendar_events.updateOne(event8.id, { cancelledAt: new Date() })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Do trigger when excluded templateId is not provided",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => 
+        e.tags?.length === 6
+     && e.tags.includes('By Any')
+     && e.tags.includes('By Title')
+     && e.tags.includes('By templateId')
+     && e.tags.includes('By enduser')
+     && e.tags.includes('By user')
+     && e.tags.includes('By excluded templateId')
+    }
+  )
+
+
   await Promise.all([
     sdk.api.automation_triggers.deleteOne(t1.id),
     sdk.api.automation_triggers.deleteOne(t2.id),
     sdk.api.automation_triggers.deleteOne(t3.id),
     sdk.api.automation_triggers.deleteOne(t4.id),
     sdk.api.automation_triggers.deleteOne(t5.id),
+    sdk.api.automation_triggers.deleteOne(t6.id),
     sdk.api.endusers.deleteOne(e.id),
     sdk.api.calendar_events.deleteOne(event1.id),
     sdk.api.calendar_events.deleteOne(event2.id),
@@ -3731,6 +3773,117 @@ const appointment_cancelled_tests = async () => {
     sdk.api.calendar_events.deleteOne(event4.id),
     sdk.api.calendar_events.deleteOne(event5.id),
     sdk.api.calendar_events.deleteOne(event6.id),
+    sdk.api.calendar_events.deleteOne(event7.id),
+    sdk.api.calendar_events.deleteOne(event8.id),
+  ])
+}
+
+const appointment_created_tests = async () => {
+  log_header("Automation Trigger Tests (Appointment Created)")
+
+  const t1 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Appointment Created', info: { } },
+    action: { type: 'Add Tags', info: { tags: ['By Any'] }},
+    status: 'Active',
+    title: "By Any"
+  })
+  const t2 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Appointment Created', info: { titles: ['Title']  } },
+    action: { type: 'Add Tags', info: { tags: ['By Title'] }},
+    status: 'Active',
+    title: "By Title"
+  })
+  const t3 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Appointment Created', info: { templateIds: [PLACEHOLDER_ID] } },
+    action: { type: 'Add Tags', info: { tags: ['By templateId'] }},
+    status: 'Active',
+    title: "By templateId"
+  })
+
+  const e = await sdk.api.endusers.createOne({})
+
+  const event1 = await sdk.api.calendar_events.createOne({ title: 'Test 2', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e.id }] })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Any cancel",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => 
+        e.tags?.length === 1
+     && e.tags.includes('By Any')
+    }
+  )
+
+  const event2 = await sdk.api.calendar_events.createOne({ title: 'Title', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e.id }] })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "By title",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => 
+        e.tags?.length === 2
+     && e.tags.includes('By Any')
+     && e.tags.includes('By Title')
+    }
+  )
+
+  const event3 = await sdk.api.calendar_events.createOne({ title: 'Title', templateId: PLACEHOLDER_ID, durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e.id }] })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "By templateId",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => 
+        e.tags?.length === 3
+     && e.tags.includes('By Any')
+     && e.tags.includes('By Title')
+     && e.tags.includes('By templateId')
+    }
+  )
+
+  const t4 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Appointment Created', info: { excludeTemplateIds: [PLACEHOLDER_ID] } },
+    action: { type: 'Add Tags', info: { tags: ['By excluded templateId'] }},
+    status: 'Active',
+    title: "By excluded templateId"
+  })
+
+  const event4 = await sdk.api.calendar_events.createOne({ title: 'Title', templateId: PLACEHOLDER_ID, durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e.id }] })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Dont trigger when excluded templateId is provided",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => 
+        e.tags?.length === 3
+     && e.tags.includes('By Any')
+     && e.tags.includes('By Title')
+     && e.tags.includes('By templateId')
+    }
+  )
+
+  const event5 = await sdk.api.calendar_events.createOne({ title: 'Title', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e.id }] })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Do trigger when excluded templateId is not provided",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => 
+        e.tags?.length === 4
+     && e.tags.includes('By Any')
+     && e.tags.includes('By Title')
+     && e.tags.includes('By templateId')
+     && e.tags.includes('By excluded templateId')
+    }
+  )
+
+
+  await Promise.all([
+    sdk.api.automation_triggers.deleteOne(t1.id),
+    sdk.api.automation_triggers.deleteOne(t2.id),
+    sdk.api.automation_triggers.deleteOne(t3.id),
+    sdk.api.automation_triggers.deleteOne(t4.id),
+    sdk.api.endusers.deleteOne(e.id),
+    sdk.api.calendar_events.deleteOne(event1.id),
+    sdk.api.calendar_events.deleteOne(event2.id),
+    sdk.api.calendar_events.deleteOne(event3.id),
+    sdk.api.calendar_events.deleteOne(event4.id),
+    sdk.api.calendar_events.deleteOne(event5.id),
   ])
 }
 
@@ -3738,6 +3891,7 @@ const automation_trigger_tests = async () => {
   log_header("Automation Trigger Tests")
 
   await appointment_cancelled_tests()
+  await appointment_created_tests()
   await order_status_equals_tests()
   await tag_added_tests()
   await order_created_tests()
@@ -9817,6 +9971,61 @@ const test_form_response_search = async () => {
   ])
 }
 
+const get_templated_message_tests = async () => {
+  log_header("Get Templated Message Tests")
+
+  const enduser = await sdk.api.endusers.createOne({ fname: "Main", fields: { CustomField: "Enduser" } })
+  const related = await sdk.api.endusers.createOne({ lname: "Related", fields: { OtherCustomField: "Contact" } })
+  
+  await async_test(
+    "Fields are templated correctly for enduser and relatedcontact",
+    () => sdk.api.templates.get_templated_message({
+      enduserId: enduser.id,
+      relatedContactId: related.id,
+      channel: 'Chat',
+      message: `Hello {name}{{enduser.fname}}{{enduser.lname}}{{enduser.CustomField}}{{enduser.OtherCustomField}}{{relatedcontact.fname}}{{relatedcontact.lname}}{{relatedcontact.OtherCustomField}} goodbye`,
+      userId: sdk.userInfo.id,
+    }),
+    { onResult: 
+      r => r.plaintext === `Hello MainMainEnduserRelatedContact goodbye` 
+    }
+  )
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(enduser.id),
+    sdk.api.endusers.deleteOne(related.id),
+  ])
+}
+
+const file_source_tests = async () => { 
+  log_header("File Source Tests")
+
+  const { file: f } = await sdk.api.files.prepare_file_upload({
+    name: 'test',
+    type: 'application/pdf',
+    size: 100,
+    source: 'test'
+  })
+
+  await async_test(
+    "No filter returns value",
+    () => sdk.api.files.getSome({ }),
+    { onResult: r => r.length === 1 && r[0].id === f.id }
+  )
+  await async_test(
+    "Filter by source returns value",
+    () => sdk.api.files.getSome({ filter: { source: 'test' } }),
+    { onResult: r => r.length === 1 && r[0].id === f.id }
+  )
+  await async_test(
+    "Filter by differnt source returns no value",
+    () => sdk.api.files.getSome({ filter: { source: 'other' } }),
+    { onResult: r => r.length === 0 }
+  )
+
+  await sdk.api.files.deleteOne(f.id)
+}
+
 (async () => {
   log_header("API")
 
@@ -9931,6 +10140,9 @@ const test_form_response_search = async () => {
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await automation_trigger_tests()
+    await file_source_tests()
+    await get_templated_message_tests()
     await enduser_access_tags_tests()
     await enduserAccessTests()
     await test_form_response_search()
@@ -9970,7 +10182,6 @@ const test_form_response_search = async () => {
     await search_tests()
     await wait_for_trigger_tests()
     await pdf_generation()
-    await automation_trigger_tests()
     await remove_from_journey_on_incoming_comms_tests().catch(console.error) // timing is unreliable, uncomment if changing logic
     await auto_reply_tests()
     await sub_organization_enduser_tests()

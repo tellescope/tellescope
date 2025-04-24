@@ -3620,6 +3620,7 @@ type Queries = {
         chargebee_details: (args: extractFields<CustomActions['form_responses']['chargebee_details']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['chargebee_details']['returns']>>);
         generate_pdf: (args: extractFields<CustomActions['form_responses']['generate_pdf']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['generate_pdf']['returns']>>);
         push_to_EHR: (args: extractFields<CustomActions['form_responses']['push_to_EHR']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['push_to_EHR']['returns']>>);
+        create_canvas_note: (args: extractFields<CustomActions['form_responses']['create_canvas_note']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['create_canvas_note']['returns']>>);
         get_report: (args: extractFields<CustomActions['form_responses']['get_report']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['get_report']['returns']>>);
         get_related_forms_report: (args: extractFields<CustomActions['form_responses']['get_related_forms_report']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['get_related_forms_report']['returns']>>);
         get_report_as_post: (args: extractFields<CustomActions['form_responses']['get_report']['parameters']>) => (Promise<extractFields<CustomActions['form_responses']['get_report']['returns']>>);
