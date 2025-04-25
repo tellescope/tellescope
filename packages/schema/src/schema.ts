@@ -2021,6 +2021,7 @@ export const schema: SchemaV1 = build_schema({
           }
         ]
       },
+      requirePhoneToPushEnduser: { validator: booleanValidator },
       lastSync: { validator: nonNegNumberValidator },
       emailDisabled: { validator: booleanValidator },
       syncUnrecognizedSenders: { validator: booleanValidator },
@@ -4274,6 +4275,7 @@ export const schema: SchemaV1 = build_schema({
       canvasNoteCoding: { validator: canvasCodingValidatorOptional },
       syncToCanvasAsDataImport: { validator: booleanValidator },
       matchCareTeamTagsForCanvasPractitionerResolution: { validator: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay },
+      ipAddressCustomField: { validator: stringValidatorOptionalEmptyOkay },
     }
   },
   form_fields: {
@@ -5178,6 +5180,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields, 
+      athenaDepartmentId: { validator: stringValidator1000 },
       preventCancelMinutesInAdvance: { validator: numberValidator },
       preventRescheduleMinutesInAdvance: { validator: numberValidator },
       actualDuration: { validator: nonNegNumberValidator },
@@ -5330,6 +5333,7 @@ export const schema: SchemaV1 = build_schema({
     enduserActions: { read: {}, readMany: {} },
     fields: {
       ...BuiltInFields, 
+      athenaDepartmentId: { validator: stringValidator1000 },
       preventCancelMinutesInAdvance: { validator: numberValidator },
       preventRescheduleMinutesInAdvance: { validator: numberValidator },
       dontSyncToCanvas: { validator: booleanValidator },

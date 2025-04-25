@@ -145,7 +145,19 @@ export var ControlBar = function (_a) {
     var isHost = React.useContext(CurrentCallContext).isHost;
     var leaveMeeting = useJoinVideoCall().leaveMeeting;
     var _c = React.useContext(CurrentCallContext), toggleVideo = _c.toggleVideo, cameraActive = _c.videoIsEnabled;
-    var _d = useToggleBlur(), blurIsActive = _d.blurIsActive, isBackgroundBlurSupported = _d.isBackgroundBlurSupported, toggleBlur = _d.toggleBlur;
+    var _d = useVideoInputs(), devices = _d.devices, selectedDevice = _d.selectedDevice;
+    var selectVideoInputDevice = useMeetingManager().selectVideoInputDevice;
+    var _e = useState(2), restartVideo = _e[0], setRestartVideo = _e[1];
+    useEffect(function () {
+        if (restartVideo >= 2)
+            return;
+        var t = setTimeout(function () {
+            toggleVideo();
+            setRestartVideo(function (r) { return r + 1; });
+        }, 500);
+        return function () { clearTimeout(t); };
+    }, [restartVideo, toggleVideo]);
+    var _f = useToggleBlur(), blurIsActive = _f.blurIsActive, isBackgroundBlurSupported = _f.isBackgroundBlurSupported, toggleBlur = _f.toggleBlur;
     // const { backgroundIsActive, isBackgroundReplacementSupported, toggleBackground } = useToggleReplacement()
     var startCameraRef = useRef(false);
     useEffect(function () {
@@ -161,12 +173,20 @@ export var ControlBar = function (_a) {
     var cameraButtonProps = {
         icon: cameraActive ? _jsx(Camera, {}) : _jsx(Camera, { disabled: true }),
         isSelected: true,
-        popOver: (__spreadArray([], (isBackgroundBlurSupported ?
+        popOver: (__spreadArray(__spreadArray([], (isBackgroundBlurSupported ?
             [{
                     onClick: toggleBlur,
                     children: (_jsx("span", __assign({ style: { fontWeight: blurIsActive ? 'bold' : undefined } }, { children: blurIsActive ? "Disable Blur" : "Blur Background" })))
                 }]
-            : []), true)),
+            : []), true), devices.map(function (d) { return ({
+            onClick: function () {
+                selectVideoInputDevice(d.deviceId);
+                if (cameraActive) {
+                    setRestartVideo(0);
+                }
+            },
+            children: (_jsx("span", __assign({ style: { fontWeight: (selectedDevice === null || selectedDevice === void 0 ? void 0 : selectedDevice.toString()) === d.deviceId ? 'bold' : undefined } }, { children: d.label })))
+        }); }), true)),
         onClick: toggleVideo,
         label: 'Camera',
     };

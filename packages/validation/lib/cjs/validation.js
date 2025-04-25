@@ -3672,7 +3672,9 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
     }),
     "Contact Created": (0, exports.objectValidator)({
         type: (0, exports.exactMatchValidator)(['Contact Created']),
-        info: exports.optionalEmptyObjectValidator,
+        info: (0, exports.objectValidator)({
+            entityTypes: exports.listOfStringsValidatorOptionalOrEmptyOk,
+        }),
         conditions: exports.optionalEmptyObjectValidator,
     }),
     "No Recent Appointment": (0, exports.objectValidator)({

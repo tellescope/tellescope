@@ -4250,7 +4250,9 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
   }), 
   "Contact Created": objectValidator<AutomationTriggerEvents["Contact Created"]>({
     type: exactMatchValidator(['Contact Created']),
-    info: optionalEmptyObjectValidator,
+    info: objectValidator<AutomationTriggerEvents['Contact Created']['info']>({
+      entityTypes: listOfStringsValidatorOptionalOrEmptyOk,
+    }),
     conditions: optionalEmptyObjectValidator,
   }), 
   "No Recent Appointment": objectValidator<AutomationTriggerEvents["No Recent Appointment"]>({

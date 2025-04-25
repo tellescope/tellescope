@@ -1578,7 +1578,9 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Field Equals", {
     field: string;
     value: string;
-}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Contact Created", {}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"No Recent Appointment", {
+}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Contact Created", {
+    entityTypes?: string[] | undefined;
+}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"No Recent Appointment", {
     intervalInMS: number;
     templateIds?: string[] | undefined;
     titles?: string[] | undefined;

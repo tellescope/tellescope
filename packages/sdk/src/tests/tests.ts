@@ -1204,6 +1204,7 @@ const chat_room_tests = async () => {
   log_header("Chat Room Tests")
   const sdk2 = new Session({ host })
   await sdk2.authenticate(nonAdminEmail, nonAdminPassword) // non-admin has access restrictions we want to test 
+  await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword) 
 
   const email='enduser@tellescope.com', password='enduserPassword!';
   const enduser = await sdk.api.endusers.createOne({ email })
@@ -3602,7 +3603,6 @@ const tag_added_tests = async () => {
   ])
 }
 
-
 const appointment_cancelled_tests = async () => {
   log_header("Automation Trigger Tests (Appointment Cancelled)")
 
@@ -3887,9 +3887,85 @@ const appointment_created_tests = async () => {
   ])
 }
 
+const contact_created_tests = async () => {
+  log_header("Automation Trigger Tests (Contact Created)")
+
+  const t1 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Contact Created', info: { } },
+    action: { type: 'Add Tags', info: { tags: ['No Filter'] }},
+    status: 'Active',
+    title: "1"
+  })
+  const t2 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Contact Created', info: { entityTypes: [] } },
+    action: { type: 'Add Tags', info: { tags: ['Empty Filter'] }},
+    status: 'Active',
+    title: "2"
+  })
+  const t3 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Contact Created', info: { entityTypes: ["Default"] } },
+    action: { type: 'Add Tags', info: { tags: ['Default in Filter'] }},
+    status: 'Active',
+    title: "3"
+  })
+  const t4 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Contact Created', info: { entityTypes: [PLACEHOLDER_ID] } },
+    action: { type: 'Add Tags', info: { tags: ['ID in Filter'] }},
+    status: 'Active',
+    title: "4"
+  })
+  const t5 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Contact Created', info: { entityTypes: [PLACEHOLDER_ID, 'Default'] } },
+    action: { type: 'Add Tags', info: { tags: ['Both'] }},
+    status: 'Active',
+    title: "5"
+  })
+
+  const e = await sdk.api.endusers.createOne({})
+  await wait(undefined, 250) // allow triggers to happen
+  await async_test(
+    "Default type",
+    () => sdk.api.endusers.getOne(e.id),
+    { 
+      onResult: e => !!(
+        e.tags?.length === 4 
+        && e.tags?.includes('No Filter') && e.tags?.includes('Empty Filter') && e.tags?.includes('Both')
+        && e.tags?.includes('Default in Filter')
+      )
+    }
+  )
+
+  const e2 = await sdk.api.endusers.createOne({ customTypeId: PLACEHOLDER_ID})
+  await wait(undefined, 250) // allow triggers to happen
+  await async_test(
+    "Custom type",
+    () => sdk.api.endusers.getOne(e2.id),
+    { 
+      onResult: e => !!(
+        e.tags?.length === 4 
+        && e.tags?.includes('No Filter') && e.tags?.includes('Empty Filter') && e.tags?.includes('Both')
+        && e.tags?.includes('ID in Filter')
+      )
+    }
+  )
+
+
+
+  await Promise.all([
+    sdk.api.automation_triggers.deleteOne(t1.id),
+    sdk.api.automation_triggers.deleteOne(t2.id),
+    sdk.api.automation_triggers.deleteOne(t3.id),
+    sdk.api.automation_triggers.deleteOne(t4.id),
+    sdk.api.automation_triggers.deleteOne(t5.id),
+    sdk.api.endusers.deleteOne(e.id),
+    sdk.api.endusers.deleteOne(e2.id),
+  ])
+}
+
 const automation_trigger_tests = async () => {
   log_header("Automation Trigger Tests")
 
+  await contact_created_tests()
   await appointment_cancelled_tests()
   await appointment_created_tests()
   await order_status_equals_tests()

@@ -310,6 +310,7 @@ export interface Organization_readonly extends ClientRecord {
   fromEmails?: string[],
   twilioSID?: string,
   twilioCustomerId?: string,
+  customPortalScriptTags?: string[],
 } 
 export interface Organization_required {}
 export interface Organization_updatesDisabled {
@@ -428,7 +429,11 @@ export type OrganizationTheme = {
   logoURL?: string,
   customPortalURL?: string,
   faviconURL?: string,
-  portalSettings?: PortalSettings,
+  portalSettings?: PortalSettings & {
+    html: { // must be manually set in database as security measure against injections
+      scripts?: string[],
+    }
+  },
   customTermsOfService?: string,
   customPrivacyPolicy?: string,
   requireCustomTermsOnMagicLink?: boolean,
@@ -1689,6 +1694,7 @@ export interface Form_required {
 }
 export interface Form_updatesDisabled {}
 export interface Form extends Form_readonly, Form_required, Form_updatesDisabled {
+  ipAddressCustomField: string,
   archivedAt?: Date | '',
   displayTitle?: string, // for displaying in portal / timeline, but not internally
   description?: string,
@@ -1815,6 +1821,7 @@ export interface Integration extends Integration_readonly, Integration_required,
   pushAddedTags?: boolean,
   pushRemovedTags?: boolean,
   overwriteAddress?: boolean,
+  requirePhoneToPushEnduser?: boolean,
 }
 
 export type BuildDatabaseRecordField <K extends string, V, O> = { type: K, value: V, options: O & { width?: string } }
@@ -2237,6 +2244,7 @@ export interface CalendarEvent_required {
 }
 export interface CalendarEvent_updatesDisabled {}
 export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_required, CalendarEvent_updatesDisabled {
+  athenaDepartmentId?: string,
   actualDuration?: number,
   dontSyncToCanvas?: boolean,
   reason?: string, // reason for booking, patient-entered
@@ -2444,6 +2452,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   allowGroupReschedule?: boolean, // allows a patient to reschedule even if there are multiple attendees (e.g. 1 + care giver)
   preventRescheduleMinutesInAdvance?: number,
   preventCancelMinutesInAdvance?: number,
+  athenaDepartmentId?: string,
 }
 
 export interface AppointmentLocation_readonly extends ClientRecord {}
@@ -3842,7 +3851,7 @@ export type AutomationTriggerEvents = {
   'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", { titles?: string[], templateIds?: string[] }, { }>,
   'Field Equals': AutomationTriggerEventBuilder<"Field Equals", { field: string, value: string }, { }>,
   'Tag Added': AutomationTriggerEventBuilder<"Tag Added", { tag: string }, { }>,
-  'Contact Created': AutomationTriggerEventBuilder<"Contact Created", { }, { }>,
+  'Contact Created': AutomationTriggerEventBuilder<"Contact Created", { entityTypes?: string[] }, { }>,
   'Appointment Created': AutomationTriggerEventBuilder<"Appointment Created", { titles?: string[], templateIds?: string[], excludeTemplateIds?: string[] }, {}>,
   'Appointment Completed': AutomationTriggerEventBuilder<"Appointment Completed", { titles?: string[], templateIds?: string[] }, {}>,
   'Appointment Cancelled': AutomationTriggerEventBuilder<"Appointment Cancelled", { 

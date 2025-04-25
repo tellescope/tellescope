@@ -292,6 +292,7 @@ export interface Organization_readonly extends ClientRecord {
     fromEmails?: string[];
     twilioSID?: string;
     twilioCustomerId?: string;
+    customPortalScriptTags?: string[];
 }
 export interface Organization_required {
 }
@@ -432,7 +433,11 @@ export type OrganizationTheme = {
     logoURL?: string;
     customPortalURL?: string;
     faviconURL?: string;
-    portalSettings?: PortalSettings;
+    portalSettings?: PortalSettings & {
+        html: {
+            scripts?: string[];
+        };
+    };
     customTermsOfService?: string;
     customPrivacyPolicy?: string;
     requireCustomTermsOnMagicLink?: boolean;
@@ -1650,6 +1655,7 @@ export interface Form_required {
 export interface Form_updatesDisabled {
 }
 export interface Form extends Form_readonly, Form_required, Form_updatesDisabled {
+    ipAddressCustomField: string;
     archivedAt?: Date | '';
     displayTitle?: string;
     description?: string;
@@ -1774,6 +1780,7 @@ export interface Integration extends Integration_readonly, Integration_required,
     pushAddedTags?: boolean;
     pushRemovedTags?: boolean;
     overwriteAddress?: boolean;
+    requirePhoneToPushEnduser?: boolean;
 }
 export type BuildDatabaseRecordField<K extends string, V, O> = {
     type: K;
@@ -2168,6 +2175,7 @@ export interface CalendarEvent_required {
 export interface CalendarEvent_updatesDisabled {
 }
 export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_required, CalendarEvent_updatesDisabled {
+    athenaDepartmentId?: string;
     actualDuration?: number;
     dontSyncToCanvas?: boolean;
     reason?: string;
@@ -2381,6 +2389,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
     allowGroupReschedule?: boolean;
     preventRescheduleMinutesInAdvance?: number;
     preventCancelMinutesInAdvance?: number;
+    athenaDepartmentId?: string;
 }
 export interface AppointmentLocation_readonly extends ClientRecord {
 }
@@ -3837,7 +3846,9 @@ export type AutomationTriggerEvents = {
     'Tag Added': AutomationTriggerEventBuilder<"Tag Added", {
         tag: string;
     }, {}>;
-    'Contact Created': AutomationTriggerEventBuilder<"Contact Created", {}, {}>;
+    'Contact Created': AutomationTriggerEventBuilder<"Contact Created", {
+        entityTypes?: string[];
+    }, {}>;
     'Appointment Created': AutomationTriggerEventBuilder<"Appointment Created", {
         titles?: string[];
         templateIds?: string[];

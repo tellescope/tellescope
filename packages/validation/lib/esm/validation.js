@@ -3620,7 +3620,9 @@ export var automationTriggerEventValidator = orValidator({
     }),
     "Contact Created": objectValidator({
         type: exactMatchValidator(['Contact Created']),
-        info: optionalEmptyObjectValidator,
+        info: objectValidator({
+            entityTypes: listOfStringsValidatorOptionalOrEmptyOk,
+        }),
         conditions: optionalEmptyObjectValidator,
     }),
     "No Recent Appointment": objectValidator({

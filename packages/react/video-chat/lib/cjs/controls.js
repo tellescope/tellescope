@@ -175,7 +175,19 @@ var ControlBar = function (_a) {
     var isHost = react_1.default.useContext(video_shared_1.CurrentCallContext).isHost;
     var leaveMeeting = (0, _1.useJoinVideoCall)().leaveMeeting;
     var _c = react_1.default.useContext(video_shared_1.CurrentCallContext), toggleVideo = _c.toggleVideo, cameraActive = _c.videoIsEnabled;
-    var _d = useToggleBlur(), blurIsActive = _d.blurIsActive, isBackgroundBlurSupported = _d.isBackgroundBlurSupported, toggleBlur = _d.toggleBlur;
+    var _d = (0, amazon_chime_sdk_component_library_react_1.useVideoInputs)(), devices = _d.devices, selectedDevice = _d.selectedDevice;
+    var selectVideoInputDevice = (0, amazon_chime_sdk_component_library_react_1.useMeetingManager)().selectVideoInputDevice;
+    var _e = (0, react_1.useState)(2), restartVideo = _e[0], setRestartVideo = _e[1];
+    (0, react_1.useEffect)(function () {
+        if (restartVideo >= 2)
+            return;
+        var t = setTimeout(function () {
+            toggleVideo();
+            setRestartVideo(function (r) { return r + 1; });
+        }, 500);
+        return function () { clearTimeout(t); };
+    }, [restartVideo, toggleVideo]);
+    var _f = useToggleBlur(), blurIsActive = _f.blurIsActive, isBackgroundBlurSupported = _f.isBackgroundBlurSupported, toggleBlur = _f.toggleBlur;
     // const { backgroundIsActive, isBackgroundReplacementSupported, toggleBackground } = useToggleReplacement()
     var startCameraRef = (0, react_1.useRef)(false);
     (0, react_1.useEffect)(function () {
@@ -191,12 +203,20 @@ var ControlBar = function (_a) {
     var cameraButtonProps = {
         icon: cameraActive ? (0, jsx_runtime_1.jsx)(amazon_chime_sdk_component_library_react_1.Camera, {}) : (0, jsx_runtime_1.jsx)(amazon_chime_sdk_component_library_react_1.Camera, { disabled: true }),
         isSelected: true,
-        popOver: (__spreadArray([], (isBackgroundBlurSupported ?
+        popOver: (__spreadArray(__spreadArray([], (isBackgroundBlurSupported ?
             [{
                     onClick: toggleBlur,
                     children: ((0, jsx_runtime_1.jsx)("span", __assign({ style: { fontWeight: blurIsActive ? 'bold' : undefined } }, { children: blurIsActive ? "Disable Blur" : "Blur Background" })))
                 }]
-            : []), true)),
+            : []), true), devices.map(function (d) { return ({
+            onClick: function () {
+                selectVideoInputDevice(d.deviceId);
+                if (cameraActive) {
+                    setRestartVideo(0);
+                }
+            },
+            children: ((0, jsx_runtime_1.jsx)("span", __assign({ style: { fontWeight: (selectedDevice === null || selectedDevice === void 0 ? void 0 : selectedDevice.toString()) === d.deviceId ? 'bold' : undefined } }, { children: d.label })))
+        }); }), true)),
         onClick: toggleVideo,
         label: 'Camera',
     };

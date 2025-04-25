@@ -796,7 +796,7 @@ export var schema = build_schema({
                         info: {}
                     }
                 ]
-            }, lastSync: { validator: nonNegNumberValidator }, emailDisabled: { validator: booleanValidator }, syncUnrecognizedSenders: { validator: booleanValidator }, createEndusersForUnrecognizedSenders: { validator: booleanValidator }, calendars: { validator: listOfStringsValidatorOptionalOrEmptyOk }, environment: { validator: stringValidator100 }, webhooksSecret: { validator: stringValidator }, shouldCreateNotifications: { validator: booleanValidator }, disableEnduserAutoSync: { validator: booleanValidator }, disableTicketAutoSync: { validator: booleanValidator }, redactExternalEvents: { validator: booleanValidator }, syncEnduserFiles: { validator: booleanValidator }, pushCalendarDetails: { validator: booleanValidator }, defaultAttendeeId: { validator: mongoIdStringValidator }, sendEmailOnSync: { validator: booleanValidator }, enduserFieldMapping: { validator: fieldMappingsValidator }, default_dietitian_id: { validator: stringValidator100 }, dontPushCalendarEvent: { validator: booleanValidator }, dontPullCalendarEvent: { validator: booleanValidator }, pushAddedTags: { validator: booleanValidator }, pushRemovedTags: { validator: booleanValidator }, overwriteAddress: { validator: booleanValidator } }),
+            }, requirePhoneToPushEnduser: { validator: booleanValidator }, lastSync: { validator: nonNegNumberValidator }, emailDisabled: { validator: booleanValidator }, syncUnrecognizedSenders: { validator: booleanValidator }, createEndusersForUnrecognizedSenders: { validator: booleanValidator }, calendars: { validator: listOfStringsValidatorOptionalOrEmptyOk }, environment: { validator: stringValidator100 }, webhooksSecret: { validator: stringValidator }, shouldCreateNotifications: { validator: booleanValidator }, disableEnduserAutoSync: { validator: booleanValidator }, disableTicketAutoSync: { validator: booleanValidator }, redactExternalEvents: { validator: booleanValidator }, syncEnduserFiles: { validator: booleanValidator }, pushCalendarDetails: { validator: booleanValidator }, defaultAttendeeId: { validator: mongoIdStringValidator }, sendEmailOnSync: { validator: booleanValidator }, enduserFieldMapping: { validator: fieldMappingsValidator }, default_dietitian_id: { validator: stringValidator100 }, dontPushCalendarEvent: { validator: booleanValidator }, dontPullCalendarEvent: { validator: booleanValidator }, pushAddedTags: { validator: booleanValidator }, pushRemovedTags: { validator: booleanValidator }, overwriteAddress: { validator: booleanValidator } }),
         customActions: {
             update_zoom: {
                 adminOnly: true,
@@ -2695,7 +2695,7 @@ export var schema = build_schema({
                     score: stringValidator100,
                     externalId: stringValidator100,
                 }))
-            }, hideAfterUnsubmittedInMS: { validator: numberValidator }, hideFromCompose: { validator: booleanValidator }, enduserFieldsToAppendForSync: { validator: listOfUniqueStringsValidatorEmptyOk }, allowPortalSubmission: { validator: booleanValidator }, canvasNoteCoding: { validator: canvasCodingValidatorOptional }, syncToCanvasAsDataImport: { validator: booleanValidator }, matchCareTeamTagsForCanvasPractitionerResolution: { validator: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay } })
+            }, hideAfterUnsubmittedInMS: { validator: numberValidator }, hideFromCompose: { validator: booleanValidator }, enduserFieldsToAppendForSync: { validator: listOfUniqueStringsValidatorEmptyOk }, allowPortalSubmission: { validator: booleanValidator }, canvasNoteCoding: { validator: canvasCodingValidatorOptional }, syncToCanvasAsDataImport: { validator: booleanValidator }, matchCareTeamTagsForCanvasPractitionerResolution: { validator: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay }, ipAddressCustomField: { validator: stringValidatorOptionalEmptyOkay } })
     },
     form_fields: {
         info: {
@@ -3485,7 +3485,7 @@ export var schema = build_schema({
             get_appointment_availability: {}, book_appointment: {}, stripe_details: {},
             session_for_public_appointment_booking: {}, download_ics_file: {},
         },
-        fields: __assign(__assign({}, BuiltInFields), { preventCancelMinutesInAdvance: { validator: numberValidator }, preventRescheduleMinutesInAdvance: { validator: numberValidator }, actualDuration: { validator: nonNegNumberValidator }, dontSyncToCanvas: { validator: booleanValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { athenaDepartmentId: { validator: stringValidator1000 }, preventCancelMinutesInAdvance: { validator: numberValidator }, preventRescheduleMinutesInAdvance: { validator: numberValidator }, actualDuration: { validator: nonNegNumberValidator }, dontSyncToCanvas: { validator: booleanValidator }, title: {
                 validator: stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -3557,7 +3557,7 @@ export var schema = build_schema({
         defaultActions: DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: { read: {}, readMany: {} },
-        fields: __assign(__assign({}, BuiltInFields), { preventCancelMinutesInAdvance: { validator: numberValidator }, preventRescheduleMinutesInAdvance: { validator: numberValidator }, dontSyncToCanvas: { validator: booleanValidator }, archivedAt: { validator: dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: booleanValidator }, dontAutoSyncPatientToHealthie: { validator: booleanValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { athenaDepartmentId: { validator: stringValidator1000 }, preventCancelMinutesInAdvance: { validator: numberValidator }, preventRescheduleMinutesInAdvance: { validator: numberValidator }, dontSyncToCanvas: { validator: booleanValidator }, archivedAt: { validator: dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: booleanValidator }, dontAutoSyncPatientToHealthie: { validator: booleanValidator }, title: {
                 validator: stringValidator250,
                 required: true,
                 examples: ["Text"],

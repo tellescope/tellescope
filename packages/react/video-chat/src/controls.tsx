@@ -132,6 +132,21 @@ export const ControlBar = ({ autoCamera, onLeave, style, spacing=15, size, showE
 
   const { leaveMeeting } = useJoinVideoCall()
   const { toggleVideo, videoIsEnabled: cameraActive } = React.useContext(CurrentCallContext)
+  const { devices, selectedDevice } = useVideoInputs()
+  const { selectVideoInputDevice } = useMeetingManager()
+
+  const [restartVideo, setRestartVideo] = useState(2)
+  
+  useEffect(() => {
+    if (restartVideo >= 2) return
+
+    const t = setTimeout(() => {
+      toggleVideo()
+      setRestartVideo(r => r + 1)
+    }, 500)
+
+    return () => { clearTimeout(t)}
+  }, [restartVideo, toggleVideo])
 
   const { blurIsActive, isBackgroundBlurSupported, toggleBlur } = useToggleBlur()
   // const { backgroundIsActive, isBackgroundReplacementSupported, toggleBackground } = useToggleReplacement()
@@ -163,6 +178,19 @@ export const ControlBar = ({ autoCamera, onLeave, style, spacing=15, size, showE
           }] 
           : []
       ),
+      ...devices.map(d => ({
+        onClick: () => {
+          selectVideoInputDevice(d.deviceId)
+          if (cameraActive) {
+            setRestartVideo(0)
+          }
+        },
+        children: (
+          <span style={{ fontWeight: selectedDevice?.toString() === d.deviceId ? 'bold' : undefined}}>
+            {d.label}
+          </span>
+        )
+      })),
       // ...(
       //   isBackgroundReplacementSupported ? 
       //     [{

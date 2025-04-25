@@ -1526,22 +1526,25 @@ var chat_room_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                 return [4 /*yield*/, sdk2.authenticate(nonAdminEmail, nonAdminPassword)]; // non-admin has access restrictions we want to test 
             case 1:
                 _k.sent(); // non-admin has access restrictions we want to test 
+                return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)];
+            case 2:
+                _k.sent();
                 email = 'enduser@tellescope.com', password = 'enduserPassword!';
                 return [4 /*yield*/, sdk.api.endusers.createOne({ email: email })];
-            case 2:
+            case 3:
                 enduser = _k.sent();
                 return [4 /*yield*/, sdk.api.endusers.set_password({ id: enduser.id, password: password }).catch(console.error)];
-            case 3:
-                _k.sent();
-                return [4 /*yield*/, enduserSDK.authenticate(email, password).catch(console.error)];
             case 4:
                 _k.sent();
-                return [4 /*yield*/, sdk.api.endusers.getOne(enduser.id)];
+                return [4 /*yield*/, enduserSDK.authenticate(email, password).catch(console.error)];
             case 5:
+                _k.sent();
+                return [4 /*yield*/, sdk.api.endusers.getOne(enduser.id)];
+            case 6:
                 enduserLoggedIn = _k.sent();
                 assert(new Date(enduserLoggedIn.lastActive).getTime() > Date.now() - 100, 'lastActive fail for enduser', 'lastActive for enduser');
                 return [4 /*yield*/, sdk.api.chat_rooms.createOne({ type: 'internal', userIds: [userId], enduserIds: [enduserSDK.userInfo.id] })];
-            case 6:
+            case 7:
                 room = _k.sent();
                 assert(room.numMessages === 0, 'num mesages no update', 'num messages on creation');
                 return [4 /*yield*/, async_test("get-chat-room (not a user)", function () { return sdk2.api.chat_rooms.getOne(room.id); }, { shouldError: true, onError: function (e) { return e.message === "Could not find a record for the given id"; } })
@@ -1551,7 +1554,7 @@ var chat_room_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                     //   { shouldError: true, onError: e => e.message === "Could not find a record for the given id" }
                     // )
                 ];
-            case 7:
+            case 8:
                 _k.sent();
                 // await async_test(
                 //   `user_display_info for room (not a user)`, 
@@ -1559,7 +1562,7 @@ var chat_room_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                 //   { shouldError: true, onError: e => e.message === "Could not find a record for the given id" }
                 // )
                 return [4 /*yield*/, sdk.api.chats.createOne({ roomId: room.id, message: 'test message', attachments: [{ type: 'file', secureName: 'testsecurename' }] })];
-            case 8:
+            case 9:
                 // await async_test(
                 //   `user_display_info for room (not a user)`, 
                 //   () => sdk2.api.chat_rooms.display_info({ id: room.id }), 
@@ -1567,14 +1570,14 @@ var chat_room_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                 // )
                 _k.sent();
                 return [4 /*yield*/, sdk.api.chat_rooms.getOne(room.id)];
-            case 9:
+            case 10:
                 roomWithMessage = _k.sent();
                 assert(roomWithMessage.numMessages === 1, 'num mesages no update', 'num messages on send message');
                 assert(((_b = roomWithMessage === null || roomWithMessage === void 0 ? void 0 : roomWithMessage.recentMessageSentAt) !== null && _b !== void 0 ? _b : 0) > Date.now() - 1000, 'recent message timestamp bad', 'recent message timestamp');
                 assert(!((_d = (_c = roomWithMessage === null || roomWithMessage === void 0 ? void 0 : roomWithMessage.infoForUser) === null || _c === void 0 ? void 0 : _c[userId]) === null || _d === void 0 ? void 0 : _d.unreadCount), 'bad unread count for user', 'unread count for user');
                 assert(((_g = (_f = roomWithMessage === null || roomWithMessage === void 0 ? void 0 : roomWithMessage.infoForUser) === null || _f === void 0 ? void 0 : _f[enduserSDK.userInfo.id]) === null || _g === void 0 ? void 0 : _g.unreadCount) === 1, 'bad unread count for enduser', 'unread count for enduser');
                 return [4 /*yield*/, sdk.api.chat_rooms.updateOne(roomWithMessage.id, { infoForUser: (_a = {}, _a[userId] = { unreadCount: 0 }, _a) })];
-            case 10:
+            case 11:
                 roomWithMessage = _k.sent();
                 assert(((_j = (_h = roomWithMessage === null || roomWithMessage === void 0 ? void 0 : roomWithMessage.infoForUser) === null || _h === void 0 ? void 0 : _h[userId]) === null || _j === void 0 ? void 0 : _j.unreadCount) === 0, 'bad reset unread count for user', 'reset unread count for user');
                 verifyRoomDisplayInfo = function (info) {
@@ -1608,68 +1611,68 @@ var chat_room_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                     return true;
                 };
                 return [4 /*yield*/, async_test("user_display_info for room (for user)", function () { return sdk.api.chat_rooms.display_info({ id: room.id }); }, { onResult: function (r) { return r.id === room.id && verifyRoomDisplayInfo(r.display_info); } })];
-            case 11:
-                _k.sent();
-                return [4 /*yield*/, async_test("user_display_info for room (for enduser)", function () { return enduserSDK.api.chat_rooms.display_info({ id: room.id }); }, { onResult: function (r) { return r.id === room.id && verifyRoomDisplayInfo(r.display_info); } })];
             case 12:
                 _k.sent();
-                return [4 /*yield*/, async_test("non admin can't get room without enduser", function () { return sdkNonAdmin.api.chat_rooms.getOne({ id: room.id }); }, handleAnyError)];
+                return [4 /*yield*/, async_test("user_display_info for room (for enduser)", function () { return enduserSDK.api.chat_rooms.display_info({ id: room.id }); }, { onResult: function (r) { return r.id === room.id && verifyRoomDisplayInfo(r.display_info); } })];
             case 13:
                 _k.sent();
-                return [4 /*yield*/, async_test("non admin can't get chats from room without enduser", function () { return sdkNonAdmin.api.chats.getSome({ filter: { roomId: room.id } }); }, handleAnyError)];
+                return [4 /*yield*/, async_test("non admin can't get room without enduser", function () { return sdkNonAdmin.api.chat_rooms.getOne({ id: room.id }); }, handleAnyError)];
             case 14:
                 _k.sent();
-                return [4 /*yield*/, sdk.api.endusers.updateOne(enduser.id, { assignedTo: [sdkNonAdmin.userInfo.id] })];
+                return [4 /*yield*/, async_test("non admin can't get chats from room without enduser", function () { return sdkNonAdmin.api.chats.getSome({ filter: { roomId: room.id } }); }, handleAnyError)];
             case 15:
                 _k.sent();
-                return [4 /*yield*/, async_test("non admin can get room with enduser", function () { return sdkNonAdmin.api.chat_rooms.getOne(room.id); }, passOnAnyResult)];
+                return [4 /*yield*/, sdk.api.endusers.updateOne(enduser.id, { assignedTo: [sdkNonAdmin.userInfo.id] })];
             case 16:
                 _k.sent();
-                return [4 /*yield*/, async_test("non admin can get chats from room with enduser", function () { return sdkNonAdmin.api.chats.getSome({ filter: { roomId: room.id } }); }, passOnAnyResult)];
+                return [4 /*yield*/, async_test("non admin can get room with enduser", function () { return sdkNonAdmin.api.chat_rooms.getOne(room.id); }, passOnAnyResult)];
             case 17:
                 _k.sent();
-                return [4 /*yield*/, sdk.api.chat_rooms.deleteOne(room.id)];
+                return [4 /*yield*/, async_test("non admin can get chats from room with enduser", function () { return sdkNonAdmin.api.chats.getSome({ filter: { roomId: room.id } }); }, passOnAnyResult)];
             case 18:
                 _k.sent();
-                return [4 /*yield*/, sdk.api.chat_rooms.createOne({})];
+                return [4 /*yield*/, sdk.api.chat_rooms.deleteOne(room.id)];
             case 19:
+                _k.sent();
+                return [4 /*yield*/, sdk.api.chat_rooms.createOne({})];
+            case 20:
                 emptyRoom = _k.sent();
                 return [4 /*yield*/, async_test("get-chat-room (creator can access, even when not in userIds)", function () { return sdk.api.chat_rooms.getOne(emptyRoom.id); }, { onResult: function (r) { return r.id === emptyRoom.id; } })];
-            case 20:
+            case 21:
                 _k.sent();
                 return [4 /*yield*/, async_test("get-chat-room (not in empty room)", function () { return sdk2.api.chat_rooms.getOne(emptyRoom.id); }, { shouldError: true, onError: function (e) { return e.message === "Could not find a record for the given id"; } })];
-            case 21:
+            case 22:
                 _k.sent();
                 return [4 /*yield*/, async_test("join-room", function () { return sdk2.api.chat_rooms.join_room({ id: emptyRoom.id }); }, { onResult: function (_a) {
                             var room = _a.room;
                             return room.id === emptyRoom.id;
                         } })];
-            case 22:
-                _k.sent();
-                return [4 /*yield*/, async_test("get-chat-room (join successful)", function () { return sdk2.api.chat_rooms.getOne(emptyRoom.id); }, { onResult: function (r) { return r.id === emptyRoom.id; } })];
             case 23:
                 _k.sent();
-                return [4 /*yield*/, async_test("create-chat (join successful)", function () { return sdk2.api.chats.createOne({ roomId: emptyRoom.id, message: 'test' }); }, passOnAnyResult)];
+                return [4 /*yield*/, async_test("get-chat-room (join successful)", function () { return sdk2.api.chat_rooms.getOne(emptyRoom.id); }, { onResult: function (r) { return r.id === emptyRoom.id; } })];
             case 24:
                 _k.sent();
-                return [4 /*yield*/, async_test("get-chat (join successful)", function () { return sdk2.api.chats.getSome({ filter: { roomId: emptyRoom.id } }); }, { onResult: function (r) { return r.length > 0; } })];
+                return [4 /*yield*/, async_test("create-chat (join successful)", function () { return sdk2.api.chats.createOne({ roomId: emptyRoom.id, message: 'test' }); }, passOnAnyResult)];
             case 25:
                 _k.sent();
-                return [4 /*yield*/, async_test("[bulk] get-chat-room (join successful)", function () { return sdk2.bulk_load({ load: [{ model: 'chat_rooms' }] }); }, { onResult: function (r) { var _a, _b, _c; return (_c = (_b = (_a = r.results) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.records) === null || _c === void 0 ? void 0 : _c.find(function (r) { return r.id === emptyRoom.id; }); } })];
+                return [4 /*yield*/, async_test("get-chat (join successful)", function () { return sdk2.api.chats.getSome({ filter: { roomId: emptyRoom.id } }); }, { onResult: function (r) { return r.length > 0; } })];
             case 26:
                 _k.sent();
-                return [4 /*yield*/, enduserSDK.logout()];
+                return [4 /*yield*/, async_test("[bulk] get-chat-room (join successful)", function () { return sdk2.bulk_load({ load: [{ model: 'chat_rooms' }] }); }, { onResult: function (r) { var _a, _b, _c; return (_c = (_b = (_a = r.results) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.records) === null || _c === void 0 ? void 0 : _c.find(function (r) { return r.id === emptyRoom.id; }); } })];
             case 27:
                 _k.sent();
-                return [4 /*yield*/, sdk.api.endusers.getOne(enduser.id)];
+                return [4 /*yield*/, enduserSDK.logout()];
             case 28:
+                _k.sent();
+                return [4 /*yield*/, sdk.api.endusers.getOne(enduser.id)];
+            case 29:
                 loggedOutEnduser = _k.sent();
                 assert(new Date(loggedOutEnduser.lastLogout).getTime() > Date.now() - 100, 'lastLogout fail for enduser', 'lastLogout for enduser');
                 return [4 /*yield*/, sdk.api.endusers.deleteOne(enduser.id)];
-            case 29:
+            case 30:
                 _k.sent();
                 return [4 /*yield*/, sdk.api.chat_rooms.deleteOne(emptyRoom.id)];
-            case 30:
+            case 31:
                 _k.sent();
                 return [2 /*return*/];
         }
@@ -4765,28 +4768,124 @@ var appointment_created_tests = function () { return __awaiter(void 0, void 0, v
         }
     });
 }); };
+var contact_created_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var t1, t2, t3, t4, t5, e, e2;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                log_header("Automation Trigger Tests (Contact Created)");
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        event: { type: 'Contact Created', info: {} },
+                        action: { type: 'Add Tags', info: { tags: ['No Filter'] } },
+                        status: 'Active',
+                        title: "1"
+                    })];
+            case 1:
+                t1 = _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        event: { type: 'Contact Created', info: { entityTypes: [] } },
+                        action: { type: 'Add Tags', info: { tags: ['Empty Filter'] } },
+                        status: 'Active',
+                        title: "2"
+                    })];
+            case 2:
+                t2 = _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        event: { type: 'Contact Created', info: { entityTypes: ["Default"] } },
+                        action: { type: 'Add Tags', info: { tags: ['Default in Filter'] } },
+                        status: 'Active',
+                        title: "3"
+                    })];
+            case 3:
+                t3 = _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        event: { type: 'Contact Created', info: { entityTypes: [PLACEHOLDER_ID] } },
+                        action: { type: 'Add Tags', info: { tags: ['ID in Filter'] } },
+                        status: 'Active',
+                        title: "4"
+                    })];
+            case 4:
+                t4 = _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        event: { type: 'Contact Created', info: { entityTypes: [PLACEHOLDER_ID, 'Default'] } },
+                        action: { type: 'Add Tags', info: { tags: ['Both'] } },
+                        status: 'Active',
+                        title: "5"
+                    })];
+            case 5:
+                t5 = _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({})];
+            case 6:
+                e = _a.sent();
+                return [4 /*yield*/, wait(undefined, 250)]; // allow triggers to happen
+            case 7:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, async_test("Default type", function () { return sdk.api.endusers.getOne(e.id); }, {
+                        onResult: function (e) {
+                            var _a, _b, _c, _d, _f;
+                            return !!(((_a = e.tags) === null || _a === void 0 ? void 0 : _a.length) === 4
+                                && ((_b = e.tags) === null || _b === void 0 ? void 0 : _b.includes('No Filter')) && ((_c = e.tags) === null || _c === void 0 ? void 0 : _c.includes('Empty Filter')) && ((_d = e.tags) === null || _d === void 0 ? void 0 : _d.includes('Both'))
+                                && ((_f = e.tags) === null || _f === void 0 ? void 0 : _f.includes('Default in Filter')));
+                        }
+                    })];
+            case 8:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({ customTypeId: PLACEHOLDER_ID })];
+            case 9:
+                e2 = _a.sent();
+                return [4 /*yield*/, wait(undefined, 250)]; // allow triggers to happen
+            case 10:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, async_test("Custom type", function () { return sdk.api.endusers.getOne(e2.id); }, {
+                        onResult: function (e) {
+                            var _a, _b, _c, _d, _f;
+                            return !!(((_a = e.tags) === null || _a === void 0 ? void 0 : _a.length) === 4
+                                && ((_b = e.tags) === null || _b === void 0 ? void 0 : _b.includes('No Filter')) && ((_c = e.tags) === null || _c === void 0 ? void 0 : _c.includes('Empty Filter')) && ((_d = e.tags) === null || _d === void 0 ? void 0 : _d.includes('Both'))
+                                && ((_f = e.tags) === null || _f === void 0 ? void 0 : _f.includes('ID in Filter')));
+                        }
+                    })];
+            case 11:
+                _a.sent();
+                return [4 /*yield*/, Promise.all([
+                        sdk.api.automation_triggers.deleteOne(t1.id),
+                        sdk.api.automation_triggers.deleteOne(t2.id),
+                        sdk.api.automation_triggers.deleteOne(t3.id),
+                        sdk.api.automation_triggers.deleteOne(t4.id),
+                        sdk.api.automation_triggers.deleteOne(t5.id),
+                        sdk.api.endusers.deleteOne(e.id),
+                        sdk.api.endusers.deleteOne(e2.id),
+                    ])];
+            case 12:
+                _a.sent();
+                return [2 /*return*/];
+        }
+    });
+}); };
 var automation_trigger_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 log_header("Automation Trigger Tests");
-                return [4 /*yield*/, appointment_cancelled_tests()];
+                return [4 /*yield*/, contact_created_tests()];
             case 1:
                 _a.sent();
-                return [4 /*yield*/, appointment_created_tests()];
+                return [4 /*yield*/, appointment_cancelled_tests()];
             case 2:
                 _a.sent();
-                return [4 /*yield*/, order_status_equals_tests()];
+                return [4 /*yield*/, appointment_created_tests()];
             case 3:
                 _a.sent();
-                return [4 /*yield*/, tag_added_tests()];
+                return [4 /*yield*/, order_status_equals_tests()];
             case 4:
                 _a.sent();
-                return [4 /*yield*/, order_created_tests()];
+                return [4 /*yield*/, tag_added_tests()];
             case 5:
                 _a.sent();
-                return [4 /*yield*/, formSubmittedTriggerTests()];
+                return [4 /*yield*/, order_created_tests()];
             case 6:
+                _a.sent();
+                return [4 /*yield*/, formSubmittedTriggerTests()];
+            case 7:
                 _a.sent();
                 return [2 /*return*/];
         }
