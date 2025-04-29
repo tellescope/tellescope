@@ -315,6 +315,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     customProviderURL?: string;
     customTermsOfService?: string;
     customPrivacyPolicy?: string;
+    customPoliciesVersion?: string;
     requireCustomTermsOnMagicLink?: boolean;
     settings?: OrganizationSettings;
     portalSettings?: PortalSettings;
@@ -440,6 +441,7 @@ export type OrganizationTheme = {
     };
     customTermsOfService?: string;
     customPrivacyPolicy?: string;
+    customPoliciesVersion?: string;
     requireCustomTermsOnMagicLink?: boolean;
 };
 export interface RecordInfo {
@@ -1066,6 +1068,7 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
     markedUnreadForAll?: boolean;
     inboxStatus?: string;
     relatedContactId?: string;
+    copyOf?: string;
 }
 export interface SMSMessage_readonly extends ClientRecord {
     delivered: boolean;
@@ -1124,6 +1127,7 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
     markedUnreadForAll?: boolean;
     inboxStatus?: string;
     relatedContactId?: string;
+    copyOf?: string;
 }
 export type ChatRoomType = 'internal' | 'external' | 'Group Chat';
 export interface ChatRoom_readonly extends ClientRecord {
@@ -1702,6 +1706,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
     }[];
     hideAfterUnsubmittedInMS?: number;
     hideFromCompose?: boolean;
+    hideFromBulkSubmission?: boolean;
     enduserFieldsToAppendForSync?: string[];
     allowPortalSubmission?: boolean;
     canvasNoteCoding?: Partial<CanvasCoding>;

@@ -190,3 +190,117 @@ export const useDisplayInfoForSenderId = (id: string) => {
   if (session.userInfo.id === id) return session.userInfo
   return findUser(id) ?? findEnduser(id)
 }
+
+const WHITE_SPACE_EXP = /^\s*$/
+const is_whitespace = (str: string) => WHITE_SPACE_EXP.test(str)
+const [ LINK_START, LINK_END, TEXT_START, TEXT_END, STYLE_START, STYLE_END ] = [0, 1, 2, 3, 4, 5]
+const find_link = (text: string, startFrom?: number) => {
+  let start = 0
+  let state = LINK_START
+  let linkChars = []
+  const linkTextChars = []
+  
+  for (let i = startFrom || 0; i < text.length; i++) {
+    const char = text[i]
+    if (state === LINK_START) {
+      if (char === '{') {
+        start = i;
+        state = LINK_END
+      }
+    } 
+    else if (state === LINK_END) {
+      if (char === '}') {
+        state = TEXT_START
+      } else {
+        linkChars.push(char)
+      }
+    } 
+    else if (state === TEXT_START) {
+      if (char === '[') {
+        state = TEXT_END
+      }
+      else if (!is_whitespace(char)) { // only allow whitespace between {link} and [linkText]
+        start = 0; linkChars = []; state = LINK_START; // start seeking new link
+      }
+    }
+    else {
+      if (char === ']') {
+        return {
+          start, 
+          end: i,
+          link: linkChars.join(''),
+          linkText: linkTextChars.join('')
+        }
+      } else {
+        linkTextChars.push(char)
+      }
+    } 
+  }
+
+  return undefined
+}
+
+const find_link_style = (text: string, startFrom?: number) => {
+  let state = STYLE_START
+  const textChars: string[] = []
+  const styleChars: string[] = []
+  
+  for (let i = startFrom || 0; i < text.length; i++) {
+    const char = text[i]
+    if (state === STYLE_START) {
+      if (char === '<') {
+        state = STYLE_END
+      } else {
+        textChars.push(char)
+      }
+    } 
+    else if (state === STYLE_END) {
+      if (char === '>') {
+        return {
+          unstyledText: textChars.join(''),
+          style: styleChars.join(''),
+        }
+      } else {
+        styleChars.push(char)
+      }
+    } 
+  }
+
+  return { unstyledText: text, style: '' }
+}
+
+export const replace_links = (html: string) => {
+  let foundLink = undefined
+  while ((foundLink = find_link(html))) {    
+    const { link, linkText } = foundLink
+    const { unstyledText: _unstyledText, style } = find_link_style(linkText)
+    const linkTemplate = `{${link}}[${linkText}]`
+
+    if (linkText === "$LINK_ONLY") {
+      if (html !== undefined && typeof html === 'string') {
+        html = html.replace(linkTemplate, link)
+      }
+
+      continue
+    }
+
+    // if _unstyled text is empty, undefined, etc, default to the link itself
+    const unstyledText = (
+      (typeof _unstyledText === 'string' && !_unstyledText?.trim())
+        ? link
+     : !_unstyledText
+        ? link
+      : _unstyledText === 'undefined'
+        ? link
+        : _unstyledText
+    )
+
+    const replacementHTML = (
+      `<a${style ? ` style="${style}"` : ''} href="${link}" target="_blank">${unstyledText}</a>`
+    )
+
+    html = html.replace(linkTemplate, replacementHTML)
+  }
+
+  return <span dangerouslySetInnerHTML={{ __html: html }} />
+}

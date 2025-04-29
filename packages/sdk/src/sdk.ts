@@ -812,6 +812,11 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
       Promise<extractFields<CustomActions['waitlists']['grant_access_from_waitlist']['returns']>>
     ),
   },
+  background_errors: {
+    mark_read: (args: extractFields<CustomActions['background_errors']['mark_read']['parameters']>) => (
+      Promise<extractFields<CustomActions['background_errors']['mark_read']['returns']>>
+    ),
+  },
 }
 
 // session info that's currently required/used on front-end but not part of base user model
@@ -1077,6 +1082,8 @@ export class Session extends SessionManager {
     queries.agent_records.submit_support_ticket = args => this._POST(`/v1${schema.agent_records.customActions.submit_support_ticket.path}`, args)
 
     queries.waitlists.grant_access_from_waitlist = args => this._POST(`/v1${schema.waitlists.customActions.grant_access_from_waitlist.path}`, args)
+
+    queries.background_errors.mark_read = args => this._POST(`/v1${schema.background_errors.customActions.mark_read.path}`, args)
 
     this.api = queries
   }

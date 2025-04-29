@@ -446,6 +446,7 @@ export var schema = build_schema({
                     enduserId: { validator: mongoIdStringValidator, required: true },
                     destinations: { validator: listOfStringsValidatorOptionalOrEmptyOk, },
                     externalIds: { validator: listOfStringsValidatorOptionalOrEmptyOk, },
+                    entrypoint: { validator: stringValidator },
                 },
                 returns: {
                     fullscriptRedirectURL: { validator: stringValidator },
@@ -1178,7 +1179,7 @@ export var schema = build_schema({
                 { type: 'filter', field: 'userId' },
             ]
         },
-        fields: __assign(__assign({}, BuiltInFields), { relatedContactId: { validator: mongoIdStringValidator }, markedUnreadForAll: { validator: booleanValidator }, inboxStatus: { validator: stringValidator100 }, logOnly: {
+        fields: __assign(__assign({}, BuiltInFields), { copyOf: { validator: mongoIdStringValidator }, relatedContactId: { validator: mongoIdStringValidator }, markedUnreadForAll: { validator: booleanValidator }, inboxStatus: { validator: stringValidator100 }, logOnly: {
                 validator: booleanValidator,
                 examples: [true],
                 initializer: function () { return false; },
@@ -1433,11 +1434,11 @@ export var schema = build_schema({
                 { type: 'filter', field: 'userId' },
             ]
         },
-        fields: __assign(__assign({}, BuiltInFields), { relatedContactId: { validator: mongoIdStringValidator }, autoResolveToFrom: { validator: booleanValidator }, markedUnreadForAll: { validator: booleanValidator }, inboxStatus: { validator: stringValidator100 }, logOnly: {
+        fields: __assign(__assign({}, BuiltInFields), { copyOf: { validator: mongoIdStringValidator }, relatedContactId: { validator: mongoIdStringValidator }, autoResolveToFrom: { validator: booleanValidator }, markedUnreadForAll: { validator: booleanValidator }, inboxStatus: { validator: stringValidator100 }, logOnly: {
                 validator: booleanValidator,
                 examples: [true],
                 initializer: function () { return false; },
-            }, message: {
+            }, templatedMessage: { validator: stringValidator5000EmptyOkay }, message: {
                 validator: SMSMessageValidator,
                 required: true,
                 examples: ["Test message"],
@@ -1889,8 +1890,10 @@ export var schema = build_schema({
                 op: "custom", access: 'update', method: "post",
                 name: 'Configure MFA',
                 path: '/users/configure-mfa',
-                description: "Configures MFA",
-                parameters: {},
+                description: "Configures MFA (or removes it, when allowed by an organization)",
+                parameters: {
+                    disable: { validator: booleanValidator },
+                },
                 returns: {
                     recoveryCodes: { validator: listOfStringsValidator, required: true },
                     authToken: { validator: stringValidator, required: true },
@@ -2695,7 +2698,7 @@ export var schema = build_schema({
                     score: stringValidator100,
                     externalId: stringValidator100,
                 }))
-            }, hideAfterUnsubmittedInMS: { validator: numberValidator }, hideFromCompose: { validator: booleanValidator }, enduserFieldsToAppendForSync: { validator: listOfUniqueStringsValidatorEmptyOk }, allowPortalSubmission: { validator: booleanValidator }, canvasNoteCoding: { validator: canvasCodingValidatorOptional }, syncToCanvasAsDataImport: { validator: booleanValidator }, matchCareTeamTagsForCanvasPractitionerResolution: { validator: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay }, ipAddressCustomField: { validator: stringValidatorOptionalEmptyOkay } })
+            }, hideAfterUnsubmittedInMS: { validator: numberValidator }, hideFromCompose: { validator: booleanValidator }, hideFromBulkSubmission: { validator: booleanValidator }, enduserFieldsToAppendForSync: { validator: listOfUniqueStringsValidatorEmptyOk }, allowPortalSubmission: { validator: booleanValidator }, canvasNoteCoding: { validator: canvasCodingValidatorOptional }, syncToCanvasAsDataImport: { validator: booleanValidator }, matchCareTeamTagsForCanvasPractitionerResolution: { validator: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay }, ipAddressCustomField: { validator: stringValidatorOptionalEmptyOkay } })
     },
     form_fields: {
         info: {
@@ -4453,7 +4456,7 @@ export var schema = build_schema({
                     id: stringValidator100,
                     questionId: stringValidator100,
                 })
-            }, canvasSyncEmailConsent: { validator: booleanValidator }, canvasSyncPhoneConsent: { validator: booleanValidator }, enforceMFA: { validator: booleanValidator }, replyToEnduserTransactionalEmails: { validator: emailValidator }, customTermsOfService: { validator: stringValidator }, customPrivacyPolicy: { validator: stringValidator }, requireCustomTermsOnMagicLink: { validator: booleanValidator }, allowCreateSuborganizations: { validator: booleanValidator }, answersSyncToPortal: {
+            }, canvasSyncEmailConsent: { validator: booleanValidator }, canvasSyncPhoneConsent: { validator: booleanValidator }, enforceMFA: { validator: booleanValidator }, replyToEnduserTransactionalEmails: { validator: emailValidator }, customTermsOfService: { validator: stringValidator }, customPrivacyPolicy: { validator: stringValidator }, customPoliciesVersion: { validator: stringValidator }, requireCustomTermsOnMagicLink: { validator: booleanValidator }, allowCreateSuborganizations: { validator: booleanValidator }, answersSyncToPortal: {
                 validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     id: stringValidator100,
                     questions: listValidatorEmptyOk(stringValidator1000),
@@ -5186,7 +5189,17 @@ export var schema = build_schema({
         info: {},
         constraints: { unique: [], relationship: [], },
         defaultActions: DEFAULT_OPERATIONS,
-        customActions: {},
+        customActions: {
+            mark_read: {
+                op: "custom", access: 'update', method: "post",
+                name: 'Mark Read',
+                description: "Marks all background errors as read",
+                path: '/background-errors/mark-read',
+                adminOnly: true,
+                parameters: {},
+                returns: {},
+            }
+        },
         enduserActions: {},
         fields: __assign(__assign({}, BuiltInFields), { title: {
                 validator: stringValidator100,

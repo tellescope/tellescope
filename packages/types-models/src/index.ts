@@ -332,6 +332,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   customProviderURL?: string,
   customTermsOfService?: string,
   customPrivacyPolicy?: string,
+  customPoliciesVersion?: string,
   requireCustomTermsOnMagicLink?: boolean,
   settings?: OrganizationSettings,
   portalSettings?: PortalSettings,
@@ -436,6 +437,7 @@ export type OrganizationTheme = {
   },
   customTermsOfService?: string,
   customPrivacyPolicy?: string,
+  customPoliciesVersion?: string,
   requireCustomTermsOnMagicLink?: boolean,
 }
 
@@ -1134,6 +1136,7 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
   markedUnreadForAll?: boolean,
   inboxStatus?: string,
   relatedContactId?: string,
+  copyOf?: string,
   // sentAt: string, // only outgoing
 }
 
@@ -1188,6 +1191,7 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
   markedUnreadForAll?: boolean,
   inboxStatus?: string,
   relatedContactId?: string,
+  copyOf?: string,
   // usingPublicNumber?: boolean, // flagged on outgoing messages from public number
   // sentAt: string, // only outgoing
 }
@@ -1741,6 +1745,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   }[]
   hideAfterUnsubmittedInMS?: number,
   hideFromCompose?: boolean,
+  hideFromBulkSubmission?: boolean,
   enduserFieldsToAppendForSync?: string[],
   allowPortalSubmission?: boolean,
   canvasNoteCoding?: Partial<CanvasCoding>,

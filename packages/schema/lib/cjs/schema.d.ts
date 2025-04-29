@@ -594,6 +594,7 @@ export type CustomActions = {
             enduserId: string;
             destinations?: string[];
             externalIds?: string[];
+            entrypoint?: string;
         }, {
             fullscriptRedirectURL?: string;
             vital_user_id?: string;
@@ -740,7 +741,9 @@ export type CustomActions = {
             user: User;
             authToken: string;
         }>;
-        configure_MFA: CustomAction<{}, {
+        configure_MFA: CustomAction<{
+            disable?: boolean;
+        }, {
             recoveryCodes: string[];
             authToken: string;
             user: UserSession;
@@ -1495,6 +1498,9 @@ export type CustomActions = {
         }, {
             waitlist: Waitlist;
         }>;
+    };
+    background_errors: {
+        mark_read: CustomAction<{}, {}>;
     };
 };
 export type PublicActions = {

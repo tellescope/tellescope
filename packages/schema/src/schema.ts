@@ -787,7 +787,7 @@ export type CustomActions = {
     add_to_journey: CustomAction<{ enduserIds: string[], journeyId: string, startAt?: Date, automationStepId?: string, journeyContext?: JourneyContext, throttle?: boolean, source?: string }, { }>, 
     remove_from_journey: CustomAction<{ enduserIds: string[], journeyId: string }, { }>, 
     merge: CustomAction<{ sourceEnduserId: string, destinationEnduserId: string, }, { }>, 
-    push: CustomAction<{ enduserId: string, destinations?: string[], externalIds?: string[] }, { fullscriptRedirectURL?: string, vital_user_id?: string }>,
+    push: CustomAction<{ enduserId: string, destinations?: string[], externalIds?: string[], entrypoint?: string }, { fullscriptRedirectURL?: string, vital_user_id?: string }>,
     bulk_update: CustomAction<
       { ids: string[], state?: string, fields?: CustomFields, pushTags?: string[], replaceTags?: string[], updateAccessTags?: boolean, customTypeId?: string }, 
       { updated: Enduser[] }
@@ -848,7 +848,7 @@ export type CustomActions = {
       { created: UserClient }
     >
     configure_inbox: CustomAction<{ username: string, fname: string, lname: string }, { user: User, authToken: string }>,
-    configure_MFA: CustomAction<{  }, { recoveryCodes: string[], authToken: string, user: UserSession }>,
+    configure_MFA: CustomAction<{ disable?: boolean }, { recoveryCodes: string[], authToken: string, user: UserSession }>,
     generate_MFA_challenge: CustomAction<{ method: string }, { }>,
     submit_MFA_challenge: CustomAction<{ code: string }, { authToken: string, user: UserSession }>,
     get_engagement_report: CustomAction<{ range?: DateRange, excludeAutomated?: boolean }, { report: Record<string, any> }>,
@@ -1118,6 +1118,9 @@ export type CustomActions = {
   },
   waitlists: {
     grant_access_from_waitlist: CustomAction<{ id: string, count: number }, { waitlist: Waitlist }>,
+  },
+  background_errors: {
+    mark_read: CustomAction<{ }, { }>,
   },
 } 
 
@@ -1659,6 +1662,7 @@ export const schema: SchemaV1 = build_schema({
           enduserId: { validator: mongoIdStringValidator, required: true },
           destinations: { validator: listOfStringsValidatorOptionalOrEmptyOk, },
           externalIds: { validator: listOfStringsValidatorOptionalOrEmptyOk, },
+          entrypoint: { validator: stringValidator },
         },
         returns: {
           fullscriptRedirectURL: { validator: stringValidator },
@@ -2444,6 +2448,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields,   
+      copyOf: { validator: mongoIdStringValidator },
       relatedContactId: { validator: mongoIdStringValidator },
       markedUnreadForAll: { validator: booleanValidator },
       inboxStatus: { validator: stringValidator100 },
@@ -2740,6 +2745,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields,   
+      copyOf: { validator: mongoIdStringValidator },
       relatedContactId: { validator: mongoIdStringValidator },
       autoResolveToFrom: { validator: booleanValidator },
       markedUnreadForAll: { validator: booleanValidator },
@@ -2749,6 +2755,7 @@ export const schema: SchemaV1 = build_schema({
         examples: [true],
         initializer: () => false,
       },
+      templatedMessage: { validator: stringValidator5000EmptyOkay },
       message: {
         validator: SMSMessageValidator,
         required: true,
@@ -3250,8 +3257,10 @@ export const schema: SchemaV1 = build_schema({
         op: "custom", access: 'update', method: "post",
         name: 'Configure MFA',
         path: '/users/configure-mfa',
-        description: "Configures MFA",
-        parameters: { },
+        description: "Configures MFA (or removes it, when allowed by an organization)",
+        parameters: { 
+          disable: { validator: booleanValidator },
+        },
         returns: { 
           recoveryCodes: { validator: listOfStringsValidator, required: true },
           authToken: { validator: stringValidator, required: true }, 
@@ -4270,6 +4279,7 @@ export const schema: SchemaV1 = build_schema({
       },
       hideAfterUnsubmittedInMS: { validator: numberValidator },
       hideFromCompose: { validator: booleanValidator },
+      hideFromBulkSubmission: { validator: booleanValidator },
       enduserFieldsToAppendForSync: { validator: listOfUniqueStringsValidatorEmptyOk },
       allowPortalSubmission: { validator: booleanValidator },
       canvasNoteCoding: { validator: canvasCodingValidatorOptional },
@@ -6447,6 +6457,7 @@ export const schema: SchemaV1 = build_schema({
       replyToEnduserTransactionalEmails: { validator: emailValidator },
       customTermsOfService: { validator: stringValidator },
       customPrivacyPolicy: { validator: stringValidator },
+      customPoliciesVersion: { validator: stringValidator },
       requireCustomTermsOnMagicLink: { validator: booleanValidator },
       allowCreateSuborganizations: { validator: booleanValidator },
       answersSyncToPortal: { 
@@ -7412,7 +7423,17 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     info: {},
     constraints: { unique: [], relationship: [], },
     defaultActions: DEFAULT_OPERATIONS,
-    customActions: {},
+    customActions: {
+      mark_read: {
+        op: "custom", access: 'update', method: "post",
+        name: 'Mark Read',
+        description: "Marks all background errors as read",
+        path: '/background-errors/mark-read',
+        adminOnly: true,
+        parameters: {},
+        returns: {},
+      }
+    },
     enduserActions: {},
     fields: {
       ...BuiltInFields, 

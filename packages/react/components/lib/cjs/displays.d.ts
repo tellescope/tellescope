@@ -75,4 +75,5 @@ export declare const useDisplayInfoForSenderId: (id: string) => (import("@telles
     id: string;
     createdAt: Date;
 }) | null | undefined;
+export declare const replace_links: (html: string) => JSX.Element;
 //# sourceMappingURL=displays.d.ts.map

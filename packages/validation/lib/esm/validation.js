@@ -2687,6 +2687,7 @@ export var organizationThemeValidator = objectValidator({
     organizationIds: listOfStringsValidatorOptionalOrEmptyOk,
     customPrivacyPolicy: stringValidatorOptional,
     customTermsOfService: stringValidatorOptional,
+    customPoliciesVersion: stringValidatorOptional,
     requireCustomTermsOnMagicLink: booleanValidatorOptional,
 });
 var _MANAGED_CONTENT_RECORD_TYPES = {

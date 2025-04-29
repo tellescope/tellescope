@@ -534,10 +534,12 @@ export const is_table_input_response = (v: any): v is TableInputCell[][] => (
   !!(Array.isArray(v) && Array.isArray(v[0]) && v[0][0].label)
 )
 
-export const form_response_value_to_string = (value: FormResponseValueAnswer['value'] | string | boolean | number | null | undefined | object, options?: { convertISODate?: boolean }): string => {
+export const form_response_value_to_string = (value: FormResponseValueAnswer['value'] | string | boolean | number | null | undefined | object, options?: { convertISODate?: boolean, returnRawCheckbox?: boolean }): string => {
   if (value === null || value === undefined) return ''
 
   if (value && typeof value === 'string' && is_checkbox_custom_field_value(value)) {
+    if (options?.returnRawCheckbox) return value
+    
     return "✅"
   }
 
@@ -2529,11 +2531,13 @@ export const enrich_doxy_url = (url: string, e?: Enduser) => {
   )
 }
 
-export const is_checkbox_custom_field_value = (value?: string) => {
+export const is_checkbox_custom_field_value = (value?: any): value is string => {
   if (!value) return false
   if (typeof value !== 'string') return false
 
   if (value.startsWith('checkbox:') && value.split(':')[1]?.length === 24) {
     return true
   }
+
+  return false
 }

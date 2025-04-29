@@ -3264,6 +3264,7 @@ export const organizationThemeValidator = objectValidator<OrganizationTheme>({
   organizationIds: listOfStringsValidatorOptionalOrEmptyOk,
   customPrivacyPolicy: stringValidatorOptional,
   customTermsOfService: stringValidatorOptional,
+  customPoliciesVersion: stringValidatorOptional,
   requireCustomTermsOnMagicLink: booleanValidatorOptional,
 })
 

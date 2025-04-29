@@ -3798,6 +3798,9 @@ type Queries = {
     waitlists: {
         grant_access_from_waitlist: (args: extractFields<CustomActions['waitlists']['grant_access_from_waitlist']['parameters']>) => (Promise<extractFields<CustomActions['waitlists']['grant_access_from_waitlist']['returns']>>);
     };
+    background_errors: {
+        mark_read: (args: extractFields<CustomActions['background_errors']['mark_read']['parameters']>) => (Promise<extractFields<CustomActions['background_errors']['mark_read']['returns']>>);
+    };
 };
 type UserInfo = User & {
     type: 'user';

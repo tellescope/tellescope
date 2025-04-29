@@ -59,6 +59,7 @@ import {
 
 import fs from "fs"
 import { response } from "express";
+import { log } from "console";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
@@ -8413,7 +8414,7 @@ const lockout_tests = async () => {
 
 const sync_tests = async () => {
   log_header("Data Sync")
-
+ 
   const from = new Date()
 
   await async_test(
@@ -8501,12 +8502,33 @@ const sync_tests = async () => {
     () => sdkNonAdmin.sync({ from }),
     { onResult: ({ results }) => results.length === 2 },
   )
+  await async_test(
+    "Sub organization still 0",
+    () => sdkSub.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
+  await async_test(
+    "Other organization still 0",
+    () => sdkOther.sync({ from }),
+    { onResult: ({ results }) => results.filter(e => e.modelName === 'endusers' && e.data !== 'deleted').length === 0 },
+  )
+
   sdk.api.tickets.updateOne(t.id, { owner: ''  })
   await wait(undefined, 100)
   await async_test(
     "Non-admin can't access tickets on unassignment",
     () => sdkNonAdmin.sync({ from }),
     { onResult: ({ results }) => results.length === 1 }, // still includes user notification
+  )
+  await async_test(
+    "Sub organization still 0",
+    () => sdkSub.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
+  await async_test(
+    "Other organization still 0",
+    () => sdkOther.sync({ from }),
+    { onResult: ({ results }) => results.filter(e => e.modelName === 'endusers' && e.data !== 'deleted').length === 0 },
   )
 
   await sdk.api.endusers.updateOne(e.id, { assignedTo: [sdkNonAdmin.userInfo.id] }, { replaceObjectFields: true })
@@ -8516,13 +8538,39 @@ const sync_tests = async () => {
     () => sdkNonAdmin.sync({ from }),
     { onResult: ({ results }) => results.length === 2 }, // enduser and ticket user notification
   )
+  await async_test(
+    "Sub organization still 0",
+    () => sdkSub.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
+  await async_test(
+    "Other organization still 0",
+    () => sdkOther.sync({ from }),
+    { onResult: ({ results }) => results.filter(e => e.modelName === 'endusers' && e.data !== 'deleted').length === 0 },
+  )
 
   sdk.api.tickets.updateOne(t.id, { owner: '', enduserId: e.id  })
   await wait(undefined, 100)
   await async_test(
     "Non-admin can access ticket (and enduser) after enduser assignment",
     () => sdkNonAdmin.sync({ from }),
-    { onResult: ({ results }) => results.length === 3 },
+    { 
+      onResult: ({ results }) => (
+        results.length === 3 
+        && results.filter(r => r.modelName === 'tickets' && r.recordId === t.id).length === 1
+        && results.filter(r => r.modelName === 'endusers' && r.recordId === e.id).length === 1
+      )
+    },
+  )
+  await async_test(
+    "Sub organization still 0",
+    () => sdkSub.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
+  await async_test(
+    "Other organization still 0",
+    () => sdkOther.sync({ from }),
+    { onResult: ({ results }) => results.filter(e => e.modelName === 'endusers' && e.data !== 'deleted').length === 0 },
   )
 
   await sdk.api.endusers.updateOne(e.id, { assignedTo: [] }, { replaceObjectFields: true })
@@ -8530,7 +8578,21 @@ const sync_tests = async () => {
   await async_test(
     "Enduser update non-admin assignment, revoked access to enduser and ticket",
     () => sdkNonAdmin.sync({ from }),
-    { onResult: ({ results }) => results.length === 1 }, // still has user notification
+    { onResult: ({ results }) => 
+      // still has user notification
+      results.length === 1 &&  
+      results.filter(r => r.modelName === 'user_notifications').length === 1
+    },
+  )
+  await async_test(
+    "Sub organization still 0",
+    () => sdkSub.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
+  await async_test(
+    "Other organization still 0",
+    () => sdkOther.sync({ from }),
+    { onResult: ({ results }) => results.filter(e => e.modelName === 'endusers' && e.data !== 'deleted').length === 0 },
   )
   
   // enduser, ticket, and ticket assignment user_notification created
@@ -8549,7 +8611,11 @@ const sync_tests = async () => {
   await async_test(
     "Enduser delete, non-admin",
     () => sdkNonAdmin.sync({ from }),
-    { onResult: ({ results }) => results.length === 1 }, // still includes user notification
+    { onResult: ({ results }) => 
+      // still includes user notification
+      results.length === 1 
+      && results.filter(r => r.modelName === 'user_notifications').length === 1
+    }, 
   )
   await async_test(
     "Enduser delete, sub organization",
@@ -8607,7 +8673,11 @@ const sync_tests = async () => {
   await async_test(
     "Bulk Enduser delete, non-admin",
     () => sdkNonAdmin.sync({ from }),
-    { onResult: ({ results }) => results.length === 1 }, // still includes user notification
+    { onResult: ({ results }) => 
+      // still includes user notification
+      results.length === 1 
+      && results.filter(r => r.modelName === 'user_notifications').length === 1
+    }, 
   )
   await async_test(
     "Bulk Enduser delete, sub organization",
@@ -8621,6 +8691,73 @@ const sync_tests = async () => {
   )
 }
 
+const sync_tests_with_access_tags = async () => {
+  log_header("Data Sync with Access Tags")
+
+  // set before from is set, so that user update does not end up in sync
+  const matchTag = 'Access'
+  await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: [matchTag] }, { replaceObjectFields: true })
+
+
+  await sdk.api.organizations.updateOne(sdkNonAdmin.userInfo.businessId, { 
+    settings: { endusers: { enableAccessTags: true } }
+  })
+  await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword) // ensure enableAccessTags setting stored correctly on jwt
+  await wait(undefined, 1000)
+
+  const from = new Date()
+  const e = await sdk.api.endusers.createOne({ })
+  const t = await sdk.api.tickets.createOne({ title: 'access test', enduserId: e.id })
+
+  await sdk.api.endusers.updateOne(e.id, { accessTags: [matchTag] }, { replaceObjectFields: true })
+  await wait(undefined, 100)
+  await async_test(
+    "Access tags non-admin assignment, granted access to enduser and ticket",
+    () => sdkNonAdmin.sync({ from }),
+    { 
+      onResult: ({ results }) => (
+        results.length === 2
+        && results.filter(r => r.modelName === 'tickets' && r.recordId === t.id).length === 1
+        && results.filter(r => r.modelName === 'endusers' && r.recordId === e.id).length === 1
+      )
+    },
+  )
+  await async_test(
+    "Sub organization still 0",
+    () => sdkSub.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
+  await async_test(
+    "Other organization still 0",
+    () => sdkOther.sync({ from }),
+    { onResult: ({ results }) => results.filter(e => e.modelName === 'endusers' && e.data !== 'deleted').length === 0 },
+  )
+   await sdk.api.endusers.updateOne(e.id, { accessTags: [] }, { replaceObjectFields: true })
+  await wait(undefined, 100)
+  await async_test(
+    "Removed access tags non-admin, revoked access to enduser and ticket",
+    () => sdkNonAdmin.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 }
+  )
+  await async_test(
+    "Sub organization still 0",
+    () => sdkSub.sync({ from }),
+    { onResult: ({ results }) => results.length === 0 },
+  )
+  await async_test(
+    "Other organization still 0",
+    () => sdkOther.sync({ from }),
+    { onResult: ({ results }) => results.filter(e => e.modelName === 'endusers' && e.data !== 'deleted').length === 0 },
+  )
+  await sdk.api.organizations.updateOne(sdkNonAdmin.userInfo.businessId, { 
+    settings: { endusers: { enableAccessTags: false } }
+  })
+  await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: [] }, { replaceObjectFields: true })
+  await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword) // ensure enableAccessTags setting stored correctly on jwt
+  await wait(undefined, 1000)
+  
+  await sdk.api.endusers.deleteOne(e.id)
+}
 // to cover potential vulernabilities with enduser public register endpoint
 const register_as_enduser_tests = async () => {
   log_header("Register as Enduser")
@@ -10215,6 +10352,7 @@ const file_source_tests = async () => {
     await mfa_tests()
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests
+    await sync_tests_with_access_tags() // should come directly after setup to avoid extra sync values
     await sync_tests() // should come directly after setup to avoid extra sync values
     await automation_trigger_tests()
     await file_source_tests()

@@ -532,6 +532,8 @@ export var form_response_value_to_string = function (value, options) {
     if (value === null || value === undefined)
         return '';
     if (value && typeof value === 'string' && is_checkbox_custom_field_value(value)) {
+        if (options === null || options === void 0 ? void 0 : options.returnRawCheckbox)
+            return value;
         return "✅";
     }
     var maybeDate = (((options === null || options === void 0 ? void 0 : options.convertISODate) && typeof value === 'string')
@@ -2390,5 +2392,6 @@ export var is_checkbox_custom_field_value = function (value) {
     if (value.startsWith('checkbox:') && ((_a = value.split(':')[1]) === null || _a === void 0 ? void 0 : _a.length) === 24) {
         return true;
     }
+    return false;
 };
 //# sourceMappingURL=utils.js.map

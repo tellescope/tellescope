@@ -175,6 +175,7 @@ export declare const user_has_record_access: (user: User, record: {
 export declare const is_table_input_response: (v: any) => v is TableInputCell[][];
 export declare const form_response_value_to_string: (value: FormResponseValueAnswer['value'] | string | boolean | number | null | undefined | object, options?: {
     convertISODate?: boolean;
+    returnRawCheckbox?: boolean;
 }) => string;
 export declare const is_organization_owner: (organization: Organization, userId: string) => boolean;
 export declare const update_local_storage: (key: string, value: string) => void;
@@ -297,5 +298,5 @@ export declare const should_show_unsubmitted_form_response_for_interval: (fr: Fo
 export declare const get_canvas_id: (v: Pick<Enduser, 'source' | 'externalId' | 'references'>) => string | undefined;
 export declare const to_human_readable_phone_number: (phone?: string) => string;
 export declare const enrich_doxy_url: (url: string, e?: Enduser) => string;
-export declare const is_checkbox_custom_field_value: (value?: string) => boolean | undefined;
+export declare const is_checkbox_custom_field_value: (value?: any) => value is string;
 //# sourceMappingURL=utils.d.ts.map

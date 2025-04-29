@@ -176,4 +176,107 @@ export var useDisplayInfoForSenderId = function (id) {
         return session.userInfo;
     return (_a = findUser(id)) !== null && _a !== void 0 ? _a : findEnduser(id);
 };
+var WHITE_SPACE_EXP = /^\s*$/;
+var is_whitespace = function (str) { return WHITE_SPACE_EXP.test(str); };
+var _a = [0, 1, 2, 3, 4, 5], LINK_START = _a[0], LINK_END = _a[1], TEXT_START = _a[2], TEXT_END = _a[3], STYLE_START = _a[4], STYLE_END = _a[5];
+var find_link = function (text, startFrom) {
+    var start = 0;
+    var state = LINK_START;
+    var linkChars = [];
+    var linkTextChars = [];
+    for (var i = startFrom || 0; i < text.length; i++) {
+        var char = text[i];
+        if (state === LINK_START) {
+            if (char === '{') {
+                start = i;
+                state = LINK_END;
+            }
+        }
+        else if (state === LINK_END) {
+            if (char === '}') {
+                state = TEXT_START;
+            }
+            else {
+                linkChars.push(char);
+            }
+        }
+        else if (state === TEXT_START) {
+            if (char === '[') {
+                state = TEXT_END;
+            }
+            else if (!is_whitespace(char)) { // only allow whitespace between {link} and [linkText]
+                start = 0;
+                linkChars = [];
+                state = LINK_START; // start seeking new link
+            }
+        }
+        else {
+            if (char === ']') {
+                return {
+                    start: start,
+                    end: i,
+                    link: linkChars.join(''),
+                    linkText: linkTextChars.join('')
+                };
+            }
+            else {
+                linkTextChars.push(char);
+            }
+        }
+    }
+    return undefined;
+};
+var find_link_style = function (text, startFrom) {
+    var state = STYLE_START;
+    var textChars = [];
+    var styleChars = [];
+    for (var i = startFrom || 0; i < text.length; i++) {
+        var char = text[i];
+        if (state === STYLE_START) {
+            if (char === '<') {
+                state = STYLE_END;
+            }
+            else {
+                textChars.push(char);
+            }
+        }
+        else if (state === STYLE_END) {
+            if (char === '>') {
+                return {
+                    unstyledText: textChars.join(''),
+                    style: styleChars.join(''),
+                };
+            }
+            else {
+                styleChars.push(char);
+            }
+        }
+    }
+    return { unstyledText: text, style: '' };
+};
+export var replace_links = function (html) {
+    var foundLink = undefined;
+    while ((foundLink = find_link(html))) {
+        var link = foundLink.link, linkText = foundLink.linkText;
+        var _a = find_link_style(linkText), _unstyledText = _a.unstyledText, style = _a.style;
+        var linkTemplate = "{".concat(link, "}[").concat(linkText, "]");
+        if (linkText === "$LINK_ONLY") {
+            if (html !== undefined && typeof html === 'string') {
+                html = html.replace(linkTemplate, link);
+            }
+            continue;
+        }
+        // if _unstyled text is empty, undefined, etc, default to the link itself
+        var unstyledText = ((typeof _unstyledText === 'string' && !(_unstyledText === null || _unstyledText === void 0 ? void 0 : _unstyledText.trim()))
+            ? link
+            : !_unstyledText
+                ? link
+                : _unstyledText === 'undefined'
+                    ? link
+                    : _unstyledText);
+        var replacementHTML = ("<a".concat(style ? " style=\"".concat(style, "\"") : '', " href=\"").concat(link, "\" target=\"_blank\">").concat(unstyledText, "</a>"));
+        html = html.replace(linkTemplate, replacementHTML);
+    }
+    return _jsx("span", { dangerouslySetInnerHTML: { __html: html } });
+};
 //# sourceMappingURL=displays.js.map
