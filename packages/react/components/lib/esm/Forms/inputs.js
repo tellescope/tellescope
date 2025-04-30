@@ -724,13 +724,16 @@ export var MultipleChoiceInput = function (_a) {
     return (_jsxs(Grid, __assign({ container: true, alignItems: "center" }, { children: [radio
                 ? (_jsxs(FormControl, __assign({ fullWidth: true }, { children: [_jsx(FormLabel, __assign({ id: "radio-group-".concat(field.id, "-label") }, { children: form_display_text_for_language(form, "Select One") })), _jsx(RadioGroup, __assign({ "aria-labelledby": "radio-group-".concat(field.id, "-label"), defaultValue: "female", name: "radio-group-".concat(field.id) }, { children: (choices !== null && choices !== void 0 ? choices : []).map(function (c, i) {
                                 return _jsx(FormControlLabel, { color: "primary", label: c, sx: multipleChoiceItemSx, style: { marginLeft: '0px' }, checked: !!(value === null || value === void 0 ? void 0 : value.includes(c)) && c !== otherString, control: _jsx(Radio, { onClick: function () { return onChange((value === null || value === void 0 ? void 0 : value.includes(c)) ? [] : [c], field.id); } }) }, i);
-                            }) }))] }))) : ((choices !== null && choices !== void 0 ? choices : []).map(function (c, i) { return (_jsx(Grid, __assign({ xs: 12, onClick: function () { return onChange(((value === null || value === void 0 ? void 0 : value.includes(c))
-                    ? (radio
-                        ? []
-                        : value.filter(function (v) { return v !== c; }))
-                    : (radio
-                        ? [c]
-                        : __spreadArray(__spreadArray([], (value !== null && value !== void 0 ? value : []), true), [c], false))), field.id); } }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap", sx: multipleChoiceItemSx }, { children: [_jsx(Checkbox, { color: "primary", checked: !!(value === null || value === void 0 ? void 0 : value.includes(c)) && c !== otherString, inputProps: { 'aria-label': 'primary checkbox' } }), _jsxs(Typography, __assign({ component: "span" }, { children: [" ", c, " "] }))] })) }), i)); })), other &&
+                            }) }))] }))) : ((choices !== null && choices !== void 0 ? choices : []).map(function (c, i) { return (_jsx(Grid, __assign({ xs: 12, onClick: function () {
+                    var _a, _b, _d, _e;
+                    return onChange(((value === null || value === void 0 ? void 0 : value.includes(c))
+                        ? ((radio || ((_b = (_a = field.options) === null || _a === void 0 ? void 0 : _a.radioChoices) === null || _b === void 0 ? void 0 : _b.includes(c)))
+                            ? []
+                            : value.filter(function (v) { return v !== c; }))
+                        : ((radio || ((_e = (_d = field.options) === null || _d === void 0 ? void 0 : _d.radioChoices) === null || _e === void 0 ? void 0 : _e.includes(c)))
+                            ? [c]
+                            : __spreadArray(__spreadArray([], (value !== null && value !== void 0 ? value : []).filter(function (x) { var _a, _b; return !((_b = (_a = field.options) === null || _a === void 0 ? void 0 : _a.radioChoices) === null || _b === void 0 ? void 0 : _b.includes(x)); }), true), [c], false))), field.id);
+                } }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap", sx: multipleChoiceItemSx }, { children: [_jsx(Checkbox, { color: "primary", checked: !!(value === null || value === void 0 ? void 0 : value.includes(c)) && c !== otherString, inputProps: { 'aria-label': 'primary checkbox' } }), _jsxs(Typography, __assign({ component: "span" }, { children: [" ", c, " "] }))] })) }), i)); })), other &&
                 _jsx(Grid, __assign({ item: true, xs: 12 }, { children: _jsx(TextField // className={classes.textField}
                     , { InputProps: { sx: { borderRadius: 2.5 } }, sx: { width: radio ? "calc(100% - 15px)" : '100%' }, size: "small", "aria-label": form_display_text_for_language(form, "Other"), value: otherString, placeholder: form_display_text_for_language(form, "Other"), variant: "outlined", 
                         // onClick={() => !otherChecked && handleOtherChecked()} // allow click to enable when disabled

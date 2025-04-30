@@ -122,6 +122,7 @@ export var MFAX_TITLE = "mFax";
 export var CANDID_TITLE = "Candid";
 export var GOGO_MEDS_TITLE = "GoGoMeds";
 export var ATHENA_TITLE = "athenahealth";
+export var SUPERDIAL_TITLE = "SuperDial";
 export var DOSESPOT_TITLE = "DoseSpot";
 export var DOCSUMO_TITLE = "Docsumo";
 export var ACTIVE_CAMPAIGN_TITLE = "ActiveCampaign";
@@ -157,6 +158,7 @@ export var ORGANIZATION_WIDE_INTEGRATIONS = [
     EMOTII_TITLE,
     DEVELOP_HEALTH_TITLE,
     CUSTOMER_IO_TITLE,
+    SUPERDIAL_TITLE,
 ];
 export var ONE_MINUTE_IN_MS = 1000 * 60;
 export var ONE_HOUR_IN_MS = 60 * ONE_MINUTE_IN_MS; // 1hr

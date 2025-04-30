@@ -1329,6 +1329,9 @@ export type CustomActions = {
             queue: TicketQueue;
             enduser: Enduser;
         }>;
+        bulk_delete: CustomAction<{
+            ids: string[];
+        }, {}>;
     };
     ticket_queues: {
         update_indexes: CustomAction<{

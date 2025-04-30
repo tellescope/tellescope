@@ -362,6 +362,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedEmotii?: boolean,
   hasConnectedDevelopHealth?: boolean,
   hasConnectedCustomerIO?: boolean,
+  hasConnectedSuperDial?: boolean,
   hasConfiguredZoom?: boolean,
   hasTicketQueues?: boolean,
   vitalTeamId?: string,
@@ -754,6 +755,10 @@ export type EnduserDiagnosis = {
   references?: RelatedRecord[],
 }
 
+export type RecentViewer = {
+  id: string,
+  at: Date,
+}
 export type TellescopeGender = "Male" | "Female" | "Other" | "Unknown"
 export interface Enduser_readonly extends UserActivityInfo, ClientRecord, EnduserEngagementTimestamps {
   lastCommunication?: Date;
@@ -774,6 +779,7 @@ export interface Enduser_updatesDisabled {
   references?: RelatedRecord[],
 }
 export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_updatesDisabled {
+  recentViewers?: RecentViewer[],
   healthie_dietitian_id?: string,
   unsubscribePhone?: boolean; // on AWS STOP reply
   externalId?: string;
@@ -855,6 +861,8 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   chargebeeEnvironment?: string,
   chargebeeId?: string,
   healthieSyncError?: string,
+  lastSuperdialEligibilityCheckAt?: Date,
+  superdialEligibilityResponse?: string,
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
 }
@@ -1615,6 +1623,7 @@ export type FormFieldOptions = FormFieldValidation & {
   chargebeePlanId?: string,
   chargebeeItemId?: string,
   relatedContactTypes?: string[],
+  radioChoices?: string[],
 }
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
 

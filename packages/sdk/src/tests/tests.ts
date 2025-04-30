@@ -7443,6 +7443,20 @@ const waitlist_tests = async () => {
   )
 }
 
+const configurations_tests = async () => {
+  log_header("Configurations Tests")
+
+  const c = await sdk.api.configurations.createOne({ type: 'testing', value: '<script>hello</script>!!!' })
+
+  await async_test(
+    `Configurations strips html tags`,
+    () => sdk.api.configurations.getOne(c.id),
+    { onResult: r => r.value === '!!!' }
+  )
+
+  await sdk.api.configurations.deleteOne(c.id)
+}
+
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
   agent_records: agent_record_tests,
@@ -7523,7 +7537,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   email_sync_denials: NO_TEST,
   ticket_threads: NO_TEST,
   ticket_thread_comments: NO_TEST,
-  configurations: NO_TEST,
+  configurations: configurations_tests,
   group_mms_conversations: NO_TEST,
   blocked_phones: NO_TEST,
   prescription_routes: NO_TEST,

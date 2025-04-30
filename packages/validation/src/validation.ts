@@ -1,4 +1,4 @@
-import { ObjectId, remove_script_tags } from "@tellescope/utilities"
+import { ObjectId, remove_script_tags, sanitize_html } from "@tellescope/utilities"
 
 import {
   CUD as CUDType,
@@ -314,6 +314,7 @@ import {
   CancelCurrentEventAction,
   ConfirmCurrentEventAction,
   CanvasCreateNoteAutomationAction,
+  RecentViewer,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -390,6 +391,7 @@ export interface ValidatorOptions {
   trim?: boolean;
   unique?: boolean, // should list contain uniques
   field?: string,
+  escapeHTML?: boolean,
 }  
 export interface ValidatorOptionsForValue extends ValidatorOptions {
   listOf?: false;
@@ -443,7 +445,7 @@ export const build_validator: BuildValidator_T = (escapeFunction, options={} as 
     shouldTruncate, isOptional, toLower,
     emptyStringOk, emptyListOk, nullOk,
     isObject, isNumber, listOf, isBoolean,
-    unique, field='',
+    unique, field='', escapeHTML,
   } = options
 
   const minLength = options.minLength || 0
@@ -503,6 +505,10 @@ export const build_validator: BuildValidator_T = (escapeFunction, options={} as 
           escapedValues.push(''); continue;
         }
         let escapedValue = escapeFunction(value) // may throw exception, this is fine
+
+        if (typeof escapedValue === 'string' && escapeHTML) {
+          escapedValue = sanitize_html(escapedValue)
+        }
 
         if (typeof escapedValue === 'string') { // is string
             if (escapedValue.length > maxLength) {
@@ -985,6 +991,13 @@ export const stringValidator100000EmptyOkay: ValidatorDefinition<string> = {
 export const stringValidator100000OptionalEmptyOkay: ValidatorDefinition<string> = {
   validate: (o={}) => build_validator(
     escapeString(o), { ...o, maxLength: 100000, isOptional: true, listOf: false, emptyStringOk: true } 
+  ),
+  getExample: getExampleString,
+  getType: getTypeString,
+}
+export const stringValidator100000OptionalEmptyOkayEscapeHTML: ValidatorDefinition<string> = {
+  validate: (o={}) => build_validator(
+    escapeString(o), { ...o, maxLength: 100000, isOptional: true, listOf: false, emptyStringOk: true, escapeHTML: true } 
   ),
   getExample: getExampleString,
   getType: getTypeString,
@@ -3382,6 +3395,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   bookingPageId: stringValidatorOptional,
   tableChoices: listValidatorOptionalOrEmptyOk(tableInputChoiceValidator),
   choices: listOfStringsValidatorOptionalOrEmptyOk,
+  radioChoices: listOfStringsValidatorOptionalOrEmptyOk,
   canvasCodings: listValidatorOptionalOrEmptyOk(canvasCodingValidator),
   from: numberValidatorOptional,
   to: numberValidatorOptional,
@@ -5971,3 +5985,9 @@ export const enduserDiagnosisValidator = objectValidator<EnduserDiagnosis>({
   references: relatedRecordsValidatorOptional,
   createdAt: dateValidatorOptional,
 })
+
+export const recentViewerValidator = objectValidator<RecentViewer>({
+  id: stringValidator100,
+  at: dateValidator,
+})
+export const recentViewersValidator = listValidatorOptionalOrEmptyOk(recentViewerValidator)

@@ -8830,6 +8830,25 @@ var waitlist_tests = function () { return __awaiter(void 0, void 0, void 0, func
         }
     });
 }); };
+var configurations_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var c;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                log_header("Configurations Tests");
+                return [4 /*yield*/, sdk.api.configurations.createOne({ type: 'testing', value: '<script>hello</script>!!!' })];
+            case 1:
+                c = _a.sent();
+                return [4 /*yield*/, async_test("Configurations strips html tags", function () { return sdk.api.configurations.getOne(c.id); }, { onResult: function (r) { return r.value === '!!!'; } })];
+            case 2:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.configurations.deleteOne(c.id)];
+            case 3:
+                _a.sent();
+                return [2 /*return*/];
+        }
+    });
+}); };
 var NO_TEST = function () { };
 var tests = {
     agent_records: agent_record_tests,
@@ -8910,7 +8929,7 @@ var tests = {
     email_sync_denials: NO_TEST,
     ticket_threads: NO_TEST,
     ticket_thread_comments: NO_TEST,
-    configurations: NO_TEST,
+    configurations: configurations_tests,
     group_mms_conversations: NO_TEST,
     blocked_phones: NO_TEST,
     prescription_routes: NO_TEST,

@@ -133,6 +133,7 @@ export const MFAX_TITLE = "mFax"
 export const CANDID_TITLE = "Candid"
 export const GOGO_MEDS_TITLE = "GoGoMeds"
 export const ATHENA_TITLE = "athenahealth"
+export const SUPERDIAL_TITLE = "SuperDial"
 export const DOSESPOT_TITLE = "DoseSpot"
 export const DOCSUMO_TITLE = "Docsumo"
 export const ACTIVE_CAMPAIGN_TITLE = "ActiveCampaign"
@@ -169,6 +170,7 @@ export const ORGANIZATION_WIDE_INTEGRATIONS = [
   EMOTII_TITLE,
   DEVELOP_HEALTH_TITLE,
   CUSTOMER_IO_TITLE,
+  SUPERDIAL_TITLE,
 ]
 
 export const ONE_MINUTE_IN_MS = 1000 * 60

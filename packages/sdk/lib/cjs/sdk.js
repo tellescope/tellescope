@@ -593,6 +593,7 @@ var Session = /** @class */ (function (_super) {
         queries.managed_content_records.update_indexes = function (a) { return _this._PATCH("/v1/".concat(schema_1.schema.managed_content_records.customActions.update_indexes.path), a); };
         queries.automation_triggers.trigger_events = function (a) { return _this._POST("/v1/".concat(schema_1.schema.automation_triggers.customActions.trigger_events.path), a); };
         queries.ticket_queues.update_indexes = function (a) { return _this._PATCH("/v1/".concat(schema_1.schema.ticket_queues.customActions.update_indexes.path), a); };
+        queries.tickets.bulk_delete = function (a) { return _this._DELETE("/v1/".concat(schema_1.schema.tickets.customActions.bulk_delete.path), a); };
         queries.tickets.update_indexes = function (a) { return _this._PATCH("/v1/".concat(schema_1.schema.tickets.customActions.update_indexes.path), a); };
         queries.tickets.assign_from_queue = function (a) { return _this._PATCH("/v1/".concat(schema_1.schema.tickets.customActions.assign_from_queue.path), a); };
         queries.tickets.get_report = function (a) { return _this._POST("/v1/".concat(schema_1.schema.tickets.customActions.get_report.path), a); };

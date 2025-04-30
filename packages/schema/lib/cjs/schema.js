@@ -161,7 +161,7 @@ exports.schema = (0, exports.build_schema)({
             add_to_journey: {}, remove_from_journey: {}, begin_login_flow: {}, set_password: {},
             unsubscribe: {},
         },
-        fields: __assign(__assign({}, BuiltInFields), { healthie_dietitian_id: { validator: validation_1.stringValidator100 }, mergedIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk, readonly: true, redactions: ['enduser'] }, externalId: {
+        fields: __assign(__assign({}, BuiltInFields), { recentViewers: { validator: validation_1.recentViewersValidator }, healthie_dietitian_id: { validator: validation_1.stringValidator100 }, mergedIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk, readonly: true, redactions: ['enduser'] }, externalId: {
                 validator: validation_1.stringValidator250,
                 examples: ['addfed3e-ddea-415b-b52b-df820c944dbb'],
             }, email: {
@@ -2382,6 +2382,16 @@ exports.schema = (0, exports.build_schema)({
         },
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {
+            bulk_delete: {
+                op: "custom", access: 'delete', method: "delete",
+                name: 'Bulk Delete Tickets',
+                path: '/tickets/bulk-delete',
+                description: "Deletes a list of tickets by id (does not send webhooks)",
+                parameters: {
+                    ids: { validator: validation_1.listOfMongoIdStringValidator, required: true },
+                },
+                returns: {},
+            },
             assign_from_queue: {
                 op: "custom", access: 'update', method: "patch",
                 name: 'Assign From Queue',
@@ -5557,7 +5567,7 @@ exports.schema = (0, exports.build_schema)({
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { type: { validator: validation_1.stringValidator250, examples: ['string'] }, value: { validator: validation_1.stringValidator100000OptionalEmptyOkay, examples: ['string'] } }),
+        fields: __assign(__assign({}, BuiltInFields), { type: { validator: validation_1.stringValidator250, examples: ['string'] }, value: { validator: validation_1.stringValidator100000OptionalEmptyOkayEscapeHTML, examples: ['string'] } }),
     },
     ticket_queues: {
         info: {},

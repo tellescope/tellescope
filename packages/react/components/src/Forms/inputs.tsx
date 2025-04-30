@@ -1516,14 +1516,14 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
                 (
                   value?.includes(c)
                     ? (
-                      radio 
+                      (radio || field.options?.radioChoices?.includes(c))
                         ? []
                         : value.filter(v => v !== c)
                     )
                     : (
-                      radio
+                      (radio || field.options?.radioChoices?.includes(c))
                         ? [c]
-                        : [...(value ?? []), c]
+                        : [...(value ?? []).filter(x => !field.options?.radioChoices?.includes(x)), c]
                     )
                 ),
                 field.id,

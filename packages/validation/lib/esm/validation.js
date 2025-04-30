@@ -29,7 +29,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     }
     return to.concat(ar || Array.prototype.slice.call(from));
 };
-import { remove_script_tags } from "@tellescope/utilities";
+import { remove_script_tags, sanitize_html } from "@tellescope/utilities";
 import { WEBHOOK_MODELS, TIMEZONE_MAP, VALID_STATES, } from "@tellescope/types-models";
 import v from 'validator';
 export var isDate = v.isDate, isEmail = v.isEmail, isMobilePhone = v.isMobilePhone, isSlug = v.isSlug, isMongoId = v.isMongoId, isMimeType = v.isMimeType, isURL = v.isURL;
@@ -50,7 +50,7 @@ export var MAX_FILE_SIZE = 1000000000; // 1gb megabytes in bytes
 var DEFAULT_MAX_LENGTH = 50000;
 export var build_validator = function (escapeFunction, options) {
     if (options === void 0) { options = {}; }
-    var shouldTruncate = options.shouldTruncate, isOptional = options.isOptional, toLower = options.toLower, emptyStringOk = options.emptyStringOk, emptyListOk = options.emptyListOk, nullOk = options.nullOk, isObject = options.isObject, isNumber = options.isNumber, listOf = options.listOf, isBoolean = options.isBoolean, unique = options.unique, _a = options.field, field = _a === void 0 ? '' : _a;
+    var shouldTruncate = options.shouldTruncate, isOptional = options.isOptional, toLower = options.toLower, emptyStringOk = options.emptyStringOk, emptyListOk = options.emptyListOk, nullOk = options.nullOk, isObject = options.isObject, isNumber = options.isNumber, listOf = options.listOf, isBoolean = options.isBoolean, unique = options.unique, _a = options.field, field = _a === void 0 ? '' : _a, escapeHTML = options.escapeHTML;
     var minLength = options.minLength || 0;
     var maxLength = options.maxLength || DEFAULT_MAX_LENGTH;
     return function (fieldValue) {
@@ -112,6 +112,9 @@ export var build_validator = function (escapeFunction, options) {
                 continue;
             }
             var escapedValue = escapeFunction(value); // may throw exception, this is fine
+            if (typeof escapedValue === 'string' && escapeHTML) {
+                escapedValue = sanitize_html(escapedValue);
+            }
             if (typeof escapedValue === 'string') { // is string
                 if (escapedValue.length > maxLength) {
                     if (shouldTruncate) {
@@ -597,6 +600,14 @@ export var stringValidator100000OptionalEmptyOkay = {
     validate: function (o) {
         if (o === void 0) { o = {}; }
         return build_validator(escapeString(o), __assign(__assign({}, o), { maxLength: 100000, isOptional: true, listOf: false, emptyStringOk: true }));
+    },
+    getExample: getExampleString,
+    getType: getTypeString,
+};
+export var stringValidator100000OptionalEmptyOkayEscapeHTML = {
+    validate: function (o) {
+        if (o === void 0) { o = {}; }
+        return build_validator(escapeString(o), __assign(__assign({}, o), { maxLength: 100000, isOptional: true, listOf: false, emptyStringOk: true, escapeHTML: true }));
     },
     getExample: getExampleString,
     getType: getTypeString,
@@ -2788,6 +2799,7 @@ export var formFieldOptionsValidator = objectValidator({
     bookingPageId: stringValidatorOptional,
     tableChoices: listValidatorOptionalOrEmptyOk(tableInputChoiceValidator),
     choices: listOfStringsValidatorOptionalOrEmptyOk,
+    radioChoices: listOfStringsValidatorOptionalOrEmptyOk,
     canvasCodings: listValidatorOptionalOrEmptyOk(canvasCodingValidator),
     from: numberValidatorOptional,
     to: numberValidatorOptional,
@@ -5207,4 +5219,9 @@ export var enduserDiagnosisValidator = objectValidator({
     references: relatedRecordsValidatorOptional,
     createdAt: dateValidatorOptional,
 });
+export var recentViewerValidator = objectValidator({
+    id: stringValidator100,
+    at: dateValidator,
+});
+export var recentViewersValidator = listValidatorOptionalOrEmptyOk(recentViewerValidator);
 //# sourceMappingURL=validation.js.map

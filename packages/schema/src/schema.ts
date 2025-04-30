@@ -321,6 +321,8 @@ import {
   developHealthMockResultValidator,
   positiveNumberValidator,
   listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
+  recentViewersValidator,
+  stringValidator100000OptionalEmptyOkayEscapeHTML,
 } from "@tellescope/validation"
 
 import {
@@ -1029,6 +1031,7 @@ export type CustomActions = {
     get_report: CustomAction<{ rangeField?: string, title?: string, titles?: string[], userId?: string, range?: DateRange, groupByOwnerAndTitle?: boolean }, { report: TicketsReport }>,
     get_distribution_report: CustomAction<{  range?: DateRange }, { report: Report[keyof Report] }>,
     assign_from_queue: CustomAction<{ userId?: string, ticketId?: string, queueId?: string, overrideRestrictions?: boolean, }, { ticket: Ticket, queue: TicketQueue, enduser: Enduser }>,
+    bulk_delete: CustomAction<{ ids: string[] }, {  }>,
   },
   ticket_queues: {
     update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
@@ -1295,6 +1298,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields,   
+      recentViewers: { validator: recentViewersValidator },
       healthie_dietitian_id: { validator: stringValidator100 },
       mergedIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk, readonly: true, redactions: ['enduser'] },
       externalId: {
@@ -3830,6 +3834,16 @@ export const schema: SchemaV1 = build_schema({
     },
     defaultActions: DEFAULT_OPERATIONS,
     customActions: {
+      bulk_delete: {
+        op: "custom", access: 'delete', method: "delete",
+        name: 'Bulk Delete Tickets',
+        path: '/tickets/bulk-delete',
+        description: "Deletes a list of tickets by id (does not send webhooks)",
+        parameters: { 
+          ids: { validator: listOfMongoIdStringValidator, required: true },
+        },
+        returns: {},
+      },
       assign_from_queue: {
         op: "custom", access: 'update', method: "patch",
         name: 'Assign From Queue',
@@ -7910,7 +7924,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     fields: {
       ...BuiltInFields, 
       type: { validator: stringValidator250, examples: ['string'] },
-      value: { validator: stringValidator100000OptionalEmptyOkay, examples: ['string'] },
+      value: { validator: stringValidator100000OptionalEmptyOkayEscapeHTML, examples: ['string'] },
     },
   },
   ticket_queues: {

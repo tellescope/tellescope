@@ -107,6 +107,7 @@ export declare const MFAX_TITLE = "mFax";
 export declare const CANDID_TITLE = "Candid";
 export declare const GOGO_MEDS_TITLE = "GoGoMeds";
 export declare const ATHENA_TITLE = "athenahealth";
+export declare const SUPERDIAL_TITLE = "SuperDial";
 export declare const DOSESPOT_TITLE = "DoseSpot";
 export declare const DOCSUMO_TITLE = "Docsumo";
 export declare const ACTIVE_CAMPAIGN_TITLE = "ActiveCampaign";
