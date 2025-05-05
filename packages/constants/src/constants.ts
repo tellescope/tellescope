@@ -1093,3 +1093,105 @@ export const PORTAL_PAGES_HIDDEN_BY_DEFAULT = [
 export const USER_PERSONAL_EMAIL_OVERRIDE = "personal@tellescope.com"
 
 export const TELLESCOPE_PORTAL_SOURCE = "Tellescope Portal"
+
+export type AthenaDocumentType = (
+  "admin"
+| "clinicaldocument"
+| "encounterdocument"
+| "imagingresult"
+| "labresult"
+| "medicalrecord"
+// | "signedorder"
+// | "patientcase"
+| "phonemessage"
+| "physicianauth"
+// | "prescription"
+)
+export const ATHENA_DOCUMENT_TYPES_TO_DISPLAY: { [key in AthenaDocumentType]: { display: string, subclasses: string[], sources: string[] } } = {
+  admin: { 
+    display: "Admin", 
+    subclasses: [
+      "ADMIN",
+      "BILLING",
+      "CONSENT",
+      "HIPAA",
+      "INSURANCEAPPROVAL",
+      "INSURANCECARD",
+      "INSURANCEDENIAL",
+      "LEGAL",
+      "MEDICALRECORDREQ",
+      "MUDUNNINGLETTER",
+      "REFERRAL",
+      "SIGNEDFORMSLETTERS",
+      "VACCINATIONRECORD",
+    ],
+    sources: [],
+  },
+  clinicaldocument: { 
+    display: "Clinical Document", 
+    subclasses: [
+      "CLINICALDOCUMENT",
+      "ADMISSIONDISCHARGE",
+      "CONSULTNOTE",
+      "MENTALHEALTH",
+      "OPERATIVENOTE",
+      "URGENTCARE",
+    ],
+    sources: [],
+  },
+  encounterdocument: { 
+    display: "Encounter Document", 
+    subclasses: [
+      "IMAGEDOC",
+      "PATIENTHISTORY",
+      "PROCEDUREDOC",
+      "PROGRESSNOTE",
+    ],
+    sources: [],
+  },
+  imagingresult: { display: "Imaging Result", subclasses: [], sources: [] },
+  labresult: { display: "Lab Result", subclasses: [], sources: [] },
+  medicalrecord: { 
+    display: "Medical Record", 
+    subclasses: [
+      "CHARTTOABSTRACT",
+      "COUMADIN",
+      "GROWTHCHART",
+      "HISTORICAL",
+      "PATIENTDIARY",
+      "VACCINATION",
+    ],
+    sources: [],
+  },
+  // signedorder: { display: "Signed Order", subclasses: [], sources: [] },
+  // patientcase: { // unimplemented for now -- requires an ordering provider id as well as sources, which is overcomplicated
+  //   display: "Patient Case", 
+  //   subclasses: [
+
+  //   ], 
+  //   sources: [
+  //     "PATIENT",
+  //     "CAREGIVER",
+  //     "PARTNER",
+  //     "PHARMACY",
+  //     "LAB",
+  //     "PCP",
+  //     "SPECIALIST",
+  //     "STAFF",
+  //     "HOSPITAL",
+  //     "OTHER",
+  //     "PORTAL",
+  //     "Live Operator",
+  //   ],
+  // },
+  phonemessage: { display: "Phone Message", subclasses: [], sources: [] },
+  physicianauth: { 
+    display: "Physician Auth", 
+    subclasses: [
+      "PHYSICIANAUTH",
+      "CAREPLANOVERSIGHT",
+    ], 
+    sources: [],
+  },
+  // prescription: { display: "Prescription", subclasses: [], sources: [] },
+}

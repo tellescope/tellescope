@@ -596,6 +596,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
     drChronoId?: string;
     canvasId?: string;
     medplumId?: string;
+    athenaId?: string;
     zoomId?: string;
     zendeskId?: number;
     tags?: string[];
@@ -2120,6 +2121,7 @@ export type BaseAvailabilityBlock = {
     userId: string;
     startTimeInMS: number;
     durationInMinutes: number;
+    externalId?: string;
 };
 export interface AvailabilityBlock_readonly extends ClientRecord {
 }
@@ -2190,6 +2192,7 @@ export interface CalendarEvent_updatesDisabled {
 }
 export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_required, CalendarEvent_updatesDisabled {
     athenaDepartmentId?: string;
+    athenaTypeId?: string;
     actualDuration?: number;
     dontSyncToCanvas?: boolean;
     reason?: string;
@@ -2404,6 +2407,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
     preventRescheduleMinutesInAdvance?: number;
     preventCancelMinutesInAdvance?: number;
     athenaDepartmentId?: string;
+    athenaTypeId?: string;
 }
 export interface AppointmentLocation_readonly extends ClientRecord {
 }

@@ -1589,6 +1589,7 @@ export const StripeInput = ({ field, value, onChange, setCustomerId }: FormInput
   const [stripePromise, setStripePromise] = useState<ReturnType<typeof loadStripe>>()
   const [, { findById: findProduct }] = useProducts({ dontFetch: true })
   const [answertext, setAnswertext] = useState('')
+  const [error, setError] = useState('')
 
   const fetchRef = useRef(false)
   useEffect(() => {
@@ -1607,7 +1608,12 @@ export const StripeInput = ({ field, value, onChange, setCustomerId }: FormInput
       setBusinessName(businessName)
       setCustomerId(customerId)
     })
-    .catch(console.error)
+    .catch((e: any) => {
+      console.error(e)
+      if (typeof e?.message === 'string') {
+        setError(e.message)
+      }
+    })
   }, [session, value, field.id])
 
   const cost = (
@@ -1615,6 +1621,13 @@ export const StripeInput = ({ field, value, onChange, setCustomerId }: FormInput
     .reduce((t, p) => t + (p?.cost?.amount || 0), 0)
   )
 
+  if (error) {
+    return (
+      <Typography color="error">
+        {error}
+      </Typography>
+    )
+  }
   if (value) {
     return (
       <Grid container alignItems="center" wrap="nowrap">

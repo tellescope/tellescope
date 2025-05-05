@@ -342,6 +342,13 @@ export type CustomActions = {
             id: string;
             recipientFaxNumber: string;
         }, {}>;
+        push: CustomAction<{
+            id: string;
+            destination: string;
+            type: string;
+        }, {
+            file?: File;
+        }>;
     };
     form_fields: {
         load_choices_from_database: CustomAction<{
@@ -1098,6 +1105,7 @@ export type CustomActions = {
             holdFormResponseId?: string;
             reason?: string;
             scheduledBy?: string;
+            externalId?: string;
         }, {
             createdEvent: CalendarEvent;
         }>;

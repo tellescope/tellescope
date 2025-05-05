@@ -105,6 +105,8 @@ type LocalFilter = {
   valuesQualifier?: ListQueryQualifier,
 }
 
+const COLUMN_RESIZE_HANDLE_WIDTH = 3
+
 // export type SortType = 'infer'
 export type Sorting = {
   field: string,
@@ -358,7 +360,7 @@ export const TableHeader = <T extends Item>({
                 }}
               >
                 <div style={{ 
-                  width: '3px',
+                  width: COLUMN_RESIZE_HANDLE_WIDTH, marginLeft: -COLUMN_RESIZE_HANDLE_WIDTH,
                   height: '30px', 
                   backgroundColor: '#22222266', 
                   cursor: 'col-resize', 
@@ -457,7 +459,7 @@ export const TableRow = <T extends Item>({
         />
         </Flex>
       }
-      <Flex flex={1} wrap="nowrap">
+      <Flex flex={1} wrap="nowrap" style={{ overflow: 'hidden'}}>
       {fields.map(({ key, width, textAlign='left', render, hidden, style }, i) => hidden ? null : (
         <Flex key={key} flex={width !== undefined ? 0 : 1} style={{ 
           alignItems: 'center',

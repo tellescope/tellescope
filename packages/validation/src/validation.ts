@@ -3893,6 +3893,7 @@ export const baseAvailabilityBlockValidator = objectValidator<BaseAvailabilityBl
   durationInMinutes: nonNegNumberValidator,
   startTimeInMS: nonNegNumberValidator,
   userId: mongoIdStringRequired,
+  externalId: stringValidatorOptionalEmptyOkay,
 })
 export const baseAvailabilityBlocksValidator = listValidatorEmptyOk(baseAvailabilityBlockValidator)
 

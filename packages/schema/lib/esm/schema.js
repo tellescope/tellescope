@@ -2142,7 +2142,7 @@ export var schema = build_schema({
                     field: stringValidator100,
                     value: stringValidator5000,
                 }))
-            }, canvasId: { validator: stringValidator100 }, medplumId: { validator: stringValidator100 }, dashboardView: { validator: customDashboardViewValidator }, hideFromCalendarView: { validator: booleanValidator }, requireSSO: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay } })
+            }, canvasId: { validator: stringValidator100 }, medplumId: { validator: stringValidator100 }, athenaId: { validator: stringValidator100 }, dashboardView: { validator: customDashboardViewValidator }, hideFromCalendarView: { validator: booleanValidator }, requireSSO: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay } })
     },
     templates: {
         info: {},
@@ -2350,6 +2350,20 @@ export var schema = build_schema({
                     recipientFaxNumber: { validator: phoneValidator, required: true },
                 },
                 returns: {},
+            },
+            push: {
+                op: "custom", access: 'create', method: "post",
+                name: 'Push File',
+                path: '/files/push',
+                description: "Sends a file to an integrated system (e.g. athenahealth)",
+                parameters: {
+                    id: { validator: mongoIdStringRequired, required: true },
+                    destination: { validator: stringValidator, required: true },
+                    type: { validator: stringValidator },
+                },
+                returns: {
+                    file: { validator: 'file' },
+                },
             },
         },
     },
@@ -3305,6 +3319,7 @@ export var schema = build_schema({
                     holdFormResponseId: { validator: mongoIdStringValidator },
                     reason: { validator: stringValidator5000 },
                     scheduledBy: { validator: mongoIdStringValidator },
+                    externalId: { validator: stringValidator100 },
                 },
                 returns: {
                     createdEvent: { validator: 'calenar_event' },
@@ -3498,7 +3513,7 @@ export var schema = build_schema({
             get_appointment_availability: {}, book_appointment: {}, stripe_details: {},
             session_for_public_appointment_booking: {}, download_ics_file: {},
         },
-        fields: __assign(__assign({}, BuiltInFields), { athenaDepartmentId: { validator: stringValidator1000 }, preventCancelMinutesInAdvance: { validator: numberValidator }, preventRescheduleMinutesInAdvance: { validator: numberValidator }, actualDuration: { validator: nonNegNumberValidator }, dontSyncToCanvas: { validator: booleanValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { athenaDepartmentId: { validator: stringValidator1000 }, athenaTypeId: { validator: stringValidator1000 }, preventCancelMinutesInAdvance: { validator: numberValidator }, preventRescheduleMinutesInAdvance: { validator: numberValidator }, actualDuration: { validator: nonNegNumberValidator }, dontSyncToCanvas: { validator: booleanValidator }, title: {
                 validator: stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -3570,7 +3585,7 @@ export var schema = build_schema({
         defaultActions: DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: { read: {}, readMany: {} },
-        fields: __assign(__assign({}, BuiltInFields), { athenaDepartmentId: { validator: stringValidator1000 }, preventCancelMinutesInAdvance: { validator: numberValidator }, preventRescheduleMinutesInAdvance: { validator: numberValidator }, dontSyncToCanvas: { validator: booleanValidator }, archivedAt: { validator: dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: booleanValidator }, dontAutoSyncPatientToHealthie: { validator: booleanValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { athenaDepartmentId: { validator: stringValidator1000 }, athenaTypeId: { validator: stringValidator1000 }, preventCancelMinutesInAdvance: { validator: numberValidator }, preventRescheduleMinutesInAdvance: { validator: numberValidator }, dontSyncToCanvas: { validator: booleanValidator }, archivedAt: { validator: dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: booleanValidator }, dontAutoSyncPatientToHealthie: { validator: booleanValidator }, title: {
                 validator: stringValidator250,
                 required: true,
                 examples: ["Text"],

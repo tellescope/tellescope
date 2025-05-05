@@ -3330,6 +3330,7 @@ exports.baseAvailabilityBlockValidator = (0, exports.objectValidator)({
     durationInMinutes: exports.nonNegNumberValidator,
     startTimeInMS: exports.nonNegNumberValidator,
     userId: exports.mongoIdStringRequired,
+    externalId: exports.stringValidatorOptionalEmptyOkay,
 });
 exports.baseAvailabilityBlocksValidator = (0, exports.listValidatorEmptyOk)(exports.baseAvailabilityBlockValidator);
 exports.weeklyAvailabilityValidator = (0, exports.objectValidator)({

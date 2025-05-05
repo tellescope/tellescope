@@ -666,6 +666,7 @@ export type CustomActions = {
     run_ocr: CustomAction<{ id: string, type: string }, { file: File }>,
     confirm_file_upload: CustomAction<{ id: string }, { }>,
     send_fax: CustomAction<{ id: string, recipientFaxNumber: string }, { }>,
+    push: CustomAction<{ id: string, destination: string, type: string }, { file?: File }>,
   },
   form_fields: {
     load_choices_from_database: CustomAction<{ fieldId: string, lastId?: string, limit?: number, databaseId?: string }, { choices: DatabaseRecordClient[] }>,
@@ -968,6 +969,7 @@ export type CustomActions = {
       holdFormResponseId?: string,
       reason?: string,
       scheduledBy?: string,
+      externalId?: string,
     }, { 
       createdEvent: CalendarEvent,
     }>,
@@ -3565,6 +3567,7 @@ export const schema: SchemaV1 = build_schema({
       },
       canvasId: { validator: stringValidator100 },
       medplumId: { validator: stringValidator100 },
+      athenaId: { validator: stringValidator100 },
       dashboardView: { validator: customDashboardViewValidator },
       hideFromCalendarView: { validator: booleanValidator },
       requireSSO: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
@@ -3808,6 +3811,20 @@ export const schema: SchemaV1 = build_schema({
           recipientFaxNumber: { validator: phoneValidator, required: true },
         },
         returns: { },
+      },
+      push: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Push File',
+        path: '/files/push',
+        description: "Sends a file to an integrated system (e.g. athenahealth)",
+        parameters: { 
+          id: { validator: mongoIdStringRequired, required: true },
+          destination: { validator: stringValidator, required: true },
+          type: { validator: stringValidator },
+        },
+        returns: { 
+          file: { validator: 'file' as any },
+        },
       },
     },
   },
@@ -5009,6 +5026,7 @@ export const schema: SchemaV1 = build_schema({
           holdFormResponseId: { validator: mongoIdStringValidator },
           reason: { validator: stringValidator5000 },
           scheduledBy: { validator: mongoIdStringValidator },
+          externalId: { validator: stringValidator100 },
         },
         returns: { 
           createdEvent: { validator: 'calenar_event' as any },
@@ -5205,6 +5223,7 @@ export const schema: SchemaV1 = build_schema({
     fields: {
       ...BuiltInFields, 
       athenaDepartmentId: { validator: stringValidator1000 },
+      athenaTypeId: { validator: stringValidator1000 },
       preventCancelMinutesInAdvance: { validator: numberValidator },
       preventRescheduleMinutesInAdvance: { validator: numberValidator },
       actualDuration: { validator: nonNegNumberValidator },
@@ -5358,6 +5377,7 @@ export const schema: SchemaV1 = build_schema({
     fields: {
       ...BuiltInFields, 
       athenaDepartmentId: { validator: stringValidator1000 },
+      athenaTypeId: { validator: stringValidator1000 },
       preventCancelMinutesInAdvance: { validator: numberValidator },
       preventRescheduleMinutesInAdvance: { validator: numberValidator },
       dontSyncToCanvas: { validator: booleanValidator },

@@ -3278,6 +3278,7 @@ export var baseAvailabilityBlockValidator = objectValidator({
     durationInMinutes: nonNegNumberValidator,
     startTimeInMS: nonNegNumberValidator,
     userId: mongoIdStringRequired,
+    externalId: stringValidatorOptionalEmptyOkay,
 });
 export var baseAvailabilityBlocksValidator = listValidatorEmptyOk(baseAvailabilityBlockValidator);
 export var weeklyAvailabilityValidator = objectValidator({

@@ -3606,6 +3606,7 @@ type Queries = {
         send_fax: (args: extractFields<CustomActions['files']['send_fax']['parameters']>) => (Promise<extractFields<CustomActions['files']['send_fax']['returns']>>);
         file_download_URL: (args: extractFields<CustomActions['files']['file_download_URL']['parameters']>) => (Promise<extractFields<CustomActions['files']['file_download_URL']['returns']>>);
         run_ocr: (args: extractFields<CustomActions['files']['run_ocr']['parameters']>) => (Promise<extractFields<CustomActions['files']['run_ocr']['returns']>>);
+        push: (args: extractFields<CustomActions['files']['push']['parameters']>) => (Promise<extractFields<CustomActions['files']['push']['returns']>>);
     };
     form_fields: {
         load_choices_from_database: (args: extractFields<CustomActions['form_fields']['load_choices_from_database']['parameters']>) => (Promise<extractFields<CustomActions['form_fields']['load_choices_from_database']['returns']>>);

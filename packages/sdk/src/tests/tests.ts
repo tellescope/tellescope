@@ -7096,6 +7096,15 @@ export const formsort_tests = async () => {
     await axios.post(`${host}/v1/webhooks/formsort/9d4f9dff00f60df2690a16da2cb848f289b447614ad9bef850e54af09a1fbf7a?formId=${form.id}&matchByName=${matchByName}`, o)
   }
 
+  const postToFormsortGeneric = async ({ matchByName=false, ...o }: { 
+    answers: { key: string, value: any }[],
+    responder_uuid: string,
+    finalized: boolean,
+    matchByName?: boolean,
+  }) => {
+    await axios.post(`${host}/v1/webhooks/form-ingestion/9d4f9dff00f60df2690a16da2cb848f289b447614ad9bef850e54af09a1fbf7a?formId=${form.id}&matchByName=${matchByName}`, o)
+  }
+
   const emailAnswer = { key: 'email', value: 'test@tellescope.com' }
   const nameAnswers = [{ key: 'fname', value: 'First' }, { key: 'lname', value: 'Last' }]
 
@@ -7128,7 +7137,7 @@ export const formsort_tests = async () => {
   await async_test(`Email with name partial`, sdk.api.form_responses.getSome, { onResult: r => r.length === 4 })
   await async_test(`Email with name partial`, sdk.api.endusers.getSome, { onResult: r => r.length === 3 })
 
-  await postToFormsort({ answers: [emailAnswer, ...nameAnswers], responder_uuid: "5", finalized: false, matchByName: true })
+  await postToFormsortGeneric({ answers: [emailAnswer, ...nameAnswers], responder_uuid: "5", finalized: false, matchByName: true })
   await async_test(`Email with name match partial`, sdk.api.form_responses.getSome, { onResult: r => r.length === 5 })
   await async_test(`Email with name match partial`, sdk.api.endusers.getSome, { onResult: r => r.length === 3 })
 

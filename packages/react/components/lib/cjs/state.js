@@ -441,6 +441,7 @@ exports.lastDataSync = { current: { numResults: 0, at: new Date(0), from: new Da
 var useDataSync____internal = function () {
     var session = (0, index_1.useSession)();
     var lastFetch = react_1.default.useRef(new Date());
+    var lastError = react_1.default.useRef(0);
     var loadTimings = react_1.default.useRef({});
     var loaded = react_1.default.useRef({});
     var deleted = react_1.default.useRef({});
@@ -491,6 +492,10 @@ var useDataSync____internal = function () {
             if (lastFetch.current.getTime() + pollDurationInMS > Date.now()) {
                 return;
             }
+            // 5 second delay when hitting errors intead of immediate retry
+            if (lastError.current > Date.now() - 1000 * 5) {
+                return;
+            }
             // ensure we don't miss updates due to latency
             var from = new Date(lastFetch.current.getTime() - 3000); // large leeway could result in same data being fetched twice, but helps ensure nothing is dropped
             lastFetch.current = new Date(); // update before syncing, not after it returns
@@ -529,6 +534,7 @@ var useDataSync____internal = function () {
                 .catch(function (err) {
                 console.error('Sync error', err);
                 lastFetch.current = from; // don't skip this interval yet
+                lastError.current = Date.now();
             });
         }, 1000);
         return function () { clearInterval(i); };

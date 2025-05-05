@@ -87,6 +87,7 @@ var checkboxStyle = {
     position: 'relative',
     right: '10px',
 };
+var COLUMN_RESIZE_HANDLE_WIDTH = 3;
 var TableHeader = function (_a) {
     var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
     var fields = _a.fields, sorting = _a.sorting, setSorting = _a.setSorting, selectable = _a.selectable, allSelected = _a.allSelected, setAllSelected = _a.setAllSelected, style = _a.style, textStyle = _a.textStyle, horizontalPadding = _a.horizontalPadding, _o = _a.fontSize, fontSize = _o === void 0 ? 15 : _o, memoryId = _a.memoryId, widthOffsets = _a.widthOffsets, setWidthOffsets = _a.setWidthOffsets, onExport = _a.onExport, localFilters = _a.localFilters, setLocalFilters = _a.setLocalFilters, filterSuggestions = _a.filterSuggestions, _p = _a.minColumnWidth, minColumnWidth = _p === void 0 ? 75 : _p, _q = _a.columnResizeZIndex, columnResizeZIndex = _q === void 0 ? 1000 : _q, _r = _a.headerHeight, headerHeight = _r === void 0 ? ROW_HEIGHT : _r;
@@ -151,7 +152,7 @@ var TableHeader = function (_a) {
                                                     });
                                                     setDragPosition({ x: 0, y: 0 }); // snaps back to appropriate spot
                                                 } }, { children: (0, jsx_runtime_1.jsx)("div", { style: {
-                                                        width: '3px',
+                                                        width: COLUMN_RESIZE_HANDLE_WIDTH, marginLeft: -COLUMN_RESIZE_HANDLE_WIDTH,
                                                         height: '30px',
                                                         backgroundColor: '#22222266',
                                                         cursor: 'col-resize',
@@ -195,7 +196,7 @@ var TableRow = function (_a) {
                                 setSelected((selected === null || selected === void 0 ? void 0 : selected.includes(item.id.toString()))
                                     ? selected.filter(function (s) { return s !== item.id.toString(); })
                                     : __spreadArray(__spreadArray([], (selected !== null && selected !== void 0 ? selected : []), true), [item.id.toString()], false));
-                            } }) })), (0, jsx_runtime_1.jsx)(layout_1.Flex, __assign({ flex: 1, wrap: "nowrap" }, { children: fields.map(function (_a, i) {
+                            } }) })), (0, jsx_runtime_1.jsx)(layout_1.Flex, __assign({ flex: 1, wrap: "nowrap", style: { overflow: 'hidden' } }, { children: fields.map(function (_a, i) {
                         var key = _a.key, width = _a.width, _b = _a.textAlign, textAlign = _b === void 0 ? 'left' : _b, render = _a.render, hidden = _a.hidden, style = _a.style;
                         return hidden ? null : ((0, jsx_runtime_1.jsx)(layout_1.Flex, __assign({ flex: width !== undefined ? 0 : 1, style: __assign({ alignItems: 'center', marginLeft: i === fields.length - 1 && textAlign === 'right' ? 'auto' : undefined, justifyContent: textAlign === 'right' ? 'flex-end' : 'flex-start' }, style) }, { children: (0, jsx_runtime_1.jsx)(mui_1.Typography, __assign({ component: "div", style: __assign({ textAlign: textAlign, fontSize: fontSize, width: (typeof width === 'number'
                                         ? Math.max(minColumnWidth, width + (widthOffsets[key] || 0))

@@ -810,6 +810,7 @@ var StripeInput = function (_a) {
     var _h = (0, react_1.useState)(), stripePromise = _h[0], setStripePromise = _h[1];
     var _j = (0, __1.useProducts)({ dontFetch: true }), findProduct = _j[1].findById;
     var _k = (0, react_1.useState)(''), answertext = _k[0], setAnswertext = _k[1];
+    var _l = (0, react_1.useState)(''), error = _l[0], setError = _l[1];
     var fetchRef = (0, react_1.useRef)(false);
     (0, react_1.useEffect)(function () {
         var _a;
@@ -829,10 +830,18 @@ var StripeInput = function (_a) {
             setBusinessName(businessName);
             setCustomerId(customerId);
         })
-            .catch(console.error);
+            .catch(function (e) {
+            console.error(e);
+            if (typeof (e === null || e === void 0 ? void 0 : e.message) === 'string') {
+                setError(e.message);
+            }
+        });
     }, [session, value, field.id]);
     var cost = ((((_b = field.options) === null || _b === void 0 ? void 0 : _b.productIds) || []).map(function (id) { return findProduct(id, { batch: false }); }) // seems to be having issues with bulk read
         .reduce(function (t, p) { var _a; return t + (((_a = p === null || p === void 0 ? void 0 : p.cost) === null || _a === void 0 ? void 0 : _a.amount) || 0); }, 0));
+    if (error) {
+        return ((0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ color: "error" }, { children: error })));
+    }
     if (value) {
         return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap" }, { children: [(0, jsx_runtime_1.jsx)(icons_material_1.CheckCircleOutline, { color: "success" }), (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { ml: 1, fontSize: 20 } }, { children: ((_d = field.options) === null || _d === void 0 ? void 0 : _d.chargeImmediately) ? 'Your purchase was successful' : "Your payment details have been saved!" }))] })));
     }

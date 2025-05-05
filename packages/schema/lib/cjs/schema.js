@@ -2147,7 +2147,7 @@ exports.schema = (0, exports.build_schema)({
                     field: validation_1.stringValidator100,
                     value: validation_1.stringValidator5000,
                 }))
-            }, canvasId: { validator: validation_1.stringValidator100 }, medplumId: { validator: validation_1.stringValidator100 }, dashboardView: { validator: validation_1.customDashboardViewValidator }, hideFromCalendarView: { validator: validation_1.booleanValidator }, requireSSO: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay } })
+            }, canvasId: { validator: validation_1.stringValidator100 }, medplumId: { validator: validation_1.stringValidator100 }, athenaId: { validator: validation_1.stringValidator100 }, dashboardView: { validator: validation_1.customDashboardViewValidator }, hideFromCalendarView: { validator: validation_1.booleanValidator }, requireSSO: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay } })
     },
     templates: {
         info: {},
@@ -2355,6 +2355,20 @@ exports.schema = (0, exports.build_schema)({
                     recipientFaxNumber: { validator: validation_1.phoneValidator, required: true },
                 },
                 returns: {},
+            },
+            push: {
+                op: "custom", access: 'create', method: "post",
+                name: 'Push File',
+                path: '/files/push',
+                description: "Sends a file to an integrated system (e.g. athenahealth)",
+                parameters: {
+                    id: { validator: validation_1.mongoIdStringRequired, required: true },
+                    destination: { validator: validation_1.stringValidator, required: true },
+                    type: { validator: validation_1.stringValidator },
+                },
+                returns: {
+                    file: { validator: 'file' },
+                },
             },
         },
     },
@@ -3310,6 +3324,7 @@ exports.schema = (0, exports.build_schema)({
                     holdFormResponseId: { validator: validation_1.mongoIdStringRequired },
                     reason: { validator: validation_1.stringValidator5000 },
                     scheduledBy: { validator: validation_1.mongoIdStringRequired },
+                    externalId: { validator: validation_1.stringValidator100 },
                 },
                 returns: {
                     createdEvent: { validator: 'calenar_event' },
@@ -3503,7 +3518,7 @@ exports.schema = (0, exports.build_schema)({
             get_appointment_availability: {}, book_appointment: {}, stripe_details: {},
             session_for_public_appointment_booking: {}, download_ics_file: {},
         },
-        fields: __assign(__assign({}, BuiltInFields), { athenaDepartmentId: { validator: validation_1.stringValidator1000 }, preventCancelMinutesInAdvance: { validator: validation_1.numberValidator }, preventRescheduleMinutesInAdvance: { validator: validation_1.numberValidator }, actualDuration: { validator: validation_1.nonNegNumberValidator }, dontSyncToCanvas: { validator: validation_1.booleanValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { athenaDepartmentId: { validator: validation_1.stringValidator1000 }, athenaTypeId: { validator: validation_1.stringValidator1000 }, preventCancelMinutesInAdvance: { validator: validation_1.numberValidator }, preventRescheduleMinutesInAdvance: { validator: validation_1.numberValidator }, actualDuration: { validator: validation_1.nonNegNumberValidator }, dontSyncToCanvas: { validator: validation_1.booleanValidator }, title: {
                 validator: validation_1.stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -3575,7 +3590,7 @@ exports.schema = (0, exports.build_schema)({
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: { read: {}, readMany: {} },
-        fields: __assign(__assign({}, BuiltInFields), { athenaDepartmentId: { validator: validation_1.stringValidator1000 }, preventCancelMinutesInAdvance: { validator: validation_1.numberValidator }, preventRescheduleMinutesInAdvance: { validator: validation_1.numberValidator }, dontSyncToCanvas: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: validation_1.booleanValidator }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { athenaDepartmentId: { validator: validation_1.stringValidator1000 }, athenaTypeId: { validator: validation_1.stringValidator1000 }, preventCancelMinutesInAdvance: { validator: validation_1.numberValidator }, preventRescheduleMinutesInAdvance: { validator: validation_1.numberValidator }, dontSyncToCanvas: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: validation_1.booleanValidator }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, title: {
                 validator: validation_1.stringValidator250,
                 required: true,
                 examples: ["Text"],

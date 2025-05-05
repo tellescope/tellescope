@@ -504,6 +504,7 @@ var Session = /** @class */ (function (_super) {
         queries.files.send_fax = function (a) { return _this._POST("/v1".concat(schema_1.schema.files.customActions.send_fax.path), a); };
         queries.files.file_download_URL = function (a) { return _this._GET('/v1/file-download-URL', a); };
         queries.files.run_ocr = function (a) { return _this._POST("/v1".concat(schema_1.schema.files.customActions.run_ocr.path), a); };
+        queries.files.push = function (a) { return _this._POST("/v1".concat(schema_1.schema.files.customActions.push.path), a); };
         queries.chat_rooms.join_room = function (a) { return _this._POST('/v1/join-chat-room', a); };
         queries.chat_rooms.display_info = function (a) { return _this._GET("/v1".concat(schema_1.schema.chat_rooms.customActions.display_info.path), a); };
         queries.chat_rooms.mark_read = function (a) { return _this._POST("/v1".concat(schema_1.schema.chat_rooms.customActions.mark_read.path), a); };

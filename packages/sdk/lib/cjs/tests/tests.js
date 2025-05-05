@@ -8312,7 +8312,7 @@ var switch_to_related_contacts_tests = function () { return __awaiter(void 0, vo
 }); };
 exports.switch_to_related_contacts_tests = switch_to_related_contacts_tests;
 var formsort_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var form, postToFormsort, emailAnswer, nameAnswers, answersEmail, address, answers, submissionEnduser, validateResponse, endusers;
+    var form, postToFormsort, postToFormsortGeneric, emailAnswer, nameAnswers, answersEmail, address, answers, submissionEnduser, validateResponse, endusers;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -8325,6 +8325,17 @@ var formsort_tests = function () { return __awaiter(void 0, void 0, void 0, func
                     return __generator(this, function (_c) {
                         switch (_c.label) {
                             case 0: return [4 /*yield*/, axios_1.default.post("".concat(host, "/v1/webhooks/formsort/9d4f9dff00f60df2690a16da2cb848f289b447614ad9bef850e54af09a1fbf7a?formId=").concat(form.id, "&matchByName=").concat(matchByName), o)];
+                            case 1:
+                                _c.sent();
+                                return [2 /*return*/];
+                        }
+                    });
+                }); };
+                postToFormsortGeneric = function (_a) { return __awaiter(void 0, void 0, void 0, function () {
+                    var _b = _a.matchByName, matchByName = _b === void 0 ? false : _b, o = __rest(_a, ["matchByName"]);
+                    return __generator(this, function (_c) {
+                        switch (_c.label) {
+                            case 0: return [4 /*yield*/, axios_1.default.post("".concat(host, "/v1/webhooks/form-ingestion/9d4f9dff00f60df2690a16da2cb848f289b447614ad9bef850e54af09a1fbf7a?formId=").concat(form.id, "&matchByName=").concat(matchByName), o)];
                             case 1:
                                 _c.sent();
                                 return [2 /*return*/];
@@ -8396,7 +8407,7 @@ var formsort_tests = function () { return __awaiter(void 0, void 0, void 0, func
                 return [4 /*yield*/, (0, testing_1.async_test)("Email with name partial", sdk.api.endusers.getSome, { onResult: function (r) { return r.length === 3; } })];
             case 22:
                 _a.sent();
-                return [4 /*yield*/, postToFormsort({ answers: __spreadArray([emailAnswer], nameAnswers, true), responder_uuid: "5", finalized: false, matchByName: true })];
+                return [4 /*yield*/, postToFormsortGeneric({ answers: __spreadArray([emailAnswer], nameAnswers, true), responder_uuid: "5", finalized: false, matchByName: true })];
             case 23:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Email with name match partial", sdk.api.form_responses.getSome, { onResult: function (r) { return r.length === 5; } })];

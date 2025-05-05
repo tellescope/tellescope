@@ -543,6 +543,7 @@ export const lastDataSync = { current : { numResults: 0, at: new Date(0), from: 
 export const useDataSync____internal = () => {
   const session = useSession()
   const lastFetch = React.useRef(new Date())
+  const lastError = React.useRef(0)
   const loadTimings = React.useRef({ } as { [index: string]: number })
   const loaded = React.useRef({ } as { [K in string]?: ClientModelForName[keyof ClientModelForName][] })
   const deleted = React.useRef({ } as { [K in string]?: string[] })
@@ -596,6 +597,11 @@ export const useDataSync____internal = () => {
         return
       }
 
+      // 5 second delay when hitting errors intead of immediate retry
+      if (lastError.current > Date.now() - 1000 * 5) {
+        return
+      }
+
       // ensure we don't miss updates due to latency
       const from = new Date(lastFetch.current.getTime() - 3000) // large leeway could result in same data being fetched twice, but helps ensure nothing is dropped
       lastFetch.current = new Date() // update before syncing, not after it returns
@@ -631,6 +637,7 @@ export const useDataSync____internal = () => {
       .catch(err => {
         console.error('Sync error', err)
         lastFetch.current = from // don't skip this interval yet
+        lastError.current = Date.now()
       })
     }, 1000)
 
