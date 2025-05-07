@@ -499,6 +499,7 @@ export interface PaginationOptions<T> {
   pageSize?: number;
   initialPage?: number;
   pageMemoryId?: string,
+  showLoadAll?: boolean,
 }
 export interface PaginationProps<T> extends PaginationOptions<T> {
   items: T[];
@@ -568,6 +569,7 @@ export const usePagination = <T,>({ paginated=true, items, pageMemoryId, pageSiz
 
 export interface TableFooterProps <T> extends Styled, HorizontalPadded, Partial<LoadMoreFunctions<T>>, ReturnType<typeof usePagination> {
   loadMoreOptions?: LoadMoreOptions<T>,
+  showLoadAll?: boolean,
 }
 export const TableFooter = <T,>({ horizontalPadding, style, previousDisabled, nextDisabled, selectedPage, numPages, goToNext, goToPrevious } : TableFooterProps<T>) => {
   return (
@@ -608,7 +610,7 @@ const resolve_middle_page_numbers = (selectedPage: number, numPages: number): [u
 }
 
 const FOOTER_BUTTON_SIZE = 30
-export const TableFooterNumbered = <T,>({ horizontalPadding, loadMore, loadMoreOptions, doneLoading, style, previousDisabled, nextDisabled, selectedPage, numPages, goToNext, goToPrevious, goToPage } : TableFooterProps<T>) => {
+export const TableFooterNumbered = <T,>({ showLoadAll, horizontalPadding, loadMore, loadMoreOptions, doneLoading, style, previousDisabled, nextDisabled, selectedPage, numPages, goToNext, goToPrevious, goToPage } : TableFooterProps<T>) => {
   const [middleLeft, middle, middleRight] = resolve_middle_page_numbers(selectedPage, numPages)
 
   const buttonProps = { 
@@ -678,6 +680,18 @@ export const TableFooterNumbered = <T,>({ horizontalPadding, loadMore, loadMoreO
         <Button disabled={nextDisabled} {...buttonProps} onClick={goToNext}>
           <NavigateNextIcon/>
         </Button>
+
+        {showLoadAll &&
+          <LoadingButton variant="outlined" submitText="Load All" submittingText="Loading..."
+            style={{ width: 175, height: 32, marginLeft: 5 }}
+            disabled={doneLoading?.()} 
+            onClick={async () => {
+              while (!doneLoading?.()) {
+                await loadMore?.(loadMoreOptions)
+              }
+            }} 
+          />
+        }
 
 
         <Typography style={{ fontSize: 12, marginLeft: 'auto' }}>
@@ -1145,7 +1159,7 @@ export const Table = <T extends Item>({
       } />
 
       {paginated && FooterComponent && items.length > 0 && // avoid displaying footer / unnecessary border when no items
-        <FooterComponent doneLoading={doneLoading} loadMore={loadMore} loadMoreOptions={loadMoreOptions} {...paginationProps } {...pageOptions} horizontalPadding={horizontalPadding}/>
+        <FooterComponent showLoadAll={pageOptions.showLoadAll} doneLoading={doneLoading} loadMore={loadMore} loadMoreOptions={loadMoreOptions} {...paginationProps } {...pageOptions} horizontalPadding={horizontalPadding}/>
       }
     </Flex>
   )

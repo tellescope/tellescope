@@ -315,6 +315,10 @@ export interface Organization extends Organization_readonly, Organization_requir
     customProviderURL?: string;
     customTermsOfService?: string;
     customPrivacyPolicy?: string;
+    customPolicies?: {
+        url: string;
+        title: string;
+    }[];
     customPoliciesVersion?: string;
     requireCustomTermsOnMagicLink?: boolean;
     settings?: OrganizationSettings;
@@ -442,6 +446,7 @@ export type OrganizationTheme = {
     };
     customTermsOfService?: string;
     customPrivacyPolicy?: string;
+    customPolicies?: Organization['customPolicies'];
     customPoliciesVersion?: string;
     requireCustomTermsOnMagicLink?: boolean;
 };
@@ -1796,6 +1801,7 @@ export interface Integration extends Integration_readonly, Integration_required,
     pushRemovedTags?: boolean;
     overwriteAddress?: boolean;
     requirePhoneToPushEnduser?: boolean;
+    syncAsActive?: boolean;
 }
 export type BuildDatabaseRecordField<K extends string, V, O> = {
     type: K;
@@ -2192,6 +2198,7 @@ export interface CalendarEvent_updatesDisabled {
 }
 export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_required, CalendarEvent_updatesDisabled {
     athenaDepartmentId?: string;
+    generateAthenaTelehealthLink?: boolean;
     athenaTypeId?: string;
     actualDuration?: number;
     dontSyncToCanvas?: boolean;
@@ -2407,6 +2414,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
     preventRescheduleMinutesInAdvance?: number;
     preventCancelMinutesInAdvance?: number;
     athenaDepartmentId?: string;
+    generateAthenaTelehealthLink?: boolean;
     athenaTypeId?: string;
 }
 export interface AppointmentLocation_readonly extends ClientRecord {
@@ -3917,6 +3925,7 @@ export type AutomationTriggerEvents = {
         source: string;
         status: string;
         fills?: string[];
+        skus?: string[];
     }, {}>;
     'Missed Call': AutomationTriggerEventBuilder<"Missed Call", {
         phoneNumbers?: string[];
@@ -4323,6 +4332,7 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
     frequency?: string;
     activateBy?: string;
     fill?: string;
+    sku?: string;
 }
 export interface EnduserProblem_readonly extends ClientRecord {
 }

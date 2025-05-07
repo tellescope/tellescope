@@ -569,6 +569,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     proxy_read: (args: extractFields<CustomActions['integrations']['proxy_read']['parameters']>) => (
       Promise<extractFields<CustomActions['integrations']['proxy_read']['returns']>>
     ),
+    proxy_write: (args: extractFields<CustomActions['integrations']['proxy_write']['parameters']>) => (
+      Promise<extractFields<CustomActions['integrations']['proxy_write']['returns']>>
+    ),
     load_payers: (args: extractFields<CustomActions['integrations']['load_payers']['parameters']>) => (
       Promise<extractFields<CustomActions['integrations']['load_payers']['returns']>>
     ),
@@ -987,6 +990,7 @@ export class Session extends SessionManager {
     queries.integrations.update_zoom = args => this._POST(`/v1${schema.integrations.customActions.update_zoom.path}`, args)
     queries.integrations.load_payers = args => this._GET(`/v1${schema.integrations.customActions.load_payers.path}`, args)
     queries.integrations.proxy_read = args => this._GET(`/v1${schema.integrations.customActions.proxy_read.path}`, args)
+    queries.integrations.proxy_write = args => this._POST(`/v1${schema.integrations.customActions.proxy_write.path}`, args)
     queries.integrations.generate_google_auth_url = a => this._POST(`/v1/${schema.integrations.customActions.generate_google_auth_url.path}`, a)
     queries.integrations.disconnect_google_integration = a => this._POST(`/v1/${schema.integrations.customActions.disconnect_google_integration.path}`, a)
     queries.integrations.refresh_oauth2_session = a => this._POST(`/v1/${schema.integrations.customActions.refresh_oauth2_session.path}`, a)

@@ -1005,6 +1005,14 @@ export type CustomActions = {
         }, {
             data: any;
         }>;
+        proxy_write: CustomAction<{
+            integration: string;
+            type: string;
+            id?: string;
+            query?: Record<string, any>;
+        }, {
+            data: any;
+        }>;
     };
     emails: {
         sync_integrations: CustomAction<{

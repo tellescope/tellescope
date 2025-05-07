@@ -913,6 +913,10 @@ export declare const previousFormFieldsValidator: ValidatorDefinition<((Previous
     type: "compoundLogic";
 }))[]>;
 export declare const portalSettingsValidator: ValidatorDefinition<PortalSettings>;
+export declare const customPoliciesValidator: ValidatorDefinition<{
+    title: string;
+    url: string;
+}[]>;
 export declare const organizationThemeValidator: ValidatorDefinition<OrganizationTheme>;
 export declare const MANAGED_CONTENT_RECORD_TYPES: ManagedContentRecordType[];
 export declare const managedContentRecordTypeValidator: ValidatorDefinition<ManagedContentRecordType>;
@@ -1632,6 +1636,7 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
     source: string;
     status: string;
     fills?: string[] | undefined;
+    skus?: string[] | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Missed Call", {
     phoneNumbers?: string[] | undefined;
     inputs?: string[] | undefined;

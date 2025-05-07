@@ -323,6 +323,7 @@ import {
   listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
   recentViewersValidator,
   stringValidator100000OptionalEmptyOkayEscapeHTML,
+  customPoliciesValidator,
 } from "@tellescope/validation"
 
 import {
@@ -925,6 +926,7 @@ export type CustomActions = {
     disconnect_zendesk: CustomAction<{}, {}>,
     update_zoom: CustomAction<{ clientId?: string, clientSecret?: string }, { }>,
     proxy_read: CustomAction<{ integration: string, type: string, id?: string, query?: string }, { data: any }>,
+    proxy_write: CustomAction<{ integration: string, type: string, id?: string, query?: Record<string, any> }, { data: any }>,
   },
   emails: {
     sync_integrations: CustomAction<{ enduserEmail: string, allUsers?: boolean }, { newEmails: Email[] }>,
@@ -2031,6 +2033,7 @@ export const schema: SchemaV1 = build_schema({
           }
         ]
       },
+      syncAsActive: { validator: booleanValidator }, // e.g. for Zus
       requirePhoneToPushEnduser: { validator: booleanValidator },
       lastSync: { validator: nonNegNumberValidator },
       emailDisabled: { validator: booleanValidator },
@@ -2078,6 +2081,21 @@ export const schema: SchemaV1 = build_schema({
           type: { validator: stringValidator, required: true },
           id: { validator: stringValidator },
           query: { validator: stringValidator },
+        },
+        returns: { 
+          data: { validator: optionalAnyObjectValidator, required: true },
+        }
+      },
+      proxy_write: {
+        op: 'custom', access: 'update', method: 'post',
+        path: '/integrations/proxy-write',
+        name: 'Proxies a write request to a given integration and returns the result',
+        description: "", 
+        parameters: {
+          integration: { validator: stringValidator, required: true },
+          type: { validator: stringValidator, required: true },
+          query: { validator: objectAnyFieldsAnyValuesValidator },
+          id: { validator: stringValidator },
         },
         returns: { 
           data: { validator: optionalAnyObjectValidator, required: true },
@@ -2890,6 +2908,10 @@ export const schema: SchemaV1 = build_schema({
       enduserIds: {
         validator: listOfMongoIdStringValidatorEmptyOk,
         // add pull dependency for enduser deletion?
+      },
+      recentEnduserMessage: { 
+        validator: stringValidator,
+        readonly: true,
       },
       recentMessage: {
         validator: stringValidator,
@@ -5223,6 +5245,7 @@ export const schema: SchemaV1 = build_schema({
     fields: {
       ...BuiltInFields, 
       athenaDepartmentId: { validator: stringValidator1000 },
+      generateAthenaTelehealthLink: { validator: booleanValidator },
       athenaTypeId: { validator: stringValidator1000 },
       preventCancelMinutesInAdvance: { validator: numberValidator },
       preventRescheduleMinutesInAdvance: { validator: numberValidator },
@@ -5377,6 +5400,7 @@ export const schema: SchemaV1 = build_schema({
     fields: {
       ...BuiltInFields, 
       athenaDepartmentId: { validator: stringValidator1000 },
+      generateAthenaTelehealthLink: { validator: booleanValidator },
       athenaTypeId: { validator: stringValidator1000 },
       preventCancelMinutesInAdvance: { validator: numberValidator },
       preventRescheduleMinutesInAdvance: { validator: numberValidator },
@@ -6491,6 +6515,7 @@ export const schema: SchemaV1 = build_schema({
       replyToEnduserTransactionalEmails: { validator: emailValidator },
       customTermsOfService: { validator: stringValidator },
       customPrivacyPolicy: { validator: stringValidator },
+      customPolicies: { validator: customPoliciesValidator },
       customPoliciesVersion: { validator: stringValidator },
       requireCustomTermsOnMagicLink: { validator: booleanValidator },
       allowCreateSuborganizations: { validator: booleanValidator },
@@ -8214,6 +8239,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       }))},
       tracking: { validator: stringValidatorOptional },
       fill: { validator: stringValidatorOptional },
+      sku: { validator: stringValidatorOptional },
     }
   },
   vital_configurations: {

@@ -88,6 +88,7 @@ export interface PaginationOptions<T> {
     pageSize?: number;
     initialPage?: number;
     pageMemoryId?: string;
+    showLoadAll?: boolean;
 }
 export interface PaginationProps<T> extends PaginationOptions<T> {
     items: T[];
@@ -108,9 +109,10 @@ export declare const usePagination: <T>({ paginated, items, pageMemoryId, pageSi
 };
 export interface TableFooterProps<T> extends Styled, HorizontalPadded, Partial<LoadMoreFunctions<T>>, ReturnType<typeof usePagination> {
     loadMoreOptions?: LoadMoreOptions<T>;
+    showLoadAll?: boolean;
 }
 export declare const TableFooter: <T>({ horizontalPadding, style, previousDisabled, nextDisabled, selectedPage, numPages, goToNext, goToPrevious }: TableFooterProps<T>) => JSX.Element;
-export declare const TableFooterNumbered: <T>({ horizontalPadding, loadMore, loadMoreOptions, doneLoading, style, previousDisabled, nextDisabled, selectedPage, numPages, goToNext, goToPrevious, goToPage }: TableFooterProps<T>) => JSX.Element;
+export declare const TableFooterNumbered: <T>({ showLoadAll, horizontalPadding, loadMore, loadMoreOptions, doneLoading, style, previousDisabled, nextDisabled, selectedPage, numPages, goToNext, goToPrevious, goToPage }: TableFooterProps<T>) => JSX.Element;
 export interface SelectionProps {
     selectable: boolean;
     selected: string[];

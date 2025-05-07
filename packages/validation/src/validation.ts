@@ -3264,6 +3264,11 @@ export const portalSettingsValidator = objectValidator<PortalSettings>({
   }, { isOptional: true, emptyOk: true }),
 })
 
+export const customPoliciesValidator = listValidatorOptionalOrEmptyOk(objectValidator<{ title: string, url: string }>({ 
+  title: stringValidator1000,
+  url: stringValidator1000,
+}))
+
 export const organizationThemeValidator = objectValidator<OrganizationTheme>({
   logoURL: stringValidatorOptional, // these don't really need to be optional
   themeColor: stringValidatorOptional, // these don't really need to be optional
@@ -3279,6 +3284,7 @@ export const organizationThemeValidator = objectValidator<OrganizationTheme>({
   customTermsOfService: stringValidatorOptional,
   customPoliciesVersion: stringValidatorOptional,
   requireCustomTermsOnMagicLink: booleanValidatorOptional,
+  customPolicies: customPoliciesValidator,
 })
 
 const _MANAGED_CONTENT_RECORD_TYPES: { [K in ManagedContentRecordType]: any } = {
@@ -4408,6 +4414,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
       source: stringValidator100,
       status: stringValidator100,
       fills: listOfStringsValidatorOptionalOrEmptyOk,
+      skus:  listOfStringsValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 

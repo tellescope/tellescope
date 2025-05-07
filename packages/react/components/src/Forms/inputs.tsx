@@ -3397,7 +3397,7 @@ export const ConditionsInput = ({ goToNextField, goToPreviousField, field, value
 }
 
 export const RichTextInput = ({ field, value, onChange }: FormInputProps<'Rich Text'>) => (
-  <WYSIWYG initialHTML={value} onChange={v => onChange(v, field.id)} style={{ width: '100%' }} editorStyle={{ width: '100%' }} />
+  <WYSIWYG stopEnterPropagation initialHTML={value} onChange={v => onChange(v, field.id)} style={{ width: '100%' }} editorStyle={{ width: '100%' }} />
 )
 
 export const ChargeebeeInput = ({ field, value, onChange, setCustomerId }: FormInputProps<'Chargebee'> & { 

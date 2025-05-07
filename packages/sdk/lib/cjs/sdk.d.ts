@@ -3695,6 +3695,7 @@ type Queries = {
     integrations: {
         update_zoom: (args: extractFields<CustomActions['integrations']['update_zoom']['parameters']>) => (Promise<extractFields<CustomActions['integrations']['update_zoom']['returns']>>);
         proxy_read: (args: extractFields<CustomActions['integrations']['proxy_read']['parameters']>) => (Promise<extractFields<CustomActions['integrations']['proxy_read']['returns']>>);
+        proxy_write: (args: extractFields<CustomActions['integrations']['proxy_write']['parameters']>) => (Promise<extractFields<CustomActions['integrations']['proxy_write']['returns']>>);
         load_payers: (args: extractFields<CustomActions['integrations']['load_payers']['parameters']>) => (Promise<extractFields<CustomActions['integrations']['load_payers']['returns']>>);
         generate_google_auth_url: (args: extractFields<CustomActions['integrations']['generate_google_auth_url']['parameters']>) => (Promise<extractFields<CustomActions['integrations']['generate_google_auth_url']['returns']>>);
         disconnect_google_integration: (args: extractFields<CustomActions['integrations']['disconnect_google_integration']['parameters']>) => (Promise<extractFields<CustomActions['integrations']['disconnect_google_integration']['returns']>>);

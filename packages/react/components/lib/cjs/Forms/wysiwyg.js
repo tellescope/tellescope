@@ -188,7 +188,7 @@ var getToolbar = function (_a) {
     });
 };
 var WYSIWYG = function (_a) {
-    var updateHtml = _a.updateHtml, _b = _a.initialHTML, _initialHTML = _b === void 0 ? '' : _b, autoFocus = _a.autoFocus, onChange = _a.onChange, style = _a.style, editorStyle = _a.editorStyle, hideEmoji = _a.hideEmoji;
+    var stopEnterPropagation = _a.stopEnterPropagation, updateHtml = _a.updateHtml, _b = _a.initialHTML, _initialHTML = _b === void 0 ? '' : _b, autoFocus = _a.autoFocus, onChange = _a.onChange, style = _a.style, editorStyle = _a.editorStyle, hideEmoji = _a.hideEmoji;
     var trimmed = _initialHTML.trim();
     var initialHTML = (trimmed.startsWith('<p>') && trimmed.endsWith('</p>')
         ? trimmed
@@ -219,7 +219,12 @@ var WYSIWYG = function (_a) {
         return function () { clearTimeout(t); };
     }, [onChange, editorState]);
     var toolbar = (0, react_1.useMemo)(function () { return getToolbar({ hideEmoji: hideEmoji }); }, [hideEmoji]);
-    return ((0, jsx_runtime_1.jsx)(material_1.Paper, __assign({ sx: { padding: 1 }, style: style }, { children: (0, jsx_runtime_1.jsx)(react_draft_wysiwyg_1.Editor, { spellCheck: true, ref: editorRef, editorStyle: editorStyle, editorState: editorState, wrapperClassName: "demo-wrapper", editorClassName: "demo-editor", onEditorStateChange: setEditorState, toolbar: toolbar }) })));
+    return ((0, jsx_runtime_1.jsx)(material_1.Paper, __assign({ sx: { padding: 1 }, style: style }, { children: (0, jsx_runtime_1.jsx)(react_draft_wysiwyg_1.Editor, { spellCheck: true, ref: editorRef, editorStyle: editorStyle, editorState: editorState, wrapperClassName: "demo-wrapper", editorClassName: "demo-editor", onEditorStateChange: setEditorState, toolbar: toolbar, handleReturn: function (e) {
+                if (stopEnterPropagation) {
+                    e.stopPropagation();
+                }
+                return false; // not handled (allow editor to update)
+            } }) })));
 };
 exports.WYSIWYG = WYSIWYG;
 //# sourceMappingURL=wysiwyg.js.map

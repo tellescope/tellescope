@@ -1911,7 +1911,7 @@ export var ConditionsInput = function (_a) {
 };
 export var RichTextInput = function (_a) {
     var field = _a.field, value = _a.value, onChange = _a.onChange;
-    return (_jsx(WYSIWYG, { initialHTML: value, onChange: function (v) { return onChange(v, field.id); }, style: { width: '100%' }, editorStyle: { width: '100%' } }));
+    return (_jsx(WYSIWYG, { stopEnterPropagation: true, initialHTML: value, onChange: function (v) { return onChange(v, field.id); }, style: { width: '100%' }, editorStyle: { width: '100%' } }));
 };
 export var ChargeebeeInput = function (_a) {
     var field = _a.field, value = _a.value, onChange = _a.onChange, setCustomerId = _a.setCustomerId;

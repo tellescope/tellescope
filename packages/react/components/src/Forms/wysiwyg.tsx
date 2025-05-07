@@ -167,11 +167,12 @@ const getToolbar = ({ hideEmoji } : { hideEmoji?: boolean }) => ({
 
 
 
-export const WYSIWYG = ({ updateHtml, initialHTML: _initialHTML='', autoFocus, onChange, style, editorStyle, hideEmoji } : { 
+export const WYSIWYG = ({ stopEnterPropagation, updateHtml, initialHTML: _initialHTML='', autoFocus, onChange, style, editorStyle, hideEmoji } : { 
   initialHTML?: string, onChange: (html: string) => void, autoFocus?: boolean,
   editorStyle?: React.CSSProperties,
   hideEmoji?: boolean,
   updateHtml?: string,
+  stopEnterPropagation?: boolean,
 } & Styled) => {
   const trimmed = _initialHTML.trim()
   const initialHTML = (
@@ -228,6 +229,12 @@ export const WYSIWYG = ({ updateHtml, initialHTML: _initialHTML='', autoFocus, o
         editorClassName="demo-editor"
         onEditorStateChange={setEditorState}
         toolbar={toolbar} 
+        handleReturn={e => {
+          if (stopEnterPropagation) {
+            e.stopPropagation()
+          }
+          return false // not handled (allow editor to update)
+        }}
       />
     </Paper>
   )  

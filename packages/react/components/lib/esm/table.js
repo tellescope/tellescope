@@ -9,6 +9,42 @@ var __assign = (this && this.__assign) || function () {
     };
     return __assign.apply(this, arguments);
 };
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (this && this.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
 var __rest = (this && this.__rest) || function (s, e) {
     var t = {};
     for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p) && e.indexOf(p) < 0)
@@ -254,7 +290,7 @@ var resolve_middle_page_numbers = function (selectedPage, numPages) {
 };
 var FOOTER_BUTTON_SIZE = 30;
 export var TableFooterNumbered = function (_a) {
-    var horizontalPadding = _a.horizontalPadding, loadMore = _a.loadMore, loadMoreOptions = _a.loadMoreOptions, doneLoading = _a.doneLoading, style = _a.style, previousDisabled = _a.previousDisabled, nextDisabled = _a.nextDisabled, selectedPage = _a.selectedPage, numPages = _a.numPages, goToNext = _a.goToNext, goToPrevious = _a.goToPrevious, goToPage = _a.goToPage;
+    var showLoadAll = _a.showLoadAll, horizontalPadding = _a.horizontalPadding, loadMore = _a.loadMore, loadMoreOptions = _a.loadMoreOptions, doneLoading = _a.doneLoading, style = _a.style, previousDisabled = _a.previousDisabled, nextDisabled = _a.nextDisabled, selectedPage = _a.selectedPage, numPages = _a.numPages, goToNext = _a.goToNext, goToPrevious = _a.goToPrevious, goToPage = _a.goToPage;
     var _b = resolve_middle_page_numbers(selectedPage, numPages), middleLeft = _b[0], middle = _b[1], middleRight = _b[2];
     var buttonProps = {
         color: "primary",
@@ -285,7 +321,20 @@ export var TableFooterNumbered = function (_a) {
                         _jsx(Button, __assign({ disabled: selectedPage === middleLeft - 1 }, buttonProps, { onClick: function () { return goToPage(middleLeft - 1); } }, { children: middleLeft })), middle !== undefined &&
                         _jsx(Button, __assign({ disabled: selectedPage === middle - 1 }, buttonProps, { onClick: function () { return goToPage(middle - 1); } }, { children: middle })), middleRight !== undefined &&
                         _jsx(Button, __assign({ disabled: selectedPage === middleRight - 1 }, buttonProps, { onClick: function () { return goToPage(middleRight - 1); } }, { children: middleRight })), numPages !== 1 &&
-                        _jsx(Button, __assign({ disabled: nextDisabled }, buttonProps, { onClick: function () { return goToPage(numPages - 1); } }, { children: numPages })), _jsx(Button, __assign({ disabled: nextDisabled }, buttonProps, { onClick: goToNext }, { children: _jsx(NavigateNextIcon, {}) })), _jsxs(Typography, __assign({ style: { fontSize: 12, marginLeft: 'auto' } }, { children: ["Page ", selectedPage + 1, " of ", numPages] }))] }) })));
+                        _jsx(Button, __assign({ disabled: nextDisabled }, buttonProps, { onClick: function () { return goToPage(numPages - 1); } }, { children: numPages })), _jsx(Button, __assign({ disabled: nextDisabled }, buttonProps, { onClick: goToNext }, { children: _jsx(NavigateNextIcon, {}) })), showLoadAll &&
+                        _jsx(LoadingButton, { variant: "outlined", submitText: "Load All", submittingText: "Loading...", style: { width: 175, height: 32, marginLeft: 5 }, disabled: doneLoading === null || doneLoading === void 0 ? void 0 : doneLoading(), onClick: function () { return __awaiter(void 0, void 0, void 0, function () {
+                                return __generator(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0:
+                                            if (!!(doneLoading === null || doneLoading === void 0 ? void 0 : doneLoading())) return [3 /*break*/, 2];
+                                            return [4 /*yield*/, (loadMore === null || loadMore === void 0 ? void 0 : loadMore(loadMoreOptions))];
+                                        case 1:
+                                            _a.sent();
+                                            return [3 /*break*/, 0];
+                                        case 2: return [2 /*return*/];
+                                    }
+                                });
+                            }); } }), _jsxs(Typography, __assign({ style: { fontSize: 12, marginLeft: 'auto' } }, { children: ["Page ", selectedPage + 1, " of ", numPages] }))] }) })));
 };
 var BORDER_STYLE = "1px solid ".concat(GRAY);
 export var Table = function (_a) {
@@ -523,7 +572,7 @@ export var Table = function (_a) {
                                 : undefined,
                         }, onClick: onClick, onPress: onPress, minColumnWidth: minColumnWidth }, item.id));
                 } }), paginated && FooterComponent && items.length > 0 && // avoid displaying footer / unnecessary border when no items
-                _jsx(FooterComponent, __assign({ doneLoading: doneLoading, loadMore: loadMore, loadMoreOptions: loadMoreOptions }, paginationProps, pageOptions, { horizontalPadding: horizontalPadding }))] })));
+                _jsx(FooterComponent, __assign({ showLoadAll: pageOptions.showLoadAll, doneLoading: doneLoading, loadMore: loadMore, loadMoreOptions: loadMoreOptions }, paginationProps, pageOptions, { horizontalPadding: horizontalPadding }))] })));
     if (noPaper)
         return table;
     return (_jsx(Paper, __assign({ style: style, elevation: elevation }, { children: table })));

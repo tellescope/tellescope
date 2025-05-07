@@ -3429,6 +3429,12 @@ const order_status_equals_tests = async () => {
     status: 'Active',
     title: "Fill Condition"
   })
+  const t5 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'Source', status: "Update", skus: ['SKU'] } },
+    action: { type: 'Add Tags', info: { tags: ['SKU Update'] }},
+    status: 'Active',
+    title: "SKU Condition"
+  })
 
   const e = await sdk.api.endusers.createOne({})
 
@@ -3512,11 +3518,28 @@ const order_status_equals_tests = async () => {
     ) }
   )
 
+  await sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle' })
+  await sdk.api.enduser_orders.updateOne(u.id, { status: "Update", sku: 'SKU' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "SKU update tag added",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!(
+       e.tags?.length === 5
+    && e.tags?.includes('Source')
+    && e.tags?.includes('Fill')
+    && e.tags?.includes('Status Update')
+    && e.tags?.includes('Fill Update')
+    && e.tags?.includes('SKU Update')
+    ) }
+  )
+
   await Promise.all([
     sdk.api.automation_triggers.deleteOne(t1.id),
     sdk.api.automation_triggers.deleteOne(t2.id),
     sdk.api.automation_triggers.deleteOne(t3.id),
     sdk.api.automation_triggers.deleteOne(t4.id),
+    sdk.api.automation_triggers.deleteOne(t5.id),
     sdk.api.endusers.deleteOne(e.id),
   ])
 }
@@ -8776,10 +8799,9 @@ const sync_tests_with_access_tags = async () => {
     settings: { endusers: { enableAccessTags: false } }
   })
   await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: [] }, { replaceObjectFields: true })
-  await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword) // ensure enableAccessTags setting stored correctly on jwt
-  await wait(undefined, 1000)
-  
+  await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword) // ensure enableAccessTags setting stored correctly on jwt 
   await sdk.api.endusers.deleteOne(e.id)
+  await wait(undefined, 1000) // ensure delete does not appear in next sync, sdkNonAdmin connected
 }
 // to cover potential vulernabilities with enduser public register endpoint
 const register_as_enduser_tests = async () => {

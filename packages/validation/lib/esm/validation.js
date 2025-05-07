@@ -2685,6 +2685,10 @@ export var portalSettingsValidator = objectValidator({
         outstandingFormsTitle: stringValidatorOptionalEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
 });
+export var customPoliciesValidator = listValidatorOptionalOrEmptyOk(objectValidator({
+    title: stringValidator1000,
+    url: stringValidator1000,
+}));
 export var organizationThemeValidator = objectValidator({
     logoURL: stringValidatorOptional,
     themeColor: stringValidatorOptional,
@@ -2700,6 +2704,7 @@ export var organizationThemeValidator = objectValidator({
     customTermsOfService: stringValidatorOptional,
     customPoliciesVersion: stringValidatorOptional,
     requireCustomTermsOnMagicLink: booleanValidatorOptional,
+    customPolicies: customPoliciesValidator,
 });
 var _MANAGED_CONTENT_RECORD_TYPES = {
     Article: '',
@@ -3776,6 +3781,7 @@ export var automationTriggerEventValidator = orValidator({
             source: stringValidator100,
             status: stringValidator100,
             fills: listOfStringsValidatorOptionalOrEmptyOk,
+            skus: listOfStringsValidatorOptionalOrEmptyOk,
         }),
         conditions: optionalEmptyObjectValidator,
     }),

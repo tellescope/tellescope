@@ -516,6 +516,7 @@ var Session = /** @class */ (function (_super) {
         queries.integrations.update_zoom = function (args) { return _this._POST("/v1".concat(schema.integrations.customActions.update_zoom.path), args); };
         queries.integrations.load_payers = function (args) { return _this._GET("/v1".concat(schema.integrations.customActions.load_payers.path), args); };
         queries.integrations.proxy_read = function (args) { return _this._GET("/v1".concat(schema.integrations.customActions.proxy_read.path), args); };
+        queries.integrations.proxy_write = function (args) { return _this._POST("/v1".concat(schema.integrations.customActions.proxy_write.path), args); };
         queries.integrations.generate_google_auth_url = function (a) { return _this._POST("/v1/".concat(schema.integrations.customActions.generate_google_auth_url.path), a); };
         queries.integrations.disconnect_google_integration = function (a) { return _this._POST("/v1/".concat(schema.integrations.customActions.disconnect_google_integration.path), a); };
         queries.integrations.refresh_oauth2_session = function (a) { return _this._POST("/v1/".concat(schema.integrations.customActions.refresh_oauth2_session.path), a); };

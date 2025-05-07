@@ -1978,7 +1978,7 @@ var ConditionsInput = function (_a) {
 exports.ConditionsInput = ConditionsInput;
 var RichTextInput = function (_a) {
     var field = _a.field, value = _a.value, onChange = _a.onChange;
-    return ((0, jsx_runtime_1.jsx)(wysiwyg_1.WYSIWYG, { initialHTML: value, onChange: function (v) { return onChange(v, field.id); }, style: { width: '100%' }, editorStyle: { width: '100%' } }));
+    return ((0, jsx_runtime_1.jsx)(wysiwyg_1.WYSIWYG, { stopEnterPropagation: true, initialHTML: value, onChange: function (v) { return onChange(v, field.id); }, style: { width: '100%' }, editorStyle: { width: '100%' } }));
 };
 exports.RichTextInput = RichTextInput;
 var ChargeebeeInput = function (_a) {
