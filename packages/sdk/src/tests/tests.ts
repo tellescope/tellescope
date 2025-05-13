@@ -7135,9 +7135,11 @@ export const formsort_tests = async () => {
   await async_test(`Partial no contact`, sdk.api.form_responses.getSome, { onResult: r => r.length === 0 })
   await async_test(`Partial no contact`, sdk.api.endusers.getSome, { onResult: r => r.length === 0 })
 
-  await postToFormsort({ answers: [{ key: 'test', value: 'test' }], responder_uuid: "1", finalized: true })
+  await postToFormsort({ answers: [{ key: 'test', value: 'test' }, { key: 'termsVersion', value: '1.0' }], responder_uuid: "1", finalized: true })
   await async_test(`Submitted no contact`, sdk.api.form_responses.getSome, { onResult: r => r.length === 1 })
-  await async_test(`Submitted no contact`, sdk.api.endusers.getSome, { onResult: r => r.length === 1 })
+  await async_test(`Submitted no contact`, sdk.api.endusers.getSome, { 
+    onResult: r => r.length === 1 && r[0].termsVersion === '1.0' && !!r[0].termsSigned 
+  })
 
   await postToFormsort({ answers: [emailAnswer], responder_uuid: "2", finalized: false })
   await async_test(`Partial email`, sdk.api.form_responses.getSome, { onResult: r => r.length === 2 })

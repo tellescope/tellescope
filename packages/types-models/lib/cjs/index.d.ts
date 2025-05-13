@@ -1802,6 +1802,7 @@ export interface Integration extends Integration_readonly, Integration_required,
     overwriteAddress?: boolean;
     requirePhoneToPushEnduser?: boolean;
     syncAsActive?: boolean;
+    shardId?: string;
 }
 export type BuildDatabaseRecordField<K extends string, V, O> = {
     type: K;

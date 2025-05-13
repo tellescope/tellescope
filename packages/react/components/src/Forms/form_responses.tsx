@@ -225,9 +225,10 @@ interface FormResponse_T {
   response: FormResponse,
   id?: string,
   logoURL?: string,
+  showAnswerInline?: boolean,
 }
 // this should use all vanilla React / inline styles to ensure printing is consistent
-export const FormResponseView = ({ logoURL, enduser, onClose, hideHeader, response, id, printing, onImageClick } : FormResponse_T & { 
+export const FormResponseView = ({ showAnswerInline=true, logoURL, enduser, onClose, hideHeader, response, id, printing, onImageClick } : FormResponse_T & { 
   printing?: boolean,
   onImageClick?: (args: { src: string }) => void,
 }) => {
@@ -305,14 +306,7 @@ export const FormResponseView = ({ logoURL, enduser, onClose, hideHeader, respon
       <Divider flexItem style={{ marginTop: 2, marginBottom: 12 }} />
 
       <div style={{ flexDirection: "column", display: 'flex', flex: 1 }}>
-      {response.responses.map((r, i) => {
-        const showAnswerInline = true 
-        // old logic for showAnswerInline
-        //  (
-        //       (!r.fieldDescription?.trim() && r.fieldHtmlDescription?.trim() === '<p></p>')
-        //   || !(r.fieldDescription?.trim() || r.fieldHtmlDescription?.trim())
-        // )
-        return (
+      {response.responses.map((r, i) => (
           <div key={i} style={{ marginBottom: 12 }}>
             <div style={{ display: 'flex', flex: 1, flexDirection: "row", justifyContent: 'space-between', flexWrap: 'nowrap' }}>
               {r.fieldTitle && 
@@ -361,7 +355,7 @@ export const FormResponseView = ({ logoURL, enduser, onClose, hideHeader, respon
             }
           </div>
         )
-      })}
+      )}
       </div>
 
       {(response.addenda || []).length > 0 &&

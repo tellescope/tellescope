@@ -24,8 +24,9 @@ interface FormResponse_T {
     response: FormResponse;
     id?: string;
     logoURL?: string;
+    showAnswerInline?: boolean;
 }
-export declare const FormResponseView: ({ logoURL, enduser, onClose, hideHeader, response, id, printing, onImageClick }: FormResponse_T & {
+export declare const FormResponseView: ({ showAnswerInline, logoURL, enduser, onClose, hideHeader, response, id, printing, onImageClick }: FormResponse_T & {
     printing?: boolean | undefined;
     onImageClick?: ((args: {
         src: string;

@@ -122,8 +122,8 @@ exports.ResolveOrganizationLogo = ResolveOrganizationLogo;
 // this should use all vanilla React / inline styles to ensure printing is consistent
 var FormResponseView = function (_a) {
     var _b;
-    var logoURL = _a.logoURL, enduser = _a.enduser, onClose = _a.onClose, hideHeader = _a.hideHeader, response = _a.response, id = _a.id, printing = _a.printing, onImageClick = _a.onImageClick;
-    var _c = (0, index_1.useUsers)(), findUser = _c[1].findById;
+    var _c = _a.showAnswerInline, showAnswerInline = _c === void 0 ? true : _c, logoURL = _a.logoURL, enduser = _a.enduser, onClose = _a.onClose, hideHeader = _a.hideHeader, response = _a.response, id = _a.id, printing = _a.printing, onImageClick = _a.onImageClick;
+    var _d = (0, index_1.useUsers)(), findUser = _d[1].findById;
     var user = findUser((_b = response.submittedBy) !== null && _b !== void 0 ? _b : '');
     if (response.responses === undefined || response.responses.length === 0) {
         return (0, jsx_runtime_1.jsx)(material_1.Typography, { children: "Awaiting Response" });
@@ -151,31 +151,23 @@ var FormResponseView = function (_a) {
                             ? (0, jsx_runtime_1.jsxs)("span", { children: ["Submitted by ", (0, utilities_1.user_display_name)(user)] })
                             : '' // still loading, or can't find user for submittedBy
                         )
-                        : (0, jsx_runtime_1.jsxs)("span", { children: ["From ", (0, utilities_1.user_display_name)(enduser !== null && enduser !== void 0 ? enduser : { email: response.userEmail })] }) })), (0, jsx_runtime_1.jsx)("div", __assign({ style: { textAlign: 'center', paddingBottom: 4 } }, { children: (0, jsx_runtime_1.jsx)("i", { children: (0, utilities_1.formatted_date)(new Date(response.submittedAt || response.createdAt)) }) })), (0, jsx_runtime_1.jsx)(material_1.Divider, { flexItem: true, style: { marginTop: 2, marginBottom: 12 } }), (0, jsx_runtime_1.jsx)("div", __assign({ style: { flexDirection: "column", display: 'flex', flex: 1 } }, { children: response.responses.map(function (r, i) {
-                    var showAnswerInline = true;
-                    // old logic for showAnswerInline
-                    //  (
-                    //       (!r.fieldDescription?.trim() && r.fieldHtmlDescription?.trim() === '<p></p>')
-                    //   || !(r.fieldDescription?.trim() || r.fieldHtmlDescription?.trim())
-                    // )
-                    return ((0, jsx_runtime_1.jsxs)("div", __assign({ style: { marginBottom: 12 } }, { children: [(0, jsx_runtime_1.jsxs)("div", __assign({ style: { display: 'flex', flex: 1, flexDirection: "row", justifyContent: 'space-between', flexWrap: 'nowrap' } }, { children: [r.fieldTitle &&
-                                        (0, jsx_runtime_1.jsx)("div", __assign({ style: {} }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ style: {
-                                                    fontWeight: 'bold',
-                                                    width: (showAnswerInline
-                                                        ? '400px'
-                                                        : undefined)
-                                                } }, { children: r.fieldTitle })) })), (0, jsx_runtime_1.jsx)("div", __assign({ style: {} }, { children: showAnswerInline && r.answer.type !== 'Question Group'
-                                            && !(typeof r.answer.value === 'string' && r.answer.value.includes('{TELLESCOPE')) // hidden field for matching, not to display
-                                            && ((r.answerIsHTML && typeof r.answer.value === 'string')
-                                                ? (0, jsx_runtime_1.jsx)("div", { dangerouslySetInnerHTML: { __html: (0, utilities_1.remove_script_tags)(r.answer.value) } })
-                                                : (0, jsx_runtime_1.jsx)(exports.ResponseAnswer, { fieldId: r.fieldId, formResponse: response, answer: r.answer, printing: printing })) }))] })), r.fieldDescription
-                                ? ((0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ style: {} }, { children: r.fieldDescription }))) : r.fieldHtmlDescription
-                                ? ((0, jsx_runtime_1.jsx)("div", { dangerouslySetInnerHTML: {
-                                        __html: r.fieldHtmlDescription
-                                    } }))
-                                : null, !showAnswerInline &&
-                                (0, jsx_runtime_1.jsx)(exports.ResponseAnswer, { answer: r.answer, formResponse: response, fieldId: r.fieldId })] }), i));
-                }) })), (response.addenda || []).length > 0 &&
+                        : (0, jsx_runtime_1.jsxs)("span", { children: ["From ", (0, utilities_1.user_display_name)(enduser !== null && enduser !== void 0 ? enduser : { email: response.userEmail })] }) })), (0, jsx_runtime_1.jsx)("div", __assign({ style: { textAlign: 'center', paddingBottom: 4 } }, { children: (0, jsx_runtime_1.jsx)("i", { children: (0, utilities_1.formatted_date)(new Date(response.submittedAt || response.createdAt)) }) })), (0, jsx_runtime_1.jsx)(material_1.Divider, { flexItem: true, style: { marginTop: 2, marginBottom: 12 } }), (0, jsx_runtime_1.jsx)("div", __assign({ style: { flexDirection: "column", display: 'flex', flex: 1 } }, { children: response.responses.map(function (r, i) { return ((0, jsx_runtime_1.jsxs)("div", __assign({ style: { marginBottom: 12 } }, { children: [(0, jsx_runtime_1.jsxs)("div", __assign({ style: { display: 'flex', flex: 1, flexDirection: "row", justifyContent: 'space-between', flexWrap: 'nowrap' } }, { children: [r.fieldTitle &&
+                                    (0, jsx_runtime_1.jsx)("div", __assign({ style: {} }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ style: {
+                                                fontWeight: 'bold',
+                                                width: (showAnswerInline
+                                                    ? '400px'
+                                                    : undefined)
+                                            } }, { children: r.fieldTitle })) })), (0, jsx_runtime_1.jsx)("div", __assign({ style: {} }, { children: showAnswerInline && r.answer.type !== 'Question Group'
+                                        && !(typeof r.answer.value === 'string' && r.answer.value.includes('{TELLESCOPE')) // hidden field for matching, not to display
+                                        && ((r.answerIsHTML && typeof r.answer.value === 'string')
+                                            ? (0, jsx_runtime_1.jsx)("div", { dangerouslySetInnerHTML: { __html: (0, utilities_1.remove_script_tags)(r.answer.value) } })
+                                            : (0, jsx_runtime_1.jsx)(exports.ResponseAnswer, { fieldId: r.fieldId, formResponse: response, answer: r.answer, printing: printing })) }))] })), r.fieldDescription
+                            ? ((0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ style: {} }, { children: r.fieldDescription }))) : r.fieldHtmlDescription
+                            ? ((0, jsx_runtime_1.jsx)("div", { dangerouslySetInnerHTML: {
+                                    __html: r.fieldHtmlDescription
+                                } }))
+                            : null, !showAnswerInline &&
+                            (0, jsx_runtime_1.jsx)(exports.ResponseAnswer, { answer: r.answer, formResponse: response, fieldId: r.fieldId })] }), i)); }) })), (response.addenda || []).length > 0 &&
                 (0, jsx_runtime_1.jsx)("div", { style: { borderBottom: '1px solid #00000088', width: '100%', marginTop: 10, marginBottom: 10 } }), (response.addenda || []).map(function (a, i) { return ((0, jsx_runtime_1.jsxs)("div", __assign({ style: { marginTop: 10 } }, { children: [(0, jsx_runtime_1.jsxs)("div", __assign({ style: { fontWeight: 'bold', fontSize: 15 } }, { children: ["Addendum ", i + 1, " by ", (0, utilities_1.user_display_name)(findUser(a.userId, { batch: true })), " at ", (0, utilities_1.formatted_date)(new Date(a.timestamp))] })), (0, jsx_runtime_1.jsx)("div", __assign({ style: { fontSize: 14 } }, { children: a.text.split('\n').map(function (v, t) { return (0, jsx_runtime_1.jsx)("div", { children: v }, t); }) }))] }), i)); })] })));
 };
 exports.FormResponseView = FormResponseView;

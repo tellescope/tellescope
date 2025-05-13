@@ -8382,13 +8382,15 @@ var formsort_tests = function () { return __awaiter(void 0, void 0, void 0, func
                 return [4 /*yield*/, (0, testing_1.async_test)("Partial no contact", sdk.api.endusers.getSome, { onResult: function (r) { return r.length === 0; } })];
             case 4:
                 _a.sent();
-                return [4 /*yield*/, postToFormsort({ answers: [{ key: 'test', value: 'test' }], responder_uuid: "1", finalized: true })];
+                return [4 /*yield*/, postToFormsort({ answers: [{ key: 'test', value: 'test' }, { key: 'termsVersion', value: '1.0' }], responder_uuid: "1", finalized: true })];
             case 5:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Submitted no contact", sdk.api.form_responses.getSome, { onResult: function (r) { return r.length === 1; } })];
             case 6:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Submitted no contact", sdk.api.endusers.getSome, { onResult: function (r) { return r.length === 1; } })];
+                return [4 /*yield*/, (0, testing_1.async_test)("Submitted no contact", sdk.api.endusers.getSome, {
+                        onResult: function (r) { return r.length === 1 && r[0].termsVersion === '1.0' && !!r[0].termsSigned; }
+                    })];
             case 7:
                 _a.sent();
                 return [4 /*yield*/, postToFormsort({ answers: [emailAnswer], responder_uuid: "2", finalized: false })];

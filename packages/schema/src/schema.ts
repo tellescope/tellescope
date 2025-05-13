@@ -2057,6 +2057,7 @@ export const schema: SchemaV1 = build_schema({
       pushAddedTags: { validator: booleanValidator },
       pushRemovedTags: { validator: booleanValidator },
       overwriteAddress: { validator: booleanValidator },
+      shardId: { validator: stringValidator100 },
     },
     customActions: {
       update_zoom: {

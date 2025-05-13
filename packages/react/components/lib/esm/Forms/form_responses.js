@@ -112,8 +112,8 @@ export var ResolveOrganizationLogo = function (_a) {
 // this should use all vanilla React / inline styles to ensure printing is consistent
 export var FormResponseView = function (_a) {
     var _b;
-    var logoURL = _a.logoURL, enduser = _a.enduser, onClose = _a.onClose, hideHeader = _a.hideHeader, response = _a.response, id = _a.id, printing = _a.printing, onImageClick = _a.onImageClick;
-    var _c = useUsers(), findUser = _c[1].findById;
+    var _c = _a.showAnswerInline, showAnswerInline = _c === void 0 ? true : _c, logoURL = _a.logoURL, enduser = _a.enduser, onClose = _a.onClose, hideHeader = _a.hideHeader, response = _a.response, id = _a.id, printing = _a.printing, onImageClick = _a.onImageClick;
+    var _d = useUsers(), findUser = _d[1].findById;
     var user = findUser((_b = response.submittedBy) !== null && _b !== void 0 ? _b : '');
     if (response.responses === undefined || response.responses.length === 0) {
         return _jsx(Typography, { children: "Awaiting Response" });
@@ -141,31 +141,23 @@ export var FormResponseView = function (_a) {
                             ? _jsxs("span", { children: ["Submitted by ", user_display_name(user)] })
                             : '' // still loading, or can't find user for submittedBy
                         )
-                        : _jsxs("span", { children: ["From ", user_display_name(enduser !== null && enduser !== void 0 ? enduser : { email: response.userEmail })] }) })), _jsx("div", __assign({ style: { textAlign: 'center', paddingBottom: 4 } }, { children: _jsx("i", { children: formatted_date(new Date(response.submittedAt || response.createdAt)) }) })), _jsx(Divider, { flexItem: true, style: { marginTop: 2, marginBottom: 12 } }), _jsx("div", __assign({ style: { flexDirection: "column", display: 'flex', flex: 1 } }, { children: response.responses.map(function (r, i) {
-                    var showAnswerInline = true;
-                    // old logic for showAnswerInline
-                    //  (
-                    //       (!r.fieldDescription?.trim() && r.fieldHtmlDescription?.trim() === '<p></p>')
-                    //   || !(r.fieldDescription?.trim() || r.fieldHtmlDescription?.trim())
-                    // )
-                    return (_jsxs("div", __assign({ style: { marginBottom: 12 } }, { children: [_jsxs("div", __assign({ style: { display: 'flex', flex: 1, flexDirection: "row", justifyContent: 'space-between', flexWrap: 'nowrap' } }, { children: [r.fieldTitle &&
-                                        _jsx("div", __assign({ style: {} }, { children: _jsx(Typography, __assign({ style: {
-                                                    fontWeight: 'bold',
-                                                    width: (showAnswerInline
-                                                        ? '400px'
-                                                        : undefined)
-                                                } }, { children: r.fieldTitle })) })), _jsx("div", __assign({ style: {} }, { children: showAnswerInline && r.answer.type !== 'Question Group'
-                                            && !(typeof r.answer.value === 'string' && r.answer.value.includes('{TELLESCOPE')) // hidden field for matching, not to display
-                                            && ((r.answerIsHTML && typeof r.answer.value === 'string')
-                                                ? _jsx("div", { dangerouslySetInnerHTML: { __html: remove_script_tags(r.answer.value) } })
-                                                : _jsx(ResponseAnswer, { fieldId: r.fieldId, formResponse: response, answer: r.answer, printing: printing })) }))] })), r.fieldDescription
-                                ? (_jsx(Typography, __assign({ style: {} }, { children: r.fieldDescription }))) : r.fieldHtmlDescription
-                                ? (_jsx("div", { dangerouslySetInnerHTML: {
-                                        __html: r.fieldHtmlDescription
-                                    } }))
-                                : null, !showAnswerInline &&
-                                _jsx(ResponseAnswer, { answer: r.answer, formResponse: response, fieldId: r.fieldId })] }), i));
-                }) })), (response.addenda || []).length > 0 &&
+                        : _jsxs("span", { children: ["From ", user_display_name(enduser !== null && enduser !== void 0 ? enduser : { email: response.userEmail })] }) })), _jsx("div", __assign({ style: { textAlign: 'center', paddingBottom: 4 } }, { children: _jsx("i", { children: formatted_date(new Date(response.submittedAt || response.createdAt)) }) })), _jsx(Divider, { flexItem: true, style: { marginTop: 2, marginBottom: 12 } }), _jsx("div", __assign({ style: { flexDirection: "column", display: 'flex', flex: 1 } }, { children: response.responses.map(function (r, i) { return (_jsxs("div", __assign({ style: { marginBottom: 12 } }, { children: [_jsxs("div", __assign({ style: { display: 'flex', flex: 1, flexDirection: "row", justifyContent: 'space-between', flexWrap: 'nowrap' } }, { children: [r.fieldTitle &&
+                                    _jsx("div", __assign({ style: {} }, { children: _jsx(Typography, __assign({ style: {
+                                                fontWeight: 'bold',
+                                                width: (showAnswerInline
+                                                    ? '400px'
+                                                    : undefined)
+                                            } }, { children: r.fieldTitle })) })), _jsx("div", __assign({ style: {} }, { children: showAnswerInline && r.answer.type !== 'Question Group'
+                                        && !(typeof r.answer.value === 'string' && r.answer.value.includes('{TELLESCOPE')) // hidden field for matching, not to display
+                                        && ((r.answerIsHTML && typeof r.answer.value === 'string')
+                                            ? _jsx("div", { dangerouslySetInnerHTML: { __html: remove_script_tags(r.answer.value) } })
+                                            : _jsx(ResponseAnswer, { fieldId: r.fieldId, formResponse: response, answer: r.answer, printing: printing })) }))] })), r.fieldDescription
+                            ? (_jsx(Typography, __assign({ style: {} }, { children: r.fieldDescription }))) : r.fieldHtmlDescription
+                            ? (_jsx("div", { dangerouslySetInnerHTML: {
+                                    __html: r.fieldHtmlDescription
+                                } }))
+                            : null, !showAnswerInline &&
+                            _jsx(ResponseAnswer, { answer: r.answer, formResponse: response, fieldId: r.fieldId })] }), i)); }) })), (response.addenda || []).length > 0 &&
                 _jsx("div", { style: { borderBottom: '1px solid #00000088', width: '100%', marginTop: 10, marginBottom: 10 } }), (response.addenda || []).map(function (a, i) { return (_jsxs("div", __assign({ style: { marginTop: 10 } }, { children: [_jsxs("div", __assign({ style: { fontWeight: 'bold', fontSize: 15 } }, { children: ["Addendum ", i + 1, " by ", user_display_name(findUser(a.userId, { batch: true })), " at ", formatted_date(new Date(a.timestamp))] })), _jsx("div", __assign({ style: { fontSize: 14 } }, { children: a.text.split('\n').map(function (v, t) { return _jsx("div", { children: v }, t); }) }))] }), i)); })] })));
 };
 //# sourceMappingURL=form_responses.js.map

@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/types-utilities",
-  "version": "1.196.0",
+  "version": "1.197.0",
   "description": "Utility types for use across Tellescope packages",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
