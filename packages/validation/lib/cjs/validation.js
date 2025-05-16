@@ -2007,6 +2007,7 @@ var _AUTOMATION_ACTIONS = {
     removeAccessTags: '',
     cancelCurrentEvent: '',
     confirmCurrentEvent: '',
+    athenaSync: '',
 };
 exports.AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS);
 exports.automationActionTypeValidator = (0, exports.exactMatchValidator)(exports.AUTOMATION_ACTIONS);
@@ -2528,6 +2529,11 @@ exports.automationActionValidator = (0, exports.orValidator)({
         continueOnError: exports.booleanValidatorOptional,
         type: (0, exports.exactMatchValidator)(['elationSync']),
         info: (0, exports.objectValidator)({}, { emptyOk: true }),
+    }),
+    athenaSync: (0, exports.objectValidator)({
+        continueOnError: exports.booleanValidatorOptional,
+        type: (0, exports.exactMatchValidator)(['athenaSync']),
+        info: (0, exports.objectValidator)({ departmentid: exports.stringValidator100 }, { emptyOk: true }),
     }),
     canvasSync: (0, exports.objectValidator)({
         continueOnError: exports.booleanValidatorOptional,
@@ -3834,6 +3840,7 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
             status: exports.stringValidator100,
             fills: exports.listOfStringsValidatorOptionalOrEmptyOk,
             skus: exports.listOfStringsValidatorOptionalOrEmptyOk,
+            skuPartials: exports.listOfStringsValidatorOptionalOrEmptyOk,
         }),
         conditions: exports.optionalEmptyObjectValidator,
     }),
@@ -5053,6 +5060,15 @@ exports.phoneTreeActionValidator = (0, exports.orValidator)({
         info: (0, exports.objectValidator)({
             queueId: exports.mongoIdStringRequired,
             playback: exports.phonePlaybackValidatorOptional,
+        }),
+    }),
+    "Route Extensions": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['Route Extensions']),
+        info: (0, exports.objectValidator)({
+            extensions: (0, exports.listValidator)((0, exports.objectValidator)({
+                userId: exports.mongoIdStringRequired,
+                input: exports.stringValidator,
+            })),
         }),
     }),
 });

@@ -1957,6 +1957,7 @@ var _AUTOMATION_ACTIONS = {
     removeAccessTags: '',
     cancelCurrentEvent: '',
     confirmCurrentEvent: '',
+    athenaSync: '',
 };
 export var AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS);
 export var automationActionTypeValidator = exactMatchValidator(AUTOMATION_ACTIONS);
@@ -2478,6 +2479,11 @@ export var automationActionValidator = orValidator({
         continueOnError: booleanValidatorOptional,
         type: exactMatchValidator(['elationSync']),
         info: objectValidator({}, { emptyOk: true }),
+    }),
+    athenaSync: objectValidator({
+        continueOnError: booleanValidatorOptional,
+        type: exactMatchValidator(['athenaSync']),
+        info: objectValidator({ departmentid: stringValidator100 }, { emptyOk: true }),
     }),
     canvasSync: objectValidator({
         continueOnError: booleanValidatorOptional,
@@ -3782,6 +3788,7 @@ export var automationTriggerEventValidator = orValidator({
             status: stringValidator100,
             fills: listOfStringsValidatorOptionalOrEmptyOk,
             skus: listOfStringsValidatorOptionalOrEmptyOk,
+            skuPartials: listOfStringsValidatorOptionalOrEmptyOk,
         }),
         conditions: optionalEmptyObjectValidator,
     }),
@@ -5001,6 +5008,15 @@ export var phoneTreeActionValidator = orValidator({
         info: objectValidator({
             queueId: mongoIdStringRequired,
             playback: phonePlaybackValidatorOptional,
+        }),
+    }),
+    "Route Extensions": objectValidator({
+        type: exactMatchValidator(['Route Extensions']),
+        info: objectValidator({
+            extensions: listValidator(objectValidator({
+                userId: mongoIdStringRequired,
+                input: stringValidator,
+            })),
         }),
     }),
 });

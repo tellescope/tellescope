@@ -64,6 +64,7 @@ exports.ENDUSER_FIELD_TYPES = {
     'weight': 'number',
     'Address': 'Address',
     'Insurance': "Insurance",
+    'termsVersion': "Hidden Value",
 };
 exports.PRIMARY_HEX = "#1564bf";
 exports.SECONDARY_HEX = "#1c4378";

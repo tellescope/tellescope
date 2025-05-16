@@ -3435,6 +3435,12 @@ const order_status_equals_tests = async () => {
     status: 'Active',
     title: "SKU Condition"
   })
+  const t6 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'Source', status: "Update", skuPartials: ['SKU-PARTIAL'] } },
+    action: { type: 'Add Tags', info: { tags: ['SKU Partial Update'] }},
+    status: 'Active',
+    title: "SKU Partial Condition"
+  })
 
   const e = await sdk.api.endusers.createOne({})
 
@@ -3519,6 +3525,21 @@ const order_status_equals_tests = async () => {
   )
 
   await sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle' })
+  await sdk.api.enduser_orders.updateOne(u.id, { status: "Update", sku: 'SK' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "SKU update no match",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!(
+       e.tags?.length === 4
+    && e.tags?.includes('Source')
+    && e.tags?.includes('Fill')
+    && e.tags?.includes('Status Update')
+    && e.tags?.includes('Fill Update')
+    ) }
+  )
+
+  await sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle' })
   await sdk.api.enduser_orders.updateOne(u.id, { status: "Update", sku: 'SKU' })
   await wait(undefined, 500) // allow triggers to happen
   await async_test(
@@ -3534,12 +3555,30 @@ const order_status_equals_tests = async () => {
     ) }
   )
 
+  await sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle' })
+  await sdk.api.enduser_orders.updateOne(u.id, { status: "Update", sku: '___SKU-PARTIAL--_' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "SKU partial update tag added",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!(
+       e.tags?.length === 6
+    && e.tags?.includes('Source')
+    && e.tags?.includes('Fill')
+    && e.tags?.includes('Status Update')
+    && e.tags?.includes('Fill Update')
+    && e.tags?.includes('SKU Update')
+    && e.tags?.includes('SKU Partial Update')
+    ) }
+  )
+
   await Promise.all([
     sdk.api.automation_triggers.deleteOne(t1.id),
     sdk.api.automation_triggers.deleteOne(t2.id),
     sdk.api.automation_triggers.deleteOne(t3.id),
     sdk.api.automation_triggers.deleteOne(t4.id),
     sdk.api.automation_triggers.deleteOne(t5.id),
+    sdk.api.automation_triggers.deleteOne(t6.id),
     sdk.api.endusers.deleteOne(e.id),
   ])
 }
@@ -10286,6 +10325,61 @@ const file_source_tests = async () => {
   await sdk.api.files.deleteOne(f.id)
 }
 
+const updatedAt_tests = async () => {
+  log_header("UpdatedAt Tests")
+
+  const e = await sdk.api.endusers.createOne({ fname: 'Test', lname: 'Testson' })
+  const original = new Date((await sdk.api.endusers.getOne(e.id)).updatedAt) // may slightly differ from what's returned on creation
+
+  await wait(undefined, 500)
+  await async_test(
+    "updatedAt doesn't change with a non-log update",
+    () => sdk.api.endusers.updateOne(e.id, { recentViewers: [{ at: new Date(), id: sdk.userInfo.id }] }, { replaceObjectFields: true }),
+    {
+      onResult: e => {
+        const updatedAt = new Date(e.updatedAt)
+        console.log('updatedAt', updatedAt, 'original', original)
+        return updatedAt.getTime() === original.getTime()
+      }
+    }
+  )
+  await async_test(
+    'get to verify that updatedAt is not changed',
+    () => sdk.api.endusers.getOne(e.id),
+    {
+      onResult: e => {
+        const updatedAt = new Date(e.updatedAt)
+        return updatedAt.getTime() === original.getTime()
+      }
+    }
+  )
+
+  await async_test(
+    "updatedAt changes with a log update",
+    () => sdk.api.endusers.updateOne(e.id, { fname: 'Test2' }, { replaceObjectFields: true }),
+    {
+      onResult: e => {
+        const updatedAt = new Date(e.updatedAt)
+        return updatedAt.getTime() > original.getTime()
+      }
+    }
+  )
+  await async_test(
+    'get to verify that updatedAt is changed',
+    () => sdk.api.endusers.getOne(e.id),
+    {
+      onResult: e => {
+        const updatedAt = new Date(e.updatedAt)
+        return updatedAt.getTime() > original.getTime()
+      }
+    }
+  )
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(e.id),
+  ])
+}
+
 (async () => {
   log_header("API")
 
@@ -10401,6 +10495,7 @@ const file_source_tests = async () => {
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests_with_access_tags() // should come directly after setup to avoid extra sync values
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await updatedAt_tests()
     await automation_trigger_tests()
     await file_source_tests()
     await get_templated_message_tests()

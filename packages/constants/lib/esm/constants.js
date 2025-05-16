@@ -59,6 +59,7 @@ export var ENDUSER_FIELD_TYPES = {
     'weight': 'number',
     'Address': 'Address',
     'Insurance': "Insurance",
+    'termsVersion': "Hidden Value",
 };
 export var PRIMARY_HEX = "#1564bf";
 export var SECONDARY_HEX = "#1c4378";

@@ -2857,6 +2857,7 @@ export type ActiveCampaignSyncAutomationAction = AutomationActionBuilder<'active
 export type ActiveCampaignAddToListsAutomationAction = AutomationActionBuilder<'activeCampaignAddToLists', { listIds: string[] }>
 export type SwitchToRelatedContactAutomationAction = AutomationActionBuilder<'switchToRelatedContact', { type: string, otherTypes?: string[] }>
 export type ElationSyncAutomationAction = AutomationActionBuilder<'elationSync', { }>
+export type AthenaSyncAutomationAction = AutomationActionBuilder<'athenaSync', { departmentid: string }>
 export type CanvasSyncAutomationAction = AutomationActionBuilder<'canvasSync', {}>
 export type CanvasCreateNoteAutomationAction = AutomationActionBuilder<'canvasCreateNote', { 
   formIds: string[],
@@ -2947,6 +2948,7 @@ export type AutomationActionForType = {
   activeCampaignAddToLists: ActiveCampaignAddToListsAutomationAction,
   switchToRelatedContact: SwitchToRelatedContactAutomationAction,
   'elationSync': ElationSyncAutomationAction,
+  'athenaSync': AthenaSyncAutomationAction,
   canvasSync: CanvasSyncAutomationAction,
   canvasCreateNote: CanvasCreateNoteAutomationAction,
   pushFormsToPortal: PushFormsAutomationAction,
@@ -3911,6 +3913,7 @@ export type AutomationTriggerEvents = {
     status: string,
     fills?: string[],
     skus?: string[],
+    skuPartials?: string[],
   }, { }>,
   'Missed Call': AutomationTriggerEventBuilder<"Missed Call", { 
     phoneNumbers?: string[], 
@@ -4074,6 +4077,9 @@ export type PhoneTreeActions = {
     hasOneCareTeamMember?: boolean,
   }>
   'Add to Queue': PhoneTreeActionBuilder<"Add to Queue", { queueId: string, playback?: Partial<PhonePlayback>, }>
+  'Route Extensions': PhoneTreeActionBuilder<"Route Extensions", { 
+    extensions: { input: string, userId: string }[],
+  }>
 }
 export type PhoneTreeActionType = keyof PhoneTreeActions 
 export type PhoneTreeAction = PhoneTreeActions[PhoneTreeActionType]

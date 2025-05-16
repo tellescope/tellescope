@@ -315,6 +315,7 @@ import {
   ConfirmCurrentEventAction,
   CanvasCreateNoteAutomationAction,
   RecentViewer,
+  AthenaSyncAutomationAction,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -2465,6 +2466,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   removeAccessTags: '',
   cancelCurrentEvent: '',
   confirmCurrentEvent: '',
+  athenaSync: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -3047,6 +3049,11 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['elationSync']),
     info: objectValidator<ElationSyncAutomationAction['info']>({ }, { emptyOk: true }),
+  }),
+  athenaSync: objectValidator<AthenaSyncAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['athenaSync']),
+    info: objectValidator<AthenaSyncAutomationAction['info']>({ departmentid: stringValidator100 }, { emptyOk: true }),
   }),
   canvasSync: objectValidator<CanvasSyncAutomationAction>({
     continueOnError: booleanValidatorOptional,
@@ -4414,7 +4421,8 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
       source: stringValidator100,
       status: stringValidator100,
       fills: listOfStringsValidatorOptionalOrEmptyOk,
-      skus:  listOfStringsValidatorOptionalOrEmptyOk,
+      skus: listOfStringsValidatorOptionalOrEmptyOk,
+      skuPartials: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -5745,6 +5753,15 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
     info: objectValidator<PhoneTreeActions["Add to Queue"]['info']>({
       queueId: mongoIdStringRequired,
       playback: phonePlaybackValidatorOptional,
+    }),
+  }),
+  "Route Extensions": objectValidator<PhoneTreeActions["Route Extensions"]>({
+    type: exactMatchValidator(['Route Extensions']),
+    info: objectValidator<PhoneTreeActions["Route Extensions"]['info']>({
+      extensions: listValidator(objectValidator({
+        userId: mongoIdStringRequired,
+        input: stringValidator, 
+      })),
     }),
   }),
 })
