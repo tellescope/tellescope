@@ -1691,6 +1691,7 @@ export declare const automationTriggerActionValidator: ValidatorDefinition<impor
 }> | import("@tellescope/types-models").AutomationTriggerActionBuilder<"Assign Care Team", {
     tags: ListOfStringsWithQualifier;
     limitToOneUser?: boolean | undefined;
+    setAsPrimary?: boolean | undefined;
 }> | import("@tellescope/types-models").AutomationTriggerActionBuilder<"Remove Care Team", {
     tags: ListOfStringsWithQualifier;
 }> | import("@tellescope/types-models").AutomationTriggerActionBuilder<"Set Fields", {
@@ -1887,7 +1888,11 @@ export declare const analyticsQueryValidator: ValidatorDefinition<{
         method: "Total";
         parameters: undefined;
     };
-    filter?: {} | undefined;
+    filter?: {
+        direction?: "Inbound" | "Outbound" | "Both" | undefined;
+        templateIds?: string[] | undefined;
+        subjects?: string[] | undefined;
+    } | undefined;
     grouping?: (import("@tellescope/types-models").EnduserGrouping & {
         Enduser: string;
     }) | undefined;
@@ -2098,7 +2103,11 @@ export declare const analyticsQueriesValidatorOptional: ValidatorDefinition<({
         method: "Total";
         parameters: undefined;
     };
-    filter?: {} | undefined;
+    filter?: {
+        direction?: "Inbound" | "Outbound" | "Both" | undefined;
+        templateIds?: string[] | undefined;
+        subjects?: string[] | undefined;
+    } | undefined;
     grouping?: (import("@tellescope/types-models").EnduserGrouping & {
         Enduser: string;
     }) | undefined;

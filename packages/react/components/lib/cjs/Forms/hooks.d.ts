@@ -80,6 +80,7 @@ interface UseTellescopeFormOptions {
     urlLogicValue?: string;
     enduser?: Partial<Enduser>;
     isPublicForm?: boolean;
+    dontAutoadvance?: boolean;
 }
 export declare const WithOrganizationTheme: ({ businessId, organizationIds, children }: {
     children: React.ReactNode;
@@ -98,7 +99,7 @@ export type FileResponse = {
     fieldTitle: string;
     blobs?: FileBlob[];
 };
-export declare const useTellescopeForm: ({ isPublicForm, form, urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL, enduser }: UseTellescopeFormOptions) => {
+export declare const useTellescopeForm: ({ dontAutoadvance, isPublicForm, form, urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL, enduser }: UseTellescopeFormOptions) => {
     enduserId: string;
     formResponseId: string | undefined;
     activeField: FormFieldNode;

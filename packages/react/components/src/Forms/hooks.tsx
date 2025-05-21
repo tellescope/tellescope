@@ -363,6 +363,7 @@ interface UseTellescopeFormOptions {
   urlLogicValue?: string,
   enduser?: Partial<Enduser>,
   isPublicForm?: boolean,
+  dontAutoadvance?: boolean,
 }
 
 const OrganizationThemeContext = createContext(null as any as { 
@@ -511,7 +512,7 @@ const shouldCallout = (field: FormField | undefined, value: FormResponseValueAns
 
 export type Response = FormResponseValue & { touched: boolean, includeInSubmit: boolean, field: FormField }
 export type FileResponse = { fieldId: string, fieldTitle: string, blobs?: FileBlob[] }
-export const useTellescopeForm = ({ isPublicForm, form, urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL,enduser }: UseTellescopeFormOptions) => {
+export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL,enduser }: UseTellescopeFormOptions) => {
   const { amPm, hoursAmPm, minutes } = get_time_values(new Date())
 
   const root = useTreeForFormFields(fields)
@@ -1348,6 +1349,7 @@ export const useTellescopeForm = ({ isPublicForm, form, urlLogicValue, customiza
   }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, logicOptions])
 
   useEffect(() => {
+    if (dontAutoadvance) return
     if (!autoAdvanceRef.current) return
     autoAdvanceRef.current = false
 
@@ -1355,7 +1357,7 @@ export const useTellescopeForm = ({ isPublicForm, form, urlLogicValue, customiza
     const t = setTimeout(goToNextField, 250)
 
     return () => { clearTimeout(t) }
-  }, [responses, goToNextField])
+  }, [responses, goToNextField, dontAutoadvance])
 
   const isPreviousDisabled = useCallback(() => (
       prevFieldStackRef.current.length === 0 

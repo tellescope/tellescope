@@ -1867,10 +1867,10 @@ const isFormField = (f: JSONType, fieldOptions={ forUpdate: false }) => {
       throw new Error(`${field.intakeField} is reserved for internal use only and cannot be used as an intake field`)
     }
 
-    const intakeType = ENDUSER_FIELD_TYPES[field.intakeField as keyof typeof ENDUSER_FIELD_TYPES]
-    if (intakeType && intakeType !== field.type) {
+    const intakeTypes = ENDUSER_FIELD_TYPES[field.intakeField as keyof typeof ENDUSER_FIELD_TYPES]
+    if (intakeTypes && !intakeTypes.includes(field.type)) {
       throw new Error(
-        `Intake field ${field.intakeField} requires a form field type of ${INTERNAL_NAME_TO_DISPLAY_FIELD[intakeType as keyof typeof INTERNAL_NAME_TO_DISPLAY_FIELD] || 'Text'}`
+        `Intake field ${field.intakeField} requires a form field type of ${intakeTypes.join(', ') || 'Text'}`
       )
     }
   }
@@ -3485,6 +3485,10 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   chargebeePlanId: stringValidatorOptional,
   chargebeeItemId: stringValidatorOptional,
   relatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
+  elationHistoryType: stringValidatorOptional,
+  elationIsAllergy: booleanValidatorOptional,
+  elationAppendToNote: booleanValidatorOptional,
+  elationAppendToNotePrefix: stringValidatorOptionalEmptyOkay,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -4152,6 +4156,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     templateRequired: booleanValidatorOptional,
     locationRequired: booleanValidatorOptional,
     cancelReasons: listOfStringsValidatorOptionalOrEmptyOk,
+    copyRemindersByDefault: booleanValidatorOptional,
   }, { isOptional: true }),
   dashboard: objectValidator<OrganizationSettings['dashboard']>({
     view: customDashboardViewValidator,
@@ -4594,6 +4599,7 @@ export const automationTriggerActionValidator = orValidator<{ [K in AutomationTr
     info: objectValidator<AutomationTriggerActions['Assign Care Team']['info']>({
       tags: listOfStringsWithQualifierValidator,
       limitToOneUser: booleanValidatorOptional,
+      setAsPrimary: booleanValidatorOptional,
     }),
   }), 
   "Remove Care Team": objectValidator<AutomationTriggerActions["Remove Care Team"]>({
@@ -5257,7 +5263,11 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
   }), 
   "Emails": objectValidator<AnalyticsQueryForType['Emails']>({
     resource: exactMatchValidator<'Emails'>(['Emails']),
-    filter: objectValidator<AnalyticsQueryFilterForType['Emails']>({ }, { isOptional: true, emptyOk: true }),
+    filter: objectValidator<AnalyticsQueryFilterForType['Emails']>({ 
+      direction: stringValidatorOptional,
+      templateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+      subjects: listOfStringsValidatorOptionalOrEmptyOk,
+    }, { isOptional: true, emptyOk: true }),
     info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Emails']]: AnalyticsQueryInfoForType['Emails'][K] }>({
       "Total": objectValidator<AnalyticsQueryInfoForType['Emails']['Total']>({
         method: exactMatchValidator<"Total">(['Total']),

@@ -236,6 +236,7 @@ export type OrganizationSettings = {
         templateRequired?: boolean;
         locationRequired?: boolean;
         cancelReasons?: string[];
+        copyRemindersByDefault?: boolean;
     };
     users?: {
         sessionDurationInHours?: number;
@@ -427,6 +428,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     customPortalLoginEmailSubject?: string;
     customPortalLoginEmailHTML?: string;
     customerIOFields?: string[];
+    customerIOIdField?: string;
     createEnduserForms?: string[];
 }
 export type OrganizationTheme = {
@@ -752,6 +754,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
     unredactedFields?: CustomFields;
     preference?: Preference;
     assignedTo?: string[];
+    primaryAssignee?: string;
     avatar?: string;
     unread?: boolean;
     termsSigned?: Date;
@@ -759,6 +762,8 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
     timezone?: Timezone;
     dateOfBirth?: string;
     gender?: TellescopeGender;
+    genderIdentity?: string;
+    pronouns?: string;
     height?: GenericQuantityWithUnit;
     weight?: GenericQuantityWithUnit;
     source?: string;
@@ -1596,6 +1601,10 @@ export type FormFieldOptions = FormFieldValidation & {
     chargebeeItemId?: string;
     relatedContactTypes?: string[];
     radioChoices?: string[];
+    elationHistoryType?: string;
+    elationIsAllergy?: boolean;
+    elationAppendToNote?: boolean;
+    elationAppendToNotePrefix?: string;
 };
 export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>;
 export type FormFieldCalloutConditionComparison = 'Equals';
@@ -1711,6 +1720,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
     isNonVisitElationNote?: boolean;
     elationVisitNotePractitionerIds?: string[];
     elationVisitNoteType?: string;
+    elationSkipBlankResponses?: boolean;
     canvasId?: string;
     canvasQuestionId?: string;
     syncToOLH?: boolean;
@@ -1802,6 +1812,7 @@ export interface Integration extends Integration_readonly, Integration_required,
     overwriteAddress?: boolean;
     requirePhoneToPushEnduser?: boolean;
     syncAsActive?: boolean;
+    syncEnduserId?: boolean;
     shardId?: string;
 }
 export type BuildDatabaseRecordField<K extends string, V, O> = {
@@ -3522,7 +3533,11 @@ export type AnalyticsQueryFilterForType = {
         direction?: string;
         messages?: string[];
     };
-    Emails: {};
+    Emails: {
+        direction?: "Inbound" | "Outbound" | "Both";
+        templateIds?: string[];
+        subjects?: string[];
+    };
     Medications: {};
     Files: {
         names?: string[];
@@ -3819,6 +3834,7 @@ export type AutomationTriggerActions = {
     "Assign Care Team": AutomationTriggerActionBuilder<'Assign Care Team', {
         tags: ListOfStringsWithQualifier;
         limitToOneUser?: boolean;
+        setAsPrimary?: boolean;
     }>;
     "Canvas: Add Patient": AutomationTriggerActionBuilder<'Canvas: Add Patient', {}>;
     "Zus: Delete Enrollment": AutomationTriggerActionBuilder<'Zus: Delete Enrollment', {

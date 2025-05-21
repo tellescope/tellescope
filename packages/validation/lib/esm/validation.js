@@ -1425,9 +1425,9 @@ var isFormField = function (f, fieldOptions) {
         if (RESERVED_INTAKE_FIELDS.includes(field.intakeField)) {
             throw new Error("".concat(field.intakeField, " is reserved for internal use only and cannot be used as an intake field"));
         }
-        var intakeType = ENDUSER_FIELD_TYPES[field.intakeField];
-        if (intakeType && intakeType !== field.type) {
-            throw new Error("Intake field ".concat(field.intakeField, " requires a form field type of ").concat(INTERNAL_NAME_TO_DISPLAY_FIELD[intakeType] || 'Text'));
+        var intakeTypes = ENDUSER_FIELD_TYPES[field.intakeField];
+        if (intakeTypes && !intakeTypes.includes(field.type)) {
+            throw new Error("Intake field ".concat(field.intakeField, " requires a form field type of ").concat(intakeTypes.join(', ') || 'Text'));
         }
     }
     return field;
@@ -2887,6 +2887,10 @@ export var formFieldOptionsValidator = objectValidator({
     chargebeePlanId: stringValidatorOptional,
     chargebeeItemId: stringValidatorOptional,
     relatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
+    elationHistoryType: stringValidatorOptional,
+    elationIsAllergy: booleanValidatorOptional,
+    elationAppendToNote: booleanValidatorOptional,
+    elationAppendToNotePrefix: stringValidatorOptionalEmptyOkay,
 });
 export var blockValidator = orValidator({
     h1: objectValidator({
@@ -3523,6 +3527,7 @@ export var organizationSettingsValidator = objectValidator({
         templateRequired: booleanValidatorOptional,
         locationRequired: booleanValidatorOptional,
         cancelReasons: listOfStringsValidatorOptionalOrEmptyOk,
+        copyRemindersByDefault: booleanValidatorOptional,
     }, { isOptional: true }),
     dashboard: objectValidator({
         view: customDashboardViewValidator,
@@ -3958,6 +3963,7 @@ export var automationTriggerActionValidator = orValidator({
         info: objectValidator({
             tags: listOfStringsWithQualifierValidator,
             limitToOneUser: booleanValidatorOptional,
+            setAsPrimary: booleanValidatorOptional,
         }),
     }),
     "Remove Care Team": objectValidator({
@@ -4571,7 +4577,11 @@ export var analyticsQueryValidator = orValidator({
     }),
     "Emails": objectValidator({
         resource: exactMatchValidator(['Emails']),
-        filter: objectValidator({}, { isOptional: true, emptyOk: true }),
+        filter: objectValidator({
+            direction: stringValidatorOptional,
+            templateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+            subjects: listOfStringsValidatorOptionalOrEmptyOk,
+        }, { isOptional: true, emptyOk: true }),
         info: orValidator({
             "Total": objectValidator({
                 method: exactMatchValidator(['Total']),

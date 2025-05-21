@@ -37,7 +37,7 @@ import {
 } from "@tellescope/validation"
 
 import { Session, APIQuery, EnduserSession } from "../sdk"
-import { FORM_LOGIC_CALCULATED_FIELDS, get_flattened_fields, responses_satisfy_conditions, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities"
+import { FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, replace_enduser_template_values, responses_satisfy_conditions, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities"
 import { DEFAULT_OPERATIONS, PLACEHOLDER_ID, ZOOM_TITLE } from "@tellescope/constants"
 import { 
   schema, 
@@ -4025,9 +4025,158 @@ const contact_created_tests = async () => {
   ])
 }
 
+// includes primary care team tests
+const assign_care_team_tests = async () => {
+  log_header("Automation Trigger Tests (Assign Care Team)")
+
+  assert(get_care_team_primary({ } ) === undefined, 'get_care_team_primary failed', 'get_care_team_primary missing')
+  assert(get_care_team_primary({ assignedTo: []} ) === undefined, 'get_care_team_primary failed', 'get_care_team_primary empty')
+  assert(get_care_team_primary({ primaryAssignee: '1' } ) === undefined, 'get_care_team_primary failed', 'get_care_team_primary missing (with primaryAssignee)')
+  assert(get_care_team_primary({ assignedTo: [], primaryAssignee: '1' } ) === undefined, 'get_care_team_primary failed', 'get_care_team_primary empty (with primaryAssignee)')
+  assert(get_care_team_primary({ assignedTo: ['1', '2', '3']} ) === '1', 'get_care_team_primary failed', 'get_care_team_primary included')
+  assert(get_care_team_primary({ assignedTo: ['1', '2'], primaryAssignee: '3' } ) === '1', 'get_care_team_primary failed', 'get_care_team_primary included')
+  assert(get_care_team_primary({ assignedTo: ['1', '2'], primaryAssignee: '2' } ) === '2', 'get_care_team_primary failed', 'get_care_team_primary included')
+  assert(get_care_team_primary({ assignedTo: ['1', '2'], primaryAssignee: '1' } ) === '1', 'get_care_team_primary failed', 'get_care_team_primary included')
+
+  await sdk.api.users.updateOne(sdk.userInfo.id, { tags: ['Assignment'] }, { replaceObjectFields: true })
+
+  const t1 = await sdk.api.automation_triggers.createOne({
+    title: 't1',
+    event: { type: 'Tag Added', info: { tag: 'No Match' } },
+    action: {
+      type: "Assign Care Team",
+      info: {
+        tags: { qualifier: 'One Of', values: ["_not_a_match"] },
+      },
+    },
+    status: 'Active',
+  })
+  const t2 = await sdk.api.automation_triggers.createOne({
+    title: 't1',
+    event: { type: 'Tag Added', info: { tag: 'Trigger' } },
+    action: {
+      type: "Assign Care Team",
+      info: {
+        tags: { qualifier: 'One Of', values: ["Assignment"] },
+      },
+    },
+    status: 'Active',
+  })
+  const t3 = await sdk.api.automation_triggers.createOne({
+    title: 't1',
+    event: { type: 'Tag Added', info: { tag: 'Trigger Primary' } },
+    action: {
+      type: "Assign Care Team",
+      info: {
+        tags: { qualifier: 'One Of', values: ["Assignment"] },
+        setAsPrimary: true,
+      },
+    },
+    status: 'Active',
+  })
+  const e1 = await sdk.api.endusers.createOne({ })
+
+  await sdk.api.endusers.updateOne(e1.id, { tags: ['No Match'] })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "No care team added",
+    () => sdk.api.endusers.getOne(e1.id),
+    { onResult: e => !e.assignedTo?.length && !e.primaryAssignee },
+  )
+
+  await sdk.api.endusers.updateOne(e1.id, { tags: ['Trigger'] })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Care team added",
+    () => sdk.api.endusers.getOne(e1.id),
+    { onResult: e => e.assignedTo?.length === 1 && !e.primaryAssignee }
+  )
+
+  await sdk.api.endusers.updateOne(e1.id, { assignedTo: [], tags: ['Trigger Primary'] }, { replaceObjectFields: true })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Care team added and set as primary",
+    () => sdk.api.endusers.getOne(e1.id),
+    { onResult: e => e.assignedTo?.length === 1 && e.primaryAssignee === e.assignedTo[0] }
+  )
+
+  await Promise.all([
+    sdk.api.users.updateOne(sdk.userInfo.id, { tags: [] }, { replaceObjectFields: true }),
+    sdk.api.endusers.deleteOne(e1.id),
+    sdk.api.automation_triggers.deleteOne(t1.id),
+    sdk.api.automation_triggers.deleteOne(t2.id),
+    sdk.api.automation_triggers.deleteOne(t3.id),
+  ])
+}
+
+const set_fields_tests = async () => {
+  log_header("Automation Trigger Tests (Set Fields)")
+  
+  const e1 = await sdk.api.endusers.createOne({  })
+  const t1 = await sdk.api.automation_triggers.createOne({
+    title: "Appointment Created Fields", status: 'Active',
+    event: { type: 'Appointment Created', info: { } },
+    action: {
+      type: 'Set Fields',
+      info: {
+        fields: [
+          { name: 'test',  value: "Test", type: 'Custom Value' } ,
+          { name: 'test2', value: "{{calendar_event.start}}", type: 'Custom Value' } ,
+          { name: 'test3', value: "{{calendar_event.title}}", type: 'Custom Value' } ,
+        ]
+      },
+    }
+  })
+  const t2 = await sdk.api.automation_triggers.createOne({
+    title: "Appointment Created Fields", status: 'Active',
+    event: { type: 'Tag Added', info: { tag: 'Trigger' } },
+    action: {
+      type: 'Set Fields',
+      info: {
+        fields: [
+          { name: 'not_appointment',  value: "Test", type: 'Custom Value' } ,
+          { name: 'still_not_appointment', value: "Test2", type: 'Custom Value' } ,
+        ]
+      },
+    }
+  })
+
+  const a1 = await sdk.api.calendar_events.createOne({ title: 'Test', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e1.id }] })
+  await wait (undefined, 500) // allow triggers to happen
+  await async_test(
+    "Set fields on appointment created",
+    () => sdk.api.endusers.getOne(e1.id),
+    { onResult: e => 
+      e.fields?.test === 'Test'
+      && e.fields?.test2 === new Date(a1.startTimeInMS).toISOString()
+      && e.fields?.test3 === a1.title
+    }
+  )
+
+  await sdk.api.endusers.updateOne(e1.id, { tags: ['Trigger'] })
+  await wait (undefined, 500) // allow triggers to happen
+  await async_test(
+    "Set fields on tag added",
+    () => sdk.api.endusers.getOne(e1.id),
+    { onResult: e =>
+      e.fields?.not_appointment === 'Test'
+      && e.fields?.still_not_appointment === 'Test2'
+    }
+  )
+  
+  return Promise.all([
+    sdk.api.automation_triggers.deleteOne(t1.id),
+    sdk.api.automation_triggers.deleteOne(t2.id),
+    sdk.api.endusers.deleteOne(e1.id),
+    sdk.api.calendar_events.deleteOne(a1.id),
+  ])
+}
+
 const automation_trigger_tests = async () => {
   log_header("Automation Trigger Tests")
 
+  await set_fields_tests()
+  await assign_care_team_tests()
   await contact_created_tests()
   await appointment_cancelled_tests()
   await appointment_created_tests()
@@ -10290,6 +10439,20 @@ const get_templated_message_tests = async () => {
     }
   )
 
+  await async_test(
+    "{{organization.name}}",
+    () => sdk.api.templates.get_templated_message({
+      enduserId: enduser.id,
+      relatedContactId: related.id,
+      channel: 'Chat',
+      message: `{{organization.name}}`,
+      userId: sdk.userInfo.id,
+    }),
+    { onResult: 
+      r => r.plaintext === `Tellescope` 
+    }
+  )
+
   await Promise.all([
     sdk.api.endusers.deleteOne(enduser.id),
     sdk.api.endusers.deleteOne(related.id),
@@ -10378,6 +10541,24 @@ const updatedAt_tests = async () => {
   await Promise.all([
     sdk.api.endusers.deleteOne(e.id),
   ])
+}
+
+const replace_enduser_template_values_tests = async () => {
+  log_header("Replace Enduser Template Values Tests")
+
+  const enduser = await sdk.api.endusers.createOne({ fname: "Test", lname: "User", fields: { CustomField: "Enduser" } })
+
+  assert(replace_enduser_template_values('', enduser) === '', 'fail blank', 'blank')
+  assert(replace_enduser_template_values('test', enduser) === 'test', 'fail test', 'test')
+  assert(replace_enduser_template_values('{{enduser.fname}}', enduser) === 'Test', 'fail fname', 'fname')
+  assert(replace_enduser_template_values('{{enduser.unknown}}', enduser) === '{{enduser.unknown}}', 'fail unknown', 'unknown')
+  assert(replace_enduser_template_values('{{enduser.CustomField}}', enduser) === 'Enduser', 'fail CustomField', 'CustomField')
+  assert(replace_enduser_template_values('{{enduser.UnknownCustomField}}', enduser) === '{{enduser.UnknownCustomField}}', 'fail UnknownCustomField', 'UnknownCustomField')
+
+  const d = Date.now()
+  assert(replace_enduser_template_values(d as any, enduser) === d as any, 'fail non-string', 'non-string')
+
+  await sdk.api.endusers.deleteOne(enduser.id)
 }
 
 (async () => {
@@ -10490,6 +10671,7 @@ const updatedAt_tests = async () => {
     ) 
 
 
+    await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests()
     await multi_tenant_tests() // should come right after setup tests

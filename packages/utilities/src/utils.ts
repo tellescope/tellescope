@@ -2243,6 +2243,7 @@ export const replace_tag_template_values_for_enduser = (tags: string[], enduser:
 
 export const replace_enduser_template_values = (s: string, enduser?: Omit<Enduser, 'id'> | null) => {
   if (!enduser) return s
+  if (typeof s !== 'string') return s // e.g. Date value
 
   let i = 0
   let start = 0
@@ -2540,4 +2541,13 @@ export const is_checkbox_custom_field_value = (value?: any): value is string => 
   }
 
   return false
+}
+
+export const get_care_team_primary = (e: Pick<Enduser, 'assignedTo' | 'primaryAssignee'>) => {
+  if (!e) return
+  if (!e.assignedTo?.length) return
+  if (e.primaryAssignee && e.assignedTo.includes(e.primaryAssignee)) {
+    return e.primaryAssignee
+  }
+  return e.assignedTo[0]
 }

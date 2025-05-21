@@ -2126,6 +2126,8 @@ export var replace_tag_template_values_for_enduser = function (tags, enduser) { 
 export var replace_enduser_template_values = function (s, enduser) {
     if (!enduser)
         return s;
+    if (typeof s !== 'string')
+        return s; // e.g. Date value
     var i = 0;
     var start = 0;
     var templates = [];
@@ -2393,5 +2395,16 @@ export var is_checkbox_custom_field_value = function (value) {
         return true;
     }
     return false;
+};
+export var get_care_team_primary = function (e) {
+    var _a;
+    if (!e)
+        return;
+    if (!((_a = e.assignedTo) === null || _a === void 0 ? void 0 : _a.length))
+        return;
+    if (e.primaryAssignee && e.assignedTo.includes(e.primaryAssignee)) {
+        return e.primaryAssignee;
+    }
+    return e.assignedTo[0];
 };
 //# sourceMappingURL=utils.js.map

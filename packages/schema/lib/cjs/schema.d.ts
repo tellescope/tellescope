@@ -345,7 +345,8 @@ export type CustomActions = {
         push: CustomAction<{
             id: string;
             destination: string;
-            type: string;
+            type?: string;
+            typeId?: string;
         }, {
             file?: File;
         }>;

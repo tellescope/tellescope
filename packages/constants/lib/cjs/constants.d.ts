@@ -42,14 +42,14 @@ export declare const READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME: {
     recentInboundEmailAt: string;
 };
 export declare const ENDUSER_FIELD_TYPES: {
-    email: FormFieldType;
-    phone: FormFieldType;
-    fname: FormFieldType;
-    lname: FormFieldType;
-    dateOfBirth: FormFieldType;
-    height: FormFieldType;
-    weight: FormFieldType;
-    Insurance: FormFieldType;
+    email: FormFieldType[];
+    phone: FormFieldType[];
+    fname: FormFieldType[];
+    lname: FormFieldType[];
+    dateOfBirth: FormFieldType[];
+    height: FormFieldType[];
+    weight: FormFieldType[];
+    Insurance: FormFieldType[];
 };
 export declare const PRIMARY_HEX = "#1564bf";
 export declare const SECONDARY_HEX = "#1c4378";
@@ -188,7 +188,7 @@ export declare const DOCUMENT_TYPE_CODINGS: {
 export declare const PORTAL_PAGES_HIDDEN_BY_DEFAULT: string[];
 export declare const USER_PERSONAL_EMAIL_OVERRIDE = "personal@tellescope.com";
 export declare const TELLESCOPE_PORTAL_SOURCE = "Tellescope Portal";
-export type AthenaDocumentType = ("admin" | "clinicaldocument" | "encounterdocument" | "imagingresult" | "labresult" | "medicalrecord" | "phonemessage" | "physicianauth");
+export type AthenaDocumentType = ("admin" | "clinicaldocument" | "imagingresult" | "labresult" | "medicalrecord" | "phonemessage" | "physicianauth");
 export declare const ATHENA_DOCUMENT_TYPES_TO_DISPLAY: {
     [key in AthenaDocumentType]: {
         display: string;

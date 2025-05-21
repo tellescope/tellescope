@@ -667,7 +667,7 @@ export type CustomActions = {
     run_ocr: CustomAction<{ id: string, type: string }, { file: File }>,
     confirm_file_upload: CustomAction<{ id: string }, { }>,
     send_fax: CustomAction<{ id: string, recipientFaxNumber: string }, { }>,
-    push: CustomAction<{ id: string, destination: string, type: string }, { file?: File }>,
+    push: CustomAction<{ id: string, destination: string, type?: string, typeId?: string }, { file?: File }>,
   },
   form_fields: {
     load_choices_from_database: CustomAction<{ fieldId: string, lastId?: string, limit?: number, databaseId?: string }, { choices: DatabaseRecordClient[] }>,
@@ -1405,6 +1405,10 @@ export const schema: SchemaV1 = build_schema({
         redactions: ['enduser'],
         validator: listOfUniqueStringsValidatorEmptyOk,
       },
+      primaryAssignee: { 
+        validator: mongoIdStringValidator,
+        redactions: ['enduser'],
+      },
       unread: { 
         redactions: ['enduser'],
         validator: booleanValidator,
@@ -1431,6 +1435,8 @@ export const schema: SchemaV1 = build_schema({
         ]
       },
       gender: { validator: tellescopeGenderValidator, redactions: ['enduser'] },
+      genderIdentity: { validator: stringValidator100, redactions: ['enduser'] },
+      pronouns: { validator: stringValidator100, redactions: ['enduser'] },
       height: { validator: genericUnitWithQuantityValidator, redactions: ['enduser'] },
       weight: { validator: genericUnitWithQuantityValidator, redactions: ['enduser'] },
       source: { validator: stringValidator1000Optional },
@@ -2057,6 +2063,7 @@ export const schema: SchemaV1 = build_schema({
       pushAddedTags: { validator: booleanValidator },
       pushRemovedTags: { validator: booleanValidator },
       overwriteAddress: { validator: booleanValidator },
+      syncEnduserId: { validator: booleanValidator },
       shardId: { validator: stringValidator100 },
     },
     customActions: {
@@ -3844,6 +3851,7 @@ export const schema: SchemaV1 = build_schema({
           id: { validator: mongoIdStringRequired, required: true },
           destination: { validator: stringValidator, required: true },
           type: { validator: stringValidator },
+          typeId: { validator: stringValidator },
         },
         returns: { 
           file: { validator: 'file' as any },
@@ -4319,6 +4327,7 @@ export const schema: SchemaV1 = build_schema({
       isNonVisitElationNote: { validator: booleanValidator },
       elationVisitNotePractitionerIds: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       elationVisitNoteType: { validator: stringValidator100 },
+      elationSkipBlankResponses: { validator: booleanValidator },
       publicShowLanguage: { validator: booleanValidator },
       publicShowDownload: { validator: booleanValidator },
       canvasId: { validator: stringValidator100 },
@@ -6544,6 +6553,7 @@ export const schema: SchemaV1 = build_schema({
       observationInvalidationReasons: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       customNotificationTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       customerIOFields: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      customerIOIdField: { validator: stringValidator },
       createEnduserForms: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
     },
   },

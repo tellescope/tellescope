@@ -55,16 +55,18 @@ exports.READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
     recentInboundEmailAt: "Recent Inbound Email Sent At",
 };
 exports.ENDUSER_FIELD_TYPES = {
-    'email': 'email',
-    'phone': 'phone',
-    'fname': 'string',
-    'lname': 'string',
-    'dateOfBirth': 'dateString',
-    'height': 'number',
-    'weight': 'number',
-    'Address': 'Address',
-    'Insurance': "Insurance",
-    'termsVersion': "Hidden Value",
+    'email': ['email'],
+    'phone': ['phone'],
+    'fname': ['string'],
+    'lname': ['string'],
+    'dateOfBirth': ['dateString'],
+    'height': ['number'],
+    'weight': ['number'],
+    'Address': ['Address'],
+    'Insurance': ['Insurance'],
+    'termsVersion': ['Hidden Value'],
+    'genderIdentity': ['string', 'multiple_choice', 'Select'],
+    'pronouns': ['string', 'multiple_choice', 'Select'],
 };
 exports.PRIMARY_HEX = "#1564bf";
 exports.SECONDARY_HEX = "#1c4378";
@@ -1066,16 +1068,16 @@ exports.ATHENA_DOCUMENT_TYPES_TO_DISPLAY = {
         ],
         sources: [],
     },
-    encounterdocument: {
-        display: "Encounter Document",
-        subclasses: [
-            "IMAGEDOC",
-            "PATIENTHISTORY",
-            "PROCEDUREDOC",
-            "PROGRESSNOTE",
-        ],
-        sources: [],
-    },
+    // encounterdocument: { 
+    //   display: "Encounter Document", 
+    //   subclasses: [
+    //     "IMAGEDOC",
+    //     "PATIENTHISTORY",
+    //     "PROCEDUREDOC",
+    //     "PROGRESSNOTE",
+    //   ],
+    //   sources: [],
+    // },
     imagingresult: { display: "Imaging Result", subclasses: [], sources: [] },
     labresult: { display: "Lab Result", subclasses: [], sources: [] },
     medicalrecord: {

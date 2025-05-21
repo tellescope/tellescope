@@ -71,7 +71,7 @@ import crypto from "crypto";
 import * as buffer from "buffer"; // only node >=15.7.0
 import { fieldsToValidationOld, mongoIdStringRequired, } from "@tellescope/validation";
 import { Session, EnduserSession } from "../sdk";
-import { FORM_LOGIC_CALCULATED_FIELDS, get_flattened_fields, responses_satisfy_conditions, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities";
+import { FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, replace_enduser_template_values, responses_satisfy_conditions, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities";
 import { DEFAULT_OPERATIONS, PLACEHOLDER_ID, ZOOM_TITLE } from "@tellescope/constants";
 import { schema, } from "@tellescope/schema";
 import { assert, async_test, log_header, wait, } from "@tellescope/testing";
@@ -4939,31 +4939,216 @@ var contact_created_tests = function () { return __awaiter(void 0, void 0, void 
         }
     });
 }); };
+// includes primary care team tests
+var assign_care_team_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var t1, t2, t3, e1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                log_header("Automation Trigger Tests (Assign Care Team)");
+                assert(get_care_team_primary({}) === undefined, 'get_care_team_primary failed', 'get_care_team_primary missing');
+                assert(get_care_team_primary({ assignedTo: [] }) === undefined, 'get_care_team_primary failed', 'get_care_team_primary empty');
+                assert(get_care_team_primary({ primaryAssignee: '1' }) === undefined, 'get_care_team_primary failed', 'get_care_team_primary missing (with primaryAssignee)');
+                assert(get_care_team_primary({ assignedTo: [], primaryAssignee: '1' }) === undefined, 'get_care_team_primary failed', 'get_care_team_primary empty (with primaryAssignee)');
+                assert(get_care_team_primary({ assignedTo: ['1', '2', '3'] }) === '1', 'get_care_team_primary failed', 'get_care_team_primary included');
+                assert(get_care_team_primary({ assignedTo: ['1', '2'], primaryAssignee: '3' }) === '1', 'get_care_team_primary failed', 'get_care_team_primary included');
+                assert(get_care_team_primary({ assignedTo: ['1', '2'], primaryAssignee: '2' }) === '2', 'get_care_team_primary failed', 'get_care_team_primary included');
+                assert(get_care_team_primary({ assignedTo: ['1', '2'], primaryAssignee: '1' }) === '1', 'get_care_team_primary failed', 'get_care_team_primary included');
+                return [4 /*yield*/, sdk.api.users.updateOne(sdk.userInfo.id, { tags: ['Assignment'] }, { replaceObjectFields: true })];
+            case 1:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        title: 't1',
+                        event: { type: 'Tag Added', info: { tag: 'No Match' } },
+                        action: {
+                            type: "Assign Care Team",
+                            info: {
+                                tags: { qualifier: 'One Of', values: ["_not_a_match"] },
+                            },
+                        },
+                        status: 'Active',
+                    })];
+            case 2:
+                t1 = _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        title: 't1',
+                        event: { type: 'Tag Added', info: { tag: 'Trigger' } },
+                        action: {
+                            type: "Assign Care Team",
+                            info: {
+                                tags: { qualifier: 'One Of', values: ["Assignment"] },
+                            },
+                        },
+                        status: 'Active',
+                    })];
+            case 3:
+                t2 = _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        title: 't1',
+                        event: { type: 'Tag Added', info: { tag: 'Trigger Primary' } },
+                        action: {
+                            type: "Assign Care Team",
+                            info: {
+                                tags: { qualifier: 'One Of', values: ["Assignment"] },
+                                setAsPrimary: true,
+                            },
+                        },
+                        status: 'Active',
+                    })];
+            case 4:
+                t3 = _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({})];
+            case 5:
+                e1 = _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.updateOne(e1.id, { tags: ['No Match'] })];
+            case 6:
+                _a.sent();
+                return [4 /*yield*/, wait(undefined, 500)]; // allow triggers to happen
+            case 7:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, async_test("No care team added", function () { return sdk.api.endusers.getOne(e1.id); }, { onResult: function (e) { var _a; return !((_a = e.assignedTo) === null || _a === void 0 ? void 0 : _a.length) && !e.primaryAssignee; } })];
+            case 8:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.updateOne(e1.id, { tags: ['Trigger'] })];
+            case 9:
+                _a.sent();
+                return [4 /*yield*/, wait(undefined, 500)]; // allow triggers to happen
+            case 10:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, async_test("Care team added", function () { return sdk.api.endusers.getOne(e1.id); }, { onResult: function (e) { var _a; return ((_a = e.assignedTo) === null || _a === void 0 ? void 0 : _a.length) === 1 && !e.primaryAssignee; } })];
+            case 11:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.updateOne(e1.id, { assignedTo: [], tags: ['Trigger Primary'] }, { replaceObjectFields: true })];
+            case 12:
+                _a.sent();
+                return [4 /*yield*/, wait(undefined, 500)]; // allow triggers to happen
+            case 13:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, async_test("Care team added and set as primary", function () { return sdk.api.endusers.getOne(e1.id); }, { onResult: function (e) { var _a; return ((_a = e.assignedTo) === null || _a === void 0 ? void 0 : _a.length) === 1 && e.primaryAssignee === e.assignedTo[0]; } })];
+            case 14:
+                _a.sent();
+                return [4 /*yield*/, Promise.all([
+                        sdk.api.users.updateOne(sdk.userInfo.id, { tags: [] }, { replaceObjectFields: true }),
+                        sdk.api.endusers.deleteOne(e1.id),
+                        sdk.api.automation_triggers.deleteOne(t1.id),
+                        sdk.api.automation_triggers.deleteOne(t2.id),
+                        sdk.api.automation_triggers.deleteOne(t3.id),
+                    ])];
+            case 15:
+                _a.sent();
+                return [2 /*return*/];
+        }
+    });
+}); };
+var set_fields_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var e1, t1, t2, a1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                log_header("Automation Trigger Tests (Set Fields)");
+                return [4 /*yield*/, sdk.api.endusers.createOne({})];
+            case 1:
+                e1 = _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        title: "Appointment Created Fields", status: 'Active',
+                        event: { type: 'Appointment Created', info: {} },
+                        action: {
+                            type: 'Set Fields',
+                            info: {
+                                fields: [
+                                    { name: 'test', value: "Test", type: 'Custom Value' },
+                                    { name: 'test2', value: "{{calendar_event.start}}", type: 'Custom Value' },
+                                    { name: 'test3', value: "{{calendar_event.title}}", type: 'Custom Value' },
+                                ]
+                            },
+                        }
+                    })];
+            case 2:
+                t1 = _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        title: "Appointment Created Fields", status: 'Active',
+                        event: { type: 'Tag Added', info: { tag: 'Trigger' } },
+                        action: {
+                            type: 'Set Fields',
+                            info: {
+                                fields: [
+                                    { name: 'not_appointment', value: "Test", type: 'Custom Value' },
+                                    { name: 'still_not_appointment', value: "Test2", type: 'Custom Value' },
+                                ]
+                            },
+                        }
+                    })];
+            case 3:
+                t2 = _a.sent();
+                return [4 /*yield*/, sdk.api.calendar_events.createOne({ title: 'Test', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e1.id }] })];
+            case 4:
+                a1 = _a.sent();
+                return [4 /*yield*/, wait(undefined, 500)]; // allow triggers to happen
+            case 5:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, async_test("Set fields on appointment created", function () { return sdk.api.endusers.getOne(e1.id); }, { onResult: function (e) {
+                            var _a, _b, _c;
+                            return ((_a = e.fields) === null || _a === void 0 ? void 0 : _a.test) === 'Test'
+                                && ((_b = e.fields) === null || _b === void 0 ? void 0 : _b.test2) === new Date(a1.startTimeInMS).toISOString()
+                                && ((_c = e.fields) === null || _c === void 0 ? void 0 : _c.test3) === a1.title;
+                        }
+                    })];
+            case 6:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.updateOne(e1.id, { tags: ['Trigger'] })];
+            case 7:
+                _a.sent();
+                return [4 /*yield*/, wait(undefined, 500)]; // allow triggers to happen
+            case 8:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, async_test("Set fields on tag added", function () { return sdk.api.endusers.getOne(e1.id); }, { onResult: function (e) {
+                            var _a, _b;
+                            return ((_a = e.fields) === null || _a === void 0 ? void 0 : _a.not_appointment) === 'Test'
+                                && ((_b = e.fields) === null || _b === void 0 ? void 0 : _b.still_not_appointment) === 'Test2';
+                        }
+                    })];
+            case 9:
+                _a.sent();
+                return [2 /*return*/, Promise.all([
+                        sdk.api.automation_triggers.deleteOne(t1.id),
+                        sdk.api.automation_triggers.deleteOne(t2.id),
+                        sdk.api.endusers.deleteOne(e1.id),
+                        sdk.api.calendar_events.deleteOne(a1.id),
+                    ])];
+        }
+    });
+}); };
 var automation_trigger_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 log_header("Automation Trigger Tests");
-                return [4 /*yield*/, contact_created_tests()];
+                return [4 /*yield*/, set_fields_tests()];
             case 1:
                 _a.sent();
-                return [4 /*yield*/, appointment_cancelled_tests()];
+                return [4 /*yield*/, assign_care_team_tests()];
             case 2:
                 _a.sent();
-                return [4 /*yield*/, appointment_created_tests()];
+                return [4 /*yield*/, contact_created_tests()];
             case 3:
                 _a.sent();
-                return [4 /*yield*/, order_status_equals_tests()];
+                return [4 /*yield*/, appointment_cancelled_tests()];
             case 4:
                 _a.sent();
-                return [4 /*yield*/, tag_added_tests()];
+                return [4 /*yield*/, appointment_created_tests()];
             case 5:
                 _a.sent();
-                return [4 /*yield*/, order_created_tests()];
+                return [4 /*yield*/, order_status_equals_tests()];
             case 6:
                 _a.sent();
-                return [4 /*yield*/, formSubmittedTriggerTests()];
+                return [4 /*yield*/, tag_added_tests()];
             case 7:
+                _a.sent();
+                return [4 /*yield*/, order_created_tests()];
+            case 8:
+                _a.sent();
+                return [4 /*yield*/, formSubmittedTriggerTests()];
+            case 9:
                 _a.sent();
                 return [2 /*return*/];
         }
@@ -11923,11 +12108,21 @@ var get_templated_message_tests = function () { return __awaiter(void 0, void 0,
                     })];
             case 3:
                 _a.sent();
+                return [4 /*yield*/, async_test("{{organization.name}}", function () { return sdk.api.templates.get_templated_message({
+                        enduserId: enduser.id,
+                        relatedContactId: related.id,
+                        channel: 'Chat',
+                        message: "{{organization.name}}",
+                        userId: sdk.userInfo.id,
+                    }); }, { onResult: function (r) { return r.plaintext === "Tellescope"; }
+                    })];
+            case 4:
+                _a.sent();
                 return [4 /*yield*/, Promise.all([
                         sdk.api.endusers.deleteOne(enduser.id),
                         sdk.api.endusers.deleteOne(related.id),
                     ])];
-            case 4:
+            case 5:
                 _a.sent();
                 return [2 /*return*/];
         }
@@ -12022,6 +12217,30 @@ var updatedAt_tests = function () { return __awaiter(void 0, void 0, void 0, fun
         }
     });
 }); };
+var replace_enduser_template_values_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var enduser, d;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                log_header("Replace Enduser Template Values Tests");
+                return [4 /*yield*/, sdk.api.endusers.createOne({ fname: "Test", lname: "User", fields: { CustomField: "Enduser" } })];
+            case 1:
+                enduser = _a.sent();
+                assert(replace_enduser_template_values('', enduser) === '', 'fail blank', 'blank');
+                assert(replace_enduser_template_values('test', enduser) === 'test', 'fail test', 'test');
+                assert(replace_enduser_template_values('{{enduser.fname}}', enduser) === 'Test', 'fail fname', 'fname');
+                assert(replace_enduser_template_values('{{enduser.unknown}}', enduser) === '{{enduser.unknown}}', 'fail unknown', 'unknown');
+                assert(replace_enduser_template_values('{{enduser.CustomField}}', enduser) === 'Enduser', 'fail CustomField', 'CustomField');
+                assert(replace_enduser_template_values('{{enduser.UnknownCustomField}}', enduser) === '{{enduser.UnknownCustomField}}', 'fail UnknownCustomField', 'UnknownCustomField');
+                d = Date.now();
+                assert(replace_enduser_template_values(d, enduser) === d, 'fail non-string', 'non-string');
+                return [4 /*yield*/, sdk.api.endusers.deleteOne(enduser.id)];
+            case 2:
+                _a.sent();
+                return [2 /*return*/];
+        }
+    });
+}); };
 (function () { return __awaiter(void 0, void 0, void 0, function () {
     var fields, err_1, n, _a, _b, _c, _i, returnValidation, t, _d, _f, _g, _h, err_2;
     var _j, _k;
@@ -12034,7 +12253,7 @@ var updatedAt_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                 _l.sent();
                 _l.label = 2;
             case 2:
-                _l.trys.push([2, 72, , 73]);
+                _l.trys.push([2, 73, , 74]);
                 form_conditional_logic_tests();
                 return [4 /*yield*/, test_weighted_round_robin()];
             case 3:
@@ -12162,189 +12381,192 @@ var updatedAt_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                 return [4 /*yield*/, async_test("Support phone numbers from Gambia", function () { return sdk.api.endusers.createOne({ phone: "+2201231234" }); }, { onResult: (function (e) { return !!sdk.api.endusers.deleteOne(e.id); }) })];
             case 12:
                 _l.sent();
-                return [4 /*yield*/, mfa_tests()];
+                return [4 /*yield*/, replace_enduser_template_values_tests()];
             case 13:
                 _l.sent();
-                return [4 /*yield*/, setup_tests()];
+                return [4 /*yield*/, mfa_tests()];
             case 14:
                 _l.sent();
-                return [4 /*yield*/, multi_tenant_tests()]; // should come right after setup tests
+                return [4 /*yield*/, setup_tests()];
             case 15:
+                _l.sent();
+                return [4 /*yield*/, multi_tenant_tests()]; // should come right after setup tests
+            case 16:
                 _l.sent(); // should come right after setup tests
                 return [4 /*yield*/, sync_tests_with_access_tags()]; // should come directly after setup to avoid extra sync values
-            case 16:
-                _l.sent(); // should come directly after setup to avoid extra sync values
-                return [4 /*yield*/, sync_tests()]; // should come directly after setup to avoid extra sync values
             case 17:
                 _l.sent(); // should come directly after setup to avoid extra sync values
-                return [4 /*yield*/, updatedAt_tests()];
+                return [4 /*yield*/, sync_tests()]; // should come directly after setup to avoid extra sync values
             case 18:
-                _l.sent();
-                return [4 /*yield*/, automation_trigger_tests()];
+                _l.sent(); // should come directly after setup to avoid extra sync values
+                return [4 /*yield*/, updatedAt_tests()];
             case 19:
                 _l.sent();
-                return [4 /*yield*/, file_source_tests()];
+                return [4 /*yield*/, automation_trigger_tests()];
             case 20:
                 _l.sent();
-                return [4 /*yield*/, get_templated_message_tests()];
+                return [4 /*yield*/, file_source_tests()];
             case 21:
                 _l.sent();
-                return [4 /*yield*/, enduser_access_tags_tests()];
+                return [4 /*yield*/, get_templated_message_tests()];
             case 22:
                 _l.sent();
-                return [4 /*yield*/, enduserAccessTests()];
+                return [4 /*yield*/, enduser_access_tags_tests()];
             case 23:
                 _l.sent();
-                return [4 /*yield*/, test_form_response_search()];
+                return [4 /*yield*/, enduserAccessTests()];
             case 24:
                 _l.sent();
-                return [4 /*yield*/, date_parsing_tests()];
+                return [4 /*yield*/, test_form_response_search()];
             case 25:
                 _l.sent();
-                return [4 /*yield*/, fromEmailOverride_tests()];
+                return [4 /*yield*/, date_parsing_tests()];
             case 26:
                 _l.sent();
-                return [4 /*yield*/, ticket_tests()];
+                return [4 /*yield*/, fromEmailOverride_tests()];
             case 27:
                 _l.sent();
-                return [4 /*yield*/, uniqueness_tests()];
+                return [4 /*yield*/, ticket_tests()];
             case 28:
                 _l.sent();
-                return [4 /*yield*/, enduser_orders_tests()];
+                return [4 /*yield*/, uniqueness_tests()];
             case 29:
                 _l.sent();
-                return [4 /*yield*/, calendar_event_care_team_tests()];
+                return [4 /*yield*/, enduser_orders_tests()];
             case 30:
                 _l.sent();
-                return [4 /*yield*/, merge_enduser_tests()];
+                return [4 /*yield*/, calendar_event_care_team_tests()];
             case 31:
                 _l.sent();
-                return [4 /*yield*/, input_modifier_tests()];
+                return [4 /*yield*/, merge_enduser_tests()];
             case 32:
                 _l.sent();
-                return [4 /*yield*/, formsort_tests()];
+                return [4 /*yield*/, input_modifier_tests()];
             case 33:
                 _l.sent();
-                return [4 /*yield*/, switch_to_related_contacts_tests()];
+                return [4 /*yield*/, formsort_tests()];
             case 34:
                 _l.sent();
-                return [4 /*yield*/, redaction_tests()];
+                return [4 /*yield*/, switch_to_related_contacts_tests()];
             case 35:
                 _l.sent();
-                return [4 /*yield*/, self_serve_appointment_booking_tests()];
+                return [4 /*yield*/, redaction_tests()];
             case 36:
                 _l.sent();
-                return [4 /*yield*/, no_chained_triggers_tests()];
+                return [4 /*yield*/, self_serve_appointment_booking_tests()];
             case 37:
                 _l.sent();
-                return [4 /*yield*/, rate_limit_tests()];
+                return [4 /*yield*/, no_chained_triggers_tests()];
             case 38:
                 _l.sent();
-                return [4 /*yield*/, mdb_filter_tests()];
+                return [4 /*yield*/, rate_limit_tests()];
             case 39:
                 _l.sent();
-                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
+                return [4 /*yield*/, mdb_filter_tests()];
             case 40:
                 _l.sent();
-                return [4 /*yield*/, superadmin_tests()];
+                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
             case 41:
                 _l.sent();
-                return [4 /*yield*/, ticket_queue_tests()];
+                return [4 /*yield*/, superadmin_tests()];
             case 42:
                 _l.sent();
-                return [4 /*yield*/, vital_trigger_tests()];
+                return [4 /*yield*/, ticket_queue_tests()];
             case 43:
                 _l.sent();
-                return [4 /*yield*/, close_reasons_no_duplicates_tests()];
+                return [4 /*yield*/, vital_trigger_tests()];
             case 44:
                 _l.sent();
-                return [4 /*yield*/, register_as_enduser_tests()];
+                return [4 /*yield*/, close_reasons_no_duplicates_tests()];
             case 45:
                 _l.sent();
-                return [4 /*yield*/, lockout_tests()];
+                return [4 /*yield*/, register_as_enduser_tests()];
             case 46:
+                _l.sent();
+                return [4 /*yield*/, lockout_tests()];
+            case 47:
                 _l.sent();
                 return [4 /*yield*/, delete_user_tests()
                     // await test_send_with_template()
                 ];
-            case 47:
+            case 48:
                 _l.sent();
                 // await test_send_with_template()
                 return [4 /*yield*/, bulk_read_tests()];
-            case 48:
+            case 49:
                 // await test_send_with_template()
                 _l.sent();
                 return [4 /*yield*/, ticket_reminder_tests()];
-            case 49:
-                _l.sent();
-                return [4 /*yield*/, marketing_email_unsubscribe_tests()];
             case 50:
                 _l.sent();
-                return [4 /*yield*/, unique_strings_tests()];
+                return [4 /*yield*/, marketing_email_unsubscribe_tests()];
             case 51:
                 _l.sent();
-                return [4 /*yield*/, alternate_phones_tests()];
+                return [4 /*yield*/, unique_strings_tests()];
             case 52:
                 _l.sent();
-                return [4 /*yield*/, field_equals_trigger_tests()];
+                return [4 /*yield*/, alternate_phones_tests()];
             case 53:
                 _l.sent();
-                return [4 /*yield*/, role_based_access_tests()];
+                return [4 /*yield*/, field_equals_trigger_tests()];
             case 54:
                 _l.sent();
-                return [4 /*yield*/, enduser_session_tests()];
+                return [4 /*yield*/, role_based_access_tests()];
             case 55:
                 _l.sent();
-                return [4 /*yield*/, nextReminderInMS_tests()];
+                return [4 /*yield*/, enduser_session_tests()];
             case 56:
                 _l.sent();
-                return [4 /*yield*/, search_tests()];
+                return [4 /*yield*/, nextReminderInMS_tests()];
             case 57:
                 _l.sent();
-                return [4 /*yield*/, wait_for_trigger_tests()];
+                return [4 /*yield*/, search_tests()];
             case 58:
                 _l.sent();
-                return [4 /*yield*/, pdf_generation()];
+                return [4 /*yield*/, wait_for_trigger_tests()];
             case 59:
                 _l.sent();
-                return [4 /*yield*/, remove_from_journey_on_incoming_comms_tests().catch(console.error)]; // timing is unreliable, uncomment if changing logic
+                return [4 /*yield*/, pdf_generation()];
             case 60:
+                _l.sent();
+                return [4 /*yield*/, remove_from_journey_on_incoming_comms_tests().catch(console.error)]; // timing is unreliable, uncomment if changing logic
+            case 61:
                 _l.sent(); // timing is unreliable, uncomment if changing logic
                 return [4 /*yield*/, auto_reply_tests()];
-            case 61:
-                _l.sent();
-                return [4 /*yield*/, sub_organization_enduser_tests()];
             case 62:
                 _l.sent();
-                return [4 /*yield*/, sub_organization_tests()];
+                return [4 /*yield*/, sub_organization_enduser_tests()];
             case 63:
                 _l.sent();
-                return [4 /*yield*/, filter_by_date_tests()];
+                return [4 /*yield*/, sub_organization_tests()];
             case 64:
                 _l.sent();
-                return [4 /*yield*/, generate_user_auth_tests()];
+                return [4 /*yield*/, filter_by_date_tests()];
             case 65:
                 _l.sent();
-                return [4 /*yield*/, generateEnduserAuthTests()];
+                return [4 /*yield*/, generate_user_auth_tests()];
             case 66:
                 _l.sent();
-                return [4 /*yield*/, public_form_tests()];
+                return [4 /*yield*/, generateEnduserAuthTests()];
             case 67:
                 _l.sent();
-                return [4 /*yield*/, badInputTests()];
+                return [4 /*yield*/, public_form_tests()];
             case 68:
                 _l.sent();
-                return [4 /*yield*/, filterTests()];
+                return [4 /*yield*/, badInputTests()];
             case 69:
                 _l.sent();
-                return [4 /*yield*/, updatesTests()];
+                return [4 /*yield*/, filterTests()];
             case 70:
                 _l.sent();
-                return [4 /*yield*/, threadKeyTests()];
+                return [4 /*yield*/, updatesTests()];
             case 71:
                 _l.sent();
-                return [3 /*break*/, 73];
+                return [4 /*yield*/, threadKeyTests()];
             case 72:
+                _l.sent();
+                return [3 /*break*/, 74];
+            case 73:
                 err_1 = _l.sent();
                 console.error("Failed during custom test");
                 if (err_1.message && err_1.info) {
@@ -12354,18 +12576,18 @@ var updatedAt_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                     console.error(err_1);
                 }
                 process.exit(1);
-                return [3 /*break*/, 73];
-            case 73:
+                return [3 /*break*/, 74];
+            case 74:
                 _a = schema;
                 _b = [];
                 for (_c in _a)
                     _b.push(_c);
                 _i = 0;
-                _l.label = 74;
-            case 74:
-                if (!(_i < _b.length)) return [3 /*break*/, 77];
+                _l.label = 75;
+            case 75:
+                if (!(_i < _b.length)) return [3 /*break*/, 78];
                 _c = _b[_i];
-                if (!(_c in _a)) return [3 /*break*/, 76];
+                if (!(_c in _a)) return [3 /*break*/, 77];
                 n = _c;
                 returnValidation = (_k = (_j = schema[n].customActions) === null || _j === void 0 ? void 0 : _j.create) === null || _k === void 0 ? void 0 : _k.returns;
                 return [4 /*yield*/, run_generated_tests({
@@ -12376,41 +12598,41 @@ var updatedAt_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                             create: returnValidation // ModelFields<ClientModel>,
                         }
                     })];
-            case 75:
-                _l.sent();
-                _l.label = 76;
             case 76:
-                _i++;
-                return [3 /*break*/, 74];
+                _l.sent();
+                _l.label = 77;
             case 77:
+                _i++;
+                return [3 /*break*/, 75];
+            case 78:
                 _d = tests;
                 _f = [];
                 for (_g in _d)
                     _f.push(_g);
                 _h = 0;
-                _l.label = 78;
-            case 78:
-                if (!(_h < _f.length)) return [3 /*break*/, 83];
-                _g = _f[_h];
-                if (!(_g in _d)) return [3 /*break*/, 82];
-                t = _g;
                 _l.label = 79;
             case 79:
-                _l.trys.push([79, 81, , 82]);
-                return [4 /*yield*/, tests[t]()];
+                if (!(_h < _f.length)) return [3 /*break*/, 84];
+                _g = _f[_h];
+                if (!(_g in _d)) return [3 /*break*/, 83];
+                t = _g;
+                _l.label = 80;
             case 80:
-                _l.sent();
-                return [3 /*break*/, 82];
+                _l.trys.push([80, 82, , 83]);
+                return [4 /*yield*/, tests[t]()];
             case 81:
+                _l.sent();
+                return [3 /*break*/, 83];
+            case 82:
                 err_2 = _l.sent();
                 console.error("Error running test:");
                 console.error(err_2);
                 process.exit(1);
-                return [3 /*break*/, 82];
-            case 82:
-                _h++;
-                return [3 /*break*/, 78];
+                return [3 /*break*/, 83];
             case 83:
+                _h++;
+                return [3 /*break*/, 79];
+            case 84:
                 process.exit();
                 return [2 /*return*/];
         }

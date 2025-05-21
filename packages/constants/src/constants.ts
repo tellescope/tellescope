@@ -50,17 +50,19 @@ export const READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
 } satisfies { [K in keyof Enduser]?: string }
 
 export const ENDUSER_FIELD_TYPES = { 
-  'email': 'email',
-  'phone': 'phone',
-  'fname': 'string',
-  'lname': 'string',
-  'dateOfBirth': 'dateString',
-  'height': 'number',
-  'weight': 'number',
-  'Address': 'Address',
-  'Insurance': "Insurance",
-  'termsVersion': "Hidden Value",
-}  as { [K in EnduserField | 'Insurance'] : FormFieldType}
+  'email': ['email'],
+  'phone': ['phone'],
+  'fname': ['string'],
+  'lname': ['string'],
+  'dateOfBirth': ['dateString'],
+  'height': ['number'],
+  'weight': ['number'],
+  'Address': ['Address'],
+  'Insurance': ['Insurance'],
+  'termsVersion': ['Hidden Value'],
+  'genderIdentity': ['string', 'multiple_choice', 'Select'],
+  'pronouns': ['string', 'multiple_choice', 'Select'],
+}  as { [K in EnduserField | 'Insurance'] : FormFieldType[]}
 
 export const PRIMARY_HEX = "#1564bf"
 export const SECONDARY_HEX = "#1c4378"
@@ -1098,7 +1100,7 @@ export const TELLESCOPE_PORTAL_SOURCE = "Tellescope Portal"
 export type AthenaDocumentType = (
   "admin"
 | "clinicaldocument"
-| "encounterdocument"
+// | "encounterdocument"
 | "imagingresult"
 | "labresult"
 | "medicalrecord"
@@ -1140,16 +1142,16 @@ export const ATHENA_DOCUMENT_TYPES_TO_DISPLAY: { [key in AthenaDocumentType]: { 
     ],
     sources: [],
   },
-  encounterdocument: { 
-    display: "Encounter Document", 
-    subclasses: [
-      "IMAGEDOC",
-      "PATIENTHISTORY",
-      "PROCEDUREDOC",
-      "PROGRESSNOTE",
-    ],
-    sources: [],
-  },
+  // encounterdocument: { 
+  //   display: "Encounter Document", 
+  //   subclasses: [
+  //     "IMAGEDOC",
+  //     "PATIENTHISTORY",
+  //     "PROCEDUREDOC",
+  //     "PROGRESSNOTE",
+  //   ],
+  //   sources: [],
+  // },
   imagingresult: { display: "Imaging Result", subclasses: [], sources: [] },
   labresult: { display: "Lab Result", subclasses: [], sources: [] },
   medicalrecord: { 

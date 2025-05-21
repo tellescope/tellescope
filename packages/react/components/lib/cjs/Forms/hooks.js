@@ -473,7 +473,7 @@ var shouldCallout = function (field, value) {
 };
 var useTellescopeForm = function (_a) {
     var _b, _c;
-    var isPublicForm = _a.isPublicForm, form = _a.form, urlLogicValue = _a.urlLogicValue, customization = _a.customization, carePlanId = _a.carePlanId, calendarEventId = _a.calendarEventId, context = _a.context, ga4measurementId = _a.ga4measurementId, rootResponseId = _a.rootResponseId, parentResponseId = _a.parentResponseId, accessCode = _a.accessCode, existingResponses = _a.existingResponses, automationStepId = _a.automationStepId, enduserId = _a.enduserId, formResponseId = _a.formResponseId, fields = _a.fields, isInternalNote = _a.isInternalNote, formTitle = _a.formTitle, submitRedirectURL = _a.submitRedirectURL, enduser = _a.enduser;
+    var dontAutoadvance = _a.dontAutoadvance, isPublicForm = _a.isPublicForm, form = _a.form, urlLogicValue = _a.urlLogicValue, customization = _a.customization, carePlanId = _a.carePlanId, calendarEventId = _a.calendarEventId, context = _a.context, ga4measurementId = _a.ga4measurementId, rootResponseId = _a.rootResponseId, parentResponseId = _a.parentResponseId, accessCode = _a.accessCode, existingResponses = _a.existingResponses, automationStepId = _a.automationStepId, enduserId = _a.enduserId, formResponseId = _a.formResponseId, fields = _a.fields, isInternalNote = _a.isInternalNote, formTitle = _a.formTitle, submitRedirectURL = _a.submitRedirectURL, enduser = _a.enduser;
     var _d = (0, utilities_1.get_time_values)(new Date()), amPm = _d.amPm, hoursAmPm = _d.hoursAmPm, minutes = _d.minutes;
     var root = (0, exports.useTreeForFormFields)(fields);
     if (!root) {
@@ -1298,13 +1298,15 @@ var useTellescopeForm = function (_a) {
         });
     }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, logicOptions]);
     (0, react_1.useEffect)(function () {
+        if (dontAutoadvance)
+            return;
         if (!autoAdvanceRef.current)
             return;
         autoAdvanceRef.current = false;
         // add slight delay so it's obvious which answer was selected before proceeding
         var t = setTimeout(goToNextField, 250);
         return function () { clearTimeout(t); };
-    }, [responses, goToNextField]);
+    }, [responses, goToNextField, dontAutoadvance]);
     var isPreviousDisabled = (0, react_1.useCallback)(function () {
         var _a, _b;
         return (prevFieldStackRef.current.length === 0
