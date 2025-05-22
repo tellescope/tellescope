@@ -40,7 +40,8 @@ exports.ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
     accessTags: "Access Tags",
     unsubscribedFromMarketing: "Unsubscribed From Marketing",
     unsubscribedFromPhones: "Unsubscribed From Phone Numbers",
-    athenaDepartmentId: "athenahealth Department ID"
+    athenaDepartmentId: "athenahealth Department ID",
+    termsVersion: "Terms Version",
 };
 exports.READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
     recentFormSubmittedAt: "Recent Form Submitted At",

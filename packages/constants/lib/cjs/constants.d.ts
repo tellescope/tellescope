@@ -28,6 +28,7 @@ export declare const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME: {
     unsubscribedFromMarketing: string;
     unsubscribedFromPhones: string;
     athenaDepartmentId: string;
+    termsVersion: string;
 };
 export declare const READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME: {
     recentFormSubmittedAt: string;

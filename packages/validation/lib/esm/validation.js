@@ -3577,6 +3577,7 @@ var _AUTOMATION_TRIGGER_EVENT_TYPES = {
     "Purchase Made": true,
     "Refund Issued": true,
     "Subscription Ended": true,
+    "Subscription Payment Failed": true,
     "Appointment No-Showed": true,
     "Appointment Created": true,
     "Appointment Cancelled": true,
@@ -3679,6 +3680,11 @@ export var automationTriggerEventValidator = orValidator({
     }),
     "Subscription Ended": objectValidator({
         type: exactMatchValidator(['Subscription Ended']),
+        info: optionalEmptyObjectValidator,
+        conditions: optionalEmptyObjectValidator,
+    }),
+    "Subscription Payment Failed": objectValidator({
+        type: exactMatchValidator(['Subscription Payment Failed']),
         info: optionalEmptyObjectValidator,
         conditions: optionalEmptyObjectValidator,
     }),

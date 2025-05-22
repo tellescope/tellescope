@@ -3893,6 +3893,7 @@ export type AutomationTriggerEvents = {
   'Purchase Made': AutomationTriggerEventBuilder<"Purchase Made", { titles?: string[], productIds?: string[] }, {}>,
   'Refund Issued': AutomationTriggerEventBuilder<"Refund Issued", { }, {}>,
   'Subscription Ended': AutomationTriggerEventBuilder<"Subscription Ended", { }, {}>,
+  'Subscription Payment Failed': AutomationTriggerEventBuilder<"Subscription Payment Failed", { }, {}>,
   'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", { titles?: string[], templateIds?: string[] }, { }>,
   'Field Equals': AutomationTriggerEventBuilder<"Field Equals", { field: string, value: string }, { }>,
   'Tag Added': AutomationTriggerEventBuilder<"Tag Added", { tag: string }, { }>,

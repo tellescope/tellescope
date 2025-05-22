@@ -3882,6 +3882,7 @@ export type AutomationTriggerEvents = {
     }, {}>;
     'Refund Issued': AutomationTriggerEventBuilder<"Refund Issued", {}, {}>;
     'Subscription Ended': AutomationTriggerEventBuilder<"Subscription Ended", {}, {}>;
+    'Subscription Payment Failed': AutomationTriggerEventBuilder<"Subscription Payment Failed", {}, {}>;
     'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", {
         titles?: string[];
         templateIds?: string[];
