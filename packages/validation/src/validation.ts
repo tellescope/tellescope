@@ -2503,6 +2503,7 @@ export const calendarEventReminderValidator = orValidator<{ [K in CalendarEventR
   'add-to-journey': objectValidator<CalendarEventReminderInfoForType['add-to-journey']>({
     info: objectValidator<CalendarEventReminderInfoForType['add-to-journey']['info']>({
       journeyId: mongoIdStringRequired,
+      firstAttendeeOnly: booleanValidatorOptional,
     }),
     type: exactMatchValidator<'add-to-journey'>(['add-to-journey']), 
     ...sharedReminderValidators, 
@@ -2610,6 +2611,7 @@ export const automationEventValidator = orValidator<{ [K in AutomationEventType]
       eventCondition: objectValidator<AfterActionAutomationEvent['info']['eventCondition']>({
         before: booleanValidatorOptional,
       }, { isOptional: true, emptyOk: true }),
+      skipIfDelayPassed: booleanValidatorOptional,
     }, { emptyOk: false }),
   }),
   formUnsubmitted: objectValidator<FormUnsubmittedEvent>({
@@ -2667,6 +2669,7 @@ export const ticketActionValidator = orValidator<{ [K in TicketActionType]: Tick
     info: objectValidator<TicketActions['Complete Form']['info']>({ 
       formId: mongoIdStringRequired, 
       formResponseId: mongoIdStringOptional, 
+      bulkForEvent: booleanValidatorOptional, // for bulk SMS to all event attendees
     }, { emptyOk: false }),
     completedAt: dateOptionalOrEmptyStringValidator,
     optional: booleanValidatorOptional,
@@ -2682,6 +2685,7 @@ export const ticketActionValidator = orValidator<{ [K in TicketActionType]: Tick
     info: objectValidator<TicketActions['Send SMS']['info']>({ 
       templateId: mongoIdStringRequired,
       smsId: mongoIdStringOptional, 
+      bulkForEvent: booleanValidatorOptional, // for bulk SMS to all event attendees
     }, { emptyOk: false }),
     completedAt: dateOptionalOrEmptyStringValidator,
     optional: booleanValidatorOptional,
@@ -2731,6 +2735,7 @@ export const automationForMessageValidator = objectValidator<AutomationForMessag
   templateId: mongoIdStringRequired,
   assignment: senderAssignmentStrategyValidatorOptional,
   sendToDestinationOfRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
+  hiddenFromTimeline: booleanValidatorOptional,
 }, { emptyOk: false })
 
 export const developHealthDrugsValidator = listValidator(objectValidator<{ name: string, dosage: string, quantity: number }>({
@@ -2782,6 +2787,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       assignment: senderAssignmentStrategyValidatorOptional,
       fromEmailOverride: emailValidatorOptional,
       sendToDestinationOfRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
+      hiddenFromTimeline: booleanValidatorOptional,
     }, { emptyOk: false }),
     continueOnError: booleanValidatorOptional,
   }),
@@ -4157,6 +4163,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     locationRequired: booleanValidatorOptional,
     cancelReasons: listOfStringsValidatorOptionalOrEmptyOk,
     copyRemindersByDefault: booleanValidatorOptional,
+    showMakeRecurringOnProfile: booleanValidatorOptional,
   }, { isOptional: true }),
   dashboard: objectValidator<OrganizationSettings['dashboard']>({
     view: customDashboardViewValidator,
@@ -5778,6 +5785,7 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
         userId: mongoIdStringRequired,
         input: stringValidator, 
       })),
+      playback: phonePlaybackValidatorOptional,
     }),
   }),
 })

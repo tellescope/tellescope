@@ -237,6 +237,7 @@ export type OrganizationSettings = {
         locationRequired?: boolean;
         cancelReasons?: string[];
         copyRemindersByDefault?: boolean;
+        showMakeRecurringOnProfile?: boolean;
     };
     users?: {
         sessionDurationInHours?: number;
@@ -1054,6 +1055,7 @@ export interface Email_updatesDisabled {
     journeyId?: string;
 }
 export interface Email extends Email_required, Email_readonly, Email_updatesDisabled, TextCommunication {
+    hiddenFromTimeline?: boolean;
     isAutoreply?: boolean;
     replyTo?: string | null;
     isBounce?: boolean;
@@ -1115,6 +1117,7 @@ export interface SMSMessage_updatesDisabled {
     journeyId?: string;
 }
 export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SMSMessage_updatesDisabled, TextCommunication, WithLinkOpenTrackingIds {
+    hiddenFromTimeline?: boolean;
     autoResolveToFrom?: boolean;
     isAutoreply?: boolean;
     userId?: string;
@@ -1316,11 +1319,13 @@ export type TicketActions = {
     "Complete Form": TicketActionBuilder<'Complete Form', {
         formId: string;
         formResponseId?: string;
+        bulkForEvent?: boolean;
     }>;
     "Create Prescription": TicketActionBuilder<'Create Prescription', {}>;
     "Send SMS": TicketActionBuilder<'Send SMS', {
         templateId: string;
         smsId?: string;
+        bulkForEvent?: boolean;
     }>;
     "Send Email": TicketActionBuilder<'Send Email', {
         templateId: string;
@@ -2151,6 +2156,10 @@ export interface AvailabilityBlock_updatesDisabled {
     index: number;
 }
 export interface AvailabilityBlock extends WeeklyAvailability, AvailabilityBlock_readonly, AvailabilityBlock_required, AvailabilityBlock_updatesDisabled {
+    typeId?: string;
+    athenaDepartmentId?: string;
+    externalId?: string;
+    source?: string;
 }
 export type CalendarEventReminderNotificationInfo = {
     templateId?: string;
@@ -2168,6 +2177,7 @@ export type CalendarEventReminderInfoForType = {
     "webhook": BuildCalendarEventReminderInfo<'webhook', {}>;
     "add-to-journey": BuildCalendarEventReminderInfo<'add-to-journey', {
         journeyId: string;
+        firstAttendeeOnly?: boolean;
     }>;
     "Remove From Journey": BuildCalendarEventReminderInfo<'Remove From Journey', {
         journeyId: string;
@@ -2599,6 +2609,7 @@ export interface AutomationForFormRequest extends AutomationForForm, AutomationF
 }
 export interface AutomationForMessage extends AutomationForTemplate, AutomationForSender {
     sendToDestinationOfRelatedContactTypes?: string[];
+    hiddenFromTimeline?: boolean;
 }
 export interface AutomationForWebhook {
     message: string;
@@ -2659,6 +2670,7 @@ export type AfterActionAutomationEvent = AutomationEventBuilder<'afterAction', A
     eventCondition?: {
         before?: boolean;
     };
+    skipIfDelayPassed?: boolean;
 }>;
 export type FormUnsubmittedEvent = AutomationEventBuilder<'formUnsubmitted', FormUnsubmittedEventInfo>;
 export type FormsUnsubmittedEvent = AutomationEventBuilder<'formsUnsubmitted', FormUnsubmittedEventInfo>;
@@ -4186,6 +4198,7 @@ export type PhoneTreeActions = {
             input: string;
             userId: string;
         }[];
+        playback?: Partial<PhonePlayback>;
     }>;
 };
 export type PhoneTreeActionType = keyof PhoneTreeActions;

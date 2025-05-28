@@ -586,6 +586,7 @@ export declare const calendarEventReminderValidator: ValidatorDefinition<{
     type: "add-to-journey";
     info: {
         journeyId: string;
+        firstAttendeeOnly?: boolean | undefined;
     };
     msBeforeStartTime: number;
     dontSendIfPassed?: boolean | undefined;
@@ -635,6 +636,7 @@ export declare const listOfCalendarEventRemindersValidator: ValidatorDefinition<
     type: "add-to-journey";
     info: {
         journeyId: string;
+        firstAttendeeOnly?: boolean | undefined;
     };
     msBeforeStartTime: number;
     dontSendIfPassed?: boolean | undefined;
@@ -732,6 +734,7 @@ export declare const ticketReminderValidator: ValidatorDefinition<TicketReminder
 export declare const ticketActionValidator: ValidatorDefinition<(import("@tellescope/types-models").TicketActionBuilder<"Complete Form", {
     formId: string;
     formResponseId?: string | undefined;
+    bulkForEvent?: boolean | undefined;
 }> & {
     type: "Complete Form";
 }) | (import("@tellescope/types-models").TicketActionBuilder<"Create Prescription", {}> & {
@@ -739,6 +742,7 @@ export declare const ticketActionValidator: ValidatorDefinition<(import("@telles
 }) | (import("@tellescope/types-models").TicketActionBuilder<"Send SMS", {
     templateId: string;
     smsId?: string | undefined;
+    bulkForEvent?: boolean | undefined;
 }> & {
     type: "Send SMS";
 }) | (import("@tellescope/types-models").TicketActionBuilder<"Send Email", {
@@ -756,6 +760,7 @@ export declare const ticketActionValidator: ValidatorDefinition<(import("@telles
 export declare const ticketActionsValidator: ValidatorDefinition<((import("@tellescope/types-models").TicketActionBuilder<"Complete Form", {
     formId: string;
     formResponseId?: string | undefined;
+    bulkForEvent?: boolean | undefined;
 }> & {
     type: "Complete Form";
 }) | (import("@tellescope/types-models").TicketActionBuilder<"Create Prescription", {}> & {
@@ -763,6 +768,7 @@ export declare const ticketActionsValidator: ValidatorDefinition<((import("@tell
 }) | (import("@tellescope/types-models").TicketActionBuilder<"Send SMS", {
     templateId: string;
     smsId?: string | undefined;
+    bulkForEvent?: boolean | undefined;
 }> & {
     type: "Send SMS";
 }) | (import("@tellescope/types-models").TicketActionBuilder<"Send Email", {
@@ -2350,6 +2356,7 @@ export declare const phoneTreeActionValidator: ValidatorDefinition<import("@tell
         input: string;
         userId: string;
     }[];
+    playback?: Partial<import("@tellescope/types-models").PhonePlayback> | undefined;
 }>>;
 export declare const phoneTreeNodeValidator: ValidatorDefinition<PhoneTreeNode>;
 export declare const phoneTreeNodesValidator: ValidatorDefinition<PhoneTreeNode[]>;

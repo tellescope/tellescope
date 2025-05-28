@@ -8699,6 +8699,7 @@ var formsort_tests = function () { return __awaiter(void 0, void 0, void 0, func
                     postal_code: 'ZIP',
                 };
                 answers = [
+                    { key: 'stripeCustomerId', value: 'test-customer-id' },
                     { key: 'email', value: answersEmail },
                     { key: 'phone', value: "+15555555555" },
                     { key: 'fname', value: 'Fname' },
@@ -8763,6 +8764,9 @@ var formsort_tests = function () { return __awaiter(void 0, void 0, void 0, func
                                 return false;
                             }
                             if (!validateResponse(r, 'address', JSON.stringify(address, null, 2))) {
+                                return false;
+                            }
+                            if (!validateResponse(r, 'stripeCustomerId', "test-customer-id")) {
                                 return false;
                             }
                             if (!validateResponse(r, 'email', answersEmail)) {
@@ -8924,6 +8928,9 @@ var formsort_tests = function () { return __awaiter(void 0, void 0, void 0, func
                                 return false;
                             }
                             if (!validateResponse(r, 'multiple_choice', ['multiple choice'])) {
+                                return false;
+                            }
+                            if (submissionEnduser.stripeCustomerId !== 'test-customer-id') {
                                 return false;
                             }
                             if (submissionEnduser.email !== answersEmail) {
@@ -11853,6 +11860,9 @@ var input_modifier_tests = function () { return __awaiter(void 0, void 0, void 0
                     ])];
             case 4:
                 _a.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allows for background deletion of form responses
+            case 5:
+                _a.sent(); // allows for background deletion of form responses
                 return [2 /*return*/];
         }
     });
@@ -12216,13 +12226,16 @@ var updatedAt_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                 return [4 /*yield*/, sdk.api.endusers.createOne({ fname: 'Test', lname: 'Testson' })];
             case 1:
                 e = _b.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // some background stuff may run and change updatedAt again
+            case 2:
+                _b.sent(); // some background stuff may run and change updatedAt again
                 _a = Date.bind;
                 return [4 /*yield*/, sdk.api.endusers.getOne(e.id)];
-            case 2:
+            case 3:
                 original = new (_a.apply(Date, [void 0, (_b.sent()).updatedAt]))() // may slightly differ from what's returned on creation
                 ;
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)];
-            case 3:
+            case 4:
                 _b.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("updatedAt doesn't change with a non-log update", function () { return sdk.api.endusers.updateOne(e.id, { recentViewers: [{ at: new Date(), id: sdk.userInfo.id }] }, { replaceObjectFields: true }); }, {
                         onResult: function (e) {
@@ -12231,7 +12244,7 @@ var updatedAt_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                             return updatedAt.getTime() === original.getTime();
                         }
                     })];
-            case 4:
+            case 5:
                 _b.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('get to verify that updatedAt is not changed', function () { return sdk.api.endusers.getOne(e.id); }, {
                         onResult: function (e) {
@@ -12239,7 +12252,7 @@ var updatedAt_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                             return updatedAt.getTime() === original.getTime();
                         }
                     })];
-            case 5:
+            case 6:
                 _b.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("updatedAt changes with a log update", function () { return sdk.api.endusers.updateOne(e.id, { fname: 'Test2' }, { replaceObjectFields: true }); }, {
                         onResult: function (e) {
@@ -12247,7 +12260,7 @@ var updatedAt_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                             return updatedAt.getTime() > original.getTime();
                         }
                     })];
-            case 6:
+            case 7:
                 _b.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('get to verify that updatedAt is changed', function () { return sdk.api.endusers.getOne(e.id); }, {
                         onResult: function (e) {
@@ -12255,12 +12268,12 @@ var updatedAt_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                             return updatedAt.getTime() > original.getTime();
                         }
                     })];
-            case 7:
+            case 8:
                 _b.sent();
                 return [4 /*yield*/, Promise.all([
                         sdk.api.endusers.deleteOne(e.id),
                     ])];
-            case 8:
+            case 9:
                 _b.sent();
                 return [2 /*return*/];
         }

@@ -2480,6 +2480,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields,   
+      hiddenFromTimeline: { validator: booleanValidator },
       copyOf: { validator: mongoIdStringValidator },
       relatedContactId: { validator: mongoIdStringValidator },
       markedUnreadForAll: { validator: booleanValidator },
@@ -2777,6 +2778,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields,   
+      hiddenFromTimeline: { validator: booleanValidator },
       copyOf: { validator: mongoIdStringValidator },
       relatedContactId: { validator: mongoIdStringValidator },
       autoResolveToFrom: { validator: booleanValidator },
@@ -7429,6 +7431,10 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       startTimeInMinutes: { validator: nonNegNumberValidator, required: true, examples: [30] },
       endTimeInMinutes: { validator: nonNegNumberValidator, required: true, examples: [30] },
       active: { validator: dateRangeOptionalValidator },
+      source: { validator: stringValidator100 },
+      externalId: { validator: stringValidator100 },
+      typeId: { validator: stringValidator100 },
+      athenaDepartmentId: { validator: stringValidator100 },
     },
   },
   enduser_views: {

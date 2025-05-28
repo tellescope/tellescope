@@ -1197,7 +1197,7 @@ export var schema = build_schema({
                 { type: 'filter', field: 'userId' },
             ]
         },
-        fields: __assign(__assign({}, BuiltInFields), { copyOf: { validator: mongoIdStringValidator }, relatedContactId: { validator: mongoIdStringValidator }, markedUnreadForAll: { validator: booleanValidator }, inboxStatus: { validator: stringValidator100 }, logOnly: {
+        fields: __assign(__assign({}, BuiltInFields), { hiddenFromTimeline: { validator: booleanValidator }, copyOf: { validator: mongoIdStringValidator }, relatedContactId: { validator: mongoIdStringValidator }, markedUnreadForAll: { validator: booleanValidator }, inboxStatus: { validator: stringValidator100 }, logOnly: {
                 validator: booleanValidator,
                 examples: [true],
                 initializer: function () { return false; },
@@ -1452,7 +1452,7 @@ export var schema = build_schema({
                 { type: 'filter', field: 'userId' },
             ]
         },
-        fields: __assign(__assign({}, BuiltInFields), { copyOf: { validator: mongoIdStringValidator }, relatedContactId: { validator: mongoIdStringValidator }, autoResolveToFrom: { validator: booleanValidator }, markedUnreadForAll: { validator: booleanValidator }, inboxStatus: { validator: stringValidator100 }, logOnly: {
+        fields: __assign(__assign({}, BuiltInFields), { hiddenFromTimeline: { validator: booleanValidator }, copyOf: { validator: mongoIdStringValidator }, relatedContactId: { validator: mongoIdStringValidator }, autoResolveToFrom: { validator: booleanValidator }, markedUnreadForAll: { validator: booleanValidator }, inboxStatus: { validator: stringValidator100 }, logOnly: {
                 validator: booleanValidator,
                 examples: [true],
                 initializer: function () { return false; },
@@ -5192,7 +5192,7 @@ export var schema = build_schema({
                 //   onDependencyDelete: 'delete',
                 // },
                 ]
-            }, index: { validator: nonNegNumberValidator, required: true, examples: [30] }, dayOfWeekStartingSundayIndexedByZero: { validator: nonNegNumberValidator, required: true, examples: [30] }, startTimeInMinutes: { validator: nonNegNumberValidator, required: true, examples: [30] }, endTimeInMinutes: { validator: nonNegNumberValidator, required: true, examples: [30] }, active: { validator: dateRangeOptionalValidator } }),
+            }, index: { validator: nonNegNumberValidator, required: true, examples: [30] }, dayOfWeekStartingSundayIndexedByZero: { validator: nonNegNumberValidator, required: true, examples: [30] }, startTimeInMinutes: { validator: nonNegNumberValidator, required: true, examples: [30] }, endTimeInMinutes: { validator: nonNegNumberValidator, required: true, examples: [30] }, active: { validator: dateRangeOptionalValidator }, source: { validator: stringValidator100 }, externalId: { validator: stringValidator100 }, typeId: { validator: stringValidator100 }, athenaDepartmentId: { validator: stringValidator100 } }),
     },
     enduser_views: {
         info: {},

@@ -1202,7 +1202,7 @@ exports.schema = (0, exports.build_schema)({
                 { type: 'filter', field: 'userId' },
             ]
         },
-        fields: __assign(__assign({}, BuiltInFields), { copyOf: { validator: validation_1.mongoIdStringRequired }, relatedContactId: { validator: validation_1.mongoIdStringRequired }, markedUnreadForAll: { validator: validation_1.booleanValidator }, inboxStatus: { validator: validation_1.stringValidator100 }, logOnly: {
+        fields: __assign(__assign({}, BuiltInFields), { hiddenFromTimeline: { validator: validation_1.booleanValidator }, copyOf: { validator: validation_1.mongoIdStringRequired }, relatedContactId: { validator: validation_1.mongoIdStringRequired }, markedUnreadForAll: { validator: validation_1.booleanValidator }, inboxStatus: { validator: validation_1.stringValidator100 }, logOnly: {
                 validator: validation_1.booleanValidator,
                 examples: [true],
                 initializer: function () { return false; },
@@ -1457,7 +1457,7 @@ exports.schema = (0, exports.build_schema)({
                 { type: 'filter', field: 'userId' },
             ]
         },
-        fields: __assign(__assign({}, BuiltInFields), { copyOf: { validator: validation_1.mongoIdStringRequired }, relatedContactId: { validator: validation_1.mongoIdStringRequired }, autoResolveToFrom: { validator: validation_1.booleanValidator }, markedUnreadForAll: { validator: validation_1.booleanValidator }, inboxStatus: { validator: validation_1.stringValidator100 }, logOnly: {
+        fields: __assign(__assign({}, BuiltInFields), { hiddenFromTimeline: { validator: validation_1.booleanValidator }, copyOf: { validator: validation_1.mongoIdStringRequired }, relatedContactId: { validator: validation_1.mongoIdStringRequired }, autoResolveToFrom: { validator: validation_1.booleanValidator }, markedUnreadForAll: { validator: validation_1.booleanValidator }, inboxStatus: { validator: validation_1.stringValidator100 }, logOnly: {
                 validator: validation_1.booleanValidator,
                 examples: [true],
                 initializer: function () { return false; },
@@ -5197,7 +5197,7 @@ exports.schema = (0, exports.build_schema)({
                 //   onDependencyDelete: 'delete',
                 // },
                 ]
-            }, index: { validator: validation_1.nonNegNumberValidator, required: true, examples: [30] }, dayOfWeekStartingSundayIndexedByZero: { validator: validation_1.nonNegNumberValidator, required: true, examples: [30] }, startTimeInMinutes: { validator: validation_1.nonNegNumberValidator, required: true, examples: [30] }, endTimeInMinutes: { validator: validation_1.nonNegNumberValidator, required: true, examples: [30] }, active: { validator: validation_1.dateRangeOptionalValidator } }),
+            }, index: { validator: validation_1.nonNegNumberValidator, required: true, examples: [30] }, dayOfWeekStartingSundayIndexedByZero: { validator: validation_1.nonNegNumberValidator, required: true, examples: [30] }, startTimeInMinutes: { validator: validation_1.nonNegNumberValidator, required: true, examples: [30] }, endTimeInMinutes: { validator: validation_1.nonNegNumberValidator, required: true, examples: [30] }, active: { validator: validation_1.dateRangeOptionalValidator }, source: { validator: validation_1.stringValidator100 }, externalId: { validator: validation_1.stringValidator100 }, typeId: { validator: validation_1.stringValidator100 }, athenaDepartmentId: { validator: validation_1.stringValidator100 } }),
     },
     enduser_views: {
         info: {},

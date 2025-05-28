@@ -252,6 +252,7 @@ export type OrganizationSettings = {
     locationRequired?: boolean,
     cancelReasons?: string[],
     copyRemindersByDefault?: boolean,
+    showMakeRecurringOnProfile?: boolean,
   },
   users?: {
     sessionDurationInHours?: number,
@@ -1126,6 +1127,7 @@ export interface Email_updatesDisabled {
   journeyId?: string,
 }
 export interface Email extends Email_required, Email_readonly, Email_updatesDisabled, TextCommunication {
+  hiddenFromTimeline?: boolean,
   isAutoreply?: boolean,
   replyTo?: string | null;  
   isBounce?: boolean,
@@ -1183,6 +1185,7 @@ export interface SMSMessage_updatesDisabled {
   journeyId?: string,
 }
 export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SMSMessage_updatesDisabled, TextCommunication, WithLinkOpenTrackingIds {
+  hiddenFromTimeline?: boolean,
   autoResolveToFrom?: boolean,
   isAutoreply?: boolean,
   userId?: string, // defaults to self, but should allow future options to send as other user
@@ -1370,9 +1373,9 @@ export interface File extends File_readonly, File_required, File_updatesDisabled
 
 export type TicketActionBuilder <T, I> = { type: T, info: I, optional?: boolean, completedAt?: Date | '' }
 export type TicketActions = {
-  "Complete Form": TicketActionBuilder<'Complete Form', { formId: string, formResponseId?: string }>,
+  "Complete Form": TicketActionBuilder<'Complete Form', { formId: string, formResponseId?: string, bulkForEvent?: boolean, }>,
   "Create Prescription": TicketActionBuilder<'Create Prescription', { }>,
-  "Send SMS": TicketActionBuilder<'Send SMS', { templateId: string, smsId?: string }>,
+  "Send SMS": TicketActionBuilder<'Send SMS', { templateId: string, smsId?: string, bulkForEvent?: boolean }>,
   "Send Email": TicketActionBuilder<'Send Email', { templateId: string, emailId?: string }>,
   "Send Chat": TicketActionBuilder<'Send Chat', { templateId: string, chatId?: string, chatRoomId?: string }>,
 }
@@ -2230,7 +2233,10 @@ export interface AvailabilityBlock_updatesDisabled {
   index: number, // updates done via different endpoint
 }
 export interface AvailabilityBlock extends WeeklyAvailability, AvailabilityBlock_readonly, AvailabilityBlock_required, AvailabilityBlock_updatesDisabled {
-
+  typeId?: string, // for athenahealth appointment type id
+  athenaDepartmentId?: string, // for athenahealth department id
+  externalId?: string, // e.g. athena slot id
+  source?: string, // e.g. athena
 }
 
 
@@ -2241,7 +2247,7 @@ export type CalendarEventReminderNotificationInfo = {
 type BuildCalendarEventReminderInfo <T, I> = { type: T, info: I, msBeforeStartTime: number, dontSendIfPassed?: boolean, didRemind?: boolean, dontSendIfJoined?: boolean }
 export type CalendarEventReminderInfoForType = {
   "webhook": BuildCalendarEventReminderInfo<'webhook', {}>,
-  "add-to-journey": BuildCalendarEventReminderInfo<'add-to-journey', { journeyId: string }>,
+  "add-to-journey": BuildCalendarEventReminderInfo<'add-to-journey', { journeyId: string, firstAttendeeOnly?: boolean }>,
   "Remove From Journey": BuildCalendarEventReminderInfo<'Remove From Journey', { journeyId: string }>,
   "user-notification": BuildCalendarEventReminderInfo<'user-notification', CalendarEventReminderNotificationInfo>,
   "enduser-notification": BuildCalendarEventReminderInfo<'enduser-notification', CalendarEventReminderNotificationInfo>,
@@ -2655,6 +2661,7 @@ export interface AutomationForSender {
 export interface AutomationForFormRequest extends AutomationForForm, AutomationForSender { channel?: CommunicationsChannel }
 export interface AutomationForMessage extends AutomationForTemplate, AutomationForSender {
   sendToDestinationOfRelatedContactTypes?: string[],
+  hiddenFromTimeline?: boolean,
 }
 export interface AutomationForWebhook { 
   message: string,
@@ -2707,7 +2714,8 @@ export type AfterActionAutomationEvent = AutomationEventBuilder<'afterAction', A
   }
   eventCondition?: {
     before?: boolean,
-  }
+  },
+  skipIfDelayPassed?: boolean,
 }> 
 export type FormUnsubmittedEvent = AutomationEventBuilder<'formUnsubmitted', FormUnsubmittedEventInfo> 
 export type FormsUnsubmittedEvent = AutomationEventBuilder<'formsUnsubmitted', FormUnsubmittedEventInfo> 
@@ -4096,6 +4104,7 @@ export type PhoneTreeActions = {
   'Add to Queue': PhoneTreeActionBuilder<"Add to Queue", { queueId: string, playback?: Partial<PhonePlayback>, }>
   'Route Extensions': PhoneTreeActionBuilder<"Route Extensions", { 
     extensions: { input: string, userId: string }[],
+    playback?: Partial<PhonePlayback>,
   }>
 }
 export type PhoneTreeActionType = keyof PhoneTreeActions 

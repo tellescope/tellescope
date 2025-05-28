@@ -1985,6 +1985,7 @@ export var calendarEventReminderValidator = orValidator({
     webhook: objectValidator(__assign({ info: objectValidator({}, { emptyOk: true, isOptional: true }), type: exactMatchValidator(['webhook']) }, sharedReminderValidators)),
     'add-to-journey': objectValidator(__assign({ info: objectValidator({
             journeyId: mongoIdStringRequired,
+            firstAttendeeOnly: booleanValidatorOptional,
         }), type: exactMatchValidator(['add-to-journey']) }, sharedReminderValidators)),
     'Remove From Journey': objectValidator(__assign({ info: objectValidator({
             journeyId: mongoIdStringRequired,
@@ -2063,7 +2064,7 @@ export var automationEventValidator = orValidator({
                 before: booleanValidatorOptional,
             }, { isOptional: true, emptyOk: true, }), eventCondition: objectValidator({
                 before: booleanValidatorOptional,
-            }, { isOptional: true, emptyOk: true }) }), { emptyOk: false }),
+            }, { isOptional: true, emptyOk: true }), skipIfDelayPassed: booleanValidatorOptional }), { emptyOk: false }),
     }),
     formUnsubmitted: objectValidator({
         type: exactMatchValidator(['formUnsubmitted']),
@@ -2111,6 +2112,7 @@ export var ticketActionValidator = orValidator({
         info: objectValidator({
             formId: mongoIdStringRequired,
             formResponseId: mongoIdStringOptional,
+            bulkForEvent: booleanValidatorOptional, // for bulk SMS to all event attendees
         }, { emptyOk: false }),
         completedAt: dateOptionalOrEmptyStringValidator,
         optional: booleanValidatorOptional,
@@ -2126,6 +2128,7 @@ export var ticketActionValidator = orValidator({
         info: objectValidator({
             templateId: mongoIdStringRequired,
             smsId: mongoIdStringOptional,
+            bulkForEvent: booleanValidatorOptional, // for bulk SMS to all event attendees
         }, { emptyOk: false }),
         completedAt: dateOptionalOrEmptyStringValidator,
         optional: booleanValidatorOptional,
@@ -2170,6 +2173,7 @@ export var automationForMessageValidator = objectValidator({
     templateId: mongoIdStringRequired,
     assignment: senderAssignmentStrategyValidatorOptional,
     sendToDestinationOfRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
+    hiddenFromTimeline: booleanValidatorOptional,
 }, { emptyOk: false });
 export var developHealthDrugsValidator = listValidator(objectValidator({
     name: stringValidator,
@@ -2217,6 +2221,7 @@ export var automationActionValidator = orValidator({
             assignment: senderAssignmentStrategyValidatorOptional,
             fromEmailOverride: emailValidatorOptional,
             sendToDestinationOfRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
+            hiddenFromTimeline: booleanValidatorOptional,
         }, { emptyOk: false }),
         continueOnError: booleanValidatorOptional,
     }),
@@ -3528,6 +3533,7 @@ export var organizationSettingsValidator = objectValidator({
         locationRequired: booleanValidatorOptional,
         cancelReasons: listOfStringsValidatorOptionalOrEmptyOk,
         copyRemindersByDefault: booleanValidatorOptional,
+        showMakeRecurringOnProfile: booleanValidatorOptional,
     }, { isOptional: true }),
     dashboard: objectValidator({
         view: customDashboardViewValidator,
@@ -5033,6 +5039,7 @@ export var phoneTreeActionValidator = orValidator({
                 userId: mongoIdStringRequired,
                 input: stringValidator,
             })),
+            playback: phonePlaybackValidatorOptional,
         }),
     }),
 });

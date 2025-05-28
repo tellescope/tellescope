@@ -7367,6 +7367,7 @@ export const formsort_tests = async () => {
     postal_code: 'ZIP',
   }
   const answers = [
+    { key: 'stripeCustomerId', value: 'test-customer-id' },
     { key: 'email', value: answersEmail },
     { key: 'phone', value: "+15555555555" },
     { key: 'fname', value: 'Fname' },
@@ -7420,6 +7421,7 @@ export const formsort_tests = async () => {
         if (r.responses.length !== answers.length) { return false }
 
         if (!validateResponse(r, 'address', JSON.stringify(address, null, 2))) { return false }
+        if (!validateResponse(r, 'stripeCustomerId', "test-customer-id")) { return false }
         if (!validateResponse(r, 'email', answersEmail)) { return false }
         if (!validateResponse(r, 'phone', "+15555555555")) { return false }
         if (!validateResponse(r, 'fname', "Fname")) { return false }
@@ -7487,6 +7489,7 @@ export const formsort_tests = async () => {
         if (!validateResponse(r, 'ts_enduser_custom2', "Custom 2")) { return false }
         if (!validateResponse(r, 'multiple_choice', ['multiple choice'])) { return false }
 
+        if (submissionEnduser.stripeCustomerId !== 'test-customer-id') { return false }
         if (submissionEnduser.email !== answersEmail) { return false }
         if (submissionEnduser.fname !== 'Fname') { return false }
         if (submissionEnduser.lname !== 'Lname') { return false }
@@ -10138,6 +10141,7 @@ const input_modifier_tests = async () => {
   await Promise.all([
     sdk.api.endusers.deleteOne(e.id),
   ])
+  await wait (undefined, 500) // allows for background deletion of form responses
 }
 
 const calendar_event_care_team_tests = async () => {
@@ -10492,6 +10496,8 @@ const updatedAt_tests = async () => {
   log_header("UpdatedAt Tests")
 
   const e = await sdk.api.endusers.createOne({ fname: 'Test', lname: 'Testson' })
+  await wait(undefined, 500) // some background stuff may run and change updatedAt again
+
   const original = new Date((await sdk.api.endusers.getOne(e.id)).updatedAt) // may slightly differ from what's returned on creation
 
   await wait(undefined, 500)

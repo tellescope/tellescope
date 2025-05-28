@@ -2035,6 +2035,7 @@ exports.calendarEventReminderValidator = (0, exports.orValidator)({
     webhook: (0, exports.objectValidator)(__assign({ info: (0, exports.objectValidator)({}, { emptyOk: true, isOptional: true }), type: (0, exports.exactMatchValidator)(['webhook']) }, sharedReminderValidators)),
     'add-to-journey': (0, exports.objectValidator)(__assign({ info: (0, exports.objectValidator)({
             journeyId: exports.mongoIdStringRequired,
+            firstAttendeeOnly: exports.booleanValidatorOptional,
         }), type: (0, exports.exactMatchValidator)(['add-to-journey']) }, sharedReminderValidators)),
     'Remove From Journey': (0, exports.objectValidator)(__assign({ info: (0, exports.objectValidator)({
             journeyId: exports.mongoIdStringRequired,
@@ -2113,7 +2114,7 @@ exports.automationEventValidator = (0, exports.orValidator)({
                 before: exports.booleanValidatorOptional,
             }, { isOptional: true, emptyOk: true, }), eventCondition: (0, exports.objectValidator)({
                 before: exports.booleanValidatorOptional,
-            }, { isOptional: true, emptyOk: true }) }), { emptyOk: false }),
+            }, { isOptional: true, emptyOk: true }), skipIfDelayPassed: exports.booleanValidatorOptional }), { emptyOk: false }),
     }),
     formUnsubmitted: (0, exports.objectValidator)({
         type: (0, exports.exactMatchValidator)(['formUnsubmitted']),
@@ -2161,6 +2162,7 @@ exports.ticketActionValidator = (0, exports.orValidator)({
         info: (0, exports.objectValidator)({
             formId: exports.mongoIdStringRequired,
             formResponseId: exports.mongoIdStringOptional,
+            bulkForEvent: exports.booleanValidatorOptional, // for bulk SMS to all event attendees
         }, { emptyOk: false }),
         completedAt: exports.dateOptionalOrEmptyStringValidator,
         optional: exports.booleanValidatorOptional,
@@ -2176,6 +2178,7 @@ exports.ticketActionValidator = (0, exports.orValidator)({
         info: (0, exports.objectValidator)({
             templateId: exports.mongoIdStringRequired,
             smsId: exports.mongoIdStringOptional,
+            bulkForEvent: exports.booleanValidatorOptional, // for bulk SMS to all event attendees
         }, { emptyOk: false }),
         completedAt: exports.dateOptionalOrEmptyStringValidator,
         optional: exports.booleanValidatorOptional,
@@ -2220,6 +2223,7 @@ exports.automationForMessageValidator = (0, exports.objectValidator)({
     templateId: exports.mongoIdStringRequired,
     assignment: exports.senderAssignmentStrategyValidatorOptional,
     sendToDestinationOfRelatedContactTypes: exports.listOfStringsValidatorOptionalOrEmptyOk,
+    hiddenFromTimeline: exports.booleanValidatorOptional,
 }, { emptyOk: false });
 exports.developHealthDrugsValidator = (0, exports.listValidator)((0, exports.objectValidator)({
     name: exports.stringValidator,
@@ -2267,6 +2271,7 @@ exports.automationActionValidator = (0, exports.orValidator)({
             assignment: exports.senderAssignmentStrategyValidatorOptional,
             fromEmailOverride: exports.emailValidatorOptional,
             sendToDestinationOfRelatedContactTypes: exports.listOfStringsValidatorOptionalOrEmptyOk,
+            hiddenFromTimeline: exports.booleanValidatorOptional,
         }, { emptyOk: false }),
         continueOnError: exports.booleanValidatorOptional,
     }),
@@ -3580,6 +3585,7 @@ exports.organizationSettingsValidator = (0, exports.objectValidator)({
         locationRequired: exports.booleanValidatorOptional,
         cancelReasons: exports.listOfStringsValidatorOptionalOrEmptyOk,
         copyRemindersByDefault: exports.booleanValidatorOptional,
+        showMakeRecurringOnProfile: exports.booleanValidatorOptional,
     }, { isOptional: true }),
     dashboard: (0, exports.objectValidator)({
         view: exports.customDashboardViewValidator,
@@ -5085,6 +5091,7 @@ exports.phoneTreeActionValidator = (0, exports.orValidator)({
                 userId: exports.mongoIdStringRequired,
                 input: exports.stringValidator,
             })),
+            playback: exports.phonePlaybackValidatorOptional,
         }),
     }),
 });
