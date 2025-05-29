@@ -224,7 +224,7 @@ const setup_tests = async () => {
   // ensure that going to "Non-Admin" triggers a role change
   await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Test'] }, { replaceObjectFields: true })
   
-  await wait(undefined, 1000) // wait for role change to propagate so authenticate does fail next
+  await wait(undefined, 2000) // wait for role change to propagate so authenticate does fail next
 
   await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)
   await async_test('non admin authenticated', sdkNonAdmin.test_authenticated, { expectedResult: 'Authenticated!' })

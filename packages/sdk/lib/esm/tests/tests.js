@@ -245,7 +245,7 @@ var setup_tests = function () { return __awaiter(void 0, void 0, void 0, functio
             case 28:
                 // ensure that going to "Non-Admin" triggers a role change
                 _a.sent();
-                return [4 /*yield*/, wait(undefined, 1000)]; // wait for role change to propagate so authenticate does fail next
+                return [4 /*yield*/, wait(undefined, 2000)]; // wait for role change to propagate so authenticate does fail next
             case 29:
                 _a.sent(); // wait for role change to propagate so authenticate does fail next
                 return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)];

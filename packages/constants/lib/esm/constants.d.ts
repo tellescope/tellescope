@@ -23,6 +23,7 @@ export declare const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME: {
     timezone: string;
     mname: string;
     externalId: string;
+    source: string;
     relationships: string;
     accessTags: string;
     unsubscribedFromMarketing: string;
