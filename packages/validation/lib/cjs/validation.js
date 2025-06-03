@@ -3793,6 +3793,7 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
             by: (0, exports.exactMatchValidatorOptional)(['', 'enduser', 'user']),
             templateIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
             excludeTemplateIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
+            excludeCancelUpcomingEventsJourney: exports.booleanValidatorOptional,
         }),
         conditions: exports.optionalEmptyObjectValidator,
     }),

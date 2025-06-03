@@ -3741,6 +3741,7 @@ export var automationTriggerEventValidator = orValidator({
             by: exactMatchValidatorOptional(['', 'enduser', 'user']),
             templateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
             excludeTemplateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+            excludeCancelUpcomingEventsJourney: booleanValidatorOptional,
         }),
         conditions: optionalEmptyObjectValidator,
     }),

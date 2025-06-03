@@ -3912,6 +3912,7 @@ export type AutomationTriggerEvents = {
     titles?: string[], 
     templateIds?: string[],
     excludeTemplateIds?: string[],
+    excludeCancelUpcomingEventsJourney?: boolean, // if true, will not trigger from cancelUpcomingEvents Journey action
     by?: '' | 'enduser' | 'user', // only implemented for enduser for now
   }, {}>,
   'Appointment Rescheduled': AutomationTriggerEventBuilder<"Appointment Rescheduled", { titles?: string[] }, {}>,

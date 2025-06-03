@@ -1620,6 +1620,7 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
     titles?: string[] | undefined;
     templateIds?: string[] | undefined;
     excludeTemplateIds?: string[] | undefined;
+    excludeCancelUpcomingEventsJourney?: boolean | undefined;
     by?: "" | "enduser" | "user" | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Appointment Rescheduled", {
     titles?: string[] | undefined;

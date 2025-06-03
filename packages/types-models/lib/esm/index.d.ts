@@ -3922,6 +3922,7 @@ export type AutomationTriggerEvents = {
         titles?: string[];
         templateIds?: string[];
         excludeTemplateIds?: string[];
+        excludeCancelUpcomingEventsJourney?: boolean;
         by?: '' | 'enduser' | 'user';
     }, {}>;
     'Appointment Rescheduled': AutomationTriggerEventBuilder<"Appointment Rescheduled", {
