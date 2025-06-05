@@ -121,6 +121,7 @@ export interface GenericSearchProps<T> extends FilterComponent<T> {
     value?: string;
     onChange?: (s: string) => void;
     hideIcon?: boolean;
+    variant?: TextFieldProps['variant'];
 }
 interface ModelSearchProps<T> extends GenericSearchProps<T>, SearchAPIProps<T> {
 }

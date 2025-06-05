@@ -10428,6 +10428,7 @@ const get_templated_message_tests = async () => {
 
   const enduser = await sdk.api.endusers.createOne({ fname: "Main", fields: { CustomField: "Enduser" } })
   const related = await sdk.api.endusers.createOne({ lname: "Related", fields: { OtherCustomField: "Contact" } })
+  const form = await sdk.api.forms.createOne({ title: 'test form for templated message' })
   
   await async_test(
     "Fields are templated correctly for enduser and relatedcontact",
@@ -10457,9 +10458,93 @@ const get_templated_message_tests = async () => {
     }
   )
 
+  await async_test(
+    "Unformatted link",
+    () => sdk.api.templates.get_templated_message({
+      enduserId: enduser.id,
+      channel: 'Email',
+      message: `https://www.tellescope.com`,
+      html: `https://www.tellescope.com`,
+      userId: sdk.userInfo.id,
+    }),
+    { 
+      onResult: r => (
+        r.plaintext === 'https://www.tellescope.com'
+      && r.html === 'https://www.tellescope.com'
+      )
+    }
+  )
+
+  await async_test(
+    "link format",
+    () => sdk.api.templates.get_templated_message({
+      enduserId: enduser.id,
+      channel: 'Email',
+      message: `{https://www.tellescope.com}[click here]`,
+      html: `{https://www.tellescope.com}[click here]`,
+      userId: sdk.userInfo.id,
+    }),
+    { onResult: 
+      r => (
+         r.plaintext.includes('/r/') && r.plaintext.includes('click here') 
+      && r.html.includes('/r/') && r.html.includes('<a') && r.html.includes('click here') && r.html.includes("</a>")
+      )
+    }
+  )
+  await async_test(
+    "plain $LINK_ONLY",
+    () => sdk.api.templates.get_templated_message({
+      enduserId: enduser.id,
+      channel: 'Email',
+      message: `{https://www.tellescope.com}[$LINK_ONLY]`,
+      html: `{https://www.tellescope.com}[$LINK_ONLY]`,
+      userId: sdk.userInfo.id,
+    }),
+    { onResult: 
+      r => (
+         r.plaintext.includes('/r/') && !r.plaintext.includes('$LINK_ONLY') 
+      && r.html.includes('/r/') && !r.html.includes('$LINK_ONLY')
+      )
+    }
+  )
+
+  await async_test(
+    "form link",
+    () => sdk.api.templates.get_templated_message({
+      enduserId: enduser.id,
+      channel: 'Email',
+      message: `{{forms.${form.id}.link:click here}}`,
+      html: `{{forms.${form.id}.link:click here}}`,
+      userId: sdk.userInfo.id,
+    }),
+    { onResult: 
+      r => (
+        r.plaintext.includes('/r/') && r.plaintext.includes('click here')
+        && r.html.includes('/r/') && r.html.includes('<a') && r.html.includes('click here') && r.html.includes("</a>")
+      )
+    }
+  )
+  await async_test(
+    "form $LINK_ONLY",
+    () => sdk.api.templates.get_templated_message({
+      enduserId: enduser.id,
+      channel: 'Email',
+      message: `{{forms.${form.id}.link:$LINK_ONLY}}`,
+      html: `{{forms.${form.id}.link:$LINK_ONLY}}`,
+      userId: sdk.userInfo.id,
+    }),
+    { onResult: 
+      r => (
+        r.plaintext.includes('/r/') && !r.plaintext.includes('$LINK_ONLY')
+        && r.html.includes('/r/') && !r.html.includes('$LINK_ONLY')
+      )
+    }
+  )
+
   await Promise.all([
     sdk.api.endusers.deleteOne(enduser.id),
     sdk.api.endusers.deleteOne(related.id),
+    sdk.api.forms.deleteOne(form.id),
   ])
 }
 
@@ -10565,6 +10650,600 @@ const replace_enduser_template_values_tests = async () => {
   assert(replace_enduser_template_values(d as any, enduser) === d as any, 'fail non-string', 'non-string')
 
   await sdk.api.endusers.deleteOne(enduser.id)
+}
+
+const inbox_loading_tests = async () => {
+  log_header("Inbox Loading Tests")
+  const e = await sdk.api.endusers.createOne({ fname: 'Test', lname: 'Testson' })
+
+  const email = await sdk.api.emails.createOne({
+    logOnly: true,
+    subject: 'Test Email',
+    enduserId: e.id,
+    textContent: 'This is a test email',
+    inbound: true,
+    userId: sdk.userInfo.id,
+  })
+  const sms = await sdk.api.sms_messages.createOne({
+    logOnly: true,
+    inbound: true,
+    enduserId: e.id,
+    message: 'This is a test SMS',
+    userId: sdk.userInfo.id,
+  })
+  const groupMMS = await sdk.api.group_mms_conversations.createOne({ 
+    enduserIds: [e.id],
+    userIds: [sdk.userInfo.id],
+    userStates: [],
+  })
+  const call = await sdk.api.phone_calls.createOne({ enduserId: e.id, inbound: true, userId: sdk.userInfo.id })
+  const thread = await sdk.api.ticket_threads.createOne({ enduserId: e.id, subject: 'test thread' })
+  const comment = await sdk.api.ticket_thread_comments.createOne({
+    enduserId: e.id,
+    html: '',
+    inbound: false,
+    plaintext: '',
+    public: false,
+    ticketThreadId: thread.id,
+    userId: sdk.userInfo.id,
+  })
+  const room = await sdk.api.chat_rooms.createOne({ enduserIds: [e.id], userIds: [], title: 'Test Chat Room' })
+
+  await async_test(
+    "Inbox loads emails",
+    () => sdk.api.endusers.load_inbox_data({ }),
+    { onResult: r => (
+         r.chat_rooms.length === 1
+      && r.emails.length === 1
+      && r.sms_messages.length === 1
+      && r.group_mms_conversations.length === 1
+      && r.phone_calls.length === 1
+      && r.ticket_thread_comments.length === 1
+      && r.endusers.length === 1
+    ) }
+  )
+
+  await async_test(
+    "Inbox loads emails (filter by self when no threads are assigned)",
+    () => sdk.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }),
+    { onResult: r => (
+         r.chat_rooms.length === 1
+      && r.emails.length === 1
+      && r.sms_messages.length === 1
+      && r.group_mms_conversations.length === 1
+      && r.phone_calls.length === 1
+      && r.ticket_thread_comments.length === 1
+      && r.endusers.length === 1
+    ) }
+  )
+
+  await async_test(
+    "Inbox loads emails (filter by other when no threads are assigned)",
+    () => sdk.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }),
+    { onResult: r => (
+         r.chat_rooms.length === 1
+      && r.emails.length === 1
+      && r.sms_messages.length === 1
+      && r.group_mms_conversations.length === 1
+      && r.phone_calls.length === 1
+      && r.ticket_thread_comments.length === 1
+      && r.endusers.length === 1
+    ) }
+  )
+
+  await async_test(
+    'Non-admin cannot load inbox data without assignment',
+    () => sdkNonAdmin.api.endusers.load_inbox_data({ }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
+
+  await async_test(
+    'Non-admin cannot load inbox data without assignment (self as filter)',
+    () => sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
+
+  await async_test(
+    'Non-admin cannot load inbox data without assignment (other user as filter)',
+    () => sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
+
+  // assign to Enduser
+  await sdk.api.endusers.updateOne(e.id, { assignedTo: [sdkNonAdmin.userInfo.id] }, { replaceObjectFields: true })
+  await async_test(
+    'Non-admin can load inbox data with assignment',
+    () => sdkNonAdmin.api.endusers.load_inbox_data({ }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 1
+        && r.emails.length === 1
+        && r.sms_messages.length === 1
+        && r.group_mms_conversations.length === 1
+        && r.phone_calls.length === 1
+        && r.ticket_thread_comments.length === 1
+        && r.endusers.length === 1
+      )
+    }
+  )
+  await async_test(
+    'Non-admin can load inbox data with assignment (self as filter)',
+    () => sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 1
+        && r.emails.length === 1
+        && r.sms_messages.length === 1
+        && r.group_mms_conversations.length === 1
+        && r.phone_calls.length === 1
+        && r.ticket_thread_comments.length === 1
+        && r.endusers.length === 1
+      )
+    }
+  )
+  await async_test(
+    'Non-admin can load inbox data with assignment (other user as filter, not assigned)',
+    () => sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
+  await sdk.api.endusers.updateOne(e.id, { assignedTo: [sdk.userInfo.id] }, { }) // add other assignment
+  await async_test(
+    'Non-admin can load inbox data with assignment (other user as filter, assigned)',
+    () => sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 1
+        && r.emails.length === 1
+        && r.sms_messages.length === 1
+        && r.group_mms_conversations.length === 1
+        && r.phone_calls.length === 1
+        && r.ticket_thread_comments.length === 1
+        && r.endusers.length === 1
+      )
+    }
+  )
+
+
+  // assign admin to all threads
+  await sdk.api.emails.updateOne(email.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })
+  await sdk.api.sms_messages.updateOne(sms.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })
+  await sdk.api.group_mms_conversations.updateOne(groupMMS.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })
+  await sdk.api.phone_calls.updateOne(call.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })
+  await sdk.api.ticket_threads.updateOne(thread.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })
+  await sdk.api.ticket_thread_comments.updateOne(comment.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })
+  await sdk.api.chat_rooms.updateOne(room.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })
+
+  await async_test(
+    'admin doesnt load inbox data with assignedTo as other filter',
+    () => sdk.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
+  await async_test(
+    'admin loads inbox data for other user as filter assignedTo',
+    () => sdk.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 1
+        && r.emails.length === 1
+        && r.sms_messages.length === 1
+        && r.group_mms_conversations.length === 1
+        && r.phone_calls.length === 1
+        && r.ticket_thread_comments.length === 1
+        && r.endusers.length === 1
+      )
+    }
+  )
+  await async_test(
+    'admin loads inbox data with no user',
+    () => sdk.api.endusers.load_inbox_data({ }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 1
+        && r.emails.length === 1
+        && r.sms_messages.length === 1
+        && r.group_mms_conversations.length === 1
+        && r.phone_calls.length === 1
+        && r.ticket_thread_comments.length === 1
+        && r.endusers.length === 1
+      )
+    }
+  )
+
+  await async_test(
+    'Non-admin cant load inbox data with assignedTo as other (self as filter)',
+    () => sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
+  await async_test(
+    'Non-admin can load inbox data for other user as filter, assignedTo',
+    () => sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 1
+        && r.emails.length === 1
+        && r.sms_messages.length === 1
+        && r.group_mms_conversations.length === 1
+        && r.phone_calls.length === 1
+        && r.ticket_thread_comments.length === 1
+        && r.endusers.length === 1
+      )
+    }
+  )
+  await async_test(
+    'Non-admin can load inbox data with no user',
+    () => sdkNonAdmin.api.endusers.load_inbox_data({ }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 1
+        && r.emails.length === 1
+        && r.sms_messages.length === 1
+        && r.group_mms_conversations.length === 1
+        && r.phone_calls.length === 1
+        && r.ticket_thread_comments.length === 1
+        && r.endusers.length === 1
+      )
+    }
+  )
+
+  // assign other user to all threads
+  await sdk.api.emails.updateOne(email.id, { assignedTo: [sdkNonAdmin.userInfo.id] })
+  await sdk.api.sms_messages.updateOne(sms.id, { assignedTo: [sdkNonAdmin.userInfo.id] })
+  await sdk.api.group_mms_conversations.updateOne(groupMMS.id, { assignedTo: [sdkNonAdmin.userInfo.id] })
+  await sdk.api.phone_calls.updateOne(call.id, { assignedTo: [sdkNonAdmin.userInfo.id] })
+  await sdk.api.ticket_threads.updateOne(thread.id, { assignedTo: [sdkNonAdmin.userInfo.id] })
+  await sdk.api.ticket_thread_comments.updateOne(comment.id, { assignedTo: [sdkNonAdmin.userInfo.id] })
+  await sdk.api.chat_rooms.updateOne(room.id, { assignedTo: [sdkNonAdmin.userInfo.id] })
+
+  await async_test(
+    '[both assigned] admin does load inbox data with assignedTo as other filter',
+    () => sdk.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 1
+        && r.emails.length === 1
+        && r.sms_messages.length === 1
+        && r.group_mms_conversations.length === 1
+        && r.phone_calls.length === 1
+        && r.ticket_thread_comments.length === 1
+        && r.endusers.length === 1
+      )
+    }
+  )
+  await async_test(
+    '[both assigned] admin loads inbox data for other user as filter assignedTo',
+    () => sdk.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 1
+        && r.emails.length === 1
+        && r.sms_messages.length === 1
+        && r.group_mms_conversations.length === 1
+        && r.phone_calls.length === 1
+        && r.ticket_thread_comments.length === 1
+        && r.endusers.length === 1
+      )
+    }
+  )
+  await async_test(
+    '[both assigned] admin loads inbox data with no user',
+    () => sdk.api.endusers.load_inbox_data({ }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 1
+        && r.emails.length === 1
+        && r.sms_messages.length === 1
+        && r.group_mms_conversations.length === 1
+        && r.phone_calls.length === 1
+        && r.ticket_thread_comments.length === 1
+        && r.endusers.length === 1
+      )
+    }
+  )
+
+  await async_test(
+    '[both assigned] Non-admin can load inbox data with assignedTo as other (self as filter)',
+    () => sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 1
+        && r.emails.length === 1
+        && r.sms_messages.length === 1
+        && r.group_mms_conversations.length === 1
+        && r.phone_calls.length === 1
+        && r.ticket_thread_comments.length === 1
+        && r.endusers.length === 1
+      )
+    }
+  )
+  await async_test(
+    '[both assigned] Non-admin can load inbox data for other user as filter, assignedTo',
+    () => sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 1
+        && r.emails.length === 1
+        && r.sms_messages.length === 1
+        && r.group_mms_conversations.length === 1
+        && r.phone_calls.length === 1
+        && r.ticket_thread_comments.length === 1
+        && r.endusers.length === 1
+      )
+    }
+  )
+  await async_test(
+    '[both assigned] Non-admin can load inbox data with no user',
+    () => sdkNonAdmin.api.endusers.load_inbox_data({ }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 1
+        && r.emails.length === 1
+        && r.sms_messages.length === 1
+        && r.group_mms_conversations.length === 1
+        && r.phone_calls.length === 1
+        && r.ticket_thread_comments.length === 1
+        && r.endusers.length === 1
+      )
+    }
+  )
+
+  const noAccessRole = await sdk.api.role_based_access_permissions.createOne({
+    role: 'No Access',
+    permissions: {
+      emails: { read: null, create: null, update: null, delete: null },
+      sms_messages: { read: null, create: null, update: null, delete: null },
+      group_mms_conversations: { read: null, create: null, update: null, delete: null },
+      phone_calls: { read: null, create: null, update: null, delete: null },
+      ticket_threads: { read: null, create: null, update: null, delete: null },
+      ticket_thread_comments: { read: null, create: null, update: null, delete: null },
+      chat_rooms: { read: null, create: null, update: null, delete: null },
+      // read must be default for endpoint to return non 403
+      endusers: { read: 'Default', create: null, update: null, delete: null },
+    },
+  })
+
+  const roleTestUserEmail = 'inbox.role.test@tellescope.com'
+  const roleTestUser = (
+    await sdk.api.users.getOne({ email: roleTestUserEmail }).catch(() => null) // throws error on none found
+  ) || (
+    await sdk.api.users.createOne({ email: roleTestUserEmail })
+  )
+  // ensure role is set, in case GET returned a user without a role or with a different role
+  await sdk.api.users.updateOne(roleTestUser.id, { roles: [noAccessRole.role] }, { replaceObjectFields: true })
+
+  // add to care team to ensure this doesn't grant unexpected access
+  await sdk.api.endusers.updateOne(e.id, { assignedTo: [roleTestUser.id] })
+  await wait(undefined, 2000) // role change triggers a logout
+
+  const sdkNoAccess = new Session({ 
+    host,
+    authToken: (await sdk.api.users.generate_auth_token({ id: roleTestUser.id })).authToken,
+  })
+  await async_test('test_authenticated (no access)', sdkNoAccess.test_authenticated, { expectedResult: 'Authenticated!' })
+  await async_test('verify no-read on direct API call', sdkNoAccess.api.emails.getSome, handleAnyError) // ensures role is set up correctly
+
+  await async_test(
+    "No access reads nothing",
+    () => sdkNoAccess.api.endusers.load_inbox_data({ }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
+  await async_test(
+    "No access reads nothing (for self)",
+    () => sdkNoAccess.api.endusers.load_inbox_data({ userId: roleTestUser.id }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
+  await async_test(
+    "No access reads nothing (for assigned admin)",
+    () => sdkNoAccess.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
+
+  const defaultAccessRole = await sdk.api.role_based_access_permissions.createOne({
+    role: 'Default Access',
+    permissions: {
+      emails: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+      sms_messages: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+      group_mms_conversations: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+      phone_calls: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+      ticket_threads: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+      ticket_thread_comments: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+      chat_rooms: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+      endusers: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+    },
+  })
+  await sdk.api.users.updateOne(roleTestUser.id, { roles: [defaultAccessRole.role] }, { replaceObjectFields: true })
+  await wait(undefined, 2000) // role change triggers a logout
+  const sdkDefaultAccess = new Session({ 
+    host,
+    authToken: (await sdk.api.users.generate_auth_token({ id: roleTestUser.id })).authToken,
+  })
+
+  await async_test('test_authenticated (default access)', sdkDefaultAccess.test_authenticated, { expectedResult: 'Authenticated!' })
+
+  await async_test(
+    "Default access reads nothing",
+    () => sdkDefaultAccess.api.endusers.load_inbox_data({ }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
+  await async_test(
+    "Default access reads nothing (for self)",
+    () => sdkDefaultAccess.api.endusers.load_inbox_data({ userId: roleTestUser.id }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
+  await async_test(
+    "Default access reads nothing (for assigned admin)",
+    () => sdkDefaultAccess.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
+
+
+  // assign default user to the specific messages by setting userId, userIds, etc.
+  await sdk.api.emails.updateOne(email.id, { assignedTo: [], userId: roleTestUser.id }, { replaceObjectFields: true })
+  await sdk.api.sms_messages.updateOne(sms.id, { assignedTo: [], userId: roleTestUser.id }, { replaceObjectFields: true })
+  await sdk.api.group_mms_conversations.updateOne(groupMMS.id, { assignedTo: [], userIds: [roleTestUser.id] }, { replaceObjectFields: true })
+  await sdk.api.phone_calls.updateOne(call.id, { assignedTo: [], userId: roleTestUser.id }, { replaceObjectFields: true })
+  await sdk.api.ticket_thread_comments.updateOne(comment.id, {assignedTo: [],  userId: roleTestUser.id }, { replaceObjectFields: true })
+  // need to replace assignedTo for userIds to take precedent
+  await sdk.api.chat_rooms.updateOne(room.id, { assignedTo: [], userIds: [roleTestUser.id] }, { replaceObjectFields: true})
+
+  await async_test(
+    "Default access reads stuff when assigned",
+    () => sdkDefaultAccess.api.endusers.load_inbox_data({ }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 1
+        && r.emails.length === 1
+        && r.sms_messages.length === 1
+        && r.group_mms_conversations.length === 1
+        && r.phone_calls.length === 1
+        && r.ticket_thread_comments.length === 1
+        && r.endusers.length === 1
+      )
+    }
+  )
+  await async_test(
+    "Default access reads stuff when assigned (for self)",
+    () => sdkDefaultAccess.api.endusers.load_inbox_data({ userId: roleTestUser.id }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 1
+        && r.emails.length === 1
+        && r.sms_messages.length === 1
+        && r.group_mms_conversations.length === 1
+        && r.phone_calls.length === 1
+        && r.ticket_thread_comments.length === 1
+        && r.endusers.length === 1
+      )
+    }
+  )
+
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(e.id),
+    sdk.api.chat_rooms.deleteOne(room.id),
+    sdk.api.role_based_access_permissions.deleteOne(noAccessRole.id),
+    sdk.api.role_based_access_permissions.deleteOne(defaultAccessRole.id),
+    sdk.api.users.deleteOne(roleTestUser.id),
+  ])
 }
 
 (async () => {
@@ -10680,13 +11359,14 @@ const replace_enduser_template_values_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests()
+    await inbox_loading_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests_with_access_tags() // should come directly after setup to avoid extra sync values
     await sync_tests() // should come directly after setup to avoid extra sync values
+    await get_templated_message_tests()
     await updatedAt_tests()
     await automation_trigger_tests()
     await file_source_tests()
-    await get_templated_message_tests()
     await enduser_access_tags_tests()
     await enduserAccessTests()
     await test_form_response_search()

@@ -57,7 +57,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 import { jsx as _jsx } from "react/jsx-runtime";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { phoneValidator } from "@tellescope/validation";
-import { WithTheme, contact_is_valid, useFileUpload, useFormFields, useFormResponses, useResolvedSession, value_is_loaded } from "../index";
+import { WithTheme, contact_is_valid, useAddGTMTag, useFileUpload, useFormFields, useFormResponses, useResolvedSession, value_is_loaded } from "../index";
 import ReactGA from "react-ga4";
 import isEmail from "validator/lib/isEmail";
 import { append_current_utm_params, field_can_autoadvance, getLocalTimezone, get_time_values, get_utm_params, object_is_empty, responses_satisfy_conditions, update_local_storage } from "@tellescope/utilities";
@@ -480,6 +480,7 @@ export var useTellescopeForm = function (_a) {
         goBackURL = new URL(window.location.href).searchParams.get('back') || '';
     }
     catch (err) { }
+    useAddGTMTag(form === null || form === void 0 ? void 0 : form.gtmTag);
     useEffect(function () {
         try {
             window.location.hash = activeField.value.id;

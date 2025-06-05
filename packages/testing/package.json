@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/testing",
-  "version": "1.200.2",
+  "version": "1.201.0",
   "description": "General purpose testing utilities",
   "main": "./lib/cjs/testing.js",
   "module": "./lib/esm/testing.js",
@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/tellescope-os/tellescope#readme",
   "dependencies": {
-    "@tellescope/types-utilities": "^1.200.2"
+    "@tellescope/types-utilities": "^1.201.0"
   },
   "devDependencies": {
     "@types/express": "4.17.14",

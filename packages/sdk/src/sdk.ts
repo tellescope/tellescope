@@ -348,6 +348,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     get_journeys_report: (args: extractFields<CustomActions['endusers']['get_journeys_report']['parameters']>) => (
       Promise<extractFields<CustomActions['endusers']['get_journeys_report']['returns']>>
     ),
+    load_inbox_data: (args: extractFields<CustomActions['endusers']['load_inbox_data']['parameters']>) => (
+      Promise<extractFields<CustomActions['endusers']['load_inbox_data']['returns']>>
+    ),
   },
   users: {
     begin_sso: (args: extractFields<PublicActions['users']['begin_sso']['parameters']>) => (
@@ -897,6 +900,7 @@ export class Session extends SessionManager {
     queries.endusers.dosespot = a => this._POST(`/v1${schema.endusers.customActions.dosespot.path}`, a)
     queries.endusers.customer_io_sync = a => this._POST(`/v1${schema.endusers.customActions.customer_io_sync.path}`, a)
     queries.endusers.rename_stored_custom_fields = a => this._PATCH(`/v1${schema.endusers.customActions.rename_stored_custom_fields.path}`, a)
+    queries.endusers.load_inbox_data = a => this._GET(`/v1/${schema.endusers.customActions.load_inbox_data.path}`, a)
 
     queries.users.display_names = () => this._GET<{}, { fname: string, lname: string, id: string }[]>(`/v1/user-display-names`)
     queries.users.begin_sso = a => this._POST(`/v1/${schema.users.publicActions.begin_sso.path}`, a)

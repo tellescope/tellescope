@@ -6,6 +6,7 @@ import {
   ModelName,
   User,
   VitalConfiguration,
+  TicketThread,
 } from "@tellescope/types-server"
 import {
   ErrorInfo,
@@ -108,6 +109,9 @@ import {
   SMSMessage,
   EnduserEligibilityResult,
   Waitlist,
+  PhoneCall,
+  TicketThreadComment,
+  ChatRoom as ChatRoomClient,
 } from "@tellescope/types-client"
 
 import {
@@ -324,6 +328,7 @@ import {
   recentViewersValidator,
   stringValidator100000OptionalEmptyOkayEscapeHTML,
   customPoliciesValidator,
+  stringValidator100EscapeHTML,
 } from "@tellescope/validation"
 
 import {
@@ -837,6 +842,27 @@ export type CustomActions = {
     dosespot: CustomAction<{ enduserId: string }, { link: string }>,
     customer_io_sync: CustomAction<{ enduserIds: string[], event?: string, trackProperties?: string[]  }, { }>,
     rename_stored_custom_fields: CustomAction<{ existingName: string, newName: string }, { }>,
+    load_inbox_data: (
+      CustomAction<{ 
+        userId?: string,
+        lastEmailId?: string,
+        inboxStatuses?: string[],
+        lastSMSId?: string,
+        lastGroupMMSId?: string,
+        lastChatRoomId?: string,  
+        lastPhoneCallId?: string,
+        lastTicketThreadCommentId?: string,
+        limit?: number,
+      }, {
+        emails: Email[],
+        sms_messages: SMSMessage[],
+        group_mms_conversations: GroupMMSConversation[],
+        chat_rooms: ChatRoomClient[],
+        phone_calls: PhoneCall[],
+        ticket_thread_comments: TicketThreadComment[],
+        endusers: Enduser[],
+      }>
+    ),
   },
   users: {
     display_info: CustomAction<{ }, { fname: string, lname: string, id: string }[]>,
@@ -1819,6 +1845,32 @@ export const schema: SchemaV1 = build_schema({
         parameters: { enduserId: { validator: mongoIdStringValidator } },
         returns: { link: { validator: stringValidator } }
       },
+      load_inbox_data: {
+        op: 'custom', access: 'read', method: 'get', 
+        path: '/endusers/load-inbox-data',
+        name: 'Load Inbox Data',
+        description: "Loads data for displaying on the inbox", 
+        parameters: { 
+          limit: { validator: nonNegNumberValidator },
+          userId: { validator: mongoIdStringValidator },
+          inboxStatuses: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+          lastEmailId: { validator: mongoIdStringValidator },
+          lastChatRoomId: { validator: mongoIdStringValidator },
+          lastSMSId: { validator: mongoIdStringValidator },
+          lastGroupMMSId: { validator: mongoIdStringValidator },
+          lastPhoneCallId: { validator: mongoIdStringValidator },
+          lastTicketThreadCommentId: { validator: mongoIdStringValidator },
+        },
+        returns: { 
+          emails: { validator: 'emails' as any, required: true }, 
+          chat_rooms: { validator: 'chat_rooms' as any, required: true },
+          sms_messages: { validator: 'sms_messages' as any, required: true },
+          group_mms_conversations: { validator: 'group_mms_conversations' as any, required: true },
+          phone_calls: { validator: 'phone_calls' as any, required: true },
+          ticket_thread_comments: { validator: 'ticket_thread_comments' as any, required: true },
+          endusers: { validator: 'endusers' as any, required: true },
+        }
+      },
     },
     publicActions: {
       begin_login_flow: {
@@ -2504,7 +2556,6 @@ export const schema: SchemaV1 = build_schema({
       userId: {
         validator: mongoIdStringValidator,
         examples: [PLACEHOLDER_ID],
-        updatesDisabled: true, 
         initializer: (a, s) => (s as UserSession).id,
       },
       subject: {
@@ -4284,6 +4335,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields, 
+      gtmTag: { validator: stringValidator100EscapeHTML },
       dontSyncToCanvasOnSubmission: { validator: booleanValidator },
       archivedAt: { validator: dateOptionalOrEmptyStringValidator },
       title: {
@@ -6828,6 +6880,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields, 
+      gtmTag: { validator: stringValidator100EscapeHTML },
       archivedAt: { validator: dateOptionalOrEmptyStringValidator },
       title: {
         validator: stringValidator100,
@@ -7975,6 +8028,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
       userDisplayName: { validator: stringValidator250 },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, 
+      assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
     }
   },
   configurations: {
@@ -8030,7 +8084,11 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         { type: 'filter', field: 'userIds' }, 
       ]
     },
-    defaultActions: { read: {}, readMany: {}, update: {}, delete: {} },
+    defaultActions: { 
+      // enable create for automated testing of inbox loading without having to send actual messages
+      create: { warnings: ["Use start-conversation to create records"], }, 
+      read: {}, readMany: {}, update: {}, delete: {} 
+    },
     customActions: {
       start_conversation: {
         op: "custom", access: 'create', method: "post", 

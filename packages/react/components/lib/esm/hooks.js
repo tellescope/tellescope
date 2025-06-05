@@ -57,4 +57,22 @@ export var useSearchAPI = function (_a) {
         return function () { clearTimeout(t); };
     }, [query, searchAPI, onLoad, searchedRef]);
 };
+export var useAddGTMTag = function (gtmTag) {
+    useEffect(function () {
+        if (!gtmTag)
+            return;
+        try {
+            var existingScript = document.querySelector("script[src*=\"https://www.googletagmanager.com/gtm.js?id=".concat(gtmTag, "\"]"));
+            if (existingScript)
+                return;
+            var script = document.createElement('script');
+            script.type = 'text/javascript';
+            script.text = "(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':\n  new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],\n  j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=\n  'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);\n  })(window,document,'script','dataLayer','".concat(gtmTag, "');");
+            document.head.appendChild(script);
+        }
+        catch (err) {
+            console.warn(err);
+        }
+    }, [gtmTag]);
+};
 //# sourceMappingURL=hooks.js.map

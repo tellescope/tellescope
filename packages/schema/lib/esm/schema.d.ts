@@ -2,7 +2,7 @@ import { ServerModelForName, DatabaseModel, DatabaseRecord, ObjectId, ModelName,
 import { ErrorInfo, Indexable, Operation, JSONType, CRUD, HTTPMethod, UserIdentity, SessionType } from "@tellescope/types-utilities";
 import * as Utilities from "@tellescope/utilities";
 import { EnduserSession, ChatRoom, UserSession, MeetingStatus, WebhookSubscriptionsType, Attendee, FormResponseValue, MeetingInfo, OrganizationTheme, WithLinkOpenTrackingIds, CommunicationsChannel, AppointmentTerm, JourneyContext, AnalyticsQuery, AnalyticsQueryResult, DateRange, BaseAvailabilityBlock, IndexUpdate, Timezone, UserCallRoutingBehavior, ExternalChatGPTMessage, StripeCheckoutInfo, StripeCountryCode, JourneyStatistics, FormStatistics, CustomFields, TicketsReport, EndusersReportQueries, EndusersReport, Report, FormResponsesReportQueries, PhoneCallsReportQueries, ListOfStringsWithQualifier, GoGoMedsPet, InsuranceType, SmartMeterOrderLineItem, PhoneCallsReport, AthenaSubscription, TellescopeGender, LabeledField, HealthieSendChatAutomationAction, TwilioQueue, SendWebhookAutomationAction, DevelopHealthRunBenefitVerificationBaseArguments, WeeklyAvailability, CanvasCreateNoteAutomationAction } from "@tellescope/types-models";
-import { AppointmentBookingPage as AppointmentBookingPageClient, UserDisplayInfo, Enduser, Journey, FormResponse, FormField, Form, Meeting, Email, File, CalendarEvent, Organization, User as UserClient, EnduserObservation as EnduserObservationClient, AppointmentLocation, CalendarEventTemplate, Product, ManagedContentRecord, DatabaseRecord as DatabaseRecordClient, Ticket, GroupMMSConversation, EnduserOrder, EnduserEncounter, Purchase, Integration, TicketQueue, SMSMessage, EnduserEligibilityResult, Waitlist } from "@tellescope/types-client";
+import { AppointmentBookingPage as AppointmentBookingPageClient, UserDisplayInfo, Enduser, Journey, FormResponse, FormField, Form, Meeting, Email, File, CalendarEvent, Organization, User as UserClient, EnduserObservation as EnduserObservationClient, AppointmentLocation, CalendarEventTemplate, Product, ManagedContentRecord, DatabaseRecord as DatabaseRecordClient, Ticket, GroupMMSConversation, EnduserOrder, EnduserEncounter, Purchase, Integration, TicketQueue, SMSMessage, EnduserEligibilityResult, Waitlist, PhoneCall, TicketThreadComment, ChatRoom as ChatRoomClient } from "@tellescope/types-client";
 import { ValidatorDefinition, LoginFlowResult, IntegrationsTitleType } from "@tellescope/validation";
 export declare const get_next_reminder_timestamp_for_ticket: ({ dueDateInMS, reminders, closedAt }: Pick<Ticket, 'dueDateInMS' | 'reminders' | 'closedAt'>) => number;
 export type RelationshipConstraintOptions<T> = {
@@ -703,6 +703,25 @@ export type CustomActions = {
             existingName: string;
             newName: string;
         }, {}>;
+        load_inbox_data: (CustomAction<{
+            userId?: string;
+            lastEmailId?: string;
+            inboxStatuses?: string[];
+            lastSMSId?: string;
+            lastGroupMMSId?: string;
+            lastChatRoomId?: string;
+            lastPhoneCallId?: string;
+            lastTicketThreadCommentId?: string;
+            limit?: number;
+        }, {
+            emails: Email[];
+            sms_messages: SMSMessage[];
+            group_mms_conversations: GroupMMSConversation[];
+            chat_rooms: ChatRoomClient[];
+            phone_calls: PhoneCall[];
+            ticket_thread_comments: TicketThreadComment[];
+            endusers: Enduser[];
+        }>);
     };
     users: {
         display_info: CustomAction<{}, {

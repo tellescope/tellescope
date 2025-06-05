@@ -5,7 +5,7 @@ import { DatabaseRecord, Enduser, Form, FormField, FormResponse } from "@tellesc
 import { phoneValidator } from "@tellescope/validation"
 import { FileBlob, Indexable } from "@tellescope/types-utilities"
 import { CompoundFilter, EnduserRelationship, FormCustomization, FormResponseAnswerAddress, FormResponseAnswerFileValue, FormResponseValue, FormResponseValueAnswer, OrganizationTheme, PreviousFormCompoundLogic, PreviousFormFieldType } from "@tellescope/types-models"
-import { WithTheme, contact_is_valid, useFileUpload, useFormFields, useFormResponses, useResolvedSession, value_is_loaded } from "../index"
+import { WithTheme, contact_is_valid, useAddGTMTag, useFileUpload, useFormFields, useFormResponses, useResolvedSession, value_is_loaded } from "../index"
 import ReactGA from "react-ga4";
 
 import isEmail from "validator/lib/isEmail"
@@ -543,6 +543,8 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
   try {
     goBackURL = new URL(window.location.href).searchParams.get('back') || ''
   } catch(err) {}
+
+  useAddGTMTag(form?.gtmTag)
 
   useEffect(() => {
     try {

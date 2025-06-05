@@ -184,6 +184,7 @@ export declare const stringValidatorOptional: ValidatorDefinition<string>;
 export declare const stringValidatorOptionalEmptyOkay: ValidatorDefinition<string>;
 export declare const stringValidator5000OptionalEmptyOkay: ValidatorDefinition<string>;
 export declare const stringValidator100: ValidatorDefinition<string>;
+export declare const stringValidator100EscapeHTML: ValidatorDefinition<string>;
 export declare const stringValidator250: ValidatorDefinition<string>;
 export declare const stringValidator1000: ValidatorDefinition<string>;
 export declare const stringValidator1000Optional: ValidatorDefinition<string>;

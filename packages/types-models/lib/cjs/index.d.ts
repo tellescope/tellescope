@@ -248,6 +248,7 @@ export type OrganizationSettings = {
     interface?: {
         dontPersistSearches?: boolean;
         showEndusersV2?: boolean;
+        showInboxV2?: boolean;
     };
 };
 export type OrganizationLimits = {
@@ -1051,10 +1052,10 @@ export interface Email_updatesDisabled {
     inbound?: boolean;
     logOnly?: boolean;
     timestamp?: Date;
-    userId: string;
     journeyId?: string;
 }
 export interface Email extends Email_required, Email_readonly, Email_updatesDisabled, TextCommunication {
+    userId: string;
     hiddenFromTimeline?: boolean;
     isAutoreply?: boolean;
     replyTo?: string | null;
@@ -1155,6 +1156,7 @@ export type ChatRoomType = 'internal' | 'external' | 'Group Chat';
 export interface ChatRoom_readonly extends ClientRecord {
     recentMessage?: string;
     recentEnduserMessage?: string;
+    recentEnduserMessageSentAt?: number;
     recentSender?: string;
     recentMessageSentAt?: number;
     numMessages: number;
@@ -1688,6 +1690,7 @@ export interface Form_required {
 export interface Form_updatesDisabled {
 }
 export interface Form extends Form_readonly, Form_required, Form_updatesDisabled {
+    gtmTag?: string;
     ipAddressCustomField: string;
     archivedAt?: Date | '';
     displayTitle?: string;
@@ -2518,6 +2521,7 @@ export interface AppointmentBookingPage extends AppointmentBookingPage_readonly,
     appointmentSlotsMaxHeight?: number;
     includeRelatedContactTypes?: string[];
     archivedAt?: Date | '';
+    gtmTag?: string;
 }
 export interface CalendarEventRSVP_readonly extends ClientRecord {
     creatorType: SessionType;
@@ -4297,6 +4301,7 @@ export interface TicketThreadComment_required {
     enduserId: string;
     public: boolean;
     inbound: boolean;
+    assignedTo?: string[];
 }
 export interface TicketThreadComment_updatesDisabled {
 }
@@ -4483,13 +4488,10 @@ export type GroupMMSUserState = {
 };
 export interface GroupMMSConversation_readonly extends ClientRecord {
     externalId: string;
-    phoneNumber: string;
-    messages: GroupMMSMessage[];
-    title: string;
-    userIds: string[];
-    enduserIds: string[];
     destinations: string[];
-    userStates: GroupMMSUserState[];
+    messages: GroupMMSMessage[];
+    phoneNumber: string;
+    title: string;
     pinnedAt?: Date | '';
     tags?: string[];
     suggestedReply?: string;
@@ -4497,15 +4499,18 @@ export interface GroupMMSConversation_readonly extends ClientRecord {
         [index: string]: Date | '';
     };
     hiddenForAll?: boolean;
-    assignedTo?: string[];
 }
 export interface GroupMMSConversation_updatesDisabled {
 }
 export interface GroupMMSConversation_required {
+    userIds: string[];
+    userStates: GroupMMSUserState[];
+    enduserIds: string[];
 }
 export interface GroupMMSConversation extends GroupMMSConversation_readonly, GroupMMSConversation_required, GroupMMSConversation_updatesDisabled {
     markedUnreadForAll?: boolean;
     inboxStatus?: string;
+    assignedTo?: string[];
 }
 export type VitalComparisons = {
     'Less Than': {

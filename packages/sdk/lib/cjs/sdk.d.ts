@@ -3574,6 +3574,7 @@ type Queries = {
         get_engagement_statistics_by_userId: (args: extractFields<CustomActions['endusers']['get_engagement_statistics_by_userId']['parameters']>) => (Promise<extractFields<CustomActions['endusers']['get_engagement_statistics_by_userId']['returns']>>);
         sync_zendesk: (args: extractFields<CustomActions['endusers']['sync_zendesk']['parameters']>) => (Promise<extractFields<CustomActions['endusers']['sync_zendesk']['returns']>>);
         get_journeys_report: (args: extractFields<CustomActions['endusers']['get_journeys_report']['parameters']>) => (Promise<extractFields<CustomActions['endusers']['get_journeys_report']['returns']>>);
+        load_inbox_data: (args: extractFields<CustomActions['endusers']['load_inbox_data']['parameters']>) => (Promise<extractFields<CustomActions['endusers']['load_inbox_data']['returns']>>);
     };
     users: {
         begin_sso: (args: extractFields<PublicActions['users']['begin_sso']['parameters']>) => (Promise<extractFields<PublicActions['users']['begin_sso']['returns']>>);

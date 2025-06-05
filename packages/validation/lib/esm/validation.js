@@ -524,6 +524,14 @@ export var stringValidator100 = {
     getExample: getExampleString,
     getType: getTypeString
 };
+export var stringValidator100EscapeHTML = {
+    validate: function (o) {
+        if (o === void 0) { o = {}; }
+        return build_validator(escapeString(o), __assign(__assign({}, o), { maxLength: 100, listOf: false, escapeHTML: true }));
+    },
+    getExample: getExampleString,
+    getType: getTypeString
+};
 export var stringValidator250 = {
     validate: function (o) {
         if (o === void 0) { o = {}; }
@@ -3547,6 +3555,7 @@ export var organizationSettingsValidator = objectValidator({
     interface: objectValidator({
         dontPersistSearches: booleanValidatorOptional,
         showEndusersV2: booleanValidatorOptional,
+        showInboxV2: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true, }),
 });
 export var calendarEventPortalSettingsValidator = objectValidator({

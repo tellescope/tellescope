@@ -2,6 +2,7 @@ import React, { CSSProperties } from "react";
 import { ViewStyle } from "react-native";
 import { ErrorOptions } from "./errors";
 import { ClickableWeb, Styled } from "./mui";
+import { FixedSizeList } from 'react-window';
 import { LoadMoreOptions } from "./state";
 export declare const IN_REACT_WEB = true;
 interface ConditionalWrap_T<P extends {}> {
@@ -145,11 +146,13 @@ export interface ScrollingListProps<T extends {
         hideHorizontalScroll?: boolean;
     };
     loadMoreOptions?: LoadMoreOptions<T>;
+    scrollRef?: React.RefObject<FixedSizeList<T[]>>;
 }
 export declare const ScrollingList: <T extends {
     id: string | number;
-}>({ title, maxHeight, maxWidth, minHeight, titleStyle, items, emptyText, doneLoading, loadMore, Item, TitleComponent, titleActionsComponent, style, header, itemContainerStyle, virtualization, loadMoreOptions, }: ScrollingListProps<T> & {
+}>({ title, maxHeight, maxWidth, minHeight, titleStyle, items, emptyText, doneLoading, loadMore, Item, TitleComponent, titleActionsComponent, style, header, itemContainerStyle, virtualization, loadMoreOptions, initialScrollOffset, scrollRef, }: ScrollingListProps<T> & {
     noParentScroll?: boolean | undefined;
+    initialScrollOffset?: number | undefined;
 }) => JSX.Element;
 export declare const DraggableList: <T extends {
     id: string | number;

@@ -499,6 +499,7 @@ var useTellescopeForm = function (_a) {
         goBackURL = new URL(window.location.href).searchParams.get('back') || '';
     }
     catch (err) { }
+    (0, index_1.useAddGTMTag)(form === null || form === void 0 ? void 0 : form.gtmTag);
     (0, react_1.useEffect)(function () {
         try {
             window.location.hash = activeField.value.id;

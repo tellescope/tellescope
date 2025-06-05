@@ -597,6 +597,32 @@ exports.schema = (0, exports.build_schema)({
                 parameters: { enduserId: { validator: validation_1.mongoIdStringRequired } },
                 returns: { link: { validator: validation_1.stringValidator } }
             },
+            load_inbox_data: {
+                op: 'custom', access: 'read', method: 'get',
+                path: '/endusers/load-inbox-data',
+                name: 'Load Inbox Data',
+                description: "Loads data for displaying on the inbox",
+                parameters: {
+                    limit: { validator: validation_1.nonNegNumberValidator },
+                    userId: { validator: validation_1.mongoIdStringRequired },
+                    inboxStatuses: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk },
+                    lastEmailId: { validator: validation_1.mongoIdStringRequired },
+                    lastChatRoomId: { validator: validation_1.mongoIdStringRequired },
+                    lastSMSId: { validator: validation_1.mongoIdStringRequired },
+                    lastGroupMMSId: { validator: validation_1.mongoIdStringRequired },
+                    lastPhoneCallId: { validator: validation_1.mongoIdStringRequired },
+                    lastTicketThreadCommentId: { validator: validation_1.mongoIdStringRequired },
+                },
+                returns: {
+                    emails: { validator: 'emails', required: true },
+                    chat_rooms: { validator: 'chat_rooms', required: true },
+                    sms_messages: { validator: 'sms_messages', required: true },
+                    group_mms_conversations: { validator: 'group_mms_conversations', required: true },
+                    phone_calls: { validator: 'phone_calls', required: true },
+                    ticket_thread_comments: { validator: 'ticket_thread_comments', required: true },
+                    endusers: { validator: 'endusers', required: true },
+                }
+            },
         },
         publicActions: {
             begin_login_flow: {
@@ -1219,7 +1245,6 @@ exports.schema = (0, exports.build_schema)({
             }, userId: {
                 validator: validation_1.mongoIdStringRequired,
                 examples: [constants_1.PLACEHOLDER_ID],
-                updatesDisabled: true,
                 initializer: function (a, s) { return s.id; },
             }, subject: {
                 validator: validation_1.stringValidator,
@@ -2736,7 +2761,7 @@ exports.schema = (0, exports.build_schema)({
                 },
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { dontSyncToCanvasOnSubmission: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { gtmTag: { validator: validation_1.stringValidator100EscapeHTML }, dontSyncToCanvasOnSubmission: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
                 validator: validation_1.stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -4747,7 +4772,7 @@ exports.schema = (0, exports.build_schema)({
         enduserActions: {
             read: {}, readMany: {}, validate_access_token: {},
         },
-        fields: __assign(__assign({}, BuiltInFields), { archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { gtmTag: { validator: validation_1.stringValidator100EscapeHTML }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
                 validator: validation_1.stringValidator100,
                 required: true,
                 examples: ["Appointment Booking Title"]
@@ -5596,7 +5621,7 @@ exports.schema = (0, exports.build_schema)({
                         relationship: 'foreignKey',
                         onDependencyDelete: 'delete',
                     }]
-            }, externalThreadId: { validator: validation_1.stringValidator100, }, public: { validator: validation_1.booleanValidator, required: true, examples: [true] }, plaintext: { validator: validation_1.stringValidator25000EmptyOkay }, html: { validator: validation_1.stringValidator25000EmptyOkay }, type: { validator: validation_1.stringValidator100, }, attachments: { validator: validation_1.listOfChatAttachmentsValidator }, enduserId: { validator: validation_1.mongoIdStringRequired }, userId: { validator: validation_1.mongoIdStringRequired }, inbound: { validator: validation_1.booleanValidator }, readBy: { validator: validation_1.idStringToDateValidator }, hiddenBy: { validator: validation_1.idStringToDateValidator }, hiddenForAll: { validator: validation_1.booleanValidator }, ticketIds: { validator: validation_1.listOfStringsValidatorEmptyOk }, group: { validator: validation_1.stringValidator250 }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, userDisplayName: { validator: validation_1.stringValidator250 }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay } })
+            }, externalThreadId: { validator: validation_1.stringValidator100, }, public: { validator: validation_1.booleanValidator, required: true, examples: [true] }, plaintext: { validator: validation_1.stringValidator25000EmptyOkay }, html: { validator: validation_1.stringValidator25000EmptyOkay }, type: { validator: validation_1.stringValidator100, }, attachments: { validator: validation_1.listOfChatAttachmentsValidator }, enduserId: { validator: validation_1.mongoIdStringRequired }, userId: { validator: validation_1.mongoIdStringRequired }, inbound: { validator: validation_1.booleanValidator }, readBy: { validator: validation_1.idStringToDateValidator }, hiddenBy: { validator: validation_1.idStringToDateValidator }, hiddenForAll: { validator: validation_1.booleanValidator }, ticketIds: { validator: validation_1.listOfStringsValidatorEmptyOk }, group: { validator: validation_1.stringValidator250 }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, userDisplayName: { validator: validation_1.stringValidator250 }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, assignedTo: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay } })
     },
     configurations: {
         info: {},
@@ -5638,7 +5663,11 @@ exports.schema = (0, exports.build_schema)({
                 { type: 'filter', field: 'userIds' },
             ]
         },
-        defaultActions: { read: {}, readMany: {}, update: {}, delete: {} },
+        defaultActions: {
+            // enable create for automated testing of inbox loading without having to send actual messages
+            create: { warnings: ["Use start-conversation to create records"], },
+            read: {}, readMany: {}, update: {}, delete: {}
+        },
         customActions: {
             start_conversation: {
                 op: "custom", access: 'create', method: "post",

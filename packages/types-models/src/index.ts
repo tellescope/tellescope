@@ -263,6 +263,7 @@ export type OrganizationSettings = {
   interface?: {
     dontPersistSearches?: boolean,
     showEndusersV2?: boolean,
+    showInboxV2?: boolean,
   }
 }
 
@@ -1123,10 +1124,10 @@ export interface Email_updatesDisabled {
   inbound?: boolean;
   logOnly?: boolean,
   timestamp?: Date,
-  userId: string; // not actually required on create
   journeyId?: string,
 }
 export interface Email extends Email_required, Email_readonly, Email_updatesDisabled, TextCommunication {
+  userId: string; // not actually required on create
   hiddenFromTimeline?: boolean,
   isAutoreply?: boolean,
   replyTo?: string | null;  
@@ -1222,6 +1223,7 @@ export type ChatRoomType = 'internal' | 'external' | 'Group Chat'
 export interface ChatRoom_readonly extends ClientRecord {
   recentMessage?: string,
   recentEnduserMessage?: string,
+  recentEnduserMessageSentAt?: number,
   recentSender?: string,
   recentMessageSentAt?: number,
   numMessages: number,
@@ -1725,6 +1727,7 @@ export interface Form_required {
 }
 export interface Form_updatesDisabled {}
 export interface Form extends Form_readonly, Form_required, Form_updatesDisabled {
+  gtmTag?: string, // for Google Tag Manager
   ipAddressCustomField: string,
   archivedAt?: Date | '',
   displayTitle?: string, // for displaying in portal / timeline, but not internally
@@ -2576,6 +2579,7 @@ export interface AppointmentBookingPage extends AppointmentBookingPage_readonly,
   appointmentSlotsMaxHeight?: number,
   includeRelatedContactTypes?: string[],
   archivedAt?: Date | '',
+  gtmTag?: string,
   // productIds?: string[], // defer to specific template
 }
 
@@ -4183,7 +4187,7 @@ export interface TicketThread extends TicketThread_readonly, TicketThread_requir
   subject: string,
   closedAt?: Date | '',
   pinnedAt?: Date | '',
-  assignedTo?: string[],
+  assignedTo?: string[], // moved to TicketThreadComment in inbox redesign
   tags?: string[],
 }
 
@@ -4203,6 +4207,7 @@ export interface TicketThreadComment_required {
   enduserId: string,
   public: boolean
   inbound: boolean,
+  assignedTo?: string[],
 }
 export interface TicketThreadComment_updatesDisabled {}
 export interface TicketThreadComment extends TicketThreadComment_readonly, TicketThreadComment_required, TicketThreadComment_updatesDisabled {
@@ -4381,26 +4386,26 @@ export type GroupMMSUserState = {
 // lots of readonly as we use custom endpoint to create and send messages
 export interface GroupMMSConversation_readonly extends ClientRecord {
   externalId: string,
-  phoneNumber: string,
-  messages: GroupMMSMessage[],
-  title: string,
-  userIds: string[],
-  enduserIds: string[],
   destinations: string[],
-  userStates: GroupMMSUserState[],
+  messages: GroupMMSMessage[],
+  phoneNumber: string,
+  title: string,
   pinnedAt?: Date | '',
   tags?: string[]
   suggestedReply?: string,
   hiddenBy?: { [index: string] : Date | '' };
   hiddenForAll?: boolean,
-  assignedTo?: string[],
 }
 export interface GroupMMSConversation_updatesDisabled {}
 export interface GroupMMSConversation_required {
+  userIds: string[],
+  userStates: GroupMMSUserState[],
+  enduserIds: string[],
 }
 export interface GroupMMSConversation extends GroupMMSConversation_readonly, GroupMMSConversation_required, GroupMMSConversation_updatesDisabled {
   markedUnreadForAll?: boolean,
   inboxStatus?: string,
+  assignedTo?: string[],
 }
 
 export type VitalComparisons = {

@@ -925,6 +925,13 @@ export const stringValidator100: ValidatorDefinition<string> = {
   getExample: getExampleString,
   getType: getTypeString
 }
+export const stringValidator100EscapeHTML: ValidatorDefinition<string> = {
+  validate: (o={}) => build_validator(
+    escapeString(o), { ...o, maxLength: 100, listOf: false, escapeHTML: true } 
+  ),
+  getExample: getExampleString,
+  getType: getTypeString
+}
 
 export const stringValidator250: ValidatorDefinition<string> = {
   validate: (o={}) => build_validator(
@@ -4177,6 +4184,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
   interface: objectValidator<OrganizationSettings['interface']>({
     dontPersistSearches: booleanValidatorOptional,
     showEndusersV2: booleanValidatorOptional,
+    showInboxV2: booleanValidatorOptional,
   }, { isOptional: true, emptyOk: true, }),
 })
 

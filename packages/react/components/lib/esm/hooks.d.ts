@@ -12,4 +12,5 @@ export interface SearchAPIProps<T> {
 export declare const useSearchAPI: <T>({ query, onLoad, searchAPI }: {
     query: string;
 } & SearchAPIProps<T>) => void;
+export declare const useAddGTMTag: (gtmTag?: string) => void;
 //# sourceMappingURL=hooks.d.ts.map

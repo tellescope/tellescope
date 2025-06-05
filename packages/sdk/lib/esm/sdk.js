@@ -438,6 +438,7 @@ var Session = /** @class */ (function (_super) {
         queries.endusers.dosespot = function (a) { return _this._POST("/v1".concat(schema.endusers.customActions.dosespot.path), a); };
         queries.endusers.customer_io_sync = function (a) { return _this._POST("/v1".concat(schema.endusers.customActions.customer_io_sync.path), a); };
         queries.endusers.rename_stored_custom_fields = function (a) { return _this._PATCH("/v1".concat(schema.endusers.customActions.rename_stored_custom_fields.path), a); };
+        queries.endusers.load_inbox_data = function (a) { return _this._GET("/v1/".concat(schema.endusers.customActions.load_inbox_data.path), a); };
         queries.users.display_names = function () { return _this._GET("/v1/user-display-names"); };
         queries.users.begin_sso = function (a) { return _this._POST("/v1/".concat(schema.users.publicActions.begin_sso.path), a); };
         queries.users.complete_sso = function (a) { return _this._POST("/v1/".concat(schema.users.publicActions.complete_sso.path), a); };

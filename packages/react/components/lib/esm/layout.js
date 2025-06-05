@@ -167,7 +167,7 @@ export var List = function (_a) {
 };
 export var ScrollingList = function (_a) {
     var _b, _c;
-    var title = _a.title, maxHeight = _a.maxHeight, maxWidth = _a.maxWidth, minHeight = _a.minHeight, titleStyle = _a.titleStyle, items = _a.items, emptyText = _a.emptyText, doneLoading = _a.doneLoading, loadMore = _a.loadMore, Item = _a.Item, TitleComponent = _a.TitleComponent, titleActionsComponent = _a.titleActionsComponent, style = _a.style, header = _a.header, itemContainerStyle = _a.itemContainerStyle, virtualization = _a.virtualization, loadMoreOptions = _a.loadMoreOptions;
+    var title = _a.title, maxHeight = _a.maxHeight, maxWidth = _a.maxWidth, minHeight = _a.minHeight, titleStyle = _a.titleStyle, items = _a.items, emptyText = _a.emptyText, doneLoading = _a.doneLoading, loadMore = _a.loadMore, Item = _a.Item, TitleComponent = _a.TitleComponent, titleActionsComponent = _a.titleActionsComponent, style = _a.style, header = _a.header, itemContainerStyle = _a.itemContainerStyle, virtualization = _a.virtualization, loadMoreOptions = _a.loadMoreOptions, initialScrollOffset = _a.initialScrollOffset, scrollRef = _a.scrollRef;
     var width = usePageWidth();
     var fetchRef = useRef(0);
     var titleStyleWithDefaults = __assign({ fontSize: 20, fontWeight: 'bold', marginBottom: 3 }, titleStyle);
@@ -193,7 +193,7 @@ export var ScrollingList = function (_a) {
                             : emptyText
                         : (virtualization === null || virtualization === void 0 ? void 0 : virtualization.virtualize) ? (
                         // keep consistent with DraggableList
-                        _jsx(FixedSizeList, __assign({ style: { overflowX: (virtualization === null || virtualization === void 0 ? void 0 : virtualization.hideHorizontalScroll) ? 'hidden' : undefined }, height: (virtualization === null || virtualization === void 0 ? void 0 : virtualization.height) || window.innerHeight - 225, width: typeof virtualization.width === 'string'
+                        _jsx(FixedSizeList, __assign({ initialScrollOffset: initialScrollOffset, ref: scrollRef, style: { overflowX: (virtualization === null || virtualization === void 0 ? void 0 : virtualization.hideHorizontalScroll) ? 'hidden' : undefined }, height: (virtualization === null || virtualization === void 0 ? void 0 : virtualization.height) || window.innerHeight - 225, width: typeof virtualization.width === 'string'
                                 ? virtualization.width
                                 : ((_c = virtualization === null || virtualization === void 0 ? void 0 : virtualization.width) !== null && _c !== void 0 ? _c : width) - 200 - ((virtualization === null || virtualization === void 0 ? void 0 : virtualization.widthOffset) || 0), itemCount: items.length, itemSize: rowHeight, itemData: items, itemKey: function (index, data) { return data[index].id; }, onScroll: function (p) {
                                 var tableHeight = (virtualization === null || virtualization === void 0 ? void 0 : virtualization.height) || window.innerHeight - 225;

@@ -303,6 +303,7 @@ export interface ScrollingListProps <T extends { id: string | number }> extends 
     hideHorizontalScroll?: boolean,
   }
   loadMoreOptions?: LoadMoreOptions<T>,
+  scrollRef?: React.RefObject<FixedSizeList<T[]>>,
 }
 export const ScrollingList = <T extends { id: string | number }>({
   title,
@@ -322,7 +323,9 @@ export const ScrollingList = <T extends { id: string | number }>({
   itemContainerStyle,
   virtualization,
   loadMoreOptions,
-} : ScrollingListProps<T> & { noParentScroll?: boolean, }) => {
+  initialScrollOffset,
+  scrollRef,
+} : ScrollingListProps<T> & { noParentScroll?: boolean, initialScrollOffset?: number }) => {
   const width = usePageWidth()
   const fetchRef = useRef(0)
   const titleStyleWithDefaults = { fontSize: 20, fontWeight: 'bold', marginBottom: 3, ...titleStyle }
@@ -380,7 +383,7 @@ export const ScrollingList = <T extends { id: string | number }>({
           : emptyText
         : virtualization?.virtualize ? (
           // keep consistent with DraggableList
-            <FixedSizeList
+            <FixedSizeList initialScrollOffset={initialScrollOffset} ref={scrollRef}
               style={{ overflowX: virtualization?.hideHorizontalScroll ? 'hidden' : undefined }}
               height={virtualization?.height || window.innerHeight - 225}
               width={
