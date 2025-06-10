@@ -3560,7 +3560,7 @@ export var schema = build_schema({
             get_appointment_availability: {}, book_appointment: {}, stripe_details: {},
             session_for_public_appointment_booking: {}, download_ics_file: {},
         },
-        fields: __assign(__assign({}, BuiltInFields), { athenaDepartmentId: { validator: stringValidator1000 }, generateAthenaTelehealthLink: { validator: booleanValidator }, athenaTypeId: { validator: stringValidator1000 }, preventCancelMinutesInAdvance: { validator: numberValidator }, preventRescheduleMinutesInAdvance: { validator: numberValidator }, actualDuration: { validator: nonNegNumberValidator }, dontSyncToCanvas: { validator: booleanValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { athenaDepartmentId: { validator: stringValidator1000 }, generateAthenaTelehealthLink: { validator: booleanValidator }, athenaTypeId: { validator: stringValidator1000 }, athenaBookingTypeId: { validator: stringValidator1000 }, preventCancelMinutesInAdvance: { validator: numberValidator }, preventRescheduleMinutesInAdvance: { validator: numberValidator }, actualDuration: { validator: nonNegNumberValidator }, dontSyncToCanvas: { validator: booleanValidator }, title: {
                 validator: stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -3632,7 +3632,7 @@ export var schema = build_schema({
         defaultActions: DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: { read: {}, readMany: {} },
-        fields: __assign(__assign({}, BuiltInFields), { athenaDepartmentId: { validator: stringValidator1000 }, generateAthenaTelehealthLink: { validator: booleanValidator }, athenaTypeId: { validator: stringValidator1000 }, preventCancelMinutesInAdvance: { validator: numberValidator }, preventRescheduleMinutesInAdvance: { validator: numberValidator }, dontSyncToCanvas: { validator: booleanValidator }, archivedAt: { validator: dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: booleanValidator }, dontAutoSyncPatientToHealthie: { validator: booleanValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { athenaDepartmentId: { validator: stringValidator1000 }, generateAthenaTelehealthLink: { validator: booleanValidator }, athenaTypeId: { validator: stringValidator1000 }, athenaBookingTypeId: { validator: stringValidator1000 }, preventCancelMinutesInAdvance: { validator: numberValidator }, preventRescheduleMinutesInAdvance: { validator: numberValidator }, dontSyncToCanvas: { validator: booleanValidator }, archivedAt: { validator: dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: booleanValidator }, dontAutoSyncPatientToHealthie: { validator: booleanValidator }, title: {
                 validator: stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -4851,7 +4851,7 @@ export var schema = build_schema({
             }, processor: {
                 validator: paymentProcessorValidator,
                 examples: ['Stripe'],
-            }, description: { validator: stringValidator5000EmptyOkay }, htmlDescription: { validator: stringValidator25000EmptyOkay }, cptCode: { validator: billingCodeValidatorOptional }, image: { validator: stringValidator100000EmptyOkay }, showInPortal: { validator: booleanValidator }, categories: { validator: listOfStringsValidatorEmptyOk }, maxCheckoutCount: { validator: numberValidatorOptional }, stripeProductId: { validator: stringValidator100 }, stripeSubscriptionId: { validator: stringValidator100 } })
+            }, description: { validator: stringValidator5000EmptyOkay }, htmlDescription: { validator: stringValidator25000EmptyOkay }, cptCode: { validator: billingCodeValidatorOptional }, image: { validator: stringValidator100000EmptyOkay }, showInPortal: { validator: booleanValidator }, categories: { validator: listOfStringsValidatorEmptyOk }, maxCheckoutCount: { validator: numberValidatorOptional }, stripeProductId: { validator: stringValidator100 }, stripeSubscriptionId: { validator: stringValidator100 }, stripePriceId: { validator: stringValidator100 } })
     },
     purchases: {
         info: {},

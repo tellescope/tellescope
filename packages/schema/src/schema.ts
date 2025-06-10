@@ -5311,6 +5311,7 @@ export const schema: SchemaV1 = build_schema({
       athenaDepartmentId: { validator: stringValidator1000 },
       generateAthenaTelehealthLink: { validator: booleanValidator },
       athenaTypeId: { validator: stringValidator1000 },
+      athenaBookingTypeId: { validator: stringValidator1000 },
       preventCancelMinutesInAdvance: { validator: numberValidator },
       preventRescheduleMinutesInAdvance: { validator: numberValidator },
       actualDuration: { validator: nonNegNumberValidator },
@@ -5466,6 +5467,7 @@ export const schema: SchemaV1 = build_schema({
       athenaDepartmentId: { validator: stringValidator1000 },
       generateAthenaTelehealthLink: { validator: booleanValidator },
       athenaTypeId: { validator: stringValidator1000 },
+      athenaBookingTypeId: { validator: stringValidator1000 },
       preventCancelMinutesInAdvance: { validator: numberValidator },
       preventRescheduleMinutesInAdvance: { validator: numberValidator },
       dontSyncToCanvas: { validator: booleanValidator },
@@ -7031,6 +7033,7 @@ export const schema: SchemaV1 = build_schema({
       maxCheckoutCount: { validator: numberValidatorOptional },
       stripeProductId: { validator: stringValidator100 },
       stripeSubscriptionId: { validator: stringValidator100 },
+      stripePriceId: { validator: stringValidator100 },
     }
   },
   purchases: {

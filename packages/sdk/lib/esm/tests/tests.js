@@ -8539,23 +8539,23 @@ export var formsort_tests = function () { return __awaiter(void 0, void 0, void 
             case 1:
                 form = _a.sent();
                 postToFormsort = function (_a) { return __awaiter(void 0, void 0, void 0, function () {
-                    var _b = _a.matchByName, matchByName = _b === void 0 ? false : _b, o = __rest(_a, ["matchByName"]);
-                    return __generator(this, function (_c) {
-                        switch (_c.label) {
-                            case 0: return [4 /*yield*/, axios.post("".concat(host, "/v1/webhooks/formsort/9d4f9dff00f60df2690a16da2cb848f289b447614ad9bef850e54af09a1fbf7a?formId=").concat(form.id, "&matchByName=").concat(matchByName), o)];
+                    var _b = _a.matchByName, matchByName = _b === void 0 ? false : _b, _c = _a.createNewEnduser, createNewEnduser = _c === void 0 ? false : _c, o = __rest(_a, ["matchByName", "createNewEnduser"]);
+                    return __generator(this, function (_d) {
+                        switch (_d.label) {
+                            case 0: return [4 /*yield*/, axios.post("".concat(host, "/v1/webhooks/formsort/9d4f9dff00f60df2690a16da2cb848f289b447614ad9bef850e54af09a1fbf7a?formId=").concat(form.id, "&matchByName=").concat(matchByName, "&createNewEnduser=").concat(createNewEnduser), o)];
                             case 1:
-                                _c.sent();
+                                _d.sent();
                                 return [2 /*return*/];
                         }
                     });
                 }); };
                 postToFormsortGeneric = function (_a) { return __awaiter(void 0, void 0, void 0, function () {
-                    var _b = _a.matchByName, matchByName = _b === void 0 ? false : _b, o = __rest(_a, ["matchByName"]);
-                    return __generator(this, function (_c) {
-                        switch (_c.label) {
-                            case 0: return [4 /*yield*/, axios.post("".concat(host, "/v1/webhooks/form-ingestion/9d4f9dff00f60df2690a16da2cb848f289b447614ad9bef850e54af09a1fbf7a?formId=").concat(form.id, "&matchByName=").concat(matchByName), o)];
+                    var _b = _a.matchByName, matchByName = _b === void 0 ? false : _b, _c = _a.createNewEnduser, createNewEnduser = _c === void 0 ? false : _c, o = __rest(_a, ["matchByName", "createNewEnduser"]);
+                    return __generator(this, function (_d) {
+                        switch (_d.label) {
+                            case 0: return [4 /*yield*/, axios.post("".concat(host, "/v1/webhooks/form-ingestion/9d4f9dff00f60df2690a16da2cb848f289b447614ad9bef850e54af09a1fbf7a?formId=").concat(form.id, "&matchByName=").concat(matchByName, "&createNewEnduser=").concat(createNewEnduser), o)];
                             case 1:
-                                _c.sent();
+                                _d.sent();
                                 return [2 /*return*/];
                         }
                     });
@@ -8962,19 +8962,56 @@ export var formsort_tests = function () { return __awaiter(void 0, void 0, void 
                             }
                             return true;
                         }
-                    })
-                    // cleanup
-                ];
+                    })];
             case 35:
                 // EXISTING ENDUSER FIELDS ARE CURRENTLY ONLY UPDATED ON SUBMISSION
                 _a.sent();
-                return [4 /*yield*/, sdk.api.endusers.getSome()];
+                return [4 /*yield*/, postToFormsort({ answers: [emailAnswer], responder_uuid: "createNewEnduser", finalized: false, createNewEnduser: true })];
             case 36:
+                _a.sent();
+                return [4 /*yield*/, async_test("new enduser and form response created (1)", sdk.api.form_responses.getSome, { onResult: function (r) { return r.length === 7; } })];
+            case 37:
+                _a.sent();
+                return [4 /*yield*/, async_test("new enduser and form response created (1)", sdk.api.endusers.getSome, { onResult: function (r) { return r.length === 5; } })];
+            case 38:
+                _a.sent();
+                return [4 /*yield*/, postToFormsort({ answers: [emailAnswer], responder_uuid: "createNewEnduser", finalized: false, createNewEnduser: true })];
+            case 39:
+                _a.sent();
+                return [4 /*yield*/, async_test("new enduser and form response created (2)", sdk.api.form_responses.getSome, {
+                        onResult: function (r) { return r.length === 8 && r.filter(function (e) { return e.externalId === 'createNewEnduser'; }).length === 2; }
+                    })];
+            case 40:
+                _a.sent();
+                return [4 /*yield*/, async_test("new enduser and form response created (2)", sdk.api.endusers.getSome, {
+                        onResult: function (r) { return r.length === 6 && r.filter(function (e) { return e.externalId === 'createNewEnduser'; }).length === 2; }
+                    })];
+            case 41:
+                _a.sent();
+                return [4 /*yield*/, postToFormsort({ answers: [emailAnswer], responder_uuid: "createNewEnduser", finalized: true, createNewEnduser: true })];
+            case 42:
+                _a.sent();
+                return [4 /*yield*/, async_test("new enduser and form response created (3, finalized)", sdk.api.form_responses.getSome, {
+                        onResult: function (r) { return r.length === 9 && r.filter(function (e) { return e.externalId === 'createNewEnduser'; }).length === 3; }
+                    })];
+            case 43:
+                _a.sent();
+                return [4 /*yield*/, async_test("new enduser and form response created (3, finalized)", sdk.api.endusers.getSome, {
+                        onResult: function (r) { return r.length === 7
+                            && r.filter(function (e) { return e.externalId === 'createNewEnduser'; }).length === 3
+                            && r.filter(function (e) { return e.externalId === 'createNewEnduser' && e.email === emailAnswer.value; }).length === 1; } // email set on finalized
+                    })
+                    // cleanup
+                ];
+            case 44:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.getSome()];
+            case 45:
                 endusers = _a.sent();
                 return [4 /*yield*/, Promise.all(__spreadArray([
                         sdk.api.forms.deleteOne(form.id)
                     ], endusers.map(function (e) { return sdk.api.endusers.deleteOne(e.id); }), true))];
-            case 37:
+            case 46:
                 _a.sent();
                 return [2 /*return*/];
         }
@@ -13031,64 +13068,64 @@ var inbox_loading_tests = function () { return __awaiter(void 0, void 0, void 0,
                 return [4 /*yield*/, setup_tests()];
             case 15:
                 _l.sent();
-                return [4 /*yield*/, inbox_loading_tests()];
+                return [4 /*yield*/, formsort_tests()];
             case 16:
                 _l.sent();
-                return [4 /*yield*/, multi_tenant_tests()]; // should come right after setup tests
+                return [4 /*yield*/, inbox_loading_tests()];
             case 17:
+                _l.sent();
+                return [4 /*yield*/, multi_tenant_tests()]; // should come right after setup tests
+            case 18:
                 _l.sent(); // should come right after setup tests
                 return [4 /*yield*/, sync_tests_with_access_tags()]; // should come directly after setup to avoid extra sync values
-            case 18:
-                _l.sent(); // should come directly after setup to avoid extra sync values
-                return [4 /*yield*/, sync_tests()]; // should come directly after setup to avoid extra sync values
             case 19:
                 _l.sent(); // should come directly after setup to avoid extra sync values
-                return [4 /*yield*/, get_templated_message_tests()];
+                return [4 /*yield*/, sync_tests()]; // should come directly after setup to avoid extra sync values
             case 20:
-                _l.sent();
-                return [4 /*yield*/, updatedAt_tests()];
+                _l.sent(); // should come directly after setup to avoid extra sync values
+                return [4 /*yield*/, get_templated_message_tests()];
             case 21:
                 _l.sent();
-                return [4 /*yield*/, automation_trigger_tests()];
+                return [4 /*yield*/, updatedAt_tests()];
             case 22:
                 _l.sent();
-                return [4 /*yield*/, file_source_tests()];
+                return [4 /*yield*/, automation_trigger_tests()];
             case 23:
                 _l.sent();
-                return [4 /*yield*/, enduser_access_tags_tests()];
+                return [4 /*yield*/, file_source_tests()];
             case 24:
                 _l.sent();
-                return [4 /*yield*/, enduserAccessTests()];
+                return [4 /*yield*/, enduser_access_tags_tests()];
             case 25:
                 _l.sent();
-                return [4 /*yield*/, test_form_response_search()];
+                return [4 /*yield*/, enduserAccessTests()];
             case 26:
                 _l.sent();
-                return [4 /*yield*/, date_parsing_tests()];
+                return [4 /*yield*/, test_form_response_search()];
             case 27:
                 _l.sent();
-                return [4 /*yield*/, fromEmailOverride_tests()];
+                return [4 /*yield*/, date_parsing_tests()];
             case 28:
                 _l.sent();
-                return [4 /*yield*/, ticket_tests()];
+                return [4 /*yield*/, fromEmailOverride_tests()];
             case 29:
                 _l.sent();
-                return [4 /*yield*/, uniqueness_tests()];
+                return [4 /*yield*/, ticket_tests()];
             case 30:
                 _l.sent();
-                return [4 /*yield*/, enduser_orders_tests()];
+                return [4 /*yield*/, uniqueness_tests()];
             case 31:
                 _l.sent();
-                return [4 /*yield*/, calendar_event_care_team_tests()];
+                return [4 /*yield*/, enduser_orders_tests()];
             case 32:
                 _l.sent();
-                return [4 /*yield*/, merge_enduser_tests()];
+                return [4 /*yield*/, calendar_event_care_team_tests()];
             case 33:
                 _l.sent();
-                return [4 /*yield*/, input_modifier_tests()];
+                return [4 /*yield*/, merge_enduser_tests()];
             case 34:
                 _l.sent();
-                return [4 /*yield*/, formsort_tests()];
+                return [4 /*yield*/, input_modifier_tests()];
             case 35:
                 _l.sent();
                 return [4 /*yield*/, switch_to_related_contacts_tests()];

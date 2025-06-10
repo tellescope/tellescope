@@ -3565,7 +3565,7 @@ exports.schema = (0, exports.build_schema)({
             get_appointment_availability: {}, book_appointment: {}, stripe_details: {},
             session_for_public_appointment_booking: {}, download_ics_file: {},
         },
-        fields: __assign(__assign({}, BuiltInFields), { athenaDepartmentId: { validator: validation_1.stringValidator1000 }, generateAthenaTelehealthLink: { validator: validation_1.booleanValidator }, athenaTypeId: { validator: validation_1.stringValidator1000 }, preventCancelMinutesInAdvance: { validator: validation_1.numberValidator }, preventRescheduleMinutesInAdvance: { validator: validation_1.numberValidator }, actualDuration: { validator: validation_1.nonNegNumberValidator }, dontSyncToCanvas: { validator: validation_1.booleanValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { athenaDepartmentId: { validator: validation_1.stringValidator1000 }, generateAthenaTelehealthLink: { validator: validation_1.booleanValidator }, athenaTypeId: { validator: validation_1.stringValidator1000 }, athenaBookingTypeId: { validator: validation_1.stringValidator1000 }, preventCancelMinutesInAdvance: { validator: validation_1.numberValidator }, preventRescheduleMinutesInAdvance: { validator: validation_1.numberValidator }, actualDuration: { validator: validation_1.nonNegNumberValidator }, dontSyncToCanvas: { validator: validation_1.booleanValidator }, title: {
                 validator: validation_1.stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -3637,7 +3637,7 @@ exports.schema = (0, exports.build_schema)({
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: { read: {}, readMany: {} },
-        fields: __assign(__assign({}, BuiltInFields), { athenaDepartmentId: { validator: validation_1.stringValidator1000 }, generateAthenaTelehealthLink: { validator: validation_1.booleanValidator }, athenaTypeId: { validator: validation_1.stringValidator1000 }, preventCancelMinutesInAdvance: { validator: validation_1.numberValidator }, preventRescheduleMinutesInAdvance: { validator: validation_1.numberValidator }, dontSyncToCanvas: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: validation_1.booleanValidator }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { athenaDepartmentId: { validator: validation_1.stringValidator1000 }, generateAthenaTelehealthLink: { validator: validation_1.booleanValidator }, athenaTypeId: { validator: validation_1.stringValidator1000 }, athenaBookingTypeId: { validator: validation_1.stringValidator1000 }, preventCancelMinutesInAdvance: { validator: validation_1.numberValidator }, preventRescheduleMinutesInAdvance: { validator: validation_1.numberValidator }, dontSyncToCanvas: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: validation_1.booleanValidator }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, title: {
                 validator: validation_1.stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -4856,7 +4856,7 @@ exports.schema = (0, exports.build_schema)({
             }, processor: {
                 validator: validation_1.paymentProcessorValidator,
                 examples: ['Stripe'],
-            }, description: { validator: validation_1.stringValidator5000EmptyOkay }, htmlDescription: { validator: validation_1.stringValidator25000EmptyOkay }, cptCode: { validator: validation_1.billingCodeValidatorOptional }, image: { validator: validation_1.stringValidator100000EmptyOkay }, showInPortal: { validator: validation_1.booleanValidator }, categories: { validator: validation_1.listOfStringsValidatorEmptyOk }, maxCheckoutCount: { validator: validation_1.numberValidatorOptional }, stripeProductId: { validator: validation_1.stringValidator100 }, stripeSubscriptionId: { validator: validation_1.stringValidator100 } })
+            }, description: { validator: validation_1.stringValidator5000EmptyOkay }, htmlDescription: { validator: validation_1.stringValidator25000EmptyOkay }, cptCode: { validator: validation_1.billingCodeValidatorOptional }, image: { validator: validation_1.stringValidator100000EmptyOkay }, showInPortal: { validator: validation_1.booleanValidator }, categories: { validator: validation_1.listOfStringsValidatorEmptyOk }, maxCheckoutCount: { validator: validation_1.numberValidatorOptional }, stripeProductId: { validator: validation_1.stringValidator100 }, stripeSubscriptionId: { validator: validation_1.stringValidator100 }, stripePriceId: { validator: validation_1.stringValidator100 } })
     },
     purchases: {
         info: {},

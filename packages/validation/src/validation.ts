@@ -316,6 +316,7 @@ import {
   CanvasCreateNoteAutomationAction,
   RecentViewer,
   AthenaSyncAutomationAction,
+  ZusSubscribeAutomationAction,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -2452,6 +2453,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   zendeskCreateTicket: '',
   zusSync: '',
   zusPull: '',
+  zusSubscribe: '',
   pagerDutyCreateIncident: '',
   smartMeterPlaceOrder: '',
   healthieSync: '',
@@ -3025,6 +3027,14 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     continueOnError: booleanValidatorOptional,
     type: exactMatchValidator(['zusPull']),
     info: objectValidator<ZusPullAutomationAction['info']>({ }, { emptyOk: true }),
+  }),
+  zusSubscribe: objectValidator<ZusSubscribeAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['zusSubscribe']),
+    info: objectValidator<ZusSubscribeAutomationAction['info']>({
+      practitionerId: stringValidator,
+      packageIds: listOfStringsValidator,
+     }),
   }),
   pagerDutyCreateIncident: objectValidator<PagerDutyCreateIncidentAutomationAction>({
     continueOnError: booleanValidatorOptional,
@@ -5084,6 +5094,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
     resource: exactMatchValidator<'Endusers'>(['Endusers']),
     filter: objectValidator<AnalyticsQueryFilterForType['Endusers']>({
       activeSince: dateOptionalOrEmptyStringValidator,
+      "Contacted Since": dateOptionalOrEmptyStringValidator,
       gender: tellescopeGenderOptionalValidator,
       fields: enduserFieldsAnalyticsValidator,
       "Submitted Forms": objectValidator<AnalyticsQueryFilterForType['Endusers']['Submitted Forms']>({

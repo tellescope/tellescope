@@ -1944,6 +1944,7 @@ var _AUTOMATION_ACTIONS = {
     zendeskCreateTicket: '',
     zusSync: '',
     zusPull: '',
+    zusSubscribe: '',
     pagerDutyCreateIncident: '',
     smartMeterPlaceOrder: '',
     healthieSync: '',
@@ -2455,6 +2456,14 @@ export var automationActionValidator = orValidator({
         continueOnError: booleanValidatorOptional,
         type: exactMatchValidator(['zusPull']),
         info: objectValidator({}, { emptyOk: true }),
+    }),
+    zusSubscribe: objectValidator({
+        continueOnError: booleanValidatorOptional,
+        type: exactMatchValidator(['zusSubscribe']),
+        info: objectValidator({
+            practitionerId: stringValidator,
+            packageIds: listOfStringsValidator,
+        }),
     }),
     pagerDutyCreateIncident: objectValidator({
         continueOnError: booleanValidatorOptional,
@@ -4398,6 +4407,7 @@ export var analyticsQueryValidator = orValidator({
         resource: exactMatchValidator(['Endusers']),
         filter: objectValidator({
             activeSince: dateOptionalOrEmptyStringValidator,
+            "Contacted Since": dateOptionalOrEmptyStringValidator,
             gender: tellescopeGenderOptionalValidator,
             fields: enduserFieldsAnalyticsValidator,
             "Submitted Forms": objectValidator({

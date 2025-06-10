@@ -2225,6 +2225,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
     athenaDepartmentId?: string;
     generateAthenaTelehealthLink?: boolean;
     athenaTypeId?: string;
+    athenaBookingTypeId?: string;
     actualDuration?: number;
     dontSyncToCanvas?: boolean;
     reason?: string;
@@ -2338,6 +2339,7 @@ export interface Product extends Product_readonly, Product_required, Product_upd
     maxCheckoutCount?: number | '';
     stripeSubscriptionId?: string;
     stripeProductId?: string;
+    stripePriceId?: string;
 }
 export interface Purchase_readonly extends ClientRecord {
 }
@@ -2441,6 +2443,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
     athenaDepartmentId?: string;
     generateAthenaTelehealthLink?: boolean;
     athenaTypeId?: string;
+    athenaBookingTypeId?: string;
 }
 export interface AppointmentLocation_readonly extends ClientRecord {
 }
@@ -2819,6 +2822,10 @@ export type CreateCarePlanAutomationAction = AutomationActionBuilder<'createCare
 export type CompleteCarePlanAutomationAction = AutomationActionBuilder<'completeCarePlan', {}>;
 export type ZusSyncAutomationAction = AutomationActionBuilder<'zusSync', {}>;
 export type ZusPullAutomationAction = AutomationActionBuilder<'zusPull', {}>;
+export type ZusSubscribeAutomationAction = AutomationActionBuilder<'zusSubscribe', {
+    practitionerId: string;
+    packageIds: string[];
+}>;
 export type PagerDutyCreateIncidentAutomationAction = AutomationActionBuilder<'pagerDutyCreateIncident', {
     type: string;
     title: string;
@@ -2945,6 +2952,7 @@ export type AutomationActionForType = {
     'completeCarePlan': CompleteCarePlanAutomationAction;
     'zusSync': ZusSyncAutomationAction;
     'zusPull': ZusPullAutomationAction;
+    'zusSubscribe': ZusSubscribeAutomationAction;
     'pagerDutyCreateIncident': PagerDutyCreateIncidentAutomationAction;
     'smartMeterPlaceOrder': SmartMeterPlaceOrderAutomationAction;
     'healthieSync': HealthieSyncAutomationAction;
@@ -3503,6 +3511,7 @@ export type AnalyticsEnduserFilterField = {
 export type AnalyticsQueryFilterForType = {
     "Endusers": {
         activeSince?: Date | '';
+        "Contacted Since"?: Date | '';
         "Submitted Forms"?: {
             qualifier: ListQueryQualifier;
             formIds: string[];

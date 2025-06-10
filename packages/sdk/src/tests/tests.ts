@@ -7298,22 +7298,24 @@ export const formsort_tests = async () => {
 
   const form = await sdk.api.forms.createOne({ title: "FormSort" })
 
-  const postToFormsort = async ({ matchByName=false, ...o }: { 
+  const postToFormsort = async ({ matchByName=false, createNewEnduser=false, ...o }: { 
     answers: { key: string, value: any }[],
     responder_uuid: string,
     finalized: boolean,
     matchByName?: boolean,
+    createNewEnduser?: boolean,
   }) => {
-    await axios.post(`${host}/v1/webhooks/formsort/9d4f9dff00f60df2690a16da2cb848f289b447614ad9bef850e54af09a1fbf7a?formId=${form.id}&matchByName=${matchByName}`, o)
+    await axios.post(`${host}/v1/webhooks/formsort/9d4f9dff00f60df2690a16da2cb848f289b447614ad9bef850e54af09a1fbf7a?formId=${form.id}&matchByName=${matchByName}&createNewEnduser=${createNewEnduser}`, o)
   }
 
-  const postToFormsortGeneric = async ({ matchByName=false, ...o }: { 
+  const postToFormsortGeneric = async ({ matchByName=false, createNewEnduser=false, ...o }: { 
     answers: { key: string, value: any }[],
     responder_uuid: string,
     finalized: boolean,
     matchByName?: boolean,
+    createNewEnduser?: boolean,
   }) => {
-    await axios.post(`${host}/v1/webhooks/form-ingestion/9d4f9dff00f60df2690a16da2cb848f289b447614ad9bef850e54af09a1fbf7a?formId=${form.id}&matchByName=${matchByName}`, o)
+    await axios.post(`${host}/v1/webhooks/form-ingestion/9d4f9dff00f60df2690a16da2cb848f289b447614ad9bef850e54af09a1fbf7a?formId=${form.id}&matchByName=${matchByName}&createNewEnduser=${createNewEnduser}`, o)
   }
 
   const emailAnswer = { key: 'email', value: 'test@tellescope.com' }
@@ -7519,6 +7521,28 @@ export const formsort_tests = async () => {
       }
     }
   )
+
+  await postToFormsort({ answers: [emailAnswer], responder_uuid: "createNewEnduser", finalized: false, createNewEnduser: true })
+  await async_test(`new enduser and form response created (1)`, sdk.api.form_responses.getSome, { onResult: r => r.length === 7 })
+  await async_test(`new enduser and form response created (1)`, sdk.api.endusers.getSome, { onResult: r => r.length === 5 })
+
+  await postToFormsort({ answers: [emailAnswer], responder_uuid: "createNewEnduser", finalized: false, createNewEnduser: true })
+  await async_test(`new enduser and form response created (2)`, sdk.api.form_responses.getSome, { 
+    onResult: r => r.length === 8 && r.filter(e => e.externalId === 'createNewEnduser').length === 2
+  })
+  await async_test(`new enduser and form response created (2)`, sdk.api.endusers.getSome, { 
+    onResult: r => r.length === 6 && r.filter(e => e.externalId === 'createNewEnduser').length === 2
+  })
+
+  await postToFormsort({ answers: [emailAnswer], responder_uuid: "createNewEnduser", finalized: true, createNewEnduser: true })
+  await async_test(`new enduser and form response created (3, finalized)`, sdk.api.form_responses.getSome, { 
+    onResult: r => r.length === 9 && r.filter(e => e.externalId === 'createNewEnduser').length === 3
+  })
+  await async_test(`new enduser and form response created (3, finalized)`, sdk.api.endusers.getSome, { 
+    onResult: r => r.length === 7 
+    && r.filter(e => e.externalId === 'createNewEnduser').length === 3
+    && r.filter(e => e.externalId === 'createNewEnduser' && e.email === emailAnswer.value).length === 1 // email set on finalized
+  })
 
   // cleanup
   const endusers = await sdk.api.endusers.getSome()
@@ -11359,6 +11383,7 @@ const inbox_loading_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests()
+    await formsort_tests()
     await inbox_loading_tests()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests_with_access_tags() // should come directly after setup to avoid extra sync values
@@ -11378,7 +11403,6 @@ const inbox_loading_tests = async () => {
     await calendar_event_care_team_tests()
     await merge_enduser_tests()
     await input_modifier_tests()
-    await formsort_tests()
     await switch_to_related_contacts_tests()
     await redaction_tests()
     await self_serve_appointment_booking_tests()

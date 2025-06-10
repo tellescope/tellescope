@@ -2289,7 +2289,8 @@ export interface CalendarEvent_updatesDisabled {}
 export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_required, CalendarEvent_updatesDisabled {
   athenaDepartmentId?: string,
   generateAthenaTelehealthLink?: boolean,
-  athenaTypeId?: string,
+  athenaTypeId?: string, // for searching slots (default booking type)
+  athenaBookingTypeId?: string, // for booking a different type than the slot
   actualDuration?: number,
   dontSyncToCanvas?: boolean,
   reason?: string, // reason for booking, patient-entered
@@ -2398,6 +2399,7 @@ export interface Product extends Product_readonly, Product_required, Product_upd
   maxCheckoutCount?: number | '',
   stripeSubscriptionId?: string,
   stripeProductId?: string,
+  stripePriceId?: string,
 }
 
 export interface Purchase_readonly extends ClientRecord {}
@@ -2499,7 +2501,8 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   preventCancelMinutesInAdvance?: number,
   athenaDepartmentId?: string,
   generateAthenaTelehealthLink?: boolean,
-  athenaTypeId?: string,
+  athenaTypeId?: string, // for searching slots (default booking type)
+  athenaBookingTypeId?: string, // for booking a different type than the slot
 }
 
 export interface AppointmentLocation_readonly extends ClientRecord {}
@@ -2859,6 +2862,7 @@ export type CreateCarePlanAutomationAction = AutomationActionBuilder<'createCare
 export type CompleteCarePlanAutomationAction = AutomationActionBuilder<'completeCarePlan', {}>
 export type ZusSyncAutomationAction = AutomationActionBuilder<'zusSync', {}>
 export type ZusPullAutomationAction = AutomationActionBuilder<'zusPull', {}>
+export type ZusSubscribeAutomationAction = AutomationActionBuilder<'zusSubscribe', { practitionerId: string, packageIds: string[] }>
 export type PagerDutyCreateIncidentAutomationAction = AutomationActionBuilder<'pagerDutyCreateIncident', { type: string, title: string, serviceId: string }>
 export type SmartMeterOrderLineItem = { quantity: number, sku: string }
 export type SmartMeterPlaceOrderAutomationAction = AutomationActionBuilder<'smartMeterPlaceOrder', { 
@@ -2960,6 +2964,7 @@ export type AutomationActionForType = {
   'completeCarePlan': CompleteCarePlanAutomationAction,
   'zusSync': ZusSyncAutomationAction,
   'zusPull': ZusPullAutomationAction,
+  'zusSubscribe': ZusSubscribeAutomationAction,
   'pagerDutyCreateIncident': PagerDutyCreateIncidentAutomationAction,
   'smartMeterPlaceOrder': SmartMeterPlaceOrderAutomationAction,
   'healthieSync': HealthieSyncAutomationAction,
@@ -3484,6 +3489,7 @@ export type AnalyticsEnduserFilterField = { key: string, value: string, operator
 export type AnalyticsQueryFilterForType = {
   "Endusers": {
     activeSince?: Date | '',
+    "Contacted Since"? : Date | '',
     "Submitted Forms"?: {
       qualifier: ListQueryQualifier,
       formIds: string[],
