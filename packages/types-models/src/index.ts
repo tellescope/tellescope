@@ -264,6 +264,7 @@ export type OrganizationSettings = {
     dontPersistSearches?: boolean,
     showEndusersV2?: boolean,
     showInboxV2?: boolean,
+    showDialerInTopbar?: boolean,
   }
 }
 
@@ -1517,6 +1518,8 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
   source?: string,
   externalId?: string,
   hiddenFromTimeline?: boolean,
+  copiedFrom?: string,
+  copiedFromEnduserId?: string,
 }
 
 export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time'
@@ -2182,6 +2185,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   context?: string,
   calendarEventId?: string,
   copiedFrom?: string,
+  copiedFromEnduserId?: string,
   groupId?: string, // may be an automationStepId when created from Journey in push forms action
   groupInstance?: string,
   groupPosition?: number,

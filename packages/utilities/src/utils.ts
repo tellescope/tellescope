@@ -867,7 +867,7 @@ export const get_enduser_field_value_for_key = (enduser: Omit<Enduser, 'id'>, ke
 }
 
 type EnduserAugmentations = {
-  _upcomingEvents?: any[]
+  _upcomingEvents?: Pick<CalendarEvent, 'startTimeInMS' | "templateId">[]
 }
 
 export const UPCOMING_EVENT_COUNT_KEY = '__upcomingEvents__'
@@ -913,10 +913,14 @@ export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Endu
           if (o?.ignoreUpcomingEvents) return true 
 
           const templateIds = value?.['$templateIds'] ?? [] as string[]
+          const fromOffset = value?.['$fromOffset']
+          const toOffset = value?.['$toOffset']
 
           const upcomingEventCount = (
             (enduser._upcomingEvents || [])
             .filter(e => templateIds.length === 0 || templateIds.includes(e.templateId))
+            .filter(e => e.startTimeInMS >= (Date.now() + (fromOffset || 0))) // by default, from offset should be zero, as this used to be limited to "upcoming events"
+            .filter(e => !toOffset || (e.startTimeInMS <= (Date.now() + toOffset)))
             .length 
           ) ?? 0
 

@@ -192,7 +192,7 @@ export declare const replace_keys_and_values_in_object: <T>(value: T, replacer: 
 export declare const age_for_dob_mmddyyyy: (mmddyyyy: string) => number | "";
 export declare const get_enduser_field_value_for_key: (enduser: Omit<Enduser, 'id'>, key: string) => any;
 type EnduserAugmentations = {
-    _upcomingEvents?: any[];
+    _upcomingEvents?: Pick<CalendarEvent, 'startTimeInMS' | "templateId">[];
 };
 export declare const UPCOMING_EVENT_COUNT_KEY = "__upcomingEvents__";
 export declare const evaluate_conditional_logic_for_enduser_fields: (enduser: Omit<Enduser, 'id'> & EnduserAugmentations, conditions: Record<string, any>, o?: {

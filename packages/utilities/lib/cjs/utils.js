@@ -935,8 +935,12 @@ var evaluate_conditional_logic_for_enduser_fields = function (enduser, condition
                 if (o === null || o === void 0 ? void 0 : o.ignoreUpcomingEvents)
                     return true;
                 var templateIds = (_a = value === null || value === void 0 ? void 0 : value['$templateIds']) !== null && _a !== void 0 ? _a : [];
+                var fromOffset = value === null || value === void 0 ? void 0 : value['$fromOffset'];
+                var toOffset = value === null || value === void 0 ? void 0 : value['$toOffset'];
                 var upcomingEventCount = (_b = ((enduser._upcomingEvents || [])
                     .filter(function (e) { return templateIds.length === 0 || templateIds.includes(e.templateId); })
+                    .filter(function (e) { return e.startTimeInMS >= (Date.now() + (fromOffset || 0)); }) // by default, from offset should be zero, as this used to be limited to "upcoming events"
+                    .filter(function (e) { return !toOffset || (e.startTimeInMS <= (Date.now() + toOffset)); })
                     .length)) !== null && _b !== void 0 ? _b : 0;
                 var result = ((value === null || value === void 0 ? void 0 : value['$lt']) !== undefined
                     ? (upcomingEventCount < parseInt(value['$lt']))

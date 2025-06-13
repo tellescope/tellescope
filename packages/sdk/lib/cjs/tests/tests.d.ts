@@ -17,5 +17,7 @@ export declare const switch_to_related_contacts_tests: () => Promise<[void, void
 export declare const formsort_tests: () => Promise<void>;
 export declare const enduser_orders_tests: () => Promise<void[]>;
 export declare const form_conditional_logic_tests: () => Promise<void>;
+export declare const enduser_conditional_logic_tests: () => Promise<void>;
+export declare const cancel_upcoming_appointments_journey_action_test: () => Promise<void>;
 export declare const ticket_reminder_tests: () => Promise<void>;
 //# sourceMappingURL=tests.d.ts.map

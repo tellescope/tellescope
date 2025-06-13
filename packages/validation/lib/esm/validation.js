@@ -3565,6 +3565,7 @@ export var organizationSettingsValidator = objectValidator({
         dontPersistSearches: booleanValidatorOptional,
         showEndusersV2: booleanValidatorOptional,
         showInboxV2: booleanValidatorOptional,
+        showDialerInTopbar: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true, }),
 });
 export var calendarEventPortalSettingsValidator = objectValidator({

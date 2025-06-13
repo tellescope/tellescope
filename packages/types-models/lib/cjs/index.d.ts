@@ -249,6 +249,7 @@ export type OrganizationSettings = {
         dontPersistSearches?: boolean;
         showEndusersV2?: boolean;
         showInboxV2?: boolean;
+        showDialerInTopbar?: boolean;
     };
 };
 export type OrganizationLimits = {
@@ -1479,6 +1480,8 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
     source?: string;
     externalId?: string;
     hiddenFromTimeline?: boolean;
+    copiedFrom?: string;
+    copiedFromEnduserId?: string;
 }
 export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' | 'dateString' | 'rating' | 'Time';
 export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance";
@@ -2105,6 +2108,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
     context?: string;
     calendarEventId?: string;
     copiedFrom?: string;
+    copiedFromEnduserId?: string;
     groupId?: string;
     groupInstance?: string;
     groupPosition?: number;

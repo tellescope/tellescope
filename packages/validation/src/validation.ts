@@ -4195,6 +4195,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     dontPersistSearches: booleanValidatorOptional,
     showEndusersV2: booleanValidatorOptional,
     showInboxV2: booleanValidatorOptional,
+    showDialerInTopbar: booleanValidatorOptional,
   }, { isOptional: true, emptyOk: true, }),
 })
 

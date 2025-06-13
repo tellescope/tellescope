@@ -4262,6 +4262,8 @@ export const schema: SchemaV1 = build_schema({
     enduserActions: {},
     fields: {
       ...BuiltInFields, 
+      copiedFrom: { validator: mongoIdStringOptional },
+      copiedFromEnduserId: { validator: mongoIdStringOptional },
       hiddenFromTimeline: { validator: booleanValidator },
       enduserId: {
         validator: mongoIdStringValidator,
@@ -4553,6 +4555,8 @@ export const schema: SchemaV1 = build_schema({
       openedAt: {
         validator: dateValidator,
       },
+      copiedFrom: { validator: mongoIdStringOptional },
+      copiedFromEnduserId: { validator: mongoIdStringOptional },
       publicSubmit: { validator: booleanValidator },
       submittedBy: { validator: stringValidator250 },
       submittedByIsPlaceholder: { validator: booleanValidator },

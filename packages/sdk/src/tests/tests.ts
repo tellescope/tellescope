@@ -37,7 +37,7 @@ import {
 } from "@tellescope/validation"
 
 import { Session, APIQuery, EnduserSession } from "../sdk"
-import { FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, replace_enduser_template_values, responses_satisfy_conditions, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities"
+import { evaluate_conditional_logic_for_enduser_fields, FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, replace_enduser_template_values, responses_satisfy_conditions, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities"
 import { DEFAULT_OPERATIONS, PLACEHOLDER_ID, ZOOM_TITLE } from "@tellescope/constants"
 import { 
   schema, 
@@ -8296,6 +8296,140 @@ export const form_conditional_logic_tests = async () => {
   run_conditional_form_test({ $and: [{ condition: { [FORM_LOGIC_CALCULATED_FIELDS[0]]: { $lt: 25 } } }] }, false)
 }
 
+export const enduser_conditional_logic_tests = async () => {
+  log_header("Enduser Conditional Logic Tests")
+
+  const requiredPlaceholders = {
+    businessId: '', creator: '', hashedPassword: '', lastActive: '', lastLogout: '', updatedAt: new Date(), 
+  }
+
+  assert(
+    evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, _upcomingEvents: [] }, {  }),
+    'Conditional logic error',
+    'blank upcoming events with blank condition',
+  )
+
+  assert(
+    evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, _upcomingEvents: [] }, { "$and": [] }),
+    'Conditional logic error',
+    'blank upcoming events with empty and condition',
+  )
+
+  assert(
+    evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, _upcomingEvents: [] }, {
+      "$and": [{ "condition": { "__upcomingEvents__": { "$lt": "1", "$fromOffset": -3600000, "$toOffset": 3600000 }}}]
+    }),
+    'Conditional logic error',
+    'blank upcoming events with less than 1 condition',
+  )
+
+  assert(
+    !evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, _upcomingEvents: [] }, {
+      "$and": [{ "condition": { "__upcomingEvents__": { "$lt": "0", "$fromOffset": -3600000, "$toOffset": 3600000 }}}]
+    }),
+    'Conditional logic error',
+    'blank upcoming events with less than 0 condition',
+  )
+
+  assert(
+    !evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, _upcomingEvents: [] }, {
+      "$and": [{ "condition": { "__upcomingEvents__": { "$gt": "0", "$fromOffset": -3600000, "$toOffset": 3600000 }}}] 
+    }),
+    'Conditional logic error',
+    'blank upcoming events with greater than 0 condition',
+  )
+
+  assert(
+    !evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, _upcomingEvents: [{ startTimeInMS: Date.now() - 10000 }] }, {
+      "$and": [{ "condition": { "__upcomingEvents__": { "$gt": "0" }}}] 
+    }),
+    'Conditional logic error',
+    'past events are ignored by default (no $fromOffset set)',
+  )
+
+  assert(
+    evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, _upcomingEvents: [{ startTimeInMS: Date.now() + 10000 }] }, {
+      "$and": [{ "condition": { "__upcomingEvents__": { "$gt": "0" }}}] 
+    }),
+    'Conditional logic error',
+    'future events are recognized by default (no $fromOffset set)',
+  )
+
+  assert(
+    !evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, _upcomingEvents: [{ startTimeInMS: Date.now() - 100000 }] }, {
+      "$and": [{ "condition": { "__upcomingEvents__": { "$gt": "0", "$fromOffset": -10000, "$toOffset": 3600000 }}}] 
+    }),
+    'Conditional logic error',
+    'Past event outside of window',
+  )
+
+  assert(
+    evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, _upcomingEvents: [{ startTimeInMS: Date.now() - 100 }] }, {
+      "$and": [{ "condition": { "__upcomingEvents__": { "$gt": "0", "$fromOffset": -10000, "$toOffset": 3600000 }}}] 
+    }),
+    'Conditional logic error',
+    'Past event inside of window',
+  )
+
+  assert(
+    !evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, _upcomingEvents: [{ startTimeInMS: Date.now() + 1000000 }] }, {
+      "$and": [{ "condition": { "__upcomingEvents__": { "$gt": "0", "$fromOffset": -10000, "$toOffset": 10000 }}}] 
+    }),
+    'Conditional logic error',
+    'Future event outside of window',
+  )
+
+  assert(
+    evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, _upcomingEvents: [{ startTimeInMS: Date.now() + 100 }] }, {
+      "$and": [{ "condition": { "__upcomingEvents__": { "$gt": "0", "$fromOffset": -10000, "$toOffset": 10000 }}}] 
+    }),
+    'Conditional logic error',
+    'Future event inside of window',
+  )
+}
+
+export const cancel_upcoming_appointments_journey_action_test = async () => {
+  log_header("Cancel Upcoming Appointments Journey Action Test")
+
+  const enduser = await sdk.api.endusers.createOne({ })
+  const e1 = await sdk.api.calendar_events.createOne({ title: 'past', startTimeInMS: Date.now() - 100000, durationInMinutes: 60, attendees: [{ type: 'enduser', id: enduser.id }] })
+  const e2 = await sdk.api.calendar_events.createOne({ title: 'future', startTimeInMS: Date.now() + 100000, durationInMinutes: 60, attendees: [{ type: 'enduser', id: enduser.id }]})
+  const e3 = await sdk.api.calendar_events.createOne({ title: 'past, not enduser', startTimeInMS: Date.now() + 100000, durationInMinutes: 60 })
+  const e4 = await sdk.api.calendar_events.createOne({ title: 'future, not enduser', startTimeInMS: Date.now() + 100000, durationInMinutes: 60 })
+
+  await sdk.api.automated_actions.createOne({
+    automationStepId: PLACEHOLDER_ID, journeyId: PLACEHOLDER_ID,
+    processAfter: 0, status: 'active',
+    enduserId: enduser.id,
+    event: { type: 'onJourneyStart', info: {} },
+    action: { type: 'cancelFutureAppointments', info: {} },
+  })
+
+  await async_test(
+    `Upcoming event is cancelled, past appointment is not`,
+    () => pollForResults(
+      sdk.api.calendar_events.getSome,
+      es => (
+           !!es.find(e => e.id === e1.id && !e.cancelledAt)  // past event should not be cancelled
+        && !!es.find(e => e.id === e2.id && !!e.cancelledAt) // future event should be cancelled
+        && !!es.find(e => e.id === e3.id && !e.cancelledAt)  // past event not enduser should not be cancelled
+        && !!es.find(e => e.id === e4.id && !e.cancelledAt)  // future event not enduser should not be cancelled
+      ),
+      50,
+      100,
+    ),
+    passOnAnyResult
+  )  
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(enduser.id),
+    sdk.api.calendar_events.deleteOne(e1.id),
+    sdk.api.calendar_events.deleteOne(e2.id),
+    sdk.api.calendar_events.deleteOne(e3.id),
+    sdk.api.calendar_events.deleteOne(e4.id),
+  ])
+}
+
 export const ticket_reminder_tests = async () => {
   log_header("Ticket Reminder Tests")
 
@@ -11380,11 +11514,13 @@ const inbox_loading_tests = async () => {
     ) 
 
 
+    await enduser_conditional_logic_tests()
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests()
     await formsort_tests()
     await inbox_loading_tests()
+    await cancel_upcoming_appointments_journey_action_test()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests_with_access_tags() // should come directly after setup to avoid extra sync values
     await sync_tests() // should come directly after setup to avoid extra sync values
