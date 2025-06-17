@@ -76,6 +76,7 @@ import {
   DevelopHealthRunBenefitVerificationBaseArguments,
   WeeklyAvailability,
   CanvasCreateNoteAutomationAction,
+  StripeKeyDetail,
 } from "@tellescope/types-models"
 
 import {
@@ -5453,7 +5454,8 @@ export const schema: SchemaV1 = build_schema({
           id: mongoIdStringRequired, 
           at: dateValidator,
         }))
-      }
+      },
+      createAndBookAthenaSlot: { validator: booleanValidator },
     }
   },
   calendar_event_templates: {
@@ -5468,6 +5470,7 @@ export const schema: SchemaV1 = build_schema({
     enduserActions: { read: {}, readMany: {} },
     fields: {
       ...BuiltInFields, 
+      createAndBookAthenaSlot: { validator: booleanValidator },
       athenaDepartmentId: { validator: stringValidator1000 },
       generateAthenaTelehealthLink: { validator: booleanValidator },
       athenaTypeId: { validator: stringValidator1000 },
@@ -6503,6 +6506,12 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields, 
+      stripeKeyDetails: {
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<StripeKeyDetail>({
+          key: stringValidator5000EmptyOkay,
+          title: stringValidator5000EmptyOkay,
+        }))
+      },
       name: {
         validator: stringValidator100,
         required: true,

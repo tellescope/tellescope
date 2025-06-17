@@ -52,7 +52,7 @@ export interface Flex_T {
 }
 interface Flex_Web extends Flex_T, Styled, ClickableWeb {
 }
-export declare const resolve_direction_for_props: (row?: boolean, col?: boolean) => "column" | "row";
+export declare const resolve_direction_for_props: (row?: boolean, col?: boolean) => "row" | "column";
 export declare const compute_flex_direction_with_props: <T extends string>(direction: T, reverse?: boolean) => T | `${T}-reverse`;
 export interface WithHoverColors {
     hoveredColor?: CSSProperties['backgroundColor'];

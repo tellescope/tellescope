@@ -3620,7 +3620,7 @@ export var schema = build_schema({
                     id: mongoIdStringRequired,
                     at: dateValidator,
                 }))
-            } })
+            }, createAndBookAthenaSlot: { validator: booleanValidator } })
     },
     calendar_event_templates: {
         info: {},
@@ -3632,7 +3632,7 @@ export var schema = build_schema({
         defaultActions: DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: { read: {}, readMany: {} },
-        fields: __assign(__assign({}, BuiltInFields), { athenaDepartmentId: { validator: stringValidator1000 }, generateAthenaTelehealthLink: { validator: booleanValidator }, athenaTypeId: { validator: stringValidator1000 }, athenaBookingTypeId: { validator: stringValidator1000 }, preventCancelMinutesInAdvance: { validator: numberValidator }, preventRescheduleMinutesInAdvance: { validator: numberValidator }, dontSyncToCanvas: { validator: booleanValidator }, archivedAt: { validator: dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: booleanValidator }, dontAutoSyncPatientToHealthie: { validator: booleanValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { createAndBookAthenaSlot: { validator: booleanValidator }, athenaDepartmentId: { validator: stringValidator1000 }, generateAthenaTelehealthLink: { validator: booleanValidator }, athenaTypeId: { validator: stringValidator1000 }, athenaBookingTypeId: { validator: stringValidator1000 }, preventCancelMinutesInAdvance: { validator: numberValidator }, preventRescheduleMinutesInAdvance: { validator: numberValidator }, dontSyncToCanvas: { validator: booleanValidator }, archivedAt: { validator: dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: booleanValidator }, dontAutoSyncPatientToHealthie: { validator: booleanValidator }, title: {
                 validator: stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -4493,7 +4493,12 @@ export var schema = build_schema({
                 }
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { name: {
+        fields: __assign(__assign({}, BuiltInFields), { stripeKeyDetails: {
+                validator: listValidatorOptionalOrEmptyOk(objectValidator({
+                    key: stringValidator5000EmptyOkay,
+                    title: stringValidator5000EmptyOkay,
+                }))
+            }, name: {
                 validator: stringValidator100,
                 required: true,
                 examples: ["Template Name"],

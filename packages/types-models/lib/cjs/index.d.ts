@@ -278,6 +278,10 @@ export type AthenaSubscription = {
     frequencyInMinutes: number;
     lastSyncedAt: Date;
 };
+export type StripeKeyDetail = {
+    key: string;
+    title: string;
+};
 export interface Organization_readonly extends ClientRecord {
     subscriptionExpiresAt: Date;
     subscriptionPeriod: number;
@@ -418,6 +422,7 @@ export interface Organization extends Organization_readonly, Organization_requir
         iframeURL: string;
     }[];
     stripePublicKeys?: string[];
+    stripeKeyDetails?: StripeKeyDetail[];
     additionalIterableKeys?: string[];
     defaultDoseSpotPharmacies?: {
         id: string;
@@ -2226,6 +2231,7 @@ export interface CalendarEvent_required {
 export interface CalendarEvent_updatesDisabled {
 }
 export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_required, CalendarEvent_updatesDisabled {
+    createAndBookAthenaSlot?: boolean;
     athenaDepartmentId?: string;
     generateAthenaTelehealthLink?: boolean;
     athenaTypeId?: string;
@@ -2405,6 +2411,7 @@ export interface CalendarEventTemplate_required {
 export interface CalendarEventTemplate_updatesDisabled {
 }
 export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, CalendarEventTemplate_required, CalendarEventTemplate_updatesDisabled {
+    createAndBookAthenaSlot?: boolean;
     dontSyncToCanvas?: boolean;
     archivedAt?: Date | '';
     type?: string;

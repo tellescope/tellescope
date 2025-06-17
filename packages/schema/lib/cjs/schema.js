@@ -3625,7 +3625,7 @@ exports.schema = (0, exports.build_schema)({
                     id: validation_1.mongoIdStringRequired,
                     at: validation_1.dateValidator,
                 }))
-            } })
+            }, createAndBookAthenaSlot: { validator: validation_1.booleanValidator } })
     },
     calendar_event_templates: {
         info: {},
@@ -3637,7 +3637,7 @@ exports.schema = (0, exports.build_schema)({
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: { read: {}, readMany: {} },
-        fields: __assign(__assign({}, BuiltInFields), { athenaDepartmentId: { validator: validation_1.stringValidator1000 }, generateAthenaTelehealthLink: { validator: validation_1.booleanValidator }, athenaTypeId: { validator: validation_1.stringValidator1000 }, athenaBookingTypeId: { validator: validation_1.stringValidator1000 }, preventCancelMinutesInAdvance: { validator: validation_1.numberValidator }, preventRescheduleMinutesInAdvance: { validator: validation_1.numberValidator }, dontSyncToCanvas: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: validation_1.booleanValidator }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { createAndBookAthenaSlot: { validator: validation_1.booleanValidator }, athenaDepartmentId: { validator: validation_1.stringValidator1000 }, generateAthenaTelehealthLink: { validator: validation_1.booleanValidator }, athenaTypeId: { validator: validation_1.stringValidator1000 }, athenaBookingTypeId: { validator: validation_1.stringValidator1000 }, preventCancelMinutesInAdvance: { validator: validation_1.numberValidator }, preventRescheduleMinutesInAdvance: { validator: validation_1.numberValidator }, dontSyncToCanvas: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: validation_1.booleanValidator }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, title: {
                 validator: validation_1.stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -4498,7 +4498,12 @@ exports.schema = (0, exports.build_schema)({
                 }
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { name: {
+        fields: __assign(__assign({}, BuiltInFields), { stripeKeyDetails: {
+                validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
+                    key: validation_1.stringValidator5000EmptyOkay,
+                    title: validation_1.stringValidator5000EmptyOkay,
+                }))
+            }, name: {
                 validator: validation_1.stringValidator100,
                 required: true,
                 examples: ["Template Name"],
