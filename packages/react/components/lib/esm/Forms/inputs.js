@@ -141,7 +141,9 @@ export var RatingInput = function (_a) {
     while (marks.length > 25) {
         marks = marks.filter(function (_, i) { return i % 2 === 0; });
     }
-    return (_jsx(Slider, { min: from, max: to, step: step, marks: marks, valueLabelDisplay: marks.length < allMarks.length ? 'auto' : "off", value: value, onChange: function (e, v) { return onChange(v, field.id); } }));
+    return (_jsx(Slider, { min: from, max: to, step: step, marks: marks, valueLabelDisplay: marks.length < allMarks.length ? 'auto' : "off", value: value, onChange: function (e, v) { return onChange(v, field.id); }, sx: {
+            '& .MuiSlider-thumb': value === undefined ? { display: 'none' } : {}, // Hide thumb until value is set
+        } }));
 };
 // a little function to help us with reordering the result
 var reorder = function (list, startIndex, endIndex) {
@@ -1729,6 +1731,16 @@ export var HiddenValueInput = function (_a) {
     var dontNavigate = ((firstHiddenValue && (firstHiddenValue === null || firstHiddenValue === void 0 ? void 0 : firstHiddenValue.id) !== field.id) // is in a group, but not the first hidden value
         || !!(groupFields === null || groupFields === void 0 ? void 0 : groupFields.find(function (v) { return v.type !== 'Hidden Value'; })) // group contains at least 1 non-hidden value
     );
+    var publicIdentifier = useMemo(function () {
+        try {
+            return new URL(window.location.href).searchParams.get('publicIdentifier') || '';
+        }
+        catch (err) {
+            return '';
+        }
+    }, []);
+    var valueToSet = useMemo(function () { return ((field.title === "{{PUBLIC_IDENTIFIER}}" && publicIdentifier) ? publicIdentifier
+        : field.title); }, [field.title, publicIdentifier]);
     useEffect(function () {
         if (lastRef.current > Date.now() - 1000 && lastIdRef.current === field.id)
             return;
@@ -1743,14 +1755,13 @@ export var HiddenValueInput = function (_a) {
             goToPreviousField === null || goToPreviousField === void 0 ? void 0 : goToPreviousField();
         }
         else {
-            onChange(field.title, field.id);
+            onChange(valueToSet, field.id);
             if (dontNavigate)
                 return;
             // pass value that is set after above onChange
-            console.log('going to next field for hidden value', field.title, !!goToNextField);
-            goToNextField === null || goToNextField === void 0 ? void 0 : goToNextField({ type: 'Hidden Value', value: field.title });
+            goToNextField === null || goToNextField === void 0 ? void 0 : goToNextField({ type: 'Hidden Value', value: valueToSet });
         }
-    }, [value, onChange, field, goToNextField, goToPreviousField, isSinglePage, dontNavigate]);
+    }, [value, onChange, field.id, valueToSet, goToNextField, goToPreviousField, isSinglePage, dontNavigate]);
     return _jsx(_Fragment, {});
 };
 export var EmotiiInput = function (_a) {

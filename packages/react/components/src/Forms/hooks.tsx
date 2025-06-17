@@ -638,7 +638,9 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
                         ? (
                             (f.options?.default && !isNaN(parseInt(f.options.default)))
                               ? parseInt(f.options.default)
-                              : (f.options?.from || 1)
+                              : f.isOptional 
+                                ? undefined
+                                : (f.options?.from || 1)
                           )
                         : f.type === 'Related Contacts'
                           ? (f.isOptional ? [] : [{ relationships: f?.options?.relatedContactTypes?.length === 1 ? [{ type: f.options.relatedContactTypes[0] as EnduserRelationship['type'], id: ''! } ] : [] }])

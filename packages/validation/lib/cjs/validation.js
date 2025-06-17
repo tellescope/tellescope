@@ -2746,6 +2746,7 @@ exports.portalSettingsValidator = (0, exports.objectValidator)({
         registerTitle: exports.stringValidator1000Optional,
         hideRegister: exports.booleanValidatorOptional,
         dontPromptSetPassword: exports.booleanValidatorOptional,
+        requireOTP: exports.booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true, }),
     communication: (0, exports.objectValidator)({
         allowEnduserInitiatedChat: exports.booleanValidatorOptional,
@@ -2783,6 +2784,7 @@ exports.organizationThemeValidator = (0, exports.objectValidator)({
     customPoliciesVersion: exports.stringValidatorOptional,
     requireCustomTermsOnMagicLink: exports.booleanValidatorOptional,
     customPolicies: exports.customPoliciesValidator,
+    hasConnectedVital: exports.booleanValidatorOptional,
 });
 var _MANAGED_CONTENT_RECORD_TYPES = {
     Article: '',

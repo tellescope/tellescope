@@ -172,7 +172,9 @@ var RatingInput = function (_a) {
     while (marks.length > 25) {
         marks = marks.filter(function (_, i) { return i % 2 === 0; });
     }
-    return ((0, jsx_runtime_1.jsx)(Slider_1.default, { min: from, max: to, step: step, marks: marks, valueLabelDisplay: marks.length < allMarks.length ? 'auto' : "off", value: value, onChange: function (e, v) { return onChange(v, field.id); } }));
+    return ((0, jsx_runtime_1.jsx)(Slider_1.default, { min: from, max: to, step: step, marks: marks, valueLabelDisplay: marks.length < allMarks.length ? 'auto' : "off", value: value, onChange: function (e, v) { return onChange(v, field.id); }, sx: {
+            '& .MuiSlider-thumb': value === undefined ? { display: 'none' } : {}, // Hide thumb until value is set
+        } }));
 };
 exports.RatingInput = RatingInput;
 // a little function to help us with reordering the result
@@ -1792,6 +1794,16 @@ var HiddenValueInput = function (_a) {
     var dontNavigate = ((firstHiddenValue && (firstHiddenValue === null || firstHiddenValue === void 0 ? void 0 : firstHiddenValue.id) !== field.id) // is in a group, but not the first hidden value
         || !!(groupFields === null || groupFields === void 0 ? void 0 : groupFields.find(function (v) { return v.type !== 'Hidden Value'; })) // group contains at least 1 non-hidden value
     );
+    var publicIdentifier = (0, react_1.useMemo)(function () {
+        try {
+            return new URL(window.location.href).searchParams.get('publicIdentifier') || '';
+        }
+        catch (err) {
+            return '';
+        }
+    }, []);
+    var valueToSet = (0, react_1.useMemo)(function () { return ((field.title === "{{PUBLIC_IDENTIFIER}}" && publicIdentifier) ? publicIdentifier
+        : field.title); }, [field.title, publicIdentifier]);
     (0, react_1.useEffect)(function () {
         if (lastRef.current > Date.now() - 1000 && lastIdRef.current === field.id)
             return;
@@ -1806,14 +1818,13 @@ var HiddenValueInput = function (_a) {
             goToPreviousField === null || goToPreviousField === void 0 ? void 0 : goToPreviousField();
         }
         else {
-            onChange(field.title, field.id);
+            onChange(valueToSet, field.id);
             if (dontNavigate)
                 return;
             // pass value that is set after above onChange
-            console.log('going to next field for hidden value', field.title, !!goToNextField);
-            goToNextField === null || goToNextField === void 0 ? void 0 : goToNextField({ type: 'Hidden Value', value: field.title });
+            goToNextField === null || goToNextField === void 0 ? void 0 : goToNextField({ type: 'Hidden Value', value: valueToSet });
         }
-    }, [value, onChange, field, goToNextField, goToPreviousField, isSinglePage, dontNavigate]);
+    }, [value, onChange, field.id, valueToSet, goToNextField, goToPreviousField, isSinglePage, dontNavigate]);
     return (0, jsx_runtime_1.jsx)(jsx_runtime_1.Fragment, {});
 };
 exports.HiddenValueInput = HiddenValueInput;

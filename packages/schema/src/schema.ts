@@ -791,7 +791,7 @@ export type CustomActions = {
       { isAuthenticated: true, enduser: Enduser } | { isAuthenticated: false, enduser: null }
     >,
     refresh_session: CustomAction<{ invalidatePreviousToken?: boolean }, { enduser: Enduser, authToken: string }>,
-    generate_auth_token: CustomAction<{ id?: string, phone?: string, email?: string, externalId?: string, durationInSeconds?: number }, { authToken: string, enduser: Enduser }>,
+    generate_auth_token: CustomAction<{ overrideOTP?: boolean, overrideConsent?: boolean, id?: string, phone?: string, email?: string, externalId?: string, durationInSeconds?: number }, { authToken: string, enduser: Enduser }>,
     logout: CustomAction<{ }, { }>,
     current_session_info: CustomAction<{ }, { enduser: Enduser }>,
     add_to_journey: CustomAction<{ enduserIds: string[], journeyId: string, startAt?: Date, automationStepId?: string, journeyContext?: JourneyContext, throttle?: boolean, source?: string }, { }>, 
@@ -1171,7 +1171,7 @@ export type PublicActions = {
     }, {  }>,
     request_password_reset: CustomAction<{ email: string, businessId: string, organizationIds?: string[]  }, { }>,
     reset_password: CustomAction<{ resetToken: string, newPassword: string, businessId: string, organizationIds?: string[] }, { }>,
-    begin_login_flow: CustomAction<{ email?: string, phone?: string, redir?: string, businessId: string, organizationIds?: string[] }, { result: LoginFlowResult, email?: string }>,
+    begin_login_flow: CustomAction<{ email?: string, phone?: string, redir?: string, businessId: string, organizationIds?: string[] }, { result: LoginFlowResult, email?: string, otpToken?: string }>,
     unsubscribe: CustomAction<{ enduserId: string, unsubscribeFrom: string[] }, { }>,
     get_otp_methods: CustomAction<{ token: string }, { methods: string[] }>,
     send_otp: CustomAction<{ token: string, method: string }, { }>,
@@ -1658,6 +1658,8 @@ export const schema: SchemaV1 = build_schema({
           email: { validator: emailValidator }, 
           phone: { validator: phoneValidator },
           durationInSeconds: { validator: nonNegNumberValidator },
+          overrideOTP: { validator: booleanValidatorOptional },
+          overrideConsent: { validator: booleanValidatorOptional },
         },
         returns: { 
           authToken: { validator: stringValidator100, required: true },
@@ -1889,6 +1891,7 @@ export const schema: SchemaV1 = build_schema({
         },
         returns: { 
           result: { validator: loginFlowResultValidator, required: true },
+          otpToken: { validator: stringValidator, required: true },
           email: { validator: emailValidator },
         },
       },

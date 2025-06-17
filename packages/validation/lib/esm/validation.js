@@ -2696,6 +2696,7 @@ export var portalSettingsValidator = objectValidator({
         registerTitle: stringValidator1000Optional,
         hideRegister: booleanValidatorOptional,
         dontPromptSetPassword: booleanValidatorOptional,
+        requireOTP: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true, }),
     communication: objectValidator({
         allowEnduserInitiatedChat: booleanValidatorOptional,
@@ -2733,6 +2734,7 @@ export var organizationThemeValidator = objectValidator({
     customPoliciesVersion: stringValidatorOptional,
     requireCustomTermsOnMagicLink: booleanValidatorOptional,
     customPolicies: customPoliciesValidator,
+    hasConnectedVital: booleanValidatorOptional,
 });
 var _MANAGED_CONTENT_RECORD_TYPES = {
     Article: '',

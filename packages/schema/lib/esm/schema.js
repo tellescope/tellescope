@@ -404,6 +404,8 @@ export var schema = build_schema({
                     email: { validator: emailValidator },
                     phone: { validator: phoneValidator },
                     durationInSeconds: { validator: nonNegNumberValidator },
+                    overrideOTP: { validator: booleanValidatorOptional },
+                    overrideConsent: { validator: booleanValidatorOptional },
                 },
                 returns: {
                     authToken: { validator: stringValidator100, required: true },
@@ -635,6 +637,7 @@ export var schema = build_schema({
                 },
                 returns: {
                     result: { validator: loginFlowResultValidator, required: true },
+                    otpToken: { validator: stringValidator, required: true },
                     email: { validator: emailValidator },
                 },
             },

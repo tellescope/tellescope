@@ -568,6 +568,8 @@ export type CustomActions = {
             authToken: string;
         }>;
         generate_auth_token: CustomAction<{
+            overrideOTP?: boolean;
+            overrideConsent?: boolean;
             id?: string;
             phone?: string;
             email?: string;
@@ -1586,6 +1588,7 @@ export type PublicActions = {
         }, {
             result: LoginFlowResult;
             email?: string;
+            otpToken?: string;
         }>;
         unsubscribe: CustomAction<{
             enduserId: string;

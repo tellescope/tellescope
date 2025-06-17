@@ -142,6 +142,9 @@ export const RatingInput = ({ field, value, onChange }: FormInputProps<'rating'>
       valueLabelDisplay={marks.length < allMarks.length ? 'auto' : "off"} 
       value={value} 
       onChange={(e, v) => onChange(v as number, field.id)}
+      sx={{
+        '& .MuiSlider-thumb': value === undefined ? { display: 'none' } : {}, // Hide thumb until value is set
+      }}
     />
   )
 }
@@ -3143,6 +3146,19 @@ export const HiddenValueInput = ({ goToNextField, goToPreviousField, field, valu
   || !!(groupFields?.find(v => v.type !== 'Hidden Value')) // group contains at least 1 non-hidden value
   )
 
+  const publicIdentifier = useMemo(() => {
+    try {
+      return new URL(window.location.href).searchParams.get('publicIdentifier') || ''
+    } catch(err) {
+      return ''
+    }
+  }, [])
+
+  const valueToSet = useMemo(() => (
+    (field.title === "{{PUBLIC_IDENTIFIER}}" && publicIdentifier) ? publicIdentifier
+      : field.title
+  ), [field.title, publicIdentifier])
+
   useEffect(() => {
     if (lastRef.current > Date.now() - 1000 && lastIdRef.current === field.id) return
     lastRef.current = Date.now()
@@ -3155,15 +3171,14 @@ export const HiddenValueInput = ({ goToNextField, goToPreviousField, field, valu
       if (dontNavigate) return
       goToPreviousField?.()
     } else {
-      onChange(field.title, field.id)
+      onChange(valueToSet, field.id)
 
       if (dontNavigate) return
 
       // pass value that is set after above onChange
-      console.log('going to next field for hidden value', field.title, !!goToNextField)
-      goToNextField?.({ type: 'Hidden Value', value: field.title })
+      goToNextField?.({ type: 'Hidden Value', value: valueToSet })
     }
-  }, [value, onChange, field, goToNextField, goToPreviousField, isSinglePage, dontNavigate])
+  }, [value, onChange, field.id, valueToSet, goToNextField, goToPreviousField, isSinglePage, dontNavigate])
 
   return <></>
 }

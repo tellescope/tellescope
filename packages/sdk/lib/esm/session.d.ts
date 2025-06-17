@@ -1,4 +1,3 @@
-/// <reference types="node" />
 import { Socket } from 'socket.io-client';
 import { ReactNativeFile, S3PresignedPost } from "@tellescope/types-utilities";
 import { ClientModelForName, User } from "@tellescope/types-client";

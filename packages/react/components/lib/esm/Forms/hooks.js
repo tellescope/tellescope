@@ -561,7 +561,9 @@ export var useTellescopeForm = function (_a) {
                                 : f.type === 'rating'
                                     ? ((((_u = f.options) === null || _u === void 0 ? void 0 : _u.default) && !isNaN(parseInt(f.options.default)))
                                         ? parseInt(f.options.default)
-                                        : (((_v = f.options) === null || _v === void 0 ? void 0 : _v.from) || 1))
+                                        : f.isOptional
+                                            ? undefined
+                                            : (((_v = f.options) === null || _v === void 0 ? void 0 : _v.from) || 1))
                                     : f.type === 'Related Contacts'
                                         ? (f.isOptional ? [] : [{ relationships: ((_x = (_w = f === null || f === void 0 ? void 0 : f.options) === null || _w === void 0 ? void 0 : _w.relatedContactTypes) === null || _x === void 0 ? void 0 : _x.length) === 1 ? [{ type: f.options.relatedContactTypes[0], id: '' }] : [] }])
                                         : '' // null flag that the response was not filled out

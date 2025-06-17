@@ -3276,6 +3276,7 @@ export const portalSettingsValidator = objectValidator<PortalSettings>({
     registerTitle: stringValidator1000Optional,
     hideRegister: booleanValidatorOptional,
     dontPromptSetPassword: booleanValidatorOptional,
+    requireOTP: booleanValidatorOptional,
   }, { isOptional: true, emptyOk: true, }),
   communication: objectValidator<PortalSettings['communication']>({
     allowEnduserInitiatedChat: booleanValidatorOptional,
@@ -3315,6 +3316,7 @@ export const organizationThemeValidator = objectValidator<OrganizationTheme>({
   customPoliciesVersion: stringValidatorOptional,
   requireCustomTermsOnMagicLink: booleanValidatorOptional,
   customPolicies: customPoliciesValidator,
+  hasConnectedVital: booleanValidatorOptional,
 })
 
 const _MANAGED_CONTENT_RECORD_TYPES: { [K in ManagedContentRecordType]: any } = {

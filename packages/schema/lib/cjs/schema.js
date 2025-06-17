@@ -409,6 +409,8 @@ exports.schema = (0, exports.build_schema)({
                     email: { validator: validation_1.emailValidator },
                     phone: { validator: validation_1.phoneValidator },
                     durationInSeconds: { validator: validation_1.nonNegNumberValidator },
+                    overrideOTP: { validator: validation_1.booleanValidatorOptional },
+                    overrideConsent: { validator: validation_1.booleanValidatorOptional },
                 },
                 returns: {
                     authToken: { validator: validation_1.stringValidator100, required: true },
@@ -640,6 +642,7 @@ exports.schema = (0, exports.build_schema)({
                 },
                 returns: {
                     result: { validator: validation_1.loginFlowResultValidator, required: true },
+                    otpToken: { validator: validation_1.stringValidator, required: true },
                     email: { validator: validation_1.emailValidator },
                 },
             },

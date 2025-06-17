@@ -1879,6 +1879,7 @@ export declare class EnduserSession extends Session {
     begin_login_flow: (a: Omit<extractFields<PublicActions['endusers']['begin_login_flow']['parameters']>, 'businessId' | 'organizationIds'>) => Promise<{
         result: "continue-with-password" | "sent-email" | "sent-sms";
         email?: string | undefined;
+        otpToken?: string | undefined;
     }>;
     register: (args: Omit<extractFields<PublicActions['endusers']['register']['parameters']>, 'businessId'> & {
         businessId?: string;

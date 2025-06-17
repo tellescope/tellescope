@@ -86,6 +86,7 @@ export type PortalSettings = {
         registerGraphic?: string;
         hideRegister?: boolean;
         dontPromptSetPassword?: boolean;
+        requireOTP?: boolean;
     };
     communication?: {
         allowEnduserInitiatedChat?: boolean;
@@ -459,6 +460,7 @@ export type OrganizationTheme = {
     customPolicies?: Organization['customPolicies'];
     customPoliciesVersion?: string;
     requireCustomTermsOnMagicLink?: boolean;
+    hasConnectedVital?: boolean;
 };
 export interface RecordInfo {
     businessId: string;
@@ -487,6 +489,7 @@ export interface EnduserSession extends Session, Enduser {
     passwordIsUnset?: boolean;
     denySocket?: boolean;
     fromPublicSession?: boolean;
+    requiresOTP?: boolean;
 }
 export interface UserSession extends Session, OrganizationLimits {
     type: "user";
@@ -3441,6 +3444,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
     dialedUserIds?: string[][];
     ignoredUserIds?: string[][];
     ticketId?: string;
+    hungUpByCaller?: boolean;
 }
 export type AnalyticsQueryResultValue = {
     key?: string;

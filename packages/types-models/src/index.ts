@@ -109,6 +109,7 @@ export type PortalSettings = {
     registerGraphic?: string,
     hideRegister?: boolean,
     dontPromptSetPassword?: boolean,
+    requireOTP?: boolean,
   },
   communication?: {
     allowEnduserInitiatedChat?: boolean,
@@ -456,6 +457,7 @@ export type OrganizationTheme = {
   customPolicies?: Organization['customPolicies'],
   customPoliciesVersion?: string,
   requireCustomTermsOnMagicLink?: boolean,
+  hasConnectedVital?: boolean,
 }
 
 
@@ -489,6 +491,7 @@ export interface EnduserSession extends Session, Enduser {
   passwordIsUnset?: boolean,
   denySocket?: boolean,
   fromPublicSession?: boolean,
+  requiresOTP?: boolean,
 }
 
 // potentially large fields, like 'fields' and 'availability' should be left out to prevent large JWT
@@ -3447,6 +3450,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
   dialedUserIds?: string[][],  // might ring multiple stages, so use list of users dialed at each step
   ignoredUserIds?: string[][], // might ring multiple stages, so use list of users dialed at each step
   ticketId?: string,
+  hungUpByCaller?: boolean,
 }
 
 export type AnalyticsQueryResultValue = {
