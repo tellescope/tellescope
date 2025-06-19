@@ -5887,6 +5887,8 @@ const merge_enduser_tests = async () => {
       // @ts-ignore
       stripeCustomerId,
       stripeKey,
+      athenaPracticeId: '12345',
+      athenaDepartmentId: '54321',
     },
     { email: 'destination@tellescope.com', source: '4', externalId: "4", references: [{ type: '1', id: '1' }, { type: '2', id: '2' }] },
     { email: 'other@tellescope.com'},
@@ -5931,6 +5933,8 @@ const merge_enduser_tests = async () => {
       && e.lname === source.lname
       && e.stripeKey === stripeKey
       && e.stripeCustomerId === stripeCustomerId
+      && !!e.athenaPracticeId   && e.athenaPracticeId === source.athenaPracticeId
+      && !!e.athenaDepartmentId && e.athenaDepartmentId === source.athenaDepartmentId
       && e.source === '4' && e.externalId === '4' // should prevent 4 from syncing to references at all
       && e.references?.find(r => r.type === '1')?.id === '1'
       && e.references?.find(r => r.type === '2')?.id === '2'

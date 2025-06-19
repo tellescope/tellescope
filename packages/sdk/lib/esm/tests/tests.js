@@ -7005,6 +7005,8 @@ var merge_enduser_tests = function () { return __awaiter(void 0, void 0, void 0,
                             // @ts-ignore
                             stripeCustomerId: stripeCustomerId,
                             stripeKey: stripeKey,
+                            athenaPracticeId: '12345',
+                            athenaDepartmentId: '54321',
                         },
                         { email: 'destination@tellescope.com', source: '4', externalId: "4", references: [{ type: '1', id: '1' }, { type: '2', id: '2' }] },
                         { email: 'other@tellescope.com' },
@@ -7050,6 +7052,8 @@ var merge_enduser_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 && e.lname === source.lname
                                 && e.stripeKey === stripeKey
                                 && e.stripeCustomerId === stripeCustomerId
+                                && !!e.athenaPracticeId && e.athenaPracticeId === source.athenaPracticeId
+                                && !!e.athenaDepartmentId && e.athenaDepartmentId === source.athenaDepartmentId
                                 && e.source === '4' && e.externalId === '4' // should prevent 4 from syncing to references at all
                                 && ((_b = (_a = e.references) === null || _a === void 0 ? void 0 : _a.find(function (r) { return r.type === '1'; })) === null || _b === void 0 ? void 0 : _b.id) === '1'
                                 && ((_d = (_c = e.references) === null || _c === void 0 ? void 0 : _c.find(function (r) { return r.type === '2'; })) === null || _d === void 0 ? void 0 : _d.id) === '2'
