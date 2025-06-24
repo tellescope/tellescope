@@ -799,7 +799,7 @@ export type CustomActions = {
     merge: CustomAction<{ sourceEnduserId: string, destinationEnduserId: string, }, { }>, 
     push: CustomAction<{ enduserId: string, destinations?: string[], externalIds?: string[], entrypoint?: string }, { fullscriptRedirectURL?: string, vital_user_id?: string }>,
     bulk_update: CustomAction<
-      { ids: string[], state?: string, fields?: CustomFields, pushTags?: string[], replaceTags?: string[], updateAccessTags?: boolean, customTypeId?: string }, 
+      { ids: string[], primaryAssignee?: string, state?: string, fields?: CustomFields, pushTags?: string[], replaceTags?: string[], updateAccessTags?: boolean, customTypeId?: string }, 
       { updated: Enduser[] }
     >,
     bulk_assignment: CustomAction<
@@ -1719,6 +1719,7 @@ export const schema: SchemaV1 = build_schema({
         description: "Updates custom fields across a batch of endusers at once",
         parameters: {
           ids: { validator: listOfMongoIdStringValidator, required: true },
+          primaryAssignee: { validator: mongoIdStringValidator },
           fields: { validator: fieldsValidator },
           pushTags: { validator: listOfStringsValidator },
           replaceTags: { validator: listOfStringsValidator },

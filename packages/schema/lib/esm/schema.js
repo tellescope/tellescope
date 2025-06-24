@@ -465,6 +465,7 @@ export var schema = build_schema({
                 description: "Updates custom fields across a batch of endusers at once",
                 parameters: {
                     ids: { validator: listOfMongoIdStringValidator, required: true },
+                    primaryAssignee: { validator: mongoIdStringValidator },
                     fields: { validator: fieldsValidator },
                     pushTags: { validator: listOfStringsValidator },
                     replaceTags: { validator: listOfStringsValidator },

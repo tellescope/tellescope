@@ -611,6 +611,7 @@ export type CustomActions = {
         }>;
         bulk_update: CustomAction<{
             ids: string[];
+            primaryAssignee?: string;
             state?: string;
             fields?: CustomFields;
             pushTags?: string[];

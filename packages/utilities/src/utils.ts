@@ -2362,12 +2362,12 @@ export const get_flattened_fields = <T extends object>(objects: T[], options?: {
   return fields
 }
 
-export const value_for_dotted_key = (v: any, key: string, o?: { handleArray?: boolean }) => {
+export const value_for_dotted_key = (v: any, key: string, o?: { handleArray?: boolean }): any => {
   let value = v
   const keys = key.split('.')
 
   if (o?.handleArray && keys.length >= 2 && Array.isArray(value[keys[0]])) {
-    return value[keys[0]].map((v: any) => value_for_dotted_key(v, keys.slice(1).join('.'), o))
+    return value_for_dotted_key(value[keys[0]], keys.slice(1).join('.'), o)
   }
 
   for (const k of keys) {
@@ -2554,4 +2554,22 @@ export const get_care_team_primary = (e: Pick<Enduser, 'assignedTo' | 'primaryAs
     return e.primaryAssignee
   }
   return e.assignedTo[0]
+}
+
+export const emit_gtm_event = (event: Record<string, any> & { event: string }) => {
+  try {
+    if (typeof window === 'undefined' || !(window as any).dataLayer) return
+
+    // ensure event is not empty
+    if (!event || typeof event !== 'object' || Object.keys(event).length === 0) return
+
+    // ensure event has a name
+    if (!event.event) {
+      console.warn('GTM event does not have an "event" property', event)
+      return
+    }
+
+    (window as any).dataLayer.push(event)
+    console.log('GTM event emitted:', event)
+  } catch(err) {}
 }

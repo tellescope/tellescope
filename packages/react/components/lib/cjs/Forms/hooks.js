@@ -494,6 +494,7 @@ var useTellescopeForm = function (_a) {
     var prevFieldStackRef = (0, react_1.useRef)([]);
     var _p = (0, react_1.useState)({}), repeats = _p[0], setRepeats = _p[1];
     var gaEventRef = (0, react_1.useRef)({});
+    var gtmEventRef = (0, react_1.useRef)({});
     var goBackURL = '';
     try {
         goBackURL = new URL(window.location.href).searchParams.get('back') || '';
@@ -536,6 +537,12 @@ var useTellescopeForm = function (_a) {
             value: 1,
         });
     }, [ga4measurementId, activeField]);
+    (0, react_1.useEffect)(function () {
+        if (gtmEventRef.current[activeField.value.id])
+            return;
+        gtmEventRef.current[activeField.value.id] = true;
+        (0, utilities_1.emit_gtm_event)({ event: 'form_progress', formId: activeField.value.formId, fieldId: activeField.value.id, title: activeField.value.title });
+    }, [activeField]);
     // placeholders for initial fields, reset when fields prop changes, since questions are now different (e.g. different form selected) 
     var fieldInitRef = (0, react_1.useRef)('');
     var initializeFields = (0, react_1.useCallback)(function () { return (fields.map(function (f) {
@@ -1195,6 +1202,7 @@ var useTellescopeForm = function (_a) {
                                 value: 2,
                             });
                         }
+                        (0, utilities_1.emit_gtm_event)({ event: 'form_submitted', formId: formResponse.formId });
                         updateLocalFormResponse(formResponse.id, formResponse);
                         (_w = options === null || options === void 0 ? void 0 : options.onPreRedirect) === null || _w === void 0 ? void 0 : _w.call(options); // in case redirect on success
                         (_x = options === null || options === void 0 ? void 0 : options.onSuccess) === null || _x === void 0 ? void 0 : _x.call(options, formResponse);

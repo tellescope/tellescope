@@ -60,7 +60,7 @@ import { phoneValidator } from "@tellescope/validation";
 import { WithTheme, contact_is_valid, useAddGTMTag, useFileUpload, useFormFields, useFormResponses, useResolvedSession, value_is_loaded } from "../index";
 import ReactGA from "react-ga4";
 import isEmail from "validator/lib/isEmail";
-import { append_current_utm_params, field_can_autoadvance, getLocalTimezone, get_time_values, get_utm_params, object_is_empty, responses_satisfy_conditions, update_local_storage } from "@tellescope/utilities";
+import { append_current_utm_params, emit_gtm_event, field_can_autoadvance, getLocalTimezone, get_time_values, get_utm_params, object_is_empty, responses_satisfy_conditions, update_local_storage } from "@tellescope/utilities";
 export var useFlattenedTree = function (root) {
     var _a;
     var flat = [];
@@ -475,6 +475,7 @@ export var useTellescopeForm = function (_a) {
     var prevFieldStackRef = useRef([]);
     var _p = useState({}), repeats = _p[0], setRepeats = _p[1];
     var gaEventRef = useRef({});
+    var gtmEventRef = useRef({});
     var goBackURL = '';
     try {
         goBackURL = new URL(window.location.href).searchParams.get('back') || '';
@@ -517,6 +518,12 @@ export var useTellescopeForm = function (_a) {
             value: 1,
         });
     }, [ga4measurementId, activeField]);
+    useEffect(function () {
+        if (gtmEventRef.current[activeField.value.id])
+            return;
+        gtmEventRef.current[activeField.value.id] = true;
+        emit_gtm_event({ event: 'form_progress', formId: activeField.value.formId, fieldId: activeField.value.id, title: activeField.value.title });
+    }, [activeField]);
     // placeholders for initial fields, reset when fields prop changes, since questions are now different (e.g. different form selected) 
     var fieldInitRef = useRef('');
     var initializeFields = useCallback(function () { return (fields.map(function (f) {
@@ -1176,6 +1183,7 @@ export var useTellescopeForm = function (_a) {
                                 value: 2,
                             });
                         }
+                        emit_gtm_event({ event: 'form_submitted', formId: formResponse.formId });
                         updateLocalFormResponse(formResponse.id, formResponse);
                         (_w = options === null || options === void 0 ? void 0 : options.onPreRedirect) === null || _w === void 0 ? void 0 : _w.call(options); // in case redirect on success
                         (_x = options === null || options === void 0 ? void 0 : options.onSuccess) === null || _x === void 0 ? void 0 : _x.call(options, formResponse);

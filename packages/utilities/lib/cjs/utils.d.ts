@@ -300,4 +300,7 @@ export declare const to_human_readable_phone_number: (phone?: string) => string;
 export declare const enrich_doxy_url: (url: string, e?: Enduser) => string;
 export declare const is_checkbox_custom_field_value: (value?: any) => value is string;
 export declare const get_care_team_primary: (e: Pick<Enduser, 'assignedTo' | 'primaryAssignee'>) => string | undefined;
+export declare const emit_gtm_event: (event: Record<string, any> & {
+    event: string;
+}) => void;
 //# sourceMappingURL=utils.d.ts.map

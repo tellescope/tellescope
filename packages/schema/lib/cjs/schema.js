@@ -470,6 +470,7 @@ exports.schema = (0, exports.build_schema)({
                 description: "Updates custom fields across a batch of endusers at once",
                 parameters: {
                     ids: { validator: validation_1.listOfMongoIdStringValidator, required: true },
+                    primaryAssignee: { validator: validation_1.mongoIdStringRequired },
                     fields: { validator: validation_1.fieldsValidator },
                     pushTags: { validator: validation_1.listOfStringsValidator },
                     replaceTags: { validator: validation_1.listOfStringsValidator },

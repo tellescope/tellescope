@@ -9,7 +9,7 @@ import { WithTheme, contact_is_valid, useAddGTMTag, useFileUpload, useFormFields
 import ReactGA from "react-ga4";
 
 import isEmail from "validator/lib/isEmail"
-import { append_current_utm_params, field_can_autoadvance, getLocalTimezone, get_time_values, get_utm_params, is_object, object_is_empty, responses_satisfy_conditions, update_local_storage } from "@tellescope/utilities"
+import { append_current_utm_params, emit_gtm_event, field_can_autoadvance, getLocalTimezone, get_time_values, get_utm_params, is_object, object_is_empty, responses_satisfy_conditions, update_local_storage } from "@tellescope/utilities"
 
 export const useFlattenedTree = (root?: FormFieldNode) => {
   const flat: FormField[] = []
@@ -538,6 +538,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
   const [repeats, setRepeats] = useState({} as Record<string, string | number>)
 
   const gaEventRef = useRef({} as Record<string, boolean>)
+  const gtmEventRef = useRef({} as Record<string, boolean>)
 
   let goBackURL = ''
   try {
@@ -590,6 +591,13 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
       value: 1,
     });
   }, [ga4measurementId, activeField])
+
+  useEffect(() => {
+    if (gtmEventRef.current[activeField.value.id]) return
+    gtmEventRef.current[activeField.value.id] = true
+
+    emit_gtm_event({ event: 'form_progress', formId: activeField.value.formId, fieldId: activeField.value.id, title: activeField.value.title })
+  }, [activeField])
 
   // placeholders for initial fields, reset when fields prop changes, since questions are now different (e.g. different form selected) 
   const fieldInitRef = useRef('')
@@ -1252,6 +1260,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
                 value: 2,
               });
             }
+            emit_gtm_event({ event: 'form_submitted', formId: formResponse.formId })
             updateLocalFormResponse(formResponse.id, formResponse)
             options?.onPreRedirect?.() // in case redirect on success
             options?.onSuccess?.(formResponse)

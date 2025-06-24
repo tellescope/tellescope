@@ -3036,6 +3036,23 @@ export const HeightInput = ({ field, value={} as any, onChange, ...props }: Form
   </Grid>
 )
 
+export const include_current_url_parameters_if_templated = (url: string ) => {
+  try {
+    // get parameters from the current URL, and replace all values where {{URL_PARAM.paramName}} is used
+    const params = new URL(window.location.href).searchParams
+    return url.replace(/{{URL_PARAM\.(.*?)}}/g, (_, paramName) => {
+      const value = params.get(paramName)
+      console.log(paramName, value)
+      if (value === null) return ''
+      return value
+    })
+
+  } catch(err) {
+    console.error(err)
+  }
+  return url
+}
+
 export const RedirectInput = ({ enduserId, groupId, groupInsance, rootResponseId, formResponseId, field, submit, value={} as any, onChange, responses, enduser, ...props }: FormInputProps<'Redirect'>) => {
   const session = useResolvedSession()
 
@@ -3080,13 +3097,15 @@ export const RedirectInput = ({ enduserId, groupId, groupInsance, rootResponseId
         if (!field.options?.redirectExternalUrl) { return }
 
         window.location.href = (
-          replace_enduser_template_values(
-            field.options.redirectExternalUrl, 
-            {
-              ...session.userInfo as any,
-              id: eId, email, fname, lname, state, phone, 
-            }
-          )
+          include_current_url_parameters_if_templated(
+            replace_enduser_template_values(
+              field.options.redirectExternalUrl, 
+              {
+                ...session.userInfo as any,
+                id: eId, email, fname, lname, state, phone, 
+              }
+            )
+          )  
         )
       })
       .catch(console.error)

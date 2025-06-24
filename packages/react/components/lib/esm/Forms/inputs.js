@@ -1645,6 +1645,23 @@ export var HeightInput = function (_a) {
     var field = _a.field, _d = _a.value, value = _d === void 0 ? {} : _d, onChange = _a.onChange, props = __rest(_a, ["field", "value", "onChange"]);
     return (_jsxs(Grid, __assign({ container: true, alignItems: 'center', wrap: "nowrap", spacing: 1, style: { marginTop: 5 } }, { children: [_jsx(Grid, __assign({ item: true, sx: { width: '100%' } }, { children: _jsx(TextField, { fullWidth: true, size: "small", label: "Feet", type: "number", value: (value === null || value === void 0 ? void 0 : value.feet) || '', onChange: function (e) { return onChange(__assign(__assign({}, value), { feet: parseInt(e.target.value) }), field.id); } }) })), _jsx(Grid, __assign({ item: true, sx: { width: '100%' } }, { children: _jsx(TextField, { fullWidth: true, size: "small", label: "Inches", type: "number", value: (_b = value === null || value === void 0 ? void 0 : value.inches) !== null && _b !== void 0 ? _b : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { inches: parseInt(e.target.value) }), field.id); } }) }))] })));
 };
+export var include_current_url_parameters_if_templated = function (url) {
+    try {
+        // get parameters from the current URL, and replace all values where {{URL_PARAM.paramName}} is used
+        var params_1 = new URL(window.location.href).searchParams;
+        return url.replace(/{{URL_PARAM\.(.*?)}}/g, function (_, paramName) {
+            var value = params_1.get(paramName);
+            console.log(paramName, value);
+            if (value === null)
+                return '';
+            return value;
+        });
+    }
+    catch (err) {
+        console.error(err);
+    }
+    return url;
+};
 export var RedirectInput = function (_a) {
     var _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
     var enduserId = _a.enduserId, groupId = _a.groupId, groupInsance = _a.groupInsance, rootResponseId = _a.rootResponseId, formResponseId = _a.formResponseId, field = _a.field, submit = _a.submit, _u = _a.value, value = _u === void 0 ? {} : _u, onChange = _a.onChange, responses = _a.responses, enduser = _a.enduser, props = __rest(_a, ["enduserId", "groupId", "groupInsance", "rootResponseId", "formResponseId", "field", "submit", "value", "onChange", "responses", "enduser"]);
@@ -1681,7 +1698,7 @@ export var RedirectInput = function (_a) {
                 if (!((_a = field.options) === null || _a === void 0 ? void 0 : _a.redirectExternalUrl)) {
                     return;
                 }
-                window.location.href = (replace_enduser_template_values(field.options.redirectExternalUrl, __assign(__assign({}, session.userInfo), { id: eId, email: email, fname: fname, lname: lname, state: state, phone: phone })));
+                window.location.href = (include_current_url_parameters_if_templated(replace_enduser_template_values(field.options.redirectExternalUrl, __assign(__assign({}, session.userInfo), { id: eId, email: email, fname: fname, lname: lname, state: state, phone: phone }))));
             }).catch(console.error);
             return;
         }

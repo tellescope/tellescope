@@ -8572,6 +8572,47 @@ export const ticket_reminder_tests = async () => {
   await Promise.all(toDelete.map(t => sdk.api.tickets.deleteOne(t.id)))
 }
 
+const bulk_update_tests = async () => {
+  log_header("Bulk Update Tests")
+
+  const e1 = await sdk.api.endusers.createOne({ })
+  const e2 = await sdk.api.endusers.createOne({ })
+
+  await async_test(
+    "primaryAssignee (set initial)",
+    () => sdk.api.endusers.bulk_update({ ids: [e1.id], primaryAssignee: PLACEHOLDER_ID }),
+    {
+      onResult: ({ updated: [u, ...rest] }) => (
+        rest.length === 0
+      && u.id === e1.id
+      && u.primaryAssignee === PLACEHOLDER_ID
+      && u.assignedTo?.length === 1
+      && u.assignedTo?.[0] === PLACEHOLDER_ID
+      )
+    }
+  )
+
+  await async_test(
+    "primaryAssignee (set to another)",
+    () => sdk.api.endusers.bulk_update({ ids: [e1.id], primaryAssignee: sdk.userInfo.id }),
+    {
+      onResult: ({ updated: [u, ...rest] }) => (
+        rest.length === 0
+      && u.id === e1.id
+      && u.primaryAssignee === sdk.userInfo.id
+      && u.assignedTo?.length === 2
+      && u.assignedTo.includes(PLACEHOLDER_ID)
+      && u.assignedTo.includes(sdk.userInfo.id)
+      )
+    }
+  )
+
+  await Promise.all([
+    await sdk.api.endusers.deleteOne(e1.id),
+    await sdk.api.endusers.deleteOne(e2.id),
+  ])
+}
+
 const bulk_read_tests = async () => {
   log_header("Bulk Read (ID-lookup) Tests")
 
@@ -11522,6 +11563,7 @@ const inbox_loading_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests()
+    await bulk_update_tests()
     await formsort_tests()
     await inbox_loading_tests()
     await cancel_upcoming_appointments_journey_action_test()

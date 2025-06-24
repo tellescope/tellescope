@@ -2238,7 +2238,7 @@ export var value_for_dotted_key = function (v, key, o) {
     var value = v;
     var keys = key.split('.');
     if ((o === null || o === void 0 ? void 0 : o.handleArray) && keys.length >= 2 && Array.isArray(value[keys[0]])) {
-        return value[keys[0]].map(function (v) { return value_for_dotted_key(v, keys.slice(1).join('.'), o); });
+        return value_for_dotted_key(value[keys[0]], keys.slice(1).join('.'), o);
     }
     for (var _i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
         var k = keys_1[_i];
@@ -2410,5 +2410,22 @@ export var get_care_team_primary = function (e) {
         return e.primaryAssignee;
     }
     return e.assignedTo[0];
+};
+export var emit_gtm_event = function (event) {
+    try {
+        if (typeof window === 'undefined' || !window.dataLayer)
+            return;
+        // ensure event is not empty
+        if (!event || typeof event !== 'object' || Object.keys(event).length === 0)
+            return;
+        // ensure event has a name
+        if (!event.event) {
+            console.warn('GTM event does not have an "event" property', event);
+            return;
+        }
+        window.dataLayer.push(event);
+        console.log('GTM event emitted:', event);
+    }
+    catch (err) { }
 };
 //# sourceMappingURL=utils.js.map
