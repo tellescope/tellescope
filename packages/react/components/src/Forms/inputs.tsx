@@ -4,7 +4,7 @@ import { Autocomplete, Box, Button, Checkbox, Chip, Divider, FormControl, FormCo
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
-import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, truncate_string, user_display_name } from "@tellescope/utilities"
+import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, truncate_string, user_display_name } from "@tellescope/utilities"
 import { DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, TellescopeGender } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
@@ -2857,6 +2857,7 @@ export const AppointmentBookingInput = ({ formResponseId, field, value, onChange
         && (!m?.data?.entropy || m?.data?.entropy === loaded?.entropy)
       ) {
         onChange(m.data.bookedEventId, field.id)
+        emit_gtm_event({ event: 'form_progress', fieldId: field.id, formId: field.formId, title: field.title, status: "Appointment Booked" })
       }
       if (m?.data?.type === 'CalendarPicker') {
         setHeight(750)
@@ -2873,7 +2874,7 @@ export const AppointmentBookingInput = ({ formResponseId, field, value, onChange
 
     window.addEventListener('message', handleMessage)
     return () => { window.removeEventListener('message', handleMessage) }
-  }, [field?.id, onChange, acknowledgedWarning, value, loaded?.entropy])
+  }, [field?.id, field?.formId, field?.title, onChange, acknowledgedWarning, value, loaded?.entropy])
 
   if (value) {
     return (

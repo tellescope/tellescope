@@ -208,7 +208,7 @@ export declare const URIDecodeEmail: (content: string, verbose?: boolean) => str
 export declare const mfa_is_enabled: (u: {
     mfa?: User['mfa'];
 }) => boolean;
-export declare const get_next_reminder_timestamp: ({ startTimeInMS, reminders }: Pick<CalendarEvent, 'startTimeInMS' | 'reminders'>) => number;
+export declare const get_next_reminder_timestamp: ({ startTimeInMS, reminders: _reminders, attendees }: Pick<CalendarEvent, 'attendees' | 'startTimeInMS' | 'reminders'>) => number;
 export declare const capture_is_supported: () => boolean;
 export declare const batch_array: <T>(array: T[], size: number) => T[][];
 export declare const calculate_form_scoring: ({ response, form, }: {

@@ -1609,6 +1609,7 @@ var AppointmentBookingInput = function (_a) {
                 && typeof ((_b = m === null || m === void 0 ? void 0 : m.data) === null || _b === void 0 ? void 0 : _b.bookedEventId) === 'string'
                 && (!((_d = m === null || m === void 0 ? void 0 : m.data) === null || _d === void 0 ? void 0 : _d.entropy) || ((_e = m === null || m === void 0 ? void 0 : m.data) === null || _e === void 0 ? void 0 : _e.entropy) === (loaded === null || loaded === void 0 ? void 0 : loaded.entropy))) {
                 onChange(m.data.bookedEventId, field.id);
+                (0, utilities_1.emit_gtm_event)({ event: 'form_progress', fieldId: field.id, formId: field.formId, title: field.title, status: "Appointment Booked" });
             }
             if (((_f = m === null || m === void 0 ? void 0 : m.data) === null || _f === void 0 ? void 0 : _f.type) === 'CalendarPicker') {
                 setHeight(750);
@@ -1625,7 +1626,7 @@ var AppointmentBookingInput = function (_a) {
         };
         window.addEventListener('message', handleMessage);
         return function () { window.removeEventListener('message', handleMessage); };
-    }, [field === null || field === void 0 ? void 0 : field.id, onChange, acknowledgedWarning, value, loaded === null || loaded === void 0 ? void 0 : loaded.entropy]);
+    }, [field === null || field === void 0 ? void 0 : field.id, field === null || field === void 0 ? void 0 : field.formId, field === null || field === void 0 ? void 0 : field.title, onChange, acknowledgedWarning, value, loaded === null || loaded === void 0 ? void 0 : loaded.entropy]);
     if (value) {
         return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, direction: "column", spacing: 1 }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap" }, { children: [(0, jsx_runtime_1.jsx)(icons_material_1.CheckCircleOutline, { color: "success" }), (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { ml: 1, fontSize: 20 } }, { children: "Your appointment has been booked" }))] })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, sx: { maxWidth: 250 } }, { children: (0, jsx_runtime_1.jsx)(__1.LoadingButton, { variant: "contained", style: { maxWidth: 250 }, submitText: "Add to Calendar", submittingText: "Downloading...", onClick: function () { return downloadICS({ id: value }); } }) }))] })));
     }

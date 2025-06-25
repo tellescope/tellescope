@@ -4100,6 +4100,7 @@ var superbillLineItemValidator = objectValidator({
         currency: stringValidator,
     }),
     discount: numberValidatorOptional,
+    diagnosisCodes: listOfStringsValidatorOptionalOrEmptyOk,
 });
 export var superbillLineItemsValidator = listValidator(superbillLineItemValidator);
 var ticketSnoozeValidator = objectValidator({
@@ -4791,6 +4792,32 @@ export var analyticsQueryValidator = orValidator({
             key: exactMatchValidator(['Created At', 'Updated At']),
         }, { isOptional: true, emptyOk: true })
     }),
+    "Orders": objectValidator({
+        resource: exactMatchValidator(['Orders']),
+        filter: objectValidator({
+            automationStepIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+        }, { isOptional: true, emptyOk: true }),
+        info: orValidator({
+            "Total": objectValidator({
+                method: exactMatchValidator(['Total']),
+                parameters: optionalEmptyObjectValidator,
+            }),
+        }),
+        grouping: objectValidator({
+            Enduser: booleanValidatorOptional,
+            Gender: booleanValidatorOptional,
+            "Assigned To": booleanValidatorOptional,
+            Field: stringValidatorOptionalEmptyOkay,
+            Tags: booleanValidatorOptional,
+            Age: booleanValidatorOptional,
+            State: booleanValidatorOptional,
+            Phone: booleanValidatorOptional,
+        }, { isOptional: true, emptyOk: true }),
+        range: objectValidator({
+            interval: exactMatchValidator(['Daily', 'Weekly', 'Monthly', 'Hourly']),
+            key: exactMatchValidator(['Created At', 'Updated At']),
+        }, { isOptional: true, emptyOk: true })
+    }),
 });
 export var analyticsQueriesValidatorOptional = listValidatorOptionalOrEmptyOk(analyticsQueryValidator);
 var _ANALYTICS_FRAME_TYPES = {
@@ -4812,6 +4839,7 @@ var _ANALYTICS_QUERY_TYPES = {
     Files: true,
     Meetings: true,
     "Journey Logs": true,
+    Orders: true,
 };
 export var ANALYTICS_QUERY_TYPES = Object.keys(_ANALYTICS_QUERY_TYPES);
 export var analyticsQueryTypeValidator = exactMatchValidator(ANALYTICS_QUERY_TYPES);

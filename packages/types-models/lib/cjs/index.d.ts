@@ -999,6 +999,10 @@ export type EndusersReport = Report;
 export type JourneyStatistics = {
     steps: Record<string, {
         count: number;
+        activeCount: number;
+        finishedCount: number;
+        errorCount: number;
+        cancelledCount: number;
         opens?: number;
         clicked?: number;
     }>;
@@ -2353,6 +2357,7 @@ export interface Product extends Product_readonly, Product_required, Product_upd
     stripeSubscriptionId?: string;
     stripeProductId?: string;
     stripePriceId?: string;
+    additionalStripePriceIds?: string[];
 }
 export interface Purchase_readonly extends ClientRecord {
 }
@@ -3513,6 +3518,9 @@ export type AnalyticsQueryInfoForType = {
     "Journey Logs": {
         Total: AnalyticsQueryInfoBuilder<'Total', undefined>;
     };
+    "Orders": {
+        Total: AnalyticsQueryInfoBuilder<'Total', undefined>;
+    };
 };
 export type AnalyticsQueryInfoType = keyof AnalyticsQueryInfoForType;
 export type AnalyticsQueryInfo = AnalyticsQueryInfoForType[AnalyticsQueryInfoType];
@@ -3585,6 +3593,7 @@ export type AnalyticsQueryFilterForType = {
     "Journey Logs": {
         automationStepIds?: string[];
     };
+    Orders: {};
 };
 export type EnduserGrouping = {
     Field?: string;
@@ -3648,6 +3657,9 @@ export type AnalyticsQueryGroupingForType = {
     "Meetings": {
         Host?: boolean;
     };
+    "Orders": {} & EnduserGrouping & {
+        Enduser: string;
+    };
 };
 type DefaultRangeKey = 'Created At' | 'Updated At';
 export type AnalyticsQueryRangeKeyForType = {
@@ -3664,6 +3676,7 @@ export type AnalyticsQueryRangeKeyForType = {
     "Files": DefaultRangeKey;
     "Meetings": DefaultRangeKey;
     "Journey Logs": DefaultRangeKey;
+    "Orders": DefaultRangeKey;
 };
 export type RangeKey = DefaultRangeKey | 'Submitted At' | "Closed At";
 export type AnalyticsQueryRangeInterval = 'Hourly' | 'Daily' | 'Weekly' | 'Monthly';
@@ -3692,6 +3705,7 @@ export type AnalyticsQueryForType = {
     "Files": AnalyticsQueryBuilder<"Files", AnalyticsQueryInfoForType['Files'][keyof AnalyticsQueryInfoForType['Files']], AnalyticsQueryFilterForType['Files'], AnalyticsQueryGroupingForType['Files'], AnalyticsQueryRangeKeyForType['Files']>;
     "Meetings": AnalyticsQueryBuilder<"Meetings", AnalyticsQueryInfoForType['Meetings'][keyof AnalyticsQueryInfoForType['Meetings']], AnalyticsQueryFilterForType['Meetings'], AnalyticsQueryGroupingForType['Meetings'], AnalyticsQueryRangeKeyForType['Meetings']>;
     "Journey Logs": AnalyticsQueryBuilder<"Journey Logs", AnalyticsQueryInfoForType['Journey Logs'][keyof AnalyticsQueryInfoForType['Journey Logs']], AnalyticsQueryFilterForType['Journey Logs'], AnalyticsQueryGroupingForType['Journey Logs'], AnalyticsQueryRangeKeyForType['Journey Logs']>;
+    "Orders": AnalyticsQueryBuilder<"Orders", AnalyticsQueryInfoForType['Orders'][keyof AnalyticsQueryInfoForType['Orders']], AnalyticsQueryFilterForType['Orders'], AnalyticsQueryGroupingForType['Orders'], AnalyticsQueryRangeKeyForType['Orders']>;
 };
 export type AnalyticsQueryType = keyof AnalyticsQueryForType;
 export type AnalyticsQuery = AnalyticsQueryForType[AnalyticsQueryType];
@@ -4114,6 +4128,7 @@ export type SuperbillLineItem = {
         currency: Currency;
     };
     discount?: number;
+    diagnosisCodes?: string[];
 };
 export type SuperbillPatientInfo = {
     name: string;

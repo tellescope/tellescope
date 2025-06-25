@@ -519,10 +519,18 @@ export var useTellescopeForm = function (_a) {
         });
     }, [ga4measurementId, activeField]);
     useEffect(function () {
+        var _a, _b;
         if (gtmEventRef.current[activeField.value.id])
             return;
         gtmEventRef.current[activeField.value.id] = true;
-        emit_gtm_event({ event: 'form_progress', formId: activeField.value.formId, fieldId: activeField.value.id, title: activeField.value.title });
+        emit_gtm_event({
+            event: 'form_progress',
+            formId: activeField.value.formId,
+            fieldId: activeField.value.id,
+            title: activeField.value.title,
+            previousTitle: ((_b = (_a = prevFieldStackRef.current[prevFieldStackRef.current.length - 1]) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.title) || '',
+            status: ''
+        });
     }, [activeField]);
     // placeholders for initial fields, reset when fields prop changes, since questions are now different (e.g. different form selected) 
     var fieldInitRef = useRef('');
@@ -1183,7 +1191,7 @@ export var useTellescopeForm = function (_a) {
                                 value: 2,
                             });
                         }
-                        emit_gtm_event({ event: 'form_submitted', formId: formResponse.formId });
+                        emit_gtm_event({ event: 'form_submitted', formId: formResponse.formId, fieldId: '', title: '', status: '', previousTitle: '', });
                         updateLocalFormResponse(formResponse.id, formResponse);
                         (_w = options === null || options === void 0 ? void 0 : options.onPreRedirect) === null || _w === void 0 ? void 0 : _w.call(options); // in case redirect on success
                         (_x = options === null || options === void 0 ? void 0 : options.onSuccess) === null || _x === void 0 ? void 0 : _x.call(options, formResponse);

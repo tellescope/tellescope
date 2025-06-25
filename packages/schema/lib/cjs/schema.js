@@ -4865,7 +4865,7 @@ exports.schema = (0, exports.build_schema)({
             }, processor: {
                 validator: validation_1.paymentProcessorValidator,
                 examples: ['Stripe'],
-            }, description: { validator: validation_1.stringValidator5000EmptyOkay }, htmlDescription: { validator: validation_1.stringValidator25000EmptyOkay }, cptCode: { validator: validation_1.billingCodeValidatorOptional }, image: { validator: validation_1.stringValidator100000EmptyOkay }, showInPortal: { validator: validation_1.booleanValidator }, categories: { validator: validation_1.listOfStringsValidatorEmptyOk }, maxCheckoutCount: { validator: validation_1.numberValidatorOptional }, stripeProductId: { validator: validation_1.stringValidator100 }, stripeSubscriptionId: { validator: validation_1.stringValidator100 }, stripePriceId: { validator: validation_1.stringValidator100 } })
+            }, description: { validator: validation_1.stringValidator5000EmptyOkay }, htmlDescription: { validator: validation_1.stringValidator25000EmptyOkay }, cptCode: { validator: validation_1.billingCodeValidatorOptional }, image: { validator: validation_1.stringValidator100000EmptyOkay }, showInPortal: { validator: validation_1.booleanValidator }, categories: { validator: validation_1.listOfStringsValidatorEmptyOk }, maxCheckoutCount: { validator: validation_1.numberValidatorOptional }, stripeProductId: { validator: validation_1.stringValidator100 }, stripeSubscriptionId: { validator: validation_1.stringValidator100 }, stripePriceId: { validator: validation_1.stringValidator100 }, additionalStripePriceIds: { validator: validation_1.listOfStringsValidatorEmptyOk } })
     },
     purchases: {
         info: {},

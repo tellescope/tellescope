@@ -75,7 +75,7 @@ import axios from "axios";
 import { Autocomplete, Box, Button, Checkbox, Chip, Divider, FormControl, FormControlLabel, FormLabel, Grid, InputLabel, MenuItem, Radio, RadioGroup, Select, TextField, Typography } from "@mui/material";
 import { useDropzone } from "react-dropzone";
 import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants";
-import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, truncate_string, user_display_name } from "@tellescope/utilities";
+import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, truncate_string, user_display_name } from "@tellescope/utilities";
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation";
 import Slider from '@mui/material/Slider';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -1549,6 +1549,7 @@ export var AppointmentBookingInput = function (_a) {
                 && typeof ((_b = m === null || m === void 0 ? void 0 : m.data) === null || _b === void 0 ? void 0 : _b.bookedEventId) === 'string'
                 && (!((_d = m === null || m === void 0 ? void 0 : m.data) === null || _d === void 0 ? void 0 : _d.entropy) || ((_e = m === null || m === void 0 ? void 0 : m.data) === null || _e === void 0 ? void 0 : _e.entropy) === (loaded === null || loaded === void 0 ? void 0 : loaded.entropy))) {
                 onChange(m.data.bookedEventId, field.id);
+                emit_gtm_event({ event: 'form_progress', fieldId: field.id, formId: field.formId, title: field.title, status: "Appointment Booked" });
             }
             if (((_f = m === null || m === void 0 ? void 0 : m.data) === null || _f === void 0 ? void 0 : _f.type) === 'CalendarPicker') {
                 setHeight(750);
@@ -1565,7 +1566,7 @@ export var AppointmentBookingInput = function (_a) {
         };
         window.addEventListener('message', handleMessage);
         return function () { window.removeEventListener('message', handleMessage); };
-    }, [field === null || field === void 0 ? void 0 : field.id, onChange, acknowledgedWarning, value, loaded === null || loaded === void 0 ? void 0 : loaded.entropy]);
+    }, [field === null || field === void 0 ? void 0 : field.id, field === null || field === void 0 ? void 0 : field.formId, field === null || field === void 0 ? void 0 : field.title, onChange, acknowledgedWarning, value, loaded === null || loaded === void 0 ? void 0 : loaded.entropy]);
     if (value) {
         return (_jsxs(Grid, __assign({ container: true, direction: "column", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap" }, { children: [_jsx(CheckCircleOutline, { color: "success" }), _jsx(Typography, __assign({ sx: { ml: 1, fontSize: 20 } }, { children: "Your appointment has been booked" }))] })) })), _jsx(Grid, __assign({ item: true, sx: { maxWidth: 250 } }, { children: _jsx(LoadingButton, { variant: "contained", style: { maxWidth: 250 }, submitText: "Add to Calendar", submittingText: "Downloading...", onClick: function () { return downloadICS({ id: value }); } }) }))] })));
     }

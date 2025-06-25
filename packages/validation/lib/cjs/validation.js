@@ -4152,6 +4152,7 @@ var superbillLineItemValidator = (0, exports.objectValidator)({
         currency: exports.stringValidator,
     }),
     discount: exports.numberValidatorOptional,
+    diagnosisCodes: exports.listOfStringsValidatorOptionalOrEmptyOk,
 });
 exports.superbillLineItemsValidator = (0, exports.listValidator)(superbillLineItemValidator);
 var ticketSnoozeValidator = (0, exports.objectValidator)({
@@ -4843,6 +4844,32 @@ exports.analyticsQueryValidator = (0, exports.orValidator)({
             key: (0, exports.exactMatchValidator)(['Created At', 'Updated At']),
         }, { isOptional: true, emptyOk: true })
     }),
+    "Orders": (0, exports.objectValidator)({
+        resource: (0, exports.exactMatchValidator)(['Orders']),
+        filter: (0, exports.objectValidator)({
+            automationStepIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
+        }, { isOptional: true, emptyOk: true }),
+        info: (0, exports.orValidator)({
+            "Total": (0, exports.objectValidator)({
+                method: (0, exports.exactMatchValidator)(['Total']),
+                parameters: exports.optionalEmptyObjectValidator,
+            }),
+        }),
+        grouping: (0, exports.objectValidator)({
+            Enduser: exports.booleanValidatorOptional,
+            Gender: exports.booleanValidatorOptional,
+            "Assigned To": exports.booleanValidatorOptional,
+            Field: exports.stringValidatorOptionalEmptyOkay,
+            Tags: exports.booleanValidatorOptional,
+            Age: exports.booleanValidatorOptional,
+            State: exports.booleanValidatorOptional,
+            Phone: exports.booleanValidatorOptional,
+        }, { isOptional: true, emptyOk: true }),
+        range: (0, exports.objectValidator)({
+            interval: (0, exports.exactMatchValidator)(['Daily', 'Weekly', 'Monthly', 'Hourly']),
+            key: (0, exports.exactMatchValidator)(['Created At', 'Updated At']),
+        }, { isOptional: true, emptyOk: true })
+    }),
 });
 exports.analyticsQueriesValidatorOptional = (0, exports.listValidatorOptionalOrEmptyOk)(exports.analyticsQueryValidator);
 var _ANALYTICS_FRAME_TYPES = {
@@ -4864,6 +4891,7 @@ var _ANALYTICS_QUERY_TYPES = {
     Files: true,
     Meetings: true,
     "Journey Logs": true,
+    Orders: true,
 };
 exports.ANALYTICS_QUERY_TYPES = Object.keys(_ANALYTICS_QUERY_TYPES);
 exports.analyticsQueryTypeValidator = (0, exports.exactMatchValidator)(exports.ANALYTICS_QUERY_TYPES);

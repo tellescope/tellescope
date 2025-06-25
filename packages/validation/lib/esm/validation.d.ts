@@ -1989,6 +1989,17 @@ export declare const analyticsQueryValidator: ValidatorDefinition<{
         Enduser: string;
     }) | undefined;
     range?: AnalyticsQueryRange<"Created At" | "Updated At"> | undefined;
+} | {
+    resource: "Orders";
+    info: {
+        method: "Total";
+        parameters: undefined;
+    };
+    filter?: {} | undefined;
+    grouping?: (import("@tellescope/types-models").EnduserGrouping & {
+        Enduser: string;
+    }) | undefined;
+    range?: AnalyticsQueryRange<"Created At" | "Updated At"> | undefined;
 }>;
 export declare const analyticsQueriesValidatorOptional: ValidatorDefinition<({
     resource: "Endusers";
@@ -2201,6 +2212,17 @@ export declare const analyticsQueriesValidatorOptional: ValidatorDefinition<({
     filter?: {
         automationStepIds?: string[] | undefined;
     } | undefined;
+    grouping?: (import("@tellescope/types-models").EnduserGrouping & {
+        Enduser: string;
+    }) | undefined;
+    range?: AnalyticsQueryRange<"Created At" | "Updated At"> | undefined;
+} | {
+    resource: "Orders";
+    info: {
+        method: "Total";
+        parameters: undefined;
+    };
+    filter?: {} | undefined;
     grouping?: (import("@tellescope/types-models").EnduserGrouping & {
         Enduser: string;
     }) | undefined;

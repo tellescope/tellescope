@@ -1073,7 +1073,7 @@ export type EndusersReportQueries = Record<string, EnduserReportQuery>
 export type EndusersReport = Report
 
 export type JourneyStatistics = {
-  steps: Record<string, { count: number, opens?: number, clicked?: number }>,
+  steps: Record<string, { count: number, activeCount: number, finishedCount: number, errorCount: number, cancelledCount: number, opens?: number, clicked?: number }>,
 }
 
 export type FormStatistics = {
@@ -2414,6 +2414,7 @@ export interface Product extends Product_readonly, Product_required, Product_upd
   stripeSubscriptionId?: string,
   stripeProductId?: string,
   stripePriceId?: string,
+  additionalStripePriceIds?: string[],
 }
 
 export interface Purchase_readonly extends ClientRecord {}
@@ -3494,6 +3495,7 @@ export type AnalyticsQueryInfoForType = {
     Duration: AnalyticsQueryInfoBuilder<'Duration', undefined>,
   },
   "Journey Logs": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },
+  "Orders": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },
 }
 export type AnalyticsQueryInfoType = keyof AnalyticsQueryInfoForType
 export type AnalyticsQueryInfo = AnalyticsQueryInfoForType[AnalyticsQueryInfoType]
@@ -3564,6 +3566,7 @@ export type AnalyticsQueryFilterForType = {
   "Journey Logs": { 
     automationStepIds?: string[],
   },
+  Orders: { },
 }
 
 export type EnduserGrouping = {
@@ -3605,6 +3608,7 @@ export type AnalyticsQueryGroupingForType = {
   "Files": {} & EnduserGrouping & { Enduser: string },
   "Journey Logs": {} & EnduserGrouping & { Enduser: string },
   "Meetings": { Host?: boolean },  
+  "Orders": {} & EnduserGrouping & { Enduser: string },
 }
 
 type DefaultRangeKey = 'Created At' | 'Updated At'
@@ -3622,6 +3626,7 @@ export type AnalyticsQueryRangeKeyForType = {
   "Files": DefaultRangeKey,
   "Meetings": DefaultRangeKey,
   "Journey Logs": DefaultRangeKey,
+  "Orders": DefaultRangeKey,
 }
 export type RangeKey = DefaultRangeKey | 'Submitted At' | "Closed At"
 
@@ -3730,6 +3735,13 @@ export type AnalyticsQueryForType = {
     AnalyticsQueryGroupingForType['Journey Logs'],
     AnalyticsQueryRangeKeyForType['Journey Logs']
   >,
+  "Orders": AnalyticsQueryBuilder<
+    "Orders", 
+    AnalyticsQueryInfoForType['Orders'][keyof AnalyticsQueryInfoForType['Orders']],
+    AnalyticsQueryFilterForType['Orders'],
+    AnalyticsQueryGroupingForType['Orders'],
+    AnalyticsQueryRangeKeyForType['Orders']
+  >,
 }
 export type AnalyticsQueryType = keyof AnalyticsQueryForType
 export type AnalyticsQuery = AnalyticsQueryForType[AnalyticsQueryType]
@@ -3748,6 +3760,7 @@ export const resource_to_modelName: { [K in AnalyticsQueryType] : ModelName } = 
   Files: "files",
   Meetings: "meetings",
   "Journey Logs": "automated_actions",
+  Orders: "enduser_orders",
 }
 
 export type AnalyticsQueryOptions = {
@@ -4061,6 +4074,7 @@ export type SuperbillLineItem = {
     currency: Currency // supported currencies
   },
   discount?: number, // following Stripe convention of smallest currency unit (e.g. cents for usd)
+  diagnosisCodes?: string[],
 }
 
 export type SuperbillPatientInfo = {

@@ -1424,7 +1424,18 @@ export var mfa_is_enabled = function (u) {
     return (!!((_a = u === null || u === void 0 ? void 0 : u.mfa) === null || _a === void 0 ? void 0 : _a.email));
 };
 export var get_next_reminder_timestamp = function (_a) {
-    var startTimeInMS = _a.startTimeInMS, reminders = _a.reminders;
+    var startTimeInMS = _a.startTimeInMS, _reminders = _a.reminders, _b = _a.attendees, attendees = _b === void 0 ? [] : _b;
+    var reminders = _reminders || [];
+    // don't process add-to-journey reminders unless at least 1 enduser is attending
+    try {
+        reminders = reminders.filter(function (r) {
+            return attendees.filter(function (a) { return a.type === 'enduser'; }).length > 0
+                || (r.type !== 'add-to-journey');
+        });
+    }
+    catch (err) {
+        console.error(err);
+    }
     var pending = reminders === null || reminders === void 0 ? void 0 : reminders.filter(function (r) { return !r.didRemind; });
     if (!(pending === null || pending === void 0 ? void 0 : pending.length))
         return -1;

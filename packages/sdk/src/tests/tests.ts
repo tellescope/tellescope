@@ -37,7 +37,7 @@ import {
 } from "@tellescope/validation"
 
 import { Session, APIQuery, EnduserSession } from "../sdk"
-import { evaluate_conditional_logic_for_enduser_fields, FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, replace_enduser_template_values, responses_satisfy_conditions, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities"
+import { evaluate_conditional_logic_for_enduser_fields, FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, get_next_reminder_timestamp, replace_enduser_template_values, responses_satisfy_conditions, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities"
 import { DEFAULT_OPERATIONS, PLACEHOLDER_ID, ZOOM_TITLE } from "@tellescope/constants"
 import { 
   schema, 
@@ -11449,6 +11449,148 @@ const inbox_loading_tests = async () => {
   ])
 }
 
+const get_next_reminder_timestamp_tests = () => {
+  log_header("Get Next Reminder Timestamp Tests")
+
+  const startTimeInMS = Date.now()
+  assert(
+    get_next_reminder_timestamp({ attendees: [], startTimeInMS }) === -1,
+    'invalid get_next_reminder_timestamp',
+    'get_next_reminder_timestamp with no attendees, no reminders'
+  )
+
+  assert(
+    get_next_reminder_timestamp({ attendees: [], startTimeInMS, reminders: [] }) === -1,
+    'invalid get_next_reminder_timestamp',
+    'get_next_reminder_timestamp with no attendees, empty reminders'
+  )
+
+  assert(
+    get_next_reminder_timestamp({ attendees: [], startTimeInMS, 
+      reminders: [{ type: 'Remove From Journey', info: { journeyId: PLACEHOLDER_ID }, msBeforeStartTime: 0, didRemind: true } ] 
+    }) === -1,
+    'invalid get_next_reminder_timestamp',
+    'get_next_reminder_timestamp with no attendees, didRemind true'
+  )
+
+  assert(
+    get_next_reminder_timestamp({ attendees: [], startTimeInMS, 
+      reminders: [{ type: 'add-to-journey', info: { journeyId: PLACEHOLDER_ID }, msBeforeStartTime: 0 } ] 
+    }) === -1,
+    'invalid get_next_reminder_timestamp',
+    'get_next_reminder_timestamp with no attendees, add-to-journey no attendees'
+  )
+
+  assert(
+    get_next_reminder_timestamp({ attendees: [], startTimeInMS, 
+      reminders: [{ type: 'Remove From Journey', info: { journeyId: PLACEHOLDER_ID }, msBeforeStartTime: 0 } ] 
+    }) === startTimeInMS,
+    'invalid get_next_reminder_timestamp',
+    'get_next_reminder_timestamp with no attendees, Remove From Journey'
+  )
+
+  assert(
+    get_next_reminder_timestamp({ attendees: [{ id: '', type: 'enduser' }], startTimeInMS, 
+      reminders: [{ type: 'add-to-journey', info: { journeyId: PLACEHOLDER_ID }, msBeforeStartTime: 0 } ] 
+    }) === startTimeInMS,
+    'invalid get_next_reminder_timestamp',
+    'get_next_reminder_timestamp with no attendees, add-to-journey with attendees',
+  )
+  
+  assert(
+    get_next_reminder_timestamp({ attendees: [{ id: '', type: 'enduser' }], startTimeInMS, 
+      reminders: [{ type: 'add-to-journey', info: { journeyId: PLACEHOLDER_ID }, msBeforeStartTime: 0 } ] 
+    }) === startTimeInMS,
+    'invalid get_next_reminder_timestamp',
+    'get_next_reminder_timestamp with no attendees, Remove from Journey with attendees',
+  )
+
+  assert(
+    get_next_reminder_timestamp({ attendees: [{ id: '', type: 'enduser' }], startTimeInMS, 
+      reminders: [{ type: 'add-to-journey', info: { journeyId: PLACEHOLDER_ID }, msBeforeStartTime: -1000 } ] 
+    }) === startTimeInMS + 1000,
+    'invalid get_next_reminder_timestamp',
+    'get_next_reminder_timestamp with no attendees, start time in future',
+  )
+
+  assert(
+    get_next_reminder_timestamp({ attendees: [{ id: '', type: 'enduser' }], startTimeInMS, 
+      reminders: [{ type: 'add-to-journey', info: { journeyId: PLACEHOLDER_ID }, msBeforeStartTime: 1000 } ] 
+    }) === startTimeInMS - 1000,
+    'invalid get_next_reminder_timestamp',
+    'get_next_reminder_timestamp with no attendees, start time in past',
+  )
+
+  assert(
+    get_next_reminder_timestamp({ attendees: [{ id: '', type: 'enduser' }], startTimeInMS, 
+      reminders: [
+        { type: 'add-to-journey', info: { journeyId: PLACEHOLDER_ID }, msBeforeStartTime: 1000 },
+        { type: 'add-to-journey', info: { journeyId: PLACEHOLDER_ID }, msBeforeStartTime: -3000 },
+        { type: 'add-to-journey', info: { journeyId: PLACEHOLDER_ID }, msBeforeStartTime: -5000 },
+      ] 
+    }) === startTimeInMS - 1000,
+    'invalid get_next_reminder_timestamp',
+    'get_next_reminder_timestamp with no attendees multiple reminders',
+  )
+}
+
+const ip_address_form_tests = async () => {
+  log_header("IP Address Form Tests")
+
+  const form = await sdk.api.forms.createOne({
+    title: 'IP Address Form Test',
+    allowPublicURL: true,
+    ipAddressCustomField: 'IP'
+  })
+  // form (may) need at least 1 question for future endpoints to work
+  await sdk.api.form_fields.createOne({
+    formId: form.id,
+    title: 'IP Address Field',
+    type: 'description',
+    previousFields: [{ type: 'root', info: { }}]
+  })
+
+  const enduserSDKPublic = new EnduserSession({ host, businessId: form.businessId })
+  const { enduserId} = await enduserSDKPublic.api.form_responses.session_for_public_form({
+    formId: form.id,
+    businessId: form.businessId,
+    email: 'test@tellescope.com',
+    phone: '+15555555555',
+    fname: 'session',
+    lname: 'test',
+  })
+
+  async_test(
+    'IP Set on Enduser creation',
+    () => sdk.api.endusers.getOne(enduserId),
+    { onResult: result => !!result.fields?.IP }
+  )
+
+  // clear ip and set other field to make sure IP doesn't overwrite other custom fields
+  await sdk.api.endusers.updateOne(enduserId, { fields: { otherField: "Set" } }, { replaceObjectFields: true }) 
+
+  // should match and update in place
+  await enduserSDKPublic.api.form_responses.session_for_public_form({
+    formId: form.id,
+    businessId: form.businessId,
+    email: 'test@tellescope.com',
+    phone: '+15555555555',
+    fname: 'session',
+    lname: 'test',
+  })
+
+  async_test(
+    'IP Set on update',
+    () => sdk.api.endusers.getOne(enduserId),
+    { onResult: result => !!result.fields?.IP && result.fields?.otherField === 'Set' && result.id === enduserId }
+  )
+
+  await Promise.all([
+    sdk.api.forms.deleteOne(form.id),
+    sdk.api.endusers.deleteOne(enduserId),
+  ])
+}
+
 (async () => {
   log_header("API")
 
@@ -11459,6 +11601,7 @@ const inbox_loading_tests = async () => {
   ) 
 
   try {
+    get_next_reminder_timestamp_tests()
     form_conditional_logic_tests()
 
     await test_weighted_round_robin()
@@ -11563,6 +11706,7 @@ const inbox_loading_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests()
+    await ip_address_form_tests()
     await bulk_update_tests()
     await formsort_tests()
     await inbox_loading_tests()

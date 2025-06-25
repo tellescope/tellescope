@@ -596,7 +596,14 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
     if (gtmEventRef.current[activeField.value.id]) return
     gtmEventRef.current[activeField.value.id] = true
 
-    emit_gtm_event({ event: 'form_progress', formId: activeField.value.formId, fieldId: activeField.value.id, title: activeField.value.title })
+    emit_gtm_event({ 
+      event: 'form_progress', 
+      formId: activeField.value.formId, 
+      fieldId: activeField.value.id, 
+      title: activeField.value.title,
+      previousTitle: prevFieldStackRef.current[prevFieldStackRef.current.length - 1]?.value?.title || '',
+      status: '' 
+    })
   }, [activeField])
 
   // placeholders for initial fields, reset when fields prop changes, since questions are now different (e.g. different form selected) 
@@ -1260,7 +1267,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
                 value: 2,
               });
             }
-            emit_gtm_event({ event: 'form_submitted', formId: formResponse.formId })
+            emit_gtm_event({ event: 'form_submitted', formId: formResponse.formId, fieldId: '', title: '', status: '', previousTitle: '', })
             updateLocalFormResponse(formResponse.id, formResponse)
             options?.onPreRedirect?.() // in case redirect on success
             options?.onSuccess?.(formResponse)

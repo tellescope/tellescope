@@ -4860,7 +4860,7 @@ export var schema = build_schema({
             }, processor: {
                 validator: paymentProcessorValidator,
                 examples: ['Stripe'],
-            }, description: { validator: stringValidator5000EmptyOkay }, htmlDescription: { validator: stringValidator25000EmptyOkay }, cptCode: { validator: billingCodeValidatorOptional }, image: { validator: stringValidator100000EmptyOkay }, showInPortal: { validator: booleanValidator }, categories: { validator: listOfStringsValidatorEmptyOk }, maxCheckoutCount: { validator: numberValidatorOptional }, stripeProductId: { validator: stringValidator100 }, stripeSubscriptionId: { validator: stringValidator100 }, stripePriceId: { validator: stringValidator100 } })
+            }, description: { validator: stringValidator5000EmptyOkay }, htmlDescription: { validator: stringValidator25000EmptyOkay }, cptCode: { validator: billingCodeValidatorOptional }, image: { validator: stringValidator100000EmptyOkay }, showInPortal: { validator: booleanValidator }, categories: { validator: listOfStringsValidatorEmptyOk }, maxCheckoutCount: { validator: numberValidatorOptional }, stripeProductId: { validator: stringValidator100 }, stripeSubscriptionId: { validator: stringValidator100 }, stripePriceId: { validator: stringValidator100 }, additionalStripePriceIds: { validator: listOfStringsValidatorEmptyOk } })
     },
     purchases: {
         info: {},

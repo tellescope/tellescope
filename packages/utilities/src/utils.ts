@@ -1539,7 +1539,20 @@ export const mfa_is_enabled = (u: { mfa?: User['mfa'] }) => (
   !!u?.mfa?.email
 )
 
-export const get_next_reminder_timestamp = ({ startTimeInMS, reminders } : Pick<CalendarEvent, 'startTimeInMS' | 'reminders'>): number => {
+export const get_next_reminder_timestamp = ({ startTimeInMS, reminders: _reminders, attendees=[] } : Pick<CalendarEvent, 'attendees' | 'startTimeInMS' | 'reminders'>): number => {
+  let reminders = _reminders || []
+
+  // don't process add-to-journey reminders unless at least 1 enduser is attending
+  try {
+    reminders = reminders.filter(r => 
+      attendees.filter(a => a.type === 'enduser').length > 0 
+      || (r.type !== 'add-to-journey')
+    )
+  } catch(err) {
+    console.error(err)
+  }
+  
+
   const pending = reminders?.filter(r => !r.didRemind)
   if (!pending?.length) return -1
 

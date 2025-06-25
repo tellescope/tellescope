@@ -47,6 +47,7 @@ exports.resource_to_modelName = {
     Files: "files",
     Meetings: "meetings",
     "Journey Logs": "automated_actions",
+    Orders: "enduser_orders",
 };
 exports.DIAGNOSIS_TYPE_MAPPING = {
     "ABF": "ICD-10",

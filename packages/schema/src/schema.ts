@@ -7051,6 +7051,7 @@ export const schema: SchemaV1 = build_schema({
       stripeProductId: { validator: stringValidator100 },
       stripeSubscriptionId: { validator: stringValidator100 },
       stripePriceId: { validator: stringValidator100 },
+      additionalStripePriceIds: { validator: listOfStringsValidatorEmptyOk },
     }
   },
   purchases: {
