@@ -5157,32 +5157,35 @@ var automation_trigger_tests = function () { return __awaiter(void 0, void 0, vo
         switch (_a.label) {
             case 0:
                 (0, testing_1.log_header)("Automation Trigger Tests");
-                return [4 /*yield*/, set_fields_tests()];
+                return [4 /*yield*/, field_equals_trigger_tests()];
             case 1:
                 _a.sent();
-                return [4 /*yield*/, assign_care_team_tests()];
+                return [4 /*yield*/, set_fields_tests()];
             case 2:
                 _a.sent();
-                return [4 /*yield*/, contact_created_tests()];
+                return [4 /*yield*/, assign_care_team_tests()];
             case 3:
                 _a.sent();
-                return [4 /*yield*/, appointment_cancelled_tests()];
+                return [4 /*yield*/, contact_created_tests()];
             case 4:
                 _a.sent();
-                return [4 /*yield*/, appointment_created_tests()];
+                return [4 /*yield*/, appointment_cancelled_tests()];
             case 5:
                 _a.sent();
-                return [4 /*yield*/, order_status_equals_tests()];
+                return [4 /*yield*/, appointment_created_tests()];
             case 6:
                 _a.sent();
-                return [4 /*yield*/, tag_added_tests()];
+                return [4 /*yield*/, order_status_equals_tests()];
             case 7:
                 _a.sent();
-                return [4 /*yield*/, order_created_tests()];
+                return [4 /*yield*/, tag_added_tests()];
             case 8:
                 _a.sent();
-                return [4 /*yield*/, formSubmittedTriggerTests()];
+                return [4 /*yield*/, order_created_tests()];
             case 9:
+                _a.sent();
+                return [4 /*yield*/, formSubmittedTriggerTests()];
+            case 10:
                 _a.sent();
                 return [2 /*return*/];
         }
@@ -8166,7 +8169,7 @@ var test_ticket_automation_assignment_and_optimization = function () { return __
     });
 }); };
 var field_equals_trigger_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var journey, step, existsTriggerTags, existsTriggerAddToJourney, equalsTriggerTags, equalsTriggerAddToJourney, conditionalTriggerTags, conditionalTriggerAddToJourney, endusers;
+    var journey, step, existsTriggerTags, existsTriggerAddToJourney, equalsTriggerTags, equalsTriggerAddToJourney, conditionalTriggerTags, conditionalTriggerAddToJourney, endusers, numberField, enum1, enum1s, enum2, enum2s, enum3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -8270,7 +8273,69 @@ var field_equals_trigger_tests = function () { return __awaiter(void 0, void 0, 
                         sdk.api.automation_triggers.deleteOne(conditionalTriggerTags.id),
                         sdk.api.automation_triggers.deleteOne(conditionalTriggerAddToJourney.id)
                     ], endusers.map(function (e) { return sdk.api.endusers.deleteOne(e.id); }), true))];
-            case 13: return [2 /*return*/, _a.sent()];
+            case 13:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        event: { type: 'Field Equals', info: { field: 'Number', value: "1" } },
+                        action: { type: 'Add Tags', info: { tags: ["Number 1"] } },
+                        status: "Active",
+                        title: 'numberField',
+                    })];
+            case 14:
+                numberField = _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({ fields: { Number: 1 } })];
+            case 15:
+                enum1 = _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({ fields: { Number: "1" } })];
+            case 16:
+                enum1s = _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({ fields: { Number: 2 } })];
+            case 17:
+                enum2 = _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({ fields: { Number: "2" } })];
+            case 18:
+                enum2s = _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({ fields: { Number: "3" } })];
+            case 19:
+                enum3 = _a.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 250)];
+            case 20:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("Number field triggers on create", function () { return sdk.api.endusers.getSome({ ids: [enum1.id, enum1s.id, enum2.id, enum2s.id] }); }, {
+                        onResult: function (es) { return (es.filter(function (e) { var _a; return (_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Number 1'); }).length === 2 &&
+                            es.filter(function (e) { var _a; return (_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Number 2'); }).length === 0); },
+                    })];
+            case 21:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.updateOne(enum2.id, { fields: { Number: 1 } })];
+            case 22:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.updateOne(enum2s.id, { fields: { Number: "1" } })];
+            case 23:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.updateOne(enum3.id, { fields: { Number: 3 } })];
+            case 24:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 250)];
+            case 25:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("Number field triggers on update", function () { return sdk.api.endusers.getSome({ ids: [enum1.id, enum1s.id, enum2.id, enum2s.id] }); }, {
+                        onResult: function (es) { return (es.filter(function (e) { var _a; return (_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Number 1'); }).length === 4 &&
+                            es.filter(function (e) { var _a; return (_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Number 2'); }).length === 0); },
+                    })];
+            case 26:
+                _a.sent();
+                return [4 /*yield*/, Promise.all([
+                        sdk.api.automation_triggers.deleteOne(numberField.id),
+                        sdk.api.endusers.deleteOne(enum1.id),
+                        sdk.api.endusers.deleteOne(enum1s.id),
+                        sdk.api.endusers.deleteOne(enum2.id),
+                        sdk.api.endusers.deleteOne(enum2s.id),
+                        sdk.api.endusers.deleteOne(enum3.id),
+                    ])];
+            case 27:
+                _a.sent();
+                return [2 /*return*/];
         }
     });
 }); };
@@ -9920,6 +9985,18 @@ var enduser_conditional_logic_tests = function () { return __awaiter(void 0, voi
         (0, testing_1.assert)((0, utilities_1.evaluate_conditional_logic_for_enduser_fields)(__assign(__assign({}, requiredPlaceholders), { _upcomingEvents: [{ startTimeInMS: Date.now() + 100 }] }), {
             "$and": [{ "condition": { "__upcomingEvents__": { "$gt": "0", "$fromOffset": -10000, "$toOffset": 10000 } } }]
         }), 'Conditional logic error', 'Future event inside of window');
+        (0, testing_1.assert)((0, utilities_1.evaluate_conditional_logic_for_enduser_fields)(__assign(__assign({}, requiredPlaceholders), { fields: { Number: "1" } }), {
+            "$and": [{ "condition": { "Number": "1" } }]
+        }), 'Type coercion error', 'Number string matches string field');
+        (0, testing_1.assert)(!(0, utilities_1.evaluate_conditional_logic_for_enduser_fields)(__assign(__assign({}, requiredPlaceholders), { fields: { Number: "2" } }), {
+            "$and": [{ "condition": { "Number": "1" } }]
+        }), 'Type coercion error', 'Number string does not match different string field');
+        (0, testing_1.assert)((0, utilities_1.evaluate_conditional_logic_for_enduser_fields)(__assign(__assign({}, requiredPlaceholders), { fields: { Number: 1 } }), {
+            "$and": [{ "condition": { "Number": "1" } }]
+        }), 'Type coercion error', 'Number string matches number field');
+        (0, testing_1.assert)(!(0, utilities_1.evaluate_conditional_logic_for_enduser_fields)(__assign(__assign({}, requiredPlaceholders), { fields: { Number: 2 } }), {
+            "$and": [{ "condition": { "Number": "1" } }]
+        }), 'Type coercion error', 'Number string does not match different number field');
         return [2 /*return*/];
     });
 }); };
@@ -13215,7 +13292,7 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                 _l.sent();
                 _l.label = 2;
             case 2:
-                _l.trys.push([2, 78, , 79]);
+                _l.trys.push([2, 77, , 78]);
                 get_next_reminder_timestamp_tests();
                 (0, exports.form_conditional_logic_tests)();
                 return [4 /*yield*/, test_weighted_round_robin()];
@@ -13486,65 +13563,62 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, (0, exports.alternate_phones_tests)()];
             case 58:
                 _l.sent();
-                return [4 /*yield*/, field_equals_trigger_tests()];
+                return [4 /*yield*/, role_based_access_tests()];
             case 59:
                 _l.sent();
-                return [4 /*yield*/, role_based_access_tests()];
+                return [4 /*yield*/, enduser_session_tests()];
             case 60:
                 _l.sent();
-                return [4 /*yield*/, enduser_session_tests()];
+                return [4 /*yield*/, nextReminderInMS_tests()];
             case 61:
                 _l.sent();
-                return [4 /*yield*/, nextReminderInMS_tests()];
+                return [4 /*yield*/, search_tests()];
             case 62:
                 _l.sent();
-                return [4 /*yield*/, search_tests()];
+                return [4 /*yield*/, wait_for_trigger_tests()];
             case 63:
                 _l.sent();
-                return [4 /*yield*/, wait_for_trigger_tests()];
+                return [4 /*yield*/, pdf_generation()];
             case 64:
                 _l.sent();
-                return [4 /*yield*/, pdf_generation()];
-            case 65:
-                _l.sent();
                 return [4 /*yield*/, remove_from_journey_on_incoming_comms_tests().catch(console.error)]; // timing is unreliable, uncomment if changing logic
-            case 66:
+            case 65:
                 _l.sent(); // timing is unreliable, uncomment if changing logic
                 return [4 /*yield*/, auto_reply_tests()];
-            case 67:
+            case 66:
                 _l.sent();
                 return [4 /*yield*/, sub_organization_enduser_tests()];
-            case 68:
+            case 67:
                 _l.sent();
                 return [4 /*yield*/, sub_organization_tests()];
-            case 69:
+            case 68:
                 _l.sent();
                 return [4 /*yield*/, (0, exports.filter_by_date_tests)()];
-            case 70:
+            case 69:
                 _l.sent();
                 return [4 /*yield*/, generate_user_auth_tests()];
-            case 71:
+            case 70:
                 _l.sent();
                 return [4 /*yield*/, generateEnduserAuthTests()];
-            case 72:
+            case 71:
                 _l.sent();
                 return [4 /*yield*/, public_form_tests()];
-            case 73:
+            case 72:
                 _l.sent();
                 return [4 /*yield*/, badInputTests()];
-            case 74:
+            case 73:
                 _l.sent();
                 return [4 /*yield*/, filterTests()];
-            case 75:
+            case 74:
                 _l.sent();
                 return [4 /*yield*/, updatesTests()];
-            case 76:
+            case 75:
                 _l.sent();
                 return [4 /*yield*/, threadKeyTests()];
-            case 77:
+            case 76:
                 _l.sent();
-                return [3 /*break*/, 79];
-            case 78:
+                return [3 /*break*/, 78];
+            case 77:
                 err_1 = _l.sent();
                 console.error("Failed during custom test");
                 if (err_1.message && err_1.info) {
@@ -13554,18 +13628,18 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                     console.error(err_1);
                 }
                 process.exit(1);
-                return [3 /*break*/, 79];
-            case 79:
+                return [3 /*break*/, 78];
+            case 78:
                 _a = schema_1.schema;
                 _b = [];
                 for (_c in _a)
                     _b.push(_c);
                 _i = 0;
-                _l.label = 80;
-            case 80:
-                if (!(_i < _b.length)) return [3 /*break*/, 83];
+                _l.label = 79;
+            case 79:
+                if (!(_i < _b.length)) return [3 /*break*/, 82];
                 _c = _b[_i];
-                if (!(_c in _a)) return [3 /*break*/, 82];
+                if (!(_c in _a)) return [3 /*break*/, 81];
                 n = _c;
                 returnValidation = (_k = (_j = schema_1.schema[n].customActions) === null || _j === void 0 ? void 0 : _j.create) === null || _k === void 0 ? void 0 : _k.returns;
                 return [4 /*yield*/, run_generated_tests({
@@ -13576,41 +13650,41 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                             create: returnValidation // ModelFields<ClientModel>,
                         }
                     })];
-            case 81:
+            case 80:
                 _l.sent();
-                _l.label = 82;
-            case 82:
+                _l.label = 81;
+            case 81:
                 _i++;
-                return [3 /*break*/, 80];
-            case 83:
+                return [3 /*break*/, 79];
+            case 82:
                 _d = tests;
                 _f = [];
                 for (_g in _d)
                     _f.push(_g);
                 _h = 0;
+                _l.label = 83;
+            case 83:
+                if (!(_h < _f.length)) return [3 /*break*/, 88];
+                _g = _f[_h];
+                if (!(_g in _d)) return [3 /*break*/, 87];
+                t = _g;
                 _l.label = 84;
             case 84:
-                if (!(_h < _f.length)) return [3 /*break*/, 89];
-                _g = _f[_h];
-                if (!(_g in _d)) return [3 /*break*/, 88];
-                t = _g;
-                _l.label = 85;
-            case 85:
-                _l.trys.push([85, 87, , 88]);
+                _l.trys.push([84, 86, , 87]);
                 return [4 /*yield*/, tests[t]()];
-            case 86:
+            case 85:
                 _l.sent();
-                return [3 /*break*/, 88];
-            case 87:
+                return [3 /*break*/, 87];
+            case 86:
                 err_2 = _l.sent();
                 console.error("Error running test:");
                 console.error(err_2);
                 process.exit(1);
-                return [3 /*break*/, 88];
-            case 88:
+                return [3 /*break*/, 87];
+            case 87:
                 _h++;
-                return [3 /*break*/, 84];
-            case 89:
+                return [3 /*break*/, 83];
+            case 88:
                 process.exit();
                 return [2 /*return*/];
         }

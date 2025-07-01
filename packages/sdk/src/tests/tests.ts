@@ -4175,6 +4175,7 @@ const set_fields_tests = async () => {
 const automation_trigger_tests = async () => {
   log_header("Automation Trigger Tests")
 
+  await field_equals_trigger_tests()
   await set_fields_tests()
   await assign_care_team_tests()
   await contact_created_tests()
@@ -6986,8 +6987,7 @@ const field_equals_trigger_tests = async () => {
     { onResult: es => es.filter(e => e.triggerIds?.length === 2).length === 4 },
   )
 
-
-  return await Promise.all([
+  await Promise.all([
     sdk.api.journeys.deleteOne(journey.id),
     sdk.api.automation_triggers.deleteOne(existsTriggerTags.id),
     sdk.api.automation_triggers.deleteOne(existsTriggerAddToJourney.id),
@@ -6996,6 +6996,54 @@ const field_equals_trigger_tests = async () => {
     sdk.api.automation_triggers.deleteOne(conditionalTriggerTags.id),
     sdk.api.automation_triggers.deleteOne(conditionalTriggerAddToJourney.id),
     ...endusers.map(e => sdk.api.endusers.deleteOne(e.id)),
+  ])
+
+  const numberField = await sdk.api.automation_triggers.createOne({ 
+    event: { type: 'Field Equals', info: { field: 'Number', value: "1" } },
+    action: { type: 'Add Tags', info: { tags: ["Number 1"] } },
+    status: "Active",
+    title: 'numberField',
+  })
+  const enum1 = await sdk.api.endusers.createOne({ fields: { Number: 1 } })
+  const enum1s = await sdk.api.endusers.createOne({ fields: { Number: "1" } })
+  const enum2 = await sdk.api.endusers.createOne({ fields: { Number: 2 } })
+  const enum2s = await sdk.api.endusers.createOne({ fields: { Number: "2" } })
+  const enum3 = await sdk.api.endusers.createOne({ fields: { Number: "3" } })
+
+  await wait(undefined, 250)
+  await async_test(
+    `Number field triggers on create`, 
+    () => sdk.api.endusers.getSome({ ids: [enum1.id, enum1s.id, enum2.id, enum2s.id] }),
+    {
+      onResult: es => (
+        es.filter(e => e.tags?.includes('Number 1')).length === 2 &&
+        es.filter(e => e.tags?.includes('Number 2')).length === 0
+      ),
+    }
+  )
+
+  await sdk.api.endusers.updateOne(enum2.id, { fields: { Number: 1 } })
+  await sdk.api.endusers.updateOne(enum2s.id, { fields: { Number: "1" } })
+  await sdk.api.endusers.updateOne(enum3.id, { fields: { Number: 3 } })
+  await wait(undefined, 250)
+  await async_test(
+    `Number field triggers on update`, 
+    () => sdk.api.endusers.getSome({ ids: [enum1.id, enum1s.id, enum2.id, enum2s.id] }),
+    {
+      onResult: es => (
+        es.filter(e => e.tags?.includes('Number 1')).length === 4 &&
+        es.filter(e => e.tags?.includes('Number 2')).length === 0
+      ),
+    }
+  )
+
+  await Promise.all([
+    sdk.api.automation_triggers.deleteOne(numberField.id),
+    sdk.api.endusers.deleteOne(enum1.id),
+    sdk.api.endusers.deleteOne(enum1s.id),
+    sdk.api.endusers.deleteOne(enum2.id),
+    sdk.api.endusers.deleteOne(enum2s.id),
+    sdk.api.endusers.deleteOne(enum3.id),
   ])
 }
 
@@ -8389,6 +8437,36 @@ export const enduser_conditional_logic_tests = async () => {
     }),
     'Conditional logic error',
     'Future event inside of window',
+  )
+
+  assert(
+    evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, fields: { Number: "1" } }, {
+      "$and": [{ "condition": { "Number": "1" }}] 
+    }),
+    'Type coercion error',
+    'Number string matches string field',
+  )
+  assert(
+    !evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, fields: { Number: "2" } }, {
+      "$and": [{ "condition": { "Number": "1" }}] 
+    }),
+    'Type coercion error',
+    'Number string does not match different string field',
+  )
+
+  assert(
+    evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, fields: { Number: 1 } }, {
+      "$and": [{ "condition": { "Number": "1" }}] 
+    }),
+    'Type coercion error',
+    'Number string matches number field',
+  )
+  assert(
+    !evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, fields: { Number: 2 } }, {
+      "$and": [{ "condition": { "Number": "1" }}] 
+    }),
+    'Type coercion error',
+    'Number string does not match different number field',
   )
 }
 
@@ -11749,7 +11827,6 @@ const ip_address_form_tests = async () => {
     await marketing_email_unsubscribe_tests()
     await unique_strings_tests()
     await alternate_phones_tests()
-    await field_equals_trigger_tests()
     await role_based_access_tests()
     await enduser_session_tests()
     await nextReminderInMS_tests()

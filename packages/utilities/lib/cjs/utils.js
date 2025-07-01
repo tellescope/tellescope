@@ -902,7 +902,7 @@ var get_enduser_field_value_for_key = function (enduser, key) {
 exports.get_enduser_field_value_for_key = get_enduser_field_value_for_key;
 exports.UPCOMING_EVENT_COUNT_KEY = '__upcomingEvents__';
 var evaluate_conditional_logic_for_enduser_fields = function (enduser, conditions, o) { return ((0, exports.evaluate_conditional_logic)(conditions, function (key, value) {
-    var _a, _b, _d, _e, _f;
+    var _a, _b, _d, _e, _f, _g, _h;
     return ((key === 'Age' && typeof value === 'object')
         ? (function () {
             if (!enduser.dateOfBirth)
@@ -1032,8 +1032,9 @@ var evaluate_conditional_logic_for_enduser_fields = function (enduser, condition
                         })()
                         : typeof value === 'string'
                             ? (((_d = (_b = enduser.fields) === null || _b === void 0 ? void 0 : _b[key]) !== null && _d !== void 0 ? _d : (0, exports.get_enduser_field_value_for_key)(enduser, key)) === value
-                                || (Array.isArray((_e = enduser.fields) === null || _e === void 0 ? void 0 : _e[key])
-                                    && ((_f = enduser === null || enduser === void 0 ? void 0 : enduser.fields) === null || _f === void 0 ? void 0 : _f[key]).includes(value))
+                                || ((_f = (_e = enduser.fields) === null || _e === void 0 ? void 0 : _e[key]) !== null && _f !== void 0 ? _f : (0, exports.get_enduser_field_value_for_key)(enduser, key)) === parseInt(value)
+                                || (Array.isArray((_g = enduser.fields) === null || _g === void 0 ? void 0 : _g[key])
+                                    && ((_h = enduser === null || enduser === void 0 ? void 0 : enduser.fields) === null || _h === void 0 ? void 0 : _h[key]).includes(value))
                                 || (Array.isArray((0, exports.get_enduser_field_value_for_key)(enduser, key))
                                     && enduser[key].includes(value)))
                             : false);

@@ -620,6 +620,7 @@ var Session = /** @class */ (function (_super) {
         queries.agent_records.submit_support_ticket = function (args) { return _this._POST("/v1".concat(schema_1.schema.agent_records.customActions.submit_support_ticket.path), args); };
         queries.waitlists.grant_access_from_waitlist = function (args) { return _this._POST("/v1".concat(schema_1.schema.waitlists.customActions.grant_access_from_waitlist.path), args); };
         queries.background_errors.mark_read = function (args) { return _this._POST("/v1".concat(schema_1.schema.background_errors.customActions.mark_read.path), args); };
+        queries.phone_trees.start_outbound_call = function (args) { return _this._POST("/v1".concat(schema_1.schema.phone_trees.customActions.start_outbound_call.path), args); };
         _this.api = queries;
         return _this;
     }

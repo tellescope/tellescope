@@ -275,6 +275,11 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
       Promise<extractFields<CustomActions['forms']['get_form_statistics']['returns']>>
     ),
   },
+  phone_trees: {
+    start_outbound_call: (args: extractFields<CustomActions['phone_trees']['start_outbound_call']['parameters']>) => (
+      Promise<extractFields<CustomActions['phone_trees']['start_outbound_call']['returns']>>
+    ),
+  },
   call_hold_queues: {
     answer_call: (args: extractFields<CustomActions['call_hold_queues']['answer_call']['parameters']>) => (
       Promise<extractFields<CustomActions['call_hold_queues']['answer_call']['returns']>>
@@ -1100,6 +1105,8 @@ export class Session extends SessionManager {
     queries.waitlists.grant_access_from_waitlist = args => this._POST(`/v1${schema.waitlists.customActions.grant_access_from_waitlist.path}`, args)
 
     queries.background_errors.mark_read = args => this._POST(`/v1${schema.background_errors.customActions.mark_read.path}`, args)
+
+    queries.phone_trees.start_outbound_call = args => this._POST(`/v1${schema.phone_trees.customActions.start_outbound_call.path}`, args)
 
     this.api = queries
   }

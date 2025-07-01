@@ -1499,7 +1499,7 @@ export var formResponseAnswerValidator = orValidator({
         value: objectValidator({
             feet: numberValidatorOptional,
             inches: numberValidatorOptional,
-        }),
+        }, { emptyOk: true, isOptional: true }),
     }),
     "Appointment Booking": objectValidator({
         type: exactMatchValidator(['Appointment Booking']),
@@ -1917,6 +1917,7 @@ var _AUTOMATION_EVENTS = {
     formsUnsubmitted: '',
     ticketCompleted: '',
     waitForTrigger: '',
+    onCallOutcome: '',
 };
 export var AUTOMATION_EVENTS = Object.keys(_AUTOMATION_EVENTS);
 export var automationEventTypeValidator = exactMatchValidator(AUTOMATION_EVENTS);
@@ -1967,6 +1968,7 @@ var _AUTOMATION_ACTIONS = {
     cancelCurrentEvent: '',
     confirmCurrentEvent: '',
     athenaSync: '',
+    outboundCall: '',
 };
 export var AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS);
 export var automationActionTypeValidator = exactMatchValidator(AUTOMATION_ACTIONS);
@@ -2099,6 +2101,13 @@ export var automationEventValidator = orValidator({
         info: objectValidator({
             automationStepId: mongoIdStringRequired,
             triggerId: mongoIdStringRequired,
+        }, { emptyOk: false }),
+    }),
+    onCallOutcome: objectValidator({
+        type: exactMatchValidator(['onCallOutcome']),
+        info: objectValidator({
+            automationStepId: mongoIdStringRequired,
+            outcome: stringValidator,
         }, { emptyOk: false }),
     }),
 });
@@ -2339,6 +2348,8 @@ export var automationActionValidator = orValidator({
             url: stringValidator20000ptional,
             fields: labeledFieldsValidator,
             secret: stringValidatorOptional,
+            method: stringValidatorOptional,
+            headers: labeledFieldsValidator,
         }, { emptyOk: false }),
     }),
     setEnduserFields: objectValidator({
@@ -2604,6 +2615,13 @@ export var automationActionValidator = orValidator({
         type: exactMatchValidator(['confirmCurrentEvent']),
         info: objectValidator({}, { emptyOk: true, isOptional: true }),
     }),
+    outboundCall: objectValidator({
+        continueOnError: booleanValidatorOptional,
+        type: exactMatchValidator(['outboundCall']),
+        info: objectValidator({
+            treeId: mongoIdStringRequired,
+        }, { emptyOk: false }),
+    }),
 });
 export var journeyContextValidator = objectValidator({
     calendarEventId: mongoIdStringOptional,
@@ -2735,6 +2753,7 @@ export var organizationThemeValidator = objectValidator({
     requireCustomTermsOnMagicLink: booleanValidatorOptional,
     customPolicies: customPoliciesValidator,
     hasConnectedVital: booleanValidatorOptional,
+    brandId: mongoIdStringOptional,
 });
 var _MANAGED_CONTENT_RECORD_TYPES = {
     Article: '',
@@ -2915,6 +2934,7 @@ export var formFieldOptionsValidator = objectValidator({
     elationIsAllergy: booleanValidatorOptional,
     elationAppendToNote: booleanValidatorOptional,
     elationAppendToNotePrefix: stringValidatorOptionalEmptyOkay,
+    allowAddToDatabase: booleanValidatorOptional,
 });
 export var blockValidator = orValidator({
     h1: objectValidator({
@@ -5030,6 +5050,9 @@ export var phoneTreeActionValidator = orValidator({
         info: objectValidator({
             playback: phonePlaybackValidator,
             journeyId: mongoIdStringOptional,
+            cancelAppointment: booleanValidatorOptional,
+            confirmAppointment: booleanValidatorOptional,
+            outcome: stringValidatorOptionalEmptyOkay,
         }),
     }),
     "Dial Users": objectValidator({

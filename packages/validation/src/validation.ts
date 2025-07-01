@@ -317,6 +317,8 @@ import {
   RecentViewer,
   AthenaSyncAutomationAction,
   ZusSubscribeAutomationAction,
+  OutboundCallAutomationAction,
+  OnCallOutcomeAutomationEvent,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -1948,7 +1950,7 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
     value: objectValidator<FormResponseAnswerHeight['value']>({
       feet: numberValidatorOptional,
       inches: numberValidatorOptional,
-    }),
+    }, { emptyOk: true, isOptional: true}),
   }),
   "Appointment Booking": objectValidator<FormResponseAnswerAppointmentBooking>({
     type: exactMatchValidator(['Appointment Booking']),
@@ -2425,6 +2427,7 @@ const _AUTOMATION_EVENTS: { [K in AutomationEventType]: any } = {
   formsUnsubmitted: '',
   ticketCompleted: '',
   waitForTrigger: '',
+  onCallOutcome: '',
 }
 export const AUTOMATION_EVENTS = Object.keys(_AUTOMATION_EVENTS) as AutomationEventType[]
 export const automationEventTypeValidator = exactMatchValidator<AutomationEventType>(AUTOMATION_EVENTS)
@@ -2476,6 +2479,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   cancelCurrentEvent: '',
   confirmCurrentEvent: '',
   athenaSync: '',
+  outboundCall: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -2653,6 +2657,13 @@ export const automationEventValidator = orValidator<{ [K in AutomationEventType]
     info: objectValidator<WaitForTriggerAutomationEvent['info']>({ 
       automationStepId: mongoIdStringRequired, 
       triggerId: mongoIdStringRequired, 
+    }, { emptyOk: false }),
+  }),
+  onCallOutcome: objectValidator<OnCallOutcomeAutomationEvent>({
+    type: exactMatchValidator(['onCallOutcome']),
+    info: objectValidator<OnCallOutcomeAutomationEvent['info']>({ 
+      automationStepId: mongoIdStringRequired, 
+      outcome: stringValidator,
     }, { emptyOk: false }),
   }),
 })
@@ -2908,6 +2919,8 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       url: stringValidator20000ptional,
       fields: labeledFieldsValidator,
       secret: stringValidatorOptional,
+      method: stringValidatorOptional,
+      headers: labeledFieldsValidator,
     }, { emptyOk: false }),
   }),
   setEnduserFields: objectValidator<SetEnduserFieldsAutomationAction>({
@@ -3175,6 +3188,13 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     type: exactMatchValidator(['confirmCurrentEvent']),
     info: objectValidator<ConfirmCurrentEventAction['info']>({}, { emptyOk: true, isOptional: true }),
   }),
+  outboundCall: objectValidator<OutboundCallAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['outboundCall']),
+    info: objectValidator<OutboundCallAutomationAction['info']>({ 
+      treeId: mongoIdStringRequired, 
+    }, { emptyOk: false }),
+  }),
 })
 
 export const journeyContextValidator = objectValidator<JourneyContext>({
@@ -3317,6 +3337,7 @@ export const organizationThemeValidator = objectValidator<OrganizationTheme>({
   requireCustomTermsOnMagicLink: booleanValidatorOptional,
   customPolicies: customPoliciesValidator,
   hasConnectedVital: booleanValidatorOptional,
+  brandId: mongoIdStringOptional,
 })
 
 const _MANAGED_CONTENT_RECORD_TYPES: { [K in ManagedContentRecordType]: any } = {
@@ -3514,6 +3535,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   elationIsAllergy: booleanValidatorOptional,
   elationAppendToNote: booleanValidatorOptional,
   elationAppendToNotePrefix: stringValidatorOptionalEmptyOkay,
+  allowAddToDatabase: booleanValidatorOptional,
 })
 
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
@@ -5776,6 +5798,9 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
     info: objectValidator<PhoneTreeActions["Play Message"]['info']>({
       playback: phonePlaybackValidator,
       journeyId: mongoIdStringOptional,
+      cancelAppointment: booleanValidatorOptional,
+      confirmAppointment: booleanValidatorOptional,
+      outcome: stringValidatorOptionalEmptyOkay,
     }),
   }),
   "Dial Users": objectValidator<PhoneTreeActions["Dial Users"]>({

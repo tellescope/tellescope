@@ -50,7 +50,7 @@ export var ResponseAnswer = function (_a) {
                                 ? a.value.secureName
                                     ? _jsxs(Typography, { children: [!printing
                                                 ? _jsx(DownloadFileIconButton, { secureName: a.value.secureName, onDownload: function (url) { return window.open(url, '_blank'); } })
-                                                : (_jsx(SecureImage, { secureName: a.value.secureName, onImageClick: onImageClick, style: { maxHeight: 400, maxWidth: 400 } })), _jsx("em", { children: a.value.name || 'Attachment' })] })
+                                                : (_jsx(SecureImage, { secureName: a.value.secureName, onImageClick: onImageClick, style: { maxHeight: 400, maxWidth: 400 }, crossOrigin: "anonymous" })), _jsx("em", { children: a.value.name || 'Attachment' })] })
                                     : null // null when optional and omitted
                                 : a.type === 'files'
                                     ? a.value.map(function (file) { return (_jsxs(Typography, { children: [!printing
@@ -90,24 +90,25 @@ export var ResponseAnswer = function (_a) {
             ? _jsx(_Fragment, {})
             : _jsx(Typography, { children: "No value provided" })));
 };
-export var OrganizationLogo = function () {
+export var OrganizationLogo = function (_a) {
+    var crossOrigin = _a.crossOrigin;
     var organizationLoading = useOrganization()[0];
     if (!value_is_loaded(organizationLoading))
         return null;
     if (typeof organizationLoading.value.logoVersion !== 'number')
         return null;
     var logoURL = getOrgnizationLogoURL(organizationLoading.value);
-    return (_jsx(Image, { src: logoURL, alt: "", maxWidth: 400, height: 50 }));
+    return (_jsx(Image, { crossOrigin: crossOrigin, src: logoURL, alt: "", maxWidth: 400, height: 50 }));
 };
 export var ResolveOrganizationLogo = function (_a) {
-    var logoURL = _a.logoURL;
+    var logoURL = _a.logoURL, crossOrigin = _a.crossOrigin;
     var session = useResolvedSession();
     if (logoURL) {
-        return (_jsx(Image, { src: logoURL, alt: "", maxWidth: 400, height: 50 }));
+        return (_jsx(Image, { crossOrigin: crossOrigin, src: logoURL, alt: "", maxWidth: 400, height: 50 }));
     }
     if (session.type === 'enduser')
         return null;
-    return _jsx(OrganizationLogo, {});
+    return _jsx(OrganizationLogo, { crossOrigin: crossOrigin });
 };
 // this should use all vanilla React / inline styles to ensure printing is consistent
 export var FormResponseView = function (_a) {
@@ -119,7 +120,7 @@ export var FormResponseView = function (_a) {
         return _jsx(Typography, { children: "Awaiting Response" });
     }
     return (_jsxs("div", __assign({ style: { display: 'flex', flex: 1, flexDirection: 'column', minWidth: 400, maxWidth: 650 }, id: id }, { children: [_jsxs("div", __assign({ style: { textAlign: 'center' } }, { children: [!hideHeader &&
-                        _jsxs(_Fragment, { children: [_jsx(ResolveOrganizationLogo, { logoURL: logoURL }), _jsx("h2", __assign({ style: {
+                        _jsxs(_Fragment, { children: [_jsx(ResolveOrganizationLogo, { logoURL: logoURL, crossOrigin: "anonymous" }), _jsx("h2", __assign({ style: {
                                         fontSize: 20,
                                         fontWeight: 'bold',
                                         marginTop: 8,

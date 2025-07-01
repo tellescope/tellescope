@@ -458,6 +458,7 @@ export type OrganizationTheme = {
   customPoliciesVersion?: string,
   requireCustomTermsOnMagicLink?: boolean,
   hasConnectedVital?: boolean,
+  brandId?: string,
 }
 
 
@@ -762,6 +763,13 @@ export type EnduserInsurance = {
   startDate?: string,
 }
 
+export type EnduserDevice = {
+  title: string,
+  id: string,
+  gatewayId?: string,
+  disabled?: boolean,
+}
+
 export type EnduserDiagnosis = {
   id?: string, // if created in Tellescope
   createdAt?: Date,
@@ -863,11 +871,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   insurance?: EnduserInsurance,
   insuranceSecondary?: EnduserInsurance,
   bookingNotes?: { bookingPageId: string, note: string }[]
-  devices?: {
-    title: string,
-    id: string,
-    disabled?: boolean,
-  }[],
+  devices?: EnduserDevice[],
   salesforceId?: string,
   athenaPracticeId?: string,
   athenaDepartmentId?: string,
@@ -1610,6 +1614,7 @@ export type FormFieldOptions = FormFieldValidation & {
     fieldId?: string,
     databaseLabel?: string,
   },
+  allowAddToDatabase?: boolean,
   useDatePicker?: boolean,
   sharedIntakeFields?: string[],
   hiddenDefaultFields?: string[],
@@ -1674,6 +1679,7 @@ export interface FormField_required {
 }
 export interface FormField_updatesDisabled {}
 export interface FormField extends FormField_readonly, FormField_required, FormField_updatesDisabled {
+  internalNote?: string,
   placeholder ?: string,
   isOptional  ?: boolean,
   fullZIP     ?: boolean,
@@ -2300,6 +2306,7 @@ export interface CalendarEvent_required {
 }
 export interface CalendarEvent_updatesDisabled {}
 export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_required, CalendarEvent_updatesDisabled {
+  updateKey?: string,
   createAndBookAthenaSlot?: boolean,
   athenaDepartmentId?: string,
   generateAthenaTelehealthLink?: boolean,
@@ -2645,6 +2652,7 @@ export type AutomationEventType =
   | "formsUnsubmitted"
   | "ticketCompleted"
   | 'waitForTrigger'
+  | "onCallOutcome"
 
 interface AutomationEventBuilder <T extends AutomationEventType, V extends object> {
   type: T,
@@ -2691,6 +2699,8 @@ export interface AutomationForWebhook {
   url?: string,
   secret?: string,
   fields?: LabeledField[],
+  headers?: LabeledField[],
+  method?: 'get' | 'patch' | 'post' | 'put' | 'delete',
 }
 
 export type FormResponseAutomationEvent = AutomationEventBuilder<'formResponse', {
@@ -2745,6 +2755,7 @@ export type FormsUnsubmittedEvent = AutomationEventBuilder<'formsUnsubmitted', F
 export type OnJourneyStartAutomationEvent = AutomationEventBuilder<'onJourneyStart', {}> 
 export type TicketCompletedAutomationEvent = AutomationEventBuilder<'ticketCompleted', TicketCompletedEventInfo>
 export type WaitForTriggerAutomationEvent = AutomationEventBuilder<'waitForTrigger', { automationStepId: string, triggerId: string }> 
+export type OnCallOutcomeAutomationEvent = AutomationEventBuilder<'onCallOutcome', { automationStepId: string, outcome: string }> 
 
 export type AutomationEvent = 
   FormResponseAutomationEvent
@@ -2755,6 +2766,7 @@ export type AutomationEvent =
   | FormsUnsubmittedEvent
   | TicketCompletedAutomationEvent
   | WaitForTriggerAutomationEvent
+  | OnCallOutcomeAutomationEvent
 
 export type AutomationEventForType = {
   'onJourneyStart': OnJourneyStartAutomationEvent
@@ -2765,6 +2777,7 @@ export type AutomationEventForType = {
   'formsUnsubmitted': FormsUnsubmittedEvent
   'ticketCompleted': TicketCompletedAutomationEvent
   'waitForTrigger': WaitForTriggerAutomationEvent
+  'onCallOutcome': OnCallOutcomeAutomationEvent,
 }
 
 export type SetEnduserStatusInfo = { status: string }
@@ -2954,8 +2967,12 @@ export type AutomationConditionBuilder <T extends AutomationConditionType, V ext
 }
 export type AtJourneyStateAutomationCondition = AutomationConditionBuilder<'atJourneyState', AutomationForJourneyAndState>
 export type AutomationCondition = AtJourneyStateAutomationCondition
+export type OutboundCallAutomationAction = AutomationActionBuilder<'outboundCall', {
+  treeId: string, // id of the call tree to use
+}>
 
 export type AutomationActionForType = {
+  'outboundCall': OutboundCallAutomationAction,
   "sendEmail" : SendEmailAutomationAction,
   "sendSMS": SendSMSAutomationAction,
   "sendChat": SendChatAutomationAction,
@@ -3210,6 +3227,7 @@ export interface PortalCustomization extends PortalCustomization_readonly, Porta
   hideReschedule?: boolean,
   hiddenEventTitles?: string[],
   hiddenFormIds?: string[],
+  brandId?: string,
 }
 export const MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION = 1000
 export const DEFAULT_PATIENT_PORTAL_BOTTOM_NAVIGATION_POSITIONS: { [K in PortalPage]: number } = {
@@ -4118,7 +4136,7 @@ export type PhoneTreeActions = {
   // 'Play': PhoneTreeActionBuilder<"Play", { playback: PhonePlayback }>
   'Gather': PhoneTreeActionBuilder<"Gather", { digits: boolean, speech: boolean, playback: PhonePlayback, duration?: number }>
   'Voicemail': PhoneTreeActionBuilder<"Voicemail", { playback: PhonePlayback, journeyId?: string }>
-  'Play Message': PhoneTreeActionBuilder<"Play Message", { playback: PhonePlayback, journeyId?: string }>
+  'Play Message': PhoneTreeActionBuilder<"Play Message", { playback: PhonePlayback, journeyId?: string, outcome?: string, cancelAppointment?: boolean, confirmAppointment?: boolean }>
   'Dial Users': PhoneTreeActionBuilder<"Dial Users", { userIds: string[], playback?: Partial<PhonePlayback>, duration?: number }>
   'Route Call': PhoneTreeActionBuilder<"Route Call", { 
     prePlayback?: Partial<PhonePlayback>,
@@ -4164,7 +4182,7 @@ export type PhoneTreeEnduserCondition = (
 )
 export interface PhoneTree_readonly extends ClientRecord {}
 export interface PhoneTree_required {
-  number: string,
+  number: string, // blank for outbound phone trees
   nodes: PhoneTreeNode[],
   isActive: boolean,
 }
@@ -4175,6 +4193,8 @@ export interface PhoneTree extends PhoneTree_readonly, PhoneTree_required, Phone
   bypassOOO?: boolean,
   defaultEntityType?: string,
   tags?: string[],
+  title?: string, // set for outbound phone trees
+  outboundNumber?: string, // set for outbound phone trees
 }
 
 export type TableViewColumn = {
@@ -4512,6 +4532,7 @@ export interface PortalBranding extends PortalBranding_readonly, PortalBranding_
   logoURL?: string,
   subdomain?: string,
   customPortalURL?: string,
+  portalSettings?: PortalSettings,
 }
 
 export interface WebhookLog_readonly extends ClientRecord { 

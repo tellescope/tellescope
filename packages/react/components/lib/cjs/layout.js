@@ -104,8 +104,8 @@ var ConditionalWrap = function (_a) {
 };
 exports.ConditionalWrap = ConditionalWrap;
 var Image = function (_a) {
-    var src = _a.src, alt = _a.alt, style = _a.style, onClick = _a.onClick, props = __rest(_a, ["src", "alt", "style", "onClick"]);
-    return ((0, jsx_runtime_1.jsx)("img", { src: src, alt: alt, onClick: onClick, style: __assign(__assign({ cursor: !!onClick ? 'pointer' : undefined }, props), style) }));
+    var src = _a.src, alt = _a.alt, style = _a.style, onClick = _a.onClick, crossOrigin = _a.crossOrigin, props = __rest(_a, ["src", "alt", "style", "onClick", "crossOrigin"]);
+    return ((0, jsx_runtime_1.jsx)("img", { crossOrigin: crossOrigin, src: src, alt: alt, onClick: onClick, style: __assign(__assign({ cursor: !!onClick ? 'pointer' : undefined }, props), style) }));
 };
 exports.Image = Image;
 var Video = function (_a) {

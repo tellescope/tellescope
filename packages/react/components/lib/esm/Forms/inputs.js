@@ -318,7 +318,7 @@ export var NumberInput = function (_a) {
 };
 export var InsuranceInput = function (_a) {
     var _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
-    var field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, responses = _a.responses, enduser = _a.enduser, props = __rest(_a, ["field", "value", "onChange", "form", "responses", "enduser"]);
+    var field = _a.field, onDatabaseSelect = _a.onDatabaseSelect, value = _a.value, onChange = _a.onChange, form = _a.form, responses = _a.responses, enduser = _a.enduser, props = __rest(_a, ["field", "onDatabaseSelect", "value", "onChange", "form", "responses", "enduser"]);
     var session = useResolvedSession();
     var _t = useState([]), payers = _t[0], setPayers = _t[1];
     var _u = useState(''), query = _u[0], setQuery = _u[1];
@@ -357,6 +357,7 @@ export var InsuranceInput = function (_a) {
                     name: ((_e = (_d = c.values.find(function (v) { var _a, _b; return ((_b = (_a = v.label) === null || _a === void 0 ? void 0 : _a.trim()) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'name'; })) === null || _d === void 0 ? void 0 : _d.value) === null || _e === void 0 ? void 0 : _e.toString()) || '',
                     state: ((_g = (_f = c.values.find(function (v) { var _a, _b; return ((_b = (_a = v.label) === null || _a === void 0 ? void 0 : _a.trim()) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'state'; })) === null || _f === void 0 ? void 0 : _f.value) === null || _g === void 0 ? void 0 : _g.toString()) || '',
                     type: ((_j = (_h = c.values.find(function (v) { var _a, _b; return ((_b = (_a = v.label) === null || _a === void 0 ? void 0 : _a.trim()) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'type'; })) === null || _h === void 0 ? void 0 : _h.value) === null || _j === void 0 ? void 0 : _j.toString()) || '',
+                    databaseRecord: c,
                 });
             })
                 .filter(function (c) { return !c.state || !state || (c.state === state); }));
@@ -401,11 +402,15 @@ export var InsuranceInput = function (_a) {
                             setQuery(v);
                         } }
                         : function (e, v) {
-                            var _a, _b;
+                            var _a, _b, _d;
                             if (v) {
                                 setQuery(v);
                             }
-                            onChange(__assign(__assign({}, value), { payerName: v || '', payerId: ((_a = payers.find(function (p) { return p.name === v; })) === null || _a === void 0 ? void 0 : _a.id) || '', payerType: ((_b = payers.find(function (p) { return p.name === v; })) === null || _b === void 0 ? void 0 : _b.type) || '' }), field.id);
+                            var databaseRecord = (_a = payers.find(function (p) { return p.name === v; })) === null || _a === void 0 ? void 0 : _a.databaseRecord;
+                            if (databaseRecord) {
+                                onDatabaseSelect === null || onDatabaseSelect === void 0 ? void 0 : onDatabaseSelect([databaseRecord]);
+                            }
+                            onChange(__assign(__assign({}, value), { payerName: v || '', payerId: ((_b = payers.find(function (p) { return p.name === v; })) === null || _b === void 0 ? void 0 : _b.id) || '', payerType: ((_d = payers.find(function (p) { return p.name === v; })) === null || _d === void 0 ? void 0 : _d.type) || '' }), field.id);
                         }, renderInput: function (params) {
                         var _a;
                         return (_jsx(TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: defaultInputProps.sx }), required: !field.isOptional, size: "small", label: "Insurer", placeholder: ((_a = field.options) === null || _a === void 0 ? void 0 : _a.dataSource) === CANVAS_TITLE ? "Search insurer..." : "Insurer" })));
@@ -937,7 +942,17 @@ var useDatabaseChoices = function (_a) {
             preventRefetch[databaseId + field.id + lastId] = false;
         });
     }, [session, field, databaseId, renderCount]);
+    var addChoice = useCallback(function (record) {
+        if (!choicesForDatabase[databaseId]) {
+            choicesForDatabase[databaseId] = {
+                done: false,
+                records: [],
+            };
+        }
+        choicesForDatabase[databaseId].records.push(record);
+    }, [choicesForDatabase, databaseId]);
     return {
+        addChoice: addChoice,
         doneLoading: (_d = (_b = choicesForDatabase[databaseId]) === null || _b === void 0 ? void 0 : _b.done) !== null && _d !== void 0 ? _d : false,
         choices: __spreadArray(__spreadArray([], (_f = (_e = choicesForDatabase[databaseId]) === null || _e === void 0 ? void 0 : _e.records) !== null && _f !== void 0 ? _f : [], true), (otherAnswers || []).map(function (v) {
             var _a;
@@ -978,14 +993,14 @@ var get_other_answers = function (_value, typing) {
     return [];
 };
 export var DatabaseSelectInput = function (_a) {
-    var _b, _d, _e, _f;
-    var field = _a.field, _value = _a.value, onChange = _a.onChange, onDatabaseSelect = _a.onDatabaseSelect, responses = _a.responses, size = _a.size, disabled = _a.disabled;
-    var _g = useState(''), typing = _g[0], setTyping = _g[1];
-    var _h = useDatabaseChoices({
+    var _b, _d, _e, _f, _g, _h;
+    var AddToDatabase = _a.AddToDatabase, field = _a.field, _value = _a.value, onChange = _a.onChange, onDatabaseSelect = _a.onDatabaseSelect, responses = _a.responses, size = _a.size, disabled = _a.disabled;
+    var _j = useState(''), typing = _j[0], setTyping = _j[1];
+    var _k = useDatabaseChoices({
         databaseId: (_b = field.options) === null || _b === void 0 ? void 0 : _b.databaseId,
         field: field,
         otherAnswers: get_other_answers(_value, ((_d = field === null || field === void 0 ? void 0 : field.options) === null || _d === void 0 ? void 0 : _d.other) ? typing : undefined),
-    }), choices = _h.choices, doneLoading = _h.doneLoading;
+    }), addChoice = _k.addChoice, choices = _k.choices, doneLoading = _k.doneLoading;
     var value = React.useMemo(function () {
         var _a, _b;
         try {
@@ -1058,32 +1073,34 @@ export var DatabaseSelectInput = function (_a) {
     }, [field, filteredChoicesWithPotentialDuplicates]);
     if (!doneLoading)
         return _jsx(LinearProgress, {});
-    return (_jsx(Autocomplete, { id: field.id, freeSolo: false, size: size, componentsProps: { popper: { sx: { wordBreak: "break-word" } } }, options: filteredChoices, multiple: true, getOptionLabel: function (o) { return (Array.isArray(o) // edge case
-            ? ''
-            : label_for_database_record(field, o)); }, value: value, disabled: disabled, onChange: function (_, v) {
-            var _a, _b, _d, _e;
-            if (v.length && onDatabaseSelect) {
-                onDatabaseSelect(v);
-            }
-            return onChange((!((_a = field.options) === null || _a === void 0 ? void 0 : _a.radio)
-                ? v.map(function (_v) {
-                    var _a;
-                    return ({
-                        databaseId: (_a = field.options) === null || _a === void 0 ? void 0 : _a.databaseId,
-                        recordId: _v.id,
-                        text: label_for_database_record(field, _v),
-                    });
-                })
-                : [{
-                        databaseId: (_b = field.options) === null || _b === void 0 ? void 0 : _b.databaseId,
-                        recordId: (_e = (_d = v[v.length - 1]) === null || _d === void 0 ? void 0 : _d.id) !== null && _e !== void 0 ? _e : '',
-                        text: label_for_database_record(field, v[v.length - 1]),
-                    }]), field.id);
-        }, inputValue: typing, onInputChange: function (e, v) { return e && setTyping(v); }, renderInput: function (params) { return _jsx(TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: defaultInputProps.sx }) })); }, 
-        // use custom Chip to ensure very long entries break properly (whitespace: normal)
-        renderTags: function (value, getTagProps) {
-            return value.map(function (value, index) { return (_jsx(Chip, __assign({ label: _jsx(Typography, __assign({ style: { whiteSpace: 'normal' } }, { children: Array.isArray(value) ? '' : label_for_database_record(field, value) })) }, getTagProps({ index: index }), { sx: { height: "100%", py: 0.5 } }))); });
-        } }));
+    return (_jsxs(_Fragment, { children: [_jsx(Autocomplete, { id: field.id, freeSolo: false, size: size, componentsProps: { popper: { sx: { wordBreak: "break-word" } } }, options: filteredChoices, multiple: true, getOptionLabel: function (o) { return (Array.isArray(o) // edge case
+                    ? ''
+                    : label_for_database_record(field, o)); }, value: value, disabled: disabled, onChange: function (_, v) {
+                    var _a, _b, _d, _e, _f;
+                    if (v.length && onDatabaseSelect) {
+                        onDatabaseSelect(((_a = field.options) === null || _a === void 0 ? void 0 : _a.radio)
+                            ? [v[v.length - 1]] // if radio, only last selected
+                            : v);
+                    }
+                    return onChange((!((_b = field.options) === null || _b === void 0 ? void 0 : _b.radio)
+                        ? v.map(function (_v) {
+                            var _a;
+                            return ({
+                                databaseId: (_a = field.options) === null || _a === void 0 ? void 0 : _a.databaseId,
+                                recordId: _v.id,
+                                text: label_for_database_record(field, _v),
+                            });
+                        })
+                        : [{
+                                databaseId: (_d = field.options) === null || _d === void 0 ? void 0 : _d.databaseId,
+                                recordId: (_f = (_e = v[v.length - 1]) === null || _e === void 0 ? void 0 : _e.id) !== null && _f !== void 0 ? _f : '',
+                                text: label_for_database_record(field, v[v.length - 1]),
+                            }]), field.id);
+                }, inputValue: typing, onInputChange: function (e, v) { return e && setTyping(v); }, renderInput: function (params) { return _jsx(TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: defaultInputProps.sx }) })); }, 
+                // use custom Chip to ensure very long entries break properly (whitespace: normal)
+                renderTags: function (value, getTagProps) {
+                    return value.map(function (value, index) { return (_jsx(Chip, __assign({ label: _jsx(Typography, __assign({ style: { whiteSpace: 'normal' } }, { children: Array.isArray(value) ? '' : label_for_database_record(field, value) })) }, getTagProps({ index: index }), { sx: { height: "100%", py: 0.5 } }))); });
+                } }), AddToDatabase && ((_g = field === null || field === void 0 ? void 0 : field.options) === null || _g === void 0 ? void 0 : _g.allowAddToDatabase) && (_jsx(AddToDatabase, { databaseId: (_h = field.options) === null || _h === void 0 ? void 0 : _h.databaseId, onAdd: addChoice }))] }));
 };
 var displayTermsCache = undefined;
 var DRUGS_FOR_DISPLAY_TERM = {};

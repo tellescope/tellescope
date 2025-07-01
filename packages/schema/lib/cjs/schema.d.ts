@@ -1544,6 +1544,15 @@ export type CustomActions = {
     background_errors: {
         mark_read: CustomAction<{}, {}>;
     };
+    phone_trees: {
+        start_outbound_call: CustomAction<{
+            treeId: string;
+            enduserId: string;
+            journeyId: string;
+            automationStepId: string;
+            journeyContext?: JourneyContext;
+        }, {}>;
+    };
 };
 export type PublicActions = {
     endusers: {

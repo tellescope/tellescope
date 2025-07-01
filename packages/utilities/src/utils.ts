@@ -1051,6 +1051,7 @@ export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Endu
       : typeof value === 'string'
           ? (
             (enduser.fields?.[key] ?? get_enduser_field_value_for_key(enduser, key)) === value
+            || (enduser.fields?.[key] ?? get_enduser_field_value_for_key(enduser, key)) === parseInt(value)
             || (
               Array.isArray(enduser.fields?.[key]) 
               && (enduser?.fields?.[key] as string[]).includes(value)

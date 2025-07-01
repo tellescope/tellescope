@@ -41,9 +41,10 @@ export interface ImageProps extends ImageDimensions, Styled {
   src: string,
   alt?: string,
   onClick?: () => void,
+  crossOrigin?: 'anonymous' | 'use-credentials',
 }
-export const Image = ({ src, alt, style, onClick, ...props }: ImageProps) => (
-  <img src={src} alt={alt} onClick={onClick} style={{ cursor: !!onClick ? 'pointer' : undefined, ...props, ...style }} />
+export const Image = ({ src, alt, style, onClick, crossOrigin, ...props }: ImageProps) => (
+  <img crossOrigin={crossOrigin} src={src} alt={alt} onClick={onClick} style={{ cursor: !!onClick ? 'pointer' : undefined, ...props, ...style }} />
 )
 
 export interface VideoProps extends Styled {

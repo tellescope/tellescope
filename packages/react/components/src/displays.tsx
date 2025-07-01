@@ -8,6 +8,7 @@ import {
   value_is_loaded,
   useUsers,
   convertHEIC,
+  ImageProps,
 } from "./index"
 
 import { Avatar, AvatarProps, Styled } from "./mui"
@@ -72,6 +73,7 @@ export const SecureImage = ({ secureName, placeholder, onImageClick, ...props } 
   secureName: string, 
   alt?: string,
   onImageClick?: (args: { src: string }) => void,
+  crossOrigin?: ImageProps['crossOrigin'],
 } & ImageDimensions & Styled) => {
   const loadedImage = useFileForSecureName({ secureName })
 

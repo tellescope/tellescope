@@ -74,8 +74,8 @@ export var ConditionalWrap = function (_a) {
     return _jsx(_Fragment, { children: children });
 };
 export var Image = function (_a) {
-    var src = _a.src, alt = _a.alt, style = _a.style, onClick = _a.onClick, props = __rest(_a, ["src", "alt", "style", "onClick"]);
-    return (_jsx("img", { src: src, alt: alt, onClick: onClick, style: __assign(__assign({ cursor: !!onClick ? 'pointer' : undefined }, props), style) }));
+    var src = _a.src, alt = _a.alt, style = _a.style, onClick = _a.onClick, crossOrigin = _a.crossOrigin, props = __rest(_a, ["src", "alt", "style", "onClick", "crossOrigin"]);
+    return (_jsx("img", { crossOrigin: crossOrigin, src: src, alt: alt, onClick: onClick, style: __assign(__assign({ cursor: !!onClick ? 'pointer' : undefined }, props), style) }));
 };
 export var Video = function (_a) {
     var style = _a.style, dimensions = _a.dimensions, props = __rest(_a, ["style", "dimensions"]);

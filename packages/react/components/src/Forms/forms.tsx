@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Button, CircularProgress, FileBlob, FileUploadHandler, Flex, LinearProgress, LoadingButton, Modal, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse, NextFieldLogicOptions } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
-import { AddressInput, AllergiesInput, AppointmentBookingInput, ChargeebeeInput, ConditionsInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, RichTextInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
+import { AddToDatabaseProps, AddressInput, AllergiesInput, AppointmentBookingInput, ChargeebeeInput, ConditionsInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, RichTextInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
@@ -137,6 +137,7 @@ export const QuestionForField = ({
   logicOptions,
   uploadingFiles, setUploadingFiles, handleFileUpload,
   groupFields,
+  AddToDatabase,
 } : {
   spacing?: number,
   form?: Form,
@@ -154,6 +155,7 @@ export const QuestionForField = ({
   uploadingFiles: { fieldId: string }[]
   setUploadingFiles: React.Dispatch<React.SetStateAction<{ fieldId: string }[]>>,
   groupFields?: FormField[],
+  AddToDatabase?: React.JSXElementConstructor<AddToDatabaseProps>,
 } & Pick<TellescopeFormProps, "rootResponseId" | "goToNextField" | "groupId" | "groupInstance" | "submit" | "formResponseId" | 'enduserId' | 'isPreviousDisabled' | 'goToPreviousField' | 'enduser' | 'handleDatabaseSelect' | 'onAddFile' | 'onFieldChange' | 'fields' | 'customInputs' | 'responses' | 'selectedFiles' | 'validateField'>) => {
   const String = customInputs?.['string'] ?? StringInput
   const StringLong = customInputs?.['stringLong'] ?? StringLongInput
@@ -325,6 +327,7 @@ export const QuestionForField = ({
           <DatabaseSelect field={field} disabled={value.disabled} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Database Select'>} 
             onDatabaseSelect={handleDatabaseSelect}
             responses={responses} form={form}
+            AddToDatabase={AddToDatabase}
           />
         )
         : field.type === 'Medications' ? (
@@ -332,6 +335,7 @@ export const QuestionForField = ({
         )
         : field.type === 'Insurance' ? (
           <Insurance field={field} value={value.answer.value as any} form={form}
+            onDatabaseSelect={handleDatabaseSelect}
             enduser={enduser} responses={responses} // for filtering insurers by state
             onChange={(v, fieldId) => (onFieldChange as ChangeHandler<'Insurance'>)({
               ...v,
@@ -381,6 +385,7 @@ export const QuestionForField = ({
                   questionGroupSize={field.options?.subFields?.length}
                   uploadingFiles={uploadingFiles} setUploadingFiles={setUploadingFiles}
                   handleFileUpload={handleFileUpload}
+                  AddToDatabase={AddToDatabase}
                 />
               </Flex>
             )
@@ -918,6 +923,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
   updatedAt?: Date,
   otherEnduserIds?: string[],
   onBulkErrors?: (errors: { enduserId: string, message: string }[]) => void,
+  AddToDatabase?: React.JSXElementConstructor<AddToDatabaseProps>,
 }> = ({
   customInputs, 
   submitErrorMessage,
@@ -969,6 +975,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
   groupId,
   groupInstance,
   uploadingFiles, setUploadingFiles, handleFileUpload,
+  AddToDatabase,
   ...props 
 }) => {
   const list = useListForFormFields(fields, responses, { form: props.form, gender: enduser?.gender })
@@ -1051,6 +1058,7 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
                   groupId={groupId} groupInstance={groupInstance}
                   uploadingFiles={uploadingFiles} setUploadingFiles={setUploadingFiles}
                   handleFileUpload={handleFileUpload}
+                  AddToDatabase={AddToDatabase}
                 />
               </Flex>
             </Flex>

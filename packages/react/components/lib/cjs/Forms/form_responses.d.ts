@@ -1,4 +1,5 @@
 import { Enduser, FormResponse } from "@tellescope/types-client";
+import { ImageProps } from "../index";
 import { FormResponseAnswerAddress, FormResponseValueAnswer } from "@tellescope/types-models";
 export declare const AddressDisplay: ({ value }: {
     value: Required<FormResponseAnswerAddress>['value'];
@@ -13,9 +14,12 @@ export declare const ResponseAnswer: ({ formResponse, fieldId, isHTML, answer: a
     }) => void) | undefined;
     isHTML?: boolean | undefined;
 }) => JSX.Element;
-export declare const OrganizationLogo: () => JSX.Element | null;
-export declare const ResolveOrganizationLogo: ({ logoURL }: {
+export declare const OrganizationLogo: ({ crossOrigin }: {
+    crossOrigin?: ImageProps['crossOrigin'];
+}) => JSX.Element | null;
+export declare const ResolveOrganizationLogo: ({ logoURL, crossOrigin }: {
     logoURL?: string | undefined;
+    crossOrigin?: ImageProps['crossOrigin'];
 }) => JSX.Element | null;
 interface FormResponse_T {
     enduser?: Enduser;

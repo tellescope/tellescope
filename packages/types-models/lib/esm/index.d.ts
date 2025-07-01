@@ -461,6 +461,7 @@ export type OrganizationTheme = {
     customPoliciesVersion?: string;
     requireCustomTermsOnMagicLink?: boolean;
     hasConnectedVital?: boolean;
+    brandId?: string;
 };
 export interface RecordInfo {
     businessId: string;
@@ -703,6 +704,12 @@ export type EnduserInsurance = {
     planName?: string;
     startDate?: string;
 };
+export type EnduserDevice = {
+    title: string;
+    id: string;
+    gatewayId?: string;
+    disabled?: boolean;
+};
 export type EnduserDiagnosis = {
     id?: string;
     createdAt?: Date;
@@ -806,11 +813,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
         bookingPageId: string;
         note: string;
     }[];
-    devices?: {
-        title: string;
-        id: string;
-        disabled?: boolean;
-    }[];
+    devices?: EnduserDevice[];
     salesforceId?: string;
     athenaPracticeId?: string;
     athenaDepartmentId?: string;
@@ -1582,6 +1585,7 @@ export type FormFieldOptions = FormFieldValidation & {
         fieldId?: string;
         databaseLabel?: string;
     };
+    allowAddToDatabase?: boolean;
     useDatePicker?: boolean;
     sharedIntakeFields?: string[];
     hiddenDefaultFields?: string[];
@@ -1645,6 +1649,7 @@ export interface FormField_required {
 export interface FormField_updatesDisabled {
 }
 export interface FormField extends FormField_readonly, FormField_required, FormField_updatesDisabled {
+    internalNote?: string;
     placeholder?: string;
     isOptional?: boolean;
     fullZIP?: boolean;
@@ -2238,6 +2243,7 @@ export interface CalendarEvent_required {
 export interface CalendarEvent_updatesDisabled {
 }
 export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_required, CalendarEvent_updatesDisabled {
+    updateKey?: string;
     createAndBookAthenaSlot?: boolean;
     athenaDepartmentId?: string;
     generateAthenaTelehealthLink?: boolean;
@@ -2582,7 +2588,7 @@ export interface WebhookCall {
     integrity: string;
     description?: string;
 }
-export type AutomationEventType = 'onJourneyStart' | 'afterAction' | "formResponse" | "formResponses" | "formUnsubmitted" | "formsUnsubmitted" | "ticketCompleted" | 'waitForTrigger';
+export type AutomationEventType = 'onJourneyStart' | 'afterAction' | "formResponse" | "formResponses" | "formUnsubmitted" | "formsUnsubmitted" | "ticketCompleted" | 'waitForTrigger' | "onCallOutcome";
 interface AutomationEventBuilder<T extends AutomationEventType, V extends object> {
     type: T;
     info: V;
@@ -2642,6 +2648,8 @@ export interface AutomationForWebhook {
     url?: string;
     secret?: string;
     fields?: LabeledField[];
+    headers?: LabeledField[];
+    method?: 'get' | 'patch' | 'post' | 'put' | 'delete';
 }
 export type FormResponseAutomationEvent = AutomationEventBuilder<'formResponse', {
     automationStepId: string;
@@ -2706,7 +2714,11 @@ export type WaitForTriggerAutomationEvent = AutomationEventBuilder<'waitForTrigg
     automationStepId: string;
     triggerId: string;
 }>;
-export type AutomationEvent = FormResponseAutomationEvent | FormResponsesAutomationEvent | AfterActionAutomationEvent | OnJourneyStartAutomationEvent | FormUnsubmittedEvent | FormsUnsubmittedEvent | TicketCompletedAutomationEvent | WaitForTriggerAutomationEvent;
+export type OnCallOutcomeAutomationEvent = AutomationEventBuilder<'onCallOutcome', {
+    automationStepId: string;
+    outcome: string;
+}>;
+export type AutomationEvent = FormResponseAutomationEvent | FormResponsesAutomationEvent | AfterActionAutomationEvent | OnJourneyStartAutomationEvent | FormUnsubmittedEvent | FormsUnsubmittedEvent | TicketCompletedAutomationEvent | WaitForTriggerAutomationEvent | OnCallOutcomeAutomationEvent;
 export type AutomationEventForType = {
     'onJourneyStart': OnJourneyStartAutomationEvent;
     'afterAction': AfterActionAutomationEvent;
@@ -2716,6 +2728,7 @@ export type AutomationEventForType = {
     'formsUnsubmitted': FormsUnsubmittedEvent;
     'ticketCompleted': TicketCompletedAutomationEvent;
     'waitForTrigger': WaitForTriggerAutomationEvent;
+    'onCallOutcome': OnCallOutcomeAutomationEvent;
 };
 export type SetEnduserStatusInfo = {
     status: string;
@@ -2946,7 +2959,11 @@ export type AutomationConditionBuilder<T extends AutomationConditionType, V exte
 };
 export type AtJourneyStateAutomationCondition = AutomationConditionBuilder<'atJourneyState', AutomationForJourneyAndState>;
 export type AutomationCondition = AtJourneyStateAutomationCondition;
+export type OutboundCallAutomationAction = AutomationActionBuilder<'outboundCall', {
+    treeId: string;
+}>;
 export type AutomationActionForType = {
+    'outboundCall': OutboundCallAutomationAction;
     "sendEmail": SendEmailAutomationAction;
     "sendSMS": SendSMSAutomationAction;
     "sendChat": SendChatAutomationAction;
@@ -3200,6 +3217,7 @@ export interface PortalCustomization extends PortalCustomization_readonly, Porta
     hideReschedule?: boolean;
     hiddenEventTitles?: string[];
     hiddenFormIds?: string[];
+    brandId?: string;
 }
 export declare const MOBILE_BOTTOM_NAVIGATION_DISABLED_POSITION = 1000;
 export declare const DEFAULT_PATIENT_PORTAL_BOTTOM_NAVIGATION_POSITIONS: {
@@ -4203,6 +4221,9 @@ export type PhoneTreeActions = {
     'Play Message': PhoneTreeActionBuilder<"Play Message", {
         playback: PhonePlayback;
         journeyId?: string;
+        outcome?: string;
+        cancelAppointment?: boolean;
+        confirmAppointment?: boolean;
     }>;
     'Dial Users': PhoneTreeActionBuilder<"Dial Users", {
         userIds: string[];
@@ -4269,6 +4290,8 @@ export interface PhoneTree extends PhoneTree_readonly, PhoneTree_required, Phone
     bypassOOO?: boolean;
     defaultEntityType?: string;
     tags?: string[];
+    title?: string;
+    outboundNumber?: string;
 }
 export type TableViewColumn = {
     field: string;
@@ -4639,6 +4662,7 @@ export interface PortalBranding extends PortalBranding_readonly, PortalBranding_
     logoURL?: string;
     subdomain?: string;
     customPortalURL?: string;
+    portalSettings?: PortalSettings;
 }
 export interface WebhookLog_readonly extends ClientRecord {
     url: string;

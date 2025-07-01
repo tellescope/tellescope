@@ -57,7 +57,7 @@ var ResponseAnswer = function (_a) {
                                 ? a.value.secureName
                                     ? (0, jsx_runtime_1.jsxs)(material_1.Typography, { children: [!printing
                                                 ? (0, jsx_runtime_1.jsx)(index_1.DownloadFileIconButton, { secureName: a.value.secureName, onDownload: function (url) { return window.open(url, '_blank'); } })
-                                                : ((0, jsx_runtime_1.jsx)(index_1.SecureImage, { secureName: a.value.secureName, onImageClick: onImageClick, style: { maxHeight: 400, maxWidth: 400 } })), (0, jsx_runtime_1.jsx)("em", { children: a.value.name || 'Attachment' })] })
+                                                : ((0, jsx_runtime_1.jsx)(index_1.SecureImage, { secureName: a.value.secureName, onImageClick: onImageClick, style: { maxHeight: 400, maxWidth: 400 }, crossOrigin: "anonymous" })), (0, jsx_runtime_1.jsx)("em", { children: a.value.name || 'Attachment' })] })
                                     : null // null when optional and omitted
                                 : a.type === 'files'
                                     ? a.value.map(function (file) { return ((0, jsx_runtime_1.jsxs)(material_1.Typography, { children: [!printing
@@ -98,25 +98,26 @@ var ResponseAnswer = function (_a) {
             : (0, jsx_runtime_1.jsx)(material_1.Typography, { children: "No value provided" })));
 };
 exports.ResponseAnswer = ResponseAnswer;
-var OrganizationLogo = function () {
+var OrganizationLogo = function (_a) {
+    var crossOrigin = _a.crossOrigin;
     var organizationLoading = (0, index_1.useOrganization)()[0];
     if (!(0, index_1.value_is_loaded)(organizationLoading))
         return null;
     if (typeof organizationLoading.value.logoVersion !== 'number')
         return null;
     var logoURL = (0, utilities_1.getOrgnizationLogoURL)(organizationLoading.value);
-    return ((0, jsx_runtime_1.jsx)(layout_1.Image, { src: logoURL, alt: "", maxWidth: 400, height: 50 }));
+    return ((0, jsx_runtime_1.jsx)(layout_1.Image, { crossOrigin: crossOrigin, src: logoURL, alt: "", maxWidth: 400, height: 50 }));
 };
 exports.OrganizationLogo = OrganizationLogo;
 var ResolveOrganizationLogo = function (_a) {
-    var logoURL = _a.logoURL;
+    var logoURL = _a.logoURL, crossOrigin = _a.crossOrigin;
     var session = (0, index_1.useResolvedSession)();
     if (logoURL) {
-        return ((0, jsx_runtime_1.jsx)(layout_1.Image, { src: logoURL, alt: "", maxWidth: 400, height: 50 }));
+        return ((0, jsx_runtime_1.jsx)(layout_1.Image, { crossOrigin: crossOrigin, src: logoURL, alt: "", maxWidth: 400, height: 50 }));
     }
     if (session.type === 'enduser')
         return null;
-    return (0, jsx_runtime_1.jsx)(exports.OrganizationLogo, {});
+    return (0, jsx_runtime_1.jsx)(exports.OrganizationLogo, { crossOrigin: crossOrigin });
 };
 exports.ResolveOrganizationLogo = ResolveOrganizationLogo;
 // this should use all vanilla React / inline styles to ensure printing is consistent
@@ -129,7 +130,7 @@ var FormResponseView = function (_a) {
         return (0, jsx_runtime_1.jsx)(material_1.Typography, { children: "Awaiting Response" });
     }
     return ((0, jsx_runtime_1.jsxs)("div", __assign({ style: { display: 'flex', flex: 1, flexDirection: 'column', minWidth: 400, maxWidth: 650 }, id: id }, { children: [(0, jsx_runtime_1.jsxs)("div", __assign({ style: { textAlign: 'center' } }, { children: [!hideHeader &&
-                        (0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(exports.ResolveOrganizationLogo, { logoURL: logoURL }), (0, jsx_runtime_1.jsx)("h2", __assign({ style: {
+                        (0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(exports.ResolveOrganizationLogo, { logoURL: logoURL, crossOrigin: "anonymous" }), (0, jsx_runtime_1.jsx)("h2", __assign({ style: {
                                         fontSize: 20,
                                         fontWeight: 'bold',
                                         marginTop: 8,

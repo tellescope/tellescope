@@ -273,6 +273,7 @@ exports.schema = (0, exports.build_schema)({
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     title: validation_1.stringValidatorOptional,
                     id: validation_1.stringValidatorOptional,
+                    gatewayId: validation_1.stringValidatorOptional,
                     disabled: validation_1.booleanValidatorOptional,
                 })),
                 redactions: ['enduser'],
@@ -2831,7 +2832,7 @@ exports.schema = (0, exports.build_schema)({
             },
         },
         enduserActions: { read: {}, readMany: {}, load_choices_from_database: {}, booking_info: {} },
-        fields: __assign(__assign({}, BuiltInFields), { formId: {
+        fields: __assign(__assign({}, BuiltInFields), { internalNote: { validator: validation_1.stringValidator }, formId: {
                 validator: validation_1.mongoIdStringRequired,
                 required: true,
                 dependencies: [
@@ -4641,7 +4642,7 @@ exports.schema = (0, exports.build_schema)({
                 required: true,
                 examples: [[]],
                 validator: validation_1.portalBlocksValidator,
-            }, disabled: { validator: validation_1.booleanValidator }, mobileBottomNavigationPosition: { validator: validation_1.nonNegNumberValidator }, headerImageURL: { validator: validation_1.stringValidator1000 }, iframeURL: { validator: validation_1.stringValidator1000 }, iconURL: { validator: validation_1.stringValidator1000 }, activeIconURL: { validator: validation_1.stringValidator1000 }, showStripePortalLink: { validator: validation_1.booleanValidator }, hideCancellatation: { validator: validation_1.booleanValidator }, hideReschedule: { validator: validation_1.booleanValidator }, hiddenEventTitles: { validator: validation_1.listOfStringsValidatorEmptyOk }, hiddenFormIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk } }),
+            }, disabled: { validator: validation_1.booleanValidator }, mobileBottomNavigationPosition: { validator: validation_1.nonNegNumberValidator }, headerImageURL: { validator: validation_1.stringValidator1000 }, iframeURL: { validator: validation_1.stringValidator1000 }, iconURL: { validator: validation_1.stringValidator1000 }, activeIconURL: { validator: validation_1.stringValidator1000 }, showStripePortalLink: { validator: validation_1.booleanValidator }, hideCancellatation: { validator: validation_1.booleanValidator }, hideReschedule: { validator: validation_1.booleanValidator }, hiddenEventTitles: { validator: validation_1.listOfStringsValidatorEmptyOk }, hiddenFormIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, brandId: { validator: validation_1.mongoIdStringRequired, examples: [constants_1.PLACEHOLDER_ID] } }),
     },
     enduser_tasks: {
         info: {},
@@ -5506,11 +5507,25 @@ exports.schema = (0, exports.build_schema)({
         info: {},
         constraints: { unique: [], relationship: [], },
         defaultActions: constants_1.DEFAULT_OPERATIONS,
-        customActions: {},
+        customActions: {
+            start_outbound_call: {
+                op: "custom", access: 'create', method: "post", path: "/phone-trees/start-outbound-call",
+                name: 'Start Outbound Call',
+                description: "Starts an phone call using the logic of an Outbound Phone Tree",
+                parameters: {
+                    treeId: { validator: validation_1.mongoIdStringRequired, required: true },
+                    enduserId: { validator: validation_1.mongoIdStringRequired, required: true },
+                    journeyId: { validator: validation_1.mongoIdStringRequired, required: true },
+                    automationStepId: { validator: validation_1.mongoIdStringRequired, required: true },
+                    journeyContext: { validator: validation_1.optionalAnyObjectValidator },
+                },
+                returns: {}
+            }
+        },
         enduserActions: {
             read: {}, readMany: {},
         },
-        fields: __assign(__assign({}, BuiltInFields), { number: {
+        fields: __assign(__assign({}, BuiltInFields), { title: { validator: validation_1.stringValidator }, number: {
                 required: true,
                 validator: validation_1.stringValidator,
                 examples: ['+15555555555'],
@@ -5539,7 +5554,7 @@ exports.schema = (0, exports.build_schema)({
                     // }
                     ],
                 ]
-            }, testEnduserIds: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, enduserCondition: { validator: validation_1.phoneTreeEnduserConditionValidator }, bypassOOO: { validator: validation_1.booleanValidator }, defaultEntityType: { validator: validation_1.stringValidator100 }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay } })
+            }, testEnduserIds: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, enduserCondition: { validator: validation_1.phoneTreeEnduserConditionValidator }, bypassOOO: { validator: validation_1.booleanValidator }, defaultEntityType: { validator: validation_1.stringValidator100 }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, outboundNumber: { validator: validation_1.stringValidator100, examples: ['+15555555555'] } })
     },
     enduser_custom_types: {
         info: {},
@@ -5963,7 +5978,7 @@ exports.schema = (0, exports.build_schema)({
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { title: { validator: validation_1.stringValidator, required: true, examples: ['Title'] }, enduserField: { validator: validation_1.stringValidator, required: true, examples: ['Title'] }, enduserValue: { validator: validation_1.stringValidator, required: true, examples: ['Title'] }, primary: { validator: validation_1.stringValidator }, secondary: { validator: validation_1.stringValidator }, logoURL: { validator: validation_1.stringValidator }, subdomain: { validator: validation_1.stringValidator }, customPortalURL: { validator: validation_1.stringValidator } })
+        fields: __assign(__assign({}, BuiltInFields), { title: { validator: validation_1.stringValidator, required: true, examples: ['Title'] }, enduserField: { validator: validation_1.stringValidator, required: true, examples: ['Title'] }, enduserValue: { validator: validation_1.stringValidator, required: true, examples: ['Title'] }, primary: { validator: validation_1.stringValidator }, secondary: { validator: validation_1.stringValidator }, logoURL: { validator: validation_1.stringValidator }, subdomain: { validator: validation_1.stringValidator }, customPortalURL: { validator: validation_1.stringValidator }, portalSettings: { validator: validation_1.portalSettingsValidator } })
     },
     message_template_snippets: {
         info: { description: '' },

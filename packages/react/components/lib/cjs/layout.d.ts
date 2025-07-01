@@ -26,8 +26,9 @@ export interface ImageProps extends ImageDimensions, Styled {
     src: string;
     alt?: string;
     onClick?: () => void;
+    crossOrigin?: 'anonymous' | 'use-credentials';
 }
-export declare const Image: ({ src, alt, style, onClick, ...props }: ImageProps) => JSX.Element;
+export declare const Image: ({ src, alt, style, onClick, crossOrigin, ...props }: ImageProps) => JSX.Element;
 export interface VideoProps extends Styled {
     src: string;
     dimensions?: ImageDimensions;

@@ -1,8 +1,8 @@
-import React from "react"
+import React, { useEffect } from "react"
 import { Divider, Grid, Typography } from "@mui/material"
 import { Enduser, FormResponse } from "@tellescope/types-client"
 import { form_response_value_to_string, formatted_date, getOrgnizationLogoURL, remove_script_tags, user_display_name } from "@tellescope/utilities"
-import { DownloadFileIconButton, LabeledIconButton, SecureImage, useEndusers, useOrganization, useResolvedSession, useSession, useUsers, value_is_loaded } from "../index"
+import { DownloadFileIconButton, ImageProps, LabeledIconButton, SecureImage, useEndusers, useOrganization, useResolvedSession, useSession, useUsers, value_is_loaded } from "../index"
 import CloseIcon from '@mui/icons-material/Close';
 import { DatabaseSelectResponse, FormResponseAnswerAddress, FormResponseValueAnswer } from "@tellescope/types-models"
 import { Image } from "../layout"
@@ -64,6 +64,7 @@ export const ResponseAnswer = ({ formResponse, fieldId, isHTML, answer: a, print
                 : (
                   <SecureImage secureName={a.value.secureName} onImageClick={onImageClick}
                     style={{ maxHeight: 400, maxWidth: 400 }}
+                    crossOrigin="anonymous"
                   />
                 )
               }
@@ -181,7 +182,7 @@ export const ResponseAnswer = ({ formResponse, fieldId, isHTML, answer: a, print
   )
 )
 
-export const OrganizationLogo = () => {
+export const OrganizationLogo = ({ crossOrigin } : { crossOrigin?: ImageProps['crossOrigin'] }) => {
   const [organizationLoading] = useOrganization()
   
   if (!value_is_loaded(organizationLoading)) return null
@@ -190,7 +191,7 @@ export const OrganizationLogo = () => {
   const logoURL = getOrgnizationLogoURL(organizationLoading.value)
 
   return (
-    <Image 
+    <Image crossOrigin={crossOrigin}
       src={logoURL} 
       alt=""
       maxWidth={400}
@@ -199,12 +200,12 @@ export const OrganizationLogo = () => {
   )
 }
 
-export const ResolveOrganizationLogo = ({ logoURL } : { logoURL?: string }) => {
+export const ResolveOrganizationLogo = ({ logoURL, crossOrigin } : { logoURL?: string, crossOrigin?: ImageProps['crossOrigin'] }) => {
   const session = useResolvedSession()
 
   if (logoURL) {
     return (
-      <Image 
+      <Image crossOrigin={crossOrigin}
         src={logoURL} 
         alt=""
         maxWidth={400}
@@ -215,7 +216,7 @@ export const ResolveOrganizationLogo = ({ logoURL } : { logoURL?: string }) => {
 
   if (session.type === 'enduser') return null
 
-  return <OrganizationLogo />
+  return <OrganizationLogo crossOrigin={crossOrigin} />
 }
 
 interface FormResponse_T {
@@ -245,7 +246,7 @@ export const FormResponseView = ({ showAnswerInline=true, logoURL, enduser, onCl
       <div style={{ textAlign: 'center' }}>
         {!hideHeader && 
           <>
-          <ResolveOrganizationLogo logoURL={logoURL} />
+          <ResolveOrganizationLogo logoURL={logoURL} crossOrigin="anonymous" />
 
           <h2 style={{
             fontSize: 20,

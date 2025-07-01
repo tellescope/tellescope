@@ -1,4 +1,5 @@
 import React from "react";
+import { ImageProps } from "./index";
 import { AvatarProps, Styled } from "./mui";
 import { ImageDimensions } from "./layout";
 import { APIErrorHandler } from "@tellescope/types-utilities";
@@ -20,6 +21,7 @@ export declare const SecureImage: ({ secureName, placeholder, onImageClick, ...p
     onImageClick?: ((args: {
         src: string;
     }) => void) | undefined;
+    crossOrigin?: ImageProps['crossOrigin'];
 } & ImageDimensions & Styled) => JSX.Element | null;
 export declare const SecureVideo: ({ secureName, placeholder, ...props }: {
     placeholder?: React.ReactElement<any, string | React.JSXElementConstructor<any>> | undefined;

@@ -77,6 +77,7 @@ import {
   WeeklyAvailability,
   CanvasCreateNoteAutomationAction,
   StripeKeyDetail,
+  EnduserDevice,
 } from "@tellescope/types-models"
 
 import {
@@ -1156,6 +1157,9 @@ export type CustomActions = {
   background_errors: {
     mark_read: CustomAction<{ }, { }>,
   },
+  phone_trees: {
+    start_outbound_call: CustomAction<{ treeId: string, enduserId: string, journeyId: string, automationStepId: string, journeyContext?: JourneyContext }, { }>,
+  },
 } 
 
 export type PublicActions = {
@@ -1499,9 +1503,10 @@ export const schema: SchemaV1 = build_schema({
         redactions: ['enduser'],
       },
       devices: {
-        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ title: string, id: string, disabled?: boolean }>({
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<EnduserDevice>({
           title: stringValidatorOptional,
           id: stringValidatorOptional,
+          gatewayId: stringValidatorOptional,
           disabled: booleanValidatorOptional,
         })),
         redactions: ['enduser'],
@@ -4465,6 +4470,7 @@ export const schema: SchemaV1 = build_schema({
     enduserActions: { read: {}, readMany: {}, load_choices_from_database: {}, booking_info: {} },
     fields: {
       ...BuiltInFields, 
+      internalNote: { validator: stringValidator },
       formId: {
         validator: mongoIdStringValidator,
         required: true,
@@ -6736,6 +6742,7 @@ export const schema: SchemaV1 = build_schema({
       hideReschedule: { validator: booleanValidator },
       hiddenEventTitles: { validator: listOfStringsValidatorEmptyOk },
       hiddenFormIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+      brandId: { validator: mongoIdStringValidator, examples: [PLACEHOLDER_ID] }
     },
   }, 
   enduser_tasks: {
@@ -7864,13 +7871,28 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     info: {},
     constraints: { unique: [], relationship: [], },
     defaultActions: DEFAULT_OPERATIONS,
-    customActions: {},
+    customActions: {
+      start_outbound_call: {
+        op: "custom", access: 'create', method: "post", path: "/phone-trees/start-outbound-call",
+        name: 'Start Outbound Call',
+        description: "Starts an phone call using the logic of an Outbound Phone Tree",
+        parameters: {
+          treeId: { validator: mongoIdStringValidator, required: true },
+          enduserId: { validator: mongoIdStringValidator, required: true },
+          journeyId: { validator: mongoIdStringValidator, required: true },
+          automationStepId: { validator: mongoIdStringValidator, required: true },
+          journeyContext: { validator: optionalAnyObjectValidator },
+        },
+        returns: {}
+      }
+    },
     enduserActions: {
       read: {}, readMany: {},
     },
     fields: {
       ...BuiltInFields, 
-      number: { 
+      title: { validator: stringValidator },
+      number: { // blank for outbound phone trees
         required: true,
         validator: stringValidator,
         examples: ['+15555555555'],
@@ -7907,6 +7929,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       bypassOOO: { validator: booleanValidator },
       defaultEntityType: { validator: stringValidator100 },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, 
+      outboundNumber: { validator: stringValidator100, examples: ['+15555555555'] },
     }
   },
   enduser_custom_types: {
@@ -8494,6 +8517,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       logoURL: { validator: stringValidator },
       subdomain: { validator: stringValidator },
       customPortalURL: { validator: stringValidator },
+      portalSettings: { validator: portalSettingsValidator },
     }
   },
   message_template_snippets: {

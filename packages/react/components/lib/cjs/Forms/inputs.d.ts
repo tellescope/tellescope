@@ -3,7 +3,7 @@ import { SxProps, TextFieldProps } from "@mui/material";
 import { FormInputProps } from "./types";
 import { Enduser, FormResponseValue } from "@tellescope/types-models";
 import { FileBlob, Styled } from "..";
-import { FormField } from "@tellescope/types-client";
+import { DatabaseRecord, FormField } from "@tellescope/types-client";
 export declare const LanguageSelect: ({ value, ...props }: {
     value: string;
     onChange: (s: string) => void;
@@ -30,7 +30,7 @@ export declare const StringLongInput: ({ field, value, onChange, form, ...props 
 export declare const PhoneInput: ({ field, value, onChange, form, ...props }: FormInputProps<'phone'>) => JSX.Element;
 export declare const EmailInput: ({ field, value, onChange, form, ...props }: FormInputProps<'email'>) => JSX.Element;
 export declare const NumberInput: ({ field, value, onChange, form, ...props }: FormInputProps<'number'>) => JSX.Element;
-export declare const InsuranceInput: ({ field, value, onChange, form, responses, enduser, ...props }: FormInputProps<'Insurance'>) => JSX.Element;
+export declare const InsuranceInput: ({ field, onDatabaseSelect, value, onChange, form, responses, enduser, ...props }: FormInputProps<'Insurance'>) => JSX.Element;
 export declare const TimeInput: ({ field, value, onChange, ...props }: FormInputProps<'string'>) => JSX.Element;
 export declare const AddressInput: ({ field, form, value, onChange, ...props }: FormInputProps<'Address'>) => JSX.Element;
 export declare const ESignatureTerms: () => JSX.Element;
@@ -52,8 +52,13 @@ export declare const Progress: ({ numerator, denominator, style }: {
     denominator: number;
 } & Styled) => JSX.Element;
 export declare const DropdownInput: ({ field, value, onChange }: FormInputProps<'Dropdown'>) => JSX.Element;
-export declare const DatabaseSelectInput: ({ field, value: _value, onChange, onDatabaseSelect, responses, size, disabled }: FormInputProps<"Database Select"> & {
+export interface AddToDatabaseProps {
+    databaseId: string;
+    onAdd: (record: DatabaseRecord) => void;
+}
+export declare const DatabaseSelectInput: ({ AddToDatabase, field, value: _value, onChange, onDatabaseSelect, responses, size, disabled }: FormInputProps<"Database Select"> & {
     responses: FormResponseValue[];
+    AddToDatabase?: React.JSXElementConstructor<AddToDatabaseProps> | undefined;
 }) => JSX.Element;
 export declare const CanvasMedicationsInput: ({ field, value, onChange }: FormInputProps<'Medications'>) => JSX.Element;
 export declare const MedicationsInput: ({ field, value, onChange, ...props }: FormInputProps<'Medications'>) => JSX.Element;

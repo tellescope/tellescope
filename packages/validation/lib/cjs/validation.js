@@ -1545,7 +1545,7 @@ exports.formResponseAnswerValidator = (0, exports.orValidator)({
         value: (0, exports.objectValidator)({
             feet: exports.numberValidatorOptional,
             inches: exports.numberValidatorOptional,
-        }),
+        }, { emptyOk: true, isOptional: true }),
     }),
     "Appointment Booking": (0, exports.objectValidator)({
         type: (0, exports.exactMatchValidator)(['Appointment Booking']),
@@ -1967,6 +1967,7 @@ var _AUTOMATION_EVENTS = {
     formsUnsubmitted: '',
     ticketCompleted: '',
     waitForTrigger: '',
+    onCallOutcome: '',
 };
 exports.AUTOMATION_EVENTS = Object.keys(_AUTOMATION_EVENTS);
 exports.automationEventTypeValidator = (0, exports.exactMatchValidator)(exports.AUTOMATION_EVENTS);
@@ -2017,6 +2018,7 @@ var _AUTOMATION_ACTIONS = {
     cancelCurrentEvent: '',
     confirmCurrentEvent: '',
     athenaSync: '',
+    outboundCall: '',
 };
 exports.AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS);
 exports.automationActionTypeValidator = (0, exports.exactMatchValidator)(exports.AUTOMATION_ACTIONS);
@@ -2149,6 +2151,13 @@ exports.automationEventValidator = (0, exports.orValidator)({
         info: (0, exports.objectValidator)({
             automationStepId: exports.mongoIdStringRequired,
             triggerId: exports.mongoIdStringRequired,
+        }, { emptyOk: false }),
+    }),
+    onCallOutcome: (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['onCallOutcome']),
+        info: (0, exports.objectValidator)({
+            automationStepId: exports.mongoIdStringRequired,
+            outcome: exports.stringValidator,
         }, { emptyOk: false }),
     }),
 });
@@ -2389,6 +2398,8 @@ exports.automationActionValidator = (0, exports.orValidator)({
             url: exports.stringValidator20000ptional,
             fields: exports.labeledFieldsValidator,
             secret: exports.stringValidatorOptional,
+            method: exports.stringValidatorOptional,
+            headers: exports.labeledFieldsValidator,
         }, { emptyOk: false }),
     }),
     setEnduserFields: (0, exports.objectValidator)({
@@ -2654,6 +2665,13 @@ exports.automationActionValidator = (0, exports.orValidator)({
         type: (0, exports.exactMatchValidator)(['confirmCurrentEvent']),
         info: (0, exports.objectValidator)({}, { emptyOk: true, isOptional: true }),
     }),
+    outboundCall: (0, exports.objectValidator)({
+        continueOnError: exports.booleanValidatorOptional,
+        type: (0, exports.exactMatchValidator)(['outboundCall']),
+        info: (0, exports.objectValidator)({
+            treeId: exports.mongoIdStringRequired,
+        }, { emptyOk: false }),
+    }),
 });
 exports.journeyContextValidator = (0, exports.objectValidator)({
     calendarEventId: exports.mongoIdStringOptional,
@@ -2785,6 +2803,7 @@ exports.organizationThemeValidator = (0, exports.objectValidator)({
     requireCustomTermsOnMagicLink: exports.booleanValidatorOptional,
     customPolicies: exports.customPoliciesValidator,
     hasConnectedVital: exports.booleanValidatorOptional,
+    brandId: exports.mongoIdStringOptional,
 });
 var _MANAGED_CONTENT_RECORD_TYPES = {
     Article: '',
@@ -2965,6 +2984,7 @@ exports.formFieldOptionsValidator = (0, exports.objectValidator)({
     elationIsAllergy: exports.booleanValidatorOptional,
     elationAppendToNote: exports.booleanValidatorOptional,
     elationAppendToNotePrefix: exports.stringValidatorOptionalEmptyOkay,
+    allowAddToDatabase: exports.booleanValidatorOptional,
 });
 exports.blockValidator = (0, exports.orValidator)({
     h1: (0, exports.objectValidator)({
@@ -5082,6 +5102,9 @@ exports.phoneTreeActionValidator = (0, exports.orValidator)({
         info: (0, exports.objectValidator)({
             playback: exports.phonePlaybackValidator,
             journeyId: exports.mongoIdStringOptional,
+            cancelAppointment: exports.booleanValidatorOptional,
+            confirmAppointment: exports.booleanValidatorOptional,
+            outcome: exports.stringValidatorOptionalEmptyOkay,
         }),
     }),
     "Dial Users": (0, exports.objectValidator)({

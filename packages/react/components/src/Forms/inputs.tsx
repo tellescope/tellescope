@@ -532,10 +532,10 @@ export const NumberInput = ({ field, value, onChange, form, ...props }: FormInpu
   )
 }
 
-export const InsuranceInput = ({ field, value, onChange, form, responses, enduser, ...props }: FormInputProps<'Insurance'>) => {
+export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form, responses, enduser, ...props }: FormInputProps<'Insurance'>) => {
   const session = useResolvedSession()
 
-  const [payers, setPayers] = useState<{ id: string, name: string, type?: string, state?: string }[]>([])
+  const [payers, setPayers] = useState<{ id: string, name: string, databaseRecord?: DatabaseRecord, type?: string, state?: string }[]>([])
   const [query, setQuery] = useState('')
 
   const addressQuestion = useMemo(() => responses?.find(r => {
@@ -567,6 +567,7 @@ export const InsuranceInput = ({ field, value, onChange, form, responses, enduse
         name: c.values.find(v => v.label?.trim()?.toLowerCase() === 'name')?.value?.toString() || '',
         state: c.values.find(v => v.label?.trim()?.toLowerCase() === 'state')?.value?.toString() || '',
         type: c.values.find(v => v.label?.trim()?.toLowerCase() === 'type')?.value?.toString() || '',
+        databaseRecord: c,
       }))
       .filter(c => !c.state || !state || (c.state === state))
     ))
@@ -612,6 +613,11 @@ export const InsuranceInput = ({ field, value, onChange, form, responses, enduse
             ? (e, v) => { if (v) { setQuery(v) } }
             : (e, v) => {
               if (v) { setQuery(v) }
+
+              const databaseRecord = payers.find(p => p.name === v)?.databaseRecord
+              if (databaseRecord) {
+                onDatabaseSelect?.([databaseRecord])
+              }
 
               onChange({ 
                 ...value, 
@@ -1864,7 +1870,18 @@ const useDatabaseChoices = ({ databaseId='', field, otherAnswers } : { databaseI
     })
   }, [session, field, databaseId, renderCount])
 
+  const addChoice = useCallback((record: DatabaseRecord) => {
+    if (!choicesForDatabase[databaseId]) {
+      choicesForDatabase[databaseId] = { 
+        done: false,
+        records: [],
+      }
+    }
+    choicesForDatabase[databaseId].records!.push(record)
+  }, [choicesForDatabase, databaseId])
+
   return {
+    addChoice,
     doneLoading: choicesForDatabase[databaseId]?.done ?? false,
     choices: [
       ...choicesForDatabase[databaseId]?.records ?? [],
@@ -1915,11 +1932,17 @@ const get_other_answers = (_value?: DatabaseSelectResponse[], typing?: string) =
   return []
 }
 
-export const DatabaseSelectInput = ({ field, value: _value, onChange, onDatabaseSelect, responses, size, disabled }: FormInputProps<'Database Select'> & {
+export interface AddToDatabaseProps {
+  databaseId: string,
+  onAdd: (record: DatabaseRecord) => void
+}
+
+export const DatabaseSelectInput = ({ AddToDatabase, field, value: _value, onChange, onDatabaseSelect, responses, size, disabled }: FormInputProps<'Database Select'> & {
   responses: FormResponseValue[],
+  AddToDatabase?: React.JSXElementConstructor<AddToDatabaseProps>,
 }) => {
   const [typing, setTyping] = useState('')
-  const { choices, doneLoading } = useDatabaseChoices({ 
+  const { addChoice, choices, doneLoading } = useDatabaseChoices({ 
     databaseId: field.options?.databaseId,
     field,
     otherAnswers: get_other_answers(_value, field?.options?.other ? typing : undefined),
@@ -2010,6 +2033,7 @@ export const DatabaseSelectInput = ({ field, value: _value, onChange, onDatabase
 
   if (!doneLoading) return <LinearProgress />
   return (
+    <>
     <Autocomplete id={field.id} freeSolo={false} size={size}
       componentsProps={{ popper: { sx: { wordBreak: "break-word" } } } }
       options={filteredChoices} multiple={true}
@@ -2022,7 +2046,11 @@ export const DatabaseSelectInput = ({ field, value: _value, onChange, onDatabase
       disabled={disabled}
       onChange={(_, v) => {
         if (v.length && onDatabaseSelect) {
-          onDatabaseSelect(v)
+          onDatabaseSelect(
+            field.options?.radio
+              ? [v[v.length - 1]] // if radio, only last selected
+              : v
+          )
         }
         return onChange(
           (
@@ -2055,6 +2083,11 @@ export const DatabaseSelectInput = ({ field, value: _value, onChange, onDatabase
         ))
       }
     />
+
+    {AddToDatabase && field?.options?.allowAddToDatabase && (
+      <AddToDatabase databaseId={field.options?.databaseId!} onAdd={addChoice} />
+    )}
+    </>
   )
 }
 

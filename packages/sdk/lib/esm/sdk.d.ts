@@ -3536,6 +3536,9 @@ type Queries = {
     forms: {
         get_form_statistics: (args: extractFields<CustomActions['forms']['get_form_statistics']['parameters']>) => (Promise<extractFields<CustomActions['forms']['get_form_statistics']['returns']>>);
     };
+    phone_trees: {
+        start_outbound_call: (args: extractFields<CustomActions['phone_trees']['start_outbound_call']['parameters']>) => (Promise<extractFields<CustomActions['phone_trees']['start_outbound_call']['returns']>>);
+    };
     call_hold_queues: {
         answer_call: (args: extractFields<CustomActions['call_hold_queues']['answer_call']['parameters']>) => (Promise<extractFields<CustomActions['call_hold_queues']['answer_call']['returns']>>);
         get_details: (args: extractFields<CustomActions['call_hold_queues']['get_details']['parameters']>) => (Promise<extractFields<CustomActions['call_hold_queues']['get_details']['returns']>>);
