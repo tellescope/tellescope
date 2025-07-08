@@ -2139,6 +2139,42 @@ export var replace_tag_template_values_for_enduser = function (tags, enduser) { 
     }
     return t;
 })); };
+export var replace_purchase_template_values = function (s, purchase) {
+    var _a;
+    if (!purchase)
+        return s;
+    if (typeof s !== 'string')
+        return s; // e.g. Date value
+    var i = 0;
+    var start = 0;
+    var templates = [];
+    while (i < 100) {
+        i++;
+        start = s.indexOf('{{purchase.', start);
+        if (start === -1)
+            break;
+        var end = s.indexOf('}}', start);
+        if (end === -1)
+            break;
+        var match = s.substring(start, end + 2); // +2 accounts for '}}' 
+        templates.push({
+            match: match,
+            replacement: (match === '{{purchase.name}}' ? purchase.title
+                : match === '{{purchase.id}}' ? (((_a = purchase === null || purchase === void 0 ? void 0 : purchase._id) === null || _a === void 0 ? void 0 : _a.toString()) || (purchase === null || purchase === void 0 ? void 0 : purchase.id) || '')
+                    : match === '{{purchase.externalId}}' ? (purchase.externalId || '')
+                        : match === '{{purchase.source}}' ? (purchase.source || '')
+                            : match === '{{purchase.cost.amount}}' ? purchase.cost.amount.toString()
+                                : '')
+        });
+        start = end + 2;
+    }
+    var replaced = s.toString();
+    for (var _i = 0, templates_1 = templates; _i < templates_1.length; _i++) {
+        var _b = templates_1[_i], match = _b.match, replacement = _b.replacement;
+        replaced = replaced.replace(match, replacement);
+    }
+    return replaced;
+};
 export var replace_enduser_template_values = function (s, enduser) {
     if (!enduser)
         return s;
@@ -2163,8 +2199,8 @@ export var replace_enduser_template_values = function (s, enduser) {
         start = end + 2;
     }
     var replaced = s.toString();
-    for (var _i = 0, templates_1 = templates; _i < templates_1.length; _i++) {
-        var _a = templates_1[_i], match = _a.match, replacement = _a.replacement;
+    for (var _i = 0, templates_2 = templates; _i < templates_2.length; _i++) {
+        var _a = templates_2[_i], match = _a.match, replacement = _a.replacement;
         replaced = replaced.replace(match, replacement);
     }
     return replaced;

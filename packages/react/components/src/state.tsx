@@ -99,6 +99,7 @@ import {
   EnduserEligibilityResult,
   AgentRecord,
   Waitlist,
+  AIConversation,
 } from "@tellescope/types-client"
 
 import {
@@ -366,6 +367,7 @@ const integrationLogsSlice = createSliceForList<IntegrationLog, 'integration_log
 const enduserEligibilityResultsSlice = createSliceForList<EnduserEligibilityResult, 'enduser_eligibility_results'>('enduser_eligibility_results')
 const agentRecordsSlice = createSliceForList<AgentRecord, 'agent_records'>('agent_records')
 const waitlistsSlice = createSliceForList<Waitlist, 'waitlists'>('waitlists')
+const aiConversationsSlice = createSliceForList<AIConversation, 'ai_conversations'>('ai_conversations')
 
 const roleBasedAccessPermissionsSlice = createSliceForList<RoleBasedAccessPermission, 'role_based_access_permissions'>('role_based_access_permissions')
 
@@ -374,6 +376,7 @@ const userLogsSlice = createSliceForList<UserLog, 'user_logs'>('user_logs')
 
 export const sharedConfig = {
   reducer: { 
+    ai_conversations: aiConversationsSlice.reducer,
     agent_records: agentRecordsSlice.reducer,
     enduser_eligibility_results: enduserEligibilityResultsSlice.reducer,
     integration_logs: integrationLogsSlice.reducer,
@@ -1305,6 +1308,25 @@ export const useEnduserEligibilityResults = (options={} as HookOptions<EnduserEl
       addSome: session.api.enduser_eligibility_results.createSome,
       deleteOne: session.api.enduser_eligibility_results.deleteOne,
       updateOne: session.api.enduser_eligibility_results.updateOne,
+    },
+    { 
+      ...options,
+    },
+  )
+}
+
+export const useAIConversations = (options={} as HookOptions<AIConversation>) => {
+  const session = useSession()
+
+  return useListStateHook('ai_conversations', useTypedSelector(s => s.ai_conversations), session, aiConversationsSlice,
+    { 
+      loadQuery: session.api.ai_conversations.getSome,
+      findOne: session.api.ai_conversations.getOne,
+      findByIds: session.api.ai_conversations.getByIds,
+      addOne: session.api.ai_conversations.createOne,
+      addSome: session.api.ai_conversations.createSome,
+      deleteOne: session.api.ai_conversations.deleteOne,
+      updateOne: session.api.ai_conversations.updateOne,
     },
     { 
       ...options,

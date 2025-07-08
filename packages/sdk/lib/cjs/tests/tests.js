@@ -5152,40 +5152,170 @@ var set_fields_tests = function () { return __awaiter(void 0, void 0, void 0, fu
         }
     });
 }); };
+var fields_changed_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var t1, t2, t3, t4, e1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                (0, testing_1.log_header)("Automation Trigger Tests (Fields Changed)");
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        title: "Fname changed", status: 'Active',
+                        event: { type: 'Fields Changed', info: { fields: ['fname'] } },
+                        action: { type: 'Add Tags', info: { tags: ['1'] } }
+                    })];
+            case 1:
+                t1 = _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        title: "Fname and custom field changed", status: 'Active',
+                        event: { type: 'Fields Changed', info: { fields: ['fname', 'Custom1'] } },
+                        action: { type: 'Add Tags', info: { tags: ['2'] } }
+                    })];
+            case 2:
+                t2 = _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        title: "custom field changed", status: 'Active',
+                        event: { type: 'Fields Changed', info: { fields: ['Custom1'] } },
+                        action: { type: 'Add Tags', info: { tags: ['3'] } }
+                    })];
+            case 3:
+                t3 = _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        title: "Fname and custom fields changed", status: 'Active',
+                        event: { type: 'Fields Changed', info: { fields: ['fname', 'Custom1', 'Custom2'] } },
+                        action: { type: 'Add Tags', info: { tags: ['4'] } }
+                    })];
+            case 4:
+                t4 = _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({ fname: 'hi', fields: { Custom1: "c1", Custom2: 'c2' } })];
+            case 5:
+                e1 = _a.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
+            case 6:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, (0, testing_1.async_test)('No trigger on create', function () { return sdk.api.endusers.getOne(e1.id); }, { onResult: function (e) { var _a; return !((_a = e.tags) === null || _a === void 0 ? void 0 : _a.length); } })];
+            case 7:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.updateOne(e1.id, { lname: 'Trigger', fields: { Custom3: 'c3' } })];
+            case 8:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
+            case 9:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, (0, testing_1.async_test)('No trigger on unrelated fields', function () { return sdk.api.endusers.getOne(e1.id); }, { onResult: function (e) { var _a; return !((_a = e.tags) === null || _a === void 0 ? void 0 : _a.length); } })
+                    // changing fname should trigger t1
+                ];
+            case 10:
+                _a.sent();
+                // changing fname should trigger t1
+                return [4 /*yield*/, sdk.api.endusers.updateOne(e1.id, { fname: 'hello' })];
+            case 11:
+                // changing fname should trigger t1
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
+            case 12:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, (0, testing_1.async_test)('Trigger on fname change', function () { return sdk.api.endusers.getOne(e1.id); }, { onResult: function (e) { var _a; return ((_a = e.tags) === null || _a === void 0 ? void 0 : _a.length) === 1 && e.tags.includes('1'); } })
+                    // changing custom field should trigger t3
+                ];
+            case 13:
+                _a.sent();
+                // changing custom field should trigger t3
+                return [4 /*yield*/, sdk.api.endusers.updateOne(e1.id, { fields: { Custom1: 'changed' } })];
+            case 14:
+                // changing custom field should trigger t3
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
+            case 15:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, (0, testing_1.async_test)('Trigger on custom field change', function () { return sdk.api.endusers.getOne(e1.id); }, { onResult: function (e) { var _a; return ((_a = e.tags) === null || _a === void 0 ? void 0 : _a.length) === 2 && e.tags.includes('3') && e.tags.includes('1'); } })
+                    // changing fname and custom field should trigger t2
+                ];
+            case 16:
+                _a.sent();
+                // changing fname and custom field should trigger t2
+                return [4 /*yield*/, sdk.api.endusers.updateOne(e1.id, { fname: 'changed', fields: { Custom1: 'changed again' } })];
+            case 17:
+                // changing fname and custom field should trigger t2
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
+            case 18:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, (0, testing_1.async_test)('Trigger on fname and custom field change', function () { return sdk.api.endusers.getOne(e1.id); }, { onResult: function (e) { var _a; return ((_a = e.tags) === null || _a === void 0 ? void 0 : _a.length) === 3 && e.tags.includes('2') && e.tags.includes('3') && e.tags.includes('1'); } })
+                    // not changing one of them should not trigger t4
+                ];
+            case 19:
+                _a.sent();
+                // not changing one of them should not trigger t4
+                return [4 /*yield*/, sdk.api.endusers.updateOne(e1.id, { fname: 'changed again', fields: { Custom1: 'changed again', Custom2: 'changed' } })];
+            case 20:
+                // not changing one of them should not trigger t4
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
+            case 21:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, (0, testing_1.async_test)('No trigger on fname and custom fields change', function () { return sdk.api.endusers.getOne(e1.id); }, { onResult: function (e) { var _a; return ((_a = e.tags) === null || _a === void 0 ? void 0 : _a.length) === 3 && e.tags.includes('2') && e.tags.includes('3') && e.tags.includes('1'); } })
+                    // changing fname and custom fields should trigger t4
+                ];
+            case 22:
+                _a.sent();
+                // changing fname and custom fields should trigger t4
+                return [4 /*yield*/, sdk.api.endusers.updateOne(e1.id, { fname: 'changed4', fields: { Custom1: 'changed4', Custom2: 'changed4' } })];
+            case 23:
+                // changing fname and custom fields should trigger t4
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
+            case 24:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, (0, testing_1.async_test)('Trigger on fname and custom fields change', function () { return sdk.api.endusers.getOne(e1.id); }, { onResult: function (e) { var _a; return ((_a = e.tags) === null || _a === void 0 ? void 0 : _a.length) === 4 && e.tags.includes('4') && e.tags.includes('2') && e.tags.includes('3') && e.tags.includes('1'); } })];
+            case 25:
+                _a.sent();
+                return [2 /*return*/, Promise.all([
+                        sdk.api.endusers.deleteOne(e1.id),
+                        sdk.api.automation_triggers.deleteOne(t1.id),
+                        sdk.api.automation_triggers.deleteOne(t2.id),
+                        sdk.api.automation_triggers.deleteOne(t3.id),
+                        sdk.api.automation_triggers.deleteOne(t4.id),
+                    ])];
+        }
+    });
+}); };
 var automation_trigger_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 (0, testing_1.log_header)("Automation Trigger Tests");
-                return [4 /*yield*/, field_equals_trigger_tests()];
+                return [4 /*yield*/, fields_changed_tests()];
             case 1:
                 _a.sent();
-                return [4 /*yield*/, set_fields_tests()];
+                return [4 /*yield*/, field_equals_trigger_tests()];
             case 2:
                 _a.sent();
-                return [4 /*yield*/, assign_care_team_tests()];
+                return [4 /*yield*/, set_fields_tests()];
             case 3:
                 _a.sent();
-                return [4 /*yield*/, contact_created_tests()];
+                return [4 /*yield*/, assign_care_team_tests()];
             case 4:
                 _a.sent();
-                return [4 /*yield*/, appointment_cancelled_tests()];
+                return [4 /*yield*/, contact_created_tests()];
             case 5:
                 _a.sent();
-                return [4 /*yield*/, appointment_created_tests()];
+                return [4 /*yield*/, appointment_cancelled_tests()];
             case 6:
                 _a.sent();
-                return [4 /*yield*/, order_status_equals_tests()];
+                return [4 /*yield*/, appointment_created_tests()];
             case 7:
                 _a.sent();
-                return [4 /*yield*/, tag_added_tests()];
+                return [4 /*yield*/, order_status_equals_tests()];
             case 8:
                 _a.sent();
-                return [4 /*yield*/, order_created_tests()];
+                return [4 /*yield*/, tag_added_tests()];
             case 9:
                 _a.sent();
-                return [4 /*yield*/, formSubmittedTriggerTests()];
+                return [4 /*yield*/, order_created_tests()];
             case 10:
+                _a.sent();
+                return [4 /*yield*/, formSubmittedTriggerTests()];
+            case 11:
                 _a.sent();
                 return [2 /*return*/];
         }
@@ -9372,6 +9502,7 @@ var tests = {
     portal_brandings: NO_TEST,
     message_template_snippets: NO_TEST,
     integration_logs: NO_TEST,
+    ai_conversations: NO_TEST,
     waitlists: waitlist_tests,
 };
 var TRACK_OPEN_IMAGE = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", 'base64');

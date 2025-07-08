@@ -2239,6 +2239,7 @@ export var automationActionValidator = orValidator({
             assignment: senderAssignmentStrategyValidatorOptional,
             fromEmailOverride: emailValidatorOptional,
             sendToDestinationOfRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
+            ccRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
             hiddenFromTimeline: booleanValidatorOptional,
         }, { emptyOk: false }),
         continueOnError: booleanValidatorOptional,
@@ -2344,7 +2345,7 @@ export var automationActionValidator = orValidator({
         continueOnError: booleanValidatorOptional,
         type: exactMatchValidator(['sendWebhook']),
         info: objectValidator({
-            message: stringValidator5000,
+            message: stringValidator5000Optional,
             url: stringValidator20000ptional,
             fields: labeledFieldsValidator,
             secret: stringValidatorOptional,
@@ -2501,6 +2502,7 @@ export var automationActionValidator = orValidator({
             identifier: stringValidator100,
             includeCareTeam: booleanValidatorOptional,
             userIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+            sendToDestinationOfRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
         }),
     }),
     healthieSync: objectValidator({
@@ -3582,6 +3584,7 @@ export var organizationSettingsValidator = objectValidator({
     }, { isOptional: true, emptyOk: true, }),
     integrations: objectValidator({
         vitalLabOrderPhysicianOptional: booleanValidatorOptional,
+        athenaAppointmentSyncJITSeconds: numberValidatorOptional,
     }, { isOptional: true, emptyOk: true, }),
     interface: objectValidator({
         dontPersistSearches: booleanValidatorOptional,
@@ -3631,6 +3634,7 @@ var _AUTOMATION_TRIGGER_EVENT_TYPES = {
     "Appointment Completed": true,
     "Appointment Rescheduled": true,
     "Field Equals": true,
+    "Fields Changed": true,
     "Tag Added": true,
     "Contact Created": true,
     "No Recent Appointment": true,
@@ -3693,6 +3697,13 @@ export var automationTriggerEventValidator = orValidator({
         info: objectValidator({
             field: stringValidator1000,
             value: stringValidator1000,
+        }),
+        conditions: optionalEmptyObjectValidator,
+    }),
+    "Fields Changed": objectValidator({
+        type: exactMatchValidator(['Fields Changed']),
+        info: objectValidator({
+            fields: listOfStringsValidator,
         }),
         conditions: optionalEmptyObjectValidator,
     }),
@@ -4225,10 +4236,12 @@ export var accessPermissionsValidator = objectValidator({
     enduser_eligibility_results: accessPermissionValidator,
     agent_records: accessPermissionValidator,
     waitlists: accessPermissionValidator,
+    ai_conversations: accessPermissionValidator,
     // deprecated but for backwards compatibility
     apiKeys: accessPermissionValidator,
 });
 export var organizationLimitsValidator = objectValidator({
+    ai_conversations: accessPermissionValidator,
     suggested_contacts: accessPermissionValidator,
     message_template_snippets: accessPermissionValidator,
     webhook_logs: accessPermissionValidator,
@@ -4510,6 +4523,7 @@ export var analyticsQueryValidator = orValidator({
             Phone: booleanValidatorOptional,
             "Scheduled By": booleanValidatorOptional,
             alsoGroupByHost: booleanValidatorOptional,
+            "Cancel Reason": booleanValidatorOptional,
         }, { isOptional: true, emptyOk: true }),
         range: objectValidator({
             interval: exactMatchValidator(['Daily', 'Weekly', 'Monthly', 'Hourly']),

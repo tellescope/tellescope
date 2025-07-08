@@ -54,6 +54,10 @@ export interface APIQuery<N extends keyof ClientModelForName, T = ClientModelFor
     deleteOne: (id: string) => Promise<void>;
 }
 export declare const reload_record: <N extends keyof import("@tellescope/types-models").ModelForName>(r: {
+    ai_conversations: import("@tellescope/types-models").AIConversation & {
+        id: string;
+        createdAt: Date;
+    };
     waitlists: import("@tellescope/types-models").Waitlist & {
         id: string;
         createdAt: Date;
@@ -399,6 +403,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         createdAt: Date;
     };
 }[N], reload: (argument: string | ReadFilter<{
+    ai_conversations: import("@tellescope/types-models").AIConversation & {
+        id: string;
+        createdAt: Date;
+    };
     waitlists: import("@tellescope/types-models").Waitlist & {
         id: string;
         createdAt: Date;
@@ -744,6 +752,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         createdAt: Date;
     };
 }[N]>, mdbFilter?: any) => Promise<{
+    ai_conversations: import("@tellescope/types-models").AIConversation & {
+        id: string;
+        createdAt: Date;
+    };
     waitlists: import("@tellescope/types-models").Waitlist & {
         id: string;
         createdAt: Date;
@@ -1089,6 +1101,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         createdAt: Date;
     };
 }[N]>, onLoad: (loaded: {
+    ai_conversations: import("@tellescope/types-models").AIConversation & {
+        id: string;
+        createdAt: Date;
+    };
     waitlists: import("@tellescope/types-models").Waitlist & {
         id: string;
         createdAt: Date;
@@ -1434,6 +1450,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         createdAt: Date;
     };
 }[N]) => void) => Promise<{
+    ai_conversations: import("@tellescope/types-models").AIConversation & {
+        id: string;
+        createdAt: Date;
+    };
     waitlists: import("@tellescope/types-models").Waitlist & {
         id: string;
         createdAt: Date;
@@ -1780,6 +1800,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
     };
 }[N]>;
 export declare const defaultQueries: <N extends keyof import("@tellescope/types-models").ModelForName>(s: Session, n: keyof ClientModelForName_required) => APIQuery<N, {
+    ai_conversations: import("@tellescope/types-models").AIConversation & {
+        id: string;
+        createdAt: Date;
+    };
     waitlists: import("@tellescope/types-models").Waitlist & {
         id: string;
         createdAt: Date;
@@ -2125,6 +2149,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
 }[N], CreateFields<N, {
+    ai_conversations: import("@tellescope/types-models").AIConversation & {
+        id: string;
+        createdAt: Date;
+    };
     waitlists: import("@tellescope/types-models").Waitlist & {
         id: string;
         createdAt: Date;
@@ -2470,6 +2498,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
 }[N]>, Omit<Partial<{
+    ai_conversations: import("@tellescope/types-models").AIConversation & {
+        id: string;
+        createdAt: Date;
+    };
     waitlists: import("@tellescope/types-models").Waitlist & {
         id: string;
         createdAt: Date;
@@ -2815,6 +2847,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
 }[N]>, keyof {
+    ai_conversations: import("@tellescope/types-models").AIConversation_readonly & {
+        id: string;
+        createdAt: Date;
+    };
     waitlists: import("@tellescope/types-models").Waitlist_readonly & {
         id: string;
         createdAt: Date;
@@ -3160,6 +3196,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
 }[N] | keyof {
+    ai_conversations: import("@tellescope/types-models").AIConversation_updatesDisabled & {
+        id: string;
+        createdAt: Date;
+    };
     waitlists: import("@tellescope/types-models").Waitlist_updatesDisabled & {
         id: string;
         createdAt: Date;
@@ -3808,6 +3848,9 @@ type Queries = {
     background_errors: {
         mark_read: (args: extractFields<CustomActions['background_errors']['mark_read']['parameters']>) => (Promise<extractFields<CustomActions['background_errors']['mark_read']['returns']>>);
     };
+    ai_conversations: {
+        send_message: (args: extractFields<CustomActions['ai_conversations']['send_message']['parameters']>) => (Promise<extractFields<CustomActions['ai_conversations']['send_message']['returns']>>);
+    };
 };
 type UserInfo = User & {
     type: 'user';
@@ -3900,6 +3943,7 @@ export declare class Session extends SessionManager {
         allowedPaths?: string[] | undefined;
         requiresMFA?: boolean | undefined;
         users?: number | undefined;
+        ai_conversations?: number | undefined;
         waitlists?: number | undefined;
         agent_records?: number | undefined;
         enduser_eligibility_results?: number | undefined;
@@ -4050,6 +4094,7 @@ export declare class Session extends SessionManager {
         allowedPaths?: string[] | undefined;
         requiresMFA?: boolean | undefined;
         users?: number | undefined;
+        ai_conversations?: number | undefined;
         waitlists?: number | undefined;
         agent_records?: number | undefined;
         enduser_eligibility_results?: number | undefined;

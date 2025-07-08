@@ -111,6 +111,7 @@ var TellescopeFormContainerWithTheme = function (_a) {
     var _b;
     var children = _a.children, language = _a.language, onChangeLanguage = _a.onChangeLanguage, style = _a.style, hideBg = _a.hideBg, backgroundColor = _a.backgroundColor, hideLogo = _a.hideLogo, logoHeight = _a.logoHeight;
     var theme = (0, hooks_1.useOrganizationTheme)();
+    console.log('logoHeight', logoHeight);
     var formContent = ((0, jsx_runtime_1.jsxs)(index_1.Flex, __assign({ flex: 1, column: true }, { children: [hideLogo
                 ? null
                 : theme.logoURL
@@ -123,7 +124,10 @@ var TellescopeFormContainerWithTheme = function (_a) {
     return ((0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ flex: 1, alignItems: "center", justifyContent: "center", style: __assign({ backgroundColor: (_b = backgroundColor !== null && backgroundColor !== void 0 ? backgroundColor : theme.themeColor) !== null && _b !== void 0 ? _b : '#ffffff' }, style) }, { children: (0, jsx_runtime_1.jsx)(index_1.Paper, __assign({ flex: true, elevation: 3, style: { marginTop: 50, marginBottom: 50, padding: 20, maxWidth: 650, minWidth: 250, minHeight: 575 } }, { children: formContent })) })));
 };
 var LOGO_HEIGHT = 40;
-var TellescopeForm = function (props) { return ((0, jsx_runtime_1.jsx)(hooks_1.WithOrganizationTheme, { children: (0, jsx_runtime_1.jsx)(TellescopeFormWithContext, __assign({}, props)) })); };
+var TellescopeForm = function (props) {
+    var _a, _b;
+    return ((0, jsx_runtime_1.jsx)(hooks_1.WithOrganizationTheme, { children: (0, jsx_runtime_1.jsx)(TellescopeFormWithContext, __assign({}, props, { logoHeight: (props === null || props === void 0 ? void 0 : props.logoHeight) || ((_b = (_a = props === null || props === void 0 ? void 0 : props.form) === null || _a === void 0 ? void 0 : _a.customization) === null || _b === void 0 ? void 0 : _b.logoHeight) })) }));
+};
 exports.TellescopeForm = TellescopeForm;
 var QuestionForField = function (_a) {
     var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _s, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, _14, _15;
@@ -366,7 +370,7 @@ exports.ThanksMessage = ThanksMessage;
 var TellescopeFormWithContext = function (props) {
     var _a, _b, _c, _d;
     var theme = (0, hooks_1.useOrganizationTheme)();
-    return ((0, jsx_runtime_1.jsx)(exports.TellescopeFormContainer, __assign({ style: props.style, dontAddContext: true, hideBg: props.hideBg || ((_b = (_a = props.form) === null || _a === void 0 ? void 0 : _a.customization) === null || _b === void 0 ? void 0 : _b.hideBg), backgroundColor: props.backgroundColor, hideLogo: (_c = props === null || props === void 0 ? void 0 : props.customization) === null || _c === void 0 ? void 0 : _c.hideLogo }, { children: props.submitted
+    return ((0, jsx_runtime_1.jsx)(exports.TellescopeFormContainer, __assign({ style: props.style, dontAddContext: true, hideBg: props.hideBg || ((_b = (_a = props.form) === null || _a === void 0 ? void 0 : _a.customization) === null || _b === void 0 ? void 0 : _b.hideBg), logoHeight: props.logoHeight, backgroundColor: props.backgroundColor, hideLogo: (_c = props === null || props === void 0 ? void 0 : props.customization) === null || _c === void 0 ? void 0 : _c.hideLogo }, { children: props.submitted
             ? (0, jsx_runtime_1.jsx)(exports.ThanksMessage, __assign({}, props, { showRestartAtEnd: (_d = props === null || props === void 0 ? void 0 : props.customization) === null || _d === void 0 ? void 0 : _d.showRestartAtEnd }))
             : ((0, jsx_runtime_1.jsx)(exports.TellescopeSingleQuestionFlow, __assign({}, props, { theme: theme }))) })));
 };

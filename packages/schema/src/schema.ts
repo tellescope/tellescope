@@ -78,6 +78,8 @@ import {
   CanvasCreateNoteAutomationAction,
   StripeKeyDetail,
   EnduserDevice,
+  AIConversationMessage,
+  AICOnversationMessageContent,
 } from "@tellescope/types-models"
 
 import {
@@ -114,6 +116,7 @@ import {
   PhoneCall,
   TicketThreadComment,
   ChatRoom as ChatRoomClient,
+  AIConversation,
 } from "@tellescope/types-client"
 
 import {
@@ -1159,6 +1162,15 @@ export type CustomActions = {
   },
   phone_trees: {
     start_outbound_call: CustomAction<{ treeId: string, enduserId: string, journeyId: string, automationStepId: string, journeyContext?: JourneyContext }, { }>,
+  },
+  ai_conversations: {
+    send_message: CustomAction<{ 
+      message: string,
+      type?: string, // for starting a new conversation
+      prompt?: string, // included as system prompt
+      conversationId?: string, // for continuing an existing conversation
+      maxTokens?: number,
+    }, { ai_conversation: AIConversation }>,
   },
 } 
 
@@ -6384,10 +6396,10 @@ export const schema: SchemaV1 = build_schema({
           }
         },
         {
-          explanation: 'Subscription date and period cannot be updated',
+          explanation: 'Subscription date, period, and AI enablement cannot be updated',
           evaluate: (updated, lookup, session, type, options) => {
             if (type !== 'update') return // not updating
-            if (!(options.updates?.subscriptionExpiresAt || options.updates?.subscriptionPeriod || options.updates?.allowCreateSuborganizations || options.updates?.customPortalURLs || options.updates?.subdomains)) return // not changing
+            if (!(options.updates?.bedrockAIAllowed || options.updates?.subscriptionExpiresAt || options.updates?.subscriptionPeriod || options.updates?.allowCreateSuborganizations || options.updates?.customPortalURLs || options.updates?.subdomains)) return // not changing
 
             if (session.type === 'enduser') return "User only"
             if (!session.isa) return "Not allowed"
@@ -6516,6 +6528,8 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields, 
+      bedrockAIAllowed: { validator: booleanValidator }, // restricted to Telescope super admin only
+      creditCount: { validator: numberValidator, readonly: true },
       stripeKeyDetails: {
         validator: listValidatorOptionalOrEmptyOk(objectValidator<StripeKeyDetail>({
           key: stringValidator5000EmptyOkay,
@@ -8770,6 +8784,47 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
     }
   },
+  ai_conversations: {
+    info: { description: '' },
+    constraints: { unique: [], relationship: [], access: [] },
+    defaultActions: { read: {}, readMany: {} },
+    customActions: {
+      send_message: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Send Message',
+        path: '/ai-conversations/send-message',
+        description: "Sends a message to the AI conversation",
+        parameters: {
+          message: { validator: stringValidator25000, required: true },
+          type: { validator: stringValidator100 }, // only used on creation
+          maxTokens: { validator: positiveNumberValidator },
+          conversationId: { validator: mongoIdStringValidator },
+          prompt: { validator: stringValidator25000 },
+        },
+        returns: {
+          ai_conversation: { validator: 'ai_conversation' as any, required: true },
+        },
+      }
+    },
+    fields: {
+      ...BuiltInFields, 
+      type: { validator: stringValidator, required: true, examples: ['HTML Template Generation'] },
+      modelName: { validator: stringValidator, required: true, examples: ['Claude Sonnet 4'] },
+      messages: {
+        validator: listValidatorEmptyOk(objectValidator<AIConversationMessage>({
+          role: exactMatchValidator(['user', 'assistant']),
+          text: stringValidator25000,
+          timestamp: dateValidator,
+          tokens: nonNegNumberValidator,
+          content: listValidatorEmptyOk(objectValidator<AICOnversationMessageContent>({
+            type: exactMatchValidator(['text', 'image', 'file']),
+            text: stringValidatorOptional,
+          })),
+          userId: mongoIdStringOptional,
+        }))
+      }
+    }
+  }
   
 })
 

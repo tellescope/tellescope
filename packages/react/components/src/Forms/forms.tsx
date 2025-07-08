@@ -35,6 +35,7 @@ export const TellescopeFormContainer = ({ businessId, organizationIds, ...props 
 
 const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ children, language, onChangeLanguage, style, hideBg, backgroundColor, hideLogo, logoHeight }) => {
   const theme = useOrganizationTheme()
+  console.log('logoHeight',logoHeight)
 
   const formContent = (
     <Flex flex={1} column>
@@ -96,12 +97,13 @@ export interface TellescopeFormProps extends ReturnType<typeof useTellescopeForm
   enduser?: Partial<Enduser>,
   groupId?: string,
   groupInstance?: string,
+  logoHeight?: number,
 }
 
 const LOGO_HEIGHT = 40
 export const TellescopeForm = (props : TellescopeFormProps & Styled & { hideBg?: boolean, theme?: OrganizationTheme, inputStyle?: React.CSSProperties }) => (
   <WithOrganizationTheme>
-    <TellescopeFormWithContext {...props} /> 
+    <TellescopeFormWithContext {...props} logoHeight={props?.logoHeight || props?.form?.customization?.logoHeight} /> 
   </WithOrganizationTheme>
 )
 
@@ -697,6 +699,7 @@ const TellescopeFormWithContext: typeof TellescopeForm = (props) => {
   return (
     <TellescopeFormContainer style={props.style} dontAddContext 
       hideBg={props.hideBg || props.form?.customization?.hideBg} 
+      logoHeight={props.logoHeight}
       backgroundColor={props.backgroundColor}
       hideLogo={props?.customization?.hideLogo}
     >

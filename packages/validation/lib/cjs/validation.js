@@ -2289,6 +2289,7 @@ exports.automationActionValidator = (0, exports.orValidator)({
             assignment: exports.senderAssignmentStrategyValidatorOptional,
             fromEmailOverride: exports.emailValidatorOptional,
             sendToDestinationOfRelatedContactTypes: exports.listOfStringsValidatorOptionalOrEmptyOk,
+            ccRelatedContactTypes: exports.listOfStringsValidatorOptionalOrEmptyOk,
             hiddenFromTimeline: exports.booleanValidatorOptional,
         }, { emptyOk: false }),
         continueOnError: exports.booleanValidatorOptional,
@@ -2394,7 +2395,7 @@ exports.automationActionValidator = (0, exports.orValidator)({
         continueOnError: exports.booleanValidatorOptional,
         type: (0, exports.exactMatchValidator)(['sendWebhook']),
         info: (0, exports.objectValidator)({
-            message: exports.stringValidator5000,
+            message: exports.stringValidator5000Optional,
             url: exports.stringValidator20000ptional,
             fields: exports.labeledFieldsValidator,
             secret: exports.stringValidatorOptional,
@@ -2551,6 +2552,7 @@ exports.automationActionValidator = (0, exports.orValidator)({
             identifier: exports.stringValidator100,
             includeCareTeam: exports.booleanValidatorOptional,
             userIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
+            sendToDestinationOfRelatedContactTypes: exports.listOfStringsValidatorOptionalOrEmptyOk,
         }),
     }),
     healthieSync: (0, exports.objectValidator)({
@@ -3634,6 +3636,7 @@ exports.organizationSettingsValidator = (0, exports.objectValidator)({
     }, { isOptional: true, emptyOk: true, }),
     integrations: (0, exports.objectValidator)({
         vitalLabOrderPhysicianOptional: exports.booleanValidatorOptional,
+        athenaAppointmentSyncJITSeconds: exports.numberValidatorOptional,
     }, { isOptional: true, emptyOk: true, }),
     interface: (0, exports.objectValidator)({
         dontPersistSearches: exports.booleanValidatorOptional,
@@ -3683,6 +3686,7 @@ var _AUTOMATION_TRIGGER_EVENT_TYPES = {
     "Appointment Completed": true,
     "Appointment Rescheduled": true,
     "Field Equals": true,
+    "Fields Changed": true,
     "Tag Added": true,
     "Contact Created": true,
     "No Recent Appointment": true,
@@ -3745,6 +3749,13 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
         info: (0, exports.objectValidator)({
             field: exports.stringValidator1000,
             value: exports.stringValidator1000,
+        }),
+        conditions: exports.optionalEmptyObjectValidator,
+    }),
+    "Fields Changed": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['Fields Changed']),
+        info: (0, exports.objectValidator)({
+            fields: exports.listOfStringsValidator,
         }),
         conditions: exports.optionalEmptyObjectValidator,
     }),
@@ -4277,10 +4288,12 @@ exports.accessPermissionsValidator = (0, exports.objectValidator)({
     enduser_eligibility_results: exports.accessPermissionValidator,
     agent_records: exports.accessPermissionValidator,
     waitlists: exports.accessPermissionValidator,
+    ai_conversations: exports.accessPermissionValidator,
     // deprecated but for backwards compatibility
     apiKeys: exports.accessPermissionValidator,
 });
 exports.organizationLimitsValidator = (0, exports.objectValidator)({
+    ai_conversations: exports.accessPermissionValidator,
     suggested_contacts: exports.accessPermissionValidator,
     message_template_snippets: exports.accessPermissionValidator,
     webhook_logs: exports.accessPermissionValidator,
@@ -4562,6 +4575,7 @@ exports.analyticsQueryValidator = (0, exports.orValidator)({
             Phone: exports.booleanValidatorOptional,
             "Scheduled By": exports.booleanValidatorOptional,
             alsoGroupByHost: exports.booleanValidatorOptional,
+            "Cancel Reason": exports.booleanValidatorOptional,
         }, { isOptional: true, emptyOk: true }),
         range: (0, exports.objectValidator)({
             interval: (0, exports.exactMatchValidator)(['Daily', 'Weekly', 'Monthly', 'Hourly']),

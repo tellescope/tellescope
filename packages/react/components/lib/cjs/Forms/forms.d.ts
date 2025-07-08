@@ -35,6 +35,7 @@ export interface TellescopeFormProps extends ReturnType<typeof useTellescopeForm
     enduser?: Partial<Enduser>;
     groupId?: string;
     groupInstance?: string;
+    logoHeight?: number;
 }
 export declare const TellescopeForm: (props: TellescopeFormProps & Styled & {
     hideBg?: boolean;

@@ -535,7 +535,7 @@ export var useTellescopeForm = function (_a) {
     // placeholders for initial fields, reset when fields prop changes, since questions are now different (e.g. different form selected) 
     var fieldInitRef = useRef('');
     var initializeFields = useCallback(function () { return (fields.map(function (f) {
-        var _a, _b, _c, _d, _e, _g, _h, _j, _k, _l, _m, _o, _p, _q, _t, _u, _v, _w, _x;
+        var _a, _b, _c, _d, _e, _g, _h, _j, _k, _l, _m, _o, _p, _q, _t, _u, _v, _w;
         return ({
             fieldId: f.id,
             fieldTitle: f.title,
@@ -576,11 +576,10 @@ export var useTellescopeForm = function (_a) {
                                 : f.type === 'rating'
                                     ? ((((_u = f.options) === null || _u === void 0 ? void 0 : _u.default) && !isNaN(parseInt(f.options.default)))
                                         ? parseInt(f.options.default)
-                                        : f.isOptional
-                                            ? undefined
-                                            : (((_v = f.options) === null || _v === void 0 ? void 0 : _v.from) || 1))
+                                        : undefined // shows no selection on slider
+                                    )
                                     : f.type === 'Related Contacts'
-                                        ? (f.isOptional ? [] : [{ relationships: ((_x = (_w = f === null || f === void 0 ? void 0 : f.options) === null || _w === void 0 ? void 0 : _w.relatedContactTypes) === null || _x === void 0 ? void 0 : _x.length) === 1 ? [{ type: f.options.relatedContactTypes[0], id: '' }] : [] }])
+                                        ? (f.isOptional ? [] : [{ relationships: ((_w = (_v = f === null || f === void 0 ? void 0 : f.options) === null || _v === void 0 ? void 0 : _v.relatedContactTypes) === null || _w === void 0 ? void 0 : _w.length) === 1 ? [{ type: f.options.relatedContactTypes[0], id: '' }] : [] }])
                                         : '' // null flag that the response was not filled out
                 )),
             },

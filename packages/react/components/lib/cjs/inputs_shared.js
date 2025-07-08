@@ -97,6 +97,7 @@ var utilities_1 = require("@tellescope/utilities");
 var constants_1 = require("@tellescope/constants");
 var hooks_1 = require("./hooks");
 var _1 = require(".");
+var validation_1 = require("@tellescope/validation");
 var enduser_condition_to_mongodb_filter = function (condition, customFields) {
     var _a, _b;
     if (!condition) {
@@ -846,7 +847,30 @@ var EnduserSearch = function (props) {
     // only wait when users have ALL_ACCESS to ensures users can actually load
     if (((_c = (_b = (_a = session.userInfo) === null || _a === void 0 ? void 0 : _a.access) === null || _b === void 0 ? void 0 : _b.users) === null || _c === void 0 ? void 0 : _c.read) === constants_1.ALL_ACCESS && !(0, _1.value_is_loaded)(usersLoading))
         return null;
-    return ((0, jsx_runtime_1.jsx)(exports.ModelSearchInput, __assign({ filterKey: "endusers" }, props, { searchAPI: session.api.endusers.getSome, onLoad: addLocalElements, attachSearchableFields: function (t) {
+    return ((0, jsx_runtime_1.jsx)(exports.ModelSearchInput, __assign({ filterKey: "endusers" }, props, { searchAPI: function (_a) {
+            var search = _a.search;
+            return __awaiter(void 0, void 0, void 0, function () {
+                var phone, err_1;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0:
+                            _b.trys.push([0, 3, , 4]);
+                            phone = validation_1.phoneValidator.validate()(search.query);
+                            if (!phone) return [3 /*break*/, 2];
+                            return [4 /*yield*/, Promise.all([
+                                    session.api.endusers.getSome({ filter: { phone: phone } }),
+                                    session.api.endusers.getSome({ search: search }),
+                                ])];
+                        case 1: return [2 /*return*/, (_b.sent()).flatMap(function (v) { return v; })];
+                        case 2: return [3 /*break*/, 4];
+                        case 3:
+                            err_1 = _b.sent();
+                            return [3 /*break*/, 4];
+                        case 4: return [2 /*return*/, session.api.endusers.getSome({ search: search })];
+                    }
+                });
+            });
+        }, onLoad: addLocalElements, attachSearchableFields: function (t) {
             var _a;
             var users = (_a = t.assignedTo) === null || _a === void 0 ? void 0 : _a.map(function (userId) { return findUser(userId, { batch: true }); }).filter(function (u) { return u; });
             if (!(users === null || users === void 0 ? void 0 : users.length))

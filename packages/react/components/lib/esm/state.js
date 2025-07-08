@@ -283,11 +283,13 @@ var integrationLogsSlice = createSliceForList('integration_logs');
 var enduserEligibilityResultsSlice = createSliceForList('enduser_eligibility_results');
 var agentRecordsSlice = createSliceForList('agent_records');
 var waitlistsSlice = createSliceForList('waitlists');
+var aiConversationsSlice = createSliceForList('ai_conversations');
 var roleBasedAccessPermissionsSlice = createSliceForList('role_based_access_permissions');
 var calendarEventRSVPsSlice = createSliceForList('calendar_event_rsvps');
 var userLogsSlice = createSliceForList('user_logs');
 export var sharedConfig = {
     reducer: {
+        ai_conversations: aiConversationsSlice.reducer,
         agent_records: agentRecordsSlice.reducer,
         enduser_eligibility_results: enduserEligibilityResultsSlice.reducer,
         integration_logs: integrationLogsSlice.reducer,
@@ -1128,6 +1130,19 @@ export var useEnduserEligibilityResults = function (options) {
         addSome: session.api.enduser_eligibility_results.createSome,
         deleteOne: session.api.enduser_eligibility_results.deleteOne,
         updateOne: session.api.enduser_eligibility_results.updateOne,
+    }, __assign({}, options));
+};
+export var useAIConversations = function (options) {
+    if (options === void 0) { options = {}; }
+    var session = useSession();
+    return useListStateHook('ai_conversations', useTypedSelector(function (s) { return s.ai_conversations; }), session, aiConversationsSlice, {
+        loadQuery: session.api.ai_conversations.getSome,
+        findOne: session.api.ai_conversations.getOne,
+        findByIds: session.api.ai_conversations.getByIds,
+        addOne: session.api.ai_conversations.createOne,
+        addSome: session.api.ai_conversations.createSome,
+        deleteOne: session.api.ai_conversations.deleteOne,
+        updateOne: session.api.ai_conversations.updateOne,
     }, __assign({}, options));
 };
 export var useAgentRecords = function (options) {

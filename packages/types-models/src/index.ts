@@ -260,6 +260,7 @@ export type OrganizationSettings = {
   },
   integrations?: {
     vitalLabOrderPhysicianOptional?: boolean,
+    athenaAppointmentSyncJITSeconds?: number,
   },
   interface?: {
     dontPersistSearches?: boolean,
@@ -328,6 +329,7 @@ export interface Organization_updatesDisabled {
   subdomain: string;
 }
 export interface Organization extends Organization_readonly, Organization_required, Organization_updatesDisabled {
+  bedrockAIAllowed?: boolean,
   subdomains?: string[],
   owner?: string,
   timezone?: Timezone,
@@ -435,6 +437,8 @@ export interface Organization extends Organization_readonly, Organization_requir
   customerIOFields?: string[],
   customerIOIdField?: string,
   createEnduserForms?: string[],
+  creditCount?: number,
+  creditTrialStartedAt?: Date,
   // _AIEnabled?: boolean,
 }
 export type OrganizationTheme = {
@@ -2855,7 +2859,7 @@ export type CreateTicketActionInfo = {
   disableEditTitle?: boolean,
 }
 
-export type SendEmailAutomationAction = AutomationActionBuilder<'sendEmail', AutomationForMessage & { fromEmailOverride?: string }>
+export type SendEmailAutomationAction = AutomationActionBuilder<'sendEmail', AutomationForMessage & { fromEmailOverride?: string, ccRelatedContactTypes?: string[], }>
 export type NotifyTeamAutomationAction = AutomationActionBuilder<'notifyTeam', {
   templateId: string,
   forAssigned: boolean,
@@ -2903,6 +2907,7 @@ export type SendChatAutomationAction = AutomationActionBuilder<'sendChat', {
   identifier: string, 
   includeCareTeam?: boolean,
   userIds?: string[], // for when not includeCareTeam
+  sendToDestinationOfRelatedContactTypes?: string[],
 }>
 export type HealthieSyncAutomationAction = AutomationActionBuilder<'healthieSync', {}>
 export type HealthieAddToCourseAutomationAction = AutomationActionBuilder<'healthieAddToCourse', { courseId: string }>
@@ -3603,6 +3608,7 @@ export type AnalyticsQueryGroupingForType = {
     Type: boolean,
     "Scheduled By"?: boolean,
     alsoGroupByHost?: boolean, // for further breaking down a grouping by host
+    "Cancel Reason"?: boolean,
   } & EnduserGrouping & { Enduser: string },
   "Form Responses": {
     "Submitted By"?: boolean,
@@ -3961,6 +3967,7 @@ export type AutomationTriggerEvents = {
   'Subscription Payment Failed': AutomationTriggerEventBuilder<"Subscription Payment Failed", { }, {}>,
   'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", { titles?: string[], templateIds?: string[] }, { }>,
   'Field Equals': AutomationTriggerEventBuilder<"Field Equals", { field: string, value: string }, { }>,
+  'Fields Changed': AutomationTriggerEventBuilder<"Fields Changed", { fields: string[] }, { }>,
   'Tag Added': AutomationTriggerEventBuilder<"Tag Added", { tag: string }, { }>,
   'Contact Created': AutomationTriggerEventBuilder<"Contact Created", { entityTypes?: string[] }, { }>,
   'Appointment Created': AutomationTriggerEventBuilder<"Appointment Created", { titles?: string[], templateIds?: string[], excludeTemplateIds?: string[] }, {}>,
@@ -4635,7 +4642,29 @@ export interface Waitlist extends Waitlist_readonly, Waitlist_required, Waitlist
   tags?: string[],
 }
 
+export type AICOnversationMessageContent = {
+  type: 'text' | 'image' | 'file',
+  text?: string,
+}
+export type AIConversationMessage = {
+  role: 'user' | 'assistant',
+  text: string,
+  timestamp: Date,
+  tokens: number,
+  content?: AICOnversationMessageContent[],
+  userId?: string, // for user messages
+}
+export interface AIConversation_readonly extends ClientRecord {}
+export interface AIConversation_required {
+  type: string,
+  modelName: string,
+  messages: AIConversationMessage[],
+}
+export interface AIConversation_updatesDisabled {}
+export interface AIConversation extends AIConversation_readonly, AIConversation_required, AIConversation_updatesDisabled {}
+
 export type ModelForName_required = {
+  ai_conversations: AIConversation_required,
   waitlists: Waitlist_required,
   agent_records: AgentRecord_required,
   enduser_eligibility_results: EnduserEligibilityResult_required,
@@ -4726,6 +4755,7 @@ export type ModelForName_required = {
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required]
 
 export interface ModelForName_readonly {
+  ai_conversations: AIConversation_readonly,
   waitlists: Waitlist_readonly,
   agent_records: AgentRecord_readonly,
   enduser_eligibility_results: EnduserEligibilityResult_readonly,
@@ -4816,6 +4846,7 @@ export interface ModelForName_readonly {
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly]
 
 export interface ModelForName_updatesDisabled {
+  ai_conversations: AIConversation_updatesDisabled,
   waitlists: Waitlist_updatesDisabled,
   agent_records: AgentRecord_updatesDisabled,
   enduser_eligibility_results: EnduserEligibilityResult_updatesDisabled,
@@ -4906,6 +4937,7 @@ export interface ModelForName_updatesDisabled {
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled]
 
 export interface ModelForName extends ModelForName_required, ModelForName_readonly { 
+  ai_conversations: AIConversation,
   waitlists: Waitlist,
   agent_records: AgentRecord,
   enduser_eligibility_results: EnduserEligibilityResult,
@@ -5006,6 +5038,7 @@ export interface UserActivityInfo {
 export type UserActivityStatus = 'Active' | 'Away' | 'Unavailable'
 
 export const modelNameChecker: { [K in ModelName] : true } = {
+  ai_conversations: true,
   waitlists: true,
   agent_records: true,
   enduser_eligibility_results: true,

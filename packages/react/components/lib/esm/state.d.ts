@@ -7,6 +7,10 @@ import { LoadFunction, Session, EnduserSession } from '@tellescope/sdk';
 import { ReadFilter, SortBy } from '@tellescope/types-models';
 export declare const resetStateAction: import("@reduxjs/toolkit").ActionCreatorWithoutPayload<"cache/reset">;
 export declare const TellescopeStoreContext: React.Context<ReactReduxContextValue<import("@reduxjs/toolkit").ThunkDispatch<{
+    ai_conversations: LoadedData<(import("@tellescope/types-models").AIConversation & {
+        id: string;
+        createdAt: Date;
+    })[]>;
     agent_records: LoadedData<(import("@tellescope/types-models").AgentRecord & {
         id: string;
         createdAt: Date;
@@ -343,6 +347,10 @@ export declare const TellescopeStoreContext: React.Context<ReactReduxContextValu
     })[]>;
 }, undefined, import("redux").AnyAction> & import("redux").Dispatch<import("redux").AnyAction>, import("redux").AnyAction>>;
 export declare const createTellescopeSelector: () => <Selected extends unknown>(selector: (state: import("@reduxjs/toolkit").ThunkDispatch<{
+    ai_conversations: LoadedData<(import("@tellescope/types-models").AIConversation & {
+        id: string;
+        createdAt: Date;
+    })[]>;
     agent_records: LoadedData<(import("@tellescope/types-models").AgentRecord & {
         id: string;
         createdAt: Date;
@@ -782,6 +790,10 @@ export type ChatRoomDisplayInfo = {
 };
 export declare const sharedConfig: {
     reducer: {
+        ai_conversations: import("redux").Reducer<LoadedData<(import("@tellescope/types-models").AIConversation & {
+            id: string;
+            createdAt: Date;
+        })[]>, import("redux").AnyAction>;
         agent_records: import("redux").Reducer<LoadedData<(import("@tellescope/types-models").AgentRecord & {
             id: string;
             createdAt: Date;
@@ -1168,13 +1180,7 @@ export declare const useDataSync____internal: () => {
     setLoadTiming: (key: string, loadTimeInMS: number) => void;
     setHandler: (key: string, handler: undefined | (() => void)) => void;
     removeHandler: (key: string, handler: () => void) => void;
-    getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").FormField & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Form & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").DatabaseRecord & {
+    getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").File & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Enduser & {
@@ -1183,7 +1189,7 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").User & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").Product & {
+    }) | (import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AgentRecord & {
@@ -1246,13 +1252,16 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").Meeting & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").File & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").Note & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").MessageTemplate & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Form & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").FormField & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").FormResponse & {
@@ -1300,6 +1309,9 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").Database & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").DatabaseRecord & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").PortalCustomization & {
         id: string;
         createdAt: Date;
@@ -1316,6 +1328,9 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AppointmentLocation & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Product & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Purchase & {
@@ -1428,13 +1443,7 @@ export declare const useDataSync____internal: () => {
         createdAt: Date;
     }))[];
     getDeleted: <T_1 extends string>(modelName: T_1) => string[];
-    popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").FormField & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Form & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").DatabaseRecord & {
+    popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").File & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Enduser & {
@@ -1443,7 +1452,7 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").User & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").Product & {
+    }) | (import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AgentRecord & {
@@ -1506,13 +1515,16 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").Meeting & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").File & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").Note & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").MessageTemplate & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Form & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").FormField & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").FormResponse & {
@@ -1560,6 +1572,9 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").Database & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").DatabaseRecord & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").PortalCustomization & {
         id: string;
         createdAt: Date;
@@ -1576,6 +1591,9 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AppointmentLocation & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Product & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Purchase & {
@@ -1696,13 +1714,7 @@ export declare const useSyncContext: () => {
     setLoadTiming: (key: string, loadTimeInMS: number) => void;
     setHandler: (key: string, handler: undefined | (() => void)) => void;
     removeHandler: (key: string, handler: () => void) => void;
-    getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").FormField & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Form & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").DatabaseRecord & {
+    getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").File & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Enduser & {
@@ -1711,7 +1723,7 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").User & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").Product & {
+    }) | (import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AgentRecord & {
@@ -1774,13 +1786,16 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").Meeting & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").File & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").Note & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").MessageTemplate & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Form & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").FormField & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").FormResponse & {
@@ -1828,6 +1843,9 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").Database & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").DatabaseRecord & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").PortalCustomization & {
         id: string;
         createdAt: Date;
@@ -1844,6 +1862,9 @@ export declare const useSyncContext: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AppointmentLocation & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Product & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Purchase & {
@@ -1956,13 +1977,7 @@ export declare const useSyncContext: () => {
         createdAt: Date;
     }))[];
     getDeleted: <T_1 extends string>(modelName: T_1) => string[];
-    popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").FormField & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Form & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").DatabaseRecord & {
+    popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").File & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Enduser & {
@@ -1971,7 +1986,7 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").User & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").Product & {
+    }) | (import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AgentRecord & {
@@ -2034,13 +2049,16 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").Meeting & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").File & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").Note & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").MessageTemplate & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Form & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").FormField & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").FormResponse & {
@@ -2088,6 +2106,9 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").Database & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").DatabaseRecord & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").PortalCustomization & {
         id: string;
         createdAt: Date;
@@ -2104,6 +2125,9 @@ export declare const useSyncContext: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AppointmentLocation & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Product & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Purchase & {
@@ -2301,6 +2325,19 @@ export declare const useEnduserEligibilityResults: (options?: HookOptions<import
     id: string;
     createdAt: Date;
 }, import("@tellescope/types-client").CreateFields<"enduser_eligibility_results", import("@tellescope/types-models").EnduserEligibilityResult & {
+    id: string;
+    createdAt: Date;
+}> & {
+    sharedWithOrganizations?: string[][] | undefined;
+    _overrideUnique?: boolean | undefined;
+}>;
+export declare const useAIConversations: (options?: HookOptions<import("@tellescope/types-models").AIConversation & {
+    id: string;
+    createdAt: Date;
+}>) => ListStateReturnType<import("@tellescope/types-models").AIConversation & {
+    id: string;
+    createdAt: Date;
+}, import("@tellescope/types-client").CreateFields<"ai_conversations", import("@tellescope/types-models").AIConversation & {
     id: string;
     createdAt: Date;
 }> & {

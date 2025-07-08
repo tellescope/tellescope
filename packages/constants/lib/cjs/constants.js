@@ -229,6 +229,7 @@ exports.READ_ONLY_DEFAULT = {
     delete: exports.NO_ACCESS,
 };
 exports.PROVIDER_PERMISSIONS = {
+    ai_conversations: exports.ASSIGNED_AND_DEFAULT_ACCESS,
     waitlists: exports.READ_ONLY_ALL,
     agent_records: exports.READ_ONLY_ALL,
     integration_logs: exports.READ_ONLY_ALL,
@@ -373,6 +374,7 @@ exports.PROVIDER_PERMISSIONS = {
     },
 };
 exports.ADMIN_PERMISSIONS = {
+    ai_conversations: exports.FULL_ACCESS,
     waitlists: exports.FULL_ACCESS,
     integration_logs: exports.READ_ONLY_ALL,
     agent_records: exports.FULL_ACCESS,

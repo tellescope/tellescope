@@ -59,6 +59,7 @@ export var DIAGNOSIS_TYPE_MAPPING = {
     "LOI": "LOINC<190>",
 };
 export var modelNameChecker = {
+    ai_conversations: true,
     waitlists: true,
     agent_records: true,
     enduser_eligibility_results: true,

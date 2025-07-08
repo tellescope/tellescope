@@ -242,6 +242,7 @@ export const READ_ONLY_DEFAULT: AccessForResource = {
 }
 
 export const PROVIDER_PERMISSIONS: AccessPermissions = {
+  ai_conversations: ASSIGNED_AND_DEFAULT_ACCESS,
   waitlists: READ_ONLY_ALL,
   agent_records: READ_ONLY_ALL,
   integration_logs: READ_ONLY_ALL,
@@ -408,6 +409,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
 }
 
 export const ADMIN_PERMISSIONS: AccessPermissions = {
+  ai_conversations: FULL_ACCESS,
   waitlists: FULL_ACCESS,
   integration_logs: READ_ONLY_ALL,
   agent_records: FULL_ACCESS,

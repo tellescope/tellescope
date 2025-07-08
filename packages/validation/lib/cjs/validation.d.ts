@@ -422,6 +422,7 @@ export declare const UnitOfTimeValidator: ValidatorDefinition<UnitOfTime>;
 export declare const WebhookSubscriptionValidator: ValidatorDefinition<{
     journeys: CUDSubscription;
     files: CUDSubscription;
+    ai_conversations: CUDSubscription;
     waitlists: CUDSubscription;
     agent_records: CUDSubscription;
     enduser_eligibility_results: CUDSubscription;
@@ -1601,6 +1602,8 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Field Equals", {
     field: string;
     value: string;
+}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Fields Changed", {
+    fields: string[];
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Contact Created", {
     entityTypes?: string[] | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"No Recent Appointment", {
@@ -1832,6 +1835,7 @@ export declare const analyticsQueryValidator: ValidatorDefinition<{
         Type: boolean;
         "Scheduled By"?: boolean | undefined;
         alsoGroupByHost?: boolean | undefined;
+        "Cancel Reason"?: boolean | undefined;
     } & import("@tellescope/types-models").EnduserGrouping & {
         Enduser: string;
     }) | undefined;
@@ -2059,6 +2063,7 @@ export declare const analyticsQueriesValidatorOptional: ValidatorDefinition<({
         Type: boolean;
         "Scheduled By"?: boolean | undefined;
         alsoGroupByHost?: boolean | undefined;
+        "Cancel Reason"?: boolean | undefined;
     } & import("@tellescope/types-models").EnduserGrouping & {
         Enduser: string;
     }) | undefined;

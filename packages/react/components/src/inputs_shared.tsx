@@ -9,6 +9,7 @@ import { AgentRecord, AllergyCode, AppointmentBookingPage, AppointmentLocation, 
 import { Button, Checkbox, Flex, HoverPaper, LoadingButton, LoadingData, ScrollingList, SearchTextInput, Typography, useAgentRecords, useAllergyCodes, useAppointmentBookingPages, useAppointmentLocations, useAutomationTriggers, useCalendarEventTemplates, useCallHoldQueues, useChatRooms, useDatabaseRecords, useDatabases, useDiagnosisCodes, useEnduserCustomTypes, useEnduserOrders, useEndusers, useFaxLogs, useFiles, useFormGroups, useForms, useForums, useJourneys, useManagedContentRecords, useMessageTemplateSnippets, useNotifications, useOrganization, useOrganizations, usePrescriptionRoutes, useResolvedSession, useSession, useSuggestedContacts, useTemplates, useTicketQueues, useTickets, useUsers, useWaitlists, value_is_loaded } from "."
 import { SxProps } from "@mui/material"
 import { AccessPermissions, ListOfStringsWithQualifier } from "@tellescope/types-models"
+import { phoneValidator } from "@tellescope/validation"
 
 export type FilterV2 = Record<string, any>
 export type FiltersV2 = Record<string, FilterV2>
@@ -885,7 +886,22 @@ export const EnduserSearch = (props: Omit<GenericSearchProps<Enduser>, 'filterKe
   if (((session.userInfo as any)?.access as AccessPermissions)?.users?.read === ALL_ACCESS && !value_is_loaded(usersLoading)) return null
   return (
     <ModelSearchInput filterKey="endusers" {...props} 
-      searchAPI={session.api.endusers.getSome}
+      searchAPI={async ({ search }) => {
+        // handle case of formatted phone number in search bar by parsing to standard phone format and searching explicitly by phone
+        // in this case, also search by generic search term in case user is intending to search by something else (e.g. externalId)
+        try {
+          const phone = phoneValidator.validate()(search.query)
+          if (phone) {
+            return (
+              await Promise.all([
+                session.api.endusers.getSome({ filter: { phone }}),
+                session.api.endusers.getSome({ search }),
+              ])
+            ).flatMap(v => v)
+          }
+        } catch(err) {}
+        return session.api.endusers.getSome({ search })
+      }}
       onLoad={addLocalElements}
       attachSearchableFields={t => {
         const users = t.assignedTo?.map(userId => findUser(userId, { batch: true })).filter(u => u) as User[]

@@ -92,6 +92,7 @@ export type IntegrationLog = ClientModelForName['integration_logs']
 export type EnduserEligibilityResult = ClientModelForName['enduser_eligibility_results']
 export type AgentRecord = ClientModelForName['agent_records']
 export type Waitlist = ClientModelForName['waitlists']
+export type AIConversation = ClientModelForName['ai_conversations']
 
 export type Forum = ClientModelForName['forums']
 export type ForumPost = ClientModelForName['forum_posts']

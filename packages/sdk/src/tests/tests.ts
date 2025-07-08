@@ -4172,9 +4172,104 @@ const set_fields_tests = async () => {
   ])
 }
 
+const fields_changed_tests = async () => {
+  log_header("Automation Trigger Tests (Fields Changed)")
+
+  const t1 = await sdk.api.automation_triggers.createOne({
+    title: "Fname changed", status: 'Active',
+    event: { type: 'Fields Changed', info: { fields: ['fname'] } },
+    action: { type: 'Add Tags', info: { tags: ['1'] } }
+  })
+  const t2 = await sdk.api.automation_triggers.createOne({
+    title: "Fname and custom field changed", status: 'Active',
+    event: { type: 'Fields Changed', info: { fields: ['fname', 'Custom1'] } },
+    action: { type: 'Add Tags', info: { tags: ['2'] } }
+  })
+  const t3 = await sdk.api.automation_triggers.createOne({
+    title: "custom field changed", status: 'Active',
+    event: { type: 'Fields Changed', info: { fields: ['Custom1'] } },
+    action: { type: 'Add Tags', info: { tags: ['3'] } }
+  })
+  const t4 = await sdk.api.automation_triggers.createOne({
+    title: "Fname and custom fields changed", status: 'Active',
+    event: { type: 'Fields Changed', info: { fields: ['fname', 'Custom1', 'Custom2'] } },
+    action: { type: 'Add Tags', info: { tags: ['4'] } }
+  })
+
+  const e1 = await sdk.api.endusers.createOne({ fname: 'hi', fields: { Custom1: "c1", Custom2: 'c2' } })
+  await wait (undefined, 500) // allow triggers to happen
+  await async_test(
+    'No trigger on create',
+    () => sdk.api.endusers.getOne(e1.id),
+    { onResult: e => !e.tags?.length },
+  )
+
+  await sdk.api.endusers.updateOne(e1.id, { lname: 'Trigger', fields: { Custom3: 'c3' } })
+  await wait (undefined, 500) // allow triggers to happen
+  await async_test(
+    'No trigger on unrelated fields',
+    () => sdk.api.endusers.getOne(e1.id),
+    { onResult: e => !e.tags?.length },
+  )
+
+  // changing fname should trigger t1
+  await sdk.api.endusers.updateOne(e1.id, { fname: 'hello' })
+  await wait (undefined, 500) // allow triggers to happen
+  await async_test(
+    'Trigger on fname change',
+    () => sdk.api.endusers.getOne(e1.id),
+    { onResult: e => e.tags?.length === 1 && e.tags.includes('1') },
+  )
+
+  // changing custom field should trigger t3
+  await sdk.api.endusers.updateOne(e1.id, { fields: { Custom1: 'changed' } })
+  await wait (undefined, 500) // allow triggers to happen
+  await async_test(
+    'Trigger on custom field change',
+    () => sdk.api.endusers.getOne(e1.id),
+    { onResult: e => e.tags?.length === 2 && e.tags.includes('3') && e.tags.includes('1') },
+  ) 
+
+  // changing fname and custom field should trigger t2
+  await sdk.api.endusers.updateOne(e1.id, { fname: 'changed', fields: { Custom1: 'changed again' } })
+  await wait (undefined, 500) // allow triggers to happen
+  await async_test(
+    'Trigger on fname and custom field change',
+    () => sdk.api.endusers.getOne(e1.id),
+    { onResult: e => e.tags?.length === 3 && e.tags.includes('2') && e.tags.includes('3') && e.tags.includes('1') },
+  )
+
+  // not changing one of them should not trigger t4
+  await sdk.api.endusers.updateOne(e1.id, { fname: 'changed again', fields: { Custom1: 'changed again', Custom2: 'changed' } })
+  await wait (undefined, 500) // allow triggers to happen
+  await async_test(
+    'No trigger on fname and custom fields change',
+    () => sdk.api.endusers.getOne(e1.id),
+    { onResult: e => e.tags?.length === 3 && e.tags.includes('2') && e.tags.includes('3') && e.tags.includes('1') },
+  )
+
+  // changing fname and custom fields should trigger t4
+  await sdk.api.endusers.updateOne(e1.id, { fname: 'changed4', fields: { Custom1: 'changed4', Custom2: 'changed4' } })
+  await wait (undefined, 500) // allow triggers to happen
+  await async_test(
+    'Trigger on fname and custom fields change',
+    () => sdk.api.endusers.getOne(e1.id),
+    { onResult: e => e.tags?.length === 4 && e.tags.includes('4') && e.tags.includes('2') && e.tags.includes('3') && e.tags.includes('1') },
+  )
+  
+  return Promise.all([
+    sdk.api.endusers.deleteOne(e1.id),
+    sdk.api.automation_triggers.deleteOne(t1.id),
+    sdk.api.automation_triggers.deleteOne(t2.id),
+    sdk.api.automation_triggers.deleteOne(t3.id),
+    sdk.api.automation_triggers.deleteOne(t4.id),
+  ])
+}
+
 const automation_trigger_tests = async () => {
   log_header("Automation Trigger Tests")
 
+  await fields_changed_tests()
   await field_equals_trigger_tests()
   await set_fields_tests()
   await assign_care_team_tests()
@@ -7845,6 +7940,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   portal_brandings: NO_TEST,
   message_template_snippets: NO_TEST,
   integration_logs: NO_TEST,
+  ai_conversations: NO_TEST,
   waitlists: waitlist_tests,
 };
 

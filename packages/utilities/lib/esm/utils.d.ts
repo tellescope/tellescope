@@ -259,6 +259,7 @@ export declare const is_out_of_office: (blocks: Pick<AvailabilityBlock, 'dayOfWe
 export declare const get_utm_params: () => LabeledField[];
 export declare const append_current_utm_params: (targetURL: string) => string;
 export declare const replace_tag_template_values_for_enduser: (tags: string[], enduser: Omit<Enduser, 'id'>) => any[];
+export declare const replace_purchase_template_values: (s: string, purchase?: Omit<Purchase, 'id'> | null) => string;
 export declare const replace_enduser_template_values: (s: string, enduser?: Omit<Enduser, 'id'> | null) => string;
 export declare const display_time_for_seconds: (seconds?: number) => string;
 export declare const is_full_iso_string_heuristic: (d: string) => Date | undefined;

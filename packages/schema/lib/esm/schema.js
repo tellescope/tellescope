@@ -4364,12 +4364,12 @@ export var schema = build_schema({
                     }
                 },
                 {
-                    explanation: 'Subscription date and period cannot be updated',
+                    explanation: 'Subscription date, period, and AI enablement cannot be updated',
                     evaluate: function (updated, lookup, session, type, options) {
-                        var _a, _b, _c, _d, _e;
+                        var _a, _b, _c, _d, _e, _f;
                         if (type !== 'update')
                             return; // not updating
-                        if (!(((_a = options.updates) === null || _a === void 0 ? void 0 : _a.subscriptionExpiresAt) || ((_b = options.updates) === null || _b === void 0 ? void 0 : _b.subscriptionPeriod) || ((_c = options.updates) === null || _c === void 0 ? void 0 : _c.allowCreateSuborganizations) || ((_d = options.updates) === null || _d === void 0 ? void 0 : _d.customPortalURLs) || ((_e = options.updates) === null || _e === void 0 ? void 0 : _e.subdomains)))
+                        if (!(((_a = options.updates) === null || _a === void 0 ? void 0 : _a.bedrockAIAllowed) || ((_b = options.updates) === null || _b === void 0 ? void 0 : _b.subscriptionExpiresAt) || ((_c = options.updates) === null || _c === void 0 ? void 0 : _c.subscriptionPeriod) || ((_d = options.updates) === null || _d === void 0 ? void 0 : _d.allowCreateSuborganizations) || ((_e = options.updates) === null || _e === void 0 ? void 0 : _e.customPortalURLs) || ((_f = options.updates) === null || _f === void 0 ? void 0 : _f.subdomains)))
                             return; // not changing
                         if (session.type === 'enduser')
                             return "User only";
@@ -4498,7 +4498,7 @@ export var schema = build_schema({
                 }
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { stripeKeyDetails: {
+        fields: __assign(__assign({}, BuiltInFields), { bedrockAIAllowed: { validator: booleanValidator }, creditCount: { validator: numberValidator, readonly: true }, stripeKeyDetails: {
                 validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     key: stringValidator5000EmptyOkay,
                     title: stringValidator5000EmptyOkay,
@@ -6156,6 +6156,42 @@ export var schema = build_schema({
         },
         fields: __assign(__assign({}, BuiltInFields), { title: { validator: stringValidator, required: true, examples: ['Title'] }, journeyId: { validator: mongoIdStringValidator, required: true, examples: [PLACEHOLDER_ID] }, enduserIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay } })
     },
+    ai_conversations: {
+        info: { description: '' },
+        constraints: { unique: [], relationship: [], access: [] },
+        defaultActions: { read: {}, readMany: {} },
+        customActions: {
+            send_message: {
+                op: "custom", access: 'create', method: "post",
+                name: 'Send Message',
+                path: '/ai-conversations/send-message',
+                description: "Sends a message to the AI conversation",
+                parameters: {
+                    message: { validator: stringValidator25000, required: true },
+                    type: { validator: stringValidator100 },
+                    maxTokens: { validator: positiveNumberValidator },
+                    conversationId: { validator: mongoIdStringValidator },
+                    prompt: { validator: stringValidator25000 },
+                },
+                returns: {
+                    ai_conversation: { validator: 'ai_conversation', required: true },
+                },
+            }
+        },
+        fields: __assign(__assign({}, BuiltInFields), { type: { validator: stringValidator, required: true, examples: ['HTML Template Generation'] }, modelName: { validator: stringValidator, required: true, examples: ['Claude Sonnet 4'] }, messages: {
+                validator: listValidatorEmptyOk(objectValidator({
+                    role: exactMatchValidator(['user', 'assistant']),
+                    text: stringValidator25000,
+                    timestamp: dateValidator,
+                    tokens: nonNegNumberValidator,
+                    content: listValidatorEmptyOk(objectValidator({
+                        type: exactMatchValidator(['text', 'image', 'file']),
+                        text: stringValidatorOptional,
+                    })),
+                    userId: mongoIdStringOptional,
+                }))
+            } })
+    }
 });
 // export type SchemaType = typeof schema
 // export type SchemaV1 = SchemaType// & Schema
