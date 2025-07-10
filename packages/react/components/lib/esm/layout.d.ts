@@ -125,6 +125,10 @@ export interface ScrollingListProps<T extends {
         item: T;
         index: number;
     }>;
+    renderItem?: (p: {
+        item: T;
+        index: number;
+    }) => React.ReactElement;
     title?: React.ReactNode;
     header?: React.ReactNode;
     emptyText?: React.ReactNode;
@@ -151,7 +155,7 @@ export interface ScrollingListProps<T extends {
 }
 export declare const ScrollingList: <T extends {
     id: string | number;
-}>({ title, maxHeight, maxWidth, minHeight, titleStyle, items, emptyText, doneLoading, loadMore, Item, TitleComponent, titleActionsComponent, style, header, itemContainerStyle, virtualization, loadMoreOptions, initialScrollOffset, scrollRef, }: ScrollingListProps<T> & {
+}>({ title, maxHeight, maxWidth, minHeight, titleStyle, items, emptyText, doneLoading, loadMore, Item, renderItem, TitleComponent, titleActionsComponent, style, header, itemContainerStyle, virtualization, loadMoreOptions, initialScrollOffset, scrollRef, }: ScrollingListProps<T> & {
     noParentScroll?: boolean | undefined;
     initialScrollOffset?: number | undefined;
 }) => JSX.Element;

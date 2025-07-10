@@ -167,7 +167,7 @@ export var List = function (_a) {
 };
 export var ScrollingList = function (_a) {
     var _b, _c;
-    var title = _a.title, maxHeight = _a.maxHeight, maxWidth = _a.maxWidth, minHeight = _a.minHeight, titleStyle = _a.titleStyle, items = _a.items, emptyText = _a.emptyText, doneLoading = _a.doneLoading, loadMore = _a.loadMore, Item = _a.Item, TitleComponent = _a.TitleComponent, titleActionsComponent = _a.titleActionsComponent, style = _a.style, header = _a.header, itemContainerStyle = _a.itemContainerStyle, virtualization = _a.virtualization, loadMoreOptions = _a.loadMoreOptions, initialScrollOffset = _a.initialScrollOffset, scrollRef = _a.scrollRef;
+    var title = _a.title, maxHeight = _a.maxHeight, maxWidth = _a.maxWidth, minHeight = _a.minHeight, titleStyle = _a.titleStyle, items = _a.items, emptyText = _a.emptyText, doneLoading = _a.doneLoading, loadMore = _a.loadMore, Item = _a.Item, renderItem = _a.renderItem, TitleComponent = _a.TitleComponent, titleActionsComponent = _a.titleActionsComponent, style = _a.style, header = _a.header, itemContainerStyle = _a.itemContainerStyle, virtualization = _a.virtualization, loadMoreOptions = _a.loadMoreOptions, initialScrollOffset = _a.initialScrollOffset, scrollRef = _a.scrollRef;
     var width = usePageWidth();
     var fetchRef = useRef(0);
     var titleStyleWithDefaults = __assign({ fontSize: 20, fontWeight: 'bold', marginBottom: 3 }, titleStyle);
@@ -206,9 +206,9 @@ export var ScrollingList = function (_a) {
                                 loadMore(loadMoreOptions).catch(console.error).finally(function () { return setLoading(false); });
                             } }, { children: function (_a) {
                                 var data = _a.data, index = _a.index, style = _a.style;
-                                return (_jsxs("div", __assign({ style: style }, { children: [_jsx(Item, { item: data[index], index: index }, data[index].id), index === items.length - 1 && loadMore && !(doneLoading === null || doneLoading === void 0 ? void 0 : doneLoading()) &&
+                                return (_jsxs("div", __assign({ style: style }, { children: [renderItem ? renderItem({ item: data[index], index: index }) : _jsx(Item, { item: data[index], index: index }, data[index].id), index === items.length - 1 && loadMore && !(doneLoading === null || doneLoading === void 0 ? void 0 : doneLoading()) &&
                                             _jsx("div", __assign({ style: { textAlign: 'center' } }, { children: _jsx(LoadingButton, { submitText: "Load Older Data", submittingText: "Loading...", disabled: doneLoading === null || doneLoading === void 0 ? void 0 : doneLoading(), onClick: loadMore, variant: "outlined", style: { width: 200, textAlign: 'center', marginTop: 10 } }) }))] })));
-                            } }))) : (items.map(function (item, index) { return (_jsx(Item, { item: item, index: index }, item.id)); })), loading && _jsx(LinearProgress, { style: { position: 'relative', bottom: 3, minHeight: 7 } })] }))] })));
+                            } }))) : (items.map(function (item, index) { return (renderItem ? renderItem({ item: item, index: index }) : _jsx(Item, { item: item, index: index }, item.id)); })), loading && _jsx(LinearProgress, { style: { position: 'relative', bottom: 3, minHeight: 7 } })] }))] })));
 };
 var getListStyle = function (isDraggingOver) { return ({
 // background: isDraggingOver ? "#ffffff44" : undefined,

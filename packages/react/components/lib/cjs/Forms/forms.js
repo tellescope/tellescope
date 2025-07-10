@@ -109,9 +109,8 @@ var TellescopeFormContainer = function (_a) {
 exports.TellescopeFormContainer = TellescopeFormContainer;
 var TellescopeFormContainerWithTheme = function (_a) {
     var _b;
-    var children = _a.children, language = _a.language, onChangeLanguage = _a.onChangeLanguage, style = _a.style, hideBg = _a.hideBg, backgroundColor = _a.backgroundColor, hideLogo = _a.hideLogo, logoHeight = _a.logoHeight;
+    var _c = _a.paperMinHeight, paperMinHeight = _c === void 0 ? 575 : _c, children = _a.children, language = _a.language, onChangeLanguage = _a.onChangeLanguage, style = _a.style, hideBg = _a.hideBg, backgroundColor = _a.backgroundColor, hideLogo = _a.hideLogo, logoHeight = _a.logoHeight;
     var theme = (0, hooks_1.useOrganizationTheme)();
-    console.log('logoHeight', logoHeight);
     var formContent = ((0, jsx_runtime_1.jsxs)(index_1.Flex, __assign({ flex: 1, column: true }, { children: [hideLogo
                 ? null
                 : theme.logoURL
@@ -121,7 +120,7 @@ var TellescopeFormContainerWithTheme = function (_a) {
     if (hideBg) {
         return ((0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ flex: 1, alignItems: "center", justifyContent: "center", style: style }, { children: (0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ flex: 1, style: { padding: 20, maxWidth: 650, minWidth: 250, minHeight: 475 } }, { children: formContent })) })));
     }
-    return ((0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ flex: 1, alignItems: "center", justifyContent: "center", style: __assign({ backgroundColor: (_b = backgroundColor !== null && backgroundColor !== void 0 ? backgroundColor : theme.themeColor) !== null && _b !== void 0 ? _b : '#ffffff' }, style) }, { children: (0, jsx_runtime_1.jsx)(index_1.Paper, __assign({ flex: true, elevation: 3, style: { marginTop: 50, marginBottom: 50, padding: 20, maxWidth: 650, minWidth: 250, minHeight: 575 } }, { children: formContent })) })));
+    return ((0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ flex: 1, alignItems: "center", justifyContent: "center", style: __assign({ backgroundColor: (_b = backgroundColor !== null && backgroundColor !== void 0 ? backgroundColor : theme.themeColor) !== null && _b !== void 0 ? _b : '#ffffff' }, style) }, { children: (0, jsx_runtime_1.jsx)(index_1.Paper, __assign({ flex: true, elevation: 3, style: { marginTop: 50, marginBottom: 50, padding: 20, maxWidth: 650, minWidth: 250, minHeight: paperMinHeight } }, { children: formContent })) })));
 };
 var LOGO_HEIGHT = 40;
 var TellescopeForm = function (props) {

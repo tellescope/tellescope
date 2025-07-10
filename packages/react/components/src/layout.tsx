@@ -282,6 +282,7 @@ export type TitleComponentType = React.JSXElementConstructor<{ title?: React.Rea
 export interface ScrollingListProps <T extends { id: string | number }> extends Styled {
   items: T[],
   Item: React.JSXElementConstructor<{ item: T, index: number }>
+  renderItem?: (p: { item: T, index: number }) => React.ReactElement,
   title?: React.ReactNode,
   header?: React.ReactNode,
   emptyText?: React.ReactNode,
@@ -317,6 +318,7 @@ export const ScrollingList = <T extends { id: string | number }>({
   doneLoading,
   loadMore,
   Item,
+  renderItem,
   TitleComponent,
   titleActionsComponent,
   style,
@@ -410,7 +412,8 @@ export const ScrollingList = <T extends { id: string | number }>({
             >
               {({ data, index, style }) => (
                 <div style={style}>
-                  <Item key={data[index].id} item={data[index]} index={index} />
+                  {renderItem ? renderItem({ item: data[index], index }) : <Item key={data[index].id} item={data[index]} index={index} />}
+
                   {index === items.length -1 && loadMore && !doneLoading?.() &&
                     <div style={{ textAlign: 'center' }}>
                     <LoadingButton submitText="Load Older Data" submittingText="Loading..."
@@ -424,7 +427,7 @@ export const ScrollingList = <T extends { id: string | number }>({
             </FixedSizeList>
         ) : (
           items.map((item, index) => (
-            <Item key={item.id} item={item} index={index} />
+            renderItem ? renderItem({ item, index }) : <Item key={item.id} item={item} index={index} />
           ))
         )
       }

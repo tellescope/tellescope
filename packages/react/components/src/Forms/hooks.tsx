@@ -9,7 +9,7 @@ import { WithTheme, contact_is_valid, useAddGTMTag, useFileUpload, useFormFields
 import ReactGA from "react-ga4";
 
 import isEmail from "validator/lib/isEmail"
-import { append_current_utm_params, emit_gtm_event, field_can_autoadvance, getLocalTimezone, get_time_values, get_utm_params, is_object, object_is_empty, responses_satisfy_conditions, update_local_storage } from "@tellescope/utilities"
+import { append_current_utm_params, emit_gtm_event, field_can_autoadvance, getLocalTimezone, get_time_values, get_utm_params, is_object, object_is_empty, read_local_storage, responses_satisfy_conditions, update_local_storage } from "@tellescope/utilities"
 
 export const useFlattenedTree = (root?: FormFieldNode) => {
   const flat: FormField[] = []
@@ -1296,6 +1296,12 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
       }
       if (submitRedirectURL) {
         (window?.top ?? window).location.href = append_current_utm_params(submitRedirectURL);
+      }
+      if (form?.redirectToBookedAppointmentOnSubmit) {
+        const url = read_local_storage('tellescope_last_booking_page_join_link')
+        if (url) {
+          (window?.top ?? window).location.href = append_current_utm_params(url);
+        }
       }
     } catch(err: any) {
       console.error(err)

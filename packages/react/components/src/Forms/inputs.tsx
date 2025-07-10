@@ -4,7 +4,7 @@ import { Autocomplete, Box, Button, Checkbox, Chip, Divider, FormControl, FormCo
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
-import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, truncate_string, user_display_name } from "@tellescope/utilities"
+import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities"
 import { DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, TellescopeGender } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
@@ -2900,7 +2900,11 @@ export const AppointmentBookingInput = ({ formResponseId, field, value, onChange
       }
       if (m?.data?.type === 'Confirmation') {
         setConfirming(true)
-      } else {
+      } 
+      if (m?.data?.type === 'Join Link' && m?.data?.link) {
+        update_local_storage('tellescope_last_booking_page_join_link', m.data.link)
+      }
+      else {
         setConfirming(false)
       }
     }

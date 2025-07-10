@@ -20,6 +20,7 @@ export const TellescopeFormContainer = ({ businessId, organizationIds, ...props 
   logoHeight?: number,
   language?: string,
   onChangeLanguage?: (l: string) => void,
+  paperMinHeight?: React.CSSProperties['minHeight'],
 } & Styled) => {
   // if context already is provided, no need to duplicate
   if (props.dontAddContext) return (
@@ -33,9 +34,8 @@ export const TellescopeFormContainer = ({ businessId, organizationIds, ...props 
   )
 }
 
-const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ children, language, onChangeLanguage, style, hideBg, backgroundColor, hideLogo, logoHeight }) => {
+const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ paperMinHeight=575, children, language, onChangeLanguage, style, hideBg, backgroundColor, hideLogo, logoHeight }) => {
   const theme = useOrganizationTheme()
-  console.log('logoHeight',logoHeight)
 
   const formContent = (
     <Flex flex={1} column>
@@ -72,7 +72,7 @@ const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ chil
   }
   return (
     <Flex flex={1} alignItems="center" justifyContent="center" style={{ backgroundColor: backgroundColor ?? theme.themeColor ?? '#ffffff', ...style }}>
-    <Paper flex elevation={3} style={{ marginTop: 50, marginBottom: 50, padding: 20, maxWidth: 650, minWidth: 250, minHeight: 575 }}>
+    <Paper flex elevation={3} style={{ marginTop: 50, marginBottom: 50, padding: 20, maxWidth: 650, minWidth: 250, minHeight: paperMinHeight }}>
       {formContent}
     </Paper>
     </Flex>

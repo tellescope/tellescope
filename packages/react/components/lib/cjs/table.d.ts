@@ -179,7 +179,8 @@ export interface TableProps<T extends Item> extends WithTitle, WithHeader<T>, Wi
     columnResizeZIndex?: number;
     rowHeight?: number;
     headerHeight?: number;
+    onChangeColumnSorting?: (sorting: Sorting[]) => void;
 }
-export declare const Table: <T extends Item>({ items, emptyText, titleComponentHeight, emptyComponent, noPaper, pageOptions, style, horizontalPadding, elevation, headerFontSize, rowFontSize, onClick, onPress, loadMore, doneLoading, loadMoreOptions, filterCounts: _filterCounts, title, titleStyle, titleActionsComponent, TitleComponent, renderTitleComponent, fields, HeaderComponent, headerHeight, hover, hoveredColor, RowComponent, footerStyle, FooterComponent, rowHeight, selectable, selected, setSelected, allSelected, setAllSelected, allowUnselectItemsAfterSelectAll, noWrap, maxWidth, maxRowsHeight, memoryId, paginated: _paginated, onReorder, virtualization, onExport, sort, refreshFilterSuggestionsKey, minColumnWidth, columnResizeZIndex, }: TableProps<T> & Styled) => JSX.Element;
+export declare const Table: <T extends Item>({ items, emptyText, titleComponentHeight, emptyComponent, noPaper, pageOptions, style, horizontalPadding, elevation, headerFontSize, rowFontSize, onClick, onPress, loadMore, doneLoading, loadMoreOptions, filterCounts: _filterCounts, title, titleStyle, titleActionsComponent, TitleComponent, renderTitleComponent, fields, HeaderComponent, headerHeight, hover, hoveredColor, RowComponent, footerStyle, FooterComponent, rowHeight, selectable, selected, setSelected, allSelected, setAllSelected, allowUnselectItemsAfterSelectAll, noWrap, maxWidth, maxRowsHeight, memoryId, paginated: _paginated, onReorder, virtualization, onExport, sort, refreshFilterSuggestionsKey, minColumnWidth, columnResizeZIndex, onChangeColumnSorting, }: TableProps<T> & Styled) => JSX.Element;
 export {};
 //# sourceMappingURL=table.d.ts.map

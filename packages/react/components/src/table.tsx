@@ -769,6 +769,7 @@ export interface TableProps<T extends Item> extends WithTitle, WithHeader<T>, Wi
   columnResizeZIndex?: number,
   rowHeight?: number,
   headerHeight?: number,
+  onChangeColumnSorting?: (sorting: Sorting[]) => void,
 }
 export const Table = <T extends Item>({
   items,
@@ -827,6 +828,7 @@ export const Table = <T extends Item>({
   refreshFilterSuggestionsKey,
   minColumnWidth,
   columnResizeZIndex,
+  onChangeColumnSorting,
 }: TableProps<T> & Styled) => {
   const sortingStorageKey = (memoryId ?? '') + 'sorting'
   const cachedSortString = read_local_storage(sortingStorageKey)
@@ -883,10 +885,11 @@ export const Table = <T extends Item>({
   )
 
   useEffect(() => {
-    if (!memoryId) return
-    
+    onChangeColumnSorting?.(sorting)
+
+    if (!memoryId) return 
     update_local_storage(sortingStorageKey, JSON.stringify(sorting))
-  }, [sorting, memoryId])
+  }, [sorting, memoryId, onChangeColumnSorting])
 
   // sorts in place
   const applySorting = useCallback((items: T[]) => {

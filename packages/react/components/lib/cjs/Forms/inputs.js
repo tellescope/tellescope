@@ -1620,7 +1620,7 @@ var AppointmentBookingInput = function (_a) {
     }, [bookingPageId, loadBookingInfo, value]);
     (0, react_1.useEffect)(function () {
         var handleMessage = function (m) {
-            var _a, _b, _d, _e, _f, _g, _h;
+            var _a, _b, _d, _e, _f, _g, _h, _j, _k;
             // entropy to separate from other booking pages rendered on the same screen
             if (((_a = m === null || m === void 0 ? void 0 : m.data) === null || _a === void 0 ? void 0 : _a.type) === 'Booking Success'
                 && typeof ((_b = m === null || m === void 0 ? void 0 : m.data) === null || _b === void 0 ? void 0 : _b.bookedEventId) === 'string'
@@ -1636,6 +1636,9 @@ var AppointmentBookingInput = function (_a) {
             }
             if (((_h = m === null || m === void 0 ? void 0 : m.data) === null || _h === void 0 ? void 0 : _h.type) === 'Confirmation') {
                 setConfirming(true);
+            }
+            if (((_j = m === null || m === void 0 ? void 0 : m.data) === null || _j === void 0 ? void 0 : _j.type) === 'Join Link' && ((_k = m === null || m === void 0 ? void 0 : m.data) === null || _k === void 0 ? void 0 : _k.link)) {
+                (0, utilities_1.update_local_storage)('tellescope_last_booking_page_join_link', m.data.link);
             }
             else {
                 setConfirming(false);

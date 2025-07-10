@@ -208,7 +208,7 @@ var List = function (_a) {
 exports.List = List;
 var ScrollingList = function (_a) {
     var _b, _c;
-    var title = _a.title, maxHeight = _a.maxHeight, maxWidth = _a.maxWidth, minHeight = _a.minHeight, titleStyle = _a.titleStyle, items = _a.items, emptyText = _a.emptyText, doneLoading = _a.doneLoading, loadMore = _a.loadMore, Item = _a.Item, TitleComponent = _a.TitleComponent, titleActionsComponent = _a.titleActionsComponent, style = _a.style, header = _a.header, itemContainerStyle = _a.itemContainerStyle, virtualization = _a.virtualization, loadMoreOptions = _a.loadMoreOptions, initialScrollOffset = _a.initialScrollOffset, scrollRef = _a.scrollRef;
+    var title = _a.title, maxHeight = _a.maxHeight, maxWidth = _a.maxWidth, minHeight = _a.minHeight, titleStyle = _a.titleStyle, items = _a.items, emptyText = _a.emptyText, doneLoading = _a.doneLoading, loadMore = _a.loadMore, Item = _a.Item, renderItem = _a.renderItem, TitleComponent = _a.TitleComponent, titleActionsComponent = _a.titleActionsComponent, style = _a.style, header = _a.header, itemContainerStyle = _a.itemContainerStyle, virtualization = _a.virtualization, loadMoreOptions = _a.loadMoreOptions, initialScrollOffset = _a.initialScrollOffset, scrollRef = _a.scrollRef;
     var width = (0, CMS_1.usePageWidth)();
     var fetchRef = (0, react_1.useRef)(0);
     var titleStyleWithDefaults = __assign({ fontSize: 20, fontWeight: 'bold', marginBottom: 3 }, titleStyle);
@@ -247,9 +247,9 @@ var ScrollingList = function (_a) {
                                 loadMore(loadMoreOptions).catch(console.error).finally(function () { return setLoading(false); });
                             } }, { children: function (_a) {
                                 var data = _a.data, index = _a.index, style = _a.style;
-                                return ((0, jsx_runtime_1.jsxs)("div", __assign({ style: style }, { children: [(0, jsx_runtime_1.jsx)(Item, { item: data[index], index: index }, data[index].id), index === items.length - 1 && loadMore && !(doneLoading === null || doneLoading === void 0 ? void 0 : doneLoading()) &&
+                                return ((0, jsx_runtime_1.jsxs)("div", __assign({ style: style }, { children: [renderItem ? renderItem({ item: data[index], index: index }) : (0, jsx_runtime_1.jsx)(Item, { item: data[index], index: index }, data[index].id), index === items.length - 1 && loadMore && !(doneLoading === null || doneLoading === void 0 ? void 0 : doneLoading()) &&
                                             (0, jsx_runtime_1.jsx)("div", __assign({ style: { textAlign: 'center' } }, { children: (0, jsx_runtime_1.jsx)(_1.LoadingButton, { submitText: "Load Older Data", submittingText: "Loading...", disabled: doneLoading === null || doneLoading === void 0 ? void 0 : doneLoading(), onClick: loadMore, variant: "outlined", style: { width: 200, textAlign: 'center', marginTop: 10 } }) }))] })));
-                            } }))) : (items.map(function (item, index) { return ((0, jsx_runtime_1.jsx)(Item, { item: item, index: index }, item.id)); })), loading && (0, jsx_runtime_1.jsx)(mui_1.LinearProgress, { style: { position: 'relative', bottom: 3, minHeight: 7 } })] }))] })));
+                            } }))) : (items.map(function (item, index) { return (renderItem ? renderItem({ item: item, index: index }) : (0, jsx_runtime_1.jsx)(Item, { item: item, index: index }, item.id)); })), loading && (0, jsx_runtime_1.jsx)(mui_1.LinearProgress, { style: { position: 'relative', bottom: 3, minHeight: 7 } })] }))] })));
 };
 exports.ScrollingList = ScrollingList;
 var getListStyle = function (isDraggingOver) { return ({

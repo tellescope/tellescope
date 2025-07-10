@@ -4372,6 +4372,7 @@ export const schema: SchemaV1 = build_schema({
         initializer: () => 0,
         examples: [0],
       },
+      redirectToBookedAppointmentOnSubmit: { validator: booleanValidator },
       displayTitle: { validator: stringValidator1000 },
       description: { validator: stringValidator5000EmptyOkay },
       customGreeting: { validator: stringValidator5000 },
@@ -5335,6 +5336,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields, 
+      sendIcsEmail: { validator: booleanValidator },
       athenaDepartmentId: { validator: stringValidator1000 },
       generateAthenaTelehealthLink: { validator: booleanValidator },
       athenaTypeId: { validator: stringValidator1000 },
@@ -5492,6 +5494,7 @@ export const schema: SchemaV1 = build_schema({
     enduserActions: { read: {}, readMany: {} },
     fields: {
       ...BuiltInFields, 
+      sendIcsEmail: { validator: booleanValidator },
       createAndBookAthenaSlot: { validator: booleanValidator },
       athenaDepartmentId: { validator: stringValidator1000 },
       generateAthenaTelehealthLink: { validator: booleanValidator },

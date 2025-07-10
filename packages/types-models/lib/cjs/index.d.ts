@@ -1738,6 +1738,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
     ga4measurementId?: string;
     backgroundColor?: string;
     productIds?: string[];
+    redirectToBookedAppointmentOnSubmit?: boolean;
     submitRedirectURL?: string;
     publicFormIdRedirect?: string;
     publicShowLanguage?: boolean;
@@ -2342,6 +2343,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
     confirmedAt?: Date | '';
     preventRescheduleMinutesInAdvance?: number;
     preventCancelMinutesInAdvance?: number;
+    sendIcsEmail?: boolean;
 }
 export type PaymentProcessor = 'Square' | 'Stripe';
 export interface Product_readonly extends ClientRecord {
@@ -2429,6 +2431,7 @@ export interface CalendarEventTemplate_required {
 export interface CalendarEventTemplate_updatesDisabled {
 }
 export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, CalendarEventTemplate_required, CalendarEventTemplate_updatesDisabled {
+    sendIcsEmail?: boolean;
     createAndBookAthenaSlot?: boolean;
     dontSyncToCanvas?: boolean;
     archivedAt?: Date | '';

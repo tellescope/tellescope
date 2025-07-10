@@ -379,7 +379,7 @@ var Table = function (_a) {
     // description,
     _f = _a.TitleComponent, 
     // description,
-    TitleComponent = _f === void 0 ? exports.TableTitle : _f, renderTitleComponent = _a.renderTitleComponent, fields = _a.fields, _g = _a.HeaderComponent, HeaderComponent = _g === void 0 ? exports.TableHeader : _g, headerHeight = _a.headerHeight, hover = _a.hover, hoveredColor = _a.hoveredColor, _h = _a.RowComponent, RowComponent = _h === void 0 ? exports.TableRow : _h, _j = _a.footerStyle, footerStyle = _j === void 0 ? 'numbered' : _j, _k = _a.FooterComponent, FooterComponent = _k === void 0 ? footerStyle === 'numbered' ? exports.TableFooterNumbered : exports.TableFooter : _k, rowHeight = _a.rowHeight, selectable = _a.selectable, selected = _a.selected, setSelected = _a.setSelected, allSelected = _a.allSelected, setAllSelected = _a.setAllSelected, allowUnselectItemsAfterSelectAll = _a.allowUnselectItemsAfterSelectAll, noWrap = _a.noWrap, maxWidth = _a.maxWidth, maxRowsHeight = _a.maxRowsHeight, memoryId = _a.memoryId, _paginated = _a.paginated, onReorder = _a.onReorder, virtualization = _a.virtualization, onExport = _a.onExport, sort = _a.sort, refreshFilterSuggestionsKey = _a.refreshFilterSuggestionsKey, minColumnWidth = _a.minColumnWidth, columnResizeZIndex = _a.columnResizeZIndex;
+    TitleComponent = _f === void 0 ? exports.TableTitle : _f, renderTitleComponent = _a.renderTitleComponent, fields = _a.fields, _g = _a.HeaderComponent, HeaderComponent = _g === void 0 ? exports.TableHeader : _g, headerHeight = _a.headerHeight, hover = _a.hover, hoveredColor = _a.hoveredColor, _h = _a.RowComponent, RowComponent = _h === void 0 ? exports.TableRow : _h, _j = _a.footerStyle, footerStyle = _j === void 0 ? 'numbered' : _j, _k = _a.FooterComponent, FooterComponent = _k === void 0 ? footerStyle === 'numbered' ? exports.TableFooterNumbered : exports.TableFooter : _k, rowHeight = _a.rowHeight, selectable = _a.selectable, selected = _a.selected, setSelected = _a.setSelected, allSelected = _a.allSelected, setAllSelected = _a.setAllSelected, allowUnselectItemsAfterSelectAll = _a.allowUnselectItemsAfterSelectAll, noWrap = _a.noWrap, maxWidth = _a.maxWidth, maxRowsHeight = _a.maxRowsHeight, memoryId = _a.memoryId, _paginated = _a.paginated, onReorder = _a.onReorder, virtualization = _a.virtualization, onExport = _a.onExport, sort = _a.sort, refreshFilterSuggestionsKey = _a.refreshFilterSuggestionsKey, minColumnWidth = _a.minColumnWidth, columnResizeZIndex = _a.columnResizeZIndex, onChangeColumnSorting = _a.onChangeColumnSorting;
     var sortingStorageKey = (memoryId !== null && memoryId !== void 0 ? memoryId : '') + 'sorting';
     var cachedSortString = (0, utilities_1.read_local_storage)(sortingStorageKey);
     var localFilterStorageKey = (memoryId !== null && memoryId !== void 0 ? memoryId : '') + 'localfilter';
@@ -426,10 +426,11 @@ var Table = function (_a) {
         ? loadedSorting
         : []), sorting = _o[0], setSorting = _o[1];
     (0, react_1.useEffect)(function () {
+        onChangeColumnSorting === null || onChangeColumnSorting === void 0 ? void 0 : onChangeColumnSorting(sorting);
         if (!memoryId)
             return;
         (0, utilities_1.update_local_storage)(sortingStorageKey, JSON.stringify(sorting));
-    }, [sorting, memoryId]);
+    }, [sorting, memoryId, onChangeColumnSorting]);
     // sorts in place
     var applySorting = (0, react_1.useCallback)(function (items) {
         if (items.find(function (i) { return typeof i.index === 'number'; })) {
