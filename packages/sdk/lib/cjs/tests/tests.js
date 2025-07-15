@@ -5279,43 +5279,105 @@ var fields_changed_tests = function () { return __awaiter(void 0, void 0, void 0
         }
     });
 }); };
+var trigger_events_api_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var e, t1;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                (0, testing_1.log_header)("Automation Trigger Events API Tests");
+                return [4 /*yield*/, sdk.api.endusers.createOne({})];
+            case 1:
+                e = _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        title: "Trigger Events API Test",
+                        status: 'Active',
+                        event: { type: 'Field Equals', info: { field: 'does not matter', value: 'also does not matter' } },
+                        action: { type: 'Add Tags', info: { tags: ['Trigger Events API Test'] } }
+                    })];
+            case 2:
+                t1 = _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.trigger_events({
+                        triggers: [{
+                                automationTriggerId: t1.id,
+                                enduserId: e.id,
+                            }]
+                    })];
+            case 3:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
+            case 4:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, (0, testing_1.async_test)('Trigger event fired (real trigger)', function () { return sdk.api.endusers.getOne(e.id); }, { onResult: function (e) { var _a; return !!((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Trigger Events API Test')); } })];
+            case 5:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.trigger_events({
+                        triggers: [{
+                                automationTriggerId: constants_1.PLACEHOLDER_ID,
+                                enduserId: e.id,
+                                action: {
+                                    type: 'Add Tags',
+                                    info: { tags: ['Placeholder Action'] },
+                                }
+                            }]
+                    })];
+            case 6:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
+            case 7:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, (0, testing_1.async_test)('Trigger event fired (placeholder trigger)', function () { return sdk.api.endusers.getOne(e.id); }, { onResult: function (e) { var _a; return !!((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Placeholder Action')); } })];
+            case 8:
+                _a.sent();
+                return [4 /*yield*/, Promise.all([
+                        sdk.api.endusers.deleteOne(e.id),
+                        sdk.api.automation_triggers.deleteOne(t1.id),
+                    ])];
+            case 9:
+                _a.sent();
+                return [2 /*return*/];
+        }
+    });
+}); };
 var automation_trigger_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 (0, testing_1.log_header)("Automation Trigger Tests");
-                return [4 /*yield*/, fields_changed_tests()];
+                return [4 /*yield*/, trigger_events_api_tests()];
             case 1:
                 _a.sent();
-                return [4 /*yield*/, field_equals_trigger_tests()];
+                return [4 /*yield*/, fields_changed_tests()];
             case 2:
                 _a.sent();
-                return [4 /*yield*/, set_fields_tests()];
+                return [4 /*yield*/, field_equals_trigger_tests()];
             case 3:
                 _a.sent();
-                return [4 /*yield*/, assign_care_team_tests()];
+                return [4 /*yield*/, set_fields_tests()];
             case 4:
                 _a.sent();
-                return [4 /*yield*/, contact_created_tests()];
+                return [4 /*yield*/, assign_care_team_tests()];
             case 5:
                 _a.sent();
-                return [4 /*yield*/, appointment_cancelled_tests()];
+                return [4 /*yield*/, contact_created_tests()];
             case 6:
                 _a.sent();
-                return [4 /*yield*/, appointment_created_tests()];
+                return [4 /*yield*/, appointment_cancelled_tests()];
             case 7:
                 _a.sent();
-                return [4 /*yield*/, order_status_equals_tests()];
+                return [4 /*yield*/, appointment_created_tests()];
             case 8:
                 _a.sent();
-                return [4 /*yield*/, tag_added_tests()];
+                return [4 /*yield*/, order_status_equals_tests()];
             case 9:
                 _a.sent();
-                return [4 /*yield*/, order_created_tests()];
+                return [4 /*yield*/, tag_added_tests()];
             case 10:
                 _a.sent();
-                return [4 /*yield*/, formSubmittedTriggerTests()];
+                return [4 /*yield*/, order_created_tests()];
             case 11:
+                _a.sent();
+                return [4 /*yield*/, formSubmittedTriggerTests()];
+            case 12:
                 _a.sent();
                 return [2 /*return*/];
         }

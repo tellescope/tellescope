@@ -2019,6 +2019,9 @@ var _AUTOMATION_ACTIONS = {
     confirmCurrentEvent: '',
     athenaSync: '',
     outboundCall: '',
+    assignCareTeam: '',
+    removeCareTeam: '',
+    callUser: '',
 };
 exports.AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS);
 exports.automationActionTypeValidator = (0, exports.exactMatchValidator)(exports.AUTOMATION_ACTIONS);
@@ -2674,6 +2677,30 @@ exports.automationActionValidator = (0, exports.orValidator)({
             treeId: exports.mongoIdStringRequired,
         }, { emptyOk: false }),
     }),
+    assignCareTeam: (0, exports.objectValidator)({
+        continueOnError: exports.booleanValidatorOptional,
+        type: (0, exports.exactMatchValidator)(['assignCareTeam']),
+        info: (0, exports.objectValidator)({
+            tags: exports.listOfStringsWithQualifierValidator,
+            limitToOneUser: exports.booleanValidatorOptional,
+            setAsPrimary: exports.booleanValidatorOptional,
+        }, { emptyOk: false }) // at least tags is required
+    }),
+    removeCareTeam: (0, exports.objectValidator)({
+        continueOnError: exports.booleanValidatorOptional,
+        type: (0, exports.exactMatchValidator)(['removeCareTeam']),
+        info: (0, exports.objectValidator)({
+            tags: exports.listOfStringsWithQualifierValidator,
+        }, { emptyOk: false }) // at least tags is required
+    }),
+    callUser: (0, exports.objectValidator)({
+        continueOnError: exports.booleanValidatorOptional,
+        type: (0, exports.exactMatchValidator)(['callUser']),
+        info: (0, exports.objectValidator)({
+            message: exports.stringValidator25000,
+            routeBy: (0, exports.exactMatchValidator)(['Appointment Host']),
+        }, { emptyOk: false }) // at least tags is required
+    })
 });
 exports.journeyContextValidator = (0, exports.objectValidator)({
     calendarEventId: exports.mongoIdStringOptional,
@@ -3423,6 +3450,7 @@ var _CUSTOM_ENDUSER_FIELD_TYPES = {
     File: true,
     Number: true,
     Checkbox: true,
+    "Database Select": true,
 };
 exports.CUSTOM_ENDUSER_FIELD_TYPES = Object.keys(_CUSTOM_ENDUSER_FIELD_TYPES);
 exports.customEnduserFieldTypeValidator = (0, exports.exactMatchValidator)(exports.CUSTOM_ENDUSER_FIELD_TYPES);
@@ -3520,6 +3548,17 @@ exports.customEnduserFieldValidator = (0, exports.orValidator)({
     "Checkbox": (0, exports.objectValidator)({
         type: (0, exports.exactMatchValidator)(["Checkbox"]),
         info: exports.optionalEmptyObjectValidator,
+        field: exports.stringValidator,
+        required: exports.booleanValidatorOptional,
+        hiddenFromProfile: exports.booleanValidatorOptional,
+        requireConfirmation: exports.booleanValidatorOptional,
+    }),
+    "Database Select": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(["Database Select"]),
+        info: (0, exports.objectValidator)({
+            databaseId: exports.mongoIdStringRequired,
+            columns: exports.listOfStringsValidator,
+        }),
         field: exports.stringValidator,
         required: exports.booleanValidatorOptional,
         hiddenFromProfile: exports.booleanValidatorOptional,
@@ -4703,6 +4742,7 @@ exports.analyticsQueryValidator = (0, exports.orValidator)({
             direction: exports.stringValidatorOptional,
             templateIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
             subjects: exports.listOfStringsValidatorOptionalOrEmptyOk,
+            "Email Tags": exports.listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
         }, { isOptional: true, emptyOk: true }),
         info: (0, exports.orValidator)({
             "Total": (0, exports.objectValidator)({
@@ -4719,6 +4759,7 @@ exports.analyticsQueryValidator = (0, exports.orValidator)({
             Age: exports.booleanValidatorOptional,
             State: exports.booleanValidatorOptional,
             Phone: exports.booleanValidatorOptional,
+            "Email Tags": exports.booleanValidatorOptional,
         }, { isOptional: true, emptyOk: true }),
         range: (0, exports.objectValidator)({
             interval: (0, exports.exactMatchValidator)(['Daily', 'Weekly', 'Monthly', 'Hourly']),
@@ -4758,6 +4799,7 @@ exports.analyticsQueryValidator = (0, exports.orValidator)({
         filter: (0, exports.objectValidator)({
             direction: exports.stringValidatorOptional,
             messages: exports.listOfStringsValidatorOptionalOrEmptyOk,
+            "SMS Tags": exports.listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
         }, { isOptional: true, emptyOk: true }),
         info: (0, exports.orValidator)({
             "Total": (0, exports.objectValidator)({
@@ -4775,6 +4817,7 @@ exports.analyticsQueryValidator = (0, exports.orValidator)({
             Age: exports.booleanValidatorOptional,
             State: exports.booleanValidatorOptional,
             Phone: exports.booleanValidatorOptional,
+            "SMS Tags": exports.booleanValidatorOptional,
         }, { isOptional: true, emptyOk: true }),
         range: (0, exports.objectValidator)({
             interval: (0, exports.exactMatchValidator)(['Daily', 'Weekly', 'Monthly', 'Hourly']),

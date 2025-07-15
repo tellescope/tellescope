@@ -133,6 +133,10 @@ export type CustomEnduserFields = {
         columns: TableInputChoice[];
     }>;
     'Checkbox': BuildCustomEnduserField<'Checkbox', {}>;
+    "Database Select": BuildCustomEnduserField<'Database Select', {
+        databaseId: string;
+        columns: string[];
+    }>;
 };
 export type CustomEnduserFieldType = keyof CustomEnduserFields;
 export type CustomEnduserField = CustomEnduserFields[CustomEnduserFieldType];
@@ -1846,6 +1850,7 @@ export interface Integration extends Integration_readonly, Integration_required,
     requirePhoneToPushEnduser?: boolean;
     syncAsActive?: boolean;
     syncEnduserId?: boolean;
+    syncCareTeam?: boolean;
     shardId?: string;
 }
 export type BuildDatabaseRecordField<K extends string, V, O> = {
@@ -2971,6 +2976,12 @@ export type AutomationCondition = AtJourneyStateAutomationCondition;
 export type OutboundCallAutomationAction = AutomationActionBuilder<'outboundCall', {
     treeId: string;
 }>;
+export type RemoveCareTeamAutomationAction = AutomationActionBuilder<'removeCareTeam', AutomationTriggerActions['Remove Care Team']['info']>;
+export type AssignCareTeamAutomationAction = AutomationActionBuilder<'assignCareTeam', AutomationTriggerActions['Assign Care Team']['info']>;
+export type CallUserAutomationAction = AutomationActionBuilder<'callUser', {
+    message: string;
+    routeBy: "Appointment Host";
+}>;
 export type AutomationActionForType = {
     'outboundCall': OutboundCallAutomationAction;
     "sendEmail": SendEmailAutomationAction;
@@ -3019,6 +3030,9 @@ export type AutomationActionForType = {
     customerIOTrack: CustomerIOTrackAction;
     cancelCurrentEvent: CancelCurrentEventAction;
     confirmCurrentEvent: ConfirmCurrentEventAction;
+    removeCareTeam: RemoveCareTeamAutomationAction;
+    assignCareTeam: AssignCareTeamAutomationAction;
+    callUser: CallUserAutomationAction;
 };
 export type AutomationActionType = keyof AutomationActionForType;
 export type AutomationAction = AutomationActionForType[AutomationActionType];
@@ -3607,11 +3621,13 @@ export type AnalyticsQueryFilterForType = {
     "SMS Messages": {
         direction?: string;
         messages?: string[];
+        "SMS Tags"?: ListOfStringsWithQualifier;
     };
     Emails: {
         direction?: "Inbound" | "Outbound" | "Both";
         templateIds?: string[];
         subjects?: string[];
+        "Email Tags"?: ListOfStringsWithQualifier;
     };
     Medications: {};
     Files: {
@@ -3666,11 +3682,14 @@ export type AnalyticsQueryGroupingForType = {
         Enduser: string;
     };
     "SMS Messages": {
+        "SMS Tags"?: boolean;
         Score?: boolean;
     } & EnduserGrouping & {
         Enduser: string;
     };
-    "Emails": {} & EnduserGrouping & {
+    "Emails": {
+        "Email Tags"?: boolean;
+    } & EnduserGrouping & {
         Enduser: string;
     };
     "Medications": {} & EnduserGrouping & {

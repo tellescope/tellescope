@@ -831,7 +831,7 @@ export var schema = build_schema({
                         info: {}
                     }
                 ]
-            }, syncAsActive: { validator: booleanValidator }, requirePhoneToPushEnduser: { validator: booleanValidator }, lastSync: { validator: nonNegNumberValidator }, emailDisabled: { validator: booleanValidator }, syncUnrecognizedSenders: { validator: booleanValidator }, createEndusersForUnrecognizedSenders: { validator: booleanValidator }, calendars: { validator: listOfStringsValidatorOptionalOrEmptyOk }, environment: { validator: stringValidator100 }, webhooksSecret: { validator: stringValidator }, shouldCreateNotifications: { validator: booleanValidator }, disableEnduserAutoSync: { validator: booleanValidator }, disableTicketAutoSync: { validator: booleanValidator }, redactExternalEvents: { validator: booleanValidator }, syncEnduserFiles: { validator: booleanValidator }, pushCalendarDetails: { validator: booleanValidator }, defaultAttendeeId: { validator: mongoIdStringValidator }, sendEmailOnSync: { validator: booleanValidator }, enduserFieldMapping: { validator: fieldMappingsValidator }, default_dietitian_id: { validator: stringValidator100 }, dontPushCalendarEvent: { validator: booleanValidator }, dontPullCalendarEvent: { validator: booleanValidator }, pushAddedTags: { validator: booleanValidator }, pushRemovedTags: { validator: booleanValidator }, overwriteAddress: { validator: booleanValidator }, syncEnduserId: { validator: booleanValidator }, shardId: { validator: stringValidator100 } }),
+            }, syncCareTeam: { validator: booleanValidator }, syncAsActive: { validator: booleanValidator }, requirePhoneToPushEnduser: { validator: booleanValidator }, lastSync: { validator: nonNegNumberValidator }, emailDisabled: { validator: booleanValidator }, syncUnrecognizedSenders: { validator: booleanValidator }, createEndusersForUnrecognizedSenders: { validator: booleanValidator }, calendars: { validator: listOfStringsValidatorOptionalOrEmptyOk }, environment: { validator: stringValidator100 }, webhooksSecret: { validator: stringValidator }, shouldCreateNotifications: { validator: booleanValidator }, disableEnduserAutoSync: { validator: booleanValidator }, disableTicketAutoSync: { validator: booleanValidator }, redactExternalEvents: { validator: booleanValidator }, syncEnduserFiles: { validator: booleanValidator }, pushCalendarDetails: { validator: booleanValidator }, defaultAttendeeId: { validator: mongoIdStringValidator }, sendEmailOnSync: { validator: booleanValidator }, enduserFieldMapping: { validator: fieldMappingsValidator }, default_dietitian_id: { validator: stringValidator100 }, dontPushCalendarEvent: { validator: booleanValidator }, dontPullCalendarEvent: { validator: booleanValidator }, pushAddedTags: { validator: booleanValidator }, pushRemovedTags: { validator: booleanValidator }, overwriteAddress: { validator: booleanValidator }, syncEnduserId: { validator: booleanValidator }, shardId: { validator: stringValidator100 } }),
         customActions: {
             update_zoom: {
                 adminOnly: true,
@@ -2026,6 +2026,17 @@ export var schema = build_schema({
                 returns: {
                     userIds: { validator: listOfMongoIdStringValidator, required: true },
                 },
+            },
+            play_phone_message: {
+                op: "custom", access: 'create', method: "post",
+                name: 'Play Phone Message',
+                path: '/users/play-phone-message',
+                description: "Calls the user and plays a recorded message",
+                parameters: {
+                    userId: { validator: mongoIdStringValidator, required: true },
+                    message: { validator: stringValidator5000, required: true },
+                },
+                returns: {},
             },
         },
         publicActions: {
@@ -5308,6 +5319,7 @@ export var schema = build_schema({
                 parameters: {
                     triggers: {
                         validator: listValidator(objectValidator({
+                            action: objectAnyFieldsAnyValuesValidator,
                             automationTriggerId: mongoIdStringRequired,
                             enduserId: mongoIdStringRequired,
                             journeyContext: optionalAnyObjectValidator,

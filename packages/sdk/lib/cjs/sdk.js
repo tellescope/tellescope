@@ -476,6 +476,7 @@ var Session = /** @class */ (function (_super) {
         queries.users.consent = function (a) { return _this._PATCH("/v1/".concat(schema_1.schema.users.customActions.consent.path), a); };
         queries.users.get_engagement_report = function (a) { return _this._GET("/v1/".concat(schema_1.schema.users.customActions.get_engagement_report.path), a); };
         queries.users.get_users_for_groups = function (a) { return _this._GET("/v1/".concat(schema_1.schema.users.customActions.get_users_for_groups.path), a); };
+        queries.users.play_phone_message = function (a) { return _this._POST("/v1/".concat(schema_1.schema.users.customActions.play_phone_message.path), a); };
         queries.users.configure_MFA = function (a) { return _this._POST("/v1/".concat(schema_1.schema.users.customActions.configure_MFA.path), a); };
         queries.users.generate_MFA_challenge = function (a) { return _this._POST("/v1/".concat(schema_1.schema.users.customActions.generate_MFA_challenge.path), a); };
         queries.users.submit_MFA_challenge = function (a) { return _this._POST("/v1/".concat(schema_1.schema.users.customActions.submit_MFA_challenge.path), a); };

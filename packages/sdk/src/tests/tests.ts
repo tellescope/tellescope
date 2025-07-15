@@ -4266,9 +4266,58 @@ const fields_changed_tests = async () => {
   ])
 }
 
+const trigger_events_api_tests = async () => {
+  log_header("Automation Trigger Events API Tests")
+
+  const e = await sdk.api.endusers.createOne({ })
+  const t1 = await sdk.api.automation_triggers.createOne({
+    title: "Trigger Events API Test",
+    status: 'Active',
+    event: { type: 'Field Equals', info: { field: 'does not matter', value: 'also does not matter' } },
+    action: { type: 'Add Tags', info: { tags: ['Trigger Events API Test'] } }
+  })
+
+  await sdk.api.automation_triggers.trigger_events({
+    triggers: [{
+      automationTriggerId: t1.id,
+      enduserId: e.id,
+    }]
+  })
+  await wait (undefined, 500) // allow triggers to happen
+  await async_test(
+    'Trigger event fired (real trigger)',
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!e.tags?.includes('Trigger Events API Test') }
+  )
+
+  await sdk.api.automation_triggers.trigger_events({
+    triggers: [{
+      automationTriggerId: PLACEHOLDER_ID,
+      enduserId: e.id,
+      action: {
+        type: 'Add Tags',
+        info: { tags: ['Placeholder Action'] },
+      }
+    }]
+  })
+  await wait (undefined, 500) // allow triggers to happen
+  await async_test(
+    'Trigger event fired (placeholder trigger)',
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!e.tags?.includes('Placeholder Action') }
+  )
+
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(e.id),
+    sdk.api.automation_triggers.deleteOne(t1.id),
+  ])
+}
+
 const automation_trigger_tests = async () => {
   log_header("Automation Trigger Tests")
 
+  await trigger_events_api_tests()
   await fields_changed_tests()
   await field_equals_trigger_tests()
   await set_fields_tests()

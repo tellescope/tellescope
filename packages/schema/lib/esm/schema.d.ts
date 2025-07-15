@@ -804,6 +804,10 @@ export type CustomActions = {
         }, {
             userIds: string[];
         }>;
+        play_phone_message: CustomAction<{
+            userId: string;
+            message: string;
+        }, {}>;
     };
     chat_rooms: {
         join_room: CustomAction<{
@@ -1325,6 +1329,7 @@ export type CustomActions = {
             triggers: {
                 enduserId: string;
                 automationTriggerId: string;
+                action?: any;
                 journeyContext?: JourneyContext;
             }[];
         }, {}>;

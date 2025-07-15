@@ -1969,6 +1969,9 @@ var _AUTOMATION_ACTIONS = {
     confirmCurrentEvent: '',
     athenaSync: '',
     outboundCall: '',
+    assignCareTeam: '',
+    removeCareTeam: '',
+    callUser: '',
 };
 export var AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS);
 export var automationActionTypeValidator = exactMatchValidator(AUTOMATION_ACTIONS);
@@ -2624,6 +2627,30 @@ export var automationActionValidator = orValidator({
             treeId: mongoIdStringRequired,
         }, { emptyOk: false }),
     }),
+    assignCareTeam: objectValidator({
+        continueOnError: booleanValidatorOptional,
+        type: exactMatchValidator(['assignCareTeam']),
+        info: objectValidator({
+            tags: listOfStringsWithQualifierValidator,
+            limitToOneUser: booleanValidatorOptional,
+            setAsPrimary: booleanValidatorOptional,
+        }, { emptyOk: false }) // at least tags is required
+    }),
+    removeCareTeam: objectValidator({
+        continueOnError: booleanValidatorOptional,
+        type: exactMatchValidator(['removeCareTeam']),
+        info: objectValidator({
+            tags: listOfStringsWithQualifierValidator,
+        }, { emptyOk: false }) // at least tags is required
+    }),
+    callUser: objectValidator({
+        continueOnError: booleanValidatorOptional,
+        type: exactMatchValidator(['callUser']),
+        info: objectValidator({
+            message: stringValidator25000,
+            routeBy: exactMatchValidator(['Appointment Host']),
+        }, { emptyOk: false }) // at least tags is required
+    })
 });
 export var journeyContextValidator = objectValidator({
     calendarEventId: mongoIdStringOptional,
@@ -3371,6 +3398,7 @@ var _CUSTOM_ENDUSER_FIELD_TYPES = {
     File: true,
     Number: true,
     Checkbox: true,
+    "Database Select": true,
 };
 export var CUSTOM_ENDUSER_FIELD_TYPES = Object.keys(_CUSTOM_ENDUSER_FIELD_TYPES);
 export var customEnduserFieldTypeValidator = exactMatchValidator(CUSTOM_ENDUSER_FIELD_TYPES);
@@ -3468,6 +3496,17 @@ export var customEnduserFieldValidator = orValidator({
     "Checkbox": objectValidator({
         type: exactMatchValidator(["Checkbox"]),
         info: optionalEmptyObjectValidator,
+        field: stringValidator,
+        required: booleanValidatorOptional,
+        hiddenFromProfile: booleanValidatorOptional,
+        requireConfirmation: booleanValidatorOptional,
+    }),
+    "Database Select": objectValidator({
+        type: exactMatchValidator(["Database Select"]),
+        info: objectValidator({
+            databaseId: mongoIdStringRequired,
+            columns: listOfStringsValidator,
+        }),
         field: stringValidator,
         required: booleanValidatorOptional,
         hiddenFromProfile: booleanValidatorOptional,
@@ -4651,6 +4690,7 @@ export var analyticsQueryValidator = orValidator({
             direction: stringValidatorOptional,
             templateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
             subjects: listOfStringsValidatorOptionalOrEmptyOk,
+            "Email Tags": listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
         }, { isOptional: true, emptyOk: true }),
         info: orValidator({
             "Total": objectValidator({
@@ -4667,6 +4707,7 @@ export var analyticsQueryValidator = orValidator({
             Age: booleanValidatorOptional,
             State: booleanValidatorOptional,
             Phone: booleanValidatorOptional,
+            "Email Tags": booleanValidatorOptional,
         }, { isOptional: true, emptyOk: true }),
         range: objectValidator({
             interval: exactMatchValidator(['Daily', 'Weekly', 'Monthly', 'Hourly']),
@@ -4706,6 +4747,7 @@ export var analyticsQueryValidator = orValidator({
         filter: objectValidator({
             direction: stringValidatorOptional,
             messages: listOfStringsValidatorOptionalOrEmptyOk,
+            "SMS Tags": listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
         }, { isOptional: true, emptyOk: true }),
         info: orValidator({
             "Total": objectValidator({
@@ -4723,6 +4765,7 @@ export var analyticsQueryValidator = orValidator({
             Age: booleanValidatorOptional,
             State: booleanValidatorOptional,
             Phone: booleanValidatorOptional,
+            "SMS Tags": booleanValidatorOptional,
         }, { isOptional: true, emptyOk: true }),
         range: objectValidator({
             interval: exactMatchValidator(['Daily', 'Weekly', 'Monthly', 'Hourly']),

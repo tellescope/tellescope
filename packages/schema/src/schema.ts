@@ -889,6 +889,7 @@ export type CustomActions = {
     get_engagement_report: CustomAction<{ range?: DateRange, excludeAutomated?: boolean }, { report: Record<string, any> }>,
     consent: CustomAction<{ termsVersion: string, }, { user: User, authToken: string }>,
     get_users_for_groups: CustomAction<{ groups: string[] }, { userIds: string[] }>,
+    play_phone_message: CustomAction<{ userId: string, message: string }, { }>,
   },
   chat_rooms: {
     join_room: CustomAction<{ id: string }, { room: ChatRoom }>,
@@ -1058,7 +1059,7 @@ export type CustomActions = {
     update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
   },
   automation_triggers: {
-    trigger_events: CustomAction<{ triggers: { enduserId: string, automationTriggerId: string, journeyContext?: JourneyContext }[] }, { }>, 
+    trigger_events: CustomAction<{ triggers: { enduserId: string, automationTriggerId: string, action?: any, journeyContext?: JourneyContext }[] }, { }>, 
   },
   tickets: {
     close_ticket: CustomAction<{ ticketId: string, closedForReason?: string }, { updated: Ticket, generated?: Ticket }>,
@@ -2113,6 +2114,7 @@ export const schema: SchemaV1 = build_schema({
           }
         ]
       },
+      syncCareTeam: { validator: booleanValidator },
       syncAsActive: { validator: booleanValidator }, // e.g. for Zus
       requirePhoneToPushEnduser: { validator: booleanValidator },
       lastSync: { validator: nonNegNumberValidator },
@@ -3453,6 +3455,17 @@ export const schema: SchemaV1 = build_schema({
         returns: { 
           userIds: { validator: listOfMongoIdStringValidator, required: true },
         },
+      },
+      play_phone_message: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Play Phone Message',
+        path: '/users/play-phone-message',
+        description: "Calls the user and plays a recorded message",
+        parameters: { 
+          userId: { validator: mongoIdStringValidator, required: true },
+          message: { validator: stringValidator5000, required: true },
+        },
+        returns: { },
       },
     },
     publicActions: {
@@ -7640,7 +7653,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         description: "Triggers a list of events for endusers",
         parameters: { 
           triggers: {
-            validator: listValidator(objectValidator<{ enduserId: string, automationTriggerId: string, journeyContext?: JourneyContext }>({
+            validator: listValidator(objectValidator<{ enduserId: string, automationTriggerId: string, action?: any, journeyContext?: JourneyContext }>({
+              action: objectAnyFieldsAnyValuesValidator,
               automationTriggerId: mongoIdStringRequired,
               enduserId: mongoIdStringRequired,
               journeyContext: optionalAnyObjectValidator,

@@ -836,7 +836,7 @@ exports.schema = (0, exports.build_schema)({
                         info: {}
                     }
                 ]
-            }, syncAsActive: { validator: validation_1.booleanValidator }, requirePhoneToPushEnduser: { validator: validation_1.booleanValidator }, lastSync: { validator: validation_1.nonNegNumberValidator }, emailDisabled: { validator: validation_1.booleanValidator }, syncUnrecognizedSenders: { validator: validation_1.booleanValidator }, createEndusersForUnrecognizedSenders: { validator: validation_1.booleanValidator }, calendars: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, environment: { validator: validation_1.stringValidator100 }, webhooksSecret: { validator: validation_1.stringValidator }, shouldCreateNotifications: { validator: validation_1.booleanValidator }, disableEnduserAutoSync: { validator: validation_1.booleanValidator }, disableTicketAutoSync: { validator: validation_1.booleanValidator }, redactExternalEvents: { validator: validation_1.booleanValidator }, syncEnduserFiles: { validator: validation_1.booleanValidator }, pushCalendarDetails: { validator: validation_1.booleanValidator }, defaultAttendeeId: { validator: validation_1.mongoIdStringRequired }, sendEmailOnSync: { validator: validation_1.booleanValidator }, enduserFieldMapping: { validator: validation_1.fieldMappingsValidator }, default_dietitian_id: { validator: validation_1.stringValidator100 }, dontPushCalendarEvent: { validator: validation_1.booleanValidator }, dontPullCalendarEvent: { validator: validation_1.booleanValidator }, pushAddedTags: { validator: validation_1.booleanValidator }, pushRemovedTags: { validator: validation_1.booleanValidator }, overwriteAddress: { validator: validation_1.booleanValidator }, syncEnduserId: { validator: validation_1.booleanValidator }, shardId: { validator: validation_1.stringValidator100 } }),
+            }, syncCareTeam: { validator: validation_1.booleanValidator }, syncAsActive: { validator: validation_1.booleanValidator }, requirePhoneToPushEnduser: { validator: validation_1.booleanValidator }, lastSync: { validator: validation_1.nonNegNumberValidator }, emailDisabled: { validator: validation_1.booleanValidator }, syncUnrecognizedSenders: { validator: validation_1.booleanValidator }, createEndusersForUnrecognizedSenders: { validator: validation_1.booleanValidator }, calendars: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, environment: { validator: validation_1.stringValidator100 }, webhooksSecret: { validator: validation_1.stringValidator }, shouldCreateNotifications: { validator: validation_1.booleanValidator }, disableEnduserAutoSync: { validator: validation_1.booleanValidator }, disableTicketAutoSync: { validator: validation_1.booleanValidator }, redactExternalEvents: { validator: validation_1.booleanValidator }, syncEnduserFiles: { validator: validation_1.booleanValidator }, pushCalendarDetails: { validator: validation_1.booleanValidator }, defaultAttendeeId: { validator: validation_1.mongoIdStringRequired }, sendEmailOnSync: { validator: validation_1.booleanValidator }, enduserFieldMapping: { validator: validation_1.fieldMappingsValidator }, default_dietitian_id: { validator: validation_1.stringValidator100 }, dontPushCalendarEvent: { validator: validation_1.booleanValidator }, dontPullCalendarEvent: { validator: validation_1.booleanValidator }, pushAddedTags: { validator: validation_1.booleanValidator }, pushRemovedTags: { validator: validation_1.booleanValidator }, overwriteAddress: { validator: validation_1.booleanValidator }, syncEnduserId: { validator: validation_1.booleanValidator }, shardId: { validator: validation_1.stringValidator100 } }),
         customActions: {
             update_zoom: {
                 adminOnly: true,
@@ -2031,6 +2031,17 @@ exports.schema = (0, exports.build_schema)({
                 returns: {
                     userIds: { validator: validation_1.listOfMongoIdStringValidator, required: true },
                 },
+            },
+            play_phone_message: {
+                op: "custom", access: 'create', method: "post",
+                name: 'Play Phone Message',
+                path: '/users/play-phone-message',
+                description: "Calls the user and plays a recorded message",
+                parameters: {
+                    userId: { validator: validation_1.mongoIdStringRequired, required: true },
+                    message: { validator: validation_1.stringValidator5000, required: true },
+                },
+                returns: {},
             },
         },
         publicActions: {
@@ -5313,6 +5324,7 @@ exports.schema = (0, exports.build_schema)({
                 parameters: {
                     triggers: {
                         validator: (0, validation_1.listValidator)((0, validation_1.objectValidator)({
+                            action: validation_1.objectAnyFieldsAnyValuesValidator,
                             automationTriggerId: validation_1.mongoIdStringRequired,
                             enduserId: validation_1.mongoIdStringRequired,
                             journeyContext: validation_1.optionalAnyObjectValidator,

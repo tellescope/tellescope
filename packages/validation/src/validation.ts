@@ -319,6 +319,9 @@ import {
   ZusSubscribeAutomationAction,
   OutboundCallAutomationAction,
   OnCallOutcomeAutomationEvent,
+  AssignCareTeamAutomationAction,
+  RemoveCareTeamAutomationAction,
+  CallUserAutomationAction,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -2480,6 +2483,9 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   confirmCurrentEvent: '',
   athenaSync: '',
   outboundCall: '',
+  assignCareTeam: '',
+  removeCareTeam: '',
+  callUser: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -3197,6 +3203,30 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       treeId: mongoIdStringRequired, 
     }, { emptyOk: false }),
   }),
+  assignCareTeam: objectValidator<AssignCareTeamAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['assignCareTeam']),
+    info: objectValidator<AssignCareTeamAutomationAction['info']>({ 
+      tags: listOfStringsWithQualifierValidator,
+      limitToOneUser: booleanValidatorOptional,
+      setAsPrimary: booleanValidatorOptional,
+    }, { emptyOk: false }) // at least tags is required
+  }),
+  removeCareTeam: objectValidator<RemoveCareTeamAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['removeCareTeam']),
+    info: objectValidator<RemoveCareTeamAutomationAction['info']>({ 
+      tags: listOfStringsWithQualifierValidator,
+    }, { emptyOk: false }) // at least tags is required
+  }),
+  callUser: objectValidator<CallUserAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['callUser']),
+    info: objectValidator<CallUserAutomationAction['info']>({ 
+      message: stringValidator25000, 
+      routeBy: exactMatchValidator<CallUserAutomationAction['info']['routeBy']>(['Appointment Host']),
+    }, { emptyOk: false }) // at least tags is required
+  })
 })
 
 export const journeyContextValidator = objectValidator<JourneyContext>({
@@ -3995,6 +4025,7 @@ const _CUSTOM_ENDUSER_FIELD_TYPES: { [K in CustomEnduserFieldType]: any } = {
   File: true,
   Number: true,
   Checkbox: true,
+  "Database Select": true,
 }
 export const CUSTOM_ENDUSER_FIELD_TYPES = Object.keys(_CUSTOM_ENDUSER_FIELD_TYPES) as CustomEnduserFieldType[]
 export const customEnduserFieldTypeValidator = exactMatchValidator<CustomEnduserFieldType>(CUSTOM_ENDUSER_FIELD_TYPES)
@@ -4095,6 +4126,17 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
   "Checkbox": objectValidator<CustomEnduserFields["Checkbox"]>({
     type: exactMatchValidator(["Checkbox"]),
     info: optionalEmptyObjectValidator,
+    field: stringValidator,
+    required: booleanValidatorOptional,
+    hiddenFromProfile: booleanValidatorOptional,
+    requireConfirmation: booleanValidatorOptional,
+  }), 
+  "Database Select": objectValidator<CustomEnduserFields["Database Select"]>({
+    type: exactMatchValidator(["Database Select"]),
+    info: objectValidator<CustomEnduserFields['Database Select']['info']>({
+      databaseId: mongoIdStringRequired,
+      columns: listOfStringsValidator,
+    }),
     field: stringValidator,
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
@@ -5340,6 +5382,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       direction: stringValidatorOptional,
       templateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
       subjects: listOfStringsValidatorOptionalOrEmptyOk,
+      "Email Tags": listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
     info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Emails']]: AnalyticsQueryInfoForType['Emails'][K] }>({
       "Total": objectValidator<AnalyticsQueryInfoForType['Emails']['Total']>({
@@ -5356,6 +5399,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Age: booleanValidatorOptional,
       State: booleanValidatorOptional,
       Phone: booleanValidatorOptional,
+      "Email Tags": booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
@@ -5395,6 +5439,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
     filter: objectValidator<AnalyticsQueryFilterForType['SMS Messages']>({ 
       direction: stringValidatorOptional,
       messages: listOfStringsValidatorOptionalOrEmptyOk,
+      "SMS Tags": listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
     info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['SMS Messages']]: AnalyticsQueryInfoForType['SMS Messages'][K] }>({
       "Total": objectValidator<AnalyticsQueryInfoForType['SMS Messages']['Total']>({
@@ -5412,6 +5457,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       Age: booleanValidatorOptional,
       State: booleanValidatorOptional,
       Phone: booleanValidatorOptional,
+      "SMS Tags": booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     range: objectValidator<AnalyticsQueryRange<any>>({
       interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),

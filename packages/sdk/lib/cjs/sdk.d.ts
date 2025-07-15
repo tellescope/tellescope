@@ -3643,6 +3643,7 @@ type Queries = {
         submit_MFA_challenge: (args: extractFields<CustomActions['users']['submit_MFA_challenge']['parameters']>) => (Promise<extractFields<CustomActions['users']['submit_MFA_challenge']['returns']>>);
         get_engagement_report: (args: extractFields<CustomActions['users']['get_engagement_report']['parameters']>) => (Promise<extractFields<CustomActions['users']['get_engagement_report']['returns']>>);
         get_users_for_groups: (args: extractFields<CustomActions['users']['get_users_for_groups']['parameters']>) => (Promise<extractFields<CustomActions['users']['get_users_for_groups']['returns']>>);
+        play_phone_message: (args: extractFields<CustomActions['users']['play_phone_message']['parameters']>) => (Promise<extractFields<CustomActions['users']['play_phone_message']['returns']>>);
     };
     files: {
         prepare_file_upload: (args: extractFields<CustomActions['files']['prepare_file_upload']['parameters']>) => (Promise<extractFields<CustomActions['files']['prepare_file_upload']['returns']>>);
