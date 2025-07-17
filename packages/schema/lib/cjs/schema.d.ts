@@ -1455,6 +1455,7 @@ export type CustomActions = {
         charge_card_on_file: CustomAction<{
             enduserId: string;
             productIds?: string[];
+            priceIds?: string[];
             cost?: Purchase['cost'];
             stripeKey?: string;
             description?: string;

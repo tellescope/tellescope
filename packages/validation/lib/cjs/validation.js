@@ -1204,10 +1204,12 @@ var _FORM_FIELD_TYPES = {
     Allergies: "",
     Conditions: "",
     "Rich Text": "",
+    Timezone: '',
 };
 exports.FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES);
 exports.formFieldTypeValidator = (0, exports.exactMatchValidator)(exports.FORM_FIELD_TYPES);
 exports.FORM_FIELD_VALIDATORS_BY_TYPE = {
+    Timezone: exports.stringValidator.validate({ isOptional: true, emptyStringOk: true }),
     'Chargebee': exports.objectAnyFieldsAnyValuesValidator.validate(),
     'Allergies': exports.objectAnyFieldsAnyValuesValidator.validate(),
     'Conditions': exports.objectAnyFieldsAnyValuesValidator.validate(),
@@ -1638,6 +1640,10 @@ exports.formResponseAnswerValidator = (0, exports.orValidator)({
         type: (0, exports.exactMatchValidator)(['Stripe']),
         value: exports.stringValidator1000Optional,
     }),
+    Timezone: (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['Timezone']),
+        value: exports.stringValidator1000Optional,
+    }),
     // need to keep consistent with other validation
     stringLong: (0, exports.objectValidator)({
         type: (0, exports.exactMatchValidator)(['stringLong']),
@@ -2022,6 +2028,7 @@ var _AUTOMATION_ACTIONS = {
     assignCareTeam: '',
     removeCareTeam: '',
     callUser: '',
+    stripeChargeCardOnFile: '',
 };
 exports.AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS);
 exports.automationActionTypeValidator = (0, exports.exactMatchValidator)(exports.AUTOMATION_ACTIONS);
@@ -2700,7 +2707,15 @@ exports.automationActionValidator = (0, exports.orValidator)({
             message: exports.stringValidator25000,
             routeBy: (0, exports.exactMatchValidator)(['Appointment Host']),
         }, { emptyOk: false }) // at least tags is required
-    })
+    }),
+    stripeChargeCardOnFile: (0, exports.objectValidator)({
+        continueOnError: exports.booleanValidatorOptional,
+        type: (0, exports.exactMatchValidator)(['stripeChargeCardOnFile']),
+        info: (0, exports.objectValidator)({
+            stripeKey: exports.stringValidatorOptionalEmptyOkay,
+            priceIds: exports.listOfStringsValidator,
+        }, { emptyOk: false }) // at least tags is required
+    }),
 });
 exports.journeyContextValidator = (0, exports.objectValidator)({
     calendarEventId: exports.mongoIdStringOptional,
@@ -2720,6 +2735,7 @@ exports.journeyContextValidator = (0, exports.objectValidator)({
     eligibilityResultId: exports.mongoIdStringOptional,
     fileId: exports.mongoIdStringOptional,
     chatRoomId: exports.mongoIdStringOptional,
+    twilioNumber: exports.stringValidatorOptionalEmptyOkay,
 });
 exports.relatedRecordValidator = (0, exports.objectValidator)({
     type: exports.stringValidator100,
@@ -3829,7 +3845,9 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
     }),
     "Subscription Ended": (0, exports.objectValidator)({
         type: (0, exports.exactMatchValidator)(['Subscription Ended']),
-        info: exports.optionalEmptyObjectValidator,
+        info: (0, exports.objectValidator)({
+            productIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
+        }),
         conditions: exports.optionalEmptyObjectValidator,
     }),
     "Subscription Payment Failed": (0, exports.objectValidator)({

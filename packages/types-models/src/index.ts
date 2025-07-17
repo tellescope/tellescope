@@ -1146,6 +1146,7 @@ export interface Email_updatesDisabled {
   journeyId?: string,
 }
 export interface Email extends Email_required, Email_readonly, Email_updatesDisabled, TextCommunication {
+  replyToTemplateId?: string,
   userId: string; // not actually required on create
   hiddenFromTimeline?: boolean,
   isAutoreply?: boolean,
@@ -1540,7 +1541,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
   copiedFromEnduserId?: string,
 }
 
-export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time'
+export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time' | "Timezone"
 export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance"
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
 
@@ -1803,6 +1804,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   hideFromBulkSubmission?: boolean,
   enduserFieldsToAppendForSync?: string[],
   allowPortalSubmission?: boolean,
+  allowPortalSubmissionEnduserCondition?: Record<string, any>,
   canvasNoteCoding?: Partial<CanvasCoding>,
   syncToCanvasAsDataImport?: boolean,
   matchCareTeamTagsForCanvasPractitionerResolution?: ListOfStringsWithQualifier,
@@ -1886,6 +1888,7 @@ export interface Integration extends Integration_readonly, Integration_required,
   syncEnduserId?: boolean,
   syncCareTeam?: boolean,
   shardId?: string,
+  pushHistoricalEvents?: boolean,
 }
 
 export type BuildDatabaseRecordField <K extends string, V, O> = { type: K, value: V, options: O & { width?: string } }
@@ -2057,9 +2060,11 @@ export type FormResponseAnswerFileValue = {
 }
 export type FormResponseAnswerFile = FormResponseValueAnswerBuilder<'file', FormResponseAnswerFileValue>
 export type FormResponseAnswerFiles = FormResponseValueAnswerBuilder<'files', FormResponseAnswerFileValue[]>
+export type FormResponseAnswerTimezone = FormResponseValueAnswerBuilder<'Timezone', string>
 
 export type FormResponseValueAnswer = (
     FormResponseAnswerGroup
+  | FormResponseAnswerTimezone
   | FormResponseAnswerTable
   | FormResponseAnswerDescription
   | FormResponseAnswerEmail
@@ -2142,6 +2147,7 @@ export type AnswerForType = {
   'Emotii': FormResponseAnswerEmotii['value']
   'Allergies': FormResponseAnswerAllergies['value']
   'Conditions': FormResponseAnswerConditions['value']
+  'Timezone': FormResponseAnswerTimezone['value']
 }
 
 export type Addendum = {
@@ -2995,8 +3001,13 @@ export type CallUserAutomationAction = AutomationActionBuilder<
     routeBy: "Appointment Host",
   }
 >
+export type StripeChargeCardOnFileAutomationAction = AutomationActionBuilder<'stripeChargeCardOnFile', {
+  stripeKey?: string, // indicating custom vs. stripe connect
+  priceIds: string[], // Stripe price ids to charge
+}>
 
 export type AutomationActionForType = {
+  'stripeChargeCardOnFile': StripeChargeCardOnFileAutomationAction,
   'outboundCall': OutboundCallAutomationAction,
   "sendEmail" : SendEmailAutomationAction,
   "sendSMS": SendSMSAutomationAction,
@@ -3991,7 +4002,7 @@ export type AutomationTriggerEvents = {
   'Form Unsubmitted': AutomationTriggerEventBuilder<"Form Unsubmitted", { formId: string, intervalInMS: number }, {}>,
   'Purchase Made': AutomationTriggerEventBuilder<"Purchase Made", { titles?: string[], productIds?: string[] }, {}>,
   'Refund Issued': AutomationTriggerEventBuilder<"Refund Issued", { }, {}>,
-  'Subscription Ended': AutomationTriggerEventBuilder<"Subscription Ended", { }, {}>,
+  'Subscription Ended': AutomationTriggerEventBuilder<"Subscription Ended", { productIds?: string[] }, {}>,
   'Subscription Payment Failed': AutomationTriggerEventBuilder<"Subscription Payment Failed", { }, {}>,
   'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", { titles?: string[], templateIds?: string[] }, { }>,
   'Field Equals': AutomationTriggerEventBuilder<"Field Equals", { field: string, value: string }, { }>,
@@ -5191,6 +5202,7 @@ export type JourneyContext = {
   eligibilityResultId?: string,
   fileId?: string,
   chatRoomId?: string,
+  twilioNumber?: string,
 }
 
 // https://gist.github.com/aviflax/a4093965be1cd008f172/ 

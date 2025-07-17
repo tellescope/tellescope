@@ -1038,21 +1038,21 @@ export var useTellescopeForm = function (_a) {
     var submit = useCallback(function (options) { return __awaiter(void 0, void 0, void 0, function () {
         var hasFile, _loop_9, _i, selectedFiles_1, blobInfo, err_1, responsesToSubmit_3, _a, responsesToSubmit_2, r, _loop_10, _b, _c, f, errors, _d, _e, eId, _g, formResponse, nextFormGroupPublicURL, _h, _j, _k, err_2, url, err_3;
         var _l;
-        var _m, _o, _p, _q, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4;
-        return __generator(this, function (_5) {
-            switch (_5.label) {
+        var _m, _o, _p, _q, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5;
+        return __generator(this, function (_6) {
+            switch (_6.label) {
                 case 0:
                     setSubmitErrorMessage('');
                     hasFile = selectedFiles.find(function (f) { var _a; return !!((_a = f.blobs) === null || _a === void 0 ? void 0 : _a.length); }) !== undefined;
                     setSubmittingStatus(hasFile ? 'submitting' : 'uploading-files');
                     if (!hasFile) return [3 /*break*/, 8];
-                    _5.label = 1;
+                    _6.label = 1;
                 case 1:
-                    _5.trys.push([1, 6, 7, 8]);
+                    _6.trys.push([1, 6, 7, 8]);
                     _loop_9 = function (blobInfo) {
-                        var blobs, fieldId, responseIndex, response, _6, blobs_1, blob;
-                        return __generator(this, function (_7) {
-                            switch (_7.label) {
+                        var blobs, fieldId, responseIndex, response, _7, blobs_1, blob;
+                        return __generator(this, function (_8) {
+                            switch (_8.label) {
                                 case 0:
                                     blobs = blobInfo.blobs, fieldId = blobInfo.fieldId;
                                     if (!blobs)
@@ -1062,31 +1062,31 @@ export var useTellescopeForm = function (_a) {
                                     if ((_o = (_m = response.field) === null || _m === void 0 ? void 0 : _m.options) === null || _o === void 0 ? void 0 : _o.autoUploadFiles) {
                                         return [2 /*return*/, "continue"];
                                     } // must have uploaded prior to submission
-                                    _6 = 0, blobs_1 = blobs;
-                                    _7.label = 1;
+                                    _7 = 0, blobs_1 = blobs;
+                                    _8.label = 1;
                                 case 1:
-                                    if (!(_6 < blobs_1.length)) return [3 /*break*/, 4];
-                                    blob = blobs_1[_6];
+                                    if (!(_7 < blobs_1.length)) return [3 /*break*/, 4];
+                                    blob = blobs_1[_7];
                                     return [4 /*yield*/, handleFileUpload(blob, fieldId)];
                                 case 2:
-                                    _7.sent();
-                                    _7.label = 3;
+                                    _8.sent();
+                                    _8.label = 3;
                                 case 3:
-                                    _6++;
+                                    _7++;
                                     return [3 /*break*/, 1];
                                 case 4: return [2 /*return*/];
                             }
                         });
                     };
                     _i = 0, selectedFiles_1 = selectedFiles;
-                    _5.label = 2;
+                    _6.label = 2;
                 case 2:
                     if (!(_i < selectedFiles_1.length)) return [3 /*break*/, 5];
                     blobInfo = selectedFiles_1[_i];
                     return [5 /*yield**/, _loop_9(blobInfo)];
                 case 3:
-                    _5.sent();
-                    _5.label = 4;
+                    _6.sent();
+                    _6.label = 4;
                 case 4:
                     _i++;
                     return [3 /*break*/, 2];
@@ -1094,7 +1094,7 @@ export var useTellescopeForm = function (_a) {
                     setSubmittingStatus("submitting");
                     return [3 /*break*/, 8];
                 case 6:
-                    err_1 = _5.sent();
+                    err_1 = _6.sent();
                     console.error(err_1);
                     setSubmitErrorMessage((_p = err_1 === null || err_1 === void 0 ? void 0 : err_1.message) !== null && _p !== void 0 ? _p : 'Failed to upload file');
                     return [3 /*break*/, 8];
@@ -1105,9 +1105,9 @@ export var useTellescopeForm = function (_a) {
                     (_q = options === null || options === void 0 ? void 0 : options.onFileUploadsDone) === null || _q === void 0 ? void 0 : _q.call(options);
                     if (!accessCode && session.type === 'enduser')
                         throw new Error('enduser session without accessCode');
-                    _5.label = 9;
+                    _6.label = 9;
                 case 9:
-                    _5.trys.push([9, 18, 19, 20]);
+                    _6.trys.push([9, 18, 19, 20]);
                     responsesToSubmit_3 = ((options === null || options === void 0 ? void 0 : options.includedFieldIds)
                         ? options.includedFieldIds.map(function (id) { return responses.find(function (r) { return r.fieldId === id; }); })
                         : responses.filter(function (r) { return r.includeInSubmit; }));
@@ -1134,13 +1134,13 @@ export var useTellescopeForm = function (_a) {
                     }
                     errors = [];
                     _d = 0, _e = __spreadArray([enduserId], ((_u = options === null || options === void 0 ? void 0 : options.otherEnduserIds) !== null && _u !== void 0 ? _u : []), true);
-                    _5.label = 10;
+                    _6.label = 10;
                 case 10:
                     if (!(_d < _e.length)) return [3 /*break*/, 17];
                     eId = _e[_d];
-                    _5.label = 11;
+                    _6.label = 11;
                 case 11:
-                    _5.trys.push([11, 15, , 16]);
+                    _6.trys.push([11, 15, , 16]);
                     update_local_storage('redirecting_public_group', '');
                     _j = (_h = session.api.form_responses).submit_form_response;
                     _l = {};
@@ -1158,8 +1158,8 @@ export var useTellescopeForm = function (_a) {
                             calendarEventId: calendarEventId,
                         })];
                 case 12:
-                    _k = (_5.sent()).accessCode;
-                    _5.label = 13;
+                    _k = (_6.sent()).accessCode;
+                    _6.label = 13;
                 case 13: return [4 /*yield*/, _j.apply(_h, [(_l.accessCode = (_k),
                             _l.responses = __spreadArray(__spreadArray([], responsesToSubmit_3, true), (existingResponses !== null && existingResponses !== void 0 ? existingResponses : []).filter(function (r) {
                                 return !responsesToSubmit_3.find(function (_r) { return r.fieldId === _r.fieldId; })
@@ -1175,7 +1175,7 @@ export var useTellescopeForm = function (_a) {
                     // do actual redirect later to prevent popup
                 ];
                 case 14:
-                    _g = _5.sent(), formResponse = _g.formResponse, nextFormGroupPublicURL = _g.nextFormGroupPublicURL;
+                    _g = _6.sent(), formResponse = _g.formResponse, nextFormGroupPublicURL = _g.nextFormGroupPublicURL;
                     // do actual redirect later to prevent popup
                     if (isPublicForm && nextFormGroupPublicURL) {
                         update_local_storage('redirecting_public_group', 'true');
@@ -1207,7 +1207,7 @@ export var useTellescopeForm = function (_a) {
                     }
                     return [3 /*break*/, 16];
                 case 15:
-                    err_2 = _5.sent();
+                    err_2 = _6.sent();
                     if (options === null || options === void 0 ? void 0 : options.onBulkErrors) { // only track for signle submission
                         errors.push({ enduserId: eId, message: (err_2 === null || err_2 === void 0 ? void 0 : err_2.message) || (err_2 === null || err_2 === void 0 ? void 0 : err_2.toString()) });
                     }
@@ -1219,23 +1219,27 @@ export var useTellescopeForm = function (_a) {
                     if (errors.length) {
                         (_0 = options === null || options === void 0 ? void 0 : options.onBulkErrors) === null || _0 === void 0 ? void 0 : _0.call(options, errors);
                     }
+                    try {
+                        (_1 = window.parent) === null || _1 === void 0 ? void 0 : _1.postMessage({ type: 'Form Submitted' }, "*");
+                    }
+                    catch (err) { }
                     if (goBackURL) {
-                        ((_1 = window === null || window === void 0 ? void 0 : window.top) !== null && _1 !== void 0 ? _1 : window).location.href = append_current_utm_params(goBackURL);
+                        ((_2 = window === null || window === void 0 ? void 0 : window.top) !== null && _2 !== void 0 ? _2 : window).location.href = append_current_utm_params(goBackURL);
                     }
                     if (submitRedirectURL) {
-                        ((_2 = window === null || window === void 0 ? void 0 : window.top) !== null && _2 !== void 0 ? _2 : window).location.href = append_current_utm_params(submitRedirectURL);
+                        ((_3 = window === null || window === void 0 ? void 0 : window.top) !== null && _3 !== void 0 ? _3 : window).location.href = append_current_utm_params(submitRedirectURL);
                     }
                     if (form === null || form === void 0 ? void 0 : form.redirectToBookedAppointmentOnSubmit) {
                         url = read_local_storage('tellescope_last_booking_page_join_link');
                         if (url) {
-                            ((_3 = window === null || window === void 0 ? void 0 : window.top) !== null && _3 !== void 0 ? _3 : window).location.href = append_current_utm_params(url);
+                            ((_4 = window === null || window === void 0 ? void 0 : window.top) !== null && _4 !== void 0 ? _4 : window).location.href = append_current_utm_params(url);
                         }
                     }
                     return [3 /*break*/, 20];
                 case 18:
-                    err_3 = _5.sent();
+                    err_3 = _6.sent();
                     console.error(err_3);
-                    setSubmitErrorMessage((_4 = err_3 === null || err_3 === void 0 ? void 0 : err_3.message) !== null && _4 !== void 0 ? _4 : 'An error occurred');
+                    setSubmitErrorMessage((_5 = err_3 === null || err_3 === void 0 ? void 0 : err_3.message) !== null && _5 !== void 0 ? _5 : 'An error occurred');
                     return [3 /*break*/, 20];
                 case 19:
                     setSubmittingStatus(undefined);

@@ -1079,6 +1079,7 @@ export interface Email_updatesDisabled {
     journeyId?: string;
 }
 export interface Email extends Email_required, Email_readonly, Email_updatesDisabled, TextCommunication {
+    replyToTemplateId?: string;
     userId: string;
     hiddenFromTimeline?: boolean;
     isAutoreply?: boolean;
@@ -1506,7 +1507,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
     copiedFrom?: string;
     copiedFromEnduserId?: string;
 }
-export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' | 'dateString' | 'rating' | 'Time';
+export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' | 'dateString' | 'rating' | 'Time' | "Timezone";
 export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance";
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType;
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic';
@@ -1771,6 +1772,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
     hideFromBulkSubmission?: boolean;
     enduserFieldsToAppendForSync?: string[];
     allowPortalSubmission?: boolean;
+    allowPortalSubmissionEnduserCondition?: Record<string, any>;
     canvasNoteCoding?: Partial<CanvasCoding>;
     syncToCanvasAsDataImport?: boolean;
     matchCareTeamTagsForCanvasPractitionerResolution?: ListOfStringsWithQualifier;
@@ -1852,6 +1854,7 @@ export interface Integration extends Integration_readonly, Integration_required,
     syncEnduserId?: boolean;
     syncCareTeam?: boolean;
     shardId?: string;
+    pushHistoricalEvents?: boolean;
 }
 export type BuildDatabaseRecordField<K extends string, V, O> = {
     type: K;
@@ -2025,7 +2028,8 @@ export type FormResponseAnswerFileValue = {
 };
 export type FormResponseAnswerFile = FormResponseValueAnswerBuilder<'file', FormResponseAnswerFileValue>;
 export type FormResponseAnswerFiles = FormResponseValueAnswerBuilder<'files', FormResponseAnswerFileValue[]>;
-export type FormResponseValueAnswer = (FormResponseAnswerGroup | FormResponseAnswerTable | FormResponseAnswerDescription | FormResponseAnswerEmail | FormResponseAnswerNumber | FormResponseAnswerPhone | FormResponseAnswerString | FormResponseAnswerStringLong | FormResponseAnswerRichText | FormResponseAnswerSignature | FormResponseAnswerMultipleChoice | FormResponseAnswerFile | FormResponseAnswerFiles | FormResponseAnswerDate | FormResponseAnswerRating | FormResponseAnswerRanking | FormResponseAnswerDateString | FormResponseAnswerAddress | FormResponseAnswerTime | FormResponseAnswerStripe | FormResponseAnswerDropdown | FormResponseAnswerDatabaseSelect | FormResponseAnswerMedications | FormResponseAnswerRelatedContacts | FormResponseAnswerInsurance | FormResponseAnswerAppointmentBooking | FormResponseAnswerHeight | FormResponseAnswerRedirect | FormResponseAnswerHiddenValue | FormResponseAnswerEmotii | FormResponseAnswerAllergies | FormResponseAnswerConditions | FormResponseAnswerChargebee);
+export type FormResponseAnswerTimezone = FormResponseValueAnswerBuilder<'Timezone', string>;
+export type FormResponseValueAnswer = (FormResponseAnswerGroup | FormResponseAnswerTimezone | FormResponseAnswerTable | FormResponseAnswerDescription | FormResponseAnswerEmail | FormResponseAnswerNumber | FormResponseAnswerPhone | FormResponseAnswerString | FormResponseAnswerStringLong | FormResponseAnswerRichText | FormResponseAnswerSignature | FormResponseAnswerMultipleChoice | FormResponseAnswerFile | FormResponseAnswerFiles | FormResponseAnswerDate | FormResponseAnswerRating | FormResponseAnswerRanking | FormResponseAnswerDateString | FormResponseAnswerAddress | FormResponseAnswerTime | FormResponseAnswerStripe | FormResponseAnswerDropdown | FormResponseAnswerDatabaseSelect | FormResponseAnswerMedications | FormResponseAnswerRelatedContacts | FormResponseAnswerInsurance | FormResponseAnswerAppointmentBooking | FormResponseAnswerHeight | FormResponseAnswerRedirect | FormResponseAnswerHiddenValue | FormResponseAnswerEmotii | FormResponseAnswerAllergies | FormResponseAnswerConditions | FormResponseAnswerChargebee);
 export type FormResponseValue = {
     fieldId: string;
     fieldTitle: string;
@@ -2073,6 +2077,7 @@ export type AnswerForType = {
     'Emotii': FormResponseAnswerEmotii['value'];
     'Allergies': FormResponseAnswerAllergies['value'];
     'Conditions': FormResponseAnswerConditions['value'];
+    'Timezone': FormResponseAnswerTimezone['value'];
 };
 export type Addendum = {
     timestamp: Date;
@@ -2982,7 +2987,12 @@ export type CallUserAutomationAction = AutomationActionBuilder<'callUser', {
     message: string;
     routeBy: "Appointment Host";
 }>;
+export type StripeChargeCardOnFileAutomationAction = AutomationActionBuilder<'stripeChargeCardOnFile', {
+    stripeKey?: string;
+    priceIds: string[];
+}>;
 export type AutomationActionForType = {
+    'stripeChargeCardOnFile': StripeChargeCardOnFileAutomationAction;
     'outboundCall': OutboundCallAutomationAction;
     "sendEmail": SendEmailAutomationAction;
     "sendSMS": SendSMSAutomationAction;
@@ -3982,7 +3992,9 @@ export type AutomationTriggerEvents = {
         productIds?: string[];
     }, {}>;
     'Refund Issued': AutomationTriggerEventBuilder<"Refund Issued", {}, {}>;
-    'Subscription Ended': AutomationTriggerEventBuilder<"Subscription Ended", {}, {}>;
+    'Subscription Ended': AutomationTriggerEventBuilder<"Subscription Ended", {
+        productIds?: string[];
+    }, {}>;
     'Subscription Payment Failed': AutomationTriggerEventBuilder<"Subscription Payment Failed", {}, {}>;
     'Appointment No-Showed': AutomationTriggerEventBuilder<"Appointment No-Showed", {
         titles?: string[];
@@ -5235,6 +5247,7 @@ export type JourneyContext = {
     eligibilityResultId?: string;
     fileId?: string;
     chatRoomId?: string;
+    twilioNumber?: string;
 };
 export declare const TIMEZONE_MAP: {
     readonly "Africa/Abidjan": "+00:00";

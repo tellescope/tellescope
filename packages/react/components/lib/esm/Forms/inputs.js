@@ -76,6 +76,7 @@ import { Autocomplete, Box, Button, Checkbox, Chip, Divider, FormControl, FormCo
 import { useDropzone } from "react-dropzone";
 import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants";
 import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities";
+import { TIMEZONES_USA } from "@tellescope/types-models";
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation";
 import Slider from '@mui/material/Slider';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -448,6 +449,10 @@ export var TimeInput = function (_a) {
     var _b = (value || '').split(':'), hour = _b[0], _d = _b[1], rest = _d === void 0 ? '' : _d;
     var _e = rest.split(' '), minute = _e[0], amPm = _e[1], _f = _e[2], zone = _f === void 0 ? getLocalTimezone() : _f;
     return (_jsxs(Grid, __assign({ container: true, alignItems: 'center', spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true, sx: { width: 100 } }, { children: _jsx(HourSelector, { value: hour, onChange: function (hour) { return onChange("".concat(hour, ":").concat(minute, " ").concat(amPm, " ").concat(zone), field.id); } }) })), _jsx(Grid, __assign({ item: true, sx: { width: 100 } }, { children: _jsx(MinuteSelector, { value: minute, onChange: function (minute) { return onChange("".concat(hour, ":").concat(minute, " ").concat(amPm, " ").concat(zone), field.id); } }) })), _jsx(Grid, __assign({ item: true, sx: { width: 100 } }, { children: _jsx(AmPmSelector, { value: amPm, onChange: function (amPm) { return onChange("".concat(hour, ":").concat(minute, " ").concat(amPm, " ").concat(zone), field.id); } }) }))] })));
+};
+export var TimezoneInput = function (_a) {
+    var _b = _a.value, value = _b === void 0 ? '' : _b, field = _a.field, onChange = _a.onChange, props = __rest(_a, ["value", "field", "onChange"]);
+    return (_jsx(StringSelector, __assign({}, props, { value: value, options: TIMEZONES_USA, onChange: function (v) { return onChange(v, field.id); } })));
 };
 export var AddressInput = function (_a) {
     var _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;

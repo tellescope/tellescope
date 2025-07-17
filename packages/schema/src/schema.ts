@@ -1103,7 +1103,7 @@ export type CustomActions = {
   },
   purchases: {
     charge_card_on_file: CustomAction<
-      { enduserId: string, productIds?: string[], cost?: Purchase['cost'], stripeKey?: string, description?: string }, 
+      { enduserId: string, productIds?: string[], priceIds?: string[], cost?: Purchase['cost'], stripeKey?: string, description?: string }, 
       { }
     >,
   },
@@ -1478,7 +1478,8 @@ export const schema: SchemaV1 = build_schema({
           },
         ]
       },
-      gender: { validator: tellescopeGenderValidator, redactions: ['enduser'] },
+      // should allow any gender via API but our UI can limit to Tellescope types by default
+      gender: { validator: stringValidator as any, redactions: ['enduser'] },
       genderIdentity: { validator: stringValidator100, redactions: ['enduser'] },
       pronouns: { validator: stringValidator100, redactions: ['enduser'] },
       height: { validator: genericUnitWithQuantityValidator, redactions: ['enduser'] },
@@ -2114,6 +2115,7 @@ export const schema: SchemaV1 = build_schema({
           }
         ]
       },
+      pushHistoricalEvents: { validator: booleanValidator },
       syncCareTeam: { validator: booleanValidator },
       syncAsActive: { validator: booleanValidator }, // e.g. for Zus
       requirePhoneToPushEnduser: { validator: booleanValidator },
@@ -4437,6 +4439,7 @@ export const schema: SchemaV1 = build_schema({
       hideFromBulkSubmission: { validator: booleanValidator },
       enduserFieldsToAppendForSync: { validator: listOfUniqueStringsValidatorEmptyOk },
       allowPortalSubmission: { validator: booleanValidator },
+      allowPortalSubmissionEnduserCondition: { validator: optionalAnyObjectValidator },
       canvasNoteCoding: { validator: canvasCodingValidatorOptional },
       syncToCanvasAsDataImport: { validator: booleanValidator },
       matchCareTeamTagsForCanvasPractitionerResolution: { validator: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay },
@@ -7104,6 +7107,7 @@ export const schema: SchemaV1 = build_schema({
         parameters: { 
           enduserId: { validator: mongoIdStringValidator, required: true },
           productIds: { validator: listOfMongoIdStringValidatorEmptyOk },
+          priceIds: { validator: listOfStringsValidatorOptionalOrEmptyOk }, // stripe price IDs, not Tellescope ids
           cost: { validator: costValidator },
           stripeKey: { validator: stringValidator },
           description: { validator: stringValidator },

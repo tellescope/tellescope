@@ -64,6 +64,7 @@ export const ENDUSER_FIELD_TYPES = {
   'termsVersion': ['Hidden Value'],
   'genderIdentity': ['string', 'multiple_choice', 'Select'],
   'pronouns': ['string', 'multiple_choice', 'Select'],
+  'timezone': ['Timezone'],
 }  as { [K in EnduserField | 'Insurance'] : FormFieldType[]}
 
 export const PRIMARY_HEX = "#1564bf"

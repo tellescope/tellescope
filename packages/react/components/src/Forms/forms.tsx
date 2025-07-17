@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Button, CircularProgress, FileBlob, FileUploadHandler, Flex, LinearProgress, LoadingButton, Modal, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse, NextFieldLogicOptions } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
-import { AddToDatabaseProps, AddressInput, AllergiesInput, AppointmentBookingInput, ChargeebeeInput, ConditionsInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, RichTextInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, defaultButtonStyles } from "./inputs"
+import { AddToDatabaseProps, AddressInput, AllergiesInput, AppointmentBookingInput, ChargeebeeInput, ConditionsInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, RichTextInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, TimezoneInput, defaultButtonStyles } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
@@ -175,6 +175,7 @@ export const QuestionForField = ({
   const Rating = customInputs?.['rating'] ?? RatingInput
   const Address = customInputs?.['Address'] ?? AddressInput
   const Time = customInputs?.['Time'] ?? TimeInput
+  const TimeZone = customInputs?.['Timezone'] ?? TimezoneInput
   const Dropdown = customInputs?.['Dropdown'] ?? DropdownInput
   const DatabaseSelect = customInputs?.['Database Select'] ?? DatabaseSelectInput
   const Medications = customInputs?.['Medications'] ?? MedicationsInput
@@ -353,6 +354,9 @@ export const QuestionForField = ({
         )
         : field.type === 'Table Input' ? (
           <TableInput field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form}/>
+        )
+        : field.type === 'Timezone' ? (
+          <TimezoneInput field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Timezone'>} form={form}/>
         )
         : field.type === 'Time' ? (
           <Time field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<any>} form={form}/>

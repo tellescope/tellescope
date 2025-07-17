@@ -5,7 +5,7 @@ import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
 import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities"
-import { DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, TellescopeGender } from "@tellescope/types-models"
+import { DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, TellescopeGender, TIMEZONES_USA } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -959,6 +959,10 @@ export const TimeInput = ({ field, value, onChange, ...props }: FormInputProps<'
     </Grid>
   )
 }
+
+export const TimezoneInput = ({ value='', field, onChange, ...props }: FormInputProps<'Timezone'>) => (
+  <StringSelector {...props} value={value} options={TIMEZONES_USA} onChange={v => onChange(v, field.id)} />
+)
 
 export const AddressInput = ({ field, form, value, onChange, ...props }: FormInputProps<'Address'>) => (
   // state only

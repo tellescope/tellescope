@@ -69,6 +69,7 @@ exports.ENDUSER_FIELD_TYPES = {
     'termsVersion': ['Hidden Value'],
     'genderIdentity': ['string', 'multiple_choice', 'Select'],
     'pronouns': ['string', 'multiple_choice', 'Select'],
+    'timezone': ['Timezone'],
 };
 exports.PRIMARY_HEX = "#1564bf";
 exports.SECONDARY_HEX = "#1c4378";

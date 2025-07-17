@@ -1162,10 +1162,12 @@ var _FORM_FIELD_TYPES = {
     Allergies: "",
     Conditions: "",
     "Rich Text": "",
+    Timezone: '',
 };
 export var FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES);
 export var formFieldTypeValidator = exactMatchValidator(FORM_FIELD_TYPES);
 export var FORM_FIELD_VALIDATORS_BY_TYPE = {
+    Timezone: stringValidator.validate({ isOptional: true, emptyStringOk: true }),
     'Chargebee': objectAnyFieldsAnyValuesValidator.validate(),
     'Allergies': objectAnyFieldsAnyValuesValidator.validate(),
     'Conditions': objectAnyFieldsAnyValuesValidator.validate(),
@@ -1592,6 +1594,10 @@ export var formResponseAnswerValidator = orValidator({
         type: exactMatchValidator(['Stripe']),
         value: stringValidator1000Optional,
     }),
+    Timezone: objectValidator({
+        type: exactMatchValidator(['Timezone']),
+        value: stringValidator1000Optional,
+    }),
     // need to keep consistent with other validation
     stringLong: objectValidator({
         type: exactMatchValidator(['stringLong']),
@@ -1972,6 +1978,7 @@ var _AUTOMATION_ACTIONS = {
     assignCareTeam: '',
     removeCareTeam: '',
     callUser: '',
+    stripeChargeCardOnFile: '',
 };
 export var AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS);
 export var automationActionTypeValidator = exactMatchValidator(AUTOMATION_ACTIONS);
@@ -2650,7 +2657,15 @@ export var automationActionValidator = orValidator({
             message: stringValidator25000,
             routeBy: exactMatchValidator(['Appointment Host']),
         }, { emptyOk: false }) // at least tags is required
-    })
+    }),
+    stripeChargeCardOnFile: objectValidator({
+        continueOnError: booleanValidatorOptional,
+        type: exactMatchValidator(['stripeChargeCardOnFile']),
+        info: objectValidator({
+            stripeKey: stringValidatorOptionalEmptyOkay,
+            priceIds: listOfStringsValidator,
+        }, { emptyOk: false }) // at least tags is required
+    }),
 });
 export var journeyContextValidator = objectValidator({
     calendarEventId: mongoIdStringOptional,
@@ -2670,6 +2685,7 @@ export var journeyContextValidator = objectValidator({
     eligibilityResultId: mongoIdStringOptional,
     fileId: mongoIdStringOptional,
     chatRoomId: mongoIdStringOptional,
+    twilioNumber: stringValidatorOptionalEmptyOkay,
 });
 export var relatedRecordValidator = objectValidator({
     type: stringValidator100,
@@ -3777,7 +3793,9 @@ export var automationTriggerEventValidator = orValidator({
     }),
     "Subscription Ended": objectValidator({
         type: exactMatchValidator(['Subscription Ended']),
-        info: optionalEmptyObjectValidator,
+        info: objectValidator({
+            productIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+        }),
         conditions: optionalEmptyObjectValidator,
     }),
     "Subscription Payment Failed": objectValidator({

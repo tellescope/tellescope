@@ -1290,6 +1290,9 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
         options?.onBulkErrors?.(errors)
       }
 
+      try {
+        window.parent?.postMessage({ type: 'Form Submitted' }, "*")
+      } catch(err) {}
 
       if (goBackURL) {
         (window?.top ?? window).location.href = append_current_utm_params(goBackURL);

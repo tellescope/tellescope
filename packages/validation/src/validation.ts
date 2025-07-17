@@ -322,6 +322,8 @@ import {
   AssignCareTeamAutomationAction,
   RemoveCareTeamAutomationAction,
   CallUserAutomationAction,
+  StripeChargeCardOnFileAutomationAction,
+  FormResponseAnswerTimezone,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -1585,11 +1587,13 @@ const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
   Allergies: "",
   Conditions: "",
   "Rich Text": "",
+  Timezone: '',
 }
 export const FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES) as FormFieldType[]
 export const formFieldTypeValidator = exactMatchValidator<FormFieldType>(FORM_FIELD_TYPES)
 
 export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' | 'phoneNumber']: (value?: FormResponseValueAnswer[keyof FormResponseValueAnswer], options?: any, isOptional?: boolean) => any } = {
+  Timezone: stringValidator.validate({ isOptional: true, emptyStringOk: true }),
   'Chargebee': objectAnyFieldsAnyValuesValidator.validate(),
   'Allergies': objectAnyFieldsAnyValuesValidator.validate(),
   'Conditions': objectAnyFieldsAnyValuesValidator.validate(),
@@ -2045,6 +2049,10 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
     type: exactMatchValidator(['Stripe']),
     value: stringValidator1000Optional,
   }),
+  Timezone: objectValidator<FormResponseAnswerTimezone>({
+    type: exactMatchValidator(['Timezone']),
+    value: stringValidator1000Optional,
+  }),
   // need to keep consistent with other validation
   stringLong: objectValidator<FormResponseAnswerStringLong>({
     type: exactMatchValidator(['stringLong']),
@@ -2486,6 +2494,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   assignCareTeam: '',
   removeCareTeam: '',
   callUser: '',
+  stripeChargeCardOnFile: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -3226,7 +3235,15 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       message: stringValidator25000, 
       routeBy: exactMatchValidator<CallUserAutomationAction['info']['routeBy']>(['Appointment Host']),
     }, { emptyOk: false }) // at least tags is required
-  })
+  }),
+  stripeChargeCardOnFile: objectValidator<StripeChargeCardOnFileAutomationAction>({
+    continueOnError: booleanValidatorOptional,
+    type: exactMatchValidator(['stripeChargeCardOnFile']),
+    info: objectValidator<StripeChargeCardOnFileAutomationAction['info']>({ 
+      stripeKey: stringValidatorOptionalEmptyOkay,
+      priceIds: listOfStringsValidator,
+    }, { emptyOk: false }) // at least tags is required
+  }),
 })
 
 export const journeyContextValidator = objectValidator<JourneyContext>({
@@ -3247,6 +3264,7 @@ export const journeyContextValidator = objectValidator<JourneyContext>({
   eligibilityResultId: mongoIdStringOptional,
   fileId: mongoIdStringOptional,
   chatRoomId: mongoIdStringOptional,
+  twilioNumber: stringValidatorOptionalEmptyOkay,
 })
 
 export const relatedRecordValidator = objectValidator<RelatedRecord>({
@@ -4417,7 +4435,9 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
   }), 
   "Subscription Ended": objectValidator<AutomationTriggerEvents["Subscription Ended"]>({
     type: exactMatchValidator(['Subscription Ended']),
-    info: optionalEmptyObjectValidator,
+    info: objectValidator<AutomationTriggerEvents['Subscription Ended']['info']>({
+      productIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+    }),
     conditions: optionalEmptyObjectValidator,
   }), 
   "Subscription Payment Failed": objectValidator<AutomationTriggerEvents["Subscription Payment Failed"]>({

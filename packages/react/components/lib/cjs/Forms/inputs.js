@@ -97,7 +97,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ChargeebeeInput = exports.RichTextInput = exports.ConditionsInput = exports.AllergiesInput = exports.EmotiiInput = exports.HiddenValueInput = exports.RedirectInput = exports.include_current_url_parameters_if_templated = exports.HeightInput = exports.AppointmentBookingInput = exports.RelatedContactsInput = exports.contact_is_valid = exports.MedicationsInput = exports.CanvasMedicationsInput = exports.DatabaseSelectInput = exports.DropdownInput = exports.Progress = exports.StripeInput = exports.MultipleChoiceInput = exports.FilesInput = exports.safe_create_url = exports.FileInput = exports.convertHEIC = exports.SignatureInput = exports.ESignatureTerms = exports.AddressInput = exports.TimeInput = exports.InsuranceInput = exports.NumberInput = exports.EmailInput = exports.PhoneInput = exports.StringLongInput = exports.StringInput = exports.DateStringInput = exports.AutoFocusTextField = exports.TableInput = exports.DateInput = exports.RankingInput = exports.RatingInput = exports.PdfViewer = exports.defaultButtonStyles = exports.defaultInputProps = exports.LanguageSelect = void 0;
+exports.ChargeebeeInput = exports.RichTextInput = exports.ConditionsInput = exports.AllergiesInput = exports.EmotiiInput = exports.HiddenValueInput = exports.RedirectInput = exports.include_current_url_parameters_if_templated = exports.HeightInput = exports.AppointmentBookingInput = exports.RelatedContactsInput = exports.contact_is_valid = exports.MedicationsInput = exports.CanvasMedicationsInput = exports.DatabaseSelectInput = exports.DropdownInput = exports.Progress = exports.StripeInput = exports.MultipleChoiceInput = exports.FilesInput = exports.safe_create_url = exports.FileInput = exports.convertHEIC = exports.SignatureInput = exports.ESignatureTerms = exports.AddressInput = exports.TimezoneInput = exports.TimeInput = exports.InsuranceInput = exports.NumberInput = exports.EmailInput = exports.PhoneInput = exports.StringLongInput = exports.StringInput = exports.DateStringInput = exports.AutoFocusTextField = exports.TableInput = exports.DateInput = exports.RankingInput = exports.RatingInput = exports.PdfViewer = exports.defaultButtonStyles = exports.defaultInputProps = exports.LanguageSelect = void 0;
 var jsx_runtime_1 = require("react/jsx-runtime");
 var react_1 = __importStar(require("react"));
 var axios_1 = __importDefault(require("axios"));
@@ -105,6 +105,7 @@ var material_1 = require("@mui/material");
 var react_dropzone_1 = require("react-dropzone");
 var constants_1 = require("@tellescope/constants");
 var utilities_1 = require("@tellescope/utilities");
+var types_models_1 = require("@tellescope/types-models");
 var validation_1 = require("@tellescope/validation");
 var Slider_1 = __importDefault(require("@mui/material/Slider"));
 var LinearProgress_1 = __importDefault(require("@mui/material/LinearProgress"));
@@ -493,6 +494,11 @@ var TimeInput = function (_a) {
     return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: 'center', spacing: 1 }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, sx: { width: 100 } }, { children: (0, jsx_runtime_1.jsx)(HourSelector, { value: hour, onChange: function (hour) { return onChange("".concat(hour, ":").concat(minute, " ").concat(amPm, " ").concat(zone), field.id); } }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, sx: { width: 100 } }, { children: (0, jsx_runtime_1.jsx)(MinuteSelector, { value: minute, onChange: function (minute) { return onChange("".concat(hour, ":").concat(minute, " ").concat(amPm, " ").concat(zone), field.id); } }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, sx: { width: 100 } }, { children: (0, jsx_runtime_1.jsx)(AmPmSelector, { value: amPm, onChange: function (amPm) { return onChange("".concat(hour, ":").concat(minute, " ").concat(amPm, " ").concat(zone), field.id); } }) }))] })));
 };
 exports.TimeInput = TimeInput;
+var TimezoneInput = function (_a) {
+    var _b = _a.value, value = _b === void 0 ? '' : _b, field = _a.field, onChange = _a.onChange, props = __rest(_a, ["value", "field", "onChange"]);
+    return ((0, jsx_runtime_1.jsx)(StringSelector, __assign({}, props, { value: value, options: types_models_1.TIMEZONES_USA, onChange: function (v) { return onChange(v, field.id); } })));
+};
+exports.TimezoneInput = TimezoneInput;
 var AddressInput = function (_a) {
     var _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
     var field = _a.field, form = _a.form, value = _a.value, onChange = _a.onChange, props = __rest(_a, ["field", "form", "value", "onChange"]);
