@@ -4317,13 +4317,17 @@ var order_status_equals_tests = function () { return __awaiter(void 0, void 0, v
                                 && ((_b = e.tags) === null || _b === void 0 ? void 0 : _b.includes('Source'))
                                 && ((_c = e.tags) === null || _c === void 0 ? void 0 : _c.includes('Fill'))
                                 && ((_d = e.tags) === null || _d === void 0 ? void 0 : _d.includes('Status Update')));
-                        } })];
+                        } })
+                    // duplicate updates get rate limited, so we need to make each update unique
+                ];
             case 26:
                 _a.sent();
+                // duplicate updates get rate limited, so we need to make each update unique
                 return [4 /*yield*/, sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle' })];
             case 27:
+                // duplicate updates get rate limited, so we need to make each update unique
                 _a.sent();
-                return [4 /*yield*/, sdk.api.enduser_orders.updateOne(u.id, { status: "Update", fill: 'Update' })];
+                return [4 /*yield*/, sdk.api.enduser_orders.updateOne(u.id, { status: "Update", fill: 'Update', externalId: 'avoid rate limiting' })];
             case 28:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
@@ -4339,10 +4343,10 @@ var order_status_equals_tests = function () { return __awaiter(void 0, void 0, v
                         } })];
             case 30:
                 _a.sent();
-                return [4 /*yield*/, sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle' })];
+                return [4 /*yield*/, sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle', externalId: "also avoid rate limit 1" })];
             case 31:
                 _a.sent();
-                return [4 /*yield*/, sdk.api.enduser_orders.updateOne(u.id, { status: "Update", sku: 'SK' })];
+                return [4 /*yield*/, sdk.api.enduser_orders.updateOne(u.id, { status: "Update", sku: 'SK', externalId: 'avoid rate limiting 2' })];
             case 32:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
@@ -4358,10 +4362,10 @@ var order_status_equals_tests = function () { return __awaiter(void 0, void 0, v
                         } })];
             case 34:
                 _a.sent();
-                return [4 /*yield*/, sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle' })];
+                return [4 /*yield*/, sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle', externalId: "also avoid rate limit 2" })];
             case 35:
                 _a.sent();
-                return [4 /*yield*/, sdk.api.enduser_orders.updateOne(u.id, { status: "Update", sku: 'SKU' })];
+                return [4 /*yield*/, sdk.api.enduser_orders.updateOne(u.id, { status: "Update", sku: 'SKU', externalId: 'avoid rate limiting 3' })];
             case 36:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
@@ -4378,7 +4382,7 @@ var order_status_equals_tests = function () { return __awaiter(void 0, void 0, v
                         } })];
             case 38:
                 _a.sent();
-                return [4 /*yield*/, sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle' })];
+                return [4 /*yield*/, sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle', externalId: "also avoid rate limit 3" })];
             case 39:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.enduser_orders.updateOne(u.id, { status: "Update", sku: '___SKU-PARTIAL--_' })];
@@ -6068,10 +6072,10 @@ var redaction_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                     })];
             case 8:
                 notZoomIntegration = _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('Zoom integration redacts authentication info', function () { return sdk.api.integrations.getOne(zoomIntegration); }, { onResult: function (i) { return !i.authentication; } })];
+                return [4 /*yield*/, (0, testing_1.async_test)('Zoom integration redacts authentication info', function () { return sdk.api.integrations.getOne(zoomIntegration.id); }, { onResult: function (i) { return !i.authentication; } })];
             case 9:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('Generic integration includes authentication info (for now, while used in front-end for some integrations like Zendesk)', function () { return sdk.api.integrations.getOne(notZoomIntegration); }, { onResult: function (i) { return !!i.authentication; } })];
+                return [4 /*yield*/, (0, testing_1.async_test)('Generic integration includes authentication info (for now, while used in front-end for some integrations like Zendesk)', function () { return sdk.api.integrations.getOne(notZoomIntegration.id); }, { onResult: function (i) { return !!i.authentication; } })];
             case 10:
                 _a.sent();
                 return [4 /*yield*/, Promise.all([
@@ -6992,7 +6996,7 @@ var role_based_access_permissions_tests = function () { return __awaiter(void 0,
             case 10:
                 // cleanup
                 _a.sent();
-                return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdminId, { roles: ['Non-Admin'] }, { replaceObjectFields: true })];
+                return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdminId, { roles: ['Non-Admin'], tags: ['avoid rate limit'] }, { replaceObjectFields: true })];
             case 11:
                 _a.sent();
                 return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)]; // to use new role, handle logout on role change
@@ -7066,7 +7070,8 @@ var run_autoreply_test = function (title, _a) {
                             sdk.api.chat_rooms.deleteOne(room.id),
                             // cleanup availabilities
                             sdk.api.users.updateOne(sdk.userInfo.id, {
-                                weeklyAvailabilities: []
+                                weeklyAvailabilities: [],
+                                url: Math.random().toString().slice(2, 10), // avoid rate limit
                             }, {
                                 replaceObjectFields: true
                             })
@@ -7087,6 +7092,7 @@ var auto_reply_tests = function () { return __awaiter(void 0, void 0, void 0, fu
             return [4 /*yield*/, sdk.api.users.updateOne(sdk.userInfo.id, {
                     autoReplyEnabled: false,
                     weeklyAvailabilities: [],
+                    url: Math.random().toString().slice(2, 10), // avoid rate limit
                 }, { replaceObjectFields: true })];
             case 1:
                 // cleanup user availabilities / autoReplyEnabled to avoid conflicts
@@ -7440,19 +7446,39 @@ var rate_limit_tests = function () { return __awaiter(void 0, void 0, void 0, fu
                     ])];
             case 1:
                 _a = (_d.sent()).created, e1 = _a[0], e2 = _a[1], e3 = _a[2];
+                // prevent duplicate updates to same enduser
+                return [4 /*yield*/, (0, testing_1.async_test)("Duplicate updates 1", function () { return sdk.api.endusers.updateOne(e1.id, { fields: { Test: 'Trigger' } }); }, passOnAnyResult)];
+            case 2:
+                // prevent duplicate updates to same enduser
+                _d.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("Duplicate updates 2", function () { return sdk.api.endusers.updateOne(e1.id, { fields: { Test: 'Trigger' } }); }, passOnAnyResult)];
+            case 3:
+                _d.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("Duplicate updates 3", function () { return sdk.api.endusers.updateOne(e1.id, { fields: { Test: 'Trigger' } }); }, passOnAnyResult)];
+            case 4:
+                _d.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("Duplicate updates 4 (should trip)", function () { return sdk.api.endusers.updateOne(e1.id, { fields: { Test: 'Trigger' } }); }, handleRateLimitError)];
+            case 5:
+                _d.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("Duplicate updates 5 (should trip again)", function () { return sdk.api.endusers.updateOne(e1.id, { fields: { Test: 'Trigger' } }); }, handleRateLimitError)];
+            case 6:
+                _d.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("Duplicate updates other enduser (should not again)", function () { return sdk.api.endusers.updateOne(e2.id, { fields: { Test: 'Trigger' } }); }, passOnAnyResult)];
+            case 7:
+                _d.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Same template email rate limit 1-per-minute", function () { return sdk.api.emails.createSome([
                         { enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: constants_1.PLACEHOLDER_ID },
                         { enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: constants_1.PLACEHOLDER_ID },
                     ]); }, handleRateLimitError)
                     // these should work, as 1 each is safe
                 ];
-            case 2:
+            case 8:
                 _d.sent();
                 return [4 /*yield*/, sdk.api.emails.createSome([
                         { enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: constants_1.PLACEHOLDER_ID },
                         { enduserId: e2.id, subject: 'ratelimit', textContent: 'rate limit', templateId: constants_1.PLACEHOLDER_ID },
                     ])];
-            case 3:
+            case 9:
                 _b = (_d.sent()).created, email1 = _b[0], email2 = _b[1];
                 // already has 1 created 
                 return [4 /*yield*/, (0, testing_1.async_test)("Same enduser rate limit 5 per 5 seconds", function () { return sdk.api.emails.createSome([
@@ -7462,7 +7488,7 @@ var rate_limit_tests = function () { return __awaiter(void 0, void 0, void 0, fu
                         { enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', },
                         { enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit' },
                     ]); }, handleRateLimitError)];
-            case 4:
+            case 10:
                 // already has 1 created 
                 _d.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Same enduser rate limit 5 per 5 seconds not for log only", function () { return sdk.api.emails.createSome([
@@ -7472,25 +7498,25 @@ var rate_limit_tests = function () { return __awaiter(void 0, void 0, void 0, fu
                         { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', },
                         { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit' },
                     ]); }, passOnAnyResult)];
-            case 5:
+            case 11:
                 _d.sent();
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 2500)]; // give it some time before trying again, to ensure still blocked after 2.5 < 60 seconds
-            case 6:
+            case 12:
                 _d.sent(); // give it some time before trying again, to ensure still blocked after 2.5 < 60 seconds
                 return [4 /*yield*/, (0, testing_1.async_test)("Same template email rate limit 1-per-minute after creating", function () { return sdk.api.emails.createOne({
                         enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: constants_1.PLACEHOLDER_ID
                     }); }, handleRateLimitError)];
-            case 7:
+            case 13:
                 _d.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Same template email rate limit 1-per-minute not for logOnly 1", function () { return sdk.api.emails.createOne({
                         logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: constants_1.PLACEHOLDER_ID
                     }); }, passOnAnyResult)];
-            case 8:
+            case 14:
                 _d.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Same template email rate limit 1-per-minute not for logOnly 2", function () { return sdk.api.emails.createOne({
                         logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: constants_1.PLACEHOLDER_ID
                     }); }, passOnAnyResult)];
-            case 9:
+            case 15:
                 _d.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Same template sms rate limit 1-per-minute", function () { return sdk.api.sms_messages.createSome([
                         { enduserId: e1.id, templateId: constants_1.PLACEHOLDER_ID, message: 'hi' },
@@ -7498,13 +7524,13 @@ var rate_limit_tests = function () { return __awaiter(void 0, void 0, void 0, fu
                     ]); }, handleRateLimitError)
                     // these should work, as 1 each is safe
                 ];
-            case 10:
+            case 16:
                 _d.sent();
                 return [4 /*yield*/, sdk.api.sms_messages.createSome([
                         { enduserId: e1.id, templateId: constants_1.PLACEHOLDER_ID, message: 'hi' },
                         { enduserId: e2.id, templateId: constants_1.PLACEHOLDER_ID, message: 'hi' },
                     ])];
-            case 11:
+            case 17:
                 _c = (_d.sent()).created, sms1 = _c[0], sms2 = _c[1];
                 // already has 1 created, so 3 new should error (4 > 3)
                 return [4 /*yield*/, (0, testing_1.async_test)("Same enduser sms rate limit 3 per 3 seconds", function () { return sdk.api.sms_messages.createSome([
@@ -7512,7 +7538,7 @@ var rate_limit_tests = function () { return __awaiter(void 0, void 0, void 0, fu
                         { enduserId: e1.id, message: 'hi' },
                         { enduserId: e1.id, message: 'hi' },
                     ]); }, handleRateLimitError)];
-            case 12:
+            case 18:
                 // already has 1 created, so 3 new should error (4 > 3)
                 _d.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Same enduser sms rate limit not applied on logOnly 3 per 3 seconds", function () { return sdk.api.sms_messages.createSome([
@@ -7522,27 +7548,27 @@ var rate_limit_tests = function () { return __awaiter(void 0, void 0, void 0, fu
                         { logOnly: true, enduserId: e3.id, message: 'hi' },
                         { logOnly: true, enduserId: e3.id, message: 'hi' },
                     ]); }, passOnAnyResult)];
-            case 13:
+            case 19:
                 _d.sent();
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 2500)]; // give it some time before trying again, to ensure still blocked after 2.5 < 60 seconds
-            case 14:
+            case 20:
                 _d.sent(); // give it some time before trying again, to ensure still blocked after 2.5 < 60 seconds
                 return [4 /*yield*/, (0, testing_1.async_test)("Same template sms rate limit 1-per-minute after creating", function () { return sdk.api.sms_messages.createOne({
                         enduserId: e2.id, templateId: constants_1.PLACEHOLDER_ID, message: 'hi'
                     }); }, handleRateLimitError)];
-            case 15:
+            case 21:
                 _d.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Same template sms rate limit 1-per-minute logonly does not apply 1", function () { return sdk.api.sms_messages.createOne({
                         logOnly: true, enduserId: e2.id, templateId: constants_1.PLACEHOLDER_ID, message: 'hi'
                     }); }, passOnAnyResult)];
-            case 16:
+            case 22:
                 _d.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Same template sms rate limit 1-per-minute logonly does not apply 2", function () { return sdk.api.sms_messages.createOne({
                         logOnly: true, enduserId: e2.id, templateId: constants_1.PLACEHOLDER_ID, message: 'hi'
                     }); }, passOnAnyResult)
                     // these should work, as they do not have the same template
                 ];
-            case 17:
+            case 23:
                 _d.sent();
                 // these should work, as they do not have the same template
                 return [4 /*yield*/, sdk.api.emails.createSome([
@@ -7550,7 +7576,7 @@ var rate_limit_tests = function () { return __awaiter(void 0, void 0, void 0, fu
                         { enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit' },
                         { enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit' },
                     ])];
-            case 18:
+            case 24:
                 // these should work, as they do not have the same template
                 _d.sent();
                 return [4 /*yield*/, Promise.all([
@@ -7558,7 +7584,7 @@ var rate_limit_tests = function () { return __awaiter(void 0, void 0, void 0, fu
                         sdk.api.endusers.deleteOne(e2.id),
                         sdk.api.endusers.deleteOne(e3.id),
                     ])];
-            case 19:
+            case 25:
                 _d.sent();
                 return [2 /*return*/];
         }
@@ -13626,88 +13652,88 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, setup_tests()];
             case 16:
                 _l.sent();
-                return [4 /*yield*/, ip_address_form_tests()];
+                return [4 /*yield*/, rate_limit_tests()];
             case 17:
                 _l.sent();
-                return [4 /*yield*/, bulk_update_tests()];
+                return [4 /*yield*/, ip_address_form_tests()];
             case 18:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.formsort_tests)()];
+                return [4 /*yield*/, bulk_update_tests()];
             case 19:
                 _l.sent();
-                return [4 /*yield*/, inbox_loading_tests()];
+                return [4 /*yield*/, (0, exports.formsort_tests)()];
             case 20:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.cancel_upcoming_appointments_journey_action_test)()];
+                return [4 /*yield*/, inbox_loading_tests()];
             case 21:
                 _l.sent();
-                return [4 /*yield*/, multi_tenant_tests()]; // should come right after setup tests
+                return [4 /*yield*/, (0, exports.cancel_upcoming_appointments_journey_action_test)()];
             case 22:
+                _l.sent();
+                return [4 /*yield*/, multi_tenant_tests()]; // should come right after setup tests
+            case 23:
                 _l.sent(); // should come right after setup tests
                 return [4 /*yield*/, sync_tests_with_access_tags()]; // should come directly after setup to avoid extra sync values
-            case 23:
-                _l.sent(); // should come directly after setup to avoid extra sync values
-                return [4 /*yield*/, sync_tests()]; // should come directly after setup to avoid extra sync values
             case 24:
                 _l.sent(); // should come directly after setup to avoid extra sync values
-                return [4 /*yield*/, get_templated_message_tests()];
+                return [4 /*yield*/, sync_tests()]; // should come directly after setup to avoid extra sync values
             case 25:
-                _l.sent();
-                return [4 /*yield*/, updatedAt_tests()];
+                _l.sent(); // should come directly after setup to avoid extra sync values
+                return [4 /*yield*/, get_templated_message_tests()];
             case 26:
                 _l.sent();
-                return [4 /*yield*/, automation_trigger_tests()];
+                return [4 /*yield*/, updatedAt_tests()];
             case 27:
                 _l.sent();
-                return [4 /*yield*/, file_source_tests()];
+                return [4 /*yield*/, automation_trigger_tests()];
             case 28:
                 _l.sent();
-                return [4 /*yield*/, enduser_access_tags_tests()];
+                return [4 /*yield*/, file_source_tests()];
             case 29:
                 _l.sent();
-                return [4 /*yield*/, enduserAccessTests()];
+                return [4 /*yield*/, enduser_access_tags_tests()];
             case 30:
                 _l.sent();
-                return [4 /*yield*/, test_form_response_search()];
+                return [4 /*yield*/, enduserAccessTests()];
             case 31:
                 _l.sent();
-                return [4 /*yield*/, date_parsing_tests()];
+                return [4 /*yield*/, test_form_response_search()];
             case 32:
                 _l.sent();
-                return [4 /*yield*/, fromEmailOverride_tests()];
+                return [4 /*yield*/, date_parsing_tests()];
             case 33:
                 _l.sent();
-                return [4 /*yield*/, ticket_tests()];
+                return [4 /*yield*/, fromEmailOverride_tests()];
             case 34:
                 _l.sent();
-                return [4 /*yield*/, uniqueness_tests()];
+                return [4 /*yield*/, ticket_tests()];
             case 35:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.enduser_orders_tests)()];
+                return [4 /*yield*/, uniqueness_tests()];
             case 36:
                 _l.sent();
-                return [4 /*yield*/, calendar_event_care_team_tests()];
+                return [4 /*yield*/, (0, exports.enduser_orders_tests)()];
             case 37:
                 _l.sent();
-                return [4 /*yield*/, merge_enduser_tests()];
+                return [4 /*yield*/, calendar_event_care_team_tests()];
             case 38:
                 _l.sent();
-                return [4 /*yield*/, input_modifier_tests()];
+                return [4 /*yield*/, merge_enduser_tests()];
             case 39:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.switch_to_related_contacts_tests)()];
+                return [4 /*yield*/, input_modifier_tests()];
             case 40:
                 _l.sent();
-                return [4 /*yield*/, redaction_tests()];
+                return [4 /*yield*/, (0, exports.switch_to_related_contacts_tests)()];
             case 41:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.self_serve_appointment_booking_tests)()];
+                return [4 /*yield*/, redaction_tests()];
             case 42:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.no_chained_triggers_tests)()];
+                return [4 /*yield*/, (0, exports.self_serve_appointment_booking_tests)()];
             case 43:
                 _l.sent();
-                return [4 /*yield*/, rate_limit_tests()];
+                return [4 /*yield*/, (0, exports.no_chained_triggers_tests)()];
             case 44:
                 _l.sent();
                 return [4 /*yield*/, mdb_filter_tests()];

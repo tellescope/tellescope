@@ -3509,8 +3509,9 @@ const order_status_equals_tests = async () => {
     ) }
   )
   
+  // duplicate updates get rate limited, so we need to make each update unique
   await sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle' })
-  await sdk.api.enduser_orders.updateOne(u.id, { status: "Update", fill: 'Update' })
+  await sdk.api.enduser_orders.updateOne(u.id, { status: "Update", fill: 'Update', externalId: 'avoid rate limiting' })
   await wait(undefined, 500) // allow triggers to happen
   await async_test(
     "Fill update tag added",
@@ -3524,8 +3525,8 @@ const order_status_equals_tests = async () => {
     ) }
   )
 
-  await sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle' })
-  await sdk.api.enduser_orders.updateOne(u.id, { status: "Update", sku: 'SK' })
+  await sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle', externalId: "also avoid rate limit 1" })
+  await sdk.api.enduser_orders.updateOne(u.id, { status: "Update", sku: 'SK', externalId: 'avoid rate limiting 2' })
   await wait(undefined, 500) // allow triggers to happen
   await async_test(
     "SKU update no match",
@@ -3539,8 +3540,8 @@ const order_status_equals_tests = async () => {
     ) }
   )
 
-  await sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle' })
-  await sdk.api.enduser_orders.updateOne(u.id, { status: "Update", sku: 'SKU' })
+  await sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle', externalId: "also avoid rate limit 2" })
+  await sdk.api.enduser_orders.updateOne(u.id, { status: "Update", sku: 'SKU', externalId: 'avoid rate limiting 3' })
   await wait(undefined, 500) // allow triggers to happen
   await async_test(
     "SKU update tag added",
@@ -3555,7 +3556,7 @@ const order_status_equals_tests = async () => {
     ) }
   )
 
-  await sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle' })
+  await sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle', externalId: "also avoid rate limit 3" })
   await sdk.api.enduser_orders.updateOne(u.id, { status: "Update", sku: '___SKU-PARTIAL--_' })
   await wait(undefined, 500) // allow triggers to happen
   await async_test(
@@ -4975,12 +4976,12 @@ const redaction_tests = async () => {
 
   await async_test(
     'Zoom integration redacts authentication info',
-    () => sdk.api.integrations.getOne(zoomIntegration),
+    () => sdk.api.integrations.getOne(zoomIntegration.id),
     { onResult: i => !i.authentication},
   )
   await async_test(
     'Generic integration includes authentication info (for now, while used in front-end for some integrations like Zendesk)',
-    () => sdk.api.integrations.getOne(notZoomIntegration),
+    () => sdk.api.integrations.getOne(notZoomIntegration.id),
     { onResult: i => !!i.authentication},
   )
 
@@ -5826,7 +5827,7 @@ export const role_based_access_permissions_tests = async () => {
 
   // cleanup
   await sdk.api.role_based_access_permissions.deleteOne(rbap.id)
-  await sdk.api.users.updateOne(sdkNonAdminId, { roles: ['Non-Admin'] }, { replaceObjectFields: true })
+  await sdk.api.users.updateOne(sdkNonAdminId, { roles: ['Non-Admin'], tags: ['avoid rate limit'] }, { replaceObjectFields: true })
   await sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword) // to use new role, handle logout on role change
 }
 
@@ -5888,7 +5889,8 @@ const run_autoreply_test = async (title: string, { expectingAutoreply } : { expe
 
     // cleanup availabilities
     sdk.api.users.updateOne(sdk.userInfo.id, {
-      weeklyAvailabilities: []
+      weeklyAvailabilities: [],
+      url: Math.random().toString().slice(2, 10), // avoid rate limit
     }, {
       replaceObjectFields: true
     }),
@@ -5903,6 +5905,7 @@ const auto_reply_tests = async () => {
   await sdk.api.users.updateOne(sdk.userInfo.id, {
     autoReplyEnabled: false,
     weeklyAvailabilities: [],
+    url: Math.random().toString().slice(2, 10), // avoid rate limit
   }, { replaceObjectFields: true })
 
   log_header("Autoreply (Organization-wide)")
@@ -6226,6 +6229,38 @@ const rate_limit_tests = async () => {
     { fname: '2', email: 'dontsend2@tellescope.com', phone: '+15555555555' },
     { fname: 'Logonly', email: 'dontsend3@tellescope.com', phone: '+15555555555' },
   ])).created
+
+  // prevent duplicate updates to same enduser
+  await async_test(
+    "Duplicate updates 1",
+    () => sdk.api.endusers.updateOne(e1.id, { fields: { Test: 'Trigger' } }),
+    passOnAnyResult
+  )
+  await async_test(
+    "Duplicate updates 2",
+    () => sdk.api.endusers.updateOne(e1.id, { fields: { Test: 'Trigger' } }),
+    passOnAnyResult
+  )
+  await async_test(
+    "Duplicate updates 3",
+    () => sdk.api.endusers.updateOne(e1.id, { fields: { Test: 'Trigger' } }),
+    passOnAnyResult
+  )
+  await async_test(
+    "Duplicate updates 4 (should trip)",
+    () => sdk.api.endusers.updateOne(e1.id, { fields: { Test: 'Trigger' } }),
+    handleRateLimitError
+  )
+  await async_test(
+    "Duplicate updates 5 (should trip again)",
+    () => sdk.api.endusers.updateOne(e1.id, { fields: { Test: 'Trigger' } }),
+    handleRateLimitError
+  )
+  await async_test(
+    "Duplicate updates other enduser (should not again)",
+    () => sdk.api.endusers.updateOne(e2.id, { fields: { Test: 'Trigger' } }),
+    passOnAnyResult
+  )
 
   await async_test(
     "Same template email rate limit 1-per-minute",
@@ -11929,6 +11964,7 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests()
+    await rate_limit_tests()
     await ip_address_form_tests()
     await bulk_update_tests()
     await formsort_tests()
@@ -11956,7 +11992,6 @@ const ip_address_form_tests = async () => {
     await redaction_tests()
     await self_serve_appointment_booking_tests()
     await no_chained_triggers_tests()
-    await rate_limit_tests()
     await mdb_filter_tests()
     await test_ticket_automation_assignment_and_optimization()
     await superadmin_tests()

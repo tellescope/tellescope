@@ -666,6 +666,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
   },
   sms_messages: {
+    send_message_as_user_notification: (args: extractFields<CustomActions['sms_messages']['send_message_as_user_notification']['parameters']>) => (
+      Promise<extractFields<CustomActions['sms_messages']['send_message_as_user_notification']['returns']>>
+    ),
     send_with_template: (args: extractFields<CustomActions['sms_messages']['send_with_template']['parameters']>) => (
       Promise<extractFields<CustomActions['sms_messages']['send_with_template']['returns']>>
     ),
@@ -1092,6 +1095,7 @@ export class Session extends SessionManager {
     queries.sms_messages.get_number_report = a => this._GET(`/v1/${schema.sms_messages.customActions.get_number_report.path}`, a)
     queries.sms_messages.get_template_report = a => this._GET(`/v1/${schema.sms_messages.customActions.get_template_report.path}`, a)
     queries.sms_messages.send_with_template = a => this._POST(`/v1/${schema.sms_messages.customActions.send_with_template.path}`, a)
+    queries.sms_messages.send_message_as_user_notification = a => this._POST(`/v1/${schema.sms_messages.customActions.send_message_as_user_notification.path}`, a)
 
     queries.purchases.charge_card_on_file = a => this._POST(`/v1/${schema.purchases.customActions.charge_card_on_file.path}`, a)
 

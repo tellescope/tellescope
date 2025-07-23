@@ -889,7 +889,7 @@ export type CustomActions = {
     get_engagement_report: CustomAction<{ range?: DateRange, excludeAutomated?: boolean }, { report: Record<string, any> }>,
     consent: CustomAction<{ termsVersion: string, }, { user: User, authToken: string }>,
     get_users_for_groups: CustomAction<{ groups: string[] }, { userIds: string[] }>,
-    play_phone_message: CustomAction<{ userId: string, message: string }, { }>,
+    play_phone_message: CustomAction<{ userId: string, message: string, enduserId?: string, journeyContext?: JourneyContext }, { }>,
   },
   chat_rooms: {
     join_room: CustomAction<{ id: string }, { room: ChatRoom }>,
@@ -1089,6 +1089,7 @@ export type CustomActions = {
     get_number_report: CustomAction<{ range?: DateRange }, { report: PhoneCallsReport }>,
     get_template_report: CustomAction<{ range?: DateRange }, { report: Report }>,
     send_with_template: CustomAction<{ enduserId: string, senderId: string, templateId: string, fromNumber?: string }, { sms: SMSMessage }>,
+    send_message_as_user_notification: CustomAction<{ to: string, message: string }>,
   },
   products: {
     prepare_stripe_checkout: CustomAction<
@@ -2780,6 +2781,17 @@ export const schema: SchemaV1 = build_schema({
         },
         returns: { sms: { validator: 'sms_message' as any } } 
       },
+      send_message_as_user_notification: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Send Message as User Notification',
+        path: '/sms-messages/send-message-as-user-notification',
+        description: "Sends an SMS message as a user notification (e.g. for an upcoming calendar event)",
+        parameters: {
+          to: { validator: phoneValidator, required: true },
+          message: { validator: stringValidator5000, required: true },
+        },
+        returns: { sms: { validator: 'sms_message' as any } }
+      },
       get_number_report: {
         op: "custom", access: 'read', method: "get",
         name: 'Number Report',
@@ -3466,6 +3478,8 @@ export const schema: SchemaV1 = build_schema({
         parameters: { 
           userId: { validator: mongoIdStringValidator, required: true },
           message: { validator: stringValidator5000, required: true },
+          enduserId: { validator: mongoIdStringValidator },
+          journeyContext: { validator: journeyContextValidator },
         },
         returns: { },
       },
@@ -4918,7 +4932,10 @@ export const schema: SchemaV1 = build_schema({
     info: {
       description: `Allows you to subscribe to Webhooks when models in Tellescope are created, updated, and deleted.
 
-        To avoid echo (receiving webhooks when updating records with an API Key), pass the use { dontSendWebhook: true } in the "options" parameter to the update request
+        <strong style="font-size: 25px">
+        To avoid echo (receiving webhooks when updating records with an API Key), pass the use { dontSendWebhook: true } in the "options" parameter to update (PATCH) requests
+        We rate limit requests which perform the same update to the same record to help you detect echo during development
+        </strong>
 
         Each webhook is a POST request to the given URL, of the form <pre>{ 
           model: string, 
@@ -5007,7 +5024,7 @@ export const schema: SchemaV1 = build_schema({
         path: '/send-automation-webhook',
         description: "Sends a webhook with the automations format, useful for testing automation integrations",
         parameters: { 
-          message: { validator: stringValidator5000, required: true },
+          message: { validator: stringValidator5000 }, // no longer required for custom webhooks
           enduserId: { validator: mongoIdStringValidator }, // can make required after initial updates to ensure worker uses this
           automationStepId: { validator: mongoIdStringValidator }, // can make required after initial updates to ensure worker uses this
           action: { validator: optionalAnyObjectValidator as any },
@@ -6939,6 +6956,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields, 
+      dontRestrictRescheduleToOriginalHost: { validator: booleanValidator },
       gtmTag: { validator: stringValidator100EscapeHTML },
       archivedAt: { validator: dateOptionalOrEmptyStringValidator },
       title: {

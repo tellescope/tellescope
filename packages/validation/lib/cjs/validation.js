@@ -2064,10 +2064,12 @@ exports.calendarEventReminderValidator = (0, exports.orValidator)({
     "enduser-notification": (0, exports.objectValidator)(__assign({ info: (0, exports.objectValidator)({
             templateId: exports.mongoIdStringOptional,
             channel: exports.communicationsChannelValidatorOptional,
+            useTemplateForSMS: exports.booleanValidatorOptional,
         }, { emptyOk: true }), type: (0, exports.exactMatchValidator)(['enduser-notification']) }, sharedReminderValidators)),
     "user-notification": (0, exports.objectValidator)(__assign({ info: (0, exports.objectValidator)({
             templateId: exports.mongoIdStringOptional,
             channel: exports.communicationsChannelValidatorOptional,
+            useTemplateForSMS: exports.booleanValidatorOptional,
         }, { emptyOk: true }), type: (0, exports.exactMatchValidator)(['user-notification']) }, sharedReminderValidators)),
     "create-ticket": (0, exports.objectValidator)(__assign({ info: (0, exports.objectValidator)({
             title: exports.stringValidator1000Optional,

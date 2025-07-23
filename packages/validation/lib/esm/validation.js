@@ -2014,10 +2014,12 @@ export var calendarEventReminderValidator = orValidator({
     "enduser-notification": objectValidator(__assign({ info: objectValidator({
             templateId: mongoIdStringOptional,
             channel: communicationsChannelValidatorOptional,
+            useTemplateForSMS: booleanValidatorOptional,
         }, { emptyOk: true }), type: exactMatchValidator(['enduser-notification']) }, sharedReminderValidators)),
     "user-notification": objectValidator(__assign({ info: objectValidator({
             templateId: mongoIdStringOptional,
             channel: communicationsChannelValidatorOptional,
+            useTemplateForSMS: booleanValidatorOptional,
         }, { emptyOk: true }), type: exactMatchValidator(['user-notification']) }, sharedReminderValidators)),
     "create-ticket": objectValidator(__assign({ info: objectValidator({
             title: stringValidator1000Optional,

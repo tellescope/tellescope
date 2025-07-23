@@ -807,6 +807,8 @@ export type CustomActions = {
         play_phone_message: CustomAction<{
             userId: string;
             message: string;
+            enduserId?: string;
+            journeyContext?: JourneyContext;
         }, {}>;
     };
     chat_rooms: {
@@ -1431,6 +1433,10 @@ export type CustomActions = {
             fromNumber?: string;
         }, {
             sms: SMSMessage;
+        }>;
+        send_message_as_user_notification: CustomAction<{
+            to: string;
+            message: string;
         }>;
     };
     products: {

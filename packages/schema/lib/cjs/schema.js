@@ -1411,6 +1411,17 @@ exports.schema = (0, exports.build_schema)({
                 },
                 returns: { sms: { validator: 'sms_message' } }
             },
+            send_message_as_user_notification: {
+                op: "custom", access: 'create', method: "post",
+                name: 'Send Message as User Notification',
+                path: '/sms-messages/send-message-as-user-notification',
+                description: "Sends an SMS message as a user notification (e.g. for an upcoming calendar event)",
+                parameters: {
+                    to: { validator: validation_1.phoneValidator, required: true },
+                    message: { validator: validation_1.stringValidator5000, required: true },
+                },
+                returns: { sms: { validator: 'sms_message' } }
+            },
             get_number_report: {
                 op: "custom", access: 'read', method: "get",
                 name: 'Number Report',
@@ -2042,6 +2053,8 @@ exports.schema = (0, exports.build_schema)({
                 parameters: {
                     userId: { validator: validation_1.mongoIdStringRequired, required: true },
                     message: { validator: validation_1.stringValidator5000, required: true },
+                    enduserId: { validator: validation_1.mongoIdStringRequired },
+                    journeyContext: { validator: validation_1.journeyContextValidator },
                 },
                 returns: {},
             },
@@ -3194,7 +3207,7 @@ exports.schema = (0, exports.build_schema)({
     },
     webhooks: {
         info: {
-            description: "Allows you to subscribe to Webhooks when models in Tellescope are created, updated, and deleted.\n\n        To avoid echo (receiving webhooks when updating records with an API Key), pass the use { dontSendWebhook: true } in the \"options\" parameter to the update request\n\n        Each webhook is a POST request to the given URL, of the form <pre>{ \n          model: string, \n          type: 'create' | 'update' | 'delete', \n          records: object[], \n          timestamp: string, \n          integrity: string, \n          relatedRecords: { [id: string]: object } \n}</pre>\n        This includes the name of the model, the type of operation performed, and an array of the new, updated, or deleted model(s).\n\n        <strong>Each 'create' webhook may include more than one record (e.g. when records are created as part of a bulk POST) </strong>\n\n        The integrity field is a sha256 hash of (record ids concatenated from index 0 to the end, with the timestamp and then secret appended)\n        For example hook: { records: [{ id: '1', ... }, { id: '4', ... }], timestamp: \"1029358\" } with secret set as \"secret\",\n        integrity = sha256('141029358secret')\n        Each time you handle a webhook, you should verify the integrity field is correct to ensure that the request is actually coming from Tellescope. \n\n        For performance, a relatedRecords object is provided as a cache. This object maps some ids referenced in the webhook records to the corresponding models in Tellescope. \n        For a given webhook, relatedRecords may be empty, or may not include all related ids. In such cases, you'll need to query against the Tellescope API for an up-to-date reference.\n\n        Currently supported models for Webhooks: ".concat(Object.keys(types_models_1.WEBHOOK_MODELS).join(', '), "\n\n        You can handle webhooks from automations in Tellescope, which have a simpler format: <pre>{ \n          type: 'automation'\n          message: string,\n          timestamp: string, \n          integrity: string, \n          enduserId: string, \n}</pre>\n        In this case, integrity is a simple sha256 hash of message + timestamp + secret\n\n        You can also handle calendar event reminders as webhooks, which have the format: <pre>{ \n          type: 'calendar_event_reminder'\n          event: CalendarEvent,\n          timestamp: string, \n          integrity: string, \n}</pre>\n        In this case, integrity is a simple sha256 hash of event.id + timestamp + secret\n      ")
+            description: "Allows you to subscribe to Webhooks when models in Tellescope are created, updated, and deleted.\n\n        <strong style=\"font-size: 25px\">\n        To avoid echo (receiving webhooks when updating records with an API Key), pass the use { dontSendWebhook: true } in the \"options\" parameter to update (PATCH) requests\n        We rate limit requests which perform the same update to the same record to help you detect echo during development\n        </strong>\n\n        Each webhook is a POST request to the given URL, of the form <pre>{ \n          model: string, \n          type: 'create' | 'update' | 'delete', \n          records: object[], \n          timestamp: string, \n          integrity: string, \n          relatedRecords: { [id: string]: object } \n}</pre>\n        This includes the name of the model, the type of operation performed, and an array of the new, updated, or deleted model(s).\n\n        <strong>Each 'create' webhook may include more than one record (e.g. when records are created as part of a bulk POST) </strong>\n\n        The integrity field is a sha256 hash of (record ids concatenated from index 0 to the end, with the timestamp and then secret appended)\n        For example hook: { records: [{ id: '1', ... }, { id: '4', ... }], timestamp: \"1029358\" } with secret set as \"secret\",\n        integrity = sha256('141029358secret')\n        Each time you handle a webhook, you should verify the integrity field is correct to ensure that the request is actually coming from Tellescope. \n\n        For performance, a relatedRecords object is provided as a cache. This object maps some ids referenced in the webhook records to the corresponding models in Tellescope. \n        For a given webhook, relatedRecords may be empty, or may not include all related ids. In such cases, you'll need to query against the Tellescope API for an up-to-date reference.\n\n        Currently supported models for Webhooks: ".concat(Object.keys(types_models_1.WEBHOOK_MODELS).join(', '), "\n\n        You can handle webhooks from automations in Tellescope, which have a simpler format: <pre>{ \n          type: 'automation'\n          message: string,\n          timestamp: string, \n          integrity: string, \n          enduserId: string, \n}</pre>\n        In this case, integrity is a simple sha256 hash of message + timestamp + secret\n\n        You can also handle calendar event reminders as webhooks, which have the format: <pre>{ \n          type: 'calendar_event_reminder'\n          event: CalendarEvent,\n          timestamp: string, \n          integrity: string, \n}</pre>\n        In this case, integrity is a simple sha256 hash of event.id + timestamp + secret\n      ")
         },
         constraints: {
             unique: [],
@@ -3243,7 +3256,7 @@ exports.schema = (0, exports.build_schema)({
                 path: '/send-automation-webhook',
                 description: "Sends a webhook with the automations format, useful for testing automation integrations",
                 parameters: {
-                    message: { validator: validation_1.stringValidator5000, required: true },
+                    message: { validator: validation_1.stringValidator5000 },
                     enduserId: { validator: validation_1.mongoIdStringRequired },
                     automationStepId: { validator: validation_1.mongoIdStringRequired },
                     action: { validator: validation_1.optionalAnyObjectValidator },
@@ -4795,7 +4808,7 @@ exports.schema = (0, exports.build_schema)({
         enduserActions: {
             read: {}, readMany: {}, validate_access_token: {},
         },
-        fields: __assign(__assign({}, BuiltInFields), { gtmTag: { validator: validation_1.stringValidator100EscapeHTML }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { dontRestrictRescheduleToOriginalHost: { validator: validation_1.booleanValidator }, gtmTag: { validator: validation_1.stringValidator100EscapeHTML }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
                 validator: validation_1.stringValidator100,
                 required: true,
                 examples: ["Appointment Booking Title"]

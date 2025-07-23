@@ -1,4 +1,4 @@
-import { AllergyResponse, AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserInsurance, EnduserObservation, EnduserRelationship, File, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerAddress, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, LabeledField, ManagedContentRecord, MedicationResponse, Organization, Product, Purchase, RoundRobinAssignmentInfo, TableInputCell, Ticket, Timezone, TIMEZONES, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
+import { AllergyResponse, AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserInsurance, EnduserObservation, EnduserRelationship, File, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerAddress, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, LabeledField, ManagedContentRecord, MedicationResponse, Organization, Product, Purchase, RoundRobinAssignmentInfo, SMSMessage, TableInputCell, Ticket, Timezone, TIMEZONES, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
 import { ADMIN_ROLE, CANVAS_TITLE, get_inverse_relationship_type, HEALTHIE_TITLE, MM_DD_YYYY_REGEX } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 import { DateTime } from "luxon"
@@ -2259,6 +2259,7 @@ export const replace_tag_template_values_for_enduser = (tags: string[], enduser:
   })
 )
 
+// todo: refactor with replacer below, mirroring replace_sms_template_values
 export const replace_purchase_template_values = (s: string, purchase?: Omit<Purchase, 'id'> | null) => {
   if (!purchase) return s
   if (typeof s !== 'string') return s // e.g. Date value
@@ -2297,6 +2298,50 @@ export const replace_purchase_template_values = (s: string, purchase?: Omit<Purc
   }
 
   return replaced
+}
+
+const replacer = (prefix: string, s: string, handleMatch: (s: string) => string) => {
+  let i = 0
+  let start = 0
+  let templates = [] as { match: string, replacement: string }[]
+  while (i < 100) {
+    i++
+
+    start = s.indexOf(prefix, start)
+    if (start === -1) break;
+
+    const end = s.indexOf('}}', start)
+    if (end === -1) break;
+
+    const match = s.substring(start, end + 2) // +2 accounts for '}}' 
+    templates.push({
+      match,
+      replacement: handleMatch(match)
+    })
+
+    start = end + 2
+  }
+
+  let replaced = s.toString()
+  for (const { match, replacement } of templates) {
+    replaced = replaced.replace(match, replacement)
+  }
+
+  return replaced
+}
+
+export const replace_sms_template_values = (s: string, sms?: Omit<SMSMessage, 'id'> | null) => {
+  if (!sms) return s
+  if (typeof s !== 'string') return s // e.g. Date value
+
+  return replacer('{{sms.', s, (match) => {
+    console.log(s, match)
+    if (match === '{{sms.message}}') {
+      return sms.message || ''
+    }
+
+    return ''
+  })
 }
 
 export const replace_enduser_template_values = (s: string, enduser?: Omit<Enduser, 'id'> | null) => {

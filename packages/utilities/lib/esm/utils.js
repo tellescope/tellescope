@@ -2139,6 +2139,7 @@ export var replace_tag_template_values_for_enduser = function (tags, enduser) { 
     }
     return t;
 })); };
+// todo: refactor with replacer below, mirroring replace_sms_template_values
 export var replace_purchase_template_values = function (s, purchase) {
     var _a;
     if (!purchase)
@@ -2175,6 +2176,45 @@ export var replace_purchase_template_values = function (s, purchase) {
     }
     return replaced;
 };
+var replacer = function (prefix, s, handleMatch) {
+    var i = 0;
+    var start = 0;
+    var templates = [];
+    while (i < 100) {
+        i++;
+        start = s.indexOf(prefix, start);
+        if (start === -1)
+            break;
+        var end = s.indexOf('}}', start);
+        if (end === -1)
+            break;
+        var match = s.substring(start, end + 2); // +2 accounts for '}}' 
+        templates.push({
+            match: match,
+            replacement: handleMatch(match)
+        });
+        start = end + 2;
+    }
+    var replaced = s.toString();
+    for (var _i = 0, templates_2 = templates; _i < templates_2.length; _i++) {
+        var _a = templates_2[_i], match = _a.match, replacement = _a.replacement;
+        replaced = replaced.replace(match, replacement);
+    }
+    return replaced;
+};
+export var replace_sms_template_values = function (s, sms) {
+    if (!sms)
+        return s;
+    if (typeof s !== 'string')
+        return s; // e.g. Date value
+    return replacer('{{sms.', s, function (match) {
+        console.log(s, match);
+        if (match === '{{sms.message}}') {
+            return sms.message || '';
+        }
+        return '';
+    });
+};
 export var replace_enduser_template_values = function (s, enduser) {
     if (!enduser)
         return s;
@@ -2199,8 +2239,8 @@ export var replace_enduser_template_values = function (s, enduser) {
         start = end + 2;
     }
     var replaced = s.toString();
-    for (var _i = 0, templates_2 = templates; _i < templates_2.length; _i++) {
-        var _a = templates_2[_i], match = _a.match, replacement = _a.replacement;
+    for (var _i = 0, templates_3 = templates; _i < templates_3.length; _i++) {
+        var _a = templates_3[_i], match = _a.match, replacement = _a.replacement;
         replaced = replaced.replace(match, replacement);
     }
     return replaced;

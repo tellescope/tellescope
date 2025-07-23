@@ -3771,6 +3771,7 @@ type Queries = {
         get_number_report: (args: extractFields<CustomActions['phone_calls']['get_number_report']['parameters']>) => (Promise<extractFields<CustomActions['phone_calls']['get_number_report']['returns']>>);
     };
     sms_messages: {
+        send_message_as_user_notification: (args: extractFields<CustomActions['sms_messages']['send_message_as_user_notification']['parameters']>) => (Promise<extractFields<CustomActions['sms_messages']['send_message_as_user_notification']['returns']>>);
         send_with_template: (args: extractFields<CustomActions['sms_messages']['send_with_template']['parameters']>) => (Promise<extractFields<CustomActions['sms_messages']['send_with_template']['returns']>>);
         send_message_to_number: (args: extractFields<CustomActions['sms_messages']['send_message_to_number']['parameters']>) => (Promise<extractFields<CustomActions['sms_messages']['send_message_to_number']['returns']>>);
         get_number_report: (args: extractFields<CustomActions['sms_messages']['get_number_report']['parameters']>) => (Promise<extractFields<CustomActions['sms_messages']['get_number_report']['returns']>>);

@@ -2547,6 +2547,7 @@ export const calendarEventReminderValidator = orValidator<{ [K in CalendarEventR
     info: objectValidator<CalendarEventReminderNotificationInfo>({
       templateId: mongoIdStringOptional, 
       channel: communicationsChannelValidatorOptional,
+      useTemplateForSMS: booleanValidatorOptional,
     }, { emptyOk: true }),
     type: exactMatchValidator<'enduser-notification'>(['enduser-notification']), 
     ...sharedReminderValidators, 
@@ -2555,6 +2556,7 @@ export const calendarEventReminderValidator = orValidator<{ [K in CalendarEventR
     info: objectValidator<CalendarEventReminderNotificationInfo>({
       templateId: mongoIdStringOptional,
       channel: communicationsChannelValidatorOptional,
+      useTemplateForSMS: booleanValidatorOptional,
     }, { emptyOk: true }),
     type: exactMatchValidator<'user-notification'>(['user-notification']), 
     ...sharedReminderValidators, 

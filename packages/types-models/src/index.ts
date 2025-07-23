@@ -2278,6 +2278,7 @@ export interface AvailabilityBlock extends WeeklyAvailability, AvailabilityBlock
 export type CalendarEventReminderNotificationInfo = { 
   templateId?: string,
   channel?: 'Email' | 'SMS',
+  useTemplateForSMS?: boolean,
 }
 type BuildCalendarEventReminderInfo <T, I> = { type: T, info: I, msBeforeStartTime: number, dontSendIfPassed?: boolean, didRemind?: boolean, dontSendIfJoined?: boolean }
 export type CalendarEventReminderInfoForType = {
@@ -2621,6 +2622,7 @@ export interface AppointmentBookingPage extends AppointmentBookingPage_readonly,
   includeRelatedContactTypes?: string[],
   archivedAt?: Date | '',
   gtmTag?: string,
+  dontRestrictRescheduleToOriginalHost?: boolean,
   // productIds?: string[], // defer to specific template
 }
 
