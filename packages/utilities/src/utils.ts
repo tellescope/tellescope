@@ -1,4 +1,4 @@
-import { AllergyResponse, AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserInsurance, EnduserObservation, EnduserRelationship, File, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerAddress, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, LabeledField, ManagedContentRecord, MedicationResponse, Organization, Product, Purchase, RoundRobinAssignmentInfo, SMSMessage, TableInputCell, Ticket, Timezone, TIMEZONES, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
+import { AllergyResponse, AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserInsurance, EnduserObservation, EnduserRelationship, File, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerAddress, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, Integration, LabeledField, ManagedContentRecord, MedicationResponse, Organization, Product, Purchase, RoundRobinAssignmentInfo, SMSMessage, TableInputCell, Ticket, Timezone, TIMEZONES, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
 import { ADMIN_ROLE, CANVAS_TITLE, get_inverse_relationship_type, HEALTHIE_TITLE, MM_DD_YYYY_REGEX } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 import { DateTime } from "luxon"
@@ -2335,12 +2335,34 @@ export const replace_sms_template_values = (s: string, sms?: Omit<SMSMessage, 'i
   if (typeof s !== 'string') return s // e.g. Date value
 
   return replacer('{{sms.', s, (match) => {
-    console.log(s, match)
     if (match === '{{sms.message}}') {
       return sms.message || ''
     }
 
     return ''
+  })
+}
+
+export const get_secret_names = (s: string) => {
+  const titles: string[] = [] 
+  if (typeof s !== 'string') return titles
+
+
+  replacer('{{secrets.', s, (match) => {
+    const title = match.replace('{{secrets.', '').replace('}}', '')
+    titles.push(title)
+    return match
+  })
+
+  return titles
+}
+export const replace_secret_values = (s: string, integrations?: Pick<Integration, 'authentication' | 'title'>[]) => {
+  if (!integrations) return s
+  if (typeof s !== 'string') return s // e.g. Date value
+
+  return replacer('{{secrets.', s, (match) => {
+    const integration = integrations.find(i => i.title === match.replace('{{secrets.', '').replace('}}', ''))
+    return integration?.authentication?.info?.access_token || ''
   })
 }
 

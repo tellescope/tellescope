@@ -250,7 +250,7 @@ export interface MicrosoftSSOConfiguration extends InternalBusinessRecord {
     authorityURL: string;
 }
 export interface InternalSecret extends InternalBusinessRecord {
-    type: 'twilio-ios' | 'twilio-android';
+    type: 'twilio-ios' | 'twilio-android' | 'customer-usage-data';
     publicKey: string;
     secretKey: string;
 }

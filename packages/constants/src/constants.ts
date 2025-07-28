@@ -153,6 +153,11 @@ export const DEVELOP_HEALTH_TITLE = "Develop Health"
 export const KENDRA_TITLE = "Kendra"
 export const CHARGEBEE_TITLE = "Chargebee"
 export const CUSTOMER_IO_TITLE = "Customer IO"
+export const PUPPETEER_TITLE = "Puppeteer"
+
+// stored in Organization.hasIntegrations
+// must also be in ORGANIZATION_WIDE_INTEGRATIONS
+export const GENERIC_INTEGRATIONS = [PUPPETEER_TITLE]
 
 export const ORGANIZATION_WIDE_INTEGRATIONS = [
   OPENAI_TITLE, 
@@ -177,6 +182,7 @@ export const ORGANIZATION_WIDE_INTEGRATIONS = [
   DEVELOP_HEALTH_TITLE,
   CUSTOMER_IO_TITLE,
   SUPERDIAL_TITLE,
+  PUPPETEER_TITLE,
 ]
 
 export const ONE_MINUTE_IN_MS = 1000 * 60

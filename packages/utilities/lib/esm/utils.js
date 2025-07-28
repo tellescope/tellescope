@@ -2208,11 +2208,32 @@ export var replace_sms_template_values = function (s, sms) {
     if (typeof s !== 'string')
         return s; // e.g. Date value
     return replacer('{{sms.', s, function (match) {
-        console.log(s, match);
         if (match === '{{sms.message}}') {
             return sms.message || '';
         }
         return '';
+    });
+};
+export var get_secret_names = function (s) {
+    var titles = [];
+    if (typeof s !== 'string')
+        return titles;
+    replacer('{{secrets.', s, function (match) {
+        var title = match.replace('{{secrets.', '').replace('}}', '');
+        titles.push(title);
+        return match;
+    });
+    return titles;
+};
+export var replace_secret_values = function (s, integrations) {
+    if (!integrations)
+        return s;
+    if (typeof s !== 'string')
+        return s; // e.g. Date value
+    return replacer('{{secrets.', s, function (match) {
+        var _a, _b;
+        var integration = integrations.find(function (i) { return i.title === match.replace('{{secrets.', '').replace('}}', ''); });
+        return ((_b = (_a = integration === null || integration === void 0 ? void 0 : integration.authentication) === null || _a === void 0 ? void 0 : _a.info) === null || _b === void 0 ? void 0 : _b.access_token) || '';
     });
 };
 export var replace_enduser_template_values = function (s, enduser) {

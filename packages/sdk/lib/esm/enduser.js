@@ -204,8 +204,6 @@ var EnduserSession = /** @class */ (function (_super) {
                     this.sessionStart = Date.now();
                     this.setAuthToken(authToken);
                     this.setUserInfo(enduser);
-                    if (!this.socket)
-                        this.authenticate_socket();
                     return [2 /*return*/, { authToken: authToken, enduser: enduser }];
                 });
             });

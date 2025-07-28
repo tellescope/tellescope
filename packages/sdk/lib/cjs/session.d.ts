@@ -1,4 +1,3 @@
-import { Socket } from 'socket.io-client';
 import { ReactNativeFile, S3PresignedPost } from "@tellescope/types-utilities";
 import { ClientModelForName, User } from "@tellescope/types-client";
 import { Indexable } from "@tellescope/utilities";
@@ -35,7 +34,6 @@ export declare class Session {
     userSessionInfo?: {
         id: string;
     } & Indexable;
-    socket?: Socket;
     type?: string;
     enableSocketLogging?: boolean;
     handleUnauthenticated?: SessionOptions['handleUnauthenticated'];
@@ -91,7 +89,7 @@ export declare class Session {
     UPLOAD: (presigned: S3PresignedPost, file: Blob | Buffer | ReactNativeFile) => Promise<void>;
     DOWNLOAD: (downloadURL: string) => Promise<any>;
     EMIT: (route: string, args: object, authenticated?: boolean, options?: RequestOptions) => Promise<void>;
-    ON: <T = {}>(s: string, callback: (a: T) => void) => Socket<import("@socket.io/component-emitter").DefaultEventsMap, import("@socket.io/component-emitter").DefaultEventsMap> | undefined;
+    ON: <T = {}>(s: string, callback: (a: T) => void) => void;
     /**
     * @deprecated Use handle_events, subscription is no longer necessary
     */

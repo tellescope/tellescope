@@ -2277,25 +2277,27 @@ exports.canvasCodingValidatorOptional = (0, exports.objectValidator)({
     display: exports.stringValidatorOptional,
     system: exports.stringValidatorOptional,
 }, {});
+var sharedAutomationActionValidators = {
+    continueOnError: exports.booleanValidatorOptional,
+    isBrandedWebhook: exports.booleanValidatorOptional,
+};
+var sendWebhookInfoValidator = (0, exports.objectValidator)({
+    message: exports.stringValidator5000Optional,
+    url: exports.stringValidator20000ptional,
+    fields: exports.labeledFieldsValidator,
+    secret: exports.stringValidatorOptional,
+    method: exports.stringValidatorOptional,
+    headers: exports.labeledFieldsValidator,
+}, { emptyOk: false });
 exports.automationActionValidator = (0, exports.orValidator)({
-    developHealthMedEligibility: (0, exports.objectValidator)({
-        type: (0, exports.exactMatchValidator)(['developHealthMedEligibility']),
-        info: (0, exports.objectValidator)({
+    developHealthMedEligibility: (0, exports.objectValidator)(__assign({ type: (0, exports.exactMatchValidator)(['developHealthMedEligibility']), info: (0, exports.objectValidator)({
             drugs: exports.developHealthDrugsValidator,
             diagnoses: exports.developHealthDiagnosesValidator,
             mock_result: exports.developHealthMockResultValidator,
             providerUserId: exports.mongoIdStringRequired,
-        }, { emptyOk: false }),
-        continueOnError: exports.booleanValidatorOptional,
-    }),
-    setEnduserStatus: (0, exports.objectValidator)({
-        type: (0, exports.exactMatchValidator)(['setEnduserStatus']),
-        info: (0, exports.objectValidator)({ status: exports.stringValidator250 }, { emptyOk: false }),
-        continueOnError: exports.booleanValidatorOptional,
-    }),
-    sendEmail: (0, exports.objectValidator)({
-        type: (0, exports.exactMatchValidator)(['sendEmail']),
-        info: (0, exports.objectValidator)({
+        }, { emptyOk: false }) }, sharedAutomationActionValidators)),
+    setEnduserStatus: (0, exports.objectValidator)(__assign({ type: (0, exports.exactMatchValidator)(['setEnduserStatus']), info: (0, exports.objectValidator)({ status: exports.stringValidator250 }, { emptyOk: false }) }, sharedAutomationActionValidators)),
+    sendEmail: (0, exports.objectValidator)(__assign({ type: (0, exports.exactMatchValidator)(['sendEmail']), info: (0, exports.objectValidator)({
             senderId: exports.mongoIdStringRequired,
             templateId: exports.mongoIdStringRequired,
             assignment: exports.senderAssignmentStrategyValidatorOptional,
@@ -2303,45 +2305,24 @@ exports.automationActionValidator = (0, exports.orValidator)({
             sendToDestinationOfRelatedContactTypes: exports.listOfStringsValidatorOptionalOrEmptyOk,
             ccRelatedContactTypes: exports.listOfStringsValidatorOptionalOrEmptyOk,
             hiddenFromTimeline: exports.booleanValidatorOptional,
-        }, { emptyOk: false }),
-        continueOnError: exports.booleanValidatorOptional,
-    }),
-    sendSMS: (0, exports.objectValidator)({
-        type: (0, exports.exactMatchValidator)(['sendSMS']),
-        info: exports.automationForMessageValidator,
-        continueOnError: exports.booleanValidatorOptional,
-    }),
-    notifyTeam: (0, exports.objectValidator)({
-        type: (0, exports.exactMatchValidator)(['notifyTeam']),
-        info: (0, exports.objectValidator)({
+        }, { emptyOk: false }) }, sharedAutomationActionValidators)),
+    sendSMS: (0, exports.objectValidator)(__assign({ type: (0, exports.exactMatchValidator)(['sendSMS']), info: exports.automationForMessageValidator }, sharedAutomationActionValidators)),
+    notifyTeam: (0, exports.objectValidator)(__assign({ type: (0, exports.exactMatchValidator)(['notifyTeam']), info: (0, exports.objectValidator)({
             templateId: exports.mongoIdStringRequired,
             forAssigned: exports.booleanValidatorOptional,
             roles: exports.listOfStringsValidatorOptionalOrEmptyOk,
             tags: exports.listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
-        }, { emptyOk: false }),
-        continueOnError: exports.booleanValidatorOptional,
-    }),
-    sendForm: (0, exports.objectValidator)({
-        type: (0, exports.exactMatchValidator)(['sendForm']),
-        info: (0, exports.objectValidator)({
+        }, { emptyOk: false }) }, sharedAutomationActionValidators)),
+    sendForm: (0, exports.objectValidator)(__assign({ type: (0, exports.exactMatchValidator)(['sendForm']), info: (0, exports.objectValidator)({
             senderId: exports.mongoIdStringRequired,
             formId: exports.mongoIdStringRequired,
             channel: exports.communicationsChannelValidatorOptional,
             assignment: exports.senderAssignmentStrategyValidatorOptional,
-        }, { emptyOk: false }),
-        continueOnError: exports.booleanValidatorOptional,
-    }),
-    shareContent: (0, exports.objectValidator)({
-        type: (0, exports.exactMatchValidator)(['shareContent']),
-        info: (0, exports.objectValidator)({
+        }, { emptyOk: false }) }, sharedAutomationActionValidators)),
+    shareContent: (0, exports.objectValidator)(__assign({ type: (0, exports.exactMatchValidator)(['shareContent']), info: (0, exports.objectValidator)({
             managedContentRecordIds: exports.listOfMongoIdStringValidator,
-        }, { emptyOk: false }),
-        continueOnError: exports.booleanValidatorOptional,
-    }),
-    createTicket: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['createTicket']),
-        info: (0, exports.objectValidator)({
+        }, { emptyOk: false }) }, sharedAutomationActionValidators)),
+    createTicket: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['createTicket']), info: (0, exports.objectValidator)({
             title: exports.stringValidator1000,
             description: exports.stringValidatorOptionalEmptyOkay,
             assignmentStrategy: (0, exports.orValidator)({
@@ -2401,92 +2382,41 @@ exports.automationActionValidator = (0, exports.orValidator)({
             contextEnduserFields: exports.listOfStringsValidatorUniqueOptionalOrEmptyOkay,
             contextContentIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
             disableEditTitle: exports.booleanValidatorOptional,
-        }, { emptyOk: false }),
-    }),
-    sendWebhook: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['sendWebhook']),
-        info: (0, exports.objectValidator)({
-            message: exports.stringValidator5000Optional,
-            url: exports.stringValidator20000ptional,
-            fields: exports.labeledFieldsValidator,
-            secret: exports.stringValidatorOptional,
-            method: exports.stringValidatorOptional,
-            headers: exports.labeledFieldsValidator,
-        }, { emptyOk: false }),
-    }),
-    setEnduserFields: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['setEnduserFields']),
-        info: (0, exports.objectValidator)({
+        }, { emptyOk: false }) })),
+    sendWebhook: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['sendWebhook']), info: sendWebhookInfoValidator })),
+    setEnduserFields: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['setEnduserFields']), info: (0, exports.objectValidator)({
             fields: (0, exports.listValidator)((0, exports.objectValidator)({
                 name: exports.stringValidator,
                 type: exports.stringValidator,
                 value: exports.stringValidator,
                 increment: exports.numberValidatorOptional,
             }))
-        }, { emptyOk: false }),
-    }),
-    addEnduserTags: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['addEnduserTags']),
-        info: (0, exports.objectValidator)({
+        }, { emptyOk: false }) })),
+    addEnduserTags: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['addEnduserTags']), info: (0, exports.objectValidator)({
             tags: exports.listOfStringsValidator,
             replaceExisting: exports.booleanValidatorOptional,
-        }, { emptyOk: false }),
-    }),
-    removeEnduserTags: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['removeEnduserTags']),
-        info: (0, exports.objectValidator)({
+        }, { emptyOk: false }) })),
+    removeEnduserTags: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['removeEnduserTags']), info: (0, exports.objectValidator)({
             tags: exports.listOfStringsValidator,
-        }, { emptyOk: false }),
-    }),
-    addAccessTags: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['addAccessTags']),
-        info: (0, exports.objectValidator)({
+        }, { emptyOk: false }) })),
+    addAccessTags: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['addAccessTags']), info: (0, exports.objectValidator)({
             tags: exports.listOfStringsValidator,
             replaceExisting: exports.booleanValidatorOptional,
-        }, { emptyOk: false }),
-    }),
-    removeAccessTags: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['removeAccessTags']),
-        info: (0, exports.objectValidator)({
+        }, { emptyOk: false }) })),
+    removeAccessTags: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['removeAccessTags']), info: (0, exports.objectValidator)({
             tags: exports.listOfStringsValidator,
-        }, { emptyOk: false }),
-    }),
-    addToJourney: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['addToJourney']),
-        info: (0, exports.objectValidator)({
+        }, { emptyOk: false }) })),
+    addToJourney: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['addToJourney']), info: (0, exports.objectValidator)({
             journeyId: exports.mongoIdStringRequired,
-        }, { emptyOk: false }),
-    }),
-    removeFromJourney: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['removeFromJourney']),
-        info: (0, exports.objectValidator)({
+        }, { emptyOk: false }) })),
+    removeFromJourney: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['removeFromJourney']), info: (0, exports.objectValidator)({
             journeyId: exports.mongoIdStringRequired,
-        }, { emptyOk: false }),
-    }),
-    removeFromAllJourneys: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['removeFromAllJourneys']),
-        info: (0, exports.objectValidator)({}, { emptyOk: true, isOptional: true }),
-    }),
-    iterableSendEmail: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['iterableSendEmail']),
-        info: (0, exports.objectValidator)({
+        }, { emptyOk: false }) })),
+    removeFromAllJourneys: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['removeFromAllJourneys']), info: (0, exports.objectValidator)({}, { emptyOk: true, isOptional: true }) })),
+    iterableSendEmail: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['iterableSendEmail']), info: (0, exports.objectValidator)({
             campaignId: exports.stringValidator,
-        }, { emptyOk: false }),
-    }),
-    iterableCustomEvent: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['iterableCustomEvent']),
-        info: (0, exports.objectValidator)({
+        }, { emptyOk: false }) })),
+    iterableCustomEvent: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['iterableCustomEvent']), info: (0, exports.objectValidator)({
             eventName: exports.stringValidator,
             description: exports.stringValidator,
             dataFieldsMapping: (0, exports.listValidatorOptionalOrEmptyOk)((0, exports.objectValidator)({
@@ -2495,229 +2425,105 @@ exports.automationActionValidator = (0, exports.orValidator)({
             })),
             environment: exports.stringValidatorOptional,
             customEmailField: exports.stringValidatorOptional,
-        }, { emptyOk: false }),
-    }),
-    zendeskCreateTicket: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['zendeskCreateTicket']),
-        info: (0, exports.objectValidator)({
+        }, { emptyOk: false }) })),
+    zendeskCreateTicket: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['zendeskCreateTicket']), info: (0, exports.objectValidator)({
             templateId: exports.mongoIdStringRequired,
             defaultSenderId: exports.mongoIdStringRequired,
-        }, { emptyOk: false }),
-    }),
-    createCarePlan: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['createCarePlan']),
-        info: (0, exports.objectValidator)({
+        }, { emptyOk: false }) })),
+    createCarePlan: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['createCarePlan']), info: (0, exports.objectValidator)({
             title: exports.stringValidator1000,
             htmlDescription: exports.stringValidator100000EmptyOkay,
             hideRemainingTicketsProgress: exports.booleanValidatorOptional,
             highlightedEnduserFields: exports.listOfStringsValidatorOptionalOrEmptyOk,
             closeAutomaticallyByTicket: exports.booleanValidatorOptional,
-        }, { emptyOk: false }),
-    }),
-    completeCarePlan: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['completeCarePlan']),
-        info: (0, exports.objectValidator)({}, { emptyOk: true }),
-    }),
-    zusSync: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['zusSync']),
-        info: (0, exports.objectValidator)({}, { emptyOk: true }),
-    }),
-    zusPull: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['zusPull']),
-        info: (0, exports.objectValidator)({}, { emptyOk: true }),
-    }),
-    zusSubscribe: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['zusSubscribe']),
-        info: (0, exports.objectValidator)({
+        }, { emptyOk: false }) })),
+    completeCarePlan: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['completeCarePlan']), info: (0, exports.objectValidator)({}, { emptyOk: true }) })),
+    zusSync: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['zusSync']), info: (0, exports.objectValidator)({}, { emptyOk: true }) })),
+    zusPull: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['zusPull']), info: (0, exports.objectValidator)({}, { emptyOk: true }) })),
+    zusSubscribe: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['zusSubscribe']), info: (0, exports.objectValidator)({
             practitionerId: exports.stringValidator,
             packageIds: exports.listOfStringsValidator,
-        }),
-    }),
-    pagerDutyCreateIncident: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['pagerDutyCreateIncident']),
-        info: (0, exports.objectValidator)({
+        }) })),
+    pagerDutyCreateIncident: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['pagerDutyCreateIncident']), info: (0, exports.objectValidator)({
             title: exports.stringValidator,
             type: exports.stringValidator,
             serviceId: exports.stringValidator,
-        }),
-    }),
-    smartMeterPlaceOrder: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['smartMeterPlaceOrder']),
-        info: (0, exports.objectValidator)({
+        }) })),
+    smartMeterPlaceOrder: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['smartMeterPlaceOrder']), info: (0, exports.objectValidator)({
             lines: exports.smartMeterLinesValidator,
             shipping: exports.stringValidator100,
-        }),
-    }),
-    sendChat: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['sendChat']),
-        info: (0, exports.objectValidator)({
+        }) })),
+    sendChat: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['sendChat']), info: (0, exports.objectValidator)({
             templateId: exports.mongoIdStringRequired,
             identifier: exports.stringValidator100,
             includeCareTeam: exports.booleanValidatorOptional,
             userIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
             sendToDestinationOfRelatedContactTypes: exports.listOfStringsValidatorOptionalOrEmptyOk,
-        }),
-    }),
-    healthieSync: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['healthieSync']),
-        info: (0, exports.objectValidator)({}, { emptyOk: true }),
-    }),
-    elationSync: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['elationSync']),
-        info: (0, exports.objectValidator)({}, { emptyOk: true }),
-    }),
-    athenaSync: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['athenaSync']),
-        info: (0, exports.objectValidator)({ departmentid: exports.stringValidator100 }, { emptyOk: true }),
-    }),
-    canvasSync: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['canvasSync']),
-        info: (0, exports.objectValidator)({}, { emptyOk: true }),
-    }),
-    canvasCreateNote: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['canvasCreateNote']),
-        info: (0, exports.objectValidator)({
+        }) })),
+    healthieSync: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['healthieSync']), info: (0, exports.objectValidator)({}, { emptyOk: true }) })),
+    elationSync: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['elationSync']), info: (0, exports.objectValidator)({}, { emptyOk: true }) })),
+    athenaSync: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['athenaSync']), info: (0, exports.objectValidator)({ departmentid: exports.stringValidator100 }, { emptyOk: true }) })),
+    canvasSync: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['canvasSync']), info: (0, exports.objectValidator)({}, { emptyOk: true }) })),
+    canvasCreateNote: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['canvasCreateNote']), info: (0, exports.objectValidator)({
             formIds: exports.listOfMongoIdStringValidator,
             matchCareTeamTagsForCanvasPractitionerResolution: exports.listOfStringsWithQualifierValidator,
             noteCoding: exports.canvasCodingValidator,
-        }),
-    }),
-    healthieAddToCourse: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['healthieAddToCourse']),
-        info: (0, exports.objectValidator)({ courseId: exports.stringValidator100 }),
-    }),
-    healthieSendChat: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['healthieSendChat']),
-        info: (0, exports.objectValidator)({
+        }) })),
+    healthieAddToCourse: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['healthieAddToCourse']), info: (0, exports.objectValidator)({ courseId: exports.stringValidator100 }) })),
+    healthieSendChat: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['healthieSendChat']), info: (0, exports.objectValidator)({
             templateId: exports.mongoIdStringRequired,
             identifier: exports.stringValidator100,
             includeCareTeam: exports.booleanValidatorOptional,
-        }),
-    }),
-    completeTickets: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['completeTickets']),
-        info: (0, exports.objectValidator)({
+        }) })),
+    completeTickets: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['completeTickets']), info: (0, exports.objectValidator)({
             journeyIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
-        }),
-    }),
-    changeContactType: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['changeContactType']),
-        info: (0, exports.objectValidator)({
+        }) })),
+    changeContactType: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['changeContactType']), info: (0, exports.objectValidator)({
             type: exports.stringValidatorOptional, // can be empty string for default contact type or id for others
-        }),
-    }),
-    activeCampaignSync: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['activeCampaignSync']),
-        info: (0, exports.objectValidator)({}, { emptyOk: true }),
-    }),
-    activeCampaignAddToLists: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['activeCampaignAddToLists']),
-        info: (0, exports.objectValidator)({
+        }) })),
+    activeCampaignSync: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['activeCampaignSync']), info: (0, exports.objectValidator)({}, { emptyOk: true }) })),
+    activeCampaignAddToLists: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['activeCampaignAddToLists']), info: (0, exports.objectValidator)({
             listIds: exports.listOfStringsValidator,
-        }),
-    }),
-    switchToRelatedContact: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['switchToRelatedContact']),
-        info: (0, exports.objectValidator)({
+        }) })),
+    switchToRelatedContact: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['switchToRelatedContact']), info: (0, exports.objectValidator)({
             type: exports.stringValidator100,
             otherTypes: exports.listOfStringsValidatorUniqueOptionalOrEmptyOkay,
-        }, {}),
-    }),
-    pushFormsToPortal: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['pushFormsToPortal']),
-        info: (0, exports.objectValidator)({
+        }, {}) })),
+    pushFormsToPortal: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['pushFormsToPortal']), info: (0, exports.objectValidator)({
             formIds: exports.listOfMongoIdStringValidator,
-        }, { emptyOk: false }),
-    }),
-    cancelFutureAppointments: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['cancelFutureAppointments']),
-        info: (0, exports.objectValidator)({}, { emptyOk: true }),
-    }),
-    customerIOIdentify: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['customerIOIdentify']),
-        info: (0, exports.objectValidator)({}, { emptyOk: true }),
-    }),
-    customerIOTrack: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['customerIOTrack']),
-        info: (0, exports.objectValidator)({
+        }, { emptyOk: false }) })),
+    cancelFutureAppointments: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['cancelFutureAppointments']), info: (0, exports.objectValidator)({}, { emptyOk: true }) })),
+    customerIOIdentify: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['customerIOIdentify']), info: (0, exports.objectValidator)({}, { emptyOk: true }) })),
+    customerIOTrack: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['customerIOTrack']), info: (0, exports.objectValidator)({
             event: exports.stringValidator,
             trackProperties: exports.listOfStringsValidatorOptionalOrEmptyOk,
-        }, { emptyOk: false }),
-    }),
-    cancelCurrentEvent: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['cancelCurrentEvent']),
-        info: (0, exports.objectValidator)({}, { emptyOk: true, isOptional: true }),
-    }),
-    confirmCurrentEvent: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['confirmCurrentEvent']),
-        info: (0, exports.objectValidator)({}, { emptyOk: true, isOptional: true }),
-    }),
-    outboundCall: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['outboundCall']),
-        info: (0, exports.objectValidator)({
+        }, { emptyOk: false }) })),
+    cancelCurrentEvent: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['cancelCurrentEvent']), info: (0, exports.objectValidator)({}, { emptyOk: true, isOptional: true }) })),
+    confirmCurrentEvent: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['confirmCurrentEvent']), info: (0, exports.objectValidator)({}, { emptyOk: true, isOptional: true }) })),
+    outboundCall: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['outboundCall']), info: (0, exports.objectValidator)({
             treeId: exports.mongoIdStringRequired,
-        }, { emptyOk: false }),
-    }),
-    assignCareTeam: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['assignCareTeam']),
-        info: (0, exports.objectValidator)({
+        }, { emptyOk: false }) })),
+    assignCareTeam: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['assignCareTeam']), info: (0, exports.objectValidator)({
             tags: exports.listOfStringsWithQualifierValidator,
             limitToOneUser: exports.booleanValidatorOptional,
             setAsPrimary: exports.booleanValidatorOptional,
         }, { emptyOk: false }) // at least tags is required
-    }),
-    removeCareTeam: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['removeCareTeam']),
-        info: (0, exports.objectValidator)({
+     })),
+    removeCareTeam: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['removeCareTeam']), info: (0, exports.objectValidator)({
             tags: exports.listOfStringsWithQualifierValidator,
         }, { emptyOk: false }) // at least tags is required
-    }),
-    callUser: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['callUser']),
-        info: (0, exports.objectValidator)({
+     })),
+    callUser: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['callUser']), info: (0, exports.objectValidator)({
             message: exports.stringValidator25000,
             routeBy: (0, exports.exactMatchValidator)(['Appointment Host']),
         }, { emptyOk: false }) // at least tags is required
-    }),
-    stripeChargeCardOnFile: (0, exports.objectValidator)({
-        continueOnError: exports.booleanValidatorOptional,
-        type: (0, exports.exactMatchValidator)(['stripeChargeCardOnFile']),
-        info: (0, exports.objectValidator)({
+     })),
+    stripeChargeCardOnFile: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['stripeChargeCardOnFile']), info: (0, exports.objectValidator)({
             stripeKey: exports.stringValidatorOptionalEmptyOkay,
             priceIds: exports.listOfStringsValidator,
         }, { emptyOk: false }) // at least tags is required
-    }),
+     })),
+    "Puppeteer: Start Agent": (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(["Puppeteer: Start Agent"]), info: sendWebhookInfoValidator })),
 });
 exports.journeyContextValidator = (0, exports.objectValidator)({
     calendarEventId: exports.mongoIdStringOptional,
@@ -3970,6 +3776,7 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
             fills: exports.listOfStringsValidatorOptionalOrEmptyOk,
             skus: exports.listOfStringsValidatorOptionalOrEmptyOk,
             skuPartials: exports.listOfStringsValidatorOptionalOrEmptyOk,
+            titlePartials: exports.listOfStringsValidatorOptionalOrEmptyOk,
         }),
         conditions: exports.optionalEmptyObjectValidator,
     }),
@@ -4676,7 +4483,9 @@ exports.analyticsQueryValidator = (0, exports.orValidator)({
     }),
     "Purchases": (0, exports.objectValidator)({
         resource: (0, exports.exactMatchValidator)(['Purchases']),
-        filter: (0, exports.objectValidator)({}, { isOptional: true, emptyOk: true }),
+        filter: (0, exports.objectValidator)({
+            titles: exports.listOfStringsValidatorOptionalOrEmptyOk,
+        }, { isOptional: true, emptyOk: true }),
         info: (0, exports.orValidator)({
             "Total": (0, exports.objectValidator)({
                 method: (0, exports.exactMatchValidator)(['Total']),
@@ -4686,6 +4495,7 @@ exports.analyticsQueryValidator = (0, exports.orValidator)({
         grouping: (0, exports.objectValidator)({
             Enduser: exports.booleanValidatorOptional,
             Cost: exports.booleanValidatorOptional,
+            Title: exports.booleanValidatorOptional,
             Gender: exports.booleanValidatorOptional,
             "Assigned To": exports.booleanValidatorOptional,
             Field: exports.stringValidatorOptionalEmptyOkay,

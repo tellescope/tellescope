@@ -1,6 +1,5 @@
 import axios from "axios"
 import NodeFormData from "form-data"
-import { Socket, io } from 'socket.io-client'
 
 import { 
   ReactNativeFile,
@@ -79,6 +78,101 @@ const access_cache = (key=DEFAULT_AUTHTOKEN_KEY) => {
 
 export const SOCKET_POLLING_DELAY = 250
 
+/**
+ * Custom paramsSerializer that mimics axios 0.21.4 default behavior
+ * Based on the buildURL.js implementation from axios v0.21.4
+ */
+// this behavior makes axios 0.30 consistent with 0.21.4 which we used for a
+// upgrading to 0.30 was necessary to address a 'high' security vulnerability
+type ParamValue = string | number | boolean | Date | null | undefined | object | ParamValue[];
+
+interface ParamsObject {
+  [key: string]: ParamValue;
+}
+
+type ParamsSerializer = (params: ParamsObject) => string;
+
+// Custom paramsSerializer function that replicates axios 0.21.4 default behavior
+function defaultParamsSerializer(params: ParamsObject): string {
+  const parts: string[] = [];
+
+  // Helper function to check if value is an array
+  function isArray(val: unknown): val is unknown[] {
+    return Array.isArray(val);
+  }
+
+  // Helper function to check if value is a date
+  function isDate(val: unknown): val is Date {
+    return Object.prototype.toString.call(val) === '[object Date]';
+  }
+
+  // Helper function to check if value is an object
+  function isObject(val: unknown): val is Record<string, unknown> {
+    return val !== null && typeof val === 'object' && !isArray(val) && !isDate(val);
+  }
+
+  // Helper function to iterate over object properties
+  function forEach<T>(
+    obj: T | T[] | null | undefined, 
+    fn: (value: T, key: string | number, obj: T | T[]) => void
+  ): void {
+    if (obj === null || typeof obj === "undefined") {
+      return;
+    }
+
+    let processObj: T | T[];
+    if (typeof obj !== "object") {
+      processObj = [obj as T];
+    } else {
+      processObj = obj;
+    }
+
+    if (isArray(processObj)) {
+      for (let i = 0, l = processObj.length; i < l; i++) {
+        fn.call(null, processObj[i], i, processObj);
+      }
+    } else {
+      for (const key in processObj as Record<string, T>) {
+        if (Object.prototype.hasOwnProperty.call(processObj, key)) {
+          fn.call(null, (processObj as Record<string, T>)[key], key, processObj);
+        }
+      }
+    }
+  }
+
+  forEach(params, function serialize(val: ParamValue, key: string | number): void {
+    if (val === null || typeof val === "undefined") {
+      return;
+    }
+
+    let processKey = String(key);
+    let processVal: ParamValue | ParamValue[];
+
+    if (isArray(val)) {
+      processKey = processKey + '[]';
+      processVal = val;
+    } else {
+      processVal = [val];
+    }
+
+    forEach(processVal, function parseValue(v: ParamValue): void {
+      let stringValue: string;
+      
+      if (isDate(v)) {
+        stringValue = v.toISOString();
+      } else if (isObject(v)) {
+        stringValue = JSON.stringify(v);
+      } else {
+        stringValue = String(v);
+      }
+      
+      parts.push(encodeURIComponent(processKey) + '=' + encodeURIComponent(stringValue));
+    });
+  });
+
+  return parts.join('&');
+}
+
 export class Session {
   host: string;
   authToken: string;
@@ -88,7 +182,6 @@ export class Session {
   businessId?: string;
   organizationIds?: string[];
   userSessionInfo?: { id: string } & Indexable;
-  socket?: Socket;
   type?: string
   enableSocketLogging?: boolean;
   handleUnauthenticated?: SessionOptions['handleUnauthenticated']
@@ -121,7 +214,6 @@ export class Session {
     this.businessId = o.businessId;
     this.organizationIds = o.organizationIds ?? o.user?.organizationIds;
     this.expirationInSeconds = o.expirationInSeconds
-    this.socket = undefined as Socket | undefined
     this.socketAuthenticated = false
     this.handleUnauthenticated = o.handleUnauthenticated
     this.enableSocketLogging = o.enableSocketLogging
@@ -172,10 +264,6 @@ export class Session {
     this.apiKey = ''
     this.authToken = ''
     this.userInfo = { }
-    if (!keepSocket) {
-      this.removeAllSocketListeners()
-      this.socket = undefined
-    }
     this.clearCache()
   }
 
@@ -221,6 +309,7 @@ export class Session {
         { 
           params: { ...params, ...this.getAuthInfo(authenticated)  }, 
           headers: this.config.headers,
+          paramsSerializer: defaultParamsSerializer,
           ...options,
         })
       ).data as R
@@ -266,43 +355,29 @@ export class Session {
   }
 
   EMIT = async (route: string, args: object, authenticated=true, options={} as RequestOptions) => {
-    if (!this.socket) {
-      if (this.enableSocketLogging) { 
-        console.log('attempted emit with !this.socket')
-      }
+    // if (!this.socket) {
+    //   if (this.enableSocketLogging) { 
+    //     console.log('attempted emit with !this.socket')
+    //   }
 
-      this.authenticate_socket() // sets namespace correctly
-    }
+    //   this.authenticate_socket() // sets namespace correctly
+    // }
 
-    this.socket?.emit(route, { ...args, ...authenticated ? { authToken: this.authToken } : {} } )
+    // this.socket?.emit(route, { ...args, ...authenticated ? { authToken: this.authToken } : {} } )
   }
 
-  ON = <T={}>(s: string, callback: (a: T) => void) => this.socket?.on(s, callback)
+  ON = <T={}>(s: string, callback: (a: T) => void) => {
+    //this.socket?.on(s, callback)
+  }
 
   /**
   * @deprecated Use handle_events, subscription is no longer necessary
   */
   subscribe = (rooms: { [index: string]: keyof ClientModelForName }, handlers?: { [index: string]: (a: any) => void } ) => {
     console.warn("subscribe is deprecated in favor of handle_events, as they are now functionally the same")
-    if (this.enableSocketLogging) {
-      console.log(`${this.type} ${this.userInfo.id} subscribing ${JSON.stringify(rooms)}, socket defined: ${!!this.socket}`)
-    }
-
-    if (!this.socket) {
-      this.initialize_socket()
-    }
-
     if (handlers) { 
       this.handle_events(handlers) 
-    }
-    
-    // this.EMIT(`join-rooms`, { rooms })
-    // .then(() => {
-    //   if (this.enableSocketLogging) {
-    //     console.log(`${this.type} ${this.userInfo.id} emitted ${JSON.stringify(rooms)}`)
-    //   }
-    // })
-    // .catch(console.error)
+    }  
   }
 
   handle_events = ( handlers: { [index: string]: (a: any) => void } ) => {
@@ -323,12 +398,10 @@ export class Session {
   unsubscribe = (roomIds: string[]) => this.EMIT('leave-rooms', { roomIds })
   removeAllSocketListeners = () => {
     if (this.enableSocketLogging) { console.log('removeAllSocketListeners') }
-    this.socket?.removeAllListeners()
     this.handlers = {}
   }
 
   removeListenersForEvent = (event: string) => {
-    this.socket?.removeListener(event)
     delete this.handlers[event]
   }
 
@@ -348,25 +421,9 @@ export class Session {
       console.warn("not attempting socket connection since denySocket: true")
       return
     }
-
-    // if (this.enableSocketLogging) console.log('initializing socket', `${this.host}/${this.userInfo.businessId || this.businessId}`)
-
-    this.socket = io(
-      this.host,
-      // `${this.host}/${this.userInfo.businessId || this.businessId}`,  // no longer needed, causes issues on long-running servers
-      { 
-        auth: { token: this.authToken },
-        transports: ['websocket']  // supporting polling requires sticky session at load balancer
-      }
-    );
   }
 
-  socket_ping = (handler: (...args: any[]) => void) => {
-    if (!this.socket) return
-
-    this.socket.on('pong', handler)
-    this.socket.emit('ping')
-  }
+  socket_ping = (handler: (...args: any[]) => void) => {}
 
   authenticate_socket = () => { 
     // if (this.userInfo.requiresMFA) return

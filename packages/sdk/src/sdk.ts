@@ -1159,8 +1159,6 @@ export class Session extends SessionManager {
     this.setAuthToken(authToken)
     this.setUserInfo(userInfo)
 
-    if (!this.socket) this.authenticate_socket()
-
     return { authToken, ...userInfo }
   }
 

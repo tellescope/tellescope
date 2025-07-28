@@ -447,6 +447,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     createEnduserForms?: string[];
     creditCount?: number;
     creditTrialStartedAt?: Date;
+    hasIntegrations?: string[];
 }
 export type OrganizationTheme = {
     name: string;
@@ -717,6 +718,7 @@ export type EnduserDevice = {
     id: string;
     gatewayId?: string;
     disabled?: boolean;
+    archivedAt?: Date | '';
 };
 export type EnduserDiagnosis = {
     id?: string;
@@ -2756,6 +2758,7 @@ interface AutomationActionBuilder<T extends string, V extends object> {
     type: T;
     info: V;
     continueOnError?: boolean;
+    isBrandedWebhook?: boolean;
 }
 export type AssignToQueueInfo = {
     queueId: string;
@@ -3048,6 +3051,7 @@ export type AutomationActionForType = {
 };
 export type AutomationActionType = keyof AutomationActionForType;
 export type AutomationAction = AutomationActionForType[AutomationActionType];
+export type BrandedWebhookActions = "Puppeteer: Start Agent";
 export interface AutomationStep_readonly extends ClientRecord {
 }
 export interface AutomationStep_required {
@@ -3619,7 +3623,9 @@ export type AnalyticsQueryFilterForType = {
         formResponseCondition?: CompoundFilter<string>;
         tags?: ListOfStringsWithQualifier;
     };
-    "Purchases": {};
+    "Purchases": {
+        titles?: string[];
+    };
     "Purchase Credits": {};
     "Tickets": {
         titles?: string[];
@@ -3676,6 +3682,7 @@ export type AnalyticsQueryGroupingForType = {
         Enduser: string;
     };
     "Purchases": {
+        Title?: boolean;
         Cost?: boolean;
     } & EnduserGrouping & {
         Enduser: string;
@@ -4068,6 +4075,7 @@ export type AutomationTriggerEvents = {
         fills?: string[];
         skus?: string[];
         skuPartials?: string[];
+        titlePartials?: string[];
     }, {}>;
     'Missed Call': AutomationTriggerEventBuilder<"Missed Call", {
         phoneNumbers?: string[];
@@ -5921,5 +5929,14 @@ export type KendraSearchResult = {
             ScoreConfidence: "VERY_HIGH" | "HIGH" | "MEDIUM" | "LOW" | "NOT_AVAILABLE";
         };
     }[];
+};
+export type HealthieWebhookEvent = {
+    event_type: string;
+};
+export type HealthieWebhook = {
+    id: string;
+    url: string;
+    is_enabled: boolean;
+    webhook_events: HealthieWebhookEvent[];
 };
 //# sourceMappingURL=index.d.ts.map

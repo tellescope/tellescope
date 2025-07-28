@@ -302,8 +302,6 @@ var Session = /** @class */ (function (_super) {
                 this.sessionStart = Date.now();
                 this.setAuthToken(authToken);
                 this.setUserInfo(userInfo);
-                if (!this.socket)
-                    this.authenticate_socket();
                 return [2 /*return*/, __assign({ authToken: authToken }, userInfo)];
             });
         }); };

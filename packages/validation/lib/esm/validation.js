@@ -2227,25 +2227,27 @@ export var canvasCodingValidatorOptional = objectValidator({
     display: stringValidatorOptional,
     system: stringValidatorOptional,
 }, {});
+var sharedAutomationActionValidators = {
+    continueOnError: booleanValidatorOptional,
+    isBrandedWebhook: booleanValidatorOptional,
+};
+var sendWebhookInfoValidator = objectValidator({
+    message: stringValidator5000Optional,
+    url: stringValidator20000ptional,
+    fields: labeledFieldsValidator,
+    secret: stringValidatorOptional,
+    method: stringValidatorOptional,
+    headers: labeledFieldsValidator,
+}, { emptyOk: false });
 export var automationActionValidator = orValidator({
-    developHealthMedEligibility: objectValidator({
-        type: exactMatchValidator(['developHealthMedEligibility']),
-        info: objectValidator({
+    developHealthMedEligibility: objectValidator(__assign({ type: exactMatchValidator(['developHealthMedEligibility']), info: objectValidator({
             drugs: developHealthDrugsValidator,
             diagnoses: developHealthDiagnosesValidator,
             mock_result: developHealthMockResultValidator,
             providerUserId: mongoIdStringRequired,
-        }, { emptyOk: false }),
-        continueOnError: booleanValidatorOptional,
-    }),
-    setEnduserStatus: objectValidator({
-        type: exactMatchValidator(['setEnduserStatus']),
-        info: objectValidator({ status: stringValidator250 }, { emptyOk: false }),
-        continueOnError: booleanValidatorOptional,
-    }),
-    sendEmail: objectValidator({
-        type: exactMatchValidator(['sendEmail']),
-        info: objectValidator({
+        }, { emptyOk: false }) }, sharedAutomationActionValidators)),
+    setEnduserStatus: objectValidator(__assign({ type: exactMatchValidator(['setEnduserStatus']), info: objectValidator({ status: stringValidator250 }, { emptyOk: false }) }, sharedAutomationActionValidators)),
+    sendEmail: objectValidator(__assign({ type: exactMatchValidator(['sendEmail']), info: objectValidator({
             senderId: mongoIdStringRequired,
             templateId: mongoIdStringRequired,
             assignment: senderAssignmentStrategyValidatorOptional,
@@ -2253,45 +2255,24 @@ export var automationActionValidator = orValidator({
             sendToDestinationOfRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
             ccRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
             hiddenFromTimeline: booleanValidatorOptional,
-        }, { emptyOk: false }),
-        continueOnError: booleanValidatorOptional,
-    }),
-    sendSMS: objectValidator({
-        type: exactMatchValidator(['sendSMS']),
-        info: automationForMessageValidator,
-        continueOnError: booleanValidatorOptional,
-    }),
-    notifyTeam: objectValidator({
-        type: exactMatchValidator(['notifyTeam']),
-        info: objectValidator({
+        }, { emptyOk: false }) }, sharedAutomationActionValidators)),
+    sendSMS: objectValidator(__assign({ type: exactMatchValidator(['sendSMS']), info: automationForMessageValidator }, sharedAutomationActionValidators)),
+    notifyTeam: objectValidator(__assign({ type: exactMatchValidator(['notifyTeam']), info: objectValidator({
             templateId: mongoIdStringRequired,
             forAssigned: booleanValidatorOptional,
             roles: listOfStringsValidatorOptionalOrEmptyOk,
             tags: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
-        }, { emptyOk: false }),
-        continueOnError: booleanValidatorOptional,
-    }),
-    sendForm: objectValidator({
-        type: exactMatchValidator(['sendForm']),
-        info: objectValidator({
+        }, { emptyOk: false }) }, sharedAutomationActionValidators)),
+    sendForm: objectValidator(__assign({ type: exactMatchValidator(['sendForm']), info: objectValidator({
             senderId: mongoIdStringRequired,
             formId: mongoIdStringRequired,
             channel: communicationsChannelValidatorOptional,
             assignment: senderAssignmentStrategyValidatorOptional,
-        }, { emptyOk: false }),
-        continueOnError: booleanValidatorOptional,
-    }),
-    shareContent: objectValidator({
-        type: exactMatchValidator(['shareContent']),
-        info: objectValidator({
+        }, { emptyOk: false }) }, sharedAutomationActionValidators)),
+    shareContent: objectValidator(__assign({ type: exactMatchValidator(['shareContent']), info: objectValidator({
             managedContentRecordIds: listOfMongoIdStringValidator,
-        }, { emptyOk: false }),
-        continueOnError: booleanValidatorOptional,
-    }),
-    createTicket: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['createTicket']),
-        info: objectValidator({
+        }, { emptyOk: false }) }, sharedAutomationActionValidators)),
+    createTicket: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['createTicket']), info: objectValidator({
             title: stringValidator1000,
             description: stringValidatorOptionalEmptyOkay,
             assignmentStrategy: orValidator({
@@ -2351,92 +2332,41 @@ export var automationActionValidator = orValidator({
             contextEnduserFields: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
             contextContentIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
             disableEditTitle: booleanValidatorOptional,
-        }, { emptyOk: false }),
-    }),
-    sendWebhook: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['sendWebhook']),
-        info: objectValidator({
-            message: stringValidator5000Optional,
-            url: stringValidator20000ptional,
-            fields: labeledFieldsValidator,
-            secret: stringValidatorOptional,
-            method: stringValidatorOptional,
-            headers: labeledFieldsValidator,
-        }, { emptyOk: false }),
-    }),
-    setEnduserFields: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['setEnduserFields']),
-        info: objectValidator({
+        }, { emptyOk: false }) })),
+    sendWebhook: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['sendWebhook']), info: sendWebhookInfoValidator })),
+    setEnduserFields: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['setEnduserFields']), info: objectValidator({
             fields: listValidator(objectValidator({
                 name: stringValidator,
                 type: stringValidator,
                 value: stringValidator,
                 increment: numberValidatorOptional,
             }))
-        }, { emptyOk: false }),
-    }),
-    addEnduserTags: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['addEnduserTags']),
-        info: objectValidator({
+        }, { emptyOk: false }) })),
+    addEnduserTags: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['addEnduserTags']), info: objectValidator({
             tags: listOfStringsValidator,
             replaceExisting: booleanValidatorOptional,
-        }, { emptyOk: false }),
-    }),
-    removeEnduserTags: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['removeEnduserTags']),
-        info: objectValidator({
+        }, { emptyOk: false }) })),
+    removeEnduserTags: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['removeEnduserTags']), info: objectValidator({
             tags: listOfStringsValidator,
-        }, { emptyOk: false }),
-    }),
-    addAccessTags: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['addAccessTags']),
-        info: objectValidator({
+        }, { emptyOk: false }) })),
+    addAccessTags: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['addAccessTags']), info: objectValidator({
             tags: listOfStringsValidator,
             replaceExisting: booleanValidatorOptional,
-        }, { emptyOk: false }),
-    }),
-    removeAccessTags: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['removeAccessTags']),
-        info: objectValidator({
+        }, { emptyOk: false }) })),
+    removeAccessTags: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['removeAccessTags']), info: objectValidator({
             tags: listOfStringsValidator,
-        }, { emptyOk: false }),
-    }),
-    addToJourney: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['addToJourney']),
-        info: objectValidator({
+        }, { emptyOk: false }) })),
+    addToJourney: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['addToJourney']), info: objectValidator({
             journeyId: mongoIdStringRequired,
-        }, { emptyOk: false }),
-    }),
-    removeFromJourney: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['removeFromJourney']),
-        info: objectValidator({
+        }, { emptyOk: false }) })),
+    removeFromJourney: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['removeFromJourney']), info: objectValidator({
             journeyId: mongoIdStringRequired,
-        }, { emptyOk: false }),
-    }),
-    removeFromAllJourneys: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['removeFromAllJourneys']),
-        info: objectValidator({}, { emptyOk: true, isOptional: true }),
-    }),
-    iterableSendEmail: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['iterableSendEmail']),
-        info: objectValidator({
+        }, { emptyOk: false }) })),
+    removeFromAllJourneys: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['removeFromAllJourneys']), info: objectValidator({}, { emptyOk: true, isOptional: true }) })),
+    iterableSendEmail: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['iterableSendEmail']), info: objectValidator({
             campaignId: stringValidator,
-        }, { emptyOk: false }),
-    }),
-    iterableCustomEvent: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['iterableCustomEvent']),
-        info: objectValidator({
+        }, { emptyOk: false }) })),
+    iterableCustomEvent: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['iterableCustomEvent']), info: objectValidator({
             eventName: stringValidator,
             description: stringValidator,
             dataFieldsMapping: listValidatorOptionalOrEmptyOk(objectValidator({
@@ -2445,229 +2375,105 @@ export var automationActionValidator = orValidator({
             })),
             environment: stringValidatorOptional,
             customEmailField: stringValidatorOptional,
-        }, { emptyOk: false }),
-    }),
-    zendeskCreateTicket: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['zendeskCreateTicket']),
-        info: objectValidator({
+        }, { emptyOk: false }) })),
+    zendeskCreateTicket: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['zendeskCreateTicket']), info: objectValidator({
             templateId: mongoIdStringRequired,
             defaultSenderId: mongoIdStringRequired,
-        }, { emptyOk: false }),
-    }),
-    createCarePlan: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['createCarePlan']),
-        info: objectValidator({
+        }, { emptyOk: false }) })),
+    createCarePlan: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['createCarePlan']), info: objectValidator({
             title: stringValidator1000,
             htmlDescription: stringValidator100000EmptyOkay,
             hideRemainingTicketsProgress: booleanValidatorOptional,
             highlightedEnduserFields: listOfStringsValidatorOptionalOrEmptyOk,
             closeAutomaticallyByTicket: booleanValidatorOptional,
-        }, { emptyOk: false }),
-    }),
-    completeCarePlan: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['completeCarePlan']),
-        info: objectValidator({}, { emptyOk: true }),
-    }),
-    zusSync: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['zusSync']),
-        info: objectValidator({}, { emptyOk: true }),
-    }),
-    zusPull: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['zusPull']),
-        info: objectValidator({}, { emptyOk: true }),
-    }),
-    zusSubscribe: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['zusSubscribe']),
-        info: objectValidator({
+        }, { emptyOk: false }) })),
+    completeCarePlan: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['completeCarePlan']), info: objectValidator({}, { emptyOk: true }) })),
+    zusSync: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['zusSync']), info: objectValidator({}, { emptyOk: true }) })),
+    zusPull: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['zusPull']), info: objectValidator({}, { emptyOk: true }) })),
+    zusSubscribe: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['zusSubscribe']), info: objectValidator({
             practitionerId: stringValidator,
             packageIds: listOfStringsValidator,
-        }),
-    }),
-    pagerDutyCreateIncident: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['pagerDutyCreateIncident']),
-        info: objectValidator({
+        }) })),
+    pagerDutyCreateIncident: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['pagerDutyCreateIncident']), info: objectValidator({
             title: stringValidator,
             type: stringValidator,
             serviceId: stringValidator,
-        }),
-    }),
-    smartMeterPlaceOrder: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['smartMeterPlaceOrder']),
-        info: objectValidator({
+        }) })),
+    smartMeterPlaceOrder: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['smartMeterPlaceOrder']), info: objectValidator({
             lines: smartMeterLinesValidator,
             shipping: stringValidator100,
-        }),
-    }),
-    sendChat: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['sendChat']),
-        info: objectValidator({
+        }) })),
+    sendChat: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['sendChat']), info: objectValidator({
             templateId: mongoIdStringRequired,
             identifier: stringValidator100,
             includeCareTeam: booleanValidatorOptional,
             userIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
             sendToDestinationOfRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
-        }),
-    }),
-    healthieSync: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['healthieSync']),
-        info: objectValidator({}, { emptyOk: true }),
-    }),
-    elationSync: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['elationSync']),
-        info: objectValidator({}, { emptyOk: true }),
-    }),
-    athenaSync: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['athenaSync']),
-        info: objectValidator({ departmentid: stringValidator100 }, { emptyOk: true }),
-    }),
-    canvasSync: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['canvasSync']),
-        info: objectValidator({}, { emptyOk: true }),
-    }),
-    canvasCreateNote: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['canvasCreateNote']),
-        info: objectValidator({
+        }) })),
+    healthieSync: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['healthieSync']), info: objectValidator({}, { emptyOk: true }) })),
+    elationSync: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['elationSync']), info: objectValidator({}, { emptyOk: true }) })),
+    athenaSync: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['athenaSync']), info: objectValidator({ departmentid: stringValidator100 }, { emptyOk: true }) })),
+    canvasSync: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['canvasSync']), info: objectValidator({}, { emptyOk: true }) })),
+    canvasCreateNote: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['canvasCreateNote']), info: objectValidator({
             formIds: listOfMongoIdStringValidator,
             matchCareTeamTagsForCanvasPractitionerResolution: listOfStringsWithQualifierValidator,
             noteCoding: canvasCodingValidator,
-        }),
-    }),
-    healthieAddToCourse: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['healthieAddToCourse']),
-        info: objectValidator({ courseId: stringValidator100 }),
-    }),
-    healthieSendChat: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['healthieSendChat']),
-        info: objectValidator({
+        }) })),
+    healthieAddToCourse: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['healthieAddToCourse']), info: objectValidator({ courseId: stringValidator100 }) })),
+    healthieSendChat: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['healthieSendChat']), info: objectValidator({
             templateId: mongoIdStringRequired,
             identifier: stringValidator100,
             includeCareTeam: booleanValidatorOptional,
-        }),
-    }),
-    completeTickets: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['completeTickets']),
-        info: objectValidator({
+        }) })),
+    completeTickets: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['completeTickets']), info: objectValidator({
             journeyIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
-        }),
-    }),
-    changeContactType: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['changeContactType']),
-        info: objectValidator({
+        }) })),
+    changeContactType: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['changeContactType']), info: objectValidator({
             type: stringValidatorOptional, // can be empty string for default contact type or id for others
-        }),
-    }),
-    activeCampaignSync: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['activeCampaignSync']),
-        info: objectValidator({}, { emptyOk: true }),
-    }),
-    activeCampaignAddToLists: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['activeCampaignAddToLists']),
-        info: objectValidator({
+        }) })),
+    activeCampaignSync: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['activeCampaignSync']), info: objectValidator({}, { emptyOk: true }) })),
+    activeCampaignAddToLists: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['activeCampaignAddToLists']), info: objectValidator({
             listIds: listOfStringsValidator,
-        }),
-    }),
-    switchToRelatedContact: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['switchToRelatedContact']),
-        info: objectValidator({
+        }) })),
+    switchToRelatedContact: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['switchToRelatedContact']), info: objectValidator({
             type: stringValidator100,
             otherTypes: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
-        }, {}),
-    }),
-    pushFormsToPortal: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['pushFormsToPortal']),
-        info: objectValidator({
+        }, {}) })),
+    pushFormsToPortal: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['pushFormsToPortal']), info: objectValidator({
             formIds: listOfMongoIdStringValidator,
-        }, { emptyOk: false }),
-    }),
-    cancelFutureAppointments: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['cancelFutureAppointments']),
-        info: objectValidator({}, { emptyOk: true }),
-    }),
-    customerIOIdentify: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['customerIOIdentify']),
-        info: objectValidator({}, { emptyOk: true }),
-    }),
-    customerIOTrack: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['customerIOTrack']),
-        info: objectValidator({
+        }, { emptyOk: false }) })),
+    cancelFutureAppointments: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['cancelFutureAppointments']), info: objectValidator({}, { emptyOk: true }) })),
+    customerIOIdentify: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['customerIOIdentify']), info: objectValidator({}, { emptyOk: true }) })),
+    customerIOTrack: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['customerIOTrack']), info: objectValidator({
             event: stringValidator,
             trackProperties: listOfStringsValidatorOptionalOrEmptyOk,
-        }, { emptyOk: false }),
-    }),
-    cancelCurrentEvent: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['cancelCurrentEvent']),
-        info: objectValidator({}, { emptyOk: true, isOptional: true }),
-    }),
-    confirmCurrentEvent: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['confirmCurrentEvent']),
-        info: objectValidator({}, { emptyOk: true, isOptional: true }),
-    }),
-    outboundCall: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['outboundCall']),
-        info: objectValidator({
+        }, { emptyOk: false }) })),
+    cancelCurrentEvent: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['cancelCurrentEvent']), info: objectValidator({}, { emptyOk: true, isOptional: true }) })),
+    confirmCurrentEvent: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['confirmCurrentEvent']), info: objectValidator({}, { emptyOk: true, isOptional: true }) })),
+    outboundCall: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['outboundCall']), info: objectValidator({
             treeId: mongoIdStringRequired,
-        }, { emptyOk: false }),
-    }),
-    assignCareTeam: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['assignCareTeam']),
-        info: objectValidator({
+        }, { emptyOk: false }) })),
+    assignCareTeam: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['assignCareTeam']), info: objectValidator({
             tags: listOfStringsWithQualifierValidator,
             limitToOneUser: booleanValidatorOptional,
             setAsPrimary: booleanValidatorOptional,
         }, { emptyOk: false }) // at least tags is required
-    }),
-    removeCareTeam: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['removeCareTeam']),
-        info: objectValidator({
+     })),
+    removeCareTeam: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['removeCareTeam']), info: objectValidator({
             tags: listOfStringsWithQualifierValidator,
         }, { emptyOk: false }) // at least tags is required
-    }),
-    callUser: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['callUser']),
-        info: objectValidator({
+     })),
+    callUser: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['callUser']), info: objectValidator({
             message: stringValidator25000,
             routeBy: exactMatchValidator(['Appointment Host']),
         }, { emptyOk: false }) // at least tags is required
-    }),
-    stripeChargeCardOnFile: objectValidator({
-        continueOnError: booleanValidatorOptional,
-        type: exactMatchValidator(['stripeChargeCardOnFile']),
-        info: objectValidator({
+     })),
+    stripeChargeCardOnFile: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['stripeChargeCardOnFile']), info: objectValidator({
             stripeKey: stringValidatorOptionalEmptyOkay,
             priceIds: listOfStringsValidator,
         }, { emptyOk: false }) // at least tags is required
-    }),
+     })),
+    "Puppeteer: Start Agent": objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(["Puppeteer: Start Agent"]), info: sendWebhookInfoValidator })),
 });
 export var journeyContextValidator = objectValidator({
     calendarEventId: mongoIdStringOptional,
@@ -3918,6 +3724,7 @@ export var automationTriggerEventValidator = orValidator({
             fills: listOfStringsValidatorOptionalOrEmptyOk,
             skus: listOfStringsValidatorOptionalOrEmptyOk,
             skuPartials: listOfStringsValidatorOptionalOrEmptyOk,
+            titlePartials: listOfStringsValidatorOptionalOrEmptyOk,
         }),
         conditions: optionalEmptyObjectValidator,
     }),
@@ -4624,7 +4431,9 @@ export var analyticsQueryValidator = orValidator({
     }),
     "Purchases": objectValidator({
         resource: exactMatchValidator(['Purchases']),
-        filter: objectValidator({}, { isOptional: true, emptyOk: true }),
+        filter: objectValidator({
+            titles: listOfStringsValidatorOptionalOrEmptyOk,
+        }, { isOptional: true, emptyOk: true }),
         info: orValidator({
             "Total": objectValidator({
                 method: exactMatchValidator(['Total']),
@@ -4634,6 +4443,7 @@ export var analyticsQueryValidator = orValidator({
         grouping: objectValidator({
             Enduser: booleanValidatorOptional,
             Cost: booleanValidatorOptional,
+            Title: booleanValidatorOptional,
             Gender: booleanValidatorOptional,
             "Assigned To": booleanValidatorOptional,
             Field: stringValidatorOptionalEmptyOkay,

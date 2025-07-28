@@ -47,7 +47,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import axios from "axios";
 import NodeFormData from "form-data";
-import { io } from 'socket.io-client';
 export var DEFAULT_HOST = 'https://api.tellescope.com';
 export var wait = function (f, ms) {
     if (ms === void 0) { ms = 1000; }
@@ -102,6 +101,75 @@ var access_cache = function (key) {
     }
 };
 export var SOCKET_POLLING_DELAY = 250;
+// Custom paramsSerializer function that replicates axios 0.21.4 default behavior
+function defaultParamsSerializer(params) {
+    var parts = [];
+    // Helper function to check if value is an array
+    function isArray(val) {
+        return Array.isArray(val);
+    }
+    // Helper function to check if value is a date
+    function isDate(val) {
+        return Object.prototype.toString.call(val) === '[object Date]';
+    }
+    // Helper function to check if value is an object
+    function isObject(val) {
+        return val !== null && typeof val === 'object' && !isArray(val) && !isDate(val);
+    }
+    // Helper function to iterate over object properties
+    function forEach(obj, fn) {
+        if (obj === null || typeof obj === "undefined") {
+            return;
+        }
+        var processObj;
+        if (typeof obj !== "object") {
+            processObj = [obj];
+        }
+        else {
+            processObj = obj;
+        }
+        if (isArray(processObj)) {
+            for (var i = 0, l = processObj.length; i < l; i++) {
+                fn.call(null, processObj[i], i, processObj);
+            }
+        }
+        else {
+            for (var key in processObj) {
+                if (Object.prototype.hasOwnProperty.call(processObj, key)) {
+                    fn.call(null, processObj[key], key, processObj);
+                }
+            }
+        }
+    }
+    forEach(params, function serialize(val, key) {
+        if (val === null || typeof val === "undefined") {
+            return;
+        }
+        var processKey = String(key);
+        var processVal;
+        if (isArray(val)) {
+            processKey = processKey + '[]';
+            processVal = val;
+        }
+        else {
+            processVal = [val];
+        }
+        forEach(processVal, function parseValue(v) {
+            var stringValue;
+            if (isDate(v)) {
+                stringValue = v.toISOString();
+            }
+            else if (isObject(v)) {
+                stringValue = JSON.stringify(v);
+            }
+            else {
+                stringValue = String(v);
+            }
+            parts.push(encodeURIComponent(processKey) + '=' + encodeURIComponent(stringValue));
+        });
+    });
+    return parts.join('&');
+}
 var Session = /** @class */ (function () {
     function Session(o) {
         if (o === void 0) { o = {}; }
@@ -134,10 +202,6 @@ var Session = /** @class */ (function () {
             _this.apiKey = '';
             _this.authToken = '';
             _this.userInfo = {};
-            if (!keepSocket) {
-                _this.removeAllSocketListeners();
-                _this.socket = undefined;
-            }
             _this.clearCache();
         };
         this.getAuthInfo = function (requiresAuth) { return requiresAuth && (_this.apiKey ? {} // included in headers
@@ -192,7 +256,7 @@ var Session = /** @class */ (function () {
                     switch (_a.label) {
                         case 0:
                             _a.trys.push([0, 2, , 4]);
-                            return [4 /*yield*/, axios.get(this.host + endpoint, __assign({ params: __assign(__assign({}, params), this.getAuthInfo(authenticated)), headers: this.config.headers }, options))];
+                            return [4 /*yield*/, axios.get(this.host + endpoint, __assign({ params: __assign(__assign({}, params), this.getAuthInfo(authenticated)), headers: this.config.headers, paramsSerializer: defaultParamsSerializer }, options))];
                         case 1: return [2 /*return*/, (_a.sent()).data];
                         case 2:
                             err_2 = _a.sent();
@@ -275,41 +339,22 @@ var Session = /** @class */ (function () {
             if (authenticated === void 0) { authenticated = true; }
             if (options === void 0) { options = {}; }
             return __awaiter(_this, void 0, void 0, function () {
-                var _a;
-                return __generator(this, function (_b) {
-                    if (!this.socket) {
-                        if (this.enableSocketLogging) {
-                            console.log('attempted emit with !this.socket');
-                        }
-                        this.authenticate_socket(); // sets namespace correctly
-                    }
-                    (_a = this.socket) === null || _a === void 0 ? void 0 : _a.emit(route, __assign(__assign({}, args), authenticated ? { authToken: this.authToken } : {}));
+                return __generator(this, function (_a) {
                     return [2 /*return*/];
                 });
             });
         };
-        this.ON = function (s, callback) { var _a; return (_a = _this.socket) === null || _a === void 0 ? void 0 : _a.on(s, callback); };
+        this.ON = function (s, callback) {
+            //this.socket?.on(s, callback)
+        };
         /**
         * @deprecated Use handle_events, subscription is no longer necessary
         */
         this.subscribe = function (rooms, handlers) {
             console.warn("subscribe is deprecated in favor of handle_events, as they are now functionally the same");
-            if (_this.enableSocketLogging) {
-                console.log("".concat(_this.type, " ").concat(_this.userInfo.id, " subscribing ").concat(JSON.stringify(rooms), ", socket defined: ").concat(!!_this.socket));
-            }
-            if (!_this.socket) {
-                _this.initialize_socket();
-            }
             if (handlers) {
                 _this.handle_events(handlers);
             }
-            // this.EMIT(`join-rooms`, { rooms })
-            // .then(() => {
-            //   if (this.enableSocketLogging) {
-            //     console.log(`${this.type} ${this.userInfo.id} emitted ${JSON.stringify(rooms)}`)
-            //   }
-            // })
-            // .catch(console.error)
         };
         this.handle_events = function (handlers) {
             for (var handler in handlers) {
@@ -325,16 +370,12 @@ var Session = /** @class */ (function () {
         };
         this.unsubscribe = function (roomIds) { return _this.EMIT('leave-rooms', { roomIds: roomIds }); };
         this.removeAllSocketListeners = function () {
-            var _a;
             if (_this.enableSocketLogging) {
                 console.log('removeAllSocketListeners');
             }
-            (_a = _this.socket) === null || _a === void 0 ? void 0 : _a.removeAllListeners();
             _this.handlers = {};
         };
         this.removeListenersForEvent = function (event) {
-            var _a;
-            (_a = _this.socket) === null || _a === void 0 ? void 0 : _a.removeListener(event);
             delete _this.handlers[event];
         };
         this.socket_log = function (message) {
@@ -354,20 +395,8 @@ var Session = /** @class */ (function () {
                 console.warn("not attempting socket connection since denySocket: true");
                 return;
             }
-            // if (this.enableSocketLogging) console.log('initializing socket', `${this.host}/${this.userInfo.businessId || this.businessId}`)
-            _this.socket = io(_this.host, 
-            // `${this.host}/${this.userInfo.businessId || this.businessId}`,  // no longer needed, causes issues on long-running servers
-            {
-                auth: { token: _this.authToken },
-                transports: ['websocket'] // supporting polling requires sticky session at load balancer
-            });
         };
-        this.socket_ping = function (handler) {
-            if (!_this.socket)
-                return;
-            _this.socket.on('pong', handler);
-            _this.socket.emit('ping');
-        };
+        this.socket_ping = function (handler) { };
         this.authenticate_socket = function () {
             // if (this.userInfo.requiresMFA) return
             // if (this.lastSocketConnection + 2500 > Date.now()) return
@@ -460,7 +489,6 @@ var Session = /** @class */ (function () {
         this.businessId = o.businessId;
         this.organizationIds = (_c = o.organizationIds) !== null && _c !== void 0 ? _c : (_d = o.user) === null || _d === void 0 ? void 0 : _d.organizationIds;
         this.expirationInSeconds = o.expirationInSeconds;
-        this.socket = undefined;
         this.socketAuthenticated = false;
         this.handleUnauthenticated = o.handleUnauthenticated;
         this.enableSocketLogging = o.enableSocketLogging;

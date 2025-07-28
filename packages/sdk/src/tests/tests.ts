@@ -3441,6 +3441,12 @@ const order_status_equals_tests = async () => {
     status: 'Active',
     title: "SKU Partial Condition"
   })
+  const t7 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'Source', status: "Update", titlePartials: ['TITLE-PARTIAL'] } },
+    action: { type: 'Add Tags', info: { tags: ['Title Partial Update'] }},
+    status: 'Active',
+    title: "Title Partial Condition"
+  })
 
   const e = await sdk.api.endusers.createOne({})
 
@@ -3573,6 +3579,24 @@ const order_status_equals_tests = async () => {
     ) }
   )
 
+  await sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle', externalId: "also avoid rate limit 4" })
+  await sdk.api.enduser_orders.updateOne(u.id, { status: "Update", title: "TITLE-PARTIAL" })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Title partial update tag added",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!(
+       e.tags?.length === 7
+    && e.tags?.includes('Source')
+    && e.tags?.includes('Fill')
+    && e.tags?.includes('Status Update')
+    && e.tags?.includes('Fill Update')
+    && e.tags?.includes('SKU Update')
+    && e.tags?.includes('SKU Partial Update')
+    && e.tags?.includes('Title Partial Update')
+    ) }
+  )
+
   await Promise.all([
     sdk.api.automation_triggers.deleteOne(t1.id),
     sdk.api.automation_triggers.deleteOne(t2.id),
@@ -3580,6 +3604,7 @@ const order_status_equals_tests = async () => {
     sdk.api.automation_triggers.deleteOne(t4.id),
     sdk.api.automation_triggers.deleteOne(t5.id),
     sdk.api.automation_triggers.deleteOne(t6.id),
+    sdk.api.automation_triggers.deleteOne(t7.id),
     sdk.api.endusers.deleteOne(e.id),
   ])
 }
@@ -4318,6 +4343,7 @@ const trigger_events_api_tests = async () => {
 const automation_trigger_tests = async () => {
   log_header("Automation Trigger Tests")
 
+  await order_status_equals_tests()
   await trigger_events_api_tests()
   await fields_changed_tests()
   await field_equals_trigger_tests()
@@ -4326,7 +4352,6 @@ const automation_trigger_tests = async () => {
   await contact_created_tests()
   await appointment_cancelled_tests()
   await appointment_created_tests()
-  await order_status_equals_tests()
   await tag_added_tests()
   await order_created_tests()
   await formSubmittedTriggerTests() 
@@ -11818,6 +11843,7 @@ const ip_address_form_tests = async () => {
     lname: 'test',
   })
 
+  await wait(undefined, 500) // wait for IP to be set
   async_test(
     'IP Set on Enduser creation',
     () => sdk.api.endusers.getOne(enduserId),

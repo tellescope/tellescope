@@ -402,8 +402,6 @@ export class EnduserSession extends Session {
     this.setAuthToken(authToken)
     this.setUserInfo(enduser)
 
-    if (!this.socket) this.authenticate_socket()
-
     return { authToken, enduser }
   }
 

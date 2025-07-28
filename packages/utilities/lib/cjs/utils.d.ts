@@ -1,4 +1,4 @@
-import { AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserInsurance, EnduserObservation, Form, FormField, FormFieldType, FormResponse, FormResponseValue, FormResponseValueAnswer, LabeledField, ManagedContentRecord, Organization, Purchase, RoundRobinAssignmentInfo, SMSMessage, TableInputCell, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models";
+import { AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserInsurance, EnduserObservation, Form, FormField, FormFieldType, FormResponse, FormResponseValue, FormResponseValueAnswer, Integration, LabeledField, ManagedContentRecord, Organization, Purchase, RoundRobinAssignmentInfo, SMSMessage, TableInputCell, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models";
 import { ObjectId } from "./ObjectId/objectid";
 export { ObjectId };
 export type Indexable<T = any> = {
@@ -261,6 +261,8 @@ export declare const append_current_utm_params: (targetURL: string) => string;
 export declare const replace_tag_template_values_for_enduser: (tags: string[], enduser: Omit<Enduser, 'id'>) => any[];
 export declare const replace_purchase_template_values: (s: string, purchase?: Omit<Purchase, 'id'> | null) => string;
 export declare const replace_sms_template_values: (s: string, sms?: Omit<SMSMessage, 'id'> | null) => string;
+export declare const get_secret_names: (s: string) => string[];
+export declare const replace_secret_values: (s: string, integrations?: Pick<Integration, 'authentication' | 'title'>[]) => string;
 export declare const replace_enduser_template_values: (s: string, enduser?: Omit<Enduser, 'id'> | null) => string;
 export declare const display_time_for_seconds: (seconds?: number) => string;
 export declare const is_full_iso_string_heuristic: (d: string) => Date | undefined;

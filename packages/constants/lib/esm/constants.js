@@ -142,6 +142,10 @@ export var DEVELOP_HEALTH_TITLE = "Develop Health";
 export var KENDRA_TITLE = "Kendra";
 export var CHARGEBEE_TITLE = "Chargebee";
 export var CUSTOMER_IO_TITLE = "Customer IO";
+export var PUPPETEER_TITLE = "Puppeteer";
+// stored in Organization.hasIntegrations
+// must also be in ORGANIZATION_WIDE_INTEGRATIONS
+export var GENERIC_INTEGRATIONS = [PUPPETEER_TITLE];
 export var ORGANIZATION_WIDE_INTEGRATIONS = [
     OPENAI_TITLE,
     ATHENA_TITLE,
@@ -165,6 +169,7 @@ export var ORGANIZATION_WIDE_INTEGRATIONS = [
     DEVELOP_HEALTH_TITLE,
     CUSTOMER_IO_TITLE,
     SUPERDIAL_TITLE,
+    PUPPETEER_TITLE,
 ];
 export var ONE_MINUTE_IN_MS = 1000 * 60;
 export var ONE_HOUR_IN_MS = 60 * ONE_MINUTE_IN_MS; // 1hr

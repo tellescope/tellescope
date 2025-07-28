@@ -272,6 +272,7 @@ export var schema = build_schema({
                     id: stringValidatorOptional,
                     gatewayId: stringValidatorOptional,
                     disabled: booleanValidatorOptional,
+                    archivedAt: dateValidatorOptional,
                 })),
                 redactions: ['enduser'],
             }, references: { validator: listOfRelatedRecordsValidator, updatesDisabled: true, redactions: ['enduser'] }, athenaDepartmentId: { validator: stringValidator100, redactions: ['enduser'] }, athenaPracticeId: { validator: stringValidator100, redactions: ['enduser'] }, salesforceId: { validator: stringValidator100, redactions: ['enduser'] }, vitalTriggersDisabled: { validator: booleanValidator }, defaultFromPhone: { validator: phoneValidator, redactions: ['enduser'] }, defaultFromEmail: { validator: emailValidator, redactions: ['enduser'] }, useDefaultFromEmailInAutomations: { validator: booleanValidator }, useDefaultFromPhoneInAutomations: { validator: booleanValidator }, stripeCustomerId: { validator: stringValidator100, redactions: ['enduser'] }, stripeKey: { validator: stringValidator250, redactions: ['enduser'] }, diagnoses: {

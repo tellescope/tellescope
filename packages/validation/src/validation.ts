@@ -324,6 +324,7 @@ import {
   CallUserAutomationAction,
   StripeChargeCardOnFileAutomationAction,
   FormResponseAnswerTimezone,
+  BrandedWebhookActions,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -2800,7 +2801,20 @@ export const canvasCodingValidatorOptional = objectValidator<CanvasCoding>({
   system: stringValidatorOptional,
 }, { })
 
-export const automationActionValidator = orValidator<{ [K in AutomationActionType]: AutomationAction & { type: K } } >({
+const sharedAutomationActionValidators = {
+  continueOnError: booleanValidatorOptional,
+  isBrandedWebhook: booleanValidatorOptional,
+}
+const sendWebhookInfoValidator = objectValidator<AutomationForWebhook>({ 
+  message: stringValidator5000Optional, // optional when custom url is provided
+  url: stringValidator20000ptional,
+  fields: labeledFieldsValidator,
+  secret: stringValidatorOptional,
+  method: stringValidatorOptional,
+  headers: labeledFieldsValidator,
+}, { emptyOk: false })
+
+export const automationActionValidator = orValidator<{ [K in AutomationActionType]: AutomationAction & { type: K } } | { [K in BrandedWebhookActions]: SendWebhookAutomationAction } >({
   developHealthMedEligibility: objectValidator<DevelopHealthMedicationEligibilityAutomationAction>({
     type: exactMatchValidator(['developHealthMedEligibility']),
     info: objectValidator<DevelopHealthMedicationEligibilityAutomationAction['info']>({ 
@@ -2809,12 +2823,12 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       mock_result: developHealthMockResultValidator,
       providerUserId: mongoIdStringRequired,
     }, { emptyOk: false }),
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
   }),
   setEnduserStatus: objectValidator<SetEnduserStatusAutomationAction>({
     type: exactMatchValidator(['setEnduserStatus']),
     info: objectValidator<SetEnduserStatusInfo>({ status: stringValidator250 }, { emptyOk: false }),
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
   }),
   sendEmail: objectValidator<SendEmailAutomationAction>({
     type: exactMatchValidator(['sendEmail']),
@@ -2827,12 +2841,12 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       ccRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
       hiddenFromTimeline: booleanValidatorOptional,
     }, { emptyOk: false }),
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
   }),
   sendSMS: objectValidator<SendSMSAutomationAction>({
     type: exactMatchValidator(['sendSMS']),
     info: automationForMessageValidator,
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
   }),
   notifyTeam: objectValidator<NotifyTeamAutomationAction>({
     type: exactMatchValidator(['notifyTeam']),
@@ -2845,7 +2859,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       }, 
       { emptyOk: false }
     ),
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
   }),
   sendForm: objectValidator<SendFormAutomationAction>({
     type: exactMatchValidator(['sendForm']),
@@ -2855,17 +2869,17 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       channel: communicationsChannelValidatorOptional,
       assignment: senderAssignmentStrategyValidatorOptional,
     }, { emptyOk: false }),
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
   }),
   shareContent: objectValidator<ShareContentAutomationAction>({
     type: exactMatchValidator(['shareContent']),
     info: objectValidator<ShareContentAutomationAction['info']>({ 
       managedContentRecordIds: listOfMongoIdStringValidator, 
     }, { emptyOk: false }),
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
   }),
   createTicket: objectValidator<CreateTicketAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['createTicket']),
     info: objectValidator<CreateTicketActionInfo>({ 
       title: stringValidator1000,
@@ -2930,19 +2944,12 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     }, { emptyOk: false }),
   }),
   sendWebhook: objectValidator<SendWebhookAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['sendWebhook']),
-    info: objectValidator<AutomationForWebhook>({ 
-      message: stringValidator5000Optional, // optional when custom url is provided
-      url: stringValidator20000ptional,
-      fields: labeledFieldsValidator,
-      secret: stringValidatorOptional,
-      method: stringValidatorOptional,
-      headers: labeledFieldsValidator,
-    }, { emptyOk: false }),
+    info: sendWebhookInfoValidator,
   }),
   setEnduserFields: objectValidator<SetEnduserFieldsAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['setEnduserFields']),
     info: objectValidator<SetEnduserFieldsAutomationAction['info']>({ 
       fields: listValidator(objectValidator<EnduserFieldSetter>({
@@ -2954,7 +2961,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     }, { emptyOk: false }),
   }),
   addEnduserTags: objectValidator<AddEnduserTagsAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['addEnduserTags']),
     info: objectValidator<AddEnduserTagsAutomationAction['info']>({ 
       tags: listOfStringsValidator, 
@@ -2962,14 +2969,14 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     }, { emptyOk: false }),
   }),
   removeEnduserTags: objectValidator<RemoveEnduserTagsAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['removeEnduserTags']),
     info: objectValidator<RemoveEnduserTagsAutomationAction['info']>({ 
       tags: listOfStringsValidator, 
     }, { emptyOk: false }),
   }),
   addAccessTags: objectValidator<AddAccessTagsAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['addAccessTags']),
     info: objectValidator<AddAccessTagsAutomationAction['info']>({ 
       tags: listOfStringsValidator, 
@@ -2977,40 +2984,40 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     }, { emptyOk: false }),
   }),
   removeAccessTags: objectValidator<RemoveAccessTagsAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['removeAccessTags']),
     info: objectValidator<RemoveAccessTagsAutomationAction['info']>({ 
       tags: listOfStringsValidator, 
     }, { emptyOk: false }),
   }),
   addToJourney: objectValidator<AddToJourneyAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['addToJourney']),
     info: objectValidator<AddToJourneyAutomationAction['info']>({ 
       journeyId: mongoIdStringRequired, 
     }, { emptyOk: false }),
   }),
   removeFromJourney: objectValidator<RemoveFromJourneyAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['removeFromJourney']),
     info: objectValidator<RemoveFromJourneyAutomationAction['info']>({ 
       journeyId: mongoIdStringRequired, 
     }, { emptyOk: false }),
   }),
   removeFromAllJourneys: objectValidator<RemoveFromAllJourneysAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['removeFromAllJourneys']),
     info: objectValidator<RemoveFromAllJourneysAutomationAction['info']>({}, { emptyOk: true, isOptional: true }),
   }),
   iterableSendEmail: objectValidator<IterableSendEmailAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['iterableSendEmail']),
     info: objectValidator<IterableSendEmailAutomationAction['info']>({ 
       campaignId: stringValidator, 
     }, { emptyOk: false }),
   }),
   iterableCustomEvent: objectValidator<IterableCustomEventAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['iterableCustomEvent']),
     info: objectValidator<IterableCustomEventAutomationAction['info']>({ 
       eventName: stringValidator, 
@@ -3026,7 +3033,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     }, { emptyOk: false }),
   }),
   zendeskCreateTicket: objectValidator<ZendeskCreateTicketAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['zendeskCreateTicket']),
     info: objectValidator<ZendeskCreateTicketAutomationAction['info']>({ 
       templateId: mongoIdStringRequired, 
@@ -3034,7 +3041,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     }, { emptyOk: false }),
   }),
   createCarePlan: objectValidator<CreateCarePlanAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['createCarePlan']),
     info: objectValidator<CreateCarePlanAutomationAction['info']>({ 
       title: stringValidator1000, 
@@ -3045,22 +3052,22 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     }, { emptyOk: false }),
   }),
   completeCarePlan: objectValidator<CompleteCarePlanAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['completeCarePlan']),
     info: objectValidator<CompleteCarePlanAutomationAction['info']>({ }, { emptyOk: true }),
   }), 
   zusSync: objectValidator<ZusSyncAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['zusSync']),
     info: objectValidator<ZusSyncAutomationAction['info']>({ }, { emptyOk: true }),
   }),
   zusPull: objectValidator<ZusPullAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['zusPull']),
     info: objectValidator<ZusPullAutomationAction['info']>({ }, { emptyOk: true }),
   }),
   zusSubscribe: objectValidator<ZusSubscribeAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['zusSubscribe']),
     info: objectValidator<ZusSubscribeAutomationAction['info']>({
       practitionerId: stringValidator,
@@ -3068,7 +3075,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
      }),
   }),
   pagerDutyCreateIncident: objectValidator<PagerDutyCreateIncidentAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['pagerDutyCreateIncident']),
     info: objectValidator<PagerDutyCreateIncidentAutomationAction['info']>({
       title: stringValidator,
@@ -3077,7 +3084,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
      }),
   }),
   smartMeterPlaceOrder: objectValidator<SmartMeterPlaceOrderAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['smartMeterPlaceOrder']),
     info: objectValidator<SmartMeterPlaceOrderAutomationAction['info']>({
       lines: smartMeterLinesValidator,
@@ -3085,7 +3092,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
      }),
   }),
   sendChat: objectValidator<SendChatAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['sendChat']),
     info: objectValidator<SendChatAutomationAction['info']>({ 
       templateId: mongoIdStringRequired,
@@ -3096,27 +3103,27 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     }),
   }),
   healthieSync: objectValidator<HealthieSyncAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['healthieSync']),
     info: objectValidator<HealthieSyncAutomationAction['info']>({ }, { emptyOk: true }),
   }),
   elationSync: objectValidator<ElationSyncAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['elationSync']),
     info: objectValidator<ElationSyncAutomationAction['info']>({ }, { emptyOk: true }),
   }),
   athenaSync: objectValidator<AthenaSyncAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['athenaSync']),
     info: objectValidator<AthenaSyncAutomationAction['info']>({ departmentid: stringValidator100 }, { emptyOk: true }),
   }),
   canvasSync: objectValidator<CanvasSyncAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['canvasSync']),
     info: objectValidator<CanvasSyncAutomationAction['info']>({ }, { emptyOk: true }),
   }),
   canvasCreateNote: objectValidator<CanvasCreateNoteAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['canvasCreateNote']),
     info: objectValidator<CanvasCreateNoteAutomationAction['info']>({
       formIds: listOfMongoIdStringValidator,
@@ -3125,12 +3132,12 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     }),
   }), 
   healthieAddToCourse: objectValidator<HealthieAddToCourseAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['healthieAddToCourse']),
     info: objectValidator<HealthieAddToCourseAutomationAction['info']>({ courseId: stringValidator100 }),
   }),
   healthieSendChat: objectValidator<HealthieSendChatAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['healthieSendChat']),
     info: objectValidator<HealthieSendChatAutomationAction['info']>({ 
       templateId: mongoIdStringRequired,
@@ -3139,33 +3146,33 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     }),
   }),
   completeTickets: objectValidator<CompleteTicketsAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['completeTickets']),
     info: objectValidator<CompleteTicketsAutomationAction['info']>({
       journeyIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
     }),
   }),
   changeContactType: objectValidator<ChangeContactTypeAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['changeContactType']),
     info: objectValidator<ChangeContactTypeAutomationAction['info']>({
       type: stringValidatorOptional, // can be empty string for default contact type or id for others
     }),
   }),
   activeCampaignSync: objectValidator<ActiveCampaignSyncAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['activeCampaignSync']),
     info: objectValidator<ActiveCampaignSyncAutomationAction['info']>({ }, { emptyOk: true }),
   }),
   activeCampaignAddToLists: objectValidator<ActiveCampaignAddToListsAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['activeCampaignAddToLists']),
     info: objectValidator<ActiveCampaignAddToListsAutomationAction['info']>({
       listIds: listOfStringsValidator,
     }),
   }),
   switchToRelatedContact: objectValidator<SwitchToRelatedContactAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['switchToRelatedContact']),
     info: objectValidator<SwitchToRelatedContactAutomationAction['info']>({ 
       type: stringValidator100,
@@ -3173,24 +3180,24 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     }, {  }),
   }),
   pushFormsToPortal: objectValidator<PushFormsAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['pushFormsToPortal']),
     info: objectValidator<PushFormsAutomationAction['info']>({ 
       formIds: listOfMongoIdStringValidator,
     }, { emptyOk: false }),
   }),
   cancelFutureAppointments: objectValidator<CancelFutureAppointmentsAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['cancelFutureAppointments']),
     info: objectValidator<CancelFutureAppointmentsAutomationAction['info']>({ }, { emptyOk: true }),
   }),
   customerIOIdentify: objectValidator<CustomerIOIdentifyAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['customerIOIdentify']),
     info: objectValidator<CustomerIOIdentifyAction['info']>({ }, { emptyOk: true }),
   }),
   customerIOTrack: objectValidator<CustomerIOTrackAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['customerIOTrack']),
     info: objectValidator<CustomerIOTrackAction['info']>({ 
       event: stringValidator,
@@ -3198,24 +3205,24 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     }, { emptyOk: false }),
   }),
   cancelCurrentEvent: objectValidator<CancelCurrentEventAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['cancelCurrentEvent']),
     info: objectValidator<CancelCurrentEventAction['info']>({}, { emptyOk: true, isOptional: true }),
   }),
   confirmCurrentEvent: objectValidator<ConfirmCurrentEventAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['confirmCurrentEvent']),
     info: objectValidator<ConfirmCurrentEventAction['info']>({}, { emptyOk: true, isOptional: true }),
   }),
   outboundCall: objectValidator<OutboundCallAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['outboundCall']),
     info: objectValidator<OutboundCallAutomationAction['info']>({ 
       treeId: mongoIdStringRequired, 
     }, { emptyOk: false }),
   }),
   assignCareTeam: objectValidator<AssignCareTeamAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['assignCareTeam']),
     info: objectValidator<AssignCareTeamAutomationAction['info']>({ 
       tags: listOfStringsWithQualifierValidator,
@@ -3224,14 +3231,14 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     }, { emptyOk: false }) // at least tags is required
   }),
   removeCareTeam: objectValidator<RemoveCareTeamAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['removeCareTeam']),
     info: objectValidator<RemoveCareTeamAutomationAction['info']>({ 
       tags: listOfStringsWithQualifierValidator,
     }, { emptyOk: false }) // at least tags is required
   }),
   callUser: objectValidator<CallUserAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['callUser']),
     info: objectValidator<CallUserAutomationAction['info']>({ 
       message: stringValidator25000, 
@@ -3239,12 +3246,18 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     }, { emptyOk: false }) // at least tags is required
   }),
   stripeChargeCardOnFile: objectValidator<StripeChargeCardOnFileAutomationAction>({
-    continueOnError: booleanValidatorOptional,
+    ...sharedAutomationActionValidators,
     type: exactMatchValidator(['stripeChargeCardOnFile']),
     info: objectValidator<StripeChargeCardOnFileAutomationAction['info']>({ 
       stripeKey: stringValidatorOptionalEmptyOkay,
       priceIds: listOfStringsValidator,
     }, { emptyOk: false }) // at least tags is required
+  }),
+
+  "Puppeteer: Start Agent": objectValidator<SendWebhookAutomationAction>({
+    ...sharedAutomationActionValidators,
+    type: exactMatchValidator(["Puppeteer: Start Agent"]),
+    info: sendWebhookInfoValidator,
   }),
 })
 
@@ -4560,6 +4573,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
       fills: listOfStringsValidatorOptionalOrEmptyOk,
       skus: listOfStringsValidatorOptionalOrEmptyOk,
       skuPartials: listOfStringsValidatorOptionalOrEmptyOk,
+      titlePartials: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -5318,7 +5332,9 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
   }), 
   "Purchases": objectValidator<AnalyticsQueryForType['Purchases']>({
     resource: exactMatchValidator<'Purchases'>(['Purchases']),
-    filter: objectValidator<AnalyticsQueryFilterForType['Purchases']>({ }, { isOptional: true, emptyOk: true }),
+    filter: objectValidator<AnalyticsQueryFilterForType['Purchases']>({ 
+      titles: listOfStringsValidatorOptionalOrEmptyOk,
+    }, { isOptional: true, emptyOk: true }),
     info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Purchases']]: AnalyticsQueryInfoForType['Purchases'][K] }>({
       "Total": objectValidator<AnalyticsQueryInfoForType['Purchases']['Total']>({
         method: exactMatchValidator<"Total">(['Total']),
@@ -5328,6 +5344,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
     grouping: objectValidator<AnalyticsQueryGroupingForType['Purchases']>({
       Enduser: booleanValidatorOptional,
       Cost: booleanValidatorOptional,
+      Title: booleanValidatorOptional,
       Gender: booleanValidatorOptional,
       "Assigned To": booleanValidatorOptional,
       Field: stringValidatorOptionalEmptyOkay,

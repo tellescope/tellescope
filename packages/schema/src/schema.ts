@@ -1523,6 +1523,7 @@ export const schema: SchemaV1 = build_schema({
           id: stringValidatorOptional,
           gatewayId: stringValidatorOptional,
           disabled: booleanValidatorOptional,
+          archivedAt: dateValidatorOptional,
         })),
         redactions: ['enduser'],
       },
