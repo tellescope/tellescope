@@ -80,6 +80,7 @@ import {
   EnduserDevice,
   AIConversationMessage,
   AICOnversationMessageContent,
+  AttendeeStatus,
 } from "@tellescope/types-models"
 
 import {
@@ -850,6 +851,7 @@ export type CustomActions = {
     load_inbox_data: (
       CustomAction<{ 
         userId?: string,
+        enduserIds?: string[],
         lastEmailId?: string,
         inboxStatuses?: string[],
         lastSMSId?: string,
@@ -1880,6 +1882,7 @@ export const schema: SchemaV1 = build_schema({
         parameters: { 
           limit: { validator: nonNegNumberValidator },
           userId: { validator: mongoIdStringValidator },
+          enduserIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
           inboxStatuses: { validator: listOfStringsValidatorOptionalOrEmptyOk },
           lastEmailId: { validator: mongoIdStringValidator },
           lastChatRoomId: { validator: mongoIdStringValidator },
@@ -5501,6 +5504,13 @@ export const schema: SchemaV1 = build_schema({
         validator: listValidatorOptionalOrEmptyOk(objectValidator<GroupCancellation>({
           id: mongoIdStringRequired,
           at: dateValidator,
+        }))
+      },
+      attendeeStatuses: {
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<AttendeeStatus>({
+          id: mongoIdStringRequired,
+          at: dateValidator,
+          status: exactMatchValidator<AttendeeStatus['status']>(['Confirmed', 'Completed', 'Cancelled', 'No-showed', 'Rescheduled']),
         }))
       },
       useUserURL: { validator: booleanValidator },

@@ -2575,6 +2575,7 @@ export var portalSettingsValidator = objectValidator({
         sendEmailNotificationsToEnduser: booleanValidatorOptional,
         sendSMSNotificationsToEnduser: booleanValidatorOptional,
         enduserInitiatedChatDefaultSubject: stringValidator5000OptionalEmptyOkay,
+        showFloatingChatIcon: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     orders: objectValidator({
         customOrderTrackingURL: stringValidatorOptionalEmptyOkay,
@@ -4415,6 +4416,7 @@ export var analyticsQueryValidator = orValidator({
         grouping: objectValidator({
             "Submitted By": booleanValidatorOptional,
             "Public Identifier": booleanValidatorOptional,
+            "Submission Status": booleanValidatorOptional,
             Enduser: booleanValidatorOptional,
             Gender: booleanValidatorOptional,
             "Assigned To": booleanValidatorOptional,

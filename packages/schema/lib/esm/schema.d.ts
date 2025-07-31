@@ -708,6 +708,7 @@ export type CustomActions = {
         }, {}>;
         load_inbox_data: (CustomAction<{
             userId?: string;
+            enduserIds?: string[];
             lastEmailId?: string;
             inboxStatuses?: string[];
             lastSMSId?: string;

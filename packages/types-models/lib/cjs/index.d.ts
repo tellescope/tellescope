@@ -94,6 +94,7 @@ export type PortalSettings = {
         enduserInitiatedChatDefaultSubject?: string;
         sendEmailNotificationsToEnduser?: boolean;
         sendSMSNotificationsToEnduser?: boolean;
+        showFloatingChatIcon?: boolean;
     };
     orders?: {
         customOrderTrackingURL?: string;
@@ -2247,6 +2248,11 @@ export type GroupCancellation = {
     at: Date;
     id: string;
 };
+export type AttendeeStatus = {
+    at: Date;
+    id: string;
+    status: 'Confirmed' | "Completed" | 'Cancelled' | 'No-showed' | 'Rescheduled';
+};
 export interface CalendarEventPortalSettings {
     hideUsers?: boolean;
 }
@@ -2332,6 +2338,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
     holdFormResponseId?: string;
     tags?: string[];
     cancelledGroupAttendees?: GroupCancellation[];
+    attendeeStatuses?: AttendeeStatus[];
     useUserURL?: boolean;
     healthieZoomStartURL?: string;
     healthieZoomJoinURL?: string;
@@ -3679,6 +3686,7 @@ export type AnalyticsQueryGroupingForType = {
     };
     "Form Responses": {
         "Submitted By"?: boolean;
+        "Submission Status"?: boolean;
         "Public Identifier"?: boolean;
     } & EnduserGrouping & {
         Enduser: string;

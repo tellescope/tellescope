@@ -607,6 +607,7 @@ export var schema = build_schema({
                 parameters: {
                     limit: { validator: nonNegNumberValidator },
                     userId: { validator: mongoIdStringValidator },
+                    enduserIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
                     inboxStatuses: { validator: listOfStringsValidatorOptionalOrEmptyOk },
                     lastEmailId: { validator: mongoIdStringValidator },
                     lastChatRoomId: { validator: mongoIdStringValidator },
@@ -3650,6 +3651,12 @@ export var schema = build_schema({
                 validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     id: mongoIdStringRequired,
                     at: dateValidator,
+                }))
+            }, attendeeStatuses: {
+                validator: listValidatorOptionalOrEmptyOk(objectValidator({
+                    id: mongoIdStringRequired,
+                    at: dateValidator,
+                    status: exactMatchValidator(['Confirmed', 'Completed', 'Cancelled', 'No-showed', 'Rescheduled']),
                 }))
             }, useUserURL: { validator: booleanValidator }, instructions: { validator: stringValidator5000EmptyOkay }, reason: { validator: stringValidator5000 }, scheduledBy: { validator: mongoIdStringValidator }, 
             // isAllDay: { validator: booleanValidator },

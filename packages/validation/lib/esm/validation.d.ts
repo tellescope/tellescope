@@ -1784,6 +1784,7 @@ export declare const analyticsQueryValidator: ValidatorDefinition<{
     } | undefined;
     grouping?: ({
         "Submitted By"?: boolean | undefined;
+        "Submission Status"?: boolean | undefined;
         "Public Identifier"?: boolean | undefined;
     } & import("@tellescope/types-models").EnduserGrouping & {
         Enduser: string;
@@ -2020,6 +2021,7 @@ export declare const analyticsQueriesValidatorOptional: ValidatorDefinition<({
     } | undefined;
     grouping?: ({
         "Submitted By"?: boolean | undefined;
+        "Submission Status"?: boolean | undefined;
         "Public Identifier"?: boolean | undefined;
     } & import("@tellescope/types-models").EnduserGrouping & {
         Enduser: string;

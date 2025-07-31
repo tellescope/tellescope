@@ -2625,6 +2625,7 @@ exports.portalSettingsValidator = (0, exports.objectValidator)({
         sendEmailNotificationsToEnduser: exports.booleanValidatorOptional,
         sendSMSNotificationsToEnduser: exports.booleanValidatorOptional,
         enduserInitiatedChatDefaultSubject: exports.stringValidator5000OptionalEmptyOkay,
+        showFloatingChatIcon: exports.booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     orders: (0, exports.objectValidator)({
         customOrderTrackingURL: exports.stringValidatorOptionalEmptyOkay,
@@ -4467,6 +4468,7 @@ exports.analyticsQueryValidator = (0, exports.orValidator)({
         grouping: (0, exports.objectValidator)({
             "Submitted By": exports.booleanValidatorOptional,
             "Public Identifier": exports.booleanValidatorOptional,
+            "Submission Status": exports.booleanValidatorOptional,
             Enduser: exports.booleanValidatorOptional,
             Gender: exports.booleanValidatorOptional,
             "Assigned To": exports.booleanValidatorOptional,

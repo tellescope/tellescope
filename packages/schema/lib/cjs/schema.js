@@ -612,6 +612,7 @@ exports.schema = (0, exports.build_schema)({
                 parameters: {
                     limit: { validator: validation_1.nonNegNumberValidator },
                     userId: { validator: validation_1.mongoIdStringRequired },
+                    enduserIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk },
                     inboxStatuses: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk },
                     lastEmailId: { validator: validation_1.mongoIdStringRequired },
                     lastChatRoomId: { validator: validation_1.mongoIdStringRequired },
@@ -3655,6 +3656,12 @@ exports.schema = (0, exports.build_schema)({
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     id: validation_1.mongoIdStringRequired,
                     at: validation_1.dateValidator,
+                }))
+            }, attendeeStatuses: {
+                validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
+                    id: validation_1.mongoIdStringRequired,
+                    at: validation_1.dateValidator,
+                    status: (0, validation_1.exactMatchValidator)(['Confirmed', 'Completed', 'Cancelled', 'No-showed', 'Rescheduled']),
                 }))
             }, useUserURL: { validator: validation_1.booleanValidator }, instructions: { validator: validation_1.stringValidator5000EmptyOkay }, reason: { validator: validation_1.stringValidator5000 }, scheduledBy: { validator: validation_1.mongoIdStringRequired }, 
             // isAllDay: { validator: booleanValidator },

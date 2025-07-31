@@ -3369,6 +3369,7 @@ export const portalSettingsValidator = objectValidator<PortalSettings>({
     sendEmailNotificationsToEnduser: booleanValidatorOptional,
     sendSMSNotificationsToEnduser: booleanValidatorOptional,
     enduserInitiatedChatDefaultSubject: stringValidator5000OptionalEmptyOkay,
+    showFloatingChatIcon: booleanValidatorOptional,
   }, { isOptional: true, emptyOk: true }),
   orders: objectValidator<PortalSettings['orders']>({
     customOrderTrackingURL: stringValidatorOptionalEmptyOkay,
@@ -5316,6 +5317,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
     grouping: objectValidator<AnalyticsQueryGroupingForType['Form Responses']>({
       "Submitted By": booleanValidatorOptional,
       "Public Identifier": booleanValidatorOptional,
+      "Submission Status": booleanValidatorOptional,
       Enduser: booleanValidatorOptional,
       Gender: booleanValidatorOptional,
       "Assigned To": booleanValidatorOptional,

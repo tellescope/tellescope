@@ -11155,6 +11155,7 @@ const replace_enduser_template_values_tests = async () => {
 const inbox_loading_tests = async () => {
   log_header("Inbox Loading Tests")
   const e = await sdk.api.endusers.createOne({ fname: 'Test', lname: 'Testson' })
+  const e2 = await sdk.api.endusers.createOne({ fname: 'Test2', lname: 'Testson2' })
 
   const email = await sdk.api.emails.createOne({
     logOnly: true,
@@ -11189,6 +11190,13 @@ const inbox_loading_tests = async () => {
   })
   const room = await sdk.api.chat_rooms.createOne({ enduserIds: [e.id], userIds: [], title: 'Test Chat Room' })
 
+  // we could eventually support this, but keep code simpler by not allowing it for now
+  await async_test(
+    'Cant filter by userId and enduserIds at the same time',
+    () => sdk.api.endusers.load_inbox_data({ userId: sdk.userInfo.id, enduserIds: [e.id] }),
+    handleAnyError,
+  )
+
   await async_test(
     "Inbox loads emails",
     () => sdk.api.endusers.load_inbox_data({ }),
@@ -11202,7 +11210,33 @@ const inbox_loading_tests = async () => {
       && r.endusers.length === 1
     ) }
   )
-
+  await async_test(
+    "Inbox loads emails with used enduserId",
+    () => sdk.api.endusers.load_inbox_data({ enduserIds: [e.id] }),
+    { onResult: r => (
+         r.chat_rooms.length === 1
+      && r.emails.length === 1
+      && r.sms_messages.length === 1
+      && r.group_mms_conversations.length === 1
+      && r.phone_calls.length === 1
+      && r.ticket_thread_comments.length === 1
+      && r.endusers.length === 1
+    ) }
+  )
+  await async_test(
+    "Inbox loads emails with unused enduserId",
+    () => sdk.api.endusers.load_inbox_data({ enduserIds: [e2.id] }),
+    { onResult: r => (
+         r.chat_rooms.length === 0
+      && r.emails.length === 0
+      && r.sms_messages.length === 0
+      && r.group_mms_conversations.length === 0
+      && r.phone_calls.length === 0
+      && r.ticket_thread_comments.length === 0
+      && r.endusers.length === 0
+    ) }
+  )
+  
   await async_test(
     "Inbox loads emails (filter by self when no threads are assigned)",
     () => sdk.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }),
@@ -11234,6 +11268,36 @@ const inbox_loading_tests = async () => {
   await async_test(
     'Non-admin cannot load inbox data without assignment',
     () => sdkNonAdmin.api.endusers.load_inbox_data({ }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
+  await async_test(
+    'Non-admin cannot load inbox data without assignment with used enduserId',
+    () => sdkNonAdmin.api.endusers.load_inbox_data({ enduserIds: [e.id] }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
+  await async_test(
+    'Non-admin cannot load inbox data without assignment with unused enduserId',
+    () => sdkNonAdmin.api.endusers.load_inbox_data({ enduserIds: [e2.id] }),
     {
       onResult: r => (
         r.chat_rooms.length === 0
@@ -11293,6 +11357,36 @@ const inbox_loading_tests = async () => {
         && r.phone_calls.length === 1
         && r.ticket_thread_comments.length === 1
         && r.endusers.length === 1
+      )
+    }
+  )
+  await async_test(
+    'Non-admin can load inbox data with assignment and used enduser filter',
+    () => sdkNonAdmin.api.endusers.load_inbox_data({ enduserIds: [e.id] }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 1
+        && r.emails.length === 1
+        && r.sms_messages.length === 1
+        && r.group_mms_conversations.length === 1
+        && r.phone_calls.length === 1
+        && r.ticket_thread_comments.length === 1
+        && r.endusers.length === 1
+      )
+    }
+  )
+  await async_test(
+    'Non-admin cant load inbox data with assignment and uused enduser filter',
+    () => sdkNonAdmin.api.endusers.load_inbox_data({ enduserIds: [e2.id] }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
       )
     }
   )
@@ -11398,6 +11492,36 @@ const inbox_loading_tests = async () => {
       )
     }
   )
+  await async_test(
+    'admin loads inbox data with used enduser',
+    () => sdk.api.endusers.load_inbox_data({ enduserIds: [e.id] }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 1
+        && r.emails.length === 1
+        && r.sms_messages.length === 1
+        && r.group_mms_conversations.length === 1
+        && r.phone_calls.length === 1
+        && r.ticket_thread_comments.length === 1
+        && r.endusers.length === 1
+      )
+    }
+  )
+  await async_test(
+    'admin loads inbox data with unused enduser',
+    () => sdk.api.endusers.load_inbox_data({ enduserIds: [e2.id] }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
 
   await async_test(
     'Non-admin cant load inbox data with assignedTo as other (self as filter)',
@@ -11499,6 +11623,36 @@ const inbox_loading_tests = async () => {
       )
     }
   )
+  await async_test(
+    '[both assigned] admin loads inbox data with used enduser',
+    () => sdk.api.endusers.load_inbox_data({ enduserIds: [e.id] }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 1
+        && r.emails.length === 1
+        && r.sms_messages.length === 1
+        && r.group_mms_conversations.length === 1
+        && r.phone_calls.length === 1
+        && r.ticket_thread_comments.length === 1
+        && r.endusers.length === 1
+      )
+    }
+  )
+  await async_test(
+    '[both assigned] admin loads inbox data with unused enduser',
+    () => sdk.api.endusers.load_inbox_data({ enduserIds: [e2.id] }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
 
   await async_test(
     '[both assigned] Non-admin can load inbox data with assignedTo as other (self as filter)',
@@ -11545,6 +11699,36 @@ const inbox_loading_tests = async () => {
       )
     }
   )
+  await async_test(
+    '[both assigned] Non-admin can load inbox data with used enduser',
+    () => sdkNonAdmin.api.endusers.load_inbox_data({ enduserIds: [e.id] }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 1
+        && r.emails.length === 1
+        && r.sms_messages.length === 1
+        && r.group_mms_conversations.length === 1
+        && r.phone_calls.length === 1
+        && r.ticket_thread_comments.length === 1
+        && r.endusers.length === 1
+      )
+    }
+  )
+  await async_test(
+    '[both assigned] Non-admin cant load inbox data with unused enduser',
+    () => sdkNonAdmin.api.endusers.load_inbox_data({ enduserIds: [e2.id] }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
 
   const noAccessRole = await sdk.api.role_based_access_permissions.createOne({
     role: 'No Access',
@@ -11584,6 +11768,36 @@ const inbox_loading_tests = async () => {
   await async_test(
     "No access reads nothing",
     () => sdkNoAccess.api.endusers.load_inbox_data({ }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
+  await async_test(
+    "No access reads nothing for used enduser",
+    () => sdkNoAccess.api.endusers.load_inbox_data({ enduserIds: [e.id] }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
+  await async_test(
+    "No access reads nothing for unused enduser",
+    () => sdkNoAccess.api.endusers.load_inbox_data({ enduserIds: [e2.id] }),
     {
       onResult: r => (
         r.chat_rooms.length === 0
@@ -11665,6 +11879,36 @@ const inbox_loading_tests = async () => {
     }
   )
   await async_test(
+    "Default access reads nothing for used enduser",
+    () => sdkDefaultAccess.api.endusers.load_inbox_data({ enduserIds: [e.id] }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
+  await async_test(
+    "Default access reads nothing for unused enduser",
+    () => sdkDefaultAccess.api.endusers.load_inbox_data({ enduserIds: [e2.id] }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
+  await async_test(
     "Default access reads nothing (for self)",
     () => sdkDefaultAccess.api.endusers.load_inbox_data({ userId: roleTestUser.id }),
     {
@@ -11721,6 +11965,36 @@ const inbox_loading_tests = async () => {
     }
   )
   await async_test(
+    "Default access reads stuff when assigned for used enduser",
+    () => sdkDefaultAccess.api.endusers.load_inbox_data({ enduserIds: [e.id] }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 1
+        && r.emails.length === 1
+        && r.sms_messages.length === 1
+        && r.group_mms_conversations.length === 1
+        && r.phone_calls.length === 1
+        && r.ticket_thread_comments.length === 1
+        && r.endusers.length === 1
+      )
+    }
+  )
+  await async_test(
+    "Default access reads stuff when assigned for unused enduser",
+    () => sdkDefaultAccess.api.endusers.load_inbox_data({ enduserIds: [e2.id] }),
+    {
+      onResult: r => (
+        r.chat_rooms.length === 0
+        && r.emails.length === 0
+        && r.sms_messages.length === 0
+        && r.group_mms_conversations.length === 0
+        && r.phone_calls.length === 0
+        && r.ticket_thread_comments.length === 0
+        && r.endusers.length === 0
+      )
+    }
+  )
+  await async_test(
     "Default access reads stuff when assigned (for self)",
     () => sdkDefaultAccess.api.endusers.load_inbox_data({ userId: roleTestUser.id }),
     {
@@ -11739,6 +12013,7 @@ const inbox_loading_tests = async () => {
 
   await Promise.all([
     sdk.api.endusers.deleteOne(e.id),
+    sdk.api.endusers.deleteOne(e2.id),
     sdk.api.chat_rooms.deleteOne(room.id),
     sdk.api.role_based_access_permissions.deleteOne(noAccessRole.id),
     sdk.api.role_based_access_permissions.deleteOne(defaultAccessRole.id),
@@ -12004,11 +12279,11 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests()
+    await inbox_loading_tests()
     await rate_limit_tests()
     await ip_address_form_tests()
     await bulk_update_tests()
     await formsort_tests()
-    await inbox_loading_tests()
     await cancel_upcoming_appointments_journey_action_test()
     await multi_tenant_tests() // should come right after setup tests
     await sync_tests_with_access_tags() // should come directly after setup to avoid extra sync values
