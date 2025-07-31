@@ -2159,7 +2159,7 @@ export var schema = build_schema({
                 },
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { defaultLocationId: { validator: mongoIdStringValidator }, email: {
+        fields: __assign(__assign({}, BuiltInFields), { billingTags: { validator: labeledFieldsValidator }, defaultLocationId: { validator: mongoIdStringValidator }, email: {
                 validator: emailValidator,
                 required: true,
                 examples: ['test@tellescope.com'],
@@ -2215,7 +2215,7 @@ export var schema = build_schema({
                 ]
             }, credentialedStates: {
                 validator: stateCredentialsValidator,
-            }, timezone: { validator: timezoneValidator }, weeklyAvailabilities: { validator: weeklyAvailabilitiesValidator }, autoReplyEnabled: { validator: booleanValidatorOptional }, pushNotificationIosTokens: { validator: listOfStringsValidatorEmptyOk }, callRouting: { validator: userCallRoutingBehaviorValidator }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, emailSignature: { validator: stringValidator1000 }, disableTicketAutoAssignment: { validator: booleanValidator }, ticketAssignmentPriority: { validator: nonNegNumberValidator }, specialties: { validator: listOfStringsValidatorOptionalOrEmptyOk }, bio: { validator: stringValidator25000EmptyOkay }, TIN: { validator: stringValidatorOptionalEmptyOkay }, NPI: { validator: stringValidatorOptionalEmptyOkay }, DEA: { validator: stringValidatorOptionalEmptyOkay }, voicemailPlayback: { validator: phonePlaybackValidatorOptional }, lockedOutUntil: { validator: numberValidator }, iOSBadgeCount: { validator: nonNegNumberValidator }, availableFromNumbers: { validator: listOfStringsValidatorEmptyOk }, availableFromEmails: { validator: listOfStringsValidatorEmptyOk }, doseSpotUserId: { validator: stringValidator100 }, url: { validator: stringValidator1000 }, templateFields: {
+            }, timezone: { validator: timezoneValidator }, weeklyAvailabilities: { validator: weeklyAvailabilitiesValidator }, autoReplyEnabled: { validator: booleanValidatorOptional }, pushNotificationIosTokens: { validator: listOfStringsValidatorEmptyOk }, pushNotificationFirebaseTokens: { validator: listOfStringsValidatorEmptyOk }, callRouting: { validator: userCallRoutingBehaviorValidator }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, emailSignature: { validator: stringValidator1000 }, disableTicketAutoAssignment: { validator: booleanValidator }, ticketAssignmentPriority: { validator: nonNegNumberValidator }, specialties: { validator: listOfStringsValidatorOptionalOrEmptyOk }, bio: { validator: stringValidator25000EmptyOkay }, TIN: { validator: stringValidatorOptionalEmptyOkay }, NPI: { validator: stringValidatorOptionalEmptyOkay }, DEA: { validator: stringValidatorOptionalEmptyOkay }, voicemailPlayback: { validator: phonePlaybackValidatorOptional }, lockedOutUntil: { validator: numberValidator }, iOSBadgeCount: { validator: nonNegNumberValidator }, availableFromNumbers: { validator: listOfStringsValidatorEmptyOk }, availableFromEmails: { validator: listOfStringsValidatorEmptyOk }, doseSpotUserId: { validator: stringValidator100 }, url: { validator: stringValidator1000 }, templateFields: {
                 validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     field: stringValidator100,
                     value: stringValidator5000,
@@ -2470,6 +2470,17 @@ export var schema = build_schema({
         },
         defaultActions: DEFAULT_OPERATIONS,
         customActions: {
+            bulk_assign: {
+                op: "custom", access: 'update', method: "patch",
+                name: 'Bulk Assign Tickets',
+                path: '/tickets/bulk-assign',
+                description: "Assigns a list of tickets by id (does not send webhooks)",
+                parameters: {
+                    ids: { validator: listOfMongoIdStringValidator, required: true },
+                    userId: { validator: mongoIdStringValidator, required: true },
+                },
+                returns: {},
+            },
             bulk_delete: {
                 op: "custom", access: 'delete', method: "delete",
                 name: 'Bulk Delete Tickets',
@@ -3190,6 +3201,7 @@ export var schema = build_schema({
                     customTypeId: { validator: stringValidator },
                     skipMatch: { validator: booleanValidator },
                     groupId: { validator: mongoIdStringValidator },
+                    utm: { validator: labeledFieldsValidator },
                 },
                 returns: {
                     accessCode: { validator: stringValidator250, required: true },

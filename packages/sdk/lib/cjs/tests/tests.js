@@ -6122,27 +6122,28 @@ var redaction_tests = function () { return __awaiter(void 0, void 0, void 0, fun
     });
 }); };
 var public_form_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var journey, nonPublicForm, form, submitInfo, submitInfoNonPublic, field, testResponse, responseInfo, enduser;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var journey, nonPublicForm, form, submitInfo, submitInfoNonPublic, field, testResponse, responseInfo, enduser, enduser2;
+    var _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
                 (0, testing_1.log_header)("Public Form");
                 return [4 /*yield*/, sdk.api.journeys.createOne({ title: 'test journey ' })];
             case 1:
-                journey = _a.sent();
+                journey = _b.sent();
                 return [4 /*yield*/, sdk.api.forms.createOne({
                         title: 'test form',
                         intakePhone: 'optional',
                     })];
             case 2:
-                nonPublicForm = _a.sent();
+                nonPublicForm = _b.sent();
                 return [4 /*yield*/, sdk.api.forms.createOne({
                         title: 'test form',
                         allowPublicURL: true,
                         intakePhone: 'optional',
                     })];
             case 3:
-                form = _a.sent();
+                form = _b.sent();
                 submitInfo = {
                     businessId: form.businessId,
                     email: 'publicformtest@tellescope.com',
@@ -6153,10 +6154,10 @@ var public_form_tests = function () { return __awaiter(void 0, void 0, void 0, f
                 submitInfoNonPublic = __assign(__assign({}, submitInfo), { formId: nonPublicForm.id });
                 return [4 /*yield*/, (0, testing_1.async_test)('non-public form blocked', function () { return enduserSDK.api.form_responses.session_for_public_form(submitInfoNonPublic); }, handleAnyError)];
             case 4:
-                _a.sent();
+                _b.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('no questions form blocked', function () { return enduserSDK.api.form_responses.session_for_public_form(submitInfo); }, handleAnyError)];
             case 5:
-                _a.sent();
+                _b.sent();
                 return [4 /*yield*/, sdk.api.form_fields.createOne({
                         formId: form.id,
                         title: 'question',
@@ -6164,7 +6165,7 @@ var public_form_tests = function () { return __awaiter(void 0, void 0, void 0, f
                         previousFields: [{ type: 'root', info: {} }]
                     })];
             case 6:
-                field = _a.sent();
+                field = _b.sent();
                 testResponse = {
                     answer: {
                         type: 'string',
@@ -6177,38 +6178,58 @@ var public_form_tests = function () { return __awaiter(void 0, void 0, void 0, f
                     // verify enduser is actually upserted
                 ];
             case 7:
-                responseInfo = _a.sent();
+                responseInfo = _b.sent();
                 return [4 /*yield*/, sdk.api.endusers.getOne({ email: 'publicformtest@tellescope.com' })
                     // test case for existing enduser
                 ];
             case 8:
-                enduser = _a.sent();
+                enduser = _b.sent();
                 // test case for existing enduser
                 return [4 /*yield*/, enduserSDK.api.form_responses.session_for_public_form(submitInfo)];
             case 9:
                 // test case for existing enduser
-                _a.sent();
+                _b.sent();
                 enduserSDK.setAuthToken(responseInfo.authToken);
                 return [4 /*yield*/, enduserSDK.refresh_session()
                     // assert((enduserSDK.userInfo as any).allowedPaths.length === 3, 'allowed paths not preserved', 'allowed paths preserved after refresh')
                 ]; // should be allowed
             case 10:
-                _a.sent(); // should be allowed
+                _b.sent(); // should be allowed
                 // assert((enduserSDK.userInfo as any).allowedPaths.length === 3, 'allowed paths not preserved', 'allowed paths preserved after refresh')
                 return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot use non-allowed path', function () { return enduserSDK.api.endusers.updateOne(enduserSDK.userInfo.id, { fields: { testFiedl: 'testValue' } }); }, handleAnyError)];
             case 11:
                 // assert((enduserSDK.userInfo as any).allowedPaths.length === 3, 'allowed paths not preserved', 'allowed paths preserved after refresh')
-                _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('enduser can submit public form', function () { return enduserSDK.api.form_responses.submit_form_response({ accessCode: responseInfo.accessCode, responses: [testResponse] }); }, passOnAnyResult)];
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)('enduser can submit public form', function () { return enduserSDK.api.form_responses.submit_form_response({ accessCode: responseInfo.accessCode, responses: [testResponse] }); }, passOnAnyResult)
+                    // delete enduser and re-initiate for testing UTMs
+                ];
             case 12:
-                _a.sent();
+                _b.sent();
+                // delete enduser and re-initiate for testing UTMs
+                return [4 /*yield*/, sdk.api.endusers.deleteOne(enduser.id)];
+            case 13:
+                // delete enduser and re-initiate for testing UTMs
+                _b.sent();
+                return [4 /*yield*/, enduserSDK.api.form_responses.session_for_public_form(__assign(__assign({}, submitInfo), { utm: [{ field: 'utm_source', value: 'testsource' }] }))];
+            case 14:
+                _b.sent();
+                return [4 /*yield*/, sdk.api.endusers.getOne({ email: 'publicformtest@tellescope.com' })];
+            case 15:
+                enduser2 = _b.sent();
+                (0, testing_1.assert)(((_a = enduser2.fields) === null || _a === void 0 ? void 0 : _a['utm_source']) === "testsource", 'UTM not preserved', 'UTM preserved after refresh');
+                return [4 /*yield*/, enduserSDK.api.form_responses.session_for_public_form(__assign(__assign({}, submitInfo), { utm: [{ field: 'utm_source', value: 'testsource_updated' }] }))];
+            case 16:
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)('enduser can update UTM', function () { return sdk.api.endusers.getOne(enduser2.id); }, { onResult: function (e) { var _a; return ((_a = e.fields) === null || _a === void 0 ? void 0 : _a['utm_source']) === "testsource_updated"; } })];
+            case 17:
+                _b.sent();
                 return [4 /*yield*/, Promise.all([
                         sdk.api.forms.deleteOne(form.id),
                         sdk.api.journeys.deleteOne(journey.id),
-                        sdk.api.endusers.deleteOne(enduser.id),
+                        sdk.api.endusers.deleteOne(enduser2.id),
                     ])];
-            case 13:
-                _a.sent();
+            case 18:
+                _b.sent();
                 return [2 /*return*/];
         }
     });

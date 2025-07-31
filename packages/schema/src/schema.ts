@@ -1068,6 +1068,7 @@ export type CustomActions = {
     get_distribution_report: CustomAction<{  range?: DateRange }, { report: Report[keyof Report] }>,
     assign_from_queue: CustomAction<{ userId?: string, ticketId?: string, queueId?: string, overrideRestrictions?: boolean, }, { ticket: Ticket, queue: TicketQueue, enduser: Enduser }>,
     bulk_delete: CustomAction<{ ids: string[] }, {  }>,
+    bulk_assign: CustomAction<{ ids: string[], userId: string, }, {  }>,
   },
   ticket_queues: {
     update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
@@ -1227,6 +1228,7 @@ export type PublicActions = {
       skipMatch?: boolean,
       enduserId?: string,
       groupId?: string,
+      utm?: LabeledField[],
       // organizationIds?: string[]
     }, { accessCode: string, authToken: string, url: string, path: string, enduserId: string }>,
     // portalURL defined when needing to redirect to portal (e.g. for Form Group)
@@ -3591,6 +3593,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields, 
+      billingTags: { validator: labeledFieldsValidator },
       defaultLocationId: { validator: mongoIdStringValidator },
       email: {
         validator: emailValidator,
@@ -3677,6 +3680,7 @@ export const schema: SchemaV1 = build_schema({
       weeklyAvailabilities: { validator: weeklyAvailabilitiesValidator },
       autoReplyEnabled: { validator: booleanValidatorOptional },
       pushNotificationIosTokens: { validator: listOfStringsValidatorEmptyOk },
+      pushNotificationFirebaseTokens: { validator: listOfStringsValidatorEmptyOk },
       callRouting: { validator: userCallRoutingBehaviorValidator },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, 
       emailSignature: { validator: stringValidator1000 },
@@ -3987,6 +3991,17 @@ export const schema: SchemaV1 = build_schema({
     },
     defaultActions: DEFAULT_OPERATIONS,
     customActions: {
+      bulk_assign: {
+        op: "custom", access: 'update', method: "patch",
+        name: 'Bulk Assign Tickets',
+        path: '/tickets/bulk-assign',
+        description: "Assigns a list of tickets by id (does not send webhooks)",
+        parameters: { 
+          ids: { validator: listOfMongoIdStringValidator, required: true },
+          userId: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: {},
+      },
       bulk_delete: {
         op: "custom", access: 'delete', method: "delete",
         name: 'Bulk Delete Tickets',
@@ -4918,6 +4933,7 @@ export const schema: SchemaV1 = build_schema({
           customTypeId: { validator: stringValidator },
           skipMatch: { validator: booleanValidator },
           groupId: { validator: mongoIdStringValidator },
+          utm: { validator: labeledFieldsValidator },
         },
         returns: {
           accessCode: { validator: stringValidator250, required: true },

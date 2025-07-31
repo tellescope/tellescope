@@ -593,6 +593,7 @@ export interface User_updatesDisabled {
   verifiedEmail: boolean,
 }
 export interface User extends User_required, User_readonly, User_updatesDisabled {
+  billingTags?: LabeledField[],
   defaultLocationId?: string,
   termsSigned?: Date,
   termsVersion?: string,
@@ -627,6 +628,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   availableFromEmails?: string[],
   hashedPass?: string,
   pushNotificationIosTokens?: string[],
+  pushNotificationFirebaseTokens?: string[],
   pushNotificationDestinations?: string[],
   drChronoId?: string,
   canvasId?: string,

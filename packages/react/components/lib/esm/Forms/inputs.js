@@ -144,7 +144,7 @@ export var RatingInput = function (_a) {
     }
     return (_jsx(Slider, { min: from, max: to, step: step, marks: marks, valueLabelDisplay: marks.length < allMarks.length ? 'auto' : "off", value: value, onChange: function (e, v) { return onChange(v, field.id); }, sx: {
             '& .MuiSlider-thumb': value === undefined ? { display: 'none' } : {}, // Hide thumb until value is set
-        } }));
+        } }, field.id));
 };
 // a little function to help us with reordering the result
 var reorder = function (list, startIndex, endIndex) {

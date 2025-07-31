@@ -3821,6 +3821,7 @@ type Queries = {
         update_indexes: (args: extractFields<CustomActions['ticket_queues']['update_indexes']['parameters']>) => (Promise<extractFields<CustomActions['ticket_queues']['update_indexes']['returns']>>);
     };
     tickets: {
+        bulk_assign: (args: extractFields<CustomActions['tickets']['bulk_assign']['parameters']>) => (Promise<extractFields<CustomActions['tickets']['bulk_assign']['returns']>>);
         bulk_delete: (args: extractFields<CustomActions['tickets']['bulk_delete']['parameters']>) => (Promise<extractFields<CustomActions['tickets']['bulk_delete']['returns']>>);
         update_indexes: (args: extractFields<CustomActions['tickets']['update_indexes']['parameters']>) => (Promise<extractFields<CustomActions['tickets']['update_indexes']['returns']>>);
         assign_from_queue: (args: extractFields<CustomActions['tickets']['assign_from_queue']['parameters']>) => (Promise<extractFields<CustomActions['tickets']['assign_from_queue']['returns']>>);

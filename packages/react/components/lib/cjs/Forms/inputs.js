@@ -175,7 +175,7 @@ var RatingInput = function (_a) {
     }
     return ((0, jsx_runtime_1.jsx)(Slider_1.default, { min: from, max: to, step: step, marks: marks, valueLabelDisplay: marks.length < allMarks.length ? 'auto' : "off", value: value, onChange: function (e, v) { return onChange(v, field.id); }, sx: {
             '& .MuiSlider-thumb': value === undefined ? { display: 'none' } : {}, // Hide thumb until value is set
-        } }));
+        } }, field.id));
 };
 exports.RatingInput = RatingInput;
 // a little function to help us with reordering the result

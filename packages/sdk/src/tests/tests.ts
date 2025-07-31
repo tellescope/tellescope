@@ -5042,12 +5042,12 @@ const public_form_tests = async () => {
 
   await async_test(
     'non-public form blocked',
-    () => enduserSDK.api.form_responses. session_for_public_form(submitInfoNonPublic),
+    () => enduserSDK.api.form_responses.session_for_public_form(submitInfoNonPublic),
     handleAnyError,
   )
   await async_test(
     'no questions form blocked',
-    () => enduserSDK.api.form_responses. session_for_public_form(submitInfo),
+    () => enduserSDK.api.form_responses.session_for_public_form(submitInfo),
     handleAnyError,
   )
 
@@ -5067,13 +5067,13 @@ const public_form_tests = async () => {
   }
 
   // upserts enduser
-  const responseInfo = await enduserSDK.api.form_responses. session_for_public_form(submitInfo)
+  const responseInfo = await enduserSDK.api.form_responses.session_for_public_form(submitInfo)
 
   // verify enduser is actually upserted
   const enduser = await sdk.api.endusers.getOne({ email: 'publicformtest@tellescope.com'})
 
   // test case for existing enduser
-  await enduserSDK.api.form_responses. session_for_public_form(submitInfo)
+  await enduserSDK.api.form_responses.session_for_public_form(submitInfo)
 
   enduserSDK.setAuthToken(responseInfo.authToken)
   await enduserSDK.refresh_session() // should be allowed
@@ -5091,11 +5091,25 @@ const public_form_tests = async () => {
     () => enduserSDK.api.form_responses.submit_form_response({ accessCode: responseInfo.accessCode, responses: [testResponse] }),
     passOnAnyResult,
   )
+  
+  // delete enduser and re-initiate for testing UTMs
+  await sdk.api.endusers.deleteOne(enduser.id)
+
+  await enduserSDK.api.form_responses.session_for_public_form({ ...submitInfo, utm: [{ field: 'utm_source', value: 'testsource' }] })
+  const enduser2 = await sdk.api.endusers.getOne({ email: 'publicformtest@tellescope.com'})
+  assert(enduser2.fields?.['utm_source'] === "testsource", 'UTM not preserved', 'UTM preserved after refresh')
+
+  await enduserSDK.api.form_responses.session_for_public_form({ ...submitInfo, utm: [{ field: 'utm_source', value: 'testsource_updated' }] })
+  await async_test(
+    'enduser can update UTM',
+    () => sdk.api.endusers.getOne(enduser2.id),
+    { onResult: e => e.fields?.['utm_source'] === "testsource_updated" },
+  )
 
   await Promise.all([
     sdk.api.forms.deleteOne(form.id),
     sdk.api.journeys.deleteOne(journey.id),
-    sdk.api.endusers.deleteOne(enduser.id),
+    sdk.api.endusers.deleteOne(enduser2.id),
   ])
 }
 

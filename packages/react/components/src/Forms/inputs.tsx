@@ -145,6 +145,7 @@ export const RatingInput = ({ field, value, onChange }: FormInputProps<'rating'>
       sx={{
         '& .MuiSlider-thumb': value === undefined ? { display: 'none' } : {}, // Hide thumb until value is set
       }}
+      key={field.id} // forces the actual value to be shown when two Rating questions are shown in a row and the value changes
     />
   )
 }

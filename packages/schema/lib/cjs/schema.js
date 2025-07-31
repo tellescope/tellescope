@@ -2164,7 +2164,7 @@ exports.schema = (0, exports.build_schema)({
                 },
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { defaultLocationId: { validator: validation_1.mongoIdStringRequired }, email: {
+        fields: __assign(__assign({}, BuiltInFields), { billingTags: { validator: validation_1.labeledFieldsValidator }, defaultLocationId: { validator: validation_1.mongoIdStringRequired }, email: {
                 validator: validation_1.emailValidator,
                 required: true,
                 examples: ['test@tellescope.com'],
@@ -2220,7 +2220,7 @@ exports.schema = (0, exports.build_schema)({
                 ]
             }, credentialedStates: {
                 validator: validation_1.stateCredentialsValidator,
-            }, timezone: { validator: validation_1.timezoneValidator }, weeklyAvailabilities: { validator: validation_1.weeklyAvailabilitiesValidator }, autoReplyEnabled: { validator: validation_1.booleanValidatorOptional }, pushNotificationIosTokens: { validator: validation_1.listOfStringsValidatorEmptyOk }, callRouting: { validator: validation_1.userCallRoutingBehaviorValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, emailSignature: { validator: validation_1.stringValidator1000 }, disableTicketAutoAssignment: { validator: validation_1.booleanValidator }, ticketAssignmentPriority: { validator: validation_1.nonNegNumberValidator }, specialties: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, bio: { validator: validation_1.stringValidator25000EmptyOkay }, TIN: { validator: validation_1.stringValidatorOptionalEmptyOkay }, NPI: { validator: validation_1.stringValidatorOptionalEmptyOkay }, DEA: { validator: validation_1.stringValidatorOptionalEmptyOkay }, voicemailPlayback: { validator: validation_1.phonePlaybackValidatorOptional }, lockedOutUntil: { validator: validation_1.numberValidator }, iOSBadgeCount: { validator: validation_1.nonNegNumberValidator }, availableFromNumbers: { validator: validation_1.listOfStringsValidatorEmptyOk }, availableFromEmails: { validator: validation_1.listOfStringsValidatorEmptyOk }, doseSpotUserId: { validator: validation_1.stringValidator100 }, url: { validator: validation_1.stringValidator1000 }, templateFields: {
+            }, timezone: { validator: validation_1.timezoneValidator }, weeklyAvailabilities: { validator: validation_1.weeklyAvailabilitiesValidator }, autoReplyEnabled: { validator: validation_1.booleanValidatorOptional }, pushNotificationIosTokens: { validator: validation_1.listOfStringsValidatorEmptyOk }, pushNotificationFirebaseTokens: { validator: validation_1.listOfStringsValidatorEmptyOk }, callRouting: { validator: validation_1.userCallRoutingBehaviorValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, emailSignature: { validator: validation_1.stringValidator1000 }, disableTicketAutoAssignment: { validator: validation_1.booleanValidator }, ticketAssignmentPriority: { validator: validation_1.nonNegNumberValidator }, specialties: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, bio: { validator: validation_1.stringValidator25000EmptyOkay }, TIN: { validator: validation_1.stringValidatorOptionalEmptyOkay }, NPI: { validator: validation_1.stringValidatorOptionalEmptyOkay }, DEA: { validator: validation_1.stringValidatorOptionalEmptyOkay }, voicemailPlayback: { validator: validation_1.phonePlaybackValidatorOptional }, lockedOutUntil: { validator: validation_1.numberValidator }, iOSBadgeCount: { validator: validation_1.nonNegNumberValidator }, availableFromNumbers: { validator: validation_1.listOfStringsValidatorEmptyOk }, availableFromEmails: { validator: validation_1.listOfStringsValidatorEmptyOk }, doseSpotUserId: { validator: validation_1.stringValidator100 }, url: { validator: validation_1.stringValidator1000 }, templateFields: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     field: validation_1.stringValidator100,
                     value: validation_1.stringValidator5000,
@@ -2475,6 +2475,17 @@ exports.schema = (0, exports.build_schema)({
         },
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {
+            bulk_assign: {
+                op: "custom", access: 'update', method: "patch",
+                name: 'Bulk Assign Tickets',
+                path: '/tickets/bulk-assign',
+                description: "Assigns a list of tickets by id (does not send webhooks)",
+                parameters: {
+                    ids: { validator: validation_1.listOfMongoIdStringValidator, required: true },
+                    userId: { validator: validation_1.mongoIdStringRequired, required: true },
+                },
+                returns: {},
+            },
             bulk_delete: {
                 op: "custom", access: 'delete', method: "delete",
                 name: 'Bulk Delete Tickets',
@@ -3195,6 +3206,7 @@ exports.schema = (0, exports.build_schema)({
                     customTypeId: { validator: validation_1.stringValidator },
                     skipMatch: { validator: validation_1.booleanValidator },
                     groupId: { validator: validation_1.mongoIdStringRequired },
+                    utm: { validator: validation_1.labeledFieldsValidator },
                 },
                 returns: {
                     accessCode: { validator: validation_1.stringValidator250, required: true },

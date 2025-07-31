@@ -784,6 +784,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     ),
   },
   tickets: {
+    bulk_assign: (args: extractFields<CustomActions['tickets']['bulk_assign']['parameters']>) => (
+      Promise<extractFields<CustomActions['tickets']['bulk_assign']['returns']>>
+    ),
     bulk_delete: (args: extractFields<CustomActions['tickets']['bulk_delete']['parameters']>) => (
       Promise<extractFields<CustomActions['tickets']['bulk_delete']['returns']>>
     ),
@@ -1083,6 +1086,7 @@ export class Session extends SessionManager {
     queries.ticket_queues.update_indexes = a => this._PATCH(`/v1/${schema.ticket_queues.customActions.update_indexes.path}`, a)
 
     queries.tickets.bulk_delete = a => this._DELETE(`/v1/${schema.tickets.customActions.bulk_delete.path}`, a)
+    queries.tickets.bulk_assign = a => this._PATCH(`/v1/${schema.tickets.customActions.bulk_assign.path}`, a)
     queries.tickets.update_indexes = a => this._PATCH(`/v1/${schema.tickets.customActions.update_indexes.path}`, a)
     queries.tickets.assign_from_queue = a => this._PATCH(`/v1/${schema.tickets.customActions.assign_from_queue.path}`, a)
     queries.tickets.get_report = a => this._POST(`/v1/${schema.tickets.customActions.get_report.path}`, a)

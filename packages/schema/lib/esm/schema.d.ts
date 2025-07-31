@@ -1378,6 +1378,10 @@ export type CustomActions = {
         bulk_delete: CustomAction<{
             ids: string[];
         }, {}>;
+        bulk_assign: CustomAction<{
+            ids: string[];
+            userId: string;
+        }, {}>;
     };
     ticket_queues: {
         update_indexes: CustomAction<{
@@ -1723,6 +1727,7 @@ export type PublicActions = {
             skipMatch?: boolean;
             enduserId?: string;
             groupId?: string;
+            utm?: LabeledField[];
         }, {
             accessCode: string;
             authToken: string;
