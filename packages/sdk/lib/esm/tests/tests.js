@@ -7021,7 +7021,7 @@ export var role_based_access_permissions_tests = function () { return __awaiter(
 // runs tests and resets availability afterwards
 // creates a new enduser (to avoid duplicate autoreply)
 var run_autoreply_test = function (title, _a) {
-    var expectingAutoreply = _a.expectingAutoreply;
+    var expectingAutoreply = _a.expectingAutoreply, autoreplyText = _a.autoreplyText;
     return __awaiter(void 0, void 0, void 0, function () {
         var enduser, room, blocks;
         return __generator(this, function (_b) {
@@ -7056,7 +7056,7 @@ var run_autoreply_test = function (title, _a) {
                 case 8:
                     _b.sent();
                     return [4 /*yield*/, async_test('Main test', function () { return pollForResults(function () { return sdk.api.chats.getSome({ filter: { roomId: room.id } }); }, function (cs) { return (expectingAutoreply
-                            ? cs.length === 3
+                            ? (cs.length === 3 && (!autoreplyText || cs[0].message === autoreplyText))
                             : cs.length === 2); }, 25, 10); }, passOnAnyResult)];
                 case 9:
                     _b.sent();
@@ -7095,7 +7095,7 @@ var run_autoreply_test = function (title, _a) {
     });
 };
 var auto_reply_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var today, activeBlockInfo, activeWithRange, inactiveEarly, inactiveLate, wrongDayBlockInfo, wrongEntityTypeBlockInfo, wrongEntityIdInfo, wrongTimeBlockInfo;
+    var today, oooMessage, activeBlockInfo, activeWithRange, inactiveEarly, inactiveLate, wrongDayBlockInfo, wrongEntityTypeBlockInfo, wrongEntityIdInfo, wrongTimeBlockInfo;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0: 
@@ -7108,11 +7108,73 @@ var auto_reply_tests = function () { return __awaiter(void 0, void 0, void 0, fu
             case 1:
                 // cleanup user availabilities / autoReplyEnabled to avoid conflicts
                 _a.sent();
-                log_header("Autoreply (Organization-wide)");
-                return [4 /*yield*/, run_autoreply_test('No availabilities', { expectingAutoreply: false })];
+                return [4 /*yield*/, sdk.api.organizations.updateOne(sdk.userInfo.businessId, {
+                        settings: { endusers: { autoReplyEnabled: false } }
+                    })];
             case 2:
                 _a.sent();
+                return [4 /*yield*/, sdk.api.organizations.updateOne(sdk.userInfo.businessId, { outOfOfficeHours: [] }, { replaceObjectFields: true })];
+            case 3:
+                _a.sent();
+                log_header("Autoreply (Organization-wide)");
+                return [4 /*yield*/, run_autoreply_test('No availabilities', { expectingAutoreply: false })];
+            case 4:
+                _a.sent();
                 today = new Date();
+                oooMessage = "Custom out of office reply";
+                return [4 /*yield*/, sdk.api.organizations.updateOne(sdk.userInfo.businessId, {
+                        settings: { endusers: { autoReplyEnabled: true } }
+                    })];
+            case 5:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.organizations.updateOne(sdk.userInfo.businessId, {
+                        outOfOfficeHours: [{
+                                from: new Date(Date.now() - 1000 * 60 * 60 * 24),
+                                to: new Date(Date.now() + 1000 * 60 * 60 * 24),
+                                autoreplyText: oooMessage
+                            }]
+                    }, { replaceObjectFields: true })];
+            case 6:
+                _a.sent();
+                return [4 /*yield*/, run_autoreply_test('Organization OOO overlap', { expectingAutoreply: true, autoreplyText: oooMessage })];
+            case 7:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.organizations.updateOne(sdk.userInfo.businessId, {
+                        outOfOfficeHours: [
+                            {
+                                from: new Date(Date.now() - 1000 * 60 * 60 * 48),
+                                to: new Date(Date.now() - 1000 * 60 * 60 * 24),
+                                autoreplyText: oooMessage
+                            },
+                            {
+                                from: new Date(Date.now() + 1000 * 60 * 60 * 24),
+                                to: new Date(Date.now() + 1000 * 60 * 60 * 48),
+                                autoreplyText: oooMessage
+                            },
+                        ]
+                    }, { replaceObjectFields: true })];
+            case 8:
+                _a.sent();
+                return [4 /*yield*/, run_autoreply_test('Organization OOO no overlap', { expectingAutoreply: false })
+                    // cleanup
+                ];
+            case 9:
+                _a.sent();
+                // cleanup
+                return [4 /*yield*/, sdk.api.organizations.updateOne(sdk.userInfo.businessId, {
+                        settings: { endusers: { autoReplyEnabled: false } }
+                    })];
+            case 10:
+                // cleanup
+                _a.sent();
+                return [4 /*yield*/, sdk.api.organizations.updateOne(sdk.userInfo.businessId, { outOfOfficeHours: [] }, { replaceObjectFields: true })];
+            case 11:
+                _a.sent();
+                return [4 /*yield*/, run_autoreply_test('Organization no OOO blocks', { expectingAutoreply: false })
+                    // done test organization out of office blocks
+                ];
+            case 12:
+                _a.sent();
                 activeBlockInfo = {
                     dayOfWeekStartingSundayIndexedByZero: today.getDay(),
                     startTimeInMinutes: 0,
@@ -7134,24 +7196,24 @@ var auto_reply_tests = function () { return __awaiter(void 0, void 0, void 0, fu
                 return [4 /*yield*/, sdk.api.organizations.updateOne(sdk.userInfo.businessId, {
                         settings: { endusers: { autoReplyEnabled: false } }
                     })];
-            case 3:
+            case 13:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.availability_blocks.createSome([wrongTimeBlockInfo])];
-            case 4:
+            case 14:
                 _a.sent();
                 return [4 /*yield*/, run_autoreply_test('Autoreply disabled', { expectingAutoreply: false })];
-            case 5:
+            case 15:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.organizations.updateOne(sdk.userInfo.businessId, {
                         settings: { endusers: { autoReplyEnabled: true } }
                     })];
-            case 6:
+            case 16:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.availability_blocks.createSome([wrongTimeBlockInfo])];
-            case 7:
+            case 17:
                 _a.sent();
                 return [4 /*yield*/, run_autoreply_test('One bad', { expectingAutoreply: true })];
-            case 8:
+            case 18:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.availability_blocks.createSome([
                         inactiveEarly,
@@ -7161,53 +7223,53 @@ var auto_reply_tests = function () { return __awaiter(void 0, void 0, void 0, fu
                         wrongEntityTypeBlockInfo,
                         wrongTimeBlockInfo,
                     ])];
-            case 9:
+            case 19:
                 _a.sent();
                 return [4 /*yield*/, run_autoreply_test('Multiple bad blocks', { expectingAutoreply: true })];
-            case 10:
+            case 20:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.availability_blocks.createSome([activeBlockInfo])];
-            case 11:
+            case 21:
                 _a.sent();
                 return [4 /*yield*/, run_autoreply_test('One active block', { expectingAutoreply: false })];
-            case 12:
+            case 22:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.availability_blocks.createSome([activeWithRange])];
-            case 13:
+            case 23:
                 _a.sent();
                 return [4 /*yield*/, run_autoreply_test('One active with range', { expectingAutoreply: false })];
-            case 14:
+            case 24:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.availability_blocks.createSome([activeBlockInfo, activeWithRange, activeBlockInfo, activeWithRange])];
-            case 15:
+            case 25:
                 _a.sent();
                 return [4 /*yield*/, run_autoreply_test('Multiple active blocks', { expectingAutoreply: false })];
-            case 16:
+            case 26:
                 _a.sent();
                 log_header("Autoreply (User)");
                 return [4 /*yield*/, sdk.api.users.updateOne(sdk.userInfo.id, {
                         autoReplyEnabled: false,
                     })];
-            case 17:
+            case 27:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.users.updateOne(sdk.userInfo.id, {
                         weeklyAvailabilities: [wrongTimeBlockInfo]
                     })];
-            case 18:
+            case 28:
                 _a.sent();
                 return [4 /*yield*/, run_autoreply_test('User: Autoreply disabled', { expectingAutoreply: false })];
-            case 19:
+            case 29:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.users.updateOne(sdk.userInfo.id, {
                         autoReplyEnabled: true,
                     })];
-            case 20:
+            case 30:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.users.updateOne(sdk.userInfo.id, { weeklyAvailabilities: [wrongTimeBlockInfo] })];
-            case 21:
+            case 31:
                 _a.sent();
                 return [4 /*yield*/, run_autoreply_test('User: One bad', { expectingAutoreply: true })];
-            case 22:
+            case 32:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.users.updateOne(sdk.userInfo.id, {
                         weeklyAvailabilities: [
@@ -7216,28 +7278,28 @@ var auto_reply_tests = function () { return __awaiter(void 0, void 0, void 0, fu
                             wrongDayBlockInfo,
                         ]
                     })];
-            case 23:
+            case 33:
                 _a.sent();
                 return [4 /*yield*/, run_autoreply_test('User: Multiple bad blocks', { expectingAutoreply: true })];
-            case 24:
+            case 34:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.users.updateOne(sdk.userInfo.id, { weeklyAvailabilities: [activeBlockInfo] })];
-            case 25:
+            case 35:
                 _a.sent();
                 return [4 /*yield*/, run_autoreply_test('User: One active block', { expectingAutoreply: false })];
-            case 26:
+            case 36:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.users.updateOne(sdk.userInfo.id, { weeklyAvailabilities: [activeWithRange] })];
-            case 27:
+            case 37:
                 _a.sent();
                 return [4 /*yield*/, run_autoreply_test('User: One active with range', { expectingAutoreply: false })];
-            case 28:
+            case 38:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.users.updateOne(sdk.userInfo.id, { weeklyAvailabilities: [activeBlockInfo, activeWithRange, activeBlockInfo, activeWithRange] })];
-            case 29:
+            case 39:
                 _a.sent();
                 return [4 /*yield*/, run_autoreply_test('User: Multiple active blocks', { expectingAutoreply: false })];
-            case 30:
+            case 40:
                 _a.sent();
                 return [2 /*return*/];
         }
@@ -8813,6 +8875,52 @@ export var alternate_phones_tests = function () { return __awaiter(void 0, void 
                 _a.sent();
                 return [4 /*yield*/, sdk.api.endusers.deleteOne(e.id)];
             case 4:
+                _a.sent();
+                return [2 /*return*/];
+        }
+    });
+}); };
+// test that backend side-effects cause relationships to be set correctly
+export var relationships_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var e1, e2, e3;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                log_header("Relationships Tests");
+                return [4 /*yield*/, sdk.api.endusers.createOne({ fname: 'To Relate' })];
+            case 1:
+                e1 = _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({ fname: 'Related', relationships: [{ type: 'Parent', id: e1.id }] })];
+            case 2:
+                e2 = _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({ fname: 'To Update' })];
+            case 3:
+                e3 = _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.updateOne(e3.id, { relationships: [{ type: 'Caregiver', id: e1.id }, { type: 'Grandchild', id: e2.id }] })
+                    // allow side effects to propagate
+                ];
+            case 4:
+                _a.sent();
+                // allow side effects to propagate
+                return [4 /*yield*/, wait(undefined, 250)];
+            case 5:
+                // allow side effects to propagate
+                _a.sent();
+                return [4 /*yield*/, async_test("Relationships set correctly on create", function () { return sdk.api.endusers.getOne(e1.id); }, { onResult: function (e) { var _a; return ((_a = e.relationships) === null || _a === void 0 ? void 0 : _a.length) === 2 && e.relationships[0].type === 'Child' && e.relationships[0].id === e2.id; } })];
+            case 6:
+                _a.sent();
+                return [4 /*yield*/, async_test("Relationships set correctly on update", function () { return sdk.api.endusers.getOne(e1.id); }, { onResult: function (e) { var _a; return ((_a = e.relationships) === null || _a === void 0 ? void 0 : _a.length) === 2 && e.relationships[1].type === 'Care Recipient' && e.relationships[1].id === e3.id; } })];
+            case 7:
+                _a.sent();
+                return [4 /*yield*/, async_test("Relationships set correctly on update (multiple relationships)", function () { return sdk.api.endusers.getOne(e2.id); }, { onResult: function (e) { var _a; return ((_a = e.relationships) === null || _a === void 0 ? void 0 : _a.length) === 2 && e.relationships[1].type === 'Grandparent' && e.relationships[1].id === e3.id; } })];
+            case 8:
+                _a.sent();
+                return [4 /*yield*/, Promise.all([
+                        sdk.api.endusers.deleteOne(e1.id),
+                        sdk.api.endusers.deleteOne(e2.id),
+                        sdk.api.endusers.deleteOne(e3.id),
+                    ])];
+            case 9:
                 _a.sent();
                 return [2 /*return*/];
         }
@@ -13720,7 +13828,7 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                 _l.sent();
                 _l.label = 2;
             case 2:
-                _l.trys.push([2, 77, , 78]);
+                _l.trys.push([2, 78, , 79]);
                 get_next_reminder_timestamp_tests();
                 form_conditional_logic_tests();
                 return [4 /*yield*/, test_weighted_round_robin()];
@@ -13861,192 +13969,195 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, setup_tests()];
             case 16:
                 _l.sent();
-                return [4 /*yield*/, inbox_loading_tests()];
+                return [4 /*yield*/, auto_reply_tests()];
             case 17:
                 _l.sent();
-                return [4 /*yield*/, rate_limit_tests()];
+                return [4 /*yield*/, relationships_tests()];
             case 18:
                 _l.sent();
-                return [4 /*yield*/, ip_address_form_tests()];
+                return [4 /*yield*/, inbox_loading_tests()];
             case 19:
                 _l.sent();
-                return [4 /*yield*/, bulk_update_tests()];
+                return [4 /*yield*/, rate_limit_tests()];
             case 20:
                 _l.sent();
-                return [4 /*yield*/, formsort_tests()];
+                return [4 /*yield*/, ip_address_form_tests()];
             case 21:
                 _l.sent();
-                return [4 /*yield*/, cancel_upcoming_appointments_journey_action_test()];
+                return [4 /*yield*/, bulk_update_tests()];
             case 22:
                 _l.sent();
-                return [4 /*yield*/, multi_tenant_tests()]; // should come right after setup tests
+                return [4 /*yield*/, formsort_tests()];
             case 23:
+                _l.sent();
+                return [4 /*yield*/, cancel_upcoming_appointments_journey_action_test()];
+            case 24:
+                _l.sent();
+                return [4 /*yield*/, multi_tenant_tests()]; // should come right after setup tests
+            case 25:
                 _l.sent(); // should come right after setup tests
                 return [4 /*yield*/, sync_tests_with_access_tags()]; // should come directly after setup to avoid extra sync values
-            case 24:
+            case 26:
                 _l.sent(); // should come directly after setup to avoid extra sync values
                 return [4 /*yield*/, sync_tests()]; // should come directly after setup to avoid extra sync values
-            case 25:
+            case 27:
                 _l.sent(); // should come directly after setup to avoid extra sync values
                 return [4 /*yield*/, get_templated_message_tests()];
-            case 26:
-                _l.sent();
-                return [4 /*yield*/, updatedAt_tests()];
-            case 27:
-                _l.sent();
-                return [4 /*yield*/, automation_trigger_tests()];
             case 28:
                 _l.sent();
-                return [4 /*yield*/, file_source_tests()];
+                return [4 /*yield*/, updatedAt_tests()];
             case 29:
                 _l.sent();
-                return [4 /*yield*/, enduser_access_tags_tests()];
+                return [4 /*yield*/, automation_trigger_tests()];
             case 30:
                 _l.sent();
-                return [4 /*yield*/, enduserAccessTests()];
+                return [4 /*yield*/, file_source_tests()];
             case 31:
                 _l.sent();
-                return [4 /*yield*/, test_form_response_search()];
+                return [4 /*yield*/, enduser_access_tags_tests()];
             case 32:
                 _l.sent();
-                return [4 /*yield*/, date_parsing_tests()];
+                return [4 /*yield*/, enduserAccessTests()];
             case 33:
                 _l.sent();
-                return [4 /*yield*/, fromEmailOverride_tests()];
+                return [4 /*yield*/, test_form_response_search()];
             case 34:
                 _l.sent();
-                return [4 /*yield*/, ticket_tests()];
+                return [4 /*yield*/, date_parsing_tests()];
             case 35:
                 _l.sent();
-                return [4 /*yield*/, uniqueness_tests()];
+                return [4 /*yield*/, fromEmailOverride_tests()];
             case 36:
                 _l.sent();
-                return [4 /*yield*/, enduser_orders_tests()];
+                return [4 /*yield*/, ticket_tests()];
             case 37:
                 _l.sent();
-                return [4 /*yield*/, calendar_event_care_team_tests()];
+                return [4 /*yield*/, uniqueness_tests()];
             case 38:
                 _l.sent();
-                return [4 /*yield*/, merge_enduser_tests()];
+                return [4 /*yield*/, enduser_orders_tests()];
             case 39:
                 _l.sent();
-                return [4 /*yield*/, input_modifier_tests()];
+                return [4 /*yield*/, calendar_event_care_team_tests()];
             case 40:
                 _l.sent();
-                return [4 /*yield*/, switch_to_related_contacts_tests()];
+                return [4 /*yield*/, merge_enduser_tests()];
             case 41:
                 _l.sent();
-                return [4 /*yield*/, redaction_tests()];
+                return [4 /*yield*/, input_modifier_tests()];
             case 42:
                 _l.sent();
-                return [4 /*yield*/, self_serve_appointment_booking_tests()];
+                return [4 /*yield*/, switch_to_related_contacts_tests()];
             case 43:
                 _l.sent();
-                return [4 /*yield*/, no_chained_triggers_tests()];
+                return [4 /*yield*/, redaction_tests()];
             case 44:
                 _l.sent();
-                return [4 /*yield*/, mdb_filter_tests()];
+                return [4 /*yield*/, self_serve_appointment_booking_tests()];
             case 45:
                 _l.sent();
-                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
+                return [4 /*yield*/, no_chained_triggers_tests()];
             case 46:
                 _l.sent();
-                return [4 /*yield*/, superadmin_tests()];
+                return [4 /*yield*/, mdb_filter_tests()];
             case 47:
                 _l.sent();
-                return [4 /*yield*/, ticket_queue_tests()];
+                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
             case 48:
                 _l.sent();
-                return [4 /*yield*/, vital_trigger_tests()];
+                return [4 /*yield*/, superadmin_tests()];
             case 49:
                 _l.sent();
-                return [4 /*yield*/, close_reasons_no_duplicates_tests()];
+                return [4 /*yield*/, ticket_queue_tests()];
             case 50:
                 _l.sent();
-                return [4 /*yield*/, register_as_enduser_tests()];
+                return [4 /*yield*/, vital_trigger_tests()];
             case 51:
                 _l.sent();
-                return [4 /*yield*/, lockout_tests()];
+                return [4 /*yield*/, close_reasons_no_duplicates_tests()];
             case 52:
+                _l.sent();
+                return [4 /*yield*/, register_as_enduser_tests()];
+            case 53:
+                _l.sent();
+                return [4 /*yield*/, lockout_tests()];
+            case 54:
                 _l.sent();
                 return [4 /*yield*/, delete_user_tests()
                     // await test_send_with_template()
                 ];
-            case 53:
+            case 55:
                 _l.sent();
                 // await test_send_with_template()
                 return [4 /*yield*/, bulk_read_tests()];
-            case 54:
+            case 56:
                 // await test_send_with_template()
                 _l.sent();
                 return [4 /*yield*/, ticket_reminder_tests()];
-            case 55:
-                _l.sent();
-                return [4 /*yield*/, marketing_email_unsubscribe_tests()];
-            case 56:
-                _l.sent();
-                return [4 /*yield*/, unique_strings_tests()];
             case 57:
                 _l.sent();
-                return [4 /*yield*/, alternate_phones_tests()];
+                return [4 /*yield*/, marketing_email_unsubscribe_tests()];
             case 58:
                 _l.sent();
-                return [4 /*yield*/, role_based_access_tests()];
+                return [4 /*yield*/, unique_strings_tests()];
             case 59:
                 _l.sent();
-                return [4 /*yield*/, enduser_session_tests()];
+                return [4 /*yield*/, alternate_phones_tests()];
             case 60:
                 _l.sent();
-                return [4 /*yield*/, nextReminderInMS_tests()];
+                return [4 /*yield*/, role_based_access_tests()];
             case 61:
                 _l.sent();
-                return [4 /*yield*/, search_tests()];
+                return [4 /*yield*/, enduser_session_tests()];
             case 62:
                 _l.sent();
-                return [4 /*yield*/, wait_for_trigger_tests()];
+                return [4 /*yield*/, nextReminderInMS_tests()];
             case 63:
                 _l.sent();
-                return [4 /*yield*/, pdf_generation()];
+                return [4 /*yield*/, search_tests()];
             case 64:
                 _l.sent();
-                return [4 /*yield*/, remove_from_journey_on_incoming_comms_tests().catch(console.error)]; // timing is unreliable, uncomment if changing logic
+                return [4 /*yield*/, wait_for_trigger_tests()];
             case 65:
-                _l.sent(); // timing is unreliable, uncomment if changing logic
-                return [4 /*yield*/, auto_reply_tests()];
+                _l.sent();
+                return [4 /*yield*/, pdf_generation()];
             case 66:
                 _l.sent();
-                return [4 /*yield*/, sub_organization_enduser_tests()];
+                return [4 /*yield*/, remove_from_journey_on_incoming_comms_tests().catch(console.error)]; // timing is unreliable, uncomment if changing logic
             case 67:
-                _l.sent();
-                return [4 /*yield*/, sub_organization_tests()];
+                _l.sent(); // timing is unreliable, uncomment if changing logic
+                return [4 /*yield*/, sub_organization_enduser_tests()];
             case 68:
                 _l.sent();
-                return [4 /*yield*/, filter_by_date_tests()];
+                return [4 /*yield*/, sub_organization_tests()];
             case 69:
                 _l.sent();
-                return [4 /*yield*/, generate_user_auth_tests()];
+                return [4 /*yield*/, filter_by_date_tests()];
             case 70:
                 _l.sent();
-                return [4 /*yield*/, generateEnduserAuthTests()];
+                return [4 /*yield*/, generate_user_auth_tests()];
             case 71:
                 _l.sent();
-                return [4 /*yield*/, public_form_tests()];
+                return [4 /*yield*/, generateEnduserAuthTests()];
             case 72:
                 _l.sent();
-                return [4 /*yield*/, badInputTests()];
+                return [4 /*yield*/, public_form_tests()];
             case 73:
                 _l.sent();
-                return [4 /*yield*/, filterTests()];
+                return [4 /*yield*/, badInputTests()];
             case 74:
                 _l.sent();
-                return [4 /*yield*/, updatesTests()];
+                return [4 /*yield*/, filterTests()];
             case 75:
                 _l.sent();
-                return [4 /*yield*/, threadKeyTests()];
+                return [4 /*yield*/, updatesTests()];
             case 76:
                 _l.sent();
-                return [3 /*break*/, 78];
+                return [4 /*yield*/, threadKeyTests()];
             case 77:
+                _l.sent();
+                return [3 /*break*/, 79];
+            case 78:
                 err_1 = _l.sent();
                 console.error("Failed during custom test");
                 if (err_1.message && err_1.info) {
@@ -14056,18 +14167,18 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                     console.error(err_1);
                 }
                 process.exit(1);
-                return [3 /*break*/, 78];
-            case 78:
+                return [3 /*break*/, 79];
+            case 79:
                 _a = schema;
                 _b = [];
                 for (_c in _a)
                     _b.push(_c);
                 _i = 0;
-                _l.label = 79;
-            case 79:
-                if (!(_i < _b.length)) return [3 /*break*/, 82];
+                _l.label = 80;
+            case 80:
+                if (!(_i < _b.length)) return [3 /*break*/, 83];
                 _c = _b[_i];
-                if (!(_c in _a)) return [3 /*break*/, 81];
+                if (!(_c in _a)) return [3 /*break*/, 82];
                 n = _c;
                 returnValidation = (_k = (_j = schema[n].customActions) === null || _j === void 0 ? void 0 : _j.create) === null || _k === void 0 ? void 0 : _k.returns;
                 return [4 /*yield*/, run_generated_tests({
@@ -14078,41 +14189,41 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                             create: returnValidation // ModelFields<ClientModel>,
                         }
                     })];
-            case 80:
-                _l.sent();
-                _l.label = 81;
             case 81:
-                _i++;
-                return [3 /*break*/, 79];
+                _l.sent();
+                _l.label = 82;
             case 82:
+                _i++;
+                return [3 /*break*/, 80];
+            case 83:
                 _d = tests;
                 _f = [];
                 for (_g in _d)
                     _f.push(_g);
                 _h = 0;
-                _l.label = 83;
-            case 83:
-                if (!(_h < _f.length)) return [3 /*break*/, 88];
-                _g = _f[_h];
-                if (!(_g in _d)) return [3 /*break*/, 87];
-                t = _g;
                 _l.label = 84;
             case 84:
-                _l.trys.push([84, 86, , 87]);
-                return [4 /*yield*/, tests[t]()];
+                if (!(_h < _f.length)) return [3 /*break*/, 89];
+                _g = _f[_h];
+                if (!(_g in _d)) return [3 /*break*/, 88];
+                t = _g;
+                _l.label = 85;
             case 85:
-                _l.sent();
-                return [3 /*break*/, 87];
+                _l.trys.push([85, 87, , 88]);
+                return [4 /*yield*/, tests[t]()];
             case 86:
+                _l.sent();
+                return [3 /*break*/, 88];
+            case 87:
                 err_2 = _l.sent();
                 console.error("Error running test:");
                 console.error(err_2);
                 process.exit(1);
-                return [3 /*break*/, 87];
-            case 87:
-                _h++;
-                return [3 /*break*/, 83];
+                return [3 /*break*/, 88];
             case 88:
+                _h++;
+                return [3 /*break*/, 84];
+            case 89:
                 process.exit();
                 return [2 /*return*/];
         }

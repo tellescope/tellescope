@@ -5872,7 +5872,7 @@ export const role_based_access_permissions_tests = async () => {
 
 // runs tests and resets availability afterwards
 // creates a new enduser (to avoid duplicate autoreply)
-const run_autoreply_test = async (title: string, { expectingAutoreply } : { expectingAutoreply: boolean }) => {
+const run_autoreply_test = async (title: string, { expectingAutoreply, autoreplyText } : { expectingAutoreply: boolean, autoreplyText?: string }) => {
   log_header(`Autoreply: ${title}`)
 
   const enduser = await sdk.api.endusers.createOne({ fname: 'Autoreply', lname: "Test", email: "autoreply@tellescope.com" })
@@ -5899,7 +5899,7 @@ const run_autoreply_test = async (title: string, { expectingAutoreply } : { expe
       () => sdk.api.chats.getSome({ filter: { roomId: room.id }}),
       cs => (
         expectingAutoreply
-          ? cs.length === 3
+          ? (cs.length === 3 && (!autoreplyText || cs[0].message === autoreplyText))
           : cs.length === 2
       ),
       25,
@@ -5946,11 +5946,73 @@ const auto_reply_tests = async () => {
     weeklyAvailabilities: [],
     url: Math.random().toString().slice(2, 10), // avoid rate limit
   }, { replaceObjectFields: true })
+  await sdk.api.organizations.updateOne(sdk.userInfo.businessId, {
+    settings: { endusers: { autoReplyEnabled: false } }
+  })
+  await sdk.api.organizations.updateOne(
+    sdk.userInfo.businessId, 
+    { outOfOfficeHours: [] }, 
+    { replaceObjectFields: true }
+  )
 
   log_header("Autoreply (Organization-wide)")
   await run_autoreply_test('No availabilities', { expectingAutoreply: false })
 
   const today = new Date()
+
+
+  // test organization out of office blocks
+  const oooMessage = "Custom out of office reply" 
+  await sdk.api.organizations.updateOne(sdk.userInfo.businessId, {
+    settings: { endusers: { autoReplyEnabled: true } }
+  })
+  await sdk.api.organizations.updateOne(
+    sdk.userInfo.businessId, 
+    {
+      outOfOfficeHours: [{
+        from: new Date(Date.now() - 1000 * 60 * 60 * 24),
+        to: new Date(Date.now() + 1000 * 60 * 60 * 24),
+        autoreplyText: oooMessage
+      }]
+    },
+    { replaceObjectFields: true }
+  )
+
+  await run_autoreply_test('Organization OOO overlap', { expectingAutoreply: true, autoreplyText: oooMessage })
+
+  await sdk.api.organizations.updateOne(
+    sdk.userInfo.businessId, 
+    {
+      outOfOfficeHours: [
+        {
+          from: new Date(Date.now() - 1000 * 60 * 60 * 48),
+          to: new Date(Date.now() - 1000 * 60 * 60 * 24),
+          autoreplyText: oooMessage
+        },
+        {
+          from: new Date(Date.now() + 1000 * 60 * 60 * 24),
+          to: new Date(Date.now() + 1000 * 60 * 60 * 48),
+          autoreplyText: oooMessage
+        },
+      ]
+    },
+    { replaceObjectFields: true }
+  )
+
+  await run_autoreply_test('Organization OOO no overlap', { expectingAutoreply: false })
+
+  // cleanup
+  await sdk.api.organizations.updateOne(sdk.userInfo.businessId, {
+    settings: { endusers: { autoReplyEnabled: false } }
+  })
+  await sdk.api.organizations.updateOne(
+    sdk.userInfo.businessId, 
+    { outOfOfficeHours: [] }, 
+    { replaceObjectFields: true }
+  )
+  await run_autoreply_test('Organization no OOO blocks', { expectingAutoreply: false })
+  // done test organization out of office blocks
+
 
   const activeBlockInfo = { 
     dayOfWeekStartingSundayIndexedByZero: today.getDay(),
@@ -7516,6 +7578,44 @@ export const alternate_phones_tests = async () => {
   )
 
   await sdk.api.endusers.deleteOne(e.id)
+}
+
+// test that backend side-effects cause relationships to be set correctly
+export const relationships_tests = async () => {
+  log_header("Relationships Tests")
+
+  const e1 = await sdk.api.endusers.createOne({ fname: 'To Relate' })
+  const e2 = await sdk.api.endusers.createOne({ fname: 'Related', relationships: [{ type: 'Parent', id: e1.id }] })
+  const e3 = await sdk.api.endusers.createOne({ fname: 'To Update' })
+
+  await sdk.api.endusers.updateOne(e3.id, { relationships: [{ type: 'Caregiver', id: e1.id }, { type: 'Grandchild', id: e2.id }] })
+
+  // allow side effects to propagate
+  await wait(undefined, 250)
+
+  await async_test(
+    `Relationships set correctly on create`,
+    () => sdk.api.endusers.getOne(e1.id),
+    { onResult: e => e.relationships?.length === 2 && e.relationships[0].type === 'Child' && e.relationships[0].id === e2.id }
+  )
+
+  await async_test(
+    `Relationships set correctly on update`,
+    () => sdk.api.endusers.getOne(e1.id),
+    { onResult: e => e.relationships?.length === 2 && e.relationships[1].type === 'Care Recipient' && e.relationships[1].id === e3.id }
+  )
+
+  await async_test(
+    `Relationships set correctly on update (multiple relationships)`,
+    () => sdk.api.endusers.getOne(e2.id),
+    { onResult: e => e.relationships?.length === 2 && e.relationships[1].type === 'Grandparent' && e.relationships[1].id === e3.id }
+  )
+  
+  await Promise.all([
+    sdk.api.endusers.deleteOne(e1.id),
+    sdk.api.endusers.deleteOne(e2.id),
+    sdk.api.endusers.deleteOne(e3.id),
+  ])
 }
 
 export const switch_to_related_contacts_tests = async () => {
@@ -12279,6 +12379,8 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests()
+    await auto_reply_tests()
+    await relationships_tests()
     await inbox_loading_tests()
     await rate_limit_tests()
     await ip_address_form_tests()
@@ -12329,7 +12431,6 @@ const ip_address_form_tests = async () => {
     await wait_for_trigger_tests()
     await pdf_generation()
     await remove_from_journey_on_incoming_comms_tests().catch(console.error) // timing is unreliable, uncomment if changing logic
-    await auto_reply_tests()
     await sub_organization_enduser_tests()
     await sub_organization_tests()
     await filter_by_date_tests()

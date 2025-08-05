@@ -2053,10 +2053,16 @@ export var color_for_classification = function (c, ifNoMatch) { return (c === 'T
                     : c === 'Critical High' ? 'violet'
                         : c === 'Critical Low' ? 'violet'
                             : ifNoMatch); };
-export var is_out_of_office = function (blocks, date, zone) {
+export var is_out_of_office = function (blocks, date, zone, outOfOfficeBlocks) {
     var _a, _b;
     if (date === void 0) { date = new Date(); }
     if (zone === void 0) { zone = 'America/New_York'; }
+    if (outOfOfficeBlocks === void 0) { outOfOfficeBlocks = []; }
+    var outOfOfficeBlock = outOfOfficeBlocks.find(function (b) { return (new Date(b.from).getTime() <= date.getTime()
+        && new Date(b.to).getTime() >= date.getTime()); });
+    if (outOfOfficeBlock) { // may have additional detail, like reply text
+        return outOfOfficeBlock;
+    }
     if (blocks.length === 0)
         return false;
     var nowInTimezone = DateTime.fromJSDate(date, { zone: zone });

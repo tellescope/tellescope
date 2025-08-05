@@ -567,6 +567,7 @@ var Session = /** @class */ (function (_super) {
         queries.calendar_events.change_zoom_host = function (a) { return _this._POST("/v1/".concat(schema_1.schema.calendar_events.customActions.change_zoom_host.path), a); };
         queries.calendar_events.get_report = function (a) { return _this._POST("/v1".concat(schema_1.schema.calendar_events.customActions.get_report.path), a); };
         queries.calendar_events.get_enduser_report = function (a) { return _this._POST("/v1".concat(schema_1.schema.calendar_events.customActions.get_enduser_report.path), a); };
+        queries.calendar_events.get_status_report = function (a) { return _this._POST("/v1".concat(schema_1.schema.calendar_events.customActions.get_status_report.path), a); };
         queries.calendar_events.get_appointment_availability = function (a) { return _this._GET("/v1".concat(schema_1.schema.calendar_events.customActions.get_appointment_availability.path), a); };
         queries.calendar_events.push = function (a) { return _this._POST("/v1".concat(schema_1.schema.calendar_events.customActions.push.path), a); };
         // this returns an array buffer, avoid using for copy + paste

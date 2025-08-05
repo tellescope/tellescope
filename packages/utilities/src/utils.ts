@@ -1,4 +1,4 @@
-import { AllergyResponse, AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserInsurance, EnduserObservation, EnduserRelationship, File, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerAddress, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, Integration, LabeledField, ManagedContentRecord, MedicationResponse, Organization, Product, Purchase, RoundRobinAssignmentInfo, SMSMessage, TableInputCell, Ticket, Timezone, TIMEZONES, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
+import { AllergyResponse, AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserInsurance, EnduserObservation, EnduserRelationship, File, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerAddress, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, Integration, LabeledField, ManagedContentRecord, MedicationResponse, Organization, OutOfOfficeBlock, Product, Purchase, RoundRobinAssignmentInfo, SMSMessage, TableInputCell, Ticket, Timezone, TIMEZONES, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
 import { ADMIN_ROLE, CANVAS_TITLE, get_inverse_relationship_type, HEALTHIE_TITLE, MM_DD_YYYY_REGEX } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 import { DateTime } from "luxon"
@@ -2162,8 +2162,17 @@ export const color_for_classification = (c: string, ifNoMatch?: string) => (
 export const is_out_of_office = (
   blocks: Pick<AvailabilityBlock, 'dayOfWeekStartingSundayIndexedByZero' | 'startTimeInMinutes' | 'endTimeInMinutes' | 'active'>[], 
   date = new Date(),
-  zone = 'America/New_York' as Timezone
+  zone = 'America/New_York' as Timezone,
+  outOfOfficeBlocks = [] as OutOfOfficeBlock[],
 ) => {
+  const outOfOfficeBlock = outOfOfficeBlocks.find(b => (
+    new Date(b.from).getTime() <= date.getTime()
+  && new Date(b.to).getTime() >= date.getTime()
+  ))
+  if (outOfOfficeBlock) { // may have additional detail, like reply text
+    return outOfOfficeBlock
+  }
+
   if (blocks.length === 0) return false
 
   const nowInTimezone = DateTime.fromJSDate(date, { zone })

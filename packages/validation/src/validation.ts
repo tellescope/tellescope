@@ -325,6 +325,7 @@ import {
   StripeChargeCardOnFileAutomationAction,
   FormResponseAnswerTimezone,
   BrandedWebhookActions,
+  OutOfOfficeBlock,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -4246,6 +4247,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     showDownloadCallRecordings: booleanValidatorOptional,
     launchDosespotWebhookURL: stringValidatorOptionalEmptyOkay,
     reverseTimeline: booleanValidatorOptional,
+    delayedReadingIntervalInMS: numberValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -6217,3 +6219,10 @@ export const recentViewerValidator = objectValidator<RecentViewer>({
   at: dateValidator,
 })
 export const recentViewersValidator = listValidatorOptionalOrEmptyOk(recentViewerValidator)
+
+export const outOfOfficeBlockValidator = objectValidator<OutOfOfficeBlock>({
+  from: dateValidator,
+  to: dateValidator,
+  autoreplyText: stringValidator5000,
+})
+export const outOfOfficeBlocksValidator = listValidatorEmptyOk(outOfOfficeBlockValidator)

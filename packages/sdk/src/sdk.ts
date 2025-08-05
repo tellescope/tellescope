@@ -755,6 +755,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     get_enduser_report: (args: extractFields<CustomActions['calendar_events']['get_enduser_report']['parameters']>) => (
       Promise<extractFields<CustomActions['calendar_events']['get_enduser_report']['returns']>>
     ),
+    get_status_report: (args: extractFields<CustomActions['calendar_events']['get_status_report']['parameters']>) => (
+      Promise<extractFields<CustomActions['calendar_events']['get_status_report']['returns']>>
+    ),
     get_appointment_availability: (args: extractFields<CustomActions['calendar_events']['get_appointment_availability']['parameters']>) => (
       Promise<extractFields<CustomActions['calendar_events']['get_appointment_availability']['returns']>>
     ),
@@ -1047,6 +1050,7 @@ export class Session extends SessionManager {
     queries.calendar_events.change_zoom_host = a => this._POST(`/v1/${schema.calendar_events.customActions.change_zoom_host.path}`, a)
     queries.calendar_events.get_report = a => this._POST(`/v1${schema.calendar_events.customActions.get_report.path}`, a)
     queries.calendar_events.get_enduser_report = a => this._POST(`/v1${schema.calendar_events.customActions.get_enduser_report.path}`, a)
+    queries.calendar_events.get_status_report = a => this._POST(`/v1${schema.calendar_events.customActions.get_status_report.path}`, a)
     queries.calendar_events.get_appointment_availability = a => this._GET(`/v1${schema.calendar_events.customActions.get_appointment_availability.path}`, a)
     queries.calendar_events.push = a => this._POST(`/v1${schema.calendar_events.customActions.push.path}`, a)
 

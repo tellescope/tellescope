@@ -1187,6 +1187,12 @@ export type CustomActions = {
         }, {
             report: Report;
         }>;
+        get_status_report: CustomAction<{
+            range?: DateRange;
+            groupBy?: string;
+        }, {
+            report: Report;
+        }>;
     };
     organizations: {
         create_and_join: CustomAction<{

@@ -335,6 +335,7 @@ import {
   stringValidator100000OptionalEmptyOkayEscapeHTML,
   customPoliciesValidator,
   stringValidator100EscapeHTML,
+  outOfOfficeBlocksValidator,
 } from "@tellescope/validation"
 
 import {
@@ -1013,8 +1014,12 @@ export type CustomActions = {
     generate_zoom_meeting: CustomAction<{ calendarEventId?: string, userId: string, startTimeInMS?: number, durationInMinutes?: number }, { updatedEvent: CalendarEvent }>, 
     change_zoom_host: CustomAction<{ calendarEventId: string, userId: string }, { updatedEvent: CalendarEvent }>, 
     download_ics_file: CustomAction<{ calendarEventId: string, attendeeId?: string, attendeeType?: SessionType, excludeAttendee?: boolean }, { }>,
+    // for reporting on events by user
     get_report: CustomAction<{ range?: DateRange, groupBy?: string, templateIds?: string[] }, { report: Report }>,
+    // for reporting on number of endusers attending events
     get_enduser_report: CustomAction<{ range?: DateRange, groupBy?: string, countDuplicates?: boolean, templateIds?: string[], enduserGroupBy?: string, enduserFields: Record<string, any> }, { report: Report }>,
+    // for getting statuses of events (cancelled, rescheduled, etc.)
+    get_status_report: CustomAction<{ range?: DateRange, groupBy?: string }, { report: Report }>,
   },
   organizations: {
     create_and_join: CustomAction<{ name: string, subdomain: string }, { authToken: string, user: User, organization: Organization }>, 
@@ -5289,6 +5294,19 @@ export const schema: SchemaV1 = build_schema({
           report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
         },
       },
+      get_status_report: {
+        op: "custom", access: 'read', method: "all",
+        name: 'Report',
+        path: '/calendar-events/status-report',
+        description: "Builds a report on events by status",
+        parameters: {
+          range: { validator: dateRangeOptionalValidator },
+          groupBy: { validator: stringValidator },
+        },
+        returns: {
+          report: { validator: objectAnyFieldsAnyValuesValidator as any, required: true }
+        },
+      },
       push: {
         op: "custom", access: 'create', method: "post",
         name: 'Push to external EHRs',
@@ -6591,6 +6609,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields, 
+      outOfOfficeHours: { validator: outOfOfficeBlocksValidator },
       bedrockAIAllowed: { validator: booleanValidator }, // restricted to Telescope super admin only
       creditCount: { validator: numberValidator, readonly: true },
       stripeKeyDetails: {

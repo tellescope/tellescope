@@ -3512,6 +3512,19 @@ exports.schema = (0, exports.build_schema)({
                     report: { validator: validation_1.objectAnyFieldsAnyValuesValidator, required: true }
                 },
             },
+            get_status_report: {
+                op: "custom", access: 'read', method: "all",
+                name: 'Report',
+                path: '/calendar-events/status-report',
+                description: "Builds a report on events by status",
+                parameters: {
+                    range: { validator: validation_1.dateRangeOptionalValidator },
+                    groupBy: { validator: validation_1.stringValidator },
+                },
+                returns: {
+                    report: { validator: validation_1.objectAnyFieldsAnyValuesValidator, required: true }
+                },
+            },
             push: {
                 op: "custom", access: 'create', method: "post",
                 name: 'Push to external EHRs',
@@ -4549,7 +4562,7 @@ exports.schema = (0, exports.build_schema)({
                 }
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { bedrockAIAllowed: { validator: validation_1.booleanValidator }, creditCount: { validator: validation_1.numberValidator, readonly: true }, stripeKeyDetails: {
+        fields: __assign(__assign({}, BuiltInFields), { outOfOfficeHours: { validator: validation_1.outOfOfficeBlocksValidator }, bedrockAIAllowed: { validator: validation_1.booleanValidator }, creditCount: { validator: validation_1.numberValidator, readonly: true }, stripeKeyDetails: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     key: validation_1.stringValidator5000EmptyOkay,
                     title: validation_1.stringValidator5000EmptyOkay,

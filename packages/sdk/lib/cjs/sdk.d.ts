@@ -3806,6 +3806,7 @@ type Queries = {
         generate_meeting_link: (args: extractFields<CustomActions['calendar_events']['generate_meeting_link']['parameters']>) => (Promise<extractFields<CustomActions['calendar_events']['generate_meeting_link']['returns']>>);
         get_report: (args: extractFields<CustomActions['calendar_events']['get_report']['parameters']>) => (Promise<extractFields<CustomActions['calendar_events']['get_report']['returns']>>);
         get_enduser_report: (args: extractFields<CustomActions['calendar_events']['get_enduser_report']['parameters']>) => (Promise<extractFields<CustomActions['calendar_events']['get_enduser_report']['returns']>>);
+        get_status_report: (args: extractFields<CustomActions['calendar_events']['get_status_report']['parameters']>) => (Promise<extractFields<CustomActions['calendar_events']['get_status_report']['returns']>>);
         get_appointment_availability: (args: extractFields<CustomActions['calendar_events']['get_appointment_availability']['parameters']>) => (Promise<extractFields<CustomActions['calendar_events']['get_appointment_availability']['returns']>>);
     };
     managed_content_records: {

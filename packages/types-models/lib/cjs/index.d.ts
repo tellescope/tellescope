@@ -209,6 +209,7 @@ export type OrganizationSettings = {
         showDownloadCallRecordings?: boolean;
         launchDosespotWebhookURL?: string;
         reverseTimeline?: boolean;
+        delayedReadingIntervalInMS?: number;
     };
     tickets?: {
         defaultJourneyDueDateOffsetInMS?: number | '';
@@ -288,6 +289,11 @@ export type AthenaSubscription = {
 export type StripeKeyDetail = {
     key: string;
     title: string;
+};
+export type OutOfOfficeBlock = {
+    from: Date;
+    to: Date;
+    autoreplyText: string;
 };
 export interface Organization_readonly extends ClientRecord {
     subscriptionExpiresAt: Date;
@@ -449,6 +455,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     creditCount?: number;
     creditTrialStartedAt?: Date;
     hasIntegrations?: string[];
+    outOfOfficeHours?: OutOfOfficeBlock[];
 }
 export type OrganizationTheme = {
     name: string;

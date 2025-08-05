@@ -13,6 +13,7 @@ export declare const role_based_access_permissions_tests: () => Promise<void>;
 export declare const no_chained_triggers_tests: () => Promise<void>;
 export declare const ticket_queue_tests: () => Promise<void>;
 export declare const alternate_phones_tests: () => Promise<void>;
+export declare const relationships_tests: () => Promise<void>;
 export declare const switch_to_related_contacts_tests: () => Promise<[void, void, void]>;
 export declare const formsort_tests: () => Promise<void>;
 export declare const enduser_orders_tests: () => Promise<void[]>;

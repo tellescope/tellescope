@@ -3402,6 +3402,7 @@ export var organizationSettingsValidator = objectValidator({
         showDownloadCallRecordings: booleanValidatorOptional,
         launchDosespotWebhookURL: stringValidatorOptionalEmptyOkay,
         reverseTimeline: booleanValidatorOptional,
+        delayedReadingIntervalInMS: numberValidatorOptional,
     }, { isOptional: true }),
     tickets: objectValidator({
         defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -5233,4 +5234,10 @@ export var recentViewerValidator = objectValidator({
     at: dateValidator,
 });
 export var recentViewersValidator = listValidatorOptionalOrEmptyOk(recentViewerValidator);
+export var outOfOfficeBlockValidator = objectValidator({
+    from: dateValidator,
+    to: dateValidator,
+    autoreplyText: stringValidator5000,
+});
+export var outOfOfficeBlocksValidator = listValidatorEmptyOk(outOfOfficeBlockValidator);
 //# sourceMappingURL=validation.js.map
