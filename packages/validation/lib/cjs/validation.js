@@ -2768,6 +2768,7 @@ exports.formFieldOptionsValidator = (0, exports.objectValidator)({
         id: exports.mongoIdStringRequired,
     })),
     validFileTypes: exports.listOfStringsValidatorOptionalOrEmptyOk,
+    maxFileSize: exports.numberValidatorOptional,
     productIds: exports.listOfStringsValidatorOptionalOrEmptyOk,
     chargeImmediately: exports.booleanValidatorOptional,
     signatureUrl: exports.stringValidator5000Optional,

@@ -4412,6 +4412,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields, 
+      belugaVisitType: { validator: stringValidator },
       gtmTag: { validator: stringValidator100EscapeHTML },
       dontSyncToCanvasOnSubmission: { validator: booleanValidator },
       archivedAt: { validator: dateOptionalOrEmptyStringValidator },
@@ -5558,6 +5559,7 @@ export const schema: SchemaV1 = build_schema({
         }))
       },
       createAndBookAthenaSlot: { validator: booleanValidator },
+      dontSyncToElation: { validator: booleanValidator },
     }
   },
   calendar_event_templates: {
@@ -5572,6 +5574,7 @@ export const schema: SchemaV1 = build_schema({
     enduserActions: { read: {}, readMany: {} },
     fields: {
       ...BuiltInFields, 
+      dontSyncToElation: { validator: booleanValidator },
       sendIcsEmail: { validator: booleanValidator },
       createAndBookAthenaSlot: { validator: booleanValidator },
       athenaDepartmentId: { validator: stringValidator1000 },

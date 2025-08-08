@@ -284,7 +284,7 @@ export interface MicrosoftSSOConfiguration extends InternalBusinessRecord {
 }
 
 export interface InternalSecret extends InternalBusinessRecord {
-  type: 'twilio-ios' | 'twilio-android' | 'customer-usage-data',
+  type: 'twilio-ios' | 'twilio-android' | 'customer-usage-data' | 'beluga-sandbox' | 'beluga-production'
   publicKey: string,
   secretKey: string,
 }

@@ -3532,6 +3532,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
     id: mongoIdStringRequired,
   })),
   validFileTypes: listOfStringsValidatorOptionalOrEmptyOk,
+  maxFileSize: numberValidatorOptional,
   productIds: listOfStringsValidatorOptionalOrEmptyOk,
   chargeImmediately: booleanValidatorOptional,
   signatureUrl: stringValidator5000Optional,

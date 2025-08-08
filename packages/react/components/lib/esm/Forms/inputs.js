@@ -532,6 +532,14 @@ export var SignatureInput = function (_a) {
                                 marginBottom: '5px'
                             } }), _jsx("a", __assign({ href: field.options.signatureUrl, target: "_blank", rel: "noopener noreferrer" }, { children: "View document in new tab" }))] })), _jsxs(Grid, __assign({ item: true, xs: 12 }, { children: [_jsx(Checkbox, { style: { margin: 0, marginTop: 5, padding: 0, paddingRight: 3 }, color: "primary", checked: !!(value === null || value === void 0 ? void 0 : value.signed), onClick: function () { return handleConsentChange(); }, inputProps: { 'aria-label': 'consent to e-signature checkbox' } }), _jsxs(Typography, __assign({ component: "span", style: { position: 'relative', top: 5, left: 2 } }, { children: ["I consent to use ", _jsx("a", __assign({ href: "/e-signature-terms?name=".concat(((_g = field.options) === null || _g === void 0 ? void 0 : _g.esignatureTermsCompanyName) || ''), target: "_blank", rel: "noopener noreferrer" }, { children: " electronic signatures " }))] }))] })), _jsxs(Grid, __assign({ item: true, xs: 12, style: { marginTop: 12 } }, { children: [_jsx(TextField, { disabled: !(value === null || value === void 0 ? void 0 : value.signed), autoFocus: autoFocus, style: { width: '100%' }, size: "small", "aria-label": "Full Name", value: value === null || value === void 0 ? void 0 : value.fullName, placeholder: prefill || "Full Name", variant: "outlined", onChange: function (e) { return handleNameChange(e.target.value); }, InputProps: defaultInputProps }), _jsx(Typography, __assign({ color: "primary", style: { fontSize: 15, marginTop: 2 } }, { children: "Enter your legal full name to complete the signature" }))] }))] })));
 };
+var formatBytes = function (bytes) {
+    if (bytes === 0)
+        return '0 Bytes';
+    var k = 1024;
+    var sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+    var i = Math.floor(Math.log(bytes) / Math.log(k));
+    return "".concat(parseFloat((bytes / Math.pow(k, i)).toFixed(2)), " ").concat(sizes[i]);
+};
 export function convertHEIC(file) {
     return __awaiter(this, void 0, void 0, function () {
         var blobURL, blobRes, blob, conversionResult, url;
@@ -568,11 +576,14 @@ export var FileInput = function (_a) {
     var _d = useState(''), error = _d[0], setError = _d[1];
     var _e = useDropzone({
         onDrop: useCallback(function (acceptedFiles) {
-            var _a, _b, _d;
+            var _a, _b, _d, _e;
             var file = acceptedFiles.pop();
             if (!file)
                 return;
-            if ((_b = (_a = field.options) === null || _a === void 0 ? void 0 : _a.validFileTypes) === null || _b === void 0 ? void 0 : _b.length) {
+            if (((_a = field.options) === null || _a === void 0 ? void 0 : _a.maxFileSize) && file.size > field.options.maxFileSize) {
+                return setError("File size must be less than ".concat(formatBytes(field.options.maxFileSize)));
+            }
+            if ((_d = (_b = field.options) === null || _b === void 0 ? void 0 : _b.validFileTypes) === null || _d === void 0 ? void 0 : _d.length) {
                 var match = field.options.validFileTypes.find(function (t) { return file.type.includes(t.toLowerCase()); });
                 if (!match) {
                     return setError("File must have type: ".concat(field.options.validFileTypes.join(', ')));
@@ -580,7 +591,7 @@ export var FileInput = function (_a) {
             }
             setError('');
             onChange(file, field.id);
-            if (((_d = field.options) === null || _d === void 0 ? void 0 : _d.autoUploadFiles) && handleFileUpload) {
+            if (((_e = field.options) === null || _e === void 0 ? void 0 : _e.autoUploadFiles) && handleFileUpload) {
                 setUploadingFiles === null || setUploadingFiles === void 0 ? void 0 : setUploadingFiles(function (fs) { return __spreadArray(__spreadArray([], fs, true), [{ fieldId: field.id }], false); });
                 handleFileUpload(file, field.id)
                     .finally(function () { return setUploadingFiles === null || setUploadingFiles === void 0 ? void 0 : setUploadingFiles(function (fs) { return fs.filter(function (f) { return f.fieldId !== field.id; }); }); });
@@ -1058,7 +1069,10 @@ export var DatabaseSelectInput = function (_a) {
                     ? filterResponse.find(function (r) { return r === v.toString() || (typeof r === 'object' && r.text === v); })
                     : (typeof filterResponse === 'string' || typeof filterResponse === 'number')
                         ? filterResponse.toString() === v.toString()
-                        : false);
+                        : (typeof filterResponse === 'object' && filterResponse.city === v.toString()) ? true
+                            : (typeof filterResponse === 'object' && filterResponse.state === v.toString()) ? true
+                                : (typeof filterResponse === 'object' && filterResponse.zipCode === v.toString()) ? true
+                                    : false);
             }
             return false;
         }));

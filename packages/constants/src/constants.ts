@@ -154,6 +154,7 @@ export const KENDRA_TITLE = "Kendra"
 export const CHARGEBEE_TITLE = "Chargebee"
 export const CUSTOMER_IO_TITLE = "Customer IO"
 export const PUPPETEER_TITLE = "Puppeteer"
+export const BELUGA_TITLE = "Beluga"
 
 // stored in Organization.hasIntegrations
 // must also be in ORGANIZATION_WIDE_INTEGRATIONS
@@ -183,6 +184,7 @@ export const ORGANIZATION_WIDE_INTEGRATIONS = [
   CUSTOMER_IO_TITLE,
   SUPERDIAL_TITLE,
   PUPPETEER_TITLE,
+  BELUGA_TITLE,
 ]
 
 export const ONE_MINUTE_IN_MS = 1000 * 60

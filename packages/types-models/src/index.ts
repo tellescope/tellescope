@@ -389,6 +389,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedDevelopHealth?: boolean,
   hasConnectedCustomerIO?: boolean,
   hasConnectedSuperDial?: boolean,
+  hasConnectedBeluga?: boolean,
   hasConfiguredZoom?: boolean,
   hasTicketQueues?: boolean,
   vitalTeamId?: string,
@@ -1342,6 +1343,7 @@ export interface ChatMessage extends ChatMessage_readonly, ChatMessage_required,
   sendAt?: Date | '',
   isDraft?: boolean,
   journeyId?: string,
+  source?: string,
 }
 
 export type MessageTemplateType = 'enduser' | 'Reply' | 'team'  // default to 'enduser'
@@ -1624,6 +1626,7 @@ export type FormFieldOptions = FormFieldValidation & {
   canvasConsentCategory?: CanvasConsentCategory,
   subFields?: FormSubField[],
   validFileTypes?: string[], // should be human readable files where the lower-case version is included in a filetype, e.g. Image, Video, PDF
+  maxFileSize?: number, // in bytes
   signatureUrl?: string,
   productIds?: string[],
   chargeImmediately?: boolean,
@@ -1823,6 +1826,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   syncToCanvasAsDataImport?: boolean,
   matchCareTeamTagsForCanvasPractitionerResolution?: ListOfStringsWithQualifier,
   dontSyncToCanvasOnSubmission?: boolean,
+  belugaVisitType?: string,
 }
 
 export interface FormGroup_readonly extends ClientRecord {}
@@ -2254,6 +2258,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   addenda?: Addendum[],
   canvasEncounterId?: string,
   pushedToPortalAt?: Date,
+  belugaStatus?: string,
 }
 
 export interface WebHook_readonly extends ClientRecord {}
@@ -2340,6 +2345,7 @@ export interface CalendarEvent_required {
 export interface CalendarEvent_updatesDisabled {}
 export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_required, CalendarEvent_updatesDisabled {
   updateKey?: string,
+  dontSyncToElation?: boolean,
   createAndBookAthenaSlot?: boolean,
   athenaDepartmentId?: string,
   generateAthenaTelehealthLink?: boolean,
@@ -2513,6 +2519,7 @@ export interface CalendarEventTemplate_required {
 }
 export interface CalendarEventTemplate_updatesDisabled {}
 export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, CalendarEventTemplate_required, CalendarEventTemplate_updatesDisabled {
+  dontSyncToElation?: boolean,
   sendIcsEmail?: boolean,
   createAndBookAthenaSlot?: boolean,
   dontSyncToCanvas?: boolean,

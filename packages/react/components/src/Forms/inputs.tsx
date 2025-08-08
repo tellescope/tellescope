@@ -5,7 +5,7 @@ import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
 import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities"
-import { DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, TellescopeGender, TIMEZONES_USA } from "@tellescope/types-models"
+import { Address, DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, TellescopeGender, TIMEZONES_USA } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -1220,6 +1220,14 @@ export const SignatureInput = ({ value, field, autoFocus=true, enduser, onChange
   )
 }
 
+const formatBytes = (bytes: number) => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB', 'TB', 'PB', 'EB', 'ZB', 'YB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return `${parseFloat((bytes / Math.pow(k, i)).toFixed(2))} ${sizes[i]}`;
+}
+
 export async function convertHEIC (file: FileBlob | string){
   // get image as blob url
   let blobURL = (
@@ -1249,6 +1257,10 @@ export const FileInput = ({ value, onChange, field, existingFileName, uploadingF
       acceptedFiles => {
         const file = acceptedFiles.pop()
         if (!file) return
+
+        if (field.options?.maxFileSize && file.size > field.options.maxFileSize) {
+          return setError(`File size must be less than ${formatBytes(field.options.maxFileSize)}`)
+        }
 
         if (field.options?.validFileTypes?.length) {
           const match = field.options.validFileTypes.find(t => file.type.includes(t.toLowerCase()))
@@ -2012,6 +2024,9 @@ export const DatabaseSelectInput = ({ AddToDatabase, field, value: _value, onCha
               ? (filterResponse as any[]).find(r => r === v.toString() || (typeof r === 'object' && r.text === v))
           : (typeof filterResponse === 'string' || typeof filterResponse === 'number')
               ? filterResponse.toString() === v.toString()
+          : (typeof filterResponse === 'object' && (filterResponse as Address).city === v.toString()) ? true
+          : (typeof filterResponse === 'object' && (filterResponse as Address).state === v.toString()) ? true
+          : (typeof filterResponse === 'object' && (filterResponse as Address).zipCode === v.toString()) ? true
               : false
           )
         }
