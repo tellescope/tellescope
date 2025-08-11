@@ -11282,23 +11282,19 @@ const inbox_loading_tests = async () => {
   const comment = await sdk.api.ticket_thread_comments.createOne({
     enduserId: e.id,
     html: '',
-    inbound: false,
+    inbound: true,
     plaintext: '',
     public: false,
     ticketThreadId: thread.id,
     userId: sdk.userInfo.id,
   })
   const room = await sdk.api.chat_rooms.createOne({ enduserIds: [e.id], userIds: [], title: 'Test Chat Room' })
-
-  // we could eventually support this, but keep code simpler by not allowing it for now
-  await async_test(
-    'Cant filter by userId and enduserIds at the same time',
-    () => sdk.api.endusers.load_inbox_data({ userId: sdk.userInfo.id, enduserIds: [e.id] }),
-    handleAnyError,
-  )
+  
+  await sdk.api.chats.createOne({ roomId: room.id, message: 'test', enduserId: e.id, senderId: e.id  })
+  await wait (undefined, 500) // allow for recentEnduserTimestamp to be set to indicate inbound chat in chat room
 
   await async_test(
-    "Inbox loads emails",
+    "Inbox loads messages",
     () => sdk.api.endusers.load_inbox_data({ }),
     { onResult: r => (
          r.chat_rooms.length === 1
@@ -11311,7 +11307,7 @@ const inbox_loading_tests = async () => {
     ) }
   )
   await async_test(
-    "Inbox loads emails with used enduserId",
+    "Inbox loads messages with used enduserId",
     () => sdk.api.endusers.load_inbox_data({ enduserIds: [e.id] }),
     { onResult: r => (
          r.chat_rooms.length === 1
@@ -11324,7 +11320,7 @@ const inbox_loading_tests = async () => {
     ) }
   )
   await async_test(
-    "Inbox loads emails with unused enduserId",
+    "Inbox loads messages with unused enduserId",
     () => sdk.api.endusers.load_inbox_data({ enduserIds: [e2.id] }),
     { onResult: r => (
          r.chat_rooms.length === 0
@@ -11338,30 +11334,30 @@ const inbox_loading_tests = async () => {
   )
   
   await async_test(
-    "Inbox loads emails (filter by self when no threads are assigned)",
+    "Inbox loads no messages (filter by self when no threads are assigned)",
     () => sdk.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }),
     { onResult: r => (
-         r.chat_rooms.length === 1
-      && r.emails.length === 1
-      && r.sms_messages.length === 1
-      && r.group_mms_conversations.length === 1
-      && r.phone_calls.length === 1
-      && r.ticket_thread_comments.length === 1
-      && r.endusers.length === 1
+         r.chat_rooms.length === 0
+      && r.emails.length === 0
+      && r.sms_messages.length === 0
+      && r.group_mms_conversations.length === 0
+      && r.phone_calls.length === 0
+      && r.ticket_thread_comments.length === 0
+      && r.endusers.length === 0
     ) }
   )
 
   await async_test(
-    "Inbox loads emails (filter by other when no threads are assigned)",
+    "Inbox loads no messages (filter by other when no threads are assigned)",
     () => sdk.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }),
     { onResult: r => (
-         r.chat_rooms.length === 1
-      && r.emails.length === 1
-      && r.sms_messages.length === 1
-      && r.group_mms_conversations.length === 1
-      && r.phone_calls.length === 1
-      && r.ticket_thread_comments.length === 1
-      && r.endusers.length === 1
+         r.chat_rooms.length === 0
+      && r.emails.length === 0
+      && r.sms_messages.length === 0
+      && r.group_mms_conversations.length === 0
+      && r.phone_calls.length === 0
+      && r.ticket_thread_comments.length === 0
+      && r.endusers.length === 0
     ) }
   )
 
@@ -11545,7 +11541,7 @@ const inbox_loading_tests = async () => {
   await sdk.api.phone_calls.updateOne(call.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })
   await sdk.api.ticket_threads.updateOne(thread.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })
   await sdk.api.ticket_thread_comments.updateOne(comment.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })
-  await sdk.api.chat_rooms.updateOne(room.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })
+  await sdk.api.chat_rooms.updateOne(room.id, { userIds: [sdk.userInfo.id] }, { replaceObjectFields: true })
 
   await async_test(
     'admin doesnt load inbox data with assignedTo as other filter',
@@ -12379,9 +12375,9 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests()
+    await inbox_loading_tests()
     await auto_reply_tests()
     await relationships_tests()
-    await inbox_loading_tests()
     await rate_limit_tests()
     await ip_address_form_tests()
     await bulk_update_tests()
