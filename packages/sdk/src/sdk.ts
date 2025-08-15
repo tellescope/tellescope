@@ -851,6 +851,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     send_message: (args: extractFields<CustomActions['ai_conversations']['send_message']['parameters']>) => (
       Promise<extractFields<CustomActions['ai_conversations']['send_message']['returns']>>
     ),
+    generate_ai_decision: (args: extractFields<CustomActions['ai_conversations']['generate_ai_decision']['parameters']>) => (
+      Promise<extractFields<CustomActions['ai_conversations']['generate_ai_decision']['returns']>>
+    ),
   },
 }
 
@@ -1131,6 +1134,7 @@ export class Session extends SessionManager {
     queries.phone_trees.start_outbound_call = args => this._POST(`/v1${schema.phone_trees.customActions.start_outbound_call.path}`, args)
 
     queries.ai_conversations.send_message = args => this._POST(`/v1${schema.ai_conversations.customActions.send_message.path}`, args)
+    queries.ai_conversations.generate_ai_decision = args => this._POST(`/v1${schema.ai_conversations.customActions.generate_ai_decision.path}`, args)
 
     this.api = queries
   }

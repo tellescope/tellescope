@@ -605,6 +605,7 @@ var Session = /** @class */ (function (_super) {
         queries.background_errors.mark_read = function (args) { return _this._POST("/v1".concat(schema.background_errors.customActions.mark_read.path), args); };
         queries.phone_trees.start_outbound_call = function (args) { return _this._POST("/v1".concat(schema.phone_trees.customActions.start_outbound_call.path), args); };
         queries.ai_conversations.send_message = function (args) { return _this._POST("/v1".concat(schema.ai_conversations.customActions.send_message.path), args); };
+        queries.ai_conversations.generate_ai_decision = function (args) { return _this._POST("/v1".concat(schema.ai_conversations.customActions.generate_ai_decision.path), args); };
         _this.api = queries;
         return _this;
     }

@@ -1924,6 +1924,7 @@ var _AUTOMATION_EVENTS = {
     ticketCompleted: '',
     waitForTrigger: '',
     onCallOutcome: '',
+    onAIDecision: '',
 };
 export var AUTOMATION_EVENTS = Object.keys(_AUTOMATION_EVENTS);
 export var automationEventTypeValidator = exactMatchValidator(AUTOMATION_EVENTS);
@@ -1979,6 +1980,9 @@ var _AUTOMATION_ACTIONS = {
     removeCareTeam: '',
     callUser: '',
     stripeChargeCardOnFile: '',
+    metriportSync: '',
+    aiDecision: '',
+    assignInboxItem: '',
 };
 export var AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS);
 export var automationActionTypeValidator = exactMatchValidator(AUTOMATION_ACTIONS);
@@ -2122,6 +2126,13 @@ export var automationEventValidator = orValidator({
             outcome: stringValidator,
         }, { emptyOk: false }),
     }),
+    onAIDecision: objectValidator({
+        type: exactMatchValidator(['onAIDecision']),
+        info: objectValidator({
+            automationStepId: mongoIdStringRequired,
+            outcomes: listOfStringsValidator,
+        }, { emptyOk: false }),
+    }),
 });
 export var automationEventsValidator = listValidatorEmptyOk(automationEventValidator);
 export var automationConditionValidator = orValidator({
@@ -2239,6 +2250,10 @@ var sendWebhookInfoValidator = objectValidator({
     method: stringValidatorOptional,
     headers: labeledFieldsValidator,
 }, { emptyOk: false });
+export var AIDecisionSourceValidator = objectValidator({
+    limit: numberValidator,
+    type: stringValidator,
+});
 export var automationActionValidator = orValidator({
     developHealthMedEligibility: objectValidator(__assign({ type: exactMatchValidator(['developHealthMedEligibility']), info: objectValidator({
             drugs: developHealthDrugsValidator,
@@ -2388,6 +2403,9 @@ export var automationActionValidator = orValidator({
             closeAutomaticallyByTicket: booleanValidatorOptional,
         }, { emptyOk: false }) })),
     completeCarePlan: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['completeCarePlan']), info: objectValidator({}, { emptyOk: true }) })),
+    metriportSync: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['metriportSync']), info: objectValidator({
+            facilityId: stringValidator1000,
+        }, { emptyOk: true }) })),
     zusSync: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['zusSync']), info: objectValidator({}, { emptyOk: true }) })),
     zusPull: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['zusPull']), info: objectValidator({}, { emptyOk: true }) })),
     zusSubscribe: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['zusSubscribe']), info: objectValidator({
@@ -2471,6 +2489,17 @@ export var automationActionValidator = orValidator({
     stripeChargeCardOnFile: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['stripeChargeCardOnFile']), info: objectValidator({
             stripeKey: stringValidatorOptionalEmptyOkay,
             priceIds: listOfStringsValidator,
+        }, { emptyOk: false }) // at least tags is required
+     })),
+    aiDecision: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['aiDecision']), info: objectValidator({
+            outcomes: listOfStringsValidator,
+            prompt: stringValidator5000,
+            sources: listValidator(AIDecisionSourceValidator), // todo: make more restrictive
+        }, { emptyOk: false }) // at least tags is required
+     })),
+    assignInboxItem: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['assignInboxItem']), info: objectValidator({
+            tags: listOfStringsWithQualifierValidator,
+            limit: nonNegNumberValidator,
         }, { emptyOk: false }) // at least tags is required
      })),
     "Puppeteer: Start Agent": objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(["Puppeteer: Start Agent"]), info: sendWebhookInfoValidator })),
@@ -3404,6 +3433,7 @@ export var organizationSettingsValidator = objectValidator({
         launchDosespotWebhookURL: stringValidatorOptionalEmptyOkay,
         reverseTimeline: booleanValidatorOptional,
         delayedReadingIntervalInMS: numberValidatorOptional,
+        createChatRoomWithBlankUserIds: booleanValidatorOptional,
     }, { isOptional: true }),
     tickets: objectValidator({
         defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -5129,8 +5159,9 @@ export var mmsMessageValidator = objectValidator({
     sender: mongoIdStringRequired,
     timestamp: nonNegNumberValidator,
     images: listValidatorOptionalOrEmptyOk(imageAttachmentValidator),
+    logOnly: booleanValidatorOptional,
 });
-export var mmsMessagesValidator = listValidator(mmsMessageValidator);
+export var mmsMessagesValidator = listValidatorEmptyOk(mmsMessageValidator);
 export var groupMMSUserStateValidator = objectValidator({
     numUnread: nonNegNumberValidator,
     id: stringValidator,

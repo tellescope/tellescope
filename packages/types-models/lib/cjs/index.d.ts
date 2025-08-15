@@ -210,6 +210,7 @@ export type OrganizationSettings = {
         launchDosespotWebhookURL?: string;
         reverseTimeline?: boolean;
         delayedReadingIntervalInMS?: number;
+        createChatRoomWithBlankUserIds?: boolean;
     };
     tickets?: {
         defaultJourneyDueDateOffsetInMS?: number | '';
@@ -373,6 +374,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     hasConnectedCustomerIO?: boolean;
     hasConnectedSuperDial?: boolean;
     hasConnectedBeluga?: boolean;
+    hasConnectedMetriport?: boolean;
     hasConfiguredZoom?: boolean;
     hasTicketQueues?: boolean;
     vitalTeamId?: string;
@@ -682,6 +684,8 @@ export interface EnduserEngagementTimestamps {
     recentInboundSMSAt?: Date;
     recentOutboundEmailAt?: Date;
     recentInboundEmailAt?: Date;
+    recentOutboundGroupMMSAt?: Date;
+    recentInboundGroupMMSAt?: Date;
     recentActivityAt?: Date;
 }
 export type StripeSubscriptionStatus = 'active' | 'trialing' | 'incomplete' | 'incomplete_expired' | 'past_due' | 'canceled' | 'unpaid';
@@ -2632,7 +2636,7 @@ export interface WebhookCall {
     integrity: string;
     description?: string;
 }
-export type AutomationEventType = 'onJourneyStart' | 'afterAction' | "formResponse" | "formResponses" | "formUnsubmitted" | "formsUnsubmitted" | "ticketCompleted" | 'waitForTrigger' | "onCallOutcome";
+export type AutomationEventType = 'onJourneyStart' | 'afterAction' | "formResponse" | "formResponses" | "formUnsubmitted" | "formsUnsubmitted" | "ticketCompleted" | 'waitForTrigger' | "onCallOutcome" | "onAIDecision";
 interface AutomationEventBuilder<T extends AutomationEventType, V extends object> {
     type: T;
     info: V;
@@ -2762,7 +2766,10 @@ export type OnCallOutcomeAutomationEvent = AutomationEventBuilder<'onCallOutcome
     automationStepId: string;
     outcome: string;
 }>;
-export type AutomationEvent = FormResponseAutomationEvent | FormResponsesAutomationEvent | AfterActionAutomationEvent | OnJourneyStartAutomationEvent | FormUnsubmittedEvent | FormsUnsubmittedEvent | TicketCompletedAutomationEvent | WaitForTriggerAutomationEvent | OnCallOutcomeAutomationEvent;
+export type OnAIDecisionAutomationEvent = AutomationEventBuilder<'onAIDecision', {
+    automationStepId: string;
+    outcomes: string[];
+}>;
 export type AutomationEventForType = {
     'onJourneyStart': OnJourneyStartAutomationEvent;
     'afterAction': AfterActionAutomationEvent;
@@ -2773,7 +2780,9 @@ export type AutomationEventForType = {
     'ticketCompleted': TicketCompletedAutomationEvent;
     'waitForTrigger': WaitForTriggerAutomationEvent;
     'onCallOutcome': OnCallOutcomeAutomationEvent;
+    'onAIDecision': OnAIDecisionAutomationEvent;
 };
+export type AutomationEvent = AutomationEventForType[keyof AutomationEventForType];
 export type SetEnduserStatusInfo = {
     status: string;
 };
@@ -2900,6 +2909,9 @@ export type CreateCarePlanAutomationAction = AutomationActionBuilder<'createCare
 export type CompleteCarePlanAutomationAction = AutomationActionBuilder<'completeCarePlan', {}>;
 export type ZusSyncAutomationAction = AutomationActionBuilder<'zusSync', {}>;
 export type ZusPullAutomationAction = AutomationActionBuilder<'zusPull', {}>;
+export type MetriportSyncAutomationAction = AutomationActionBuilder<'metriportSync', {
+    facilityId: string;
+}>;
 export type ZusSubscribeAutomationAction = AutomationActionBuilder<'zusSubscribe', {
     practitionerId: string;
     packageIds: string[];
@@ -3019,7 +3031,22 @@ export type StripeChargeCardOnFileAutomationAction = AutomationActionBuilder<'st
     stripeKey?: string;
     priceIds: string[];
 }>;
+export type AIContextSource = {
+    type: "Email" | "SMS";
+    limit: number;
+};
+export type AIDecisionAutomationAction = AutomationActionBuilder<'aiDecision', {
+    prompt: string;
+    sources: AIContextSource[];
+    outcomes: string[];
+}>;
+export type AssignInboxItemAutomationAction = AutomationActionBuilder<'assignInboxItem', {
+    tags: ListOfStringsWithQualifier;
+    limit: number;
+}>;
 export type AutomationActionForType = {
+    'aiDecision': AIDecisionAutomationAction;
+    'assignInboxItem': AssignInboxItemAutomationAction;
     'stripeChargeCardOnFile': StripeChargeCardOnFileAutomationAction;
     'outboundCall': OutboundCallAutomationAction;
     "sendEmail": SendEmailAutomationAction;
@@ -3046,6 +3073,7 @@ export type AutomationActionForType = {
     'completeCarePlan': CompleteCarePlanAutomationAction;
     'zusSync': ZusSyncAutomationAction;
     'zusPull': ZusPullAutomationAction;
+    'metriportSync': MetriportSyncAutomationAction;
     'zusSubscribe': ZusSubscribeAutomationAction;
     'pagerDutyCreateIncident': PagerDutyCreateIncidentAutomationAction;
     'smartMeterPlaceOrder': SmartMeterPlaceOrderAutomationAction;
@@ -3358,7 +3386,6 @@ export interface CommentLike extends CommentLike_readonly, CommentLike_required,
 }
 export type AutomatedActionStatus = 'active' | 'finished' | 'cancelled' | 'error';
 export interface AutomatedAction_readonly extends ClientRecord {
-    journeyContext?: JourneyContext;
     source?: string;
     triggerId?: string;
     lockedAt?: number;
@@ -3385,6 +3412,7 @@ export interface AutomatedAction_updatesDisabled {
 export interface AutomatedAction extends AutomatedAction_readonly, AutomatedAction_required, AutomatedAction_updatesDisabled {
     isNOP?: boolean;
     cancelledBy?: string;
+    journeyContext?: JourneyContext;
 }
 export interface UserLog_readonly extends ClientRecord {
     userId: string;
@@ -4620,6 +4648,7 @@ export type GroupMMSMessage = {
     sender: string;
     timestamp: number;
     images?: ImageAttachment[];
+    logOnly?: boolean;
 };
 export type GroupMMSUserState = {
     id: string;
@@ -4629,7 +4658,6 @@ export type GroupMMSUserState = {
 export interface GroupMMSConversation_readonly extends ClientRecord {
     externalId: string;
     destinations: string[];
-    messages: GroupMMSMessage[];
     phoneNumber: string;
     title: string;
     pinnedAt?: Date | '';
@@ -4641,6 +4669,7 @@ export interface GroupMMSConversation_readonly extends ClientRecord {
     hiddenForAll?: boolean;
 }
 export interface GroupMMSConversation_updatesDisabled {
+    messages: GroupMMSMessage[];
 }
 export interface GroupMMSConversation_required {
     userIds: string[];

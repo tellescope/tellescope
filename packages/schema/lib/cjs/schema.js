@@ -620,6 +620,8 @@ exports.schema = (0, exports.build_schema)({
                     lastGroupMMSId: { validator: validation_1.mongoIdStringRequired },
                     lastPhoneCallId: { validator: validation_1.mongoIdStringRequired },
                     lastTicketThreadCommentId: { validator: validation_1.mongoIdStringRequired },
+                    lastChatRoomUpdatedAt: { validator: validation_1.dateValidatorOptional },
+                    lastGroupMMSUpdatedAt: { validator: validation_1.dateValidatorOptional },
                 },
                 returns: {
                     emails: { validator: 'emails', required: true },
@@ -3865,7 +3867,7 @@ exports.schema = (0, exports.build_schema)({
                 validator: validation_1.nonNegNumberValidator,
                 required: true,
                 examples: [Date.now()],
-            } })
+            }, journeyContext: { validator: validation_1.journeyContextValidator } })
     },
     user_logs: {
         info: {},
@@ -5780,6 +5782,7 @@ exports.schema = (0, exports.build_schema)({
                     message: { validator: validation_1.stringValidator, required: true },
                     sender: { validator: validation_1.mongoIdStringRequired, required: true },
                     conversationId: { validator: validation_1.mongoIdStringRequired, required: true },
+                    logOnly: { validator: validation_1.booleanValidatorOptional }
                 },
                 returns: {
                     conversation: { validator: 'group_mms_conversations' },
@@ -5787,7 +5790,7 @@ exports.schema = (0, exports.build_schema)({
             },
         },
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { markedUnreadForAll: { validator: validation_1.booleanValidator }, inboxStatus: { validator: validation_1.stringValidator100 }, userIds: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, enduserIds: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, externalId: { validator: validation_1.stringValidator, readonly: true }, phoneNumber: { validator: validation_1.stringValidator, readonly: true }, destinations: { validator: validation_1.listOfStringsValidator, readonly: true }, title: { validator: validation_1.stringValidator, readonly: true }, messages: { validator: validation_1.mmsMessagesValidator, readonly: true }, userStates: { validator: validation_1.groupMMSUserStatesValidator }, tags: { validator: validation_1.listOfStringsValidatorEmptyOk }, suggestedReply: { validator: validation_1.stringValidator5000EmptyOkay }, hiddenBy: { validator: validation_1.idStringToDateValidator }, hiddenForAll: { validator: validation_1.booleanValidator }, assignedTo: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator } }),
+        fields: __assign(__assign({}, BuiltInFields), { markedUnreadForAll: { validator: validation_1.booleanValidator }, inboxStatus: { validator: validation_1.stringValidator100 }, userIds: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, enduserIds: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, externalId: { validator: validation_1.stringValidator, readonly: true }, phoneNumber: { validator: validation_1.stringValidator, readonly: true }, destinations: { validator: validation_1.listOfStringsValidator, readonly: true }, title: { validator: validation_1.stringValidator, readonly: true }, messages: { validator: validation_1.mmsMessagesValidator, updatesDisabled: true, /* allows creating empty when testing while still broadly readonly */ }, userStates: { validator: validation_1.groupMMSUserStatesValidator }, tags: { validator: validation_1.listOfStringsValidatorEmptyOk }, suggestedReply: { validator: validation_1.stringValidator5000EmptyOkay }, hiddenBy: { validator: validation_1.idStringToDateValidator }, hiddenForAll: { validator: validation_1.booleanValidator }, assignedTo: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator } }),
     },
     enduser_encounters: {
         info: {
@@ -6242,7 +6245,22 @@ exports.schema = (0, exports.build_schema)({
                 returns: {
                     ai_conversation: { validator: 'ai_conversation', required: true },
                 },
-            }
+            },
+            generate_ai_decision: {
+                op: "custom", access: 'create', method: "post",
+                name: 'Generate AI Decision',
+                path: '/ai-conversations/generate-ai-decision',
+                description: "Generates a decision from the AI conversation and continues in Journey",
+                parameters: {
+                    enduserId: { validator: validation_1.mongoIdStringRequired, required: true },
+                    automationStepId: { validator: validation_1.mongoIdStringRequired, required: true },
+                    outcomes: { validator: validation_1.listOfStringsValidator, required: true },
+                    prompt: { validator: validation_1.stringValidator5000, required: true },
+                    sources: { validator: (0, validation_1.listValidator)(validation_1.AIDecisionSourceValidator), required: true },
+                    journeyContext: { validator: validation_1.journeyContextValidator },
+                },
+                returns: {},
+            },
         },
         fields: __assign(__assign({}, BuiltInFields), { type: { validator: validation_1.stringValidator, required: true, examples: ['HTML Template Generation'] }, modelName: { validator: validation_1.stringValidator, required: true, examples: ['Claude Sonnet 4'] }, messages: {
                 validator: (0, validation_1.listValidatorEmptyOk)((0, validation_1.objectValidator)({

@@ -155,12 +155,14 @@ export const CHARGEBEE_TITLE = "Chargebee"
 export const CUSTOMER_IO_TITLE = "Customer IO"
 export const PUPPETEER_TITLE = "Puppeteer"
 export const BELUGA_TITLE = "Beluga"
+export const METRIPORT_TITLE = "Metriport"
 
 // stored in Organization.hasIntegrations
 // must also be in ORGANIZATION_WIDE_INTEGRATIONS
 export const GENERIC_INTEGRATIONS = [PUPPETEER_TITLE]
 
 export const ORGANIZATION_WIDE_INTEGRATIONS = [
+  METRIPORT_TITLE,
   OPENAI_TITLE, 
   ATHENA_TITLE, 
   DOSESPOT_TITLE, 

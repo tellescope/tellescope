@@ -125,6 +125,7 @@ export declare const CHARGEBEE_TITLE = "Chargebee";
 export declare const CUSTOMER_IO_TITLE = "Customer IO";
 export declare const PUPPETEER_TITLE = "Puppeteer";
 export declare const BELUGA_TITLE = "Beluga";
+export declare const METRIPORT_TITLE = "Metriport";
 export declare const GENERIC_INTEGRATIONS: string[];
 export declare const ORGANIZATION_WIDE_INTEGRATIONS: string[];
 export declare const ONE_MINUTE_IN_MS: number;

@@ -8076,6 +8076,116 @@ const configurations_tests = async () => {
   await sdk.api.configurations.deleteOne(c.id)
 }
 
+const group_mms_active_tests = async () => {
+  log_header("Group MMS Tests")
+
+  const [e1, e2, e3] = (await sdk.api.endusers.createSome([{ },{ },{ },])).created
+
+  // might not be zero due to prior tests, so use this as a 'tare'
+  const initialActiveCount = (await sdk.api.endusers.get_engagement_statistics({})).count
+
+  const groupMMS1 = await sdk.api.group_mms_conversations.createOne({
+    enduserIds: [e1.id, e2.id], userIds: [sdk.userInfo.id], userStates: [], messages: [],
+  })
+
+  const preSend = new Date(0)
+
+  await sdk.api.group_mms_conversations.send_message({
+    conversationId: groupMMS1.id,
+    sender: e1.id,
+    message: "Hello from the group MMS test!",
+    logOnly: true,
+  })
+  await wait(undefined, 250) // wait for side effects
+  await sdk.api.group_mms_conversations.send_message({
+    conversationId: groupMMS1.id,
+    sender: e1.id,
+    message: "Hello again from enduser!", // worth sending a second message to test active count later
+    logOnly: true,
+  })
+  await wait(undefined, 250) // wait for side effects
+
+  const postSend = new Date(Date.now() + 1000)
+
+  await async_test(
+    "Incoming timestamp is set for sender",
+    () => sdk.api.endusers.getOne(e1.id),
+    { onResult: r => !r.recentOutboundGroupMMSAt && !!r.recentInboundGroupMMSAt }
+  )
+  await async_test(
+    "Incoming timestamp is not set for other participant",
+    () => sdk.api.endusers.getOne(e2.id),
+    { onResult: r => !r.recentOutboundGroupMMSAt && !r.recentInboundGroupMMSAt }
+  )
+  await async_test(
+    "Incoming timestamp is not set for non-participant",
+    () => sdk.api.endusers.getOne(e3.id),
+    { onResult: r => !r.recentOutboundGroupMMSAt && !r.recentInboundGroupMMSAt }
+  )
+
+  await sdk.api.group_mms_conversations.send_message({
+    conversationId: groupMMS1.id,
+    sender: sdk.userInfo.id,
+    message: "Reply from a non-enduser!",
+    logOnly: true,
+  })
+  await wait(undefined, 250) // wait for side effects
+
+  await async_test(
+    "Outgoing timestamp is set for sender",
+    () => sdk.api.endusers.getOne(e1.id),
+    { onResult: r => !!r.recentOutboundGroupMMSAt && !!r.recentInboundGroupMMSAt }
+  )
+  await async_test(
+    "Outgoing timestamp is set for other participant",
+    () => sdk.api.endusers.getOne(e2.id),
+    { onResult: r => !!r.recentOutboundGroupMMSAt && !r.recentInboundGroupMMSAt }
+  )
+  await async_test(
+    "Outgoing timestamp is not set for non participant",
+    () => sdk.api.endusers.getOne(e3.id),
+    { onResult: r => !r.recentOutboundGroupMMSAt && !r.recentInboundGroupMMSAt }
+  )
+
+  await async_test(
+    "Active count incremented by 1 for inbound group MMS",
+    () => sdk.api.endusers.get_engagement_statistics({}),
+    { onResult: r => r.count === initialActiveCount + 1 }
+  )
+  await async_test(
+    "Active count incremented by 1 for inbound group MMS with from",
+    () => sdk.api.endusers.get_engagement_statistics({ range: { from: preSend }}),
+    { onResult: r => r.count === initialActiveCount + 1 }
+  )
+  await async_test(
+    "Active count incremented by 1 for inbound group MMS with to",
+    () => sdk.api.endusers.get_engagement_statistics({ range: { to: postSend }}),
+    { onResult: r => r.count === initialActiveCount + 1 }
+  )
+  await async_test(
+    "Active count incremented by 1 for inbound group MMS with from and to",
+    () => sdk.api.endusers.get_engagement_statistics({ range: { from: preSend, to: postSend }}),
+    { onResult: r => r.count === initialActiveCount + 1 }
+  )
+  await async_test(
+    "Active count not incremented by 1 for inbound group MMS with old from",
+    () => sdk.api.endusers.get_engagement_statistics({ range: { from: postSend }}),
+    { onResult: r => r.count === initialActiveCount }
+  )
+  await async_test(
+    "Active count not incremented by 1 for inbound group MMS with old to",
+    () => sdk.api.endusers.get_engagement_statistics({ range: { to: preSend }}),
+    { onResult: r => r.count === initialActiveCount }
+  )
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(e1.id),
+    sdk.api.endusers.deleteOne(e2.id),
+    sdk.api.endusers.deleteOne(e3.id),
+    sdk.api.group_mms_conversations.deleteOne(groupMMS1.id),
+  ])
+}
+
 const NO_TEST = () => {}
 const tests: { [K in keyof ClientModelForName]: () => void } = {
   agent_records: agent_record_tests,
@@ -11293,6 +11403,8 @@ const inbox_loading_tests = async () => {
   await sdk.api.chats.createOne({ roomId: room.id, message: 'test', enduserId: e.id, senderId: e.id  })
   await wait (undefined, 500) // allow for recentEnduserTimestamp to be set to indicate inbound chat in chat room
 
+  const updatedRoom = await sdk.api.chat_rooms.getOne(room.id)
+
   await async_test(
     "Inbox loads messages",
     () => sdk.api.endusers.load_inbox_data({ }),
@@ -11306,6 +11418,115 @@ const inbox_loading_tests = async () => {
       && r.endusers.length === 1
     ) }
   )
+  await async_test(
+    "Inbox loads messages (lastIds)",
+    () => sdk.api.endusers.load_inbox_data({ 
+      lastChatRoomId: room.id,
+      lastEmailId: email.id,
+      lastSMSId: sms.id,
+      lastGroupMMSId: groupMMS.id,
+      lastPhoneCallId: call.id,
+      lastTicketThreadCommentId: comment.id,
+    }),
+    { onResult: r => (
+         r.chat_rooms.length === 0
+      && r.emails.length === 0
+      && r.sms_messages.length === 0
+      && r.group_mms_conversations.length === 0
+      && r.phone_calls.length === 0
+      && r.ticket_thread_comments.length === 0
+      && r.endusers.length === 0
+    ) }
+  )
+  await async_test(
+    "Inbox loads messages (blank lastIds)",
+    () => sdk.api.endusers.load_inbox_data({ 
+      lastChatRoomId: '',
+      lastEmailId: '',
+      lastSMSId: '',
+      lastGroupMMSId: '',
+      lastPhoneCallId: '',
+      lastTicketThreadCommentId: '',
+    }),
+    { onResult: r => (
+         r.chat_rooms.length === 0
+      && r.emails.length === 0
+      && r.sms_messages.length === 0
+      && r.group_mms_conversations.length === 0
+      && r.phone_calls.length === 0
+      && r.ticket_thread_comments.length === 0
+      && r.endusers.length === 0
+    ) }
+  )
+  await async_test(
+    "Inbox loads messages (lastUpdatedAt 0 date)",
+    () => sdk.api.endusers.load_inbox_data({ 
+      lastChatRoomUpdatedAt: new Date(0),
+      lastGroupMMSUpdatedAt: new Date(0),
+    }),
+    { onResult: r => (
+         r.chat_rooms.length === 0
+      && r.emails.length === 1
+      && r.sms_messages.length === 1
+      && r.group_mms_conversations.length === 0
+      && r.phone_calls.length === 1
+      && r.ticket_thread_comments.length === 1
+      && r.endusers.length === 1
+    ) }
+  )
+  await async_test(
+    "Inbox loads messages (lastUpdatedAt current date)",
+    () => sdk.api.endusers.load_inbox_data({ 
+      lastChatRoomUpdatedAt: new Date(),
+      lastGroupMMSUpdatedAt: new Date(),
+    }),
+    { onResult: r => (
+         r.chat_rooms.length === 1
+      && r.emails.length === 1
+      && r.sms_messages.length === 1
+      && r.group_mms_conversations.length === 1
+      && r.phone_calls.length === 1
+      && r.ticket_thread_comments.length === 1
+      && r.endusers.length === 1
+    ) }
+  )
+  // backend uses $lte instead of $lt in case of different convos that have the same id
+  await async_test(
+    "Inbox loads messages (lastUpdatedAt initial date)",
+    () => sdk.api.endusers.load_inbox_data({ 
+      lastChatRoomUpdatedAt: new Date(new Date(room.updatedAt).getTime() - 1),
+      lastGroupMMSUpdatedAt: new Date(new Date(groupMMS.updatedAt).getTime() - 1),
+    }),
+    { onResult: r => (
+         r.chat_rooms.length === 0
+      && r.emails.length === 1
+      && r.sms_messages.length === 1
+      && r.group_mms_conversations.length === 0
+      && r.phone_calls.length === 1
+      && r.ticket_thread_comments.length === 1
+      && r.endusers.length === 1
+    ) }
+  )
+  // providing id but using same timestamp filters out the thread itself
+  await async_test(
+    "Inbox loads messages (lastUpdatedAt initial date and ids provided)",
+    () => sdk.api.endusers.load_inbox_data({ 
+      lastChatRoomId: room.id,
+      lastGroupMMSId: groupMMS.id,
+      lastChatRoomUpdatedAt: new Date(new Date(room.updatedAt).getTime()),
+      lastGroupMMSUpdatedAt: new Date(new Date(groupMMS.updatedAt).getTime()),
+    }),
+    { onResult: r => (
+         r.chat_rooms.length === 0
+      && r.emails.length === 1
+      && r.sms_messages.length === 1
+      && r.group_mms_conversations.length === 0
+      && r.phone_calls.length === 1
+      && r.ticket_thread_comments.length === 1
+      && r.endusers.length === 1
+    ) }
+  )
+
   await async_test(
     "Inbox loads messages with used enduserId",
     () => sdk.api.endusers.load_inbox_data({ enduserIds: [e.id] }),
@@ -12375,6 +12596,7 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests()
+    await group_mms_active_tests()
     await inbox_loading_tests()
     await auto_reply_tests()
     await relationships_tests()

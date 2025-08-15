@@ -857,7 +857,8 @@ export var ChatRoomSearch = function (props) {
     return (_jsx(ModelSearchInput, __assign({ filterKey: TICKET_SEARCH_FILTER_KEY }, props, { searchAPI: session.api.chat_rooms.getSome, onLoad: addLocalElements, attachSearchableFields: function (r) {
             var _a;
             var users = (r.userIds || []).map(function (r) { return findUser(r, { batch: true }); }).filter(function (u) { return u; });
-            var endusers = (r.enduserIds || []).map(function (r) { return findEnduser(r, { batch: true }); }).filter(function (e) { return e; });
+            var enduserIds = __spreadArray(__spreadArray([], r.enduserIds || [], true), r.aboutEnduserId ? [r.aboutEnduserId] : [], true);
+            var endusers = enduserIds.map(function (r) { return findEnduser(r, { batch: true }); }).filter(function (e) { return e; });
             var fields = {};
             var i = 0;
             for (var _i = 0, users_1 = users; _i < users_1.length; _i++) {

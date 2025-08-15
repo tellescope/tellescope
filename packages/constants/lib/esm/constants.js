@@ -144,10 +144,12 @@ export var CHARGEBEE_TITLE = "Chargebee";
 export var CUSTOMER_IO_TITLE = "Customer IO";
 export var PUPPETEER_TITLE = "Puppeteer";
 export var BELUGA_TITLE = "Beluga";
+export var METRIPORT_TITLE = "Metriport";
 // stored in Organization.hasIntegrations
 // must also be in ORGANIZATION_WIDE_INTEGRATIONS
 export var GENERIC_INTEGRATIONS = [PUPPETEER_TITLE];
 export var ORGANIZATION_WIDE_INTEGRATIONS = [
+    METRIPORT_TITLE,
     OPENAI_TITLE,
     ATHENA_TITLE,
     DOSESPOT_TITLE,

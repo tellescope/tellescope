@@ -936,7 +936,12 @@ export const ChatRoomSearch = (props: Omit<GenericSearchProps<ChatRoom>, 'filter
       onLoad={addLocalElements}
       attachSearchableFields={r => {
         const users = (r.userIds || []).map(r => findUser(r, { batch: true })!).filter(u => u)
-        const endusers = (r.enduserIds || []).map(r => findEnduser(r, { batch: true })!).filter(e => e)
+
+        const enduserIds = [
+          ...r.enduserIds || [],
+          ...r.aboutEnduserId ? [r.aboutEnduserId] : [],
+        ]
+        const endusers = enduserIds.map(r => findEnduser(r, { batch: true })!).filter(e => e)
 
         const fields = {} as Record<string, string>
         let i = 0

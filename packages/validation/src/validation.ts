@@ -326,6 +326,11 @@ import {
   FormResponseAnswerTimezone,
   BrandedWebhookActions,
   OutOfOfficeBlock,
+  MetriportSyncAutomationAction,
+  AIDecisionAutomationAction,
+  AssignInboxItemAutomationAction,
+  OnAIDecisionAutomationEvent,
+  AIContextSource,
 } from "@tellescope/types-models"
 import {
   AppointmentBookingPage,
@@ -2441,6 +2446,7 @@ const _AUTOMATION_EVENTS: { [K in AutomationEventType]: any } = {
   ticketCompleted: '',
   waitForTrigger: '',
   onCallOutcome: '',
+  onAIDecision: '',
 }
 export const AUTOMATION_EVENTS = Object.keys(_AUTOMATION_EVENTS) as AutomationEventType[]
 export const automationEventTypeValidator = exactMatchValidator<AutomationEventType>(AUTOMATION_EVENTS)
@@ -2497,6 +2503,9 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   removeCareTeam: '',
   callUser: '',
   stripeChargeCardOnFile: '',
+  metriportSync: '',
+  aiDecision: '',
+  assignInboxItem: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -2685,6 +2694,13 @@ export const automationEventValidator = orValidator<{ [K in AutomationEventType]
       outcome: stringValidator,
     }, { emptyOk: false }),
   }),
+  onAIDecision: objectValidator<OnAIDecisionAutomationEvent>({
+    type: exactMatchValidator(['onAIDecision']),
+    info: objectValidator<OnAIDecisionAutomationEvent['info']>({ 
+      automationStepId: mongoIdStringRequired, 
+      outcomes: listOfStringsValidator,
+    }, { emptyOk: false }),
+  }),
 })
 export const automationEventsValidator = listValidatorEmptyOk(automationEventValidator)
 
@@ -2814,6 +2830,11 @@ const sendWebhookInfoValidator = objectValidator<AutomationForWebhook>({
   method: stringValidatorOptional,
   headers: labeledFieldsValidator,
 }, { emptyOk: false })
+
+export const AIDecisionSourceValidator = objectValidator<AIContextSource>({
+  limit: numberValidator,
+  type: stringValidator,
+})
 
 export const automationActionValidator = orValidator<{ [K in AutomationActionType]: AutomationAction & { type: K } } | { [K in BrandedWebhookActions]: SendWebhookAutomationAction } >({
   developHealthMedEligibility: objectValidator<DevelopHealthMedicationEligibilityAutomationAction>({
@@ -3057,6 +3078,13 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     type: exactMatchValidator(['completeCarePlan']),
     info: objectValidator<CompleteCarePlanAutomationAction['info']>({ }, { emptyOk: true }),
   }), 
+  metriportSync: objectValidator<MetriportSyncAutomationAction>({
+    ...sharedAutomationActionValidators,
+    type: exactMatchValidator(['metriportSync']),
+    info: objectValidator<MetriportSyncAutomationAction['info']>({ 
+      facilityId: stringValidator1000,
+    }, { emptyOk: true }),
+  }),
   zusSync: objectValidator<ZusSyncAutomationAction>({
     ...sharedAutomationActionValidators,
     type: exactMatchValidator(['zusSync']),
@@ -3254,6 +3282,24 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       priceIds: listOfStringsValidator,
     }, { emptyOk: false }) // at least tags is required
   }),
+  aiDecision: objectValidator<AIDecisionAutomationAction>({
+    ...sharedAutomationActionValidators,
+    type: exactMatchValidator(['aiDecision']),
+    info: objectValidator<AIDecisionAutomationAction['info']>({ 
+      outcomes: listOfStringsValidator,
+      prompt: stringValidator5000,
+      sources: listValidator(AIDecisionSourceValidator), // todo: make more restrictive
+    }, { emptyOk: false }) // at least tags is required
+  }),
+  assignInboxItem: objectValidator<AssignInboxItemAutomationAction>({
+    ...sharedAutomationActionValidators,
+    type: exactMatchValidator(['assignInboxItem']),
+    info: objectValidator<AssignInboxItemAutomationAction['info']>({ 
+      tags: listOfStringsWithQualifierValidator,
+      limit: nonNegNumberValidator,
+    }, { emptyOk: false }) // at least tags is required
+  }),
+
 
   "Puppeteer: Start Agent": objectValidator<SendWebhookAutomationAction>({
     ...sharedAutomationActionValidators,
@@ -4249,6 +4295,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     launchDosespotWebhookURL: stringValidatorOptionalEmptyOkay,
     reverseTimeline: booleanValidatorOptional,
     delayedReadingIntervalInMS: numberValidatorOptional,
+    createChatRoomWithBlankUserIds: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -6102,8 +6149,9 @@ export const mmsMessageValidator = objectValidator<GroupMMSMessage>({
   sender: mongoIdStringRequired,
   timestamp: nonNegNumberValidator,
   images: listValidatorOptionalOrEmptyOk(imageAttachmentValidator),
+  logOnly: booleanValidatorOptional,
 })
-export const mmsMessagesValidator = listValidator(mmsMessageValidator)
+export const mmsMessagesValidator = listValidatorEmptyOk(mmsMessageValidator)
 
 export const groupMMSUserStateValidator = objectValidator<GroupMMSUserState>({
   numUnread: nonNegNumberValidator,

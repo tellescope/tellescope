@@ -81,6 +81,7 @@ import {
   AIConversationMessage,
   AICOnversationMessageContent,
   AttendeeStatus,
+  AIDecisionAutomationAction,
 } from "@tellescope/types-models"
 
 import {
@@ -336,6 +337,7 @@ import {
   customPoliciesValidator,
   stringValidator100EscapeHTML,
   outOfOfficeBlocksValidator,
+  AIDecisionSourceValidator,
 } from "@tellescope/validation"
 
 import {
@@ -860,6 +862,8 @@ export type CustomActions = {
         lastChatRoomId?: string,  
         lastPhoneCallId?: string,
         lastTicketThreadCommentId?: string,
+        lastChatRoomUpdatedAt?: Date,
+        lastGroupMMSUpdatedAt?: Date,
         limit?: number,
       }, {
         emails: Email[],
@@ -1129,6 +1133,7 @@ export type CustomActions = {
       conversationId: string,
       message: string,
       sender: string,
+      logOnly?: boolean,
     }, { conversation: GroupMMSConversation }>,
   },
   enduser_orders: {
@@ -1181,6 +1186,10 @@ export type CustomActions = {
       conversationId?: string, // for continuing an existing conversation
       maxTokens?: number,
     }, { ai_conversation: AIConversation }>,
+    generate_ai_decision: CustomAction<
+      AIDecisionAutomationAction['info'] & { enduserId: string, automationStepId: string, journeyContext?: JourneyContext }, 
+      { }
+    >;
   },
 } 
 
@@ -1895,6 +1904,8 @@ export const schema: SchemaV1 = build_schema({
           lastGroupMMSId: { validator: mongoIdStringValidator },
           lastPhoneCallId: { validator: mongoIdStringValidator },
           lastTicketThreadCommentId: { validator: mongoIdStringValidator },
+          lastChatRoomUpdatedAt: { validator: dateValidatorOptional },
+          lastGroupMMSUpdatedAt: { validator: dateValidatorOptional },
         },
         returns: { 
           emails: { validator: 'emails' as any, required: true }, 
@@ -5815,7 +5826,9 @@ export const schema: SchemaV1 = build_schema({
         validator: nonNegNumberValidator,
         required: true,
         examples: [Date.now()],
-      }
+      },
+      journeyContext: { validator: journeyContextValidator },
+
     }
   },
   user_logs: {
@@ -8262,6 +8275,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           message: { validator: stringValidator, required: true },
           sender: { validator: mongoIdStringRequired, required: true },
           conversationId: { validator: mongoIdStringRequired, required: true },
+          logOnly: { validator: booleanValidatorOptional }
         },
         returns: { 
           conversation: { validator: 'group_mms_conversations' as any },
@@ -8279,7 +8293,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       phoneNumber: { validator: stringValidator, readonly: true }, 
       destinations: { validator: listOfStringsValidator, readonly: true }, 
       title: { validator: stringValidator, readonly: true }, 
-      messages: { validator: mmsMessagesValidator, readonly: true },
+      messages: { validator: mmsMessagesValidator, updatesDisabled: true, /* allows creating empty when testing while still broadly readonly */ },
       userStates: { validator: groupMMSUserStatesValidator },
       tags: { validator: listOfStringsValidatorEmptyOk },
       suggestedReply: { validator: stringValidator5000EmptyOkay },
@@ -8892,7 +8906,23 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         returns: {
           ai_conversation: { validator: 'ai_conversation' as any, required: true },
         },
-      }
+      },
+      generate_ai_decision: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Generate AI Decision',
+        path: '/ai-conversations/generate-ai-decision',
+        description: "Generates a decision from the AI conversation and continues in Journey",
+        parameters: {
+          enduserId: { validator: mongoIdStringValidator, required: true },
+          automationStepId: { validator: mongoIdStringValidator, required: true },
+          outcomes: { validator: listOfStringsValidator, required: true },
+          prompt: { validator: stringValidator5000, required: true },
+          sources: { validator: listValidator(AIDecisionSourceValidator), required: true },
+          journeyContext: { validator: journeyContextValidator },
+        },
+        returns: {},
+      },
+      
     },
     fields: {
       ...BuiltInFields, 

@@ -3854,6 +3854,7 @@ type Queries = {
     };
     ai_conversations: {
         send_message: (args: extractFields<CustomActions['ai_conversations']['send_message']['parameters']>) => (Promise<extractFields<CustomActions['ai_conversations']['send_message']['returns']>>);
+        generate_ai_decision: (args: extractFields<CustomActions['ai_conversations']['generate_ai_decision']['parameters']>) => (Promise<extractFields<CustomActions['ai_conversations']['generate_ai_decision']['returns']>>);
     };
 };
 type UserInfo = User & {
