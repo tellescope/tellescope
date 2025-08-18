@@ -1287,6 +1287,7 @@ var useTellescopeForm = function (_a) {
             return;
         if (isNextDisabled() && (currentValue === null || currentValue === void 0 ? void 0 : currentValue.answer.type) !== 'Hidden Value')
             return;
+        console.log('going to next field');
         if (currentValue.answer.type === 'Question Group') {
             var responsesToSave = ((((_a = currentValue.field.options) === null || _a === void 0 ? void 0 : _a.subFields) || [])
                 .map(function (_a) {
@@ -1324,7 +1325,7 @@ var useTellescopeForm = function (_a) {
             }
             return newField || activeField;
         });
-    }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, logicOptions]);
+    }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, logicOptions, accessCode, formResponseId, setActiveField, setCurrentPageIndex]);
     (0, react_1.useEffect)(function () {
         if (dontAutoadvance)
             return;
@@ -1333,7 +1334,10 @@ var useTellescopeForm = function (_a) {
         autoAdvanceRef.current = false;
         // add slight delay so it's obvious which answer was selected before proceeding
         var t = setTimeout(goToNextField, 250);
-        return function () { clearTimeout(t); };
+        return function () {
+            console.log('clearing autoadvance timeout');
+            clearTimeout(t);
+        };
     }, [responses, goToNextField, dontAutoadvance]);
     var isPreviousDisabled = (0, react_1.useCallback)(function () {
         var _a, _b;

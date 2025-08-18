@@ -2249,6 +2249,7 @@ var sendWebhookInfoValidator = objectValidator({
     secret: stringValidatorOptional,
     method: stringValidatorOptional,
     headers: labeledFieldsValidator,
+    rawJSONBody: stringValidator25000OptionalEmptyOkay,
 }, { emptyOk: false });
 export var AIDecisionSourceValidator = objectValidator({
     limit: numberValidator,

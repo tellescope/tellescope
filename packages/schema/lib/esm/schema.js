@@ -3989,7 +3989,7 @@ export var schema = build_schema({
             },
         },
         enduserActions: { create: {}, createMany: {}, read: {}, readMany: {}, load: {} },
-        fields: __assign(__assign({}, BuiltInFields), { category: {
+        fields: __assign(__assign({}, BuiltInFields), { timestampIsEstimated: { validator: booleanValidator }, category: {
                 required: true,
                 validator: FHIRObservationCategoryValidator,
                 examples: ['vital-signs'],

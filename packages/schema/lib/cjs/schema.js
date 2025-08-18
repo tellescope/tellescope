@@ -3994,7 +3994,7 @@ exports.schema = (0, exports.build_schema)({
             },
         },
         enduserActions: { create: {}, createMany: {}, read: {}, readMany: {}, load: {} },
-        fields: __assign(__assign({}, BuiltInFields), { category: {
+        fields: __assign(__assign({}, BuiltInFields), { timestampIsEstimated: { validator: validation_1.booleanValidator }, category: {
                 required: true,
                 validator: validation_1.FHIRObservationCategoryValidator,
                 examples: ['vital-signs'],

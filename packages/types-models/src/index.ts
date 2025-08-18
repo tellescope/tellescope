@@ -2750,6 +2750,7 @@ export interface AutomationForWebhook {
   fields?: LabeledField[],
   headers?: LabeledField[],
   method?: 'get' | 'patch' | 'post' | 'put' | 'delete',
+  rawJSONBody?: string,
 }
 
 export type FormResponseAutomationEvent = AutomationEventBuilder<'formResponse', {
@@ -3176,6 +3177,7 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
   statusChangedBy?: string, // when updating code (e.g. to cancelled or entered-in-error), track who made that change
   classifications?: { configurationId: string, classification: string }[]
   beforeMeal?: boolean,
+  timestampIsEstimated?: boolean,
   dontTrigger?: boolean,
   showWithPlotsByUnit?: string[],
   invalidationReason?: string,

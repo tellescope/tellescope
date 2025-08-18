@@ -2698,6 +2698,7 @@ export interface AutomationForWebhook {
     fields?: LabeledField[];
     headers?: LabeledField[];
     method?: 'get' | 'patch' | 'post' | 'put' | 'delete';
+    rawJSONBody?: string;
 }
 export type FormResponseAutomationEvent = AutomationEventBuilder<'formResponse', {
     automationStepId: string;
@@ -3172,6 +3173,7 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
         classification: string;
     }[];
     beforeMeal?: boolean;
+    timestampIsEstimated?: boolean;
     dontTrigger?: boolean;
     showWithPlotsByUnit?: string[];
     invalidationReason?: string;

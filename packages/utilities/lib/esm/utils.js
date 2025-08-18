@@ -622,6 +622,8 @@ export var payment_cost_to_string = function (c) {
 };
 export var safeJSONParse = function (s) {
     try {
+        if (!s)
+            return undefined;
         return JSON.parse(s);
     }
     catch (err) {
@@ -2542,5 +2544,9 @@ export var emit_gtm_event = function (event) {
         console.log('GTM event emitted:', event);
     }
     catch (err) { }
+};
+export var resolve_integration_id = function (e, integrationTitle) {
+    var _a, _b;
+    return (((e === null || e === void 0 ? void 0 : e.source) === integrationTitle && e.externalId) ? e.externalId : (_b = (_a = e.references) === null || _a === void 0 ? void 0 : _a.find(function (r) { return r.type === integrationTitle; })) === null || _b === void 0 ? void 0 : _b.id);
 };
 //# sourceMappingURL=utils.js.map

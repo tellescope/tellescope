@@ -649,8 +649,10 @@ export const payment_cost_to_string = (c: Purchase['cost']): string => {
   return ''
 }
 
-export const safeJSONParse = (s: string) => {
+export const safeJSONParse = (s?: string) => {
   try {
+    if (!s) return undefined
+
     return JSON.parse(s)
   } catch(err) {
     return undefined
@@ -2703,3 +2705,7 @@ export const emit_gtm_event = (event: Record<string, any> & { event: string }) =
     console.log('GTM event emitted:', event)
   } catch(err) {}
 }
+
+export const resolve_integration_id = (e: Pick<Enduser, 'references' | 'source' | 'externalId'>, integrationTitle: string) => (
+  (e?.source === integrationTitle && e.externalId) ? e.externalId : e.references?.find(r => r.type === integrationTitle)?.id
+)

@@ -5976,6 +5976,7 @@ export const schema: SchemaV1 = build_schema({
     enduserActions: { create: {}, createMany: {}, read: {}, readMany: {}, load: {} },
     fields: {
       ...BuiltInFields, 
+      timestampIsEstimated: { validator: booleanValidator },
       category: {
         required: true,
         validator: FHIRObservationCategoryValidator,

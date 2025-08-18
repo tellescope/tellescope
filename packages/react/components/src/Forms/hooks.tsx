@@ -1334,6 +1334,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
     if (!currentValue) return
     if (isNextDisabled() && currentValue?.answer.type !== 'Hidden Value') return
 
+    console.log('going to next field')
     if (currentValue.answer.type === 'Question Group') {
       const responsesToSave = (
         (currentValue.field.options?.subFields || [])
@@ -1373,7 +1374,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
       
       return newField || activeField
     })
-  }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, logicOptions])
+  }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, logicOptions, accessCode, formResponseId, setActiveField, setCurrentPageIndex])
 
   useEffect(() => {
     if (dontAutoadvance) return
@@ -1383,7 +1384,10 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
     // add slight delay so it's obvious which answer was selected before proceeding
     const t = setTimeout(goToNextField, 250)
 
-    return () => { clearTimeout(t) }
+    return () => { 
+      console.log('clearing autoadvance timeout'); 
+      clearTimeout(t) 
+    }
   }, [responses, goToNextField, dontAutoadvance])
 
   const isPreviousDisabled = useCallback(() => (

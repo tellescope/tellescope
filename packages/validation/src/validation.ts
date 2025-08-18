@@ -2829,6 +2829,7 @@ const sendWebhookInfoValidator = objectValidator<AutomationForWebhook>({
   secret: stringValidatorOptional,
   method: stringValidatorOptional,
   headers: labeledFieldsValidator,
+  rawJSONBody: stringValidator25000OptionalEmptyOkay,
 }, { emptyOk: false })
 
 export const AIDecisionSourceValidator = objectValidator<AIContextSource>({
