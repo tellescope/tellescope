@@ -3033,6 +3033,7 @@ export type CallUserAutomationAction = AutomationActionBuilder<
 export type StripeChargeCardOnFileAutomationAction = AutomationActionBuilder<'stripeChargeCardOnFile', {
   stripeKey?: string, // indicating custom vs. stripe connect
   priceIds: string[], // Stripe price ids to charge
+  subscriptionPriceId?: string
 }>
 
 export type AIContextSource = {

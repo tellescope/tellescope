@@ -4,7 +4,7 @@ import { ChangeHandler, FormFieldNode } from "./types"
 import { DatabaseRecord, Enduser, Form, FormField, FormResponse } from "@tellescope/types-client"
 import { phoneValidator } from "@tellescope/validation"
 import { FileBlob, Indexable } from "@tellescope/types-utilities"
-import { CompoundFilter, EnduserRelationship, FormCustomization, FormResponseAnswerAddress, FormResponseAnswerFileValue, FormResponseValue, FormResponseValueAnswer, OrganizationTheme, PreviousFormCompoundLogic, PreviousFormFieldType } from "@tellescope/types-models"
+import { CompoundFilter, EnduserRelationship, FormCustomization, FormResponseAnswerAddress, FormResponseAnswerFileValue, FormResponseValue, FormResponseValueAnswer, OrganizationTheme, PreviousFormCompoundLogic, PreviousFormFieldType, Timezone, TIMEZONES } from "@tellescope/types-models"
 import { WithTheme, contact_is_valid, useAddGTMTag, useFileUpload, useFormFields, useFormResponses, useResolvedSession, value_is_loaded } from "../index"
 import ReactGA from "react-ga4";
 
@@ -751,6 +751,12 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
 
         const stringValues: string[] = []
         for (const databaseValue of databaseValues) {
+          if (r.answer.type === 'Timezone') {
+            if (typeof databaseValue.value !== 'string') { continue }
+            if (!TIMEZONES.includes(databaseValue.value as Timezone)) { continue }
+            
+            return { ...r, answer: { ...r.answer, value: databaseValue.value } }
+          }
           if (databaseValue.type === 'Address') {
             if (r.answer.type !== 'Address') return r
   

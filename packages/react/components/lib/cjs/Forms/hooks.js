@@ -63,6 +63,7 @@ exports.useTellescopeForm = exports.isDateString = exports.useOrganizationTheme 
 var jsx_runtime_1 = require("react/jsx-runtime");
 var react_1 = require("react");
 var validation_1 = require("@tellescope/validation");
+var types_models_1 = require("@tellescope/types-models");
 var index_1 = require("../index");
 var react_ga4_1 = __importDefault(require("react-ga4"));
 var isEmail_1 = __importDefault(require("validator/lib/isEmail"));
@@ -674,6 +675,15 @@ var useTellescopeForm = function (_a) {
                 var stringValues = [];
                 for (var _i = 0, databaseValues_1 = databaseValues; _i < databaseValues_1.length; _i++) {
                     var databaseValue = databaseValues_1[_i];
+                    if (r.answer.type === 'Timezone') {
+                        if (typeof databaseValue.value !== 'string') {
+                            continue;
+                        }
+                        if (!types_models_1.TIMEZONES.includes(databaseValue.value)) {
+                            continue;
+                        }
+                        return __assign(__assign({}, r), { answer: __assign(__assign({}, r.answer), { value: databaseValue.value }) });
+                    }
                     if (databaseValue.type === 'Address') {
                         if (r.answer.type !== 'Address')
                             return r;

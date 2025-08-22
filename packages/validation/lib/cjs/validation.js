@@ -2539,7 +2539,8 @@ exports.automationActionValidator = (0, exports.orValidator)({
      })),
     stripeChargeCardOnFile: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['stripeChargeCardOnFile']), info: (0, exports.objectValidator)({
             stripeKey: exports.stringValidatorOptionalEmptyOkay,
-            priceIds: exports.listOfStringsValidator,
+            priceIds: exports.listOfStringsValidatorEmptyOk,
+            subscriptionPriceId: exports.stringValidatorOptionalEmptyOkay,
         }, { emptyOk: false }) // at least tags is required
      })),
     aiDecision: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['aiDecision']), info: (0, exports.objectValidator)({

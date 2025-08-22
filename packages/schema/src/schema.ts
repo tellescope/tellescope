@@ -1116,7 +1116,7 @@ export type CustomActions = {
   },
   purchases: {
     charge_card_on_file: CustomAction<
-      { enduserId: string, productIds?: string[], priceIds?: string[], cost?: Purchase['cost'], stripeKey?: string, description?: string }, 
+      { enduserId: string, productIds?: string[], priceIds?: string[], cost?: Purchase['cost'], stripeKey?: string, description?: string, subscriptionPriceId?: string }, 
       { }
     >,
   },
@@ -7192,6 +7192,7 @@ export const schema: SchemaV1 = build_schema({
           cost: { validator: costValidator },
           stripeKey: { validator: stringValidator },
           description: { validator: stringValidator },
+          subscriptionPriceId: { validator: stringValidatorOptional },
         },
         returns: {
 

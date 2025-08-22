@@ -3031,6 +3031,7 @@ export type CallUserAutomationAction = AutomationActionBuilder<'callUser', {
 export type StripeChargeCardOnFileAutomationAction = AutomationActionBuilder<'stripeChargeCardOnFile', {
     stripeKey?: string;
     priceIds: string[];
+    subscriptionPriceId?: string;
 }>;
 export type AIContextSource = {
     type: "Email" | "SMS";

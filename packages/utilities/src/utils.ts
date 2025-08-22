@@ -124,6 +124,7 @@ export const defined_fields = <T extends {}>(o: T): Partial<T> => {
 }
 
 export const truncate_string = (s='', options={} as { showEllipsis?: boolean, length?: number }) => {
+  if (typeof s !== 'string') return '' // safeguard
   if (typeof options.length === 'number' && options.length < 0) throw new Error("Length must be positive")
 
   const showEllipsis = options.showEllipsis ?? true

@@ -37,7 +37,7 @@ import {
 } from "@tellescope/validation"
 
 import { Session, APIQuery, EnduserSession } from "../sdk"
-import { evaluate_conditional_logic_for_enduser_fields, FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, get_next_reminder_timestamp, replace_enduser_template_values, responses_satisfy_conditions, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities"
+import { evaluate_conditional_logic_for_enduser_fields, FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, get_next_reminder_timestamp, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities"
 import { DEFAULT_OPERATIONS, PLACEHOLDER_ID, ZOOM_TITLE } from "@tellescope/constants"
 import { 
   schema, 
@@ -12489,6 +12489,9 @@ const ip_address_form_tests = async () => {
     () => axios.get('http://localhost:8080/email-image/'),
     { onResult: result => result.data === TRACK_OPEN_IMAGE.toString('utf-8')}
   ) 
+
+  assert(truncate_string('12345', { length: 4, showEllipsis: false }) === '1234', 'truncate doesnt work', 'trucate works')
+  assert(truncate_string(null!, { length: 4, showEllipsis: false }) === '', 'truncate doesnt work for non string', 'trucate works for non-string')
 
   try {
     get_next_reminder_timestamp_tests()

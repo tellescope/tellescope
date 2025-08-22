@@ -969,7 +969,7 @@ export const AddressInput = ({ field, form, value, onChange, ...props }: FormInp
   // state only
   field.options?.addressFields?.includes('state')
     ? (
-      <Autocomplete value={value?.state} 
+      <Autocomplete value={value?.state || ''} 
         options={field.options?.validStates?.length ? field.options.validStates : VALID_STATES}
         disablePortal
         onChange={(e, v) => v && 
@@ -1043,7 +1043,7 @@ export const AddressInput = ({ field, form, value, onChange, ...props }: FormInp
         </Grid>
 
         <Grid item xs={field.fullZIP ? 4 : 6} sm={field.fullZIP ? 2 : 3}>
-          <Autocomplete value={value?.state} fullWidth
+          <Autocomplete value={value?.state || ''} fullWidth
             options={field.options?.validStates?.length ? field.options.validStates : VALID_STATES}
             disablePortal
             onChange={(e, v) => v && 

@@ -4941,6 +4941,7 @@ export var schema = build_schema({
                     cost: { validator: costValidator },
                     stripeKey: { validator: stringValidator },
                     description: { validator: stringValidator },
+                    subscriptionPriceId: { validator: stringValidatorOptional },
                 },
                 returns: {},
             },

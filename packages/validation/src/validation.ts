@@ -3280,7 +3280,8 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     type: exactMatchValidator(['stripeChargeCardOnFile']),
     info: objectValidator<StripeChargeCardOnFileAutomationAction['info']>({ 
       stripeKey: stringValidatorOptionalEmptyOkay,
-      priceIds: listOfStringsValidator,
+      priceIds: listOfStringsValidatorEmptyOk,
+      subscriptionPriceId: stringValidatorOptionalEmptyOkay,
     }, { emptyOk: false }) // at least tags is required
   }),
   aiDecision: objectValidator<AIDecisionAutomationAction>({

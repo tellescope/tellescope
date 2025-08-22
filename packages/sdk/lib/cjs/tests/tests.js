@@ -14070,6 +14070,8 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, (0, testing_1.async_test)("email-image tracking endpoint is live", function () { return axios_1.default.get('http://localhost:8080/email-image/'); }, { onResult: function (result) { return result.data === TRACK_OPEN_IMAGE.toString('utf-8'); } })];
             case 1:
                 _l.sent();
+                (0, testing_1.assert)((0, utilities_1.truncate_string)('12345', { length: 4, showEllipsis: false }) === '1234', 'truncate doesnt work', 'trucate works');
+                (0, testing_1.assert)((0, utilities_1.truncate_string)(null, { length: 4, showEllipsis: false }) === '', 'truncate doesnt work for non string', 'trucate works for non-string');
                 _l.label = 2;
             case 2:
                 _l.trys.push([2, 79, , 80]);

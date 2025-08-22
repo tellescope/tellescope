@@ -1180,10 +1180,22 @@ export declare const useDataSync____internal: () => {
     setLoadTiming: (key: string, loadTimeInMS: number) => void;
     setHandler: (key: string, handler: undefined | (() => void)) => void;
     removeHandler: (key: string, handler: () => void) => void;
-    getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").CalendarEvent & {
+    getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").FormField & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").ManagedContentRecord & {
+    }) | (import("@tellescope/types-models").Form & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").DatabaseRecord & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Enduser & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").User & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Product & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AIConversation & {
@@ -1222,6 +1234,9 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").ChatMessage & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").CalendarEvent & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").CalendarEventTemplate & {
         id: string;
         createdAt: Date;
@@ -1240,9 +1255,6 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").UserNotification & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").Enduser & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").Ticket & {
         id: string;
         createdAt: Date;
@@ -1258,19 +1270,10 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").MessageTemplate & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").Form & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").FormField & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").FormResponse & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Journey & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").User & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AutomationStep & {
@@ -1283,6 +1286,9 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Forum & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").ManagedContentRecord & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").ManagedContentRecordAssignment & {
@@ -1309,9 +1315,6 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").Database & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").DatabaseRecord & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").PortalCustomization & {
         id: string;
         createdAt: Date;
@@ -1328,9 +1331,6 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AppointmentLocation & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Product & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Purchase & {
@@ -1443,10 +1443,22 @@ export declare const useDataSync____internal: () => {
         createdAt: Date;
     }))[];
     getDeleted: <T_1 extends string>(modelName: T_1) => string[];
-    popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").CalendarEvent & {
+    popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").FormField & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").ManagedContentRecord & {
+    }) | (import("@tellescope/types-models").Form & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").DatabaseRecord & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Enduser & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").User & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Product & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AIConversation & {
@@ -1485,6 +1497,9 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").ChatMessage & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").CalendarEvent & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").CalendarEventTemplate & {
         id: string;
         createdAt: Date;
@@ -1503,9 +1518,6 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").UserNotification & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").Enduser & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").Ticket & {
         id: string;
         createdAt: Date;
@@ -1521,19 +1533,10 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").MessageTemplate & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").Form & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").FormField & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").FormResponse & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Journey & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").User & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AutomationStep & {
@@ -1546,6 +1549,9 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Forum & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").ManagedContentRecord & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").ManagedContentRecordAssignment & {
@@ -1572,9 +1578,6 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").Database & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").DatabaseRecord & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").PortalCustomization & {
         id: string;
         createdAt: Date;
@@ -1591,9 +1594,6 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AppointmentLocation & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Product & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Purchase & {
@@ -1714,10 +1714,22 @@ export declare const useSyncContext: () => {
     setLoadTiming: (key: string, loadTimeInMS: number) => void;
     setHandler: (key: string, handler: undefined | (() => void)) => void;
     removeHandler: (key: string, handler: () => void) => void;
-    getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").CalendarEvent & {
+    getLoaded: <T extends string>(modelName: T) => ((import("@tellescope/types-models").FormField & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").ManagedContentRecord & {
+    }) | (import("@tellescope/types-models").Form & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").DatabaseRecord & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Enduser & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").User & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Product & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AIConversation & {
@@ -1756,6 +1768,9 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").ChatMessage & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").CalendarEvent & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").CalendarEventTemplate & {
         id: string;
         createdAt: Date;
@@ -1774,9 +1789,6 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").UserNotification & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").Enduser & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").Ticket & {
         id: string;
         createdAt: Date;
@@ -1792,19 +1804,10 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").MessageTemplate & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").Form & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").FormField & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").FormResponse & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Journey & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").User & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AutomationStep & {
@@ -1817,6 +1820,9 @@ export declare const useSyncContext: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Forum & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").ManagedContentRecord & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").ManagedContentRecordAssignment & {
@@ -1843,9 +1849,6 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").Database & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").DatabaseRecord & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").PortalCustomization & {
         id: string;
         createdAt: Date;
@@ -1862,9 +1865,6 @@ export declare const useSyncContext: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AppointmentLocation & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Product & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Purchase & {
@@ -1977,10 +1977,22 @@ export declare const useSyncContext: () => {
         createdAt: Date;
     }))[];
     getDeleted: <T_1 extends string>(modelName: T_1) => string[];
-    popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").CalendarEvent & {
+    popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").FormField & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").ManagedContentRecord & {
+    }) | (import("@tellescope/types-models").Form & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").DatabaseRecord & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Enduser & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").User & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").Product & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AIConversation & {
@@ -2019,6 +2031,9 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").ChatMessage & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").CalendarEvent & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").CalendarEventTemplate & {
         id: string;
         createdAt: Date;
@@ -2037,9 +2052,6 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").UserNotification & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").Enduser & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").Ticket & {
         id: string;
         createdAt: Date;
@@ -2055,19 +2067,10 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").MessageTemplate & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").Form & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").FormField & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").FormResponse & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Journey & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").User & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AutomationStep & {
@@ -2080,6 +2083,9 @@ export declare const useSyncContext: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Forum & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").ManagedContentRecord & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").ManagedContentRecordAssignment & {
@@ -2106,9 +2112,6 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").Database & {
         id: string;
         createdAt: Date;
-    }) | (import("@tellescope/types-models").DatabaseRecord & {
-        id: string;
-        createdAt: Date;
     }) | (import("@tellescope/types-models").PortalCustomization & {
         id: string;
         createdAt: Date;
@@ -2125,9 +2128,6 @@ export declare const useSyncContext: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AppointmentLocation & {
-        id: string;
-        createdAt: Date;
-    }) | (import("@tellescope/types-models").Product & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Purchase & {

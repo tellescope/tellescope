@@ -57,6 +57,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 import { jsx as _jsx } from "react/jsx-runtime";
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
 import { phoneValidator } from "@tellescope/validation";
+import { TIMEZONES } from "@tellescope/types-models";
 import { WithTheme, contact_is_valid, useAddGTMTag, useFileUpload, useFormFields, useFormResponses, useResolvedSession, value_is_loaded } from "../index";
 import ReactGA from "react-ga4";
 import isEmail from "validator/lib/isEmail";
@@ -655,6 +656,15 @@ export var useTellescopeForm = function (_a) {
                 var stringValues = [];
                 for (var _i = 0, databaseValues_1 = databaseValues; _i < databaseValues_1.length; _i++) {
                     var databaseValue = databaseValues_1[_i];
+                    if (r.answer.type === 'Timezone') {
+                        if (typeof databaseValue.value !== 'string') {
+                            continue;
+                        }
+                        if (!TIMEZONES.includes(databaseValue.value)) {
+                            continue;
+                        }
+                        return __assign(__assign({}, r), { answer: __assign(__assign({}, r.answer), { value: databaseValue.value }) });
+                    }
                     if (databaseValue.type === 'Address') {
                         if (r.answer.type !== 'Address')
                             return r;

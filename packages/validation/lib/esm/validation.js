@@ -2489,7 +2489,8 @@ export var automationActionValidator = orValidator({
      })),
     stripeChargeCardOnFile: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['stripeChargeCardOnFile']), info: objectValidator({
             stripeKey: stringValidatorOptionalEmptyOkay,
-            priceIds: listOfStringsValidator,
+            priceIds: listOfStringsValidatorEmptyOk,
+            subscriptionPriceId: stringValidatorOptionalEmptyOkay,
         }, { emptyOk: false }) // at least tags is required
      })),
     aiDecision: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['aiDecision']), info: objectValidator({

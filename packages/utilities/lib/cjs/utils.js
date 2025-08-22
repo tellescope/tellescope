@@ -189,6 +189,8 @@ var truncate_string = function (s, options) {
     var _a, _b;
     if (s === void 0) { s = ''; }
     if (options === void 0) { options = {}; }
+    if (typeof s !== 'string')
+        return ''; // safeguard
     if (typeof options.length === 'number' && options.length < 0)
         throw new Error("Length must be positive");
     var showEllipsis = (_a = options.showEllipsis) !== null && _a !== void 0 ? _a : true;
