@@ -13,7 +13,8 @@ export type StripeCheckoutInfo = {
     stripeAccount: string;
     businessName: string;
 };
-export type SortBy = 'updatedAt' | 'dueDateInMS' | 'closedAt';
+export type SortBy = 'updatedAt' | 'dueDateInMS' | 'closedAt' | 'timestamp';
+export declare const SORT_BY_OPTIONS: SortBy[];
 export type AccessType = "All" | "Default" | "Assigned" | null;
 export type AccessAction = "create" | "read" | "update" | "delete";
 export type AccessResources = ModelName | 'apiKeys';
@@ -323,6 +324,8 @@ export interface Organization_updatesDisabled {
     subdomain: string;
 }
 export interface Organization extends Organization_readonly, Organization_required, Organization_updatesDisabled {
+    inboxThreadsBuiltFrom?: Date | '';
+    inboxThreadsBuiltTo?: Date | '';
     bedrockAIAllowed?: boolean;
     subdomains?: string[];
     owner?: string;
@@ -1198,9 +1201,7 @@ export type ChatRoomType = 'internal' | 'external' | 'Group Chat';
 export interface ChatRoom_readonly extends ClientRecord {
     recentMessage?: string;
     recentEnduserMessage?: string;
-    recentEnduserMessageSentAt?: number;
     recentSender?: string;
-    recentMessageSentAt?: number;
     numMessages: number;
 }
 export type ChatRoomUserInfo = {
@@ -1212,6 +1213,8 @@ export interface ChatRoom_required {
 export interface ChatRoom_updatesDisabled {
 }
 export interface ChatRoom extends ChatRoom_readonly, ChatRoom_required, ChatRoom_updatesDisabled {
+    recentMessageSentAt?: number;
+    recentEnduserMessageSentAt?: number;
     markedUnreadForAll?: boolean;
     inboxStatus?: string;
     description?: string;
@@ -1797,6 +1800,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
     matchCareTeamTagsForCanvasPractitionerResolution?: ListOfStringsWithQualifier;
     dontSyncToCanvasOnSubmission?: boolean;
     belugaVisitType?: string;
+    showByUserTags?: string[];
 }
 export interface FormGroup_readonly extends ClientRecord {
 }
@@ -3174,6 +3178,7 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
         classification: string;
     }[];
     beforeMeal?: boolean;
+    medStatus?: string;
     timestampIsEstimated?: boolean;
     dontTrigger?: boolean;
     showWithPlotsByUnit?: string[];
@@ -4908,7 +4913,34 @@ export interface AIConversation_updatesDisabled {
 }
 export interface AIConversation extends AIConversation_readonly, AIConversation_required, AIConversation_updatesDisabled {
 }
+export interface InboxThread_readonly extends ClientRecord {
+}
+export interface InboxThread_required {
+    type: "Email" | "SMS" | "Chat" | "GroupMMS" | "Phone";
+    title: string;
+    preview: string;
+    timestamp: Date;
+    assignedTo: string[];
+    userIds: string[];
+    enduserIds: string[];
+    inboxStatus: string;
+    threadId: string;
+}
+export interface InboxThread_updatesDisabled {
+}
+export interface InboxThread extends InboxThread_readonly, InboxThread_required, InboxThread_updatesDisabled {
+    tags?: string[];
+    phoneNumber?: string;
+    enduserPhoneNumber?: string;
+    emailMessageId?: string | null;
+    readBy?: {
+        [index: string]: Date | '';
+    };
+    outboundTimestamp?: Date | '';
+    outboundPreview?: string;
+}
 export type ModelForName_required = {
+    inbox_threads: InboxThread_required;
     ai_conversations: AIConversation_required;
     waitlists: Waitlist_required;
     agent_records: AgentRecord_required;
@@ -4999,6 +5031,7 @@ export type ModelForName_required = {
 };
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required];
 export interface ModelForName_readonly {
+    inbox_threads: InboxThread_readonly;
     ai_conversations: AIConversation_readonly;
     waitlists: Waitlist_readonly;
     agent_records: AgentRecord_readonly;
@@ -5089,6 +5122,7 @@ export interface ModelForName_readonly {
 }
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly];
 export interface ModelForName_updatesDisabled {
+    inbox_threads: InboxThread_updatesDisabled;
     ai_conversations: AIConversation_updatesDisabled;
     waitlists: Waitlist_updatesDisabled;
     agent_records: AgentRecord_updatesDisabled;
@@ -5179,6 +5213,7 @@ export interface ModelForName_updatesDisabled {
 }
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled];
 export interface ModelForName extends ModelForName_required, ModelForName_readonly {
+    inbox_threads: InboxThread;
     ai_conversations: AIConversation;
     waitlists: Waitlist;
     agent_records: AgentRecord;

@@ -242,6 +242,7 @@ var loadDefaultQueries = function (s) { return ({
     enduser_eligibility_results: (0, exports.defaultQueries)(s, 'enduser_eligibility_results'),
     waitlists: (0, exports.defaultQueries)(s, 'waitlists'),
     ai_conversations: (0, exports.defaultQueries)(s, 'ai_conversations'),
+    inbox_threads: (0, exports.defaultQueries)(s, 'inbox_threads'),
 }); };
 var Session = /** @class */ (function (_super) {
     __extends(Session, _super);
@@ -589,6 +590,8 @@ var Session = /** @class */ (function (_super) {
         queries.analytics_frames.get_result_for_query = function (a) { return _this._GET("/v1".concat(schema_1.schema.analytics_frames.customActions.get_result_for_query.path), a); };
         queries.analytics_frames.get_custom_report = function (a) { return _this._GET("/v1".concat(schema_1.schema.analytics_frames.customActions.get_custom_report.path), a); };
         queries.analytics_frames.update_indexes = function (a) { return _this._PATCH("/v1".concat(schema_1.schema.analytics_frames.customActions.update_indexes.path), a); };
+        queries.inbox_threads.build_threads = function (a) { return _this._POST("/v1/".concat(schema_1.schema.inbox_threads.customActions.build_threads.path), a); };
+        queries.inbox_threads.load_threads = function (a) { return _this._GET("/v1/".concat(schema_1.schema.inbox_threads.customActions.load_threads.path), a); };
         queries.availability_blocks.update_order = function (a) { return _this._POST("/v1/".concat(schema_1.schema.availability_blocks.customActions.update_order.path), a); };
         queries.availability_blocks.handle_autoreply = function (a) { return _this._POST("/v1/".concat(schema_1.schema.availability_blocks.customActions.handle_autoreply.path), a); };
         queries.managed_content_records.load_unauthenticated = function (a) { return _this._GET("/v1/".concat(schema_1.schema.managed_content_records.publicActions.load_unauthenticated.path), a); };

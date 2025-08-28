@@ -54,6 +54,10 @@ export interface APIQuery<N extends keyof ClientModelForName, T = ClientModelFor
     deleteOne: (id: string) => Promise<void>;
 }
 export declare const reload_record: <N extends keyof import("@tellescope/types-models").ModelForName>(r: {
+    inbox_threads: import("@tellescope/types-models").InboxThread & {
+        id: string;
+        createdAt: Date;
+    };
     ai_conversations: import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
@@ -403,6 +407,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         createdAt: Date;
     };
 }[N], reload: (argument: string | ReadFilter<{
+    inbox_threads: import("@tellescope/types-models").InboxThread & {
+        id: string;
+        createdAt: Date;
+    };
     ai_conversations: import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
@@ -752,6 +760,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         createdAt: Date;
     };
 }[N]>, mdbFilter?: any) => Promise<{
+    inbox_threads: import("@tellescope/types-models").InboxThread & {
+        id: string;
+        createdAt: Date;
+    };
     ai_conversations: import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
@@ -1101,6 +1113,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         createdAt: Date;
     };
 }[N]>, onLoad: (loaded: {
+    inbox_threads: import("@tellescope/types-models").InboxThread & {
+        id: string;
+        createdAt: Date;
+    };
     ai_conversations: import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
@@ -1450,6 +1466,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         createdAt: Date;
     };
 }[N]) => void) => Promise<{
+    inbox_threads: import("@tellescope/types-models").InboxThread & {
+        id: string;
+        createdAt: Date;
+    };
     ai_conversations: import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
@@ -1800,6 +1820,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
     };
 }[N]>;
 export declare const defaultQueries: <N extends keyof import("@tellescope/types-models").ModelForName>(s: Session, n: keyof ClientModelForName_required) => APIQuery<N, {
+    inbox_threads: import("@tellescope/types-models").InboxThread & {
+        id: string;
+        createdAt: Date;
+    };
     ai_conversations: import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
@@ -2149,6 +2173,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
 }[N], CreateFields<N, {
+    inbox_threads: import("@tellescope/types-models").InboxThread & {
+        id: string;
+        createdAt: Date;
+    };
     ai_conversations: import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
@@ -2498,6 +2526,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
 }[N]>, Omit<Partial<{
+    inbox_threads: import("@tellescope/types-models").InboxThread & {
+        id: string;
+        createdAt: Date;
+    };
     ai_conversations: import("@tellescope/types-models").AIConversation & {
         id: string;
         createdAt: Date;
@@ -2847,6 +2879,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
 }[N]>, keyof {
+    inbox_threads: import("@tellescope/types-models").InboxThread_readonly & {
+        id: string;
+        createdAt: Date;
+    };
     ai_conversations: import("@tellescope/types-models").AIConversation_readonly & {
         id: string;
         createdAt: Date;
@@ -3196,6 +3232,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
 }[N] | keyof {
+    inbox_threads: import("@tellescope/types-models").InboxThread_updatesDisabled & {
+        id: string;
+        createdAt: Date;
+    };
     ai_conversations: import("@tellescope/types-models").AIConversation_updatesDisabled & {
         id: string;
         createdAt: Date;
@@ -3551,6 +3591,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
 type Queries = {
     [K in keyof ClientModelForName]: APIQuery<K>;
 } & {
+    inbox_threads: {
+        build_threads: (args: extractFields<CustomActions['inbox_threads']['build_threads']['parameters']>) => (Promise<extractFields<CustomActions['inbox_threads']['build_threads']['returns']>>);
+        load_threads: (args: extractFields<CustomActions['inbox_threads']['load_threads']['parameters']>) => (Promise<extractFields<CustomActions['inbox_threads']['load_threads']['returns']>>);
+    };
     availability_blocks: {
         update_order: (args: extractFields<CustomActions['availability_blocks']['update_order']['parameters']>) => (Promise<extractFields<CustomActions['availability_blocks']['update_order']['returns']>>);
         handle_autoreply: (args: extractFields<CustomActions['availability_blocks']['handle_autoreply']['parameters']>) => (Promise<extractFields<CustomActions['availability_blocks']['handle_autoreply']['returns']>>);
@@ -3948,6 +3992,7 @@ export declare class Session extends SessionManager {
         allowedPaths?: string[] | undefined;
         requiresMFA?: boolean | undefined;
         users?: number | undefined;
+        inbox_threads?: number | undefined;
         ai_conversations?: number | undefined;
         waitlists?: number | undefined;
         agent_records?: number | undefined;
@@ -4099,6 +4144,7 @@ export declare class Session extends SessionManager {
         allowedPaths?: string[] | undefined;
         requiresMFA?: boolean | undefined;
         users?: number | undefined;
+        inbox_threads?: number | undefined;
         ai_conversations?: number | undefined;
         waitlists?: number | undefined;
         agent_records?: number | undefined;

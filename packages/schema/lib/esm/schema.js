@@ -1286,10 +1286,7 @@ export var schema = build_schema({
                 validator: numberToDateValidator,
                 readonly: true,
                 examples: [{ 0: new Date() }]
-            }, messageId: {
-                validator: stringValidator,
-                readonly: true,
-            }, inbound: {
+            }, messageId: { validator: stringValidator }, inbound: {
                 validator: booleanValidator,
                 initializer: function () { return false; },
             }, textEncoding: {
@@ -1589,7 +1586,7 @@ export var schema = build_schema({
             }, recentEnduserMessage: {
                 validator: stringValidator,
                 readonly: true,
-            }, recentMessage: {
+            }, recentEnduserMessageSentAt: { validator: nonNegNumberValidator }, recentMessage: {
                 validator: stringValidator,
                 initializer: function () { return ''; },
                 readonly: true,
@@ -2802,7 +2799,7 @@ export var schema = build_schema({
                 },
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { belugaVisitType: { validator: stringValidator }, gtmTag: { validator: stringValidator100EscapeHTML }, dontSyncToCanvasOnSubmission: { validator: booleanValidator }, archivedAt: { validator: dateOptionalOrEmptyStringValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { showByUserTags: { validator: listOfStringsValidatorOptionalOrEmptyOk }, belugaVisitType: { validator: stringValidator }, gtmTag: { validator: stringValidator100EscapeHTML }, dontSyncToCanvasOnSubmission: { validator: booleanValidator }, archivedAt: { validator: dateOptionalOrEmptyStringValidator }, title: {
                 validator: stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -4014,7 +4011,7 @@ export var schema = build_schema({
                         relationship: 'foreignKey',
                         onDependencyDelete: 'delete',
                     }]
-            }, code: { validator: stringValidator }, source: { validator: stringValidator }, type: { validator: stringValidator }, notes: { validator: stringValidator }, recordedAt: { validator: dateValidator }, reviewedAt: { validator: dateValidatorOptional }, timestamp: { validator: dateValidator, initializer: function () { return new Date(); } }, statusChangedBy: { validator: mongoIdStringValidator }, beforeMeal: { validator: booleanValidator }, dontTrigger: { validator: booleanValidator }, references: { validator: listOfRelatedRecordsValidator, readonly: true }, showWithPlotsByUnit: { validator: listOfStringsValidatorOptionalOrEmptyOk }, invalidationReason: { validator: stringValidatorOptionalEmptyOkay } })
+            }, code: { validator: stringValidator }, source: { validator: stringValidator }, type: { validator: stringValidator }, notes: { validator: stringValidator }, recordedAt: { validator: dateValidator }, reviewedAt: { validator: dateValidatorOptional }, timestamp: { validator: dateValidator, initializer: function () { return new Date(); } }, statusChangedBy: { validator: mongoIdStringValidator }, beforeMeal: { validator: booleanValidator }, medStatus: { validator: stringValidator }, dontTrigger: { validator: booleanValidator }, references: { validator: listOfRelatedRecordsValidator, readonly: true }, showWithPlotsByUnit: { validator: listOfStringsValidatorOptionalOrEmptyOk }, invalidationReason: { validator: stringValidatorOptionalEmptyOkay } })
     },
     managed_content_records: {
         info: {},
@@ -4559,7 +4556,7 @@ export var schema = build_schema({
                 }
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { outOfOfficeHours: { validator: outOfOfficeBlocksValidator }, bedrockAIAllowed: { validator: booleanValidator }, creditCount: { validator: numberValidator, readonly: true }, stripeKeyDetails: {
+        fields: __assign(__assign({}, BuiltInFields), { inboxThreadsBuiltFrom: { validator: dateOptionalOrEmptyStringValidator }, inboxThreadsBuiltTo: { validator: dateOptionalOrEmptyStringValidator }, outOfOfficeHours: { validator: outOfOfficeBlocksValidator }, bedrockAIAllowed: { validator: booleanValidator }, creditCount: { validator: numberValidator, readonly: true }, stripeKeyDetails: {
                 validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     key: stringValidator5000EmptyOkay,
                     title: stringValidator5000EmptyOkay,
@@ -6271,6 +6268,45 @@ export var schema = build_schema({
                     userId: mongoIdStringOptional,
                 }))
             } })
+    },
+    inbox_threads: {
+        info: { description: '' },
+        constraints: { unique: [], relationship: [], access: [] },
+        // we can't offer read defaults because they don't account for access permissions of each message channel
+        // include create, createMany, and delete for easier automated testing
+        defaultActions: { create: {}, createMany: {}, update: {}, delete: {} },
+        customActions: {
+            build_threads: {
+                op: "custom", access: 'create', method: "post",
+                name: 'Build Threads',
+                path: '/inbox-threads/build',
+                description: "Builds/hydrates InboxThreads for messages across different channels",
+                parameters: {
+                    from: { validator: dateValidatorOptional },
+                    to: { validator: dateValidatorOptional },
+                },
+                returns: {
+                    alreadyBuilt: { validator: booleanValidator, required: true },
+                },
+            },
+            load_threads: {
+                op: "custom", access: 'read', method: "get",
+                name: 'Load Threads',
+                path: '/inbox-threads/load',
+                description: "Sends a message to the AI conversation",
+                parameters: {
+                    excludeIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+                    limit: { validator: numberValidatorOptional },
+                    lastTimestamp: { validator: dateValidatorOptional },
+                    enduserIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+                    userIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+                },
+                returns: {
+                    threads: { validator: 'inbox_threads', required: true },
+                },
+            },
+        },
+        fields: __assign(__assign({}, BuiltInFields), { type: { validator: exactMatchValidator(['Chat', 'Email', 'GroupMMS', 'Phone', 'SMS']), required: true, examples: ['Email'] }, assignedTo: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] }, enduserIds: { validator: listOfMongoIdStringValidator, required: true, examples: [[PLACEHOLDER_ID]] }, userIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] }, inboxStatus: { validator: stringValidator, required: true, examples: ['In Progress'] }, preview: { validator: stringValidator25000, required: true, examples: ['Preview of the message'] }, threadId: { validator: stringValidator, required: true, examples: ['Thread ID'] }, timestamp: { validator: dateValidator, required: true, examples: [new Date().toISOString()] }, title: { validator: stringValidator, required: true, examples: ['Title or Subject Here'] }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, readBy: { validator: idStringToDateValidator }, outboundTimestamp: { validator: dateValidator }, outboundPreview: { validator: stringValidator25000 } })
     }
 });
 // export type SchemaType = typeof schema

@@ -81,6 +81,7 @@ import {
   AIConversationMessage,
   AICOnversationMessageContent,
   AttendeeStatus,
+  InboxThread,
   AIDecisionAutomationAction,
 } from "@tellescope/types-models"
 
@@ -1190,6 +1191,16 @@ export type CustomActions = {
       AIDecisionAutomationAction['info'] & { enduserId: string, automationStepId: string, journeyContext?: JourneyContext }, 
       { }
     >;
+  },
+  inbox_threads: {
+    build_threads: CustomAction<
+      { from: Date, to: Date }, 
+      { alreadyBuilt: boolean }
+    >,
+    load_threads: CustomAction<
+      { limit?: number, excludeIds?: string[], lastTimestamp?: Date, userIds?: string[], enduserIds?: string[] },
+      { threads: InboxThread[] } 
+    >,
   },
 } 
 
@@ -2651,10 +2662,7 @@ export const schema: SchemaV1 = build_schema({
         readonly: true,
         examples: [{ 0: new Date() }]
       },
-      messageId: {
-        validator: stringValidator,
-        readonly: true,
-      },
+      messageId: { validator: stringValidator },
       inbound: {
         validator: booleanValidator,
         initializer: () => false,
@@ -3034,6 +3042,7 @@ export const schema: SchemaV1 = build_schema({
         validator: stringValidator,
         readonly: true,
       },
+      recentEnduserMessageSentAt: { validator: nonNegNumberValidator },
       recentMessage: {
         validator: stringValidator,
         initializer: () => '',
@@ -4423,6 +4432,7 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields, 
+      showByUserTags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       belugaVisitType: { validator: stringValidator },
       gtmTag: { validator: stringValidator100EscapeHTML },
       dontSyncToCanvasOnSubmission: { validator: booleanValidator },
@@ -6015,6 +6025,7 @@ export const schema: SchemaV1 = build_schema({
       timestamp: { validator: dateValidator, initializer: () => new Date() },
       statusChangedBy: { validator: mongoIdStringValidator },
       beforeMeal: { validator: booleanValidator },
+      medStatus: { validator: stringValidator },
       dontTrigger: { validator: booleanValidator },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
       showWithPlotsByUnit: { validator: listOfStringsValidatorOptionalOrEmptyOk },
@@ -6626,6 +6637,8 @@ export const schema: SchemaV1 = build_schema({
     },
     fields: {
       ...BuiltInFields, 
+      inboxThreadsBuiltFrom: { validator: dateOptionalOrEmptyStringValidator },
+      inboxThreadsBuiltTo: { validator: dateOptionalOrEmptyStringValidator },
       outOfOfficeHours: { validator: outOfOfficeBlocksValidator },
       bedrockAIAllowed: { validator: booleanValidator }, // restricted to Telescope super admin only
       creditCount: { validator: numberValidator, readonly: true },
@@ -8944,8 +8957,62 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         }))
       }
     }
+  },
+  inbox_threads: {
+    info: { description: '' },
+    constraints: { unique: [], relationship: [], access: [] },
+    // we can't offer read defaults because they don't account for access permissions of each message channel
+    // include create, createMany, and delete for easier automated testing
+    defaultActions: { create: {}, createMany: {}, update: { }, delete: {} }, 
+    customActions: {
+      build_threads: {
+        op: "custom", access: 'create', method: "post",
+        name: 'Build Threads',
+        path: '/inbox-threads/build',
+        description: "Builds/hydrates InboxThreads for messages across different channels",
+        parameters: {
+          from: { validator: dateValidatorOptional },
+          to: { validator: dateValidatorOptional },
+        },
+        returns: {
+          alreadyBuilt: { validator: booleanValidator, required: true },
+        },
+      },
+      load_threads: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Load Threads',
+        path: '/inbox-threads/load',
+        description: "Sends a message to the AI conversation",
+        parameters: {
+          excludeIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, 
+          limit: { validator: numberValidatorOptional },
+          lastTimestamp: { validator: dateValidatorOptional },
+          enduserIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+          userIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+        },
+        returns: {
+          threads: { validator: 'inbox_threads' as any, required: true },
+        },
+      },
+    },
+    fields: {
+      ...BuiltInFields, 
+      type: { validator: exactMatchValidator<InboxThread['type']>(['Chat', 'Email', 'GroupMMS', 'Phone', 'SMS']), required: true, examples: ['Email'] },
+      assignedTo: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] },
+      enduserIds: { validator: listOfMongoIdStringValidator, required: true, examples: [[PLACEHOLDER_ID]] },
+      userIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] },
+      inboxStatus: { validator: stringValidator, required: true, examples: ['In Progress']},
+      preview: { validator: stringValidator25000, required: true, examples: ['Preview of the message'] },
+      threadId: { validator: stringValidator, required: true, examples: ['Thread ID'] },
+      timestamp: { validator: dateValidator, required: true, examples: [new Date().toISOString()]},
+      title: { validator: stringValidator, required: true, examples: ['Title or Subject Here'] },
+      tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      readBy: { validator: idStringToDateValidator },
+      outboundTimestamp: { validator: dateValidator },
+      outboundPreview: { validator: stringValidator25000 },
+    }
+
   }
-  
 })
 
 // export type SchemaType = typeof schema

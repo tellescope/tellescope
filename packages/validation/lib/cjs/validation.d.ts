@@ -424,6 +424,7 @@ export declare const UnitOfTimeValidator: ValidatorDefinition<UnitOfTime>;
 export declare const WebhookSubscriptionValidator: ValidatorDefinition<{
     journeys: CUDSubscription;
     files: CUDSubscription;
+    inbox_threads: CUDSubscription;
     ai_conversations: CUDSubscription;
     waitlists: CUDSubscription;
     agent_records: CUDSubscription;

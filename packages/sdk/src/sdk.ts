@@ -223,9 +223,18 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   enduser_eligibility_results: defaultQueries(s, 'enduser_eligibility_results'),
   waitlists: defaultQueries(s, 'waitlists'),
   ai_conversations: defaultQueries(s, 'ai_conversations'),
+  inbox_threads: defaultQueries(s, 'inbox_threads'),
 })
 
 type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
+  inbox_threads: {
+    build_threads: (args: extractFields<CustomActions['inbox_threads']['build_threads']['parameters']>) => (
+      Promise<extractFields<CustomActions['inbox_threads']['build_threads']['returns']>>
+    ),
+    load_threads: (args: extractFields<CustomActions['inbox_threads']['load_threads']['parameters']>) => (
+      Promise<extractFields<CustomActions['inbox_threads']['load_threads']['returns']>>
+    ),
+  },
   availability_blocks: {
     update_order: (args: extractFields<CustomActions['availability_blocks']['update_order']['parameters']>) => (
       Promise<extractFields<CustomActions['availability_blocks']['update_order']['returns']>>
@@ -1079,6 +1088,9 @@ export class Session extends SessionManager {
     queries.analytics_frames.get_result_for_query = a => this._GET(`/v1${schema.analytics_frames.customActions.get_result_for_query.path}`, a)
     queries.analytics_frames.get_custom_report = a => this._GET(`/v1${schema.analytics_frames.customActions.get_custom_report.path}`, a)
     queries.analytics_frames.update_indexes = a => this._PATCH(`/v1${schema.analytics_frames.customActions.update_indexes.path}`, a)
+
+    queries.inbox_threads.build_threads = a => this._POST(`/v1/${schema.inbox_threads.customActions.build_threads.path}`, a)
+    queries.inbox_threads.load_threads = a => this._GET(`/v1/${schema.inbox_threads.customActions.load_threads.path}`, a)
 
     queries.availability_blocks.update_order = a => this._POST(`/v1/${schema.availability_blocks.customActions.update_order.path}`, a)
     queries.availability_blocks.handle_autoreply = a => this._POST(`/v1/${schema.availability_blocks.customActions.handle_autoreply.path}`, a)

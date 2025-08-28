@@ -5014,6 +5014,7 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   agent_records: accessPermissionValidator,
   waitlists: accessPermissionValidator,
   ai_conversations: accessPermissionValidator,
+  inbox_threads: accessPermissionValidator,
 
   // deprecated but for backwards compatibility
   apiKeys: accessPermissionValidator,
@@ -5107,6 +5108,7 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   enduser_eligibility_results: numberValidatorOptional,
   agent_records: numberValidatorOptional,
   waitlists: numberValidatorOptional,
+  inbox_threads: numberValidatorOptional,
 }, { emptyOk: true })
 
 const _LOGIN_FLOW_RESULTS = {

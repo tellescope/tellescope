@@ -234,6 +234,7 @@ export var READ_ONLY_DEFAULT = {
     delete: NO_ACCESS,
 };
 export var PROVIDER_PERMISSIONS = {
+    inbox_threads: ASSIGNED_AND_DEFAULT_ACCESS,
     ai_conversations: ASSIGNED_AND_DEFAULT_ACCESS,
     waitlists: READ_ONLY_ALL,
     agent_records: READ_ONLY_ALL,
@@ -379,6 +380,7 @@ export var PROVIDER_PERMISSIONS = {
     },
 };
 export var ADMIN_PERMISSIONS = {
+    inbox_threads: FULL_ACCESS,
     ai_conversations: FULL_ACCESS,
     waitlists: FULL_ACCESS,
     integration_logs: READ_ONLY_ALL,

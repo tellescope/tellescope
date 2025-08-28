@@ -10,6 +10,7 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 var _a;
+export var SORT_BY_OPTIONS = ['updatedAt', 'dueDateInMS', 'closedAt', 'timestamp'];
 export var FilterKeys = ['_exists', '_gt', '_gte', '_lt', '_lte', '_all', "_ne", "_nin"];
 export var TEXT_EMBEDDING_ADA_002 = "text-embedding-ada-002";
 export var EmbeddingInfo = (_a = {},
@@ -59,6 +60,7 @@ export var DIAGNOSIS_TYPE_MAPPING = {
     "LOI": "LOINC<190>",
 };
 export var modelNameChecker = {
+    inbox_threads: true,
     ai_conversations: true,
     waitlists: true,
     agent_records: true,

@@ -71,7 +71,7 @@ import crypto from "crypto";
 import * as buffer from "buffer"; // only node >=15.7.0
 import { fieldsToValidationOld, mongoIdStringRequired, } from "@tellescope/validation";
 import { Session, EnduserSession } from "../sdk";
-import { evaluate_conditional_logic_for_enduser_fields, FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, get_next_reminder_timestamp, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities";
+import { evaluate_conditional_logic_for_enduser_fields, FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, get_next_reminder_timestamp, object_is_empty, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities";
 import { DEFAULT_OPERATIONS, PLACEHOLDER_ID, ZOOM_TITLE } from "@tellescope/constants";
 import { schema, } from "@tellescope/schema";
 import { assert, async_test, log_header, wait, } from "@tellescope/testing";
@@ -940,6 +940,7 @@ var run_generated_tests = function (_a) {
                         || name === 'integration_logs' // readonly
                         || name === 'automated_actions' // might process in background and cause false failure
                         || name === 'waitlists' // while waitlist updates are not stored in logs
+                        || name === 'inbox_threads' // disabled
                     )
                         return [2 /*return*/];
                     if (!!defaultEnduser) return [3 /*break*/, 2];
@@ -9805,6 +9806,7 @@ var tests = {
     integration_logs: NO_TEST,
     ai_conversations: NO_TEST,
     waitlists: waitlist_tests,
+    inbox_threads: NO_TEST, // use custom test instead to test earlier in script
 };
 var TRACK_OPEN_IMAGE = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=", 'base64');
 var validate_schema = function () {
@@ -13055,13 +13057,658 @@ var replace_enduser_template_values_tests = function () { return __awaiter(void 
         }
     });
 }); };
+var inbox_threads_building_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var e, e2, deleteBuiltThreads, start, i, resetThreadBuildingDates, resetThreadsAndDates, readBy, defaultEmail, defaultSMS, email, sms, groupMMS, call, room, from, beforeSecondThreads, email2, sms2, groupMMS2, call2, room2, beforeSecondEnduserThreads, e2_email, e2_sms, e2_groupMMS, e2_call, e2_room, beforeReplies, emailReply, smsReply, chatReply, newlyBuilt, threadsWithOlderLoad, emailReplyOutbound, smsReplyOutbound, chatOutboundReply, outboundCall;
+    var _a;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                log_header("Inbox Thread Building Tests");
+                return [4 /*yield*/, sdk.api.endusers.createOne({})];
+            case 1:
+                e = _b.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({})];
+            case 2:
+                e2 = _b.sent();
+                deleteBuiltThreads = function () { return __awaiter(void 0, void 0, void 0, function () {
+                    var allBuiltThreadsForCleanup;
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
+                            case 1:
+                                allBuiltThreadsForCleanup = (_a.sent()).threads;
+                                return [4 /*yield*/, Promise.all(allBuiltThreadsForCleanup.map(function (t) { return sdk.api.inbox_threads.deleteOne(t.id); }))];
+                            case 2:
+                                _a.sent();
+                                return [2 /*return*/];
+                        }
+                    });
+                }); };
+                start = new Date();
+                i = 0 // to prevent rate limits for identical updates
+                ;
+                resetThreadBuildingDates = function () { return (sdk.api.organizations.updateOne(businessId, {
+                    inboxThreadsBuiltFrom: new Date(start.getTime() + (i++)),
+                    inboxThreadsBuiltTo: new Date(start.getTime() + (i++))
+                })); };
+                resetThreadsAndDates = function () { return __awaiter(void 0, void 0, void 0, function () {
+                    return __generator(this, function (_a) {
+                        switch (_a.label) {
+                            case 0: return [4 /*yield*/, resetThreadBuildingDates()];
+                            case 1:
+                                _a.sent();
+                                return [4 /*yield*/, deleteBuiltThreads()];
+                            case 2:
+                                _a.sent();
+                                return [2 /*return*/];
+                        }
+                    });
+                }); };
+                // start with reset dates  
+                return [4 /*yield*/, resetThreadBuildingDates()];
+            case 3:
+                // start with reset dates  
+                _b.sent();
+                return [4 /*yield*/, async_test('build threads for empty range', function () { return sdk.api.inbox_threads.build_threads({ from: start, to: start }); }, { onResult: function (_a) {
+                            var alreadyBuilt = _a.alreadyBuilt;
+                            return alreadyBuilt;
+                        } })];
+            case 4:
+                _b.sent();
+                return [4 /*yield*/, async_test('load threads (none built yet)', function () { return sdk.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 0;
+                        } })
+                    // set in first set of records to ensure replies overwrite them
+                ];
+            case 5:
+                _b.sent();
+                readBy = (_a = {}, _a[sdk.userInfo.id] = new Date(), _a);
+                defaultEmail = {
+                    logOnly: true,
+                    subject: 'Test Email',
+                    textContent: 'This is a test email',
+                    inbound: true,
+                    userId: sdk.userInfo.id,
+                    messageId: 'email',
+                };
+                defaultSMS = {
+                    logOnly: true,
+                    inbound: true,
+                    enduserId: e.id,
+                    message: 'This is a test SMS',
+                    userId: sdk.userInfo.id,
+                    enduserPhoneNumber: '+15555555554',
+                    phoneNumber: '+15555555555',
+                };
+                return [4 /*yield*/, sdk.api.emails.createOne(__assign(__assign({}, defaultEmail), { enduserId: e.id, readBy: readBy }))];
+            case 6:
+                email = _b.sent();
+                return [4 /*yield*/, sdk.api.sms_messages.createOne(__assign(__assign({}, defaultSMS), { enduserId: e.id, readBy: readBy }))];
+            case 7:
+                sms = _b.sent();
+                return [4 /*yield*/, sdk.api.group_mms_conversations.createOne({
+                        enduserIds: [e.id],
+                        userIds: [sdk.userInfo.id],
+                        userStates: [{
+                                id: sdk.userInfo.id,
+                                numUnread: 1,
+                                markedUnread: false,
+                            }],
+                        messages: [{
+                                message: 'initial message',
+                                sender: e.id,
+                                timestamp: Date.now(),
+                                logOnly: true,
+                            }],
+                    })];
+            case 8:
+                groupMMS = _b.sent();
+                return [4 /*yield*/, sdk.api.phone_calls.createOne({ readBy: readBy, enduserId: e.id, inbound: true, isVoicemail: true, from: '+15555555554', to: '+15555555555' })];
+            case 9:
+                call = _b.sent();
+                return [4 /*yield*/, sdk.api.chat_rooms.createOne({ enduserIds: [e.id], userIds: [], title: 'Thread Build Chat Room' })];
+            case 10:
+                room = _b.sent();
+                return [4 /*yield*/, sdk.api.chats.createOne({ roomId: room.id, message: 'test', enduserId: e.id, senderId: e.id })];
+            case 11:
+                _b.sent();
+                return [4 /*yield*/, wait(undefined, 500)]; // allow for recentMessageTimestamp to be set to indicate inbound chat in chat room
+            case 12:
+                _b.sent(); // allow for recentMessageTimestamp to be set to indicate inbound chat in chat room
+                from = new Date(start.getTime() - 10000);
+                return [4 /*yield*/, async_test('build initial 1-message threads', function () { return sdk.api.inbox_threads.build_threads({ from: from, to: new Date() }); }, { onResult: function (_a) {
+                            var alreadyBuilt = _a.alreadyBuilt;
+                            return !alreadyBuilt;
+                        } })];
+            case 13:
+                _b.sent();
+                return [4 /*yield*/, async_test('load threads', function () { return sdk.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return (threads.length === 5
+                                && threads.some(function (t) { var _a; return t.type === 'Email' && t.emailMessageId === email.messageId && !object_is_empty((_a = t.readBy) !== null && _a !== void 0 ? _a : {}); })
+                                && threads.some(function (t) { var _a; return t.type === 'SMS' && t.threadId === sms.id && !object_is_empty((_a = t.readBy) !== null && _a !== void 0 ? _a : {}); })
+                                && threads.some(function (t) { var _a; return t.type === 'GroupMMS' && t.threadId === groupMMS.id && !object_is_empty((_a = t.readBy) !== null && _a !== void 0 ? _a : {}); })
+                                && threads.some(function (t) { var _a; return t.type === 'Phone' && t.threadId === call.id && !object_is_empty((_a = t.readBy) !== null && _a !== void 0 ? _a : {}); })
+                                && threads.some(function (t) { var _a; return t.type === 'Chat' && t.threadId === room.id && !object_is_empty((_a = t.readBy) !== null && _a !== void 0 ? _a : {}); })
+                                && !threads.some(function (t) { return t.outboundPreview || t.outboundTimestamp; }));
+                        } })];
+            case 14:
+                _b.sent();
+                return [4 /*yield*/, resetThreadBuildingDates()];
+            case 15:
+                _b.sent();
+                return [4 /*yield*/, async_test('re-build initial 1-message threads', function () { return sdk.api.inbox_threads.build_threads({ from: from, to: new Date() }); }, { onResult: function (_a) {
+                            var alreadyBuilt = _a.alreadyBuilt;
+                            return !alreadyBuilt;
+                        } })];
+            case 16:
+                _b.sent();
+                return [4 /*yield*/, async_test('re-load threads with no duplication for same messages', function () { return sdk.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return (threads.length === 5);
+                        } })
+                    // test adding separate threads for the first enduser
+                ];
+            case 17:
+                _b.sent();
+                beforeSecondThreads = new Date();
+                return [4 /*yield*/, sdk.api.emails.createOne(__assign(__assign({}, defaultEmail), { enduserId: e.id, subject: "Different email subject", messageId: 'other-email' }))];
+            case 18:
+                email2 = _b.sent();
+                return [4 /*yield*/, sdk.api.sms_messages.createOne(__assign(__assign({}, defaultSMS), { enduserId: e.id, enduserPhoneNumber: "+15555555550" }))];
+            case 19:
+                sms2 = _b.sent();
+                return [4 /*yield*/, sdk.api.group_mms_conversations.createOne({
+                        enduserIds: [e.id],
+                        userIds: [sdk.userInfo.id],
+                        userStates: [],
+                        messages: [{
+                                message: 'initial message',
+                                sender: e.id,
+                                timestamp: Date.now(),
+                                logOnly: true,
+                            }],
+                    })];
+            case 20:
+                groupMMS2 = _b.sent();
+                return [4 /*yield*/, sdk.api.phone_calls.createOne({ enduserId: e.id, inbound: true, isVoicemail: true, from: '+15555555554', to: '+15555555550' })];
+            case 21:
+                call2 = _b.sent();
+                return [4 /*yield*/, sdk.api.chat_rooms.createOne({ enduserIds: [e.id], userIds: [], title: 'Thread Build Chat Room Alt', recentMessageSentAt: Date.now() })];
+            case 22:
+                room2 = _b.sent();
+                return [4 /*yield*/, async_test('build new 1-message threads for original enduser', function () { return sdk.api.inbox_threads.build_threads({ from: from, to: new Date() }); }, { onResult: function (_a) {
+                            var alreadyBuilt = _a.alreadyBuilt;
+                            return !alreadyBuilt;
+                        } })];
+            case 23:
+                _b.sent();
+                return [4 /*yield*/, async_test('load new threads for original enduser', function () { return sdk.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return (threads.length === 10
+                                && threads.filter(function (t) { return t.enduserIds.length === 1 && t.enduserIds.includes(e.id); }).length === 10);
+                        } })
+                    // ensure new threads created for other enduser
+                ];
+            case 24:
+                _b.sent();
+                beforeSecondEnduserThreads = new Date();
+                return [4 /*yield*/, sdk.api.emails.createOne(__assign(__assign({}, defaultEmail), { enduserId: e2.id }))];
+            case 25:
+                e2_email = _b.sent();
+                return [4 /*yield*/, sdk.api.sms_messages.createOne(__assign(__assign({}, defaultSMS), { enduserId: e2.id }))];
+            case 26:
+                e2_sms = _b.sent();
+                return [4 /*yield*/, sdk.api.group_mms_conversations.createOne({
+                        enduserIds: [e2.id],
+                        userIds: [sdk.userInfo.id],
+                        userStates: [],
+                        messages: [{
+                                message: 'initial message',
+                                sender: e2.id,
+                                timestamp: Date.now(),
+                                logOnly: true,
+                            }],
+                    })];
+            case 27:
+                e2_groupMMS = _b.sent();
+                return [4 /*yield*/, sdk.api.phone_calls.createOne({ enduserId: e2.id, inbound: true, isVoicemail: true, from: '+15555555554', to: '+15555555555' })];
+            case 28:
+                e2_call = _b.sent();
+                return [4 /*yield*/, sdk.api.chat_rooms.createOne({ enduserIds: [e2.id], userIds: [], title: 'Thread Build Chat Room 2' })];
+            case 29:
+                e2_room = _b.sent();
+                return [4 /*yield*/, sdk.api.chats.createOne({ roomId: e2_room.id, message: 'test', enduserId: e2.id, senderId: e2.id })];
+            case 30:
+                _b.sent();
+                return [4 /*yield*/, wait(undefined, 500)]; // allow for recentMessageTimestamp to be set to indicate inbound chat in chat room
+            case 31:
+                _b.sent(); // allow for recentMessageTimestamp to be set to indicate inbound chat in chat room
+                return [4 /*yield*/, async_test('build initial 1-message threads for other enduser', function () { return sdk.api.inbox_threads.build_threads({ from: from, to: new Date() }); }, { onResult: function (_a) {
+                            var alreadyBuilt = _a.alreadyBuilt;
+                            return !alreadyBuilt;
+                        } })];
+            case 32:
+                _b.sent();
+                return [4 /*yield*/, async_test('loads threads with no duplication across endusers', function () { return sdk.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return (threads.length === 15
+                                && threads.filter(function (t) { return t.enduserIds.length === 1 && t.enduserIds.includes(e.id); }).length === 10
+                                && threads.filter(function (t) { return t.enduserIds.length === 1 && t.enduserIds.includes(e2.id); }).length === 5);
+                        } })];
+            case 33:
+                _b.sent();
+                return [4 /*yield*/, resetThreadBuildingDates()];
+            case 34:
+                _b.sent();
+                return [4 /*yield*/, async_test('re-build initial 1-message threads for other enduser', function () { return sdk.api.inbox_threads.build_threads({ from: from, to: new Date() }); }, { onResult: function (_a) {
+                            var alreadyBuilt = _a.alreadyBuilt;
+                            return !alreadyBuilt;
+                        } })];
+            case 35:
+                _b.sent();
+                return [4 /*yield*/, async_test('re-load threads with no duplication across endusers', function () { return sdk.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return (threads.length === 15
+                                && threads.filter(function (t) { return t.enduserIds.length === 1 && t.enduserIds.includes(e.id); }).length === 10
+                                && threads.filter(function (t) {
+                                    return t.enduserIds.length === 1 && t.enduserIds.includes(e.id)
+                                        && object_is_empty(t.readBy || {});
+                                }).length === 5
+                                && threads.filter(function (t) { return t.enduserIds.length === 1 && t.enduserIds.includes(e2.id); }).length === 5);
+                        } })
+                    // test adding separate threads for the first enduser
+                ];
+            case 36:
+                _b.sent();
+                beforeReplies = new Date();
+                return [4 /*yield*/, sdk.api.emails.createOne(__assign(__assign({}, defaultEmail), { textContent: 'reply!', enduserId: e.id }))];
+            case 37:
+                emailReply = _b.sent();
+                return [4 /*yield*/, sdk.api.sms_messages.createOne(__assign(__assign({}, defaultSMS), { enduserId: e.id, message: 'reply!' }))];
+            case 38:
+                smsReply = _b.sent();
+                return [4 /*yield*/, sdk.api.group_mms_conversations.send_message({
+                        logOnly: true,
+                        conversationId: groupMMS.id,
+                        message: 'reply!',
+                        sender: e.id,
+                    })];
+            case 39:
+                _b.sent();
+                return [4 /*yield*/, sdk.api.chats.createOne({ roomId: room.id, message: 'reply!', enduserId: e.id, senderId: e.id })];
+            case 40:
+                chatReply = _b.sent();
+                return [4 /*yield*/, async_test('re-build threads with replies', function () { return sdk.api.inbox_threads.build_threads({ from: from, to: new Date() }); }, { onResult: function (_a) {
+                            var alreadyBuilt = _a.alreadyBuilt;
+                            return !alreadyBuilt;
+                        } })];
+            case 41:
+                _b.sent();
+                return [4 /*yield*/, async_test('re-load threads with replies included', function () { return sdk.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return (threads.length === 15
+                                && threads.filter(function (t) { return t.enduserIds.length === 1 && t.enduserIds.includes(e.id); }).length === 10
+                                && threads.filter(function (t) {
+                                    return t.enduserIds.length === 1 && t.enduserIds.includes(e.id)
+                                        && (Object.keys(t.readBy || {}).length === 0 // defaults to unread
+                                            || Object.values(t.readBy || {}).filter(function (r) { return !r; }).length > 0);
+                                }).length === 9 // replies should now set original threads to unread, except phone call (-1)
+                                && threads.filter(function (t) {
+                                    return t.enduserIds.length === 1 && t.enduserIds.includes(e.id)
+                                        && t.preview === 'reply!';
+                                }).length === 4 // phone call doesn't have a preview 
+                                && threads.filter(function (t) { return t.enduserIds.length === 1 && t.enduserIds.includes(e2.id); }).length === 5);
+                        } })
+                    // test older messages being ignored
+                    // filter phone calls since those always create new threads
+                ];
+            case 42:
+                _b.sent();
+                // test older messages being ignored
+                // filter phone calls since those always create new threads
+                return [4 /*yield*/, resetThreadsAndDates()];
+            case 43:
+                // test older messages being ignored
+                // filter phone calls since those always create new threads
+                _b.sent();
+                return [4 /*yield*/, async_test('re-build threads minus initial set', function () { return sdk.api.inbox_threads.build_threads({ from: beforeSecondThreads, to: new Date() }); }, { onResult: function (_a) {
+                            var alreadyBuilt = _a.alreadyBuilt;
+                            return !alreadyBuilt;
+                        } })];
+            case 44:
+                _b.sent();
+                return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
+            case 45:
+                newlyBuilt = (_b.sent()).threads.filter(function (v) { return v.type !== 'Phone'; });
+                return [4 /*yield*/, async_test('re-build threads inclusive of initial set', function () { return sdk.api.inbox_threads.build_threads({ from: start, to: new Date() }); }, { onResult: function (_a) {
+                            var alreadyBuilt = _a.alreadyBuilt;
+                            return !alreadyBuilt;
+                        } })];
+            case 46:
+                _b.sent();
+                return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
+            case 47:
+                threadsWithOlderLoad = (_b.sent()).threads.filter(function (v) { return v.type !== 'Phone'; });
+                assert(objects_equivalent(newlyBuilt, threadsWithOlderLoad), 'old threads included somehow', 'old messages ignored in new threads');
+                return [4 /*yield*/, async_test('re-run previous test on all-threads to make sure staged build order doesnt effect final result', function () { return sdk.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return (threads.length === 15
+                                && threads.filter(function (t) { return t.enduserIds.length === 1 && t.enduserIds.includes(e.id); }).length === 10
+                                && threads.filter(function (t) {
+                                    return t.enduserIds.length === 1 && t.enduserIds.includes(e.id)
+                                        && (Object.keys(t.readBy || {}).length === 0 // defaults to unread
+                                            || Object.values(t.readBy || {}).filter(function (r) { return !r; }).length > 0);
+                                }).length === 9 // replies should now set original threads to unread, except phone call (-1)
+                                && threads.filter(function (t) {
+                                    return t.enduserIds.length === 1 && t.enduserIds.includes(e.id)
+                                        && t.preview === 'reply!';
+                                }).length === 4 // phone call doesn't have a preview 
+                                && threads.filter(function (t) { return t.enduserIds.length === 1 && t.enduserIds.includes(e2.id); }).length === 5
+                                // re-assert no inbound messages yet
+                                && !threads.some(function (t) { return t.outboundPreview || t.outboundTimestamp; }));
+                        } })
+                    // test adding OUTBOUND messages for the first enduser
+                ];
+            case 48:
+                _b.sent();
+                return [4 /*yield*/, sdk.api.emails.createOne(__assign(__assign({}, defaultEmail), { inbound: false, textContent: 'outbound reply!', enduserId: e.id }))];
+            case 49:
+                emailReplyOutbound = _b.sent();
+                return [4 /*yield*/, sdk.api.sms_messages.createOne(__assign(__assign({}, defaultSMS), { inbound: false, enduserId: e.id, message: 'outbound reply!' }))];
+            case 50:
+                smsReplyOutbound = _b.sent();
+                return [4 /*yield*/, sdk.api.group_mms_conversations.send_message({
+                        logOnly: true,
+                        conversationId: groupMMS.id,
+                        message: 'outbound reply!',
+                        sender: sdk.userInfo.id,
+                    })];
+            case 51:
+                _b.sent();
+                return [4 /*yield*/, sdk.api.chats.createOne({ roomId: room.id, message: 'outbound reply!', senderId: sdk.userInfo.id })];
+            case 52:
+                chatOutboundReply = _b.sent();
+                return [4 /*yield*/, sdk.api.phone_calls.createOne({ readBy: readBy, enduserId: e.id, inbound: false, isVoicemail: true, from: '+15555555554', to: '+15555555555' })];
+            case 53:
+                outboundCall = _b.sent();
+                return [4 /*yield*/, async_test('re-build with outbound threads', function () { return sdk.api.inbox_threads.build_threads({ from: start, to: new Date() }); }, { onResult: function (_a) {
+                            var alreadyBuilt = _a.alreadyBuilt;
+                            return !alreadyBuilt;
+                        } })];
+            case 54:
+                _b.sent();
+                return [4 /*yield*/, async_test('Test outbound timestamp and preview', function () { return sdk.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return (threads.length === 16 // only the new call should result in a new thread
+                                &&
+                                    threads
+                                        .filter(function (t) {
+                                        return t.threadId === outboundCall.id
+                                            || (!!t.outboundTimestamp
+                                                && !!t.outboundPreview
+                                                && new Date(t.outboundTimestamp).getTime() > new Date(t.timestamp).getTime());
+                                    })
+                                        .length === 4 // all channels except call 
+                            );
+                        } })];
+            case 55:
+                _b.sent();
+                return [2 /*return*/, Promise.all([
+                        sdk.api.endusers.deleteOne(e.id),
+                        sdk.api.endusers.deleteOne(e2.id),
+                        sdk.api.chat_rooms.deleteOne(room.id),
+                        sdk.api.chat_rooms.deleteOne(e2_room.id),
+                        sdk.api.chat_rooms.deleteOne(room2.id),
+                        sdk.api.group_mms_conversations.deleteOne(groupMMS.id),
+                        sdk.api.group_mms_conversations.deleteOne(e2_groupMMS.id),
+                        sdk.api.group_mms_conversations.deleteOne(groupMMS2.id),
+                        deleteBuiltThreads(),
+                    ])];
+        }
+    });
+}); };
+var inbox_threads_loading_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
+    var e1, e2, defaultThreadFields, threads, email, sms, phone, chat, groupMMS, roleTestUserEmail, roleTestUser, _a, defaultAccessRole, sdkDefaultAccess, _b, noAccessRole, sdkNoAccess, _c;
+    var _d, _f;
+    return __generator(this, function (_g) {
+        switch (_g.label) {
+            case 0:
+                log_header("Inbox Thread Loading Tests");
+                return [4 /*yield*/, sdk.api.endusers.createOne({ fname: 'Test', lname: 'Testson' })];
+            case 1:
+                e1 = _g.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({ fname: 'Test2', lname: 'Testson2', assignedTo: [sdk.userInfo.id] })];
+            case 2:
+                e2 = _g.sent();
+                defaultThreadFields = {
+                    assignedTo: [],
+                    enduserIds: [e1.id],
+                    userIds: [],
+                    inboxStatus: 'New',
+                    preview: 'Test',
+                    threadId: '1',
+                    timestamp: new Date(),
+                };
+                return [4 /*yield*/, sdk.api.inbox_threads.createSome([
+                        __assign(__assign({}, defaultThreadFields), { title: 'Email', type: 'Email', threadId: '1' }),
+                        __assign(__assign({}, defaultThreadFields), { title: 'SMS', type: 'SMS', threadId: '2', assignedTo: [sdk.userInfo.id] }),
+                        __assign(__assign({}, defaultThreadFields), { title: 'Phone', type: 'Phone', threadId: '3', enduserIds: [e2.id] }),
+                        __assign(__assign({}, defaultThreadFields), { title: 'Chat', type: 'Chat', threadId: '4', timestamp: new Date(0) }),
+                        __assign(__assign({}, defaultThreadFields), { title: 'GroupMMS', type: 'GroupMMS', inboxStatus: "Resolved", threadId: '5' }),
+                    ])];
+            case 3:
+                threads = (_g.sent()).created;
+                email = threads[0], sms = threads[1], phone = threads[2], chat = threads[3], groupMMS = threads[4];
+                // test access
+                return [4 /*yield*/, async_test('admin can load all threads', function () { return sdk.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 5;
+                        } })];
+            case 4:
+                // test access
+                _g.sent();
+                return [4 /*yield*/, async_test('non-admin can load no threads', function () { return sdkNonAdmin.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 0;
+                        } })];
+            case 5:
+                _g.sent();
+                return [4 /*yield*/, async_test('non-admin cant load threads by specifying other userId', function () { return sdkNonAdmin.api.inbox_threads.load_threads({ userIds: [sdk.userInfo.id] }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 0;
+                        } })];
+            case 6:
+                _g.sent();
+                return [4 /*yield*/, async_test('non-admin cant load threads by specifying enduserIds', function () { return sdkNonAdmin.api.inbox_threads.load_threads({ enduserIds: [e1.id, e2.id] }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 0;
+                        } })];
+            case 7:
+                _g.sent();
+                return [4 /*yield*/, async_test('admin limit', function () { return sdk.api.inbox_threads.load_threads({ limit: 1 }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 1;
+                        } })];
+            case 8:
+                _g.sent();
+                return [4 /*yield*/, async_test('admin timestamp filter', function () { return sdk.api.inbox_threads.load_threads({ lastTimestamp: new Date(1) }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 1;
+                        } })];
+            case 9:
+                _g.sent();
+                return [4 /*yield*/, async_test('admin enduserIds filter', function () { return sdk.api.inbox_threads.load_threads({ enduserIds: [e1.id] }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 4;
+                        } })];
+            case 10:
+                _g.sent();
+                return [4 /*yield*/, async_test('admin excludeIds filter', function () { return sdk.api.inbox_threads.load_threads({ excludeIds: [email.id, phone.id] }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 3;
+                        } })];
+            case 11:
+                _g.sent();
+                return [4 /*yield*/, async_test('admin userIds self filter', function () { return sdk.api.inbox_threads.load_threads({ userIds: [sdk.userInfo.id] }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 2;
+                        } })
+                    // adding to care team of e2 who belongs to only the phone thread
+                ];
+            case 12:
+                _g.sent();
+                // adding to care team of e2 who belongs to only the phone thread
+                return [4 /*yield*/, sdk.api.endusers.updateOne(e2.id, { assignedTo: [sdkNonAdmin.userInfo.id] }, { replaceObjectFields: true })
+                    // assign (default access) to sms thread
+                ];
+            case 13:
+                // adding to care team of e2 who belongs to only the phone thread
+                _g.sent();
+                // assign (default access) to sms thread
+                return [4 /*yield*/, sdk.api.inbox_threads.updateOne(sms.id, { userIds: [sdkNonAdmin.userInfo.id] }, { replaceObjectFields: true })];
+            case 14:
+                // assign (default access) to sms thread
+                _g.sent();
+                return [4 /*yield*/, async_test('non-admin can load threads based on assignment/default access', function () { return sdkNonAdmin.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 2
+                                && threads.some(function (t) { return t.id === phone.id; })
+                                && threads.some(function (t) { return t.id === sms.id; });
+                        }
+                    })];
+            case 15:
+                _g.sent();
+                roleTestUserEmail = 'inbox.role.test@tellescope.com';
+                return [4 /*yield*/, sdk.api.users.getOne({ email: roleTestUserEmail }).catch(function () { return null; })]; // throws error on none found
+            case 16:
+                _a = (_g.sent() // throws error on none found
+                );
+                if (_a) return [3 /*break*/, 18];
+                return [4 /*yield*/, sdk.api.users.createOne({ email: roleTestUserEmail })];
+            case 17:
+                _a = (_g.sent());
+                _g.label = 18;
+            case 18:
+                roleTestUser = _a;
+                // add to care team to ensure this doesn't grant unexpected access
+                return [4 /*yield*/, sdk.api.endusers.updateOne(e2.id, { assignedTo: [roleTestUser.id] })
+                    // assign (default access) to sms thread to ensure no unexpected access
+                ];
+            case 19:
+                // add to care team to ensure this doesn't grant unexpected access
+                _g.sent();
+                // assign (default access) to sms thread to ensure no unexpected access
+                return [4 /*yield*/, sdk.api.inbox_threads.updateOne(sms.id, { userIds: [roleTestUser.id] }, { replaceObjectFields: true })];
+            case 20:
+                // assign (default access) to sms thread to ensure no unexpected access
+                _g.sent();
+                return [4 /*yield*/, sdk.api.role_based_access_permissions.createOne({
+                        role: 'Default Access',
+                        permissions: {
+                            emails: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+                            sms_messages: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+                            group_mms_conversations: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+                            phone_calls: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+                            ticket_threads: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+                            ticket_thread_comments: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+                            chat_rooms: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+                            endusers: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+                        },
+                    })];
+            case 21:
+                defaultAccessRole = _g.sent();
+                return [4 /*yield*/, sdk.api.users.updateOne(roleTestUser.id, { roles: [defaultAccessRole.role] }, { replaceObjectFields: true })];
+            case 22:
+                _g.sent();
+                return [4 /*yield*/, wait(undefined, 2000)]; // role change triggers a logout
+            case 23:
+                _g.sent(); // role change triggers a logout
+                _b = Session.bind;
+                _d = {
+                    host: host
+                };
+                return [4 /*yield*/, sdk.api.users.generate_auth_token({ id: roleTestUser.id })];
+            case 24:
+                sdkDefaultAccess = new (_b.apply(Session, [void 0, (_d.authToken = (_g.sent()).authToken,
+                        _d)]))();
+                return [4 /*yield*/, async_test('test_authenticated (default access)', sdkDefaultAccess.test_authenticated, { expectedResult: 'Authenticated!' })];
+            case 25:
+                _g.sent();
+                return [4 /*yield*/, async_test('non-admin default role', function () { return sdkDefaultAccess.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 1 && threads.some(function (t) { return t.id === sms.id; });
+                        } })];
+            case 26:
+                _g.sent();
+                return [4 /*yield*/, sdk.api.role_based_access_permissions.createOne({
+                        role: 'No Access',
+                        permissions: {
+                            emails: { read: null, create: null, update: null, delete: null },
+                            sms_messages: { read: null, create: null, update: null, delete: null },
+                            group_mms_conversations: { read: null, create: null, update: null, delete: null },
+                            phone_calls: { read: null, create: null, update: null, delete: null },
+                            ticket_threads: { read: null, create: null, update: null, delete: null },
+                            ticket_thread_comments: { read: null, create: null, update: null, delete: null },
+                            chat_rooms: { read: null, create: null, update: null, delete: null },
+                            // read must be default for endpoint to return non 403
+                            endusers: { read: 'Default', create: null, update: null, delete: null },
+                        },
+                    })
+                    // ensure role is set, in case GET returned a user without a role or with a different role
+                ];
+            case 27:
+                noAccessRole = _g.sent();
+                // ensure role is set, in case GET returned a user without a role or with a different role
+                return [4 /*yield*/, sdk.api.users.updateOne(roleTestUser.id, { roles: [noAccessRole.role] }, { replaceObjectFields: true })];
+            case 28:
+                // ensure role is set, in case GET returned a user without a role or with a different role
+                _g.sent();
+                return [4 /*yield*/, wait(undefined, 2000)]; // role change triggers a logout
+            case 29:
+                _g.sent(); // role change triggers a logout
+                _c = Session.bind;
+                _f = {
+                    host: host
+                };
+                return [4 /*yield*/, sdk.api.users.generate_auth_token({ id: roleTestUser.id })];
+            case 30:
+                sdkNoAccess = new (_c.apply(Session, [void 0, (_f.authToken = (_g.sent()).authToken,
+                        _f)]))();
+                return [4 /*yield*/, async_test('test_authenticated (no access)', sdkNoAccess.test_authenticated, { expectedResult: 'Authenticated!' })];
+            case 31:
+                _g.sent();
+                return [4 /*yield*/, async_test('verify no-read on direct API call', sdkNoAccess.api.emails.getSome, handleAnyError)]; // ensures role is set up correctly
+            case 32:
+                _g.sent(); // ensures role is set up correctly
+                return [4 /*yield*/, async_test("No access reads nothing", function () { return sdkNoAccess.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 0;
+                        } })];
+            case 33:
+                _g.sent();
+                return [4 /*yield*/, Promise.all(__spreadArray([
+                        sdk.api.endusers.deleteOne(e1.id),
+                        sdk.api.endusers.deleteOne(e2.id),
+                        sdk.api.users.deleteOne(roleTestUser.id),
+                        sdk.api.role_based_access_permissions.deleteOne(defaultAccessRole.id),
+                        sdk.api.role_based_access_permissions.deleteOne(noAccessRole.id)
+                    ], threads.map(function (t) { return sdk.api.inbox_threads.deleteOne(t.id); }), true))];
+            case 34:
+                _g.sent();
+                return [2 /*return*/];
+        }
+    });
+}); };
+// deprecated endpoint in favor of inbox threads
 var inbox_loading_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
     var e, e2, email, sms, groupMMS, call, thread, comment, room, updatedRoom, noAccessRole, roleTestUserEmail, roleTestUser, _a, sdkNoAccess, _b, defaultAccessRole, sdkDefaultAccess, _c;
     var _d, _f;
     return __generator(this, function (_g) {
         switch (_g.label) {
             case 0:
-                log_header("Inbox Loading Tests");
+                log_header("Inbox Loading Tests (deprecated bulk endpoint)");
                 return [4 /*yield*/, sdk.api.endusers.createOne({ fname: 'Test', lname: 'Testson' })];
             case 1:
                 e = _g.sent();
@@ -14022,7 +14669,7 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                 assert(truncate_string(null, { length: 4, showEllipsis: false }) === '', 'truncate doesnt work for non string', 'trucate works for non-string');
                 _l.label = 2;
             case 2:
-                _l.trys.push([2, 79, , 80]);
+                _l.trys.push([2, 81, , 82]);
                 get_next_reminder_timestamp_tests();
                 form_conditional_logic_tests();
                 return [4 /*yield*/, test_weighted_round_robin()];
@@ -14163,198 +14810,204 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, setup_tests()];
             case 16:
                 _l.sent();
-                return [4 /*yield*/, group_mms_active_tests()];
+                return [4 /*yield*/, inbox_threads_building_tests()];
             case 17:
                 _l.sent();
-                return [4 /*yield*/, inbox_loading_tests()];
+                return [4 /*yield*/, inbox_threads_loading_tests()];
             case 18:
                 _l.sent();
-                return [4 /*yield*/, auto_reply_tests()];
+                return [4 /*yield*/, group_mms_active_tests()];
             case 19:
                 _l.sent();
-                return [4 /*yield*/, relationships_tests()];
+                return [4 /*yield*/, inbox_loading_tests()];
             case 20:
                 _l.sent();
-                return [4 /*yield*/, rate_limit_tests()];
+                return [4 /*yield*/, auto_reply_tests()];
             case 21:
                 _l.sent();
-                return [4 /*yield*/, ip_address_form_tests()];
+                return [4 /*yield*/, relationships_tests()];
             case 22:
                 _l.sent();
-                return [4 /*yield*/, bulk_update_tests()];
+                return [4 /*yield*/, rate_limit_tests()];
             case 23:
                 _l.sent();
-                return [4 /*yield*/, formsort_tests()];
+                return [4 /*yield*/, ip_address_form_tests()];
             case 24:
                 _l.sent();
-                return [4 /*yield*/, cancel_upcoming_appointments_journey_action_test()];
+                return [4 /*yield*/, bulk_update_tests()];
             case 25:
                 _l.sent();
-                return [4 /*yield*/, multi_tenant_tests()]; // should come right after setup tests
+                return [4 /*yield*/, formsort_tests()];
             case 26:
+                _l.sent();
+                return [4 /*yield*/, cancel_upcoming_appointments_journey_action_test()];
+            case 27:
+                _l.sent();
+                return [4 /*yield*/, multi_tenant_tests()]; // should come right after setup tests
+            case 28:
                 _l.sent(); // should come right after setup tests
                 return [4 /*yield*/, sync_tests_with_access_tags()]; // should come directly after setup to avoid extra sync values
-            case 27:
+            case 29:
                 _l.sent(); // should come directly after setup to avoid extra sync values
                 return [4 /*yield*/, sync_tests()]; // should come directly after setup to avoid extra sync values
-            case 28:
+            case 30:
                 _l.sent(); // should come directly after setup to avoid extra sync values
                 return [4 /*yield*/, get_templated_message_tests()];
-            case 29:
-                _l.sent();
-                return [4 /*yield*/, updatedAt_tests()];
-            case 30:
-                _l.sent();
-                return [4 /*yield*/, automation_trigger_tests()];
             case 31:
                 _l.sent();
-                return [4 /*yield*/, file_source_tests()];
+                return [4 /*yield*/, updatedAt_tests()];
             case 32:
                 _l.sent();
-                return [4 /*yield*/, enduser_access_tags_tests()];
+                return [4 /*yield*/, automation_trigger_tests()];
             case 33:
                 _l.sent();
-                return [4 /*yield*/, enduserAccessTests()];
+                return [4 /*yield*/, file_source_tests()];
             case 34:
                 _l.sent();
-                return [4 /*yield*/, test_form_response_search()];
+                return [4 /*yield*/, enduser_access_tags_tests()];
             case 35:
                 _l.sent();
-                return [4 /*yield*/, date_parsing_tests()];
+                return [4 /*yield*/, enduserAccessTests()];
             case 36:
                 _l.sent();
-                return [4 /*yield*/, fromEmailOverride_tests()];
+                return [4 /*yield*/, test_form_response_search()];
             case 37:
                 _l.sent();
-                return [4 /*yield*/, ticket_tests()];
+                return [4 /*yield*/, date_parsing_tests()];
             case 38:
                 _l.sent();
-                return [4 /*yield*/, uniqueness_tests()];
+                return [4 /*yield*/, fromEmailOverride_tests()];
             case 39:
                 _l.sent();
-                return [4 /*yield*/, enduser_orders_tests()];
+                return [4 /*yield*/, ticket_tests()];
             case 40:
                 _l.sent();
-                return [4 /*yield*/, calendar_event_care_team_tests()];
+                return [4 /*yield*/, uniqueness_tests()];
             case 41:
                 _l.sent();
-                return [4 /*yield*/, merge_enduser_tests()];
+                return [4 /*yield*/, enduser_orders_tests()];
             case 42:
                 _l.sent();
-                return [4 /*yield*/, input_modifier_tests()];
+                return [4 /*yield*/, calendar_event_care_team_tests()];
             case 43:
                 _l.sent();
-                return [4 /*yield*/, switch_to_related_contacts_tests()];
+                return [4 /*yield*/, merge_enduser_tests()];
             case 44:
                 _l.sent();
-                return [4 /*yield*/, redaction_tests()];
+                return [4 /*yield*/, input_modifier_tests()];
             case 45:
                 _l.sent();
-                return [4 /*yield*/, self_serve_appointment_booking_tests()];
+                return [4 /*yield*/, switch_to_related_contacts_tests()];
             case 46:
                 _l.sent();
-                return [4 /*yield*/, no_chained_triggers_tests()];
+                return [4 /*yield*/, redaction_tests()];
             case 47:
                 _l.sent();
-                return [4 /*yield*/, mdb_filter_tests()];
+                return [4 /*yield*/, self_serve_appointment_booking_tests()];
             case 48:
                 _l.sent();
-                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
+                return [4 /*yield*/, no_chained_triggers_tests()];
             case 49:
                 _l.sent();
-                return [4 /*yield*/, superadmin_tests()];
+                return [4 /*yield*/, mdb_filter_tests()];
             case 50:
                 _l.sent();
-                return [4 /*yield*/, ticket_queue_tests()];
+                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
             case 51:
                 _l.sent();
-                return [4 /*yield*/, vital_trigger_tests()];
+                return [4 /*yield*/, superadmin_tests()];
             case 52:
                 _l.sent();
-                return [4 /*yield*/, close_reasons_no_duplicates_tests()];
+                return [4 /*yield*/, ticket_queue_tests()];
             case 53:
                 _l.sent();
-                return [4 /*yield*/, register_as_enduser_tests()];
+                return [4 /*yield*/, vital_trigger_tests()];
             case 54:
                 _l.sent();
-                return [4 /*yield*/, lockout_tests()];
+                return [4 /*yield*/, close_reasons_no_duplicates_tests()];
             case 55:
+                _l.sent();
+                return [4 /*yield*/, register_as_enduser_tests()];
+            case 56:
+                _l.sent();
+                return [4 /*yield*/, lockout_tests()];
+            case 57:
                 _l.sent();
                 return [4 /*yield*/, delete_user_tests()
                     // await test_send_with_template()
                 ];
-            case 56:
+            case 58:
                 _l.sent();
                 // await test_send_with_template()
                 return [4 /*yield*/, bulk_read_tests()];
-            case 57:
+            case 59:
                 // await test_send_with_template()
                 _l.sent();
                 return [4 /*yield*/, ticket_reminder_tests()];
-            case 58:
-                _l.sent();
-                return [4 /*yield*/, marketing_email_unsubscribe_tests()];
-            case 59:
-                _l.sent();
-                return [4 /*yield*/, unique_strings_tests()];
             case 60:
                 _l.sent();
-                return [4 /*yield*/, alternate_phones_tests()];
+                return [4 /*yield*/, marketing_email_unsubscribe_tests()];
             case 61:
                 _l.sent();
-                return [4 /*yield*/, role_based_access_tests()];
+                return [4 /*yield*/, unique_strings_tests()];
             case 62:
                 _l.sent();
-                return [4 /*yield*/, enduser_session_tests()];
+                return [4 /*yield*/, alternate_phones_tests()];
             case 63:
                 _l.sent();
-                return [4 /*yield*/, nextReminderInMS_tests()];
+                return [4 /*yield*/, role_based_access_tests()];
             case 64:
                 _l.sent();
-                return [4 /*yield*/, search_tests()];
+                return [4 /*yield*/, enduser_session_tests()];
             case 65:
                 _l.sent();
-                return [4 /*yield*/, wait_for_trigger_tests()];
+                return [4 /*yield*/, nextReminderInMS_tests()];
             case 66:
                 _l.sent();
-                return [4 /*yield*/, pdf_generation()];
+                return [4 /*yield*/, search_tests()];
             case 67:
                 _l.sent();
-                return [4 /*yield*/, remove_from_journey_on_incoming_comms_tests().catch(console.error)]; // timing is unreliable, uncomment if changing logic
+                return [4 /*yield*/, wait_for_trigger_tests()];
             case 68:
-                _l.sent(); // timing is unreliable, uncomment if changing logic
-                return [4 /*yield*/, sub_organization_enduser_tests()];
+                _l.sent();
+                return [4 /*yield*/, pdf_generation()];
             case 69:
                 _l.sent();
-                return [4 /*yield*/, sub_organization_tests()];
+                return [4 /*yield*/, remove_from_journey_on_incoming_comms_tests().catch(console.error)]; // timing is unreliable, uncomment if changing logic
             case 70:
-                _l.sent();
-                return [4 /*yield*/, filter_by_date_tests()];
+                _l.sent(); // timing is unreliable, uncomment if changing logic
+                return [4 /*yield*/, sub_organization_enduser_tests()];
             case 71:
                 _l.sent();
-                return [4 /*yield*/, generate_user_auth_tests()];
+                return [4 /*yield*/, sub_organization_tests()];
             case 72:
                 _l.sent();
-                return [4 /*yield*/, generateEnduserAuthTests()];
+                return [4 /*yield*/, filter_by_date_tests()];
             case 73:
                 _l.sent();
-                return [4 /*yield*/, public_form_tests()];
+                return [4 /*yield*/, generate_user_auth_tests()];
             case 74:
                 _l.sent();
-                return [4 /*yield*/, badInputTests()];
+                return [4 /*yield*/, generateEnduserAuthTests()];
             case 75:
                 _l.sent();
-                return [4 /*yield*/, filterTests()];
+                return [4 /*yield*/, public_form_tests()];
             case 76:
                 _l.sent();
-                return [4 /*yield*/, updatesTests()];
+                return [4 /*yield*/, badInputTests()];
             case 77:
                 _l.sent();
-                return [4 /*yield*/, threadKeyTests()];
+                return [4 /*yield*/, filterTests()];
             case 78:
                 _l.sent();
-                return [3 /*break*/, 80];
+                return [4 /*yield*/, updatesTests()];
             case 79:
+                _l.sent();
+                return [4 /*yield*/, threadKeyTests()];
+            case 80:
+                _l.sent();
+                return [3 /*break*/, 82];
+            case 81:
                 err_1 = _l.sent();
                 console.error("Failed during custom test");
                 if (err_1.message && err_1.info) {
@@ -14364,18 +15017,18 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                     console.error(err_1);
                 }
                 process.exit(1);
-                return [3 /*break*/, 80];
-            case 80:
+                return [3 /*break*/, 82];
+            case 82:
                 _a = schema;
                 _b = [];
                 for (_c in _a)
                     _b.push(_c);
                 _i = 0;
-                _l.label = 81;
-            case 81:
-                if (!(_i < _b.length)) return [3 /*break*/, 84];
+                _l.label = 83;
+            case 83:
+                if (!(_i < _b.length)) return [3 /*break*/, 86];
                 _c = _b[_i];
-                if (!(_c in _a)) return [3 /*break*/, 83];
+                if (!(_c in _a)) return [3 /*break*/, 85];
                 n = _c;
                 returnValidation = (_k = (_j = schema[n].customActions) === null || _j === void 0 ? void 0 : _j.create) === null || _k === void 0 ? void 0 : _k.returns;
                 return [4 /*yield*/, run_generated_tests({
@@ -14386,41 +15039,41 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                             create: returnValidation // ModelFields<ClientModel>,
                         }
                     })];
-            case 82:
-                _l.sent();
-                _l.label = 83;
-            case 83:
-                _i++;
-                return [3 /*break*/, 81];
             case 84:
+                _l.sent();
+                _l.label = 85;
+            case 85:
+                _i++;
+                return [3 /*break*/, 83];
+            case 86:
                 _d = tests;
                 _f = [];
                 for (_g in _d)
                     _f.push(_g);
                 _h = 0;
-                _l.label = 85;
-            case 85:
-                if (!(_h < _f.length)) return [3 /*break*/, 90];
-                _g = _f[_h];
-                if (!(_g in _d)) return [3 /*break*/, 89];
-                t = _g;
-                _l.label = 86;
-            case 86:
-                _l.trys.push([86, 88, , 89]);
-                return [4 /*yield*/, tests[t]()];
+                _l.label = 87;
             case 87:
-                _l.sent();
-                return [3 /*break*/, 89];
+                if (!(_h < _f.length)) return [3 /*break*/, 92];
+                _g = _f[_h];
+                if (!(_g in _d)) return [3 /*break*/, 91];
+                t = _g;
+                _l.label = 88;
             case 88:
+                _l.trys.push([88, 90, , 91]);
+                return [4 /*yield*/, tests[t]()];
+            case 89:
+                _l.sent();
+                return [3 /*break*/, 91];
+            case 90:
                 err_2 = _l.sent();
                 console.error("Error running test:");
                 console.error(err_2);
                 process.exit(1);
-                return [3 /*break*/, 89];
-            case 89:
+                return [3 /*break*/, 91];
+            case 91:
                 _h++;
-                return [3 /*break*/, 85];
-            case 90:
+                return [3 /*break*/, 87];
+            case 92:
                 process.exit();
                 return [2 /*return*/];
         }

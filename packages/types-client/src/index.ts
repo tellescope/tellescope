@@ -93,6 +93,7 @@ export type EnduserEligibilityResult = ClientModelForName['enduser_eligibility_r
 export type AgentRecord = ClientModelForName['agent_records']
 export type Waitlist = ClientModelForName['waitlists']
 export type AIConversation = ClientModelForName['ai_conversations']
+export type InboxThread = ClientModelForName['inbox_threads']
 
 export type Forum = ClientModelForName['forums']
 export type ForumPost = ClientModelForName['forum_posts']
@@ -114,6 +115,6 @@ export type CreateFields <N extends keyof ClientModelForName, T=ClientModelForNa
 )
 
 export type ProjectedObservation = (
-  Pick<EnduserObservation, 'id' | 'measurement' | 'timestamp' | 'source' | 'createdAt' | 'classifications' | 'status' | 'beforeMeal' | 'showWithPlotsByUnit' | 'invalidationReason' | 'type' | 'timestampIsEstimated'>
+  Pick<EnduserObservation, 'id' | 'measurement' | 'timestamp' | 'source' | 'createdAt' | 'classifications' | 'status' | 'beforeMeal' | 'showWithPlotsByUnit' | 'invalidationReason' | 'type' | 'timestampIsEstimated' | 'medStatus'>
 & Partial<Pick<EnduserObservation, 'enduserId' | 'reviewedBy' | 'reviewedAt'>>
 )

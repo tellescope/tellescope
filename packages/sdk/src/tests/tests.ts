@@ -12,6 +12,7 @@ import {
   VitalConfiguration,
   EnduserObservation,
   FormResponse,
+  InboxThread,
 } from "@tellescope/types-client"
 import { 
   CompoundFilter,
@@ -37,7 +38,7 @@ import {
 } from "@tellescope/validation"
 
 import { Session, APIQuery, EnduserSession } from "../sdk"
-import { evaluate_conditional_logic_for_enduser_fields, FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, get_next_reminder_timestamp, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities"
+import { evaluate_conditional_logic_for_enduser_fields, FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, get_next_reminder_timestamp, object_is_empty, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities"
 import { DEFAULT_OPERATIONS, PLACEHOLDER_ID, ZOOM_TITLE } from "@tellescope/constants"
 import { 
   schema, 
@@ -59,7 +60,7 @@ import {
 
 import fs from "fs"
 import { response } from "express";
-import { log } from "console";
+import { group, log } from "console";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
@@ -733,6 +734,7 @@ const run_generated_tests = async <N extends ModelName>({ queries, model, name, 
   || name === 'integration_logs' // readonly
   || name === 'automated_actions' // might process in background and cause false failure
   || name === 'waitlists' // while waitlist updates are not stored in logs
+  || name === 'inbox_threads' // disabled
   ) return 
   if (!defaultEnduser) defaultEnduser = await sdk.api.endusers.createOne({ email: 'default@tellescope.com', phone: "5555555555"  })
 
@@ -8275,6 +8277,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   integration_logs: NO_TEST,
   ai_conversations: NO_TEST,
   waitlists: waitlist_tests,
+  inbox_threads: NO_TEST, // use custom test instead to test earlier in script
 };
 
 const TRACK_OPEN_IMAGE = Buffer.from(
@@ -11362,8 +11365,515 @@ const replace_enduser_template_values_tests = async () => {
   await sdk.api.endusers.deleteOne(enduser.id)
 }
 
+const inbox_threads_building_tests = async () => {
+  log_header("Inbox Thread Building Tests")
+
+  const e = await sdk.api.endusers.createOne({ })
+  const e2 = await sdk.api.endusers.createOne({ })
+
+  const deleteBuiltThreads = async () => {
+    const allBuiltThreadsForCleanup = (await sdk.api.inbox_threads.load_threads({ })).threads
+    await Promise.all(allBuiltThreadsForCleanup.map(t => sdk.api.inbox_threads.deleteOne(t.id)))
+  }
+
+  const start = new Date()
+  let i = 0 // to prevent rate limits for identical updates
+  const resetThreadBuildingDates = () => (
+    sdk.api.organizations.updateOne(businessId, { 
+      inboxThreadsBuiltFrom: new Date(start.getTime() + (i++)), 
+      inboxThreadsBuiltTo: new Date(start.getTime() + (i++))
+    })
+  )
+
+  const resetThreadsAndDates = async () => {
+    await resetThreadBuildingDates()
+    await deleteBuiltThreads()
+  }
+
+  // start with reset dates  
+  await resetThreadBuildingDates()
+
+  await async_test(
+    'build threads for empty range',
+    () => sdk.api.inbox_threads.build_threads({ from: start, to: start }),
+    { onResult: ({ alreadyBuilt }) => alreadyBuilt }
+  )
+
+  await async_test(
+    'load threads (none built yet)',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => threads.length === 0 }
+  )
+
+  // set in first set of records to ensure replies overwrite them
+  const readBy = { [sdk.userInfo.id]: new Date() }
+  const defaultEmail = {
+    logOnly: true,
+    subject: 'Test Email',
+    textContent: 'This is a test email',
+    inbound: true,
+    userId: sdk.userInfo.id,
+    messageId: 'email',
+  }
+  const defaultSMS = {
+    logOnly: true,
+    inbound: true,
+    enduserId: e.id,
+    message: 'This is a test SMS',
+    userId: sdk.userInfo.id,
+    enduserPhoneNumber: '+15555555554',
+    phoneNumber: '+15555555555',
+  }
+
+  const email = await sdk.api.emails.createOne({ ...defaultEmail, enduserId: e.id, readBy })
+  const sms = await sdk.api.sms_messages.createOne({ ...defaultSMS, enduserId: e.id, readBy })
+  const groupMMS = await sdk.api.group_mms_conversations.createOne({ 
+    enduserIds: [e.id],
+    userIds: [sdk.userInfo.id],
+    userStates: [{
+      id: sdk.userInfo.id,
+      numUnread: 1,
+      markedUnread: false,
+    }],
+    messages: [{ // ensure it has at least 1 message
+      message: 'initial message',
+      sender: e.id,
+      timestamp: Date.now(),
+      logOnly: true,
+    }],
+  })
+  const call = await sdk.api.phone_calls.createOne({ readBy, enduserId: e.id, inbound: true, isVoicemail: true, from: '+15555555554', to: '+15555555555' })
+  const room = await sdk.api.chat_rooms.createOne({ enduserIds: [e.id], userIds: [], title: 'Thread Build Chat Room' })
+
+  await sdk.api.chats.createOne({ roomId: room.id, message: 'test', enduserId: e.id, senderId: e.id  })
+  await wait (undefined, 500) // allow for recentMessageTimestamp to be set to indicate inbound chat in chat room
+
+  const from = new Date(start.getTime() - 10000)
+  await async_test(
+    'build initial 1-message threads',
+    () => sdk.api.inbox_threads.build_threads({ from, to: new Date() }),
+    { onResult: ({ alreadyBuilt }) => !alreadyBuilt }
+  )
+  await async_test(
+    'load threads',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => (
+      threads.length === 5 
+      && threads.some(t => t.type === 'Email' && t.emailMessageId === email.messageId && !object_is_empty(t.readBy ?? {}))
+      && threads.some(t => t.type === 'SMS' && t.threadId === sms.id && !object_is_empty(t.readBy ?? {}))
+      && threads.some(t => t.type === 'GroupMMS' && t.threadId === groupMMS.id && !object_is_empty(t.readBy ?? {}))
+      && threads.some(t => t.type === 'Phone' && t.threadId === call.id && !object_is_empty(t.readBy ?? {}))
+      && threads.some(t => t.type === 'Chat' && t.threadId === room.id && !object_is_empty(t.readBy ?? {}))
+      && !threads.some(t => t.outboundPreview || t.outboundTimestamp)
+    )}
+  )
+  
+  await resetThreadBuildingDates()
+  await async_test(
+    're-build initial 1-message threads',
+    () => sdk.api.inbox_threads.build_threads({ from, to: new Date() }),
+    { onResult: ({ alreadyBuilt }) => !alreadyBuilt }
+  )
+  await async_test(
+    're-load threads with no duplication for same messages',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => (
+      threads.length === 5 
+    )}
+  )
+
+  // test adding separate threads for the first enduser
+  const beforeSecondThreads = new Date()
+  const email2 = await sdk.api.emails.createOne({ ...defaultEmail, enduserId: e.id, subject: "Different email subject", messageId: 'other-email' })
+  const sms2 = await sdk.api.sms_messages.createOne({ ...defaultSMS, enduserId: e.id, enduserPhoneNumber: "+15555555550" })
+  const groupMMS2 = await sdk.api.group_mms_conversations.createOne({ 
+    enduserIds: [e.id],
+    userIds: [sdk.userInfo.id],
+    userStates: [],
+    messages: [{ // ensure it has at least 1 message
+      message: 'initial message',
+      sender: e.id,
+      timestamp: Date.now(),
+      logOnly: true,
+    }],
+  })
+  const call2 = await sdk.api.phone_calls.createOne({ enduserId: e.id, inbound: true, isVoicemail: true, from: '+15555555554', to: '+15555555550' })
+  const room2 = await sdk.api.chat_rooms.createOne({ enduserIds: [e.id], userIds: [], title: 'Thread Build Chat Room Alt', recentMessageSentAt: Date.now() })
+
+  await async_test(
+    'build new 1-message threads for original enduser',
+    () => sdk.api.inbox_threads.build_threads({ from, to: new Date() }),
+    { onResult: ({ alreadyBuilt }) => !alreadyBuilt }
+  )
+  await async_test(
+    'load new threads for original enduser',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => (
+      threads.length === 10
+      && threads.filter(t => t.enduserIds.length === 1 && t.enduserIds.includes(e.id)).length === 10
+    )}
+  )
+
+
+  // ensure new threads created for other enduser
+  const beforeSecondEnduserThreads = new Date()
+  const e2_email = await sdk.api.emails.createOne({ ...defaultEmail, enduserId: e2.id })
+  const e2_sms = await sdk.api.sms_messages.createOne({ ...defaultSMS, enduserId: e2.id })
+  const e2_groupMMS = await sdk.api.group_mms_conversations.createOne({ 
+    enduserIds: [e2.id],
+    userIds: [sdk.userInfo.id],
+    userStates: [],
+    messages: [{ // ensure it has at least 1 message
+      message: 'initial message',
+      sender: e2.id,
+      timestamp: Date.now(),
+      logOnly: true,
+    }],
+  })
+  const e2_call = await sdk.api.phone_calls.createOne({ enduserId: e2.id, inbound: true, isVoicemail: true, from: '+15555555554', to: '+15555555555' })
+  const e2_room = await sdk.api.chat_rooms.createOne({ enduserIds: [e2.id], userIds: [], title: 'Thread Build Chat Room 2' })
+
+  await sdk.api.chats.createOne({ roomId: e2_room.id, message: 'test', enduserId: e2.id, senderId: e2.id  })
+  await wait (undefined, 500) // allow for recentMessageTimestamp to be set to indicate inbound chat in chat room
+
+  await async_test(
+    'build initial 1-message threads for other enduser',
+    () => sdk.api.inbox_threads.build_threads({ from, to: new Date() }),
+    { onResult: ({ alreadyBuilt }) => !alreadyBuilt }
+  )
+  await async_test(
+    'loads threads with no duplication across endusers',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => (
+      threads.length === 15
+      && threads.filter(t => t.enduserIds.length === 1 && t.enduserIds.includes(e.id)).length === 10
+      && threads.filter(t => t.enduserIds.length === 1 && t.enduserIds.includes(e2.id)).length === 5
+    )}
+  )
+
+  await resetThreadBuildingDates()
+  await async_test(
+    're-build initial 1-message threads for other enduser',
+    () => sdk.api.inbox_threads.build_threads({ from, to: new Date() }),
+    { onResult: ({ alreadyBuilt }) => !alreadyBuilt }
+  )
+  await async_test(
+    're-load threads with no duplication across endusers',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => (
+      threads.length === 15
+      && threads.filter(t => t.enduserIds.length === 1 && t.enduserIds.includes(e.id)).length === 10
+      && threads.filter(t => 
+        t.enduserIds.length === 1 && t.enduserIds.includes(e.id)
+        && object_is_empty(t.readBy || {})
+      ).length === 5
+      && threads.filter(t => t.enduserIds.length === 1 && t.enduserIds.includes(e2.id)).length === 5
+    )}
+  )
+
+  // test adding separate threads for the first enduser
+  const beforeReplies = new Date()
+  const emailReply = await sdk.api.emails.createOne({ ...defaultEmail, textContent: 'reply!', enduserId: e.id })
+  const smsReply = await sdk.api.sms_messages.createOne({ ...defaultSMS, enduserId: e.id, message: 'reply!' })
+  await sdk.api.group_mms_conversations.send_message({
+    logOnly: true,
+    conversationId: groupMMS.id,
+    message: 'reply!',
+    sender: e.id,
+  })
+  const chatReply = await sdk.api.chats.createOne({ roomId: room.id, message: 'reply!', enduserId: e.id, senderId: e.id  })
+  await async_test(
+    're-build threads with replies',
+    () => sdk.api.inbox_threads.build_threads({ from, to: new Date() }),
+    { onResult: ({ alreadyBuilt }) => !alreadyBuilt }
+  )
+  await async_test(
+    're-load threads with replies included',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => (
+      threads.length === 15
+      && threads.filter(t => t.enduserIds.length === 1 && t.enduserIds.includes(e.id)).length === 10
+      && threads.filter(t => 
+        t.enduserIds.length === 1 && t.enduserIds.includes(e.id)
+        && (
+          Object.keys(t.readBy || {}).length === 0 // defaults to unread
+          || Object.values(t.readBy || {}).filter(r => !r).length > 0
+        )
+      ).length === 9 // replies should now set original threads to unread, except phone call (-1)
+      && threads.filter(t => 
+        t.enduserIds.length === 1 && t.enduserIds.includes(e.id)
+        && t.preview === 'reply!'
+      ).length === 4 // phone call doesn't have a preview 
+      && threads.filter(t => t.enduserIds.length === 1 && t.enduserIds.includes(e2.id)).length === 5
+    )}
+  )
+
+  // test older messages being ignored
+  // filter phone calls since those always create new threads
+  await resetThreadsAndDates()
+  await async_test(
+    're-build threads minus initial set',
+    () => sdk.api.inbox_threads.build_threads({ from: beforeSecondThreads, to: new Date() }),
+    { onResult: ({ alreadyBuilt }) => !alreadyBuilt }
+  )
+  const newlyBuilt = (await sdk.api.inbox_threads.load_threads({ })).threads.filter(v => v.type !== 'Phone')
+  await async_test(
+    're-build threads inclusive of initial set',
+    () => sdk.api.inbox_threads.build_threads({ from: start, to: new Date() }),
+    { onResult: ({ alreadyBuilt }) => !alreadyBuilt }
+  )
+  const threadsWithOlderLoad = (await sdk.api.inbox_threads.load_threads({ })).threads.filter(v => v.type !== 'Phone')
+  assert(objects_equivalent(newlyBuilt, threadsWithOlderLoad), 'old threads included somehow', 'old messages ignored in new threads')
+
+  await async_test(
+    're-run previous test on all-threads to make sure staged build order doesnt effect final result',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => (
+      threads.length === 15
+      && threads.filter(t => t.enduserIds.length === 1 && t.enduserIds.includes(e.id)).length === 10
+      && threads.filter(t => 
+        t.enduserIds.length === 1 && t.enduserIds.includes(e.id)
+        && (
+          Object.keys(t.readBy || {}).length === 0 // defaults to unread
+          || Object.values(t.readBy || {}).filter(r => !r).length > 0
+        )
+      ).length === 9 // replies should now set original threads to unread, except phone call (-1)
+      && threads.filter(t => 
+        t.enduserIds.length === 1 && t.enduserIds.includes(e.id)
+        && t.preview === 'reply!'
+      ).length === 4 // phone call doesn't have a preview 
+      && threads.filter(t => t.enduserIds.length === 1 && t.enduserIds.includes(e2.id)).length === 5
+      // re-assert no inbound messages yet
+      && !threads.some(t => t.outboundPreview || t.outboundTimestamp)
+    )}
+  )
+
+
+  // test adding OUTBOUND messages for the first enduser
+  const emailReplyOutbound = await sdk.api.emails.createOne({ ...defaultEmail, inbound: false, textContent: 'outbound reply!', enduserId: e.id })
+  const smsReplyOutbound = await sdk.api.sms_messages.createOne({ ...defaultSMS, inbound: false, enduserId: e.id, message: 'outbound reply!' })
+  await sdk.api.group_mms_conversations.send_message({
+    logOnly: true,
+    conversationId: groupMMS.id,
+    message: 'outbound reply!',
+    sender: sdk.userInfo.id,
+  })
+  const chatOutboundReply = await sdk.api.chats.createOne({ roomId: room.id, message: 'outbound reply!', senderId: sdk.userInfo.id  })
+  const outboundCall = await sdk.api.phone_calls.createOne({ readBy, enduserId: e.id, inbound: false, isVoicemail: true, from: '+15555555554', to: '+15555555555' })
+
+  await async_test(
+    're-build with outbound threads',
+    () => sdk.api.inbox_threads.build_threads({ from: start, to: new Date() }),
+    { onResult: ({ alreadyBuilt }) => !alreadyBuilt }
+  )
+  await async_test(
+    'Test outbound timestamp and preview',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => (
+      threads.length === 16 // only the new call should result in a new thread
+      && 
+      threads
+      .filter(t => 
+        t.threadId === outboundCall.id 
+        || (
+           !!t.outboundTimestamp
+        && !!t.outboundPreview
+        && new Date(t.outboundTimestamp).getTime() > new Date(t.timestamp).getTime()
+        )
+      )
+      .length === 4 // all channels except call 
+    )}
+  )
+
+  return Promise.all([
+    sdk.api.endusers.deleteOne(e.id),
+    sdk.api.endusers.deleteOne(e2.id),
+    sdk.api.chat_rooms.deleteOne(room.id),
+    sdk.api.chat_rooms.deleteOne(e2_room.id),
+    sdk.api.chat_rooms.deleteOne(room2.id),
+    sdk.api.group_mms_conversations.deleteOne(groupMMS.id),
+    sdk.api.group_mms_conversations.deleteOne(e2_groupMMS.id),
+    sdk.api.group_mms_conversations.deleteOne(groupMMS2.id),
+    deleteBuiltThreads(),
+  ])
+}
+
+const inbox_threads_loading_tests = async () => {
+  log_header("Inbox Thread Loading Tests")
+
+  const e1 = await sdk.api.endusers.createOne({ fname: 'Test', lname: 'Testson' })
+  const e2 = await sdk.api.endusers.createOne({ fname: 'Test2', lname: 'Testson2', assignedTo: [sdk.userInfo.id] })
+
+  const defaultThreadFields = {
+    assignedTo: [], 
+    enduserIds: [e1.id], 
+    userIds: [], 
+    inboxStatus: 'New', 
+    preview: 'Test', 
+    threadId: '1', 
+    timestamp: new Date(), 
+  }
+  const threads = (
+    await sdk.api.inbox_threads.createSome([
+      { ...defaultThreadFields, title: 'Email', type: 'Email', threadId: '1' }, 
+      { ...defaultThreadFields, title: 'SMS', type: 'SMS', threadId: '2', assignedTo: [sdk.userInfo.id] }, 
+      { ...defaultThreadFields, title: 'Phone', type: 'Phone', threadId: '3', enduserIds: [e2.id] }, 
+      { ...defaultThreadFields, title: 'Chat', type: 'Chat', threadId: '4', timestamp: new Date(0) }, 
+      { ...defaultThreadFields, title: 'GroupMMS', type: 'GroupMMS', inboxStatus: "Resolved", threadId: '5' },
+    ])
+  ).created
+  const [email, sms, phone, chat, groupMMS] = threads
+
+  // test access
+  await async_test(
+    'admin can load all threads',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => threads.length === 5 }
+  )
+  await async_test(
+    'non-admin can load no threads',
+    () => sdkNonAdmin.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => threads.length === 0 }
+  )
+  await async_test(
+    'non-admin cant load threads by specifying other userId',
+    () => sdkNonAdmin.api.inbox_threads.load_threads({ userIds: [sdk.userInfo.id] }),
+    { onResult: ({ threads }) => threads.length === 0 }
+  )
+  await async_test(
+    'non-admin cant load threads by specifying enduserIds',
+    () => sdkNonAdmin.api.inbox_threads.load_threads({ enduserIds: [e1.id, e2.id] }),
+    { onResult: ({ threads }) => threads.length === 0 }
+  )
+
+  await async_test(
+    'admin limit',
+    () => sdk.api.inbox_threads.load_threads({ limit: 1 }),
+    { onResult: ({ threads }) => threads.length === 1 }
+  )
+  await async_test(
+    'admin timestamp filter',
+    () => sdk.api.inbox_threads.load_threads({ lastTimestamp: new Date(1) }),
+    { onResult: ({ threads }) => threads.length === 1 }
+  )
+  await async_test(
+    'admin enduserIds filter',
+    () => sdk.api.inbox_threads.load_threads({ enduserIds: [e1.id] }),
+    { onResult: ({ threads }) => threads.length === 4 }
+  )
+  await async_test(
+    'admin excludeIds filter',
+    () => sdk.api.inbox_threads.load_threads({ excludeIds: [email.id, phone.id] }),
+    { onResult: ({ threads }) => threads.length === 3 }
+  )
+  await async_test(
+    'admin userIds self filter',
+    () => sdk.api.inbox_threads.load_threads({ userIds: [sdk.userInfo.id] }),
+    { onResult: ({ threads }) => threads.length === 2 }
+  )
+
+  // adding to care team of e2 who belongs to only the phone thread
+  await sdk.api.endusers.updateOne(e2.id, { assignedTo: [sdkNonAdmin.userInfo.id] }, { replaceObjectFields: true })
+
+  // assign (default access) to sms thread
+  await sdk.api.inbox_threads.updateOne(sms.id, { userIds: [sdkNonAdmin.userInfo.id] }, { replaceObjectFields: true })
+
+  await async_test(
+    'non-admin can load threads based on assignment/default access',
+    () => sdkNonAdmin.api.inbox_threads.load_threads({  }),
+    { onResult: ({ threads }) => 
+      threads.length === 2 
+      && threads.some(t => t.id === phone.id)
+      && threads.some(t => t.id === sms.id)
+    }
+  )
+
+  const roleTestUserEmail = 'inbox.role.test@tellescope.com'
+  const roleTestUser = (
+    await sdk.api.users.getOne({ email: roleTestUserEmail }).catch(() => null) // throws error on none found
+  ) || (
+    await sdk.api.users.createOne({ email: roleTestUserEmail })
+  )
+
+  // add to care team to ensure this doesn't grant unexpected access
+  await sdk.api.endusers.updateOne(e2.id, { assignedTo: [roleTestUser.id] })
+  // assign (default access) to sms thread to ensure no unexpected access
+  await sdk.api.inbox_threads.updateOne(sms.id, { userIds: [roleTestUser.id] }, { replaceObjectFields: true })
+
+  const defaultAccessRole = await sdk.api.role_based_access_permissions.createOne({
+    role: 'Default Access',
+    permissions: {
+      emails: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+      sms_messages: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+      group_mms_conversations: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+      phone_calls: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+      ticket_threads: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+      ticket_thread_comments: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+      chat_rooms: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+      endusers: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+    },
+  })
+  await sdk.api.users.updateOne(roleTestUser.id, { roles: [defaultAccessRole.role] }, { replaceObjectFields: true })
+  await wait(undefined, 2000) // role change triggers a logout
+  const sdkDefaultAccess = new Session({ 
+    host,
+    authToken: (await sdk.api.users.generate_auth_token({ id: roleTestUser.id })).authToken,
+  })
+  await async_test('test_authenticated (default access)', sdkDefaultAccess.test_authenticated, { expectedResult: 'Authenticated!' })
+
+  await async_test(
+    'non-admin default role',
+    () => sdkDefaultAccess.api.inbox_threads.load_threads({  }),
+    { onResult: ({ threads }) => threads.length === 1 && threads.some(t => t.id === sms.id) }
+  )
+
+
+  const noAccessRole = await sdk.api.role_based_access_permissions.createOne({
+    role: 'No Access',
+    permissions: {
+      emails: { read: null, create: null, update: null, delete: null },
+      sms_messages: { read: null, create: null, update: null, delete: null },
+      group_mms_conversations: { read: null, create: null, update: null, delete: null },
+      phone_calls: { read: null, create: null, update: null, delete: null },
+      ticket_threads: { read: null, create: null, update: null, delete: null },
+      ticket_thread_comments: { read: null, create: null, update: null, delete: null },
+      chat_rooms: { read: null, create: null, update: null, delete: null },
+      // read must be default for endpoint to return non 403
+      endusers: { read: 'Default', create: null, update: null, delete: null },
+    },
+  })
+
+  // ensure role is set, in case GET returned a user without a role or with a different role
+  await sdk.api.users.updateOne(roleTestUser.id, { roles: [noAccessRole.role] }, { replaceObjectFields: true })
+
+  await wait(undefined, 2000) // role change triggers a logout
+
+  const sdkNoAccess = new Session({ 
+    host,
+    authToken: (await sdk.api.users.generate_auth_token({ id: roleTestUser.id })).authToken,
+  })
+  await async_test('test_authenticated (no access)', sdkNoAccess.test_authenticated, { expectedResult: 'Authenticated!' })
+  await async_test('verify no-read on direct API call', sdkNoAccess.api.emails.getSome, handleAnyError) // ensures role is set up correctly
+
+  await async_test(
+    "No access reads nothing",
+    () => sdkNoAccess.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => threads.length === 0 },
+  )
+
+  await Promise.all([
+    sdk.api.endusers.deleteOne(e1.id),
+    sdk.api.endusers.deleteOne(e2.id),
+    sdk.api.users.deleteOne(roleTestUser.id),
+    sdk.api.role_based_access_permissions.deleteOne(defaultAccessRole.id),
+    sdk.api.role_based_access_permissions.deleteOne(noAccessRole.id),
+    ...threads.map(t => sdk.api.inbox_threads.deleteOne(t.id)),
+  ])
+}
+
+// deprecated endpoint in favor of inbox threads
 const inbox_loading_tests = async () => {
-  log_header("Inbox Loading Tests")
+  log_header("Inbox Loading Tests (deprecated bulk endpoint)")
   const e = await sdk.api.endusers.createOne({ fname: 'Test', lname: 'Testson' })
   const e2 = await sdk.api.endusers.createOne({ fname: 'Test2', lname: 'Testson2' })
 
@@ -12599,6 +13109,8 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests()
+    await inbox_threads_building_tests()
+    await inbox_threads_loading_tests()
     await group_mms_active_tests()
     await inbox_loading_tests()
     await auto_reply_tests()

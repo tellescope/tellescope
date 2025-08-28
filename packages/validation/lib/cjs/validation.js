@@ -4190,6 +4190,7 @@ exports.accessPermissionsValidator = (0, exports.objectValidator)({
     agent_records: exports.accessPermissionValidator,
     waitlists: exports.accessPermissionValidator,
     ai_conversations: exports.accessPermissionValidator,
+    inbox_threads: exports.accessPermissionValidator,
     // deprecated but for backwards compatibility
     apiKeys: exports.accessPermissionValidator,
 });
@@ -4281,6 +4282,7 @@ exports.organizationLimitsValidator = (0, exports.objectValidator)({
     enduser_eligibility_results: exports.numberValidatorOptional,
     agent_records: exports.numberValidatorOptional,
     waitlists: exports.numberValidatorOptional,
+    inbox_threads: exports.numberValidatorOptional,
 }, { emptyOk: true });
 var _LOGIN_FLOW_RESULTS = {
     // "continue-set-password": true, // something we may turn on later / as requested

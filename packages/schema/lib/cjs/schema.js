@@ -1291,10 +1291,7 @@ exports.schema = (0, exports.build_schema)({
                 validator: validation_1.numberToDateValidator,
                 readonly: true,
                 examples: [{ 0: new Date() }]
-            }, messageId: {
-                validator: validation_1.stringValidator,
-                readonly: true,
-            }, inbound: {
+            }, messageId: { validator: validation_1.stringValidator }, inbound: {
                 validator: validation_1.booleanValidator,
                 initializer: function () { return false; },
             }, textEncoding: {
@@ -1594,7 +1591,7 @@ exports.schema = (0, exports.build_schema)({
             }, recentEnduserMessage: {
                 validator: validation_1.stringValidator,
                 readonly: true,
-            }, recentMessage: {
+            }, recentEnduserMessageSentAt: { validator: validation_1.nonNegNumberValidator }, recentMessage: {
                 validator: validation_1.stringValidator,
                 initializer: function () { return ''; },
                 readonly: true,
@@ -2807,7 +2804,7 @@ exports.schema = (0, exports.build_schema)({
                 },
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { belugaVisitType: { validator: validation_1.stringValidator }, gtmTag: { validator: validation_1.stringValidator100EscapeHTML }, dontSyncToCanvasOnSubmission: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { showByUserTags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, belugaVisitType: { validator: validation_1.stringValidator }, gtmTag: { validator: validation_1.stringValidator100EscapeHTML }, dontSyncToCanvasOnSubmission: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
                 validator: validation_1.stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -4019,7 +4016,7 @@ exports.schema = (0, exports.build_schema)({
                         relationship: 'foreignKey',
                         onDependencyDelete: 'delete',
                     }]
-            }, code: { validator: validation_1.stringValidator }, source: { validator: validation_1.stringValidator }, type: { validator: validation_1.stringValidator }, notes: { validator: validation_1.stringValidator }, recordedAt: { validator: validation_1.dateValidator }, reviewedAt: { validator: validation_1.dateValidatorOptional }, timestamp: { validator: validation_1.dateValidator, initializer: function () { return new Date(); } }, statusChangedBy: { validator: validation_1.mongoIdStringRequired }, beforeMeal: { validator: validation_1.booleanValidator }, dontTrigger: { validator: validation_1.booleanValidator }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, showWithPlotsByUnit: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, invalidationReason: { validator: validation_1.stringValidatorOptionalEmptyOkay } })
+            }, code: { validator: validation_1.stringValidator }, source: { validator: validation_1.stringValidator }, type: { validator: validation_1.stringValidator }, notes: { validator: validation_1.stringValidator }, recordedAt: { validator: validation_1.dateValidator }, reviewedAt: { validator: validation_1.dateValidatorOptional }, timestamp: { validator: validation_1.dateValidator, initializer: function () { return new Date(); } }, statusChangedBy: { validator: validation_1.mongoIdStringRequired }, beforeMeal: { validator: validation_1.booleanValidator }, medStatus: { validator: validation_1.stringValidator }, dontTrigger: { validator: validation_1.booleanValidator }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, showWithPlotsByUnit: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, invalidationReason: { validator: validation_1.stringValidatorOptionalEmptyOkay } })
     },
     managed_content_records: {
         info: {},
@@ -4564,7 +4561,7 @@ exports.schema = (0, exports.build_schema)({
                 }
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { outOfOfficeHours: { validator: validation_1.outOfOfficeBlocksValidator }, bedrockAIAllowed: { validator: validation_1.booleanValidator }, creditCount: { validator: validation_1.numberValidator, readonly: true }, stripeKeyDetails: {
+        fields: __assign(__assign({}, BuiltInFields), { inboxThreadsBuiltFrom: { validator: validation_1.dateOptionalOrEmptyStringValidator }, inboxThreadsBuiltTo: { validator: validation_1.dateOptionalOrEmptyStringValidator }, outOfOfficeHours: { validator: validation_1.outOfOfficeBlocksValidator }, bedrockAIAllowed: { validator: validation_1.booleanValidator }, creditCount: { validator: validation_1.numberValidator, readonly: true }, stripeKeyDetails: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     key: validation_1.stringValidator5000EmptyOkay,
                     title: validation_1.stringValidator5000EmptyOkay,
@@ -6276,6 +6273,45 @@ exports.schema = (0, exports.build_schema)({
                     userId: validation_1.mongoIdStringOptional,
                 }))
             } })
+    },
+    inbox_threads: {
+        info: { description: '' },
+        constraints: { unique: [], relationship: [], access: [] },
+        // we can't offer read defaults because they don't account for access permissions of each message channel
+        // include create, createMany, and delete for easier automated testing
+        defaultActions: { create: {}, createMany: {}, update: {}, delete: {} },
+        customActions: {
+            build_threads: {
+                op: "custom", access: 'create', method: "post",
+                name: 'Build Threads',
+                path: '/inbox-threads/build',
+                description: "Builds/hydrates InboxThreads for messages across different channels",
+                parameters: {
+                    from: { validator: validation_1.dateValidatorOptional },
+                    to: { validator: validation_1.dateValidatorOptional },
+                },
+                returns: {
+                    alreadyBuilt: { validator: validation_1.booleanValidator, required: true },
+                },
+            },
+            load_threads: {
+                op: "custom", access: 'read', method: "get",
+                name: 'Load Threads',
+                path: '/inbox-threads/load',
+                description: "Sends a message to the AI conversation",
+                parameters: {
+                    excludeIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk },
+                    limit: { validator: validation_1.numberValidatorOptional },
+                    lastTimestamp: { validator: validation_1.dateValidatorOptional },
+                    enduserIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk },
+                    userIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk },
+                },
+                returns: {
+                    threads: { validator: 'inbox_threads', required: true },
+                },
+            },
+        },
+        fields: __assign(__assign({}, BuiltInFields), { type: { validator: (0, validation_1.exactMatchValidator)(['Chat', 'Email', 'GroupMMS', 'Phone', 'SMS']), required: true, examples: ['Email'] }, assignedTo: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, enduserIds: { validator: validation_1.listOfMongoIdStringValidator, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, userIds: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, inboxStatus: { validator: validation_1.stringValidator, required: true, examples: ['In Progress'] }, preview: { validator: validation_1.stringValidator25000, required: true, examples: ['Preview of the message'] }, threadId: { validator: validation_1.stringValidator, required: true, examples: ['Thread ID'] }, timestamp: { validator: validation_1.dateValidator, required: true, examples: [new Date().toISOString()] }, title: { validator: validation_1.stringValidator, required: true, examples: ['Title or Subject Here'] }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, readBy: { validator: validation_1.idStringToDateValidator }, outboundTimestamp: { validator: validation_1.dateValidator }, outboundPreview: { validator: validation_1.stringValidator25000 } })
     }
 });
 // export type SchemaType = typeof schema

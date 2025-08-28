@@ -1429,6 +1429,9 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").Waitlist & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").InboxThread & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").CallHoldQueue & {
         id: string;
         createdAt: Date;
@@ -1690,6 +1693,9 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Waitlist & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").InboxThread & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").CallHoldQueue & {
@@ -1963,6 +1969,9 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").Waitlist & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").InboxThread & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").CallHoldQueue & {
         id: string;
         createdAt: Date;
@@ -2224,6 +2233,9 @@ export declare const useSyncContext: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Waitlist & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").InboxThread & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").CallHoldQueue & {
