@@ -17,6 +17,7 @@ export declare const TellescopeFormContainer: ({ businessId, organizationIds, ..
     language?: string | undefined;
     onChangeLanguage?: ((l: string) => void) | undefined;
     paperMinHeight?: React.CSSProperties['minHeight'];
+    maxWidth?: number | undefined;
 } & Styled) => JSX.Element;
 export interface TellescopeFormProps extends ReturnType<typeof useTellescopeForm> {
     form?: Form;

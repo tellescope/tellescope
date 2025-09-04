@@ -5211,6 +5211,17 @@ exports.schema = (0, exports.build_schema)({
                 },
                 returns: { report: { validator: validation_1.objectAnyFieldsAnyValuesValidator, required: true } }
             },
+            custom_aggregation: {
+                op: "custom", access: 'read', method: "post",
+                name: 'Custom analytics aggregation',
+                path: '/analytics/custom-aggregation',
+                description: "Execute a custom MongoDB aggregation on a specified model for analytics",
+                parameters: {
+                    modelName: { validator: validation_1.stringValidator, required: true },
+                    aggregation: { validator: validation_1.listOfObjectAnyFieldsAnyValuesValidator, required: true },
+                },
+                returns: { result: { validator: validation_1.objectAnyFieldsAnyValuesValidator, required: true } }
+            },
         },
         enduserActions: {},
         fields: __assign(__assign({}, BuiltInFields), { createdAvailabilities: { validator: validation_1.weeklyAvailabilitiesValidator }, title: {

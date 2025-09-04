@@ -21,6 +21,7 @@ export const TellescopeFormContainer = ({ businessId, organizationIds, ...props 
   language?: string,
   onChangeLanguage?: (l: string) => void,
   paperMinHeight?: React.CSSProperties['minHeight'],
+  maxWidth?: number,
 } & Styled) => {
   // if context already is provided, no need to duplicate
   if (props.dontAddContext) return (
@@ -34,7 +35,7 @@ export const TellescopeFormContainer = ({ businessId, organizationIds, ...props 
   )
 }
 
-const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ paperMinHeight=575, children, language, onChangeLanguage, style, hideBg, backgroundColor, hideLogo, logoHeight }) => {
+const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ paperMinHeight=575, children, language, onChangeLanguage, style, hideBg, backgroundColor, hideLogo, logoHeight, maxWidth }) => {
   const theme = useOrganizationTheme()
 
   const formContent = (
@@ -64,7 +65,7 @@ const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ pape
   if (hideBg) {
     return (
       <Flex flex={1} alignItems="center" justifyContent="center" style={style}>
-      <Flex flex={1} style={{ padding: 20, maxWidth: 650, minWidth: 250, minHeight: 475 }}>
+      <Flex flex={1} style={{ padding: 20, maxWidth: maxWidth ?? 650, minWidth: 250, minHeight: 475 }}>
         {formContent}
       </Flex>
       </Flex>
@@ -72,7 +73,7 @@ const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ pape
   }
   return (
     <Flex flex={1} alignItems="center" justifyContent="center" style={{ backgroundColor: backgroundColor ?? theme.themeColor ?? '#ffffff', ...style }}>
-    <Paper flex elevation={3} style={{ marginTop: 50, marginBottom: 50, padding: 20, maxWidth: 650, minWidth: 250, minHeight: paperMinHeight }}>
+    <Paper flex elevation={3} style={{ marginTop: 50, marginBottom: 50, padding: 20, maxWidth: maxWidth ?? 650, minWidth: 250, minHeight: paperMinHeight }}>
       {formContent}
     </Paper>
     </Flex>
@@ -706,6 +707,7 @@ const TellescopeFormWithContext: typeof TellescopeForm = (props) => {
       logoHeight={props.logoHeight}
       backgroundColor={props.backgroundColor}
       hideLogo={props?.customization?.hideLogo}
+      maxWidth={props.form?.customization?.maxWidth}
     >
       {props.submitted 
         ? <ThanksMessage {...props} showRestartAtEnd={props?.customization?.showRestartAtEnd} /> 

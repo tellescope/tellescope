@@ -4607,6 +4607,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     info: objectValidator<AutomationTriggerEvents['Vital Update']['info']>({
       configurationIds: listOfMongoIdStringValidator,
       classifications: listOfStringsValidator,
+      ignoreDelayedReadings: booleanValidatorOptional,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -6045,6 +6046,7 @@ export const formCustomizationValidator = objectValidator<Form['customization']>
   showRestartAtEnd: booleanValidatorOptional,
   multiPagePublicQuestions: booleanValidatorOptional,
   logoHeight: numberValidatorOptional,
+  maxWidth: numberValidatorOptional,
   hideBg: booleanValidatorOptional,
   portalShowThanksAfterSubmission: booleanValidatorOptional,
   publicFnameLabel: stringValidatorOptionalEmptyOkay,

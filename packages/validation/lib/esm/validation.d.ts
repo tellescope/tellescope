@@ -1586,6 +1586,7 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Vital Update", {
     configurationIds: string[];
     classifications: string[];
+    ignoreDelayedReadings?: boolean | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"SMS Reply", {
     templateIds: string[];
     replyKeywords?: string[] | undefined;

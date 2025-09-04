@@ -3830,6 +3830,7 @@ type Queries = {
     analytics_frames: {
         get_result_for_query: (args: extractFields<CustomActions['analytics_frames']['get_result_for_query']['parameters']>) => (Promise<extractFields<CustomActions['analytics_frames']['get_result_for_query']['returns']>>);
         get_custom_report: (args: extractFields<CustomActions['analytics_frames']['get_custom_report']['parameters']>) => (Promise<extractFields<CustomActions['analytics_frames']['get_custom_report']['returns']>>);
+        custom_aggregation: (args: extractFields<CustomActions['analytics_frames']['custom_aggregation']['parameters']>) => (Promise<extractFields<CustomActions['analytics_frames']['custom_aggregation']['returns']>>);
         update_indexes: (args: extractFields<CustomActions['analytics_frames']['update_indexes']['parameters']>) => (Promise<extractFields<CustomActions['analytics_frames']['update_indexes']['returns']>>);
     };
     emails: {
@@ -3991,6 +3992,7 @@ export declare class Session extends SessionManager {
         exp: number;
         allowedPaths?: string[] | undefined;
         requiresMFA?: boolean | undefined;
+        users?: number | undefined;
         inbox_threads?: number | undefined;
         ai_conversations?: number | undefined;
         waitlists?: number | undefined;
@@ -4036,7 +4038,6 @@ export declare class Session extends SessionManager {
         sms_messages?: number | undefined;
         chat_rooms?: number | undefined;
         chats?: number | undefined;
-        users?: number | undefined;
         templates?: number | undefined;
         files?: number | undefined;
         tickets?: number | undefined;
@@ -4143,6 +4144,7 @@ export declare class Session extends SessionManager {
         exp: number;
         allowedPaths?: string[] | undefined;
         requiresMFA?: boolean | undefined;
+        users?: number | undefined;
         inbox_threads?: number | undefined;
         ai_conversations?: number | undefined;
         waitlists?: number | undefined;
@@ -4188,7 +4190,6 @@ export declare class Session extends SessionManager {
         sms_messages?: number | undefined;
         chat_rooms?: number | undefined;
         chats?: number | undefined;
-        users?: number | undefined;
         templates?: number | undefined;
         files?: number | undefined;
         tickets?: number | undefined;

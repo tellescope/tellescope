@@ -1731,6 +1731,7 @@ export type FormCustomization = {
     multiPagePublicQuestions?: boolean;
     hideBg?: boolean;
     portalShowThanksAfterSubmission?: boolean;
+    maxWidth?: number;
 };
 export interface Form_readonly extends ClientRecord {
     numFields: number;
@@ -3845,6 +3846,10 @@ export type AnalyticsQueryOptions = {
     overrideGlobalRange?: boolean;
     groupByCareTeam?: boolean;
 };
+export type AnalyticsAggregationRequest = {
+    modelName: string;
+    aggregation: any[];
+};
 export type AnalyticsFrameGroupingCategory = {
     category: string;
     keys: string[];
@@ -4124,6 +4129,7 @@ export type AutomationTriggerEvents = {
     'Vital Update': AutomationTriggerEventBuilder<"Vital Update", {
         configurationIds: string[];
         classifications: string[];
+        ignoreDelayedReadings?: boolean;
     }, {}>;
     'SMS Reply': AutomationTriggerEventBuilder<"SMS Reply", {
         templateIds: string[];

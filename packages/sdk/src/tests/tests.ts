@@ -9770,11 +9770,13 @@ const vital_trigger_tests = async () => {
     vitals,
     title,
     enduserConfigurations: _enduserConfigurations,
+    ignoreDelayedReadings,
   } : {
     configurations: Pick<VitalConfiguration, 'mealStatus' | 'unit' | 'ranges'>[]
     triggers: { configurationIndexes: number[], classifications: string[] }[],
     vitals: (Pick<EnduserObservation, 'measurement'> & Pick<Partial<EnduserObservation>, | 'timestamp' | 'beforeMeal' | 'dontTrigger'>)[],
     shouldTrigger: boolean,
+    ignoreDelayedReadings?: boolean,
     otherEnduserShouldTrigger?: boolean,
     title: string,
     enduserConfigurations?: Pick<VitalConfiguration, 'mealStatus' | 'unit' | 'ranges'>[]
@@ -9810,6 +9812,7 @@ const vital_trigger_tests = async () => {
           info: {
             classifications: t.classifications,
             configurationIds: configurations.filter((_, i) => t.configurationIndexes.includes(i)).map(c => c.id),
+            ignoreDelayedReadings,
           }
         },
         action: {
@@ -9866,6 +9869,95 @@ const vital_trigger_tests = async () => {
       ...triggers.map(t => sdk.api.automation_triggers.deleteOne(t.id)),
     ])
   }
+
+  // set to 0 to default to 1-hr
+  await sdk.api.organizations.updateOne(sdk.userInfo.businessId, { settings: { endusers: { delayedReadingIntervalInMS: 0 }} })
+  await runTriggerTest({
+    title: "Delayed Reading (trigger, no delay)",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'mg/dL',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 }, ],
+    }],
+    ignoreDelayedReadings: true,
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'mg/dL', value: 100 },
+      timestamp: new Date(),
+    }],
+  })
+  await runTriggerTest({
+    title: "Delayed Reading (trigger, delay too small)",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'mg/dL',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 }, ],
+    }],
+    ignoreDelayedReadings: true,
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'mg/dL', value: 100 },
+      timestamp: new Date(Date.now() - 1000),
+    }],
+  })
+  await runTriggerTest({
+    title: "Delayed Reading (trigger, delay too small, close to 1 hour)",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'mg/dL',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 }, ],
+    }],
+    ignoreDelayedReadings: true,
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'mg/dL', value: 100 },
+      timestamp: new Date(Date.now() - 1000 * 60 * 55),
+    }],
+  })
+  await runTriggerTest({
+    title: "Delayed Reading (dont trigger, delay exceeds 1 hour default)",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'mg/dL',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 }, ],
+    }],
+    ignoreDelayedReadings: true,
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'mg/dL', value: 100 },
+      timestamp: new Date(Date.now() - 1000 * 60 * 65),
+    }],
+  })
+  // update to 5 minutes to retest
+  await sdk.api.organizations.updateOne(sdk.userInfo.businessId, { settings: { endusers: { delayedReadingIntervalInMS: 1000 * 60 * 5 }} })
+  await runTriggerTest({
+    title: "Delayed Reading (trigger, delay too small for custom setting)",
+    shouldTrigger: true,
+    configurations: [{ 
+      unit: 'mg/dL',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 }, ],
+    }],
+    ignoreDelayedReadings: true,
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'mg/dL', value: 100 },
+      timestamp: new Date(Date.now() - 1000 * 60 * 4),
+    }],
+  })
+  await runTriggerTest({
+    title: "Delayed Reading (dont trigger, delay exceeds custom default)",
+    shouldTrigger: false,
+    configurations: [{ 
+      unit: 'mg/dL',
+      ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 }, ],
+    }],
+    ignoreDelayedReadings: true,
+    triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+    vitals: [{
+      measurement: { unit: 'mg/dL', value: 100 },
+      timestamp: new Date(Date.now() - 1000 * 60 * 6),
+    }],
+  })
 
   await runTriggerTest({
     title: "Basic Passing Test (dontTrigger)",

@@ -40,6 +40,7 @@ import {
   JourneyContext,
   AnalyticsQuery,
   AnalyticsQueryResult,
+  AnalyticsAggregationRequest,
   DateRange,
   BaseAvailabilityBlock,
   IndexUpdate,
@@ -339,6 +340,7 @@ import {
   stringValidator100EscapeHTML,
   outOfOfficeBlocksValidator,
   AIDecisionSourceValidator,
+  listOfObjectAnyFieldsAnyValuesValidator,
 } from "@tellescope/validation"
 
 import {
@@ -1063,6 +1065,7 @@ export type CustomActions = {
       groupByCareTeam?: boolean,
     }, AnalyticsQueryResult>, 
     get_custom_report: CustomAction<{ key: string, lastId?: string, limit?: number }, { report: any }>, 
+    custom_aggregation: CustomAction<AnalyticsAggregationRequest, any>,
     update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
   },
   managed_content_records: {
@@ -7530,6 +7533,17 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           limit: { validator: numberValidator },
         },
         returns: { report: { validator: objectAnyFieldsAnyValuesValidator, required: true } }
+      },
+      custom_aggregation: {
+        op: "custom", access: 'read', method: "post", 
+        name: 'Custom analytics aggregation',
+        path: '/analytics/custom-aggregation',
+        description: "Execute a custom MongoDB aggregation on a specified model for analytics",
+        parameters: { 
+          modelName: { validator: stringValidator, required: true },
+          aggregation: { validator: listOfObjectAnyFieldsAnyValuesValidator, required: true },
+        },
+        returns: { result: { validator: objectAnyFieldsAnyValuesValidator, required: true } }
       },
     },
     enduserActions: { },

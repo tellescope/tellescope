@@ -11377,7 +11377,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
             case 0:
                 log_header("Vital Update Trigger");
                 runTriggerTest = function (_a) {
-                    var _configurations = _a.configurations, _triggers = _a.triggers, shouldTrigger = _a.shouldTrigger, otherEnduserShouldTrigger = _a.otherEnduserShouldTrigger, vitals = _a.vitals, title = _a.title, _enduserConfigurations = _a.enduserConfigurations;
+                    var _configurations = _a.configurations, _triggers = _a.triggers, shouldTrigger = _a.shouldTrigger, otherEnduserShouldTrigger = _a.otherEnduserShouldTrigger, vitals = _a.vitals, title = _a.title, _enduserConfigurations = _a.enduserConfigurations, ignoreDelayedReadings = _a.ignoreDelayedReadings;
                     return __awaiter(void 0, void 0, void 0, function () {
                         var e, e2, configurations, enduserConfigurations, _b, triggers;
                         return __generator(this, function (_c) {
@@ -11409,6 +11409,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                                 info: {
                                                     classifications: t.classifications,
                                                     configurationIds: configurations.filter(function (_, i) { return t.configurationIndexes.includes(i); }).map(function (c) { return c.id; }),
+                                                    ignoreDelayedReadings: ignoreDelayedReadings,
                                                 }
                                             },
                                             action: {
@@ -11448,6 +11449,114 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                         });
                     });
                 };
+                // set to 0 to default to 1-hr
+                return [4 /*yield*/, sdk.api.organizations.updateOne(sdk.userInfo.businessId, { settings: { endusers: { delayedReadingIntervalInMS: 0 } } })];
+            case 1:
+                // set to 0 to default to 1-hr
+                _a.sent();
+                return [4 /*yield*/, runTriggerTest({
+                        title: "Delayed Reading (trigger, no delay)",
+                        shouldTrigger: true,
+                        configurations: [{
+                                unit: 'mg/dL',
+                                ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 },],
+                            }],
+                        ignoreDelayedReadings: true,
+                        triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+                        vitals: [{
+                                measurement: { unit: 'mg/dL', value: 100 },
+                                timestamp: new Date(),
+                            }],
+                    })];
+            case 2:
+                _a.sent();
+                return [4 /*yield*/, runTriggerTest({
+                        title: "Delayed Reading (trigger, delay too small)",
+                        shouldTrigger: true,
+                        configurations: [{
+                                unit: 'mg/dL',
+                                ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 },],
+                            }],
+                        ignoreDelayedReadings: true,
+                        triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+                        vitals: [{
+                                measurement: { unit: 'mg/dL', value: 100 },
+                                timestamp: new Date(Date.now() - 1000),
+                            }],
+                    })];
+            case 3:
+                _a.sent();
+                return [4 /*yield*/, runTriggerTest({
+                        title: "Delayed Reading (trigger, delay too small, close to 1 hour)",
+                        shouldTrigger: true,
+                        configurations: [{
+                                unit: 'mg/dL',
+                                ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 },],
+                            }],
+                        ignoreDelayedReadings: true,
+                        triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+                        vitals: [{
+                                measurement: { unit: 'mg/dL', value: 100 },
+                                timestamp: new Date(Date.now() - 1000 * 60 * 55),
+                            }],
+                    })];
+            case 4:
+                _a.sent();
+                return [4 /*yield*/, runTriggerTest({
+                        title: "Delayed Reading (dont trigger, delay exceeds 1 hour default)",
+                        shouldTrigger: false,
+                        configurations: [{
+                                unit: 'mg/dL',
+                                ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 },],
+                            }],
+                        ignoreDelayedReadings: true,
+                        triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+                        vitals: [{
+                                measurement: { unit: 'mg/dL', value: 100 },
+                                timestamp: new Date(Date.now() - 1000 * 60 * 65),
+                            }],
+                    })
+                    // update to 5 minutes to retest
+                ];
+            case 5:
+                _a.sent();
+                // update to 5 minutes to retest
+                return [4 /*yield*/, sdk.api.organizations.updateOne(sdk.userInfo.businessId, { settings: { endusers: { delayedReadingIntervalInMS: 1000 * 60 * 5 } } })];
+            case 6:
+                // update to 5 minutes to retest
+                _a.sent();
+                return [4 /*yield*/, runTriggerTest({
+                        title: "Delayed Reading (trigger, delay too small for custom setting)",
+                        shouldTrigger: true,
+                        configurations: [{
+                                unit: 'mg/dL',
+                                ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 },],
+                            }],
+                        ignoreDelayedReadings: true,
+                        triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+                        vitals: [{
+                                measurement: { unit: 'mg/dL', value: 100 },
+                                timestamp: new Date(Date.now() - 1000 * 60 * 4),
+                            }],
+                    })];
+            case 7:
+                _a.sent();
+                return [4 /*yield*/, runTriggerTest({
+                        title: "Delayed Reading (dont trigger, delay exceeds custom default)",
+                        shouldTrigger: false,
+                        configurations: [{
+                                unit: 'mg/dL',
+                                ranges: [{ classification: 'Target', comparison: { type: 'Greater Than', value: 1 }, trendIntervalInMS: 0 },],
+                            }],
+                        ignoreDelayedReadings: true,
+                        triggers: [{ classifications: ['Target'], configurationIndexes: [0] }],
+                        vitals: [{
+                                measurement: { unit: 'mg/dL', value: 100 },
+                                timestamp: new Date(Date.now() - 1000 * 60 * 6),
+                            }],
+                    })];
+            case 8:
+                _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Basic Passing Test (dontTrigger)",
                         shouldTrigger: false,
@@ -11462,7 +11571,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 dontTrigger: true,
                             }]
                     })];
-            case 1:
+            case 9:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Enduser Specific trigger",
@@ -11482,7 +11591,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 2:
+            case 10:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Enduser Specific trigger (both)",
@@ -11502,7 +11611,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 3:
+            case 11:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Enduser Specific dont trigger",
@@ -11522,7 +11631,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 4:
+            case 12:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Enduser Specific dont trigger (both)",
@@ -11542,7 +11651,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 5:
+            case 13:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Any Meal Passing (Unset)",
@@ -11559,7 +11668,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 6:
+            case 14:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Any Meal Passing (Unset) [Before]",
@@ -11575,7 +11684,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 7:
+            case 15:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Any Meal Passing (Unset) [After]",
@@ -11591,7 +11700,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 8:
+            case 16:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Any Meal Passing",
@@ -11607,7 +11716,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 9:
+            case 17:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Before Meal Passing",
@@ -11624,7 +11733,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 10:
+            case 18:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Before Meal Failing (omitted)",
@@ -11640,7 +11749,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 11:
+            case 19:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Before Meal Failing",
@@ -11657,7 +11766,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 12:
+            case 20:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "After Meal Passing",
@@ -11674,7 +11783,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 13:
+            case 21:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "After Meal Failing (omitted)",
@@ -11690,7 +11799,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 14:
+            case 22:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "After Meal Failing",
@@ -11707,7 +11816,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 15:
+            case 23:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Before meal trend passing",
@@ -11723,7 +11832,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { beforeMeal: true, measurement: { unit: 'mg/dL', value: 1 }, timestamp: new Date(new Date().getTime() - 999) },
                         ]
                     })];
-            case 16:
+            case 24:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Before meal trend failing, undefined",
@@ -11739,7 +11848,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { measurement: { unit: 'mg/dL', value: 1 }, timestamp: new Date(new Date().getTime() - 999) },
                         ]
                     })];
-            case 17:
+            case 25:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Before meal trend failing",
@@ -11755,7 +11864,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { beforeMeal: false, measurement: { unit: 'mg/dL', value: 1 }, timestamp: new Date(new Date().getTime() - 999) },
                         ]
                     })];
-            case 18:
+            case 26:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "After meal trend passing",
@@ -11771,7 +11880,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { beforeMeal: false, measurement: { unit: 'mg/dL', value: 1 }, timestamp: new Date(new Date().getTime() - 999) },
                         ]
                     })];
-            case 19:
+            case 27:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "After meal trend failing, undefined",
@@ -11787,7 +11896,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { measurement: { unit: 'mg/dL', value: 1 }, timestamp: new Date(new Date().getTime() - 999) },
                         ]
                     })];
-            case 20:
+            case 28:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "After meal trend failing",
@@ -11803,7 +11912,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { beforeMeal: true, measurement: { unit: 'mg/dL', value: 1 }, timestamp: new Date(new Date().getTime() - 999) },
                         ]
                     })];
-            case 21:
+            case 29:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Weight Trend from Profile (positive, not enough)",
@@ -11818,7 +11927,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 22:
+            case 30:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Weight Trend from Profile (negative, not enough)",
@@ -11833,7 +11942,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 23:
+            case 31:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Weight Trend from Profile",
@@ -11848,7 +11957,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 24:
+            case 32:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Weight Trend from Profile (negative)",
@@ -11863,7 +11972,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 25:
+            case 33:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Basic Passing Test (Less Than Sucess)",
@@ -11878,7 +11987,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 26:
+            case 34:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Less Than Fail",
@@ -11893,7 +12002,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 27:
+            case 35:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Greater Than Success",
@@ -11908,7 +12017,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 28:
+            case 36:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Greater Than Fail",
@@ -11923,7 +12032,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 29:
+            case 37:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Between Low Bound",
@@ -11938,7 +12047,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 30:
+            case 38:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Between Upper Bound",
@@ -11953,7 +12062,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 31:
+            case 39:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Between Middle",
@@ -11968,7 +12077,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 32:
+            case 40:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Between Below Low Bound",
@@ -11983,7 +12092,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 33:
+            case 41:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Between Above Upper Bound",
@@ -11998,7 +12107,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 34:
+            case 42:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Mismatch Unit",
@@ -12013,7 +12122,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 35:
+            case 43:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Mismatch Classification",
@@ -12028,7 +12137,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 36:
+            case 44:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Multiple Configurations, first considered works",
@@ -12046,7 +12155,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 37:
+            case 45:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Multiple Configurations, first considered fails",
@@ -12064,7 +12173,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 38:
+            case 46:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Multiple Configurations (Comparisons)",
@@ -12082,7 +12191,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 39:
+            case 47:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Multiple vitals, 0 passes",
@@ -12098,7 +12207,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { measurement: { unit: 'LB', value: 250 }, timestamp: new Date(Date.now() - 250) },
                         ]
                     })];
-            case 40:
+            case 48:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Multiple vitals, 1 passes",
@@ -12114,7 +12223,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { measurement: { unit: 'LB', value: 250 }, timestamp: new Date(Date.now() - 250) },
                         ]
                     })];
-            case 41:
+            case 49:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "Multiple vitals, multiple pass",
@@ -12132,7 +12241,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                     })
                     // trend tests
                 ];
-            case 42:
+            case 50:
                 _a.sent();
                 // trend tests
                 return [4 /*yield*/, runTriggerTest({
@@ -12148,7 +12257,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                 timestamp: new Date(),
                             }]
                     })];
-            case 43:
+            case 51:
                 // trend tests
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
@@ -12164,7 +12273,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { measurement: { unit: 'LB', value: 1 }, timestamp: new Date(new Date().getTime() - 999) },
                         ]
                     })];
-            case 44:
+            case 52:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "2-point trend passing (negative)",
@@ -12179,7 +12288,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { measurement: { unit: 'LB', value: 10 }, timestamp: new Date(new Date().getTime() - 999) },
                         ]
                     })];
-            case 45:
+            case 53:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "2-point trend failing (negative)",
@@ -12194,7 +12303,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { measurement: { unit: 'LB', value: 2 }, timestamp: new Date(new Date().getTime() - 999) },
                         ]
                     })];
-            case 46:
+            case 54:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "2-point trend failing for difference too small",
@@ -12209,7 +12318,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { measurement: { unit: 'LB', value: 0 }, timestamp: new Date(new Date().getTime() - 999) },
                         ]
                     })];
-            case 47:
+            case 55:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "2-point trend failing for point out of time range",
@@ -12224,7 +12333,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { measurement: { unit: 'LB', value: 0 }, timestamp: new Date(new Date().getTime() - 1001) },
                         ]
                     })];
-            case 48:
+            case 56:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "3-point trend passing (1 point of out range)",
@@ -12240,7 +12349,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { measurement: { unit: 'LB', value: 0 }, timestamp: new Date(new Date().getTime() - 1001) },
                         ]
                     })];
-            case 49:
+            case 57:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "3-point trend passing (1 point wrong unit)",
@@ -12256,7 +12365,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { measurement: { unit: 'OTHER', value: 0 }, timestamp: new Date(new Date().getTime() - 200) },
                         ]
                     })];
-            case 50:
+            case 58:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "3-point trend failing (1 point of out range)",
@@ -12272,7 +12381,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { measurement: { unit: 'LB', value: 1 }, timestamp: new Date(new Date().getTime() - 1001) },
                         ]
                     })];
-            case 51:
+            case 59:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "3-point trend failing (1 point wrong unit)",
@@ -12288,7 +12397,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { measurement: { unit: 'OTHER', value: 1 }, timestamp: new Date(new Date().getTime() - 200) },
                         ]
                     })];
-            case 52:
+            case 60:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "multiple trend passing",
@@ -12304,7 +12413,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { measurement: { unit: 'LB', value: 1 }, timestamp: new Date(new Date().getTime() - 200) },
                         ]
                     })];
-            case 53:
+            case 61:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "multiple trend failing (not enough)",
@@ -12320,7 +12429,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { measurement: { unit: 'LB', value: 1 }, timestamp: new Date(new Date().getTime() - 200) },
                         ]
                     })];
-            case 54:
+            case 62:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "multiple trend failing (wrong order)",
@@ -12336,7 +12445,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { measurement: { unit: 'LB', value: 3 }, timestamp: new Date(new Date().getTime() - 200) },
                         ]
                     })];
-            case 55:
+            case 63:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "multiple trend failing (not enough, and wrong order)",
@@ -12352,7 +12461,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { measurement: { unit: 'LB', value: 2 }, timestamp: new Date(new Date().getTime() - 200) },
                         ]
                     })];
-            case 56:
+            case 64:
                 _a.sent();
                 return [4 /*yield*/, runTriggerTest({
                         title: "multiple trend failing (lots)",
@@ -12372,7 +12481,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                             { measurement: { unit: 'LB', value: 1 }, timestamp: new Date(new Date().getTime() - 600) },
                         ]
                     })];
-            case 57:
+            case 65:
                 _a.sent();
                 return [2 /*return*/];
         }

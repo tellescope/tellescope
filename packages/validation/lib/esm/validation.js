@@ -3740,6 +3740,7 @@ export var automationTriggerEventValidator = orValidator({
         info: objectValidator({
             configurationIds: listOfMongoIdStringValidator,
             classifications: listOfStringsValidator,
+            ignoreDelayedReadings: booleanValidatorOptional,
         }),
         conditions: optionalEmptyObjectValidator,
     }),
@@ -5064,6 +5065,7 @@ export var formCustomizationValidator = objectValidator({
     showRestartAtEnd: booleanValidatorOptional,
     multiPagePublicQuestions: booleanValidatorOptional,
     logoHeight: numberValidatorOptional,
+    maxWidth: numberValidatorOptional,
     hideBg: booleanValidatorOptional,
     portalShowThanksAfterSubmission: booleanValidatorOptional,
     publicFnameLabel: stringValidatorOptionalEmptyOkay,

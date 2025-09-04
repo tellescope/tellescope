@@ -589,6 +589,7 @@ var Session = /** @class */ (function (_super) {
         queries.templates.embedding_search = function (a) { return _this._POST("/v1/".concat(schema_1.schema.templates.customActions.embedding_search.path), a); };
         queries.analytics_frames.get_result_for_query = function (a) { return _this._GET("/v1".concat(schema_1.schema.analytics_frames.customActions.get_result_for_query.path), a); };
         queries.analytics_frames.get_custom_report = function (a) { return _this._GET("/v1".concat(schema_1.schema.analytics_frames.customActions.get_custom_report.path), a); };
+        queries.analytics_frames.custom_aggregation = function (a) { return _this._POST("/v1".concat(schema_1.schema.analytics_frames.customActions.custom_aggregation.path), a); };
         queries.analytics_frames.update_indexes = function (a) { return _this._PATCH("/v1".concat(schema_1.schema.analytics_frames.customActions.update_indexes.path), a); };
         queries.inbox_threads.build_threads = function (a) { return _this._POST("/v1/".concat(schema_1.schema.inbox_threads.customActions.build_threads.path), a); };
         queries.inbox_threads.load_threads = function (a) { return _this._GET("/v1/".concat(schema_1.schema.inbox_threads.customActions.load_threads.path), a); };

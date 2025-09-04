@@ -712,6 +712,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     get_custom_report: (args: extractFields<CustomActions['analytics_frames']['get_custom_report']['parameters']>) => (
       Promise<extractFields<CustomActions['analytics_frames']['get_custom_report']['returns']>>
     ),
+    custom_aggregation: (args: extractFields<CustomActions['analytics_frames']['custom_aggregation']['parameters']>) => (
+      Promise<extractFields<CustomActions['analytics_frames']['custom_aggregation']['returns']>>
+    ),
     update_indexes: (args: extractFields<CustomActions['analytics_frames']['update_indexes']['parameters']>) => (
       Promise<extractFields<CustomActions['analytics_frames']['update_indexes']['returns']>>
     ),
@@ -1087,6 +1090,7 @@ export class Session extends SessionManager {
     
     queries.analytics_frames.get_result_for_query = a => this._GET(`/v1${schema.analytics_frames.customActions.get_result_for_query.path}`, a)
     queries.analytics_frames.get_custom_report = a => this._GET(`/v1${schema.analytics_frames.customActions.get_custom_report.path}`, a)
+    queries.analytics_frames.custom_aggregation = a => this._POST(`/v1${schema.analytics_frames.customActions.custom_aggregation.path}`, a)
     queries.analytics_frames.update_indexes = a => this._PATCH(`/v1${schema.analytics_frames.customActions.update_indexes.path}`, a)
 
     queries.inbox_threads.build_threads = a => this._POST(`/v1/${schema.inbox_threads.customActions.build_threads.path}`, a)

@@ -3792,6 +3792,7 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
         info: (0, exports.objectValidator)({
             configurationIds: exports.listOfMongoIdStringValidator,
             classifications: exports.listOfStringsValidator,
+            ignoreDelayedReadings: exports.booleanValidatorOptional,
         }),
         conditions: exports.optionalEmptyObjectValidator,
     }),
@@ -5116,6 +5117,7 @@ exports.formCustomizationValidator = (0, exports.objectValidator)({
     showRestartAtEnd: exports.booleanValidatorOptional,
     multiPagePublicQuestions: exports.booleanValidatorOptional,
     logoHeight: exports.numberValidatorOptional,
+    maxWidth: exports.numberValidatorOptional,
     hideBg: exports.booleanValidatorOptional,
     portalShowThanksAfterSubmission: exports.booleanValidatorOptional,
     publicFnameLabel: exports.stringValidatorOptionalEmptyOkay,
