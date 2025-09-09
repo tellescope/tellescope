@@ -169,7 +169,12 @@ export const Message = ({
   const quote = message?.quote?.join(' \n')
 
   if (!message.message) {
-    textBGStyle.backgroundColor = undefined
+    // Only remove background if HTML has inline styles (for customization)
+    // Keep background for plain HTML without styling for better visibility
+    const hasInlineStyles = message.html && message.html.includes('style=')
+    if (hasInlineStyles) {
+      textBGStyle.backgroundColor = undefined
+    }
   } else {
     if (message.senderId === chatUserId) {
       if (sentBgColor) {

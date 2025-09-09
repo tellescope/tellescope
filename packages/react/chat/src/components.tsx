@@ -8,6 +8,14 @@ import {
   useChats,
 } from "@tellescope/react-components"
 import { remove_script_tags, user_display_name } from "@tellescope/utilities";
+
+const stripOuterParagraphTags = (html: string): string => {
+  let result = html.trim()
+  while (result.startsWith('<p>') && result.endsWith('</p>')) {
+    result = result.slice(3, -4).trim()
+  }
+  return result
+}
 import { Checkbox, TextField, FormControlLabel, Grid } from "@mui/material";
 import { ChatAttachment } from "@tellescope/types-models";
 
@@ -20,7 +28,7 @@ export const HTMLMessage = ({ html } : HTMLMessageProps) => (
   <div style={{ padding: 2 }}
     dangerouslySetInnerHTML={{
       __html: remove_script_tags(
-        html.replace(/<a/g, '<a style="color: white;"')
+        stripOuterParagraphTags(html).replace(/<a/g, '<a style="color: white;"')
       ),
     }} 
   />

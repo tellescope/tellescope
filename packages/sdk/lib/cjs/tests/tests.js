@@ -100,12 +100,15 @@ var crypto_1 = __importDefault(require("crypto"));
 var buffer = __importStar(require("buffer")); // only node >=15.7.0
 var validation_1 = require("@tellescope/validation");
 var sdk_1 = require("../sdk");
+var enduser_observations_acknowledge_test_1 = require("./api_tests/enduser_observations_acknowledge.test");
+var setup_1 = require("./setup");
 var utilities_1 = require("@tellescope/utilities");
 var constants_1 = require("@tellescope/constants");
 var schema_1 = require("@tellescope/schema");
 var testing_1 = require("@tellescope/testing");
 var utilities_2 = require("@tellescope/utilities");
 var fs_1 = __importDefault(require("fs"));
+var load_inbox_data_test_1 = require("./api_tests/load_inbox_data.test");
 var UniquenessViolationMessage = 'Uniqueness Violation';
 var host = process.env.TEST_URL || 'http://localhost:8080';
 var _a = [process.env.TEST_EMAIL, process.env.TEST_PASSWORD], email = _a[0], password = _a[1];
@@ -164,165 +167,6 @@ var recordNotFound = { shouldError: true, onError: function (e) { return e.messa
 var voidResult = function () { return true; };
 var passOnVoid = { shouldError: false, onResult: voidResult };
 // const isNull = (d: any) => d === null
-var setup_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var badSDK, badEnduserSDK, uInfo, originalAuthToken;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                (0, testing_1.log_header)("Setup");
-                return [4 /*yield*/, (0, testing_1.async_test)('test_online', sdk.test_online, { expectedResult: 'API V1 Online' })];
-            case 1:
-                _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('test_authenticated', sdk.test_authenticated, { expectedResult: 'Authenticated!' })];
-            case 2:
-                _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('test_authenticated (with API Key)', (new sdk_1.Session({ host: host, apiKey: '3n5q0SCBT_iUvZz-b9BJtX7o7HQUVJ9v132PgHJNJsg.' /* local test key */ })).test_authenticated, { expectedResult: 'Authenticated!' })
-                    // login rate limit tests
-                ];
-            case 3:
-                _a.sent();
-                badSDK = new sdk_1.Session({ host: host });
-                return [4 /*yield*/, badSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
-            case 4:
-                _a.sent();
-                return [4 /*yield*/, badSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
-            case 5:
-                _a.sent();
-                return [4 /*yield*/, badSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
-            case 6:
-                _a.sent();
-                return [4 /*yield*/, badSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
-            case 7:
-                _a.sent();
-                return [4 /*yield*/, badSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
-            case 8:
-                _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('login rate limited', function () { return badSDK.authenticate('bademail@tellescope.com', 'badpassword@tellescope.com'); }, { shouldError: true, onError: function (e) { return e.message === 'Too many login attempts'; } })];
-            case 9:
-                _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('login not rate limited for other user', function () { return sdk.authenticate(email, password); }, passOnAnyResult)];
-            case 10:
-                _a.sent();
-                badEnduserSDK = new sdk_1.EnduserSession({ host: host, businessId: businessId });
-                return [4 /*yield*/, badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
-            case 11:
-                _a.sent();
-                return [4 /*yield*/, badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
-            case 12:
-                _a.sent();
-                return [4 /*yield*/, badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
-            case 13:
-                _a.sent();
-                return [4 /*yield*/, badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
-            case 14:
-                _a.sent();
-                return [4 /*yield*/, badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
-            case 15:
-                _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('login rate limited', function () { return badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword@tellescope.com'); }, { shouldError: true, onError: function (e) { return e.message === 'Too many login attempts'; } })];
-            case 16:
-                _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('login not rate limited for other enduser', function () { return badEnduserSDK.authenticate('otherbademail@tellescope.com', 'badpassword@tellescope.com'); }, { shouldError: true, onError: function (e) { return e.message !== 'Too many login attempts'; } })
-                    // prevent additional login throttling
-                ];
-            case 17:
-                _a.sent();
-                // prevent additional login throttling
-                return [4 /*yield*/, (0, testing_1.async_test)('reset_db', function () { return sdk.reset_db(); }, passOnVoid)];
-            case 18:
-                // prevent additional login throttling
-                _a.sent();
-                return [4 /*yield*/, sdk.logout()];
-            case 19:
-                _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('test_authenticated - (logout invalidates jwt)', sdk.test_authenticated, { shouldError: true, onError: function (e) { return e === 'Unauthenticated'; } })];
-            case 20:
-                _a.sent();
-                return [4 /*yield*/, sdk.authenticate(email, password)];
-            case 21:
-                _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('test_authenticated (re-authenticated)', sdk.test_authenticated, { expectedResult: 'Authenticated!' })];
-            case 22:
-                _a.sent();
-                uInfo = sdk.userInfo;
-                originalAuthToken = sdk.authToken;
-                return [4 /*yield*/, sdk.refresh_session()];
-            case 23:
-                _a.sent();
-                (0, testing_1.assert)(uInfo.id === sdk.userInfo.id, 'userInfo mismatch', 'userInfo id preserved after refresh');
-                (0, testing_1.assert)(!!originalAuthToken && !!sdk.authToken && sdk.authToken !== originalAuthToken, 'same authToken after refresh', 'authToken refresh');
-                return [4 /*yield*/, (0, testing_1.async_test)('role change by non-admin prevented (admin)', function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Admin'] }, { replaceObjectFields: true }); }, handleAnyError)];
-            case 24:
-                _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('email change by non-admin prevented (admin)', function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { email: 'otheremail@tellescope.com' }, { replaceObjectFields: true }); }, handleAnyError)];
-            case 25:
-                _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('role change by non-admin prevented (non-admin)', function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Not Admin'] }, { replaceObjectFields: true }); }, handleAnyError)
-                    // would assign default non-admin role, which could grant additional permissions than currently-defined non-admin role, should block
-                ];
-            case 26:
-                _a.sent();
-                // would assign default non-admin role, which could grant additional permissions than currently-defined non-admin role, should block
-                return [4 /*yield*/, (0, testing_1.async_test)('role change by non-admin prevented (empty)', function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [] }, { replaceObjectFields: true }); }, handleAnyError)
-                    // ensure that going to "Non-Admin" triggers a role change
-                ];
-            case 27:
-                // would assign default non-admin role, which could grant additional permissions than currently-defined non-admin role, should block
-                _a.sent();
-                // ensure that going to "Non-Admin" triggers a role change
-                return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Test'] }, { replaceObjectFields: true })];
-            case 28:
-                // ensure that going to "Non-Admin" triggers a role change
-                _a.sent();
-                return [4 /*yield*/, (0, testing_1.wait)(undefined, 2000)]; // wait for role change to propagate so authenticate does fail next
-            case 29:
-                _a.sent(); // wait for role change to propagate so authenticate does fail next
-                return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)];
-            case 30:
-                _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('non admin authenticated', sdkNonAdmin.test_authenticated, { expectedResult: 'Authenticated!' })
-                    // reset nonAdmin role to a default non-admin
-                ];
-            case 31:
-                _a.sent();
-                // reset nonAdmin role to a default non-admin
-                return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Non-Admin'] }, { replaceObjectFields: true })];
-            case 32:
-                // reset nonAdmin role to a default non-admin
-                _a.sent();
-                // should be unauthenticated due to role change
-                return [4 /*yield*/, (0, testing_1.wait)(undefined, 100)];
-            case 33:
-                // reset nonAdmin role to a default non-admin
-                // should be unauthenticated due to role change
-                _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('role change causes deauthentication', sdkNonAdmin.test_authenticated, handleAnyError)
-                    // reauthenticate
-                ];
-            case 34:
-                _a.sent();
-                // reauthenticate
-                return [4 /*yield*/, (0, testing_1.wait)(undefined, 1000)];
-            case 35:
-                // reauthenticate
-                _a.sent();
-                return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)
-                    // may do some stuff in background after returning
-                ];
-            case 36:
-                _a.sent();
-                // may do some stuff in background after returning
-                return [4 /*yield*/, (0, testing_1.async_test)('reset_db', function () { return sdk.reset_db(); }, passOnVoid)];
-            case 37:
-                // may do some stuff in background after returning
-                _a.sent();
-                return [4 /*yield*/, (0, testing_1.wait)(undefined, 250)];
-            case 38:
-                _a.sent();
-                return [2 /*return*/];
-        }
-    });
-}); };
 var multi_tenant_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
     var e1, e2, update;
     return __generator(this, function (_a) {
@@ -401,40 +245,40 @@ var sub_organization_tests = function () { return __awaiter(void 0, void 0, void
                 return [4 /*yield*/, sdkSubSub.api.endusers.createOne({ email: 'subsub@tellescope.com' })];
             case 3:
                 subSubEnduser = _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("root get root", function () { return sdk.api.endusers.getOne(rootEnduser.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("root get root", function () { return sdk.api.endusers.getOne(rootEnduser.id); }, testing_1.passOnAnyResult)];
             case 4:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("sub get root error", function () { return sdkSub.api.endusers.getOne(rootEnduser.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("sub get root error", function () { return sdkSub.api.endusers.getOne(rootEnduser.id); }, testing_1.handleAnyError)];
             case 5:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("other sub get root error", function () { return sdkOtherSub.api.endusers.getOne(rootEnduser.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("other sub get root error", function () { return sdkOtherSub.api.endusers.getOne(rootEnduser.id); }, testing_1.handleAnyError)];
             case 6:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("subsub get root error", function () { return sdkSubSub.api.endusers.getOne(rootEnduser.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("subsub get root error", function () { return sdkSubSub.api.endusers.getOne(rootEnduser.id); }, testing_1.handleAnyError)];
             case 7:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("root get sub", function () { return sdk.api.endusers.getOne(subEnduser.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("root get sub", function () { return sdk.api.endusers.getOne(subEnduser.id); }, testing_1.passOnAnyResult)];
             case 8:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("sub get sub", function () { return sdkSub.api.endusers.getOne(subEnduser.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("sub get sub", function () { return sdkSub.api.endusers.getOne(subEnduser.id); }, testing_1.passOnAnyResult)];
             case 9:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("other sub get sub error", function () { return sdkOtherSub.api.endusers.getOne(subEnduser.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("other sub get sub error", function () { return sdkOtherSub.api.endusers.getOne(subEnduser.id); }, testing_1.handleAnyError)];
             case 10:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("subsub get sub error", function () { return sdkSubSub.api.endusers.getOne(subEnduser.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("subsub get sub error", function () { return sdkSubSub.api.endusers.getOne(subEnduser.id); }, testing_1.handleAnyError)];
             case 11:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("root get subsub", function () { return sdk.api.endusers.getOne(subSubEnduser.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("root get subsub", function () { return sdk.api.endusers.getOne(subSubEnduser.id); }, testing_1.passOnAnyResult)];
             case 12:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("sub get subsub", function () { return sdkSub.api.endusers.getOne(subSubEnduser.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("sub get subsub", function () { return sdkSub.api.endusers.getOne(subSubEnduser.id); }, testing_1.passOnAnyResult)];
             case 13:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("other sub get sub sub error", function () { return sdkOtherSub.api.endusers.getOne(subSubEnduser.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("other sub get sub sub error", function () { return sdkOtherSub.api.endusers.getOne(subSubEnduser.id); }, testing_1.handleAnyError)];
             case 14:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("subsub get subsub", function () { return sdkSubSub.api.endusers.getOne(subSubEnduser.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("subsub get subsub", function () { return sdkSubSub.api.endusers.getOne(subSubEnduser.id); }, testing_1.passOnAnyResult)];
             case 15:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.endusers.set_password({ id: rootEnduser.id, password: password })];
@@ -446,10 +290,10 @@ var sub_organization_tests = function () { return __awaiter(void 0, void 0, void
                 return [4 /*yield*/, (0, testing_1.async_test)("root enduser create", function () { return enduserSDK.api.engagement_events.createOne({ significance: 1, type: 'test', enduserId: rootEnduser.id }); }, { onResult: function (t) { var _a; return t.businessId === rootEnduser.businessId && !((_a = t.organizationIds) === null || _a === void 0 ? void 0 : _a.length); } })];
             case 18:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("enduser cannot update organizationIds", function () { return enduserSDK.api.endusers.updateOne(enduserSDK.userInfo.id, { organizationIds: [] }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("enduser cannot update organizationIds", function () { return enduserSDK.api.endusers.updateOne(enduserSDK.userInfo.id, { organizationIds: [] }); }, testing_1.handleAnyError)];
             case 19:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("users cannot update organizationIds", function () { return sdk.api.users.updateOne(sdk.userInfo.id, { organizationIds: [] }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("users cannot update organizationIds", function () { return sdk.api.users.updateOne(sdk.userInfo.id, { organizationIds: [] }); }, testing_1.handleAnyError)];
             case 20:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.endusers.set_password({ id: subEnduser.id, password: password })];
@@ -473,16 +317,16 @@ var sub_organization_tests = function () { return __awaiter(void 0, void 0, void
                 return [4 /*yield*/, sdk.api.endusers.updateOne(rootEnduser.id, { organizationIds: subEnduser.organizationIds })];
             case 27:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("root get sub adjusted", function () { return sdk.api.endusers.getOne(rootEnduser.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("root get sub adjusted", function () { return sdk.api.endusers.getOne(rootEnduser.id); }, testing_1.passOnAnyResult)];
             case 28:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("sub get sub adjusted", function () { return sdkSub.api.endusers.getOne(rootEnduser.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("sub get sub adjusted", function () { return sdkSub.api.endusers.getOne(rootEnduser.id); }, testing_1.passOnAnyResult)];
             case 29:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("other sub get sub adjusted error", function () { return sdkOtherSub.api.endusers.getOne(rootEnduser.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("other sub get sub adjusted error", function () { return sdkOtherSub.api.endusers.getOne(rootEnduser.id); }, testing_1.handleAnyError)];
             case 30:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("subsub get sub adjusted error", function () { return sdkSubSub.api.endusers.getOne(rootEnduser.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("subsub get sub adjusted error", function () { return sdkSubSub.api.endusers.getOne(rootEnduser.id); }, testing_1.handleAnyError)];
             case 31:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("push behavior for organization ids (don't push by default)", function () { return sdk.api.endusers.updateOne(rootEnduser.id, { organizationIds: subEnduser.organizationIds }); }, { onResult: function (e) { var _a, _b; return ((_a = e.organizationIds) === null || _a === void 0 ? void 0 : _a.length) === ((_b = subEnduser.organizationIds) === null || _b === void 0 ? void 0 : _b.length); } })];
@@ -535,22 +379,22 @@ var sub_organization_enduser_tests = function () { return __awaiter(void 0, void
                 return [4 /*yield*/, enduserSDK.api.tickets.createOne({ title: 'root', enduserId: enduserSDK.userInfo.id })];
             case 8:
                 rootTicket = _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("root get root", function () { return sdk.api.endusers.getOne(enduserSDK.userInfo.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("root get root", function () { return sdk.api.endusers.getOne(enduserSDK.userInfo.id); }, testing_1.passOnAnyResult)];
             case 9:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("sub get root error", function () { return sdkSub.api.endusers.getOne(enduserSDK.userInfo.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("sub get root error", function () { return sdkSub.api.endusers.getOne(enduserSDK.userInfo.id); }, testing_1.handleAnyError)];
             case 10:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("root get sub", function () { return sdk.api.endusers.getOne(subEnduserSDK.userInfo.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("root get sub", function () { return sdk.api.endusers.getOne(subEnduserSDK.userInfo.id); }, testing_1.passOnAnyResult)];
             case 11:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("sub get sub", function () { return sdkSub.api.endusers.getOne(subEnduserSDK.userInfo.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("sub get sub", function () { return sdkSub.api.endusers.getOne(subEnduserSDK.userInfo.id); }, testing_1.passOnAnyResult)];
             case 12:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("root get root ticket", function () { return sdk.api.tickets.getOne(rootTicket.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("root get root ticket", function () { return sdk.api.tickets.getOne(rootTicket.id); }, testing_1.passOnAnyResult)];
             case 13:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("sub get root ticket error", function () { return sdkSub.api.tickets.getOne(rootTicket.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("sub get root ticket error", function () { return sdkSub.api.tickets.getOne(rootTicket.id); }, testing_1.handleAnyError)];
             case 14:
                 _d.sent();
                 return [4 /*yield*/, sdk.api.endusers.updateOne(enduserSDK.userInfo.id, { sharedWithOrganizations: [(_c = sdkSub.userInfo.organizationIds) !== null && _c !== void 0 ? _c : []] })];
@@ -562,22 +406,22 @@ var sub_organization_enduser_tests = function () { return __awaiter(void 0, void
                 return [4 /*yield*/, enduserSDK.api.tickets.createOne({ title: 'root with shared', enduserId: enduserSDK.userInfo.id })];
             case 17:
                 rootTicketAfterUpdate = _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("root get root", function () { return sdk.api.endusers.getOne(enduserSDK.userInfo.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("root get root", function () { return sdk.api.endusers.getOne(enduserSDK.userInfo.id); }, testing_1.passOnAnyResult)];
             case 18:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("sub get root after update", function () { return sdkSub.api.endusers.getOne(enduserSDK.userInfo.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("sub get root after update", function () { return sdkSub.api.endusers.getOne(enduserSDK.userInfo.id); }, testing_1.passOnAnyResult)];
             case 19:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("root get sub", function () { return sdk.api.endusers.getOne(subEnduserSDK.userInfo.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("root get sub", function () { return sdk.api.endusers.getOne(subEnduserSDK.userInfo.id); }, testing_1.passOnAnyResult)];
             case 20:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("sub get sub", function () { return sdkSub.api.endusers.getOne(subEnduserSDK.userInfo.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("sub get sub", function () { return sdkSub.api.endusers.getOne(subEnduserSDK.userInfo.id); }, testing_1.passOnAnyResult)];
             case 21:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("root get root ticket after update", function () { return sdk.api.tickets.getOne(rootTicketAfterUpdate.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("root get root ticket after update", function () { return sdk.api.tickets.getOne(rootTicketAfterUpdate.id); }, testing_1.passOnAnyResult)];
             case 22:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("sub get root ticket after update", function () { return sdkSub.api.tickets.getOne(rootTicketAfterUpdate.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("sub get root ticket after update", function () { return sdkSub.api.tickets.getOne(rootTicketAfterUpdate.id); }, testing_1.passOnAnyResult)];
             case 23:
                 _d.sent();
                 return [4 /*yield*/, Promise.all([
@@ -1646,19 +1490,19 @@ var chat_room_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                 return [4 /*yield*/, (0, testing_1.async_test)("user_display_info for room (for enduser)", function () { return enduserSDK.api.chat_rooms.display_info({ id: room.id }); }, { onResult: function (r) { return r.id === room.id && verifyRoomDisplayInfo(r.display_info); } })];
             case 13:
                 _k.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non admin can't get room without enduser", function () { return sdkNonAdmin.api.chat_rooms.getOne({ id: room.id }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non admin can't get room without enduser", function () { return sdkNonAdmin.api.chat_rooms.getOne({ id: room.id }); }, testing_1.handleAnyError)];
             case 14:
                 _k.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non admin can't get chats from room without enduser", function () { return sdkNonAdmin.api.chats.getSome({ filter: { roomId: room.id } }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non admin can't get chats from room without enduser", function () { return sdkNonAdmin.api.chats.getSome({ filter: { roomId: room.id } }); }, testing_1.handleAnyError)];
             case 15:
                 _k.sent();
                 return [4 /*yield*/, sdk.api.endusers.updateOne(enduser.id, { assignedTo: [sdkNonAdmin.userInfo.id] })];
             case 16:
                 _k.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non admin can get room with enduser", function () { return sdkNonAdmin.api.chat_rooms.getOne(room.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non admin can get room with enduser", function () { return sdkNonAdmin.api.chat_rooms.getOne(room.id); }, testing_1.passOnAnyResult)];
             case 17:
                 _k.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non admin can get chats from room with enduser", function () { return sdkNonAdmin.api.chats.getSome({ filter: { roomId: room.id } }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non admin can get chats from room with enduser", function () { return sdkNonAdmin.api.chats.getSome({ filter: { roomId: room.id } }); }, testing_1.passOnAnyResult)];
             case 18:
                 _k.sent();
                 return [4 /*yield*/, sdk.api.chat_rooms.deleteOne(room.id)];
@@ -1682,7 +1526,7 @@ var chat_room_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                 return [4 /*yield*/, (0, testing_1.async_test)("get-chat-room (join successful)", function () { return sdk2.api.chat_rooms.getOne(emptyRoom.id); }, { onResult: function (r) { return r.id === emptyRoom.id; } })];
             case 24:
                 _k.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("create-chat (join successful)", function () { return sdk2.api.chats.createOne({ roomId: emptyRoom.id, message: 'test' }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("create-chat (join successful)", function () { return sdk2.api.chats.createOne({ roomId: emptyRoom.id, message: 'test' }); }, testing_1.passOnAnyResult)];
             case 25:
                 _k.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("get-chat (join successful)", function () { return sdk2.api.chats.getSome({ filter: { roomId: emptyRoom.id } }); }, { onResult: function (r) { return r.length > 0; } })];
@@ -1807,7 +1651,7 @@ var chat_tests = function () { return __awaiter(void 0, void 0, void 0, function
                 //   () => sdk2.api.chats.updateOne(chat.id, { message: 'Hi' }), 
                 //   { shouldError: true, onError: e => e.message === 'You do not have permission to access this resource' }
                 // )
-                return [4 /*yield*/, (0, testing_1.async_test)("delete-chat not allowed", function () { return sdk2.api.chats.deleteOne(chat.id); }, handleAnyError)
+                return [4 /*yield*/, (0, testing_1.async_test)("delete-chat not allowed", function () { return sdk2.api.chats.deleteOne(chat.id); }, testing_1.handleAnyError)
                     // currently disabled endpoint altogether
                     // await async_test(
                     //   `update-chat can't update roomId`, 
@@ -2370,7 +2214,7 @@ var users_tests = function () { return __awaiter(void 0, void 0, void 0, functio
             case 2:
                 _a.sent();
                 /* Update user tests */
-                return [4 /*yield*/, (0, testing_1.async_test)("update user (non-admin, other user)", function () { return sdkNonAdmin.api.users.updateOne(sdk.userInfo.id, { fname: randomFieldValue }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("update user (non-admin, other user)", function () { return sdkNonAdmin.api.users.updateOne(sdk.userInfo.id, { fname: randomFieldValue }); }, testing_1.handleAnyError)];
             case 3:
                 /* Update user tests */
                 _a.sent();
@@ -2490,10 +2334,10 @@ var calendar_events_tests = function () { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, (0, testing_1.async_test)("enduser can access own events and public events", function () { return enduserSDK.api.calendar_events.getSome(); }, { onResult: function (es) { return es && es.length === 2; } })];
             case 13:
                 _b.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("enduser cannot update publicEvent ", function () { return enduserSDK.api.calendar_events.updateOne(publicEvent.id, { title: "CHANGED " }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("enduser cannot update publicEvent ", function () { return enduserSDK.api.calendar_events.updateOne(publicEvent.id, { title: "CHANGED " }); }, testing_1.handleAnyError)];
             case 14:
                 _b.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("enduser cannot delete publicEvent", function () { return enduserSDK.api.calendar_events.deleteOne(publicEvent.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("enduser cannot delete publicEvent", function () { return enduserSDK.api.calendar_events.deleteOne(publicEvent.id); }, testing_1.handleAnyError)];
             case 15:
                 _b.sent();
                 return [4 /*yield*/, Promise.all([
@@ -2685,7 +2529,7 @@ var ticketEventTests = function () { return __awaiter(void 0, void 0, void 0, fu
                 return [4 /*yield*/, sdk.api.endusers.updateOne(enduserWithTeam.id, { journeys: (_b = {}, _b[nullJourney.id] = 'Added (Null)', _b) })];
             case 16:
                 _c.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Tickets automatically created", function () { return pollForResults(sdk.api.tickets.getSome, function (tickets) { return (tickets === null || tickets === void 0 ? void 0 : tickets.length) === 2; }, 500, 15); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Tickets automatically created", function () { return pollForResults(sdk.api.tickets.getSome, function (tickets) { return (tickets === null || tickets === void 0 ? void 0 : tickets.length) === 2; }, 500, 15); }, testing_1.passOnAnyResult)];
             case 17:
                 _c.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Ticket for enduser, default assignment, testCloseReasons", function () { return sdk.api.tickets.getSome({ filter: { enduserId: enduser.id } }); }, { onResult: function (tickets) {
@@ -2812,7 +2656,7 @@ var removeFromJourneyTests = function () { return __awaiter(void 0, void 0, void
                 return [4 /*yield*/, (0, testing_1.async_test)("Next step not trigged early", function () { return sdk.api.endusers.getOne(enduser.id); }, { onResult: function (e) { var _a; return ((_a = e.journeys) === null || _a === void 0 ? void 0 : _a[journey.id]) !== 'Delayed Step'; } })];
             case 10:
                 _b.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Sequenced action triggered", function () { return pollForResults(function () { return sdk.api.endusers.getOne(enduser.id); }, function (e) { var _a; return ((_a = e.journeys) === null || _a === void 0 ? void 0 : _a[journey.id]) === 'Delayed Step'; }, TEST_DELAY, 15); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Sequenced action triggered", function () { return pollForResults(function () { return sdk.api.endusers.getOne(enduser.id); }, function (e) { var _a; return ((_a = e.journeys) === null || _a === void 0 ? void 0 : _a[journey.id]) === 'Delayed Step'; }, TEST_DELAY, 15); }, testing_1.passOnAnyResult)];
             case 11:
                 _b.sent();
                 return [4 /*yield*/, Promise.all([
@@ -3050,7 +2894,7 @@ var formUnsubmittedCancelConditionTest = function () { return __awaiter(void 0, 
             case 10:
                 accessCode = (_a.sent()).accessCode;
                 // allow fast followup to trigger
-                return [4 /*yield*/, (0, testing_1.async_test)("formUnsubmitted event with short delay is triggered", function () { return pollForResults(function () { return sdk.api.endusers.getOne(enduser.id); }, function (e) { var _a; return ((_a = e === null || e === void 0 ? void 0 : e.journeys) === null || _a === void 0 ? void 0 : _a[journey.id]) === 'triggered again'; }, 1000, 20); }, passOnAnyResult)
+                return [4 /*yield*/, (0, testing_1.async_test)("formUnsubmitted event with short delay is triggered", function () { return pollForResults(function () { return sdk.api.endusers.getOne(enduser.id); }, function (e) { var _a; return ((_a = e === null || e === void 0 ? void 0 : e.journeys) === null || _a === void 0 ? void 0 : _a[journey.id]) === 'triggered again'; }, 1000, 20); }, testing_1.passOnAnyResult)
                     // trigger cancel conditions
                 ];
             case 11:
@@ -3266,7 +3110,7 @@ var formsUnsubmittedCancelConditionTest = function () { return __awaiter(void 0,
                         } })];
             case 19:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("formResponses triggered after both forms submitted", function () { return pollForResults(function () { return sdk.api.endusers.getOne(enduser.id); }, function (e) { var _a; return ((_a = e === null || e === void 0 ? void 0 : e.journeys) === null || _a === void 0 ? void 0 : _a[journey.id]) === 'formsSubmitted'; }, 500, 10); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("formResponses triggered after both forms submitted", function () { return pollForResults(function () { return sdk.api.endusers.getOne(enduser.id); }, function (e) { var _a; return ((_a = e === null || e === void 0 ? void 0 : e.journeys) === null || _a === void 0 ? void 0 : _a[journey.id]) === 'formsSubmitted'; }, 500, 10); }, testing_1.passOnAnyResult)];
             case 20:
                 _a.sent();
                 return [4 /*yield*/, Promise.all([
@@ -3370,7 +3214,7 @@ var formsUnsubmittedTest = function () { return __awaiter(void 0, void 0, void 0
                 return [4 /*yield*/, sdk.api.form_responses.getSome()];
             case 9:
                 form_responses = _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("formsUnsubmitted handler worked", function () { return pollForResults(function () { return sdk.api.endusers.getOne(enduser.id); }, function (e) { var _a; return ((_a = e === null || e === void 0 ? void 0 : e.journeys) === null || _a === void 0 ? void 0 : _a[journey.id]) === 'triggered'; }, 1000, 10); }, passOnAnyResult)
+                return [4 /*yield*/, (0, testing_1.async_test)("formsUnsubmitted handler worked", function () { return pollForResults(function () { return sdk.api.endusers.getOne(enduser.id); }, function (e) { var _a; return ((_a = e === null || e === void 0 ? void 0 : e.journeys) === null || _a === void 0 ? void 0 : _a[journey.id]) === 'triggered'; }, 1000, 10); }, testing_1.passOnAnyResult)
                     // trigger cancel conditions
                 ];
             case 10:
@@ -3571,7 +3415,7 @@ var automationSameJourneyTests = function () { return __awaiter(void 0, void 0, 
                                 info: { automationStepId: badRoot.id, delay: 0, delayInMS: 0, unit: 'Days' }
                             }],
                         action: { type: 'setEnduserStatus', info: { status: 'irrelevant' } },
-                    })); }, handleAnyError)];
+                    })); }, testing_1.handleAnyError)];
             case 4:
                 _a.sent();
                 return [4 /*yield*/, Promise.all([
@@ -3641,10 +3485,10 @@ var addToJourneyTests = function () { return __awaiter(void 0, void 0, void 0, f
                         && es.filter(function (e) { return e.status === 'cancelled' && e.automationStepId === follow.id; }).length === 1 // one afterAction is cancelled
                         && es.filter(function (e) { return e.status === 'active' && e.automationStepId === follow.id; }).length === 1 // one afterAction is still active
                         && es.filter(function (e) { return e.status === 'finished' && e.automationStepId === root.id; }).length === 2 // two initial onJourneyStart
-                    ); }, 250, 40); }, passOnAnyResult)];
+                    ); }, 250, 40); }, testing_1.passOnAnyResult)];
             case 9:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Enduser throttle journey add working", function () { return sdk.api.endusers.add_to_journey({ enduserIds: [enduser.id], journeyId: journey.id, throttle: true }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Enduser throttle journey add working", function () { return sdk.api.endusers.add_to_journey({ enduserIds: [enduser.id], journeyId: journey.id, throttle: true }); }, testing_1.handleAnyError)];
             case 10:
                 _a.sent();
                 return [4 /*yield*/, Promise.all([
@@ -3683,7 +3527,7 @@ var directAutomatedActionTest = function () { return __awaiter(void 0, void 0, v
                     })];
             case 2:
                 action = _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Enduser status set by manual automated action", function () { return pollForResults(function () { return sdk.api.endusers.getOne(enduser.id); }, function (e) { var _a; return ((_a = e.journeys) === null || _a === void 0 ? void 0 : _a[constants_1.PLACEHOLDER_ID]) === 'Working'; }, 1000, 10); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Enduser status set by manual automated action", function () { return pollForResults(function () { return sdk.api.endusers.getOne(enduser.id); }, function (e) { var _a; return ((_a = e.journeys) === null || _a === void 0 ? void 0 : _a[constants_1.PLACEHOLDER_ID]) === 'Working'; }, 1000, 10); }, testing_1.passOnAnyResult)];
             case 3:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Automated action is finished", function () { return sdk.api.automated_actions.getOne(action.id); }, { onResult: function (e) { return e.status === 'finished'; } })];
@@ -5577,7 +5421,7 @@ var search_tests = function () { return __awaiter(void 0, void 0, void 0, functi
         switch (_a.label) {
             case 0:
                 (0, testing_1.log_header)("Search");
-                return [4 /*yield*/, (0, testing_1.async_test)("user_logs earch disabled", function () { return sdk.api.user_logs.getSome({ search: { query: 'john' } }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("user_logs earch disabled", function () { return sdk.api.user_logs.getSome({ search: { query: 'john' } }); }, testing_1.handleAnyError)];
             case 1:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.endusers.createOne({ email: 'e1_search@tellescope.com', fname: 'JoHn', lname: "strauss" })];
@@ -5661,8 +5505,6 @@ var notifications_tests = function () { return __awaiter(void 0, void 0, void 0,
         }
     });
 }); };
-var handleAnyError = { shouldError: true, onError: function () { return true; } };
-var passOnAnyResult = { onResult: function () { return true; } };
 var role_based_access_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
     var adminId, e, adminTicket, ticketCreatedByNonAdmin, email, sms, calendarEvent, chatRoom, chatMessage;
     return __generator(this, function (_a) {
@@ -5709,10 +5551,10 @@ var role_based_access_tests = function () { return __awaiter(void 0, void 0, voi
             case 10:
                 // unassigned to enduser access tests
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Unassigned non-admin can't access enduser without being assigned", function () { return sdkNonAdmin.api.endusers.getOne(e.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Unassigned non-admin can't access enduser without being assigned", function () { return sdkNonAdmin.api.endusers.getOne(e.id); }, testing_1.handleAnyError)];
             case 11:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for enduser ticket bad", function () { return sdkNonAdmin.api.tickets.getOne(adminTicket.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for enduser ticket bad", function () { return sdkNonAdmin.api.tickets.getOne(adminTicket.id); }, testing_1.handleAnyError)];
             case 12:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("[bulkd] Admin / creator can access enduser without being assigned", function () { return sdk.bulk_load({ load: [{ model: 'endusers' }] }); }, { onResult: function (r) { var _a, _b; return ((_a = r.results[0]) === null || _a === void 0 ? void 0 : _a.records) !== undefined && ((_b = r.results[0].records) === null || _b === void 0 ? void 0 : _b.find(function (r) { return r.id === e.id; })); } })];
@@ -5724,7 +5566,7 @@ var role_based_access_tests = function () { return __awaiter(void 0, void 0, voi
                 return [4 /*yield*/, (0, testing_1.async_test)("non-admin for enduser ticket bad", function () { return sdkNonAdmin.bulk_load({ load: [{ model: 'tickets' }] }); }, { onResult: function (r) { var _a, _b; return ((_a = r.results[0]) === null || _a === void 0 ? void 0 : _a.records) !== undefined && !((_b = r.results[0].records) === null || _b === void 0 ? void 0 : _b.find(function (r) { return r.id === adminTicket.id; })); } })];
             case 15:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Non-admin for own ticket", function () { return sdkNonAdmin.api.tickets.getOne(ticketCreatedByNonAdmin.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Non-admin for own ticket", function () { return sdkNonAdmin.api.tickets.getOne(ticketCreatedByNonAdmin.id); }, testing_1.passOnAnyResult)];
             case 16:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Non-admin for tickets", function () { return sdkNonAdmin.api.tickets.getSome(); }, { onResult: function (ts) { return ts.length === 1; } })];
@@ -5733,40 +5575,40 @@ var role_based_access_tests = function () { return __awaiter(void 0, void 0, voi
                 return [4 /*yield*/, (0, testing_1.async_test)("[bulk] Non-admin for tickets", function () { return sdkNonAdmin.bulk_load({ load: [{ model: 'tickets' }] }); }, { onResult: function (r) { var _a, _b, _c; return ((_c = (_b = (_a = r.results) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.records) === null || _c === void 0 ? void 0 : _c.length) === 1; } })];
             case 18:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for email bad", function () { return sdkNonAdmin.api.emails.getOne(email.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for email bad", function () { return sdkNonAdmin.api.emails.getOne(email.id); }, testing_1.handleAnyError)];
             case 19:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("[bulk] non-admin for email bad", function () { return sdkNonAdmin.bulk_load({ load: [{ model: 'emails' }] }); }, { onResult: function (r) { var _a, _b, _c; return ((_c = (_b = (_a = r.results) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.records) === null || _c === void 0 ? void 0 : _c.length) === 0; } })];
             case 20:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for sms bad", function () { return sdkNonAdmin.api.sms_messages.getOne(sms.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for sms bad", function () { return sdkNonAdmin.api.sms_messages.getOne(sms.id); }, testing_1.handleAnyError)];
             case 21:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("admin for calendar", function () { return sdk.api.calendar_events.getOne(calendarEvent.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("admin for calendar", function () { return sdk.api.calendar_events.getOne(calendarEvent.id); }, testing_1.passOnAnyResult)];
             case 22:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for calendar bad", function () { return sdkNonAdmin.api.calendar_events.getOne(calendarEvent.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for calendar bad", function () { return sdkNonAdmin.api.calendar_events.getOne(calendarEvent.id); }, testing_1.handleAnyError)];
             case 23:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("[bulk] non-admin for calendar bad", function () { return sdkNonAdmin.bulk_load({ load: [{ model: 'calendar_events' }] }); }, { onResult: function (r) { var _a, _b, _c; return ((_c = (_b = (_a = r.results) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.records) === null || _c === void 0 ? void 0 : _c.length) === 0; } })];
             case 24:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for chat room bad", function () { return sdkNonAdmin.api.chat_rooms.getOne(chatRoom.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for chat room bad", function () { return sdkNonAdmin.api.chat_rooms.getOne(chatRoom.id); }, testing_1.handleAnyError)];
             case 25:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("[bulk] non-admin for chat room bad", function () { return sdkNonAdmin.bulk_load({ load: [{ model: 'chat_rooms' }] }); }, { onResult: function (r) { var _a, _b, _c; return ((_c = (_b = (_a = r.results) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.records) === null || _c === void 0 ? void 0 : _c.length) === 0; } })];
             case 26:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for chat message bad", function () { return sdkNonAdmin.api.chats.getOne(chatMessage.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for chat message bad", function () { return sdkNonAdmin.api.chats.getOne(chatMessage.id); }, testing_1.handleAnyError)];
             case 27:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("[bulk] non-admin for chat message bad", function () { return sdkNonAdmin.bulk_load({ load: [{ model: 'chats' }] }); }, 
                     // { onResult: result => result.results.flatMap(r => r?.records || []).length === 0 }
-                    handleAnyError // throws error in this case in enforceForeignAccessConstraints because there are no accessible chats
+                    testing_1.handleAnyError // throws error in this case in enforceForeignAccessConstraints because there are no accessible chats
                     )];
             case 28:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Non-admin for chats", function () { return sdkNonAdmin.api.chats.getSome({ filter: { roomId: chatRoom.id } }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Non-admin for chats", function () { return sdkNonAdmin.api.chats.getSome({ filter: { roomId: chatRoom.id } }); }, testing_1.handleAnyError)];
             case 29:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Non-admin for tickets with enduserId in filter", function () { return sdkNonAdmin.api.tickets.getSome({ filter: { enduserId: e.id } }); }, { onResult: function (r) { return !r.find(function (t) { return t.id === adminTicket.id; }); } })
@@ -5775,11 +5617,11 @@ var role_based_access_tests = function () { return __awaiter(void 0, void 0, voi
             case 30:
                 _a.sent();
                 // unassigned update / delete coverage
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for enduser ticket update bad", function () { return sdkNonAdmin.api.tickets.updateOne(adminTicket.id, { title: 'updated' }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for enduser ticket update bad", function () { return sdkNonAdmin.api.tickets.updateOne(adminTicket.id, { title: 'updated' }); }, testing_1.handleAnyError)];
             case 31:
                 // unassigned update / delete coverage
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for enduser ticket delete bad", function () { return sdkNonAdmin.api.tickets.deleteOne(adminTicket.id); }, handleAnyError)
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for enduser ticket delete bad", function () { return sdkNonAdmin.api.tickets.deleteOne(adminTicket.id); }, testing_1.handleAnyError)
                     // set assignees
                 ];
             case 32:
@@ -5792,14 +5634,14 @@ var role_based_access_tests = function () { return __awaiter(void 0, void 0, voi
                 // set assignees
                 _a.sent();
                 // assigned access tests
-                return [4 /*yield*/, (0, testing_1.async_test)("Admin / creator can access enduser while assigned", function () { return sdk.api.endusers.getOne(e.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Admin / creator can access enduser while assigned", function () { return sdk.api.endusers.getOne(e.id); }, testing_1.passOnAnyResult)];
             case 34:
                 // assigned access tests
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Unassigned non-admin can access enduser while assigned", function () { return sdkNonAdmin.api.endusers.getOne(e.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Unassigned non-admin can access enduser while assigned", function () { return sdkNonAdmin.api.endusers.getOne(e.id); }, testing_1.passOnAnyResult)];
             case 35:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for enduser ticket", function () { return sdkNonAdmin.api.tickets.getOne(adminTicket.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for enduser ticket", function () { return sdkNonAdmin.api.tickets.getOne(adminTicket.id); }, testing_1.passOnAnyResult)];
             case 36:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("[bulk] non-admin for enduser ticket", function () { return sdkNonAdmin.bulk_load({ load: [{ model: 'tickets' }] }); }, { onResult: function (r) { var _a, _b, _c; return (_c = (_b = (_a = r.results) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.records) === null || _c === void 0 ? void 0 : _c.find(function (r) { return r.id === adminTicket.id; }); } })];
@@ -5808,28 +5650,28 @@ var role_based_access_tests = function () { return __awaiter(void 0, void 0, voi
                 return [4 /*yield*/, (0, testing_1.async_test)("Non-admin for tickets", function () { return sdkNonAdmin.api.tickets.getSome(); }, { onResult: function (ts) { return ts.length === 2; } })];
             case 38:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for email", function () { return sdkNonAdmin.api.emails.getOne(email.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for email", function () { return sdkNonAdmin.api.emails.getOne(email.id); }, testing_1.passOnAnyResult)];
             case 39:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("[bulk] non-admin for email", function () { return sdkNonAdmin.bulk_load({ load: [{ model: 'emails' }] }); }, { onResult: function (r) { var _a, _b, _c; return (_c = (_b = (_a = r.results) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.records) === null || _c === void 0 ? void 0 : _c.find(function (r) { return r.id === email.id; }); } })];
             case 40:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for sms", function () { return sdkNonAdmin.api.sms_messages.getOne(sms.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for sms", function () { return sdkNonAdmin.api.sms_messages.getOne(sms.id); }, testing_1.passOnAnyResult)];
             case 41:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for calendar", function () { return sdkNonAdmin.api.calendar_events.getOne(calendarEvent.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for calendar", function () { return sdkNonAdmin.api.calendar_events.getOne(calendarEvent.id); }, testing_1.passOnAnyResult)];
             case 42:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("[bulk] non-admin for calendar", function () { return sdkNonAdmin.bulk_load({ load: [{ model: 'calendar_events' }] }); }, { onResult: function (r) { var _a, _b, _c; return (_c = (_b = (_a = r.results) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.records) === null || _c === void 0 ? void 0 : _c.find(function (r) { return r.id === calendarEvent.id; }); } })];
             case 43:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for chat room", function () { return sdkNonAdmin.api.chat_rooms.getOne(chatRoom.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for chat room", function () { return sdkNonAdmin.api.chat_rooms.getOne(chatRoom.id); }, testing_1.passOnAnyResult)];
             case 44:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("[bulk] non-admin for chat room", function () { return sdkNonAdmin.bulk_load({ load: [{ model: 'chat_rooms' }] }); }, { onResult: function (r) { var _a, _b, _c; return (_c = (_b = (_a = r.results) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.records) === null || _c === void 0 ? void 0 : _c.find(function (r) { return r.id === chatRoom.id; }); } })];
             case 45:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for chat message", function () { return sdkNonAdmin.api.chats.getOne(chatMessage.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for chat message", function () { return sdkNonAdmin.api.chats.getOne(chatMessage.id); }, testing_1.passOnAnyResult)];
             case 46:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("[bulk] non-admin for chat message", function () { return sdkNonAdmin.bulk_load({ load: [{ model: 'chats' }] }); }, { onResult: function (r) { var _a, _b, _c; return (_c = (_b = (_a = r.results) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.records) === null || _c === void 0 ? void 0 : _c.find(function (r) { return r.id === chatMessage.id; }); } })];
@@ -5841,11 +5683,11 @@ var role_based_access_tests = function () { return __awaiter(void 0, void 0, voi
             case 48:
                 _a.sent();
                 // update / delete coverage for assigned tickets
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin assigned enduser ticket update find", function () { return sdkNonAdmin.api.tickets.updateOne(adminTicket.id, { title: 'updated' }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin assigned enduser ticket update find", function () { return sdkNonAdmin.api.tickets.updateOne(adminTicket.id, { title: 'updated' }); }, testing_1.passOnAnyResult)];
             case 49:
                 // update / delete coverage for assigned tickets
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for enduser ticket delete still bad", function () { return sdkNonAdmin.api.tickets.deleteOne(adminTicket.id); }, handleAnyError)
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin for enduser ticket delete still bad", function () { return sdkNonAdmin.api.tickets.deleteOne(adminTicket.id); }, testing_1.handleAnyError)
                     // cleanup
                 ];
             case 50:
@@ -5925,7 +5767,7 @@ var community_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                 return [4 /*yield*/, (0, testing_1.async_test)("enduser access forum", function () { return enduserSDK.api.forums.getOne(forum.id); }, { onResult: function (f) { return f.id === forum.id; } })];
             case 6:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("enduser access privateForum error", function () { return enduserSDK.api.forums.getOne(privateForum.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("enduser access privateForum error", function () { return enduserSDK.api.forums.getOne(privateForum.id); }, testing_1.handleAnyError)];
             case 7:
                 _d.sent();
                 return [4 /*yield*/, enduserSDK.api.forum_posts.createOne({ title: 'title', forumId: forum.id, htmlContent: 'enduser', textContent: 'enduser' })];
@@ -5937,16 +5779,16 @@ var community_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                 userPost = _d.sent();
                 (0, testing_1.assert)(!!userPost, 'user post failed', 'user post successful');
                 (0, testing_1.assert)(enduserPost.numComments === 0 && enduserPost.numLikes === 0, 'counts not initialized', 'counts initialized at 0');
-                return [4 /*yield*/, (0, testing_1.async_test)("enduser post private\u00A0errors", function () { return enduserSDK.api.forum_posts.createOne({ title: 'title', forumId: privateForum.id, htmlContent: 'enduser', textContent: 'enduser' }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("enduser post private\u00A0errors", function () { return enduserSDK.api.forum_posts.createOne({ title: 'title', forumId: privateForum.id, htmlContent: 'enduser', textContent: 'enduser' }); }, testing_1.handleAnyError)];
             case 10:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("enduser can access single post for forumId", function () { return enduserSDK.api.forum_posts.getOne({ forumId: forum.id }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("enduser can access single post for forumId", function () { return enduserSDK.api.forum_posts.getOne({ forumId: forum.id }); }, testing_1.passOnAnyResult)];
             case 11:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("enduser can access self post by id", function () { return enduserSDK.api.forum_posts.getOne(enduserPost.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("enduser can access self post by id", function () { return enduserSDK.api.forum_posts.getOne(enduserPost.id); }, testing_1.passOnAnyResult)];
             case 12:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("enduser can access other post by id", function () { return enduserSDK.api.forum_posts.getOne(userPost.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("enduser can access other post by id", function () { return enduserSDK.api.forum_posts.getOne(userPost.id); }, testing_1.passOnAnyResult)];
             case 13:
                 _d.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("enduser can access posts", function () { return enduserSDK.api.forum_posts.getSome({ filter: { forumId: forum.id } }); }, { onResult: function (r) { return r.length === 2; } })];
@@ -5966,7 +5808,7 @@ var community_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                 return [4 /*yield*/, enduserSDK.api.post_likes.createOne({ forumId: forum.id, postId: enduserPost.id })];
             case 18:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("double-like not allowed", function () { return enduserSDK.api.post_likes.createOne({ forumId: forum.id, postId: enduserPost.id }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("double-like not allowed", function () { return enduserSDK.api.post_likes.createOne({ forumId: forum.id, postId: enduserPost.id }); }, testing_1.handleAnyError)];
             case 19:
                 _d.sent();
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 50)];
@@ -5992,31 +5834,31 @@ var community_tests = function () { return __awaiter(void 0, void 0, void 0, fun
             case 26:
                 userSelfPostComment = _d.sent();
                 (0, testing_1.assert)(!!userSelfPostComment, 'user private post comment failed', 'user private post comment successful');
-                return [4 /*yield*/, (0, testing_1.async_test)("enduser comment private\u00A0errors", function () { return enduserSDK.api.post_comments.createOne({ forumId: privateForum.id, postId: userSelfPost.id, htmlContent: 'enduser', textContent: 'enduser' }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("enduser comment private\u00A0errors", function () { return enduserSDK.api.post_comments.createOne({ forumId: privateForum.id, postId: userSelfPost.id, htmlContent: 'enduser', textContent: 'enduser' }); }, testing_1.handleAnyError)];
             case 27:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot access private post by id', function () { return enduserSDK.api.forum_posts.getOne(userSelfPost.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot access private post by id', function () { return enduserSDK.api.forum_posts.getOne(userSelfPost.id); }, testing_1.handleAnyError)];
             case 28:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot access private post by filter', function () { return enduserSDK.api.forum_posts.getOne({ forumId: privateForum.id }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot access private post by filter', function () { return enduserSDK.api.forum_posts.getOne({ forumId: privateForum.id }); }, testing_1.handleAnyError)];
             case 29:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot access private comment by id', function () { return enduserSDK.api.post_comments.getOne(userSelfPostComment.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot access private comment by id', function () { return enduserSDK.api.post_comments.getOne(userSelfPostComment.id); }, testing_1.handleAnyError)];
             case 30:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot access private comment by filter (forum id)', function () { return enduserSDK.api.post_comments.getOne({ forumId: privateForum.id }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot access private comment by filter (forum id)', function () { return enduserSDK.api.post_comments.getOne({ forumId: privateForum.id }); }, testing_1.handleAnyError)];
             case 31:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot access private comment by filter (post id)', function () { return enduserSDK.api.post_comments.getOne({ postId: userSelfPost.id }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot access private comment by filter (post id)', function () { return enduserSDK.api.post_comments.getOne({ postId: userSelfPost.id }); }, testing_1.handleAnyError)];
             case 32:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot access private comment by filter (forum and post id)', function () { return enduserSDK.api.post_comments.getOne({ forumId: privateForum.id, postId: userSelfPost.id }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot access private comment by filter (forum and post id)', function () { return enduserSDK.api.post_comments.getOne({ forumId: privateForum.id, postId: userSelfPost.id }); }, testing_1.handleAnyError)];
             case 33:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot access private posts', function () { return enduserSDK.api.forum_posts.getSome({ filter: { forumId: privateForum.id } }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot access private posts', function () { return enduserSDK.api.forum_posts.getSome({ filter: { forumId: privateForum.id } }); }, testing_1.handleAnyError)];
             case 34:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot access private comments', function () { return enduserSDK.api.post_comments.getSome({ filter: { forumId: privateForum.id } }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot access private comments', function () { return enduserSDK.api.post_comments.getSome({ filter: { forumId: privateForum.id } }); }, testing_1.handleAnyError)];
             case 35:
                 _d.sent();
                 _b = (_a = Promise).all;
@@ -6153,10 +5995,10 @@ var public_form_tests = function () { return __awaiter(void 0, void 0, void 0, f
                     lname: 'coates',
                 };
                 submitInfoNonPublic = __assign(__assign({}, submitInfo), { formId: nonPublicForm.id });
-                return [4 /*yield*/, (0, testing_1.async_test)('non-public form blocked', function () { return enduserSDK.api.form_responses.session_for_public_form(submitInfoNonPublic); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)('non-public form blocked', function () { return enduserSDK.api.form_responses.session_for_public_form(submitInfoNonPublic); }, testing_1.handleAnyError)];
             case 4:
                 _b.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('no questions form blocked', function () { return enduserSDK.api.form_responses.session_for_public_form(submitInfo); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)('no questions form blocked', function () { return enduserSDK.api.form_responses.session_for_public_form(submitInfo); }, testing_1.handleAnyError)];
             case 5:
                 _b.sent();
                 return [4 /*yield*/, sdk.api.form_fields.createOne({
@@ -6197,11 +6039,11 @@ var public_form_tests = function () { return __awaiter(void 0, void 0, void 0, f
             case 10:
                 _b.sent(); // should be allowed
                 // assert((enduserSDK.userInfo as any).allowedPaths.length === 3, 'allowed paths not preserved', 'allowed paths preserved after refresh')
-                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot use non-allowed path', function () { return enduserSDK.api.endusers.updateOne(enduserSDK.userInfo.id, { fields: { testFiedl: 'testValue' } }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot use non-allowed path', function () { return enduserSDK.api.endusers.updateOne(enduserSDK.userInfo.id, { fields: { testFiedl: 'testValue' } }); }, testing_1.handleAnyError)];
             case 11:
                 // assert((enduserSDK.userInfo as any).allowedPaths.length === 3, 'allowed paths not preserved', 'allowed paths preserved after refresh')
                 _b.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('enduser can submit public form', function () { return enduserSDK.api.form_responses.submit_form_response({ accessCode: responseInfo.accessCode, responses: [testResponse] }); }, passOnAnyResult)
+                return [4 /*yield*/, (0, testing_1.async_test)('enduser can submit public form', function () { return enduserSDK.api.form_responses.submit_form_response({ accessCode: responseInfo.accessCode, responses: [testResponse] }); }, testing_1.passOnAnyResult)
                     // delete enduser and re-initiate for testing UTMs
                 ];
             case 12:
@@ -6259,7 +6101,7 @@ var managed_content_records_tests = function () { return __awaiter(void 0, void 
                     })];
             case 4:
                 record2 = _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('enduser can access content by default (1)', function () { return enduserSDK.api.managed_content_records.getOne(record.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)('enduser can access content by default (1)', function () { return enduserSDK.api.managed_content_records.getOne(record.id); }, testing_1.passOnAnyResult)];
             case 5:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('enduser can access content by default (many)', function () { return enduserSDK.api.managed_content_records.getSome(); }, { onResult: function (rs) { return rs.length === 1; } })];
@@ -6319,25 +6161,25 @@ var calendar_event_RSVPs_tests = function () { return __awaiter(void 0, void 0, 
                 return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot create duplicate RSVP', function () { return enduserSDK.api.calendar_event_RSVPs.createOne({ eventId: event.id }); }, { shouldError: true, onError: function (e) { return e.message === UniquenessViolationMessage; } })];
             case 9:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot delete user RSVP', function () { return enduserSDK.api.calendar_event_RSVPs.deleteOne(userRSVP.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot delete user RSVP', function () { return enduserSDK.api.calendar_event_RSVPs.deleteOne(userRSVP.id); }, testing_1.handleAnyError)];
             case 10:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('user cannot delete enduser RSVP', function () { return sdk.api.calendar_event_RSVPs.deleteOne(enduserRSVP.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)('user cannot delete enduser RSVP', function () { return sdk.api.calendar_event_RSVPs.deleteOne(enduserRSVP.id); }, testing_1.handleAnyError)];
             case 11:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot update user RSVP', function () { return enduserSDK.api.calendar_event_RSVPs.updateOne(userRSVP.id, { status: 'Maybe' }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)('enduser cannot update user RSVP', function () { return enduserSDK.api.calendar_event_RSVPs.updateOne(userRSVP.id, { status: 'Maybe' }); }, testing_1.handleAnyError)];
             case 12:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('user cannot update enduser RSVP', function () { return sdk.api.calendar_event_RSVPs.updateOne(enduserRSVP.id, { status: 'Maybe' }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)('user cannot update enduser RSVP', function () { return sdk.api.calendar_event_RSVPs.updateOne(enduserRSVP.id, { status: 'Maybe' }); }, testing_1.handleAnyError)];
             case 13:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('RSVPs incremented', function () { return sdk.api.calendar_events.getOne(event.id); }, { onResult: function (c) { return c.numRSVPs === 2; } })];
             case 14:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('enduser can delete own RSVP', function () { return enduserSDK.api.calendar_event_RSVPs.deleteOne(enduserRSVP.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)('enduser can delete own RSVP', function () { return enduserSDK.api.calendar_event_RSVPs.deleteOne(enduserRSVP.id); }, testing_1.passOnAnyResult)];
             case 15:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('user can delete own RSVP', function () { return sdk.api.calendar_event_RSVPs.deleteOne(userRSVP.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)('user can delete own RSVP', function () { return sdk.api.calendar_event_RSVPs.deleteOne(userRSVP.id); }, testing_1.passOnAnyResult)];
             case 16:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('RSVPs decremented', function () { return sdk.api.calendar_events.getOne(event.id); }, { onResult: function (c) { return c.numRSVPs === 0; } })];
@@ -6474,7 +6316,7 @@ var databases_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                 return [4 /*yield*/, (0, testing_1.async_test)('numRecords incremented', function () { return sdk.api.databases.getOne(database.id); }, { onResult: function (c) { return c.numRecords === 1; } })];
             case 5:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('Non admin can access correctly', function () { return sdkNonAdmin.api.databases.getOne(database.id); }, passOnAnyResult)
+                return [4 /*yield*/, (0, testing_1.async_test)('Non admin can access correctly', function () { return sdkNonAdmin.api.databases.getOne(database.id); }, testing_1.passOnAnyResult)
                     // await async_test(
                     //   'Non admin cannot access correctly',
                     //   () => sdkNonAdmin.api.databases.getOne(databaseNoRead.id),
@@ -6722,7 +6564,7 @@ var self_serve_appointment_booking_tests = function () { return __awaiter(void 0
                         calendarEventTemplateId: event30min.id,
                         startTime: new Date(nySlots.availabilityBlocks[0].startTimeInMS),
                         userId: nySlots.availabilityBlocks[0].userId,
-                    }); }, handleAnyError)];
+                    }); }, testing_1.handleAnyError)];
             case 22:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('30 minute slots for state restriction with 1 overlapping conflict', function () { return enduserSDK.api.calendar_events.get_appointment_availability({
@@ -6757,7 +6599,7 @@ var self_serve_appointment_booking_tests = function () { return __awaiter(void 0
                         calendarEventTemplateId: event30min.id,
                         startTime: new Date(nySlots.availabilityBlocks[1].startTimeInMS),
                         userId: nySlots.availabilityBlocks[1].userId,
-                    }); }, handleAnyError)
+                    }); }, testing_1.handleAnyError)
                     // test group bookings
                 ];
             case 26:
@@ -6802,14 +6644,14 @@ var self_serve_appointment_booking_tests = function () { return __awaiter(void 0
                         calendarEventTemplateId: event30minGroup.id,
                         startTime: new Date(nySlots.availabilityBlocks[1].startTimeInMS),
                         userId: nySlots.availabilityBlocks[1].userId,
-                    }); }, handleAnyError)];
+                    }); }, testing_1.handleAnyError)];
             case 33:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('[group booking] allow other enduser to book', function () { return enduserSDK2.api.calendar_events.book_appointment({
                         calendarEventTemplateId: event30minGroup.id,
                         startTime: new Date(nySlots.availabilityBlocks[1].startTimeInMS),
                         userId: nySlots.availabilityBlocks[1].userId,
-                    }); }, passOnAnyResult)];
+                    }); }, testing_1.passOnAnyResult)];
             case 34:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('[group booking] no more booking allowed', function () { return enduserSDK.api.calendar_events.get_appointment_availability({
@@ -6823,7 +6665,7 @@ var self_serve_appointment_booking_tests = function () { return __awaiter(void 0
                         calendarEventTemplateId: event30minGroup.id,
                         startTime: new Date(nySlots.availabilityBlocks[1].startTimeInMS),
                         userId: nySlots.availabilityBlocks[1].userId,
-                    }); }, handleAnyError)
+                    }); }, testing_1.handleAnyError)
                     // test 'multi' flag for booking multiple providers for a given patient
                 ];
             case 36:
@@ -6882,14 +6724,14 @@ var self_serve_appointment_booking_tests = function () { return __awaiter(void 0
                         calendarEventTemplateId: event30min.id,
                         startTime: new Date(multiSlots.availabilityBlocks[0].startTimeInMS),
                         userId: sdk.userInfo.id,
-                    }); }, handleAnyError)];
+                    }); }, testing_1.handleAnyError)];
             case 41:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('booking against conflict prevented other user', function () { return enduserSDK.api.calendar_events.book_appointment({
                         calendarEventTemplateId: event30min.id,
                         startTime: new Date(multiSlots.availabilityBlocks[0].startTimeInMS),
                         userId: sdkNonAdmin.userInfo.id,
-                    }); }, handleAnyError)];
+                    }); }, testing_1.handleAnyError)];
             case 42:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('booking against conflict prevented 2 users', function () { return enduserSDK.api.calendar_events.book_appointment({
@@ -6897,7 +6739,7 @@ var self_serve_appointment_booking_tests = function () { return __awaiter(void 0
                         startTime: new Date(multiSlots.availabilityBlocks[0].startTimeInMS),
                         userId: sdk.userInfo.id,
                         otherUserIds: [sdkNonAdmin.userInfo.id],
-                    }); }, handleAnyError)];
+                    }); }, testing_1.handleAnyError)];
             case 43:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.calendar_events.createOne({
@@ -6915,7 +6757,7 @@ var self_serve_appointment_booking_tests = function () { return __awaiter(void 0
                         calendarEventTemplateId: event30min.id,
                         startTime: new Date(nySlots.availabilityBlocks[1].startTimeInMS),
                         userId: nySlots.availabilityBlocks[1].userId,
-                    }); }, handleAnyError)];
+                    }); }, testing_1.handleAnyError)];
             case 46:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.calendar_events.updateOne(conflict2.id, { bufferEndMinutes: 0 })];
@@ -6928,7 +6770,7 @@ var self_serve_appointment_booking_tests = function () { return __awaiter(void 0
                         calendarEventTemplateId: event30min.id,
                         startTime: new Date(nySlots.availabilityBlocks[1].startTimeInMS),
                         userId: nySlots.availabilityBlocks[1].userId,
-                    }); }, handleAnyError)];
+                    }); }, testing_1.handleAnyError)];
             case 49:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.calendar_event_templates.updateOne(event30min.id, { bufferStartMinutes: 0 })];
@@ -6952,7 +6794,7 @@ var self_serve_appointment_booking_tests = function () { return __awaiter(void 0
                         calendarEventTemplateId: event30min.id,
                         startTime: new Date(nySlots.availabilityBlocks[0].startTimeInMS),
                         userId: nySlots.availabilityBlocks[0].userId,
-                    }); }, handleAnyError)];
+                    }); }, testing_1.handleAnyError)];
             case 54:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.calendar_events.updateOne(conflict3.id, { bufferStartMinutes: 0 })];
@@ -6965,7 +6807,7 @@ var self_serve_appointment_booking_tests = function () { return __awaiter(void 0
                         calendarEventTemplateId: event30min.id,
                         startTime: new Date(nySlots.availabilityBlocks[0].startTimeInMS),
                         userId: nySlots.availabilityBlocks[0].userId,
-                    }); }, handleAnyError)];
+                    }); }, testing_1.handleAnyError)];
             case 57:
                 _a.sent();
                 return [4 /*yield*/, Promise.all([
@@ -7014,7 +6856,7 @@ var role_based_access_permissions_tests = function () { return __awaiter(void 0,
                 return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)]; // to use new role, handle logout on role change
             case 3:
                 _a.sent(); // to use new role, handle logout on role change
-                return [4 /*yield*/, (0, testing_1.async_test)('non-root admin can read', function () { return sdkSub.api.role_based_access_permissions.getOne(rbap.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)('non-root admin can read', function () { return sdkSub.api.role_based_access_permissions.getOne(rbap.id); }, testing_1.passOnAnyResult)];
             case 4:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('non-root admin can read many', function () { return sdkSub.api.role_based_access_permissions.getSome(); }, { onResult: function (rs) { return rs.length > 0; } })];
@@ -7030,16 +6872,16 @@ var role_based_access_permissions_tests = function () { return __awaiter(void 0,
                                 update: null,
                             }
                         }
-                    }); }, handleAnyError)];
+                    }); }, testing_1.handleAnyError)];
             case 6:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('non-root admin blocked update', function () { return sdkSub.api.role_based_access_permissions.updateOne(rbap.id, { role: 'updated' }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)('non-root admin blocked update', function () { return sdkSub.api.role_based_access_permissions.updateOne(rbap.id, { role: 'updated' }); }, testing_1.handleAnyError)];
             case 7:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('non-root admin blocked delete', function () { return sdkSub.api.role_based_access_permissions.deleteOne(rbap.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)('non-root admin blocked delete', function () { return sdkSub.api.role_based_access_permissions.deleteOne(rbap.id); }, testing_1.handleAnyError)];
             case 8:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('enduser read access restriction working', function () { return sdkNonAdmin.api.endusers.getSome(); }, handleAnyError)
+                return [4 /*yield*/, (0, testing_1.async_test)('enduser read access restriction working', function () { return sdkNonAdmin.api.endusers.getSome(); }, testing_1.handleAnyError)
                     // cleanup
                 ];
             case 9:
@@ -7099,7 +6941,7 @@ var run_autoreply_test = function (title, _a) {
                     _b.sent();
                     return [4 /*yield*/, (0, testing_1.async_test)('Main test', function () { return pollForResults(function () { return sdk.api.chats.getSome({ filter: { roomId: room.id } }); }, function (cs) { return (expectingAutoreply
                             ? (cs.length === 3 && (!autoreplyText || cs[0].message === autoreplyText))
-                            : cs.length === 2); }, 25, 10); }, passOnAnyResult)];
+                            : cs.length === 2); }, 25, 10); }, testing_1.passOnAnyResult)];
                 case 9:
                     _b.sent();
                     return [4 /*yield*/, enduserSDK.api.chats.createOne({ roomId: room.id, message: 'enduser again' })];
@@ -7399,7 +7241,7 @@ var merge_enduser_tests = function () { return __awaiter(void 0, void 0, void 0,
                 return [4 /*yield*/, sdk.api.endusers.merge({ sourceEnduserId: source.id, destinationEnduserId: destination.id })];
             case 7:
                 _f.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Source is deleted", function () { return sdk.api.endusers.getOne(source.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Source is deleted", function () { return sdk.api.endusers.getOne(source.id); }, testing_1.handleAnyError)];
             case 8:
                 _f.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Destination merged", function () { return sdk.api.endusers.getOne(destination.id); }, { onResult: function (e) {
@@ -7537,7 +7379,7 @@ var wait_for_trigger_tests = function () { return __awaiter(void 0, void 0, void
                 // cleanup
                 _b.sent();
                 // test trigger cleaned up on journey delete
-                return [4 /*yield*/, (0, testing_1.async_test)("Trigger cleaned up by journey deletion", function () { return pollForResults(sdk.api.automation_triggers.getSome, function (results) { return !results.find(function (r) { return r.id === trigger.id; }); }, 100, 10); }, passOnAnyResult)
+                return [4 /*yield*/, (0, testing_1.async_test)("Trigger cleaned up by journey deletion", function () { return pollForResults(sdk.api.automation_triggers.getSome, function (results) { return !results.find(function (r) { return r.id === trigger.id; }); }, 100, 10); }, testing_1.passOnAnyResult)
                     // double-check that wait for trigger step triggers were deleted
                 ];
             case 15:
@@ -7562,14 +7404,14 @@ var rate_limit_tests = function () { return __awaiter(void 0, void 0, void 0, fu
             case 1:
                 _a = (_d.sent()).created, e1 = _a[0], e2 = _a[1], e3 = _a[2];
                 // prevent duplicate updates to same enduser
-                return [4 /*yield*/, (0, testing_1.async_test)("Duplicate updates 1", function () { return sdk.api.endusers.updateOne(e1.id, { fields: { Test: 'Trigger' } }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Duplicate updates 1", function () { return sdk.api.endusers.updateOne(e1.id, { fields: { Test: 'Trigger' } }); }, testing_1.passOnAnyResult)];
             case 2:
                 // prevent duplicate updates to same enduser
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Duplicate updates 2", function () { return sdk.api.endusers.updateOne(e1.id, { fields: { Test: 'Trigger' } }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Duplicate updates 2", function () { return sdk.api.endusers.updateOne(e1.id, { fields: { Test: 'Trigger' } }); }, testing_1.passOnAnyResult)];
             case 3:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Duplicate updates 3", function () { return sdk.api.endusers.updateOne(e1.id, { fields: { Test: 'Trigger' } }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Duplicate updates 3", function () { return sdk.api.endusers.updateOne(e1.id, { fields: { Test: 'Trigger' } }); }, testing_1.passOnAnyResult)];
             case 4:
                 _d.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Duplicate updates 4 (should trip)", function () { return sdk.api.endusers.updateOne(e1.id, { fields: { Test: 'Trigger' } }); }, handleRateLimitError)];
@@ -7578,7 +7420,7 @@ var rate_limit_tests = function () { return __awaiter(void 0, void 0, void 0, fu
                 return [4 /*yield*/, (0, testing_1.async_test)("Duplicate updates 5 (should trip again)", function () { return sdk.api.endusers.updateOne(e1.id, { fields: { Test: 'Trigger' } }); }, handleRateLimitError)];
             case 6:
                 _d.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Duplicate updates other enduser (should not again)", function () { return sdk.api.endusers.updateOne(e2.id, { fields: { Test: 'Trigger' } }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Duplicate updates other enduser (should not again)", function () { return sdk.api.endusers.updateOne(e2.id, { fields: { Test: 'Trigger' } }); }, testing_1.passOnAnyResult)];
             case 7:
                 _d.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Same template email rate limit 1-per-minute", function () { return sdk.api.emails.createSome([
@@ -7612,7 +7454,7 @@ var rate_limit_tests = function () { return __awaiter(void 0, void 0, void 0, fu
                         { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', },
                         { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', },
                         { logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit' },
-                    ]); }, passOnAnyResult)];
+                    ]); }, testing_1.passOnAnyResult)];
             case 11:
                 _d.sent();
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 2500)]; // give it some time before trying again, to ensure still blocked after 2.5 < 60 seconds
@@ -7625,12 +7467,12 @@ var rate_limit_tests = function () { return __awaiter(void 0, void 0, void 0, fu
                 _d.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Same template email rate limit 1-per-minute not for logOnly 1", function () { return sdk.api.emails.createOne({
                         logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: constants_1.PLACEHOLDER_ID
-                    }); }, passOnAnyResult)];
+                    }); }, testing_1.passOnAnyResult)];
             case 14:
                 _d.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Same template email rate limit 1-per-minute not for logOnly 2", function () { return sdk.api.emails.createOne({
                         logOnly: true, enduserId: e1.id, subject: 'ratelimit', textContent: 'rate limit', templateId: constants_1.PLACEHOLDER_ID
-                    }); }, passOnAnyResult)];
+                    }); }, testing_1.passOnAnyResult)];
             case 15:
                 _d.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Same template sms rate limit 1-per-minute", function () { return sdk.api.sms_messages.createSome([
@@ -7662,7 +7504,7 @@ var rate_limit_tests = function () { return __awaiter(void 0, void 0, void 0, fu
                         { logOnly: true, enduserId: e3.id, message: 'hi' },
                         { logOnly: true, enduserId: e3.id, message: 'hi' },
                         { logOnly: true, enduserId: e3.id, message: 'hi' },
-                    ]); }, passOnAnyResult)];
+                    ]); }, testing_1.passOnAnyResult)];
             case 19:
                 _d.sent();
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 2500)]; // give it some time before trying again, to ensure still blocked after 2.5 < 60 seconds
@@ -7675,12 +7517,12 @@ var rate_limit_tests = function () { return __awaiter(void 0, void 0, void 0, fu
                 _d.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Same template sms rate limit 1-per-minute logonly does not apply 1", function () { return sdk.api.sms_messages.createOne({
                         logOnly: true, enduserId: e2.id, templateId: constants_1.PLACEHOLDER_ID, message: 'hi'
-                    }); }, passOnAnyResult)];
+                    }); }, testing_1.passOnAnyResult)];
             case 22:
                 _d.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Same template sms rate limit 1-per-minute logonly does not apply 2", function () { return sdk.api.sms_messages.createOne({
                         logOnly: true, enduserId: e2.id, templateId: constants_1.PLACEHOLDER_ID, message: 'hi'
-                    }); }, passOnAnyResult)
+                    }); }, testing_1.passOnAnyResult)
                     // these should work, as they do not have the same template
                 ];
             case 23:
@@ -7790,7 +7632,7 @@ var remove_from_journey_on_incoming_comms_tests = function () { return __awaiter
                                 && a.automationStepId === dontRemoveStep1.id
                                 && a.enduserId === e2.id
                                 && a.status === 'active';
-                        })); }, 50, 400); }, passOnAnyResult)];
+                        })); }, 50, 400); }, testing_1.passOnAnyResult)];
             case 12:
                 _f.sent();
                 return [4 /*yield*/, sdk.api.journeys.handle_incoming_communication({ enduserId: e2.id })];
@@ -7801,7 +7643,7 @@ var remove_from_journey_on_incoming_comms_tests = function () { return __awaiter
                             && a.automationStepId === removeStep1.id
                             && a.enduserId === e2.id
                             && a.status === 'cancelled';
-                    })); }, 100, 25); }, passOnAnyResult)];
+                    })); }, 100, 25); }, testing_1.passOnAnyResult)];
             case 14:
                 _f.sent();
                 return [4 /*yield*/, Promise.all([
@@ -7876,7 +7718,7 @@ var mfa_tests = function () { return __awaiter(void 0, void 0, void 0, function 
                 return [4 /*yield*/, sdkMfaApiKey.api.endusers.createOne({ fname: 'will work' })];
             case 3:
                 enduser = _c.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("API Key Auth does not require MFA", function () { return sdkMfaApiKey.api.endusers.deleteOne(enduser.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("API Key Auth does not require MFA", function () { return sdkMfaApiKey.api.endusers.deleteOne(enduser.id); }, testing_1.passOnAnyResult)];
             case 4:
                 _c.sent();
                 _b = (_a = sdkMfa).setAuthToken;
@@ -7886,7 +7728,7 @@ var mfa_tests = function () { return __awaiter(void 0, void 0, void 0, function 
                 return [4 /*yield*/, sdkMfa.api.endusers.createOne({ fname: 'will work' })];
             case 6:
                 e = _c.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("API-key generated token does not require MFA", function () { return sdkMfa.api.endusers.deleteOne(e.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("API-key generated token does not require MFA", function () { return sdkMfa.api.endusers.deleteOne(e.id); }, testing_1.passOnAnyResult)];
             case 7:
                 _c.sent();
                 return [2 /*return*/];
@@ -8588,10 +8430,10 @@ var field_equals_trigger_tests = function () { return __awaiter(void 0, void 0, 
                     ])];
             case 9:
                 endusers = (_a.sent()).created;
-                return [4 /*yield*/, (0, testing_1.async_test)("Journey and tags set", function () { return pollForResults(sdk.api.endusers.getSome, function (es) { return (es.filter(function (e) { var _a, _b; return ((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Tag')) && ((_b = e.journeys) === null || _b === void 0 ? void 0 : _b[journey.id]) !== undefined; }).length === 4); }, 200, 25); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Journey and tags set", function () { return pollForResults(sdk.api.endusers.getSome, function (es) { return (es.filter(function (e) { var _a, _b; return ((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Tag')) && ((_b = e.journeys) === null || _b === void 0 ? void 0 : _b[journey.id]) !== undefined; }).length === 4); }, 200, 25); }, testing_1.passOnAnyResult)];
             case 10:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Background action queued for journey", function () { return pollForResults(sdk.api.automated_actions.getSome, function (as) { return (as.filter(function (a) { return a.automationStepId === step.id && endusers.find(function (e) { return e.id === a.enduserId; }); }).length === 4); }, 200, 25); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Background action queued for journey", function () { return pollForResults(sdk.api.automated_actions.getSome, function (as) { return (as.filter(function (a) { return a.automationStepId === step.id && endusers.find(function (e) { return e.id === a.enduserId; }); }).length === 4); }, 200, 25); }, testing_1.passOnAnyResult)];
             case 11:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Endusers have trigger ids", sdk.api.endusers.getSome, { onResult: function (es) { return es.filter(function (e) { var _a; return ((_a = e.triggerIds) === null || _a === void 0 ? void 0 : _a.length) === 2; }).length === 4; } })];
@@ -8786,7 +8628,7 @@ var ticket_queue_tests = function () { return __awaiter(void 0, void 0, void 0, 
                 return [4 /*yield*/, (0, testing_1.async_test)("Non-Admin ticket access (specified queue)", function () { return sdkNonAdmin.api.tickets.getSome({ filter: { queueId: queue.id } }); }, { onResult: function (ts) { return ts.length === 1; } })];
             case 11:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Non-Admin ticket access (specified queue, no access)", function () { return sdkNonAdmin.api.tickets.getSome({ filter: { queueId: queueUnshared.id } }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Non-Admin ticket access (specified queue, no access)", function () { return sdkNonAdmin.api.tickets.getSome({ filter: { queueId: queueUnshared.id } }); }, testing_1.handleAnyError)];
             case 12:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Queue caches number of tickets on add", function () { return sdk.api.ticket_queues.getOne(queue.id); }, { onResult: function (q) { return q.count === 1; } })];
@@ -8798,16 +8640,16 @@ var ticket_queue_tests = function () { return __awaiter(void 0, void 0, void 0, 
                         } })];
             case 14:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Ticket can't be double-assigned ticket to self", function () { return sdk.api.tickets.assign_from_queue({ ticketId: ticket.id }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Ticket can't be double-assigned ticket to self", function () { return sdk.api.tickets.assign_from_queue({ ticketId: ticket.id }); }, testing_1.handleAnyError)];
             case 15:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Non-Admin ticket cannot assign ticket to self when can't access queue", function () { return sdkNonAdmin.api.tickets.assign_from_queue({ ticketId: ticketUnshared.id }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Non-Admin ticket cannot assign ticket to self when can't access queue", function () { return sdkNonAdmin.api.tickets.assign_from_queue({ ticketId: ticketUnshared.id }); }, testing_1.handleAnyError)];
             case 16:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Non-Admin can access ticket after assignment", function () { return sdkNonAdmin.api.tickets.getOne(ticket.id); }, { onResult: function (ticket) { return ticket.owner === sdkNonAdmin.userInfo.id && !ticket.queueId && !!ticket; } })];
             case 17:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Queue caches number of tickets on assignment", function () { return pollForResults(function () { return sdk.api.ticket_queues.getOne(queue.id); }, function (q) { return q.count === 0; }, 50, 10); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Queue caches number of tickets on assignment", function () { return pollForResults(function () { return sdk.api.ticket_queues.getOne(queue.id); }, function (q) { return q.count === 0; }, 50, 10); }, testing_1.passOnAnyResult)];
             case 18:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Added to care team after queue pull", function () { return sdkNonAdmin.api.endusers.getOne(enduser.id); }, { onResult: function (e) { var _a; return !!((_a = e.assignedTo) === null || _a === void 0 ? void 0 : _a.includes(sdkNonAdmin.userInfo.id)); } })];
@@ -8914,7 +8756,7 @@ var alternate_phones_tests = function () { return __awaiter(void 0, void 0, void
                             && ((_c = e.alternatePhones) === null || _c === void 0 ? void 0 : _c.length) === 2
                             && e.alternatePhones.includes(createPhone)
                             && e.alternatePhones.includes(updatePhone));
-                    }, 50, 20); }, passOnAnyResult)];
+                    }, 50, 20); }, testing_1.passOnAnyResult)];
             case 3:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.endusers.deleteOne(e.id)];
@@ -9011,7 +8853,7 @@ var switch_to_related_contacts_tests = function () { return __awaiter(void 0, vo
                 return [4 /*yield*/, sdk.api.endusers.updateOne(child.id, { journeys: (_a = {}, _a[journey.id] = '', _a) })];
             case 6:
                 _b.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Related contact got tags", function () { return pollForResults(function () { return sdk.api.endusers.getOne(parent.id); }, function (e) { var _a; return !!((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Success')); }, 50, 100); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Related contact got tags", function () { return pollForResults(function () { return sdk.api.endusers.getOne(parent.id); }, function (e) { var _a; return !!((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes('Success')); }, 50, 100); }, testing_1.passOnAnyResult)];
             case 7:
                 _b.sent();
                 return [2 /*return*/, Promise.all([
@@ -9621,19 +9463,19 @@ var waitlist_tests = function () { return __awaiter(void 0, void 0, void 0, func
                             && ((_g = (_f = es.find(function (e) { return e.id === e3.id; })) === null || _f === void 0 ? void 0 : _f.journeys) === null || _g === void 0 ? void 0 : _g[j.id]) === undefined
                             && ((_j = (_h = es.find(function (e) { return e.id === e4.id; })) === null || _h === void 0 ? void 0 : _h.journeys) === null || _j === void 0 ? void 0 : _j[j.id]) === undefined
                             && ((_l = (_k = es.find(function (e) { return e.id === e5.id; })) === null || _k === void 0 ? void 0 : _k.journeys) === null || _l === void 0 ? void 0 : _l[j.id]) === undefined);
-                    }, 25, 10); }, passOnAnyResult)];
+                    }, 25, 10); }, testing_1.passOnAnyResult)];
             case 10:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.endusers.deleteOne(e3.id)];
             case 11:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Deleting enduser removes from Waitlist", function () { return pollForResults(function () { return sdk.api.waitlists.getOne(list.id); }, function (w) { return w.enduserIds.length === 2; }, 25, 10); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Deleting enduser removes from Waitlist", function () { return pollForResults(function () { return sdk.api.waitlists.getOne(list.id); }, function (w) { return w.enduserIds.length === 2; }, 25, 10); }, testing_1.passOnAnyResult)];
             case 12:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.endusers.merge({ sourceEnduserId: e4.id, destinationEnduserId: e5.id })];
             case 13:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Deleting enduser via merge removes from Waitlist", function () { return pollForResults(function () { return sdk.api.waitlists.getOne(list.id); }, function (w) { return w.enduserIds.length === 1; }, 25, 10); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Deleting enduser via merge removes from Waitlist", function () { return pollForResults(function () { return sdk.api.waitlists.getOne(list.id); }, function (w) { return w.enduserIds.length === 1; }, 25, 10); }, testing_1.passOnAnyResult)];
             case 14:
                 _a.sent();
                 return [2 /*return*/, (Promise.all([
@@ -10076,10 +9918,10 @@ var enduser_access_tags_tests = function () { return __awaiter(void 0, void 0, v
                 return [4 /*yield*/, (0, testing_1.async_test)("Setting disabled, no tags, list", sdkNonAdmin.api.endusers.getSome, { onResult: function (r) { return r.length === 0; } })];
             case 9:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Setting disabled, matchEnduser", function () { return sdkNonAdmin.api.endusers.getOne(matchEnduser.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Setting disabled, matchEnduser", function () { return sdkNonAdmin.api.endusers.getOne(matchEnduser.id); }, testing_1.handleAnyError)];
             case 10:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Setting disabled, dontMatchEnduser", function () { return sdkNonAdmin.api.endusers.getOne(dontMatchEnduser.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Setting disabled, dontMatchEnduser", function () { return sdkNonAdmin.api.endusers.getOne(dontMatchEnduser.id); }, testing_1.handleAnyError)];
             case 11:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Setting disabled, no tags, tickets", sdkNonAdmin.api.tickets.getSome, { onResult: function (r) { return r.length === 0; } })];
@@ -10088,10 +9930,10 @@ var enduser_access_tags_tests = function () { return __awaiter(void 0, void 0, v
                 return [4 /*yield*/, (0, testing_1.async_test)("Setting disabled, no tags, tickets search", function () { return sdkNonAdmin.api.tickets.getSome({ search: { query: ticketTitle } }); }, { onResult: function (r) { return r.length === 0; } })];
             case 13:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Setting disabled, matchEnduser ticket", function () { return sdkNonAdmin.api.tickets.getOne(matchTicket.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Setting disabled, matchEnduser ticket", function () { return sdkNonAdmin.api.tickets.getOne(matchTicket.id); }, testing_1.handleAnyError)];
             case 14:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Setting disabled, dontMatchEnduser ticket", function () { return sdkNonAdmin.api.tickets.getOne(dontMatchTicket.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Setting disabled, dontMatchEnduser ticket", function () { return sdkNonAdmin.api.tickets.getOne(dontMatchTicket.id); }, testing_1.handleAnyError)];
             case 15:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("tickets filter enduser valid", function () { return sdkNonAdmin.api.tickets.getSome({ filter: { enduserId: matchEnduser.id } }); }, {
@@ -10119,10 +9961,10 @@ var enduser_access_tags_tests = function () { return __awaiter(void 0, void 0, v
                 return [4 /*yield*/, (0, testing_1.async_test)("enable setting, disable tags", sdkNonAdmin.api.endusers.getSome, { onResult: function (r) { return r.length === 0; } })];
             case 20:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("enable setting, matchEnduser", function () { return sdkNonAdmin.api.endusers.getOne(matchEnduser.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("enable setting, matchEnduser", function () { return sdkNonAdmin.api.endusers.getOne(matchEnduser.id); }, testing_1.handleAnyError)];
             case 21:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("enable setting, dontMatchEnduser", function () { return sdkNonAdmin.api.endusers.getOne(dontMatchEnduser.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("enable setting, dontMatchEnduser", function () { return sdkNonAdmin.api.endusers.getOne(dontMatchEnduser.id); }, testing_1.handleAnyError)];
             case 22:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("enable setting, no tags, tickets", sdkNonAdmin.api.tickets.getSome, { onResult: function (r) { return r.length === 0; } })];
@@ -10131,10 +9973,10 @@ var enduser_access_tags_tests = function () { return __awaiter(void 0, void 0, v
                 return [4 /*yield*/, (0, testing_1.async_test)("enable setting, no tags, tickets search", function () { return sdkNonAdmin.api.tickets.getSome({ search: { query: ticketTitle } }); }, { onResult: function (r) { return r.length === 0; } })];
             case 24:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("enable setting, matchEnduser ticket", function () { return sdkNonAdmin.api.tickets.getOne(matchTicket.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("enable setting, matchEnduser ticket", function () { return sdkNonAdmin.api.tickets.getOne(matchTicket.id); }, testing_1.handleAnyError)];
             case 25:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("enable setting, dontMatchEnduser ticket", function () { return sdkNonAdmin.api.tickets.getOne(dontMatchTicket.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("enable setting, dontMatchEnduser ticket", function () { return sdkNonAdmin.api.tickets.getOne(dontMatchTicket.id); }, testing_1.handleAnyError)];
             case 26:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("tickets filter enduser valid", function () { return sdkNonAdmin.api.tickets.getSome({ filter: { enduserId: matchEnduser.id } }); }, {
@@ -10165,10 +10007,10 @@ var enduser_access_tags_tests = function () { return __awaiter(void 0, void 0, v
                 return [4 /*yield*/, (0, testing_1.async_test)("disable setting, enable tags", sdkNonAdmin.api.endusers.getSome, { onResult: function (r) { return r.length === 0; } })];
             case 32:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("disable setting, matchEnduser", function () { return sdkNonAdmin.api.endusers.getOne(matchEnduser.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("disable setting, matchEnduser", function () { return sdkNonAdmin.api.endusers.getOne(matchEnduser.id); }, testing_1.handleAnyError)];
             case 33:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("disable setting, dontMatchEnduser", function () { return sdkNonAdmin.api.endusers.getOne(dontMatchEnduser.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("disable setting, dontMatchEnduser", function () { return sdkNonAdmin.api.endusers.getOne(dontMatchEnduser.id); }, testing_1.handleAnyError)];
             case 34:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("disable setting, enable tags, tickets", sdkNonAdmin.api.tickets.getSome, { onResult: function (r) { return r.length === 0; } })];
@@ -10177,10 +10019,10 @@ var enduser_access_tags_tests = function () { return __awaiter(void 0, void 0, v
                 return [4 /*yield*/, (0, testing_1.async_test)("disable setting, no tags, tickets search", function () { return sdkNonAdmin.api.tickets.getSome({ search: { query: ticketTitle } }); }, { onResult: function (r) { return r.length === 0; } })];
             case 36:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("disable setting, matchEnduser ticket", function () { return sdkNonAdmin.api.tickets.getOne(matchTicket.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("disable setting, matchEnduser ticket", function () { return sdkNonAdmin.api.tickets.getOne(matchTicket.id); }, testing_1.handleAnyError)];
             case 37:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("disable setting, dontMatchEnduser ticket", function () { return sdkNonAdmin.api.tickets.getOne(dontMatchTicket.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("disable setting, dontMatchEnduser ticket", function () { return sdkNonAdmin.api.tickets.getOne(dontMatchTicket.id); }, testing_1.handleAnyError)];
             case 38:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("tickets filter enduser valid", function () { return sdkNonAdmin.api.tickets.getSome({ filter: { enduserId: matchEnduser.id } }); }, {
@@ -10210,10 +10052,10 @@ var enduser_access_tags_tests = function () { return __awaiter(void 0, void 0, v
                     })];
             case 43:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("access matchEnduser", function () { return sdkNonAdmin.api.endusers.getOne(matchEnduser.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("access matchEnduser", function () { return sdkNonAdmin.api.endusers.getOne(matchEnduser.id); }, testing_1.passOnAnyResult)];
             case 44:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("access dontMatchEnduser bad", function () { return sdkNonAdmin.api.endusers.getOne(dontMatchEnduser.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("access dontMatchEnduser bad", function () { return sdkNonAdmin.api.endusers.getOne(dontMatchEnduser.id); }, testing_1.handleAnyError)];
             case 45:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("access setting, tickets", sdkNonAdmin.api.tickets.getSome, {
@@ -10224,10 +10066,10 @@ var enduser_access_tags_tests = function () { return __awaiter(void 0, void 0, v
                 return [4 /*yield*/, (0, testing_1.async_test)("access setting tickets search", function () { return sdkNonAdmin.api.tickets.getSome({ search: { query: ticketTitle } }); }, { onResult: function (r) { return r.length === 1; } })];
             case 47:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("access, matchEnduser ticket", function () { return sdkNonAdmin.api.tickets.getOne(matchTicket.id); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("access, matchEnduser ticket", function () { return sdkNonAdmin.api.tickets.getOne(matchTicket.id); }, testing_1.passOnAnyResult)];
             case 48:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("access, dontMatchEnduser ticket", function () { return sdkNonAdmin.api.tickets.getOne(dontMatchTicket.id); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("access, dontMatchEnduser ticket", function () { return sdkNonAdmin.api.tickets.getOne(dontMatchTicket.id); }, testing_1.handleAnyError)];
             case 49:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("tickets filter enduser valid", function () { return sdkNonAdmin.api.tickets.getSome({ filter: { enduserId: matchEnduser.id } }); }, {
@@ -10240,13 +10082,13 @@ var enduser_access_tags_tests = function () { return __awaiter(void 0, void 0, v
                     })];
             case 51:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Non-admin can't update tags", function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: ['new tag'] }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Non-admin can't update tags", function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: ['new tag'] }); }, testing_1.handleAnyError)];
             case 52:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Non-admin can't update tags (with other updates)", function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: ['new tag'], bio: '' }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Non-admin can't update tags (with other updates)", function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: ['new tag'], bio: '' }); }, testing_1.handleAnyError)];
             case 53:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Non-admin can update other fields", function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { bio: '' }); }, passOnAnyResult)
+                return [4 /*yield*/, (0, testing_1.async_test)("Non-admin can update other fields", function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { bio: '' }); }, testing_1.passOnAnyResult)
                     // cleanup
                 ];
             case 54:
@@ -10310,7 +10152,7 @@ var unique_strings_tests = function () { return __awaiter(void 0, void 0, void 0
             case 4:
                 _a.sent();
                 // validate setting empty is allowed
-                return [4 /*yield*/, (0, testing_1.async_test)("Setting empty is still allowed", function () { return sdk.api.endusers.updateOne(e.id, { assignedTo: [] }, { replaceObjectFields: true }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Setting empty is still allowed", function () { return sdk.api.endusers.updateOne(e.id, { assignedTo: [] }, { replaceObjectFields: true }); }, testing_1.passOnAnyResult)];
             case 5:
                 // validate setting empty is allowed
                 _a.sent();
@@ -10330,10 +10172,10 @@ var marketing_email_unsubscribe_tests = function () { return __awaiter(void 0, v
                 return [4 /*yield*/, sdk.api.endusers.createOne({ email: 'test@tellescope.com' })];
             case 1:
                 e = _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Non-marketing email good", function () { return sdk.api.emails.createOne({ logOnly: true, subject: '', enduserId: e.id, textContent: '', HTMLContent: '' }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Non-marketing email good", function () { return sdk.api.emails.createOne({ logOnly: true, subject: '', enduserId: e.id, textContent: '', HTMLContent: '' }); }, testing_1.passOnAnyResult)];
             case 2:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Marketing email good when subscribed", function () { return sdk.api.emails.createOne({ logOnly: true, isMarketing: true, subject: '', enduserId: e.id, textContent: '', HTMLContent: '' }); }, passOnAnyResult)
+                return [4 /*yield*/, (0, testing_1.async_test)("Marketing email good when subscribed", function () { return sdk.api.emails.createOne({ logOnly: true, isMarketing: true, subject: '', enduserId: e.id, textContent: '', HTMLContent: '' }); }, testing_1.passOnAnyResult)
                     // attempt to push duplicates of each
                 ];
             case 3:
@@ -10346,13 +10188,13 @@ var marketing_email_unsubscribe_tests = function () { return __awaiter(void 0, v
                 return [4 /*yield*/, (0, testing_1.async_test)("GET /v1/unsubscribe works", function () { return sdk.api.endusers.getOne(e.id); }, { onResult: function (e) { return e.unsubscribedFromMarketing === true; } })];
             case 5:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Non-marketing email good", function () { return sdk.api.emails.createOne({ logOnly: true, subject: '', enduserId: e.id, textContent: '', HTMLContent: '' }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Non-marketing email good", function () { return sdk.api.emails.createOne({ logOnly: true, subject: '', enduserId: e.id, textContent: '', HTMLContent: '' }); }, testing_1.passOnAnyResult)];
             case 6:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Marketing email bad when unsubscribed", function () { return sdk.api.emails.createOne({ logOnly: true, isMarketing: true, subject: '', enduserId: e.id, textContent: '', HTMLContent: '' }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Marketing email bad when unsubscribed", function () { return sdk.api.emails.createOne({ logOnly: true, isMarketing: true, subject: '', enduserId: e.id, textContent: '', HTMLContent: '' }); }, testing_1.handleAnyError)];
             case 7:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Marketing email bad when unsubscribed (bulk)", function () { return sdk.api.emails.createSome([{ logOnly: true, isMarketing: true, subject: '', enduserId: e.id, textContent: '', HTMLContent: '' }]); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Marketing email bad when unsubscribed (bulk)", function () { return sdk.api.emails.createSome([{ logOnly: true, isMarketing: true, subject: '', enduserId: e.id, textContent: '', HTMLContent: '' }]); }, testing_1.handleAnyError)];
             case 8:
                 _a.sent();
                 return [4 /*yield*/, Promise.all([
@@ -10517,7 +10359,7 @@ var cancel_upcoming_appointments_journey_action_test = function () { return __aw
                         && !!es.find(function (e) { return e.id === e2.id && !!e.cancelledAt; }) // future event should be cancelled
                         && !!es.find(function (e) { return e.id === e3.id && !e.cancelledAt; }) // past event not enduser should not be cancelled
                         && !!es.find(function (e) { return e.id === e4.id && !e.cancelledAt; }) // future event not enduser should not be cancelled
-                    ); }, 50, 100); }, passOnAnyResult)];
+                    ); }, 50, 100); }, testing_1.passOnAnyResult)];
             case 7:
                 _a.sent();
                 return [4 /*yield*/, Promise.all([
@@ -10565,13 +10407,13 @@ var ticket_reminder_tests = function () { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, sdk.api.tickets.updateOne(tToUpdate.id, { dueDateInMS: dueDateInMS })];
             case 6:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Setting due date sets nextReminderInMS", function () { return pollForResults(function () { return sdk.api.tickets.getOne(tToUpdate.id); }, function (t) { return withLeeway(t.dueDateInMS, dueDateInMS - Date.now()); }, 25, 10); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Setting due date sets nextReminderInMS", function () { return pollForResults(function () { return sdk.api.tickets.getOne(tToUpdate.id); }, function (t) { return withLeeway(t.dueDateInMS, dueDateInMS - Date.now()); }, 25, 10); }, testing_1.passOnAnyResult)];
             case 7:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.tickets.updateOne(tToUpdate.id, { dueDateInMS: '' })];
             case 8:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Unsetting due date sets nextReminderInMS", function () { return pollForResults(function () { return sdk.api.tickets.getOne(tToUpdate.id); }, function (t) { return t.nextReminderInMS === -1; }, 25, 10); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Unsetting due date sets nextReminderInMS", function () { return pollForResults(function () { return sdk.api.tickets.getOne(tToUpdate.id); }, function (t) { return t.nextReminderInMS === -1; }, 25, 10); }, testing_1.passOnAnyResult)];
             case 9:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.tickets.updateOne(tToUpdate.id, { dueDateInMS: dueDateInMS, reminders: [
@@ -10583,7 +10425,7 @@ var ticket_reminder_tests = function () { return __awaiter(void 0, void 0, void 
                         ] })];
             case 10:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Correct reminder picked when multiple due date sets nextReminderInMS", function () { return pollForResults(function () { return sdk.api.tickets.getOne(tToUpdate.id); }, function (t) { return withLeeway(t.dueDateInMS, dueDateInMS - Date.now() - 7000); }, 25, 10); }, passOnAnyResult)
+                return [4 /*yield*/, (0, testing_1.async_test)("Correct reminder picked when multiple due date sets nextReminderInMS", function () { return pollForResults(function () { return sdk.api.tickets.getOne(tToUpdate.id); }, function (t) { return withLeeway(t.dueDateInMS, dueDateInMS - Date.now() - 7000); }, 25, 10); }, testing_1.passOnAnyResult)
                     // test actual reminders without setting owner to avoid email notifications
                 ];
             case 11:
@@ -10604,7 +10446,7 @@ var ticket_reminder_tests = function () { return __awaiter(void 0, void 0, void 
                         return (((_b = (_a = t.reminders) === null || _a === void 0 ? void 0 : _a[0]) === null || _b === void 0 ? void 0 : _b.didRemind) === true
                             && t.nextReminderInMS !== -1
                             && ((_d = (_c = t.reminders) === null || _c === void 0 ? void 0 : _c.filter(function (r) { return r.didRemind; })) === null || _d === void 0 ? void 0 : _d.length) === 1);
-                    }, 100, 100); }, passOnAnyResult)];
+                    }, 100, 100); }, testing_1.passOnAnyResult)];
             case 13:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Delayed reminder not processed yet", function () { return sdk.api.tickets.getOne(tToRemind.id); }, {
@@ -10623,7 +10465,7 @@ var ticket_reminder_tests = function () { return __awaiter(void 0, void 0, void 
                             && t.nextReminderInMS === -1
                             && ((_d = (_c = t.reminders) === null || _c === void 0 ? void 0 : _c[1]) === null || _d === void 0 ? void 0 : _d.didRemind) === true
                             && ((_f = t.reminders) === null || _f === void 0 ? void 0 : _f.length) === 2);
-                    }, 100, 100); }, passOnAnyResult)
+                    }, 100, 100); }, testing_1.passOnAnyResult)
                     // cleanup
                 ];
             case 15:
@@ -10707,7 +10549,7 @@ var bulk_read_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                             && result.matches.filter(function (e) { return endusers.find(function (_e) { return _e.id === e.id; }); }).length === result.matches.length); } })];
             case 2:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("bulk id lookup limited to 1000 (success)", function () { return sdk.api.endusers.getByIds({ ids: Array.from(Array(1000).keys()).map(function () { return endusers[0].id; }) }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("bulk id lookup limited to 1000 (success)", function () { return sdk.api.endusers.getByIds({ ids: Array.from(Array(1000).keys()).map(function () { return endusers[0].id; }) }); }, testing_1.passOnAnyResult)];
             case 3:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("bulk id lookup limited to 1000", function () { return sdk.api.endusers.getByIds({ ids: Array.from(Array(1001).keys()).map(function () { return endusers[0].id; }) }); }, {
@@ -10789,7 +10631,7 @@ var delete_user_tests = function () { return __awaiter(void 0, void 0, void 0, f
             case 5:
                 authToken = (_b.sent()).authToken;
                 createdUserSDK = new sdk_1.Session({ host: host, authToken: authToken });
-                return [4 /*yield*/, (0, testing_1.async_test)("Authenticated", createdUserSDK.test_authenticated, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Authenticated", createdUserSDK.test_authenticated, testing_1.passOnAnyResult)];
             case 6:
                 _b.sent();
                 return [4 /*yield*/, sdk.api.users.deleteOne(u.id)];
@@ -10798,7 +10640,7 @@ var delete_user_tests = function () { return __awaiter(void 0, void 0, void 0, f
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 250)];
             case 8:
                 _b.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("De-authenticated after deletion", createdUserSDK.test_authenticated, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("De-authenticated after deletion", createdUserSDK.test_authenticated, testing_1.handleAnyError)];
             case 9:
                 _b.sent();
                 return [4 /*yield*/, sdk.api.endusers.createOne({})];
@@ -10808,7 +10650,7 @@ var delete_user_tests = function () { return __awaiter(void 0, void 0, void 0, f
             case 11:
                 enduserAuthToken = (_b.sent()).authToken;
                 enduserSDK = new sdk_1.EnduserSession({ host: host, businessId: businessId, authToken: enduserAuthToken });
-                return [4 /*yield*/, (0, testing_1.async_test)("Enduser Authenticated", function () { return enduserSDK.api.endusers.getSome(); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Enduser Authenticated", function () { return enduserSDK.api.endusers.getSome(); }, testing_1.passOnAnyResult)];
             case 12:
                 _b.sent();
                 return [4 /*yield*/, sdk.api.endusers.deleteOne(enduser.id)];
@@ -10817,7 +10659,7 @@ var delete_user_tests = function () { return __awaiter(void 0, void 0, void 0, f
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 250)];
             case 14:
                 _b.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Enduser De-authenticated after deletion", function () { return enduserSDK.api.endusers.getSome(); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Enduser De-authenticated after deletion", function () { return enduserSDK.api.endusers.getSome(); }, testing_1.handleAnyError)];
             case 15:
                 _b.sent();
                 return [2 /*return*/];
@@ -10831,86 +10673,86 @@ var lockout_tests = function () { return __awaiter(void 0, void 0, void 0, funct
         switch (_a.label) {
             case 0:
                 (0, testing_1.log_header)("Lockout tests");
-                return [4 /*yield*/, (0, testing_1.async_test)("API Key is authenticated", sdkMfaApiKey.test_authenticated, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("API Key is authenticated", sdkMfaApiKey.test_authenticated, testing_1.passOnAnyResult)];
             case 1:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("API Key lock to future date", function () { return sdk.api.users.updateOne(sdkMfaApiKeyUserId, { lockedOutUntil: 0 }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("API Key lock to future date", function () { return sdk.api.users.updateOne(sdkMfaApiKeyUserId, { lockedOutUntil: 0 }); }, testing_1.passOnAnyResult)];
             case 2:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 250)];
             case 3:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("API Key is de-authenticated when locked", sdkMfaApiKey.test_authenticated, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("API Key is de-authenticated when locked", sdkMfaApiKey.test_authenticated, testing_1.handleAnyError)];
             case 4:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("API Key unlock to -1", function () { return sdk.api.users.updateOne(sdkMfaApiKeyUserId, { lockedOutUntil: -1 }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("API Key unlock to -1", function () { return sdk.api.users.updateOne(sdkMfaApiKeyUserId, { lockedOutUntil: -1 }); }, testing_1.passOnAnyResult)];
             case 5:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("API Key is authenticated", sdkMfaApiKey.test_authenticated, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("API Key is authenticated", sdkMfaApiKey.test_authenticated, testing_1.passOnAnyResult)];
             case 6:
                 _a.sent();
                 nonAdminId = sdkNonAdmin.userInfo.id;
-                return [4 /*yield*/, (0, testing_1.async_test)("users cannot update own lock status", function () { return sdk.api.users.updateOne(sdk.userInfo.id, { lockedOutUntil: -1 }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("users cannot update own lock status", function () { return sdk.api.users.updateOne(sdk.userInfo.id, { lockedOutUntil: -1 }); }, testing_1.handleAnyError)];
             case 7:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin can't lock out others", function () { return sdkNonAdmin.api.users.updateOne(sdk.userInfo.id, { lockedOutUntil: Date.now() }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin can't lock out others", function () { return sdkNonAdmin.api.users.updateOne(sdk.userInfo.id, { lockedOutUntil: Date.now() }); }, testing_1.handleAnyError)];
             case 8:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin is authenticated", sdkNonAdmin.test_authenticated, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin is authenticated", sdkNonAdmin.test_authenticated, testing_1.passOnAnyResult)];
             case 9:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("admin unlock to -1", function () { return sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: -1 }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("admin unlock to -1", function () { return sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: -1 }); }, testing_1.passOnAnyResult)];
             case 10:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin is authenticated (-1)", sdkNonAdmin.test_authenticated, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin is authenticated (-1)", sdkNonAdmin.test_authenticated, testing_1.passOnAnyResult)];
             case 11:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("admin lock to past date", function () { return sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: Date.now() - 1000 }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("admin lock to past date", function () { return sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: Date.now() - 1000 }); }, testing_1.passOnAnyResult)];
             case 12:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin is authenticated (past date)", sdkNonAdmin.test_authenticated, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin is authenticated (past date)", sdkNonAdmin.test_authenticated, testing_1.passOnAnyResult)];
             case 13:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("admin lock to 0 (indefinite)", function () { return sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: 0 }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("admin lock to 0 (indefinite)", function () { return sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: 0 }); }, testing_1.passOnAnyResult)];
             case 14:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 250)];
             case 15:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin is de-authenticated when locked to 0", sdkNonAdmin.test_authenticated, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin is de-authenticated when locked to 0", sdkNonAdmin.test_authenticated, testing_1.handleAnyError)];
             case 16:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin can't authenciate when locked to 0", function () { return sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin can't authenciate when locked to 0", function () { return sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword); }, testing_1.handleAnyError)];
             case 17:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("admin unlock to -1", function () { return sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: -1 }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("admin unlock to -1", function () { return sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: -1 }); }, testing_1.passOnAnyResult)];
             case 18:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin can re authenciate when locked to 0", function () { return sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin can re authenciate when locked to 0", function () { return sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword); }, testing_1.passOnAnyResult)];
             case 19:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin is authenticated", sdkNonAdmin.test_authenticated, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin is authenticated", sdkNonAdmin.test_authenticated, testing_1.passOnAnyResult)];
             case 20:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("admin lock to future date", function () { return sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: Date.now() + 10000 }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("admin lock to future date", function () { return sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: Date.now() + 10000 }); }, testing_1.passOnAnyResult)];
             case 21:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 250)];
             case 22:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin is de-authenticated when locked to future date", sdkNonAdmin.test_authenticated, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin is de-authenticated when locked to future date", sdkNonAdmin.test_authenticated, testing_1.handleAnyError)];
             case 23:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin can't authenciate when locked to future date", function () { return sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin can't authenciate when locked to future date", function () { return sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword); }, testing_1.handleAnyError)];
             case 24:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("admin unlock to -1", function () { return sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: -1 }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("admin unlock to -1", function () { return sdk.api.users.updateOne(nonAdminId, { lockedOutUntil: -1 }); }, testing_1.passOnAnyResult)];
             case 25:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin can re authenciate when locked to future date", function () { return sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin can re authenciate when locked to future date", function () { return sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword); }, testing_1.passOnAnyResult)];
             case 26:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("non-admin is authenticated", sdkNonAdmin.test_authenticated, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("non-admin is authenticated", sdkNonAdmin.test_authenticated, testing_1.passOnAnyResult)];
             case 27:
                 _a.sent();
                 return [2 /*return*/];
@@ -11365,7 +11207,7 @@ var register_as_enduser_tests = function () { return __awaiter(void 0, void 0, v
         switch (_a.label) {
             case 0:
                 (0, testing_1.log_header)("Register as Enduser");
-                return [4 /*yield*/, (0, testing_1.async_test)("Enduser register", function () { return enduserSDK.register({ email: 'test@tellescope.com', password: 'testpassWord12345!' }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Enduser register", function () { return enduserSDK.register({ email: 'test@tellescope.com', password: 'testpassWord12345!' }); }, testing_1.passOnAnyResult)];
             case 1:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("Enduser register (rate limited)", function () { return enduserSDK.register({ email: 'test@tellescope.com', password: 'testpassWord12345!' }); }, { shouldError: true, onError: function (e) { return e.message === "Too many requests"; } })];
@@ -11374,7 +11216,7 @@ var register_as_enduser_tests = function () { return __awaiter(void 0, void 0, v
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 1000)];
             case 3:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Enduser duplicate register (same response, no ability to enumerate contacts)", function () { return enduserSDK.register({ email: 'test@tellescope.com', password: 'testpassWord12345!' }); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("Enduser duplicate register (same response, no ability to enumerate contacts)", function () { return enduserSDK.register({ email: 'test@tellescope.com', password: 'testpassWord12345!' }); }, testing_1.passOnAnyResult)];
             case 4:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.endusers.getOne({ email: 'test@tellescope.com' })];
@@ -11409,7 +11251,7 @@ var close_reasons_no_duplicates_tests = function () { return __awaiter(void 0, v
                 (0, testing_1.assert)(((_b = updated.closeReasons) === null || _b === void 0 ? void 0 : _b.length) === 3, 'closeReasons not unique on update', 'closeReasons are unique on update');
                 return [4 /*yield*/, (0, testing_1.async_test)("Filters duplicates before validating length too long", function () { return sdk.api.tickets.updateOne(tDuplicates.id, {
                         closeReasons: '1,'.repeat(1500).split(','),
-                    }); }, passOnAnyResult)];
+                    }); }, testing_1.passOnAnyResult)];
             case 4:
                 _c.sent();
                 return [4 /*yield*/, Promise.all([
@@ -11478,7 +11320,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                             var _a;
                                             // console.log(title, e.tags, (!!e.tags?.includes("Triggered")) === shouldTrigger)
                                             return (!!((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes("Triggered"))) === shouldTrigger;
-                                        }, 50, 10, shouldTrigger); }, passOnAnyResult)];
+                                        }, 50, 10, shouldTrigger); }, testing_1.passOnAnyResult)];
                                 case 9:
                                     _c.sent();
                                     if (!enduserConfigurations.length) return [3 /*break*/, 11];
@@ -11486,7 +11328,7 @@ var vital_trigger_tests = function () { return __awaiter(void 0, void 0, void 0,
                                             var _a;
                                             // console.log(title, e.tags, (!!e.tags?.includes("Triggered")) === shouldTrigger)
                                             return (!!((_a = e.tags) === null || _a === void 0 ? void 0 : _a.includes("Triggered"))) === otherEnduserShouldTrigger;
-                                        }, 50, 10, otherEnduserShouldTrigger); }, passOnAnyResult)];
+                                        }, 50, 10, otherEnduserShouldTrigger); }, testing_1.passOnAnyResult)];
                                 case 10:
                                     _c.sent();
                                     _c.label = 11;
@@ -12544,7 +12386,7 @@ var superadmin_tests = function () { return __awaiter(void 0, void 0, void 0, fu
         switch (_a.label) {
             case 0:
                 (0, testing_1.log_header)("Superadmin Tests");
-                return [4 /*yield*/, (0, testing_1.async_test)("switch tenant is limited", function () { return sdk.change_tenant({ all: true }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("switch tenant is limited", function () { return sdk.change_tenant({ all: true }); }, testing_1.handleAnyError)];
             case 1:
                 _a.sent();
                 return [2 /*return*/];
@@ -12579,7 +12421,7 @@ var mdb_filter_tests = function () { return __awaiter(void 0, void 0, void 0, fu
                 return [4 /*yield*/, (0, testing_1.async_test)("$and (list)", function () { return sdk.api.endusers.getSome({ mdbFilter: { $and: [{ fname: 'Test' }, { lname: 'Testson' }, { 'fields.custom': 1 }, { 'fields.nested.custom': 2 }] } }); }, { onResult: function (e) { return e.length === 1 && e[0].id === enduser.id; } })];
             case 4:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("$and no match", function () { return sdk.api.endusers.getOne('', { $and: [{ fname: 'Not Test' }, { lname: 'Testson' }] }); }, handleAnyError)];
+                return [4 /*yield*/, (0, testing_1.async_test)("$and no match", function () { return sdk.api.endusers.getOne('', { $and: [{ fname: 'Not Test' }, { lname: 'Testson' }] }); }, testing_1.handleAnyError)];
             case 5:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("$and no match (list)", function () { return sdk.api.endusers.getSome({ mdbFilter: { $and: [{ fname: 'Not Test' }, { lname: 'Testson' }] } }); }, { onResult: function (e) { return e.length === 0; } })];
@@ -12744,7 +12586,7 @@ var calendar_event_care_team_tests = function () { return __awaiter(void 0, void
                     })];
             case 3:
                 ev2 = _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("User assigned on event create", function () { return pollForResults(function () { return sdk.api.endusers.getOne(e.id); }, function (e) { var _a; return !!((_a = e.assignedTo) === null || _a === void 0 ? void 0 : _a.includes(userId)); }, 50, 10); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("User assigned on event create", function () { return pollForResults(function () { return sdk.api.endusers.getOne(e.id); }, function (e) { var _a; return !!((_a = e.assignedTo) === null || _a === void 0 ? void 0 : _a.includes(userId)); }, 50, 10); }, testing_1.passOnAnyResult)];
             case 4:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.endusers.updateOne(e.id, { assignedTo: [] }, { replaceObjectFields: true })];
@@ -12753,7 +12595,7 @@ var calendar_event_care_team_tests = function () { return __awaiter(void 0, void
                 return [4 /*yield*/, sdk.api.calendar_events.updateOne(ev2.id, { attendees: [{ type: 'user', id: userId }] })];
             case 6:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("User assigned on add to event", function () { return pollForResults(function () { return sdk.api.endusers.getOne(e.id); }, function (e) { var _a; return !!((_a = e.assignedTo) === null || _a === void 0 ? void 0 : _a.includes(userId)); }, 50, 10); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("User assigned on add to event", function () { return pollForResults(function () { return sdk.api.endusers.getOne(e.id); }, function (e) { var _a; return !!((_a = e.assignedTo) === null || _a === void 0 ? void 0 : _a.includes(userId)); }, 50, 10); }, testing_1.passOnAnyResult)];
             case 7:
                 _a.sent();
                 return [4 /*yield*/, sdk.api.endusers.updateOne(e.id, { assignedTo: [] }, { replaceObjectFields: true })];
@@ -12762,7 +12604,7 @@ var calendar_event_care_team_tests = function () { return __awaiter(void 0, void
                 return [4 /*yield*/, sdk.api.calendar_events.updateOne(ev2.id, { title: "Updated title" })];
             case 9:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("User not assinged on non-attendee event change", function () { return pollForResults(function () { return sdk.api.endusers.getOne(e.id); }, function (e) { var _a; return !((_a = e.assignedTo) === null || _a === void 0 ? void 0 : _a.includes(userId)); }, 1000, 1); }, passOnAnyResult)];
+                return [4 /*yield*/, (0, testing_1.async_test)("User not assinged on non-attendee event change", function () { return pollForResults(function () { return sdk.api.endusers.getOne(e.id); }, function (e) { var _a; return !((_a = e.assignedTo) === null || _a === void 0 ? void 0 : _a.includes(userId)); }, 1000, 1); }, testing_1.passOnAnyResult)];
             case 10:
                 _a.sent();
                 return [2 /*return*/, Promise.all([
@@ -12868,7 +12710,7 @@ var fromEmailOverride_tests = function () { return __awaiter(void 0, void 0, voi
                         subject: 'test',
                         enduserId: enduser.id,
                         textContent: '',
-                    }); }, passOnAnyResult)];
+                    }); }, testing_1.passOnAnyResult)];
             case 2:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("fromEmailOverride missing bulk", function () { return sdk.api.emails.createSome([{
@@ -12876,7 +12718,7 @@ var fromEmailOverride_tests = function () { return __awaiter(void 0, void 0, voi
                             subject: 'test',
                             enduserId: enduser.id,
                             textContent: '',
-                        }]); }, passOnAnyResult)];
+                        }]); }, testing_1.passOnAnyResult)];
             case 3:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("fromEmailOverride My Email", function () { return sdk.api.emails.createOne({
@@ -12885,7 +12727,7 @@ var fromEmailOverride_tests = function () { return __awaiter(void 0, void 0, voi
                         enduserId: enduser.id,
                         textContent: '',
                         fromEmailOverride: "My Email"
-                    }); }, passOnAnyResult)];
+                    }); }, testing_1.passOnAnyResult)];
             case 4:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("fromEmailOverride My Email (bulk)", function () { return sdk.api.emails.createSome([{
@@ -12894,7 +12736,7 @@ var fromEmailOverride_tests = function () { return __awaiter(void 0, void 0, voi
                             enduserId: enduser.id,
                             textContent: '',
                             fromEmailOverride: "My Email"
-                        }]); }, passOnAnyResult)];
+                        }]); }, testing_1.passOnAnyResult)];
             case 5:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("fromEmailOverride test@", function () { return sdk.api.emails.createOne({
@@ -12903,7 +12745,7 @@ var fromEmailOverride_tests = function () { return __awaiter(void 0, void 0, voi
                         enduserId: enduser.id,
                         textContent: '',
                         fromEmailOverride: "test@tellescope.com"
-                    }); }, passOnAnyResult)];
+                    }); }, testing_1.passOnAnyResult)];
             case 6:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("fromEmailOverride test@ bulk", function () { return sdk.api.emails.createSome([{
@@ -12912,7 +12754,7 @@ var fromEmailOverride_tests = function () { return __awaiter(void 0, void 0, voi
                             enduserId: enduser.id,
                             textContent: '',
                             fromEmailOverride: "test@tellescope.com"
-                        }]); }, passOnAnyResult)];
+                        }]); }, testing_1.passOnAnyResult)];
             case 7:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("fromEmailOverride fail@", function () { return sdk.api.emails.createOne({
@@ -12921,7 +12763,7 @@ var fromEmailOverride_tests = function () { return __awaiter(void 0, void 0, voi
                         enduserId: enduser.id,
                         textContent: '',
                         fromEmailOverride: "fail@tellescope.com"
-                    }); }, handleAnyError)];
+                    }); }, testing_1.handleAnyError)];
             case 8:
                 _a.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)("fromEmailOverride fail@ bulk", function () { return sdk.api.emails.createSome([{
@@ -12930,7 +12772,7 @@ var fromEmailOverride_tests = function () { return __awaiter(void 0, void 0, voi
                             enduserId: enduser.id,
                             textContent: '',
                             fromEmailOverride: "fail@tellescope.com"
-                        }]); }, handleAnyError)];
+                        }]); }, testing_1.handleAnyError)];
             case 9:
                 _a.sent();
                 return [4 /*yield*/, Promise.all([
@@ -13631,7 +13473,7 @@ var inbox_threads_building_tests = function () { return __awaiter(void 0, void 0
     });
 }); };
 var inbox_threads_loading_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var e1, e2, defaultThreadFields, threads, email, sms, phone, chat, groupMMS, roleTestUserEmail, roleTestUser, _a, defaultAccessRole, sdkDefaultAccess, _b, noAccessRole, sdkNoAccess, _c;
+    var e1, e2, defaultThreadFields, threads, email, sms, phone, chat, groupMMS, roleTestUserEmail, roleTestUser, _a, defaultAccessRole, sdkDefaultAccess, _b, noAccessRole, sdkNoAccess, _c, phoneThread2;
     var _d, _f;
     return __generator(this, function (_g) {
         switch (_g.label) {
@@ -13840,889 +13682,63 @@ var inbox_threads_loading_tests = function () { return __awaiter(void 0, void 0,
                 return [4 /*yield*/, (0, testing_1.async_test)('test_authenticated (no access)', sdkNoAccess.test_authenticated, { expectedResult: 'Authenticated!' })];
             case 31:
                 _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('verify no-read on direct API call', sdkNoAccess.api.emails.getSome, handleAnyError)]; // ensures role is set up correctly
+                return [4 /*yield*/, (0, testing_1.async_test)('verify no-read on direct API call', sdkNoAccess.api.emails.getSome, testing_1.handleAnyError)]; // ensures role is set up correctly
             case 32:
                 _g.sent(); // ensures role is set up correctly
                 return [4 /*yield*/, (0, testing_1.async_test)("No access reads nothing", function () { return sdkNoAccess.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
                             var threads = _a.threads;
                             return threads.length === 0;
-                        } })];
+                        } })
+                    // Update existing threads with phone numbers for phoneNumber filtering tests
+                ];
             case 33:
                 _g.sent();
-                return [4 /*yield*/, Promise.all(__spreadArray([
+                // Update existing threads with phone numbers for phoneNumber filtering tests
+                return [4 /*yield*/, sdk.api.inbox_threads.updateOne(sms.id, { phoneNumber: '+15555555555' })];
+            case 34:
+                // Update existing threads with phone numbers for phoneNumber filtering tests
+                _g.sent();
+                return [4 /*yield*/, sdk.api.inbox_threads.updateOne(phone.id, { phoneNumber: '+15555555555' })];
+            case 35:
+                _g.sent();
+                return [4 /*yield*/, sdk.api.inbox_threads.createOne(__assign(__assign({}, defaultThreadFields), { title: 'Phone 2', type: 'Phone', threadId: '6', phoneNumber: '+15555555556' }))];
+            case 36:
+                phoneThread2 = _g.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)('admin phoneNumber filter - SMS and Phone threads only', function () { return sdk.api.inbox_threads.load_threads({ phoneNumber: '+15555555555' }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 2
+                                && threads.some(function (t) { return t.type === 'SMS'; })
+                                && threads.some(function (t) { return t.type === 'Phone'; })
+                                && threads.every(function (t) { return t.type === 'SMS' || t.type === 'Phone'; });
+                        }
+                    })];
+            case 37:
+                _g.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)('admin phoneNumber filter - different phone number', function () { return sdk.api.inbox_threads.load_threads({ phoneNumber: '+15555555556' }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 1
+                                && threads[0].type === 'Phone'
+                                && threads[0].phoneNumber === '+15555555556';
+                        }
+                    })];
+            case 38:
+                _g.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)('admin phoneNumber filter - non-existent phone number', function () { return sdk.api.inbox_threads.load_threads({ phoneNumber: '+15555555999' }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 0;
+                        } })];
+            case 39:
+                _g.sent();
+                return [4 /*yield*/, Promise.all(__spreadArray(__spreadArray([
                         sdk.api.endusers.deleteOne(e1.id),
                         sdk.api.endusers.deleteOne(e2.id),
                         sdk.api.users.deleteOne(roleTestUser.id),
                         sdk.api.role_based_access_permissions.deleteOne(defaultAccessRole.id),
                         sdk.api.role_based_access_permissions.deleteOne(noAccessRole.id)
-                    ], threads.map(function (t) { return sdk.api.inbox_threads.deleteOne(t.id); }), true))];
-            case 34:
-                _g.sent();
-                return [2 /*return*/];
-        }
-    });
-}); };
-// deprecated endpoint in favor of inbox threads
-var inbox_loading_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var e, e2, email, sms, groupMMS, call, thread, comment, room, updatedRoom, noAccessRole, roleTestUserEmail, roleTestUser, _a, sdkNoAccess, _b, defaultAccessRole, sdkDefaultAccess, _c;
-    var _d, _f;
-    return __generator(this, function (_g) {
-        switch (_g.label) {
-            case 0:
-                (0, testing_1.log_header)("Inbox Loading Tests (deprecated bulk endpoint)");
-                return [4 /*yield*/, sdk.api.endusers.createOne({ fname: 'Test', lname: 'Testson' })];
-            case 1:
-                e = _g.sent();
-                return [4 /*yield*/, sdk.api.endusers.createOne({ fname: 'Test2', lname: 'Testson2' })];
-            case 2:
-                e2 = _g.sent();
-                return [4 /*yield*/, sdk.api.emails.createOne({
-                        logOnly: true,
-                        subject: 'Test Email',
-                        enduserId: e.id,
-                        textContent: 'This is a test email',
-                        inbound: true,
-                        userId: sdk.userInfo.id,
-                    })];
-            case 3:
-                email = _g.sent();
-                return [4 /*yield*/, sdk.api.sms_messages.createOne({
-                        logOnly: true,
-                        inbound: true,
-                        enduserId: e.id,
-                        message: 'This is a test SMS',
-                        userId: sdk.userInfo.id,
-                    })];
-            case 4:
-                sms = _g.sent();
-                return [4 /*yield*/, sdk.api.group_mms_conversations.createOne({
-                        enduserIds: [e.id],
-                        userIds: [sdk.userInfo.id],
-                        userStates: [],
-                    })];
-            case 5:
-                groupMMS = _g.sent();
-                return [4 /*yield*/, sdk.api.phone_calls.createOne({ enduserId: e.id, inbound: true, userId: sdk.userInfo.id })];
-            case 6:
-                call = _g.sent();
-                return [4 /*yield*/, sdk.api.ticket_threads.createOne({ enduserId: e.id, subject: 'test thread' })];
-            case 7:
-                thread = _g.sent();
-                return [4 /*yield*/, sdk.api.ticket_thread_comments.createOne({
-                        enduserId: e.id,
-                        html: '',
-                        inbound: true,
-                        plaintext: '',
-                        public: false,
-                        ticketThreadId: thread.id,
-                        userId: sdk.userInfo.id,
-                    })];
-            case 8:
-                comment = _g.sent();
-                return [4 /*yield*/, sdk.api.chat_rooms.createOne({ enduserIds: [e.id], userIds: [], title: 'Test Chat Room' })];
-            case 9:
-                room = _g.sent();
-                return [4 /*yield*/, sdk.api.chats.createOne({ roomId: room.id, message: 'test', enduserId: e.id, senderId: e.id })];
-            case 10:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow for recentEnduserTimestamp to be set to indicate inbound chat in chat room
-            case 11:
-                _g.sent(); // allow for recentEnduserTimestamp to be set to indicate inbound chat in chat room
-                return [4 /*yield*/, sdk.api.chat_rooms.getOne(room.id)];
-            case 12:
-                updatedRoom = _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Inbox loads messages", function () { return sdk.api.endusers.load_inbox_data({}); }, { onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); } })];
-            case 13:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Inbox loads messages (lastIds)", function () { return sdk.api.endusers.load_inbox_data({
-                        lastChatRoomId: room.id,
-                        lastEmailId: email.id,
-                        lastSMSId: sms.id,
-                        lastGroupMMSId: groupMMS.id,
-                        lastPhoneCallId: call.id,
-                        lastTicketThreadCommentId: comment.id,
-                    }); }, { onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); } })];
-            case 14:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Inbox loads messages (blank lastIds)", function () { return sdk.api.endusers.load_inbox_data({
-                        lastChatRoomId: '',
-                        lastEmailId: '',
-                        lastSMSId: '',
-                        lastGroupMMSId: '',
-                        lastPhoneCallId: '',
-                        lastTicketThreadCommentId: '',
-                    }); }, { onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); } })];
-            case 15:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Inbox loads messages (lastUpdatedAt 0 date)", function () { return sdk.api.endusers.load_inbox_data({
-                        lastChatRoomUpdatedAt: new Date(0),
-                        lastGroupMMSUpdatedAt: new Date(0),
-                    }); }, { onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); } })];
-            case 16:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Inbox loads messages (lastUpdatedAt current date)", function () { return sdk.api.endusers.load_inbox_data({
-                        lastChatRoomUpdatedAt: new Date(),
-                        lastGroupMMSUpdatedAt: new Date(),
-                    }); }, { onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); } })
-                    // backend uses $lte instead of $lt in case of different convos that have the same id
-                ];
-            case 17:
-                _g.sent();
-                // backend uses $lte instead of $lt in case of different convos that have the same id
-                return [4 /*yield*/, (0, testing_1.async_test)("Inbox loads messages (lastUpdatedAt initial date)", function () { return sdk.api.endusers.load_inbox_data({
-                        lastChatRoomUpdatedAt: new Date(new Date(room.updatedAt).getTime() - 1),
-                        lastGroupMMSUpdatedAt: new Date(new Date(groupMMS.updatedAt).getTime() - 1),
-                    }); }, { onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); } })
-                    // providing id but using same timestamp filters out the thread itself
-                ];
-            case 18:
-                // backend uses $lte instead of $lt in case of different convos that have the same id
-                _g.sent();
-                // providing id but using same timestamp filters out the thread itself
-                return [4 /*yield*/, (0, testing_1.async_test)("Inbox loads messages (lastUpdatedAt initial date and ids provided)", function () { return sdk.api.endusers.load_inbox_data({
-                        lastChatRoomId: room.id,
-                        lastGroupMMSId: groupMMS.id,
-                        lastChatRoomUpdatedAt: new Date(new Date(room.updatedAt).getTime()),
-                        lastGroupMMSUpdatedAt: new Date(new Date(groupMMS.updatedAt).getTime()),
-                    }); }, { onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); } })];
-            case 19:
-                // providing id but using same timestamp filters out the thread itself
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Inbox loads messages with used enduserId", function () { return sdk.api.endusers.load_inbox_data({ enduserIds: [e.id] }); }, { onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); } })];
-            case 20:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Inbox loads messages with unused enduserId", function () { return sdk.api.endusers.load_inbox_data({ enduserIds: [e2.id] }); }, { onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); } })];
-            case 21:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Inbox loads no messages (filter by self when no threads are assigned)", function () { return sdk.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }); }, { onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); } })];
-            case 22:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Inbox loads no messages (filter by other when no threads are assigned)", function () { return sdk.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }); }, { onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); } })];
-            case 23:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('Non-admin cannot load inbox data without assignment', function () { return sdkNonAdmin.api.endusers.load_inbox_data({}); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 24:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('Non-admin cannot load inbox data without assignment with used enduserId', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ enduserIds: [e.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 25:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('Non-admin cannot load inbox data without assignment with unused enduserId', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ enduserIds: [e2.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 26:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('Non-admin cannot load inbox data without assignment (self as filter)', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 27:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('Non-admin cannot load inbox data without assignment (other user as filter)', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })
-                    // assign to Enduser
-                ];
-            case 28:
-                _g.sent();
-                // assign to Enduser
-                return [4 /*yield*/, sdk.api.endusers.updateOne(e.id, { assignedTo: [sdkNonAdmin.userInfo.id] }, { replaceObjectFields: true })];
-            case 29:
-                // assign to Enduser
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('Non-admin can load inbox data with assignment', function () { return sdkNonAdmin.api.endusers.load_inbox_data({}); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 30:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('Non-admin can load inbox data with assignment and used enduser filter', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ enduserIds: [e.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 31:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('Non-admin cant load inbox data with assignment and uused enduser filter', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ enduserIds: [e2.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 32:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('Non-admin can load inbox data with assignment (self as filter)', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 33:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('Non-admin can load inbox data with assignment (other user as filter, not assigned)', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 34:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.endusers.updateOne(e.id, { assignedTo: [sdk.userInfo.id] }, {})]; // add other assignment
-            case 35:
-                _g.sent(); // add other assignment
-                return [4 /*yield*/, (0, testing_1.async_test)('Non-admin can load inbox data with assignment (other user as filter, assigned)', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })
-                    // assign admin to all threads
-                ];
-            case 36:
-                _g.sent();
-                // assign admin to all threads
-                return [4 /*yield*/, sdk.api.emails.updateOne(email.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })];
-            case 37:
-                // assign admin to all threads
-                _g.sent();
-                return [4 /*yield*/, sdk.api.sms_messages.updateOne(sms.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })];
-            case 38:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.group_mms_conversations.updateOne(groupMMS.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })];
-            case 39:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.phone_calls.updateOne(call.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })];
+                    ], threads.map(function (t) { return sdk.api.inbox_threads.deleteOne(t.id); }), true), [
+                        sdk.api.inbox_threads.deleteOne(phoneThread2.id),
+                    ], false))];
             case 40:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.ticket_threads.updateOne(thread.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })];
-            case 41:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.ticket_thread_comments.updateOne(comment.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })];
-            case 42:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.chat_rooms.updateOne(room.id, { userIds: [sdk.userInfo.id] }, { replaceObjectFields: true })];
-            case 43:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('admin doesnt load inbox data with assignedTo as other filter', function () { return sdk.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 44:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('admin loads inbox data for other user as filter assignedTo', function () { return sdk.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 45:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('admin loads inbox data with no user', function () { return sdk.api.endusers.load_inbox_data({}); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 46:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('admin loads inbox data with used enduser', function () { return sdk.api.endusers.load_inbox_data({ enduserIds: [e.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 47:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('admin loads inbox data with unused enduser', function () { return sdk.api.endusers.load_inbox_data({ enduserIds: [e2.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 48:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('Non-admin cant load inbox data with assignedTo as other (self as filter)', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 49:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('Non-admin can load inbox data for other user as filter, assignedTo', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 50:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('Non-admin can load inbox data with no user', function () { return sdkNonAdmin.api.endusers.load_inbox_data({}); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })
-                    // assign other user to all threads
-                ];
-            case 51:
-                _g.sent();
-                // assign other user to all threads
-                return [4 /*yield*/, sdk.api.emails.updateOne(email.id, { assignedTo: [sdkNonAdmin.userInfo.id] })];
-            case 52:
-                // assign other user to all threads
-                _g.sent();
-                return [4 /*yield*/, sdk.api.sms_messages.updateOne(sms.id, { assignedTo: [sdkNonAdmin.userInfo.id] })];
-            case 53:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.group_mms_conversations.updateOne(groupMMS.id, { assignedTo: [sdkNonAdmin.userInfo.id] })];
-            case 54:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.phone_calls.updateOne(call.id, { assignedTo: [sdkNonAdmin.userInfo.id] })];
-            case 55:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.ticket_threads.updateOne(thread.id, { assignedTo: [sdkNonAdmin.userInfo.id] })];
-            case 56:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.ticket_thread_comments.updateOne(comment.id, { assignedTo: [sdkNonAdmin.userInfo.id] })];
-            case 57:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.chat_rooms.updateOne(room.id, { assignedTo: [sdkNonAdmin.userInfo.id] })];
-            case 58:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('[both assigned] admin does load inbox data with assignedTo as other filter', function () { return sdk.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 59:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('[both assigned] admin loads inbox data for other user as filter assignedTo', function () { return sdk.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 60:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('[both assigned] admin loads inbox data with no user', function () { return sdk.api.endusers.load_inbox_data({}); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 61:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('[both assigned] admin loads inbox data with used enduser', function () { return sdk.api.endusers.load_inbox_data({ enduserIds: [e.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 62:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('[both assigned] admin loads inbox data with unused enduser', function () { return sdk.api.endusers.load_inbox_data({ enduserIds: [e2.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 63:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('[both assigned] Non-admin can load inbox data with assignedTo as other (self as filter)', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 64:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('[both assigned] Non-admin can load inbox data for other user as filter, assignedTo', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 65:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('[both assigned] Non-admin can load inbox data with no user', function () { return sdkNonAdmin.api.endusers.load_inbox_data({}); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 66:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('[both assigned] Non-admin can load inbox data with used enduser', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ enduserIds: [e.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 67:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('[both assigned] Non-admin cant load inbox data with unused enduser', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ enduserIds: [e2.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 68:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.role_based_access_permissions.createOne({
-                        role: 'No Access',
-                        permissions: {
-                            emails: { read: null, create: null, update: null, delete: null },
-                            sms_messages: { read: null, create: null, update: null, delete: null },
-                            group_mms_conversations: { read: null, create: null, update: null, delete: null },
-                            phone_calls: { read: null, create: null, update: null, delete: null },
-                            ticket_threads: { read: null, create: null, update: null, delete: null },
-                            ticket_thread_comments: { read: null, create: null, update: null, delete: null },
-                            chat_rooms: { read: null, create: null, update: null, delete: null },
-                            // read must be default for endpoint to return non 403
-                            endusers: { read: 'Default', create: null, update: null, delete: null },
-                        },
-                    })];
-            case 69:
-                noAccessRole = _g.sent();
-                roleTestUserEmail = 'inbox.role.test@tellescope.com';
-                return [4 /*yield*/, sdk.api.users.getOne({ email: roleTestUserEmail }).catch(function () { return null; })]; // throws error on none found
-            case 70:
-                _a = (_g.sent() // throws error on none found
-                );
-                if (_a) return [3 /*break*/, 72];
-                return [4 /*yield*/, sdk.api.users.createOne({ email: roleTestUserEmail })];
-            case 71:
-                _a = (_g.sent());
-                _g.label = 72;
-            case 72:
-                roleTestUser = _a;
-                // ensure role is set, in case GET returned a user without a role or with a different role
-                return [4 /*yield*/, sdk.api.users.updateOne(roleTestUser.id, { roles: [noAccessRole.role] }, { replaceObjectFields: true })
-                    // add to care team to ensure this doesn't grant unexpected access
-                ];
-            case 73:
-                // ensure role is set, in case GET returned a user without a role or with a different role
-                _g.sent();
-                // add to care team to ensure this doesn't grant unexpected access
-                return [4 /*yield*/, sdk.api.endusers.updateOne(e.id, { assignedTo: [roleTestUser.id] })];
-            case 74:
-                // add to care team to ensure this doesn't grant unexpected access
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.wait)(undefined, 2000)]; // role change triggers a logout
-            case 75:
-                _g.sent(); // role change triggers a logout
-                _b = sdk_1.Session.bind;
-                _d = {
-                    host: host
-                };
-                return [4 /*yield*/, sdk.api.users.generate_auth_token({ id: roleTestUser.id })];
-            case 76:
-                sdkNoAccess = new (_b.apply(sdk_1.Session, [void 0, (_d.authToken = (_g.sent()).authToken,
-                        _d)]))();
-                return [4 /*yield*/, (0, testing_1.async_test)('test_authenticated (no access)', sdkNoAccess.test_authenticated, { expectedResult: 'Authenticated!' })];
-            case 77:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('verify no-read on direct API call', sdkNoAccess.api.emails.getSome, handleAnyError)]; // ensures role is set up correctly
-            case 78:
-                _g.sent(); // ensures role is set up correctly
-                return [4 /*yield*/, (0, testing_1.async_test)("No access reads nothing", function () { return sdkNoAccess.api.endusers.load_inbox_data({}); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 79:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("No access reads nothing for used enduser", function () { return sdkNoAccess.api.endusers.load_inbox_data({ enduserIds: [e.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 80:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("No access reads nothing for unused enduser", function () { return sdkNoAccess.api.endusers.load_inbox_data({ enduserIds: [e2.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 81:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("No access reads nothing (for self)", function () { return sdkNoAccess.api.endusers.load_inbox_data({ userId: roleTestUser.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 82:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("No access reads nothing (for assigned admin)", function () { return sdkNoAccess.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 83:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.role_based_access_permissions.createOne({
-                        role: 'Default Access',
-                        permissions: {
-                            emails: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
-                            sms_messages: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
-                            group_mms_conversations: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
-                            phone_calls: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
-                            ticket_threads: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
-                            ticket_thread_comments: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
-                            chat_rooms: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
-                            endusers: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
-                        },
-                    })];
-            case 84:
-                defaultAccessRole = _g.sent();
-                return [4 /*yield*/, sdk.api.users.updateOne(roleTestUser.id, { roles: [defaultAccessRole.role] }, { replaceObjectFields: true })];
-            case 85:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.wait)(undefined, 2000)]; // role change triggers a logout
-            case 86:
-                _g.sent(); // role change triggers a logout
-                _c = sdk_1.Session.bind;
-                _f = {
-                    host: host
-                };
-                return [4 /*yield*/, sdk.api.users.generate_auth_token({ id: roleTestUser.id })];
-            case 87:
-                sdkDefaultAccess = new (_c.apply(sdk_1.Session, [void 0, (_f.authToken = (_g.sent()).authToken,
-                        _f)]))();
-                return [4 /*yield*/, (0, testing_1.async_test)('test_authenticated (default access)', sdkDefaultAccess.test_authenticated, { expectedResult: 'Authenticated!' })];
-            case 88:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Default access reads nothing", function () { return sdkDefaultAccess.api.endusers.load_inbox_data({}); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 89:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Default access reads nothing for used enduser", function () { return sdkDefaultAccess.api.endusers.load_inbox_data({ enduserIds: [e.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 90:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Default access reads nothing for unused enduser", function () { return sdkDefaultAccess.api.endusers.load_inbox_data({ enduserIds: [e2.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 91:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Default access reads nothing (for self)", function () { return sdkDefaultAccess.api.endusers.load_inbox_data({ userId: roleTestUser.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 92:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Default access reads nothing (for assigned admin)", function () { return sdkDefaultAccess.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })
-                    // assign default user to the specific messages by setting userId, userIds, etc.
-                ];
-            case 93:
-                _g.sent();
-                // assign default user to the specific messages by setting userId, userIds, etc.
-                return [4 /*yield*/, sdk.api.emails.updateOne(email.id, { assignedTo: [], userId: roleTestUser.id }, { replaceObjectFields: true })];
-            case 94:
-                // assign default user to the specific messages by setting userId, userIds, etc.
-                _g.sent();
-                return [4 /*yield*/, sdk.api.sms_messages.updateOne(sms.id, { assignedTo: [], userId: roleTestUser.id }, { replaceObjectFields: true })];
-            case 95:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.group_mms_conversations.updateOne(groupMMS.id, { assignedTo: [], userIds: [roleTestUser.id] }, { replaceObjectFields: true })];
-            case 96:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.phone_calls.updateOne(call.id, { assignedTo: [], userId: roleTestUser.id }, { replaceObjectFields: true })];
-            case 97:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.ticket_thread_comments.updateOne(comment.id, { assignedTo: [], userId: roleTestUser.id }, { replaceObjectFields: true })
-                    // need to replace assignedTo for userIds to take precedent
-                ];
-            case 98:
-                _g.sent();
-                // need to replace assignedTo for userIds to take precedent
-                return [4 /*yield*/, sdk.api.chat_rooms.updateOne(room.id, { assignedTo: [], userIds: [roleTestUser.id] }, { replaceObjectFields: true })];
-            case 99:
-                // need to replace assignedTo for userIds to take precedent
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Default access reads stuff when assigned", function () { return sdkDefaultAccess.api.endusers.load_inbox_data({}); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 100:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Default access reads stuff when assigned for used enduser", function () { return sdkDefaultAccess.api.endusers.load_inbox_data({ enduserIds: [e.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 101:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Default access reads stuff when assigned for unused enduser", function () { return sdkDefaultAccess.api.endusers.load_inbox_data({ enduserIds: [e2.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 102:
-                _g.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Default access reads stuff when assigned (for self)", function () { return sdkDefaultAccess.api.endusers.load_inbox_data({ userId: roleTestUser.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 103:
-                _g.sent();
-                return [4 /*yield*/, Promise.all([
-                        sdk.api.endusers.deleteOne(e.id),
-                        sdk.api.endusers.deleteOne(e2.id),
-                        sdk.api.chat_rooms.deleteOne(room.id),
-                        sdk.api.role_based_access_permissions.deleteOne(noAccessRole.id),
-                        sdk.api.role_based_access_permissions.deleteOne(defaultAccessRole.id),
-                        sdk.api.users.deleteOne(roleTestUser.id),
-                    ])];
-            case 104:
                 _g.sent();
                 return [2 /*return*/];
         }
@@ -14830,7 +13846,7 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                 (0, testing_1.assert)((0, utilities_1.truncate_string)(null, { length: 4, showEllipsis: false }) === '', 'truncate doesnt work for non string', 'trucate works for non-string');
                 _l.label = 2;
             case 2:
-                _l.trys.push([2, 81, , 82]);
+                _l.trys.push([2, 82, , 83]);
                 get_next_reminder_timestamp_tests();
                 (0, exports.form_conditional_logic_tests)();
                 return [4 /*yield*/, test_weighted_round_robin()];
@@ -14968,207 +13984,210 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, mfa_tests()];
             case 15:
                 _l.sent();
-                return [4 /*yield*/, setup_tests()];
+                return [4 /*yield*/, (0, setup_1.setup_tests)(sdk, sdkNonAdmin)];
             case 16:
                 _l.sent();
-                return [4 /*yield*/, inbox_threads_building_tests()];
+                return [4 /*yield*/, inbox_threads_loading_tests()];
             case 17:
                 _l.sent();
-                return [4 /*yield*/, inbox_threads_loading_tests()];
+                return [4 /*yield*/, (0, load_inbox_data_test_1.load_inbox_data_tests)({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 18:
                 _l.sent();
-                return [4 /*yield*/, group_mms_active_tests()];
+                return [4 /*yield*/, (0, enduser_observations_acknowledge_test_1.enduser_observations_acknowledge_tests)({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 19:
                 _l.sent();
-                return [4 /*yield*/, inbox_loading_tests()];
+                return [4 /*yield*/, inbox_threads_building_tests()];
             case 20:
                 _l.sent();
-                return [4 /*yield*/, auto_reply_tests()];
+                return [4 /*yield*/, group_mms_active_tests()];
             case 21:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.relationships_tests)()];
+                return [4 /*yield*/, auto_reply_tests()];
             case 22:
                 _l.sent();
-                return [4 /*yield*/, rate_limit_tests()];
+                return [4 /*yield*/, (0, exports.relationships_tests)()];
             case 23:
                 _l.sent();
-                return [4 /*yield*/, ip_address_form_tests()];
+                return [4 /*yield*/, rate_limit_tests()];
             case 24:
                 _l.sent();
-                return [4 /*yield*/, bulk_update_tests()];
+                return [4 /*yield*/, ip_address_form_tests()];
             case 25:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.formsort_tests)()];
+                return [4 /*yield*/, bulk_update_tests()];
             case 26:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.cancel_upcoming_appointments_journey_action_test)()];
+                return [4 /*yield*/, (0, exports.formsort_tests)()];
             case 27:
                 _l.sent();
-                return [4 /*yield*/, multi_tenant_tests()]; // should come right after setup tests
+                return [4 /*yield*/, (0, exports.cancel_upcoming_appointments_journey_action_test)()];
             case 28:
+                _l.sent();
+                return [4 /*yield*/, multi_tenant_tests()]; // should come right after setup tests
+            case 29:
                 _l.sent(); // should come right after setup tests
                 return [4 /*yield*/, sync_tests_with_access_tags()]; // should come directly after setup to avoid extra sync values
-            case 29:
-                _l.sent(); // should come directly after setup to avoid extra sync values
-                return [4 /*yield*/, sync_tests()]; // should come directly after setup to avoid extra sync values
             case 30:
                 _l.sent(); // should come directly after setup to avoid extra sync values
-                return [4 /*yield*/, get_templated_message_tests()];
+                return [4 /*yield*/, sync_tests()]; // should come directly after setup to avoid extra sync values
             case 31:
-                _l.sent();
-                return [4 /*yield*/, updatedAt_tests()];
+                _l.sent(); // should come directly after setup to avoid extra sync values
+                return [4 /*yield*/, get_templated_message_tests()];
             case 32:
                 _l.sent();
-                return [4 /*yield*/, automation_trigger_tests()];
+                return [4 /*yield*/, updatedAt_tests()];
             case 33:
                 _l.sent();
-                return [4 /*yield*/, file_source_tests()];
+                return [4 /*yield*/, automation_trigger_tests()];
             case 34:
                 _l.sent();
-                return [4 /*yield*/, enduser_access_tags_tests()];
+                return [4 /*yield*/, file_source_tests()];
             case 35:
                 _l.sent();
-                return [4 /*yield*/, enduserAccessTests()];
+                return [4 /*yield*/, enduser_access_tags_tests()];
             case 36:
                 _l.sent();
-                return [4 /*yield*/, test_form_response_search()];
+                return [4 /*yield*/, enduserAccessTests()];
             case 37:
                 _l.sent();
-                return [4 /*yield*/, date_parsing_tests()];
+                return [4 /*yield*/, test_form_response_search()];
             case 38:
                 _l.sent();
-                return [4 /*yield*/, fromEmailOverride_tests()];
+                return [4 /*yield*/, date_parsing_tests()];
             case 39:
                 _l.sent();
-                return [4 /*yield*/, ticket_tests()];
+                return [4 /*yield*/, fromEmailOverride_tests()];
             case 40:
                 _l.sent();
-                return [4 /*yield*/, uniqueness_tests()];
+                return [4 /*yield*/, ticket_tests()];
             case 41:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.enduser_orders_tests)()];
+                return [4 /*yield*/, uniqueness_tests()];
             case 42:
                 _l.sent();
-                return [4 /*yield*/, calendar_event_care_team_tests()];
+                return [4 /*yield*/, (0, exports.enduser_orders_tests)()];
             case 43:
                 _l.sent();
-                return [4 /*yield*/, merge_enduser_tests()];
+                return [4 /*yield*/, calendar_event_care_team_tests()];
             case 44:
                 _l.sent();
-                return [4 /*yield*/, input_modifier_tests()];
+                return [4 /*yield*/, merge_enduser_tests()];
             case 45:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.switch_to_related_contacts_tests)()];
+                return [4 /*yield*/, input_modifier_tests()];
             case 46:
                 _l.sent();
-                return [4 /*yield*/, redaction_tests()];
+                return [4 /*yield*/, (0, exports.switch_to_related_contacts_tests)()];
             case 47:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.self_serve_appointment_booking_tests)()];
+                return [4 /*yield*/, redaction_tests()];
             case 48:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.no_chained_triggers_tests)()];
+                return [4 /*yield*/, (0, exports.self_serve_appointment_booking_tests)()];
             case 49:
                 _l.sent();
-                return [4 /*yield*/, mdb_filter_tests()];
+                return [4 /*yield*/, (0, exports.no_chained_triggers_tests)()];
             case 50:
                 _l.sent();
-                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
+                return [4 /*yield*/, mdb_filter_tests()];
             case 51:
                 _l.sent();
-                return [4 /*yield*/, superadmin_tests()];
+                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
             case 52:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.ticket_queue_tests)()];
+                return [4 /*yield*/, superadmin_tests()];
             case 53:
                 _l.sent();
-                return [4 /*yield*/, vital_trigger_tests()];
+                return [4 /*yield*/, (0, exports.ticket_queue_tests)()];
             case 54:
                 _l.sent();
-                return [4 /*yield*/, close_reasons_no_duplicates_tests()];
+                return [4 /*yield*/, vital_trigger_tests()];
             case 55:
                 _l.sent();
-                return [4 /*yield*/, register_as_enduser_tests()];
+                return [4 /*yield*/, close_reasons_no_duplicates_tests()];
             case 56:
                 _l.sent();
-                return [4 /*yield*/, lockout_tests()];
+                return [4 /*yield*/, register_as_enduser_tests()];
             case 57:
+                _l.sent();
+                return [4 /*yield*/, lockout_tests()];
+            case 58:
                 _l.sent();
                 return [4 /*yield*/, delete_user_tests()
                     // await test_send_with_template()
                 ];
-            case 58:
+            case 59:
                 _l.sent();
                 // await test_send_with_template()
                 return [4 /*yield*/, bulk_read_tests()];
-            case 59:
+            case 60:
                 // await test_send_with_template()
                 _l.sent();
                 return [4 /*yield*/, (0, exports.ticket_reminder_tests)()];
-            case 60:
-                _l.sent();
-                return [4 /*yield*/, marketing_email_unsubscribe_tests()];
             case 61:
                 _l.sent();
-                return [4 /*yield*/, unique_strings_tests()];
+                return [4 /*yield*/, marketing_email_unsubscribe_tests()];
             case 62:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.alternate_phones_tests)()];
+                return [4 /*yield*/, unique_strings_tests()];
             case 63:
                 _l.sent();
-                return [4 /*yield*/, role_based_access_tests()];
+                return [4 /*yield*/, (0, exports.alternate_phones_tests)()];
             case 64:
                 _l.sent();
-                return [4 /*yield*/, enduser_session_tests()];
+                return [4 /*yield*/, role_based_access_tests()];
             case 65:
                 _l.sent();
-                return [4 /*yield*/, nextReminderInMS_tests()];
+                return [4 /*yield*/, enduser_session_tests()];
             case 66:
                 _l.sent();
-                return [4 /*yield*/, search_tests()];
+                return [4 /*yield*/, nextReminderInMS_tests()];
             case 67:
                 _l.sent();
-                return [4 /*yield*/, wait_for_trigger_tests()];
+                return [4 /*yield*/, search_tests()];
             case 68:
                 _l.sent();
-                return [4 /*yield*/, pdf_generation()];
+                return [4 /*yield*/, wait_for_trigger_tests()];
             case 69:
                 _l.sent();
-                return [4 /*yield*/, remove_from_journey_on_incoming_comms_tests().catch(console.error)]; // timing is unreliable, uncomment if changing logic
+                return [4 /*yield*/, pdf_generation()];
             case 70:
+                _l.sent();
+                return [4 /*yield*/, remove_from_journey_on_incoming_comms_tests().catch(console.error)]; // timing is unreliable, uncomment if changing logic
+            case 71:
                 _l.sent(); // timing is unreliable, uncomment if changing logic
                 return [4 /*yield*/, sub_organization_enduser_tests()];
-            case 71:
-                _l.sent();
-                return [4 /*yield*/, sub_organization_tests()];
             case 72:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.filter_by_date_tests)()];
+                return [4 /*yield*/, sub_organization_tests()];
             case 73:
                 _l.sent();
-                return [4 /*yield*/, generate_user_auth_tests()];
+                return [4 /*yield*/, (0, exports.filter_by_date_tests)()];
             case 74:
                 _l.sent();
-                return [4 /*yield*/, generateEnduserAuthTests()];
+                return [4 /*yield*/, generate_user_auth_tests()];
             case 75:
                 _l.sent();
-                return [4 /*yield*/, public_form_tests()];
+                return [4 /*yield*/, generateEnduserAuthTests()];
             case 76:
                 _l.sent();
-                return [4 /*yield*/, badInputTests()];
+                return [4 /*yield*/, public_form_tests()];
             case 77:
                 _l.sent();
-                return [4 /*yield*/, filterTests()];
+                return [4 /*yield*/, badInputTests()];
             case 78:
                 _l.sent();
-                return [4 /*yield*/, updatesTests()];
+                return [4 /*yield*/, filterTests()];
             case 79:
                 _l.sent();
-                return [4 /*yield*/, threadKeyTests()];
+                return [4 /*yield*/, updatesTests()];
             case 80:
                 _l.sent();
-                return [3 /*break*/, 82];
+                return [4 /*yield*/, threadKeyTests()];
             case 81:
+                _l.sent();
+                return [3 /*break*/, 83];
+            case 82:
                 err_1 = _l.sent();
                 console.error("Failed during custom test");
                 if (err_1.message && err_1.info) {
@@ -15178,18 +14197,18 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                     console.error(err_1);
                 }
                 process.exit(1);
-                return [3 /*break*/, 82];
-            case 82:
+                return [3 /*break*/, 83];
+            case 83:
                 _a = schema_1.schema;
                 _b = [];
                 for (_c in _a)
                     _b.push(_c);
                 _i = 0;
-                _l.label = 83;
-            case 83:
-                if (!(_i < _b.length)) return [3 /*break*/, 86];
+                _l.label = 84;
+            case 84:
+                if (!(_i < _b.length)) return [3 /*break*/, 87];
                 _c = _b[_i];
-                if (!(_c in _a)) return [3 /*break*/, 85];
+                if (!(_c in _a)) return [3 /*break*/, 86];
                 n = _c;
                 returnValidation = (_k = (_j = schema_1.schema[n].customActions) === null || _j === void 0 ? void 0 : _j.create) === null || _k === void 0 ? void 0 : _k.returns;
                 return [4 /*yield*/, run_generated_tests({
@@ -15200,41 +14219,41 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                             create: returnValidation // ModelFields<ClientModel>,
                         }
                     })];
-            case 84:
-                _l.sent();
-                _l.label = 85;
             case 85:
-                _i++;
-                return [3 /*break*/, 83];
+                _l.sent();
+                _l.label = 86;
             case 86:
+                _i++;
+                return [3 /*break*/, 84];
+            case 87:
                 _d = tests;
                 _f = [];
                 for (_g in _d)
                     _f.push(_g);
                 _h = 0;
-                _l.label = 87;
-            case 87:
-                if (!(_h < _f.length)) return [3 /*break*/, 92];
-                _g = _f[_h];
-                if (!(_g in _d)) return [3 /*break*/, 91];
-                t = _g;
                 _l.label = 88;
             case 88:
-                _l.trys.push([88, 90, , 91]);
-                return [4 /*yield*/, tests[t]()];
+                if (!(_h < _f.length)) return [3 /*break*/, 93];
+                _g = _f[_h];
+                if (!(_g in _d)) return [3 /*break*/, 92];
+                t = _g;
+                _l.label = 89;
             case 89:
-                _l.sent();
-                return [3 /*break*/, 91];
+                _l.trys.push([89, 91, , 92]);
+                return [4 /*yield*/, tests[t]()];
             case 90:
+                _l.sent();
+                return [3 /*break*/, 92];
+            case 91:
                 err_2 = _l.sent();
                 console.error("Error running test:");
                 console.error(err_2);
                 process.exit(1);
-                return [3 /*break*/, 91];
-            case 91:
-                _h++;
-                return [3 /*break*/, 87];
+                return [3 /*break*/, 92];
             case 92:
+                _h++;
+                return [3 /*break*/, 88];
+            case 93:
                 process.exit();
                 return [2 /*return*/];
         }

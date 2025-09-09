@@ -49,11 +49,18 @@ import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import React, { useEffect, useState } from "react";
 import { AsyncIconButton, Flex, SendIcon, useChats, } from "@tellescope/react-components";
 import { remove_script_tags } from "@tellescope/utilities";
+var stripOuterParagraphTags = function (html) {
+    var result = html.trim();
+    while (result.startsWith('<p>') && result.endsWith('</p>')) {
+        result = result.slice(3, -4).trim();
+    }
+    return result;
+};
 import { TextField } from "@mui/material";
 export var HTMLMessage = function (_a) {
     var html = _a.html;
     return (_jsx("div", { style: { padding: 2 }, dangerouslySetInnerHTML: {
-            __html: remove_script_tags(html.replace(/<a/g, '<a style="color: white;"')),
+            __html: remove_script_tags(stripOuterParagraphTags(html).replace(/<a/g, '<a style="color: white;"')),
         } }));
 };
 export var SendMessage = function (_a) {

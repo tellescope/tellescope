@@ -617,6 +617,7 @@ export var schema = build_schema({
                     lastTicketThreadCommentId: { validator: mongoIdStringValidator },
                     lastChatRoomUpdatedAt: { validator: dateValidatorOptional },
                     lastGroupMMSUpdatedAt: { validator: dateValidatorOptional },
+                    phoneNumber: { validator: phoneValidatorOptional },
                 },
                 returns: {
                     emails: { validator: 'emails', required: true },
@@ -1734,7 +1735,7 @@ export var schema = build_schema({
             }, timestamp: { validator: dateValidator }, ticketIds: { validator: listOfStringsValidatorEmptyOk }, tags: { validator: listOfStringsValidatorOptionalOrEmptyOk }, enduserId: {
                 validator: mongoIdStringOptional,
                 initializer: function (_, s) { return s.type === 'enduser' ? s.id : undefined; }
-            }, mentions: { validator: listOfMongoIdStringValidatorEmptyOk }, canvasId: { validator: stringValidator100 }, quote: { validator: listValidatorOptionalOrEmptyOk(stringValidator5000OptionalEmptyOkay) }, sendAt: { validator: dateOptionalOrEmptyStringValidator }, isDraft: { validator: booleanValidator } }),
+            }, mentions: { validator: listOfMongoIdStringValidatorEmptyOk }, canvasId: { validator: stringValidator100 }, quote: { validator: listValidatorOptionalOrEmptyOk(stringValidator5000OptionalEmptyOkay) }, sendAt: { validator: dateOptionalOrEmptyStringValidator }, isDraft: { validator: booleanValidator }, source: { validator: stringValidator100 } }),
     },
     users: {
         info: {
@@ -3978,9 +3979,10 @@ export var schema = build_schema({
                 op: "custom", access: 'update', method: "post",
                 name: 'Acknowledge Observations (Vitals)',
                 path: '/enduser-observations/acknowledge',
-                description: "Bulk acknowledge (mark reviewed) EnduserObservations",
+                description: "Bulk acknowledge (mark reviewed) EnduserObservations or update exclusion flag for vital count lookback",
                 parameters: {
                     ids: { validator: listOfMongoIdStringValidator, required: true },
+                    excludeFromVitalCountLookback: { validator: booleanValidator },
                 },
                 returns: {},
             },
@@ -4578,7 +4580,7 @@ export var schema = build_schema({
                     resolutionFieldId: stringValidatorOptionalEmptyOkay,
                     resolutionFieldOptions: listOfStringsValidatorOptionalOrEmptyOk,
                 })
-            }, hasTicketQueues: { validator: booleanValidator }, customAutoreplyMessage: { validator: stringValidator1000 }, altVitalTeamIds: { validator: listValidatorEmptyOk(objectValidator({
+            }, hasTicketQueues: { validator: booleanValidator }, customAutoreplyMessage: { validator: stringValidator1000 }, customZoomEmailTemplate: { validator: stringValidator5000 }, customZoomEmailSubject: { validator: stringValidator1000 }, altVitalTeamIds: { validator: listValidatorEmptyOk(objectValidator({
                     teamId: stringValidator100,
                     label: stringValidator100,
                 })) }, billingOrganizationName: { validator: stringValidator }, billingOrganizationNPI: { validator: stringValidator }, billingOrganizationTaxId: { validator: stringValidator }, billingOrganizationAddress: { validator: addressValidator }, videoCallBackgroundImage: { validator: stringValidator }, sendToVoicemailOOO: { validator: booleanValidator }, forwardingOOONumber: { validator: phoneValidator }, onCallUserIds: { validator: listOfUniqueStringsValidatorEmptyOk }, outOfOfficeVoicemail: { validator: phonePlaybackValidator }, enduserProfileWebhooks: { validator: enduserProfileWebhooksValidator }, showCommunity: { validator: booleanValidator }, phoneLabels: {
@@ -6311,13 +6313,14 @@ export var schema = build_schema({
                     lastTimestamp: { validator: dateValidatorOptional },
                     enduserIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
                     userIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+                    phoneNumber: { validator: phoneValidatorOptional },
                 },
                 returns: {
                     threads: { validator: 'inbox_threads', required: true },
                 },
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { type: { validator: exactMatchValidator(['Chat', 'Email', 'GroupMMS', 'Phone', 'SMS']), required: true, examples: ['Email'] }, assignedTo: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] }, enduserIds: { validator: listOfMongoIdStringValidator, required: true, examples: [[PLACEHOLDER_ID]] }, userIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] }, inboxStatus: { validator: stringValidator, required: true, examples: ['In Progress'] }, preview: { validator: stringValidator25000, required: true, examples: ['Preview of the message'] }, threadId: { validator: stringValidator, required: true, examples: ['Thread ID'] }, timestamp: { validator: dateValidator, required: true, examples: [new Date().toISOString()] }, title: { validator: stringValidator, required: true, examples: ['Title or Subject Here'] }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, readBy: { validator: idStringToDateValidator }, outboundTimestamp: { validator: dateValidator }, outboundPreview: { validator: stringValidator25000 } })
+        fields: __assign(__assign({}, BuiltInFields), { type: { validator: exactMatchValidator(['Chat', 'Email', 'GroupMMS', 'Phone', 'SMS']), required: true, examples: ['Email'] }, assignedTo: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] }, enduserIds: { validator: listOfMongoIdStringValidator, required: true, examples: [[PLACEHOLDER_ID]] }, userIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] }, inboxStatus: { validator: stringValidator, required: true, examples: ['In Progress'] }, preview: { validator: stringValidator25000, required: true, examples: ['Preview of the message'] }, threadId: { validator: stringValidator, required: true, examples: ['Thread ID'] }, timestamp: { validator: dateValidator, required: true, examples: [new Date().toISOString()] }, title: { validator: stringValidator, required: true, examples: ['Title or Subject Here'] }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, readBy: { validator: idStringToDateValidator }, outboundTimestamp: { validator: dateValidator }, outboundPreview: { validator: stringValidator25000 }, phoneNumber: { validator: phoneValidator }, enduserPhoneNumber: { validator: phoneValidator } })
     }
 });
 // export type SchemaType = typeof schema

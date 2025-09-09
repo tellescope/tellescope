@@ -134,4 +134,6 @@ export var wait = function (f, ms) {
         setTimeout(function () { return f ? f.then(resolve).catch(reject) : resolve(); }, ms);
     });
 };
+export var handleAnyError = { shouldError: true, onError: function () { return true; } };
+export var passOnAnyResult = { onResult: function () { return true; } };
 //# sourceMappingURL=testing.js.map

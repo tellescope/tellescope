@@ -868,6 +868,7 @@ export type CustomActions = {
         lastChatRoomUpdatedAt?: Date,
         lastGroupMMSUpdatedAt?: Date,
         limit?: number,
+        phoneNumber?: string,
       }, {
         emails: Email[],
         sms_messages: SMSMessage[],
@@ -1098,7 +1099,7 @@ export type CustomActions = {
       careTeam?: string[],
       unreviewed?: boolean,
     }, { observations: EnduserObservationClient[] }>,
-    acknowledge: CustomAction<{ ids: string[] }, { }>,
+    acknowledge: CustomAction<{ ids: string[], excludeFromVitalCountLookback?: boolean }, { }>,
   },
   sms_messages: {
     send_message_to_number: CustomAction<{ message: string, to: string }, { enduser: Enduser }>,
@@ -1920,6 +1921,7 @@ export const schema: SchemaV1 = build_schema({
           lastTicketThreadCommentId: { validator: mongoIdStringValidator },
           lastChatRoomUpdatedAt: { validator: dateValidatorOptional },
           lastGroupMMSUpdatedAt: { validator: dateValidatorOptional },
+          phoneNumber: { validator: phoneValidatorOptional },
         },
         returns: { 
           emails: { validator: 'emails' as any, required: true }, 
@@ -3234,6 +3236,7 @@ export const schema: SchemaV1 = build_schema({
       quote: { validator: listValidatorOptionalOrEmptyOk(stringValidator5000OptionalEmptyOkay) },
       sendAt: { validator: dateOptionalOrEmptyStringValidator },
       isDraft: { validator: booleanValidator },
+      source: { validator: stringValidator100 },
     },
   },
   users: {
@@ -5979,9 +5982,10 @@ export const schema: SchemaV1 = build_schema({
         op: "custom", access: 'update', method: "post",
         name: 'Acknowledge Observations (Vitals)',
         path: '/enduser-observations/acknowledge',
-        description: "Bulk acknowledge (mark reviewed) EnduserObservations",
+        description: "Bulk acknowledge (mark reviewed) EnduserObservations or update exclusion flag for vital count lookback",
         parameters: { 
           ids: { validator: listOfMongoIdStringValidator, required: true },
+          excludeFromVitalCountLookback: { validator: booleanValidator },
         },
         returns: { },
       },
@@ -6692,6 +6696,8 @@ export const schema: SchemaV1 = build_schema({
       },
       hasTicketQueues: { validator: booleanValidator },
       customAutoreplyMessage: { validator: stringValidator1000 },
+      customZoomEmailTemplate: { validator: stringValidator5000 },
+      customZoomEmailSubject: { validator: stringValidator1000 },
       altVitalTeamIds: { validator: listValidatorEmptyOk(objectValidator<{ teamId: string, label: string }>({
         teamId: stringValidator100,
         label: stringValidator100,
@@ -9003,6 +9009,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           lastTimestamp: { validator: dateValidatorOptional },
           enduserIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
           userIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+          phoneNumber: { validator: phoneValidatorOptional },
         },
         returns: {
           threads: { validator: 'inbox_threads' as any, required: true },
@@ -9024,6 +9031,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       readBy: { validator: idStringToDateValidator },
       outboundTimestamp: { validator: dateValidator },
       outboundPreview: { validator: stringValidator25000 },
+      phoneNumber: { validator: phoneValidator },
+      enduserPhoneNumber: { validator: phoneValidator },
     }
 
   }

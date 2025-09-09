@@ -70,7 +70,12 @@ var Message = function (_a) {
     var textStyle = __assign({}, message.senderId === chatUserId ? sentMessageTextStyle : receivedMessageTextStyle);
     var quote = (_b = message === null || message === void 0 ? void 0 : message.quote) === null || _b === void 0 ? void 0 : _b.join(' \n');
     if (!message.message) {
-        textBGStyle.backgroundColor = undefined;
+        // Only remove background if HTML has inline styles (for customization)
+        // Keep background for plain HTML without styling for better visibility
+        var hasInlineStyles = message.html && message.html.includes('style=');
+        if (hasInlineStyles) {
+            textBGStyle.backgroundColor = undefined;
+        }
     }
     else {
         if (message.senderId === chatUserId) {

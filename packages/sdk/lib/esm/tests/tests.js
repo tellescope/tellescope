@@ -71,12 +71,15 @@ import crypto from "crypto";
 import * as buffer from "buffer"; // only node >=15.7.0
 import { fieldsToValidationOld, mongoIdStringRequired, } from "@tellescope/validation";
 import { Session, EnduserSession } from "../sdk";
+import { enduser_observations_acknowledge_tests } from "./api_tests/enduser_observations_acknowledge.test";
+import { setup_tests } from "./setup";
 import { evaluate_conditional_logic_for_enduser_fields, FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, get_next_reminder_timestamp, object_is_empty, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities";
 import { DEFAULT_OPERATIONS, PLACEHOLDER_ID, ZOOM_TITLE } from "@tellescope/constants";
 import { schema, } from "@tellescope/schema";
-import { assert, async_test, log_header, wait, } from "@tellescope/testing";
+import { assert, async_test, handleAnyError, log_header, passOnAnyResult, wait, } from "@tellescope/testing";
 import { objects_equivalent, url_safe_path, } from "@tellescope/utilities";
 import fs from "fs";
+import { load_inbox_data_tests } from "./api_tests/load_inbox_data.test";
 var UniquenessViolationMessage = 'Uniqueness Violation';
 var host = process.env.TEST_URL || 'http://localhost:8080';
 var _a = [process.env.TEST_EMAIL, process.env.TEST_PASSWORD], email = _a[0], password = _a[1];
@@ -135,165 +138,6 @@ var recordNotFound = { shouldError: true, onError: function (e) { return e.messa
 var voidResult = function () { return true; };
 var passOnVoid = { shouldError: false, onResult: voidResult };
 // const isNull = (d: any) => d === null
-var setup_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var badSDK, badEnduserSDK, uInfo, originalAuthToken;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                log_header("Setup");
-                return [4 /*yield*/, async_test('test_online', sdk.test_online, { expectedResult: 'API V1 Online' })];
-            case 1:
-                _a.sent();
-                return [4 /*yield*/, async_test('test_authenticated', sdk.test_authenticated, { expectedResult: 'Authenticated!' })];
-            case 2:
-                _a.sent();
-                return [4 /*yield*/, async_test('test_authenticated (with API Key)', (new Session({ host: host, apiKey: '3n5q0SCBT_iUvZz-b9BJtX7o7HQUVJ9v132PgHJNJsg.' /* local test key */ })).test_authenticated, { expectedResult: 'Authenticated!' })
-                    // login rate limit tests
-                ];
-            case 3:
-                _a.sent();
-                badSDK = new Session({ host: host });
-                return [4 /*yield*/, badSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
-            case 4:
-                _a.sent();
-                return [4 /*yield*/, badSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
-            case 5:
-                _a.sent();
-                return [4 /*yield*/, badSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
-            case 6:
-                _a.sent();
-                return [4 /*yield*/, badSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
-            case 7:
-                _a.sent();
-                return [4 /*yield*/, badSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
-            case 8:
-                _a.sent();
-                return [4 /*yield*/, async_test('login rate limited', function () { return badSDK.authenticate('bademail@tellescope.com', 'badpassword@tellescope.com'); }, { shouldError: true, onError: function (e) { return e.message === 'Too many login attempts'; } })];
-            case 9:
-                _a.sent();
-                return [4 /*yield*/, async_test('login not rate limited for other user', function () { return sdk.authenticate(email, password); }, passOnAnyResult)];
-            case 10:
-                _a.sent();
-                badEnduserSDK = new EnduserSession({ host: host, businessId: businessId });
-                return [4 /*yield*/, badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
-            case 11:
-                _a.sent();
-                return [4 /*yield*/, badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
-            case 12:
-                _a.sent();
-                return [4 /*yield*/, badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
-            case 13:
-                _a.sent();
-                return [4 /*yield*/, badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
-            case 14:
-                _a.sent();
-                return [4 /*yield*/, badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword').catch(console.error)];
-            case 15:
-                _a.sent();
-                return [4 /*yield*/, async_test('login rate limited', function () { return badEnduserSDK.authenticate('bademail@tellescope.com', 'badpassword@tellescope.com'); }, { shouldError: true, onError: function (e) { return e.message === 'Too many login attempts'; } })];
-            case 16:
-                _a.sent();
-                return [4 /*yield*/, async_test('login not rate limited for other enduser', function () { return badEnduserSDK.authenticate('otherbademail@tellescope.com', 'badpassword@tellescope.com'); }, { shouldError: true, onError: function (e) { return e.message !== 'Too many login attempts'; } })
-                    // prevent additional login throttling
-                ];
-            case 17:
-                _a.sent();
-                // prevent additional login throttling
-                return [4 /*yield*/, async_test('reset_db', function () { return sdk.reset_db(); }, passOnVoid)];
-            case 18:
-                // prevent additional login throttling
-                _a.sent();
-                return [4 /*yield*/, sdk.logout()];
-            case 19:
-                _a.sent();
-                return [4 /*yield*/, async_test('test_authenticated - (logout invalidates jwt)', sdk.test_authenticated, { shouldError: true, onError: function (e) { return e === 'Unauthenticated'; } })];
-            case 20:
-                _a.sent();
-                return [4 /*yield*/, sdk.authenticate(email, password)];
-            case 21:
-                _a.sent();
-                return [4 /*yield*/, async_test('test_authenticated (re-authenticated)', sdk.test_authenticated, { expectedResult: 'Authenticated!' })];
-            case 22:
-                _a.sent();
-                uInfo = sdk.userInfo;
-                originalAuthToken = sdk.authToken;
-                return [4 /*yield*/, sdk.refresh_session()];
-            case 23:
-                _a.sent();
-                assert(uInfo.id === sdk.userInfo.id, 'userInfo mismatch', 'userInfo id preserved after refresh');
-                assert(!!originalAuthToken && !!sdk.authToken && sdk.authToken !== originalAuthToken, 'same authToken after refresh', 'authToken refresh');
-                return [4 /*yield*/, async_test('role change by non-admin prevented (admin)', function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Admin'] }, { replaceObjectFields: true }); }, handleAnyError)];
-            case 24:
-                _a.sent();
-                return [4 /*yield*/, async_test('email change by non-admin prevented (admin)', function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { email: 'otheremail@tellescope.com' }, { replaceObjectFields: true }); }, handleAnyError)];
-            case 25:
-                _a.sent();
-                return [4 /*yield*/, async_test('role change by non-admin prevented (non-admin)', function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Not Admin'] }, { replaceObjectFields: true }); }, handleAnyError)
-                    // would assign default non-admin role, which could grant additional permissions than currently-defined non-admin role, should block
-                ];
-            case 26:
-                _a.sent();
-                // would assign default non-admin role, which could grant additional permissions than currently-defined non-admin role, should block
-                return [4 /*yield*/, async_test('role change by non-admin prevented (empty)', function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [] }, { replaceObjectFields: true }); }, handleAnyError)
-                    // ensure that going to "Non-Admin" triggers a role change
-                ];
-            case 27:
-                // would assign default non-admin role, which could grant additional permissions than currently-defined non-admin role, should block
-                _a.sent();
-                // ensure that going to "Non-Admin" triggers a role change
-                return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Test'] }, { replaceObjectFields: true })];
-            case 28:
-                // ensure that going to "Non-Admin" triggers a role change
-                _a.sent();
-                return [4 /*yield*/, wait(undefined, 2000)]; // wait for role change to propagate so authenticate does fail next
-            case 29:
-                _a.sent(); // wait for role change to propagate so authenticate does fail next
-                return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)];
-            case 30:
-                _a.sent();
-                return [4 /*yield*/, async_test('non admin authenticated', sdkNonAdmin.test_authenticated, { expectedResult: 'Authenticated!' })
-                    // reset nonAdmin role to a default non-admin
-                ];
-            case 31:
-                _a.sent();
-                // reset nonAdmin role to a default non-admin
-                return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: ['Non-Admin'] }, { replaceObjectFields: true })];
-            case 32:
-                // reset nonAdmin role to a default non-admin
-                _a.sent();
-                // should be unauthenticated due to role change
-                return [4 /*yield*/, wait(undefined, 100)];
-            case 33:
-                // reset nonAdmin role to a default non-admin
-                // should be unauthenticated due to role change
-                _a.sent();
-                return [4 /*yield*/, async_test('role change causes deauthentication', sdkNonAdmin.test_authenticated, handleAnyError)
-                    // reauthenticate
-                ];
-            case 34:
-                _a.sent();
-                // reauthenticate
-                return [4 /*yield*/, wait(undefined, 1000)];
-            case 35:
-                // reauthenticate
-                _a.sent();
-                return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)
-                    // may do some stuff in background after returning
-                ];
-            case 36:
-                _a.sent();
-                // may do some stuff in background after returning
-                return [4 /*yield*/, async_test('reset_db', function () { return sdk.reset_db(); }, passOnVoid)];
-            case 37:
-                // may do some stuff in background after returning
-                _a.sent();
-                return [4 /*yield*/, wait(undefined, 250)];
-            case 38:
-                _a.sent();
-                return [2 /*return*/];
-        }
-    });
-}); };
 var multi_tenant_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
     var e1, e2, update;
     return __generator(this, function (_a) {
@@ -5626,8 +5470,6 @@ var notifications_tests = function () { return __awaiter(void 0, void 0, void 0,
         }
     });
 }); };
-var handleAnyError = { shouldError: true, onError: function () { return true; } };
-var passOnAnyResult = { onResult: function () { return true; } };
 var role_based_access_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
     var adminId, e, adminTicket, ticketCreatedByNonAdmin, email, sms, calendarEvent, chatRoom, chatMessage;
     return __generator(this, function (_a) {
@@ -13579,7 +13421,7 @@ var inbox_threads_building_tests = function () { return __awaiter(void 0, void 0
     });
 }); };
 var inbox_threads_loading_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var e1, e2, defaultThreadFields, threads, email, sms, phone, chat, groupMMS, roleTestUserEmail, roleTestUser, _a, defaultAccessRole, sdkDefaultAccess, _b, noAccessRole, sdkNoAccess, _c;
+    var e1, e2, defaultThreadFields, threads, email, sms, phone, chat, groupMMS, roleTestUserEmail, roleTestUser, _a, defaultAccessRole, sdkDefaultAccess, _b, noAccessRole, sdkNoAccess, _c, phoneThread2;
     var _d, _f;
     return __generator(this, function (_g) {
         switch (_g.label) {
@@ -13794,883 +13636,57 @@ var inbox_threads_loading_tests = function () { return __awaiter(void 0, void 0,
                 return [4 /*yield*/, async_test("No access reads nothing", function () { return sdkNoAccess.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
                             var threads = _a.threads;
                             return threads.length === 0;
-                        } })];
+                        } })
+                    // Update existing threads with phone numbers for phoneNumber filtering tests
+                ];
             case 33:
                 _g.sent();
-                return [4 /*yield*/, Promise.all(__spreadArray([
+                // Update existing threads with phone numbers for phoneNumber filtering tests
+                return [4 /*yield*/, sdk.api.inbox_threads.updateOne(sms.id, { phoneNumber: '+15555555555' })];
+            case 34:
+                // Update existing threads with phone numbers for phoneNumber filtering tests
+                _g.sent();
+                return [4 /*yield*/, sdk.api.inbox_threads.updateOne(phone.id, { phoneNumber: '+15555555555' })];
+            case 35:
+                _g.sent();
+                return [4 /*yield*/, sdk.api.inbox_threads.createOne(__assign(__assign({}, defaultThreadFields), { title: 'Phone 2', type: 'Phone', threadId: '6', phoneNumber: '+15555555556' }))];
+            case 36:
+                phoneThread2 = _g.sent();
+                return [4 /*yield*/, async_test('admin phoneNumber filter - SMS and Phone threads only', function () { return sdk.api.inbox_threads.load_threads({ phoneNumber: '+15555555555' }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 2
+                                && threads.some(function (t) { return t.type === 'SMS'; })
+                                && threads.some(function (t) { return t.type === 'Phone'; })
+                                && threads.every(function (t) { return t.type === 'SMS' || t.type === 'Phone'; });
+                        }
+                    })];
+            case 37:
+                _g.sent();
+                return [4 /*yield*/, async_test('admin phoneNumber filter - different phone number', function () { return sdk.api.inbox_threads.load_threads({ phoneNumber: '+15555555556' }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 1
+                                && threads[0].type === 'Phone'
+                                && threads[0].phoneNumber === '+15555555556';
+                        }
+                    })];
+            case 38:
+                _g.sent();
+                return [4 /*yield*/, async_test('admin phoneNumber filter - non-existent phone number', function () { return sdk.api.inbox_threads.load_threads({ phoneNumber: '+15555555999' }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 0;
+                        } })];
+            case 39:
+                _g.sent();
+                return [4 /*yield*/, Promise.all(__spreadArray(__spreadArray([
                         sdk.api.endusers.deleteOne(e1.id),
                         sdk.api.endusers.deleteOne(e2.id),
                         sdk.api.users.deleteOne(roleTestUser.id),
                         sdk.api.role_based_access_permissions.deleteOne(defaultAccessRole.id),
                         sdk.api.role_based_access_permissions.deleteOne(noAccessRole.id)
-                    ], threads.map(function (t) { return sdk.api.inbox_threads.deleteOne(t.id); }), true))];
-            case 34:
-                _g.sent();
-                return [2 /*return*/];
-        }
-    });
-}); };
-// deprecated endpoint in favor of inbox threads
-var inbox_loading_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var e, e2, email, sms, groupMMS, call, thread, comment, room, updatedRoom, noAccessRole, roleTestUserEmail, roleTestUser, _a, sdkNoAccess, _b, defaultAccessRole, sdkDefaultAccess, _c;
-    var _d, _f;
-    return __generator(this, function (_g) {
-        switch (_g.label) {
-            case 0:
-                log_header("Inbox Loading Tests (deprecated bulk endpoint)");
-                return [4 /*yield*/, sdk.api.endusers.createOne({ fname: 'Test', lname: 'Testson' })];
-            case 1:
-                e = _g.sent();
-                return [4 /*yield*/, sdk.api.endusers.createOne({ fname: 'Test2', lname: 'Testson2' })];
-            case 2:
-                e2 = _g.sent();
-                return [4 /*yield*/, sdk.api.emails.createOne({
-                        logOnly: true,
-                        subject: 'Test Email',
-                        enduserId: e.id,
-                        textContent: 'This is a test email',
-                        inbound: true,
-                        userId: sdk.userInfo.id,
-                    })];
-            case 3:
-                email = _g.sent();
-                return [4 /*yield*/, sdk.api.sms_messages.createOne({
-                        logOnly: true,
-                        inbound: true,
-                        enduserId: e.id,
-                        message: 'This is a test SMS',
-                        userId: sdk.userInfo.id,
-                    })];
-            case 4:
-                sms = _g.sent();
-                return [4 /*yield*/, sdk.api.group_mms_conversations.createOne({
-                        enduserIds: [e.id],
-                        userIds: [sdk.userInfo.id],
-                        userStates: [],
-                    })];
-            case 5:
-                groupMMS = _g.sent();
-                return [4 /*yield*/, sdk.api.phone_calls.createOne({ enduserId: e.id, inbound: true, userId: sdk.userInfo.id })];
-            case 6:
-                call = _g.sent();
-                return [4 /*yield*/, sdk.api.ticket_threads.createOne({ enduserId: e.id, subject: 'test thread' })];
-            case 7:
-                thread = _g.sent();
-                return [4 /*yield*/, sdk.api.ticket_thread_comments.createOne({
-                        enduserId: e.id,
-                        html: '',
-                        inbound: true,
-                        plaintext: '',
-                        public: false,
-                        ticketThreadId: thread.id,
-                        userId: sdk.userInfo.id,
-                    })];
-            case 8:
-                comment = _g.sent();
-                return [4 /*yield*/, sdk.api.chat_rooms.createOne({ enduserIds: [e.id], userIds: [], title: 'Test Chat Room' })];
-            case 9:
-                room = _g.sent();
-                return [4 /*yield*/, sdk.api.chats.createOne({ roomId: room.id, message: 'test', enduserId: e.id, senderId: e.id })];
-            case 10:
-                _g.sent();
-                return [4 /*yield*/, wait(undefined, 500)]; // allow for recentEnduserTimestamp to be set to indicate inbound chat in chat room
-            case 11:
-                _g.sent(); // allow for recentEnduserTimestamp to be set to indicate inbound chat in chat room
-                return [4 /*yield*/, sdk.api.chat_rooms.getOne(room.id)];
-            case 12:
-                updatedRoom = _g.sent();
-                return [4 /*yield*/, async_test("Inbox loads messages", function () { return sdk.api.endusers.load_inbox_data({}); }, { onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); } })];
-            case 13:
-                _g.sent();
-                return [4 /*yield*/, async_test("Inbox loads messages (lastIds)", function () { return sdk.api.endusers.load_inbox_data({
-                        lastChatRoomId: room.id,
-                        lastEmailId: email.id,
-                        lastSMSId: sms.id,
-                        lastGroupMMSId: groupMMS.id,
-                        lastPhoneCallId: call.id,
-                        lastTicketThreadCommentId: comment.id,
-                    }); }, { onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); } })];
-            case 14:
-                _g.sent();
-                return [4 /*yield*/, async_test("Inbox loads messages (blank lastIds)", function () { return sdk.api.endusers.load_inbox_data({
-                        lastChatRoomId: '',
-                        lastEmailId: '',
-                        lastSMSId: '',
-                        lastGroupMMSId: '',
-                        lastPhoneCallId: '',
-                        lastTicketThreadCommentId: '',
-                    }); }, { onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); } })];
-            case 15:
-                _g.sent();
-                return [4 /*yield*/, async_test("Inbox loads messages (lastUpdatedAt 0 date)", function () { return sdk.api.endusers.load_inbox_data({
-                        lastChatRoomUpdatedAt: new Date(0),
-                        lastGroupMMSUpdatedAt: new Date(0),
-                    }); }, { onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); } })];
-            case 16:
-                _g.sent();
-                return [4 /*yield*/, async_test("Inbox loads messages (lastUpdatedAt current date)", function () { return sdk.api.endusers.load_inbox_data({
-                        lastChatRoomUpdatedAt: new Date(),
-                        lastGroupMMSUpdatedAt: new Date(),
-                    }); }, { onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); } })
-                    // backend uses $lte instead of $lt in case of different convos that have the same id
-                ];
-            case 17:
-                _g.sent();
-                // backend uses $lte instead of $lt in case of different convos that have the same id
-                return [4 /*yield*/, async_test("Inbox loads messages (lastUpdatedAt initial date)", function () { return sdk.api.endusers.load_inbox_data({
-                        lastChatRoomUpdatedAt: new Date(new Date(room.updatedAt).getTime() - 1),
-                        lastGroupMMSUpdatedAt: new Date(new Date(groupMMS.updatedAt).getTime() - 1),
-                    }); }, { onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); } })
-                    // providing id but using same timestamp filters out the thread itself
-                ];
-            case 18:
-                // backend uses $lte instead of $lt in case of different convos that have the same id
-                _g.sent();
-                // providing id but using same timestamp filters out the thread itself
-                return [4 /*yield*/, async_test("Inbox loads messages (lastUpdatedAt initial date and ids provided)", function () { return sdk.api.endusers.load_inbox_data({
-                        lastChatRoomId: room.id,
-                        lastGroupMMSId: groupMMS.id,
-                        lastChatRoomUpdatedAt: new Date(new Date(room.updatedAt).getTime()),
-                        lastGroupMMSUpdatedAt: new Date(new Date(groupMMS.updatedAt).getTime()),
-                    }); }, { onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); } })];
-            case 19:
-                // providing id but using same timestamp filters out the thread itself
-                _g.sent();
-                return [4 /*yield*/, async_test("Inbox loads messages with used enduserId", function () { return sdk.api.endusers.load_inbox_data({ enduserIds: [e.id] }); }, { onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); } })];
-            case 20:
-                _g.sent();
-                return [4 /*yield*/, async_test("Inbox loads messages with unused enduserId", function () { return sdk.api.endusers.load_inbox_data({ enduserIds: [e2.id] }); }, { onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); } })];
-            case 21:
-                _g.sent();
-                return [4 /*yield*/, async_test("Inbox loads no messages (filter by self when no threads are assigned)", function () { return sdk.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }); }, { onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); } })];
-            case 22:
-                _g.sent();
-                return [4 /*yield*/, async_test("Inbox loads no messages (filter by other when no threads are assigned)", function () { return sdk.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }); }, { onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); } })];
-            case 23:
-                _g.sent();
-                return [4 /*yield*/, async_test('Non-admin cannot load inbox data without assignment', function () { return sdkNonAdmin.api.endusers.load_inbox_data({}); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 24:
-                _g.sent();
-                return [4 /*yield*/, async_test('Non-admin cannot load inbox data without assignment with used enduserId', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ enduserIds: [e.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 25:
-                _g.sent();
-                return [4 /*yield*/, async_test('Non-admin cannot load inbox data without assignment with unused enduserId', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ enduserIds: [e2.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 26:
-                _g.sent();
-                return [4 /*yield*/, async_test('Non-admin cannot load inbox data without assignment (self as filter)', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 27:
-                _g.sent();
-                return [4 /*yield*/, async_test('Non-admin cannot load inbox data without assignment (other user as filter)', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })
-                    // assign to Enduser
-                ];
-            case 28:
-                _g.sent();
-                // assign to Enduser
-                return [4 /*yield*/, sdk.api.endusers.updateOne(e.id, { assignedTo: [sdkNonAdmin.userInfo.id] }, { replaceObjectFields: true })];
-            case 29:
-                // assign to Enduser
-                _g.sent();
-                return [4 /*yield*/, async_test('Non-admin can load inbox data with assignment', function () { return sdkNonAdmin.api.endusers.load_inbox_data({}); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 30:
-                _g.sent();
-                return [4 /*yield*/, async_test('Non-admin can load inbox data with assignment and used enduser filter', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ enduserIds: [e.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 31:
-                _g.sent();
-                return [4 /*yield*/, async_test('Non-admin cant load inbox data with assignment and uused enduser filter', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ enduserIds: [e2.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 32:
-                _g.sent();
-                return [4 /*yield*/, async_test('Non-admin can load inbox data with assignment (self as filter)', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 33:
-                _g.sent();
-                return [4 /*yield*/, async_test('Non-admin can load inbox data with assignment (other user as filter, not assigned)', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 34:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.endusers.updateOne(e.id, { assignedTo: [sdk.userInfo.id] }, {})]; // add other assignment
-            case 35:
-                _g.sent(); // add other assignment
-                return [4 /*yield*/, async_test('Non-admin can load inbox data with assignment (other user as filter, assigned)', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })
-                    // assign admin to all threads
-                ];
-            case 36:
-                _g.sent();
-                // assign admin to all threads
-                return [4 /*yield*/, sdk.api.emails.updateOne(email.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })];
-            case 37:
-                // assign admin to all threads
-                _g.sent();
-                return [4 /*yield*/, sdk.api.sms_messages.updateOne(sms.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })];
-            case 38:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.group_mms_conversations.updateOne(groupMMS.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })];
-            case 39:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.phone_calls.updateOne(call.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })];
+                    ], threads.map(function (t) { return sdk.api.inbox_threads.deleteOne(t.id); }), true), [
+                        sdk.api.inbox_threads.deleteOne(phoneThread2.id),
+                    ], false))];
             case 40:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.ticket_threads.updateOne(thread.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })];
-            case 41:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.ticket_thread_comments.updateOne(comment.id, { assignedTo: [sdk.userInfo.id] }, { replaceObjectFields: true })];
-            case 42:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.chat_rooms.updateOne(room.id, { userIds: [sdk.userInfo.id] }, { replaceObjectFields: true })];
-            case 43:
-                _g.sent();
-                return [4 /*yield*/, async_test('admin doesnt load inbox data with assignedTo as other filter', function () { return sdk.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 44:
-                _g.sent();
-                return [4 /*yield*/, async_test('admin loads inbox data for other user as filter assignedTo', function () { return sdk.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 45:
-                _g.sent();
-                return [4 /*yield*/, async_test('admin loads inbox data with no user', function () { return sdk.api.endusers.load_inbox_data({}); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 46:
-                _g.sent();
-                return [4 /*yield*/, async_test('admin loads inbox data with used enduser', function () { return sdk.api.endusers.load_inbox_data({ enduserIds: [e.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 47:
-                _g.sent();
-                return [4 /*yield*/, async_test('admin loads inbox data with unused enduser', function () { return sdk.api.endusers.load_inbox_data({ enduserIds: [e2.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 48:
-                _g.sent();
-                return [4 /*yield*/, async_test('Non-admin cant load inbox data with assignedTo as other (self as filter)', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 49:
-                _g.sent();
-                return [4 /*yield*/, async_test('Non-admin can load inbox data for other user as filter, assignedTo', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 50:
-                _g.sent();
-                return [4 /*yield*/, async_test('Non-admin can load inbox data with no user', function () { return sdkNonAdmin.api.endusers.load_inbox_data({}); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })
-                    // assign other user to all threads
-                ];
-            case 51:
-                _g.sent();
-                // assign other user to all threads
-                return [4 /*yield*/, sdk.api.emails.updateOne(email.id, { assignedTo: [sdkNonAdmin.userInfo.id] })];
-            case 52:
-                // assign other user to all threads
-                _g.sent();
-                return [4 /*yield*/, sdk.api.sms_messages.updateOne(sms.id, { assignedTo: [sdkNonAdmin.userInfo.id] })];
-            case 53:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.group_mms_conversations.updateOne(groupMMS.id, { assignedTo: [sdkNonAdmin.userInfo.id] })];
-            case 54:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.phone_calls.updateOne(call.id, { assignedTo: [sdkNonAdmin.userInfo.id] })];
-            case 55:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.ticket_threads.updateOne(thread.id, { assignedTo: [sdkNonAdmin.userInfo.id] })];
-            case 56:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.ticket_thread_comments.updateOne(comment.id, { assignedTo: [sdkNonAdmin.userInfo.id] })];
-            case 57:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.chat_rooms.updateOne(room.id, { assignedTo: [sdkNonAdmin.userInfo.id] })];
-            case 58:
-                _g.sent();
-                return [4 /*yield*/, async_test('[both assigned] admin does load inbox data with assignedTo as other filter', function () { return sdk.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 59:
-                _g.sent();
-                return [4 /*yield*/, async_test('[both assigned] admin loads inbox data for other user as filter assignedTo', function () { return sdk.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 60:
-                _g.sent();
-                return [4 /*yield*/, async_test('[both assigned] admin loads inbox data with no user', function () { return sdk.api.endusers.load_inbox_data({}); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 61:
-                _g.sent();
-                return [4 /*yield*/, async_test('[both assigned] admin loads inbox data with used enduser', function () { return sdk.api.endusers.load_inbox_data({ enduserIds: [e.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 62:
-                _g.sent();
-                return [4 /*yield*/, async_test('[both assigned] admin loads inbox data with unused enduser', function () { return sdk.api.endusers.load_inbox_data({ enduserIds: [e2.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 63:
-                _g.sent();
-                return [4 /*yield*/, async_test('[both assigned] Non-admin can load inbox data with assignedTo as other (self as filter)', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdkNonAdmin.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 64:
-                _g.sent();
-                return [4 /*yield*/, async_test('[both assigned] Non-admin can load inbox data for other user as filter, assignedTo', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 65:
-                _g.sent();
-                return [4 /*yield*/, async_test('[both assigned] Non-admin can load inbox data with no user', function () { return sdkNonAdmin.api.endusers.load_inbox_data({}); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 66:
-                _g.sent();
-                return [4 /*yield*/, async_test('[both assigned] Non-admin can load inbox data with used enduser', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ enduserIds: [e.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 67:
-                _g.sent();
-                return [4 /*yield*/, async_test('[both assigned] Non-admin cant load inbox data with unused enduser', function () { return sdkNonAdmin.api.endusers.load_inbox_data({ enduserIds: [e2.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 68:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.role_based_access_permissions.createOne({
-                        role: 'No Access',
-                        permissions: {
-                            emails: { read: null, create: null, update: null, delete: null },
-                            sms_messages: { read: null, create: null, update: null, delete: null },
-                            group_mms_conversations: { read: null, create: null, update: null, delete: null },
-                            phone_calls: { read: null, create: null, update: null, delete: null },
-                            ticket_threads: { read: null, create: null, update: null, delete: null },
-                            ticket_thread_comments: { read: null, create: null, update: null, delete: null },
-                            chat_rooms: { read: null, create: null, update: null, delete: null },
-                            // read must be default for endpoint to return non 403
-                            endusers: { read: 'Default', create: null, update: null, delete: null },
-                        },
-                    })];
-            case 69:
-                noAccessRole = _g.sent();
-                roleTestUserEmail = 'inbox.role.test@tellescope.com';
-                return [4 /*yield*/, sdk.api.users.getOne({ email: roleTestUserEmail }).catch(function () { return null; })]; // throws error on none found
-            case 70:
-                _a = (_g.sent() // throws error on none found
-                );
-                if (_a) return [3 /*break*/, 72];
-                return [4 /*yield*/, sdk.api.users.createOne({ email: roleTestUserEmail })];
-            case 71:
-                _a = (_g.sent());
-                _g.label = 72;
-            case 72:
-                roleTestUser = _a;
-                // ensure role is set, in case GET returned a user without a role or with a different role
-                return [4 /*yield*/, sdk.api.users.updateOne(roleTestUser.id, { roles: [noAccessRole.role] }, { replaceObjectFields: true })
-                    // add to care team to ensure this doesn't grant unexpected access
-                ];
-            case 73:
-                // ensure role is set, in case GET returned a user without a role or with a different role
-                _g.sent();
-                // add to care team to ensure this doesn't grant unexpected access
-                return [4 /*yield*/, sdk.api.endusers.updateOne(e.id, { assignedTo: [roleTestUser.id] })];
-            case 74:
-                // add to care team to ensure this doesn't grant unexpected access
-                _g.sent();
-                return [4 /*yield*/, wait(undefined, 2000)]; // role change triggers a logout
-            case 75:
-                _g.sent(); // role change triggers a logout
-                _b = Session.bind;
-                _d = {
-                    host: host
-                };
-                return [4 /*yield*/, sdk.api.users.generate_auth_token({ id: roleTestUser.id })];
-            case 76:
-                sdkNoAccess = new (_b.apply(Session, [void 0, (_d.authToken = (_g.sent()).authToken,
-                        _d)]))();
-                return [4 /*yield*/, async_test('test_authenticated (no access)', sdkNoAccess.test_authenticated, { expectedResult: 'Authenticated!' })];
-            case 77:
-                _g.sent();
-                return [4 /*yield*/, async_test('verify no-read on direct API call', sdkNoAccess.api.emails.getSome, handleAnyError)]; // ensures role is set up correctly
-            case 78:
-                _g.sent(); // ensures role is set up correctly
-                return [4 /*yield*/, async_test("No access reads nothing", function () { return sdkNoAccess.api.endusers.load_inbox_data({}); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 79:
-                _g.sent();
-                return [4 /*yield*/, async_test("No access reads nothing for used enduser", function () { return sdkNoAccess.api.endusers.load_inbox_data({ enduserIds: [e.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 80:
-                _g.sent();
-                return [4 /*yield*/, async_test("No access reads nothing for unused enduser", function () { return sdkNoAccess.api.endusers.load_inbox_data({ enduserIds: [e2.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 81:
-                _g.sent();
-                return [4 /*yield*/, async_test("No access reads nothing (for self)", function () { return sdkNoAccess.api.endusers.load_inbox_data({ userId: roleTestUser.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 82:
-                _g.sent();
-                return [4 /*yield*/, async_test("No access reads nothing (for assigned admin)", function () { return sdkNoAccess.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 83:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.role_based_access_permissions.createOne({
-                        role: 'Default Access',
-                        permissions: {
-                            emails: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
-                            sms_messages: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
-                            group_mms_conversations: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
-                            phone_calls: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
-                            ticket_threads: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
-                            ticket_thread_comments: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
-                            chat_rooms: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
-                            endusers: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
-                        },
-                    })];
-            case 84:
-                defaultAccessRole = _g.sent();
-                return [4 /*yield*/, sdk.api.users.updateOne(roleTestUser.id, { roles: [defaultAccessRole.role] }, { replaceObjectFields: true })];
-            case 85:
-                _g.sent();
-                return [4 /*yield*/, wait(undefined, 2000)]; // role change triggers a logout
-            case 86:
-                _g.sent(); // role change triggers a logout
-                _c = Session.bind;
-                _f = {
-                    host: host
-                };
-                return [4 /*yield*/, sdk.api.users.generate_auth_token({ id: roleTestUser.id })];
-            case 87:
-                sdkDefaultAccess = new (_c.apply(Session, [void 0, (_f.authToken = (_g.sent()).authToken,
-                        _f)]))();
-                return [4 /*yield*/, async_test('test_authenticated (default access)', sdkDefaultAccess.test_authenticated, { expectedResult: 'Authenticated!' })];
-            case 88:
-                _g.sent();
-                return [4 /*yield*/, async_test("Default access reads nothing", function () { return sdkDefaultAccess.api.endusers.load_inbox_data({}); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 89:
-                _g.sent();
-                return [4 /*yield*/, async_test("Default access reads nothing for used enduser", function () { return sdkDefaultAccess.api.endusers.load_inbox_data({ enduserIds: [e.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 90:
-                _g.sent();
-                return [4 /*yield*/, async_test("Default access reads nothing for unused enduser", function () { return sdkDefaultAccess.api.endusers.load_inbox_data({ enduserIds: [e2.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 91:
-                _g.sent();
-                return [4 /*yield*/, async_test("Default access reads nothing (for self)", function () { return sdkDefaultAccess.api.endusers.load_inbox_data({ userId: roleTestUser.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 92:
-                _g.sent();
-                return [4 /*yield*/, async_test("Default access reads nothing (for assigned admin)", function () { return sdkDefaultAccess.api.endusers.load_inbox_data({ userId: sdk.userInfo.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })
-                    // assign default user to the specific messages by setting userId, userIds, etc.
-                ];
-            case 93:
-                _g.sent();
-                // assign default user to the specific messages by setting userId, userIds, etc.
-                return [4 /*yield*/, sdk.api.emails.updateOne(email.id, { assignedTo: [], userId: roleTestUser.id }, { replaceObjectFields: true })];
-            case 94:
-                // assign default user to the specific messages by setting userId, userIds, etc.
-                _g.sent();
-                return [4 /*yield*/, sdk.api.sms_messages.updateOne(sms.id, { assignedTo: [], userId: roleTestUser.id }, { replaceObjectFields: true })];
-            case 95:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.group_mms_conversations.updateOne(groupMMS.id, { assignedTo: [], userIds: [roleTestUser.id] }, { replaceObjectFields: true })];
-            case 96:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.phone_calls.updateOne(call.id, { assignedTo: [], userId: roleTestUser.id }, { replaceObjectFields: true })];
-            case 97:
-                _g.sent();
-                return [4 /*yield*/, sdk.api.ticket_thread_comments.updateOne(comment.id, { assignedTo: [], userId: roleTestUser.id }, { replaceObjectFields: true })
-                    // need to replace assignedTo for userIds to take precedent
-                ];
-            case 98:
-                _g.sent();
-                // need to replace assignedTo for userIds to take precedent
-                return [4 /*yield*/, sdk.api.chat_rooms.updateOne(room.id, { assignedTo: [], userIds: [roleTestUser.id] }, { replaceObjectFields: true })];
-            case 99:
-                // need to replace assignedTo for userIds to take precedent
-                _g.sent();
-                return [4 /*yield*/, async_test("Default access reads stuff when assigned", function () { return sdkDefaultAccess.api.endusers.load_inbox_data({}); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 100:
-                _g.sent();
-                return [4 /*yield*/, async_test("Default access reads stuff when assigned for used enduser", function () { return sdkDefaultAccess.api.endusers.load_inbox_data({ enduserIds: [e.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 101:
-                _g.sent();
-                return [4 /*yield*/, async_test("Default access reads stuff when assigned for unused enduser", function () { return sdkDefaultAccess.api.endusers.load_inbox_data({ enduserIds: [e2.id] }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 0
-                            && r.emails.length === 0
-                            && r.sms_messages.length === 0
-                            && r.group_mms_conversations.length === 0
-                            && r.phone_calls.length === 0
-                            && r.ticket_thread_comments.length === 0
-                            && r.endusers.length === 0); }
-                    })];
-            case 102:
-                _g.sent();
-                return [4 /*yield*/, async_test("Default access reads stuff when assigned (for self)", function () { return sdkDefaultAccess.api.endusers.load_inbox_data({ userId: roleTestUser.id }); }, {
-                        onResult: function (r) { return (r.chat_rooms.length === 1
-                            && r.emails.length === 1
-                            && r.sms_messages.length === 1
-                            && r.group_mms_conversations.length === 1
-                            && r.phone_calls.length === 1
-                            && r.ticket_thread_comments.length === 1
-                            && r.endusers.length === 1); }
-                    })];
-            case 103:
-                _g.sent();
-                return [4 /*yield*/, Promise.all([
-                        sdk.api.endusers.deleteOne(e.id),
-                        sdk.api.endusers.deleteOne(e2.id),
-                        sdk.api.chat_rooms.deleteOne(room.id),
-                        sdk.api.role_based_access_permissions.deleteOne(noAccessRole.id),
-                        sdk.api.role_based_access_permissions.deleteOne(defaultAccessRole.id),
-                        sdk.api.users.deleteOne(roleTestUser.id),
-                    ])];
-            case 104:
                 _g.sent();
                 return [2 /*return*/];
         }
@@ -14778,7 +13794,7 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                 assert(truncate_string(null, { length: 4, showEllipsis: false }) === '', 'truncate doesnt work for non string', 'trucate works for non-string');
                 _l.label = 2;
             case 2:
-                _l.trys.push([2, 81, , 82]);
+                _l.trys.push([2, 82, , 83]);
                 get_next_reminder_timestamp_tests();
                 form_conditional_logic_tests();
                 return [4 /*yield*/, test_weighted_round_robin()];
@@ -14916,207 +13932,210 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, mfa_tests()];
             case 15:
                 _l.sent();
-                return [4 /*yield*/, setup_tests()];
+                return [4 /*yield*/, setup_tests(sdk, sdkNonAdmin)];
             case 16:
                 _l.sent();
-                return [4 /*yield*/, inbox_threads_building_tests()];
+                return [4 /*yield*/, inbox_threads_loading_tests()];
             case 17:
                 _l.sent();
-                return [4 /*yield*/, inbox_threads_loading_tests()];
+                return [4 /*yield*/, load_inbox_data_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 18:
                 _l.sent();
-                return [4 /*yield*/, group_mms_active_tests()];
+                return [4 /*yield*/, enduser_observations_acknowledge_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 19:
                 _l.sent();
-                return [4 /*yield*/, inbox_loading_tests()];
+                return [4 /*yield*/, inbox_threads_building_tests()];
             case 20:
                 _l.sent();
-                return [4 /*yield*/, auto_reply_tests()];
+                return [4 /*yield*/, group_mms_active_tests()];
             case 21:
                 _l.sent();
-                return [4 /*yield*/, relationships_tests()];
+                return [4 /*yield*/, auto_reply_tests()];
             case 22:
                 _l.sent();
-                return [4 /*yield*/, rate_limit_tests()];
+                return [4 /*yield*/, relationships_tests()];
             case 23:
                 _l.sent();
-                return [4 /*yield*/, ip_address_form_tests()];
+                return [4 /*yield*/, rate_limit_tests()];
             case 24:
                 _l.sent();
-                return [4 /*yield*/, bulk_update_tests()];
+                return [4 /*yield*/, ip_address_form_tests()];
             case 25:
                 _l.sent();
-                return [4 /*yield*/, formsort_tests()];
+                return [4 /*yield*/, bulk_update_tests()];
             case 26:
                 _l.sent();
-                return [4 /*yield*/, cancel_upcoming_appointments_journey_action_test()];
+                return [4 /*yield*/, formsort_tests()];
             case 27:
                 _l.sent();
-                return [4 /*yield*/, multi_tenant_tests()]; // should come right after setup tests
+                return [4 /*yield*/, cancel_upcoming_appointments_journey_action_test()];
             case 28:
+                _l.sent();
+                return [4 /*yield*/, multi_tenant_tests()]; // should come right after setup tests
+            case 29:
                 _l.sent(); // should come right after setup tests
                 return [4 /*yield*/, sync_tests_with_access_tags()]; // should come directly after setup to avoid extra sync values
-            case 29:
-                _l.sent(); // should come directly after setup to avoid extra sync values
-                return [4 /*yield*/, sync_tests()]; // should come directly after setup to avoid extra sync values
             case 30:
                 _l.sent(); // should come directly after setup to avoid extra sync values
-                return [4 /*yield*/, get_templated_message_tests()];
+                return [4 /*yield*/, sync_tests()]; // should come directly after setup to avoid extra sync values
             case 31:
-                _l.sent();
-                return [4 /*yield*/, updatedAt_tests()];
+                _l.sent(); // should come directly after setup to avoid extra sync values
+                return [4 /*yield*/, get_templated_message_tests()];
             case 32:
                 _l.sent();
-                return [4 /*yield*/, automation_trigger_tests()];
+                return [4 /*yield*/, updatedAt_tests()];
             case 33:
                 _l.sent();
-                return [4 /*yield*/, file_source_tests()];
+                return [4 /*yield*/, automation_trigger_tests()];
             case 34:
                 _l.sent();
-                return [4 /*yield*/, enduser_access_tags_tests()];
+                return [4 /*yield*/, file_source_tests()];
             case 35:
                 _l.sent();
-                return [4 /*yield*/, enduserAccessTests()];
+                return [4 /*yield*/, enduser_access_tags_tests()];
             case 36:
                 _l.sent();
-                return [4 /*yield*/, test_form_response_search()];
+                return [4 /*yield*/, enduserAccessTests()];
             case 37:
                 _l.sent();
-                return [4 /*yield*/, date_parsing_tests()];
+                return [4 /*yield*/, test_form_response_search()];
             case 38:
                 _l.sent();
-                return [4 /*yield*/, fromEmailOverride_tests()];
+                return [4 /*yield*/, date_parsing_tests()];
             case 39:
                 _l.sent();
-                return [4 /*yield*/, ticket_tests()];
+                return [4 /*yield*/, fromEmailOverride_tests()];
             case 40:
                 _l.sent();
-                return [4 /*yield*/, uniqueness_tests()];
+                return [4 /*yield*/, ticket_tests()];
             case 41:
                 _l.sent();
-                return [4 /*yield*/, enduser_orders_tests()];
+                return [4 /*yield*/, uniqueness_tests()];
             case 42:
                 _l.sent();
-                return [4 /*yield*/, calendar_event_care_team_tests()];
+                return [4 /*yield*/, enduser_orders_tests()];
             case 43:
                 _l.sent();
-                return [4 /*yield*/, merge_enduser_tests()];
+                return [4 /*yield*/, calendar_event_care_team_tests()];
             case 44:
                 _l.sent();
-                return [4 /*yield*/, input_modifier_tests()];
+                return [4 /*yield*/, merge_enduser_tests()];
             case 45:
                 _l.sent();
-                return [4 /*yield*/, switch_to_related_contacts_tests()];
+                return [4 /*yield*/, input_modifier_tests()];
             case 46:
                 _l.sent();
-                return [4 /*yield*/, redaction_tests()];
+                return [4 /*yield*/, switch_to_related_contacts_tests()];
             case 47:
                 _l.sent();
-                return [4 /*yield*/, self_serve_appointment_booking_tests()];
+                return [4 /*yield*/, redaction_tests()];
             case 48:
                 _l.sent();
-                return [4 /*yield*/, no_chained_triggers_tests()];
+                return [4 /*yield*/, self_serve_appointment_booking_tests()];
             case 49:
                 _l.sent();
-                return [4 /*yield*/, mdb_filter_tests()];
+                return [4 /*yield*/, no_chained_triggers_tests()];
             case 50:
                 _l.sent();
-                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
+                return [4 /*yield*/, mdb_filter_tests()];
             case 51:
                 _l.sent();
-                return [4 /*yield*/, superadmin_tests()];
+                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
             case 52:
                 _l.sent();
-                return [4 /*yield*/, ticket_queue_tests()];
+                return [4 /*yield*/, superadmin_tests()];
             case 53:
                 _l.sent();
-                return [4 /*yield*/, vital_trigger_tests()];
+                return [4 /*yield*/, ticket_queue_tests()];
             case 54:
                 _l.sent();
-                return [4 /*yield*/, close_reasons_no_duplicates_tests()];
+                return [4 /*yield*/, vital_trigger_tests()];
             case 55:
                 _l.sent();
-                return [4 /*yield*/, register_as_enduser_tests()];
+                return [4 /*yield*/, close_reasons_no_duplicates_tests()];
             case 56:
                 _l.sent();
-                return [4 /*yield*/, lockout_tests()];
+                return [4 /*yield*/, register_as_enduser_tests()];
             case 57:
+                _l.sent();
+                return [4 /*yield*/, lockout_tests()];
+            case 58:
                 _l.sent();
                 return [4 /*yield*/, delete_user_tests()
                     // await test_send_with_template()
                 ];
-            case 58:
+            case 59:
                 _l.sent();
                 // await test_send_with_template()
                 return [4 /*yield*/, bulk_read_tests()];
-            case 59:
+            case 60:
                 // await test_send_with_template()
                 _l.sent();
                 return [4 /*yield*/, ticket_reminder_tests()];
-            case 60:
-                _l.sent();
-                return [4 /*yield*/, marketing_email_unsubscribe_tests()];
             case 61:
                 _l.sent();
-                return [4 /*yield*/, unique_strings_tests()];
+                return [4 /*yield*/, marketing_email_unsubscribe_tests()];
             case 62:
                 _l.sent();
-                return [4 /*yield*/, alternate_phones_tests()];
+                return [4 /*yield*/, unique_strings_tests()];
             case 63:
                 _l.sent();
-                return [4 /*yield*/, role_based_access_tests()];
+                return [4 /*yield*/, alternate_phones_tests()];
             case 64:
                 _l.sent();
-                return [4 /*yield*/, enduser_session_tests()];
+                return [4 /*yield*/, role_based_access_tests()];
             case 65:
                 _l.sent();
-                return [4 /*yield*/, nextReminderInMS_tests()];
+                return [4 /*yield*/, enduser_session_tests()];
             case 66:
                 _l.sent();
-                return [4 /*yield*/, search_tests()];
+                return [4 /*yield*/, nextReminderInMS_tests()];
             case 67:
                 _l.sent();
-                return [4 /*yield*/, wait_for_trigger_tests()];
+                return [4 /*yield*/, search_tests()];
             case 68:
                 _l.sent();
-                return [4 /*yield*/, pdf_generation()];
+                return [4 /*yield*/, wait_for_trigger_tests()];
             case 69:
                 _l.sent();
-                return [4 /*yield*/, remove_from_journey_on_incoming_comms_tests().catch(console.error)]; // timing is unreliable, uncomment if changing logic
+                return [4 /*yield*/, pdf_generation()];
             case 70:
+                _l.sent();
+                return [4 /*yield*/, remove_from_journey_on_incoming_comms_tests().catch(console.error)]; // timing is unreliable, uncomment if changing logic
+            case 71:
                 _l.sent(); // timing is unreliable, uncomment if changing logic
                 return [4 /*yield*/, sub_organization_enduser_tests()];
-            case 71:
-                _l.sent();
-                return [4 /*yield*/, sub_organization_tests()];
             case 72:
                 _l.sent();
-                return [4 /*yield*/, filter_by_date_tests()];
+                return [4 /*yield*/, sub_organization_tests()];
             case 73:
                 _l.sent();
-                return [4 /*yield*/, generate_user_auth_tests()];
+                return [4 /*yield*/, filter_by_date_tests()];
             case 74:
                 _l.sent();
-                return [4 /*yield*/, generateEnduserAuthTests()];
+                return [4 /*yield*/, generate_user_auth_tests()];
             case 75:
                 _l.sent();
-                return [4 /*yield*/, public_form_tests()];
+                return [4 /*yield*/, generateEnduserAuthTests()];
             case 76:
                 _l.sent();
-                return [4 /*yield*/, badInputTests()];
+                return [4 /*yield*/, public_form_tests()];
             case 77:
                 _l.sent();
-                return [4 /*yield*/, filterTests()];
+                return [4 /*yield*/, badInputTests()];
             case 78:
                 _l.sent();
-                return [4 /*yield*/, updatesTests()];
+                return [4 /*yield*/, filterTests()];
             case 79:
                 _l.sent();
-                return [4 /*yield*/, threadKeyTests()];
+                return [4 /*yield*/, updatesTests()];
             case 80:
                 _l.sent();
-                return [3 /*break*/, 82];
+                return [4 /*yield*/, threadKeyTests()];
             case 81:
+                _l.sent();
+                return [3 /*break*/, 83];
+            case 82:
                 err_1 = _l.sent();
                 console.error("Failed during custom test");
                 if (err_1.message && err_1.info) {
@@ -15126,18 +14145,18 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                     console.error(err_1);
                 }
                 process.exit(1);
-                return [3 /*break*/, 82];
-            case 82:
+                return [3 /*break*/, 83];
+            case 83:
                 _a = schema;
                 _b = [];
                 for (_c in _a)
                     _b.push(_c);
                 _i = 0;
-                _l.label = 83;
-            case 83:
-                if (!(_i < _b.length)) return [3 /*break*/, 86];
+                _l.label = 84;
+            case 84:
+                if (!(_i < _b.length)) return [3 /*break*/, 87];
                 _c = _b[_i];
-                if (!(_c in _a)) return [3 /*break*/, 85];
+                if (!(_c in _a)) return [3 /*break*/, 86];
                 n = _c;
                 returnValidation = (_k = (_j = schema[n].customActions) === null || _j === void 0 ? void 0 : _j.create) === null || _k === void 0 ? void 0 : _k.returns;
                 return [4 /*yield*/, run_generated_tests({
@@ -15148,41 +14167,41 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                             create: returnValidation // ModelFields<ClientModel>,
                         }
                     })];
-            case 84:
-                _l.sent();
-                _l.label = 85;
             case 85:
-                _i++;
-                return [3 /*break*/, 83];
+                _l.sent();
+                _l.label = 86;
             case 86:
+                _i++;
+                return [3 /*break*/, 84];
+            case 87:
                 _d = tests;
                 _f = [];
                 for (_g in _d)
                     _f.push(_g);
                 _h = 0;
-                _l.label = 87;
-            case 87:
-                if (!(_h < _f.length)) return [3 /*break*/, 92];
-                _g = _f[_h];
-                if (!(_g in _d)) return [3 /*break*/, 91];
-                t = _g;
                 _l.label = 88;
             case 88:
-                _l.trys.push([88, 90, , 91]);
-                return [4 /*yield*/, tests[t]()];
+                if (!(_h < _f.length)) return [3 /*break*/, 93];
+                _g = _f[_h];
+                if (!(_g in _d)) return [3 /*break*/, 92];
+                t = _g;
+                _l.label = 89;
             case 89:
-                _l.sent();
-                return [3 /*break*/, 91];
+                _l.trys.push([89, 91, , 92]);
+                return [4 /*yield*/, tests[t]()];
             case 90:
+                _l.sent();
+                return [3 /*break*/, 92];
+            case 91:
                 err_2 = _l.sent();
                 console.error("Error running test:");
                 console.error(err_2);
                 process.exit(1);
-                return [3 /*break*/, 91];
-            case 91:
-                _h++;
-                return [3 /*break*/, 87];
+                return [3 /*break*/, 92];
             case 92:
+                _h++;
+                return [3 /*break*/, 88];
+            case 93:
                 process.exit();
                 return [2 /*return*/];
         }

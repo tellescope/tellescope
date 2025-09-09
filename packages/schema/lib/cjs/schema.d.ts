@@ -719,6 +719,7 @@ export type CustomActions = {
             lastChatRoomUpdatedAt?: Date;
             lastGroupMMSUpdatedAt?: Date;
             limit?: number;
+            phoneNumber?: string;
         }, {
             emails: Email[];
             sms_messages: SMSMessage[];
@@ -1421,6 +1422,7 @@ export type CustomActions = {
         }>;
         acknowledge: CustomAction<{
             ids: string[];
+            excludeFromVitalCountLookback?: boolean;
         }, {}>;
     };
     sms_messages: {

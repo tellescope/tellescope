@@ -129,3 +129,6 @@ export const assert = (assertion: boolean, message: string, title='') => {
 export const wait = (f?: Promise<void>, ms=1000) => new Promise<void>((resolve, reject) => {
   setTimeout(() => f ? f.then(resolve).catch(reject) : resolve(), ms)
 })
+
+export const handleAnyError = { shouldError: true, onError: () => true }
+export const passOnAnyResult = { onResult: () => true }

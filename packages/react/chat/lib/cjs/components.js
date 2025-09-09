@@ -75,11 +75,18 @@ var jsx_runtime_1 = require("react/jsx-runtime");
 var react_1 = __importStar(require("react"));
 var react_components_1 = require("@tellescope/react-components");
 var utilities_1 = require("@tellescope/utilities");
+var stripOuterParagraphTags = function (html) {
+    var result = html.trim();
+    while (result.startsWith('<p>') && result.endsWith('</p>')) {
+        result = result.slice(3, -4).trim();
+    }
+    return result;
+};
 var material_1 = require("@mui/material");
 var HTMLMessage = function (_a) {
     var html = _a.html;
     return ((0, jsx_runtime_1.jsx)("div", { style: { padding: 2 }, dangerouslySetInnerHTML: {
-            __html: (0, utilities_1.remove_script_tags)(html.replace(/<a/g, '<a style="color: white;"')),
+            __html: (0, utilities_1.remove_script_tags)(stripOuterParagraphTags(html).replace(/<a/g, '<a style="color: white;"')),
         } }));
 };
 exports.HTMLMessage = HTMLMessage;

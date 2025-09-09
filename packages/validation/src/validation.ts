@@ -3369,6 +3369,7 @@ export const FHIRObservationValueValidator = objectValidator<ObservationValue>({
   value: numberValidator,
 })
 
+
 export const previousFormFieldValidator = orValidator<{ [K in PreviousFormFieldType]: PreviousFormField & { type: K } } >({
   root: objectValidator<PreviousFormFieldRoot>({
     type: exactMatchValidator(['root']),

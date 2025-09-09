@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.wait = exports.assert = exports.async_test = exports.asPromise = exports.log_header = void 0;
+exports.passOnAnyResult = exports.handleAnyError = exports.wait = exports.assert = exports.async_test = exports.asPromise = exports.log_header = void 0;
 var SILENT = false; // only log errors
 var LOG_PASSING = true; // logs all success messages, overridden by SILENT
 var EXIT_ON_FIRST_ERROR = true;
@@ -142,4 +142,6 @@ var wait = function (f, ms) {
     });
 };
 exports.wait = wait;
+exports.handleAnyError = { shouldError: true, onError: function () { return true; } };
+exports.passOnAnyResult = { onResult: function () { return true; } };
 //# sourceMappingURL=testing.js.map

@@ -356,6 +356,8 @@ export interface Organization extends Organization_readonly, Organization_requir
     customAutoreplyMessage?: string;
     externalCalendarEventPlaceholderTitle?: string;
     externalCalendarEventPlaceholderDescription?: string;
+    customZoomEmailTemplate?: string;
+    customZoomEmailSubject?: string;
     customVoicemailText?: string;
     hasConnectedOpenAI?: boolean;
     hasConnectedHealthie?: boolean;
@@ -3184,6 +3186,7 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
     dontTrigger?: boolean;
     showWithPlotsByUnit?: string[];
     invalidationReason?: string;
+    excludeFromVitalCountLookback?: boolean;
 }
 export type BlockType = 'h1' | 'h2' | 'html' | 'image' | 'youtube' | 'pdf' | 'iframe' | 'content-link';
 export type ContentBlockBuilder<BLOCK extends BlockType, INFO extends object> = {

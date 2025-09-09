@@ -109,6 +109,6 @@ export interface UserDisplayInfo extends models.UserActivityInfo {
     lname?: string;
 }
 export type CreateFields<N extends keyof ClientModelForName, T = ClientModelForName[N]> = (Omit<ClientModelForName_required[N] & Partial<T>, keyof ClientModelForName_readonly[N]>);
-export type ProjectedObservation = (Pick<EnduserObservation, 'id' | 'measurement' | 'timestamp' | 'source' | 'createdAt' | 'classifications' | 'status' | 'beforeMeal' | 'showWithPlotsByUnit' | 'invalidationReason' | 'type' | 'timestampIsEstimated' | 'medStatus'> & Partial<Pick<EnduserObservation, 'enduserId' | 'reviewedBy' | 'reviewedAt'>>);
+export type ProjectedObservation = (Pick<EnduserObservation, 'id' | 'measurement' | 'timestamp' | 'source' | 'createdAt' | 'classifications' | 'status' | 'beforeMeal' | 'showWithPlotsByUnit' | 'invalidationReason' | 'type' | 'timestampIsEstimated' | 'medStatus' | 'excludeFromVitalCountLookback'> & Partial<Pick<EnduserObservation, 'enduserId' | 'reviewedBy' | 'reviewedAt'>>);
 export {};
 //# sourceMappingURL=index.d.ts.map
