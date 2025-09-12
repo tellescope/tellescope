@@ -2456,6 +2456,7 @@ exports.automationActionValidator = (0, exports.orValidator)({
     completeCarePlan: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['completeCarePlan']), info: (0, exports.objectValidator)({}, { emptyOk: true }) })),
     metriportSync: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['metriportSync']), info: (0, exports.objectValidator)({
             facilityId: exports.stringValidator1000,
+            integrationTitle: exports.stringValidatorOptionalEmptyOkay,
         }, { emptyOk: true }) })),
     zusSync: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['zusSync']), info: (0, exports.objectValidator)({}, { emptyOk: true }) })),
     zusPull: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['zusPull']), info: (0, exports.objectValidator)({}, { emptyOk: true }) })),
@@ -3938,6 +3939,8 @@ var _AUTOMATION_TRIGGER_ACTION_TYPES = {
     "Add to Waitlist": true,
     "Grant Access From Waitlist": true,
     "Reply to Chat": true,
+    "Create User Notifications": true,
+    "Assign to Incoming Message": true,
 };
 exports.AUTOMATION_TRIGGER_ACTION_TYPES = Object.keys(_AUTOMATION_TRIGGER_ACTION_TYPES);
 exports.automationTriggerActionValidator = (0, exports.orValidator)({
@@ -4039,6 +4042,24 @@ exports.automationTriggerActionValidator = (0, exports.orValidator)({
         type: (0, exports.exactMatchValidator)(['Reply to Chat']),
         info: (0, exports.objectValidator)({
             message: exports.stringValidator,
+        }),
+    }),
+    "Create User Notifications": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['Create User Notifications']),
+        info: (0, exports.objectValidator)({
+            message: exports.stringValidator,
+            notificationType: exports.stringValidator,
+            careTeamOnly: exports.booleanValidatorOptional,
+            tags: exports.listOfStringsWithQualifierValidatorOptional,
+            maxUsers: exports.numberValidatorOptional,
+        }),
+    }),
+    "Assign to Incoming Message": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['Assign to Incoming Message']),
+        info: (0, exports.objectValidator)({
+            careTeamOnly: exports.booleanValidatorOptional,
+            tags: exports.listOfStringsWithQualifierValidatorOptional,
+            maxUsers: exports.numberValidatorOptional,
         }),
     }),
 });

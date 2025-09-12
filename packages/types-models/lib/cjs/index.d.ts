@@ -292,6 +292,10 @@ export type StripeKeyDetail = {
     key: string;
     title: string;
 };
+export type MetriportIntegrationDetail = {
+    title: string;
+    environment?: string;
+};
 export type OutOfOfficeBlock = {
     from: Date;
     to: Date;
@@ -445,6 +449,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     }[];
     stripePublicKeys?: string[];
     stripeKeyDetails?: StripeKeyDetail[];
+    metriportIntegrationDetails?: MetriportIntegrationDetail[];
     additionalIterableKeys?: string[];
     defaultDoseSpotPharmacies?: {
         id: string;
@@ -2919,6 +2924,7 @@ export type ZusSyncAutomationAction = AutomationActionBuilder<'zusSync', {}>;
 export type ZusPullAutomationAction = AutomationActionBuilder<'zusPull', {}>;
 export type MetriportSyncAutomationAction = AutomationActionBuilder<'metriportSync', {
     facilityId: string;
+    integrationTitle?: string;
 }>;
 export type ZusSubscribeAutomationAction = AutomationActionBuilder<'zusSubscribe', {
     practitionerId: string;
@@ -4043,6 +4049,18 @@ export type AutomationTriggerActions = {
     }>;
     "Reply to Chat": AutomationTriggerActionBuilder<'Reply to Chat', {
         message: string;
+    }>;
+    "Create User Notifications": AutomationTriggerActionBuilder<'Create User Notifications', {
+        message: string;
+        notificationType: string;
+        careTeamOnly?: boolean;
+        tags?: ListOfStringsWithQualifier;
+        maxUsers?: number;
+    }>;
+    "Assign to Incoming Message": AutomationTriggerActionBuilder<'Assign to Incoming Message', {
+        careTeamOnly?: boolean;
+        tags?: ListOfStringsWithQualifier;
+        maxUsers?: number;
     }>;
 };
 export type AutomationTriggerActionType = keyof AutomationTriggerActions;

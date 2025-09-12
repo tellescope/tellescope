@@ -2547,6 +2547,50 @@ export var emit_gtm_event = function (event) {
     }
     catch (err) { }
 };
+// Find snippet keys in text, supporting both {{snippet:key}} and {{snippet.key}} syntax
+export var get_snippet_keys = function (s) {
+    var keys = [];
+    if (typeof s !== 'string')
+        return keys;
+    // Support {{snippet:key}} syntax (original message template format)
+    replacer('{{snippet:', s, function (match) {
+        var key = match.replace('{{snippet:', '').replace('}}', '');
+        if (key && !keys.includes(key)) {
+            keys.push(key);
+        }
+        return match;
+    });
+    // Support {{snippet.key}} syntax (for consistency with other template variables)
+    replacer('{{snippet.', s, function (match) {
+        var key = match.replace('{{snippet.', '').replace('}}', '');
+        if (key && !keys.includes(key)) {
+            keys.push(key);
+        }
+        return match;
+    });
+    return keys;
+};
+// Replace snippet templates with their values, supporting both {{snippet:key}} and {{snippet.key}} syntax
+export var replace_snippet_template_values = function (s, snippets) {
+    if (!(snippets === null || snippets === void 0 ? void 0 : snippets.length))
+        return s;
+    if (typeof s !== 'string')
+        return s; // e.g. Date value
+    var result = s;
+    // Replace {{snippet:key}} syntax (original message template format)
+    result = replacer('{{snippet:', result, function (match) {
+        var key = match.replace('{{snippet:', '').replace('}}', '');
+        var snippet = snippets.find(function (snippet) { return snippet.key === key; });
+        return (snippet === null || snippet === void 0 ? void 0 : snippet.value) || '';
+    });
+    // Replace {{snippet.key}} syntax (for consistency with other template variables)
+    result = replacer('{{snippet.', result, function (match) {
+        var key = match.replace('{{snippet.', '').replace('}}', '');
+        var snippet = snippets.find(function (snippet) { return snippet.key === key; });
+        return (snippet === null || snippet === void 0 ? void 0 : snippet.value) || '';
+    });
+    return result;
+};
 export var resolve_integration_id = function (e, integrationTitle) {
     var _a, _b;
     return (((e === null || e === void 0 ? void 0 : e.source) === integrationTitle && e.externalId) ? e.externalId : (_b = (_a = e.references) === null || _a === void 0 ? void 0 : _a.find(function (r) { return r.type === integrationTitle; })) === null || _b === void 0 ? void 0 : _b.id);

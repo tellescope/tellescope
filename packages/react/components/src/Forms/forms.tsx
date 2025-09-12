@@ -6,7 +6,7 @@ import { AddToDatabaseProps, AddressInput, AllergiesInput, AppointmentBookingInp
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
-import { field_can_autosubmit, formatted_date, object_is_empty, objects_equivalent, read_local_storage, remove_script_tags, responses_satisfy_conditions, truncate_string } from "@tellescope/utilities"
+import { field_can_autosubmit, form_response_value_to_string, formatted_date, object_is_empty, objects_equivalent, read_local_storage, remove_script_tags, responses_satisfy_conditions, truncate_string } from "@tellescope/utilities"
 import { Divider } from "@mui/material"
 
 export const TellescopeFormContainer = ({ businessId, organizationIds, ...props } : { 
@@ -241,7 +241,27 @@ export const QuestionForField = ({
       }
 
       {
-        field.type === 'file' ? (
+        // If field has pre-populated value and is set to be disabled when pre-populated, show as underlined text
+        field.disabledWhenPrepopulated && value.answer.value !== undefined && value.answer.value !== null && value.answer.value !== '' ? (
+          <div
+            style={{ 
+              padding: '8px 0',
+              borderBottom: '1px solid rgba(0, 0, 0, 0.42)',
+              width: '100%'
+            }}
+          >
+            <Typography 
+              style={{ 
+                fontSize: '1rem',
+                color: 'rgba(0, 0, 0, 0.87)',
+                whiteSpace: 'pre-wrap'
+              }}
+            >
+              {form_response_value_to_string(value.answer.value)}
+            </Typography>
+          </div>
+        )
+        : field.type === 'file' ? (
           <File field={field} value={file.blobs?.[0] as any} onChange={onAddFile as any} form={form}
             existingFileName={
               value.answer.type === 'file'

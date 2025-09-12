@@ -3084,6 +3084,7 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
     type: exactMatchValidator(['metriportSync']),
     info: objectValidator<MetriportSyncAutomationAction['info']>({ 
       facilityId: stringValidator1000,
+      integrationTitle: stringValidatorOptionalEmptyOkay,
     }, { emptyOk: true }),
   }),
   zusSync: objectValidator<ZusSyncAutomationAction>({
@@ -4755,6 +4756,8 @@ const _AUTOMATION_TRIGGER_ACTION_TYPES: { [K in AutomationTriggerActionType]: an
   "Add to Waitlist": true,
   "Grant Access From Waitlist": true,
   "Reply to Chat": true,
+  "Create User Notifications": true,
+  "Assign to Incoming Message": true,
 }
 export const AUTOMATION_TRIGGER_ACTION_TYPES = Object.keys(_AUTOMATION_TRIGGER_ACTION_TYPES) as AutomationTriggerActionType[]
 
@@ -4857,6 +4860,24 @@ export const automationTriggerActionValidator = orValidator<{ [K in AutomationTr
     type: exactMatchValidator(['Reply to Chat']),
     info: objectValidator<AutomationTriggerActions['Reply to Chat']['info']>({
       message: stringValidator,
+    }),
+  }),
+  "Create User Notifications": objectValidator<AutomationTriggerActions["Create User Notifications"]>({
+    type: exactMatchValidator(['Create User Notifications']),
+    info: objectValidator<AutomationTriggerActions['Create User Notifications']['info']>({
+      message: stringValidator,
+      notificationType: stringValidator,
+      careTeamOnly: booleanValidatorOptional,
+      tags: listOfStringsWithQualifierValidatorOptional,
+      maxUsers: numberValidatorOptional,
+    }),
+  }),
+  "Assign to Incoming Message": objectValidator<AutomationTriggerActions["Assign to Incoming Message"]>({
+    type: exactMatchValidator(['Assign to Incoming Message']),
+    info: objectValidator<AutomationTriggerActions['Assign to Incoming Message']['info']>({
+      careTeamOnly: booleanValidatorOptional,
+      tags: listOfStringsWithQualifierValidatorOptional,
+      maxUsers: numberValidatorOptional,
     }),
   }),
 })

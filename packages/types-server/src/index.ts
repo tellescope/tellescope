@@ -284,6 +284,12 @@ export interface MicrosoftSSOConfiguration extends InternalBusinessRecord {
   authorityURL: string,
 }
 
+export interface OktaSSOConfiguration extends InternalBusinessRecord {
+  clientId: string,
+  clientSecret: string,
+  oktaBaseUrl: string, // e.g., https://dev-12345678.okta.com
+}
+
 export interface InternalSecret extends InternalBusinessRecord {
   type: 'twilio-ios' | 'twilio-android' | 'customer-usage-data' | 'beluga-sandbox' | 'beluga-production'
   publicKey: string,

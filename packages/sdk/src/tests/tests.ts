@@ -36,6 +36,8 @@ import {
 
 import { Session, APIQuery, EnduserSession } from "../sdk"
 import { enduser_observations_acknowledge_tests } from "./api_tests/enduser_observations_acknowledge.test"
+import { create_user_notifications_trigger_tests } from "./api_tests/create_user_notifications_trigger.test"
+import { inbox_thread_assignment_updates_tests } from "./api_tests/inbox_thread_assignment_updates.test"
 import { setup_tests } from "./setup"
 import { evaluate_conditional_logic_for_enduser_fields, FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, get_next_reminder_timestamp, object_is_empty, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities"
 import { DEFAULT_OPERATIONS, PLACEHOLDER_ID, ZOOM_TITLE } from "@tellescope/constants"
@@ -61,6 +63,7 @@ import {
 
 import fs from "fs"
 import { load_inbox_data_tests } from "./api_tests/load_inbox_data.test";
+import { message_assignment_trigger_tests } from "./api_tests/message_assignment_trigger.test";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
@@ -12151,10 +12154,13 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await inbox_thread_assignment_updates_tests({ sdk, sdkNonAdmin })
+    await message_assignment_trigger_tests({ sdk })
+    await inbox_threads_building_tests()
     await inbox_threads_loading_tests()
     await load_inbox_data_tests({ sdk, sdkNonAdmin })
     await enduser_observations_acknowledge_tests({ sdk, sdkNonAdmin })
-    await inbox_threads_building_tests()
+    await create_user_notifications_trigger_tests({ sdk })
     await group_mms_active_tests()
     await auto_reply_tests()
     await relationships_tests()

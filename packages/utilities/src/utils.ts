@@ -2707,6 +2707,56 @@ export const emit_gtm_event = (event: Record<string, any> & { event: string }) =
   } catch(err) {}
 }
 
+// Find snippet keys in text, supporting both {{snippet:key}} and {{snippet.key}} syntax
+export const get_snippet_keys = (s: string) => {
+  const keys: string[] = []
+  if (typeof s !== 'string') return keys
+
+  // Support {{snippet:key}} syntax (original message template format)
+  replacer('{{snippet:', s, (match) => {
+    const key = match.replace('{{snippet:', '').replace('}}', '')
+    if (key && !keys.includes(key)) {
+      keys.push(key)
+    }
+    return match
+  })
+
+  // Support {{snippet.key}} syntax (for consistency with other template variables)
+  replacer('{{snippet.', s, (match) => {
+    const key = match.replace('{{snippet.', '').replace('}}', '')
+    if (key && !keys.includes(key)) {
+      keys.push(key)
+    }
+    return match
+  })
+
+  return keys
+}
+
+// Replace snippet templates with their values, supporting both {{snippet:key}} and {{snippet.key}} syntax
+export const replace_snippet_template_values = (s: string, snippets?: { key: string, value: string }[]) => {
+  if (!snippets?.length) return s
+  if (typeof s !== 'string') return s // e.g. Date value
+
+  let result = s
+
+  // Replace {{snippet:key}} syntax (original message template format)
+  result = replacer('{{snippet:', result, (match) => {
+    const key = match.replace('{{snippet:', '').replace('}}', '')
+    const snippet = snippets.find(snippet => snippet.key === key)
+    return snippet?.value || ''
+  })
+
+  // Replace {{snippet.key}} syntax (for consistency with other template variables)
+  result = replacer('{{snippet.', result, (match) => {
+    const key = match.replace('{{snippet.', '').replace('}}', '')
+    const snippet = snippets.find(snippet => snippet.key === key)
+    return snippet?.value || ''
+  })
+
+  return result
+}
+
 export const resolve_integration_id = (e: Pick<Enduser, 'references' | 'source' | 'externalId'>, integrationTitle: string) => (
   (e?.source === integrationTitle && e.externalId) ? e.externalId : e.references?.find(r => r.type === integrationTitle)?.id
 )

@@ -4568,6 +4568,11 @@ exports.schema = (0, exports.build_schema)({
                     key: validation_1.stringValidator5000EmptyOkay,
                     title: validation_1.stringValidator5000EmptyOkay,
                 }))
+            }, metriportIntegrationDetails: {
+                validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
+                    title: validation_1.stringValidator5000EmptyOkay,
+                    environment: validation_1.stringValidator1000Optional,
+                }))
             }, name: {
                 validator: validation_1.stringValidator100,
                 required: true,

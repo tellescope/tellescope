@@ -3992,6 +3992,7 @@ export declare class Session extends SessionManager {
         exp: number;
         allowedPaths?: string[] | undefined;
         requiresMFA?: boolean | undefined;
+        users?: number | undefined;
         inbox_threads?: number | undefined;
         ai_conversations?: number | undefined;
         waitlists?: number | undefined;
@@ -4037,7 +4038,6 @@ export declare class Session extends SessionManager {
         sms_messages?: number | undefined;
         chat_rooms?: number | undefined;
         chats?: number | undefined;
-        users?: number | undefined;
         templates?: number | undefined;
         files?: number | undefined;
         tickets?: number | undefined;
@@ -4144,6 +4144,7 @@ export declare class Session extends SessionManager {
         exp: number;
         allowedPaths?: string[] | undefined;
         requiresMFA?: boolean | undefined;
+        users?: number | undefined;
         inbox_threads?: number | undefined;
         ai_conversations?: number | undefined;
         waitlists?: number | undefined;
@@ -4189,7 +4190,6 @@ export declare class Session extends SessionManager {
         sms_messages?: number | undefined;
         chat_rooms?: number | undefined;
         chats?: number | undefined;
-        users?: number | undefined;
         templates?: number | undefined;
         files?: number | undefined;
         tickets?: number | undefined;

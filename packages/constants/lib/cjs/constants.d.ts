@@ -90,6 +90,7 @@ export declare const OUTLOOK_INTEGRATIONS_TITLE = "Outlook";
 export declare const MICROSOFT_INTEGRATIONS_TITLE = "Microsoft";
 export declare const OUTLOOK_REDIRECT_URI_ENDING = "/outlook-oauth2-verify";
 export declare const MICROSOFT_OIDC_URI_ENDING = "/microsoft-oidc-verify";
+export declare const OKTA_OIDC_URI_ENDING = "/okta-oidc-verify";
 export declare const ZOHO_TITLE = "Zoho";
 export declare const ZOHO_URI_ENDING = "/zoho-oauth2-verify";
 export declare const ZOOM_TITLE = "Zoom";

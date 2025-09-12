@@ -1664,6 +1664,16 @@ export declare const automationTriggerActionValidator: ValidatorDefinition<impor
     count: number;
 }> | import("@tellescope/types-models").AutomationTriggerActionBuilder<"Reply to Chat", {
     message: string;
+}> | import("@tellescope/types-models").AutomationTriggerActionBuilder<"Create User Notifications", {
+    message: string;
+    notificationType: string;
+    careTeamOnly?: boolean | undefined;
+    tags?: ListOfStringsWithQualifier | undefined;
+    maxUsers?: number | undefined;
+}> | import("@tellescope/types-models").AutomationTriggerActionBuilder<"Assign to Incoming Message", {
+    careTeamOnly?: boolean | undefined;
+    tags?: ListOfStringsWithQualifier | undefined;
+    maxUsers?: number | undefined;
 }>>;
 export declare const AUTOMATION_TRIGGER_STATUSES: AutomationTriggerStatus[];
 export declare const automatioNTriggerStatusValidator: ValidatorDefinition<AutomationTriggerStatus>;

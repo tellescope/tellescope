@@ -307,5 +307,10 @@ export declare const get_care_team_primary: (e: Pick<Enduser, 'assignedTo' | 'pr
 export declare const emit_gtm_event: (event: Record<string, any> & {
     event: string;
 }) => void;
+export declare const get_snippet_keys: (s: string) => string[];
+export declare const replace_snippet_template_values: (s: string, snippets?: {
+    key: string;
+    value: string;
+}[]) => string;
 export declare const resolve_integration_id: (e: Pick<Enduser, 'references' | 'source' | 'externalId'>, integrationTitle: string) => string | undefined;
 //# sourceMappingURL=utils.d.ts.map

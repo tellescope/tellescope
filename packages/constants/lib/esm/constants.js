@@ -109,6 +109,7 @@ export var OUTLOOK_INTEGRATIONS_TITLE = "Outlook";
 export var MICROSOFT_INTEGRATIONS_TITLE = "Microsoft";
 export var OUTLOOK_REDIRECT_URI_ENDING = "/outlook-oauth2-verify";
 export var MICROSOFT_OIDC_URI_ENDING = "/microsoft-oidc-verify";
+export var OKTA_OIDC_URI_ENDING = "/okta-oidc-verify";
 export var ZOHO_TITLE = "Zoho";
 export var ZOHO_URI_ENDING = "/zoho-oauth2-verify";
 export var ZOOM_TITLE = "Zoom";
@@ -149,7 +150,7 @@ export var METRIPORT_TITLE = "Metriport";
 // must also be in ORGANIZATION_WIDE_INTEGRATIONS
 export var GENERIC_INTEGRATIONS = [PUPPETEER_TITLE];
 export var ORGANIZATION_WIDE_INTEGRATIONS = [
-    METRIPORT_TITLE,
+    // METRIPORT_TITLE, // we now support multiple API keys, like how we support stripe custom
     OPENAI_TITLE,
     ATHENA_TITLE,
     DOSESPOT_TITLE,

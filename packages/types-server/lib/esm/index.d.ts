@@ -250,6 +250,11 @@ export interface MicrosoftSSOConfiguration extends InternalBusinessRecord {
     tokenURL: string;
     authorityURL: string;
 }
+export interface OktaSSOConfiguration extends InternalBusinessRecord {
+    clientId: string;
+    clientSecret: string;
+    oktaBaseUrl: string;
+}
 export interface InternalSecret extends InternalBusinessRecord {
     type: 'twilio-ios' | 'twilio-android' | 'customer-usage-data' | 'beluga-sandbox' | 'beluga-production';
     publicKey: string;

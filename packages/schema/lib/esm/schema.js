@@ -4563,6 +4563,11 @@ export var schema = build_schema({
                     key: stringValidator5000EmptyOkay,
                     title: stringValidator5000EmptyOkay,
                 }))
+            }, metriportIntegrationDetails: {
+                validator: listValidatorOptionalOrEmptyOk(objectValidator({
+                    title: stringValidator5000EmptyOkay,
+                    environment: stringValidator1000Optional,
+                }))
             }, name: {
                 validator: stringValidator100,
                 required: true,

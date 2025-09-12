@@ -78,6 +78,7 @@ import {
   WeeklyAvailability,
   CanvasCreateNoteAutomationAction,
   StripeKeyDetail,
+  MetriportIntegrationDetail,
   EnduserDevice,
   AIConversationMessage,
   AICOnversationMessageContent,
@@ -6653,6 +6654,12 @@ export const schema: SchemaV1 = build_schema({
         validator: listValidatorOptionalOrEmptyOk(objectValidator<StripeKeyDetail>({
           key: stringValidator5000EmptyOkay,
           title: stringValidator5000EmptyOkay,
+        }))
+      },
+      metriportIntegrationDetails: {
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<MetriportIntegrationDetail>({
+          title: stringValidator5000EmptyOkay,
+          environment: stringValidator1000Optional,
         }))
       },
       name: {

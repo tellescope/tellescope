@@ -308,6 +308,11 @@ export type StripeKeyDetail = {
   title: string,
 }
 
+export type MetriportIntegrationDetail = {
+  title: string,
+  environment?: string,
+}
+
 // for setting holiday/out of office hours with custom reply
 export type OutOfOfficeBlock = {
   from: Date,
@@ -443,6 +448,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   }[],
   stripePublicKeys?: string[],
   stripeKeyDetails?: StripeKeyDetail[],
+  metriportIntegrationDetails?: MetriportIntegrationDetail[],
   additionalIterableKeys?: string[],
   defaultDoseSpotPharmacies?: { id: string, name: string }[]
   groups?: string[],
@@ -2941,7 +2947,7 @@ export type CreateCarePlanAutomationAction = AutomationActionBuilder<'createCare
 export type CompleteCarePlanAutomationAction = AutomationActionBuilder<'completeCarePlan', {}>
 export type ZusSyncAutomationAction = AutomationActionBuilder<'zusSync', {}>
 export type ZusPullAutomationAction = AutomationActionBuilder<'zusPull', {}>
-export type MetriportSyncAutomationAction = AutomationActionBuilder<'metriportSync', { facilityId: string }>
+export type MetriportSyncAutomationAction = AutomationActionBuilder<'metriportSync', { facilityId: string, integrationTitle?: string }>
 export type ZusSubscribeAutomationAction = AutomationActionBuilder<'zusSubscribe', { practitionerId: string, packageIds: string[] }>
 export type PagerDutyCreateIncidentAutomationAction = AutomationActionBuilder<'pagerDutyCreateIncident', { type: string, title: string, serviceId: string }>
 export type SmartMeterOrderLineItem = { quantity: number, sku: string }
@@ -4051,6 +4057,18 @@ export type AutomationTriggerActions = {
   }>,
   "Reply to Chat": AutomationTriggerActionBuilder<'Reply to Chat', { 
     message: string,
+  }>,
+  "Create User Notifications": AutomationTriggerActionBuilder<'Create User Notifications', {
+    message: string,
+    notificationType: string,
+    careTeamOnly?: boolean,
+    tags?: ListOfStringsWithQualifier,
+    maxUsers?: number,
+  }>,
+  "Assign to Incoming Message": AutomationTriggerActionBuilder<'Assign to Incoming Message', {
+    careTeamOnly?: boolean,
+    tags?: ListOfStringsWithQualifier,
+    maxUsers?: number,
   }>,
 }
 export type AutomationTriggerActionType = keyof AutomationTriggerActions

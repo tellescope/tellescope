@@ -2406,6 +2406,7 @@ export var automationActionValidator = orValidator({
     completeCarePlan: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['completeCarePlan']), info: objectValidator({}, { emptyOk: true }) })),
     metriportSync: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['metriportSync']), info: objectValidator({
             facilityId: stringValidator1000,
+            integrationTitle: stringValidatorOptionalEmptyOkay,
         }, { emptyOk: true }) })),
     zusSync: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['zusSync']), info: objectValidator({}, { emptyOk: true }) })),
     zusPull: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['zusPull']), info: objectValidator({}, { emptyOk: true }) })),
@@ -3886,6 +3887,8 @@ var _AUTOMATION_TRIGGER_ACTION_TYPES = {
     "Add to Waitlist": true,
     "Grant Access From Waitlist": true,
     "Reply to Chat": true,
+    "Create User Notifications": true,
+    "Assign to Incoming Message": true,
 };
 export var AUTOMATION_TRIGGER_ACTION_TYPES = Object.keys(_AUTOMATION_TRIGGER_ACTION_TYPES);
 export var automationTriggerActionValidator = orValidator({
@@ -3987,6 +3990,24 @@ export var automationTriggerActionValidator = orValidator({
         type: exactMatchValidator(['Reply to Chat']),
         info: objectValidator({
             message: stringValidator,
+        }),
+    }),
+    "Create User Notifications": objectValidator({
+        type: exactMatchValidator(['Create User Notifications']),
+        info: objectValidator({
+            message: stringValidator,
+            notificationType: stringValidator,
+            careTeamOnly: booleanValidatorOptional,
+            tags: listOfStringsWithQualifierValidatorOptional,
+            maxUsers: numberValidatorOptional,
+        }),
+    }),
+    "Assign to Incoming Message": objectValidator({
+        type: exactMatchValidator(['Assign to Incoming Message']),
+        info: objectValidator({
+            careTeamOnly: booleanValidatorOptional,
+            tags: listOfStringsWithQualifierValidatorOptional,
+            maxUsers: numberValidatorOptional,
         }),
     }),
 });
