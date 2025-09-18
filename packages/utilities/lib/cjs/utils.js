@@ -34,9 +34,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getEnvironment = exports.TEST_API_URL = exports.STAGING_API_URL = exports.PROD_API_URL = exports.query_string_for_object = exports.remove_image_tags = exports.remove_style_tags = exports.remove_script_tags = exports.time_for_calendar_event = exports.fullMonth_day_year = exports.mm_dd_yyyy = exports.yyyy_mm_dd_numeric = exports.yyyy_mm_dd = exports.formatted_date_hh_mm = exports.get_add_to_gcal_link = exports.formatted_date = exports.get_time_values = exports.MONTHS = exports.MONTHS_FULL = exports.sorted_records = exports.wait = exports.throwFunction = exports.to_absolute_url = exports.build_portal_link_string = exports.build_content_link_string = exports.build_file_link_string = exports.build_form_group_link_string = exports.build_form_link_string = exports.build_link_string = exports.getTemplatedData = exports.parse_link_template = exports.map_object = exports.truncate_string = exports.defined_fields = exports.user_is_active = exports.user_display_name = exports.objects_equivalent = exports.to_object_id = exports.url_safe_path = exports.is_whitespace = exports.matching_fields = exports.is_object = exports.filter_object = exports.is_defined = exports.is_truthy = exports.object_is_empty = exports.first_letter_lowercase = exports.first_letter_capitalized = exports.user_is_admin = exports.ObjectId = void 0;
-exports.validate_enduser_for_candid = exports.validate_provider_for_candid = exports.validate_organization_for_candid = exports.validate_insurance_for_eligibility = exports.weighted_round_robin = exports.responses_satisfy_conditions = exports.calculate_bmi = exports.FORM_LOGIC_URL_PARAMETER = exports.FORM_LOGIC_CALCULATED_FIELDS = exports.calculate_form_scoring = exports.batch_array = exports.capture_is_supported = exports.get_next_reminder_timestamp = exports.mfa_is_enabled = exports.URIDecodeEmail = exports.get_recent_outbound_communication_date = exports.get_recent_engagement_date = exports.MM_DD_YYYY_to_YYYY_MM_DD = exports.YYYY_MM_DD_to_MM_DD_YYYY = exports.getLocalTimezone = exports.string_matches_key_or_value = exports.evaluate_conditional_logic_for_enduser_fields = exports.UPCOMING_EVENT_COUNT_KEY = exports.get_enduser_field_value_for_key = exports.age_for_dob_mmddyyyy = exports.replace_keys_and_values_in_object = exports.get_conditional_logic_values = exports.evaluate_conditional_logic = exports.shuffle_array_in_place = exports.plaintext_for_managed_content_record = exports.sanitize_html = exports.timezone_for_enduser = exports.safeJSONParse = exports.payment_cost_to_string = exports.read_local_storage = exports.update_local_storage = exports.is_organization_owner = exports.form_response_value_to_string = exports.is_table_input_response = exports.user_has_record_access = exports.is_suborganization = exports.matches_organization = exports.getDefaultPortalURL = exports.getPublicFileURL = exports.getOrgnizationFaviconURL = exports.getOrgnizationLogoURL = exports.getBuiltInPublicFileName = exports.getGoogleClientAPIKey = exports.getGoogleClientId = exports.getApiURL = void 0;
-exports.resolve_integration_id = exports.replace_snippet_template_values = exports.get_snippet_keys = exports.emit_gtm_event = exports.get_care_team_primary = exports.is_checkbox_custom_field_value = exports.enrich_doxy_url = exports.to_human_readable_phone_number = exports.get_canvas_id = exports.should_show_unsubmitted_form_response_for_interval = exports.enduser_insurance_string = exports.enduser_address_string = exports.is_timezone = exports.downloadFile = exports.get_prepopulated_responses = exports.INVALID_PREPOPULATION_TYPES = exports.add_value_for_dotted_key = exports.value_for_dotted_key = exports.get_flattened_fields = exports.skip_due_date_as_needed = exports.is_full_iso_string_heuristic = exports.display_time_for_seconds = exports.replace_enduser_template_values = exports.replace_secret_values = exports.get_secret_names = exports.replace_sms_template_values = exports.replace_purchase_template_values = exports.replace_tag_template_values_for_enduser = exports.append_current_utm_params = exports.get_utm_params = exports.is_out_of_office = exports.color_for_classification = exports.classification_for_vital = exports.SMS_UNSUBSCRIBE_KEYWORDS = exports.satisfies_vital_comparison = exports.field_can_autosubmit = exports.field_can_autoadvance = exports.decodeJWT = exports.validate_organization_for_develop_health = exports.validate_user_for_develop_health = exports.validate_enduser_for_develop_health = exports.validate_enduser_for_dose_spot = exports.validate_enduser_for_smart_meter = exports.validate_enduser_for_gogo = exports.json_error_string = void 0;
+exports.TEST_API_URL = exports.STAGING_API_URL = exports.PROD_API_URL = exports.query_string_for_object = exports.sanitize_html_with_links = exports.remove_image_tags = exports.remove_style_tags = exports.remove_script_tags = exports.time_for_calendar_event = exports.fullMonth_day_year = exports.mm_dd_yyyy = exports.yyyy_mm_dd_numeric = exports.yyyy_mm_dd = exports.formatted_date_hh_mm = exports.get_add_to_gcal_link = exports.formatted_date = exports.get_time_values = exports.MONTHS = exports.MONTHS_FULL = exports.sorted_records = exports.wait = exports.throwFunction = exports.to_absolute_url = exports.build_portal_link_string = exports.build_content_link_string = exports.build_file_link_string = exports.build_form_group_link_string = exports.build_form_link_string = exports.build_link_string = exports.getTemplatedData = exports.parse_link_template = exports.map_object = exports.truncate_string = exports.defined_fields = exports.user_is_active = exports.user_display_name = exports.objects_equivalent = exports.to_object_id = exports.url_safe_path = exports.is_whitespace = exports.matching_fields = exports.is_object = exports.filter_object = exports.is_defined = exports.is_truthy = exports.object_is_empty = exports.first_letter_lowercase = exports.first_letter_capitalized = exports.user_is_admin = exports.ObjectId = void 0;
+exports.validate_provider_for_candid = exports.validate_organization_for_candid = exports.validate_insurance_for_eligibility = exports.weighted_round_robin = exports.responses_satisfy_conditions = exports.calculate_bmi = exports.FORM_LOGIC_URL_PARAMETER = exports.FORM_LOGIC_CALCULATED_FIELDS = exports.calculate_form_scoring = exports.batch_array = exports.capture_is_supported = exports.get_next_reminder_timestamp = exports.mfa_is_enabled = exports.URIDecodeEmail = exports.get_recent_outbound_communication_date = exports.get_recent_engagement_date = exports.MM_DD_YYYY_to_YYYY_MM_DD = exports.YYYY_MM_DD_to_MM_DD_YYYY = exports.getLocalTimezone = exports.string_matches_key_or_value = exports.evaluate_conditional_logic_for_enduser_fields = exports.UPCOMING_EVENT_COUNT_KEY = exports.get_enduser_field_value_for_key = exports.age_for_dob_mmddyyyy = exports.replace_keys_and_values_in_object = exports.get_conditional_logic_values = exports.evaluate_conditional_logic = exports.shuffle_array_in_place = exports.plaintext_for_managed_content_record = exports.sanitize_html = exports.timezone_for_enduser = exports.safeJSONParse = exports.payment_cost_to_string = exports.read_local_storage = exports.update_local_storage = exports.is_organization_owner = exports.form_response_value_to_string = exports.is_table_input_response = exports.user_has_record_access = exports.is_suborganization = exports.matches_organization = exports.getDefaultPortalURL = exports.getPublicFileURL = exports.getOrgnizationFaviconURL = exports.getOrgnizationLogoURL = exports.getBuiltInPublicFileName = exports.getGoogleClientAPIKey = exports.getGoogleClientId = exports.getApiURL = exports.getEnvironment = void 0;
+exports.replace_form_response_template_values = exports.resolve_integration_id = exports.replace_snippet_template_values = exports.get_snippet_keys = exports.emit_gtm_event = exports.get_care_team_primary = exports.is_checkbox_custom_field_value = exports.enrich_doxy_url = exports.to_human_readable_phone_number = exports.get_canvas_id = exports.should_show_unsubmitted_form_response_for_interval = exports.enduser_insurance_string = exports.enduser_address_string = exports.is_timezone = exports.downloadFile = exports.get_prepopulated_responses = exports.INVALID_PREPOPULATION_TYPES = exports.add_value_for_dotted_key = exports.value_for_dotted_key = exports.get_flattened_fields = exports.skip_due_date_as_needed = exports.is_full_iso_string_heuristic = exports.display_time_for_seconds = exports.replace_enduser_template_values = exports.replace_secret_values = exports.get_secret_names = exports.replace_sms_template_values = exports.replace_purchase_template_values = exports.replace_tag_template_values_for_enduser = exports.append_current_utm_params = exports.get_utm_params = exports.is_out_of_office = exports.color_for_classification = exports.classification_for_vital = exports.SMS_UNSUBSCRIBE_KEYWORDS = exports.satisfies_vital_comparison = exports.field_can_autosubmit = exports.field_can_autoadvance = exports.decodeJWT = exports.validate_organization_for_develop_health = exports.validate_user_for_develop_health = exports.validate_enduser_for_develop_health = exports.validate_enduser_for_dose_spot = exports.validate_enduser_for_smart_meter = exports.validate_enduser_for_gogo = exports.json_error_string = exports.validate_enduser_for_candid = void 0;
 var types_models_1 = require("@tellescope/types-models");
 var constants_1 = require("@tellescope/constants");
 var sanitize_html_1 = __importDefault(require("sanitize-html"));
@@ -458,6 +458,30 @@ var remove_style_tags = function (s) { return s.replace(/<style[\s\S]*?>[\s\S]*?
 exports.remove_style_tags = remove_style_tags;
 var remove_image_tags = function (s) { return s.replace(/<img[\s\S]*?>/gi, ''); };
 exports.remove_image_tags = remove_image_tags;
+// Sanitizes HTML to allow safe hyperlinks and basic text formatting while removing potentially harmful tags
+var sanitize_html_with_links = function (html) {
+    return (0, sanitize_html_1.default)(html, {
+        allowedTags: ['a', 'strong', 'b', 'em', 'i', 'u', 'br', 'p'],
+        allowedAttributes: {
+            'a': ['href', 'target', 'rel']
+        },
+        // Automatically add security attributes to external links
+        transformTags: {
+            'a': function (tagName, attribs) {
+                var href = attribs.href || '';
+                // Add target="_blank" and security attributes for external links
+                if (href.startsWith('http://') || href.startsWith('https://')) {
+                    return {
+                        tagName: tagName,
+                        attribs: __assign(__assign({}, attribs), { target: '_blank', rel: 'noopener noreferrer' })
+                    };
+                }
+                return { tagName: tagName, attribs: attribs };
+            }
+        }
+    });
+};
+exports.sanitize_html_with_links = sanitize_html_with_links;
 var query_string_for_object = function (query) {
     var queryString = '';
     if (query && !(0, exports.object_is_empty)(query)) {
@@ -851,36 +875,56 @@ var age_for_dob_mmddyyyy = function (mmddyyyy) {
 };
 exports.age_for_dob_mmddyyyy = age_for_dob_mmddyyyy;
 var get_enduser_field_value_for_key = function (enduser, key) {
-    var _a, _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
+    var _a, _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _w, _x, _y, _z, _0, _5, _6, _7;
     if (key === 'insurance.payerName')
         return (_a = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _a === void 0 ? void 0 : _a.payerName;
-    if (key === 'insuranceSecondary.payerName')
-        return (_b = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _b === void 0 ? void 0 : _b.payerName;
-    if (key === 'insurance.relationship')
-        return (_d = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _d === void 0 ? void 0 : _d.relationship;
-    if (key === 'insuranceSecondary.relationship')
-        return (_e = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _e === void 0 ? void 0 : _e.relationship;
-    if (key === 'insurance.payerId')
-        return (_f = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _f === void 0 ? void 0 : _f.payerId;
-    if (key === 'insuranceSecondary.payerId')
-        return (_g = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _g === void 0 ? void 0 : _g.payerId;
     if (key === 'insurance.memberId')
-        return (_h = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _h === void 0 ? void 0 : _h.memberId;
-    if (key === 'insuranceSecondary.memberId')
-        return (_j = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _j === void 0 ? void 0 : _j.memberId;
+        return (_b = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _b === void 0 ? void 0 : _b.memberId;
+    if (key === 'insurance.payerId')
+        return (_d = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _d === void 0 ? void 0 : _d.payerId;
     if (key === 'insurance.groupNumber')
-        return (_k = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _k === void 0 ? void 0 : _k.groupNumber;
+        return (_e = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _e === void 0 ? void 0 : _e.groupNumber;
+    if (key === 'insurance.planName')
+        return (_f = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _f === void 0 ? void 0 : _f.planName;
+    if (key === 'insurance.relationship')
+        return (_g = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _g === void 0 ? void 0 : _g.relationship;
+    if (key === 'insurance.eligibility')
+        return (_h = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _h === void 0 ? void 0 : _h.eligibility;
+    if (key === 'insurance.status')
+        return (_j = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _j === void 0 ? void 0 : _j.status;
+    if (key === 'insurance.payerType')
+        return (_k = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _k === void 0 ? void 0 : _k.payerType;
+    if (key === 'insurance.startDate')
+        return (_l = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _l === void 0 ? void 0 : _l.startDate;
+    if (key === 'insuranceSecondary.payerName')
+        return (_m = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _m === void 0 ? void 0 : _m.payerName;
+    if (key === 'insuranceSecondary.memberId')
+        return (_o = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _o === void 0 ? void 0 : _o.memberId;
+    if (key === 'insuranceSecondary.payerId')
+        return (_p = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _p === void 0 ? void 0 : _p.payerId;
     if (key === 'insuranceSecondary.groupNumber')
-        return (_l = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _l === void 0 ? void 0 : _l.groupNumber;
+        return (_q = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _q === void 0 ? void 0 : _q.groupNumber;
+    if (key === 'insuranceSecondary.planName')
+        return (_r = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _r === void 0 ? void 0 : _r.planName;
+    if (key === 'insuranceSecondary.relationship')
+        return (_s = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _s === void 0 ? void 0 : _s.relationship;
+    if (key === 'insuranceSecondary.eligibility')
+        return (_t = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _t === void 0 ? void 0 : _t.eligibility;
+    if (key === 'insuranceSecondary.status')
+        return (_u = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _u === void 0 ? void 0 : _u.status;
+    if (key === 'insuranceSecondary.payerType')
+        return (_w = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _w === void 0 ? void 0 : _w.payerType;
+    if (key === 'insuranceSecondary.startDate')
+        return (_x = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _x === void 0 ? void 0 : _x.startDate;
     if (key === 'insurance.relationshipDetails') {
         try {
-            return JSON.stringify((_o = (_m = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _m === void 0 ? void 0 : _m.relationshipDetails) !== null && _o !== void 0 ? _o : {});
+            return JSON.stringify((_z = (_y = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _y === void 0 ? void 0 : _y.relationshipDetails) !== null && _z !== void 0 ? _z : {});
         }
         catch (err) { }
     }
     if (key === 'insuranceSecondary.relationshipDetails') {
         try {
-            return JSON.stringify((_q = (_p = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _p === void 0 ? void 0 : _p.relationshipDetails) !== null && _q !== void 0 ? _q : {});
+            return JSON.stringify((_5 = (_0 = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _0 === void 0 ? void 0 : _0.relationshipDetails) !== null && _5 !== void 0 ? _5 : {});
         }
         catch (err) { }
     }
@@ -899,7 +943,7 @@ var get_enduser_field_value_for_key = function (enduser, key) {
     if (key === "Healthie ID") {
         return (enduser.source === constants_1.HEALTHIE_TITLE && enduser.externalId
             ? enduser.externalId
-            : (_s = (_r = enduser.references) === null || _r === void 0 ? void 0 : _r.find(function (r) { return r.type === constants_1.HEALTHIE_TITLE; })) === null || _s === void 0 ? void 0 : _s.id);
+            : (_7 = (_6 = enduser.references) === null || _6 === void 0 ? void 0 : _6.find(function (r) { return r.type === constants_1.HEALTHIE_TITLE; })) === null || _7 === void 0 ? void 0 : _7.id);
     }
     return enduser === null || enduser === void 0 ? void 0 : enduser[key];
 };
@@ -2737,4 +2781,43 @@ var resolve_integration_id = function (e, integrationTitle) {
     return (((e === null || e === void 0 ? void 0 : e.source) === integrationTitle && e.externalId) ? e.externalId : (_b = (_a = e.references) === null || _a === void 0 ? void 0 : _a.find(function (r) { return r.type === integrationTitle; })) === null || _b === void 0 ? void 0 : _b.id);
 };
 exports.resolve_integration_id = resolve_integration_id;
+// Replace form_response template variables with their values from form responses
+var replace_form_response_template_values = function (s, formResponse) {
+    var _a;
+    if (!((_a = formResponse === null || formResponse === void 0 ? void 0 : formResponse.responses) === null || _a === void 0 ? void 0 : _a.length))
+        return s;
+    if (typeof s !== 'string')
+        return s; // e.g. Date value
+    var result = s;
+    // Handle {{form_response.externalId}} template variables
+    result = replacer('{{form_response.', result, function (match) {
+        var _a;
+        var templateMatch = match.match(/\{\{form_response\.([^}]+)\}\}/);
+        if (!templateMatch)
+            return match;
+        var externalId = templateMatch[1];
+        var responseValue = (_a = formResponse.responses) === null || _a === void 0 ? void 0 : _a.find(function (r) { return r.externalId === externalId; });
+        if (!responseValue)
+            return match;
+        // Extract the string value from the response
+        var stringValue = '';
+        if (typeof responseValue.answer.value === 'string') {
+            stringValue = responseValue.answer.value;
+        }
+        else if (typeof responseValue.answer.value === 'number') {
+            stringValue = responseValue.answer.value.toString();
+        }
+        else if (Array.isArray(responseValue.answer.value)) {
+            // For multiple choice, dropdown, etc., join with commas
+            stringValue = responseValue.answer.value.join(', ');
+        }
+        else if (responseValue.answer.value && typeof responseValue.answer.value === 'object') {
+            // For complex objects, stringify them
+            stringValue = JSON.stringify(responseValue.answer.value);
+        }
+        return stringValue;
+    });
+    return result;
+};
+exports.replace_form_response_template_values = replace_form_response_template_values;
 //# sourceMappingURL=utils.js.map

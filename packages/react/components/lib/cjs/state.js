@@ -757,31 +757,29 @@ var useListStateHook = function (modelName, state, session, slice, apiCalls, opt
         // prevent frequent refetches 
         if (value && (options === null || options === void 0 ? void 0 : options.reload) && didFetch('findById' + modelName + id, true))
             return value;
-        if ((options === null || options === void 0 ? void 0 : options.reload) || (value === undefined && !didFetch('findById' + modelName + id))) {
-            setFetched('findById' + modelName + id, true); // prevent multiple API calls
-            if (options === null || options === void 0 ? void 0 : options.batch) {
-                // ensure duplicate ids are not provided
-                if (!batchRef.current.nextBatch.includes(id.toString()) && !batchRef.current.ids.includes(id.toString())) {
-                    if (batchRef.current.fetching) {
-                        batchRef.current.nextBatch.push(id.toString()); // fetch in next batch if currently fetching
-                    }
-                    else {
-                        batchRef.current.ids.push(id.toString());
-                    }
+        // Handle batch requests separately - always allow queueing for batch
+        if (options === null || options === void 0 ? void 0 : options.batch) {
+            if (!batchRef.current.nextBatch.includes(id.toString()) && !batchRef.current.ids.includes(id.toString())) {
+                if (batchRef.current.fetching) {
+                    batchRef.current.nextBatch.push(id.toString()); // fetch in next batch if currently fetching
+                }
+                else {
+                    batchRef.current.ids.push(id.toString());
                 }
             }
-            else {
-                findOne === null || findOne === void 0 ? void 0 : findOne(id.toString()).then(function (found) {
-                    // prevent unnecessary re-renders by calling addLocalElement, when the exact value already exists
-                    var existingUnchanged = (0, loading_1.value_is_loaded)(state) && state.value.find(function (v) { return v.id === id && (0, utilities_1.objects_equivalent)(v, found); });
-                    if (existingUnchanged)
-                        return;
-                    addLocalElement(found, { replaceIfMatch: true });
-                }).catch(function (e) {
-                    setFetched('recordNotFound' + modelName + id, true); // mark record not found for id
-                    console.error(e);
-                });
-            }
+        }
+        else if ((options === null || options === void 0 ? void 0 : options.reload) || (value === undefined && !didFetch('findById' + modelName + id))) {
+            setFetched('findById' + modelName + id, true); // prevent multiple API calls
+            findOne === null || findOne === void 0 ? void 0 : findOne(id.toString()).then(function (found) {
+                // prevent unnecessary re-renders by calling addLocalElement, when the exact value already exists
+                var existingUnchanged = (0, loading_1.value_is_loaded)(state) && state.value.find(function (v) { return v.id === id && (0, utilities_1.objects_equivalent)(v, found); });
+                if (existingUnchanged)
+                    return;
+                addLocalElement(found, { replaceIfMatch: true });
+            }).catch(function (e) {
+                setFetched('recordNotFound' + modelName + id, true); // mark record not found for id
+                console.error(e);
+            });
         }
         return value;
     }, [addLocalElement, findOne, state, modelName, setFetched, didFetch]);
@@ -799,8 +797,27 @@ var useListStateHook = function (modelName, state, session, slice, apiCalls, opt
                 (_a = batchRef.current.nextBatch).unshift.apply(_a, batchRef.current.ids.slice(BULK_READ_DEFAULT_LIMIT));
             }
             batchRef.current.fetching = true;
+            var currentBatchIds = batchRef.current.ids.slice(0, BULK_READ_DEFAULT_LIMIT);
+            // Filter out IDs that are already loaded to prevent unnecessary fetching
+            var idsToFetch = currentBatchIds.filter(function (id) {
+                var alreadyLoaded = state.status === types_utilities_1.LoadingStatus.Loaded &&
+                    state.value.find(function (v) { return v.id.toString() === id.toString(); });
+                return !alreadyLoaded;
+            });
+            // Only make API call if there are actually IDs to fetch
+            if (idsToFetch.length === 0) {
+                // Mark all IDs as processed even though they were already loaded
+                currentBatchIds.forEach(function (id) {
+                    setFetched('findById' + modelName + id, true);
+                });
+                // Continue to next batch
+                batchRef.current.ids = batchRef.current.nextBatch;
+                batchRef.current.nextBatch = [];
+                batchRef.current.fetching = false;
+                return;
+            }
             findByIds({
-                ids: batchRef.current.ids.slice(0, BULK_READ_DEFAULT_LIMIT), // ensure limited to 1000 entries
+                ids: idsToFetch,
             })
                 .then(function (_a) {
                 var _b;
@@ -809,9 +826,17 @@ var useListStateHook = function (modelName, state, session, slice, apiCalls, opt
                     addLocalElements(matches, { replaceIfMatch: true });
                     (_b = options === null || options === void 0 ? void 0 : options.onBulkRead) === null || _b === void 0 ? void 0 : _b.call(options, matches);
                 }
+                // Mark all fetched IDs as complete (both successful and failed)
+                currentBatchIds.forEach(function (id) {
+                    setFetched('findById' + modelName + id, true);
+                });
             })
                 .catch(function (err) {
                 console.error(err);
+                // Mark failed IDs as not found
+                currentBatchIds.forEach(function (id) {
+                    setFetched('recordNotFound' + modelName + id, true);
+                });
             })
                 .finally(function () {
                 // ensure we make progress to prevent looping on an error
@@ -822,7 +847,7 @@ var useListStateHook = function (modelName, state, session, slice, apiCalls, opt
             });
         }, 333);
         return function () { clearInterval(i); };
-    }, [findByIds, addLocalElements, options === null || options === void 0 ? void 0 : options.onBulkRead]);
+    }, [findByIds, addLocalElements, options === null || options === void 0 ? void 0 : options.onBulkRead, setFetched, modelName]);
     var findByFilter = (0, react_1.useCallback)(function (filter, options) {
         var _a;
         var loadFilter = options === null || options === void 0 ? void 0 : options.loadFilter;

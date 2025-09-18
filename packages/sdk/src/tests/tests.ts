@@ -38,6 +38,8 @@ import { Session, APIQuery, EnduserSession } from "../sdk"
 import { enduser_observations_acknowledge_tests } from "./api_tests/enduser_observations_acknowledge.test"
 import { create_user_notifications_trigger_tests } from "./api_tests/create_user_notifications_trigger.test"
 import { inbox_thread_assignment_updates_tests } from "./api_tests/inbox_thread_assignment_updates.test"
+import { appointment_completed_trigger_tests } from "./api_tests/appointment_completed_trigger.test"
+import { journey_error_branching_tests } from "./api_tests/journey_error_branching.test"
 import { setup_tests } from "./setup"
 import { evaluate_conditional_logic_for_enduser_fields, FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, get_next_reminder_timestamp, object_is_empty, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities"
 import { DEFAULT_OPERATIONS, PLACEHOLDER_ID, ZOOM_TITLE } from "@tellescope/constants"
@@ -4094,6 +4096,159 @@ const set_fields_tests = async () => {
   ])
 }
 
+const form_response_set_fields_trigger_tests = async () => {
+  log_header("Set Fields from Form Response - Trigger Action")
+  
+  // Create test enduser
+  const enduser = await sdk.api.endusers.createOne({ email: "setfields-trigger@tellescope.com" })
+  
+  // Create test form with a field that has an externalId
+  const form = await sdk.api.forms.createOne({ title: 'Set Fields Trigger Test Form' })
+  const field = await sdk.api.form_fields.createOne({
+    formId: form.id,
+    type: 'string',
+    title: 'Response Field',
+    externalId: 'test_external_id',
+    previousFields: [{ type: 'root', info: {} }]
+  })
+  
+  // Create automation trigger for Form Submitted -> Set Fields with form_response template
+  const trigger = await sdk.api.automation_triggers.createOne({
+    title: "Form Submitted Set Fields",
+    status: 'Active',
+    event: { type: 'Form Submitted', info: { formId: form.id } },
+    action: {
+      type: 'Set Fields',
+      info: {
+        fields: [
+          { name: 'trigger_form_response_value', value: "{{form_response.test_external_id}}", type: 'Custom Value' },
+          { name: 'trigger_static_field', value: "Static Value", type: 'Custom Value' }
+        ]
+      }
+    }
+  })
+  
+  // Prepare and submit form response
+  const { accessCode } = await sdk.api.form_responses.prepare_form_response({
+    enduserId: enduser.id,
+    formId: form.id,
+  })
+  
+  const testResponseValue = 'Test Form Response Value'
+  await sdk.api.form_responses.submit_form_response({
+    accessCode,
+    responses: [{
+      fieldId: field.id,
+      fieldTitle: 'Response Field',
+      externalId: 'test_external_id',
+      answer: {
+        type: 'string',
+        value: testResponseValue,
+      }
+    }]
+  })
+  
+  // Wait for trigger to process and check if fields were set correctly
+  await wait(undefined, 1000) // allow triggers to happen
+  await async_test(
+    "Set fields from form response template variables (trigger action)",
+    () => sdk.api.endusers.getOne(enduser.id),
+    { onResult: e => 
+      e.fields?.trigger_form_response_value === testResponseValue
+      && e.fields?.trigger_static_field === "Static Value"
+    }
+  )
+  
+  // Cleanup
+  return Promise.all([
+    sdk.api.endusers.deleteOne(enduser.id),
+    sdk.api.forms.deleteOne(form.id),
+    sdk.api.automation_triggers.deleteOne(trigger.id),
+  ])
+}
+
+const form_response_set_fields_journey_tests = async () => {
+  log_header("Set Fields from Form Response - Journey Action")
+  
+  // Create test enduser
+  const enduser = await sdk.api.endusers.createOne({ email: "setfields-journey@tellescope.com" })
+  
+  // Create test form with a field that has an externalId
+  const form = await sdk.api.forms.createOne({ title: 'Set Fields Journey Test Form' })
+  const field = await sdk.api.form_fields.createOne({
+    formId: form.id,
+    type: 'string',
+    title: 'Response Field',
+    externalId: 'journey_external_id',
+    previousFields: [{ type: 'root', info: {} }]
+  })
+  
+  // Prepare and submit form response for journey test
+  const { accessCode } = await sdk.api.form_responses.prepare_form_response({
+    enduserId: enduser.id,
+    formId: form.id,
+  })
+  
+  const { formResponse } = await sdk.api.form_responses.submit_form_response({
+    accessCode,
+    responses: [{
+      fieldId: field.id,
+      fieldTitle: 'Response Field',
+      externalId: 'journey_external_id',
+      answer: {
+        type: 'string',
+        value: 'Journey Test Value',
+      }
+    }]
+  })
+
+  // Create an automated action for Journey Set Fields with form response context
+  const journey = await sdk.api.journeys.createOne({ title: 'Test Journey for Set Fields' })
+  await sdk.api.automated_actions.createOne({
+    action: {
+      type: 'setEnduserFields',
+      info: {
+        fields: [
+          { name: 'journey_form_value', value: "{{form_response.journey_external_id}}", type: 'Custom Value' },
+          { name: 'journey_static', value: "Journey Static", type: 'Custom Value' }
+        ]
+      }
+    },
+    enduserId: enduser.id,
+    automationStepId: PLACEHOLDER_ID,
+    journeyId: journey.id,
+    event: { type: 'onJourneyStart', info: { } },
+    status: 'active',
+    processAfter: Date.now(),
+    journeyContext: {
+      formResponseId: formResponse.id
+    }
+  })
+
+  // Poll for the automated action to be processed (up to 10 seconds)
+  await async_test(
+    "Set fields from form response template variables (journey action)",
+    () => pollForResults(
+      () => sdk.api.endusers.getOne(enduser.id),
+      e => e.fields?.journey_form_value === 'Journey Test Value' && e.fields?.journey_static === "Journey Static",
+      500, // 500ms interval
+      20   // 20 iterations = 10 seconds
+    ),
+    { 
+      onResult: e => 
+        e.fields?.journey_form_value === 'Journey Test Value'
+        && e.fields?.journey_static === "Journey Static"
+    }
+  )
+  
+  // Cleanup
+  return Promise.all([
+    sdk.api.endusers.deleteOne(enduser.id),
+    sdk.api.forms.deleteOne(form.id),
+    sdk.api.journeys.deleteOne(journey.id),
+  ])
+}
+
 const fields_changed_tests = async () => {
   log_header("Automation Trigger Tests (Fields Changed)")
 
@@ -4239,6 +4394,9 @@ const trigger_events_api_tests = async () => {
 const automation_trigger_tests = async () => {
   log_header("Automation Trigger Tests")
 
+  await form_response_set_fields_trigger_tests()
+  await form_response_set_fields_journey_tests()
+  await appointment_completed_trigger_tests({ sdk, sdkNonAdmin })
   await order_status_equals_tests()
   await trigger_events_api_tests()
   await fields_changed_tests()
@@ -8384,8 +8542,8 @@ const enduser_access_tags_tests = async () => {
   const matchTicket = await sdk.api.tickets.createOne({ enduserId: matchEnduser.id, title: ticketTitle })
   const dontMatchTicket = await sdk.api.tickets.createOne({ enduserId: dontMatchEnduser.id, title: ticketTitle })
 
-  // start with disabled setting an no tags on non-admin
-  await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: [] }, { replaceObjectFields: true })
+  // start with disabled setting an no tags on non-admin (include avatar here as a hack to avoid rate limiting with duplicated updates)
+  await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: [], avatar: '' }, { replaceObjectFields: true })
   await sdk.api.organizations.updateOne(sdkNonAdmin.userInfo.businessId, { 
     settings: { endusers: { enableAccessTags: false } }
   })
@@ -8512,9 +8670,10 @@ const enduser_access_tags_tests = async () => {
 
   // cleanup
   await sdk.api.organizations.updateOne(sdkNonAdmin.userInfo.businessId, { 
-    settings: { endusers: { enableAccessTags: false } }
+    settings: { endusers: { enableAccessTags: false } },
+    skills: ['avoid rate limit']
   })
-  await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: [] }, { replaceObjectFields: true })
+  await sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: [], DEA: 'avoid rate limit' }, { replaceObjectFields: true })
   await sdkNonAdmin.refresh_session()
   await Promise.all([
     sdk.api.endusers.deleteOne(matchEnduser.id),
@@ -12154,6 +12313,8 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await journey_error_branching_tests({ sdk, sdkNonAdmin })
+    await automation_trigger_tests()
     await inbox_thread_assignment_updates_tests({ sdk, sdkNonAdmin })
     await message_assignment_trigger_tests({ sdk })
     await inbox_threads_building_tests()
@@ -12174,7 +12335,6 @@ const ip_address_form_tests = async () => {
     await sync_tests() // should come directly after setup to avoid extra sync values
     await get_templated_message_tests()
     await updatedAt_tests()
-    await automation_trigger_tests()
     await file_source_tests()
     await enduser_access_tags_tests()
     await enduserAccessTests()

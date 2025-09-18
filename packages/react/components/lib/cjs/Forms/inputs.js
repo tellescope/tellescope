@@ -826,7 +826,7 @@ var MultipleChoiceInput = function (_a) {
 exports.MultipleChoiceInput = MultipleChoiceInput;
 var StripeInput = function (_a) {
     var _b, _d;
-    var field = _a.field, value = _a.value, onChange = _a.onChange, setCustomerId = _a.setCustomerId;
+    var field = _a.field, value = _a.value, onChange = _a.onChange, setCustomerId = _a.setCustomerId, enduserId = _a.enduserId;
     var session = (0, __1.useResolvedSession)();
     var _e = (0, react_1.useState)(''), clientSecret = _e[0], setClientSecret = _e[1];
     var _f = (0, react_1.useState)(''), businessName = _f[0], setBusinessName = _f[1];
@@ -844,7 +844,7 @@ var StripeInput = function (_a) {
             return setCustomerId(function (c) { var _a; return c ? c : (_a = session.userInfo) === null || _a === void 0 ? void 0 : _a.stripeCustomerId; }); // already paid or saved card
         }
         fetchRef.current = true;
-        session.api.form_responses.stripe_details({ fieldId: field.id })
+        session.api.form_responses.stripe_details({ fieldId: field.id, enduserId: enduserId })
             .then(function (_a) {
             var clientSecret = _a.clientSecret, publishableKey = _a.publishableKey, stripeAccount = _a.stripeAccount, businessName = _a.businessName, customerId = _a.customerId, isCheckout = _a.isCheckout, answerText = _a.answerText;
             setAnswertext(answerText || '');
@@ -860,7 +860,7 @@ var StripeInput = function (_a) {
                 setError(e.message);
             }
         });
-    }, [session, value, field.id]);
+    }, [session, value, field.id, enduserId]);
     var cost = ((((_b = field.options) === null || _b === void 0 ? void 0 : _b.productIds) || []).map(function (id) { return findProduct(id, { batch: false }); }) // seems to be having issues with bulk read
         .reduce(function (t, p) { var _a; return t + (((_a = p === null || p === void 0 ? void 0 : p.cost) === null || _a === void 0 ? void 0 : _a.amount) || 0); }, 0));
     if (error) {

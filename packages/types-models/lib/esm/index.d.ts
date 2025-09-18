@@ -362,6 +362,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     externalCalendarEventPlaceholderDescription?: string;
     customZoomEmailTemplate?: string;
     customZoomEmailSubject?: string;
+    customZoomSMSTemplate?: string;
     customVoicemailText?: string;
     hasConnectedOpenAI?: boolean;
     hasConnectedHealthie?: boolean;
@@ -1613,6 +1614,7 @@ export type FormFieldOptions = FormFieldValidation & {
     subFields?: FormSubField[];
     validFileTypes?: string[];
     maxFileSize?: number;
+    hideFromPortal?: boolean;
     signatureUrl?: string;
     productIds?: string[];
     chargeImmediately?: boolean;
@@ -1769,6 +1771,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
     htmlThanksMessage?: string;
     type?: FormType;
     scoring?: FormScoring[];
+    realTimeScoring?: boolean;
     externalId?: string;
     ga4measurementId?: string;
     backgroundColor?: string;
@@ -2610,6 +2613,8 @@ export interface AppointmentBookingPage extends AppointmentBookingPage_readonly,
     archivedAt?: Date | '';
     gtmTag?: string;
     dontRestrictRescheduleToOriginalHost?: boolean;
+    calendarTitleText?: string;
+    emailFieldBehavior?: "required" | "optional" | "hidden";
 }
 export interface CalendarEventRSVP_readonly extends ClientRecord {
     creatorType: SessionType;
@@ -2648,7 +2653,7 @@ export interface WebhookCall {
     integrity: string;
     description?: string;
 }
-export type AutomationEventType = 'onJourneyStart' | 'afterAction' | "formResponse" | "formResponses" | "formUnsubmitted" | "formsUnsubmitted" | "ticketCompleted" | 'waitForTrigger' | "onCallOutcome" | "onAIDecision";
+export type AutomationEventType = 'onJourneyStart' | 'afterAction' | "formResponse" | "formResponses" | "formUnsubmitted" | "formsUnsubmitted" | "ticketCompleted" | 'waitForTrigger' | "onCallOutcome" | "onAIDecision" | "onError";
 interface AutomationEventBuilder<T extends AutomationEventType, V extends object> {
     type: T;
     info: V;
@@ -2783,6 +2788,10 @@ export type OnAIDecisionAutomationEvent = AutomationEventBuilder<'onAIDecision',
     automationStepId: string;
     outcomes: string[];
 }>;
+export type OnErrorEventInfo = {
+    automationStepId: string;
+};
+export type OnErrorAutomationEvent = AutomationEventBuilder<'onError', OnErrorEventInfo>;
 export type AutomationEventForType = {
     'onJourneyStart': OnJourneyStartAutomationEvent;
     'afterAction': AfterActionAutomationEvent;
@@ -2794,6 +2803,7 @@ export type AutomationEventForType = {
     'waitForTrigger': WaitForTriggerAutomationEvent;
     'onCallOutcome': OnCallOutcomeAutomationEvent;
     'onAIDecision': OnAIDecisionAutomationEvent;
+    'onError': OnErrorAutomationEvent;
 };
 export type AutomationEvent = AutomationEventForType[keyof AutomationEventForType];
 export type SetEnduserStatusInfo = {
@@ -3044,6 +3054,7 @@ export type CallUserAutomationAction = AutomationActionBuilder<'callUser', {
 export type StripeChargeCardOnFileAutomationAction = AutomationActionBuilder<'stripeChargeCardOnFile', {
     stripeKey?: string;
     priceIds: string[];
+    productIds?: string[];
     subscriptionPriceId?: string;
 }>;
 export type AIContextSource = {
@@ -3195,9 +3206,18 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
     excludeFromVitalCountLookback?: boolean;
 }
 export type BlockType = 'h1' | 'h2' | 'html' | 'image' | 'youtube' | 'pdf' | 'iframe' | 'content-link';
+export type BlockStyle = {
+    width?: number;
+    height?: number;
+    backgroundColor?: string;
+    borderColor?: string;
+    borderWidth?: number;
+    textColor?: string;
+};
 export type ContentBlockBuilder<BLOCK extends BlockType, INFO extends object> = {
     type: BLOCK;
     info: INFO;
+    style?: BlockStyle;
 };
 export type BlockContentText = {
     text: string;
@@ -3205,6 +3225,7 @@ export type BlockContentText = {
 export type BlockContentMedia = {
     link: string;
     name?: string;
+    alt?: string;
     height?: number;
     maxHeight?: number;
     width?: number;
@@ -3300,6 +3321,10 @@ export type PortalBlockForType = {
     "Manage Subscription Button": BuildPortalBlockInfo<'Manage Subscription Button', {}>;
     HTML: BuildPortalBlockInfo<'HTML', {
         html: string;
+    }>;
+    pinnedForms: BuildPortalBlockInfo<'pinnedForms', {
+        title?: string;
+        formIds?: string[];
     }>;
 };
 export type PortalBlockType = keyof PortalBlockForType;
@@ -3555,6 +3580,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
     conferenceAttendees?: (string[]) | (string[][]);
     unread?: boolean;
     transcription?: string;
+    recordingTranscriptionData?: string;
     note?: string;
     userId?: string;
     pinnedAt?: Date | '';
@@ -4062,6 +4088,7 @@ export type AutomationTriggerActions = {
         tags?: ListOfStringsWithQualifier;
         maxUsers?: number;
     }>;
+    "Zendesk: Update Ticket Assignee": AutomationTriggerActionBuilder<'Zendesk: Update Ticket Assignee', {}>;
 };
 export type AutomationTriggerActionType = keyof AutomationTriggerActions;
 export type AutomationTriggerAction = AutomationTriggerActions[AutomationTriggerActionType];
@@ -5376,6 +5403,8 @@ export type JourneyContext = {
     fileId?: string;
     chatRoomId?: string;
     twilioNumber?: string;
+    ticketThreadId?: string;
+    ticketThreadCommentId?: string;
 };
 export declare const TIMEZONE_MAP: {
     readonly "Africa/Abidjan": "+00:00";

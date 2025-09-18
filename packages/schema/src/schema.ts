@@ -725,7 +725,7 @@ export type CustomActions = {
       response: FormResponse, 
     }>,
     stripe_details: CustomAction<
-      { fieldId: string }, 
+      { fieldId: string, enduserId?: string }, 
       { customerId: string, clientSecret: string, publishableKey: string, stripeAccount: string, businessName: string, answerText?: string, isCheckout?: boolean }
     >,
     chargebee_details: CustomAction<{ fieldId: string }, { url: string }>,
@@ -1268,17 +1268,17 @@ export type PublicActions = {
   calendar_events: {
     session_for_join_link: CustomAction<{ token: string }, { authToken: string, eventId: string }>,
     session_for_start_link: CustomAction<{ token: string }, { authToken: string, eventId: string }>,
-    session_for_public_appointment_booking: CustomAction<{ 
-      fname?: string, 
-      lname?: string, 
+    session_for_public_appointment_booking: CustomAction<{
+      fname?: string,
+      lname?: string,
       dateOfBirth?: string,
-      email: string, 
-      phone?: string, 
+      email?: string,
+      phone?: string,
       state?: string,
-      calendarEventTemplateId: string, 
+      calendarEventTemplateId: string,
       businessId: string,
       organizationIds?: string[]
-    }, { 
+    }, {
       authToken: string,
       stripe?: StripeCheckoutInfo,
     }>,
@@ -4472,6 +4472,7 @@ export const schema: SchemaV1 = build_schema({
       htmlThanksMessage: { validator: stringValidator5000EmptyOkay },
       type: { validator: formTypeValidator },
       scoring: { validator: formScoringValidator },
+      realTimeScoring: { validator: booleanValidator },
       externalId: { validator: stringValidator100 },
       ga4measurementId: { validator: stringValidator100 },
       backgroundColor: { validator: stringValidator100 },
@@ -4689,7 +4690,7 @@ export const schema: SchemaV1 = build_schema({
       calendarEventId: { validator: mongoIdStringValidator },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
       groupId: { validator: mongoIdStringValidator },
-      instanceId: { validator: stringValidator100 },
+      groupInstance: { validator: stringValidator100 },
       groupPosition: { validator: nonNegNumberValidator },
       hideAfterUnsubmittedInMS: { validator: numberValidator },
       addenda: { 
@@ -4735,7 +4736,7 @@ export const schema: SchemaV1 = build_schema({
           calendarEventId: { validator: mongoIdStringValidator },
           context: { validator: stringValidator1000 },
           groupId: { validator: mongoIdStringValidator },
-          instanceId: { validator: stringValidator100 },
+          groupInstance: { validator: stringValidator100 },
           groupPosition: { validator: nonNegNumberValidator },
         },
         returns: {
@@ -4835,8 +4836,9 @@ export const schema: SchemaV1 = build_schema({
         name: 'Stripe details for form field',
         path: '/form-responses/stripe-details',
         description: "Gets the relevant information for a Stripe field",
-        parameters: { 
+        parameters: {
           fieldId: { validator: mongoIdStringValidator, required: true },
+          enduserId: { validator: mongoIdStringValidator },
         },
         returns: {
           clientSecret: { validator: stringValidator, required: true },
@@ -5382,8 +5384,8 @@ export const schema: SchemaV1 = build_schema({
         path: '/session-for-public-appointment-booking',
         name: 'Generate Session for Public Appointment Booking',
         description: "Generates a session for booking an appointment",
-        parameters: { 
-          email: { validator: emailValidator, required: true },
+        parameters: {
+          email: { validator: emailValidator },
           calendarEventTemplateId: { validator: mongoIdStringValidator, required: true },
           businessId: { validator: mongoIdStringValidator, required: true }, // organizationIds can be pulled from the corresponding appointment
           dateOfBirth: { validator: stringValidator },
@@ -6705,6 +6707,7 @@ export const schema: SchemaV1 = build_schema({
       customAutoreplyMessage: { validator: stringValidator1000 },
       customZoomEmailTemplate: { validator: stringValidator5000 },
       customZoomEmailSubject: { validator: stringValidator1000 },
+      customZoomSMSTemplate: { validator: stringValidator1000 },
       altVitalTeamIds: { validator: listValidatorEmptyOk(objectValidator<{ teamId: string, label: string }>({
         teamId: stringValidator100,
         label: stringValidator100,
@@ -7097,6 +7100,8 @@ export const schema: SchemaV1 = build_schema({
       publicUserFilterTags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       appointmentSlotsMaxHeight: { validator: numberValidatorOptional },
       includeRelatedContactTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      calendarTitleText: { validator: stringValidator1000 },
+      emailFieldBehavior: { validator: exactMatchValidator<Required<AppointmentBookingPageClient>['emailFieldBehavior']>(['required', 'optional', 'hidden']) },
       // defer to template
       // productIds: { validator: listOfStringsValidator },
     }
@@ -7475,6 +7480,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       recordingDurationInSeconds: { validator: nonNegNumberValidator },
 
       transcription: { validator: stringValidator25000 },
+      recordingTranscriptionData: { validator: stringValidator25000 },
       note: { validator: stringValidator5000EmptyOkay },
       unread: { validator: booleanValidator },
 

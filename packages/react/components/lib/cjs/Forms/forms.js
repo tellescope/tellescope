@@ -219,7 +219,7 @@ var QuestionForField = function (_a) {
                                                         : field.type === 'Related Contacts' ? ((0, jsx_runtime_1.jsx)(RelatedContacts, { field: field, value: value.answer.value, onChange: onFieldChange, form: form }))
                                                             : field.type === 'string' ? ((0, jsx_runtime_1.jsx)(String, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form }))
                                                                 : field.type === 'Appointment Booking' ? ((0, jsx_runtime_1.jsx)(AppointmentBooking, { formResponseId: formResponseId, enduserId: enduserId, goToPreviousField: goToPreviousField, isPreviousDisabled: isPreviousDisabled, responses: responses, field: field, value: value.answer.value, onChange: onFieldChange, form: form }))
-                                                                    : field.type === 'Stripe' ? ((0, jsx_runtime_1.jsx)(Stripe, { field: field, value: value.answer.value, onChange: onFieldChange, setCustomerId: setCustomerId, form: form }))
+                                                                    : field.type === 'Stripe' ? ((0, jsx_runtime_1.jsx)(Stripe, { enduserId: enduserId, field: field, value: value.answer.value, onChange: onFieldChange, setCustomerId: setCustomerId, form: form }))
                                                                         : field.type === 'Chargebee' ? ((0, jsx_runtime_1.jsx)(Chargebee, { field: field, value: value.answer.value, onChange: onFieldChange, setCustomerId: setCustomerId, form: form }))
                                                                             : field.type === 'stringLong' ? ((0, jsx_runtime_1.jsx)(StringLong, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form }))
                                                                                 : field.type === 'Rich Text' ? ((0, jsx_runtime_1.jsx)(RichText, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form }))
@@ -347,6 +347,16 @@ var TellescopeSingleQuestionFlow = function (_a) {
         return function () { window.removeEventListener('keydown', handleKeyPress); };
     }, [handleKeyPress]);
     var numRemainingPages = getNumberOfRemainingPages();
+    // Calculate current score if real-time scoring is enabled
+    var currentScores = (0, react_1.useMemo)(function () {
+        var _a;
+        if (!(form === null || form === void 0 ? void 0 : form.realTimeScoring) || !((_a = form.scoring) === null || _a === void 0 ? void 0 : _a.length))
+            return null;
+        return (0, utilities_1.calculate_form_scoring)({
+            response: { responses: responses },
+            form: { scoring: form.scoring }
+        });
+    }, [form === null || form === void 0 ? void 0 : form.realTimeScoring, form === null || form === void 0 ? void 0 : form.scoring, responses]);
     if (!(currentValue && currentFileValue))
         return (0, jsx_runtime_1.jsx)(jsx_runtime_1.Fragment, {});
     return (submitted
@@ -364,7 +374,26 @@ var TellescopeSingleQuestionFlow = function (_a) {
                                 // @ts-ignore
                                 color: (_d = theme.themeColor) !== null && _d !== void 0 ? _d : constants_1.PRIMARY_HEX }))
                             : ((0, jsx_runtime_1.jsx)(index_1.Button, __assign({ variant: "contained", disabled: isNextDisabled(), onClick: function () { return goToNextField(undefined); }, style: __assign(__assign({}, inputs_1.defaultButtonStyles), { width: 100 }) }, { children: (0, index_1.form_display_text_for_language)(form, "Next") })))] })), !(customization === null || customization === void 0 ? void 0 : customization.hideProgressBar) &&
-                    (0, jsx_runtime_1.jsx)(inputs_1.Progress, { numerator: currentPageIndex + (validateCurrentField() ? 0 : 1), denominator: currentPageIndex + 1 + numRemainingPages, style: { marginTop: '15px' } }), (0, jsx_runtime_1.jsx)(index_1.Typography, __assign({ color: "error", style: { alignText: 'center', marginTop: 3 } }, { children: submitErrorMessage }))] }))));
+                    (0, jsx_runtime_1.jsx)(inputs_1.Progress, { numerator: currentPageIndex + (validateCurrentField() ? 0 : 1), denominator: currentPageIndex + 1 + numRemainingPages, style: { marginTop: '15px' } }), currentScores && currentScores.length > 0 && ((0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ style: { marginTop: 10, marginBottom: 5, width: '100%' } }, { children: currentScores.map(function (score, index) { return ((0, jsx_runtime_1.jsxs)(index_1.Flex, __assign({ style: {
+                            padding: '10px 14px',
+                            backgroundColor: '#f8f9fa',
+                            borderRadius: 8,
+                            border: "1px solid ".concat((theme === null || theme === void 0 ? void 0 : theme.themeColor) || constants_1.PRIMARY_HEX, "20"),
+                            marginRight: index < currentScores.length - 1 ? 12 : 0,
+                            minWidth: 120,
+                            flexDirection: 'column',
+                            alignItems: 'center'
+                        } }, { children: [(0, jsx_runtime_1.jsx)(index_1.Typography, __assign({ style: {
+                                    fontSize: 12,
+                                    fontWeight: 'medium',
+                                    textAlign: 'center',
+                                    lineHeight: 1.2,
+                                    marginBottom: 4
+                                } }, { children: score.title })), (0, jsx_runtime_1.jsx)(index_1.Typography, __assign({ style: {
+                                    fontWeight: 'bold',
+                                    color: (theme === null || theme === void 0 ? void 0 : theme.themeColor) || constants_1.PRIMARY_HEX,
+                                    fontSize: 18
+                                } }, { children: score.value }))] }), index)); }) }))), (0, jsx_runtime_1.jsx)(index_1.Typography, __assign({ color: "error", style: { alignText: 'center', marginTop: 3 } }, { children: submitErrorMessage }))] }))));
 };
 exports.TellescopeSingleQuestionFlow = TellescopeSingleQuestionFlow;
 exports.DEFAULT_THANKS_MESSAGE = "Your response was successfully recorded";

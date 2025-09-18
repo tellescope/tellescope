@@ -1,7 +1,7 @@
 /// <reference types="validator" />
 import { ObjectId } from "@tellescope/utilities";
 import { CUD as CUDType, CustomUpdateOptions, Indexable, JSONType } from "@tellescope/types-utilities";
-import { FilterType, CustomField, Preference, JourneyState, JourneyStatePriority, EmailEncoding, ChatRoomType, MessageTemplateType, MeetingStatus, SessionType, AttendeeInfo, MeetingInfo, CUDSubscription, FormField, AutomationEventType, FormResponseAutomationEvent, AutomationForMessage, AutomatedActionStatus, ChatAttachment, FormFieldType, FormResponseValue, MessageTemplateMode, AtJourneyStateAutomationCondition, ChatRoomUserInfo, RelatedRecord, SearchOptions, AfterActionAutomationEvent, OnJourneyStartAutomationEvent, UnitOfTime, FormUnsubmittedEvent, CancelCondition, FormSubmitCancellationConditionInfo, NotificationPreference, ObservationStatusCode, ObservationValue, TicketCompletedAutomationEvent, FormResponseValueAnswer, PreviousFormFieldAfter, PreviousFormFieldRoot, FormResponseAnswerEmail, FormResponseAnswerFile, FormResponseAnswerMultipleChoice, FormResponseAnswerNumber, FormResponseAnswerPhone, FormResponseAnswerString, FormResponseAnswerSignature, OrganizationTheme, ManagedContentRecordType, FlowchartUI, PreviousFormFieldEquals, IntegrationAuthentication, FormResponseAnswerRating, FormResponseAnswerDate, FormResponseAnswerRanking, FormFieldOptions, BlockType, BlockContentH1, BlockContentHTML, BlockContentImage, BlockContentYoutube, BlockContentH2, PortalSettings, BlockContentPDF, OrganizationAccess, CalendarEventReminderNotificationInfo, PortalPage, PortalBlockForType, EnduserTaskForEvent, EnduserFormResponseForEvent, StateCredentialInfo, BaseAvailabilityBlock, WeeklyAvailability, FormType, FormResponseAnswerStringLong, ManagedContentRecordAssignmentType, GenericAttachment, CommunicationsChannel, AccessPermissions, AccessForResource, AccessType, BlockContentIFrame, OrganizationLimits, OrganizationSettings, GenericQuantityWithUnit, CustomEnduserFields, FormResponseAnswerDateString, TellescopeGender, AppointmentTerm, PaymentProcessor, FormsUnsubmittedEvent, FormResponsesAutomationEvent, JourneyContext, AnalyticsQueryForType, DateRange, FormResponseAnswerGroup, FormResponseAnswerDescription, FormResponseAnswerTable, TableInputChoices, CalendarEventPortalSettings, IndexUpdate, FormResponseAnswerAddress, ListQueryQualifier, AutomationTriggerEvents, AutomationTriggerActions, AutomationTriggerStatus, EnduserBuiltInField, AnalyticsQueryResultValue, AnalyticsQueryRange, SuperbillPatientInfo, SuperbillLineItem, VideoIntegrationType, VALID_STATES, ScheduledJourney, FormScoring, UserCallRoutingBehavior, UserUIRestrictions, ExternalChatGPTMessage, FormResponseAnswerTime, Insurance, EnduserFieldSetter, PhoneTreeNode, Enduser, FormResponseAnswerStripe, PhoneTreeEnduserCondition, WaitForTriggerAutomationEvent, FormResponseAnswerDropdown, ListOfStringsWithQualifier, FormResponseAnswerFiles, FormResponseAnswerDatabaseSelect, FormResponseAnswerMedications, Language, TableViewColumn, FormFieldCalloutCondition, EnduserReportQuery, FormResponsesReportQuery, TicketSnooze, FormResponseAnswerRelatedContacts, PreviousFormCompoundLogic, GroupMMSMessage, GroupMMSUserState, ImageAttachment, SortingField, TicketReminder, EnduserInsurance, FormResponseAnswerInsurance, Diagnosis, FormResponseAnswerAppointmentBooking, CanvasCoding, VitalConfigurationRange, SenderAssignmentStrategy, SmartMeterOrderLineItem, FormFieldFeedback, CandidProcedureCode, BasicWebhook, SyncDirection, AthenaFieldSync, AthenaSubscription, FormResponseAnswerHeight, FormResponseAnswerRedirect, BlockContentLink, FormResponseAnswerHiddenValue, LabeledField, FieldMapping, AnalyticsFrameGroupingCategory, FormResponseAnswerEmotii, BookingRestrictions, EnduserDiagnosis, FormResponseAnswerAllergies, FormResponseAnswerConditions, FormResponseAnswerRichText, FormResponseAnswerChargebee, RecentViewer, OnCallOutcomeAutomationEvent, FormResponseAnswerTimezone, OutOfOfficeBlock, OnAIDecisionAutomationEvent, AIContextSource } from "@tellescope/types-models";
+import { FilterType, CustomField, Preference, JourneyState, JourneyStatePriority, EmailEncoding, ChatRoomType, MessageTemplateType, MeetingStatus, SessionType, AttendeeInfo, MeetingInfo, CUDSubscription, FormField, AutomationEventType, FormResponseAutomationEvent, AutomationForMessage, AutomatedActionStatus, ChatAttachment, FormFieldType, FormResponseValue, MessageTemplateMode, AtJourneyStateAutomationCondition, ChatRoomUserInfo, RelatedRecord, SearchOptions, AfterActionAutomationEvent, OnJourneyStartAutomationEvent, UnitOfTime, FormUnsubmittedEvent, CancelCondition, FormSubmitCancellationConditionInfo, NotificationPreference, ObservationStatusCode, ObservationValue, TicketCompletedAutomationEvent, FormResponseValueAnswer, PreviousFormFieldAfter, PreviousFormFieldRoot, FormResponseAnswerEmail, FormResponseAnswerFile, FormResponseAnswerMultipleChoice, FormResponseAnswerNumber, FormResponseAnswerPhone, FormResponseAnswerString, FormResponseAnswerSignature, OrganizationTheme, ManagedContentRecordType, FlowchartUI, PreviousFormFieldEquals, IntegrationAuthentication, FormResponseAnswerRating, FormResponseAnswerDate, FormResponseAnswerRanking, FormFieldOptions, BlockType, BlockContentH1, BlockContentHTML, BlockContentImage, BlockContentYoutube, BlockContentH2, PortalSettings, BlockContentPDF, OrganizationAccess, CalendarEventReminderNotificationInfo, PortalPage, PortalBlockForType, EnduserTaskForEvent, EnduserFormResponseForEvent, StateCredentialInfo, BaseAvailabilityBlock, WeeklyAvailability, FormType, FormResponseAnswerStringLong, ManagedContentRecordAssignmentType, GenericAttachment, CommunicationsChannel, AccessPermissions, AccessForResource, AccessType, BlockContentIFrame, OrganizationLimits, OrganizationSettings, GenericQuantityWithUnit, CustomEnduserFields, FormResponseAnswerDateString, TellescopeGender, AppointmentTerm, PaymentProcessor, FormsUnsubmittedEvent, FormResponsesAutomationEvent, JourneyContext, AnalyticsQueryForType, DateRange, FormResponseAnswerGroup, FormResponseAnswerDescription, FormResponseAnswerTable, TableInputChoices, CalendarEventPortalSettings, IndexUpdate, FormResponseAnswerAddress, ListQueryQualifier, AutomationTriggerEvents, AutomationTriggerActions, AutomationTriggerStatus, EnduserBuiltInField, AnalyticsQueryResultValue, AnalyticsQueryRange, SuperbillPatientInfo, SuperbillLineItem, VideoIntegrationType, VALID_STATES, ScheduledJourney, FormScoring, UserCallRoutingBehavior, UserUIRestrictions, ExternalChatGPTMessage, FormResponseAnswerTime, Insurance, EnduserFieldSetter, PhoneTreeNode, Enduser, FormResponseAnswerStripe, PhoneTreeEnduserCondition, WaitForTriggerAutomationEvent, FormResponseAnswerDropdown, ListOfStringsWithQualifier, FormResponseAnswerFiles, FormResponseAnswerDatabaseSelect, FormResponseAnswerMedications, Language, TableViewColumn, FormFieldCalloutCondition, EnduserReportQuery, FormResponsesReportQuery, TicketSnooze, FormResponseAnswerRelatedContacts, PreviousFormCompoundLogic, GroupMMSMessage, GroupMMSUserState, ImageAttachment, SortingField, TicketReminder, EnduserInsurance, FormResponseAnswerInsurance, Diagnosis, FormResponseAnswerAppointmentBooking, CanvasCoding, VitalConfigurationRange, SenderAssignmentStrategy, SmartMeterOrderLineItem, FormFieldFeedback, CandidProcedureCode, BasicWebhook, SyncDirection, AthenaFieldSync, AthenaSubscription, FormResponseAnswerHeight, FormResponseAnswerRedirect, BlockContentLink, FormResponseAnswerHiddenValue, LabeledField, FieldMapping, AnalyticsFrameGroupingCategory, FormResponseAnswerEmotii, BookingRestrictions, EnduserDiagnosis, FormResponseAnswerAllergies, FormResponseAnswerConditions, FormResponseAnswerRichText, FormResponseAnswerChargebee, RecentViewer, OnCallOutcomeAutomationEvent, FormResponseAnswerTimezone, OutOfOfficeBlock, OnAIDecisionAutomationEvent, OnErrorAutomationEvent, AIContextSource } from "@tellescope/types-models";
 import { UserDisplayInfo } from "@tellescope/types-client";
 export declare const isDate: typeof import("validator").isDate, isEmail: typeof import("validator/lib/isEmail").default, isMobilePhone: typeof import("validator").isMobilePhone, isSlug: typeof import("validator").isSlug, isMongoId: typeof import("validator").isMongoId, isMimeType: typeof import("validator").isMimeType, isURL: typeof import("validator/lib/isURL").default;
 import { ACTIVE_CAMPAIGN_TITLE, ATHENA_TITLE, CANDID_TITLE, CANVAS_TITLE, DEVELOP_HEALTH_TITLE, DOCSUMO_TITLE, DOSESPOT_TITLE, EMOTII_TITLE, FULLSCRIPT_INTEGRATIONS_TITLE, GOGO_MEDS_TITLE, MFAX_TITLE, OUTLOOK_INTEGRATIONS_TITLE, PAGER_DUTY_TITLE, SMART_METER_TITLE, SQUARE_INTEGRATIONS_TITLE, STRIPE_TITLE, ZENDESK_INTEGRATIONS_TITLE, ZOHO_TITLE, ZOOM_TITLE, ZUS_TITLE } from "@tellescope/constants";
@@ -715,6 +715,8 @@ export declare const automationEventValidator: ValidatorDefinition<(FormResponse
     type: "onCallOutcome";
 }) | (OnAIDecisionAutomationEvent & {
     type: "onAIDecision";
+}) | (OnErrorAutomationEvent & {
+    type: "onError";
 })>;
 export declare const automationEventsValidator: ValidatorDefinition<((FormResponseAutomationEvent & {
     type: "formResponse";
@@ -736,6 +738,8 @@ export declare const automationEventsValidator: ValidatorDefinition<((FormRespon
     type: "onCallOutcome";
 }) | (OnAIDecisionAutomationEvent & {
     type: "onAIDecision";
+}) | (OnErrorAutomationEvent & {
+    type: "onError";
 }))[]>;
 export declare const automationConditionValidator: ValidatorDefinition<AtJourneyStateAutomationCondition & {
     type: "atJourneyState";
@@ -867,6 +871,14 @@ export declare const tableInputChoiceValidator: ValidatorDefinition<import("@tel
 }>>;
 export declare const formFieldFeedbackValidator: ValidatorDefinition<FormFieldFeedback>;
 export declare const formFieldOptionsValidator: ValidatorDefinition<FormFieldOptions>;
+export declare const blockStyleValidator: ValidatorDefinition<{
+    width: unknown;
+    height: unknown;
+    backgroundColor: unknown;
+    borderColor: unknown;
+    borderWidth: unknown;
+    textColor: unknown;
+}>;
 export declare const blockValidator: ValidatorDefinition<(BlockContentH1 & {
     type: "h1";
 }) | (BlockContentH2 & {
@@ -1267,6 +1279,12 @@ export declare const portalBlockValidator: ValidatorDefinition<{
     info: {
         html: string;
     };
+} | {
+    type: "pinnedForms";
+    info: {
+        title?: string | undefined;
+        formIds?: string[] | undefined;
+    };
 }>;
 export declare const portalBlocksValidator: ValidatorDefinition<({
     type: "carePlan";
@@ -1302,6 +1320,12 @@ export declare const portalBlocksValidator: ValidatorDefinition<({
     type: "HTML";
     info: {
         html: string;
+    };
+} | {
+    type: "pinnedForms";
+    info: {
+        title?: string | undefined;
+        formIds?: string[] | undefined;
     };
 })[]>;
 export declare const PORTAL_BLOCK_TYPES: (keyof PortalBlockForType)[];
@@ -1674,7 +1698,7 @@ export declare const automationTriggerActionValidator: ValidatorDefinition<impor
     careTeamOnly?: boolean | undefined;
     tags?: ListOfStringsWithQualifier | undefined;
     maxUsers?: number | undefined;
-}>>;
+}> | import("@tellescope/types-models").AutomationTriggerActionBuilder<"Zendesk: Update Ticket Assignee", {}>>;
 export declare const AUTOMATION_TRIGGER_STATUSES: AutomationTriggerStatus[];
 export declare const automatioNTriggerStatusValidator: ValidatorDefinition<AutomationTriggerStatus>;
 export declare const EMBEDDING_TYPES: "text-embedding-ada-002"[];

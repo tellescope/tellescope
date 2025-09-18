@@ -71,7 +71,7 @@ import { Button, CircularProgress, Flex, LoadingButton, Modal, Paper, Typography
 import { useListForFormFields, useOrganizationTheme, WithOrganizationTheme } from "./hooks";
 import { AddressInput, AllergiesInput, AppointmentBookingInput, ChargeebeeInput, ConditionsInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, RichTextInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, TimezoneInput, defaultButtonStyles } from "./inputs";
 import { PRIMARY_HEX } from "@tellescope/constants";
-import { field_can_autosubmit, form_response_value_to_string, formatted_date, object_is_empty, objects_equivalent, read_local_storage, remove_script_tags, responses_satisfy_conditions, truncate_string } from "@tellescope/utilities";
+import { calculate_form_scoring, field_can_autosubmit, form_response_value_to_string, formatted_date, object_is_empty, objects_equivalent, read_local_storage, remove_script_tags, responses_satisfy_conditions, truncate_string } from "@tellescope/utilities";
 import { Divider } from "@mui/material";
 export var TellescopeFormContainer = function (_a) {
     var businessId = _a.businessId, organizationIds = _a.organizationIds, props = __rest(_a, ["businessId", "organizationIds"]);
@@ -191,7 +191,7 @@ export var QuestionForField = function (_a) {
                                                         : field.type === 'Related Contacts' ? (_jsx(RelatedContacts, { field: field, value: value.answer.value, onChange: onFieldChange, form: form }))
                                                             : field.type === 'string' ? (_jsx(String, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form }))
                                                                 : field.type === 'Appointment Booking' ? (_jsx(AppointmentBooking, { formResponseId: formResponseId, enduserId: enduserId, goToPreviousField: goToPreviousField, isPreviousDisabled: isPreviousDisabled, responses: responses, field: field, value: value.answer.value, onChange: onFieldChange, form: form }))
-                                                                    : field.type === 'Stripe' ? (_jsx(Stripe, { field: field, value: value.answer.value, onChange: onFieldChange, setCustomerId: setCustomerId, form: form }))
+                                                                    : field.type === 'Stripe' ? (_jsx(Stripe, { enduserId: enduserId, field: field, value: value.answer.value, onChange: onFieldChange, setCustomerId: setCustomerId, form: form }))
                                                                         : field.type === 'Chargebee' ? (_jsx(Chargebee, { field: field, value: value.answer.value, onChange: onFieldChange, setCustomerId: setCustomerId, form: form }))
                                                                             : field.type === 'stringLong' ? (_jsx(StringLong, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form }))
                                                                                 : field.type === 'Rich Text' ? (_jsx(RichText, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form }))
@@ -318,6 +318,16 @@ export var TellescopeSingleQuestionFlow = function (_a) {
         return function () { window.removeEventListener('keydown', handleKeyPress); };
     }, [handleKeyPress]);
     var numRemainingPages = getNumberOfRemainingPages();
+    // Calculate current score if real-time scoring is enabled
+    var currentScores = useMemo(function () {
+        var _a;
+        if (!(form === null || form === void 0 ? void 0 : form.realTimeScoring) || !((_a = form.scoring) === null || _a === void 0 ? void 0 : _a.length))
+            return null;
+        return calculate_form_scoring({
+            response: { responses: responses },
+            form: { scoring: form.scoring }
+        });
+    }, [form === null || form === void 0 ? void 0 : form.realTimeScoring, form === null || form === void 0 ? void 0 : form.scoring, responses]);
     if (!(currentValue && currentFileValue))
         return _jsx(_Fragment, {});
     return (submitted
@@ -335,7 +345,26 @@ export var TellescopeSingleQuestionFlow = function (_a) {
                                 // @ts-ignore
                                 color: (_d = theme.themeColor) !== null && _d !== void 0 ? _d : PRIMARY_HEX }))
                             : (_jsx(Button, __assign({ variant: "contained", disabled: isNextDisabled(), onClick: function () { return goToNextField(undefined); }, style: __assign(__assign({}, defaultButtonStyles), { width: 100 }) }, { children: form_display_text_for_language(form, "Next") })))] })), !(customization === null || customization === void 0 ? void 0 : customization.hideProgressBar) &&
-                    _jsx(Progress, { numerator: currentPageIndex + (validateCurrentField() ? 0 : 1), denominator: currentPageIndex + 1 + numRemainingPages, style: { marginTop: '15px' } }), _jsx(Typography, __assign({ color: "error", style: { alignText: 'center', marginTop: 3 } }, { children: submitErrorMessage }))] }))));
+                    _jsx(Progress, { numerator: currentPageIndex + (validateCurrentField() ? 0 : 1), denominator: currentPageIndex + 1 + numRemainingPages, style: { marginTop: '15px' } }), currentScores && currentScores.length > 0 && (_jsx(Flex, __assign({ style: { marginTop: 10, marginBottom: 5, width: '100%' } }, { children: currentScores.map(function (score, index) { return (_jsxs(Flex, __assign({ style: {
+                            padding: '10px 14px',
+                            backgroundColor: '#f8f9fa',
+                            borderRadius: 8,
+                            border: "1px solid ".concat((theme === null || theme === void 0 ? void 0 : theme.themeColor) || PRIMARY_HEX, "20"),
+                            marginRight: index < currentScores.length - 1 ? 12 : 0,
+                            minWidth: 120,
+                            flexDirection: 'column',
+                            alignItems: 'center'
+                        } }, { children: [_jsx(Typography, __assign({ style: {
+                                    fontSize: 12,
+                                    fontWeight: 'medium',
+                                    textAlign: 'center',
+                                    lineHeight: 1.2,
+                                    marginBottom: 4
+                                } }, { children: score.title })), _jsx(Typography, __assign({ style: {
+                                    fontWeight: 'bold',
+                                    color: (theme === null || theme === void 0 ? void 0 : theme.themeColor) || PRIMARY_HEX,
+                                    fontSize: 18
+                                } }, { children: score.value }))] }), index)); }) }))), _jsx(Typography, __assign({ color: "error", style: { alignText: 'center', marginTop: 3 } }, { children: submitErrorMessage }))] }))));
 };
 export var DEFAULT_THANKS_MESSAGE = "Your response was successfully recorded";
 export var ThanksMessage = function (_a) {

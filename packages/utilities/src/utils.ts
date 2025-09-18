@@ -401,6 +401,33 @@ export const remove_script_tags = (s: string) => s.replace(/<script[\s\S]*?>[\s\
 export const remove_style_tags = (s: string) => s.replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, '')
 export const remove_image_tags = (s: string) => s.replace(/<img[\s\S]*?>/gi, '')
 
+// Sanitizes HTML to allow safe hyperlinks and basic text formatting while removing potentially harmful tags
+export const sanitize_html_with_links = (html: string) =>
+  sanitizeHtml(html, {
+    allowedTags: ['a', 'strong', 'b', 'em', 'i', 'u', 'br', 'p'],
+    allowedAttributes: {
+      'a': ['href', 'target', 'rel']
+    },
+    // Automatically add security attributes to external links
+    transformTags: {
+      'a': (tagName, attribs) => {
+        const href = attribs.href || '';
+        // Add target="_blank" and security attributes for external links
+        if (href.startsWith('http://') || href.startsWith('https://')) {
+          return {
+            tagName,
+            attribs: {
+              ...attribs,
+              target: '_blank',
+              rel: 'noopener noreferrer'
+            }
+          };
+        }
+        return { tagName, attribs };
+      }
+    }
+  })
+
 export const query_string_for_object = (query: Indexable) => {
   let queryString = ''
 
@@ -826,15 +853,25 @@ export const age_for_dob_mmddyyyy = (mmddyyyy: string) => {
 
 export const get_enduser_field_value_for_key = (enduser: Omit<Enduser, 'id'>, key: string) => {
   if (key === 'insurance.payerName') return enduser?.insurance?.payerName
-  if (key === 'insuranceSecondary.payerName') return enduser?.insuranceSecondary?.payerName
-  if (key === 'insurance.relationship') return enduser?.insurance?.relationship
-  if (key === 'insuranceSecondary.relationship') return enduser?.insuranceSecondary?.relationship
-  if (key === 'insurance.payerId') return enduser?.insurance?.payerId
-  if (key === 'insuranceSecondary.payerId') return enduser?.insuranceSecondary?.payerId
   if (key === 'insurance.memberId') return enduser?.insurance?.memberId
-  if (key === 'insuranceSecondary.memberId') return enduser?.insuranceSecondary?.memberId
+  if (key === 'insurance.payerId') return enduser?.insurance?.payerId
   if (key === 'insurance.groupNumber') return enduser?.insurance?.groupNumber
+  if (key === 'insurance.planName') return enduser?.insurance?.planName
+  if (key === 'insurance.relationship') return enduser?.insurance?.relationship
+  if (key === 'insurance.eligibility') return enduser?.insurance?.eligibility
+  if (key === 'insurance.status') return enduser?.insurance?.status
+  if (key === 'insurance.payerType') return enduser?.insurance?.payerType
+  if (key === 'insurance.startDate') return enduser?.insurance?.startDate
+  if (key === 'insuranceSecondary.payerName') return enduser?.insuranceSecondary?.payerName
+  if (key === 'insuranceSecondary.memberId') return enduser?.insuranceSecondary?.memberId
+  if (key === 'insuranceSecondary.payerId') return enduser?.insuranceSecondary?.payerId
   if (key === 'insuranceSecondary.groupNumber') return enduser?.insuranceSecondary?.groupNumber
+  if (key === 'insuranceSecondary.planName') return enduser?.insuranceSecondary?.planName
+  if (key === 'insuranceSecondary.relationship') return enduser?.insuranceSecondary?.relationship
+  if (key === 'insuranceSecondary.eligibility') return enduser?.insuranceSecondary?.eligibility
+  if (key === 'insuranceSecondary.status') return enduser?.insuranceSecondary?.status
+  if (key === 'insuranceSecondary.payerType') return enduser?.insuranceSecondary?.payerType
+  if (key === 'insuranceSecondary.startDate') return enduser?.insuranceSecondary?.startDate
   if (key === 'insurance.relationshipDetails') {
     try {
       return JSON.stringify(enduser?.insurance?.relationshipDetails ?? {})
@@ -2760,3 +2797,39 @@ export const replace_snippet_template_values = (s: string, snippets?: { key: str
 export const resolve_integration_id = (e: Pick<Enduser, 'references' | 'source' | 'externalId'>, integrationTitle: string) => (
   (e?.source === integrationTitle && e.externalId) ? e.externalId : e.references?.find(r => r.type === integrationTitle)?.id
 )
+
+// Replace form_response template variables with their values from form responses
+export const replace_form_response_template_values = (s: string, formResponse?: Pick<FormResponse, 'responses'> | null) => {
+  if (!formResponse?.responses?.length) return s
+  if (typeof s !== 'string') return s // e.g. Date value
+
+  let result = s
+
+  // Handle {{form_response.externalId}} template variables
+  result = replacer('{{form_response.', result, (match) => {
+    const templateMatch = match.match(/\{\{form_response\.([^}]+)\}\}/)
+    if (!templateMatch) return match
+
+    const externalId = templateMatch[1]
+    const responseValue = formResponse.responses?.find(r => r.externalId === externalId)
+    if (!responseValue) return match
+
+    // Extract the string value from the response
+    let stringValue = ''
+    if (typeof responseValue.answer.value === 'string') {
+      stringValue = responseValue.answer.value
+    } else if (typeof responseValue.answer.value === 'number') {
+      stringValue = responseValue.answer.value.toString()
+    } else if (Array.isArray(responseValue.answer.value)) {
+      // For multiple choice, dropdown, etc., join with commas
+      stringValue = responseValue.answer.value.join(', ')
+    } else if (responseValue.answer.value && typeof responseValue.answer.value === 'object') {
+      // For complex objects, stringify them
+      stringValue = JSON.stringify(responseValue.answer.value)
+    }
+    
+    return stringValue
+  })
+
+  return result
+}

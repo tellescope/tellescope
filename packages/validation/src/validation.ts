@@ -330,6 +330,8 @@ import {
   AIDecisionAutomationAction,
   AssignInboxItemAutomationAction,
   OnAIDecisionAutomationEvent,
+  OnErrorEventInfo,
+  OnErrorAutomationEvent,
   AIContextSource,
 } from "@tellescope/types-models"
 import {
@@ -2447,6 +2449,7 @@ const _AUTOMATION_EVENTS: { [K in AutomationEventType]: any } = {
   waitForTrigger: '',
   onCallOutcome: '',
   onAIDecision: '',
+  onError: '',
 }
 export const AUTOMATION_EVENTS = Object.keys(_AUTOMATION_EVENTS) as AutomationEventType[]
 export const automationEventTypeValidator = exactMatchValidator<AutomationEventType>(AUTOMATION_EVENTS)
@@ -2696,9 +2699,15 @@ export const automationEventValidator = orValidator<{ [K in AutomationEventType]
   }),
   onAIDecision: objectValidator<OnAIDecisionAutomationEvent>({
     type: exactMatchValidator(['onAIDecision']),
-    info: objectValidator<OnAIDecisionAutomationEvent['info']>({ 
-      automationStepId: mongoIdStringRequired, 
+    info: objectValidator<OnAIDecisionAutomationEvent['info']>({
+      automationStepId: mongoIdStringRequired,
       outcomes: listOfStringsValidator,
+    }, { emptyOk: false }),
+  }),
+  onError: objectValidator<OnErrorAutomationEvent>({
+    type: exactMatchValidator(['onError']),
+    info: objectValidator<OnErrorEventInfo>({
+      automationStepId: mongoIdStringRequired,
     }, { emptyOk: false }),
   }),
 })
@@ -3279,9 +3288,10 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
   stripeChargeCardOnFile: objectValidator<StripeChargeCardOnFileAutomationAction>({
     ...sharedAutomationActionValidators,
     type: exactMatchValidator(['stripeChargeCardOnFile']),
-    info: objectValidator<StripeChargeCardOnFileAutomationAction['info']>({ 
+    info: objectValidator<StripeChargeCardOnFileAutomationAction['info']>({
       stripeKey: stringValidatorOptionalEmptyOkay,
       priceIds: listOfStringsValidatorEmptyOk,
+      productIds: listOfStringsValidatorOptionalOrEmptyOk,
       subscriptionPriceId: stringValidatorOptionalEmptyOkay,
     }, { emptyOk: false }) // at least tags is required
   }),
@@ -3330,6 +3340,8 @@ export const journeyContextValidator = objectValidator<JourneyContext>({
   fileId: mongoIdStringOptional,
   chatRoomId: mongoIdStringOptional,
   twilioNumber: stringValidatorOptionalEmptyOkay,
+  ticketThreadId: mongoIdStringOptional,
+  ticketThreadCommentId: mongoIdStringOptional,
 })
 
 export const relatedRecordValidator = objectValidator<RelatedRecord>({
@@ -3583,6 +3595,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   })),
   validFileTypes: listOfStringsValidatorOptionalOrEmptyOk,
   maxFileSize: numberValidatorOptional,
+  hideFromPortal: booleanValidatorOptional,
   productIds: listOfStringsValidatorOptionalOrEmptyOk,
   chargeImmediately: booleanValidatorOptional,
   signatureUrl: stringValidator5000Optional,
@@ -3656,74 +3669,95 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   allowAddToDatabase: booleanValidatorOptional,
 })
 
+export const blockStyleValidator = objectValidator({
+  width: numberValidatorOptional,
+  height: numberValidatorOptional,
+  backgroundColor: stringValidatorOptional,
+  borderColor: stringValidatorOptional,
+  borderWidth: numberValidatorOptional,
+  textColor: stringValidatorOptional,
+}, { isOptional: true, emptyOk: true })
+
 export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K } } >({
   h1: objectValidator<BlockContentH1>({
     type: exactMatchValidator(['h1']),
     info: objectValidator<BlockContentH1['info']>({
       text: stringValidator5000EmptyOkay,
     }),
+    style: blockStyleValidator,
   }),
   h2: objectValidator<BlockContentH2>({
     type: exactMatchValidator(['h2']),
     info: objectValidator<BlockContentH1['info']>({
       text: stringValidator5000EmptyOkay,
     }),
+    style: blockStyleValidator,
   }),
   html: objectValidator<BlockContentHTML>({
     type: exactMatchValidator(['html']),
     info: objectValidator<BlockContentHTML['info']>({
       html: stringValidator25000EmptyOkay,
     }),
+    style: blockStyleValidator,
   }),
   image: objectValidator<BlockContentImage>({
     type: exactMatchValidator(['image']),
     info: objectValidator<BlockContentImage['info']>({
       link: stringValidator5000EmptyOkay,
       name: stringValidatorOptional,
+      alt: stringValidatorOptional,
       height: numberValidatorOptional,
       maxHeight: numberValidatorOptional,
       width: numberValidatorOptional,
       maxWidth: numberValidatorOptional,
     }),
+    style: blockStyleValidator,
   }),
   pdf: objectValidator<BlockContentPDF>({
     type: exactMatchValidator(['pdf']),
     info: objectValidator<BlockContentPDF['info']>({
       link: stringValidator5000EmptyOkay,
       name: stringValidatorOptional,
+      alt: stringValidatorOptional,
       height: numberValidatorOptional,
       maxHeight: numberValidatorOptional,
       width: numberValidatorOptional,
       maxWidth: numberValidatorOptional,
     }),
+    style: blockStyleValidator,
   }),
   youtube: objectValidator<BlockContentYoutube>({
     type: exactMatchValidator(['youtube']),
     info: objectValidator<BlockContentYoutube['info']>({
       link: stringValidator5000EmptyOkay,
       name: stringValidatorOptional,
+      alt: stringValidatorOptional,
       height: numberValidatorOptional,
       maxHeight: numberValidatorOptional,
       width: numberValidatorOptional,
       maxWidth: numberValidatorOptional,
     }),
+    style: blockStyleValidator,
   }),
   iframe: objectValidator<BlockContentIFrame>({
     type: exactMatchValidator(['iframe']),
     info: objectValidator<BlockContentIFrame['info']>({
       link: stringValidator5000EmptyOkay,
       name: stringValidatorOptional,
+      alt: stringValidatorOptional,
       height: numberValidatorOptional,
       maxHeight: numberValidatorOptional,
       width: numberValidatorOptional,
       maxWidth: numberValidatorOptional,
     }),
+    style: blockStyleValidator,
   }),
   "content-link": objectValidator<BlockContentLink>({
     type: exactMatchValidator(["content-link"]),
     info: objectValidator<BlockContentLink['info']>({
       recordId: mongoIdStringRequired,
     }),
+    style: blockStyleValidator,
   }),
 })
 
@@ -4027,6 +4061,13 @@ export const portalBlockValidator = orValidator<{ [K in PortalBlockType]: Portal
     info: objectValidator<PortalBlockForType['HTML']['info']>({
       html: stringValidator5000,
     })
+  }),
+  pinnedForms: objectValidator<PortalBlockForType['pinnedForms']>({
+    type: exactMatchValidator(['pinnedForms']),
+    info: objectValidator<PortalBlockForType['pinnedForms']['info']>({
+      title: stringValidatorOptional,
+      formIds: listOfMongoIdStringValidatorEmptyOk,
+    })
   }), 
 })
 export const portalBlocksValidator = listValidatorEmptyOk(portalBlockValidator)
@@ -4041,6 +4082,7 @@ const _PORTAL_BLOCK_TYPES: { [K in PortalBlockType]: any } = {
   "Manage Subscription Button": '',
   Orders: '',
   HTML: '',
+  pinnedForms: '',
 }
 export const PORTAL_BLOCK_TYPES = Object.keys(_PORTAL_BLOCK_TYPES) as PortalBlockType[]
 export const portalTypeValidator = exactMatchValidator<PortalBlockType>(PORTAL_BLOCK_TYPES)
@@ -4758,6 +4800,7 @@ const _AUTOMATION_TRIGGER_ACTION_TYPES: { [K in AutomationTriggerActionType]: an
   "Reply to Chat": true,
   "Create User Notifications": true,
   "Assign to Incoming Message": true,
+  "Zendesk: Update Ticket Assignee": true,
 }
 export const AUTOMATION_TRIGGER_ACTION_TYPES = Object.keys(_AUTOMATION_TRIGGER_ACTION_TYPES) as AutomationTriggerActionType[]
 
@@ -4878,6 +4921,11 @@ export const automationTriggerActionValidator = orValidator<{ [K in AutomationTr
       careTeamOnly: booleanValidatorOptional,
       tags: listOfStringsWithQualifierValidatorOptional,
       maxUsers: numberValidatorOptional,
+    }),
+  }),
+  "Zendesk: Update Ticket Assignee": objectValidator<AutomationTriggerActions["Zendesk: Update Ticket Assignee"]>({
+    type: exactMatchValidator(['Zendesk: Update Ticket Assignee']),
+    info: objectValidator<AutomationTriggerActions['Zendesk: Update Ticket Assignee']['info']>({
     }),
   }),
 })

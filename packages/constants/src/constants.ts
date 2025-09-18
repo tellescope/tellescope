@@ -38,6 +38,33 @@ export const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
   termsVersion: "Terms Version",
 } satisfies { [K in keyof Enduser]?: string }
 
+// Extended field mappings that include dotted notation for nested fields
+export const ENDUSER_FIELDS_WITH_NESTED_PATHS_DISPLAY_NAME = {
+  ...ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME,
+  // Insurance Primary fields
+  'insurance.payerName': 'Insurance Primary - Payer Name',
+  'insurance.memberId': 'Insurance Primary - Member ID',
+  'insurance.payerId': 'Insurance Primary - Payer ID',
+  'insurance.groupNumber': 'Insurance Primary - Group Number',
+  'insurance.planName': 'Insurance Primary - Plan Name',
+  'insurance.relationship': 'Insurance Primary - Relationship',
+  'insurance.eligibility': 'Insurance Primary - Eligibility',
+  'insurance.status': 'Insurance Primary - Status',
+  'insurance.payerType': 'Insurance Primary - Payer Type',
+  'insurance.startDate': 'Insurance Primary - Start Date',
+  // Insurance Secondary fields
+  'insuranceSecondary.payerName': 'Insurance Secondary - Payer Name',
+  'insuranceSecondary.memberId': 'Insurance Secondary - Member ID',
+  'insuranceSecondary.payerId': 'Insurance Secondary - Payer ID',
+  'insuranceSecondary.groupNumber': 'Insurance Secondary - Group Number',
+  'insuranceSecondary.planName': 'Insurance Secondary - Plan Name',
+  'insuranceSecondary.relationship': 'Insurance Secondary - Relationship',
+  'insuranceSecondary.eligibility': 'Insurance Secondary - Eligibility',
+  'insuranceSecondary.status': 'Insurance Secondary - Status',
+  'insuranceSecondary.payerType': 'Insurance Secondary - Payer Type',
+  'insuranceSecondary.startDate': 'Insurance Secondary - Start Date',
+} as const
+
 export const READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
   recentFormSubmittedAt: "Recent Form Submitted At",
   recentEventBookedAt: "Recent Event Booked At", 

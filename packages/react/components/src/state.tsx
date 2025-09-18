@@ -887,32 +887,29 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     // prevent frequent refetches 
     if (value && options?.reload && didFetch('findById' + modelName + id, true)) return value
 
-    if (options?.reload || (value === undefined && !didFetch('findById' + modelName + id))) {
-      setFetched('findById' + modelName + id, true) // prevent multiple API calls
-
-      if (options?.batch) {
-        // ensure duplicate ids are not provided
-        if (!batchRef.current.nextBatch.includes(id.toString()) && !batchRef.current.ids.includes(id.toString())) {
-          if (batchRef.current.fetching) {
-            batchRef.current.nextBatch.push(id.toString()) // fetch in next batch if currently fetching
-          } else {
-            batchRef.current.ids.push(id.toString())
-          }
+    // Handle batch requests separately - always allow queueing for batch
+    if (options?.batch) {
+      if (!batchRef.current.nextBatch.includes(id.toString()) && !batchRef.current.ids.includes(id.toString())) {
+        if (batchRef.current.fetching) {
+          batchRef.current.nextBatch.push(id.toString()) // fetch in next batch if currently fetching
+        } else {
+          batchRef.current.ids.push(id.toString())
         }
-      } else {
-        findOne?.(id.toString())
-        .then(found => {
-          // prevent unnecessary re-renders by calling addLocalElement, when the exact value already exists
-          const existingUnchanged = value_is_loaded(state) && state.value.find(v => v.id === id && objects_equivalent(v, found))
-          if (existingUnchanged) return
-
-          addLocalElement(found, { replaceIfMatch: true })
-        })
-        .catch(e => {
-          setFetched('recordNotFound' + modelName + id, true) // mark record not found for id
-          console.error(e) 
-        })
       }
+    } else if (options?.reload || (value === undefined && !didFetch('findById' + modelName + id))) {
+      setFetched('findById' + modelName + id, true) // prevent multiple API calls
+      findOne?.(id.toString())
+      .then(found => {
+        // prevent unnecessary re-renders by calling addLocalElement, when the exact value already exists
+        const existingUnchanged = value_is_loaded(state) && state.value.find(v => v.id === id && objects_equivalent(v, found))
+        if (existingUnchanged) return
+
+        addLocalElement(found, { replaceIfMatch: true })
+      })
+      .catch(e => {
+        setFetched('recordNotFound' + modelName + id, true) // mark record not found for id
+        console.error(e)
+      })
     }
 
     return value
@@ -931,30 +928,61 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
       }
 
       batchRef.current.fetching = true
+      const currentBatchIds = batchRef.current.ids.slice(0, BULK_READ_DEFAULT_LIMIT)
+
+      // Filter out IDs that are already loaded to prevent unnecessary fetching
+      const idsToFetch = currentBatchIds.filter(id => {
+        const alreadyLoaded = state.status === LoadingStatus.Loaded &&
+          state.value.find(v => v.id.toString() === id.toString())
+        return !alreadyLoaded
+      })
+
+      // Only make API call if there are actually IDs to fetch
+      if (idsToFetch.length === 0) {
+        // Mark all IDs as processed even though they were already loaded
+        currentBatchIds.forEach(id => {
+          setFetched('findById' + modelName + id, true)
+        })
+
+        // Continue to next batch
+        batchRef.current.ids = batchRef.current.nextBatch
+        batchRef.current.nextBatch = []
+        batchRef.current.fetching = false
+        return
+      }
+
       findByIds({
-        ids: batchRef.current.ids.slice(0, BULK_READ_DEFAULT_LIMIT), // ensure limited to 1000 entries
+        ids: idsToFetch,
       })
       .then(({ matches }) => {
-        if (matches.length) { 
+        if (matches.length) {
           addLocalElements(matches, { replaceIfMatch: true })
-          options?.onBulkRead?.(matches) 
+          options?.onBulkRead?.(matches)
         }
+        // Mark all fetched IDs as complete (both successful and failed)
+        currentBatchIds.forEach(id => {
+          setFetched('findById' + modelName + id, true)
+        })
       })
       .catch(err => {
         console.error(err)
+        // Mark failed IDs as not found
+        currentBatchIds.forEach(id => {
+          setFetched('recordNotFound' + modelName + id, true)
+        })
       })
       .finally(() => {
         // ensure we make progress to prevent looping on an error
         batchRef.current.ids = batchRef.current.nextBatch
         batchRef.current.nextBatch = []
-        
+
         // allow next fetch
         batchRef.current.fetching = false
       })
     }, 333)
 
     return () => { clearInterval(i) }
-  }, [findByIds, addLocalElements, options?.onBulkRead])
+  }, [findByIds, addLocalElements, options?.onBulkRead, setFetched, modelName])
 
   const findByFilter: ListUpdateMethods<T, ADD>['findByFilter'] = useCallback((filter, options) => {
     const loadFilter = options?.loadFilter

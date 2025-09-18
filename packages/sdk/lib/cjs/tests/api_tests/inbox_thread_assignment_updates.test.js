@@ -65,7 +65,8 @@ var inbox_thread_assignment_updates_tests = function (_a) {
                     return [4 /*yield*/, sdk.api.users.createOne({
                             fname: "Test",
                             lname: "User",
-                            email: "test-inbox-assignment-".concat(timestamp, "@test.com")
+                            email: "test-inbox-assignment-".concat(timestamp, "@test.com"),
+                            notificationEmailsDisabled: true
                         })];
                 case 1:
                     testUser = _b.sent();

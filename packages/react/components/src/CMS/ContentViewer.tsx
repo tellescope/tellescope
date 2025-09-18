@@ -117,6 +117,28 @@ export const correct_youtube_link_for_embed = (link: string) => {
   return link.replace('/watch?v=', '/embed/').split('&')[0]
 }
 
+const blockStyleToCSS = (style?: any): React.CSSProperties => {
+  if (!style) return {}
+
+  const cssStyle: React.CSSProperties = {}
+
+  if (style.width) cssStyle.width = `${style.width}px`
+  if (style.height) cssStyle.height = `${style.height}px`
+  if (style.backgroundColor) cssStyle.backgroundColor = style.backgroundColor
+  if (style.textColor) cssStyle.color = style.textColor
+  if (style.borderColor || style.borderWidth) {
+    cssStyle.border = `${style.borderWidth || 1}px solid ${style.borderColor || '#cccccc'}`
+  }
+
+  // Add default styling when any box style is applied
+  if (Object.keys(cssStyle).length > 0) {
+    cssStyle.padding = cssStyle.padding || '10px'
+    cssStyle.display = cssStyle.display || 'inline-block'
+  }
+
+  return cssStyle
+}
+
 export const ArticleViewer = ({ 
   article,
   width,
@@ -186,13 +208,17 @@ export const ArticleViewer = ({
         <Grid item key={i}>
           {
             block.type === 'h1' ? (
-              <Typography component="h1" sx={{ fontSize: 28, fontWeight: 'bold', m: 0, p: 0 }}>{block.info.text}</Typography>
+              <Typography component="h1" sx={{ fontSize: 28, fontWeight: 'bold', m: 0, p: 0 }} style={blockStyleToCSS(block.style)}>{block.info.text}</Typography>
             )
           : block.type === 'h2' ? (
-              <Typography component="h2" sx={{ fontSize: 23, m: 0, p: 0 }}>{block.info.text}</Typography>
+              <Typography component="h2" sx={{ fontSize: 23, m: 0, p: 0 }} style={blockStyleToCSS(block.style)}>{block.info.text}</Typography>
             )
           : block.type === 'html' ? (
-            <div style={{ fontSize: 18, lineHeight: '25pt' }} 
+            <div style={{
+              fontSize: 18,
+              lineHeight: '25pt',
+              ...blockStyleToCSS(block.style)
+            }}
               className={css`p {
                 margin-top: 0;
                 margin-bottom: 0;
@@ -201,15 +227,16 @@ export const ArticleViewer = ({
                 __html: remove_script_tags(
                   block.info.html.replaceAll(/style="*"/g, '')
                 )
-              }} 
+              }}
             />
             ) 
           : block.type === 'image' ? (
-              <img src={block.info.link} alt={''} style={{ 
-                maxWidth: block.info.maxWidth || '100%', 
+              <img src={block.info.link} alt={block.info.alt || ''} style={{
+                maxWidth: block.info.maxWidth || '100%',
                 maxHeight: block.info.maxHeight || undefined, // '' => undefined
                 height: block.info.height || undefined, // '' => undefined
                 width: block.info.width || undefined, // '' => undefined
+                ...blockStyleToCSS(block.style)
               }} />
             )
           : block.type === 'youtube' ? (
@@ -254,12 +281,13 @@ export const ArticleViewer = ({
   )
 }
 
+
 export const html_for_article = (article: ManagedContentRecord, options?: { rootWidth?: number }) => {
   const rootWidth = options?.rootWidth || 400
   
   const content = (
     (article.blocks ?? [])
-    .map((block, i) => 
+    .map((block, i) =>
         block.type === 'h1' ? (
           `<h1>${block.info.text}</h1>`
         )
@@ -268,11 +296,11 @@ export const html_for_article = (article: ManagedContentRecord, options?: { root
         )
       : block.type === 'html' ? (
         `<div>${remove_script_tags(remove_script_tags(block.info.html))}</div>`
-        ) 
+        )
       : block.type === 'image' ? (
-          // wrap with div to supporting centering later 
+          // wrap with div to supporting centering later
           `<div style="">
-            <img src="${block.info.link}" alt={''} style="max-width: ${block.info.maxWidth || '100%'}; max-height: ${block.info.maxHeight || undefined}; height: ${block.info.height || undefined}; width: ${block.info.width || undefined};" />
+            <img src="${block.info.link}" alt="${block.info.alt || ''}" style="max-width: ${block.info.maxWidth || '100%'}; max-height: ${block.info.maxHeight || undefined}; height: ${block.info.height || undefined}; width: ${block.info.width || undefined};" />
           </div>`
         )
       : block.type === 'youtube' ? (

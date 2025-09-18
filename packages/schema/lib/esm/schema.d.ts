@@ -427,6 +427,7 @@ export type CustomActions = {
         }>;
         stripe_details: CustomAction<{
             fieldId: string;
+            enduserId?: string;
         }, {
             customerId: string;
             clientSecret: string;
@@ -1789,7 +1790,7 @@ export type PublicActions = {
             fname?: string;
             lname?: string;
             dateOfBirth?: string;
-            email: string;
+            email?: string;
             phone?: string;
             state?: string;
             calendarEventTemplateId: string;

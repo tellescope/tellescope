@@ -1925,6 +1925,7 @@ var _AUTOMATION_EVENTS = {
     waitForTrigger: '',
     onCallOutcome: '',
     onAIDecision: '',
+    onError: '',
 };
 export var AUTOMATION_EVENTS = Object.keys(_AUTOMATION_EVENTS);
 export var automationEventTypeValidator = exactMatchValidator(AUTOMATION_EVENTS);
@@ -2131,6 +2132,12 @@ export var automationEventValidator = orValidator({
         info: objectValidator({
             automationStepId: mongoIdStringRequired,
             outcomes: listOfStringsValidator,
+        }, { emptyOk: false }),
+    }),
+    onError: objectValidator({
+        type: exactMatchValidator(['onError']),
+        info: objectValidator({
+            automationStepId: mongoIdStringRequired,
         }, { emptyOk: false }),
     }),
 });
@@ -2491,6 +2498,7 @@ export var automationActionValidator = orValidator({
     stripeChargeCardOnFile: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['stripeChargeCardOnFile']), info: objectValidator({
             stripeKey: stringValidatorOptionalEmptyOkay,
             priceIds: listOfStringsValidatorEmptyOk,
+            productIds: listOfStringsValidatorOptionalOrEmptyOk,
             subscriptionPriceId: stringValidatorOptionalEmptyOkay,
         }, { emptyOk: false }) // at least tags is required
      })),
@@ -2526,6 +2534,8 @@ export var journeyContextValidator = objectValidator({
     fileId: mongoIdStringOptional,
     chatRoomId: mongoIdStringOptional,
     twilioNumber: stringValidatorOptionalEmptyOkay,
+    ticketThreadId: mongoIdStringOptional,
+    ticketThreadCommentId: mongoIdStringOptional,
 });
 export var relatedRecordValidator = objectValidator({
     type: stringValidator100,
@@ -2751,6 +2761,7 @@ export var formFieldOptionsValidator = objectValidator({
     })),
     validFileTypes: listOfStringsValidatorOptionalOrEmptyOk,
     maxFileSize: numberValidatorOptional,
+    hideFromPortal: booleanValidatorOptional,
     productIds: listOfStringsValidatorOptionalOrEmptyOk,
     chargeImmediately: booleanValidatorOptional,
     signatureUrl: stringValidator5000Optional,
@@ -2823,74 +2834,94 @@ export var formFieldOptionsValidator = objectValidator({
     elationAppendToNotePrefix: stringValidatorOptionalEmptyOkay,
     allowAddToDatabase: booleanValidatorOptional,
 });
+export var blockStyleValidator = objectValidator({
+    width: numberValidatorOptional,
+    height: numberValidatorOptional,
+    backgroundColor: stringValidatorOptional,
+    borderColor: stringValidatorOptional,
+    borderWidth: numberValidatorOptional,
+    textColor: stringValidatorOptional,
+}, { isOptional: true, emptyOk: true });
 export var blockValidator = orValidator({
     h1: objectValidator({
         type: exactMatchValidator(['h1']),
         info: objectValidator({
             text: stringValidator5000EmptyOkay,
         }),
+        style: blockStyleValidator,
     }),
     h2: objectValidator({
         type: exactMatchValidator(['h2']),
         info: objectValidator({
             text: stringValidator5000EmptyOkay,
         }),
+        style: blockStyleValidator,
     }),
     html: objectValidator({
         type: exactMatchValidator(['html']),
         info: objectValidator({
             html: stringValidator25000EmptyOkay,
         }),
+        style: blockStyleValidator,
     }),
     image: objectValidator({
         type: exactMatchValidator(['image']),
         info: objectValidator({
             link: stringValidator5000EmptyOkay,
             name: stringValidatorOptional,
+            alt: stringValidatorOptional,
             height: numberValidatorOptional,
             maxHeight: numberValidatorOptional,
             width: numberValidatorOptional,
             maxWidth: numberValidatorOptional,
         }),
+        style: blockStyleValidator,
     }),
     pdf: objectValidator({
         type: exactMatchValidator(['pdf']),
         info: objectValidator({
             link: stringValidator5000EmptyOkay,
             name: stringValidatorOptional,
+            alt: stringValidatorOptional,
             height: numberValidatorOptional,
             maxHeight: numberValidatorOptional,
             width: numberValidatorOptional,
             maxWidth: numberValidatorOptional,
         }),
+        style: blockStyleValidator,
     }),
     youtube: objectValidator({
         type: exactMatchValidator(['youtube']),
         info: objectValidator({
             link: stringValidator5000EmptyOkay,
             name: stringValidatorOptional,
+            alt: stringValidatorOptional,
             height: numberValidatorOptional,
             maxHeight: numberValidatorOptional,
             width: numberValidatorOptional,
             maxWidth: numberValidatorOptional,
         }),
+        style: blockStyleValidator,
     }),
     iframe: objectValidator({
         type: exactMatchValidator(['iframe']),
         info: objectValidator({
             link: stringValidator5000EmptyOkay,
             name: stringValidatorOptional,
+            alt: stringValidatorOptional,
             height: numberValidatorOptional,
             maxHeight: numberValidatorOptional,
             width: numberValidatorOptional,
             maxWidth: numberValidatorOptional,
         }),
+        style: blockStyleValidator,
     }),
     "content-link": objectValidator({
         type: exactMatchValidator(["content-link"]),
         info: objectValidator({
             recordId: mongoIdStringRequired,
         }),
+        style: blockStyleValidator,
     }),
 });
 var _BLOCK_TYPES = {
@@ -3184,6 +3215,13 @@ export var portalBlockValidator = orValidator({
             html: stringValidator5000,
         })
     }),
+    pinnedForms: objectValidator({
+        type: exactMatchValidator(['pinnedForms']),
+        info: objectValidator({
+            title: stringValidatorOptional,
+            formIds: listOfMongoIdStringValidatorEmptyOk,
+        })
+    }),
 });
 export var portalBlocksValidator = listValidatorEmptyOk(portalBlockValidator);
 var _PORTAL_BLOCK_TYPES = {
@@ -3196,6 +3234,7 @@ var _PORTAL_BLOCK_TYPES = {
     "Manage Subscription Button": '',
     Orders: '',
     HTML: '',
+    pinnedForms: '',
 };
 export var PORTAL_BLOCK_TYPES = Object.keys(_PORTAL_BLOCK_TYPES);
 export var portalTypeValidator = exactMatchValidator(PORTAL_BLOCK_TYPES);
@@ -3889,6 +3928,7 @@ var _AUTOMATION_TRIGGER_ACTION_TYPES = {
     "Reply to Chat": true,
     "Create User Notifications": true,
     "Assign to Incoming Message": true,
+    "Zendesk: Update Ticket Assignee": true,
 };
 export var AUTOMATION_TRIGGER_ACTION_TYPES = Object.keys(_AUTOMATION_TRIGGER_ACTION_TYPES);
 export var automationTriggerActionValidator = orValidator({
@@ -4009,6 +4049,10 @@ export var automationTriggerActionValidator = orValidator({
             tags: listOfStringsWithQualifierValidatorOptional,
             maxUsers: numberValidatorOptional,
         }),
+    }),
+    "Zendesk: Update Ticket Assignee": objectValidator({
+        type: exactMatchValidator(['Zendesk: Update Ticket Assignee']),
+        info: objectValidator({}),
     }),
 });
 var _AUTOMATION_TRIGGER_STATUSES = {

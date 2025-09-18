@@ -120,6 +120,7 @@ export declare const time_for_calendar_event: (event: Pick<CalendarEvent, 'start
 export declare const remove_script_tags: (s: string) => string;
 export declare const remove_style_tags: (s: string) => string;
 export declare const remove_image_tags: (s: string) => string;
+export declare const sanitize_html_with_links: (html: string) => string;
 export declare const query_string_for_object: (query: Indexable) => string;
 export declare const PROD_API_URL = "https://api.tellescope.com";
 export declare const STAGING_API_URL = "https://staging-api.tellescope.com";
@@ -313,4 +314,5 @@ export declare const replace_snippet_template_values: (s: string, snippets?: {
     value: string;
 }[]) => string;
 export declare const resolve_integration_id: (e: Pick<Enduser, 'references' | 'source' | 'externalId'>, integrationTitle: string) => string | undefined;
+export declare const replace_form_response_template_values: (s: string, formResponse?: Pick<FormResponse, 'responses'> | null) => string;
 //# sourceMappingURL=utils.d.ts.map

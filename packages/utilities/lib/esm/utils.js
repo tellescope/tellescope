@@ -408,6 +408,29 @@ export var time_for_calendar_event = function (event) {
 export var remove_script_tags = function (s) { return s.replace(/<script[\s\S]*?>[\s\S]*?<\/script>/gi, ''); };
 export var remove_style_tags = function (s) { return s.replace(/<style[\s\S]*?>[\s\S]*?<\/style>/gi, ''); };
 export var remove_image_tags = function (s) { return s.replace(/<img[\s\S]*?>/gi, ''); };
+// Sanitizes HTML to allow safe hyperlinks and basic text formatting while removing potentially harmful tags
+export var sanitize_html_with_links = function (html) {
+    return sanitizeHtml(html, {
+        allowedTags: ['a', 'strong', 'b', 'em', 'i', 'u', 'br', 'p'],
+        allowedAttributes: {
+            'a': ['href', 'target', 'rel']
+        },
+        // Automatically add security attributes to external links
+        transformTags: {
+            'a': function (tagName, attribs) {
+                var href = attribs.href || '';
+                // Add target="_blank" and security attributes for external links
+                if (href.startsWith('http://') || href.startsWith('https://')) {
+                    return {
+                        tagName: tagName,
+                        attribs: __assign(__assign({}, attribs), { target: '_blank', rel: 'noopener noreferrer' })
+                    };
+                }
+                return { tagName: tagName, attribs: attribs };
+            }
+        }
+    });
+};
 export var query_string_for_object = function (query) {
     var queryString = '';
     if (query && !object_is_empty(query)) {
@@ -773,36 +796,56 @@ export var age_for_dob_mmddyyyy = function (mmddyyyy) {
     return actualAge;
 };
 export var get_enduser_field_value_for_key = function (enduser, key) {
-    var _a, _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
+    var _a, _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _w, _x, _y, _z, _0, _5, _6, _7;
     if (key === 'insurance.payerName')
         return (_a = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _a === void 0 ? void 0 : _a.payerName;
-    if (key === 'insuranceSecondary.payerName')
-        return (_b = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _b === void 0 ? void 0 : _b.payerName;
-    if (key === 'insurance.relationship')
-        return (_d = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _d === void 0 ? void 0 : _d.relationship;
-    if (key === 'insuranceSecondary.relationship')
-        return (_e = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _e === void 0 ? void 0 : _e.relationship;
-    if (key === 'insurance.payerId')
-        return (_f = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _f === void 0 ? void 0 : _f.payerId;
-    if (key === 'insuranceSecondary.payerId')
-        return (_g = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _g === void 0 ? void 0 : _g.payerId;
     if (key === 'insurance.memberId')
-        return (_h = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _h === void 0 ? void 0 : _h.memberId;
-    if (key === 'insuranceSecondary.memberId')
-        return (_j = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _j === void 0 ? void 0 : _j.memberId;
+        return (_b = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _b === void 0 ? void 0 : _b.memberId;
+    if (key === 'insurance.payerId')
+        return (_d = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _d === void 0 ? void 0 : _d.payerId;
     if (key === 'insurance.groupNumber')
-        return (_k = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _k === void 0 ? void 0 : _k.groupNumber;
+        return (_e = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _e === void 0 ? void 0 : _e.groupNumber;
+    if (key === 'insurance.planName')
+        return (_f = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _f === void 0 ? void 0 : _f.planName;
+    if (key === 'insurance.relationship')
+        return (_g = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _g === void 0 ? void 0 : _g.relationship;
+    if (key === 'insurance.eligibility')
+        return (_h = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _h === void 0 ? void 0 : _h.eligibility;
+    if (key === 'insurance.status')
+        return (_j = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _j === void 0 ? void 0 : _j.status;
+    if (key === 'insurance.payerType')
+        return (_k = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _k === void 0 ? void 0 : _k.payerType;
+    if (key === 'insurance.startDate')
+        return (_l = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _l === void 0 ? void 0 : _l.startDate;
+    if (key === 'insuranceSecondary.payerName')
+        return (_m = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _m === void 0 ? void 0 : _m.payerName;
+    if (key === 'insuranceSecondary.memberId')
+        return (_o = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _o === void 0 ? void 0 : _o.memberId;
+    if (key === 'insuranceSecondary.payerId')
+        return (_p = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _p === void 0 ? void 0 : _p.payerId;
     if (key === 'insuranceSecondary.groupNumber')
-        return (_l = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _l === void 0 ? void 0 : _l.groupNumber;
+        return (_q = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _q === void 0 ? void 0 : _q.groupNumber;
+    if (key === 'insuranceSecondary.planName')
+        return (_r = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _r === void 0 ? void 0 : _r.planName;
+    if (key === 'insuranceSecondary.relationship')
+        return (_s = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _s === void 0 ? void 0 : _s.relationship;
+    if (key === 'insuranceSecondary.eligibility')
+        return (_t = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _t === void 0 ? void 0 : _t.eligibility;
+    if (key === 'insuranceSecondary.status')
+        return (_u = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _u === void 0 ? void 0 : _u.status;
+    if (key === 'insuranceSecondary.payerType')
+        return (_w = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _w === void 0 ? void 0 : _w.payerType;
+    if (key === 'insuranceSecondary.startDate')
+        return (_x = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _x === void 0 ? void 0 : _x.startDate;
     if (key === 'insurance.relationshipDetails') {
         try {
-            return JSON.stringify((_o = (_m = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _m === void 0 ? void 0 : _m.relationshipDetails) !== null && _o !== void 0 ? _o : {});
+            return JSON.stringify((_z = (_y = enduser === null || enduser === void 0 ? void 0 : enduser.insurance) === null || _y === void 0 ? void 0 : _y.relationshipDetails) !== null && _z !== void 0 ? _z : {});
         }
         catch (err) { }
     }
     if (key === 'insuranceSecondary.relationshipDetails') {
         try {
-            return JSON.stringify((_q = (_p = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _p === void 0 ? void 0 : _p.relationshipDetails) !== null && _q !== void 0 ? _q : {});
+            return JSON.stringify((_5 = (_0 = enduser === null || enduser === void 0 ? void 0 : enduser.insuranceSecondary) === null || _0 === void 0 ? void 0 : _0.relationshipDetails) !== null && _5 !== void 0 ? _5 : {});
         }
         catch (err) { }
     }
@@ -821,7 +864,7 @@ export var get_enduser_field_value_for_key = function (enduser, key) {
     if (key === "Healthie ID") {
         return (enduser.source === HEALTHIE_TITLE && enduser.externalId
             ? enduser.externalId
-            : (_s = (_r = enduser.references) === null || _r === void 0 ? void 0 : _r.find(function (r) { return r.type === HEALTHIE_TITLE; })) === null || _s === void 0 ? void 0 : _s.id);
+            : (_7 = (_6 = enduser.references) === null || _6 === void 0 ? void 0 : _6.find(function (r) { return r.type === HEALTHIE_TITLE; })) === null || _7 === void 0 ? void 0 : _7.id);
     }
     return enduser === null || enduser === void 0 ? void 0 : enduser[key];
 };
@@ -2594,5 +2637,43 @@ export var replace_snippet_template_values = function (s, snippets) {
 export var resolve_integration_id = function (e, integrationTitle) {
     var _a, _b;
     return (((e === null || e === void 0 ? void 0 : e.source) === integrationTitle && e.externalId) ? e.externalId : (_b = (_a = e.references) === null || _a === void 0 ? void 0 : _a.find(function (r) { return r.type === integrationTitle; })) === null || _b === void 0 ? void 0 : _b.id);
+};
+// Replace form_response template variables with their values from form responses
+export var replace_form_response_template_values = function (s, formResponse) {
+    var _a;
+    if (!((_a = formResponse === null || formResponse === void 0 ? void 0 : formResponse.responses) === null || _a === void 0 ? void 0 : _a.length))
+        return s;
+    if (typeof s !== 'string')
+        return s; // e.g. Date value
+    var result = s;
+    // Handle {{form_response.externalId}} template variables
+    result = replacer('{{form_response.', result, function (match) {
+        var _a;
+        var templateMatch = match.match(/\{\{form_response\.([^}]+)\}\}/);
+        if (!templateMatch)
+            return match;
+        var externalId = templateMatch[1];
+        var responseValue = (_a = formResponse.responses) === null || _a === void 0 ? void 0 : _a.find(function (r) { return r.externalId === externalId; });
+        if (!responseValue)
+            return match;
+        // Extract the string value from the response
+        var stringValue = '';
+        if (typeof responseValue.answer.value === 'string') {
+            stringValue = responseValue.answer.value;
+        }
+        else if (typeof responseValue.answer.value === 'number') {
+            stringValue = responseValue.answer.value.toString();
+        }
+        else if (Array.isArray(responseValue.answer.value)) {
+            // For multiple choice, dropdown, etc., join with commas
+            stringValue = responseValue.answer.value.join(', ');
+        }
+        else if (responseValue.answer.value && typeof responseValue.answer.value === 'object') {
+            // For complex objects, stringify them
+            stringValue = JSON.stringify(responseValue.answer.value);
+        }
+        return stringValue;
+    });
+    return result;
 };
 //# sourceMappingURL=utils.js.map

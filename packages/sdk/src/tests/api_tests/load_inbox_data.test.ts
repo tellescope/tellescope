@@ -718,7 +718,7 @@ export const load_inbox_data_tests = async ({ sdk, sdkNonAdmin } : { sdk: Sessio
   const roleTestUser = (
     await sdk.api.users.getOne({ email: roleTestUserEmail }).catch(() => null) // throws error on none found
   ) || (
-    await sdk.api.users.createOne({ email: roleTestUserEmail })
+    await sdk.api.users.createOne({ email: roleTestUserEmail, notificationEmailsDisabled: true })
   )
   // ensure role is set, in case GET returned a user without a role or with a different role
   await sdk.api.users.updateOne(roleTestUser.id, { roles: [noAccessRole.role] }, { replaceObjectFields: true })

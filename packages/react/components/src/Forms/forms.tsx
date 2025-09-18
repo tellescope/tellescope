@@ -6,7 +6,7 @@ import { AddToDatabaseProps, AddressInput, AllergiesInput, AppointmentBookingInp
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
-import { field_can_autosubmit, form_response_value_to_string, formatted_date, object_is_empty, objects_equivalent, read_local_storage, remove_script_tags, responses_satisfy_conditions, truncate_string } from "@tellescope/utilities"
+import { calculate_form_scoring, field_can_autosubmit, form_response_value_to_string, formatted_date, object_is_empty, objects_equivalent, read_local_storage, remove_script_tags, responses_satisfy_conditions, truncate_string } from "@tellescope/utilities"
 import { Divider } from "@mui/material"
 
 export const TellescopeFormContainer = ({ businessId, organizationIds, ...props } : { 
@@ -315,7 +315,7 @@ export const QuestionForField = ({
           <AppointmentBooking formResponseId={formResponseId} enduserId={enduserId} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled} responses={responses} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'Appointment Booking'>} form={form} />
         )
         : field.type === 'Stripe' ? (
-          <Stripe field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} setCustomerId={setCustomerId} form={form} />
+          <Stripe enduserId={enduserId} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} setCustomerId={setCustomerId} form={form} />
         )
         : field.type === 'Chargebee' ? (
           <Chargebee field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Chargebee'>} setCustomerId={setCustomerId} form={form} />
@@ -574,6 +574,16 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
 
   const numRemainingPages = getNumberOfRemainingPages()
 
+  // Calculate current score if real-time scoring is enabled
+  const currentScores = useMemo(() => {
+    if (!form?.realTimeScoring || !form.scoring?.length) return null
+
+    return calculate_form_scoring({
+      response: { responses },
+      form: { scoring: form.scoring }
+    })
+  }, [form?.realTimeScoring, form?.scoring, responses])
+
   if (!(currentValue && currentFileValue)) return <></>
   return (
     submitted 
@@ -590,7 +600,7 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
                 handleDatabaseSelect={handleDatabaseSelect}
                 setCustomerId={setCustomerId}
                 repeats={repeats} onRepeatsChange={setRepeats}
-                value={currentValue} file={currentFileValue} 
+                value={currentValue} file={currentFileValue}
                 customInputs={customInputs}
                 onAddFile={onAddFile} onFieldChange={onFieldChange}
                 responses={responses} selectedFiles={selectedFiles}
@@ -658,13 +668,48 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
           }
         </Flex>
 
-        {!customization?.hideProgressBar && 
-          <Progress 
-            numerator={currentPageIndex + (validateCurrentField() ? 0 : 1)} 
-            denominator={currentPageIndex + 1 + numRemainingPages}  
+        {!customization?.hideProgressBar &&
+          <Progress
+            numerator={currentPageIndex + (validateCurrentField() ? 0 : 1)}
+            denominator={currentPageIndex + 1 + numRemainingPages}
             style={{ marginTop: '15px' }}
           />
         }
+
+        {/* Real-time scoring display */}
+        {currentScores && currentScores.length > 0 && (
+          <Flex style={{ marginTop: 10, marginBottom: 5, width: '100%' }}>
+            {currentScores.map((score, index) => (
+              <Flex key={index} style={{
+                padding: '10px 14px',
+                backgroundColor: '#f8f9fa',
+                borderRadius: 8,
+                border: `1px solid ${theme?.themeColor || PRIMARY_HEX}20`,
+                marginRight: index < currentScores.length - 1 ? 12 : 0,
+                minWidth: 120,
+                flexDirection: 'column',
+                alignItems: 'center'
+              }}>
+                <Typography style={{
+                  fontSize: 12,
+                  fontWeight: 'medium',
+                  textAlign: 'center',
+                  lineHeight: 1.2,
+                  marginBottom: 4
+                }}>
+                  {score.title}
+                </Typography>
+                <Typography style={{
+                  fontWeight: 'bold',
+                  color: theme?.themeColor || PRIMARY_HEX,
+                  fontSize: 18
+                }}>
+                  {score.value}
+                </Typography>
+              </Flex>
+            ))}
+          </Flex>
+        )}
 
         <Typography color="error" style={{ alignText: 'center', marginTop: 3 }}>
           {submitErrorMessage}

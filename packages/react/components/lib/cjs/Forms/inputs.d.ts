@@ -45,7 +45,7 @@ export declare const FilesInput: ({ value, onChange, field, existingFileName, up
     existingFileName?: string | undefined;
 }) => JSX.Element;
 export declare const MultipleChoiceInput: ({ field, form, value: _value, onChange }: FormInputProps<'multiple_choice'>) => JSX.Element;
-export declare const StripeInput: ({ field, value, onChange, setCustomerId }: FormInputProps<"Stripe"> & {
+export declare const StripeInput: ({ field, value, onChange, setCustomerId, enduserId }: FormInputProps<"Stripe"> & {
     setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>;
 }) => JSX.Element;
 export declare const Progress: ({ numerator, denominator, style }: {

@@ -1605,7 +1605,7 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
   )
 }
 
-export const StripeInput = ({ field, value, onChange, setCustomerId }: FormInputProps<'Stripe'> & { 
+export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId }: FormInputProps<'Stripe'> & {
   setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>,
 }) => {
   const session = useResolvedSession()
@@ -1625,7 +1625,7 @@ export const StripeInput = ({ field, value, onChange, setCustomerId }: FormInput
     }
     fetchRef.current = true
 
-    session.api.form_responses.stripe_details({ fieldId: field.id })
+    session.api.form_responses.stripe_details({ fieldId: field.id, enduserId })
     .then(({ clientSecret, publishableKey, stripeAccount, businessName, customerId, isCheckout, answerText }) => {
       setAnswertext(answerText || '')
       setIsCheckout(!!isCheckout)
@@ -1640,7 +1640,7 @@ export const StripeInput = ({ field, value, onChange, setCustomerId }: FormInput
         setError(e.message)
       }
     })
-  }, [session, value, field.id])
+  }, [session, value, field.id, enduserId])
 
   const cost = (
     (field.options?.productIds || []).map(id => findProduct(id, { batch: false })) // seems to be having issues with bulk read

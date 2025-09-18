@@ -19,7 +19,8 @@ export const inbox_thread_assignment_updates_tests = async ({ sdk, sdkNonAdmin }
   const testUser = await sdk.api.users.createOne({
     fname: "Test",
     lname: "User", 
-    email: `test-inbox-assignment-${timestamp}@test.com`
+    email: `test-inbox-assignment-${timestamp}@test.com`,
+    notificationEmailsDisabled: true
   })
 
   const testEnduser = await sdk.api.endusers.createOne({

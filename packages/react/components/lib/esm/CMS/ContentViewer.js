@@ -105,6 +105,28 @@ export var usePageWidth = function () {
 export var correct_youtube_link_for_embed = function (link) {
     return link.replace('/watch?v=', '/embed/').split('&')[0];
 };
+var blockStyleToCSS = function (style) {
+    if (!style)
+        return {};
+    var cssStyle = {};
+    if (style.width)
+        cssStyle.width = "".concat(style.width, "px");
+    if (style.height)
+        cssStyle.height = "".concat(style.height, "px");
+    if (style.backgroundColor)
+        cssStyle.backgroundColor = style.backgroundColor;
+    if (style.textColor)
+        cssStyle.color = style.textColor;
+    if (style.borderColor || style.borderWidth) {
+        cssStyle.border = "".concat(style.borderWidth || 1, "px solid ").concat(style.borderColor || '#cccccc');
+    }
+    // Add default styling when any box style is applied
+    if (Object.keys(cssStyle).length > 0) {
+        cssStyle.padding = cssStyle.padding || '10px';
+        cssStyle.display = cssStyle.display || 'inline-block';
+    }
+    return cssStyle;
+};
 export var ArticleViewer = function (_a) {
     var _b, _c, _d, _e;
     var article = _a.article, width = _a.width, maxWidth = _a.maxWidth, _f = _a.spacing, spacing = _f === void 0 ? 2 : _f, style = _a.style, _g = _a.iframeWidthAdjustment, iframeWidthAdjustment = _g === void 0 ? 0 : _g, onLinkClick = _a.onLinkClick;
@@ -137,17 +159,12 @@ export var ArticleViewer = function (_a) {
     }
     return (_jsx(Grid, __assign({ container: true, direction: "column", justifyContent: "center", ref: rootRef, style: _style, spacing: spacing }, { children: article.blocks.map(function (block, i) {
             var _a, _b;
-            return (_jsx(Grid, __assign({ item: true }, { children: block.type === 'h1' ? (_jsx(Typography, __assign({ component: "h1", sx: { fontSize: 28, fontWeight: 'bold', m: 0, p: 0 } }, { children: block.info.text })))
-                    : block.type === 'h2' ? (_jsx(Typography, __assign({ component: "h2", sx: { fontSize: 23, m: 0, p: 0 } }, { children: block.info.text })))
-                        : block.type === 'html' ? (_jsx("div", { style: { fontSize: 18, lineHeight: '25pt' }, className: css(templateObject_1 || (templateObject_1 = __makeTemplateObject(["p {\n                margin-top: 0;\n                margin-bottom: 0;\n              }"], ["p {\n                margin-top: 0;\n                margin-bottom: 0;\n              }"]))), dangerouslySetInnerHTML: {
+            return (_jsx(Grid, __assign({ item: true }, { children: block.type === 'h1' ? (_jsx(Typography, __assign({ component: "h1", sx: { fontSize: 28, fontWeight: 'bold', m: 0, p: 0 }, style: blockStyleToCSS(block.style) }, { children: block.info.text })))
+                    : block.type === 'h2' ? (_jsx(Typography, __assign({ component: "h2", sx: { fontSize: 23, m: 0, p: 0 }, style: blockStyleToCSS(block.style) }, { children: block.info.text })))
+                        : block.type === 'html' ? (_jsx("div", { style: __assign({ fontSize: 18, lineHeight: '25pt' }, blockStyleToCSS(block.style)), className: css(templateObject_1 || (templateObject_1 = __makeTemplateObject(["p {\n                margin-top: 0;\n                margin-bottom: 0;\n              }"], ["p {\n                margin-top: 0;\n                margin-bottom: 0;\n              }"]))), dangerouslySetInnerHTML: {
                                 __html: remove_script_tags(block.info.html.replaceAll(/style="*"/g, ''))
                             } }))
-                            : block.type === 'image' ? (_jsx("img", { src: block.info.link, alt: '', style: {
-                                    maxWidth: block.info.maxWidth || '100%',
-                                    maxHeight: block.info.maxHeight || undefined,
-                                    height: block.info.height || undefined,
-                                    width: block.info.width || undefined, // '' => undefined
-                                } }))
+                            : block.type === 'image' ? (_jsx("img", { src: block.info.link, alt: block.info.alt || '', style: __assign({ maxWidth: block.info.maxWidth || '100%', maxHeight: block.info.maxHeight || undefined, height: block.info.height || undefined, width: block.info.width || undefined }, blockStyleToCSS(block.style)) }))
                                 : block.type === 'youtube' ? (_jsx("iframe", { width: rootWidth, height: rootWidth * 315 / 560, title: "YouTube video player ".concat(i), allowFullScreen: true, src: correct_youtube_link_for_embed(block.info.link) }))
                                     : block.type === 'iframe' ? (_jsx("iframe", { width: rootWidth, height: rootWidth * (block.info.height || 315) / (block.info.width || 560), title: (_a = block.info.name) !== null && _a !== void 0 ? _a : "embedded link ".concat(i), allowFullScreen: true, src: block.info.link }))
                                         : block.type === 'pdf' ? (_jsx(PDFBlockUI, { info: block.info }))
@@ -175,8 +192,8 @@ export var html_for_article = function (article, options) {
             : block.type === 'h2' ? ("<h2>".concat(block.info.text, "</h2>"))
                 : block.type === 'html' ? ("<div>".concat(remove_script_tags(remove_script_tags(block.info.html)), "</div>"))
                     : block.type === 'image' ? (
-                    // wrap with div to supporting centering later 
-                    "<div style=\"\">\n            <img src=\"".concat(block.info.link, "\" alt={''} style=\"max-width: ").concat(block.info.maxWidth || '100%', "; max-height: ").concat(block.info.maxHeight || undefined, "; height: ").concat(block.info.height || undefined, "; width: ").concat(block.info.width || undefined, ";\" />\n          </div>"))
+                    // wrap with div to supporting centering later
+                    "<div style=\"\">\n            <img src=\"".concat(block.info.link, "\" alt=\"").concat(block.info.alt || '', "\" style=\"max-width: ").concat(block.info.maxWidth || '100%', "; max-height: ").concat(block.info.maxHeight || undefined, "; height: ").concat(block.info.height || undefined, "; width: ").concat(block.info.width || undefined, ";\" />\n          </div>"))
                         : block.type === 'youtube' ? ("<iframe width=\"".concat(rootWidth, "\" \n            height=\"").concat(rootWidth * 315 / 560, "\"\n            title=\"").concat("YouTube video player ".concat(i), "\"\n            allowFullScreen\n            src=\"").concat(correct_youtube_link_for_embed(block.info.link), "\"\n            style=\"margin-top: 12; margin-bottom: 12\"\n          >\n          </iframe>"))
                             : block.type === 'iframe' ? ("<iframe width=\"".concat(rootWidth, "\" allowFullScreen\n            height=\"").concat(rootWidth * (block.info.height || 315) / (block.info.width || 560), "\"\n            title=\"").concat((_a = block.info.name) !== null && _a !== void 0 ? _a : "embedded link ".concat(i), "\"\n            src=\"").concat(block.info.link, "\"\n            style=\"margin-top: 12; margin-bottom: 12\"\n          >\n          </iframe> "))
                                 : block.type === 'pdf' ? ("<iframe width=\"".concat(rootWidth, "\" allowFullScreen\n            height=\"500\"\n            title=\"").concat((_b = block.info.name) !== null && _b !== void 0 ? _b : "embedded pdf ".concat(i), "\"\n            src=\"").concat(block.info.link, "\"\n            style=\"margin-top: 12; margin-bottom: 12\"\n          >\n          </iframe>"))

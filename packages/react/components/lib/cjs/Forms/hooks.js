@@ -474,7 +474,7 @@ var shouldCallout = function (field, value) {
 };
 var useTellescopeForm = function (_a) {
     var _b, _c;
-    var dontAutoadvance = _a.dontAutoadvance, isPublicForm = _a.isPublicForm, form = _a.form, urlLogicValue = _a.urlLogicValue, customization = _a.customization, carePlanId = _a.carePlanId, calendarEventId = _a.calendarEventId, context = _a.context, ga4measurementId = _a.ga4measurementId, rootResponseId = _a.rootResponseId, parentResponseId = _a.parentResponseId, accessCode = _a.accessCode, existingResponses = _a.existingResponses, automationStepId = _a.automationStepId, enduserId = _a.enduserId, formResponseId = _a.formResponseId, fields = _a.fields, isInternalNote = _a.isInternalNote, formTitle = _a.formTitle, submitRedirectURL = _a.submitRedirectURL, enduser = _a.enduser;
+    var dontAutoadvance = _a.dontAutoadvance, isPublicForm = _a.isPublicForm, form = _a.form, urlLogicValue = _a.urlLogicValue, customization = _a.customization, carePlanId = _a.carePlanId, calendarEventId = _a.calendarEventId, context = _a.context, ga4measurementId = _a.ga4measurementId, rootResponseId = _a.rootResponseId, parentResponseId = _a.parentResponseId, accessCode = _a.accessCode, existingResponses = _a.existingResponses, automationStepId = _a.automationStepId, enduserId = _a.enduserId, formResponseId = _a.formResponseId, fields = _a.fields, isInternalNote = _a.isInternalNote, formTitle = _a.formTitle, submitRedirectURL = _a.submitRedirectURL, enduser = _a.enduser, groupId = _a.groupId, groupInstance = _a.groupInstance, groupPosition = _a.groupPosition;
     var _d = (0, utilities_1.get_time_values)(new Date()), amPm = _d.amPm, hoursAmPm = _d.hoursAmPm, minutes = _d.minutes;
     var root = (0, exports.useTreeForFormFields)(fields);
     if (!root) {
@@ -1036,34 +1036,36 @@ var useTellescopeForm = function (_a) {
         return responsesToSubmit;
     }, [responses]);
     var handleFileUpload = (0, react_1.useCallback)(function (blob, fieldId) { return __awaiter(void 0, void 0, void 0, function () {
-        var responseIndex, result, secureName;
-        var _a, _b;
-        return __generator(this, function (_c) {
-            switch (_c.label) {
+        var responseIndex, field, result, secureName;
+        var _a, _b, _c;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
                 case 0:
                     responseIndex = responses.findIndex(function (f) { return f.fieldId === fieldId; });
+                    field = fields.find(function (f) { return f.id === fieldId; });
                     result = { name: blob.name, secureName: '' };
                     return [4 /*yield*/, handleUpload({
                             name: blob.name,
                             size: blob.size,
                             type: blob.type,
                             enduserId: enduserId,
+                            hiddenFromEnduser: (_a = field === null || field === void 0 ? void 0 : field.options) === null || _a === void 0 ? void 0 : _a.hideFromPortal,
                         }, blob)];
                 case 1:
-                    secureName = (_c.sent()).secureName;
+                    secureName = (_d.sent()).secureName;
                     if (responses[responseIndex].answer.type === 'files') {
                         if (!responses[responseIndex].answer.value) {
                             responses[responseIndex].answer.value = [];
                         }
-                        responses[responseIndex].answer.value.push(__assign(__assign({}, result), { type: blob.type, secureName: secureName, name: (_a = result.name) !== null && _a !== void 0 ? _a : '' }));
+                        responses[responseIndex].answer.value.push(__assign(__assign({}, result), { type: blob.type, secureName: secureName, name: (_b = result.name) !== null && _b !== void 0 ? _b : '' }));
                     }
                     else {
-                        responses[responseIndex].answer.value = __assign(__assign({}, result), { type: blob.type, secureName: secureName, name: (_b = result.name) !== null && _b !== void 0 ? _b : '' });
+                        responses[responseIndex].answer.value = __assign(__assign({}, result), { type: blob.type, secureName: secureName, name: (_c = result.name) !== null && _c !== void 0 ? _c : '' });
                     }
                     return [2 /*return*/];
             }
         });
-    }); }, [responses, handleUpload]);
+    }); }, [responses, handleUpload, fields]);
     var submit = (0, react_1.useCallback)(function (options) { return __awaiter(void 0, void 0, void 0, function () {
         var hasFile, _loop_9, _i, selectedFiles_1, blobInfo, err_1, responsesToSubmit_3, _a, responsesToSubmit_2, r, _loop_10, _b, _c, f, errors, _d, _e, eId, _g, formResponse, nextFormGroupPublicURL, _h, _j, _k, err_2, url, err_3;
         var _l;
@@ -1185,6 +1187,9 @@ var useTellescopeForm = function (_a) {
                             carePlanId: carePlanId,
                             context: context,
                             calendarEventId: calendarEventId,
+                            groupId: groupId,
+                            groupInstance: groupInstance,
+                            groupPosition: groupPosition,
                         })];
                 case 12:
                     _k = (_6.sent()).accessCode;

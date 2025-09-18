@@ -364,6 +364,9 @@ interface UseTellescopeFormOptions {
   enduser?: Partial<Enduser>,
   isPublicForm?: boolean,
   dontAutoadvance?: boolean,
+  groupId?: string,
+  groupInstance?: string,
+  groupPosition?: number,
 }
 
 const OrganizationThemeContext = createContext(null as any as { 
@@ -512,7 +515,7 @@ const shouldCallout = (field: FormField | undefined, value: FormResponseValueAns
 
 export type Response = FormResponseValue & { touched: boolean, includeInSubmit: boolean, field: FormField }
 export type FileResponse = { fieldId: string, fieldTitle: string, blobs?: FileBlob[] }
-export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL,enduser }: UseTellescopeFormOptions) => {
+export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL, enduser, groupId, groupInstance, groupPosition }: UseTellescopeFormOptions) => {
   const { amPm, hoursAmPm, minutes } = get_time_values(new Date())
 
   const root = useTreeForFormFields(fields)
@@ -1139,6 +1142,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
 
   const handleFileUpload = useCallback(async (blob: FileBlob, fieldId: string) => {
     const responseIndex = responses.findIndex(f => f.fieldId === fieldId)
+    const field = fields.find(f => f.id === fieldId)
     const result: FormResponseAnswerFileValue = { name: blob.name, secureName: '' }
     const { secureName } = await handleUpload(
       {
@@ -1146,7 +1150,8 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
         size: blob.size,
         type: blob.type,
         enduserId,
-      }, 
+        hiddenFromEnduser: field?.options?.hideFromPortal,
+      },
       blob
     )
 
@@ -1160,7 +1165,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
     } else {
       responses[responseIndex].answer.value = { ...result, type: blob.type, secureName, name: result.name ?? '' } 
     }
-  }, [responses, handleUpload])
+  }, [responses, handleUpload, fields])
 
   const submit = useCallback(async (options?: { onPreRedirect?: () => void, onFileUploadsDone?: () => void, onSuccess?: (r: FormResponse) => void, includedFieldIds?: string[], otherEnduserIds?: string[], onBulkErrors?: (errors: { enduserId: string, message: string }[]) => void }) => {
     setSubmitErrorMessage('')
@@ -1230,13 +1235,16 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
             accessCode : (
               accessCode 
               || (await (
-                session as any as Session).api.form_responses.prepare_form_response({ 
+                session as any as Session).api.form_responses.prepare_form_response({
                   formId, enduserId: eId, isInternalNote, title: formTitle,
                   parentResponseId, rootResponseId,
-    
-                  carePlanId, 
+
+                  carePlanId,
                   context,
                   calendarEventId,
+                  groupId,
+                  groupInstance,
+                  groupPosition,
                 })
               ).accessCode
             ),

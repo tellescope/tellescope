@@ -647,7 +647,7 @@ export var load_inbox_data_tests = function (_a) {
                     _b = (_g.sent() // throws error on none found
                     );
                     if (_b) return [3 /*break*/, 72];
-                    return [4 /*yield*/, sdk.api.users.createOne({ email: roleTestUserEmail })];
+                    return [4 /*yield*/, sdk.api.users.createOne({ email: roleTestUserEmail, notificationEmailsDisabled: true })];
                 case 71:
                     _b = (_g.sent());
                     _g.label = 72;

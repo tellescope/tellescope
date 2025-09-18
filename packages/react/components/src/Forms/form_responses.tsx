@@ -23,8 +23,8 @@ export const AddressDisplay = ({ value } : { value: Required<FormResponseAnswerA
   </Grid>
 ) 
 
-export const ResponseAnswer = ({ formResponse, fieldId, isHTML, answer: a, printing, onImageClick } : { 
-  answer: FormResponseValueAnswer, 
+export const ResponseAnswer = ({ formResponse, fieldId, isHTML, answer: a, printing, onImageClick } : {
+  answer: FormResponseValueAnswer,
   formResponse: FormResponse,
   fieldId: string,
   printing?: boolean,
@@ -57,9 +57,9 @@ export const ResponseAnswer = ({ formResponse, fieldId, isHTML, answer: a, print
             )}
           </ol>
       : a.type === 'file'
-        ? a.value.secureName 
+        ? a.value.secureName
           ? <Typography>
-              {!printing 
+              {!printing
                 ? <DownloadFileIconButton secureName={a.value.secureName} onDownload={url => window.open(url, '_blank')} />
                 : (
                   <SecureImage secureName={a.value.secureName} onImageClick={onImageClick}
@@ -74,10 +74,10 @@ export const ResponseAnswer = ({ formResponse, fieldId, isHTML, answer: a, print
       : a.type === 'files'
         ? a.value.map(file => (
           <Typography key={file.secureName}>
-            {!printing 
+            {!printing
               ? <DownloadFileIconButton secureName={file.secureName} onDownload={url => window.open(url, '_blank')} />
               : (
-                <SecureImage secureName={file.secureName} 
+                <SecureImage secureName={file.secureName}
                   style={{ maxHeight: 400, maxWidth: 400 }}
                 />
               )
@@ -308,14 +308,14 @@ export const FormResponseView = ({ showAnswerInline=true, logoURL, enduser, onCl
 
       <div style={{ flexDirection: "column", display: 'flex', flex: 1 }}>
       {response.responses.map((r, i) => (
-          <div key={i} style={{ marginBottom: 12 }}>
+          <div key={i} style={{ marginBottom: 36 }}>
             <div style={{ display: 'flex', flex: 1, flexDirection: "row", justifyContent: 'space-between', flexWrap: 'nowrap' }}>
-              {r.fieldTitle && 
+              {r.fieldTitle &&
                 <div style={{ }}>
                   <Typography style={{
                     fontWeight: 'bold',
                     width: (
-                      showAnswerInline 
+                      showAnswerInline
                         ? '400px'
                         : undefined
                     )
@@ -326,10 +326,10 @@ export const FormResponseView = ({ showAnswerInline=true, logoURL, enduser, onCl
               }
 
               <div style={{ }}>
-                {showAnswerInline && r.answer.type !== 'Question Group' 
+                {showAnswerInline && r.answer.type !== 'Question Group'
                 && !(typeof r.answer.value === 'string' && r.answer.value.includes('{TELLESCOPE')) // hidden field for matching, not to display
                 && (
-                  (r.answerIsHTML && typeof r.answer.value === 'string') 
+                  (r.answerIsHTML && typeof r.answer.value === 'string')
                     ? <div dangerouslySetInnerHTML={{ __html: remove_script_tags(r.answer.value) }} />
                     : <ResponseAnswer fieldId={r.fieldId} formResponse={response} answer={r.answer} printing={printing} />
                 )
@@ -339,7 +339,7 @@ export const FormResponseView = ({ showAnswerInline=true, logoURL, enduser, onCl
 
             {r.fieldDescription
               ? (
-                <Typography style={{  }}>
+                <Typography style={{ }}>
                   {r.fieldDescription}
                 </Typography>
               ): r.fieldHtmlDescription
@@ -349,10 +349,12 @@ export const FormResponseView = ({ showAnswerInline=true, logoURL, enduser, onCl
                   }} />
                 )
                 : null
-            } 
+            }
 
             {!showAnswerInline &&
-              <ResponseAnswer answer={r.answer} formResponse={response} fieldId={r.fieldId} />
+              <div style={{ }}>
+                <ResponseAnswer answer={r.answer} formResponse={response} fieldId={r.fieldId} />
+              </div>
             }
           </div>
         )

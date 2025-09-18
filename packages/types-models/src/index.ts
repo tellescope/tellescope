@@ -380,6 +380,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   externalCalendarEventPlaceholderDescription?: string,
   customZoomEmailTemplate?: string,
   customZoomEmailSubject?: string,
+  customZoomSMSTemplate?: string,
   customVoicemailText?: string,
   hasConnectedOpenAI?: boolean,
   hasConnectedHealthie?: boolean,
@@ -1642,6 +1643,7 @@ export type FormFieldOptions = FormFieldValidation & {
   subFields?: FormSubField[],
   validFileTypes?: string[], // should be human readable files where the lower-case version is included in a filetype, e.g. Image, Video, PDF
   maxFileSize?: number, // in bytes
+  hideFromPortal?: boolean, // hide uploaded files from patient portal
   signatureUrl?: string,
   productIds?: string[],
   chargeImmediately?: boolean,
@@ -1804,6 +1806,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   htmlThanksMessage?: string,
   type?: FormType,
   scoring?: FormScoring[]
+  realTimeScoring?: boolean,
   externalId?: string,
   ga4measurementId?: string,
   backgroundColor?: string,
@@ -2667,6 +2670,8 @@ export interface AppointmentBookingPage extends AppointmentBookingPage_readonly,
   archivedAt?: Date | '',
   gtmTag?: string,
   dontRestrictRescheduleToOriginalHost?: boolean,
+  calendarTitleText?: string, // Custom text for "Pick a date and time for your visit" - can be empty to hide
+  emailFieldBehavior?: "required" | "optional" | "hidden",
   // productIds?: string[], // defer to specific template
 }
 
@@ -2704,7 +2709,7 @@ export interface WebhookCall {
   description?: string,
 }
 
-export type AutomationEventType = 
+export type AutomationEventType =
     'onJourneyStart'
   | 'afterAction'
   | "formResponse"
@@ -2715,6 +2720,7 @@ export type AutomationEventType =
   | 'waitForTrigger'
   | "onCallOutcome"
   | "onAIDecision"
+  | "onError"
 
 interface AutomationEventBuilder <T extends AutomationEventType, V extends object> {
   type: T,
@@ -2819,11 +2825,16 @@ export type OnJourneyStartAutomationEvent = AutomationEventBuilder<'onJourneySta
 export type TicketCompletedAutomationEvent = AutomationEventBuilder<'ticketCompleted', TicketCompletedEventInfo>
 export type WaitForTriggerAutomationEvent = AutomationEventBuilder<'waitForTrigger', { automationStepId: string, triggerId: string }> 
 export type OnCallOutcomeAutomationEvent = AutomationEventBuilder<'onCallOutcome', { automationStepId: string, outcome: string }> 
-export type OnAIDecisionAutomationEvent = AutomationEventBuilder<'onAIDecision', { automationStepId: string, outcomes: string[] }> 
+export type OnAIDecisionAutomationEvent = AutomationEventBuilder<'onAIDecision', { automationStepId: string, outcomes: string[] }>
+
+export type OnErrorEventInfo = {
+  automationStepId: string,
+}
+export type OnErrorAutomationEvent = AutomationEventBuilder<'onError', OnErrorEventInfo>
 
 export type AutomationEventForType = {
   'onJourneyStart': OnJourneyStartAutomationEvent
-  'afterAction': AfterActionAutomationEvent 
+  'afterAction': AfterActionAutomationEvent
   "formResponse":  FormResponseAutomationEvent
   "formResponses": FormResponsesAutomationEvent
   'formUnsubmitted': FormUnsubmittedEvent
@@ -2832,6 +2843,7 @@ export type AutomationEventForType = {
   'waitForTrigger': WaitForTriggerAutomationEvent
   'onCallOutcome': OnCallOutcomeAutomationEvent,
   'onAIDecision': OnAIDecisionAutomationEvent
+  'onError': OnErrorAutomationEvent
 }
 export type AutomationEvent = AutomationEventForType[keyof AutomationEventForType]
 
@@ -3046,6 +3058,7 @@ export type CallUserAutomationAction = AutomationActionBuilder<
 export type StripeChargeCardOnFileAutomationAction = AutomationActionBuilder<'stripeChargeCardOnFile', {
   stripeKey?: string, // indicating custom vs. stripe connect
   priceIds: string[], // Stripe price ids to charge
+  productIds?: string[], // Tellescope product IDs to extract price IDs from
   subscriptionPriceId?: string
 }>
 
@@ -3200,15 +3213,27 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
 }
 
 export type BlockType = 'h1' | 'h2' | 'html' | 'image' | 'youtube' | 'pdf' | 'iframe' | 'content-link'
+
+export type BlockStyle = {
+  width?: number,
+  height?: number,
+  backgroundColor?: string,
+  borderColor?: string,
+  borderWidth?: number,
+  textColor?: string,
+}
+
 export type ContentBlockBuilder <BLOCK extends BlockType, INFO extends object> = {
   type: BLOCK,
   info: INFO,
+  style?: BlockStyle,
 }
 
 export type BlockContentText = { text: string }
 export type BlockContentMedia = {
   link: string,
   name?: string,
+  alt?: string,
   height?: number,
   maxHeight?: number,
   width?: number,
@@ -3293,7 +3318,7 @@ export type CareTeamMemberPortalCustomizationInfo = {
   role?: string, // for matching to care team role for a specific team member
 }
 export type PortalBlockForType = {
-  careTeam: BuildPortalBlockInfo<'careTeam', { 
+  careTeam: BuildPortalBlockInfo<'careTeam', {
     title: string,
     roles?: string[],
     showAll?: boolean,
@@ -3307,6 +3332,10 @@ export type PortalBlockForType = {
   "Orders": BuildPortalBlockInfo<'Orders', { }>
   "Manage Subscription Button": BuildPortalBlockInfo<'Manage Subscription Button', { }>
   HTML: BuildPortalBlockInfo<'HTML', { html: string }>
+  pinnedForms: BuildPortalBlockInfo<'pinnedForms', {
+    title?: string,
+    formIds?: string[],
+  }>
 }
 export type PortalBlockType = keyof PortalBlockForType
 export type PortalBlock = PortalBlockForType[PortalBlockType]
@@ -3555,7 +3584,8 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
   externalConferenceId?: string,
   conferenceAttendees?: (string[]) | (string[][]), // old code caused multiple lists to be pushed by mistake
   unread?: boolean,
-  transcription?: string,
+  transcription?: string, // Twilio voicemail transcription
+  recordingTranscriptionData?: string, // Full AWS Transcribe JSON response (stringified) with metadata
   note?: string,
   userId?: string,
   pinnedAt?: Date | '',
@@ -4069,6 +4099,8 @@ export type AutomationTriggerActions = {
     careTeamOnly?: boolean,
     tags?: ListOfStringsWithQualifier,
     maxUsers?: number,
+  }>,
+  "Zendesk: Update Ticket Assignee": AutomationTriggerActionBuilder<'Zendesk: Update Ticket Assignee', {
   }>,
 }
 export type AutomationTriggerActionType = keyof AutomationTriggerActions
@@ -5320,6 +5352,8 @@ export type JourneyContext = {
   fileId?: string,
   chatRoomId?: string,
   twilioNumber?: string,
+  ticketThreadId?: string,
+  ticketThreadCommentId?: string,
 }
 
 // https://gist.github.com/aviflax/a4093965be1cd008f172/ 
