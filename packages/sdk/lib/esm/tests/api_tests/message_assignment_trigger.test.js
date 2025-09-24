@@ -333,7 +333,9 @@ export var message_assignment_trigger_tests = function (_a) {
 };
 // Allow running this test file independently
 if (require.main === module) {
-    var sdk_1 = new Session({ host: process.env.TELLESCOPE_API_URL || 'http://localhost:5000' });
+    var host = process.env.API_URL || 'http://localhost:8080';
+    console.log("\uD83C\uDF10 Using API URL: ".concat(host));
+    var sdk_1 = new Session({ host: host });
     var runTests = function () { return __awaiter(void 0, void 0, void 0, function () {
         return __generator(this, function (_a) {
             switch (_a.label) {

@@ -37,7 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 import { async_test, log_header, } from "@tellescope/testing";
 import { Session, /* APIQuery */ } from "../sdk";
 import { PublicEndpoints } from "../public";
-var host = process.env.TEST_URL || 'http://localhost:8080';
+var host = process.env.API_URL || 'http://localhost:8080';
 var _a = [process.env.TEST_EMAIL, process.env.TEST_PASSWORD], email = _a[0], password = _a[1];
 var sdk = new Session({ host: host });
 var sdkPub = PublicEndpoints({ host: host });

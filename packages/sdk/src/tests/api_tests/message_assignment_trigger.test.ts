@@ -278,8 +278,10 @@ export const message_assignment_trigger_tests = async ({ sdk }: { sdk: Session }
 
 // Allow running this test file independently
 if (require.main === module) {
-  const sdk = new Session({ host: process.env.TELLESCOPE_API_URL || 'http://localhost:5000' })
-  
+  const host = process.env.API_URL || 'http://localhost:8080'
+  console.log(`🌐 Using API URL: ${host}`)
+  const sdk = new Session({ host })
+
   const runTests = async () => {
     await setup_tests(sdk, sdk) // Use same SDK for both admin and non-admin (simplified for this test)
     await message_assignment_trigger_tests({ sdk })

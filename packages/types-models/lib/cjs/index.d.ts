@@ -116,6 +116,7 @@ type BuildCustomEnduserField<T, I> = {
     required?: boolean;
     hiddenFromProfile?: boolean;
     requireConfirmation?: boolean;
+    tags?: string[];
 };
 export type CustomEnduserFields = {
     "Select": BuildCustomEnduserField<'Select', {
@@ -568,6 +569,9 @@ export type StateCredentialInfo = {
     licenseId?: string;
     expiresAt?: Date;
 };
+export type MonthlyRestriction = {
+    occurrences: (1 | 2 | 3 | 4 | 5)[];
+};
 export type WeeklyAvailability = {
     dayOfWeekStartingSundayIndexedByZero: number;
     startTimeInMinutes: number;
@@ -579,6 +583,7 @@ export type WeeklyAvailability = {
     locationIds?: string[];
     validTemplateIds?: string[];
     priority?: number;
+    monthlyRestriction?: MonthlyRestriction;
 };
 export type NotificationPreference = {
     email?: boolean;
@@ -838,6 +843,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
     markedReadAt?: Date | '';
     markedUnreadAt?: Date | '';
     note?: string;
+    noteIsFlagged?: boolean;
     mfa?: MFASettings;
     lastZendeskSyncAt?: Date;
     accessTags?: string[];
@@ -2366,6 +2372,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
     canvasReasonCoding?: CanvasCoding;
     canvasLocationId?: string;
     completedAt?: Date | '';
+    completedBy?: string;
     holdUntil?: Date;
     holdFormResponseId?: string;
     tags?: string[];
@@ -2769,6 +2776,11 @@ export type AfterActionAutomationEvent = AutomationEventBuilder<'afterAction', A
     };
     eventCondition?: {
         before?: boolean;
+    };
+    dayOfMonthCondition?: {
+        dayOfMonth: number;
+        hour?: number;
+        minute?: number;
     };
     skipIfDelayPassed?: boolean;
 }>;
@@ -3765,6 +3777,7 @@ export type AnalyticsQueryGroupingForType = {
     "Calendar Events": {
         Type: boolean;
         "Scheduled By"?: boolean;
+        "Completed By"?: boolean;
         alsoGroupByHost?: boolean;
         "Cancel Reason"?: boolean;
     } & EnduserGrouping & {
@@ -3912,6 +3925,7 @@ export interface AnalyticsFrame extends AnalyticsFrame_readonly, AnalyticsFrame_
     visibleForRoles?: string[];
     visibleForUserIds?: string[];
     index?: number;
+    tags?: string[];
 }
 export interface BackgroundError_readonly extends ClientRecord {
 }
@@ -4153,6 +4167,7 @@ export type AutomationTriggerEvents = {
     }, {}>;
     'Appointment Rescheduled': AutomationTriggerEventBuilder<"Appointment Rescheduled", {
         titles?: string[];
+        detectManualReschedules?: boolean;
     }, {}>;
     'Medication Added': AutomationTriggerEventBuilder<"Medication Added", {
         titles: string[];

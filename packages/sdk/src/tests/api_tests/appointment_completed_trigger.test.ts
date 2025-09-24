@@ -3,7 +3,7 @@ import { log_header, wait, async_test } from "@tellescope/testing"
 import { Enduser } from "@tellescope/types-client"
 import { setup_tests } from "../setup"
 
-const host = process.env.TEST_HOST || "http://localhost:8080"
+const host = process.env.API_URL || "http://localhost:8080"
 
 export const appointment_completed_trigger_tests = async ({ sdk, sdkNonAdmin } : { sdk: Session, sdkNonAdmin: Session }) => {
   log_header("Automation Trigger Tests (Appointment Completed)")
@@ -53,12 +53,13 @@ export const appointment_completed_trigger_tests = async ({ sdk, sdkNonAdmin } :
   const updateEnduser5 = await sdk.api.endusers.createOne({})
 
   // Test 1: Appointment created as completed (should trigger)
-  const event1 = await sdk.api.calendar_events.createOne({ 
-    title: 'Test Appointment', 
-    durationInMinutes: 30, 
-    startTimeInMS: Date.now(), 
+  const event1 = await sdk.api.calendar_events.createOne({
+    title: 'Test Appointment',
+    durationInMinutes: 30,
+    startTimeInMS: Date.now(),
     attendees: [{ type: 'enduser', id: enduser1.id }],
-    completedAt: new Date() // Created as completed
+    completedAt: new Date(), // Created as completed
+    completedBy: sdk.userInfo.id // Track who completed it
   })
   await wait(undefined, 500) // allow triggers to happen
   await async_test(
@@ -72,12 +73,13 @@ export const appointment_completed_trigger_tests = async ({ sdk, sdkNonAdmin } :
   )
 
   // Test 2: Appointment created as cancelled and completed (should NOT trigger)
-  const event2 = await sdk.api.calendar_events.createOne({ 
-    title: 'Test Appointment', 
-    durationInMinutes: 30, 
-    startTimeInMS: Date.now(), 
+  const event2 = await sdk.api.calendar_events.createOne({
+    title: 'Test Appointment',
+    durationInMinutes: 30,
+    startTimeInMS: Date.now(),
     attendees: [{ type: 'enduser', id: enduser2.id }],
     completedAt: new Date(),
+    completedBy: sdk.userInfo.id, // Track who completed it
     cancelledAt: new Date() // Both completed and cancelled
   })
   await wait(undefined, 500) // allow triggers to happen
@@ -88,12 +90,13 @@ export const appointment_completed_trigger_tests = async ({ sdk, sdkNonAdmin } :
   )
 
   // Test 3: Appointment created as rescheduled and completed (should NOT trigger)
-  const event3 = await sdk.api.calendar_events.createOne({ 
-    title: 'Test Appointment', 
-    durationInMinutes: 30, 
-    startTimeInMS: Date.now(), 
+  const event3 = await sdk.api.calendar_events.createOne({
+    title: 'Test Appointment',
+    durationInMinutes: 30,
+    startTimeInMS: Date.now(),
     attendees: [{ type: 'enduser', id: enduser3.id }],
     completedAt: new Date(),
+    completedBy: sdk.userInfo.id, // Track who completed it
     rescheduledAt: new Date() // Both completed and rescheduled
   })
   await wait(undefined, 500) // allow triggers to happen
@@ -104,12 +107,13 @@ export const appointment_completed_trigger_tests = async ({ sdk, sdkNonAdmin } :
   )
 
   // Test 4: Appointment created as no-show and completed (should NOT trigger)
-  const event4 = await sdk.api.calendar_events.createOne({ 
-    title: 'Test Appointment', 
-    durationInMinutes: 30, 
-    startTimeInMS: Date.now(), 
+  const event4 = await sdk.api.calendar_events.createOne({
+    title: 'Test Appointment',
+    durationInMinutes: 30,
+    startTimeInMS: Date.now(),
     attendees: [{ type: 'enduser', id: enduser4.id }],
     completedAt: new Date(),
+    completedBy: sdk.userInfo.id, // Track who completed it
     noShowedAt: new Date() // Both completed and no-show
   })
   await wait(undefined, 500) // allow triggers to happen
@@ -120,13 +124,14 @@ export const appointment_completed_trigger_tests = async ({ sdk, sdkNonAdmin } :
   )
 
   // Test 5: Template-based trigger
-  const event5 = await sdk.api.calendar_events.createOne({ 
-    title: 'Template Test', 
-    durationInMinutes: 30, 
-    startTimeInMS: Date.now(), 
+  const event5 = await sdk.api.calendar_events.createOne({
+    title: 'Template Test',
+    durationInMinutes: 30,
+    startTimeInMS: Date.now(),
     attendees: [{ type: 'enduser', id: enduser5.id }],
     templateId: template.id,
-    completedAt: new Date()
+    completedAt: new Date(),
+    completedBy: sdk.userInfo.id // Track who completed it
   })
   await wait(undefined, 500) // allow triggers to happen
   await async_test(
@@ -140,13 +145,14 @@ export const appointment_completed_trigger_tests = async ({ sdk, sdkNonAdmin } :
   )
 
   // Test 6: Template-based trigger with cancelled status (should NOT trigger)
-  const event6 = await sdk.api.calendar_events.createOne({ 
-    title: 'Template Test', 
-    durationInMinutes: 30, 
-    startTimeInMS: Date.now(), 
+  const event6 = await sdk.api.calendar_events.createOne({
+    title: 'Template Test',
+    durationInMinutes: 30,
+    startTimeInMS: Date.now(),
     attendees: [{ type: 'enduser', id: enduser6.id }],
     templateId: template.id,
     completedAt: new Date(),
+    completedBy: sdk.userInfo.id, // Track who completed it
     cancelledAt: new Date()
   })
   await wait(undefined, 500) // allow triggers to happen
@@ -157,12 +163,13 @@ export const appointment_completed_trigger_tests = async ({ sdk, sdkNonAdmin } :
   )
 
   // Test 7: Multiple conflicting statuses (all should NOT trigger)
-  const event7 = await sdk.api.calendar_events.createOne({ 
-    title: 'Test Appointment', 
-    durationInMinutes: 30, 
-    startTimeInMS: Date.now(), 
+  const event7 = await sdk.api.calendar_events.createOne({
+    title: 'Test Appointment',
+    durationInMinutes: 30,
+    startTimeInMS: Date.now(),
     attendees: [{ type: 'enduser', id: enduser7.id }],
     completedAt: new Date(),
+    completedBy: sdk.userInfo.id, // Track who completed it
     cancelledAt: new Date(),
     rescheduledAt: new Date(),
     noShowedAt: new Date()
@@ -175,12 +182,13 @@ export const appointment_completed_trigger_tests = async ({ sdk, sdkNonAdmin } :
   )
 
   // Test 8: Only completed status (should trigger)
-  const event8 = await sdk.api.calendar_events.createOne({ 
-    title: 'Test Appointment', 
-    durationInMinutes: 30, 
-    startTimeInMS: Date.now(), 
+  const event8 = await sdk.api.calendar_events.createOne({
+    title: 'Test Appointment',
+    durationInMinutes: 30,
+    startTimeInMS: Date.now(),
     attendees: [{ type: 'enduser', id: enduser8.id }],
-    completedAt: new Date()
+    completedAt: new Date(),
+    completedBy: sdk.userInfo.id // Track who completed it
     // No other status flags
   })
   await wait(undefined, 500) // allow triggers to happen
@@ -213,7 +221,10 @@ export const appointment_completed_trigger_tests = async ({ sdk, sdkNonAdmin } :
   )
   
   // Now update to mark as completed
-  await sdk.api.calendar_events.updateOne(updateEvent1.id, { completedAt: new Date() })
+  await sdk.api.calendar_events.updateOne(updateEvent1.id, {
+    completedAt: new Date(),
+    completedBy: sdk.userInfo.id
+  })
   await wait(undefined, 500) // allow update triggers to happen
   await async_test(
     "Update to completed triggers automation",
@@ -236,7 +247,10 @@ export const appointment_completed_trigger_tests = async ({ sdk, sdkNonAdmin } :
   await wait(undefined, 500)
   
   // Update to add completedAt to cancelled event
-  await sdk.api.calendar_events.updateOne(updateEvent2.id, { completedAt: new Date() })
+  await sdk.api.calendar_events.updateOne(updateEvent2.id, {
+    completedAt: new Date(),
+    completedBy: sdk.userInfo.id
+  })
   await wait(undefined, 500) // allow update triggers to happen
   await async_test(
     "Update cancelled event to completed does NOT trigger automation",
@@ -255,7 +269,10 @@ export const appointment_completed_trigger_tests = async ({ sdk, sdkNonAdmin } :
   await wait(undefined, 500)
   
   // Update to add completedAt to rescheduled event
-  await sdk.api.calendar_events.updateOne(updateEvent3.id, { completedAt: new Date() })
+  await sdk.api.calendar_events.updateOne(updateEvent3.id, {
+    completedAt: new Date(),
+    completedBy: sdk.userInfo.id
+  })
   await wait(undefined, 500) // allow update triggers to happen
   await async_test(
     "Update rescheduled event to completed does NOT trigger automation",
@@ -274,7 +291,10 @@ export const appointment_completed_trigger_tests = async ({ sdk, sdkNonAdmin } :
   await wait(undefined, 500)
   
   // Update to add completedAt to no-show event
-  await sdk.api.calendar_events.updateOne(updateEvent4.id, { completedAt: new Date() })
+  await sdk.api.calendar_events.updateOne(updateEvent4.id, {
+    completedAt: new Date(),
+    completedBy: sdk.userInfo.id
+  })
   await wait(undefined, 500) // allow update triggers to happen
   await async_test(
     "Update no-show event to completed does NOT trigger automation",
@@ -292,8 +312,9 @@ export const appointment_completed_trigger_tests = async ({ sdk, sdkNonAdmin } :
   await wait(undefined, 500)
   
   // Update to add both completedAt and cancelledAt
-  await sdk.api.calendar_events.updateOne(updateEvent5.id, { 
+  await sdk.api.calendar_events.updateOne(updateEvent5.id, {
     completedAt: new Date(),
+    completedBy: sdk.userInfo.id,
     cancelledAt: new Date()
   })
   await wait(undefined, 500) // allow update triggers to happen
@@ -340,6 +361,7 @@ export const appointment_completed_trigger_tests = async ({ sdk, sdkNonAdmin } :
 
 // Allow running this test file independently
 if (require.main === module) {
+  console.log(`🌐 Using API URL: ${host}`)
   const sdk = new Session({ host })
   const sdkNonAdmin = new Session({ host })
 

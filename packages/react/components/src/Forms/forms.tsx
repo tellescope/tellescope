@@ -455,15 +455,16 @@ export const QuestionForField = ({
 
 export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
   form,
-  activeField, 
+  activeField,
   currentFileValue,
-  customInputs, 
-  currentValue, 
+  customInputs,
+  currentValue,
   submitErrorMessage,
   onAddFile,
-  onFieldChange, 
+  onFieldChange,
   goToNextField,
   goToPreviousField,
+  isAutoAdvancing,
   isNextDisabled,
   isPreviousDisabled,
   submit,
@@ -585,6 +586,19 @@ export const TellescopeSingleQuestionFlow: typeof TellescopeForm = ({
   }, [form?.realTimeScoring, form?.scoring, responses])
 
   if (!(currentValue && currentFileValue)) return <></>
+
+  // Show loading state while auto-advancing to target question
+  if (isAutoAdvancing) {
+    return (
+      <Flex column alignItems="center" style={{ minHeight: 200, justifyContent: 'center' }}>
+        <CircularProgress size={40} />
+        <Typography style={{ marginTop: 16, textAlign: 'center' }}>
+          Picking up where you left off...
+        </Typography>
+      </Flex>
+    )
+  }
+
   return (
     submitted 
       ? <ThanksMessage htmlThanksMessage={htmlThanksMessage} thanksMessage={thanksMessage} 
@@ -1104,16 +1118,71 @@ export const TellescopeSinglePageForm: React.JSXElementConstructor<TellescopeFor
     }
   }
 
+  // Calculate current score if real-time scoring is enabled
+  const currentScores = useMemo(() => {
+    if (!props.form?.realTimeScoring || !props.form.scoring?.length) return null
+
+    return calculate_form_scoring({
+      response: { responses },
+      form: { scoring: props.form.scoring }
+    })
+  }, [props.form?.realTimeScoring, props.form?.scoring, responses])
+
   return (
     <Flex flex={1} column>
-      {submitted 
-      ? <ThanksMessage htmlThanksMessage={htmlThanksMessage} thanksMessage={thanksMessage} 
-          showRestartAtEnd={props?.customization?.showRestartAtEnd} 
+      {submitted
+      ? <ThanksMessage htmlThanksMessage={htmlThanksMessage} thanksMessage={thanksMessage}
+          showRestartAtEnd={props?.customization?.showRestartAtEnd}
         />
       : (
         <>
+        {/* Real-time scoring display - pinned to top */}
+        {currentScores && currentScores.length > 0 && (
+          <Flex style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 1000,
+            backgroundColor: 'white',
+            borderBottom: '1px solid #e0e0e0',
+            padding: '12px 0',
+            marginBottom: '16px',
+            width: '100%',
+            justifyContent: 'center'
+          }}>
+            {currentScores.map((score, index) => (
+              <Flex key={index} style={{
+                padding: '10px 14px',
+                backgroundColor: '#f8f9fa',
+                borderRadius: 8,
+                border: `1px solid ${PRIMARY_HEX}20`,
+                marginRight: index < currentScores.length - 1 ? 12 : 0,
+                minWidth: 120,
+                flexDirection: 'column',
+                alignItems: 'center'
+              }}>
+                <Typography style={{
+                  fontSize: 12,
+                  fontWeight: 'medium',
+                  textAlign: 'center',
+                  lineHeight: 1.2,
+                  marginBottom: 4
+                }}>
+                  {score.title}
+                </Typography>
+                <Typography style={{
+                  fontWeight: 'bold',
+                  color: PRIMARY_HEX,
+                  fontSize: 18
+                }}>
+                  {score.value}
+                </Typography>
+              </Flex>
+            ))}
+          </Flex>
+        )}
+
         <Flex flex={1} justifyContent={"center"} column style={{ marginBottom: 15 }}>
-        {list.map((activeField, i) => {
+        {list.map((activeField) => {
           const value = responses.find(r => r.fieldId === activeField.id)!
           const file = selectedFiles.find(r => r.fieldId === activeField.id)!
 

@@ -9,7 +9,7 @@ import {
   assert,
 } from "@tellescope/testing"
 
-const host = process.env.TEST_URL || 'http://localhost:8080' as const
+const host = process.env.API_URL || 'http://localhost:8080' as const
 const [email, password] = [process.env.TEST_EMAIL, process.env.TEST_PASSWORD]
 const [nonAdminEmail, nonAdminPassword] = [process.env.NON_ADMIN_EMAIL, process.env.NON_ADMIN_PASSWORD]
 const businessId = '60398b1131a295e64f084ff6'
@@ -31,6 +31,7 @@ const passOnVoid = { shouldError: false, onResult: voidResult }
 // Reusable setup function that can be called independently
 export const setup_tests = async (sdk: Session, sdkNonAdmin: Session) => {
   log_header("Setup")
+  console.log(`🌐 Using API URL: ${host}`)
   await async_test('test_online', sdk.test_online, { expectedResult: 'API V1 Online' })
   
   // Authenticate the SDKs first

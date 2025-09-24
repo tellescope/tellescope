@@ -474,7 +474,7 @@ var shouldCallout = function (field, value) {
 };
 var useTellescopeForm = function (_a) {
     var _b, _c;
-    var dontAutoadvance = _a.dontAutoadvance, isPublicForm = _a.isPublicForm, form = _a.form, urlLogicValue = _a.urlLogicValue, customization = _a.customization, carePlanId = _a.carePlanId, calendarEventId = _a.calendarEventId, context = _a.context, ga4measurementId = _a.ga4measurementId, rootResponseId = _a.rootResponseId, parentResponseId = _a.parentResponseId, accessCode = _a.accessCode, existingResponses = _a.existingResponses, automationStepId = _a.automationStepId, enduserId = _a.enduserId, formResponseId = _a.formResponseId, fields = _a.fields, isInternalNote = _a.isInternalNote, formTitle = _a.formTitle, submitRedirectURL = _a.submitRedirectURL, enduser = _a.enduser, groupId = _a.groupId, groupInstance = _a.groupInstance, groupPosition = _a.groupPosition;
+    var dontAutoadvance = _a.dontAutoadvance, isPublicForm = _a.isPublicForm, form = _a.form, urlLogicValue = _a.urlLogicValue, customization = _a.customization, carePlanId = _a.carePlanId, calendarEventId = _a.calendarEventId, context = _a.context, ga4measurementId = _a.ga4measurementId, rootResponseId = _a.rootResponseId, parentResponseId = _a.parentResponseId, accessCode = _a.accessCode, existingResponses = _a.existingResponses, automationStepId = _a.automationStepId, enduserId = _a.enduserId, formResponseId = _a.formResponseId, fields = _a.fields, isInternalNote = _a.isInternalNote, formTitle = _a.formTitle, submitRedirectURL = _a.submitRedirectURL, enduser = _a.enduser, groupId = _a.groupId, groupInstance = _a.groupInstance, groupPosition = _a.groupPosition, startingFieldId = _a.startingFieldId;
     var _d = (0, utilities_1.get_time_values)(new Date()), amPm = _d.amPm, hoursAmPm = _d.hoursAmPm, minutes = _d.minutes;
     var root = (0, exports.useTreeForFormFields)(fields);
     if (!root) {
@@ -493,7 +493,11 @@ var useTellescopeForm = function (_a) {
     var _m = (0, react_1.useState)(0), currentPageIndex = _m[0], setCurrentPageIndex = _m[1];
     var _o = (0, react_1.useState)([]), uploadingFiles = _o[0], setUploadingFiles = _o[1];
     var prevFieldStackRef = (0, react_1.useRef)([]);
-    var _p = (0, react_1.useState)({}), repeats = _p[0], setRepeats = _p[1];
+    // Auto-advance state for form continuation
+    var _p = (0, react_1.useState)(false), isAutoAdvancing = _p[0], setIsAutoAdvancing = _p[1];
+    var autoAdvanceCompletedRef = (0, react_1.useRef)(false);
+    var autoAdvanceStartTimeRef = (0, react_1.useRef)(null);
+    var _q = (0, react_1.useState)({}), repeats = _q[0], setRepeats = _q[1];
     var gaEventRef = (0, react_1.useRef)({});
     var gtmEventRef = (0, react_1.useRef)({});
     var goBackURL = '';
@@ -606,7 +610,7 @@ var useTellescopeForm = function (_a) {
             field: f,
         });
     })); }, [fields, existingResponses]);
-    var _q = (0, react_1.useState)(initializeFields()), responses = _q[0], setResponses = _q[1];
+    var _t = (0, react_1.useState)(initializeFields()), responses = _t[0], setResponses = _t[1];
     (0, react_1.useEffect)(function () {
         // Be very careful about refreshing data to avoid losing progress -- only in the case the selected form has changed
         if (fieldInitRef.current === formId)
@@ -622,7 +626,7 @@ var useTellescopeForm = function (_a) {
         externalId: f.externalId,
         blob: undefined,
     }); })); }, [fields]);
-    var _t = (0, react_1.useState)(initializeFiles()), selectedFiles = _t[0], setSelectedFiles = _t[1];
+    var _u = (0, react_1.useState)(initializeFiles()), selectedFiles = _u[0], setSelectedFiles = _u[1];
     (0, react_1.useEffect)(function () {
         // Be very careful about refreshing data to avoid losing progress -- only in the case the selected form has changed
         if (fileInitRef.current === formId)
@@ -640,6 +644,50 @@ var useTellescopeForm = function (_a) {
         state: enduser === null || enduser === void 0 ? void 0 : enduser.state,
         form: form,
     };
+    // Auto-advance to target field when startingFieldId is provided
+    (0, react_1.useEffect)(function () {
+        var _a;
+        if (!startingFieldId || responses.length === 0 || autoAdvanceCompletedRef.current)
+            return;
+        // Start timing on first run
+        if (autoAdvanceStartTimeRef.current === null) {
+            autoAdvanceStartTimeRef.current = Date.now();
+            setIsAutoAdvancing(true);
+        }
+        var finishAutoAdvance = function () {
+            var elapsed = Date.now() - (autoAdvanceStartTimeRef.current || 0);
+            var remainingTime = Math.max(0, 1000 - elapsed); // Ensure at least 1 second
+            setTimeout(function () {
+                setIsAutoAdvancing(false);
+                autoAdvanceCompletedRef.current = true;
+            }, remainingTime);
+        };
+        // Check if we're already at the target
+        if (activeField.value.id === startingFieldId) {
+            finishAutoAdvance();
+            return;
+        }
+        // Find current response
+        var currentResponse = responses.find(function (r) { return r.fieldId === activeField.value.id; });
+        // If no response or no answer, we've reached the first unanswered question
+        if (!currentResponse || !((_a = currentResponse.answer) === null || _a === void 0 ? void 0 : _a.value)) {
+            finishAutoAdvance();
+            return;
+        }
+        // Auto-advance to next field using existing logic
+        if (!prevFieldStackRef.current.find(function (v) { return v.value.id === (activeField === null || activeField === void 0 ? void 0 : activeField.value.id); })) {
+            prevFieldStackRef.current.push(activeField);
+            setCurrentPageIndex(function (i) { return i + 1; });
+        }
+        var nextNode = (0, exports.getNextField)(activeField, currentResponse, responses, logicOptions);
+        if (nextNode) {
+            setActiveField(nextNode);
+            // The useEffect will run again with the new activeField
+        }
+        else {
+            finishAutoAdvance();
+        }
+    }, [startingFieldId, responses.length, activeField, logicOptions]);
     var handleDatabaseSelect = (0, react_1.useCallback)(function (databaseRecords) {
         try {
             // no need to update if there's no prepopulation
@@ -1480,6 +1528,7 @@ var useTellescopeForm = function (_a) {
         uploadingFiles: uploadingFiles,
         setUploadingFiles: setUploadingFiles,
         handleFileUpload: handleFileUpload,
+        isAutoAdvancing: isAutoAdvancing,
     };
 };
 exports.useTellescopeForm = useTellescopeForm;

@@ -30,7 +30,7 @@ const [email2, password2] = [process.env.TEST_EMAIL_2, process.env.TEST_PASSWORD
 const [nonAdminEmail, nonAdminPassword] = [process.env.NON_ADMIN_EMAIL, process.env.NON_ADMIN_PASSWORD]
 const subUserEmail = process.env.SUB_EMAIL
 
-const host = process.env.TEST_URL || 'http://localhost:8080'
+const host = process.env.API_URL || 'http://localhost:8080'
 const businessId = '60398b1131a295e64f084ff6'
 const enduserSDK = new EnduserSession({ host, businessId })
 

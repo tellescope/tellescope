@@ -40,7 +40,7 @@ exports.setup_tests = void 0;
 require('source-map-support').install();
 var sdk_1 = require("../sdk");
 var testing_1 = require("@tellescope/testing");
-var host = process.env.TEST_URL || 'http://localhost:8080';
+var host = process.env.API_URL || 'http://localhost:8080';
 var _a = [process.env.TEST_EMAIL, process.env.TEST_PASSWORD], email = _a[0], password = _a[1];
 var _b = [process.env.NON_ADMIN_EMAIL, process.env.NON_ADMIN_PASSWORD], nonAdminEmail = _b[0], nonAdminPassword = _b[1];
 var businessId = '60398b1131a295e64f084ff6';
@@ -62,6 +62,7 @@ var setup_tests = function (sdk, sdkNonAdmin) { return __awaiter(void 0, void 0,
         switch (_a.label) {
             case 0:
                 (0, testing_1.log_header)("Setup");
+                console.log("\uD83C\uDF10 Using API URL: ".concat(host));
                 return [4 /*yield*/, (0, testing_1.async_test)('test_online', sdk.test_online, { expectedResult: 'API V1 Online' })
                     // Authenticate the SDKs first
                 ];

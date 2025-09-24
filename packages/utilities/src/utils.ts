@@ -259,9 +259,46 @@ export const build_file_link_string: ToTemplateString<{ id: string, displayName:
 export const build_content_link_string: ToTemplateString<{ id: string, displayName: string }> = d => `{{content.${d.id}.link:${d.displayName}}}`
 export const build_portal_link_string: ToTemplateString<{ page: string, displayName: string }> = d => `{{portal.link.${d.page}:${d.displayName}}}`
 
-export const to_absolute_url = (link : string) => link.startsWith('http') ? link : '//' + link // ensure absolute url 
+export const to_absolute_url = (link : string) => link.startsWith('http') ? link : '//' + link // ensure absolute url
 
 export const throwFunction = (s: string) => { throw s }
+
+export const findFirstUnansweredField = (fields: any[], existingResponses: any[]): string | undefined => {
+  if (!existingResponses || existingResponses.length === 0) {
+    return undefined
+  }
+
+  // Create a simple map of field responses for quick lookup
+  const responseMap = new Map(existingResponses.map(r => [r.fieldId, r]))
+
+  // Find root field
+  const rootField = fields.find(f => f.previousFields.find((p: any) => p.type === 'root'))
+  if (!rootField) return undefined
+
+  // Traverse fields in order to find first unanswered
+  const visited = new Set<string>()
+  const toProcess = [rootField]
+
+  while (toProcess.length > 0) {
+    const currentField = toProcess.shift()!
+    if (visited.has(currentField.id)) continue
+    visited.add(currentField.id)
+
+    // Check if this field has a response
+    const response = responseMap.get(currentField.id)
+    if (!response || !response.answer?.value) {
+      return currentField.id
+    }
+
+    // Add next fields to process
+    const nextFields = fields.filter(f =>
+      f.previousFields.some((p: any) => p.type !== 'root' && (p.info as any)?.fieldId === currentField.id)
+    )
+    toProcess.push(...nextFields)
+  }
+
+  return undefined // All questions are answered
+}
 
 export const wait = (f?: Promise<void>, ms=1000) => new Promise<void>((resolve, reject) => {
   setTimeout(() => f ? f.then(resolve).catch(reject) : resolve(), ms)
@@ -997,6 +1034,40 @@ export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Endu
         ? (
           !!enduser?.relationships?.find(r => r.type === get_inverse_relationship_type(value as any))
         )
+      : key === 'customTypeId'
+        ? (() => {
+          const enduserCustomTypeId = enduser.customTypeId
+
+          // Helper function to check if a value represents the default type (Patient)
+          const isDefaultType = (val: any) => !val
+
+          if (typeof value === 'string') {
+            // Direct string comparison
+            if (isDefaultType(value)) {
+              return isDefaultType(enduserCustomTypeId)
+            }
+            return enduserCustomTypeId === value
+          } else if (typeof value === 'object' && value !== null) {
+            // Handle operators like $ne, $in, etc.
+            const operator = Object.keys(value)[0]
+            const operatorValue = Object.values(value)[0]
+
+            if (operator === '$ne') {
+              if (isDefaultType(operatorValue)) {
+                return !isDefaultType(enduserCustomTypeId)
+              }
+              return enduserCustomTypeId !== operatorValue
+            }
+
+            // Add other operators as needed
+            return false
+          } else if (value === null || value === undefined) {
+            // Handle case where condition value is null/undefined - treat as default type
+            return isDefaultType(enduserCustomTypeId)
+          }
+
+          return false
+        })()
       : typeof value === 'object'
         ? (() => {
           const k = Object.keys(value)[0]
@@ -1093,13 +1164,13 @@ export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Endu
             (enduser.fields?.[key] ?? get_enduser_field_value_for_key(enduser, key)) === value
             || (enduser.fields?.[key] ?? get_enduser_field_value_for_key(enduser, key)) === parseInt(value)
             || (
-              Array.isArray(enduser.fields?.[key]) 
+              Array.isArray(enduser.fields?.[key])
               && (enduser?.fields?.[key] as string[]).includes(value)
             )
             || (
-              Array.isArray(get_enduser_field_value_for_key(enduser, key)) 
+              Array.isArray(get_enduser_field_value_for_key(enduser, key))
               && (enduser[key as keyof typeof enduser] as string[]).includes(value)
-            ) 
+            )
             )
           : false
     )  
@@ -2244,7 +2315,7 @@ export const get_utm_params = () => {
   const utmParams: LabeledField[] = []
 
   params.forEach((value, field) => {
-    if (field.toLowerCase().startsWith('utm_')) {
+    if (field.toLowerCase().startsWith('utm_') || field === 'ours_user_id') {
       utmParams.push({ field, value  })
     }
   })
@@ -2258,11 +2329,11 @@ export const append_current_utm_params = (targetURL: string) => {
     const utmParams = {} as Record<string, string>
 
     params.forEach((value, key) => {
-      if (key.toLowerCase().startsWith('utm_')) {
+      if (key.toLowerCase().startsWith('utm_') || key === 'ours_user_id') {
         utmParams[key] = value
       }
     })
-    
+
     if (object_is_empty(utmParams)) { return targetURL }
 
     let modifiedURL = targetURL

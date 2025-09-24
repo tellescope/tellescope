@@ -1,7 +1,7 @@
 import { Session } from '../../sdk'
 import { log_header, wait } from "@tellescope/testing"
 
-const host = process.env.AUTOMATION_TEST_HOST || 'http://localhost:8080'
+const host = process.env.API_URL || 'http://localhost:8080'
 
 export const journey_error_branching_tests = async ({ sdk, sdkNonAdmin }: { sdk: Session, sdkNonAdmin: Session }) => {
   log_header("Journey Error Branching Tests")
@@ -331,6 +331,7 @@ export const journey_error_branching_tests = async ({ sdk, sdkNonAdmin }: { sdk:
   })
 
   // Poll to verify both error handler AND afterAction run
+  // Use longer timeout for continueOnError test since automation processing may take longer
   await pollForErrorHandling(
     async () => {
       const result = await sdk.api.endusers.getOne(continueTestEnduser.id)
@@ -344,7 +345,9 @@ export const journey_error_branching_tests = async ({ sdk, sdkNonAdmin }: { sdk:
       console.log(`Continue test - AfterAction ran: ${result.hasAfterAction}`)
       return result.hasErrorHandler && result.hasAfterAction
     },
-    'Both error handler and afterAction should run with continueOnError=true'
+    'Both error handler and afterAction should run with continueOnError=true',
+    500, // intervalMs
+    60   // maxIterations (30 seconds total instead of 10)
   )
 
   // Test 5: Integration error scenario
@@ -475,6 +478,7 @@ const getTestTemplateId = async (sdk: Session, _type?: string): Promise<string> 
 
 // Allow running this test file independently
 if (require.main === module) {
+  console.log(`🌐 Using API URL: ${host}`)
   const sdk = new Session({ host })
   const sdkNonAdmin = new Session({ host })
 

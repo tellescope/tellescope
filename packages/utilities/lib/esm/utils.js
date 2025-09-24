@@ -292,8 +292,45 @@ export var build_form_group_link_string = function (d) { return "{{form_groups."
 export var build_file_link_string = function (d) { return "{{files.".concat(d.id, ".link:").concat(d.displayName, "}}"); };
 export var build_content_link_string = function (d) { return "{{content.".concat(d.id, ".link:").concat(d.displayName, "}}"); };
 export var build_portal_link_string = function (d) { return "{{portal.link.".concat(d.page, ":").concat(d.displayName, "}}"); };
-export var to_absolute_url = function (link) { return link.startsWith('http') ? link : '//' + link; }; // ensure absolute url 
+export var to_absolute_url = function (link) { return link.startsWith('http') ? link : '//' + link; }; // ensure absolute url
 export var throwFunction = function (s) { throw s; };
+export var findFirstUnansweredField = function (fields, existingResponses) {
+    var _a;
+    if (!existingResponses || existingResponses.length === 0) {
+        return undefined;
+    }
+    // Create a simple map of field responses for quick lookup
+    var responseMap = new Map(existingResponses.map(function (r) { return [r.fieldId, r]; }));
+    // Find root field
+    var rootField = fields.find(function (f) { return f.previousFields.find(function (p) { return p.type === 'root'; }); });
+    if (!rootField)
+        return undefined;
+    // Traverse fields in order to find first unanswered
+    var visited = new Set();
+    var toProcess = [rootField];
+    var _loop_1 = function () {
+        var currentField = toProcess.shift();
+        if (visited.has(currentField.id))
+            return "continue";
+        visited.add(currentField.id);
+        // Check if this field has a response
+        var response = responseMap.get(currentField.id);
+        if (!response || !((_a = response.answer) === null || _a === void 0 ? void 0 : _a.value)) {
+            return { value: currentField.id };
+        }
+        // Add next fields to process
+        var nextFields = fields.filter(function (f) {
+            return f.previousFields.some(function (p) { var _a; return p.type !== 'root' && ((_a = p.info) === null || _a === void 0 ? void 0 : _a.fieldId) === currentField.id; });
+        });
+        toProcess.push.apply(toProcess, nextFields);
+    };
+    while (toProcess.length > 0) {
+        var state_1 = _loop_1();
+        if (typeof state_1 === "object")
+            return state_1.value;
+    }
+    return undefined; // All questions are answered
+};
 export var wait = function (f, ms) {
     if (ms === void 0) { ms = 1000; }
     return new Promise(function (resolve, reject) {
@@ -934,78 +971,109 @@ export var evaluate_conditional_logic_for_enduser_fields = function (enduser, co
                 })()
                 : key === 'relationships' && typeof value === 'string'
                     ? (!!((_a = enduser === null || enduser === void 0 ? void 0 : enduser.relationships) === null || _a === void 0 ? void 0 : _a.find(function (r) { return r.type === get_inverse_relationship_type(value); })))
-                    : typeof value === 'object'
+                    : key === 'customTypeId'
                         ? (function () {
-                            var _a, _b, _d, _e, _f, _g, _h, _j, _k, _l;
-                            var k = Object.keys(value)[0];
-                            var v = Object.values(value)[0];
-                            if (key === 'Journeys' && (k === '$in' || k === '$nin')) {
-                                var isInJourney = ((_a = enduser === null || enduser === void 0 ? void 0 : enduser.journeys) === null || _a === void 0 ? void 0 : _a[v]) !== undefined;
-                                return ((k === '$in' && isInJourney)
-                                    || (k === "$nin" && !isInJourney));
+                            var enduserCustomTypeId = enduser.customTypeId;
+                            // Helper function to check if a value represents the default type (Patient)
+                            var isDefaultType = function (val) { return !val; };
+                            if (typeof value === 'string') {
+                                // Direct string comparison
+                                if (isDefaultType(value)) {
+                                    return isDefaultType(enduserCustomTypeId);
+                                }
+                                return enduserCustomTypeId === value;
                             }
-                            if (k === '$before' || k === '$after') {
-                                var vDate = v === '$now' ? new Date() : new Date(v);
-                                if (isNaN(vDate.getTime()))
-                                    return false;
-                                var eDateField = (_d = (_b = enduser.fields) === null || _b === void 0 ? void 0 : _b[key]) !== null && _d !== void 0 ? _d : get_enduser_field_value_for_key(enduser, key);
-                                if (!eDateField)
-                                    return false;
-                                if (typeof eDateField !== 'string')
-                                    return false;
-                                var eDate = ((eDateField.includes('-') && eDateField.length === 10)
-                                    ? new Date(MM_DD_YYYY_to_YYYY_MM_DD(eDateField))
-                                    : new Date(eDateField));
-                                if (isNaN(eDate.getTime()))
-                                    return false;
-                                return ((k === '$before' && eDate.getTime() < vDate.getTime())
-                                    || (k === '$after' && eDate.getTime() > vDate.getTime()));
+                            else if (typeof value === 'object' && value !== null) {
+                                // Handle operators like $ne, $in, etc.
+                                var operator = Object.keys(value)[0];
+                                var operatorValue = Object.values(value)[0];
+                                if (operator === '$ne') {
+                                    if (isDefaultType(operatorValue)) {
+                                        return !isDefaultType(enduserCustomTypeId);
+                                    }
+                                    return enduserCustomTypeId !== operatorValue;
+                                }
+                                // Add other operators as needed
+                                return false;
                             }
-                            if (k === '$lt' || k === '$gt') {
-                                var enduserValue = (_e = enduser.fields) === null || _e === void 0 ? void 0 : _e[key];
-                                if (typeof enduserValue !== 'number')
-                                    return false;
-                                var _v = (typeof v === 'number'
-                                    ? v
-                                    : parseInt(v));
-                                if (isNaN(_v))
-                                    return false;
-                                return ((k === '$lt' && enduserValue < _v)
-                                    || (k === '$gt' && enduserValue > _v));
-                            }
-                            if (k === '$contains' || k === '$doesNotContain') {
-                                var enduserValue = ((_g = (_f = enduser.fields) === null || _f === void 0 ? void 0 : _f[key]) !== null && _g !== void 0 ? _g : get_enduser_field_value_for_key(enduser, key));
-                                var contains = (Array.isArray(enduserValue)
-                                    ? !!enduserValue.find(function (ev) { return typeof ev === 'string' && ev.includes(v); })
-                                    : typeof enduserValue === 'string'
-                                        ? enduserValue.includes(v)
-                                        : enduserValue === v);
-                                return ((k === '$contains' && contains)
-                                    || (k === '$doesNotContain' && !contains));
-                            }
-                            if (k === '$isSet' || k === '$isNotSet') {
-                                var enduserValue = ((_j = (_h = enduser.fields) === null || _h === void 0 ? void 0 : _h[key]) !== null && _j !== void 0 ? _j : get_enduser_field_value_for_key(enduser, key));
-                                var isSet = (Array.isArray(enduserValue)
-                                    ? enduserValue.length > 0
-                                    : !!enduserValue);
-                                return (k === "$isSet" && isSet) || (k === '$isNotSet' && !isSet);
-                            }
-                            // should negate the typeof value === 'string' (defaults to $equals) condition
-                            if (k === '$ne') {
-                                var enduserValue = ((_l = (_k = enduser.fields) === null || _k === void 0 ? void 0 : _k[key]) !== null && _l !== void 0 ? _l : get_enduser_field_value_for_key(enduser, key));
-                                return !(enduserValue === v
-                                    || (Array.isArray(enduserValue) && (enduserValue).includes(v)));
+                            else if (value === null || value === undefined) {
+                                // Handle case where condition value is null/undefined - treat as default type
+                                return isDefaultType(enduserCustomTypeId);
                             }
                             return false;
                         })()
-                        : typeof value === 'string'
-                            ? (((_d = (_b = enduser.fields) === null || _b === void 0 ? void 0 : _b[key]) !== null && _d !== void 0 ? _d : get_enduser_field_value_for_key(enduser, key)) === value
-                                || ((_f = (_e = enduser.fields) === null || _e === void 0 ? void 0 : _e[key]) !== null && _f !== void 0 ? _f : get_enduser_field_value_for_key(enduser, key)) === parseInt(value)
-                                || (Array.isArray((_g = enduser.fields) === null || _g === void 0 ? void 0 : _g[key])
-                                    && ((_h = enduser === null || enduser === void 0 ? void 0 : enduser.fields) === null || _h === void 0 ? void 0 : _h[key]).includes(value))
-                                || (Array.isArray(get_enduser_field_value_for_key(enduser, key))
-                                    && enduser[key].includes(value)))
-                            : false);
+                        : typeof value === 'object'
+                            ? (function () {
+                                var _a, _b, _d, _e, _f, _g, _h, _j, _k, _l;
+                                var k = Object.keys(value)[0];
+                                var v = Object.values(value)[0];
+                                if (key === 'Journeys' && (k === '$in' || k === '$nin')) {
+                                    var isInJourney = ((_a = enduser === null || enduser === void 0 ? void 0 : enduser.journeys) === null || _a === void 0 ? void 0 : _a[v]) !== undefined;
+                                    return ((k === '$in' && isInJourney)
+                                        || (k === "$nin" && !isInJourney));
+                                }
+                                if (k === '$before' || k === '$after') {
+                                    var vDate = v === '$now' ? new Date() : new Date(v);
+                                    if (isNaN(vDate.getTime()))
+                                        return false;
+                                    var eDateField = (_d = (_b = enduser.fields) === null || _b === void 0 ? void 0 : _b[key]) !== null && _d !== void 0 ? _d : get_enduser_field_value_for_key(enduser, key);
+                                    if (!eDateField)
+                                        return false;
+                                    if (typeof eDateField !== 'string')
+                                        return false;
+                                    var eDate = ((eDateField.includes('-') && eDateField.length === 10)
+                                        ? new Date(MM_DD_YYYY_to_YYYY_MM_DD(eDateField))
+                                        : new Date(eDateField));
+                                    if (isNaN(eDate.getTime()))
+                                        return false;
+                                    return ((k === '$before' && eDate.getTime() < vDate.getTime())
+                                        || (k === '$after' && eDate.getTime() > vDate.getTime()));
+                                }
+                                if (k === '$lt' || k === '$gt') {
+                                    var enduserValue = (_e = enduser.fields) === null || _e === void 0 ? void 0 : _e[key];
+                                    if (typeof enduserValue !== 'number')
+                                        return false;
+                                    var _v = (typeof v === 'number'
+                                        ? v
+                                        : parseInt(v));
+                                    if (isNaN(_v))
+                                        return false;
+                                    return ((k === '$lt' && enduserValue < _v)
+                                        || (k === '$gt' && enduserValue > _v));
+                                }
+                                if (k === '$contains' || k === '$doesNotContain') {
+                                    var enduserValue = ((_g = (_f = enduser.fields) === null || _f === void 0 ? void 0 : _f[key]) !== null && _g !== void 0 ? _g : get_enduser_field_value_for_key(enduser, key));
+                                    var contains = (Array.isArray(enduserValue)
+                                        ? !!enduserValue.find(function (ev) { return typeof ev === 'string' && ev.includes(v); })
+                                        : typeof enduserValue === 'string'
+                                            ? enduserValue.includes(v)
+                                            : enduserValue === v);
+                                    return ((k === '$contains' && contains)
+                                        || (k === '$doesNotContain' && !contains));
+                                }
+                                if (k === '$isSet' || k === '$isNotSet') {
+                                    var enduserValue = ((_j = (_h = enduser.fields) === null || _h === void 0 ? void 0 : _h[key]) !== null && _j !== void 0 ? _j : get_enduser_field_value_for_key(enduser, key));
+                                    var isSet = (Array.isArray(enduserValue)
+                                        ? enduserValue.length > 0
+                                        : !!enduserValue);
+                                    return (k === "$isSet" && isSet) || (k === '$isNotSet' && !isSet);
+                                }
+                                // should negate the typeof value === 'string' (defaults to $equals) condition
+                                if (k === '$ne') {
+                                    var enduserValue = ((_l = (_k = enduser.fields) === null || _k === void 0 ? void 0 : _k[key]) !== null && _l !== void 0 ? _l : get_enduser_field_value_for_key(enduser, key));
+                                    return !(enduserValue === v
+                                        || (Array.isArray(enduserValue) && (enduserValue).includes(v)));
+                                }
+                                return false;
+                            })()
+                            : typeof value === 'string'
+                                ? (((_d = (_b = enduser.fields) === null || _b === void 0 ? void 0 : _b[key]) !== null && _d !== void 0 ? _d : get_enduser_field_value_for_key(enduser, key)) === value
+                                    || ((_f = (_e = enduser.fields) === null || _e === void 0 ? void 0 : _e[key]) !== null && _f !== void 0 ? _f : get_enduser_field_value_for_key(enduser, key)) === parseInt(value)
+                                    || (Array.isArray((_g = enduser.fields) === null || _g === void 0 ? void 0 : _g[key])
+                                        && ((_h = enduser === null || enduser === void 0 ? void 0 : enduser.fields) === null || _h === void 0 ? void 0 : _h[key]).includes(value))
+                                    || (Array.isArray(get_enduser_field_value_for_key(enduser, key))
+                                        && enduser[key].includes(value)))
+                                : false);
 })); };
 export var string_matches_key_or_value = function (value, match) {
     if (typeof value === 'string') {
@@ -1518,7 +1586,7 @@ export var calculate_form_scoring = function (_a) {
     if (!((_b = form.scoring) === null || _b === void 0 ? void 0 : _b.length))
         return;
     var scores = {};
-    var _loop_1 = function (scoreCondition) {
+    var _loop_2 = function (scoreCondition) {
         var r = (_d = response.responses) === null || _d === void 0 ? void 0 : _d.find(function (r) { return r.fieldId === scoreCondition.fieldId
             && (r.answer.type !== 'multiple_choice'
                 || (Array.isArray(r.answer.value)
@@ -1538,7 +1606,7 @@ export var calculate_form_scoring = function (_a) {
     };
     for (var _i = 0, _e = form.scoring; _i < _e.length; _i++) {
         var scoreCondition = _e[_i];
-        _loop_1(scoreCondition);
+        _loop_2(scoreCondition);
     }
     if (object_is_empty(scores))
         return;
@@ -1805,12 +1873,12 @@ export var weighted_round_robin = function (_a) {
     }
     // find user with capacity who has gone the longest without a ticket assignment
     var delayScores = {};
-    var _loop_2 = function (i) {
+    var _loop_3 = function (i) {
         var delayIndex = assignments.findIndex(function (a) { return a.userId === users[i].id; });
         delayScores[users[i].id] = delayIndex === -1 ? assignments.length : delayIndex;
     };
     for (var i = 0; i < users.length; i++) {
-        _loop_2(i);
+        _loop_3(i);
     }
     var usersSorted = __spreadArray([], users, true).sort(function (u1, u2) { return delayScores[u2.id] - delayScores[u1.id]; });
     for (var _d = 0, usersSorted_1 = usersSorted; _d < usersSorted_1.length; _d++) {
@@ -2138,7 +2206,7 @@ export var get_utm_params = function () {
     var params = new URL(window.location.href).searchParams;
     var utmParams = [];
     params.forEach(function (value, field) {
-        if (field.toLowerCase().startsWith('utm_')) {
+        if (field.toLowerCase().startsWith('utm_') || field === 'ours_user_id') {
             utmParams.push({ field: field, value: value });
         }
     });
@@ -2149,7 +2217,7 @@ export var append_current_utm_params = function (targetURL) {
         var params = new URL(window.location.href).searchParams;
         var utmParams_1 = {};
         params.forEach(function (value, key) {
-            if (key.toLowerCase().startsWith('utm_')) {
+            if (key.toLowerCase().startsWith('utm_') || key === 'ours_user_id') {
                 utmParams_1[key] = value;
             }
         });

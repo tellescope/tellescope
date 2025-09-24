@@ -41,7 +41,7 @@ require('source-map-support').install();
 var sdk_1 = require("../../sdk");
 var testing_1 = require("@tellescope/testing");
 var setup_1 = require("../setup");
-var host = process.env.TEST_URL || 'http://localhost:8080';
+var host = process.env.API_URL || 'http://localhost:8080';
 // Main test function that can be called independently
 var enduser_observations_acknowledge_tests = function (_a) {
     var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
@@ -883,6 +883,7 @@ var enduser_observations_acknowledge_tests = function (_a) {
 exports.enduser_observations_acknowledge_tests = enduser_observations_acknowledge_tests;
 // Allow running this test file independently
 if (require.main === module) {
+    console.log("\uD83C\uDF10 Using API URL: ".concat(host));
     var sdk_2 = new sdk_1.Session({ host: host });
     var sdkNonAdmin_1 = new sdk_1.Session({ host: host });
     var runTests = function () { return __awaiter(void 0, void 0, void 0, function () {

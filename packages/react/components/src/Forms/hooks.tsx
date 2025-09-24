@@ -353,6 +353,7 @@ interface UseTellescopeFormOptions {
   isInternalNote?: boolean,
   formTitle?: string,
   customization?: FormCustomization,
+  startingFieldId?: string,
   ga4measurementId?: string,
   submitRedirectURL?: string,
   rootResponseId?: string,
@@ -515,7 +516,7 @@ const shouldCallout = (field: FormField | undefined, value: FormResponseValueAns
 
 export type Response = FormResponseValue & { touched: boolean, includeInSubmit: boolean, field: FormField }
 export type FileResponse = { fieldId: string, fieldTitle: string, blobs?: FileBlob[] }
-export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL, enduser, groupId, groupInstance, groupPosition }: UseTellescopeFormOptions) => {
+export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL, enduser, groupId, groupInstance, groupPosition, startingFieldId }: UseTellescopeFormOptions) => {
   const { amPm, hoursAmPm, minutes } = get_time_values(new Date())
 
   const root = useTreeForFormFields(fields)
@@ -531,12 +532,18 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
   const [, { updateElement: updateFormResponse, updateLocalElement: updateLocalFormResponse }] = useFormResponses({ dontFetch: true })
 
   const [customerId, setCustomerId] = useState<string>()
-  const [activeField, setActiveField] = useState(root)  
+
+  const [activeField, setActiveField] = useState(root)
   const [submittingStatus, setSubmittingStatus] = useState<SubmitStatus>(undefined)
   const [submitErrorMessage, setSubmitErrorMessage] = useState('')
   const [currentPageIndex, setCurrentPageIndex] = useState(0)
-  const [uploadingFiles, setUploadingFiles] = useState<{ fieldId: string }[]>([]) 
+  const [uploadingFiles, setUploadingFiles] = useState<{ fieldId: string }[]>([])
   const prevFieldStackRef = useRef<typeof root[]>([])
+
+  // Auto-advance state for form continuation
+  const [isAutoAdvancing, setIsAutoAdvancing] = useState(false)
+  const autoAdvanceCompletedRef = useRef(false)
+  const autoAdvanceStartTimeRef = useRef<number | null>(null)
 
   const [repeats, setRepeats] = useState({} as Record<string, string | number>)
 
@@ -677,6 +684,8 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
     setResponses(initializeFields())
   }, [formId, initializeFields])
 
+
+
   // placeholders for initial files, reset when fields prop changes, since questions are now different (e.g. different form selected) 
   const fileInitRef = useRef('')
   const initializeFiles = useCallback(() => (
@@ -704,13 +713,63 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
   )
 
   const logicOptions: NextFieldLogicOptions = {
-    urlLogicValue, 
+    urlLogicValue,
     activeResponses: responses.filter(r => r.includeInSubmit),
     dateOfBirth: enduser?.dateOfBirth,
     gender: enduser?.gender,
     state: enduser?.state,
     form,
   }
+
+  // Auto-advance to target field when startingFieldId is provided
+  useEffect(() => {
+    if (!startingFieldId || responses.length === 0 || autoAdvanceCompletedRef.current) return
+
+    // Start timing on first run
+    if (autoAdvanceStartTimeRef.current === null) {
+      autoAdvanceStartTimeRef.current = Date.now()
+      setIsAutoAdvancing(true)
+    }
+
+    const finishAutoAdvance = () => {
+      const elapsed = Date.now() - (autoAdvanceStartTimeRef.current || 0)
+      const remainingTime = Math.max(0, 1000 - elapsed) // Ensure at least 1 second
+
+      setTimeout(() => {
+        setIsAutoAdvancing(false)
+        autoAdvanceCompletedRef.current = true
+      }, remainingTime)
+    }
+
+    // Check if we're already at the target
+    if (activeField.value.id === startingFieldId) {
+      finishAutoAdvance()
+      return
+    }
+
+    // Find current response
+    const currentResponse = responses.find(r => r.fieldId === activeField.value.id)
+
+    // If no response or no answer, we've reached the first unanswered question
+    if (!currentResponse || !currentResponse.answer?.value) {
+      finishAutoAdvance()
+      return
+    }
+
+    // Auto-advance to next field using existing logic
+    if (!prevFieldStackRef.current.find(v => v.value.id === activeField?.value.id)) {
+      prevFieldStackRef.current.push(activeField)
+      setCurrentPageIndex(i => i + 1)
+    }
+
+    const nextNode = getNextField(activeField, currentResponse, responses, logicOptions)
+    if (nextNode) {
+      setActiveField(nextNode)
+      // The useEffect will run again with the new activeField
+    } else {
+      finishAutoAdvance()
+    }
+  }, [startingFieldId, responses.length, activeField, logicOptions])
 
   const handleDatabaseSelect = useCallback((databaseRecords: Pick<DatabaseRecord, "values" | "databaseId">[]) => {
     try {
@@ -1544,5 +1603,6 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
     logicOptions,
     uploadingFiles, setUploadingFiles,
     handleFileUpload,
+    isAutoAdvancing,
   }
 }

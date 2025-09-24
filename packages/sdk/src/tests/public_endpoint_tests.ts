@@ -10,7 +10,7 @@ import {
 import { Session, /* APIQuery */ } from "../sdk"
 import { PublicEndpoints } from "../public"
 
-const host = process.env.TEST_URL || 'http://localhost:8080'
+const host = process.env.API_URL || 'http://localhost:8080'
 const [email, password] = [process.env.TEST_EMAIL, process.env.TEST_PASSWORD]
 
 const sdk = new Session({ host })

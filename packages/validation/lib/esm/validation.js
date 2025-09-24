@@ -858,6 +858,10 @@ export var positiveNumberValidator = numberValidatorBuilder({ lower: 1, upper: 1
 export var numberValidator = numberValidatorBuilder({ lower: -10000000000000, upper: 10000000000000 }); // max is 2286 in UTC MS
 export var numberValidatorOptional = numberValidatorBuilder({ lower: -10000000000000, upper: 10000000000000, isOptional: true, emptyStringOk: true }); // max is 2286 in UTC MS
 export var listOfNumbersValidatorUniqueOptionalOrEmptyOkay = listValidatorUniqueOptionalEmptyOkay(numberValidator, { isNumber: true });
+// Day of month and time validators for automation events
+export var numberValidatorMin1Max31 = numberValidatorBuilder({ lower: 1, upper: 31 });
+export var numberValidatorMin0Max23Optional = numberValidatorBuilder({ lower: 0, upper: 23, isOptional: true });
+export var numberValidatorMin0Max59Optional = numberValidatorBuilder({ lower: 0, upper: 59, isOptional: true });
 export var fileSizeValidator = numberValidatorBuilder({ lower: 0, upper: MAX_FILE_SIZE });
 export var numberOrStringValidatorEmptyOkay = orValidator({
     number: numberValidator,
@@ -2092,6 +2096,10 @@ export var automationEventValidator = orValidator({
                 before: booleanValidatorOptional,
             }, { isOptional: true, emptyOk: true, }), eventCondition: objectValidator({
                 before: booleanValidatorOptional,
+            }, { isOptional: true, emptyOk: true }), dayOfMonthCondition: objectValidator({
+                dayOfMonth: numberValidatorMin1Max31,
+                hour: numberValidatorMin0Max23Optional,
+                minute: numberValidatorMin0Max59Optional,
             }, { isOptional: true, emptyOk: true }), skipIfDelayPassed: booleanValidatorOptional }), { emptyOk: false }),
     }),
     formUnsubmitted: objectValidator({
@@ -3266,6 +3274,25 @@ export var baseAvailabilityBlockValidator = objectValidator({
     externalId: stringValidatorOptionalEmptyOkay,
 });
 export var baseAvailabilityBlocksValidator = listValidatorEmptyOk(baseAvailabilityBlockValidator);
+var monthlyOccurrenceValidator = {
+    validate: function (o) {
+        if (o === void 0) { o = {}; }
+        return build_validator(function (value) {
+            if (![1, 2, 3, 4, 5].includes(value)) {
+                throw new Error("Value must be one of 1, 2, 3, 4, 5");
+            }
+            return value;
+        }, __assign(__assign({}, o), { listOf: false }));
+    },
+    getExample: function () { return 1; },
+    getType: getTypeString,
+};
+export var monthlyRestrictionValidator = objectValidator({
+    occurrences: listValidator(monthlyOccurrenceValidator),
+});
+export var monthlyRestrictionOptionalValidator = objectValidator({
+    occurrences: listValidator(monthlyOccurrenceValidator),
+}, { isOptional: true, emptyOk: true });
 export var weeklyAvailabilityValidator = objectValidator({
     dayOfWeekStartingSundayIndexedByZero: nonNegNumberValidator,
     endTimeInMinutes: nonNegNumberValidator,
@@ -3277,6 +3304,7 @@ export var weeklyAvailabilityValidator = objectValidator({
     intervalInMinutes: numberValidatorOptional,
     priority: numberValidatorOptional,
     bufferStartMinutes: numberValidatorOptional,
+    monthlyRestriction: monthlyRestrictionOptionalValidator,
 });
 export var weeklyAvailabilitiesValidator = listValidatorEmptyOk(weeklyAvailabilityValidator);
 export var timezoneValidator = exactMatchValidator(Object.keys(TIMEZONE_MAP));
@@ -3321,6 +3349,7 @@ export var customEnduserFieldValidator = orValidator({
         required: booleanValidatorOptional,
         hiddenFromProfile: booleanValidatorOptional,
         requireConfirmation: booleanValidatorOptional,
+        tags: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     "Multiple Select": objectValidator({
         type: exactMatchValidator(['Multiple Select']),
@@ -3331,6 +3360,7 @@ export var customEnduserFieldValidator = orValidator({
         required: booleanValidatorOptional,
         hiddenFromProfile: booleanValidatorOptional,
         requireConfirmation: booleanValidatorOptional,
+        tags: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     Text: objectValidator({
         type: exactMatchValidator(['Text']),
@@ -3339,6 +3369,7 @@ export var customEnduserFieldValidator = orValidator({
         required: booleanValidatorOptional,
         hiddenFromProfile: booleanValidatorOptional,
         requireConfirmation: booleanValidatorOptional,
+        tags: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     Number: objectValidator({
         type: exactMatchValidator(['Number']),
@@ -3347,6 +3378,7 @@ export var customEnduserFieldValidator = orValidator({
         required: booleanValidatorOptional,
         hiddenFromProfile: booleanValidatorOptional,
         requireConfirmation: booleanValidatorOptional,
+        tags: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     File: objectValidator({
         type: exactMatchValidator(['File']),
@@ -3355,6 +3387,7 @@ export var customEnduserFieldValidator = orValidator({
         required: booleanValidatorOptional,
         hiddenFromProfile: booleanValidatorOptional,
         requireConfirmation: booleanValidatorOptional,
+        tags: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     "Multiple Text": objectValidator({
         type: exactMatchValidator(["Multiple Text"]),
@@ -3363,6 +3396,7 @@ export var customEnduserFieldValidator = orValidator({
         required: booleanValidatorOptional,
         hiddenFromProfile: booleanValidatorOptional,
         requireConfirmation: booleanValidatorOptional,
+        tags: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     Date: objectValidator({
         type: exactMatchValidator(['Date']),
@@ -3371,6 +3405,7 @@ export var customEnduserFieldValidator = orValidator({
         required: booleanValidatorOptional,
         hiddenFromProfile: booleanValidatorOptional,
         requireConfirmation: booleanValidatorOptional,
+        tags: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     "Auto Detect": objectValidator({
         type: exactMatchValidator(["Auto Detect"]),
@@ -3379,6 +3414,7 @@ export var customEnduserFieldValidator = orValidator({
         required: booleanValidatorOptional,
         hiddenFromProfile: booleanValidatorOptional,
         requireConfirmation: booleanValidatorOptional,
+        tags: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     "Table": objectValidator({
         type: exactMatchValidator(["Table"]),
@@ -3389,6 +3425,7 @@ export var customEnduserFieldValidator = orValidator({
         required: booleanValidatorOptional,
         hiddenFromProfile: booleanValidatorOptional,
         requireConfirmation: booleanValidatorOptional,
+        tags: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     "Checkbox": objectValidator({
         type: exactMatchValidator(["Checkbox"]),
@@ -3397,6 +3434,7 @@ export var customEnduserFieldValidator = orValidator({
         required: booleanValidatorOptional,
         hiddenFromProfile: booleanValidatorOptional,
         requireConfirmation: booleanValidatorOptional,
+        tags: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     "Database Select": objectValidator({
         type: exactMatchValidator(["Database Select"]),
@@ -3408,6 +3446,7 @@ export var customEnduserFieldValidator = orValidator({
         required: booleanValidatorOptional,
         hiddenFromProfile: booleanValidatorOptional,
         requireConfirmation: booleanValidatorOptional,
+        tags: listOfStringsValidatorOptionalOrEmptyOk,
     }),
 });
 export var customEnduserFieldsValidatorOptionalOrEmpty = listValidatorOptionalOrEmptyOk(customEnduserFieldValidator);
@@ -3741,6 +3780,7 @@ export var automationTriggerEventValidator = orValidator({
         type: exactMatchValidator(['Appointment Rescheduled']),
         info: objectValidator({
             titles: listOfStringsValidatorOptionalOrEmptyOk,
+            detectManualReschedules: booleanValidatorOptional,
         }),
         conditions: optionalEmptyObjectValidator,
     }),
@@ -4491,6 +4531,7 @@ export var analyticsQueryValidator = orValidator({
             State: booleanValidatorOptional,
             Phone: booleanValidatorOptional,
             "Scheduled By": booleanValidatorOptional,
+            "Completed By": booleanValidatorOptional,
             alsoGroupByHost: booleanValidatorOptional,
             "Cancel Reason": booleanValidatorOptional,
         }, { isOptional: true, emptyOk: true }),

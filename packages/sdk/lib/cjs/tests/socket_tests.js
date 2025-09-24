@@ -50,7 +50,7 @@ var get_sha256 = function (s) {
 exports.get_sha256 = get_sha256;
 var VERBOSE = false; // true
 var AWAIT_SOCKET_DURATION = 1000; // 25ms was generally passing for Redis, 1000ms should be upper limit of performance
-var host = process.env.TEST_URL || 'http://localhost:8080';
+var host = process.env.API_URL || 'http://localhost:8080';
 var _a = [process.env.TEST_EMAIL, process.env.TEST_PASSWORD], email = _a[0], password = _a[1];
 var _b = [process.env.TEST_EMAIL_2, process.env.TEST_PASSWORD_2], email2 = _b[0], password2 = _b[1];
 var _c = [process.env.NON_ADMIN_EMAIL, process.env.NON_ADMIN_PASSWORD], nonAdminEmail = _c[0], nonAdminPassword = _c[1];

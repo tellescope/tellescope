@@ -25,7 +25,7 @@ const VERBOSE = false// true
 
 const AWAIT_SOCKET_DURATION = 1000 // 25ms was generally passing for Redis, 1000ms should be upper limit of performance
 
-const host = process.env.TEST_URL || 'http://localhost:8080'
+const host = process.env.API_URL || 'http://localhost:8080'
 const [email, password] = [process.env.TEST_EMAIL, process.env.TEST_PASSWORD]
 const [email2, password2] = [process.env.TEST_EMAIL_2, process.env.TEST_PASSWORD_2]
 const [nonAdminEmail, nonAdminPassword] = [process.env.NON_ADMIN_EMAIL, process.env.NON_ADMIN_PASSWORD]

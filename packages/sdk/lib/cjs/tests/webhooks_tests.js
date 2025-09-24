@@ -72,7 +72,7 @@ var _a = [process.env.TEST_EMAIL, process.env.TEST_PASSWORD], email = _a[0], pas
 var _b = [process.env.TEST_EMAIL_2, process.env.TEST_PASSWORD_2], email2 = _b[0], password2 = _b[1];
 var _c = [process.env.NON_ADMIN_EMAIL, process.env.NON_ADMIN_PASSWORD], nonAdminEmail = _c[0], nonAdminPassword = _c[1];
 var subUserEmail = process.env.SUB_EMAIL;
-var host = process.env.TEST_URL || 'http://localhost:8080';
+var host = process.env.API_URL || 'http://localhost:8080';
 var businessId = '60398b1131a295e64f084ff6';
 var enduserSDK = new sdk_1.EnduserSession({ host: host, businessId: businessId });
 if (!(email && subUserEmail && password && email2 && password2 && nonAdminEmail && nonAdminPassword)) {

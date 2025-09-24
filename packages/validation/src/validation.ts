@@ -121,6 +121,7 @@ import {
   StateCredentialInfo,
   BaseAvailabilityBlock,
   WeeklyAvailability,
+  MonthlyRestriction,
   Timezone,
   TIMEZONE_MAP,
   FormType,
@@ -1264,6 +1265,11 @@ export const positiveNumberValidator = numberValidatorBuilder({ lower: 1, upper:
 export const numberValidator = numberValidatorBuilder({ lower: -10000000000000, upper: 10000000000000 }) // max is 2286 in UTC MS
 export const numberValidatorOptional = numberValidatorBuilder({ lower: -10000000000000, upper: 10000000000000, isOptional: true, emptyStringOk: true }) // max is 2286 in UTC MS
 export const listOfNumbersValidatorUniqueOptionalOrEmptyOkay = listValidatorUniqueOptionalEmptyOkay(numberValidator, { isNumber: true })
+
+// Day of month and time validators for automation events
+export const numberValidatorMin1Max31 = numberValidatorBuilder({ lower: 1, upper: 31 })
+export const numberValidatorMin0Max23Optional = numberValidatorBuilder({ lower: 0, upper: 23, isOptional: true })
+export const numberValidatorMin0Max59Optional = numberValidatorBuilder({ lower: 0, upper: 59, isOptional: true })
 
 export const fileSizeValidator = numberValidatorBuilder({ lower: 0, upper: MAX_FILE_SIZE })
 
@@ -2654,6 +2660,11 @@ export const automationEventValidator = orValidator<{ [K in AutomationEventType]
       }, { isOptional: true, emptyOk: true, }),
       eventCondition: objectValidator<AfterActionAutomationEvent['info']['eventCondition']>({
         before: booleanValidatorOptional,
+      }, { isOptional: true, emptyOk: true }),
+      dayOfMonthCondition: objectValidator<AfterActionAutomationEvent['info']['dayOfMonthCondition']>({
+        dayOfMonth: numberValidatorMin1Max31,
+        hour: numberValidatorMin0Max23Optional,
+        minute: numberValidatorMin0Max59Optional,
       }, { isOptional: true, emptyOk: true }),
       skipIfDelayPassed: booleanValidatorOptional,
     }, { emptyOk: false }),
@@ -4121,6 +4132,27 @@ export const baseAvailabilityBlockValidator = objectValidator<BaseAvailabilityBl
 })
 export const baseAvailabilityBlocksValidator = listValidatorEmptyOk(baseAvailabilityBlockValidator)
 
+const monthlyOccurrenceValidator: ValidatorDefinition<1 | 2 | 3 | 4 | 5> = {
+  validate: (o={}) => build_validator(
+    (value: JSONType) => {
+      if (![1, 2, 3, 4, 5].includes(value as number)) {
+        throw new Error(`Value must be one of 1, 2, 3, 4, 5`)
+      }
+      return value as 1 | 2 | 3 | 4 | 5
+    },
+    { ...o, listOf: false }
+  ),
+  getExample: () => 1,
+  getType: getTypeString,
+}
+
+export const monthlyRestrictionValidator = objectValidator<MonthlyRestriction>({
+  occurrences: listValidator(monthlyOccurrenceValidator),
+})
+export const monthlyRestrictionOptionalValidator = objectValidator<MonthlyRestriction>({
+  occurrences: listValidator(monthlyOccurrenceValidator),
+}, { isOptional: true, emptyOk: true })
+
 export const weeklyAvailabilityValidator = objectValidator<WeeklyAvailability>({
   dayOfWeekStartingSundayIndexedByZero: nonNegNumberValidator,
   endTimeInMinutes: nonNegNumberValidator,
@@ -4132,6 +4164,7 @@ export const weeklyAvailabilityValidator = objectValidator<WeeklyAvailability>({
   intervalInMinutes: numberValidatorOptional,
   priority: numberValidatorOptional,
   bufferStartMinutes: numberValidatorOptional,
+  monthlyRestriction: monthlyRestrictionOptionalValidator,
 })
 export const weeklyAvailabilitiesValidator = listValidatorEmptyOk(weeklyAvailabilityValidator)
 
@@ -4182,6 +4215,7 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
     requireConfirmation: booleanValidatorOptional,
+    tags: listOfStringsValidatorOptionalOrEmptyOk,
   }), 
   "Multiple Select": objectValidator<CustomEnduserFields['Multiple Select']>({
     type: exactMatchValidator(['Multiple Select']),
@@ -4192,6 +4226,7 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
     requireConfirmation: booleanValidatorOptional,
+    tags: listOfStringsValidatorOptionalOrEmptyOk,
   }), 
   Text: objectValidator<CustomEnduserFields['Text']>({
     type: exactMatchValidator(['Text']),
@@ -4200,6 +4235,7 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
     requireConfirmation: booleanValidatorOptional,
+    tags: listOfStringsValidatorOptionalOrEmptyOk,
   }), 
   Number: objectValidator<CustomEnduserFields['Number']>({
     type: exactMatchValidator(['Number']),
@@ -4208,6 +4244,7 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
     requireConfirmation: booleanValidatorOptional,
+    tags: listOfStringsValidatorOptionalOrEmptyOk,
   }), 
   File: objectValidator<CustomEnduserFields['File']>({
     type: exactMatchValidator(['File']),
@@ -4216,6 +4253,7 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
     requireConfirmation: booleanValidatorOptional,
+    tags: listOfStringsValidatorOptionalOrEmptyOk,
   }), 
   "Multiple Text": objectValidator<CustomEnduserFields["Multiple Text"]>({
     type: exactMatchValidator(["Multiple Text"]),
@@ -4224,6 +4262,7 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
     requireConfirmation: booleanValidatorOptional,
+    tags: listOfStringsValidatorOptionalOrEmptyOk,
   }), 
   Date: objectValidator<CustomEnduserFields['Date']>({
     type: exactMatchValidator(['Date']),
@@ -4232,6 +4271,7 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
     requireConfirmation: booleanValidatorOptional,
+    tags: listOfStringsValidatorOptionalOrEmptyOk,
   }), 
   "Auto Detect": objectValidator<CustomEnduserFields["Auto Detect"]>({
     type: exactMatchValidator(["Auto Detect"]),
@@ -4240,6 +4280,7 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
     requireConfirmation: booleanValidatorOptional,
+    tags: listOfStringsValidatorOptionalOrEmptyOk,
   }), 
   "Table": objectValidator<CustomEnduserFields["Table"]>({
     type: exactMatchValidator(["Table"]),
@@ -4250,6 +4291,7 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
     requireConfirmation: booleanValidatorOptional,
+    tags: listOfStringsValidatorOptionalOrEmptyOk,
   }), 
   "Checkbox": objectValidator<CustomEnduserFields["Checkbox"]>({
     type: exactMatchValidator(["Checkbox"]),
@@ -4258,6 +4300,7 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
     requireConfirmation: booleanValidatorOptional,
+    tags: listOfStringsValidatorOptionalOrEmptyOk,
   }), 
   "Database Select": objectValidator<CustomEnduserFields["Database Select"]>({
     type: exactMatchValidator(["Database Select"]),
@@ -4269,6 +4312,7 @@ export const customEnduserFieldValidator = orValidator<{ [K in CustomEnduserFiel
     required: booleanValidatorOptional,
     hiddenFromProfile: booleanValidatorOptional,
     requireConfirmation: booleanValidatorOptional,
+    tags: listOfStringsValidatorOptionalOrEmptyOk,
   }), 
 })
 export const customEnduserFieldsValidatorOptionalOrEmpty = listValidatorOptionalOrEmptyOk(customEnduserFieldValidator)
@@ -4612,6 +4656,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['Appointment Rescheduled']),
     info: objectValidator<AutomationTriggerEvents['Appointment Rescheduled']['info']>({
       titles: listOfStringsValidatorOptionalOrEmptyOk,
+      detectManualReschedules: booleanValidatorOptional,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -5415,6 +5460,7 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       State: booleanValidatorOptional,
       Phone: booleanValidatorOptional,
       "Scheduled By": booleanValidatorOptional,
+      "Completed By": booleanValidatorOptional,
       alsoGroupByHost: booleanValidatorOptional,
       "Cancel Reason": booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),

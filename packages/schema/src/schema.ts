@@ -1542,6 +1542,7 @@ export const schema: SchemaV1 = build_schema({
       markedReadAt: { validator: dateOptionalOrEmptyStringValidator },
       markedUnreadAt: { validator: dateOptionalOrEmptyStringValidator },
       note: { validator: stringValidator25000EmptyOkay, redactions: ['enduser'] },
+      noteIsFlagged: { validator: booleanValidator },
       insurance: { validator: insuranceOptionalValidator, redactions: ['enduser'] },
       insuranceSecondary: { validator: insuranceOptionalValidator, redactions: ['enduser'] },
       bookingNotes: {
@@ -5547,6 +5548,7 @@ export const schema: SchemaV1 = build_schema({
       canvasLocationId: { validator: stringValidator100 },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
       completedAt: { validator: dateValidatorOptional },
+      completedBy: { validator: stringValidator },
       confirmedAt: { validator: dateValidatorOptional },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       cancelledGroupAttendees: {
@@ -7609,6 +7611,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       overrideGlobalRange: { validator: booleanValidator },
       visibleForRoles: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       visibleForUserIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+      tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
     },
   },
   availability_blocks: {

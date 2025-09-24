@@ -84,6 +84,7 @@ export declare const build_portal_link_string: ToTemplateString<{
 }>;
 export declare const to_absolute_url: (link: string) => string;
 export declare const throwFunction: (s: string) => never;
+export declare const findFirstUnansweredField: (fields: any[], existingResponses: any[]) => string | undefined;
 export declare const wait: (f?: Promise<void>, ms?: number) => Promise<void>;
 export declare const sorted_records: <T extends {
     createdAt: string | Date;

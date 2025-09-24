@@ -274,7 +274,7 @@ var QuestionForField = function (_a) {
 exports.QuestionForField = QuestionForField;
 var TellescopeSingleQuestionFlow = function (_a) {
     var _b, _c, _d;
-    var form = _a.form, activeField = _a.activeField, currentFileValue = _a.currentFileValue, customInputs = _a.customInputs, currentValue = _a.currentValue, submitErrorMessage = _a.submitErrorMessage, onAddFile = _a.onAddFile, onFieldChange = _a.onFieldChange, goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, isNextDisabled = _a.isNextDisabled, isPreviousDisabled = _a.isPreviousDisabled, submit = _a.submit, showSubmit = _a.showSubmit, submittingStatus = _a.submittingStatus, validateField = _a.validateField, _e = _a.thanksMessage, thanksMessage = _e === void 0 ? "Your response was successfully recorded" : _e, htmlThanksMessage = _a.htmlThanksMessage, submitted = _a.submitted, onSuccess = _a.onSuccess, isPreview = _a.isPreview, theme = _a.theme, fields = _a.fields, responses = _a.responses, selectedFiles = _a.selectedFiles, inputStyle = _a.inputStyle, repeats = _a.repeats, setRepeats = _a.setRepeats, currentPageIndex = _a.currentPageIndex, getNumberOfRemainingPages = _a.getNumberOfRemainingPages, validateCurrentField = _a.validateCurrentField, handleDatabaseSelect = _a.handleDatabaseSelect, setCustomerId = _a.setCustomerId, customization = _a.customization, enduserId = _a.enduserId, enduser = _a.enduser, formResponseId = _a.formResponseId, groupId = _a.groupId, groupInstance = _a.groupInstance, logicOptions = _a.logicOptions, uploadingFiles = _a.uploadingFiles, setUploadingFiles = _a.setUploadingFiles, handleFileUpload = _a.handleFileUpload;
+    var form = _a.form, activeField = _a.activeField, currentFileValue = _a.currentFileValue, customInputs = _a.customInputs, currentValue = _a.currentValue, submitErrorMessage = _a.submitErrorMessage, onAddFile = _a.onAddFile, onFieldChange = _a.onFieldChange, goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, isAutoAdvancing = _a.isAutoAdvancing, isNextDisabled = _a.isNextDisabled, isPreviousDisabled = _a.isPreviousDisabled, submit = _a.submit, showSubmit = _a.showSubmit, submittingStatus = _a.submittingStatus, validateField = _a.validateField, _e = _a.thanksMessage, thanksMessage = _e === void 0 ? "Your response was successfully recorded" : _e, htmlThanksMessage = _a.htmlThanksMessage, submitted = _a.submitted, onSuccess = _a.onSuccess, isPreview = _a.isPreview, theme = _a.theme, fields = _a.fields, responses = _a.responses, selectedFiles = _a.selectedFiles, inputStyle = _a.inputStyle, repeats = _a.repeats, setRepeats = _a.setRepeats, currentPageIndex = _a.currentPageIndex, getNumberOfRemainingPages = _a.getNumberOfRemainingPages, validateCurrentField = _a.validateCurrentField, handleDatabaseSelect = _a.handleDatabaseSelect, setCustomerId = _a.setCustomerId, customization = _a.customization, enduserId = _a.enduserId, enduser = _a.enduser, formResponseId = _a.formResponseId, groupId = _a.groupId, groupInstance = _a.groupInstance, logicOptions = _a.logicOptions, uploadingFiles = _a.uploadingFiles, setUploadingFiles = _a.setUploadingFiles, handleFileUpload = _a.handleFileUpload;
     var beforeunloadHandler = react_1.default.useCallback(function (e) {
         try {
             e.preventDefault();
@@ -359,6 +359,10 @@ var TellescopeSingleQuestionFlow = function (_a) {
     }, [form === null || form === void 0 ? void 0 : form.realTimeScoring, form === null || form === void 0 ? void 0 : form.scoring, responses]);
     if (!(currentValue && currentFileValue))
         return (0, jsx_runtime_1.jsx)(jsx_runtime_1.Fragment, {});
+    // Show loading state while auto-advancing to target question
+    if (isAutoAdvancing) {
+        return ((0, jsx_runtime_1.jsxs)(index_1.Flex, __assign({ column: true, alignItems: "center", style: { minHeight: 200, justifyContent: 'center' } }, { children: [(0, jsx_runtime_1.jsx)(index_1.CircularProgress, { size: 40 }), (0, jsx_runtime_1.jsx)(index_1.Typography, __assign({ style: { marginTop: 16, textAlign: 'center' } }, { children: "Picking up where you left off..." }))] })));
+    }
     return (submitted
         ? (0, jsx_runtime_1.jsx)(exports.ThanksMessage, { htmlThanksMessage: htmlThanksMessage, thanksMessage: thanksMessage, showRestartAtEnd: customization === null || customization === void 0 ? void 0 : customization.showRestartAtEnd })
         : ((0, jsx_runtime_1.jsxs)(index_1.Flex, __assign({ column: true, flex: 1 }, { children: [(0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ flex: 1, justifyContent: "center", column: true }, { children: (0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ style: inputStyle }, { children: (0, jsx_runtime_1.jsx)(exports.QuestionForField, { form: form, fields: fields, field: activeField.value, submit: submit, enduserId: enduserId, formResponseId: formResponseId, enduser: enduser, goToPreviousField: goToPreviousField, isPreviousDisabled: isPreviousDisabled, goToNextField: goToNextField, handleDatabaseSelect: handleDatabaseSelect, setCustomerId: setCustomerId, repeats: repeats, onRepeatsChange: setRepeats, value: currentValue, file: currentFileValue, customInputs: customInputs, onAddFile: onAddFile, onFieldChange: onFieldChange, responses: responses, selectedFiles: selectedFiles, validateField: validateField, groupId: groupId, groupInstance: groupInstance, logicOptions: logicOptions, uploadingFiles: uploadingFiles, setUploadingFiles: setUploadingFiles, handleFileUpload: handleFileUpload }) })) })), (0, jsx_runtime_1.jsxs)(index_1.Flex, __assign({ alignItems: 'center', justifyContent: "space-between" }, { children: [!isPreviousDisabled()
@@ -628,8 +632,8 @@ var Description = function (_a) {
 };
 exports.Description = Description;
 var TellescopeSinglePageForm = function (_a) {
-    var _b;
-    var customInputs = _a.customInputs, submitErrorMessage = _a.submitErrorMessage, onAddFile = _a.onAddFile, onFieldChange = _a.onFieldChange, goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, isNextDisabled = _a.isNextDisabled, isPreviousDisabled = _a.isPreviousDisabled, submit = _a.submit, showSubmit = _a.showSubmit, showSaveDraft = _a.showSaveDraft, submittingStatus = _a.submittingStatus, updating = _a.updating, validateField = _a.validateField, validateResponsesForFields = _a.validateResponsesForFields, formTitle = _a.formTitle, _c = _a.thanksMessage, thanksMessage = _c === void 0 ? exports.DEFAULT_THANKS_MESSAGE : _c, htmlThanksMessage = _a.htmlThanksMessage, submitted = _a.submitted, style = _a.style, onSuccess = _a.onSuccess, isPreview = _a.isPreview, fields = _a.fields, selectedFiles = _a.selectedFiles, responses = _a.responses, isInternalNote = _a.isInternalNote, existingResponses = _a.existingResponses, repeats = _a.repeats, setRepeats = _a.setRepeats, setCustomerId = _a.setCustomerId, rootResponseId = _a.rootResponseId, parentResponseId = _a.parentResponseId, handleDatabaseSelect = _a.handleDatabaseSelect, submittedAt = _a.submittedAt, updatedAt = _a.updatedAt, otherEnduserIds = _a.otherEnduserIds, onBulkErrors = _a.onBulkErrors, enduser = _a.enduser, groupId = _a.groupId, groupInstance = _a.groupInstance, uploadingFiles = _a.uploadingFiles, setUploadingFiles = _a.setUploadingFiles, handleFileUpload = _a.handleFileUpload, AddToDatabase = _a.AddToDatabase, props = __rest(_a, ["customInputs", "submitErrorMessage", "onAddFile", "onFieldChange", "goToNextField", "goToPreviousField", "isNextDisabled", "isPreviousDisabled", "submit", "showSubmit", "showSaveDraft", "submittingStatus", "updating", "validateField", "validateResponsesForFields", "formTitle", "thanksMessage", "htmlThanksMessage", "submitted", "style", "onSuccess", "isPreview", "fields", "selectedFiles", "responses", "isInternalNote", "existingResponses", "repeats", "setRepeats", "setCustomerId", "rootResponseId", "parentResponseId", "handleDatabaseSelect", "submittedAt", "updatedAt", "otherEnduserIds", "onBulkErrors", "enduser", "groupId", "groupInstance", "uploadingFiles", "setUploadingFiles", "handleFileUpload", "AddToDatabase"]);
+    var _b, _c, _d;
+    var customInputs = _a.customInputs, submitErrorMessage = _a.submitErrorMessage, onAddFile = _a.onAddFile, onFieldChange = _a.onFieldChange, goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, isNextDisabled = _a.isNextDisabled, isPreviousDisabled = _a.isPreviousDisabled, submit = _a.submit, showSubmit = _a.showSubmit, showSaveDraft = _a.showSaveDraft, submittingStatus = _a.submittingStatus, updating = _a.updating, validateField = _a.validateField, validateResponsesForFields = _a.validateResponsesForFields, formTitle = _a.formTitle, _e = _a.thanksMessage, thanksMessage = _e === void 0 ? exports.DEFAULT_THANKS_MESSAGE : _e, htmlThanksMessage = _a.htmlThanksMessage, submitted = _a.submitted, style = _a.style, onSuccess = _a.onSuccess, isPreview = _a.isPreview, fields = _a.fields, selectedFiles = _a.selectedFiles, responses = _a.responses, isInternalNote = _a.isInternalNote, existingResponses = _a.existingResponses, repeats = _a.repeats, setRepeats = _a.setRepeats, setCustomerId = _a.setCustomerId, rootResponseId = _a.rootResponseId, parentResponseId = _a.parentResponseId, handleDatabaseSelect = _a.handleDatabaseSelect, submittedAt = _a.submittedAt, updatedAt = _a.updatedAt, otherEnduserIds = _a.otherEnduserIds, onBulkErrors = _a.onBulkErrors, enduser = _a.enduser, groupId = _a.groupId, groupInstance = _a.groupInstance, uploadingFiles = _a.uploadingFiles, setUploadingFiles = _a.setUploadingFiles, handleFileUpload = _a.handleFileUpload, AddToDatabase = _a.AddToDatabase, props = __rest(_a, ["customInputs", "submitErrorMessage", "onAddFile", "onFieldChange", "goToNextField", "goToPreviousField", "isNextDisabled", "isPreviousDisabled", "submit", "showSubmit", "showSaveDraft", "submittingStatus", "updating", "validateField", "validateResponsesForFields", "formTitle", "thanksMessage", "htmlThanksMessage", "submitted", "style", "onSuccess", "isPreview", "fields", "selectedFiles", "responses", "isInternalNote", "existingResponses", "repeats", "setRepeats", "setCustomerId", "rootResponseId", "parentResponseId", "handleDatabaseSelect", "submittedAt", "updatedAt", "otherEnduserIds", "onBulkErrors", "enduser", "groupId", "groupInstance", "uploadingFiles", "setUploadingFiles", "handleFileUpload", "AddToDatabase"]);
     var list = (0, hooks_1.useListForFormFields)(fields, responses, { form: props.form, gender: enduser === null || enduser === void 0 ? void 0 : enduser.gender });
     var includedFieldIds = (Array.from(new Set(__spreadArray(__spreadArray([], list.map(function (f) { return f.id; }), true), (existingResponses !== null && existingResponses !== void 0 ? existingResponses : []).filter(function (e) { return !e.isPrepopulatedFromEnduserField; }).map(function (e) { return e.fieldId; }), true))));
     var handleSubmit = (0, react_1.useCallback)(function () { return __awaiter(void 0, void 0, void 0, function () {
@@ -681,15 +685,54 @@ var TellescopeSinglePageForm = function (_a) {
             return "break";
         }
     };
-    for (var _i = 0, _d = responses !== null && responses !== void 0 ? responses : []; _i < _d.length; _i++) {
-        var r = _d[_i];
+    for (var _i = 0, _f = responses !== null && responses !== void 0 ? responses : []; _i < _f.length; _i++) {
+        var r = _f[_i];
         var state_1 = _loop_3(r);
         if (state_1 === "break")
             break;
     }
+    // Calculate current score if real-time scoring is enabled
+    var currentScores = (0, react_1.useMemo)(function () {
+        var _a, _b;
+        if (!((_a = props.form) === null || _a === void 0 ? void 0 : _a.realTimeScoring) || !((_b = props.form.scoring) === null || _b === void 0 ? void 0 : _b.length))
+            return null;
+        return (0, utilities_1.calculate_form_scoring)({
+            response: { responses: responses },
+            form: { scoring: props.form.scoring }
+        });
+    }, [(_b = props.form) === null || _b === void 0 ? void 0 : _b.realTimeScoring, (_c = props.form) === null || _c === void 0 ? void 0 : _c.scoring, responses]);
     return ((0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ flex: 1, column: true }, { children: submitted
-            ? (0, jsx_runtime_1.jsx)(exports.ThanksMessage, { htmlThanksMessage: htmlThanksMessage, thanksMessage: thanksMessage, showRestartAtEnd: (_b = props === null || props === void 0 ? void 0 : props.customization) === null || _b === void 0 ? void 0 : _b.showRestartAtEnd })
-            : ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ flex: 1, justifyContent: "center", column: true, style: { marginBottom: 15 } }, { children: list.map(function (activeField, i) {
+            ? (0, jsx_runtime_1.jsx)(exports.ThanksMessage, { htmlThanksMessage: htmlThanksMessage, thanksMessage: thanksMessage, showRestartAtEnd: (_d = props === null || props === void 0 ? void 0 : props.customization) === null || _d === void 0 ? void 0 : _d.showRestartAtEnd })
+            : ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [currentScores && currentScores.length > 0 && ((0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ style: {
+                            position: 'sticky',
+                            top: 0,
+                            zIndex: 1000,
+                            backgroundColor: 'white',
+                            borderBottom: '1px solid #e0e0e0',
+                            padding: '12px 0',
+                            marginBottom: '16px',
+                            width: '100%',
+                            justifyContent: 'center'
+                        } }, { children: currentScores.map(function (score, index) { return ((0, jsx_runtime_1.jsxs)(index_1.Flex, __assign({ style: {
+                                padding: '10px 14px',
+                                backgroundColor: '#f8f9fa',
+                                borderRadius: 8,
+                                border: "1px solid ".concat(constants_1.PRIMARY_HEX, "20"),
+                                marginRight: index < currentScores.length - 1 ? 12 : 0,
+                                minWidth: 120,
+                                flexDirection: 'column',
+                                alignItems: 'center'
+                            } }, { children: [(0, jsx_runtime_1.jsx)(index_1.Typography, __assign({ style: {
+                                        fontSize: 12,
+                                        fontWeight: 'medium',
+                                        textAlign: 'center',
+                                        lineHeight: 1.2,
+                                        marginBottom: 4
+                                    } }, { children: score.title })), (0, jsx_runtime_1.jsx)(index_1.Typography, __assign({ style: {
+                                        fontWeight: 'bold',
+                                        color: constants_1.PRIMARY_HEX,
+                                        fontSize: 18
+                                    } }, { children: score.value }))] }), index)); }) }))), (0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ flex: 1, justifyContent: "center", column: true, style: { marginBottom: 15 } }, { children: list.map(function (activeField) {
                             var value = responses.find(function (r) { return r.fieldId === activeField.id; });
                             var file = selectedFiles.find(function (r) { return r.fieldId === activeField.id; });
                             return ((0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ style: { marginBottom: 5 } }, { children: (0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ column: true, flex: 1 }, { children: (0, jsx_runtime_1.jsx)(exports.QuestionForField, { isSinglePage: true, fields: fields, field: activeField, handleDatabaseSelect: handleDatabaseSelect, enduserId: props.enduserId, formResponseId: props.formResponseId, rootResponseId: rootResponseId, submit: submit, enduser: enduser, goToPreviousField: goToPreviousField, isPreviousDisabled: isPreviousDisabled, goToNextField: goToNextField, repeats: repeats, onRepeatsChange: setRepeats, setCustomerId: setCustomerId, value: value, file: file, customInputs: customInputs, onAddFile: onAddFile, onFieldChange: onFieldChange, responses: responses, selectedFiles: selectedFiles, validateField: validateField, groupId: groupId, groupInstance: groupInstance, uploadingFiles: uploadingFiles, setUploadingFiles: setUploadingFiles, handleFileUpload: handleFileUpload, AddToDatabase: AddToDatabase }) })) }), activeField.id));

@@ -36,6 +36,7 @@ export const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
   unsubscribedFromPhones: "Unsubscribed From Phone Numbers",
   athenaDepartmentId: "athenahealth Department ID",
   termsVersion: "Terms Version",
+  customTypeId: "Entity Type",
 } satisfies { [K in keyof Enduser]?: string }
 
 // Extended field mappings that include dotted notation for nested fields

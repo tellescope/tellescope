@@ -9,7 +9,7 @@ import {
 } from "@tellescope/testing"
 import { setup_tests } from "../setup"
 
-const host = process.env.TEST_URL || 'http://localhost:8080' as const
+const host = process.env.API_URL || 'http://localhost:8080' as const
 
 // Main test function that can be called independently
 
@@ -1117,9 +1117,10 @@ export const load_inbox_data_tests = async ({ sdk, sdkNonAdmin } : { sdk: Sessio
 
 // Allow running this test file independently
 if (require.main === module) {
+  console.log(`🌐 Using API URL: ${host}`)
   const sdk = new Session({ host })
   const sdkNonAdmin = new Session({ host })
-  
+
   const runTests = async () => {
     await setup_tests(sdk, sdkNonAdmin)
     await load_inbox_data_tests({ sdk, sdkNonAdmin })

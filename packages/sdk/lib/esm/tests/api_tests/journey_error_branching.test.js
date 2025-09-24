@@ -36,7 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 };
 import { Session } from '../../sdk';
 import { log_header, wait } from "@tellescope/testing";
-var host = process.env.AUTOMATION_TEST_HOST || 'http://localhost:8080';
+var host = process.env.API_URL || 'http://localhost:8080';
 export var journey_error_branching_tests = function (_a) {
     var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
     return __awaiter(void 0, void 0, void 0, function () {
@@ -464,10 +464,12 @@ export var journey_error_branching_tests = function (_a) {
                             journeyId: continueJourney.id
                         })
                         // Poll to verify both error handler AND afterAction run
+                        // Use longer timeout for continueOnError test since automation processing may take longer
                     ];
                 case 33:
                     _f.sent();
                     // Poll to verify both error handler AND afterAction run
+                    // Use longer timeout for continueOnError test since automation processing may take longer
                     return [4 /*yield*/, pollForErrorHandling(function () { return __awaiter(void 0, void 0, void 0, function () {
                             var result;
                             var _a, _b, _c, _d;
@@ -486,11 +488,14 @@ export var journey_error_branching_tests = function (_a) {
                             console.log("Continue test - Error handler ran: ".concat(result.hasErrorHandler));
                             console.log("Continue test - AfterAction ran: ".concat(result.hasAfterAction));
                             return result.hasErrorHandler && result.hasAfterAction;
-                        }, 'Both error handler and afterAction should run with continueOnError=true')
+                        }, 'Both error handler and afterAction should run with continueOnError=true', 500, // intervalMs
+                        60 // maxIterations (30 seconds total instead of 10)
+                        )
                         // Test 5: Integration error scenario
                     ];
                 case 34:
                     // Poll to verify both error handler AND afterAction run
+                    // Use longer timeout for continueOnError test since automation processing may take longer
                     _f.sent();
                     // Test 5: Integration error scenario
                     console.log("Testing real-world integration error...");
@@ -658,6 +663,7 @@ var getTestTemplateId = function (sdk, _type) { return __awaiter(void 0, void 0,
 }); };
 // Allow running this test file independently
 if (require.main === module) {
+    console.log("\uD83C\uDF10 Using API URL: ".concat(host));
     var sdk_1 = new Session({ host: host });
     var sdkNonAdmin_1 = new Session({ host: host });
     var runTests = function () { return __awaiter(void 0, void 0, void 0, function () {

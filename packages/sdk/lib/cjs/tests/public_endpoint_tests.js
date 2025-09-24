@@ -39,7 +39,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var testing_1 = require("@tellescope/testing");
 var sdk_1 = require("../sdk");
 var public_1 = require("../public");
-var host = process.env.TEST_URL || 'http://localhost:8080';
+var host = process.env.API_URL || 'http://localhost:8080';
 var _a = [process.env.TEST_EMAIL, process.env.TEST_PASSWORD], email = _a[0], password = _a[1];
 var sdk = new sdk_1.Session({ host: host });
 var sdkPub = (0, public_1.PublicEndpoints)({ host: host });

@@ -39,7 +39,9 @@ import { enduser_observations_acknowledge_tests } from "./api_tests/enduser_obse
 import { create_user_notifications_trigger_tests } from "./api_tests/create_user_notifications_trigger.test"
 import { inbox_thread_assignment_updates_tests } from "./api_tests/inbox_thread_assignment_updates.test"
 import { appointment_completed_trigger_tests } from "./api_tests/appointment_completed_trigger.test"
+import { appointment_rescheduled_trigger_tests } from "./api_tests/appointment_rescheduled_trigger.test"
 import { journey_error_branching_tests } from "./api_tests/journey_error_branching.test"
+import { afteraction_day_of_month_delay_tests } from "./api_tests/afteraction_day_of_month_delay.test"
 import { setup_tests } from "./setup"
 import { evaluate_conditional_logic_for_enduser_fields, FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, get_next_reminder_timestamp, object_is_empty, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities"
 import { DEFAULT_OPERATIONS, PLACEHOLDER_ID, ZOOM_TITLE } from "@tellescope/constants"
@@ -66,10 +68,11 @@ import {
 import fs from "fs"
 import { load_inbox_data_tests } from "./api_tests/load_inbox_data.test";
 import { message_assignment_trigger_tests } from "./api_tests/message_assignment_trigger.test";
+import { monthly_availability_restrictions_tests } from "./api_tests/monthly_availability_restrictions.test";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
-const host = process.env.TEST_URL || 'http://localhost:8080' as const
+const host = process.env.API_URL || 'http://localhost:8080' as const
 const [email, password] = [process.env.TEST_EMAIL, process.env.TEST_PASSWORD]
 const [mfaEmail, mfaPassword] = [process.env.MFA_EMAIL, process.env.TEST_PASSWORD]
 
@@ -4394,6 +4397,7 @@ const trigger_events_api_tests = async () => {
 const automation_trigger_tests = async () => {
   log_header("Automation Trigger Tests")
 
+  await appointment_rescheduled_trigger_tests({ sdk, sdkNonAdmin })
   await form_response_set_fields_trigger_tests()
   await form_response_set_fields_journey_tests()
   await appointment_completed_trigger_tests({ sdk, sdkNonAdmin })
@@ -7702,7 +7706,7 @@ export const switch_to_related_contacts_tests = async () => {
       () => sdk.api.endusers.getOne(parent.id),
       e => !!e.tags?.includes('Success'),
       50,
-      100,
+      200,
     ),
     passOnAnyResult
   )
@@ -8945,10 +8949,92 @@ export const enduser_conditional_logic_tests = async () => {
   )
   assert(
     !evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, fields: { Number: 2 } }, {
-      "$and": [{ "condition": { "Number": "1" }}] 
+      "$and": [{ "condition": { "Number": "1" }}]
     }),
     'Type coercion error',
     'Number string does not match different number field',
+  )
+
+  // Test customTypeId conditional logic
+  assert(
+    evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, customTypeId: 'patient-type-1' }, {
+      "$and": [{ "condition": { "customTypeId": "patient-type-1" }}]
+    }),
+    'CustomTypeId conditional logic error',
+    'customTypeId should match exactly',
+  )
+
+  assert(
+    !evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, customTypeId: 'patient-type-1' }, {
+      "$and": [{ "condition": { "customTypeId": "patient-type-2" }}]
+    }),
+    'CustomTypeId conditional logic error',
+    'customTypeId should not match different value',
+  )
+
+  assert(
+    !evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, customTypeId: 'patient-type-1' }, {
+      "$and": [{ "condition": { "customTypeId": { "$ne": "patient-type-1" } }}]
+    }),
+    'CustomTypeId conditional logic error',
+    'customTypeId should not match with $ne operator',
+  )
+
+  assert(
+    evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, customTypeId: 'patient-type-1' }, {
+      "$and": [{ "condition": { "customTypeId": { "$ne": "patient-type-2" } }}]
+    }),
+    'CustomTypeId conditional logic error',
+    'customTypeId should match with $ne operator for different value',
+  )
+
+  // Test default type (Patient) handling - all falsey values should be treated as default
+  assert(
+    evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, customTypeId: undefined }, {
+      "$and": [{ "condition": { "customTypeId": "" }}]
+    }),
+    'CustomTypeId default type error',
+    'undefined customTypeId should match empty string (both default)',
+  )
+
+  assert(
+    evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, customTypeId: null as any }, {
+      "$and": [{ "condition": { "customTypeId": "" }}]
+    }),
+    'CustomTypeId default type error',
+    'null customTypeId should match empty string (both default)',
+  )
+
+  assert(
+    evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, customTypeId: '' }, {
+      "$and": [{ "condition": { "customTypeId": "" }}]
+    }),
+    'CustomTypeId default type error',
+    'empty string customTypeId should match empty string',
+  )
+
+  assert(
+    !evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, customTypeId: 'specific-type' }, {
+      "$and": [{ "condition": { "customTypeId": "" }}]
+    }),
+    'CustomTypeId default type error',
+    'specific type should not match default type',
+  )
+
+  assert(
+    evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, customTypeId: 'specific-type' }, {
+      "$and": [{ "condition": { "customTypeId": { "$ne": "" } }}]
+    }),
+    'CustomTypeId default type error',
+    'specific type should not equal default type with $ne',
+  )
+
+  assert(
+    !evaluate_conditional_logic_for_enduser_fields({ ...requiredPlaceholders, customTypeId: undefined }, {
+      "$and": [{ "condition": { "customTypeId": { "$ne": "" } }}]
+    }),
+    'CustomTypeId default type error',
+    'undefined customTypeId should equal default type (both default), so $ne should be false',
   )
 }
 
@@ -12198,11 +12284,12 @@ const ip_address_form_tests = async () => {
 (async () => {
   log_header("API")
 
+  const apiUrl = process.env.API_URL || 'http://localhost:8080';
   await async_test(
     "email-image tracking endpoint is live",
-    () => axios.get('http://localhost:8080/email-image/'),
+    () => axios.get(`${apiUrl}/email-image/`),
     { onResult: result => result.data === TRACK_OPEN_IMAGE.toString('utf-8')}
-  ) 
+  )
 
   assert(truncate_string('12345', { length: 4, showEllipsis: false }) === '1234', 'truncate doesnt work', 'trucate works')
   assert(truncate_string(null!, { length: 4, showEllipsis: false }) === '', 'truncate doesnt work for non string', 'trucate works for non-string')
@@ -12313,8 +12400,11 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
-    await journey_error_branching_tests({ sdk, sdkNonAdmin })
+    await test_ticket_automation_assignment_and_optimization()
     await automation_trigger_tests()
+    await afteraction_day_of_month_delay_tests({ sdk, sdkNonAdmin })
+    await monthly_availability_restrictions_tests({ sdk, sdkNonAdmin })
+    await journey_error_branching_tests({ sdk, sdkNonAdmin })
     await inbox_thread_assignment_updates_tests({ sdk, sdkNonAdmin })
     await message_assignment_trigger_tests({ sdk })
     await inbox_threads_building_tests()
@@ -12352,7 +12442,6 @@ const ip_address_form_tests = async () => {
     await self_serve_appointment_booking_tests()
     await no_chained_triggers_tests()
     await mdb_filter_tests()
-    await test_ticket_automation_assignment_and_optimization()
     await superadmin_tests()
     await ticket_queue_tests()
     await vital_trigger_tests()

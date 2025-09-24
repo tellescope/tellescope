@@ -43,6 +43,7 @@ exports.ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
     unsubscribedFromPhones: "Unsubscribed From Phone Numbers",
     athenaDepartmentId: "athenahealth Department ID",
     termsVersion: "Terms Version",
+    customTypeId: "Entity Type",
 };
 // Extended field mappings that include dotted notation for nested fields
 exports.ENDUSER_FIELDS_WITH_NESTED_PATHS_DISPLAY_NAME = __assign(__assign({}, exports.ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME), { 

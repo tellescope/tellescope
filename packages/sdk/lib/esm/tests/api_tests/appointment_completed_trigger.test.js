@@ -37,7 +37,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 import { Session } from "../../sdk";
 import { log_header, wait, async_test } from "@tellescope/testing";
 import { setup_tests } from "../setup";
-var host = process.env.TEST_HOST || "http://localhost:8080";
+var host = process.env.API_URL || "http://localhost:8080";
 export var appointment_completed_trigger_tests = function (_a) {
     var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
     return __awaiter(void 0, void 0, void 0, function () {
@@ -126,7 +126,8 @@ export var appointment_completed_trigger_tests = function (_a) {
                             durationInMinutes: 30,
                             startTimeInMS: Date.now(),
                             attendees: [{ type: 'enduser', id: enduser1.id }],
-                            completedAt: new Date() // Created as completed
+                            completedAt: new Date(),
+                            completedBy: sdk.userInfo.id // Track who completed it
                         })];
                 case 18:
                     event1 = _b.sent();
@@ -150,6 +151,7 @@ export var appointment_completed_trigger_tests = function (_a) {
                             startTimeInMS: Date.now(),
                             attendees: [{ type: 'enduser', id: enduser2.id }],
                             completedAt: new Date(),
+                            completedBy: sdk.userInfo.id,
                             cancelledAt: new Date() // Both completed and cancelled
                         })];
                 case 21:
@@ -169,6 +171,7 @@ export var appointment_completed_trigger_tests = function (_a) {
                             startTimeInMS: Date.now(),
                             attendees: [{ type: 'enduser', id: enduser3.id }],
                             completedAt: new Date(),
+                            completedBy: sdk.userInfo.id,
                             rescheduledAt: new Date() // Both completed and rescheduled
                         })];
                 case 24:
@@ -188,6 +191,7 @@ export var appointment_completed_trigger_tests = function (_a) {
                             startTimeInMS: Date.now(),
                             attendees: [{ type: 'enduser', id: enduser4.id }],
                             completedAt: new Date(),
+                            completedBy: sdk.userInfo.id,
                             noShowedAt: new Date() // Both completed and no-show
                         })];
                 case 27:
@@ -207,7 +211,8 @@ export var appointment_completed_trigger_tests = function (_a) {
                             startTimeInMS: Date.now(),
                             attendees: [{ type: 'enduser', id: enduser5.id }],
                             templateId: template.id,
-                            completedAt: new Date()
+                            completedAt: new Date(),
+                            completedBy: sdk.userInfo.id // Track who completed it
                         })];
                 case 30:
                     event5 = _b.sent();
@@ -232,6 +237,7 @@ export var appointment_completed_trigger_tests = function (_a) {
                             attendees: [{ type: 'enduser', id: enduser6.id }],
                             templateId: template.id,
                             completedAt: new Date(),
+                            completedBy: sdk.userInfo.id,
                             cancelledAt: new Date()
                         })];
                 case 33:
@@ -251,6 +257,7 @@ export var appointment_completed_trigger_tests = function (_a) {
                             startTimeInMS: Date.now(),
                             attendees: [{ type: 'enduser', id: enduser7.id }],
                             completedAt: new Date(),
+                            completedBy: sdk.userInfo.id,
                             cancelledAt: new Date(),
                             rescheduledAt: new Date(),
                             noShowedAt: new Date()
@@ -271,7 +278,8 @@ export var appointment_completed_trigger_tests = function (_a) {
                             durationInMinutes: 30,
                             startTimeInMS: Date.now(),
                             attendees: [{ type: 'enduser', id: enduser8.id }],
-                            completedAt: new Date()
+                            completedAt: new Date(),
+                            completedBy: sdk.userInfo.id // Track who completed it
                             // No other status flags
                         })];
                 case 39:
@@ -310,7 +318,10 @@ export var appointment_completed_trigger_tests = function (_a) {
                 case 44:
                     _b.sent();
                     // Now update to mark as completed
-                    return [4 /*yield*/, sdk.api.calendar_events.updateOne(updateEvent1.id, { completedAt: new Date() })];
+                    return [4 /*yield*/, sdk.api.calendar_events.updateOne(updateEvent1.id, {
+                            completedAt: new Date(),
+                            completedBy: sdk.userInfo.id
+                        })];
                 case 45:
                     // Now update to mark as completed
                     _b.sent();
@@ -343,7 +354,10 @@ export var appointment_completed_trigger_tests = function (_a) {
                 case 49:
                     _b.sent();
                     // Update to add completedAt to cancelled event
-                    return [4 /*yield*/, sdk.api.calendar_events.updateOne(updateEvent2.id, { completedAt: new Date() })];
+                    return [4 /*yield*/, sdk.api.calendar_events.updateOne(updateEvent2.id, {
+                            completedAt: new Date(),
+                            completedBy: sdk.userInfo.id
+                        })];
                 case 50:
                     // Update to add completedAt to cancelled event
                     _b.sent();
@@ -370,7 +384,10 @@ export var appointment_completed_trigger_tests = function (_a) {
                 case 54:
                     _b.sent();
                     // Update to add completedAt to rescheduled event
-                    return [4 /*yield*/, sdk.api.calendar_events.updateOne(updateEvent3.id, { completedAt: new Date() })];
+                    return [4 /*yield*/, sdk.api.calendar_events.updateOne(updateEvent3.id, {
+                            completedAt: new Date(),
+                            completedBy: sdk.userInfo.id
+                        })];
                 case 55:
                     // Update to add completedAt to rescheduled event
                     _b.sent();
@@ -397,7 +414,10 @@ export var appointment_completed_trigger_tests = function (_a) {
                 case 59:
                     _b.sent();
                     // Update to add completedAt to no-show event
-                    return [4 /*yield*/, sdk.api.calendar_events.updateOne(updateEvent4.id, { completedAt: new Date() })];
+                    return [4 /*yield*/, sdk.api.calendar_events.updateOne(updateEvent4.id, {
+                            completedAt: new Date(),
+                            completedBy: sdk.userInfo.id
+                        })];
                 case 60:
                     // Update to add completedAt to no-show event
                     _b.sent();
@@ -425,6 +445,7 @@ export var appointment_completed_trigger_tests = function (_a) {
                     // Update to add both completedAt and cancelledAt
                     return [4 /*yield*/, sdk.api.calendar_events.updateOne(updateEvent5.id, {
                             completedAt: new Date(),
+                            completedBy: sdk.userInfo.id,
                             cancelledAt: new Date()
                         })];
                 case 65:
@@ -481,6 +502,7 @@ export var appointment_completed_trigger_tests = function (_a) {
 };
 // Allow running this test file independently
 if (require.main === module) {
+    console.log("\uD83C\uDF10 Using API URL: ".concat(host));
     var sdk_1 = new Session({ host: host });
     var sdkNonAdmin_1 = new Session({ host: host });
     var runTests = function () { return __awaiter(void 0, void 0, void 0, function () {

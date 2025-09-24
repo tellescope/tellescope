@@ -70,6 +70,7 @@ interface UseTellescopeFormOptions {
     isInternalNote?: boolean;
     formTitle?: string;
     customization?: FormCustomization;
+    startingFieldId?: string;
     ga4measurementId?: string;
     submitRedirectURL?: string;
     rootResponseId?: string;
@@ -102,7 +103,7 @@ export type FileResponse = {
     fieldTitle: string;
     blobs?: FileBlob[];
 };
-export declare const useTellescopeForm: ({ dontAutoadvance, isPublicForm, form, urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL, enduser, groupId, groupInstance, groupPosition }: UseTellescopeFormOptions) => {
+export declare const useTellescopeForm: ({ dontAutoadvance, isPublicForm, form, urlLogicValue, customization, carePlanId, calendarEventId, context, ga4measurementId, rootResponseId, parentResponseId, accessCode, existingResponses, automationStepId, enduserId, formResponseId, fields, isInternalNote, formTitle, submitRedirectURL, enduser, groupId, groupInstance, groupPosition, startingFieldId }: UseTellescopeFormOptions) => {
     enduserId: string;
     formResponseId: string | undefined;
     activeField: FormFieldNode;
@@ -156,6 +157,7 @@ export declare const useTellescopeForm: ({ dontAutoadvance, isPublicForm, form, 
         fieldId: string;
     }[]>>;
     handleFileUpload: (blob: FileBlob, fieldId: string) => Promise<void>;
+    isAutoAdvancing: boolean;
 };
 export {};
 //# sourceMappingURL=hooks.d.ts.map

@@ -38,7 +38,7 @@ require('source-map-support').install();
 import { Session } from "../../sdk";
 import { async_test, handleAnyError, log_header, wait, } from "@tellescope/testing";
 import { setup_tests } from "../setup";
-var host = process.env.TEST_URL || 'http://localhost:8080';
+var host = process.env.API_URL || 'http://localhost:8080';
 // Main test function that can be called independently
 // deprecated endpoint in favor of inbox threads
 export var load_inbox_data_tests = function (_a) {
@@ -1013,6 +1013,7 @@ export var load_inbox_data_tests = function (_a) {
 };
 // Allow running this test file independently
 if (require.main === module) {
+    console.log("\uD83C\uDF10 Using API URL: ".concat(host));
     var sdk_1 = new Session({ host: host });
     var sdkNonAdmin_1 = new Session({ host: host });
     var runTests = function () { return __awaiter(void 0, void 0, void 0, function () {

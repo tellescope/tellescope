@@ -132,13 +132,14 @@ export type PortalSettings = {
 
 export type WithLinkOpenTrackingIds = { linkOpenTrackingIds: string[] }
 
-type BuildCustomEnduserField <T, I> = { 
+type BuildCustomEnduserField <T, I> = {
   type: T,
   info: I,
   field: string,
   required?: boolean,
   hiddenFromProfile?: boolean,
   requireConfirmation?: boolean,
+  tags?: string[],
 }
 export type CustomEnduserFields = {
   "Select": BuildCustomEnduserField<'Select', { options: string[], other?: boolean }>,
@@ -574,6 +575,12 @@ export type StateCredentialInfo = {
   expiresAt?: Date,
 }
 
+export type MonthlyRestriction = {
+  // Which occurrences of this day within the month (1st, 2nd, 3rd, 4th, 5th)
+  // For example: [1, 3] means "only on the 1st and 3rd occurrence of this day in the month"
+  occurrences: (1 | 2 | 3 | 4 | 5)[]
+}
+
 export type WeeklyAvailability = {
   dayOfWeekStartingSundayIndexedByZero: number,
   startTimeInMinutes: number,
@@ -585,6 +592,7 @@ export type WeeklyAvailability = {
   locationIds?: string[],
   validTemplateIds?: string[],
   priority?: number,
+  monthlyRestriction?: MonthlyRestriction,
 }
 export type NotificationPreference = {
   email?: boolean 
@@ -899,6 +907,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   markedReadAt?: Date | '',
   markedUnreadAt?: Date | '',
   note?: string,
+  noteIsFlagged?: boolean,
   mfa?: MFASettings,
   lastZendeskSyncAt?: Date,
   accessTags?: string[],
@@ -2428,6 +2437,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   canvasReasonCoding?: CanvasCoding,
   canvasLocationId?: string,
   completedAt?: Date | '',
+  completedBy?: string, // user ID when manually completed, or integration title when completed via integration
   holdUntil?: Date,
   holdFormResponseId?: string,
   tags?: string[],
@@ -2816,6 +2826,11 @@ export type AfterActionAutomationEvent = AutomationEventBuilder<'afterAction', A
   }
   eventCondition?: {
     before?: boolean,
+  },
+  dayOfMonthCondition?: {
+    dayOfMonth: number, // 1-31
+    hour?: number, // 0-23, defaults to 9 AM
+    minute?: number, // 0-59, defaults to 0
   },
   skipIfDelayPassed?: boolean,
 }> 
@@ -3739,6 +3754,7 @@ export type AnalyticsQueryGroupingForType = {
   "Calendar Events": {
     Type: boolean,
     "Scheduled By"?: boolean,
+    "Completed By"?: boolean,
     alsoGroupByHost?: boolean, // for further breaking down a grouping by host
     "Cancel Reason"?: boolean,
   } & EnduserGrouping & { Enduser: string },
@@ -3950,8 +3966,8 @@ export interface AnalyticsFrame_required {
   groupByCareTeam?: boolean, // supports multi-grouping for both care team and a normal field
 }
 export interface AnalyticsFrame_updatesDisabled {}
-export interface AnalyticsFrame extends 
-  AnalyticsFrame_readonly, AnalyticsFrame_required, AnalyticsFrame_updatesDisabled, AnalyticsQueryOptions 
+export interface AnalyticsFrame extends
+  AnalyticsFrame_readonly, AnalyticsFrame_required, AnalyticsFrame_updatesDisabled, AnalyticsQueryOptions
 {
   parentFrame?: string,
   type?: AnalyticsFrameType,
@@ -3965,6 +3981,7 @@ export interface AnalyticsFrame extends
   visibleForRoles?: string[],
   visibleForUserIds?: string[],
   index?: number,
+  tags?: string[],
 }
 
 
@@ -4135,7 +4152,7 @@ export type AutomationTriggerEvents = {
     excludeCancelUpcomingEventsJourney?: boolean, // if true, will not trigger from cancelUpcomingEvents Journey action
     by?: '' | 'enduser' | 'user', // only implemented for enduser for now
   }, {}>,
-  'Appointment Rescheduled': AutomationTriggerEventBuilder<"Appointment Rescheduled", { titles?: string[] }, {}>,
+  'Appointment Rescheduled': AutomationTriggerEventBuilder<"Appointment Rescheduled", { titles?: string[], detectManualReschedules?: boolean }, {}>,
   'Medication Added': AutomationTriggerEventBuilder<"Medication Added", { titles: string[] }, {}>,
   'No Recent Appointment': AutomationTriggerEventBuilder<"No Recent Appointment", { 
     intervalInMS: number, 

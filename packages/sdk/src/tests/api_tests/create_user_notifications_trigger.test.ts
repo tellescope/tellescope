@@ -7,7 +7,7 @@ import {
 } from "@tellescope/testing"
 import { setup_tests } from "../setup"
 
-const host = process.env.TEST_URL || 'http://localhost:8080' as const
+const host = process.env.API_URL || 'http://localhost:8080' as const
 
 // Test function that can be called independently
 export const create_user_notifications_trigger_tests = async ({ sdk } : { sdk: Session }) => {
@@ -153,9 +153,10 @@ export const create_user_notifications_trigger_tests = async ({ sdk } : { sdk: S
 
 // Allow running this test file independently
 if (require.main === module) {
+  console.log(`🌐 Using API URL: ${host}`)
   const sdk = new Session({ host })
   const sdkNonAdmin = new Session({ host })
-  
+
   const runTests = async () => {
     await setup_tests(sdk, sdkNonAdmin)
     await create_user_notifications_trigger_tests({ sdk })
