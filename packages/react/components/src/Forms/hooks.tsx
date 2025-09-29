@@ -1003,6 +1003,19 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
       if (typeof value.answer.value?.inches !== 'number' || isNaN(value.answer.value?.inches)) {
         return "Inches must be provided (enter 0 for no inches)"
       }
+
+      // Convert height to total inches for min/max validation
+      const totalInches = ((value.answer.value?.feet || 0) * 12) + (value.answer.value?.inches || 0)
+      if (field.options?.min !== undefined && field.options.min !== -Infinity && totalInches < field.options.min) {
+        const minFeet = Math.floor(field.options.min / 12)
+        const minInches = field.options.min % 12
+        return `Height must be at least ${minFeet}' ${minInches}"`
+      }
+      if (field.options?.max !== undefined && field.options.max !== Infinity && totalInches > field.options.max) {
+        const maxFeet = Math.floor(field.options.max / 12)
+        const maxInches = field.options.max % 12
+        return `Height must be no more than ${maxFeet}' ${maxInches}"`
+      }
     }
 
     if (value.answer.type === 'Related Contacts') {

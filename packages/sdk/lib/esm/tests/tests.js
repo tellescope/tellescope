@@ -75,6 +75,7 @@ import { enduser_observations_acknowledge_tests } from "./api_tests/enduser_obse
 import { create_user_notifications_trigger_tests } from "./api_tests/create_user_notifications_trigger.test";
 import { inbox_thread_assignment_updates_tests } from "./api_tests/inbox_thread_assignment_updates.test";
 import { appointment_completed_trigger_tests } from "./api_tests/appointment_completed_trigger.test";
+import { purchase_made_trigger_tests } from "./api_tests/purchase_made_trigger.test";
 import { appointment_rescheduled_trigger_tests } from "./api_tests/appointment_rescheduled_trigger.test";
 import { journey_error_branching_tests } from "./api_tests/journey_error_branching.test";
 import { afteraction_day_of_month_delay_tests } from "./api_tests/afteraction_day_of_month_delay.test";
@@ -5385,53 +5386,56 @@ var automation_trigger_tests = function () { return __awaiter(void 0, void 0, vo
         switch (_a.label) {
             case 0:
                 log_header("Automation Trigger Tests");
-                return [4 /*yield*/, appointment_rescheduled_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, purchase_made_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 1:
                 _a.sent();
-                return [4 /*yield*/, form_response_set_fields_trigger_tests()];
+                return [4 /*yield*/, appointment_rescheduled_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 2:
                 _a.sent();
-                return [4 /*yield*/, form_response_set_fields_journey_tests()];
+                return [4 /*yield*/, form_response_set_fields_trigger_tests()];
             case 3:
                 _a.sent();
-                return [4 /*yield*/, appointment_completed_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, form_response_set_fields_journey_tests()];
             case 4:
                 _a.sent();
-                return [4 /*yield*/, order_status_equals_tests()];
+                return [4 /*yield*/, appointment_completed_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 5:
                 _a.sent();
-                return [4 /*yield*/, trigger_events_api_tests()];
+                return [4 /*yield*/, order_status_equals_tests()];
             case 6:
                 _a.sent();
-                return [4 /*yield*/, fields_changed_tests()];
+                return [4 /*yield*/, trigger_events_api_tests()];
             case 7:
                 _a.sent();
-                return [4 /*yield*/, field_equals_trigger_tests()];
+                return [4 /*yield*/, fields_changed_tests()];
             case 8:
                 _a.sent();
-                return [4 /*yield*/, set_fields_tests()];
+                return [4 /*yield*/, field_equals_trigger_tests()];
             case 9:
                 _a.sent();
-                return [4 /*yield*/, assign_care_team_tests()];
+                return [4 /*yield*/, set_fields_tests()];
             case 10:
                 _a.sent();
-                return [4 /*yield*/, contact_created_tests()];
+                return [4 /*yield*/, assign_care_team_tests()];
             case 11:
                 _a.sent();
-                return [4 /*yield*/, appointment_cancelled_tests()];
+                return [4 /*yield*/, contact_created_tests()];
             case 12:
                 _a.sent();
-                return [4 /*yield*/, appointment_created_tests()];
+                return [4 /*yield*/, appointment_cancelled_tests()];
             case 13:
                 _a.sent();
-                return [4 /*yield*/, tag_added_tests()];
+                return [4 /*yield*/, appointment_created_tests()];
             case 14:
                 _a.sent();
-                return [4 /*yield*/, order_created_tests()];
+                return [4 /*yield*/, tag_added_tests()];
             case 15:
                 _a.sent();
-                return [4 /*yield*/, formSubmittedTriggerTests()];
+                return [4 /*yield*/, order_created_tests()];
             case 16:
+                _a.sent();
+                return [4 /*yield*/, formSubmittedTriggerTests()];
+            case 17:
                 _a.sent();
                 return [2 /*return*/];
         }

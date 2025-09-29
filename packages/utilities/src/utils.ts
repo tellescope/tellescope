@@ -261,6 +261,12 @@ export const build_portal_link_string: ToTemplateString<{ page: string, displayN
 
 export const to_absolute_url = (link : string) => link.startsWith('http') ? link : '//' + link // ensure absolute url
 
+export const ensure_https_url = (url?: string) => {
+  if (!url) return url
+  if (url.startsWith('http://') || url.startsWith('https://')) return url
+  return `https://${url}`
+}
+
 export const throwFunction = (s: string) => { throw s }
 
 export const findFirstUnansweredField = (fields: any[], existingResponses: any[]): string | undefined => {
@@ -441,9 +447,18 @@ export const remove_image_tags = (s: string) => s.replace(/<img[\s\S]*?>/gi, '')
 // Sanitizes HTML to allow safe hyperlinks and basic text formatting while removing potentially harmful tags
 export const sanitize_html_with_links = (html: string) =>
   sanitizeHtml(html, {
-    allowedTags: ['a', 'strong', 'b', 'em', 'i', 'u', 'br', 'p'],
+    allowedTags: ['a', 'strong', 'b', 'em', 'i', 'u', 'br', 'p', 'img', 'div', 'span'],
     allowedAttributes: {
-      'a': ['href', 'target', 'rel']
+      'a': ['href', 'target', 'rel', 'style'],
+      'img': ['src', 'alt', 'width', 'height', 'style'],
+      'div': ['style'],
+      'span': ['style'],
+      'p': ['style'],
+      'strong': ['style'],
+      'b': ['style'],
+      'em': ['style'],
+      'i': ['style'],
+      'u': ['style']
     },
     // Automatically add security attributes to external links
     transformTags: {
@@ -462,6 +477,10 @@ export const sanitize_html_with_links = (html: string) =>
         }
         return { tagName, attribs };
       }
+    },
+    // Allow only safe protocols for images
+    allowedSchemesByTag: {
+      img: ['http', 'https', 'data']
     }
   })
 

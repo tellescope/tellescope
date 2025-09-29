@@ -293,6 +293,13 @@ export var build_file_link_string = function (d) { return "{{files.".concat(d.id
 export var build_content_link_string = function (d) { return "{{content.".concat(d.id, ".link:").concat(d.displayName, "}}"); };
 export var build_portal_link_string = function (d) { return "{{portal.link.".concat(d.page, ":").concat(d.displayName, "}}"); };
 export var to_absolute_url = function (link) { return link.startsWith('http') ? link : '//' + link; }; // ensure absolute url
+export var ensure_https_url = function (url) {
+    if (!url)
+        return url;
+    if (url.startsWith('http://') || url.startsWith('https://'))
+        return url;
+    return "https://".concat(url);
+};
 export var throwFunction = function (s) { throw s; };
 export var findFirstUnansweredField = function (fields, existingResponses) {
     var _a;
@@ -448,9 +455,18 @@ export var remove_image_tags = function (s) { return s.replace(/<img[\s\S]*?>/gi
 // Sanitizes HTML to allow safe hyperlinks and basic text formatting while removing potentially harmful tags
 export var sanitize_html_with_links = function (html) {
     return sanitizeHtml(html, {
-        allowedTags: ['a', 'strong', 'b', 'em', 'i', 'u', 'br', 'p'],
+        allowedTags: ['a', 'strong', 'b', 'em', 'i', 'u', 'br', 'p', 'img', 'div', 'span'],
         allowedAttributes: {
-            'a': ['href', 'target', 'rel']
+            'a': ['href', 'target', 'rel', 'style'],
+            'img': ['src', 'alt', 'width', 'height', 'style'],
+            'div': ['style'],
+            'span': ['style'],
+            'p': ['style'],
+            'strong': ['style'],
+            'b': ['style'],
+            'em': ['style'],
+            'i': ['style'],
+            'u': ['style']
         },
         // Automatically add security attributes to external links
         transformTags: {
@@ -465,6 +481,10 @@ export var sanitize_html_with_links = function (html) {
                 }
                 return { tagName: tagName, attribs: attribs };
             }
+        },
+        // Allow only safe protocols for images
+        allowedSchemesByTag: {
+            img: ['http', 'https', 'data']
         }
     });
 };

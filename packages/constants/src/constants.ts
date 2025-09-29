@@ -185,6 +185,7 @@ export const CUSTOMER_IO_TITLE = "Customer IO"
 export const PUPPETEER_TITLE = "Puppeteer"
 export const BELUGA_TITLE = "Beluga"
 export const METRIPORT_TITLE = "Metriport"
+export const PAUBOX_TITLE = "Paubox"
 
 // stored in Organization.hasIntegrations
 // must also be in ORGANIZATION_WIDE_INTEGRATIONS

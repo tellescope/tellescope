@@ -83,6 +83,7 @@ export declare const build_portal_link_string: ToTemplateString<{
     displayName: string;
 }>;
 export declare const to_absolute_url: (link: string) => string;
+export declare const ensure_https_url: (url?: string) => string | undefined;
 export declare const throwFunction: (s: string) => never;
 export declare const findFirstUnansweredField: (fields: any[], existingResponses: any[]) => string | undefined;
 export declare const wait: (f?: Promise<void>, ms?: number) => Promise<void>;

@@ -153,6 +153,7 @@ export var CUSTOMER_IO_TITLE = "Customer IO";
 export var PUPPETEER_TITLE = "Puppeteer";
 export var BELUGA_TITLE = "Beluga";
 export var METRIPORT_TITLE = "Metriport";
+export var PAUBOX_TITLE = "Paubox";
 // stored in Organization.hasIntegrations
 // must also be in ORGANIZATION_WIDE_INTEGRATIONS
 export var GENERIC_INTEGRATIONS = [PUPPETEER_TITLE];

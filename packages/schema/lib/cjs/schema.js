@@ -2190,6 +2190,8 @@ exports.schema = (0, exports.build_schema)({
             }, orgEmail: {
                 validator: validation_1.emailValidator,
                 readonly: true, // able to set once, then not change (for now, due to email configuration)
+            }, pauboxEmail: {
+                validator: validation_1.emailValidator,
             }, accountType: {
                 validator: validation_1.stringValidator,
                 readonly: true,
@@ -2933,7 +2935,7 @@ exports.schema = (0, exports.build_schema)({
                 updatesDisabled: true,
             }, openedAt: {
                 validator: validation_1.dateValidator,
-            }, copiedFrom: { validator: validation_1.mongoIdStringOptional }, copiedFromEnduserId: { validator: validation_1.mongoIdStringOptional }, publicSubmit: { validator: validation_1.booleanValidator }, submittedBy: { validator: validation_1.stringValidator250 }, submittedByIsPlaceholder: { validator: validation_1.booleanValidator }, accessCode: { validator: validation_1.stringValidator250 }, userEmail: { validator: validation_1.emailValidator }, submittedAt: { validator: validation_1.dateValidator }, formTitle: { validator: validation_1.stringValidator250 }, responses: { validator: validation_1.formResponsesValidator }, draftSavedAt: { validator: validation_1.dateValidator }, draftSavedBy: { validator: validation_1.mongoIdStringRequired }, hideFromEnduserPortal: { validator: validation_1.booleanValidator }, sharedVia: { validator: validation_1.communicationsChannelValidator }, isInternalNote: { validator: validation_1.booleanValidator }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, publicIdentifier: { validator: validation_1.stringValidator250 }, source: { validator: validation_1.stringValidator250 }, externalId: { validator: validation_1.stringValidator250 }, rootResponseId: { validator: validation_1.mongoIdStringRequired }, parentResponseId: { validator: validation_1.mongoIdStringRequired }, tags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, carePlanId: { validator: validation_1.mongoIdStringRequired }, context: { validator: validation_1.stringValidator1000 }, calendarEventId: { validator: validation_1.mongoIdStringRequired }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, groupId: { validator: validation_1.mongoIdStringRequired }, groupInstance: { validator: validation_1.stringValidator100 }, groupPosition: { validator: validation_1.nonNegNumberValidator }, hideAfterUnsubmittedInMS: { validator: validation_1.numberValidator }, addenda: {
+            }, copiedFrom: { validator: validation_1.mongoIdStringOptional }, copiedFromEnduserId: { validator: validation_1.mongoIdStringOptional }, publicSubmit: { validator: validation_1.booleanValidator }, submittedBy: { validator: validation_1.stringValidator250 }, submittedByIsPlaceholder: { validator: validation_1.booleanValidator }, markedAsSubmitted: { validator: validation_1.booleanValidator }, accessCode: { validator: validation_1.stringValidator250 }, userEmail: { validator: validation_1.emailValidator }, submittedAt: { validator: validation_1.dateValidator }, formTitle: { validator: validation_1.stringValidator250 }, responses: { validator: validation_1.formResponsesValidator }, draftSavedAt: { validator: validation_1.dateValidator }, draftSavedBy: { validator: validation_1.mongoIdStringRequired }, hideFromEnduserPortal: { validator: validation_1.booleanValidator }, sharedVia: { validator: validation_1.communicationsChannelValidator }, isInternalNote: { validator: validation_1.booleanValidator }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, publicIdentifier: { validator: validation_1.stringValidator250 }, source: { validator: validation_1.stringValidator250 }, externalId: { validator: validation_1.stringValidator250 }, rootResponseId: { validator: validation_1.mongoIdStringRequired }, parentResponseId: { validator: validation_1.mongoIdStringRequired }, tags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, carePlanId: { validator: validation_1.mongoIdStringRequired }, context: { validator: validation_1.stringValidator1000 }, calendarEventId: { validator: validation_1.mongoIdStringRequired }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, groupId: { validator: validation_1.mongoIdStringRequired }, groupInstance: { validator: validation_1.stringValidator100 }, groupPosition: { validator: validation_1.nonNegNumberValidator }, hideAfterUnsubmittedInMS: { validator: validation_1.numberValidator }, addenda: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     text: validation_1.stringValidator25000EmptyOkay,
                     timestamp: validation_1.dateValidator,
@@ -3047,6 +3049,7 @@ exports.schema = (0, exports.build_schema)({
                     customerId: { validator: validation_1.stringValidator },
                     productIds: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk },
                     utm: { validator: validation_1.labeledFieldsValidator },
+                    markedAsSubmitted: { validator: validation_1.booleanValidator },
                 },
                 returns: {
                     formResponse: 'form response',
@@ -3075,6 +3078,7 @@ exports.schema = (0, exports.build_schema)({
                 parameters: {
                     fieldId: { validator: validation_1.mongoIdStringRequired, required: true },
                     enduserId: { validator: validation_1.mongoIdStringRequired },
+                    selectedProductIds: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk },
                 },
                 returns: {
                     clientSecret: { validator: validation_1.stringValidator, required: true },
@@ -3685,7 +3689,7 @@ exports.schema = (0, exports.build_schema)({
                     identifier: validation_1.stringValidator100,
                     byEnduserExternal: validation_1.booleanValidatorOptional,
                 }),
-            }, cancelReason: { validator: validation_1.stringValidator5000 }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, dontBlockAvailability: { validator: validation_1.booleanValidator }, previousStartTimes: { validator: validation_1.listOfNumbersValidatorUniqueOptionalOrEmptyOkay }, requirePortalCancelReason: { validator: validation_1.booleanValidator }, startLinkToken: { validator: validation_1.stringValidator250 }, canvasEncounterId: { validator: validation_1.stringValidator100 }, allowGroupReschedule: { validator: validation_1.booleanValidator }, joinedVideoCall: {
+            }, cancelReason: { validator: validation_1.stringValidator5000 }, dontAutoSyncPatientToHealthie: { validator: validation_1.booleanValidator }, healthieInsuranceBillingEnabled: { validator: validation_1.booleanValidator }, dontBlockAvailability: { validator: validation_1.booleanValidator }, previousStartTimes: { validator: validation_1.listOfNumbersValidatorUniqueOptionalOrEmptyOkay }, requirePortalCancelReason: { validator: validation_1.booleanValidator }, startLinkToken: { validator: validation_1.stringValidator250 }, canvasEncounterId: { validator: validation_1.stringValidator100 }, allowGroupReschedule: { validator: validation_1.booleanValidator }, joinedVideoCall: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     id: validation_1.mongoIdStringRequired,
                     at: validation_1.dateValidator,
@@ -3715,7 +3719,7 @@ exports.schema = (0, exports.build_schema)({
                 initializer: function () { return []; },
             }, publicRead: { validator: validation_1.booleanValidator }, enableVideoCall: { validator: validation_1.booleanValidator }, enableSelfScheduling: { validator: validation_1.booleanValidator }, restrictedByState: { validator: validation_1.booleanValidator }, image: { validator: validation_1.stringValidator5000 }, confirmationEmailDisabled: { validator: validation_1.booleanValidatorOptional }, confirmationSMSDisabled: { validator: validation_1.booleanValidatorOptional }, 
             // confirmationSenderId: { validator: mongoIdStringValidator },
-            carePlanForms: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, carePlanContent: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, carePlanFiles: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, carePlanTasks: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, videoIntegration: { validator: validation_1.videoIntegrationTypesValidator }, generateZoomLinkWhenBooked: { validator: validation_1.booleanValidator }, color: { validator: validation_1.stringValidator1000 }, apiOnly: { validator: validation_1.booleanValidator }, enduserAttendeeLimit: { validator: validation_1.numberValidator }, bufferEndMinutes: { validator: validation_1.numberValidator }, bufferStartMinutes: { validator: validation_1.numberValidator }, canvasCoding: { validator: validation_1.canvasCodingValidator }, canvasReasonCoding: { validator: validation_1.canvasCodingValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, matchToHealthieTemplate: { validator: validation_1.booleanValidator }, useUserURL: { validator: validation_1.booleanValidator }, instructions: { validator: validation_1.stringValidator5000EmptyOkay }, requiresEnduser: { validator: validation_1.booleanValidator }, requirePortalCancelReason: { validator: validation_1.booleanValidator } })
+            carePlanForms: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, carePlanContent: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, carePlanFiles: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, carePlanTasks: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, videoIntegration: { validator: validation_1.videoIntegrationTypesValidator }, generateZoomLinkWhenBooked: { validator: validation_1.booleanValidator }, color: { validator: validation_1.stringValidator1000 }, apiOnly: { validator: validation_1.booleanValidator }, enduserAttendeeLimit: { validator: validation_1.numberValidator }, bufferEndMinutes: { validator: validation_1.numberValidator }, bufferStartMinutes: { validator: validation_1.numberValidator }, canvasCoding: { validator: validation_1.canvasCodingValidator }, canvasReasonCoding: { validator: validation_1.canvasCodingValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, matchToHealthieTemplate: { validator: validation_1.booleanValidator }, healthieInsuranceBillingEnabled: { validator: validation_1.booleanValidator }, useUserURL: { validator: validation_1.booleanValidator }, instructions: { validator: validation_1.stringValidator5000EmptyOkay }, requiresEnduser: { validator: validation_1.booleanValidator }, requirePortalCancelReason: { validator: validation_1.booleanValidator } })
     },
     calendar_event_RSVPs: {
         info: {},
@@ -4624,7 +4628,7 @@ exports.schema = (0, exports.build_schema)({
                     id: validation_1.stringValidator100,
                     name: validation_1.stringValidator,
                 }))
-            }, groups: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: validation_1.stringValidator }, observationInvalidationReasons: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: validation_1.stringValidator }, createEnduserForms: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk } }),
+            }, groups: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: validation_1.stringValidator }, observationInvalidationReasons: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: validation_1.stringValidator }, hasConnectedPaubox: { validator: validation_1.booleanValidator }, createEnduserForms: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, skipActivePatientBilling: { validator: validation_1.booleanValidator } }),
     },
     databases: {
         info: {},
@@ -4648,7 +4652,7 @@ exports.schema = (0, exports.build_schema)({
                 initializer: function () { return 0; },
             }, 
             // organizationRead: { validator: booleanValidator },
-            visibleForRoles: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk } }),
+            visibleForRoles: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, isReferralDatabase: { validator: validation_1.booleanValidator } }),
     },
     database_records: {
         info: {},

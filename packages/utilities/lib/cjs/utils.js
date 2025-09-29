@@ -34,9 +34,9 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.STAGING_API_URL = exports.PROD_API_URL = exports.query_string_for_object = exports.sanitize_html_with_links = exports.remove_image_tags = exports.remove_style_tags = exports.remove_script_tags = exports.time_for_calendar_event = exports.fullMonth_day_year = exports.mm_dd_yyyy = exports.yyyy_mm_dd_numeric = exports.yyyy_mm_dd = exports.formatted_date_hh_mm = exports.get_add_to_gcal_link = exports.formatted_date = exports.get_time_values = exports.MONTHS = exports.MONTHS_FULL = exports.sorted_records = exports.wait = exports.findFirstUnansweredField = exports.throwFunction = exports.to_absolute_url = exports.build_portal_link_string = exports.build_content_link_string = exports.build_file_link_string = exports.build_form_group_link_string = exports.build_form_link_string = exports.build_link_string = exports.getTemplatedData = exports.parse_link_template = exports.map_object = exports.truncate_string = exports.defined_fields = exports.user_is_active = exports.user_display_name = exports.objects_equivalent = exports.to_object_id = exports.url_safe_path = exports.is_whitespace = exports.matching_fields = exports.is_object = exports.filter_object = exports.is_defined = exports.is_truthy = exports.object_is_empty = exports.first_letter_lowercase = exports.first_letter_capitalized = exports.user_is_admin = exports.ObjectId = void 0;
-exports.validate_organization_for_candid = exports.validate_insurance_for_eligibility = exports.weighted_round_robin = exports.responses_satisfy_conditions = exports.calculate_bmi = exports.FORM_LOGIC_URL_PARAMETER = exports.FORM_LOGIC_CALCULATED_FIELDS = exports.calculate_form_scoring = exports.batch_array = exports.capture_is_supported = exports.get_next_reminder_timestamp = exports.mfa_is_enabled = exports.URIDecodeEmail = exports.get_recent_outbound_communication_date = exports.get_recent_engagement_date = exports.MM_DD_YYYY_to_YYYY_MM_DD = exports.YYYY_MM_DD_to_MM_DD_YYYY = exports.getLocalTimezone = exports.string_matches_key_or_value = exports.evaluate_conditional_logic_for_enduser_fields = exports.UPCOMING_EVENT_COUNT_KEY = exports.get_enduser_field_value_for_key = exports.age_for_dob_mmddyyyy = exports.replace_keys_and_values_in_object = exports.get_conditional_logic_values = exports.evaluate_conditional_logic = exports.shuffle_array_in_place = exports.plaintext_for_managed_content_record = exports.sanitize_html = exports.timezone_for_enduser = exports.safeJSONParse = exports.payment_cost_to_string = exports.read_local_storage = exports.update_local_storage = exports.is_organization_owner = exports.form_response_value_to_string = exports.is_table_input_response = exports.user_has_record_access = exports.is_suborganization = exports.matches_organization = exports.getDefaultPortalURL = exports.getPublicFileURL = exports.getOrgnizationFaviconURL = exports.getOrgnizationLogoURL = exports.getBuiltInPublicFileName = exports.getGoogleClientAPIKey = exports.getGoogleClientId = exports.getApiURL = exports.getEnvironment = exports.TEST_API_URL = void 0;
-exports.replace_form_response_template_values = exports.resolve_integration_id = exports.replace_snippet_template_values = exports.get_snippet_keys = exports.emit_gtm_event = exports.get_care_team_primary = exports.is_checkbox_custom_field_value = exports.enrich_doxy_url = exports.to_human_readable_phone_number = exports.get_canvas_id = exports.should_show_unsubmitted_form_response_for_interval = exports.enduser_insurance_string = exports.enduser_address_string = exports.is_timezone = exports.downloadFile = exports.get_prepopulated_responses = exports.INVALID_PREPOPULATION_TYPES = exports.add_value_for_dotted_key = exports.value_for_dotted_key = exports.get_flattened_fields = exports.skip_due_date_as_needed = exports.is_full_iso_string_heuristic = exports.display_time_for_seconds = exports.replace_enduser_template_values = exports.replace_secret_values = exports.get_secret_names = exports.replace_sms_template_values = exports.replace_purchase_template_values = exports.replace_tag_template_values_for_enduser = exports.append_current_utm_params = exports.get_utm_params = exports.is_out_of_office = exports.color_for_classification = exports.classification_for_vital = exports.SMS_UNSUBSCRIBE_KEYWORDS = exports.satisfies_vital_comparison = exports.field_can_autosubmit = exports.field_can_autoadvance = exports.decodeJWT = exports.validate_organization_for_develop_health = exports.validate_user_for_develop_health = exports.validate_enduser_for_develop_health = exports.validate_enduser_for_dose_spot = exports.validate_enduser_for_smart_meter = exports.validate_enduser_for_gogo = exports.json_error_string = exports.validate_enduser_for_candid = exports.validate_provider_for_candid = void 0;
+exports.PROD_API_URL = exports.query_string_for_object = exports.sanitize_html_with_links = exports.remove_image_tags = exports.remove_style_tags = exports.remove_script_tags = exports.time_for_calendar_event = exports.fullMonth_day_year = exports.mm_dd_yyyy = exports.yyyy_mm_dd_numeric = exports.yyyy_mm_dd = exports.formatted_date_hh_mm = exports.get_add_to_gcal_link = exports.formatted_date = exports.get_time_values = exports.MONTHS = exports.MONTHS_FULL = exports.sorted_records = exports.wait = exports.findFirstUnansweredField = exports.throwFunction = exports.ensure_https_url = exports.to_absolute_url = exports.build_portal_link_string = exports.build_content_link_string = exports.build_file_link_string = exports.build_form_group_link_string = exports.build_form_link_string = exports.build_link_string = exports.getTemplatedData = exports.parse_link_template = exports.map_object = exports.truncate_string = exports.defined_fields = exports.user_is_active = exports.user_display_name = exports.objects_equivalent = exports.to_object_id = exports.url_safe_path = exports.is_whitespace = exports.matching_fields = exports.is_object = exports.filter_object = exports.is_defined = exports.is_truthy = exports.object_is_empty = exports.first_letter_lowercase = exports.first_letter_capitalized = exports.user_is_admin = exports.ObjectId = void 0;
+exports.validate_insurance_for_eligibility = exports.weighted_round_robin = exports.responses_satisfy_conditions = exports.calculate_bmi = exports.FORM_LOGIC_URL_PARAMETER = exports.FORM_LOGIC_CALCULATED_FIELDS = exports.calculate_form_scoring = exports.batch_array = exports.capture_is_supported = exports.get_next_reminder_timestamp = exports.mfa_is_enabled = exports.URIDecodeEmail = exports.get_recent_outbound_communication_date = exports.get_recent_engagement_date = exports.MM_DD_YYYY_to_YYYY_MM_DD = exports.YYYY_MM_DD_to_MM_DD_YYYY = exports.getLocalTimezone = exports.string_matches_key_or_value = exports.evaluate_conditional_logic_for_enduser_fields = exports.UPCOMING_EVENT_COUNT_KEY = exports.get_enduser_field_value_for_key = exports.age_for_dob_mmddyyyy = exports.replace_keys_and_values_in_object = exports.get_conditional_logic_values = exports.evaluate_conditional_logic = exports.shuffle_array_in_place = exports.plaintext_for_managed_content_record = exports.sanitize_html = exports.timezone_for_enduser = exports.safeJSONParse = exports.payment_cost_to_string = exports.read_local_storage = exports.update_local_storage = exports.is_organization_owner = exports.form_response_value_to_string = exports.is_table_input_response = exports.user_has_record_access = exports.is_suborganization = exports.matches_organization = exports.getDefaultPortalURL = exports.getPublicFileURL = exports.getOrgnizationFaviconURL = exports.getOrgnizationLogoURL = exports.getBuiltInPublicFileName = exports.getGoogleClientAPIKey = exports.getGoogleClientId = exports.getApiURL = exports.getEnvironment = exports.TEST_API_URL = exports.STAGING_API_URL = void 0;
+exports.replace_form_response_template_values = exports.resolve_integration_id = exports.replace_snippet_template_values = exports.get_snippet_keys = exports.emit_gtm_event = exports.get_care_team_primary = exports.is_checkbox_custom_field_value = exports.enrich_doxy_url = exports.to_human_readable_phone_number = exports.get_canvas_id = exports.should_show_unsubmitted_form_response_for_interval = exports.enduser_insurance_string = exports.enduser_address_string = exports.is_timezone = exports.downloadFile = exports.get_prepopulated_responses = exports.INVALID_PREPOPULATION_TYPES = exports.add_value_for_dotted_key = exports.value_for_dotted_key = exports.get_flattened_fields = exports.skip_due_date_as_needed = exports.is_full_iso_string_heuristic = exports.display_time_for_seconds = exports.replace_enduser_template_values = exports.replace_secret_values = exports.get_secret_names = exports.replace_sms_template_values = exports.replace_purchase_template_values = exports.replace_tag_template_values_for_enduser = exports.append_current_utm_params = exports.get_utm_params = exports.is_out_of_office = exports.color_for_classification = exports.classification_for_vital = exports.SMS_UNSUBSCRIBE_KEYWORDS = exports.satisfies_vital_comparison = exports.field_can_autosubmit = exports.field_can_autoadvance = exports.decodeJWT = exports.validate_organization_for_develop_health = exports.validate_user_for_develop_health = exports.validate_enduser_for_develop_health = exports.validate_enduser_for_dose_spot = exports.validate_enduser_for_smart_meter = exports.validate_enduser_for_gogo = exports.json_error_string = exports.validate_enduser_for_candid = exports.validate_provider_for_candid = exports.validate_organization_for_candid = void 0;
 var types_models_1 = require("@tellescope/types-models");
 var constants_1 = require("@tellescope/constants");
 var sanitize_html_1 = __importDefault(require("sanitize-html"));
@@ -328,6 +328,14 @@ var build_portal_link_string = function (d) { return "{{portal.link.".concat(d.p
 exports.build_portal_link_string = build_portal_link_string;
 var to_absolute_url = function (link) { return link.startsWith('http') ? link : '//' + link; }; // ensure absolute url
 exports.to_absolute_url = to_absolute_url;
+var ensure_https_url = function (url) {
+    if (!url)
+        return url;
+    if (url.startsWith('http://') || url.startsWith('https://'))
+        return url;
+    return "https://".concat(url);
+};
+exports.ensure_https_url = ensure_https_url;
 var throwFunction = function (s) { throw s; };
 exports.throwFunction = throwFunction;
 var findFirstUnansweredField = function (fields, existingResponses) {
@@ -499,9 +507,18 @@ exports.remove_image_tags = remove_image_tags;
 // Sanitizes HTML to allow safe hyperlinks and basic text formatting while removing potentially harmful tags
 var sanitize_html_with_links = function (html) {
     return (0, sanitize_html_1.default)(html, {
-        allowedTags: ['a', 'strong', 'b', 'em', 'i', 'u', 'br', 'p'],
+        allowedTags: ['a', 'strong', 'b', 'em', 'i', 'u', 'br', 'p', 'img', 'div', 'span'],
         allowedAttributes: {
-            'a': ['href', 'target', 'rel']
+            'a': ['href', 'target', 'rel', 'style'],
+            'img': ['src', 'alt', 'width', 'height', 'style'],
+            'div': ['style'],
+            'span': ['style'],
+            'p': ['style'],
+            'strong': ['style'],
+            'b': ['style'],
+            'em': ['style'],
+            'i': ['style'],
+            'u': ['style']
         },
         // Automatically add security attributes to external links
         transformTags: {
@@ -516,6 +533,10 @@ var sanitize_html_with_links = function (html) {
                 }
                 return { tagName: tagName, attribs: attribs };
             }
+        },
+        // Allow only safe protocols for images
+        allowedSchemesByTag: {
+            img: ['http', 'https', 'data']
         }
     });
 };

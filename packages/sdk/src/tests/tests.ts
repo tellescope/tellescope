@@ -39,6 +39,7 @@ import { enduser_observations_acknowledge_tests } from "./api_tests/enduser_obse
 import { create_user_notifications_trigger_tests } from "./api_tests/create_user_notifications_trigger.test"
 import { inbox_thread_assignment_updates_tests } from "./api_tests/inbox_thread_assignment_updates.test"
 import { appointment_completed_trigger_tests } from "./api_tests/appointment_completed_trigger.test"
+import { purchase_made_trigger_tests } from "./api_tests/purchase_made_trigger.test"
 import { appointment_rescheduled_trigger_tests } from "./api_tests/appointment_rescheduled_trigger.test"
 import { journey_error_branching_tests } from "./api_tests/journey_error_branching.test"
 import { afteraction_day_of_month_delay_tests } from "./api_tests/afteraction_day_of_month_delay.test"
@@ -4397,6 +4398,7 @@ const trigger_events_api_tests = async () => {
 const automation_trigger_tests = async () => {
   log_header("Automation Trigger Tests")
 
+  await purchase_made_trigger_tests({ sdk, sdkNonAdmin })
   await appointment_rescheduled_trigger_tests({ sdk, sdkNonAdmin })
   await form_response_set_fields_trigger_tests()
   await form_response_set_fields_journey_tests()

@@ -82,6 +82,7 @@ export type PortalSettings = {
         loginTitle?: string;
         loginDescription?: string;
         loginGraphic?: string;
+        loginBottomHTML?: string;
         registerTitle?: string;
         registerDescription?: string;
         registerGraphic?: string;
@@ -386,6 +387,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     hasConnectedSuperDial?: boolean;
     hasConnectedBeluga?: boolean;
     hasConnectedMetriport?: boolean;
+    hasConnectedPaubox?: boolean;
     hasConfiguredZoom?: boolean;
     hasTicketQueues?: boolean;
     vitalTeamId?: string;
@@ -471,6 +473,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     creditTrialStartedAt?: Date;
     hasIntegrations?: string[];
     outOfOfficeHours?: OutOfOfficeBlock[];
+    skipActivePatientBilling?: boolean;
 }
 export type OrganizationTheme = {
     name: string;
@@ -601,6 +604,7 @@ export interface User_readonly extends ClientRecord {
     organization?: string;
     username?: string;
     orgEmail?: string;
+    pauboxEmail?: string;
     lastActive?: Date;
     lastLogout?: Date;
     isa?: boolean;
@@ -1604,12 +1608,17 @@ export type FormFieldFeedback = {
     ifEquals: string;
     display: string;
 };
+export type FormFieldOptionDetails = {
+    option: string;
+    description?: string;
+};
 export interface CanvasConsentCategory extends CanvasCoding {
 }
 export type FormFieldOptions = FormFieldValidation & {
     default?: string;
     tableChoices?: TableInputChoice[];
     choices?: string[];
+    optionDetails?: FormFieldOptionDetails[];
     canvasCodings?: CanvasCoding[];
     from?: number;
     to?: number;
@@ -1627,6 +1636,7 @@ export type FormFieldOptions = FormFieldValidation & {
     databaseId?: string;
     databaseLabel?: string;
     databaseLabels?: string[];
+    filterByEnduserState?: boolean;
     databaseFilter?: {
         fieldId?: string;
         databaseLabel?: string;
@@ -1658,6 +1668,7 @@ export type FormFieldOptions = FormFieldValidation & {
     groupPadding?: number;
     saveIntakeOnPartial?: boolean;
     stripeKey?: string;
+    stripeProductSelectionMode?: boolean;
     dataSource?: string;
     canvasDocumentCoding?: Pick<CanvasCoding, 'system' | 'code'>;
     canvasDocumentType?: CanvasCoding;
@@ -1678,7 +1689,7 @@ export type FormFieldOptions = FormFieldValidation & {
     elationAppendToNote?: boolean;
     elationAppendToNotePrefix?: string;
 };
-export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>;
+export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other' | 'optionDetails' | 'radioChoices'>;
 export type FormFieldCalloutConditionComparison = 'Equals';
 export type FormFieldCalloutCondition = {
     comparison: FormFieldCalloutConditionComparison;
@@ -1959,6 +1970,7 @@ export interface Database_updatesDisabled {
 }
 export interface Database extends Database_readonly, Database_required, Database_updatesDisabled {
     visibleForRoles?: string[];
+    isReferralDatabase?: boolean;
 }
 export interface DatabaseRecord_readonly extends ClientRecord {
 }
@@ -2143,6 +2155,7 @@ export interface FormResponse_required {
     publicSubmit?: boolean;
     submittedBy?: string;
     submittedByIsPlaceholder?: boolean;
+    markedAsSubmitted?: boolean;
     submittedAt?: Date;
     accessCode?: string;
     userEmail?: string;
@@ -2405,6 +2418,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
     preventRescheduleMinutesInAdvance?: number;
     preventCancelMinutesInAdvance?: number;
     sendIcsEmail?: boolean;
+    healthieInsuranceBillingEnabled?: boolean;
 }
 export type PaymentProcessor = 'Square' | 'Stripe';
 export interface Product_readonly extends ClientRecord {
@@ -2538,6 +2552,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
     generateAthenaTelehealthLink?: boolean;
     athenaTypeId?: string;
     athenaBookingTypeId?: string;
+    healthieInsuranceBillingEnabled?: boolean;
 }
 export interface AppointmentLocation_readonly extends ClientRecord {
 }
@@ -3321,6 +3336,7 @@ export type PortalBlockForType = {
         title: string;
         roles?: string[];
         showAll?: boolean;
+        hideContactButton?: boolean;
     }>;
     carePlan: BuildPortalBlockInfo<'carePlan', {}>;
     education: BuildPortalBlockInfo<'education', {}>;
@@ -3553,6 +3569,7 @@ export type UserUIRestrictions = {
     hideMergeEndusers?: boolean;
     hideQueuedTicketsViewer?: boolean;
     hideIncomingFaxesIcon?: boolean;
+    hideNotificationsIcon?: boolean;
     hideBulkEnduserActions?: boolean;
     visibleIntegrations?: string[];
 };
@@ -3685,6 +3702,12 @@ export type AnalyticsQueryInfoForType = {
     "Orders": {
         Total: AnalyticsQueryInfoBuilder<'Total', undefined>;
     };
+    "Chat Rooms": {
+        Total: AnalyticsQueryInfoBuilder<'Total', undefined>;
+    };
+    "Chats": {
+        Total: AnalyticsQueryInfoBuilder<'Total', undefined>;
+    };
 };
 export type AnalyticsQueryInfoType = keyof AnalyticsQueryInfoForType;
 export type AnalyticsQueryInfo = AnalyticsQueryInfoForType[AnalyticsQueryInfoType];
@@ -3762,6 +3785,8 @@ export type AnalyticsQueryFilterForType = {
         automationStepIds?: string[];
     };
     Orders: {};
+    "Chat Rooms": {};
+    "Chats": {};
 };
 export type EnduserGrouping = {
     Field?: string;
@@ -3835,6 +3860,12 @@ export type AnalyticsQueryGroupingForType = {
     "Orders": {} & EnduserGrouping & {
         Enduser: string;
     };
+    "Chat Rooms": {} & EnduserGrouping & {
+        Enduser: string;
+    };
+    "Chats": {} & EnduserGrouping & {
+        Enduser: string;
+    };
 };
 type DefaultRangeKey = 'Created At' | 'Updated At';
 export type AnalyticsQueryRangeKeyForType = {
@@ -3852,6 +3883,8 @@ export type AnalyticsQueryRangeKeyForType = {
     "Meetings": DefaultRangeKey;
     "Journey Logs": DefaultRangeKey;
     "Orders": DefaultRangeKey;
+    "Chat Rooms": DefaultRangeKey;
+    "Chats": DefaultRangeKey;
 };
 export type RangeKey = DefaultRangeKey | 'Submitted At' | "Closed At";
 export type AnalyticsQueryRangeInterval = 'Hourly' | 'Daily' | 'Weekly' | 'Monthly';
@@ -3881,6 +3914,8 @@ export type AnalyticsQueryForType = {
     "Meetings": AnalyticsQueryBuilder<"Meetings", AnalyticsQueryInfoForType['Meetings'][keyof AnalyticsQueryInfoForType['Meetings']], AnalyticsQueryFilterForType['Meetings'], AnalyticsQueryGroupingForType['Meetings'], AnalyticsQueryRangeKeyForType['Meetings']>;
     "Journey Logs": AnalyticsQueryBuilder<"Journey Logs", AnalyticsQueryInfoForType['Journey Logs'][keyof AnalyticsQueryInfoForType['Journey Logs']], AnalyticsQueryFilterForType['Journey Logs'], AnalyticsQueryGroupingForType['Journey Logs'], AnalyticsQueryRangeKeyForType['Journey Logs']>;
     "Orders": AnalyticsQueryBuilder<"Orders", AnalyticsQueryInfoForType['Orders'][keyof AnalyticsQueryInfoForType['Orders']], AnalyticsQueryFilterForType['Orders'], AnalyticsQueryGroupingForType['Orders'], AnalyticsQueryRangeKeyForType['Orders']>;
+    "Chat Rooms": AnalyticsQueryBuilder<"Chat Rooms", AnalyticsQueryInfoForType['Chat Rooms'][keyof AnalyticsQueryInfoForType['Chat Rooms']], AnalyticsQueryFilterForType['Chat Rooms'], AnalyticsQueryGroupingForType['Chat Rooms'], AnalyticsQueryRangeKeyForType['Chat Rooms']>;
+    "Chats": AnalyticsQueryBuilder<"Chats", AnalyticsQueryInfoForType['Chats'][keyof AnalyticsQueryInfoForType['Chats']], AnalyticsQueryFilterForType['Chats'], AnalyticsQueryGroupingForType['Chats'], AnalyticsQueryRangeKeyForType['Chats']>;
 };
 export type AnalyticsQueryType = keyof AnalyticsQueryForType;
 export type AnalyticsQuery = AnalyticsQueryForType[AnalyticsQueryType];
@@ -4126,6 +4161,7 @@ export type AutomationTriggerEvents = {
     'Purchase Made': AutomationTriggerEventBuilder<"Purchase Made", {
         titles?: string[];
         productIds?: string[];
+        titlePartialMatches?: string[];
     }, {}>;
     'Refund Issued': AutomationTriggerEventBuilder<"Refund Issued", {}, {}>;
     'Subscription Ended': AutomationTriggerEventBuilder<"Subscription Ended", {

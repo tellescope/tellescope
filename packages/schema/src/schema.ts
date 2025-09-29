@@ -711,11 +711,12 @@ export type CustomActions = {
       { accessCode: string, url: string, response: FormResponse, fullURL: string }>
     ,
     submit_form_response: CustomAction<
-      { 
-        accessCode: string, responses: FormResponseValue[], 
+      {
+        accessCode: string, responses: FormResponseValue[],
         automationStepId?: string, customerId?: string, productIds?: string[],
         utm?: LabeledField[],
-      }, 
+        markedAsSubmitted?: boolean,
+      },
       { formResponse: FormResponse, nextFormGroupPublicURL?: string }
     >,
     save_field_response: CustomAction<{ formResponseId?: string, accessCode?: string, response?: FormResponseValue, responses?: FormResponseValue[] }, { }>,
@@ -3669,6 +3670,9 @@ export const schema: SchemaV1 = build_schema({
         validator: emailValidator,
         readonly: true,  // able to set once, then not change (for now, due to email configuration)
       },
+      pauboxEmail: {
+        validator: emailValidator,
+      },
       accountType: {
         validator: stringValidator,
         readonly: true,
@@ -4669,6 +4673,7 @@ export const schema: SchemaV1 = build_schema({
       publicSubmit: { validator: booleanValidator },
       submittedBy: { validator: stringValidator250 },
       submittedByIsPlaceholder: { validator: booleanValidator },
+      markedAsSubmitted: { validator: booleanValidator },
       accessCode: { validator: stringValidator250 },
       userEmail: { validator: emailValidator },
       submittedAt: { validator: dateValidator },
@@ -4812,6 +4817,7 @@ export const schema: SchemaV1 = build_schema({
           customerId: { validator: stringValidator },
           productIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
           utm: { validator: labeledFieldsValidator },
+          markedAsSubmitted: { validator: booleanValidator },
         },
         returns: {
           formResponse: 'form response' as any,
@@ -4840,6 +4846,7 @@ export const schema: SchemaV1 = build_schema({
         parameters: {
           fieldId: { validator: mongoIdStringValidator, required: true },
           enduserId: { validator: mongoIdStringValidator },
+          selectedProductIds: { validator: listOfStringsValidatorOptionalOrEmptyOk },
         },
         returns: {
           clientSecret: { validator: stringValidator, required: true },
@@ -5578,6 +5585,7 @@ export const schema: SchemaV1 = build_schema({
       },
       cancelReason: { validator: stringValidator5000 },
       dontAutoSyncPatientToHealthie: { validator: booleanValidator },
+      healthieInsuranceBillingEnabled: { validator: booleanValidator },
       dontBlockAvailability: { validator: booleanValidator },
       previousStartTimes: { validator: listOfNumbersValidatorUniqueOptionalOrEmptyOkay },
       requirePortalCancelReason: { validator: booleanValidator },
@@ -5662,6 +5670,7 @@ export const schema: SchemaV1 = build_schema({
       canvasReasonCoding: { validator: canvasCodingValidator },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       matchToHealthieTemplate: { validator: booleanValidator },
+      healthieInsuranceBillingEnabled: { validator: booleanValidator },
       useUserURL: { validator: booleanValidator },
       instructions: { validator: stringValidator5000EmptyOkay },
       requiresEnduser: { validator: booleanValidator },
@@ -6780,7 +6789,9 @@ export const schema: SchemaV1 = build_schema({
       customNotificationTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       customerIOFields: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       customerIOIdField: { validator: stringValidator },
+      hasConnectedPaubox: { validator: booleanValidator },
       createEnduserForms: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+      skipActivePatientBilling: { validator: booleanValidator },
     },
   },
   databases: {
@@ -6809,7 +6820,8 @@ export const schema: SchemaV1 = build_schema({
         initializer: () => 0,
       },
       // organizationRead: { validator: booleanValidator },
-      visibleForRoles: { validator: listOfStringsValidatorOptionalOrEmptyOk }
+      visibleForRoles: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      isReferralDatabase: { validator: booleanValidator }
     },
   },
   database_records: {

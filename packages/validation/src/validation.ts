@@ -268,6 +268,8 @@ import {
   SmartMeterPlaceOrderAutomationAction,
   SmartMeterOrderLineItem,
   FormFieldFeedback,
+  FormFieldOptionDetails,
+  MultipleChoiceOptions,
   CandidProcedureCode,
   BasicWebhook,
   RemoveEnduserTagsAutomationAction,
@@ -1547,11 +1549,6 @@ export const labeledFieldsValidator = listValidatorOptionalOrEmptyOk(objectValid
   value: stringValidator5000,
 }))
 
-type MultipleChoiceOptions = {
-  choices: string[],
-  other: boolean,
-  radio: boolean,
-}
 
 const DEFAULT_ENDUSER_FIELDS = [
   '_id', 'email', 'phone', 'fname', 'lname', 'journeys', 'tags', 'preference'
@@ -1671,11 +1668,12 @@ export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' 
     }
 
     const parsed = []
+    const choices = fieldOptions.choices || []
     for (const i of indexes) {
       if (typeof i !== 'number') throw new Error(`Choice ${i} is not a valid index`)
-      if (i < 0 || i >= fieldOptions.choices.length) throw new Error(`Choice ${i} is not a valid index`)
+      if (i < 0 || i >= choices.length) throw new Error(`Choice ${i} is not a valid index`)
 
-      parsed.push(fieldOptions.choices[i])
+      parsed.push(choices[i])
     }
     if (otherText && fieldOptions.other === true) parsed.push(otherText)
     // todo: add length limit to otherText?
@@ -3430,6 +3428,7 @@ export const portalSettingsValidator = objectValidator<PortalSettings>({
     loginDescription: stringValidator1000Optional,
     loginGraphic: stringValidator1000Optional,
     loginTitle: stringValidator1000Optional,
+    loginBottomHTML: stringValidator5000OptionalEmptyOkay,
     registerDescription: stringValidator1000Optional,
     registerGraphic: stringValidator1000Optional,
     registerTitle: stringValidator1000Optional,
@@ -3588,12 +3587,17 @@ export const formFieldFeedbackValidator = objectValidator<FormFieldFeedback>({
   ifEquals: stringValidator,
   display: stringValidator,
 })
+export const formFieldOptionDetailsValidator = objectValidator<FormFieldOptionDetails>({
+  option: stringValidator,
+  description: stringValidator5000Optional,
+})
 
 export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   default: stringValidatorOptional,
   bookingPageId: stringValidatorOptional,
   tableChoices: listValidatorOptionalOrEmptyOk(tableInputChoiceValidator),
   choices: listOfStringsValidatorOptionalOrEmptyOk,
+  optionDetails: listValidatorOptionalOrEmptyOk(formFieldOptionDetailsValidator),
   radioChoices: listOfStringsValidatorOptionalOrEmptyOk,
   canvasCodings: listValidatorOptionalOrEmptyOk(canvasCodingValidator),
   from: numberValidatorOptional,
@@ -3616,6 +3620,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   databaseId: mongoIdStringOptional,
   databaseLabel: stringValidatorOptionalEmptyOkay,
   databaseLabels: listOfStringsValidatorOptionalOrEmptyOk,
+  filterByEnduserState: booleanValidatorOptional,
   databaseFilter: objectValidator<FormFieldOptions['databaseFilter']>({
     databaseLabel: stringValidator1000Optional,
     fieldId: mongoIdStringOptional,
@@ -3663,6 +3668,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   max: numberValidatorOptional,
   min: numberValidatorOptional,
   stripeKey: stringValidatorOptionalEmptyOkay,
+  stripeProductSelectionMode: booleanValidatorOptional,
   dataSource: stringValidatorOptionalEmptyOkay,
   esignatureTermsCompanyName: stringValidatorOptionalEmptyOkay,
   observationCode: stringValidatorOptionalEmptyOkay,
@@ -4041,6 +4047,7 @@ export const portalBlockValidator = orValidator<{ [K in PortalBlockType]: Portal
       title: stringValidator,
       roles: listOfStringsValidatorOptionalOrEmptyOk,
       showAll: booleanValidatorOptional,
+      hideContactButton: booleanValidatorOptional,
       // members: listValidatorEmptyOk(
       //   objectValidator<CareTeamMemberPortalCustomizationInfo>({
       //     title: stringValidator(),
@@ -4581,6 +4588,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     info: objectValidator<AutomationTriggerEvents['Purchase Made']['info']>({
       titles: listOfStringsValidatorOptionalOrEmptyOk,
       productIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+      titlePartialMatches: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -5799,6 +5807,56 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Orders']>(['Created At', 'Updated At']),
     }, { isOptional: true, emptyOk: true })
   }),
+  "Chat Rooms": objectValidator<AnalyticsQueryForType['Chat Rooms']>({
+    resource: exactMatchValidator<'Chat Rooms'>(['Chat Rooms']),
+    filter: objectValidator<AnalyticsQueryFilterForType['Chat Rooms']>({
+    }, { isOptional: true, emptyOk: true }),
+    info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Chat Rooms']]: AnalyticsQueryInfoForType['Chat Rooms'][K] }>({
+      "Total": objectValidator<AnalyticsQueryInfoForType['Chat Rooms']['Total']>({
+        method: exactMatchValidator<"Total">(['Total']),
+        parameters: optionalEmptyObjectValidator,
+      }),
+    }),
+    grouping: objectValidator<AnalyticsQueryGroupingForType['Chat Rooms']>({
+      Enduser: booleanValidatorOptional,
+      Gender: booleanValidatorOptional,
+      "Assigned To": booleanValidatorOptional,
+      Field: stringValidatorOptionalEmptyOkay,
+      Tags: booleanValidatorOptional,
+      Age: booleanValidatorOptional,
+      State: booleanValidatorOptional,
+      Phone: booleanValidatorOptional,
+    }, { isOptional: true, emptyOk: true }),
+    range: objectValidator<AnalyticsQueryRange<any>>({
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
+      key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Chat Rooms']>(['Created At', 'Updated At']),
+    }, { isOptional: true, emptyOk: true })
+  }),
+  "Chats": objectValidator<AnalyticsQueryForType['Chats']>({
+    resource: exactMatchValidator<'Chats'>(['Chats']),
+    filter: objectValidator<AnalyticsQueryFilterForType['Chats']>({
+    }, { isOptional: true, emptyOk: true }),
+    info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['Chats']]: AnalyticsQueryInfoForType['Chats'][K] }>({
+      "Total": objectValidator<AnalyticsQueryInfoForType['Chats']['Total']>({
+        method: exactMatchValidator<"Total">(['Total']),
+        parameters: optionalEmptyObjectValidator,
+      }),
+    }),
+    grouping: objectValidator<AnalyticsQueryGroupingForType['Chats']>({
+      Enduser: booleanValidatorOptional,
+      Gender: booleanValidatorOptional,
+      "Assigned To": booleanValidatorOptional,
+      Field: stringValidatorOptionalEmptyOkay,
+      Tags: booleanValidatorOptional,
+      Age: booleanValidatorOptional,
+      State: booleanValidatorOptional,
+      Phone: booleanValidatorOptional,
+    }, { isOptional: true, emptyOk: true }),
+    range: objectValidator<AnalyticsQueryRange<any>>({
+      interval: exactMatchValidator<AnalyticsQueryRangeInterval>(['Daily', 'Weekly', 'Monthly', 'Hourly']),
+      key: exactMatchValidator<AnalyticsQueryRangeKeyForType['Chats']>(['Created At', 'Updated At']),
+    }, { isOptional: true, emptyOk: true })
+  }),
 })
 export const analyticsQueriesValidatorOptional = listValidatorOptionalOrEmptyOk(analyticsQueryValidator)
 
@@ -5823,6 +5881,8 @@ const _ANALYTICS_QUERY_TYPES: { [K in AnalyticsQueryType]: any } = {
   Meetings: true,
   "Journey Logs": true,
   Orders: true,
+  "Chat Rooms": true,
+  "Chats": true,
 }
 export const ANALYTICS_QUERY_TYPES = Object.keys(_ANALYTICS_QUERY_TYPES) as AnalyticsQueryType[]
 export const analyticsQueryTypeValidator = exactMatchValidator<AnalyticsQueryType>(ANALYTICS_QUERY_TYPES)
@@ -5856,6 +5916,7 @@ export const userUIRestrictionsValidator = objectValidator<UserUIRestrictions>({
   hideMergeEndusers: booleanValidatorOptional,
   hideQueuedTicketsViewer: booleanValidatorOptional,
   hideIncomingFaxesIcon: booleanValidatorOptional,
+  hideNotificationsIcon: booleanValidatorOptional,
   hideBulkEnduserActions: booleanValidatorOptional,
   visibleIntegrations: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
 }, { emptyOk: true })

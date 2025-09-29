@@ -57,7 +57,7 @@ export interface AddToDatabaseProps {
     databaseId: string;
     onAdd: (record: DatabaseRecord) => void;
 }
-export declare const DatabaseSelectInput: ({ AddToDatabase, field, value: _value, onChange, onDatabaseSelect, responses, size, disabled }: FormInputProps<"Database Select"> & {
+export declare const DatabaseSelectInput: ({ AddToDatabase, field, value: _value, onChange, onDatabaseSelect, responses, size, disabled, enduser }: FormInputProps<"Database Select"> & {
     responses: FormResponseValue[];
     AddToDatabase?: React.JSXElementConstructor<AddToDatabaseProps> | undefined;
 }) => JSX.Element;

@@ -1227,13 +1227,14 @@ export var FORM_FIELD_VALIDATORS_BY_TYPE = {
             throw new Error('At least 1 choice is required');
         }
         var parsed = [];
+        var choices = fieldOptions.choices || [];
         for (var _i = 0, indexes_1 = indexes; _i < indexes_1.length; _i++) {
             var i = indexes_1[_i];
             if (typeof i !== 'number')
                 throw new Error("Choice ".concat(i, " is not a valid index"));
-            if (i < 0 || i >= fieldOptions.choices.length)
+            if (i < 0 || i >= choices.length)
                 throw new Error("Choice ".concat(i, " is not a valid index"));
-            parsed.push(fieldOptions.choices[i]);
+            parsed.push(choices[i]);
         }
         if (otherText && fieldOptions.other === true)
             parsed.push(otherText);
@@ -2612,6 +2613,7 @@ export var portalSettingsValidator = objectValidator({
         loginDescription: stringValidator1000Optional,
         loginGraphic: stringValidator1000Optional,
         loginTitle: stringValidator1000Optional,
+        loginBottomHTML: stringValidator5000OptionalEmptyOkay,
         registerDescription: stringValidator1000Optional,
         registerGraphic: stringValidator1000Optional,
         registerTitle: stringValidator1000Optional,
@@ -2752,11 +2754,16 @@ export var formFieldFeedbackValidator = objectValidator({
     ifEquals: stringValidator,
     display: stringValidator,
 });
+export var formFieldOptionDetailsValidator = objectValidator({
+    option: stringValidator,
+    description: stringValidator5000Optional,
+});
 export var formFieldOptionsValidator = objectValidator({
     default: stringValidatorOptional,
     bookingPageId: stringValidatorOptional,
     tableChoices: listValidatorOptionalOrEmptyOk(tableInputChoiceValidator),
     choices: listOfStringsValidatorOptionalOrEmptyOk,
+    optionDetails: listValidatorOptionalOrEmptyOk(formFieldOptionDetailsValidator),
     radioChoices: listOfStringsValidatorOptionalOrEmptyOk,
     canvasCodings: listValidatorOptionalOrEmptyOk(canvasCodingValidator),
     from: numberValidatorOptional,
@@ -2779,6 +2786,7 @@ export var formFieldOptionsValidator = objectValidator({
     databaseId: mongoIdStringOptional,
     databaseLabel: stringValidatorOptionalEmptyOkay,
     databaseLabels: listOfStringsValidatorOptionalOrEmptyOk,
+    filterByEnduserState: booleanValidatorOptional,
     databaseFilter: objectValidator({
         databaseLabel: stringValidator1000Optional,
         fieldId: mongoIdStringOptional,
@@ -2826,6 +2834,7 @@ export var formFieldOptionsValidator = objectValidator({
     max: numberValidatorOptional,
     min: numberValidatorOptional,
     stripeKey: stringValidatorOptionalEmptyOkay,
+    stripeProductSelectionMode: booleanValidatorOptional,
     dataSource: stringValidatorOptionalEmptyOkay,
     esignatureTermsCompanyName: stringValidatorOptionalEmptyOkay,
     observationCode: stringValidatorOptionalEmptyOkay,
@@ -3191,6 +3200,7 @@ export var portalBlockValidator = orValidator({
             title: stringValidator,
             roles: listOfStringsValidatorOptionalOrEmptyOk,
             showAll: booleanValidatorOptional,
+            hideContactButton: booleanValidatorOptional,
             // members: listValidatorEmptyOk(
             //   objectValidator<CareTeamMemberPortalCustomizationInfo>({
             //     title: stringValidator(),
@@ -3705,6 +3715,7 @@ export var automationTriggerEventValidator = orValidator({
         info: objectValidator({
             titles: listOfStringsValidatorOptionalOrEmptyOk,
             productIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+            titlePartialMatches: listOfStringsValidatorOptionalOrEmptyOk,
         }),
         conditions: optionalEmptyObjectValidator,
     }),
@@ -4870,6 +4881,54 @@ export var analyticsQueryValidator = orValidator({
             key: exactMatchValidator(['Created At', 'Updated At']),
         }, { isOptional: true, emptyOk: true })
     }),
+    "Chat Rooms": objectValidator({
+        resource: exactMatchValidator(['Chat Rooms']),
+        filter: objectValidator({}, { isOptional: true, emptyOk: true }),
+        info: orValidator({
+            "Total": objectValidator({
+                method: exactMatchValidator(['Total']),
+                parameters: optionalEmptyObjectValidator,
+            }),
+        }),
+        grouping: objectValidator({
+            Enduser: booleanValidatorOptional,
+            Gender: booleanValidatorOptional,
+            "Assigned To": booleanValidatorOptional,
+            Field: stringValidatorOptionalEmptyOkay,
+            Tags: booleanValidatorOptional,
+            Age: booleanValidatorOptional,
+            State: booleanValidatorOptional,
+            Phone: booleanValidatorOptional,
+        }, { isOptional: true, emptyOk: true }),
+        range: objectValidator({
+            interval: exactMatchValidator(['Daily', 'Weekly', 'Monthly', 'Hourly']),
+            key: exactMatchValidator(['Created At', 'Updated At']),
+        }, { isOptional: true, emptyOk: true })
+    }),
+    "Chats": objectValidator({
+        resource: exactMatchValidator(['Chats']),
+        filter: objectValidator({}, { isOptional: true, emptyOk: true }),
+        info: orValidator({
+            "Total": objectValidator({
+                method: exactMatchValidator(['Total']),
+                parameters: optionalEmptyObjectValidator,
+            }),
+        }),
+        grouping: objectValidator({
+            Enduser: booleanValidatorOptional,
+            Gender: booleanValidatorOptional,
+            "Assigned To": booleanValidatorOptional,
+            Field: stringValidatorOptionalEmptyOkay,
+            Tags: booleanValidatorOptional,
+            Age: booleanValidatorOptional,
+            State: booleanValidatorOptional,
+            Phone: booleanValidatorOptional,
+        }, { isOptional: true, emptyOk: true }),
+        range: objectValidator({
+            interval: exactMatchValidator(['Daily', 'Weekly', 'Monthly', 'Hourly']),
+            key: exactMatchValidator(['Created At', 'Updated At']),
+        }, { isOptional: true, emptyOk: true })
+    }),
 });
 export var analyticsQueriesValidatorOptional = listValidatorOptionalOrEmptyOk(analyticsQueryValidator);
 var _ANALYTICS_FRAME_TYPES = {
@@ -4892,6 +4951,8 @@ var _ANALYTICS_QUERY_TYPES = {
     Meetings: true,
     "Journey Logs": true,
     Orders: true,
+    "Chat Rooms": true,
+    "Chats": true,
 };
 export var ANALYTICS_QUERY_TYPES = Object.keys(_ANALYTICS_QUERY_TYPES);
 export var analyticsQueryTypeValidator = exactMatchValidator(ANALYTICS_QUERY_TYPES);
@@ -4923,6 +4984,7 @@ export var userUIRestrictionsValidator = objectValidator({
     hideMergeEndusers: booleanValidatorOptional,
     hideQueuedTicketsViewer: booleanValidatorOptional,
     hideIncomingFaxesIcon: booleanValidatorOptional,
+    hideNotificationsIcon: booleanValidatorOptional,
     hideBulkEnduserActions: booleanValidatorOptional,
     visibleIntegrations: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
 }, { emptyOk: true });

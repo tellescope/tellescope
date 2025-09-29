@@ -46,6 +46,8 @@ export var resource_to_modelName = {
     Meetings: "meetings",
     "Journey Logs": "automated_actions",
     Orders: "enduser_orders",
+    "Chat Rooms": "chat_rooms",
+    "Chats": "chats",
 };
 export var DIAGNOSIS_TYPE_MAPPING = {
     "ABF": "ICD-10",

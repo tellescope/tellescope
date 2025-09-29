@@ -1,11 +1,11 @@
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import axios from "axios"
-import { Autocomplete, Box, Button, Checkbox, Chip, Divider, FormControl, FormControlLabel, FormLabel, Grid, InputLabel, MenuItem, Radio, RadioGroup, Select, SxProps, TextField, TextFieldProps, Typography } from "@mui/material"
+import { Autocomplete, Box, Button, Checkbox, Chip, Collapse, Divider, FormControl, FormControlLabel, FormLabel, Grid, IconButton as MuiIconButton, InputLabel, MenuItem, Radio, RadioGroup, Select, SxProps, TextField, TextFieldProps, Typography } from "@mui/material"
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
 import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities"
-import { Address, DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, TellescopeGender, TIMEZONES_USA } from "@tellescope/types-models"
+import { Address, DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, FormFieldOptionDetails, TellescopeGender, TIMEZONES_USA } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -23,7 +23,7 @@ import LanguageIcon from '@mui/icons-material/Language';
 
 import { Elements, PaymentElement, useStripe, useElements, EmbeddedCheckout, EmbeddedCheckoutProvider } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js'; 
-import { CheckCircleOutline, Delete, Edit } from "@mui/icons-material"
+import { CheckCircleOutline, Delete, Edit, ExpandMore } from "@mui/icons-material"
 import { WYSIWYG } from "./wysiwyg"
 
 export const LanguageSelect = ({ value, ...props }: { value: string, onChange: (s: string) => void}) => (
@@ -1504,11 +1504,23 @@ const multipleChoiceItemSx: SxProps = {
 
 export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: FormInputProps<'multiple_choice'>) => {
   const value = typeof _value === 'string' ? [_value] : _value // if loading existingResponses, allows them to be a string
-  const { choices, radio, other } = field.options as MultipleChoiceOptions
+  const { choices, radio, other, optionDetails } = field.options as MultipleChoiceOptions
+  const [expandedDescriptions, setExpandedDescriptions] = useState<Record<number, boolean>>({})
 
   // current other string
   const enteringOtherStringRef = React.useRef('') // if typing otherString as prefix of a checkbox value, don't auto-select
   const otherString = value?.find(v => v === enteringOtherStringRef.current || !(choices ?? [])?.find(c => c === v)) ?? ''
+
+  const getDescriptionForChoice = useCallback((choice: string) => {
+    return optionDetails?.find(detail => detail.option === choice)?.description
+  }, [optionDetails])
+
+  const toggleDescription = useCallback((index: number) => {
+    setExpandedDescriptions(prev => ({
+      ...prev,
+      [index]: !prev[index]
+    }))
+  }, [])
 
   return (
     <Grid container alignItems="center">
@@ -1523,48 +1535,134 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
               defaultValue="female"
               name={`radio-group-${field.id}`}
             >
-            {(choices ?? []).map((c, i) => 
-              <FormControlLabel key={i} color="primary" label={c}
-                sx={multipleChoiceItemSx}
-                style={{ marginLeft: '0px' }} // fixes alignment with Select One text
-                checked={!!value?.includes(c) && c !== otherString} // coerce to boolean to keep as controlled input
-                control={
-                  <Radio onClick={() => onChange(value?.includes(c) ? [] : [c], field.id)}  />
-                }
-              />
-            )} 
+            {(choices ?? []).map((c, i) => {
+              const description = getDescriptionForChoice(c)
+              const hasDescription = !!description
+              const isExpanded = expandedDescriptions[i]
+
+              return (
+                <Box key={i} sx={{ width: '100%' }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                    <FormControlLabel
+                      sx={{ ...multipleChoiceItemSx, flex: 1, marginLeft: '0px' }}
+                      checked={!!value?.includes(c) && c !== otherString}
+                      control={
+                        <Radio onClick={() => onChange(value?.includes(c) ? [] : [c], field.id)} />
+                      }
+                      label={
+                        <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
+                          <Typography component="span" sx={{ flex: 1 }}>{c}</Typography>
+                          {hasDescription && (
+                            <MuiIconButton
+                              size="small"
+                              onClick={(e: React.MouseEvent) => {
+                                e.stopPropagation()
+                                toggleDescription(i)
+                              }}
+                              sx={{
+                                transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                                transition: 'transform 0.2s',
+                                ml: 1
+                              }}
+                            >
+                              <ExpandMore fontSize="small" />
+                            </MuiIconButton>
+                          )}
+                        </Box>
+                      }
+                    />
+                  </Box>
+                  {hasDescription && (
+                    <Collapse in={isExpanded}>
+                      <Box sx={{ pl: '42px', pr: 2, pb: 1 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          {description}
+                        </Typography>
+                      </Box>
+                    </Collapse>
+                  )}
+                </Box>
+              )
+            })} 
             </RadioGroup>
           </FormControl>
         ) : (
-          (choices ?? []).map((c, i) => (
-            <Grid xs={12} key={i}  
-              onClick={() => onChange(
-                (
-                  value?.includes(c)
-                    ? (
-                      (radio || field.options?.radioChoices?.includes(c))
-                        ? []
-                        : value.filter(v => v !== c)
-                    )
-                    : (
-                      (radio || field.options?.radioChoices?.includes(c))
-                        ? [c]
-                        : [...(value ?? []).filter(x => !field.options?.radioChoices?.includes(x)), c]
-                    )
-                ),
-                field.id,
-              )}
-            >
-            <Grid container alignItems="center" wrap="nowrap" sx={multipleChoiceItemSx}>
-              <Checkbox
-                color="primary"
-                checked={!!value?.includes(c) && c !== otherString} // coerce to boolean to keep as controlled input
-                inputProps={{ 'aria-label': 'primary checkbox' }}
-              />
-              <Typography component="span"> {c} </Typography>
-            </Grid>
-            </Grid>
-          ))
+          (choices ?? []).map((c, i) => {
+            const description = getDescriptionForChoice(c)
+            const hasDescription = !!description
+            const isExpanded = expandedDescriptions[i]
+
+            return (
+              <Grid xs={12} key={i}>
+                <Box sx={{ width: '100%' }}>
+                  <Box
+                    sx={{
+                      ...multipleChoiceItemSx,
+                      display: 'flex',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      width: '100%'
+                    }}
+                    onClick={(e) => {
+                      // Don't trigger selection if clicking on the expand button
+                      if ((e.target as HTMLElement).closest('.expand-button')) {
+                        return
+                      }
+                      onChange(
+                        (
+                          value?.includes(c)
+                            ? (
+                              (radio || field.options?.radioChoices?.includes(c))
+                                ? []
+                                : value.filter(v => v !== c)
+                            )
+                            : (
+                              (radio || field.options?.radioChoices?.includes(c))
+                                ? [c]
+                                : [...(value ?? []).filter(x => !field.options?.radioChoices?.includes(x)), c]
+                            )
+                        ),
+                        field.id,
+                      )
+                    }}
+                  >
+                    <Checkbox
+                      color="primary"
+                      checked={!!value?.includes(c) && c !== otherString}
+                      inputProps={{ 'aria-label': 'primary checkbox' }}
+                    />
+                    <Typography component="span" sx={{ flex: 1 }}>{c}</Typography>
+                    {hasDescription && (
+                      <MuiIconButton
+                        className="expand-button"
+                        size="small"
+                        onClick={(e: React.MouseEvent) => {
+                          e.stopPropagation()
+                          toggleDescription(i)
+                        }}
+                        sx={{
+                          transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                          transition: 'transform 0.2s',
+                          ml: 1
+                        }}
+                      >
+                        <ExpandMore fontSize="small" />
+                      </MuiIconButton>
+                    )}
+                  </Box>
+                  {hasDescription && (
+                    <Collapse in={isExpanded}>
+                      <Box sx={{ pl: '42px', pr: 2, pb: 1 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          {description}
+                        </Typography>
+                      </Box>
+                    </Collapse>
+                  )}
+                </Box>
+              </Grid>
+            )
+          })
         )
       }
       {other &&
@@ -1613,9 +1711,12 @@ export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId }
   const [businessName, setBusinessName] = useState('')
   const [isCheckout, setIsCheckout] = useState(false)
   const [stripePromise, setStripePromise] = useState<ReturnType<typeof loadStripe>>()
-  const [, { findById: findProduct }] = useProducts({ dontFetch: true })
   const [answertext, setAnswertext] = useState('')
   const [error, setError] = useState('')
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([])
+  const [showProductSelection, setShowProductSelection] = useState(false)
+  const [availableProducts, setAvailableProducts] = useState<any[]>([])
+  const [loadingProducts, setLoadingProducts] = useState(false)
 
   const fetchRef = useRef(false)
   useEffect(() => {
@@ -1623,6 +1724,35 @@ export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId }
     if (value && (session.userInfo as any)?.stripeCustomerId) {
       return setCustomerId(c => c ? c : (session.userInfo as any)?.stripeCustomerId) // already paid or saved card
     }
+
+    // Check if product selection mode is enabled
+    if (field.options?.stripeProductSelectionMode && (field.options?.productIds || []).length > 1) {
+      setShowProductSelection(true)
+      setLoadingProducts(true)
+
+      // Fetch product data with real-time Stripe pricing via proxy_read
+      const productIds = (field.options.productIds || []).join(',')
+      session.api.integrations.proxy_read({
+        integration: 'Stripe',
+        type: 'product-prices',
+        id: productIds,
+        query: field.options.stripeKey
+      })
+      .then(({ data }) => {
+        setAvailableProducts(data.products || [])
+        setLoadingProducts(false)
+      })
+      .catch((e: any) => {
+        console.error('Error loading product data:', e)
+        const errorMessage = e?.message?.includes?.('Stripe pricing error:')
+          ? e.message.replace('Stripe pricing error: ', '')
+          : 'Failed to load product information from Stripe'
+        setError(`Product configuration error: ${errorMessage}`)
+        setLoadingProducts(false)
+      })
+      return
+    }
+
     fetchRef.current = true
 
     session.api.form_responses.stripe_details({ fieldId: field.id, enduserId })
@@ -1643,9 +1773,155 @@ export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId }
   }, [session, value, field.id, enduserId])
 
   const cost = (
-    (field.options?.productIds || []).map(id => findProduct(id, { batch: false })) // seems to be having issues with bulk read
-    .reduce((t, p) => t + (p?.cost?.amount || 0), 0)
+    showProductSelection
+      ? selectedProducts.reduce((total, productId) => {
+          const product = availableProducts.find(p => p._id === productId)
+          if (product?.currentPrice) {
+            return total + (product.currentPrice.amount || 0)
+          }
+          return total + (product?.cost?.amount || 0)
+        }, 0)
+      : 0 // Will be calculated by existing Stripe flow when not in selection mode
   )
+
+  // Handle product selection step
+  if (showProductSelection) {
+    if (error) {
+      return (
+        <Grid container direction="column" spacing={2} alignItems="center">
+          <Grid item>
+            <Typography color="error" variant="h6">
+              Product Configuration Error
+            </Typography>
+          </Grid>
+          <Grid item>
+            <Typography color="error" sx={{ textAlign: 'center' }}>
+              {error}
+            </Typography>
+          </Grid>
+        </Grid>
+      )
+    }
+
+    if (loadingProducts) {
+      return (
+        <Grid container direction="column" spacing={2} alignItems="center">
+          <Grid item>
+            <LinearProgress />
+          </Grid>
+          <Grid item>
+            <Typography>Loading product information...</Typography>
+          </Grid>
+        </Grid>
+      )
+    }
+    const isSingleSelection = field.options?.radio === true
+
+    const handleProductSelection = (productId: string) => {
+      if (isSingleSelection) {
+        setSelectedProducts([productId])
+      } else {
+        setSelectedProducts(prev =>
+          prev.includes(productId)
+            ? prev.filter(id => id !== productId)
+            : [...prev, productId]
+        )
+      }
+    }
+
+    const handleContinueToPayment = () => {
+      if (selectedProducts.length === 0) return
+      setShowProductSelection(false)
+      fetchRef.current = true
+
+      // Now fetch Stripe details with selected products
+      session.api.form_responses.stripe_details({
+        fieldId: field.id,
+        enduserId,
+        ...(selectedProducts.length > 0 && { selectedProductIds: selectedProducts }) // Pass selected products to Stripe checkout
+      } as any)
+      .then(({ clientSecret, publishableKey, stripeAccount, businessName, customerId, isCheckout, answerText }) => {
+        setAnswertext(answerText || '')
+        setIsCheckout(!!isCheckout)
+        setClientSecret(clientSecret)
+        setStripePromise(loadStripe(publishableKey, { stripeAccount }))
+        setBusinessName(businessName)
+        setCustomerId(customerId)
+      })
+      .catch((e: any) => {
+        console.error(e)
+        if (typeof e?.message === 'string') {
+          setError(e.message)
+        }
+      })
+    }
+
+    return (
+      <Grid container direction="column" spacing={2}>
+        <Grid item>
+          <Typography variant="h6">Select Product{isSingleSelection ? '' : 's'}</Typography>
+        </Grid>
+
+        {availableProducts.map((product) => {
+          // Use real-time Stripe pricing if available, fallback to Tellescope pricing
+          const price = product.currentPrice || product.cost
+          const priceAmount = price?.amount || 0
+          const priceCurrency = price?.currency || 'USD'
+
+          return (
+            <Grid item key={product._id}>
+              <FormControlLabel
+                control={
+                  isSingleSelection ? (
+                    <Radio
+                      checked={selectedProducts.includes(product._id)}
+                      onChange={() => handleProductSelection(product._id)}
+                    />
+                  ) : (
+                    <Checkbox
+                      checked={selectedProducts.includes(product._id)}
+                      onChange={() => handleProductSelection(product._id)}
+                    />
+                  )
+                }
+                label={
+                  <Box>
+                    <Typography variant="body1" fontWeight="bold">
+                      {product.title}
+                    </Typography>
+                    {product.description && (
+                      <Typography variant="body2" color="textSecondary">
+                        {product.description}
+                      </Typography>
+                    )}
+                    <Typography variant="body2" color="primary">
+                      ${(priceAmount / 100).toFixed(2)} {priceCurrency.toUpperCase()}
+                      {product.currentPrice?.isSubscription && (
+                        <Typography component="span" variant="caption" sx={{ ml: 0.5 }}>
+                          /month
+                        </Typography>
+                      )}
+                    </Typography>
+                  </Box>
+                }
+              />
+            </Grid>
+          )
+        })}
+
+        <Grid item>
+          <Button
+            variant="contained"
+            onClick={handleContinueToPayment}
+            disabled={selectedProducts.length === 0}
+            sx={{ mt: 2 }}
+          >
+            Continue to Payment
+          </Button>
+        </Grid>
+      </Grid>
+    )
+  }
 
   if (error) {
     return (
@@ -1954,7 +2230,7 @@ export interface AddToDatabaseProps {
   onAdd: (record: DatabaseRecord) => void
 }
 
-export const DatabaseSelectInput = ({ AddToDatabase, field, value: _value, onChange, onDatabaseSelect, responses, size, disabled }: FormInputProps<'Database Select'> & {
+export const DatabaseSelectInput = ({ AddToDatabase, field, value: _value, onChange, onDatabaseSelect, responses, size, disabled, enduser }: FormInputProps<'Database Select'> & {
   responses: FormResponseValue[],
   AddToDatabase?: React.JSXElementConstructor<AddToDatabaseProps>,
 }) => {
@@ -1987,6 +2263,23 @@ export const DatabaseSelectInput = ({ AddToDatabase, field, value: _value, onCha
       ? responses.find(r => r.fieldId === field.options?.databaseFilter?.fieldId)?.answer?.value
       : undefined
   ), [responses, field.options?.databaseFilter])
+
+  // State filtering logic similar to Insurance component
+  const addressQuestion = useMemo(() => responses?.find(r => {
+    if (r.answer.type !== 'Address') return false
+    if (r.field.intakeField !== 'Address') return false
+
+    // make sure state is actually defined (in case of multiple address questions, where 1+ are blank)
+    if (!r.answer.value?.state) return false
+
+    return true
+  }), [responses])
+
+  const state = useMemo(() => (
+    field.options?.filterByEnduserState
+      ? ((addressQuestion?.answer?.type === 'Address' ? addressQuestion?.answer?.value?.state : undefined) || enduser?.state)
+      : undefined
+  ), [enduser?.state, addressQuestion, field.options?.filterByEnduserState])
 
   const filteredChoicesWithPotentialDuplicates = useMemo(() => {
     if (!choices) return []
@@ -2030,17 +2323,29 @@ export const DatabaseSelectInput = ({ AddToDatabase, field, value: _value, onCha
               : false
           )
         }
-        
+
         return false
       })
     )
   }, [choices, filterResponse, field.options?.databaseFilter, value])
 
+  // Apply state filtering as a secondary filter (doesn't modify existing logic)
+  const stateFilteredChoices = useMemo(() => {
+    if (!field.options?.filterByEnduserState || !state) {
+      return filteredChoicesWithPotentialDuplicates
+    }
+
+    return filteredChoicesWithPotentialDuplicates.filter(c => {
+      const recordState = c.values.find(v => v.label?.trim()?.toLowerCase() === 'state')?.value?.toString() || ''
+      return !recordState || recordState === state
+    })
+  }, [filteredChoicesWithPotentialDuplicates, field.options?.filterByEnduserState, state])
+
   const filteredChoices = useMemo(() => {
-    const filtered = [] 
+    const filtered = []
 
     const uniques = new Set<string>([])
-    for (const c of filteredChoicesWithPotentialDuplicates) {
+    for (const c of stateFilteredChoices) {
       const text = label_for_database_record(field, c)
       if (uniques.has(text)) continue // duplicate found
 
@@ -2049,7 +2354,7 @@ export const DatabaseSelectInput = ({ AddToDatabase, field, value: _value, onCha
     }
 
     return filtered
-  }, [field, filteredChoicesWithPotentialDuplicates])
+  }, [field, stateFilteredChoices])
 
   if (!doneLoading) return <LinearProgress />
   return (

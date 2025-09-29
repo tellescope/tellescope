@@ -105,6 +105,7 @@ export type PortalSettings = {
     loginTitle?: string,
     loginDescription?: string,
     loginGraphic?: string,
+    loginBottomHTML?: string,
     registerTitle?: string,
     registerDescription?: string,
     registerGraphic?: string,
@@ -404,6 +405,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedSuperDial?: boolean,
   hasConnectedBeluga?: boolean,
   hasConnectedMetriport?: boolean,
+  hasConnectedPaubox?: boolean,
   hasConfiguredZoom?: boolean,
   hasTicketQueues?: boolean,
   vitalTeamId?: string,
@@ -468,6 +470,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasIntegrations?: string[],
   outOfOfficeHours?: OutOfOfficeBlock[],
   // _AIEnabled?: boolean,
+  skipActivePatientBilling?: boolean,
 }
 export type OrganizationTheme = {
   name: string,
@@ -614,6 +617,7 @@ export interface User_readonly extends ClientRecord {
   organization?: string 
   username?: string;
   orgEmail?: string;
+  pauboxEmail?: string;
   lastActive?: Date;
   lastLogout?: Date;
   isa?: boolean,
@@ -1637,11 +1641,16 @@ export type FormFieldFeedback = {
   ifEquals: string,
   display: string,
 }
+export type FormFieldOptionDetails = {
+  option: string,
+  description?: string,
+}
 export interface CanvasConsentCategory extends CanvasCoding {}
 export type FormFieldOptions = FormFieldValidation & {
   default?: string,
-  tableChoices?: TableInputChoice[],  
+  tableChoices?: TableInputChoice[],
   choices?: string[];
+  optionDetails?: FormFieldOptionDetails[];
   canvasCodings?: CanvasCoding[],
   from?: number,
   to?: number,
@@ -1659,6 +1668,7 @@ export type FormFieldOptions = FormFieldValidation & {
   databaseId?: string,
   databaseLabel?: string,
   databaseLabels?: string[],
+  filterByEnduserState?: boolean,
   databaseFilter?: {
     fieldId?: string,
     databaseLabel?: string,
@@ -1691,6 +1701,7 @@ export type FormFieldOptions = FormFieldValidation & {
   groupPadding?: number,
   saveIntakeOnPartial?: boolean,
   stripeKey?: string, // publishable key of custom stripe API keys
+  stripeProductSelectionMode?: boolean, // enable product selection step for Stripe questions
   dataSource?: string, // e.g. Canvas for Allergies
   canvasDocumentCoding?: Pick<CanvasCoding, 'system' | 'code'> // for category
   canvasDocumentType?: CanvasCoding, // for type
@@ -1711,7 +1722,7 @@ export type FormFieldOptions = FormFieldValidation & {
   elationAppendToNote?: boolean,
   elationAppendToNotePrefix?: string,
 }
-export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other'>
+export type MultipleChoiceOptions = Pick<FormFieldOptions, 'choices' | 'radio' | 'other' | 'optionDetails' | 'radioChoices'>
 
 export type FormFieldCalloutConditionComparison = 'Equals'
 export type FormFieldCalloutCondition = {
@@ -1994,6 +2005,7 @@ export interface Database_updatesDisabled {}
 export interface Database extends Database_readonly, Database_required, Database_updatesDisabled {
   // organizationRead?: boolean,
   visibleForRoles?: string[],
+  isReferralDatabase?: boolean,
 }
 
 export interface DatabaseRecord_readonly extends ClientRecord {}
@@ -2221,6 +2233,7 @@ export interface FormResponse_required {
   publicSubmit?: boolean,
   submittedBy?: string,
   submittedByIsPlaceholder?: boolean,
+  markedAsSubmitted?: boolean,
   submittedAt?: Date,
   accessCode?: string,
   userEmail?: string,
@@ -2467,6 +2480,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   preventRescheduleMinutesInAdvance?: number,
   preventCancelMinutesInAdvance?: number,
   sendIcsEmail?: boolean,
+  healthieInsuranceBillingEnabled?: boolean,
   // isAllDay?: boolean,
 }
 
@@ -2599,6 +2613,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   generateAthenaTelehealthLink?: boolean,
   athenaTypeId?: string, // for searching slots (default booking type)
   athenaBookingTypeId?: string, // for booking a different type than the slot
+  healthieInsuranceBillingEnabled?: boolean,
 }
 
 export interface AppointmentLocation_readonly extends ClientRecord {}
@@ -3337,6 +3352,7 @@ export type PortalBlockForType = {
     title: string,
     roles?: string[],
     showAll?: boolean,
+    hideContactButton?: boolean,
     // members: CareTeamMemberPortalCustomizationInfo[],
   }>,
   carePlan: BuildPortalBlockInfo<'carePlan', {}>,
@@ -3564,6 +3580,7 @@ export type UserUIRestrictions = {
   hideMergeEndusers?: boolean,
   hideQueuedTicketsViewer?: boolean,
   hideIncomingFaxesIcon?: boolean,
+  hideNotificationsIcon?: boolean,
   hideBulkEnduserActions?: boolean,
   visibleIntegrations?: string[],
 }
@@ -3662,6 +3679,8 @@ export type AnalyticsQueryInfoForType = {
   },
   "Journey Logs": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },
   "Orders": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },
+  "Chat Rooms": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },
+  "Chats": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },
 }
 export type AnalyticsQueryInfoType = keyof AnalyticsQueryInfoForType
 export type AnalyticsQueryInfo = AnalyticsQueryInfoForType[AnalyticsQueryInfoType]
@@ -3733,10 +3752,12 @@ export type AnalyticsQueryFilterForType = {
   Files: { 
     names?: string[],
   },
-  "Journey Logs": { 
+  "Journey Logs": {
     automationStepIds?: string[],
   },
   Orders: { },
+  "Chat Rooms": { },
+  "Chats": { },
 }
 
 export type EnduserGrouping = {
@@ -3784,8 +3805,10 @@ export type AnalyticsQueryGroupingForType = {
   "Medications": {} & EnduserGrouping & { Enduser: string },
   "Files": {} & EnduserGrouping & { Enduser: string },
   "Journey Logs": {} & EnduserGrouping & { Enduser: string },
-  "Meetings": { Host?: boolean },  
+  "Meetings": { Host?: boolean },
   "Orders": {} & EnduserGrouping & { Enduser: string },
+  "Chat Rooms": {} & EnduserGrouping & { Enduser: string },
+  "Chats": {} & EnduserGrouping & { Enduser: string },
 }
 
 type DefaultRangeKey = 'Created At' | 'Updated At'
@@ -3804,6 +3827,8 @@ export type AnalyticsQueryRangeKeyForType = {
   "Meetings": DefaultRangeKey,
   "Journey Logs": DefaultRangeKey,
   "Orders": DefaultRangeKey,
+  "Chat Rooms": DefaultRangeKey,
+  "Chats": DefaultRangeKey,
 }
 export type RangeKey = DefaultRangeKey | 'Submitted At' | "Closed At"
 
@@ -3913,11 +3938,25 @@ export type AnalyticsQueryForType = {
     AnalyticsQueryRangeKeyForType['Journey Logs']
   >,
   "Orders": AnalyticsQueryBuilder<
-    "Orders", 
+    "Orders",
     AnalyticsQueryInfoForType['Orders'][keyof AnalyticsQueryInfoForType['Orders']],
     AnalyticsQueryFilterForType['Orders'],
     AnalyticsQueryGroupingForType['Orders'],
     AnalyticsQueryRangeKeyForType['Orders']
+  >,
+  "Chat Rooms": AnalyticsQueryBuilder<
+    "Chat Rooms",
+    AnalyticsQueryInfoForType['Chat Rooms'][keyof AnalyticsQueryInfoForType['Chat Rooms']],
+    AnalyticsQueryFilterForType['Chat Rooms'],
+    AnalyticsQueryGroupingForType['Chat Rooms'],
+    AnalyticsQueryRangeKeyForType['Chat Rooms']
+  >,
+  "Chats": AnalyticsQueryBuilder<
+    "Chats",
+    AnalyticsQueryInfoForType['Chats'][keyof AnalyticsQueryInfoForType['Chats']],
+    AnalyticsQueryFilterForType['Chats'],
+    AnalyticsQueryGroupingForType['Chats'],
+    AnalyticsQueryRangeKeyForType['Chats']
   >,
 }
 export type AnalyticsQueryType = keyof AnalyticsQueryForType
@@ -3938,6 +3977,8 @@ export const resource_to_modelName: { [K in AnalyticsQueryType] : ModelName } = 
   Meetings: "meetings",
   "Journey Logs": "automated_actions",
   Orders: "enduser_orders",
+  "Chat Rooms": "chat_rooms",
+  "Chats": "chats",
 }
 
 export type AnalyticsQueryOptions = {
@@ -4134,7 +4175,7 @@ export type AutomationTriggerEvents = {
     hasExpiredEvent?: boolean,
   }, {}>,
   'Form Unsubmitted': AutomationTriggerEventBuilder<"Form Unsubmitted", { formId: string, intervalInMS: number }, {}>,
-  'Purchase Made': AutomationTriggerEventBuilder<"Purchase Made", { titles?: string[], productIds?: string[] }, {}>,
+  'Purchase Made': AutomationTriggerEventBuilder<"Purchase Made", { titles?: string[], productIds?: string[], titlePartialMatches?: string[] }, {}>,
   'Refund Issued': AutomationTriggerEventBuilder<"Refund Issued", { }, {}>,
   'Subscription Ended': AutomationTriggerEventBuilder<"Subscription Ended", { productIds?: string[] }, {}>,
   'Subscription Payment Failed': AutomationTriggerEventBuilder<"Subscription Payment Failed", { }, {}>,

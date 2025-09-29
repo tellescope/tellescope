@@ -38,10 +38,10 @@ exports.listValidatorUniqueOptionalEmptyOkay = exports.listValidatorUniqueEmptyO
 exports.exactMatchValidatorOptional = exports.exactMatchValidator = exports.dateRangeOptionalValidator = exports.dateRangeValidator = exports.dateValidatorOptional = exports.dateOptionalOrEmptyStringValidator = exports.dateValidator = exports.numberOrStringValidatorOptional = exports.numberOrStringValidatorEmptyOkay = exports.fileSizeValidator = exports.numberValidatorMin0Max59Optional = exports.numberValidatorMin0Max23Optional = exports.numberValidatorMin1Max31 = exports.listOfNumbersValidatorUniqueOptionalOrEmptyOkay = exports.numberValidatorOptional = exports.numberValidator = exports.positiveNumberValidator = exports.nonNegNumberValidator = exports.numberValidatorBuilder = exports.emailValidatorEmptyOkay = exports.emailValidatorOptional = exports.emailValidator = exports.nameValidator = exports.escape_name = exports.first_letter_capitalized = exports.slugValidator = exports.sharedWithOrganizationIdsValidator = exports.listOfMongoIdStringValidatorOptionalOrEmptyOk = exports.listOfMongoIdStringValidatorEmptyOk = exports.listOfMongoIdStringValidatorOptional = exports.listOfMongoIdStringValidator = exports.mongoIdStringOptional = exports.mongoIdStringRequired = exports.listOfMongoIdValidator = exports.mongoIdOptional = exports.mongoIdRequired = exports.stringReadonlyValidator = exports.nullValidator = exports.buildMongoIdStringValidator = exports.mongoIdValidator = exports.escapeMongoId = exports.booleanValidatorOptional = exports.booleanValidator = exports.booleanValidatorBuilder = exports.listOfUniqueStringsValidatorEmptyOk = exports.listOfObjectAnyFieldsAnyValuesValidator = exports.listOfStringsValidatorUniqueOptionalOrEmptyOkay = exports.listOfStringsValidatorEmptyOk = exports.listOfStringsValidatorOptionalOrEmptyOk = exports.listOfStringsValidator = void 0;
 exports.CHAT_ROOM_TYPES = exports.listOfFormFieldsValidator = exports.formFieldValidator = exports.intakeDateOfBirthValidator = exports.intakePhoneValidator = exports.formResponsesValidator = exports.formResponseValidator = exports.fullscriptDisabledForEnduser = exports.photonDisabledForEnduser = exports.mmddyyyyRegex = exports.formResponseAnswerValidator = exports.insuranceOptionalValidator = exports.tellescopeGenderOptionalValidator = exports.tellescopeGenderValidator = exports.TELLESCOPE_GENDER = exports.addressOptionalValidator = exports.addressValidator = exports.INTERNAL_NAME_TO_DISPLAY_FIELD = exports.RESERVED_INTAKE_FIELDS = exports.idStringToDateValidator = exports.numberToDateValidator = exports.rejectionWithMessage = exports.indexableNumberValidator = exports.indexableValidator = exports.validateIndexable = exports.emailEncodingValidator = exports.journeyStatesValidator = exports.journeyStateValidator = exports.journeyStatePriorityValidator = exports.updateOptionsValidator = exports.preferenceValidator = exports.fieldsValidator = exports.FORM_FIELD_VALIDATORS_BY_TYPE = exports.formFieldTypeValidator = exports.FORM_FIELD_TYPES = exports.labeledFieldsValidator = exports.signatureResponseValidator = exports.fileResponseValidator = exports.subdomainValidator = exports.safeBase64Validator = exports.urlValidator = exports.fileTypeValidator = exports.phoneValidatorOptional = exports.phoneValidator = exports.escape_phone_number = exports.journeysValidator = exports.stateValidatorOptional = exports.stateValidator = exports.VALID_STATES = exports.exactMatchListValidator = void 0;
 exports.listOfCalendarEventRemindersValidator = exports.calendarEventReminderValidator = exports.messageTemplateModeValidator = exports.MESSAGE_TEMPLATE_MODES = exports.communicationsChannelValidatorOptional = exports.communicationsChannelValidator = exports.COMMUNICATIONS_CHANNELS = exports.automationActionTypeValidator = exports.AUTOMATION_ACTIONS = exports.automationEventTypeValidator = exports.AUTOMATION_EVENTS = exports.automatedActionStatusValidator = exports.AUTOMATION_ENDUSER_STATUS = exports.listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay = exports.listOfStringsWithQualifierValidatorOptional = exports.listOfStringsWithQualifierValidator = exports.listQueryQualifiersValidator = exports.LIST_QUERY_QUALIFIERS = exports.chatRoomUserInfoValidator = exports.meetingDisplayInfoValidator = exports.userDisplayInfoValidator = exports.meetingsListValidator = exports.listOfGenericAttachmentsValidator = exports.genericAttachmentValidator = exports.listOfChatAttachmentsValidator = exports.chatAttachmentValidator = exports.calendarEventAttendeesValidator = exports.calendarEventAttendeeValidator = exports.listOfUserIndentitiesValidator = exports.userIdentityValidator = exports.meetingInfoValidator = exports.listOfAttendeesValidator = exports.attendeeValidator = exports.attendeeInfoValidator = exports.listOfDisplayNameInfo = exports.sessionTypeOrAnyoneValidatorOptional = exports.sessionTypeValidator = exports.WebhookSubscriptionValidator = exports.UnitOfTimeValidator = exports.UNITS_OF_TIME = exports.CUDValidator = exports.CUDStringValidator = exports.CUD = exports.meetingStatusValidator = exports.MEETING_STATUSES = exports.messageTemplateTypeValidator = exports.MESSAGE_TEMPLATE_TYPES = exports.accountTypeValidator = exports.ACCOUNT_TYPES = exports.chatRoomTypeValidator = void 0;
-exports.blockValidator = exports.blockStyleValidator = exports.formFieldOptionsValidator = exports.formFieldFeedbackValidator = exports.tableInputChoiceValidator = exports.tableInputTypesValidator = exports.TABLE_INPUT_TYPES = exports.integrationAuthenticationsValidator = exports.flowchartUIValidator = exports.passwordValidator = exports.managedContentRecordAssignmentTypeValidator = exports.MANAGED_CONTENT_RECORD_ASSIGNMENT_TYPES = exports.managedContentRecordTypeValidator = exports.MANAGED_CONTENT_RECORD_TYPES = exports.organizationThemeValidator = exports.customPoliciesValidator = exports.portalSettingsValidator = exports.previousFormFieldsValidator = exports.previousFormFieldValidator = exports.FHIRObservationValueValidator = exports.FHIRObservationStatusCodeValidator = exports.FHIR_OBSERVATION_STATUS_CODES = exports.FHIRObservationCategoryValidator = exports.notificationPreferencesValidator = exports.notificationPreferenceValidator = exports.searchOptionsValidator = exports.relatedRecordsValidatorOptional = exports.listOfRelatedRecordsValidator = exports.relatedRecordValidator = exports.journeyContextValidator = exports.automationActionValidator = exports.AIDecisionSourceValidator = exports.canvasCodingValidatorOptional = exports.canvasCodingValidator = exports.developHealthMockResultValidator = exports.developHealthDiagnosesValidator = exports.developHealthDrugsValidator = exports.automationForMessageValidator = exports.smartMeterLinesValidator = exports.senderAssignmentStrategyValidatorOptional = exports.ticketActionsValidator = exports.ticketActionValidator = exports.ticketReminderValidator = exports.listOfAutomationConditionsValidator = exports.automationConditionValidator = exports.automationEventsValidator = exports.automationEventValidator = exports.cancelConditionsValidatorOptional = exports.cancelConditionsValidator = exports.cancelConditionValidator = void 0;
-exports.vitalConfigurationRangeValidator = exports.vitalComparisonValidator = exports.calendarEventPortalSettingsValidator = exports.organizationSettingsValidator = exports.customDashboardViewValidator = exports.buildInFieldsValidator = exports.customEnduserFieldsValidatorOptionalOrEmpty = exports.customEnduserFieldValidator = exports.indexUpdatesValidator = exports.indexUpdateValidator = exports.availabilityEntitiesValidator = exports.AVAILABILITY_BLOCK_ENTITIES = exports.customEnduserFieldTypeValidator = exports.CUSTOM_ENDUSER_FIELD_TYPES = exports.accessValidator = exports.timezoneValidatorOptional = exports.timezoneValidator = exports.weeklyAvailabilitiesValidator = exports.weeklyAvailabilityValidator = exports.monthlyRestrictionOptionalValidator = exports.monthlyRestrictionValidator = exports.baseAvailabilityBlocksValidator = exports.baseAvailabilityBlockValidator = exports.stateCredentialsValidator = exports.stateCredentialValidator = exports.genericUnitWithQuantityValidator = exports.enduserFormResponsesForEventValidator = exports.enduserFormResponseForEventValidator = exports.enduserTasksForEventValidator = exports.enduserTaskForEventValidator = exports.portalTypeValidator = exports.PORTAL_BLOCK_TYPES = exports.portalBlocksValidator = exports.portalBlockValidator = exports.formTypeValidator = exports.FORM_TYPES = exports.portalPageValidator = exports.PORTAL_PAGES = exports.organizationAccessValidator = exports.databaseRecordValuesValidator = exports.databaseRecordValueValidator = exports.databaseFieldsValidator = exports.databaseFieldValidator = exports.is_database_record_field_type = exports.databaseRecordFieldTypeValidator = exports.DATABASE_RECORD_FIELD_TYPES = exports.blocksValidator = exports.is_block_type = exports.blockTypeValidator = exports.BLOCK_TYPES = void 0;
-exports.phoneTreeEventValidator = exports.insurancesValidator = exports.enduserProfileViewBlocksValidator = exports.enduserProfileViewBlockValidator = exports.sharedEnduserProfileViewBlockFields = exports.externalChatGPTMessagesValidator = exports.userUIRestrictionsValidator = exports.userCallRoutingBehaviorValidator = exports.USER_CALL_ROUTING_BEHAVIORS = exports.analyticsQueryTypeValidator = exports.ANALYTICS_QUERY_TYPES = exports.analyticsFrameTypeValidator = exports.ANALYTICS_FRAME_TYPES = exports.analyticsQueriesValidatorOptional = exports.analyticsQueryValidator = exports.compoundFilterValidator = exports.basicFilterValidator = exports.formScoringValidator = exports.scheduledJourneysValidator = exports.analyticsQueryResultsValidator = exports.videoIntegrationTypesValidator = exports.VIDEO_INTEGRATION_TYPES = exports.integrationTitleValidator = exports.purchaseCreditValueValidator = exports.costValidator = exports.paymentProcessorValidator = exports.PAYMENT_PROCESSORS = exports.currencyValidator = exports.CURRENCIES = exports.appointmentTermsValidator = exports.loginFlowResultValidator = exports.LOGIN_FLOW_RESULTS = exports.organizationLimitsValidator = exports.accessPermissionsValidator = exports.accessPermissionValidator = exports.ticketSnoozesValidator = exports.superbillLineItemsValidator = exports.billingCodeValidatorOptional = exports.billingCodeValidator = exports.superbillProviderInfoValidator = exports.superbillPatientInfoValidator = exports.embeddingTypeValidator = exports.EMBEDDING_TYPES = exports.automatioNTriggerStatusValidator = exports.AUTOMATION_TRIGGER_STATUSES = exports.automationTriggerActionValidator = exports.AUTOMATION_TRIGGER_ACTION_TYPES = exports.automationTriggerEventValidator = exports.AUTOMATION_TRIGGER_EVENT_TYPES = exports.vitalConfigurationRangesValidator = void 0;
-exports.outOfOfficeBlocksValidator = exports.outOfOfficeBlockValidator = exports.recentViewersValidator = exports.recentViewerValidator = exports.enduserDiagnosisValidator = exports.bookingRestrictionsByTemplateValidator = exports.analyticsFrameGroupingCategoriesValidator = exports.analyticsFrameGroupingCategoryValidator = exports.fieldMappingsValidator = exports.fieldMappingValidator = exports.athenaSubscriptionsValidator = exports.athenaSubscriptionValidator = exports.athenaSubscriptionTypeValidator = exports.fieldsSyncValidator = exports.fieldSyncValidator = exports.syncDirectionValidator = exports.enduserProfileWebhooksValidator = exports.diagnosesValidator = exports.diagnosisValidator = exports.candidProcedureCodeValidator = exports.diagnosisTypeValidator = exports.DIAGNOSIS_TYPES = exports.sortingFieldsValidator = exports.groupMMSUserStatesValidator = exports.groupMMSUserStateValidator = exports.mmsMessagesValidator = exports.mmsMessageValidator = exports.imageAttachmentValidator = exports.isDateString = exports.phoneCallsReportQueriesValidator = exports.formResponsesReportQueriesValidator = exports.endusersReportQueriesValidator = exports.formFieldCalloutConditionsValidator = exports.tableViewColumnsValidator = exports.languageValidator = exports.formCustomizationValidator = exports.phoneTreeEnduserConditionValidator = exports.PHONE_TREE_ENDUSER_CONDITIONS = exports.phoneTreeNodesValidator = exports.phoneTreeNodeValidator = exports.phoneTreeActionValidator = exports.phonePlaybackValidatorOptional = exports.phonePlaybackValidator = exports.phoneTreeEventsValidator = void 0;
+exports.blockStyleValidator = exports.formFieldOptionsValidator = exports.formFieldOptionDetailsValidator = exports.formFieldFeedbackValidator = exports.tableInputChoiceValidator = exports.tableInputTypesValidator = exports.TABLE_INPUT_TYPES = exports.integrationAuthenticationsValidator = exports.flowchartUIValidator = exports.passwordValidator = exports.managedContentRecordAssignmentTypeValidator = exports.MANAGED_CONTENT_RECORD_ASSIGNMENT_TYPES = exports.managedContentRecordTypeValidator = exports.MANAGED_CONTENT_RECORD_TYPES = exports.organizationThemeValidator = exports.customPoliciesValidator = exports.portalSettingsValidator = exports.previousFormFieldsValidator = exports.previousFormFieldValidator = exports.FHIRObservationValueValidator = exports.FHIRObservationStatusCodeValidator = exports.FHIR_OBSERVATION_STATUS_CODES = exports.FHIRObservationCategoryValidator = exports.notificationPreferencesValidator = exports.notificationPreferenceValidator = exports.searchOptionsValidator = exports.relatedRecordsValidatorOptional = exports.listOfRelatedRecordsValidator = exports.relatedRecordValidator = exports.journeyContextValidator = exports.automationActionValidator = exports.AIDecisionSourceValidator = exports.canvasCodingValidatorOptional = exports.canvasCodingValidator = exports.developHealthMockResultValidator = exports.developHealthDiagnosesValidator = exports.developHealthDrugsValidator = exports.automationForMessageValidator = exports.smartMeterLinesValidator = exports.senderAssignmentStrategyValidatorOptional = exports.ticketActionsValidator = exports.ticketActionValidator = exports.ticketReminderValidator = exports.listOfAutomationConditionsValidator = exports.automationConditionValidator = exports.automationEventsValidator = exports.automationEventValidator = exports.cancelConditionsValidatorOptional = exports.cancelConditionsValidator = exports.cancelConditionValidator = void 0;
+exports.vitalComparisonValidator = exports.calendarEventPortalSettingsValidator = exports.organizationSettingsValidator = exports.customDashboardViewValidator = exports.buildInFieldsValidator = exports.customEnduserFieldsValidatorOptionalOrEmpty = exports.customEnduserFieldValidator = exports.indexUpdatesValidator = exports.indexUpdateValidator = exports.availabilityEntitiesValidator = exports.AVAILABILITY_BLOCK_ENTITIES = exports.customEnduserFieldTypeValidator = exports.CUSTOM_ENDUSER_FIELD_TYPES = exports.accessValidator = exports.timezoneValidatorOptional = exports.timezoneValidator = exports.weeklyAvailabilitiesValidator = exports.weeklyAvailabilityValidator = exports.monthlyRestrictionOptionalValidator = exports.monthlyRestrictionValidator = exports.baseAvailabilityBlocksValidator = exports.baseAvailabilityBlockValidator = exports.stateCredentialsValidator = exports.stateCredentialValidator = exports.genericUnitWithQuantityValidator = exports.enduserFormResponsesForEventValidator = exports.enduserFormResponseForEventValidator = exports.enduserTasksForEventValidator = exports.enduserTaskForEventValidator = exports.portalTypeValidator = exports.PORTAL_BLOCK_TYPES = exports.portalBlocksValidator = exports.portalBlockValidator = exports.formTypeValidator = exports.FORM_TYPES = exports.portalPageValidator = exports.PORTAL_PAGES = exports.organizationAccessValidator = exports.databaseRecordValuesValidator = exports.databaseRecordValueValidator = exports.databaseFieldsValidator = exports.databaseFieldValidator = exports.is_database_record_field_type = exports.databaseRecordFieldTypeValidator = exports.DATABASE_RECORD_FIELD_TYPES = exports.blocksValidator = exports.is_block_type = exports.blockTypeValidator = exports.BLOCK_TYPES = exports.blockValidator = void 0;
+exports.insurancesValidator = exports.enduserProfileViewBlocksValidator = exports.enduserProfileViewBlockValidator = exports.sharedEnduserProfileViewBlockFields = exports.externalChatGPTMessagesValidator = exports.userUIRestrictionsValidator = exports.userCallRoutingBehaviorValidator = exports.USER_CALL_ROUTING_BEHAVIORS = exports.analyticsQueryTypeValidator = exports.ANALYTICS_QUERY_TYPES = exports.analyticsFrameTypeValidator = exports.ANALYTICS_FRAME_TYPES = exports.analyticsQueriesValidatorOptional = exports.analyticsQueryValidator = exports.compoundFilterValidator = exports.basicFilterValidator = exports.formScoringValidator = exports.scheduledJourneysValidator = exports.analyticsQueryResultsValidator = exports.videoIntegrationTypesValidator = exports.VIDEO_INTEGRATION_TYPES = exports.integrationTitleValidator = exports.purchaseCreditValueValidator = exports.costValidator = exports.paymentProcessorValidator = exports.PAYMENT_PROCESSORS = exports.currencyValidator = exports.CURRENCIES = exports.appointmentTermsValidator = exports.loginFlowResultValidator = exports.LOGIN_FLOW_RESULTS = exports.organizationLimitsValidator = exports.accessPermissionsValidator = exports.accessPermissionValidator = exports.ticketSnoozesValidator = exports.superbillLineItemsValidator = exports.billingCodeValidatorOptional = exports.billingCodeValidator = exports.superbillProviderInfoValidator = exports.superbillPatientInfoValidator = exports.embeddingTypeValidator = exports.EMBEDDING_TYPES = exports.automatioNTriggerStatusValidator = exports.AUTOMATION_TRIGGER_STATUSES = exports.automationTriggerActionValidator = exports.AUTOMATION_TRIGGER_ACTION_TYPES = exports.automationTriggerEventValidator = exports.AUTOMATION_TRIGGER_EVENT_TYPES = exports.vitalConfigurationRangesValidator = exports.vitalConfigurationRangeValidator = void 0;
+exports.outOfOfficeBlocksValidator = exports.outOfOfficeBlockValidator = exports.recentViewersValidator = exports.recentViewerValidator = exports.enduserDiagnosisValidator = exports.bookingRestrictionsByTemplateValidator = exports.analyticsFrameGroupingCategoriesValidator = exports.analyticsFrameGroupingCategoryValidator = exports.fieldMappingsValidator = exports.fieldMappingValidator = exports.athenaSubscriptionsValidator = exports.athenaSubscriptionValidator = exports.athenaSubscriptionTypeValidator = exports.fieldsSyncValidator = exports.fieldSyncValidator = exports.syncDirectionValidator = exports.enduserProfileWebhooksValidator = exports.diagnosesValidator = exports.diagnosisValidator = exports.candidProcedureCodeValidator = exports.diagnosisTypeValidator = exports.DIAGNOSIS_TYPES = exports.sortingFieldsValidator = exports.groupMMSUserStatesValidator = exports.groupMMSUserStateValidator = exports.mmsMessagesValidator = exports.mmsMessageValidator = exports.imageAttachmentValidator = exports.isDateString = exports.phoneCallsReportQueriesValidator = exports.formResponsesReportQueriesValidator = exports.endusersReportQueriesValidator = exports.formFieldCalloutConditionsValidator = exports.tableViewColumnsValidator = exports.languageValidator = exports.formCustomizationValidator = exports.phoneTreeEnduserConditionValidator = exports.PHONE_TREE_ENDUSER_CONDITIONS = exports.phoneTreeNodesValidator = exports.phoneTreeNodeValidator = exports.phoneTreeActionValidator = exports.phonePlaybackValidatorOptional = exports.phonePlaybackValidator = exports.phoneTreeEventsValidator = exports.phoneTreeEventValidator = void 0;
 var utilities_1 = require("@tellescope/utilities");
 var types_models_1 = require("@tellescope/types-models");
 Object.defineProperty(exports, "VALID_STATES", { enumerable: true, get: function () { return types_models_1.VALID_STATES; } });
@@ -1269,13 +1269,14 @@ exports.FORM_FIELD_VALIDATORS_BY_TYPE = {
             throw new Error('At least 1 choice is required');
         }
         var parsed = [];
+        var choices = fieldOptions.choices || [];
         for (var _i = 0, indexes_1 = indexes; _i < indexes_1.length; _i++) {
             var i = indexes_1[_i];
             if (typeof i !== 'number')
                 throw new Error("Choice ".concat(i, " is not a valid index"));
-            if (i < 0 || i >= fieldOptions.choices.length)
+            if (i < 0 || i >= choices.length)
                 throw new Error("Choice ".concat(i, " is not a valid index"));
-            parsed.push(fieldOptions.choices[i]);
+            parsed.push(choices[i]);
         }
         if (otherText && fieldOptions.other === true)
             parsed.push(otherText);
@@ -2662,6 +2663,7 @@ exports.portalSettingsValidator = (0, exports.objectValidator)({
         loginDescription: exports.stringValidator1000Optional,
         loginGraphic: exports.stringValidator1000Optional,
         loginTitle: exports.stringValidator1000Optional,
+        loginBottomHTML: exports.stringValidator5000OptionalEmptyOkay,
         registerDescription: exports.stringValidator1000Optional,
         registerGraphic: exports.stringValidator1000Optional,
         registerTitle: exports.stringValidator1000Optional,
@@ -2802,11 +2804,16 @@ exports.formFieldFeedbackValidator = (0, exports.objectValidator)({
     ifEquals: exports.stringValidator,
     display: exports.stringValidator,
 });
+exports.formFieldOptionDetailsValidator = (0, exports.objectValidator)({
+    option: exports.stringValidator,
+    description: exports.stringValidator5000Optional,
+});
 exports.formFieldOptionsValidator = (0, exports.objectValidator)({
     default: exports.stringValidatorOptional,
     bookingPageId: exports.stringValidatorOptional,
     tableChoices: (0, exports.listValidatorOptionalOrEmptyOk)(exports.tableInputChoiceValidator),
     choices: exports.listOfStringsValidatorOptionalOrEmptyOk,
+    optionDetails: (0, exports.listValidatorOptionalOrEmptyOk)(exports.formFieldOptionDetailsValidator),
     radioChoices: exports.listOfStringsValidatorOptionalOrEmptyOk,
     canvasCodings: (0, exports.listValidatorOptionalOrEmptyOk)(exports.canvasCodingValidator),
     from: exports.numberValidatorOptional,
@@ -2829,6 +2836,7 @@ exports.formFieldOptionsValidator = (0, exports.objectValidator)({
     databaseId: exports.mongoIdStringOptional,
     databaseLabel: exports.stringValidatorOptionalEmptyOkay,
     databaseLabels: exports.listOfStringsValidatorOptionalOrEmptyOk,
+    filterByEnduserState: exports.booleanValidatorOptional,
     databaseFilter: (0, exports.objectValidator)({
         databaseLabel: exports.stringValidator1000Optional,
         fieldId: exports.mongoIdStringOptional,
@@ -2876,6 +2884,7 @@ exports.formFieldOptionsValidator = (0, exports.objectValidator)({
     max: exports.numberValidatorOptional,
     min: exports.numberValidatorOptional,
     stripeKey: exports.stringValidatorOptionalEmptyOkay,
+    stripeProductSelectionMode: exports.booleanValidatorOptional,
     dataSource: exports.stringValidatorOptionalEmptyOkay,
     esignatureTermsCompanyName: exports.stringValidatorOptionalEmptyOkay,
     observationCode: exports.stringValidatorOptionalEmptyOkay,
@@ -3243,6 +3252,7 @@ exports.portalBlockValidator = (0, exports.orValidator)({
             title: exports.stringValidator,
             roles: exports.listOfStringsValidatorOptionalOrEmptyOk,
             showAll: exports.booleanValidatorOptional,
+            hideContactButton: exports.booleanValidatorOptional,
             // members: listValidatorEmptyOk(
             //   objectValidator<CareTeamMemberPortalCustomizationInfo>({
             //     title: stringValidator(),
@@ -3757,6 +3767,7 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
         info: (0, exports.objectValidator)({
             titles: exports.listOfStringsValidatorOptionalOrEmptyOk,
             productIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
+            titlePartialMatches: exports.listOfStringsValidatorOptionalOrEmptyOk,
         }),
         conditions: exports.optionalEmptyObjectValidator,
     }),
@@ -4922,6 +4933,54 @@ exports.analyticsQueryValidator = (0, exports.orValidator)({
             key: (0, exports.exactMatchValidator)(['Created At', 'Updated At']),
         }, { isOptional: true, emptyOk: true })
     }),
+    "Chat Rooms": (0, exports.objectValidator)({
+        resource: (0, exports.exactMatchValidator)(['Chat Rooms']),
+        filter: (0, exports.objectValidator)({}, { isOptional: true, emptyOk: true }),
+        info: (0, exports.orValidator)({
+            "Total": (0, exports.objectValidator)({
+                method: (0, exports.exactMatchValidator)(['Total']),
+                parameters: exports.optionalEmptyObjectValidator,
+            }),
+        }),
+        grouping: (0, exports.objectValidator)({
+            Enduser: exports.booleanValidatorOptional,
+            Gender: exports.booleanValidatorOptional,
+            "Assigned To": exports.booleanValidatorOptional,
+            Field: exports.stringValidatorOptionalEmptyOkay,
+            Tags: exports.booleanValidatorOptional,
+            Age: exports.booleanValidatorOptional,
+            State: exports.booleanValidatorOptional,
+            Phone: exports.booleanValidatorOptional,
+        }, { isOptional: true, emptyOk: true }),
+        range: (0, exports.objectValidator)({
+            interval: (0, exports.exactMatchValidator)(['Daily', 'Weekly', 'Monthly', 'Hourly']),
+            key: (0, exports.exactMatchValidator)(['Created At', 'Updated At']),
+        }, { isOptional: true, emptyOk: true })
+    }),
+    "Chats": (0, exports.objectValidator)({
+        resource: (0, exports.exactMatchValidator)(['Chats']),
+        filter: (0, exports.objectValidator)({}, { isOptional: true, emptyOk: true }),
+        info: (0, exports.orValidator)({
+            "Total": (0, exports.objectValidator)({
+                method: (0, exports.exactMatchValidator)(['Total']),
+                parameters: exports.optionalEmptyObjectValidator,
+            }),
+        }),
+        grouping: (0, exports.objectValidator)({
+            Enduser: exports.booleanValidatorOptional,
+            Gender: exports.booleanValidatorOptional,
+            "Assigned To": exports.booleanValidatorOptional,
+            Field: exports.stringValidatorOptionalEmptyOkay,
+            Tags: exports.booleanValidatorOptional,
+            Age: exports.booleanValidatorOptional,
+            State: exports.booleanValidatorOptional,
+            Phone: exports.booleanValidatorOptional,
+        }, { isOptional: true, emptyOk: true }),
+        range: (0, exports.objectValidator)({
+            interval: (0, exports.exactMatchValidator)(['Daily', 'Weekly', 'Monthly', 'Hourly']),
+            key: (0, exports.exactMatchValidator)(['Created At', 'Updated At']),
+        }, { isOptional: true, emptyOk: true })
+    }),
 });
 exports.analyticsQueriesValidatorOptional = (0, exports.listValidatorOptionalOrEmptyOk)(exports.analyticsQueryValidator);
 var _ANALYTICS_FRAME_TYPES = {
@@ -4944,6 +5003,8 @@ var _ANALYTICS_QUERY_TYPES = {
     Meetings: true,
     "Journey Logs": true,
     Orders: true,
+    "Chat Rooms": true,
+    "Chats": true,
 };
 exports.ANALYTICS_QUERY_TYPES = Object.keys(_ANALYTICS_QUERY_TYPES);
 exports.analyticsQueryTypeValidator = (0, exports.exactMatchValidator)(exports.ANALYTICS_QUERY_TYPES);
@@ -4975,6 +5036,7 @@ exports.userUIRestrictionsValidator = (0, exports.objectValidator)({
     hideMergeEndusers: exports.booleanValidatorOptional,
     hideQueuedTicketsViewer: exports.booleanValidatorOptional,
     hideIncomingFaxesIcon: exports.booleanValidatorOptional,
+    hideNotificationsIcon: exports.booleanValidatorOptional,
     hideBulkEnduserActions: exports.booleanValidatorOptional,
     visibleIntegrations: exports.listOfStringsValidatorUniqueOptionalOrEmptyOkay,
 }, { emptyOk: true });
