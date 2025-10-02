@@ -118,6 +118,7 @@ var fs_1 = __importDefault(require("fs"));
 var load_inbox_data_test_1 = require("./api_tests/load_inbox_data.test");
 var message_assignment_trigger_test_1 = require("./api_tests/message_assignment_trigger.test");
 var monthly_availability_restrictions_test_1 = require("./api_tests/monthly_availability_restrictions.test");
+var calendar_event_limits_test_1 = require("./api_tests/calendar_event_limits.test");
 var UniquenessViolationMessage = 'Uniqueness Violation';
 var host = process.env.API_URL || 'http://localhost:8080';
 var _a = [process.env.TEST_EMAIL, process.env.TEST_PASSWORD], email = _a[0], password = _a[1];
@@ -4964,14 +4965,190 @@ var assign_care_team_tests = function () { return __awaiter(void 0, void 0, void
     });
 }); };
 var set_fields_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var e1, t1, t2, a1;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var _a, calculate_days_between_dates, parse_date_string, resolve_date_value, calculate_days_between_dates_from_enduser, calculate_date_difference_for_set_fields, e1, t1, t2, a1, e2, t3, t4, t5, e3, t6;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
             case 0:
                 (0, testing_1.log_header)("Automation Trigger Tests (Set Fields)");
-                return [4 /*yield*/, sdk.api.endusers.createOne({})];
+                // First, test the date calculation utilities directly
+                (0, testing_1.log_header)("Date Utility Function Tests");
+                return [4 /*yield*/, Promise.resolve().then(function () { return __importStar(require("@tellescope/utilities")); })];
             case 1:
-                e1 = _a.sent();
+                _a = _b.sent(), calculate_days_between_dates = _a.calculate_days_between_dates, parse_date_string = _a.parse_date_string, resolve_date_value = _a.resolve_date_value, calculate_days_between_dates_from_enduser = _a.calculate_days_between_dates_from_enduser, calculate_date_difference_for_set_fields = _a.calculate_date_difference_for_set_fields;
+                // Test parse_date_string
+                return [4 /*yield*/, (0, testing_1.async_test)("parse_date_string: ISO format with time", function () { return __awaiter(void 0, void 0, void 0, function () {
+                        var result;
+                        return __generator(this, function (_a) {
+                            result = parse_date_string('2024-01-15T10:00:00Z');
+                            return [2 /*return*/, result !== null && result.year === 2024 && result.month === 1 && result.day === 15];
+                        });
+                    }); }, { onResult: function (r) { return r === true; } })];
+            case 2:
+                // Test parse_date_string
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("parse_date_string: YYYY-MM-DD format", function () { return __awaiter(void 0, void 0, void 0, function () {
+                        var result;
+                        return __generator(this, function (_a) {
+                            result = parse_date_string('2024-01-15');
+                            return [2 /*return*/, result !== null && result.year === 2024 && result.month === 1 && result.day === 15];
+                        });
+                    }); }, { onResult: function (r) { return r === true; } })];
+            case 3:
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("parse_date_string: MM-DD-YYYY format", function () { return __awaiter(void 0, void 0, void 0, function () {
+                        var result;
+                        return __generator(this, function (_a) {
+                            result = parse_date_string('01-15-2024');
+                            return [2 /*return*/, result !== null && result.year === 2024 && result.month === 1 && result.day === 15];
+                        });
+                    }); }, { onResult: function (r) { return r === true; } })
+                    // Test calculate_days_between_dates
+                ];
+            case 4:
+                _b.sent();
+                // Test calculate_days_between_dates
+                return [4 /*yield*/, (0, testing_1.async_test)("calculate_days_between_dates: ISO to ISO (10 days)", function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+                        return [2 /*return*/, calculate_days_between_dates('2024-01-15T00:00:00Z', '2024-01-25T00:00:00Z')];
+                    }); }); }, { onResult: function (days) { return days === 10; } })];
+            case 5:
+                // Test calculate_days_between_dates
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("calculate_days_between_dates: ISO with time to MM-DD-YYYY", function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+                        return [2 /*return*/, calculate_days_between_dates('2024-01-15T10:00:00Z', '01-25-2024')];
+                    }); }); }, { onResult: function (days) { return days === 10; } } // Using Luxon with UTC, should always be 10
+                    )];
+            case 6:
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("calculate_days_between_dates: YYYY-MM-DD to YYYY-MM-DD", function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+                        return [2 /*return*/, calculate_days_between_dates('2024-01-15', '2024-01-25')];
+                    }); }); }, { onResult: function (days) { return days === 10; } })];
+            case 7:
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("calculate_days_between_dates: MM-DD-YYYY to MM-DD-YYYY", function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+                        return [2 /*return*/, calculate_days_between_dates('01-15-2024', '01-25-2024')];
+                    }); }); }, { onResult: function (days) { return days === 10; } })];
+            case 8:
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("calculate_days_between_dates: Order doesn't matter (absolute value)", function () { return __awaiter(void 0, void 0, void 0, function () {
+                        var forward, backward;
+                        return __generator(this, function (_a) {
+                            forward = calculate_days_between_dates('2024-01-15', '2024-01-25');
+                            backward = calculate_days_between_dates('2024-01-25', '2024-01-15');
+                            return [2 /*return*/, forward === backward && forward === 10];
+                        });
+                    }); }, { onResult: function (r) { return r === true; } })];
+            case 9:
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("calculate_days_between_dates: 30 days", function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+                        return [2 /*return*/, calculate_days_between_dates('2024-01-01', '2024-01-31')];
+                    }); }); }, { onResult: function (days) { return days === 30; } })];
+            case 10:
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("calculate_days_between_dates: with $now", function () { return __awaiter(void 0, void 0, void 0, function () {
+                        var days;
+                        return __generator(this, function (_a) {
+                            days = calculate_days_between_dates('2024-01-15', '$now');
+                            return [2 /*return*/, days > 600]; // Should be many days since 2024-01-15
+                        });
+                    }); }, { onResult: function (r) { return r === true; } })
+                    // Test resolve_date_value
+                ];
+            case 11:
+                _b.sent();
+                // Test resolve_date_value
+                return [4 /*yield*/, (0, testing_1.async_test)("resolve_date_value: resolves $now", function () { return __awaiter(void 0, void 0, void 0, function () { return __generator(this, function (_a) {
+                        return [2 /*return*/, resolve_date_value('$now') === '$now'];
+                    }); }); }, { onResult: function (r) { return r === true; } })];
+            case 12:
+                // Test resolve_date_value
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("resolve_date_value: resolves field reference", function () { return __awaiter(void 0, void 0, void 0, function () {
+                        var fields;
+                        return __generator(this, function (_a) {
+                            fields = { myDate: '2024-01-15' };
+                            return [2 /*return*/, resolve_date_value('myDate', fields) === '2024-01-15'];
+                        });
+                    }); }, { onResult: function (r) { return r === true; } })];
+            case 13:
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("resolve_date_value: returns hardcoded date when field not found", function () { return __awaiter(void 0, void 0, void 0, function () {
+                        var fields;
+                        return __generator(this, function (_a) {
+                            fields = { otherField: 'something' };
+                            return [2 /*return*/, resolve_date_value('2024-01-15', fields) === '2024-01-15'];
+                        });
+                    }); }, { onResult: function (r) { return r === true; } })
+                    // Test calculate_days_between_dates_from_enduser
+                ];
+            case 14:
+                _b.sent();
+                // Test calculate_days_between_dates_from_enduser
+                return [4 /*yield*/, (0, testing_1.async_test)("calculate_days_between_dates_from_enduser: resolves field references", function () { return __awaiter(void 0, void 0, void 0, function () {
+                        var fields;
+                        return __generator(this, function (_a) {
+                            fields = { startDate: '2024-01-15', endDate: '2024-01-25' };
+                            return [2 /*return*/, calculate_days_between_dates_from_enduser('startDate', 'endDate', fields) === 10];
+                        });
+                    }); }, { onResult: function (r) { return r === true; } })];
+            case 15:
+                // Test calculate_days_between_dates_from_enduser
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("calculate_days_between_dates_from_enduser: mixes field reference and hardcoded", function () { return __awaiter(void 0, void 0, void 0, function () {
+                        var fields;
+                        return __generator(this, function (_a) {
+                            fields = { startDate: '2024-01-15' };
+                            return [2 /*return*/, calculate_days_between_dates_from_enduser('startDate', '2024-01-25', fields) === 10];
+                        });
+                    }); }, { onResult: function (r) { return r === true; } })];
+            case 16:
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("calculate_days_between_dates_from_enduser: works with $now", function () { return __awaiter(void 0, void 0, void 0, function () {
+                        var fields, days;
+                        return __generator(this, function (_a) {
+                            fields = { startDate: '2024-01-15' };
+                            days = calculate_days_between_dates_from_enduser('startDate', '$now', fields);
+                            return [2 /*return*/, days > 600];
+                        });
+                    }); }, { onResult: function (r) { return r === true; } })
+                    // Test calculate_date_difference_for_set_fields (the all-in-one function)
+                ];
+            case 17:
+                _b.sent();
+                // Test calculate_date_difference_for_set_fields (the all-in-one function)
+                return [4 /*yield*/, (0, testing_1.async_test)("calculate_date_difference_for_set_fields: successful calculation", function () { return __awaiter(void 0, void 0, void 0, function () {
+                        var fields, options;
+                        return __generator(this, function (_a) {
+                            fields = { startDate: '2024-01-15', endDate: '2024-01-25' };
+                            options = { date1: 'startDate', date2: 'endDate' };
+                            return [2 /*return*/, calculate_date_difference_for_set_fields(options, fields, 'testField') === 10];
+                        });
+                    }); }, { onResult: function (r) { return r === true; } })];
+            case 18:
+                // Test calculate_date_difference_for_set_fields (the all-in-one function)
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("calculate_date_difference_for_set_fields: returns empty string on missing options", function () { return __awaiter(void 0, void 0, void 0, function () {
+                        var fields;
+                        return __generator(this, function (_a) {
+                            fields = { startDate: '2024-01-15' };
+                            return [2 /*return*/, calculate_date_difference_for_set_fields(undefined, fields, 'testField', true) === ''];
+                        });
+                    }); }, { onResult: function (r) { return r === true; } })];
+            case 19:
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("calculate_date_difference_for_set_fields: returns empty string on invalid date", function () { return __awaiter(void 0, void 0, void 0, function () {
+                        var fields, options;
+                        return __generator(this, function (_a) {
+                            fields = { startDate: 'invalid-date', endDate: '2024-01-25' };
+                            options = { date1: 'startDate', date2: 'endDate' };
+                            return [2 /*return*/, calculate_date_difference_for_set_fields(options, fields, 'testField', true) === ''];
+                        });
+                    }); }, { onResult: function (r) { return r === true; } })];
+            case 20:
+                _b.sent();
+                (0, testing_1.log_header)("Set Fields Integration Tests");
+                return [4 /*yield*/, sdk.api.endusers.createOne({})];
+            case 21:
+                e1 = _b.sent();
                 return [4 /*yield*/, sdk.api.automation_triggers.createOne({
                         title: "Appointment Created Fields", status: 'Active',
                         event: { type: 'Appointment Created', info: {} },
@@ -4986,8 +5163,8 @@ var set_fields_tests = function () { return __awaiter(void 0, void 0, void 0, fu
                             },
                         }
                     })];
-            case 2:
-                t1 = _a.sent();
+            case 22:
+                t1 = _b.sent();
                 return [4 /*yield*/, sdk.api.automation_triggers.createOne({
                         title: "Appointment Created Fields", status: 'Active',
                         event: { type: 'Tag Added', info: { tag: 'Trigger' } },
@@ -5001,14 +5178,14 @@ var set_fields_tests = function () { return __awaiter(void 0, void 0, void 0, fu
                             },
                         }
                     })];
-            case 3:
-                t2 = _a.sent();
+            case 23:
+                t2 = _b.sent();
                 return [4 /*yield*/, sdk.api.calendar_events.createOne({ title: 'Test', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e1.id }] })];
-            case 4:
-                a1 = _a.sent();
+            case 24:
+                a1 = _b.sent();
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
-            case 5:
-                _a.sent(); // allow triggers to happen
+            case 25:
+                _b.sent(); // allow triggers to happen
                 return [4 /*yield*/, (0, testing_1.async_test)("Set fields on appointment created", function () { return sdk.api.endusers.getOne(e1.id); }, { onResult: function (e) {
                             var _a, _b, _c;
                             return ((_a = e.fields) === null || _a === void 0 ? void 0 : _a.test) === 'Test'
@@ -5016,26 +5193,186 @@ var set_fields_tests = function () { return __awaiter(void 0, void 0, void 0, fu
                                 && ((_c = e.fields) === null || _c === void 0 ? void 0 : _c.test3) === a1.title;
                         }
                     })];
-            case 6:
-                _a.sent();
+            case 26:
+                _b.sent();
                 return [4 /*yield*/, sdk.api.endusers.updateOne(e1.id, { tags: ['Trigger'] })];
-            case 7:
-                _a.sent();
+            case 27:
+                _b.sent();
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow triggers to happen
-            case 8:
-                _a.sent(); // allow triggers to happen
+            case 28:
+                _b.sent(); // allow triggers to happen
                 return [4 /*yield*/, (0, testing_1.async_test)("Set fields on tag added", function () { return sdk.api.endusers.getOne(e1.id); }, { onResult: function (e) {
                             var _a, _b;
                             return ((_a = e.fields) === null || _a === void 0 ? void 0 : _a.not_appointment) === 'Test'
                                 && ((_b = e.fields) === null || _b === void 0 ? void 0 : _b.still_not_appointment) === 'Test2';
                         }
+                    })
+                    // Test Date Difference functionality
+                ];
+            case 29:
+                _b.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({
+                        fields: {
+                            startDate: '2024-01-15T10:00:00Z',
+                            endDate: '01-25-2024', // MM-DD-YYYY format (10 days after startDate)
+                        }
                     })];
-            case 9:
-                _a.sent();
+            case 30:
+                e2 = _b.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        title: "Date Difference Test", status: 'Active',
+                        event: { type: 'Field Equals', info: { field: 'triggerDateDiff', value: 'calculate' } },
+                        action: {
+                            type: 'Set Fields',
+                            info: {
+                                fields: [
+                                    {
+                                        name: 'daysBetween',
+                                        type: 'Date Difference',
+                                        value: '',
+                                        dateDifferenceOptions: {
+                                            date1: 'startDate',
+                                            date2: 'endDate', // Field containing MM-DD-YYYY
+                                        }
+                                    }
+                                ]
+                            },
+                        }
+                    })];
+            case 31:
+                t3 = _b.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        title: "Date Difference with $now Test", status: 'Active',
+                        event: { type: 'Field Equals', info: { field: 'triggerDateDiffNow', value: 'calculate' } },
+                        action: {
+                            type: 'Set Fields',
+                            info: {
+                                fields: [
+                                    {
+                                        name: 'daysSinceStart',
+                                        type: 'Date Difference',
+                                        value: '',
+                                        dateDifferenceOptions: {
+                                            date1: 'startDate',
+                                            date2: '$now',
+                                        }
+                                    }
+                                ]
+                            },
+                        }
+                    })];
+            case 32:
+                t4 = _b.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        title: "Date Difference Hardcoded Test", status: 'Active',
+                        event: { type: 'Field Equals', info: { field: 'triggerDateDiffHardcoded', value: 'calculate' } },
+                        action: {
+                            type: 'Set Fields',
+                            info: {
+                                fields: [
+                                    {
+                                        name: 'hardcodedDays',
+                                        type: 'Date Difference',
+                                        value: '',
+                                        dateDifferenceOptions: {
+                                            date1: '2024-01-01T00:00:00Z',
+                                            date2: '01-31-2024', // MM-DD-YYYY (30 days later)
+                                        }
+                                    }
+                                ]
+                            },
+                        }
+                    })];
+            case 33:
+                t5 = _b.sent();
+                return [4 /*yield*/, sdk.api.endusers.updateOne(e2.id, { fields: __assign(__assign({}, e2.fields), { triggerDateDiff: 'calculate' }) })];
+            case 34:
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 1000)];
+            case 35:
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("Date Difference: calculate days between two custom fields (ISO and MM-DD-YYYY)", function () { return sdk.api.endusers.getOne(e2.id); }, { onResult: function (e) {
+                            var _a, _b, _c;
+                            var days = Number((_a = e.fields) === null || _a === void 0 ? void 0 : _a.daysBetween);
+                            // Using Luxon with UTC parsing, should consistently be 10 days
+                            if (days !== 10) {
+                                console.log("Expected 10 days, got ".concat(days));
+                                console.log("Start date: ".concat((_b = e.fields) === null || _b === void 0 ? void 0 : _b.startDate, ", End date: ").concat((_c = e.fields) === null || _c === void 0 ? void 0 : _c.endDate));
+                            }
+                            return days === 10;
+                        } })];
+            case 36:
+                _b.sent();
+                return [4 /*yield*/, sdk.api.endusers.updateOne(e2.id, { fields: __assign(__assign({}, e2.fields), { triggerDateDiffNow: 'calculate' }) })];
+            case 37:
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 1000)];
+            case 38:
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("Date Difference: calculate days with $now", function () { return sdk.api.endusers.getOne(e2.id); }, { onResult: function (e) { var _a; return Number((_a = e.fields) === null || _a === void 0 ? void 0 : _a.daysSinceStart) > 600; } } // Should be many days since 2024-01-15
+                    )];
+            case 39:
+                _b.sent();
+                return [4 /*yield*/, sdk.api.endusers.updateOne(e2.id, { fields: __assign(__assign({}, e2.fields), { triggerDateDiffHardcoded: 'calculate' }) })];
+            case 40:
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 1000)];
+            case 41:
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("Date Difference: calculate days with hardcoded dates", function () { return sdk.api.endusers.getOne(e2.id); }, { onResult: function (e) { var _a; return Number((_a = e.fields) === null || _a === void 0 ? void 0 : _a.hardcodedDays) === 30; } })
+                    // Test YYYY-MM-DD format (date without time)
+                ];
+            case 42:
+                _b.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({
+                        fields: {
+                            yyyyStartDate: '2024-01-15',
+                            yyyyEndDate: '2024-01-25', // YYYY-MM-DD format (10 days later)
+                        }
+                    })];
+            case 43:
+                e3 = _b.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        title: "Date Difference YYYY-MM-DD Test", status: 'Active',
+                        event: { type: 'Field Equals', info: { field: 'triggerDateDiffYYYY', value: 'calculate' } },
+                        action: {
+                            type: 'Set Fields',
+                            info: {
+                                fields: [
+                                    {
+                                        name: 'yyyyDaysBetween',
+                                        type: 'Date Difference',
+                                        value: '',
+                                        dateDifferenceOptions: {
+                                            date1: 'yyyyStartDate',
+                                            date2: 'yyyyEndDate', // YYYY-MM-DD format
+                                        }
+                                    }
+                                ]
+                            },
+                        }
+                    })];
+            case 44:
+                t6 = _b.sent();
+                return [4 /*yield*/, sdk.api.endusers.updateOne(e3.id, { fields: __assign(__assign({}, e3.fields), { triggerDateDiffYYYY: 'calculate' }) })];
+            case 45:
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.wait)(undefined, 1000)];
+            case 46:
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("Date Difference: calculate days with YYYY-MM-DD format", function () { return sdk.api.endusers.getOne(e3.id); }, { onResult: function (e) { var _a; return Number((_a = e.fields) === null || _a === void 0 ? void 0 : _a.yyyyDaysBetween) === 10; } })];
+            case 47:
+                _b.sent();
                 return [2 /*return*/, Promise.all([
                         sdk.api.automation_triggers.deleteOne(t1.id),
                         sdk.api.automation_triggers.deleteOne(t2.id),
+                        sdk.api.automation_triggers.deleteOne(t3.id),
+                        sdk.api.automation_triggers.deleteOne(t4.id),
+                        sdk.api.automation_triggers.deleteOne(t5.id),
+                        sdk.api.automation_triggers.deleteOne(t6.id),
                         sdk.api.endusers.deleteOne(e1.id),
+                        sdk.api.endusers.deleteOne(e2.id),
+                        sdk.api.endusers.deleteOne(e3.id),
                         sdk.api.calendar_events.deleteOne(a1.id),
                     ])];
         }
@@ -5420,34 +5757,34 @@ var automation_trigger_tests = function () { return __awaiter(void 0, void 0, vo
         switch (_a.label) {
             case 0:
                 (0, testing_1.log_header)("Automation Trigger Tests");
-                return [4 /*yield*/, (0, purchase_made_trigger_test_1.purchase_made_trigger_tests)({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, set_fields_tests()];
             case 1:
                 _a.sent();
-                return [4 /*yield*/, (0, appointment_rescheduled_trigger_test_1.appointment_rescheduled_trigger_tests)({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, (0, purchase_made_trigger_test_1.purchase_made_trigger_tests)({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 2:
                 _a.sent();
-                return [4 /*yield*/, form_response_set_fields_trigger_tests()];
+                return [4 /*yield*/, (0, appointment_rescheduled_trigger_test_1.appointment_rescheduled_trigger_tests)({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 3:
                 _a.sent();
-                return [4 /*yield*/, form_response_set_fields_journey_tests()];
+                return [4 /*yield*/, form_response_set_fields_trigger_tests()];
             case 4:
                 _a.sent();
-                return [4 /*yield*/, (0, appointment_completed_trigger_test_1.appointment_completed_trigger_tests)({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, form_response_set_fields_journey_tests()];
             case 5:
                 _a.sent();
-                return [4 /*yield*/, order_status_equals_tests()];
+                return [4 /*yield*/, (0, appointment_completed_trigger_test_1.appointment_completed_trigger_tests)({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 6:
                 _a.sent();
-                return [4 /*yield*/, trigger_events_api_tests()];
+                return [4 /*yield*/, order_status_equals_tests()];
             case 7:
                 _a.sent();
-                return [4 /*yield*/, fields_changed_tests()];
+                return [4 /*yield*/, trigger_events_api_tests()];
             case 8:
                 _a.sent();
-                return [4 /*yield*/, field_equals_trigger_tests()];
+                return [4 /*yield*/, fields_changed_tests()];
             case 9:
                 _a.sent();
-                return [4 /*yield*/, set_fields_tests()];
+                return [4 /*yield*/, field_equals_trigger_tests()];
             case 10:
                 _a.sent();
                 return [4 /*yield*/, assign_care_team_tests()];
@@ -14092,7 +14429,7 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                 (0, testing_1.assert)((0, utilities_1.truncate_string)(null, { length: 4, showEllipsis: false }) === '', 'truncate doesnt work for non string', 'trucate works for non-string');
                 _l.label = 2;
             case 2:
-                _l.trys.push([2, 88, , 89]);
+                _l.trys.push([2, 90, , 91]);
                 get_next_reminder_timestamp_tests();
                 (0, exports.form_conditional_logic_tests)();
                 return [4 /*yield*/, test_weighted_round_robin()];
@@ -14233,225 +14570,231 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, (0, setup_1.setup_tests)(sdk, sdkNonAdmin)];
             case 16:
                 _l.sent();
-                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
+                return [4 /*yield*/, (0, calendar_event_limits_test_1.calendar_event_limits_tests)({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 17:
                 _l.sent();
-                return [4 /*yield*/, automation_trigger_tests()];
+                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
             case 18:
                 _l.sent();
-                return [4 /*yield*/, (0, afteraction_day_of_month_delay_test_1.afteraction_day_of_month_delay_tests)({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, automation_trigger_tests()];
             case 19:
                 _l.sent();
-                return [4 /*yield*/, (0, monthly_availability_restrictions_test_1.monthly_availability_restrictions_tests)({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
             case 20:
                 _l.sent();
-                return [4 /*yield*/, (0, journey_error_branching_test_1.journey_error_branching_tests)({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, (0, afteraction_day_of_month_delay_test_1.afteraction_day_of_month_delay_tests)({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 21:
                 _l.sent();
-                return [4 /*yield*/, (0, inbox_thread_assignment_updates_test_1.inbox_thread_assignment_updates_tests)({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, (0, monthly_availability_restrictions_test_1.monthly_availability_restrictions_tests)({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 22:
                 _l.sent();
-                return [4 /*yield*/, (0, message_assignment_trigger_test_1.message_assignment_trigger_tests)({ sdk: sdk })];
+                return [4 /*yield*/, (0, journey_error_branching_test_1.journey_error_branching_tests)({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 23:
                 _l.sent();
-                return [4 /*yield*/, inbox_threads_building_tests()];
+                return [4 /*yield*/, (0, inbox_thread_assignment_updates_test_1.inbox_thread_assignment_updates_tests)({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 24:
                 _l.sent();
-                return [4 /*yield*/, inbox_threads_loading_tests()];
+                return [4 /*yield*/, (0, message_assignment_trigger_test_1.message_assignment_trigger_tests)({ sdk: sdk })];
             case 25:
                 _l.sent();
-                return [4 /*yield*/, (0, load_inbox_data_test_1.load_inbox_data_tests)({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, inbox_threads_building_tests()];
             case 26:
                 _l.sent();
-                return [4 /*yield*/, (0, enduser_observations_acknowledge_test_1.enduser_observations_acknowledge_tests)({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, inbox_threads_loading_tests()];
             case 27:
                 _l.sent();
-                return [4 /*yield*/, (0, create_user_notifications_trigger_test_1.create_user_notifications_trigger_tests)({ sdk: sdk })];
+                return [4 /*yield*/, (0, load_inbox_data_test_1.load_inbox_data_tests)({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 28:
                 _l.sent();
-                return [4 /*yield*/, group_mms_active_tests()];
+                return [4 /*yield*/, (0, enduser_observations_acknowledge_test_1.enduser_observations_acknowledge_tests)({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 29:
                 _l.sent();
-                return [4 /*yield*/, auto_reply_tests()];
+                return [4 /*yield*/, (0, create_user_notifications_trigger_test_1.create_user_notifications_trigger_tests)({ sdk: sdk })];
             case 30:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.relationships_tests)()];
+                return [4 /*yield*/, group_mms_active_tests()];
             case 31:
                 _l.sent();
-                return [4 /*yield*/, rate_limit_tests()];
+                return [4 /*yield*/, auto_reply_tests()];
             case 32:
                 _l.sent();
-                return [4 /*yield*/, ip_address_form_tests()];
+                return [4 /*yield*/, (0, exports.relationships_tests)()];
             case 33:
                 _l.sent();
-                return [4 /*yield*/, bulk_update_tests()];
+                return [4 /*yield*/, rate_limit_tests()];
             case 34:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.formsort_tests)()];
+                return [4 /*yield*/, ip_address_form_tests()];
             case 35:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.cancel_upcoming_appointments_journey_action_test)()];
+                return [4 /*yield*/, bulk_update_tests()];
             case 36:
                 _l.sent();
-                return [4 /*yield*/, multi_tenant_tests()]; // should come right after setup tests
+                return [4 /*yield*/, (0, exports.formsort_tests)()];
             case 37:
+                _l.sent();
+                return [4 /*yield*/, (0, exports.cancel_upcoming_appointments_journey_action_test)()];
+            case 38:
+                _l.sent();
+                return [4 /*yield*/, multi_tenant_tests()]; // should come right after setup tests
+            case 39:
                 _l.sent(); // should come right after setup tests
                 return [4 /*yield*/, sync_tests_with_access_tags()]; // should come directly after setup to avoid extra sync values
-            case 38:
+            case 40:
                 _l.sent(); // should come directly after setup to avoid extra sync values
                 return [4 /*yield*/, sync_tests()]; // should come directly after setup to avoid extra sync values
-            case 39:
+            case 41:
                 _l.sent(); // should come directly after setup to avoid extra sync values
                 return [4 /*yield*/, get_templated_message_tests()];
-            case 40:
-                _l.sent();
-                return [4 /*yield*/, updatedAt_tests()];
-            case 41:
-                _l.sent();
-                return [4 /*yield*/, file_source_tests()];
             case 42:
                 _l.sent();
-                return [4 /*yield*/, enduser_access_tags_tests()];
+                return [4 /*yield*/, updatedAt_tests()];
             case 43:
                 _l.sent();
-                return [4 /*yield*/, enduserAccessTests()];
+                return [4 /*yield*/, file_source_tests()];
             case 44:
                 _l.sent();
-                return [4 /*yield*/, test_form_response_search()];
+                return [4 /*yield*/, enduser_access_tags_tests()];
             case 45:
                 _l.sent();
-                return [4 /*yield*/, date_parsing_tests()];
+                return [4 /*yield*/, enduserAccessTests()];
             case 46:
                 _l.sent();
-                return [4 /*yield*/, fromEmailOverride_tests()];
+                return [4 /*yield*/, test_form_response_search()];
             case 47:
                 _l.sent();
-                return [4 /*yield*/, ticket_tests()];
+                return [4 /*yield*/, date_parsing_tests()];
             case 48:
                 _l.sent();
-                return [4 /*yield*/, uniqueness_tests()];
+                return [4 /*yield*/, fromEmailOverride_tests()];
             case 49:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.enduser_orders_tests)()];
+                return [4 /*yield*/, ticket_tests()];
             case 50:
                 _l.sent();
-                return [4 /*yield*/, calendar_event_care_team_tests()];
+                return [4 /*yield*/, uniqueness_tests()];
             case 51:
                 _l.sent();
-                return [4 /*yield*/, merge_enduser_tests()];
+                return [4 /*yield*/, (0, exports.enduser_orders_tests)()];
             case 52:
                 _l.sent();
-                return [4 /*yield*/, input_modifier_tests()];
+                return [4 /*yield*/, calendar_event_care_team_tests()];
             case 53:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.switch_to_related_contacts_tests)()];
+                return [4 /*yield*/, merge_enduser_tests()];
             case 54:
                 _l.sent();
-                return [4 /*yield*/, redaction_tests()];
+                return [4 /*yield*/, input_modifier_tests()];
             case 55:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.self_serve_appointment_booking_tests)()];
+                return [4 /*yield*/, (0, exports.switch_to_related_contacts_tests)()];
             case 56:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.no_chained_triggers_tests)()];
+                return [4 /*yield*/, redaction_tests()];
             case 57:
                 _l.sent();
-                return [4 /*yield*/, mdb_filter_tests()];
+                return [4 /*yield*/, (0, exports.self_serve_appointment_booking_tests)()];
             case 58:
                 _l.sent();
-                return [4 /*yield*/, superadmin_tests()];
+                return [4 /*yield*/, (0, exports.no_chained_triggers_tests)()];
             case 59:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.ticket_queue_tests)()];
+                return [4 /*yield*/, mdb_filter_tests()];
             case 60:
                 _l.sent();
-                return [4 /*yield*/, vital_trigger_tests()];
+                return [4 /*yield*/, superadmin_tests()];
             case 61:
                 _l.sent();
-                return [4 /*yield*/, close_reasons_no_duplicates_tests()];
+                return [4 /*yield*/, (0, exports.ticket_queue_tests)()];
             case 62:
                 _l.sent();
-                return [4 /*yield*/, register_as_enduser_tests()];
+                return [4 /*yield*/, vital_trigger_tests()];
             case 63:
                 _l.sent();
-                return [4 /*yield*/, lockout_tests()];
+                return [4 /*yield*/, close_reasons_no_duplicates_tests()];
             case 64:
+                _l.sent();
+                return [4 /*yield*/, register_as_enduser_tests()];
+            case 65:
+                _l.sent();
+                return [4 /*yield*/, lockout_tests()];
+            case 66:
                 _l.sent();
                 return [4 /*yield*/, delete_user_tests()
                     // await test_send_with_template()
                 ];
-            case 65:
+            case 67:
                 _l.sent();
                 // await test_send_with_template()
                 return [4 /*yield*/, bulk_read_tests()];
-            case 66:
+            case 68:
                 // await test_send_with_template()
                 _l.sent();
                 return [4 /*yield*/, (0, exports.ticket_reminder_tests)()];
-            case 67:
-                _l.sent();
-                return [4 /*yield*/, marketing_email_unsubscribe_tests()];
-            case 68:
-                _l.sent();
-                return [4 /*yield*/, unique_strings_tests()];
             case 69:
                 _l.sent();
-                return [4 /*yield*/, (0, exports.alternate_phones_tests)()];
+                return [4 /*yield*/, marketing_email_unsubscribe_tests()];
             case 70:
                 _l.sent();
-                return [4 /*yield*/, role_based_access_tests()];
+                return [4 /*yield*/, unique_strings_tests()];
             case 71:
                 _l.sent();
-                return [4 /*yield*/, enduser_session_tests()];
+                return [4 /*yield*/, (0, exports.alternate_phones_tests)()];
             case 72:
                 _l.sent();
-                return [4 /*yield*/, nextReminderInMS_tests()];
+                return [4 /*yield*/, role_based_access_tests()];
             case 73:
                 _l.sent();
-                return [4 /*yield*/, search_tests()];
+                return [4 /*yield*/, enduser_session_tests()];
             case 74:
                 _l.sent();
-                return [4 /*yield*/, wait_for_trigger_tests()];
+                return [4 /*yield*/, nextReminderInMS_tests()];
             case 75:
                 _l.sent();
-                return [4 /*yield*/, pdf_generation()];
+                return [4 /*yield*/, search_tests()];
             case 76:
                 _l.sent();
-                return [4 /*yield*/, remove_from_journey_on_incoming_comms_tests().catch(console.error)]; // timing is unreliable, uncomment if changing logic
+                return [4 /*yield*/, wait_for_trigger_tests()];
             case 77:
-                _l.sent(); // timing is unreliable, uncomment if changing logic
-                return [4 /*yield*/, sub_organization_enduser_tests()];
+                _l.sent();
+                return [4 /*yield*/, pdf_generation()];
             case 78:
                 _l.sent();
-                return [4 /*yield*/, sub_organization_tests()];
+                return [4 /*yield*/, remove_from_journey_on_incoming_comms_tests().catch(console.error)]; // timing is unreliable, uncomment if changing logic
             case 79:
-                _l.sent();
-                return [4 /*yield*/, (0, exports.filter_by_date_tests)()];
+                _l.sent(); // timing is unreliable, uncomment if changing logic
+                return [4 /*yield*/, sub_organization_enduser_tests()];
             case 80:
                 _l.sent();
-                return [4 /*yield*/, generate_user_auth_tests()];
+                return [4 /*yield*/, sub_organization_tests()];
             case 81:
                 _l.sent();
-                return [4 /*yield*/, generateEnduserAuthTests()];
+                return [4 /*yield*/, (0, exports.filter_by_date_tests)()];
             case 82:
                 _l.sent();
-                return [4 /*yield*/, public_form_tests()];
+                return [4 /*yield*/, generate_user_auth_tests()];
             case 83:
                 _l.sent();
-                return [4 /*yield*/, badInputTests()];
+                return [4 /*yield*/, generateEnduserAuthTests()];
             case 84:
                 _l.sent();
-                return [4 /*yield*/, filterTests()];
+                return [4 /*yield*/, public_form_tests()];
             case 85:
                 _l.sent();
-                return [4 /*yield*/, updatesTests()];
+                return [4 /*yield*/, badInputTests()];
             case 86:
                 _l.sent();
-                return [4 /*yield*/, threadKeyTests()];
+                return [4 /*yield*/, filterTests()];
             case 87:
                 _l.sent();
-                return [3 /*break*/, 89];
+                return [4 /*yield*/, updatesTests()];
             case 88:
+                _l.sent();
+                return [4 /*yield*/, threadKeyTests()];
+            case 89:
+                _l.sent();
+                return [3 /*break*/, 91];
+            case 90:
                 err_1 = _l.sent();
                 console.error("Failed during custom test");
                 if (err_1.message && err_1.info) {
@@ -14461,18 +14804,18 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                     console.error(err_1);
                 }
                 process.exit(1);
-                return [3 /*break*/, 89];
-            case 89:
+                return [3 /*break*/, 91];
+            case 91:
                 _a = schema_1.schema;
                 _b = [];
                 for (_c in _a)
                     _b.push(_c);
                 _i = 0;
-                _l.label = 90;
-            case 90:
-                if (!(_i < _b.length)) return [3 /*break*/, 93];
+                _l.label = 92;
+            case 92:
+                if (!(_i < _b.length)) return [3 /*break*/, 95];
                 _c = _b[_i];
-                if (!(_c in _a)) return [3 /*break*/, 92];
+                if (!(_c in _a)) return [3 /*break*/, 94];
                 n = _c;
                 returnValidation = (_k = (_j = schema_1.schema[n].customActions) === null || _j === void 0 ? void 0 : _j.create) === null || _k === void 0 ? void 0 : _k.returns;
                 return [4 /*yield*/, run_generated_tests({
@@ -14483,41 +14826,41 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                             create: returnValidation // ModelFields<ClientModel>,
                         }
                     })];
-            case 91:
-                _l.sent();
-                _l.label = 92;
-            case 92:
-                _i++;
-                return [3 /*break*/, 90];
             case 93:
+                _l.sent();
+                _l.label = 94;
+            case 94:
+                _i++;
+                return [3 /*break*/, 92];
+            case 95:
                 _d = tests;
                 _f = [];
                 for (_g in _d)
                     _f.push(_g);
                 _h = 0;
-                _l.label = 94;
-            case 94:
-                if (!(_h < _f.length)) return [3 /*break*/, 99];
-                _g = _f[_h];
-                if (!(_g in _d)) return [3 /*break*/, 98];
-                t = _g;
-                _l.label = 95;
-            case 95:
-                _l.trys.push([95, 97, , 98]);
-                return [4 /*yield*/, tests[t]()];
+                _l.label = 96;
             case 96:
-                _l.sent();
-                return [3 /*break*/, 98];
+                if (!(_h < _f.length)) return [3 /*break*/, 101];
+                _g = _f[_h];
+                if (!(_g in _d)) return [3 /*break*/, 100];
+                t = _g;
+                _l.label = 97;
             case 97:
+                _l.trys.push([97, 99, , 100]);
+                return [4 /*yield*/, tests[t]()];
+            case 98:
+                _l.sent();
+                return [3 /*break*/, 100];
+            case 99:
                 err_2 = _l.sent();
                 console.error("Error running test:");
                 console.error(err_2);
                 process.exit(1);
-                return [3 /*break*/, 98];
-            case 98:
+                return [3 /*break*/, 100];
+            case 100:
                 _h++;
-                return [3 /*break*/, 94];
-            case 99:
+                return [3 /*break*/, 96];
+            case 101:
                 process.exit();
                 return [2 /*return*/];
         }

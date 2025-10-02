@@ -70,6 +70,7 @@ import fs from "fs"
 import { load_inbox_data_tests } from "./api_tests/load_inbox_data.test";
 import { message_assignment_trigger_tests } from "./api_tests/message_assignment_trigger.test";
 import { monthly_availability_restrictions_tests } from "./api_tests/monthly_availability_restrictions.test";
+import { calendar_event_limits_tests } from "./api_tests/calendar_event_limits.test";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
@@ -4039,7 +4040,176 @@ const assign_care_team_tests = async () => {
 
 const set_fields_tests = async () => {
   log_header("Automation Trigger Tests (Set Fields)")
-  
+
+  // First, test the date calculation utilities directly
+  log_header("Date Utility Function Tests")
+
+  const { calculate_days_between_dates, parse_date_string, resolve_date_value, calculate_days_between_dates_from_enduser, calculate_date_difference_for_set_fields } = await import("@tellescope/utilities")
+
+  // Test parse_date_string
+  await async_test(
+    "parse_date_string: ISO format with time",
+    async () => {
+      const result = parse_date_string('2024-01-15T10:00:00Z')
+      return result !== null && result.year === 2024 && result.month === 1 && result.day === 15
+    },
+    { onResult: r => r === true }
+  )
+
+  await async_test(
+    "parse_date_string: YYYY-MM-DD format",
+    async () => {
+      const result = parse_date_string('2024-01-15')
+      return result !== null && result.year === 2024 && result.month === 1 && result.day === 15
+    },
+    { onResult: r => r === true }
+  )
+
+  await async_test(
+    "parse_date_string: MM-DD-YYYY format",
+    async () => {
+      const result = parse_date_string('01-15-2024')
+      return result !== null && result.year === 2024 && result.month === 1 && result.day === 15
+    },
+    { onResult: r => r === true }
+  )
+
+  // Test calculate_days_between_dates
+  await async_test(
+    "calculate_days_between_dates: ISO to ISO (10 days)",
+    async () => calculate_days_between_dates('2024-01-15T00:00:00Z', '2024-01-25T00:00:00Z'),
+    { onResult: days => days === 10 }
+  )
+
+  await async_test(
+    "calculate_days_between_dates: ISO with time to MM-DD-YYYY",
+    async () => calculate_days_between_dates('2024-01-15T10:00:00Z', '01-25-2024'),
+    { onResult: days => days === 10 } // Using Luxon with UTC, should always be 10
+  )
+
+  await async_test(
+    "calculate_days_between_dates: YYYY-MM-DD to YYYY-MM-DD",
+    async () => calculate_days_between_dates('2024-01-15', '2024-01-25'),
+    { onResult: days => days === 10 }
+  )
+
+  await async_test(
+    "calculate_days_between_dates: MM-DD-YYYY to MM-DD-YYYY",
+    async () => calculate_days_between_dates('01-15-2024', '01-25-2024'),
+    { onResult: days => days === 10 }
+  )
+
+  await async_test(
+    "calculate_days_between_dates: Order doesn't matter (absolute value)",
+    async () => {
+      const forward = calculate_days_between_dates('2024-01-15', '2024-01-25')
+      const backward = calculate_days_between_dates('2024-01-25', '2024-01-15')
+      return forward === backward && forward === 10
+    },
+    { onResult: r => r === true }
+  )
+
+  await async_test(
+    "calculate_days_between_dates: 30 days",
+    async () => calculate_days_between_dates('2024-01-01', '2024-01-31'),
+    { onResult: days => days === 30 }
+  )
+
+  await async_test(
+    "calculate_days_between_dates: with $now",
+    async () => {
+      const days = calculate_days_between_dates('2024-01-15', '$now')
+      return days > 600 // Should be many days since 2024-01-15
+    },
+    { onResult: r => r === true }
+  )
+
+  // Test resolve_date_value
+  await async_test(
+    "resolve_date_value: resolves $now",
+    async () => resolve_date_value('$now') === '$now',
+    { onResult: r => r === true }
+  )
+
+  await async_test(
+    "resolve_date_value: resolves field reference",
+    async () => {
+      const fields = { myDate: '2024-01-15' }
+      return resolve_date_value('myDate', fields) === '2024-01-15'
+    },
+    { onResult: r => r === true }
+  )
+
+  await async_test(
+    "resolve_date_value: returns hardcoded date when field not found",
+    async () => {
+      const fields = { otherField: 'something' }
+      return resolve_date_value('2024-01-15', fields) === '2024-01-15'
+    },
+    { onResult: r => r === true }
+  )
+
+  // Test calculate_days_between_dates_from_enduser
+  await async_test(
+    "calculate_days_between_dates_from_enduser: resolves field references",
+    async () => {
+      const fields = { startDate: '2024-01-15', endDate: '2024-01-25' }
+      return calculate_days_between_dates_from_enduser('startDate', 'endDate', fields) === 10
+    },
+    { onResult: r => r === true }
+  )
+
+  await async_test(
+    "calculate_days_between_dates_from_enduser: mixes field reference and hardcoded",
+    async () => {
+      const fields = { startDate: '2024-01-15' }
+      return calculate_days_between_dates_from_enduser('startDate', '2024-01-25', fields) === 10
+    },
+    { onResult: r => r === true }
+  )
+
+  await async_test(
+    "calculate_days_between_dates_from_enduser: works with $now",
+    async () => {
+      const fields = { startDate: '2024-01-15' }
+      const days = calculate_days_between_dates_from_enduser('startDate', '$now', fields)
+      return days > 600
+    },
+    { onResult: r => r === true }
+  )
+
+  // Test calculate_date_difference_for_set_fields (the all-in-one function)
+  await async_test(
+    "calculate_date_difference_for_set_fields: successful calculation",
+    async () => {
+      const fields = { startDate: '2024-01-15', endDate: '2024-01-25' }
+      const options = { date1: 'startDate', date2: 'endDate' }
+      return calculate_date_difference_for_set_fields(options, fields, 'testField') === 10
+    },
+    { onResult: r => r === true }
+  )
+
+  await async_test(
+    "calculate_date_difference_for_set_fields: returns empty string on missing options",
+    async () => {
+      const fields = { startDate: '2024-01-15' }
+      return calculate_date_difference_for_set_fields(undefined, fields, 'testField', true) === ''
+    },
+    { onResult: r => r === true }
+  )
+
+  await async_test(
+    "calculate_date_difference_for_set_fields: returns empty string on invalid date",
+    async () => {
+      const fields = { startDate: 'invalid-date', endDate: '2024-01-25' }
+      const options = { date1: 'startDate', date2: 'endDate' }
+      return calculate_date_difference_for_set_fields(options, fields, 'testField', true) === ''
+    },
+    { onResult: r => r === true }
+  )
+
+  log_header("Set Fields Integration Tests")
+
   const e1 = await sdk.api.endusers.createOne({  })
   const t1 = await sdk.api.automation_triggers.createOne({
     title: "Appointment Created Fields", status: 'Active',
@@ -4091,11 +4261,157 @@ const set_fields_tests = async () => {
       && e.fields?.still_not_appointment === 'Test2'
     }
   )
-  
+
+  // Test Date Difference functionality
+  const e2 = await sdk.api.endusers.createOne({
+    fields: {
+      startDate: '2024-01-15T10:00:00Z', // ISO format
+      endDate: '01-25-2024', // MM-DD-YYYY format (10 days after startDate)
+    }
+  })
+
+  const t3 = await sdk.api.automation_triggers.createOne({
+    title: "Date Difference Test", status: 'Active',
+    event: { type: 'Field Equals', info: { field: 'triggerDateDiff', value: 'calculate' } },
+    action: {
+      type: 'Set Fields',
+      info: {
+        fields: [
+          {
+            name: 'daysBetween',
+            type: 'Date Difference',
+            value: '',
+            dateDifferenceOptions: {
+              date1: 'startDate', // Field containing ISO string
+              date2: 'endDate', // Field containing MM-DD-YYYY
+            }
+          }
+        ]
+      },
+    }
+  })
+
+  const t4 = await sdk.api.automation_triggers.createOne({
+    title: "Date Difference with $now Test", status: 'Active',
+    event: { type: 'Field Equals', info: { field: 'triggerDateDiffNow', value: 'calculate' } },
+    action: {
+      type: 'Set Fields',
+      info: {
+        fields: [
+          {
+            name: 'daysSinceStart',
+            type: 'Date Difference',
+            value: '',
+            dateDifferenceOptions: {
+              date1: 'startDate',
+              date2: '$now',
+            }
+          }
+        ]
+      },
+    }
+  })
+
+  const t5 = await sdk.api.automation_triggers.createOne({
+    title: "Date Difference Hardcoded Test", status: 'Active',
+    event: { type: 'Field Equals', info: { field: 'triggerDateDiffHardcoded', value: 'calculate' } },
+    action: {
+      type: 'Set Fields',
+      info: {
+        fields: [
+          {
+            name: 'hardcodedDays',
+            type: 'Date Difference',
+            value: '',
+            dateDifferenceOptions: {
+              date1: '2024-01-01T00:00:00Z', // ISO string
+              date2: '01-31-2024', // MM-DD-YYYY (30 days later)
+            }
+          }
+        ]
+      },
+    }
+  })
+
+  await sdk.api.endusers.updateOne(e2.id, { fields: { ...e2.fields, triggerDateDiff: 'calculate' } })
+  await wait(undefined, 1000)
+  await async_test(
+    "Date Difference: calculate days between two custom fields (ISO and MM-DD-YYYY)",
+    () => sdk.api.endusers.getOne(e2.id),
+    { onResult: e => {
+      const days = Number(e.fields?.daysBetween)
+      // Using Luxon with UTC parsing, should consistently be 10 days
+      if (days !== 10) {
+        console.log(`Expected 10 days, got ${days}`)
+        console.log(`Start date: ${e.fields?.startDate}, End date: ${e.fields?.endDate}`)
+      }
+      return days === 10
+    }}
+  )
+
+  await sdk.api.endusers.updateOne(e2.id, { fields: { ...e2.fields, triggerDateDiffNow: 'calculate' } })
+  await wait(undefined, 1000)
+  await async_test(
+    "Date Difference: calculate days with $now",
+    () => sdk.api.endusers.getOne(e2.id),
+    { onResult: e => Number(e.fields?.daysSinceStart) > 600 } // Should be many days since 2024-01-15
+  )
+
+  await sdk.api.endusers.updateOne(e2.id, { fields: { ...e2.fields, triggerDateDiffHardcoded: 'calculate' } })
+  await wait(undefined, 1000)
+  await async_test(
+    "Date Difference: calculate days with hardcoded dates",
+    () => sdk.api.endusers.getOne(e2.id),
+    { onResult: e => Number(e.fields?.hardcodedDays) === 30 }
+  )
+
+  // Test YYYY-MM-DD format (date without time)
+  const e3 = await sdk.api.endusers.createOne({
+    fields: {
+      yyyyStartDate: '2024-01-15', // YYYY-MM-DD format
+      yyyyEndDate: '2024-01-25', // YYYY-MM-DD format (10 days later)
+    }
+  })
+
+  const t6 = await sdk.api.automation_triggers.createOne({
+    title: "Date Difference YYYY-MM-DD Test", status: 'Active',
+    event: { type: 'Field Equals', info: { field: 'triggerDateDiffYYYY', value: 'calculate' } },
+    action: {
+      type: 'Set Fields',
+      info: {
+        fields: [
+          {
+            name: 'yyyyDaysBetween',
+            type: 'Date Difference',
+            value: '',
+            dateDifferenceOptions: {
+              date1: 'yyyyStartDate', // YYYY-MM-DD format
+              date2: 'yyyyEndDate', // YYYY-MM-DD format
+            }
+          }
+        ]
+      },
+    }
+  })
+
+  await sdk.api.endusers.updateOne(e3.id, { fields: { ...e3.fields, triggerDateDiffYYYY: 'calculate' } })
+  await wait(undefined, 1000)
+  await async_test(
+    "Date Difference: calculate days with YYYY-MM-DD format",
+    () => sdk.api.endusers.getOne(e3.id),
+    { onResult: e => Number(e.fields?.yyyyDaysBetween) === 10 }
+  )
+
   return Promise.all([
     sdk.api.automation_triggers.deleteOne(t1.id),
     sdk.api.automation_triggers.deleteOne(t2.id),
+    sdk.api.automation_triggers.deleteOne(t3.id),
+    sdk.api.automation_triggers.deleteOne(t4.id),
+    sdk.api.automation_triggers.deleteOne(t5.id),
+    sdk.api.automation_triggers.deleteOne(t6.id),
     sdk.api.endusers.deleteOne(e1.id),
+    sdk.api.endusers.deleteOne(e2.id),
+    sdk.api.endusers.deleteOne(e3.id),
     sdk.api.calendar_events.deleteOne(a1.id),
   ])
 }
@@ -4398,6 +4714,7 @@ const trigger_events_api_tests = async () => {
 const automation_trigger_tests = async () => {
   log_header("Automation Trigger Tests")
 
+  await set_fields_tests()
   await purchase_made_trigger_tests({ sdk, sdkNonAdmin })
   await appointment_rescheduled_trigger_tests({ sdk, sdkNonAdmin })
   await form_response_set_fields_trigger_tests()
@@ -4407,7 +4724,6 @@ const automation_trigger_tests = async () => {
   await trigger_events_api_tests()
   await fields_changed_tests()
   await field_equals_trigger_tests()
-  await set_fields_tests()
   await assign_care_team_tests()
   await contact_created_tests()
   await appointment_cancelled_tests()
@@ -12402,8 +12718,10 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await calendar_event_limits_tests({ sdk, sdkNonAdmin })
     await test_ticket_automation_assignment_and_optimization()
     await automation_trigger_tests()
+    await test_ticket_automation_assignment_and_optimization()
     await afteraction_day_of_month_delay_tests({ sdk, sdkNonAdmin })
     await monthly_availability_restrictions_tests({ sdk, sdkNonAdmin })
     await journey_error_branching_tests({ sdk, sdkNonAdmin })

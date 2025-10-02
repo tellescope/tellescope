@@ -129,6 +129,7 @@ export type PortalSettings = {
     outstandingFormsTitle?: string,
     availableFormsTitle?: string,
   },
+  hideSettingsPage?: boolean,
 }
 
 export type WithLinkOpenTrackingIds = { linkOpenTrackingIds: string[] }
@@ -469,6 +470,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   creditTrialStartedAt?: Date,
   hasIntegrations?: string[],
   outOfOfficeHours?: OutOfOfficeBlock[],
+  incomingCallDisplayFields?: string[],
   // _AIEnabled?: boolean,
   skipActivePatientBilling?: boolean,
 }
@@ -584,6 +586,12 @@ export type MonthlyRestriction = {
   occurrences: (1 | 2 | 3 | 4 | 5)[]
 }
 
+export type CalendarEventLimit = {
+  templateId: string, // calendareventtemplate.id
+  period: number, // number of days (e.g. 1 for daily, 7 for weekly)
+  limit: number, // maximum number of occurrences of this template in the period
+}
+
 export type WeeklyAvailability = {
   dayOfWeekStartingSundayIndexedByZero: number,
   startTimeInMinutes: number,
@@ -659,6 +667,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   credentialedStates?: StateCredentialInfo[],
   timezone?: Timezone,
   weeklyAvailabilities?: WeeklyAvailability[],
+  calendarEventLimits?: CalendarEventLimit[],
   autoReplyEnabled?: boolean,
   twilioNumber?: string;
   availableFromNumbers?: string[],
@@ -2317,6 +2326,7 @@ export type BaseAvailabilityBlock = {
   startTimeInMS: number,
   durationInMinutes: number,
   externalId?: string, // e.g. athena slot id
+  priority?: number,
 }
 
 export interface AvailabilityBlock_readonly extends ClientRecord {
@@ -3042,12 +3052,16 @@ export type IterableCustomEventAutomationAction = AutomationActionBuilder<'itera
 export type AddAccessTagsAutomationAction = AutomationActionBuilder<'addAccessTags', { tags: string[], replaceExisting?: boolean }>
 export type RemoveAccessTagsAutomationAction = AutomationActionBuilder<'removeAccessTags', { tags: string[] }>
 
-export type EnduserFieldSetterType = 'Custom Value' | 'Current Timestamp' | 'Current Date' | "Increment Number"
+export type EnduserFieldSetterType = 'Custom Value' | 'Current Timestamp' | 'Current Date' | "Increment Number" | "Date Difference"
 export type EnduserFieldSetter = {
   name: string,
   type: EnduserFieldSetterType,
   value: string,
   increment?: number, // MS increment for timestamp/date fields, numeric increment for number fields
+  dateDifferenceOptions?: {
+    date1: string, // field name, ISO string, MM-DD-YYYY string, or "$now"
+    date2: string, // field name, ISO string, MM-DD-YYYY string, or "$now"
+  }
 }
 export type SetEnduserFieldsAutomationAction = AutomationActionBuilder<'setEnduserFields', {
   fields: EnduserFieldSetter[]

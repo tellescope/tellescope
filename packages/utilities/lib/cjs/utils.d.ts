@@ -1,4 +1,5 @@
-import { AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserInsurance, EnduserObservation, Form, FormField, FormFieldType, FormResponse, FormResponseValue, FormResponseValueAnswer, Integration, LabeledField, ManagedContentRecord, Organization, OutOfOfficeBlock, Purchase, RoundRobinAssignmentInfo, SMSMessage, TableInputCell, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models";
+import { AvailabilityBlock, CalendarEvent, CalendarEventLimit, CompoundFilter, Enduser, EnduserInsurance, EnduserObservation, Form, FormField, FormFieldType, FormResponse, FormResponseValue, FormResponseValueAnswer, Integration, LabeledField, ManagedContentRecord, Organization, OutOfOfficeBlock, Purchase, RoundRobinAssignmentInfo, SMSMessage, TableInputCell, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models";
+import { DateTime } from "luxon";
 import { ObjectId } from "./ObjectId/objectid";
 export { ObjectId };
 export type Indexable<T = any> = {
@@ -117,6 +118,58 @@ export declare const formatted_date_hh_mm: (date: Date) => string;
 export declare const yyyy_mm_dd: (date: Date) => string;
 export declare const yyyy_mm_dd_numeric: (date: Date) => string;
 export declare const mm_dd_yyyy: (date: Date) => string;
+/**
+ * Parses a date string that can be in ISO format, YYYY-MM-DD format, or MM-DD-YYYY format
+ * Uses Luxon for consistent timezone handling - all dates are parsed as UTC to avoid timezone issues
+ * @param dateString - Date string in various formats:
+ *   - ISO with time: "2024-01-15T10:30:00Z" or "2024-01-15T10:30:00"
+ *   - ISO date only: "2024-01-15"
+ *   - MM-DD-YYYY: "01-15-2024"
+ * @returns Luxon DateTime object or null if parsing fails
+ */
+export declare const parse_date_string: (dateString: string) => DateTime | null;
+/**
+ * Calculates the number of days between two dates using Luxon for consistent timezone handling
+ * All calculations are done in UTC to avoid timezone-related inconsistencies
+ * @param date1 - First date (can be Date object, ISO string like "2024-01-15T10:30:00Z" or "2024-01-15", MM-DD-YYYY string like "01-15-2024", or "$now")
+ * @param date2 - Second date (can be Date object, ISO string like "2024-01-15T10:30:00Z" or "2024-01-15", MM-DD-YYYY string like "01-15-2024", or "$now")
+ * @returns Number of days between the two dates (absolute value, rounded down)
+ * @throws Error if either date cannot be parsed
+ */
+export declare const calculate_days_between_dates: (date1: Date | string, date2: Date | string) => number;
+/**
+ * Resolves a date value that could be a field reference, hardcoded date string, or "$now"
+ * @param dateRef - Date reference which can be:
+ *   - "$now" for current date
+ *   - A field name to look up in enduserFields
+ *   - A direct date string (ISO, YYYY-MM-DD, or MM-DD-YYYY format)
+ * @param enduserFields - Object containing enduser custom fields
+ * @returns Resolved date value as a string
+ */
+export declare const resolve_date_value: (dateRef: string, enduserFields?: Indexable<any>) => string;
+/**
+ * Calculates the number of days between two dates, resolving field references from enduser data
+ * This is a convenience function that combines resolve_date_value and calculate_days_between_dates
+ * @param date1Ref - First date reference (field name, "$now", or date string)
+ * @param date2Ref - Second date reference (field name, "$now", or date string)
+ * @param enduserFields - Object containing enduser custom fields for resolving field references
+ * @returns Number of days between the two dates (absolute value, rounded down)
+ * @throws Error if either date cannot be resolved or parsed
+ */
+export declare const calculate_days_between_dates_from_enduser: (date1Ref: string, date2Ref: string, enduserFields?: Indexable<any>) => number;
+/**
+ * Safely calculates date difference for use in Set Fields actions with validation and error handling
+ * This function is designed for use in automation triggers and journey actions
+ * @param dateDifferenceOptions - Configuration object with date1 and date2 references
+ * @param enduserFields - Object containing enduser custom fields for resolving field references
+ * @param fieldName - Name of the field being set (for error logging)
+ * @param silent - If true, suppresses error console logs (useful for testing error cases)
+ * @returns Number of days as a number, or empty string if calculation fails
+ */
+export declare const calculate_date_difference_for_set_fields: (dateDifferenceOptions: {
+    date1: string;
+    date2: string;
+} | undefined, enduserFields: Indexable<any> | undefined, fieldName: string, silent?: boolean) => number | '';
 export declare const fullMonth_day_year: (date: Date) => string;
 export declare const time_for_calendar_event: (event: Pick<CalendarEvent, 'startTimeInMS' | 'durationInMinutes'>) => string;
 export declare const remove_script_tags: (s: string) => string;
@@ -317,4 +370,42 @@ export declare const replace_snippet_template_values: (s: string, snippets?: {
 }[]) => string;
 export declare const resolve_integration_id: (e: Pick<Enduser, 'references' | 'source' | 'externalId'>, integrationTitle: string) => string | undefined;
 export declare const replace_form_response_template_values: (s: string, formResponse?: Pick<FormResponse, 'responses'> | null) => string;
+/**
+ * Checks if a potential availability slot violates any calendar event limits.
+ *
+ * @returns true if the slot should be EXCLUDED (violates a limit), false if allowed
+ *
+ * A slot is excluded if booking it would exceed the limit for any configured restriction.
+ * For example, with a limit of "2 per 7 days", if there are already 2 events in the 7 days
+ * BEFORE this slot, the slot is excluded.
+ */
+export declare const slot_violates_calendar_event_limits: ({ slotStartTimeInMS, templateId, userId, calendarEventLimits, existingEvents, timezone, }: {
+    slotStartTimeInMS: number;
+    templateId: string;
+    userId: string;
+    calendarEventLimits?: CalendarEventLimit[] | undefined;
+    existingEvents: {
+        startTimeInMS: number;
+        templateId?: string | undefined;
+        attendees: Array<{
+            id: string;
+        }>;
+    }[];
+    timezone: string;
+}) => boolean;
+/**
+ * Validates that all custom fields referenced in conditional logic exist in the organization's configuration.
+ * Used to detect configuration errors in Journeys and Triggers before endusers encounter them.
+ *
+ * @param conditions - The conditional logic object (enduserCondition or enduserConditions)
+ * @param validFields - Set of custom field names that exist in organization settings
+ * @returns Array of field names that are referenced but don't exist
+ *
+ * @example
+ * const validFields = new Set(['customField1', 'customField2'])
+ * const conditions = { condition: { customField3: 'value' } }
+ * const missing = validate_custom_field_references(conditions, validFields)
+ * // Returns: ['customField3']
+ */
+export declare const validate_custom_field_references: (conditions: Record<string, any> | null | undefined, validFields: Set<string>) => string[];
 //# sourceMappingURL=utils.d.ts.map

@@ -106,6 +106,7 @@ export type PortalSettings = {
         outstandingFormsTitle?: string;
         availableFormsTitle?: string;
     };
+    hideSettingsPage?: boolean;
 };
 export type WithLinkOpenTrackingIds = {
     linkOpenTrackingIds: string[];
@@ -473,6 +474,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     creditTrialStartedAt?: Date;
     hasIntegrations?: string[];
     outOfOfficeHours?: OutOfOfficeBlock[];
+    incomingCallDisplayFields?: string[];
     skipActivePatientBilling?: boolean;
 }
 export type OrganizationTheme = {
@@ -575,6 +577,11 @@ export type StateCredentialInfo = {
 export type MonthlyRestriction = {
     occurrences: (1 | 2 | 3 | 4 | 5)[];
 };
+export type CalendarEventLimit = {
+    templateId: string;
+    period: number;
+    limit: number;
+};
 export type WeeklyAvailability = {
     dayOfWeekStartingSundayIndexedByZero: number;
     startTimeInMinutes: number;
@@ -646,6 +653,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
     credentialedStates?: StateCredentialInfo[];
     timezone?: Timezone;
     weeklyAvailabilities?: WeeklyAvailability[];
+    calendarEventLimits?: CalendarEventLimit[];
     autoReplyEnabled?: boolean;
     twilioNumber?: string;
     availableFromNumbers?: string[];
@@ -2239,6 +2247,7 @@ export type BaseAvailabilityBlock = {
     startTimeInMS: number;
     durationInMinutes: number;
     externalId?: string;
+    priority?: number;
 };
 export interface AvailabilityBlock_readonly extends ClientRecord {
 }
@@ -3045,12 +3054,16 @@ export type AddAccessTagsAutomationAction = AutomationActionBuilder<'addAccessTa
 export type RemoveAccessTagsAutomationAction = AutomationActionBuilder<'removeAccessTags', {
     tags: string[];
 }>;
-export type EnduserFieldSetterType = 'Custom Value' | 'Current Timestamp' | 'Current Date' | "Increment Number";
+export type EnduserFieldSetterType = 'Custom Value' | 'Current Timestamp' | 'Current Date' | "Increment Number" | "Date Difference";
 export type EnduserFieldSetter = {
     name: string;
     type: EnduserFieldSetterType;
     value: string;
     increment?: number;
+    dateDifferenceOptions?: {
+        date1: string;
+        date2: string;
+    };
 };
 export type SetEnduserFieldsAutomationAction = AutomationActionBuilder<'setEnduserFields', {
     fields: EnduserFieldSetter[];

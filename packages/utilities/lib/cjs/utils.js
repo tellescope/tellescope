@@ -34,9 +34,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.PROD_API_URL = exports.query_string_for_object = exports.sanitize_html_with_links = exports.remove_image_tags = exports.remove_style_tags = exports.remove_script_tags = exports.time_for_calendar_event = exports.fullMonth_day_year = exports.mm_dd_yyyy = exports.yyyy_mm_dd_numeric = exports.yyyy_mm_dd = exports.formatted_date_hh_mm = exports.get_add_to_gcal_link = exports.formatted_date = exports.get_time_values = exports.MONTHS = exports.MONTHS_FULL = exports.sorted_records = exports.wait = exports.findFirstUnansweredField = exports.throwFunction = exports.ensure_https_url = exports.to_absolute_url = exports.build_portal_link_string = exports.build_content_link_string = exports.build_file_link_string = exports.build_form_group_link_string = exports.build_form_link_string = exports.build_link_string = exports.getTemplatedData = exports.parse_link_template = exports.map_object = exports.truncate_string = exports.defined_fields = exports.user_is_active = exports.user_display_name = exports.objects_equivalent = exports.to_object_id = exports.url_safe_path = exports.is_whitespace = exports.matching_fields = exports.is_object = exports.filter_object = exports.is_defined = exports.is_truthy = exports.object_is_empty = exports.first_letter_lowercase = exports.first_letter_capitalized = exports.user_is_admin = exports.ObjectId = void 0;
-exports.validate_insurance_for_eligibility = exports.weighted_round_robin = exports.responses_satisfy_conditions = exports.calculate_bmi = exports.FORM_LOGIC_URL_PARAMETER = exports.FORM_LOGIC_CALCULATED_FIELDS = exports.calculate_form_scoring = exports.batch_array = exports.capture_is_supported = exports.get_next_reminder_timestamp = exports.mfa_is_enabled = exports.URIDecodeEmail = exports.get_recent_outbound_communication_date = exports.get_recent_engagement_date = exports.MM_DD_YYYY_to_YYYY_MM_DD = exports.YYYY_MM_DD_to_MM_DD_YYYY = exports.getLocalTimezone = exports.string_matches_key_or_value = exports.evaluate_conditional_logic_for_enduser_fields = exports.UPCOMING_EVENT_COUNT_KEY = exports.get_enduser_field_value_for_key = exports.age_for_dob_mmddyyyy = exports.replace_keys_and_values_in_object = exports.get_conditional_logic_values = exports.evaluate_conditional_logic = exports.shuffle_array_in_place = exports.plaintext_for_managed_content_record = exports.sanitize_html = exports.timezone_for_enduser = exports.safeJSONParse = exports.payment_cost_to_string = exports.read_local_storage = exports.update_local_storage = exports.is_organization_owner = exports.form_response_value_to_string = exports.is_table_input_response = exports.user_has_record_access = exports.is_suborganization = exports.matches_organization = exports.getDefaultPortalURL = exports.getPublicFileURL = exports.getOrgnizationFaviconURL = exports.getOrgnizationLogoURL = exports.getBuiltInPublicFileName = exports.getGoogleClientAPIKey = exports.getGoogleClientId = exports.getApiURL = exports.getEnvironment = exports.TEST_API_URL = exports.STAGING_API_URL = void 0;
-exports.replace_form_response_template_values = exports.resolve_integration_id = exports.replace_snippet_template_values = exports.get_snippet_keys = exports.emit_gtm_event = exports.get_care_team_primary = exports.is_checkbox_custom_field_value = exports.enrich_doxy_url = exports.to_human_readable_phone_number = exports.get_canvas_id = exports.should_show_unsubmitted_form_response_for_interval = exports.enduser_insurance_string = exports.enduser_address_string = exports.is_timezone = exports.downloadFile = exports.get_prepopulated_responses = exports.INVALID_PREPOPULATION_TYPES = exports.add_value_for_dotted_key = exports.value_for_dotted_key = exports.get_flattened_fields = exports.skip_due_date_as_needed = exports.is_full_iso_string_heuristic = exports.display_time_for_seconds = exports.replace_enduser_template_values = exports.replace_secret_values = exports.get_secret_names = exports.replace_sms_template_values = exports.replace_purchase_template_values = exports.replace_tag_template_values_for_enduser = exports.append_current_utm_params = exports.get_utm_params = exports.is_out_of_office = exports.color_for_classification = exports.classification_for_vital = exports.SMS_UNSUBSCRIBE_KEYWORDS = exports.satisfies_vital_comparison = exports.field_can_autosubmit = exports.field_can_autoadvance = exports.decodeJWT = exports.validate_organization_for_develop_health = exports.validate_user_for_develop_health = exports.validate_enduser_for_develop_health = exports.validate_enduser_for_dose_spot = exports.validate_enduser_for_smart_meter = exports.validate_enduser_for_gogo = exports.json_error_string = exports.validate_enduser_for_candid = exports.validate_provider_for_candid = exports.validate_organization_for_candid = void 0;
+exports.remove_script_tags = exports.time_for_calendar_event = exports.fullMonth_day_year = exports.calculate_date_difference_for_set_fields = exports.calculate_days_between_dates_from_enduser = exports.resolve_date_value = exports.calculate_days_between_dates = exports.parse_date_string = exports.mm_dd_yyyy = exports.yyyy_mm_dd_numeric = exports.yyyy_mm_dd = exports.formatted_date_hh_mm = exports.get_add_to_gcal_link = exports.formatted_date = exports.get_time_values = exports.MONTHS = exports.MONTHS_FULL = exports.sorted_records = exports.wait = exports.findFirstUnansweredField = exports.throwFunction = exports.ensure_https_url = exports.to_absolute_url = exports.build_portal_link_string = exports.build_content_link_string = exports.build_file_link_string = exports.build_form_group_link_string = exports.build_form_link_string = exports.build_link_string = exports.getTemplatedData = exports.parse_link_template = exports.map_object = exports.truncate_string = exports.defined_fields = exports.user_is_active = exports.user_display_name = exports.objects_equivalent = exports.to_object_id = exports.url_safe_path = exports.is_whitespace = exports.matching_fields = exports.is_object = exports.filter_object = exports.is_defined = exports.is_truthy = exports.object_is_empty = exports.first_letter_lowercase = exports.first_letter_capitalized = exports.user_is_admin = exports.ObjectId = void 0;
+exports.FORM_LOGIC_CALCULATED_FIELDS = exports.calculate_form_scoring = exports.batch_array = exports.capture_is_supported = exports.get_next_reminder_timestamp = exports.mfa_is_enabled = exports.URIDecodeEmail = exports.get_recent_outbound_communication_date = exports.get_recent_engagement_date = exports.MM_DD_YYYY_to_YYYY_MM_DD = exports.YYYY_MM_DD_to_MM_DD_YYYY = exports.getLocalTimezone = exports.string_matches_key_or_value = exports.evaluate_conditional_logic_for_enduser_fields = exports.UPCOMING_EVENT_COUNT_KEY = exports.get_enduser_field_value_for_key = exports.age_for_dob_mmddyyyy = exports.replace_keys_and_values_in_object = exports.get_conditional_logic_values = exports.evaluate_conditional_logic = exports.shuffle_array_in_place = exports.plaintext_for_managed_content_record = exports.sanitize_html = exports.timezone_for_enduser = exports.safeJSONParse = exports.payment_cost_to_string = exports.read_local_storage = exports.update_local_storage = exports.is_organization_owner = exports.form_response_value_to_string = exports.is_table_input_response = exports.user_has_record_access = exports.is_suborganization = exports.matches_organization = exports.getDefaultPortalURL = exports.getPublicFileURL = exports.getOrgnizationFaviconURL = exports.getOrgnizationLogoURL = exports.getBuiltInPublicFileName = exports.getGoogleClientAPIKey = exports.getGoogleClientId = exports.getApiURL = exports.getEnvironment = exports.TEST_API_URL = exports.STAGING_API_URL = exports.PROD_API_URL = exports.query_string_for_object = exports.sanitize_html_with_links = exports.remove_image_tags = exports.remove_style_tags = void 0;
+exports.emit_gtm_event = exports.get_care_team_primary = exports.is_checkbox_custom_field_value = exports.enrich_doxy_url = exports.to_human_readable_phone_number = exports.get_canvas_id = exports.should_show_unsubmitted_form_response_for_interval = exports.enduser_insurance_string = exports.enduser_address_string = exports.is_timezone = exports.downloadFile = exports.get_prepopulated_responses = exports.INVALID_PREPOPULATION_TYPES = exports.add_value_for_dotted_key = exports.value_for_dotted_key = exports.get_flattened_fields = exports.skip_due_date_as_needed = exports.is_full_iso_string_heuristic = exports.display_time_for_seconds = exports.replace_enduser_template_values = exports.replace_secret_values = exports.get_secret_names = exports.replace_sms_template_values = exports.replace_purchase_template_values = exports.replace_tag_template_values_for_enduser = exports.append_current_utm_params = exports.get_utm_params = exports.is_out_of_office = exports.color_for_classification = exports.classification_for_vital = exports.SMS_UNSUBSCRIBE_KEYWORDS = exports.satisfies_vital_comparison = exports.field_can_autosubmit = exports.field_can_autoadvance = exports.decodeJWT = exports.validate_organization_for_develop_health = exports.validate_user_for_develop_health = exports.validate_enduser_for_develop_health = exports.validate_enduser_for_dose_spot = exports.validate_enduser_for_smart_meter = exports.validate_enduser_for_gogo = exports.json_error_string = exports.validate_enduser_for_candid = exports.validate_provider_for_candid = exports.validate_organization_for_candid = exports.validate_insurance_for_eligibility = exports.weighted_round_robin = exports.responses_satisfy_conditions = exports.calculate_bmi = exports.FORM_LOGIC_URL_PARAMETER = void 0;
+exports.validate_custom_field_references = exports.slot_violates_calendar_event_limits = exports.replace_form_response_template_values = exports.resolve_integration_id = exports.replace_snippet_template_values = exports.get_snippet_keys = void 0;
 var types_models_1 = require("@tellescope/types-models");
 var constants_1 = require("@tellescope/constants");
 var sanitize_html_1 = __importDefault(require("sanitize-html"));
@@ -485,6 +486,128 @@ var mm_dd_yyyy = function (date) {
     return "".concat(monthNumber < 10 ? '0' : '').concat(monthNumber, "-").concat(dayOfMonth < 10 ? '0' : '').concat(dayOfMonth, "-").concat(year);
 };
 exports.mm_dd_yyyy = mm_dd_yyyy;
+/**
+ * Parses a date string that can be in ISO format, YYYY-MM-DD format, or MM-DD-YYYY format
+ * Uses Luxon for consistent timezone handling - all dates are parsed as UTC to avoid timezone issues
+ * @param dateString - Date string in various formats:
+ *   - ISO with time: "2024-01-15T10:30:00Z" or "2024-01-15T10:30:00"
+ *   - ISO date only: "2024-01-15"
+ *   - MM-DD-YYYY: "01-15-2024"
+ * @returns Luxon DateTime object or null if parsing fails
+ */
+var parse_date_string = function (dateString) {
+    if (!dateString)
+        return null;
+    // Try ISO format first (with or without time)
+    var parsed = luxon_1.DateTime.fromISO(dateString, { zone: 'utc' });
+    if (parsed.isValid) {
+        return parsed;
+    }
+    // Try MM-DD-YYYY format (common in US date entry)
+    if (constants_1.MM_DD_YYYY_REGEX.test(dateString)) {
+        var _a = dateString.split('-').map(Number), month = _a[0], day = _a[1], year = _a[2];
+        parsed = luxon_1.DateTime.fromObject({ year: year, month: month, day: day }, { zone: 'utc' });
+        if (parsed.isValid) {
+            return parsed;
+        }
+    }
+    return null;
+};
+exports.parse_date_string = parse_date_string;
+/**
+ * Calculates the number of days between two dates using Luxon for consistent timezone handling
+ * All calculations are done in UTC to avoid timezone-related inconsistencies
+ * @param date1 - First date (can be Date object, ISO string like "2024-01-15T10:30:00Z" or "2024-01-15", MM-DD-YYYY string like "01-15-2024", or "$now")
+ * @param date2 - Second date (can be Date object, ISO string like "2024-01-15T10:30:00Z" or "2024-01-15", MM-DD-YYYY string like "01-15-2024", or "$now")
+ * @returns Number of days between the two dates (absolute value, rounded down)
+ * @throws Error if either date cannot be parsed
+ */
+var calculate_days_between_dates = function (date1, date2) {
+    // Handle $now special case - use current UTC time
+    var d1 = date1 === '$now'
+        ? luxon_1.DateTime.utc()
+        : (date1 instanceof Date ? luxon_1.DateTime.fromJSDate(date1, { zone: 'utc' }) : (0, exports.parse_date_string)(date1));
+    var d2 = date2 === '$now'
+        ? luxon_1.DateTime.utc()
+        : (date2 instanceof Date ? luxon_1.DateTime.fromJSDate(date2, { zone: 'utc' }) : (0, exports.parse_date_string)(date2));
+    if (!d1 || !d1.isValid) {
+        throw new Error("Invalid date1: ".concat(date1));
+    }
+    if (!d2 || !d2.isValid) {
+        throw new Error("Invalid date2: ".concat(date2));
+    }
+    // Use Luxon's diff method to get the difference in days
+    // startOf('day') ensures we're comparing dates at midnight UTC, avoiding partial day issues
+    var diff = d2.startOf('day').diff(d1.startOf('day'), 'days');
+    return Math.floor(Math.abs(diff.days));
+};
+exports.calculate_days_between_dates = calculate_days_between_dates;
+/**
+ * Resolves a date value that could be a field reference, hardcoded date string, or "$now"
+ * @param dateRef - Date reference which can be:
+ *   - "$now" for current date
+ *   - A field name to look up in enduserFields
+ *   - A direct date string (ISO, YYYY-MM-DD, or MM-DD-YYYY format)
+ * @param enduserFields - Object containing enduser custom fields
+ * @returns Resolved date value as a string
+ */
+var resolve_date_value = function (dateRef, enduserFields) {
+    // Handle $now special case
+    if (dateRef === '$now') {
+        return '$now';
+    }
+    // Try to resolve as a field reference first
+    if (enduserFields === null || enduserFields === void 0 ? void 0 : enduserFields[dateRef]) {
+        return enduserFields[dateRef].toString();
+    }
+    // Otherwise treat as a direct date string
+    return dateRef;
+};
+exports.resolve_date_value = resolve_date_value;
+/**
+ * Calculates the number of days between two dates, resolving field references from enduser data
+ * This is a convenience function that combines resolve_date_value and calculate_days_between_dates
+ * @param date1Ref - First date reference (field name, "$now", or date string)
+ * @param date2Ref - Second date reference (field name, "$now", or date string)
+ * @param enduserFields - Object containing enduser custom fields for resolving field references
+ * @returns Number of days between the two dates (absolute value, rounded down)
+ * @throws Error if either date cannot be resolved or parsed
+ */
+var calculate_days_between_dates_from_enduser = function (date1Ref, date2Ref, enduserFields) {
+    var date1Value = (0, exports.resolve_date_value)(date1Ref, enduserFields);
+    var date2Value = (0, exports.resolve_date_value)(date2Ref, enduserFields);
+    return (0, exports.calculate_days_between_dates)(date1Value, date2Value);
+};
+exports.calculate_days_between_dates_from_enduser = calculate_days_between_dates_from_enduser;
+/**
+ * Safely calculates date difference for use in Set Fields actions with validation and error handling
+ * This function is designed for use in automation triggers and journey actions
+ * @param dateDifferenceOptions - Configuration object with date1 and date2 references
+ * @param enduserFields - Object containing enduser custom fields for resolving field references
+ * @param fieldName - Name of the field being set (for error logging)
+ * @param silent - If true, suppresses error console logs (useful for testing error cases)
+ * @returns Number of days as a number, or empty string if calculation fails
+ */
+var calculate_date_difference_for_set_fields = function (dateDifferenceOptions, enduserFields, fieldName, silent) {
+    if (silent === void 0) { silent = false; }
+    try {
+        if (!dateDifferenceOptions) {
+            if (!silent) {
+                console.error("Date Difference field '".concat(fieldName, "' is missing dateDifferenceOptions"));
+            }
+            return '';
+        }
+        var daysDifference = (0, exports.calculate_days_between_dates_from_enduser)(dateDifferenceOptions.date1, dateDifferenceOptions.date2, enduserFields);
+        return daysDifference;
+    }
+    catch (error) {
+        if (!silent) {
+            console.error("Error calculating date difference for field '".concat(fieldName, "':"), error);
+        }
+        return '';
+    }
+};
+exports.calculate_date_difference_for_set_fields = calculate_date_difference_for_set_fields;
 var fullMonth_day_year = function (date) {
     var _a = (0, exports.get_time_values)(date, { fullMonth: true }), dayOfMonth = _a.dayOfMonth, month = _a.month, year = _a.year;
     return "".concat(month, " ").concat(dayOfMonth, ", ").concat(year);
@@ -2910,4 +3033,152 @@ var replace_form_response_template_values = function (s, formResponse) {
     return result;
 };
 exports.replace_form_response_template_values = replace_form_response_template_values;
+/**
+ * Checks if a potential availability slot violates any calendar event limits.
+ *
+ * @returns true if the slot should be EXCLUDED (violates a limit), false if allowed
+ *
+ * A slot is excluded if booking it would exceed the limit for any configured restriction.
+ * For example, with a limit of "2 per 7 days", if there are already 2 events in the 7 days
+ * BEFORE this slot, the slot is excluded.
+ */
+var slot_violates_calendar_event_limits = function (_a) {
+    var slotStartTimeInMS = _a.slotStartTimeInMS, templateId = _a.templateId, userId = _a.userId, calendarEventLimits = _a.calendarEventLimits, existingEvents = _a.existingEvents, timezone = _a.timezone;
+    // No limits configured - slot is allowed
+    if (!calendarEventLimits || calendarEventLimits.length === 0) {
+        return false;
+    }
+    // Find limits that apply to this template
+    var relevantLimits = calendarEventLimits.filter(function (limit) { return limit.templateId === templateId; });
+    if (relevantLimits.length === 0) {
+        return false;
+    }
+    // Filter events to only those for this user and template
+    var userTemplateEvents = existingEvents.filter(function (e) {
+        return e.templateId === templateId &&
+            e.attendees.some(function (a) { return a.id === userId; });
+    });
+    var _loop_4 = function (limit) {
+        var eventsInPeriod = [];
+        if (limit.period === 1) {
+            // For 1-day limit, use calendar day logic (midnight to midnight in user's timezone)
+            // Include events on the same calendar day, regardless of time
+            var slotDate_1 = new Date(slotStartTimeInMS).toLocaleString('en-US', {
+                timeZone: timezone,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+            eventsInPeriod = userTemplateEvents.filter(function (e) {
+                var eventDate = new Date(e.startTimeInMS).toLocaleString('en-US', {
+                    timeZone: timezone,
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+                return eventDate === slotDate_1;
+            });
+        }
+        else {
+            // For multi-day limits, use rolling window from start of calendar day
+            // Get the start of the slot's calendar day in the user's timezone
+            var slotDateTime = new Date(slotStartTimeInMS);
+            var slotDateStr = slotDateTime.toLocaleString('en-US', {
+                timeZone: timezone,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+            var _b = slotDateStr.split('/'), month = _b[0], day = _b[1], year = _b[2];
+            // Create start of day in user's timezone, then convert to UTC
+            var startOfDayLocal = new Date("".concat(year, "-").concat(month, "-").concat(day, "T00:00:00"));
+            var startOfDayUTC = new Date(startOfDayLocal.toLocaleString('en-US', { timeZone: 'UTC' }));
+            var tzOffset = startOfDayLocal.getTime() - startOfDayUTC.getTime();
+            var startOfDayInMS = slotStartTimeInMS - (slotStartTimeInMS % (24 * 60 * 60 * 1000)) - tzOffset;
+            // Look back (N-1) days from the start of the current day, since we include the current day
+            // Example: 7-day limit = current day + previous 6 days = 7 total days
+            var periodStart_1 = startOfDayInMS - ((limit.period - 1) * 24 * 60 * 60 * 1000);
+            var periodEnd_1 = startOfDayInMS + (24 * 60 * 60 * 1000); // end of current day
+            eventsInPeriod = userTemplateEvents.filter(function (e) {
+                return e.startTimeInMS >= periodStart_1 && e.startTimeInMS < periodEnd_1;
+            });
+        }
+        // If we're at or over the limit, this slot violates the restriction
+        if (eventsInPeriod.length >= limit.limit) {
+            return { value: true // Exclude this slot
+             };
+        }
+    };
+    // Check each limit
+    for (var _i = 0, relevantLimits_1 = relevantLimits; _i < relevantLimits_1.length; _i++) {
+        var limit = relevantLimits_1[_i];
+        var state_2 = _loop_4(limit);
+        if (typeof state_2 === "object")
+            return state_2.value;
+    }
+    return false; // All limits satisfied, slot is allowed
+};
+exports.slot_violates_calendar_event_limits = slot_violates_calendar_event_limits;
+/**
+ * Validates that all custom fields referenced in conditional logic exist in the organization's configuration.
+ * Used to detect configuration errors in Journeys and Triggers before endusers encounter them.
+ *
+ * @param conditions - The conditional logic object (enduserCondition or enduserConditions)
+ * @param validFields - Set of custom field names that exist in organization settings
+ * @returns Array of field names that are referenced but don't exist
+ *
+ * @example
+ * const validFields = new Set(['customField1', 'customField2'])
+ * const conditions = { condition: { customField3: 'value' } }
+ * const missing = validate_custom_field_references(conditions, validFields)
+ * // Returns: ['customField3']
+ */
+var validate_custom_field_references = function (conditions, validFields) {
+    if (!conditions || (0, exports.object_is_empty)(conditions)) {
+        return [];
+    }
+    // Built-in fields that should not be validated as custom fields
+    // These are standard Enduser model fields or special derived fields
+    var BUILT_IN_FIELDS = new Set(__spreadArray(__spreadArray(__spreadArray([
+        // Derived fields
+        'Age',
+        'BMI',
+        'Journeys',
+        'Tags',
+        'tags',
+        'Healthie ID',
+        'insurance.payerName',
+        'insuranceSecondary.payerName',
+        exports.UPCOMING_EVENT_COUNT_KEY
+    ], Object.keys(constants_1.ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME), true), Object.keys(constants_1.READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME), true), Object.keys(constants_1.ENDUSER_FIELDS_WITH_NESTED_PATHS_DISPLAY_NAME), true));
+    var missingFields = new Set();
+    var checkConditions = function (obj) {
+        if (!obj || typeof obj !== 'object') {
+            return;
+        }
+        // Handle compound conditions ($and, $or)
+        if (obj.$and && Array.isArray(obj.$and)) {
+            obj.$and.forEach(function (cond) { return checkConditions(cond); });
+        }
+        if (obj.$or && Array.isArray(obj.$or)) {
+            obj.$or.forEach(function (cond) { return checkConditions(cond); });
+        }
+        // Check the 'condition' object which contains the actual field references
+        if (obj.condition && typeof obj.condition === 'object') {
+            for (var fieldName in obj.condition) {
+                // Skip if it's a built-in field
+                if (BUILT_IN_FIELDS.has(fieldName)) {
+                    continue;
+                }
+                // If it's not a built-in field and not in validFields, it's missing
+                if (!validFields.has(fieldName)) {
+                    missingFields.add(fieldName);
+                }
+            }
+        }
+    };
+    checkConditions(conditions);
+    return Array.from(missingFields).sort();
+};
+exports.validate_custom_field_references = validate_custom_field_references;
 //# sourceMappingURL=utils.js.map

@@ -211,6 +211,7 @@ import {
   stateCredentialsValidator,
   stateValidator,
   weeklyAvailabilitiesValidator,
+  calendarEventLimitsValidator,
   timezoneValidator,
   formTypeValidator,
   managedContentRecordAssignmentTypeValidator,
@@ -3718,6 +3719,7 @@ export const schema: SchemaV1 = build_schema({
       },
       timezone: { validator: timezoneValidator },
       weeklyAvailabilities: { validator: weeklyAvailabilitiesValidator },
+      calendarEventLimits: { validator: calendarEventLimitsValidator },
       autoReplyEnabled: { validator: booleanValidatorOptional },
       pushNotificationIosTokens: { validator: listOfStringsValidatorEmptyOk },
       pushNotificationFirebaseTokens: { validator: listOfStringsValidatorEmptyOk },
@@ -6748,6 +6750,7 @@ export const schema: SchemaV1 = build_schema({
         }))
       },
       fieldsToAdminNote: { validator: listOfStringsValidatorOptionalOrEmptyOk },
+      incomingCallDisplayFields: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       canvasMessageSync: {
         validator: objectValidator<{ id: string, questionId: string }>({
           id: stringValidator100,

@@ -1,5 +1,5 @@
-import { AllergyResponse, AvailabilityBlock, CalendarEvent, CompoundFilter, Enduser, EnduserInsurance, EnduserObservation, EnduserRelationship, File, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerAddress, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, Integration, LabeledField, ManagedContentRecord, MedicationResponse, Organization, OutOfOfficeBlock, Product, Purchase, RoundRobinAssignmentInfo, SMSMessage, TableInputCell, Ticket, Timezone, TIMEZONES, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
-import { ADMIN_ROLE, CANVAS_TITLE, get_inverse_relationship_type, HEALTHIE_TITLE, MM_DD_YYYY_REGEX } from "@tellescope/constants"
+import { AllergyResponse, AvailabilityBlock, CalendarEvent, CalendarEventLimit, CompoundFilter, Enduser, EnduserInsurance, EnduserObservation, EnduserRelationship, File, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerAddress, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, Integration, LabeledField, ManagedContentRecord, MedicationResponse, Organization, OutOfOfficeBlock, Product, Purchase, RoundRobinAssignmentInfo, SMSMessage, TableInputCell, Ticket, Timezone, TIMEZONES, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
+import { ADMIN_ROLE, ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME, CANVAS_TITLE, ENDUSER_FIELDS_WITH_NESTED_PATHS_DISPLAY_NAME, get_inverse_relationship_type, HEALTHIE_TITLE, MM_DD_YYYY_REGEX, READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 import { DateTime } from "luxon"
 
@@ -424,6 +424,149 @@ export const yyyy_mm_dd_numeric = (date: Date): string => {
 export const mm_dd_yyyy = (date: Date): string => {
   const { dayOfMonth, monthNumber, year } = get_time_values(date)
   return `${monthNumber < 10 ? '0': ''}${monthNumber}-${dayOfMonth < 10 ? '0' : ''}${dayOfMonth}-${year}`
+}
+
+/**
+ * Parses a date string that can be in ISO format, YYYY-MM-DD format, or MM-DD-YYYY format
+ * Uses Luxon for consistent timezone handling - all dates are parsed as UTC to avoid timezone issues
+ * @param dateString - Date string in various formats:
+ *   - ISO with time: "2024-01-15T10:30:00Z" or "2024-01-15T10:30:00"
+ *   - ISO date only: "2024-01-15"
+ *   - MM-DD-YYYY: "01-15-2024"
+ * @returns Luxon DateTime object or null if parsing fails
+ */
+export const parse_date_string = (dateString: string): DateTime | null => {
+  if (!dateString) return null
+
+  // Try ISO format first (with or without time)
+  let parsed = DateTime.fromISO(dateString, { zone: 'utc' })
+  if (parsed.isValid) {
+    return parsed
+  }
+
+  // Try MM-DD-YYYY format (common in US date entry)
+  if (MM_DD_YYYY_REGEX.test(dateString)) {
+    const [month, day, year] = dateString.split('-').map(Number)
+    parsed = DateTime.fromObject({ year, month, day }, { zone: 'utc' })
+    if (parsed.isValid) {
+      return parsed
+    }
+  }
+
+  return null
+}
+
+/**
+ * Calculates the number of days between two dates using Luxon for consistent timezone handling
+ * All calculations are done in UTC to avoid timezone-related inconsistencies
+ * @param date1 - First date (can be Date object, ISO string like "2024-01-15T10:30:00Z" or "2024-01-15", MM-DD-YYYY string like "01-15-2024", or "$now")
+ * @param date2 - Second date (can be Date object, ISO string like "2024-01-15T10:30:00Z" or "2024-01-15", MM-DD-YYYY string like "01-15-2024", or "$now")
+ * @returns Number of days between the two dates (absolute value, rounded down)
+ * @throws Error if either date cannot be parsed
+ */
+export const calculate_days_between_dates = (date1: Date | string, date2: Date | string): number => {
+  // Handle $now special case - use current UTC time
+  const d1 = date1 === '$now'
+    ? DateTime.utc()
+    : (date1 instanceof Date ? DateTime.fromJSDate(date1, { zone: 'utc' }) : parse_date_string(date1))
+
+  const d2 = date2 === '$now'
+    ? DateTime.utc()
+    : (date2 instanceof Date ? DateTime.fromJSDate(date2, { zone: 'utc' }) : parse_date_string(date2))
+
+  if (!d1 || !d1.isValid) {
+    throw new Error(`Invalid date1: ${date1}`)
+  }
+  if (!d2 || !d2.isValid) {
+    throw new Error(`Invalid date2: ${date2}`)
+  }
+
+  // Use Luxon's diff method to get the difference in days
+  // startOf('day') ensures we're comparing dates at midnight UTC, avoiding partial day issues
+  const diff = d2.startOf('day').diff(d1.startOf('day'), 'days')
+  return Math.floor(Math.abs(diff.days))
+}
+
+/**
+ * Resolves a date value that could be a field reference, hardcoded date string, or "$now"
+ * @param dateRef - Date reference which can be:
+ *   - "$now" for current date
+ *   - A field name to look up in enduserFields
+ *   - A direct date string (ISO, YYYY-MM-DD, or MM-DD-YYYY format)
+ * @param enduserFields - Object containing enduser custom fields
+ * @returns Resolved date value as a string
+ */
+export const resolve_date_value = (dateRef: string, enduserFields?: Indexable<any>): string => {
+  // Handle $now special case
+  if (dateRef === '$now') {
+    return '$now'
+  }
+
+  // Try to resolve as a field reference first
+  if (enduserFields?.[dateRef]) {
+    return enduserFields[dateRef].toString()
+  }
+
+  // Otherwise treat as a direct date string
+  return dateRef
+}
+
+/**
+ * Calculates the number of days between two dates, resolving field references from enduser data
+ * This is a convenience function that combines resolve_date_value and calculate_days_between_dates
+ * @param date1Ref - First date reference (field name, "$now", or date string)
+ * @param date2Ref - Second date reference (field name, "$now", or date string)
+ * @param enduserFields - Object containing enduser custom fields for resolving field references
+ * @returns Number of days between the two dates (absolute value, rounded down)
+ * @throws Error if either date cannot be resolved or parsed
+ */
+export const calculate_days_between_dates_from_enduser = (
+  date1Ref: string,
+  date2Ref: string,
+  enduserFields?: Indexable<any>
+): number => {
+  const date1Value = resolve_date_value(date1Ref, enduserFields)
+  const date2Value = resolve_date_value(date2Ref, enduserFields)
+
+  return calculate_days_between_dates(date1Value, date2Value)
+}
+
+/**
+ * Safely calculates date difference for use in Set Fields actions with validation and error handling
+ * This function is designed for use in automation triggers and journey actions
+ * @param dateDifferenceOptions - Configuration object with date1 and date2 references
+ * @param enduserFields - Object containing enduser custom fields for resolving field references
+ * @param fieldName - Name of the field being set (for error logging)
+ * @param silent - If true, suppresses error console logs (useful for testing error cases)
+ * @returns Number of days as a number, or empty string if calculation fails
+ */
+export const calculate_date_difference_for_set_fields = (
+  dateDifferenceOptions: { date1: string, date2: string } | undefined,
+  enduserFields: Indexable<any> | undefined,
+  fieldName: string,
+  silent = false
+): number | '' => {
+  try {
+    if (!dateDifferenceOptions) {
+      if (!silent) {
+        console.error(`Date Difference field '${fieldName}' is missing dateDifferenceOptions`)
+      }
+      return ''
+    }
+
+    const daysDifference = calculate_days_between_dates_from_enduser(
+      dateDifferenceOptions.date1,
+      dateDifferenceOptions.date2,
+      enduserFields
+    )
+
+    return daysDifference
+  } catch (error) {
+    if (!silent) {
+      console.error(`Error calculating date difference for field '${fieldName}':`, error)
+    }
+    return ''
+  }
 }
 
 export const fullMonth_day_year = (date: Date): string => {
@@ -2737,7 +2880,7 @@ export const downloadFile = (data: Uint8Array | Blob | Buffer | string, options 
   document.body.appendChild(a);
   a.style.display = "none"
 
-  const blob = new Blob([data], {type});
+  const blob = new Blob([data as any], {type});
   const url = (
     (options.dataIsURL && typeof data === 'string')
       ? data
@@ -2922,4 +3065,184 @@ export const replace_form_response_template_values = (s: string, formResponse?: 
   })
 
   return result
+}
+
+/**
+ * Checks if a potential availability slot violates any calendar event limits.
+ *
+ * @returns true if the slot should be EXCLUDED (violates a limit), false if allowed
+ *
+ * A slot is excluded if booking it would exceed the limit for any configured restriction.
+ * For example, with a limit of "2 per 7 days", if there are already 2 events in the 7 days
+ * BEFORE this slot, the slot is excluded.
+ */
+export const slot_violates_calendar_event_limits = ({
+  slotStartTimeInMS,
+  templateId,
+  userId,
+  calendarEventLimits,
+  existingEvents,
+  timezone,
+}: {
+  slotStartTimeInMS: number,
+  templateId: string,
+  userId: string,
+  calendarEventLimits?: CalendarEventLimit[],
+  existingEvents: Array<{ startTimeInMS: number, templateId?: string, attendees: Array<{ id: string }> }>,
+  timezone: string,
+}): boolean => {
+  // No limits configured - slot is allowed
+  if (!calendarEventLimits || calendarEventLimits.length === 0) {
+    return false
+  }
+
+  // Find limits that apply to this template
+  const relevantLimits = calendarEventLimits.filter(limit => limit.templateId === templateId)
+
+  if (relevantLimits.length === 0) {
+    return false
+  }
+
+  // Filter events to only those for this user and template
+  const userTemplateEvents = existingEvents.filter(e =>
+    e.templateId === templateId &&
+    e.attendees.some(a => a.id === userId)
+  )
+
+  // Check each limit
+  for (const limit of relevantLimits) {
+    let eventsInPeriod: typeof userTemplateEvents = []
+
+    if (limit.period === 1) {
+      // For 1-day limit, use calendar day logic (midnight to midnight in user's timezone)
+      // Include events on the same calendar day, regardless of time
+      const slotDate = new Date(slotStartTimeInMS).toLocaleString('en-US', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      })
+
+      eventsInPeriod = userTemplateEvents.filter(e => {
+        const eventDate = new Date(e.startTimeInMS).toLocaleString('en-US', {
+          timeZone: timezone,
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        })
+        return eventDate === slotDate
+      })
+    } else {
+      // For multi-day limits, use rolling window from start of calendar day
+      // Get the start of the slot's calendar day in the user's timezone
+      const slotDateTime = new Date(slotStartTimeInMS)
+      const slotDateStr = slotDateTime.toLocaleString('en-US', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      })
+      const [month, day, year] = slotDateStr.split('/')
+
+      // Create start of day in user's timezone, then convert to UTC
+      const startOfDayLocal = new Date(`${year}-${month}-${day}T00:00:00`)
+      const startOfDayUTC = new Date(startOfDayLocal.toLocaleString('en-US', { timeZone: 'UTC' }))
+      const tzOffset = startOfDayLocal.getTime() - startOfDayUTC.getTime()
+      const startOfDayInMS = slotStartTimeInMS - (slotStartTimeInMS % (24 * 60 * 60 * 1000)) - tzOffset
+
+      // Look back (N-1) days from the start of the current day, since we include the current day
+      // Example: 7-day limit = current day + previous 6 days = 7 total days
+      const periodStart = startOfDayInMS - ((limit.period - 1) * 24 * 60 * 60 * 1000)
+      const periodEnd = startOfDayInMS + (24 * 60 * 60 * 1000) // end of current day
+
+      eventsInPeriod = userTemplateEvents.filter(e =>
+        e.startTimeInMS >= periodStart && e.startTimeInMS < periodEnd
+      )
+    }
+
+    // If we're at or over the limit, this slot violates the restriction
+    if (eventsInPeriod.length >= limit.limit) {
+      return true // Exclude this slot
+    }
+  }
+
+  return false // All limits satisfied, slot is allowed
+}
+
+/**
+ * Validates that all custom fields referenced in conditional logic exist in the organization's configuration.
+ * Used to detect configuration errors in Journeys and Triggers before endusers encounter them.
+ *
+ * @param conditions - The conditional logic object (enduserCondition or enduserConditions)
+ * @param validFields - Set of custom field names that exist in organization settings
+ * @returns Array of field names that are referenced but don't exist
+ *
+ * @example
+ * const validFields = new Set(['customField1', 'customField2'])
+ * const conditions = { condition: { customField3: 'value' } }
+ * const missing = validate_custom_field_references(conditions, validFields)
+ * // Returns: ['customField3']
+ */
+export const validate_custom_field_references = (
+  conditions: Record<string, any> | null | undefined,
+  validFields: Set<string>
+): string[] => {
+  if (!conditions || object_is_empty(conditions)) {
+    return []
+  }
+
+  // Built-in fields that should not be validated as custom fields
+  // These are standard Enduser model fields or special derived fields
+  const BUILT_IN_FIELDS = new Set([
+    // Derived fields
+    'Age',
+    'BMI',
+    'Journeys',
+    'Tags', // capitalized version
+    'tags', // lowercase version used in actual conditions
+    'Healthie ID',
+    'insurance.payerName', // Insurance Primary
+    'insuranceSecondary.payerName', // Insurance Secondary
+    UPCOMING_EVENT_COUNT_KEY, // '__upcomingEvents__'
+    // All fields from ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME
+    ...Object.keys(ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME),
+    // All readonly fields
+    ...Object.keys(READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME),
+    // All nested path fields (insurance fields, etc.)
+    ...Object.keys(ENDUSER_FIELDS_WITH_NESTED_PATHS_DISPLAY_NAME),
+  ])
+
+  const missingFields = new Set<string>()
+
+  const checkConditions = (obj: any): void => {
+    if (!obj || typeof obj !== 'object') {
+      return
+    }
+
+    // Handle compound conditions ($and, $or)
+    if (obj.$and && Array.isArray(obj.$and)) {
+      obj.$and.forEach((cond: any) => checkConditions(cond))
+    }
+    if (obj.$or && Array.isArray(obj.$or)) {
+      obj.$or.forEach((cond: any) => checkConditions(cond))
+    }
+
+    // Check the 'condition' object which contains the actual field references
+    if (obj.condition && typeof obj.condition === 'object') {
+      for (const fieldName in obj.condition) {
+        // Skip if it's a built-in field
+        if (BUILT_IN_FIELDS.has(fieldName)) {
+          continue
+        }
+
+        // If it's not a built-in field and not in validFields, it's missing
+        if (!validFields.has(fieldName)) {
+          missingFields.add(fieldName)
+        }
+      }
+    }
+  }
+
+  checkConditions(conditions)
+  return Array.from(missingFields).sort()
 }

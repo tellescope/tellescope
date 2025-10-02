@@ -2370,8 +2370,12 @@ export var automationActionValidator = orValidator({
             fields: listValidator(objectValidator({
                 name: stringValidator,
                 type: stringValidator,
-                value: stringValidator,
+                value: stringValidatorOptionalEmptyOkay,
                 increment: numberValidatorOptional,
+                dateDifferenceOptions: objectValidator({
+                    date1: stringValidator,
+                    date2: stringValidator,
+                }, { isOptional: true }),
             }))
         }, { emptyOk: false }) })),
     addEnduserTags: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['addEnduserTags']), info: objectValidator({
@@ -2637,6 +2641,7 @@ export var portalSettingsValidator = objectValidator({
         availableFormsTitle: stringValidatorOptionalEmptyOkay,
         outstandingFormsTitle: stringValidatorOptionalEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
+    hideSettingsPage: booleanValidatorOptional,
 });
 export var customPoliciesValidator = listValidatorOptionalOrEmptyOk(objectValidator({
     title: stringValidator1000,
@@ -3282,6 +3287,7 @@ export var baseAvailabilityBlockValidator = objectValidator({
     startTimeInMS: nonNegNumberValidator,
     userId: mongoIdStringRequired,
     externalId: stringValidatorOptionalEmptyOkay,
+    priority: numberValidatorOptional,
 });
 export var baseAvailabilityBlocksValidator = listValidatorEmptyOk(baseAvailabilityBlockValidator);
 var monthlyOccurrenceValidator = {
@@ -3317,6 +3323,12 @@ export var weeklyAvailabilityValidator = objectValidator({
     monthlyRestriction: monthlyRestrictionOptionalValidator,
 });
 export var weeklyAvailabilitiesValidator = listValidatorEmptyOk(weeklyAvailabilityValidator);
+export var calendarEventLimitValidator = objectValidator({
+    templateId: mongoIdStringRequired,
+    period: nonNegNumberValidator,
+    limit: nonNegNumberValidator,
+});
+export var calendarEventLimitsValidator = listValidatorEmptyOk(calendarEventLimitValidator);
 export var timezoneValidator = exactMatchValidator(Object.keys(TIMEZONE_MAP));
 export var timezoneValidatorOptional = exactMatchValidator(Object.keys(TIMEZONE_MAP), { isOptional: true });
 export var accessValidator = exactMatchValidator([
@@ -4039,8 +4051,12 @@ export var automationTriggerActionValidator = orValidator({
             fields: listValidator(objectValidator({
                 name: stringValidator,
                 type: stringValidator,
-                value: stringValidator,
+                value: stringValidatorOptionalEmptyOkay,
                 increment: numberValidatorOptional,
+                dateDifferenceOptions: objectValidator({
+                    date1: stringValidator,
+                    date2: stringValidator,
+                }, { isOptional: true }),
             }))
         }),
     }),

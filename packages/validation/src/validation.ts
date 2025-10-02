@@ -120,6 +120,7 @@ import {
   EnduserFormResponseForEvent,
   StateCredentialInfo,
   BaseAvailabilityBlock,
+  CalendarEventLimit,
   WeeklyAvailability,
   MonthlyRestriction,
   Timezone,
@@ -2992,12 +2993,16 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
   setEnduserFields: objectValidator<SetEnduserFieldsAutomationAction>({
     ...sharedAutomationActionValidators,
     type: exactMatchValidator(['setEnduserFields']),
-    info: objectValidator<SetEnduserFieldsAutomationAction['info']>({ 
+    info: objectValidator<SetEnduserFieldsAutomationAction['info']>({
       fields: listValidator(objectValidator<EnduserFieldSetter>({
         name: stringValidator,
         type: stringValidator,
-        value: stringValidator,
+        value: stringValidatorOptionalEmptyOkay,
         increment: numberValidatorOptional,
+        dateDifferenceOptions: objectValidator({
+          date1: stringValidator,
+          date2: stringValidator,
+        }, { isOptional: true }),
       }))
     }, { emptyOk: false }),
   }),
@@ -3452,6 +3457,7 @@ export const portalSettingsValidator = objectValidator<PortalSettings>({
     availableFormsTitle: stringValidatorOptionalEmptyOkay,
     outstandingFormsTitle: stringValidatorOptionalEmptyOkay,
   }, { isOptional: true, emptyOk: true }),
+  hideSettingsPage: booleanValidatorOptional,
 })
 
 export const customPoliciesValidator = listValidatorOptionalOrEmptyOk(objectValidator<{ title: string, url: string }>({ 
@@ -4136,6 +4142,7 @@ export const baseAvailabilityBlockValidator = objectValidator<BaseAvailabilityBl
   startTimeInMS: nonNegNumberValidator,
   userId: mongoIdStringRequired,
   externalId: stringValidatorOptionalEmptyOkay,
+  priority: numberValidatorOptional,
 })
 export const baseAvailabilityBlocksValidator = listValidatorEmptyOk(baseAvailabilityBlockValidator)
 
@@ -4174,6 +4181,13 @@ export const weeklyAvailabilityValidator = objectValidator<WeeklyAvailability>({
   monthlyRestriction: monthlyRestrictionOptionalValidator,
 })
 export const weeklyAvailabilitiesValidator = listValidatorEmptyOk(weeklyAvailabilityValidator)
+
+export const calendarEventLimitValidator = objectValidator<CalendarEventLimit>({
+  templateId: mongoIdStringRequired,
+  period: nonNegNumberValidator,
+  limit: nonNegNumberValidator,
+})
+export const calendarEventLimitsValidator = listValidatorEmptyOk(calendarEventLimitValidator)
 
 export const timezoneValidator = exactMatchValidator<Timezone>(Object.keys(TIMEZONE_MAP) as Timezone[])
 export const timezoneValidatorOptional = exactMatchValidator<Timezone>(Object.keys(TIMEZONE_MAP) as Timezone[], { isOptional: true })
@@ -4914,8 +4928,12 @@ export const automationTriggerActionValidator = orValidator<{ [K in AutomationTr
       fields: listValidator(objectValidator<EnduserFieldSetter>({
         name: stringValidator,
         type: stringValidator,
-        value: stringValidator,
+        value: stringValidatorOptionalEmptyOkay,
         increment: numberValidatorOptional,
+        dateDifferenceOptions: objectValidator({
+          date1: stringValidator,
+          date2: stringValidator,
+        }, { isOptional: true }),
       }))
     }),
   }), 

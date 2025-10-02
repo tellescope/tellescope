@@ -30,7 +30,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 import { TIMEZONES, USA_STATE_TO_TIMEZONE } from "@tellescope/types-models";
-import { ADMIN_ROLE, CANVAS_TITLE, get_inverse_relationship_type, HEALTHIE_TITLE, MM_DD_YYYY_REGEX } from "@tellescope/constants";
+import { ADMIN_ROLE, ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME, CANVAS_TITLE, ENDUSER_FIELDS_WITH_NESTED_PATHS_DISPLAY_NAME, get_inverse_relationship_type, HEALTHIE_TITLE, MM_DD_YYYY_REGEX, READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME } from "@tellescope/constants";
 import sanitizeHtml from 'sanitize-html';
 import { DateTime } from "luxon";
 import { ObjectId } from "./ObjectId/objectid";
@@ -437,6 +437,123 @@ export var yyyy_mm_dd_numeric = function (date) {
 export var mm_dd_yyyy = function (date) {
     var _a = get_time_values(date), dayOfMonth = _a.dayOfMonth, monthNumber = _a.monthNumber, year = _a.year;
     return "".concat(monthNumber < 10 ? '0' : '').concat(monthNumber, "-").concat(dayOfMonth < 10 ? '0' : '').concat(dayOfMonth, "-").concat(year);
+};
+/**
+ * Parses a date string that can be in ISO format, YYYY-MM-DD format, or MM-DD-YYYY format
+ * Uses Luxon for consistent timezone handling - all dates are parsed as UTC to avoid timezone issues
+ * @param dateString - Date string in various formats:
+ *   - ISO with time: "2024-01-15T10:30:00Z" or "2024-01-15T10:30:00"
+ *   - ISO date only: "2024-01-15"
+ *   - MM-DD-YYYY: "01-15-2024"
+ * @returns Luxon DateTime object or null if parsing fails
+ */
+export var parse_date_string = function (dateString) {
+    if (!dateString)
+        return null;
+    // Try ISO format first (with or without time)
+    var parsed = DateTime.fromISO(dateString, { zone: 'utc' });
+    if (parsed.isValid) {
+        return parsed;
+    }
+    // Try MM-DD-YYYY format (common in US date entry)
+    if (MM_DD_YYYY_REGEX.test(dateString)) {
+        var _a = dateString.split('-').map(Number), month = _a[0], day = _a[1], year = _a[2];
+        parsed = DateTime.fromObject({ year: year, month: month, day: day }, { zone: 'utc' });
+        if (parsed.isValid) {
+            return parsed;
+        }
+    }
+    return null;
+};
+/**
+ * Calculates the number of days between two dates using Luxon for consistent timezone handling
+ * All calculations are done in UTC to avoid timezone-related inconsistencies
+ * @param date1 - First date (can be Date object, ISO string like "2024-01-15T10:30:00Z" or "2024-01-15", MM-DD-YYYY string like "01-15-2024", or "$now")
+ * @param date2 - Second date (can be Date object, ISO string like "2024-01-15T10:30:00Z" or "2024-01-15", MM-DD-YYYY string like "01-15-2024", or "$now")
+ * @returns Number of days between the two dates (absolute value, rounded down)
+ * @throws Error if either date cannot be parsed
+ */
+export var calculate_days_between_dates = function (date1, date2) {
+    // Handle $now special case - use current UTC time
+    var d1 = date1 === '$now'
+        ? DateTime.utc()
+        : (date1 instanceof Date ? DateTime.fromJSDate(date1, { zone: 'utc' }) : parse_date_string(date1));
+    var d2 = date2 === '$now'
+        ? DateTime.utc()
+        : (date2 instanceof Date ? DateTime.fromJSDate(date2, { zone: 'utc' }) : parse_date_string(date2));
+    if (!d1 || !d1.isValid) {
+        throw new Error("Invalid date1: ".concat(date1));
+    }
+    if (!d2 || !d2.isValid) {
+        throw new Error("Invalid date2: ".concat(date2));
+    }
+    // Use Luxon's diff method to get the difference in days
+    // startOf('day') ensures we're comparing dates at midnight UTC, avoiding partial day issues
+    var diff = d2.startOf('day').diff(d1.startOf('day'), 'days');
+    return Math.floor(Math.abs(diff.days));
+};
+/**
+ * Resolves a date value that could be a field reference, hardcoded date string, or "$now"
+ * @param dateRef - Date reference which can be:
+ *   - "$now" for current date
+ *   - A field name to look up in enduserFields
+ *   - A direct date string (ISO, YYYY-MM-DD, or MM-DD-YYYY format)
+ * @param enduserFields - Object containing enduser custom fields
+ * @returns Resolved date value as a string
+ */
+export var resolve_date_value = function (dateRef, enduserFields) {
+    // Handle $now special case
+    if (dateRef === '$now') {
+        return '$now';
+    }
+    // Try to resolve as a field reference first
+    if (enduserFields === null || enduserFields === void 0 ? void 0 : enduserFields[dateRef]) {
+        return enduserFields[dateRef].toString();
+    }
+    // Otherwise treat as a direct date string
+    return dateRef;
+};
+/**
+ * Calculates the number of days between two dates, resolving field references from enduser data
+ * This is a convenience function that combines resolve_date_value and calculate_days_between_dates
+ * @param date1Ref - First date reference (field name, "$now", or date string)
+ * @param date2Ref - Second date reference (field name, "$now", or date string)
+ * @param enduserFields - Object containing enduser custom fields for resolving field references
+ * @returns Number of days between the two dates (absolute value, rounded down)
+ * @throws Error if either date cannot be resolved or parsed
+ */
+export var calculate_days_between_dates_from_enduser = function (date1Ref, date2Ref, enduserFields) {
+    var date1Value = resolve_date_value(date1Ref, enduserFields);
+    var date2Value = resolve_date_value(date2Ref, enduserFields);
+    return calculate_days_between_dates(date1Value, date2Value);
+};
+/**
+ * Safely calculates date difference for use in Set Fields actions with validation and error handling
+ * This function is designed for use in automation triggers and journey actions
+ * @param dateDifferenceOptions - Configuration object with date1 and date2 references
+ * @param enduserFields - Object containing enduser custom fields for resolving field references
+ * @param fieldName - Name of the field being set (for error logging)
+ * @param silent - If true, suppresses error console logs (useful for testing error cases)
+ * @returns Number of days as a number, or empty string if calculation fails
+ */
+export var calculate_date_difference_for_set_fields = function (dateDifferenceOptions, enduserFields, fieldName, silent) {
+    if (silent === void 0) { silent = false; }
+    try {
+        if (!dateDifferenceOptions) {
+            if (!silent) {
+                console.error("Date Difference field '".concat(fieldName, "' is missing dateDifferenceOptions"));
+            }
+            return '';
+        }
+        var daysDifference = calculate_days_between_dates_from_enduser(dateDifferenceOptions.date1, dateDifferenceOptions.date2, enduserFields);
+        return daysDifference;
+    }
+    catch (error) {
+        if (!silent) {
+            console.error("Error calculating date difference for field '".concat(fieldName, "':"), error);
+        }
+        return '';
+    }
 };
 export var fullMonth_day_year = function (date) {
     var _a = get_time_values(date, { fullMonth: true }), dayOfMonth = _a.dayOfMonth, month = _a.month, year = _a.year;
@@ -2763,5 +2880,151 @@ export var replace_form_response_template_values = function (s, formResponse) {
         return stringValue;
     });
     return result;
+};
+/**
+ * Checks if a potential availability slot violates any calendar event limits.
+ *
+ * @returns true if the slot should be EXCLUDED (violates a limit), false if allowed
+ *
+ * A slot is excluded if booking it would exceed the limit for any configured restriction.
+ * For example, with a limit of "2 per 7 days", if there are already 2 events in the 7 days
+ * BEFORE this slot, the slot is excluded.
+ */
+export var slot_violates_calendar_event_limits = function (_a) {
+    var slotStartTimeInMS = _a.slotStartTimeInMS, templateId = _a.templateId, userId = _a.userId, calendarEventLimits = _a.calendarEventLimits, existingEvents = _a.existingEvents, timezone = _a.timezone;
+    // No limits configured - slot is allowed
+    if (!calendarEventLimits || calendarEventLimits.length === 0) {
+        return false;
+    }
+    // Find limits that apply to this template
+    var relevantLimits = calendarEventLimits.filter(function (limit) { return limit.templateId === templateId; });
+    if (relevantLimits.length === 0) {
+        return false;
+    }
+    // Filter events to only those for this user and template
+    var userTemplateEvents = existingEvents.filter(function (e) {
+        return e.templateId === templateId &&
+            e.attendees.some(function (a) { return a.id === userId; });
+    });
+    var _loop_4 = function (limit) {
+        var eventsInPeriod = [];
+        if (limit.period === 1) {
+            // For 1-day limit, use calendar day logic (midnight to midnight in user's timezone)
+            // Include events on the same calendar day, regardless of time
+            var slotDate_1 = new Date(slotStartTimeInMS).toLocaleString('en-US', {
+                timeZone: timezone,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+            eventsInPeriod = userTemplateEvents.filter(function (e) {
+                var eventDate = new Date(e.startTimeInMS).toLocaleString('en-US', {
+                    timeZone: timezone,
+                    year: 'numeric',
+                    month: '2-digit',
+                    day: '2-digit'
+                });
+                return eventDate === slotDate_1;
+            });
+        }
+        else {
+            // For multi-day limits, use rolling window from start of calendar day
+            // Get the start of the slot's calendar day in the user's timezone
+            var slotDateTime = new Date(slotStartTimeInMS);
+            var slotDateStr = slotDateTime.toLocaleString('en-US', {
+                timeZone: timezone,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit'
+            });
+            var _b = slotDateStr.split('/'), month = _b[0], day = _b[1], year = _b[2];
+            // Create start of day in user's timezone, then convert to UTC
+            var startOfDayLocal = new Date("".concat(year, "-").concat(month, "-").concat(day, "T00:00:00"));
+            var startOfDayUTC = new Date(startOfDayLocal.toLocaleString('en-US', { timeZone: 'UTC' }));
+            var tzOffset = startOfDayLocal.getTime() - startOfDayUTC.getTime();
+            var startOfDayInMS = slotStartTimeInMS - (slotStartTimeInMS % (24 * 60 * 60 * 1000)) - tzOffset;
+            // Look back (N-1) days from the start of the current day, since we include the current day
+            // Example: 7-day limit = current day + previous 6 days = 7 total days
+            var periodStart_1 = startOfDayInMS - ((limit.period - 1) * 24 * 60 * 60 * 1000);
+            var periodEnd_1 = startOfDayInMS + (24 * 60 * 60 * 1000); // end of current day
+            eventsInPeriod = userTemplateEvents.filter(function (e) {
+                return e.startTimeInMS >= periodStart_1 && e.startTimeInMS < periodEnd_1;
+            });
+        }
+        // If we're at or over the limit, this slot violates the restriction
+        if (eventsInPeriod.length >= limit.limit) {
+            return { value: true // Exclude this slot
+             };
+        }
+    };
+    // Check each limit
+    for (var _i = 0, relevantLimits_1 = relevantLimits; _i < relevantLimits_1.length; _i++) {
+        var limit = relevantLimits_1[_i];
+        var state_2 = _loop_4(limit);
+        if (typeof state_2 === "object")
+            return state_2.value;
+    }
+    return false; // All limits satisfied, slot is allowed
+};
+/**
+ * Validates that all custom fields referenced in conditional logic exist in the organization's configuration.
+ * Used to detect configuration errors in Journeys and Triggers before endusers encounter them.
+ *
+ * @param conditions - The conditional logic object (enduserCondition or enduserConditions)
+ * @param validFields - Set of custom field names that exist in organization settings
+ * @returns Array of field names that are referenced but don't exist
+ *
+ * @example
+ * const validFields = new Set(['customField1', 'customField2'])
+ * const conditions = { condition: { customField3: 'value' } }
+ * const missing = validate_custom_field_references(conditions, validFields)
+ * // Returns: ['customField3']
+ */
+export var validate_custom_field_references = function (conditions, validFields) {
+    if (!conditions || object_is_empty(conditions)) {
+        return [];
+    }
+    // Built-in fields that should not be validated as custom fields
+    // These are standard Enduser model fields or special derived fields
+    var BUILT_IN_FIELDS = new Set(__spreadArray(__spreadArray(__spreadArray([
+        // Derived fields
+        'Age',
+        'BMI',
+        'Journeys',
+        'Tags',
+        'tags',
+        'Healthie ID',
+        'insurance.payerName',
+        'insuranceSecondary.payerName',
+        UPCOMING_EVENT_COUNT_KEY
+    ], Object.keys(ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME), true), Object.keys(READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME), true), Object.keys(ENDUSER_FIELDS_WITH_NESTED_PATHS_DISPLAY_NAME), true));
+    var missingFields = new Set();
+    var checkConditions = function (obj) {
+        if (!obj || typeof obj !== 'object') {
+            return;
+        }
+        // Handle compound conditions ($and, $or)
+        if (obj.$and && Array.isArray(obj.$and)) {
+            obj.$and.forEach(function (cond) { return checkConditions(cond); });
+        }
+        if (obj.$or && Array.isArray(obj.$or)) {
+            obj.$or.forEach(function (cond) { return checkConditions(cond); });
+        }
+        // Check the 'condition' object which contains the actual field references
+        if (obj.condition && typeof obj.condition === 'object') {
+            for (var fieldName in obj.condition) {
+                // Skip if it's a built-in field
+                if (BUILT_IN_FIELDS.has(fieldName)) {
+                    continue;
+                }
+                // If it's not a built-in field and not in validFields, it's missing
+                if (!validFields.has(fieldName)) {
+                    missingFields.add(fieldName);
+                }
+            }
+        }
+    };
+    checkConditions(conditions);
+    return Array.from(missingFields).sort();
 };
 //# sourceMappingURL=utils.js.map
