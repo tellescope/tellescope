@@ -44,6 +44,8 @@ var setup_1 = require("../setup");
 var luxon_1 = require("luxon");
 var utilities_1 = require("@tellescope/utilities");
 var host = process.env.API_URL || 'http://localhost:8080';
+var password = process.env.TEST_PASSWORD || '';
+var businessId = process.env.BUSINESS_ID || '';
 // === UNIT TESTS ===
 // Pure function tests for slot_violates_calendar_event_limits logic
 var TEMPLATE_ID = "template123";
@@ -627,7 +629,7 @@ exports.calendar_event_limits_unit_tests = calendar_event_limits_unit_tests;
 var calendar_event_limits_tests = function (_a) {
     var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
     return __awaiter(void 0, void 0, void 0, function () {
-        var unitTests, _loop_1, _i, unitTests_1, test_1, template, now, nextMonday, fromDate, toDate, noLimitsAvailability_1, baselineBlockCount_1, oneLimitAvailability_1, mondayNineAm_1, bookedEvent, availabilityAfterBooking_1, mondayEvent, tuesdayEvent, weeklyLimitAvailability_1, event1, event2, event3, multipleLimitsAvailability_1, error_1;
+        var unitTests, _loop_1, _i, unitTests_1, test_1, template, testEnduser, now, nextMonday, fromDate, toDate, noLimitsAvailability_1, baselineBlockCount_1, oneLimitAvailability_1, mondayNineAm_1, bookedEvent, availabilityAfterBooking_1, mondayEvent, tuesdayEvent, weeklyLimitAvailability_1, event1, event2, event3, multipleLimitsAvailability_1, enduserSession_1, nowForBooking, bookingMonday, bookingFromDate, bookingToDate, availabilityBeforeBooking_1, firstSlot, firstSlotTime, booking1Response_1, booking1, secondSlotTime, booking2Response_1, booking2, thirdSlotTime_1, tuesdaySlotTime, booking3Response_1, booking3, weeklyMonday, weeklyMondaySlot1, weeklyMondaySlot2, weeklyTuesdaySlot_1, weeklyBooking1Response_1, weeklyBooking1, weeklyBooking2Response_1, weeklyBooking2, error_1;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -663,12 +665,28 @@ var calendar_event_limits_tests = function (_a) {
                             title: 'Event Limit Test Appointment',
                             durationInMinutes: 60,
                             description: 'Test appointment for event limits',
-                        })];
+                            confirmationEmailDisabled: true,
+                            confirmationSMSDisabled: true,
+                            reminders: [], // No reminders
+                        })
+                        // Create test enduser without phone to prevent SMS notifications
+                    ];
                 case 5:
                     template = _b.sent();
-                    _b.label = 6;
+                    return [4 /*yield*/, sdk.api.endusers.createOne({
+                            fname: 'Test',
+                            lname: 'Enduser Limits',
+                            email: 'test-limits-enduser@tellescope.com',
+                            // No phone to prevent SMS
+                        })];
                 case 6:
-                    _b.trys.push([6, , 36, 41]);
+                    testEnduser = _b.sent();
+                    return [4 /*yield*/, sdk.api.endusers.set_password({ id: testEnduser.id, password: password })];
+                case 7:
+                    _b.sent();
+                    _b.label = 8;
+                case 8:
+                    _b.trys.push([8, , 69, 75]);
                     // Setup: User has weekly availability Monday-Friday 9am-5pm
                     return [4 /*yield*/, sdk.api.users.updateOne(sdk.userInfo.id, {
                             weeklyAvailabilities: [
@@ -705,7 +723,7 @@ var calendar_event_limits_tests = function (_a) {
                             ],
                             calendarEventLimits: [] // Start with no limits
                         }, { replaceObjectFields: true })];
-                case 7:
+                case 9:
                     // Setup: User has weekly availability Monday-Friday 9am-5pm
                     _b.sent();
                     now = luxon_1.DateTime.now().setZone('America/New_York');
@@ -720,7 +738,7 @@ var calendar_event_limits_tests = function (_a) {
                             from: fromDate.toJSDate(),
                             to: toDate.toJSDate(),
                         })];
-                case 8:
+                case 10:
                     noLimitsAvailability_1 = _b.sent();
                     return [4 /*yield*/, (0, testing_1.async_test)('No limits - full availability returned', function () { return Promise.resolve(noLimitsAvailability_1); }, { onResult: function (r) {
                                 var userBlocks = r.availabilityBlocks.filter(function (b) { return b.userId === sdk.userInfo.id; });
@@ -731,7 +749,7 @@ var calendar_event_limits_tests = function (_a) {
                                 }
                                 return true;
                             } })];
-                case 9:
+                case 11:
                     _b.sent();
                     baselineBlockCount_1 = noLimitsAvailability_1.availabilityBlocks.filter(function (b) { return b.userId === sdk.userInfo.id; }).length;
                     // Test 2: Set limit to 1 per day - should restrict availability
@@ -742,7 +760,7 @@ var calendar_event_limits_tests = function (_a) {
                                     limit: 1,
                                 }]
                         }, { replaceObjectFields: true })];
-                case 10:
+                case 12:
                     // Test 2: Set limit to 1 per day - should restrict availability
                     _b.sent();
                     return [4 /*yield*/, sdk.api.calendar_events.get_appointment_availability({
@@ -750,7 +768,7 @@ var calendar_event_limits_tests = function (_a) {
                             from: fromDate.toJSDate(),
                             to: toDate.toJSDate(),
                         })];
-                case 11:
+                case 13:
                     oneLimitAvailability_1 = _b.sent();
                     return [4 /*yield*/, (0, testing_1.async_test)('Limit of 1 per day - availability still present before any bookings', function () { return Promise.resolve(oneLimitAvailability_1); }, { onResult: function (r) {
                                 var userBlocks = r.availabilityBlocks.filter(function (b) { return b.userId === sdk.userInfo.id; });
@@ -768,7 +786,7 @@ var calendar_event_limits_tests = function (_a) {
                             } })
                         // Test 3: Book an event on Monday at 9am, then check availability
                     ];
-                case 12:
+                case 14:
                     _b.sent();
                     mondayNineAm_1 = nextMonday.set({ hour: 9, minute: 0 });
                     return [4 /*yield*/, sdk.api.calendar_events.createOne({
@@ -780,11 +798,11 @@ var calendar_event_limits_tests = function (_a) {
                         })
                         // Small delay to ensure event is indexed
                     ];
-                case 13:
+                case 15:
                     bookedEvent = _b.sent();
                     // Small delay to ensure event is indexed
                     return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 100); })];
-                case 14:
+                case 16:
                     // Small delay to ensure event is indexed
                     _b.sent();
                     return [4 /*yield*/, sdk.api.calendar_events.get_appointment_availability({
@@ -792,7 +810,7 @@ var calendar_event_limits_tests = function (_a) {
                             from: fromDate.toJSDate(),
                             to: toDate.toJSDate(),
                         })];
-                case 15:
+                case 17:
                     availabilityAfterBooking_1 = _b.sent();
                     return [4 /*yield*/, (0, testing_1.async_test)('After booking 1 event with 1/day limit - Monday availability removed', function () { return Promise.resolve(availabilityAfterBooking_1); }, { onResult: function (r) {
                                 var userBlocks = r.availabilityBlocks.filter(function (b) { return b.userId === sdk.userInfo.id; });
@@ -820,13 +838,13 @@ var calendar_event_limits_tests = function (_a) {
                             } })
                         // Clean up the test event
                     ];
-                case 16:
+                case 18:
                     _b.sent();
                     // Clean up the test event
                     return [4 /*yield*/, sdk.api.calendar_events.deleteOne(bookedEvent.id)
                         // Test 4: Weekly limit (7 days, limit 2)
                     ];
-                case 17:
+                case 19:
                     // Clean up the test event
                     _b.sent();
                     // Test 4: Weekly limit (7 days, limit 2)
@@ -839,7 +857,7 @@ var calendar_event_limits_tests = function (_a) {
                         }, { replaceObjectFields: true })
                         // Book two events in the same week
                     ];
-                case 18:
+                case 20:
                     // Test 4: Weekly limit (7 days, limit 2)
                     _b.sent();
                     return [4 /*yield*/, sdk.api.calendar_events.createOne({
@@ -849,7 +867,7 @@ var calendar_event_limits_tests = function (_a) {
                             attendees: [{ type: 'user', id: sdk.userInfo.id }],
                             templateId: template.id,
                         })];
-                case 19:
+                case 21:
                     mondayEvent = _b.sent();
                     return [4 /*yield*/, sdk.api.calendar_events.createOne({
                             title: 'Tuesday Event',
@@ -858,17 +876,17 @@ var calendar_event_limits_tests = function (_a) {
                             attendees: [{ type: 'user', id: sdk.userInfo.id }],
                             templateId: template.id,
                         })];
-                case 20:
+                case 22:
                     tuesdayEvent = _b.sent();
                     return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 100); })];
-                case 21:
+                case 23:
                     _b.sent();
                     return [4 /*yield*/, sdk.api.calendar_events.get_appointment_availability({
                             calendarEventTemplateId: template.id,
                             from: fromDate.toJSDate(),
                             to: toDate.toJSDate(),
                         })];
-                case 22:
+                case 24:
                     weeklyLimitAvailability_1 = _b.sent();
                     return [4 /*yield*/, (0, testing_1.async_test)('Weekly limit (2/week) - availability removed after 2 bookings in the same week', function () { return Promise.resolve(weeklyLimitAvailability_1); }, { onResult: function (r) {
                                 var userBlocks = r.availabilityBlocks.filter(function (b) { return b.userId === sdk.userInfo.id; });
@@ -904,17 +922,17 @@ var calendar_event_limits_tests = function (_a) {
                             } })
                         // Clean up
                     ];
-                case 23:
+                case 25:
                     _b.sent();
                     // Clean up
                     return [4 /*yield*/, sdk.api.calendar_events.deleteOne(mondayEvent.id)];
-                case 24:
+                case 26:
                     // Clean up
                     _b.sent();
                     return [4 /*yield*/, sdk.api.calendar_events.deleteOne(tuesdayEvent.id)
                         // Test 5: Multiple limits - both daily and weekly
                     ];
-                case 25:
+                case 27:
                     _b.sent();
                     // Test 5: Multiple limits - both daily and weekly
                     return [4 /*yield*/, sdk.api.users.updateOne(sdk.userInfo.id, {
@@ -933,7 +951,7 @@ var calendar_event_limits_tests = function (_a) {
                         }, { replaceObjectFields: true })
                         // Book 3 events across 3 days
                     ];
-                case 26:
+                case 28:
                     // Test 5: Multiple limits - both daily and weekly
                     _b.sent();
                     return [4 /*yield*/, sdk.api.calendar_events.createOne({
@@ -943,7 +961,7 @@ var calendar_event_limits_tests = function (_a) {
                             attendees: [{ type: 'user', id: sdk.userInfo.id }],
                             templateId: template.id,
                         })];
-                case 27:
+                case 29:
                     event1 = _b.sent();
                     return [4 /*yield*/, sdk.api.calendar_events.createOne({
                             title: 'Event 2',
@@ -952,7 +970,7 @@ var calendar_event_limits_tests = function (_a) {
                             attendees: [{ type: 'user', id: sdk.userInfo.id }],
                             templateId: template.id,
                         })];
-                case 28:
+                case 30:
                     event2 = _b.sent();
                     return [4 /*yield*/, sdk.api.calendar_events.createOne({
                             title: 'Event 3',
@@ -961,17 +979,17 @@ var calendar_event_limits_tests = function (_a) {
                             attendees: [{ type: 'user', id: sdk.userInfo.id }],
                             templateId: template.id,
                         })];
-                case 29:
+                case 31:
                     event3 = _b.sent();
                     return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 100); })];
-                case 30:
+                case 32:
                     _b.sent();
                     return [4 /*yield*/, sdk.api.calendar_events.get_appointment_availability({
                             calendarEventTemplateId: template.id,
                             from: fromDate.toJSDate(),
                             to: toDate.toJSDate(),
                         })];
-                case 31:
+                case 33:
                     multipleLimitsAvailability_1 = _b.sent();
                     return [4 /*yield*/, (0, testing_1.async_test)('Multiple limits (1/day and 3/week) - both constraints enforced', function () { return Promise.resolve(multipleLimitsAvailability_1); }, { onResult: function (r) {
                                 var userBlocks = r.availabilityBlocks.filter(function (b) { return b.userId === sdk.userInfo.id; });
@@ -1001,38 +1019,285 @@ var calendar_event_limits_tests = function (_a) {
                             } })
                         // Clean up
                     ];
-                case 32:
+                case 34:
                     _b.sent();
                     // Clean up
                     return [4 /*yield*/, sdk.api.calendar_events.deleteOne(event1.id)];
-                case 33:
+                case 35:
                     // Clean up
                     _b.sent();
                     return [4 /*yield*/, sdk.api.calendar_events.deleteOne(event2.id)];
-                case 34:
-                    _b.sent();
-                    return [4 /*yield*/, sdk.api.calendar_events.deleteOne(event3.id)];
-                case 35:
-                    _b.sent();
-                    return [3 /*break*/, 41];
                 case 36:
-                    _b.trys.push([36, 39, , 40]);
-                    return [4 /*yield*/, sdk.api.calendar_event_templates.deleteOne(template.id)];
+                    _b.sent();
+                    return [4 /*yield*/, sdk.api.calendar_events.deleteOne(event3.id)
+                        // ========================================
+                        // NEW TESTS: book_appointment endpoint
+                        // ========================================
+                    ];
                 case 37:
+                    _b.sent();
+                    // ========================================
+                    // NEW TESTS: book_appointment endpoint
+                    // ========================================
+                    (0, testing_1.log_header)("Calendar Event Limits - book_appointment Integration Tests");
+                    // Reset user limits for book_appointment tests
+                    return [4 /*yield*/, sdk.api.users.updateOne(sdk.userInfo.id, {
+                            calendarEventLimits: [{
+                                    templateId: template.id,
+                                    period: 1,
+                                    limit: 2, // max 2 per day
+                                }]
+                        }, { replaceObjectFields: true })
+                        // Authenticate enduser for booking
+                    ];
+                case 38:
+                    // Reset user limits for book_appointment tests
+                    _b.sent();
+                    enduserSession_1 = new sdk_1.EnduserSession({ host: host, businessId: businessId });
+                    return [4 /*yield*/, enduserSession_1.authenticate('test-limits-enduser@tellescope.com', password)
+                        // Get next available Monday
+                    ];
+                case 39:
+                    _b.sent();
+                    nowForBooking = luxon_1.DateTime.now().setZone('America/New_York');
+                    bookingMonday = nowForBooking.startOf('week').plus({ days: 1 });
+                    if (bookingMonday <= nowForBooking) {
+                        bookingMonday = bookingMonday.plus({ weeks: 1 });
+                    }
+                    bookingFromDate = bookingMonday;
+                    bookingToDate = bookingFromDate.plus({ days: 1 }) // Just Monday
+                    ;
+                    return [4 /*yield*/, enduserSession_1.api.calendar_events.get_appointment_availability({
+                            calendarEventTemplateId: template.id,
+                            userId: sdk.userInfo.id,
+                            from: bookingFromDate.toJSDate(),
+                            to: bookingToDate.toJSDate(),
+                        })];
+                case 40:
+                    availabilityBeforeBooking_1 = _b.sent();
+                    return [4 /*yield*/, (0, testing_1.async_test)('book_appointment: availability shows slots before any bookings', function () { return Promise.resolve(availabilityBeforeBooking_1); }, { onResult: function (r) {
+                                var userBlocks = r.availabilityBlocks.filter(function (b) { return b.userId === sdk.userInfo.id; });
+                                console.log("Availability before booking: ".concat(userBlocks.length, " blocks"));
+                                if (userBlocks.length === 0) {
+                                    console.log('ERROR: Expected availability blocks for booking');
+                                    return false;
+                                }
+                                return true;
+                            } })];
+                case 41:
+                    _b.sent();
+                    firstSlot = availabilityBeforeBooking_1.availabilityBlocks.find(function (b) { return b.userId === sdk.userInfo.id; });
+                    firstSlotTime = bookingMonday.set({ hour: 9, minute: 0 });
+                    return [4 /*yield*/, enduserSession_1.api.calendar_events.book_appointment({
+                            userId: sdk.userInfo.id,
+                            calendarEventTemplateId: template.id,
+                            startTime: firstSlotTime.toJSDate(),
+                            timezone: 'America/New_York',
+                        })];
+                case 42:
+                    booking1Response_1 = _b.sent();
+                    return [4 /*yield*/, (0, testing_1.async_test)('book_appointment: first booking succeeds with calendarEventLimits', function () { return Promise.resolve(booking1Response_1); }, { onResult: function (r) {
+                                var _a;
+                                if (!r || !((_a = r.createdEvent) === null || _a === void 0 ? void 0 : _a.id)) {
+                                    console.log('ERROR: First booking should succeed');
+                                    return false;
+                                }
+                                console.log('✅ First booking succeeded:', r.createdEvent.id);
+                                return true;
+                            } })];
+                case 43:
+                    _b.sent();
+                    booking1 = booking1Response_1.createdEvent;
+                    // Small delay to ensure event is indexed
+                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 100); })
+                        // Test 7: book_appointment - second booking on same day should succeed (limit is 2)
+                    ];
+                case 44:
+                    // Small delay to ensure event is indexed
+                    _b.sent();
+                    secondSlotTime = firstSlotTime.plus({ hours: 1 });
+                    return [4 /*yield*/, enduserSession_1.api.calendar_events.book_appointment({
+                            userId: sdk.userInfo.id,
+                            calendarEventTemplateId: template.id,
+                            startTime: secondSlotTime.toJSDate(),
+                            timezone: 'America/New_York',
+                        })];
+                case 45:
+                    booking2Response_1 = _b.sent();
+                    return [4 /*yield*/, (0, testing_1.async_test)('book_appointment: second booking on same day succeeds (under limit of 2)', function () { return Promise.resolve(booking2Response_1); }, { onResult: function (r) {
+                                var _a;
+                                if (!r || !((_a = r.createdEvent) === null || _a === void 0 ? void 0 : _a.id)) {
+                                    console.log('ERROR: Second booking should succeed (limit is 2/day)');
+                                    return false;
+                                }
+                                console.log('✅ Second booking succeeded:', r.createdEvent.id);
+                                return true;
+                            } })];
+                case 46:
+                    _b.sent();
+                    booking2 = booking2Response_1.createdEvent;
+                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 100); })
+                        // Test 8: book_appointment - third booking on same day should fail (limit reached)
+                    ];
+                case 47:
+                    _b.sent();
+                    thirdSlotTime_1 = secondSlotTime.plus({ hours: 1 });
+                    return [4 /*yield*/, (0, testing_1.async_test)('book_appointment: third booking on same day fails (limit of 2 reached)', function () { return enduserSession_1.api.calendar_events.book_appointment({
+                            userId: sdk.userInfo.id,
+                            calendarEventTemplateId: template.id,
+                            startTime: thirdSlotTime_1.toJSDate(),
+                            timezone: 'America/New_York',
+                        }); }, testing_1.handleAnyError)
+                        // Test 9: book_appointment - booking on different day should succeed
+                    ];
+                case 48:
+                    _b.sent();
+                    tuesdaySlotTime = firstSlotTime.plus({ days: 1 });
+                    return [4 /*yield*/, enduserSession_1.api.calendar_events.book_appointment({
+                            userId: sdk.userInfo.id,
+                            calendarEventTemplateId: template.id,
+                            startTime: tuesdaySlotTime.toJSDate(),
+                            timezone: 'America/New_York',
+                        })];
+                case 49:
+                    booking3Response_1 = _b.sent();
+                    return [4 /*yield*/, (0, testing_1.async_test)('book_appointment: booking on different day succeeds (new daily limit)', function () { return Promise.resolve(booking3Response_1); }, { onResult: function (r) {
+                                var _a;
+                                if (!r || !((_a = r.createdEvent) === null || _a === void 0 ? void 0 : _a.id)) {
+                                    console.log('ERROR: Tuesday booking should succeed (new day, new limit)');
+                                    return false;
+                                }
+                                console.log('✅ Tuesday booking succeeded:', r.createdEvent.id);
+                                return true;
+                            } })];
+                case 50:
+                    _b.sent();
+                    booking3 = booking3Response_1.createdEvent;
+                    if (!(booking1 === null || booking1 === void 0 ? void 0 : booking1.id)) return [3 /*break*/, 52];
+                    return [4 /*yield*/, sdk.api.calendar_events.deleteOne(booking1.id).catch(function () { })];
+                case 51:
+                    _b.sent();
+                    _b.label = 52;
+                case 52:
+                    if (!(booking2 === null || booking2 === void 0 ? void 0 : booking2.id)) return [3 /*break*/, 54];
+                    return [4 /*yield*/, sdk.api.calendar_events.deleteOne(booking2.id).catch(function () { })];
+                case 53:
+                    _b.sent();
+                    _b.label = 54;
+                case 54:
+                    if (!(booking3 === null || booking3 === void 0 ? void 0 : booking3.id)) return [3 /*break*/, 56];
+                    return [4 /*yield*/, sdk.api.calendar_events.deleteOne(booking3.id).catch(function () { })
+                        // Test 10: Weekly limit with book_appointment
+                    ];
+                case 55:
+                    _b.sent();
+                    _b.label = 56;
+                case 56: 
+                // Test 10: Weekly limit with book_appointment
+                return [4 /*yield*/, sdk.api.users.updateOne(sdk.userInfo.id, {
+                        calendarEventLimits: [{
+                                templateId: template.id,
+                                period: 7,
+                                limit: 2, // max 2 per week
+                            }]
+                    }, { replaceObjectFields: true })];
+                case 57:
+                    // Test 10: Weekly limit with book_appointment
+                    _b.sent();
+                    weeklyMonday = bookingMonday.plus({ weeks: 2 }) // Use a fresh week
+                    ;
+                    weeklyMondaySlot1 = weeklyMonday.set({ hour: 9, minute: 0 });
+                    weeklyMondaySlot2 = weeklyMonday.set({ hour: 10, minute: 0 });
+                    weeklyTuesdaySlot_1 = weeklyMonday.plus({ days: 1 }).set({ hour: 9, minute: 0 });
+                    return [4 /*yield*/, enduserSession_1.api.calendar_events.book_appointment({
+                            userId: sdk.userInfo.id,
+                            calendarEventTemplateId: template.id,
+                            startTime: weeklyMondaySlot1.toJSDate(),
+                            timezone: 'America/New_York',
+                        })];
+                case 58:
+                    weeklyBooking1Response_1 = _b.sent();
+                    return [4 /*yield*/, (0, testing_1.async_test)('book_appointment: weekly limit - first booking succeeds', function () { return Promise.resolve(weeklyBooking1Response_1); }, { onResult: function (r) {
+                                var _a;
+                                if (!((_a = r === null || r === void 0 ? void 0 : r.createdEvent) === null || _a === void 0 ? void 0 : _a.id)) {
+                                    console.log('ERROR: First weekly booking should succeed');
+                                    return false;
+                                }
+                                console.log('✅ First weekly booking succeeded');
+                                return true;
+                            } })];
+                case 59:
+                    _b.sent();
+                    weeklyBooking1 = weeklyBooking1Response_1.createdEvent;
+                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 100); })];
+                case 60:
+                    _b.sent();
+                    return [4 /*yield*/, enduserSession_1.api.calendar_events.book_appointment({
+                            userId: sdk.userInfo.id,
+                            calendarEventTemplateId: template.id,
+                            startTime: weeklyMondaySlot2.toJSDate(),
+                            timezone: 'America/New_York',
+                        })];
+                case 61:
+                    weeklyBooking2Response_1 = _b.sent();
+                    return [4 /*yield*/, (0, testing_1.async_test)('book_appointment: weekly limit - second booking in same week succeeds', function () { return Promise.resolve(weeklyBooking2Response_1); }, { onResult: function (r) {
+                                var _a;
+                                if (!((_a = r === null || r === void 0 ? void 0 : r.createdEvent) === null || _a === void 0 ? void 0 : _a.id)) {
+                                    console.log('ERROR: Second weekly booking should succeed (limit is 2/week)');
+                                    return false;
+                                }
+                                console.log('✅ Second weekly booking succeeded');
+                                return true;
+                            } })];
+                case 62:
+                    _b.sent();
+                    weeklyBooking2 = weeklyBooking2Response_1.createdEvent;
+                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 100); })];
+                case 63:
+                    _b.sent();
+                    return [4 /*yield*/, (0, testing_1.async_test)('book_appointment: weekly limit - third booking in same week fails', function () { return enduserSession_1.api.calendar_events.book_appointment({
+                            userId: sdk.userInfo.id,
+                            calendarEventTemplateId: template.id,
+                            startTime: weeklyTuesdaySlot_1.toJSDate(),
+                            timezone: 'America/New_York',
+                        }); }, testing_1.handleAnyError)
+                        // Clean up weekly test events
+                    ];
+                case 64:
+                    _b.sent();
+                    if (!(weeklyBooking1 === null || weeklyBooking1 === void 0 ? void 0 : weeklyBooking1.id)) return [3 /*break*/, 66];
+                    return [4 /*yield*/, sdk.api.calendar_events.deleteOne(weeklyBooking1.id).catch(function () { })];
+                case 65:
+                    _b.sent();
+                    _b.label = 66;
+                case 66:
+                    if (!(weeklyBooking2 === null || weeklyBooking2 === void 0 ? void 0 : weeklyBooking2.id)) return [3 /*break*/, 68];
+                    return [4 /*yield*/, sdk.api.calendar_events.deleteOne(weeklyBooking2.id).catch(function () { })];
+                case 67:
+                    _b.sent();
+                    _b.label = 68;
+                case 68: return [3 /*break*/, 75];
+                case 69:
+                    _b.trys.push([69, 73, , 74]);
+                    return [4 /*yield*/, sdk.api.calendar_event_templates.deleteOne(template.id)];
+                case 70:
+                    _b.sent();
+                    return [4 /*yield*/, sdk.api.endusers.deleteOne(testEnduser.id)];
+                case 71:
                     _b.sent();
                     return [4 /*yield*/, sdk.api.users.updateOne(sdk.userInfo.id, {
                             weeklyAvailabilities: [],
                             calendarEventLimits: []
                         }, { replaceObjectFields: true })];
-                case 38:
+                case 72:
                     _b.sent();
-                    return [3 /*break*/, 40];
-                case 39:
+                    return [3 /*break*/, 74];
+                case 73:
                     error_1 = _b.sent();
                     console.error('Cleanup error:', error_1);
-                    return [3 /*break*/, 40];
-                case 40: return [7 /*endfinally*/];
-                case 41: return [2 /*return*/];
+                    return [3 /*break*/, 74];
+                case 74: return [7 /*endfinally*/];
+                case 75: return [2 /*return*/];
             }
         });
     });

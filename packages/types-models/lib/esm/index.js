@@ -150,6 +150,7 @@ export var modelNameChecker = {
     enduser_profile_views: true,
     table_views: true,
     email_sync_denials: true,
+    time_tracks: true,
 };
 var WEBHOOK_MODELS = __assign({}, modelNameChecker);
 delete WEBHOOK_MODELS['api_keys'];

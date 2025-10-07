@@ -201,6 +201,7 @@ var loadDefaultQueries = function (s) { return ({
     ticket_threads: defaultQueries(s, 'ticket_threads'),
     ticket_thread_comments: defaultQueries(s, 'ticket_thread_comments'),
     configurations: defaultQueries(s, 'configurations'),
+    time_tracks: defaultQueries(s, 'time_tracks'),
     ticket_queues: defaultQueries(s, 'ticket_queues'),
     group_mms_conversations: defaultQueries(s, 'group_mms_conversations'),
     enduser_orders: defaultQueries(s, 'enduser_orders'),

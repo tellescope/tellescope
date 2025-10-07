@@ -23,6 +23,7 @@ import {
   SMSMessage,
   UserNotification,
   Enduser,
+  TimeTrack,
   Ticket,
   Meeting,
   Note,
@@ -296,6 +297,7 @@ const emailsSlice = createSliceForList<Email, 'email'>('email')
 const smsMessagesSlice = createSliceForList<SMSMessage, 'sms_messages'>('sms_messages')
 const userNotifcationsSlice = createSliceForList<UserNotification, 'user_notifications'>('user_notifications')
 const endusersSlice = createSliceForList<Enduser, 'endusers'>('endusers')
+const timeTracksSlice = createSliceForList<TimeTrack, 'time_tracks'>('time_tracks')
 const ticketsSlice = createSliceForList<Ticket, 'tickets'>('tickets')
 const meetingsSlice = createSliceForList<Meeting, 'meetings'>('meetings')
 const filesSlice = createSliceForList<File, 'files'>('files')
@@ -397,6 +399,7 @@ export const sharedConfig = {
     sms_messages: smsMessagesSlice.reducer,
     user_notifications: userNotifcationsSlice.reducer,
     endusers: endusersSlice.reducer,
+    time_tracks: timeTracksSlice.reducer,
     tickets: ticketsSlice.reducer,
     meetings: meetingsSlice.reducer,
     files: filesSlice.reducer,
@@ -2015,11 +2018,11 @@ export const useChats = (roomId?: string, options={} as HookOptions<ChatMessage>
 export const useEndusers = (options={} as HookOptions<Enduser>) => {
   const session = useResolvedSession()
   return useListStateHook(
-    'endusers', 
-    useTypedSelector(s => s.endusers), 
-    session, 
-    endusersSlice, 
-    { 
+    'endusers',
+    useTypedSelector(s => s.endusers),
+    session,
+    endusersSlice,
+    {
       loadQuery: session.api.endusers.getSome,
       findOne: session.api.endusers.getOne,
       findByIds: session.api.endusers.getByIds,
@@ -2027,6 +2030,23 @@ export const useEndusers = (options={} as HookOptions<Enduser>) => {
       addSome: session.api.endusers.createSome,
       deleteOne: session.api.endusers.deleteOne,
       updateOne: session.api.endusers.updateOne,
+     },
+    {...options}
+  )
+}
+export const useTimeTracks = (options={} as HookOptions<TimeTrack>) => {
+  const session = useResolvedSession()
+  return useListStateHook(
+    'time_tracks',
+    useTypedSelector(s => s.time_tracks),
+    session,
+    timeTracksSlice,
+    {
+      loadQuery: (session.api as any).time_tracks.getSome,
+      findOne: (session.api as any).time_tracks.getOne,
+      addOne: (session.api as any).time_tracks.createOne,
+      deleteOne: (session.api as any).time_tracks.deleteOne,
+      updateOne: (session.api as any).time_tracks.updateOne,
      },
     {...options}
   )

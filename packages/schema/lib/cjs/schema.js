@@ -2820,7 +2820,7 @@ exports.schema = (0, exports.build_schema)({
                     score: validation_1.stringValidator100,
                     externalId: validation_1.stringValidator100,
                 }))
-            }, hideAfterUnsubmittedInMS: { validator: validation_1.numberValidator }, hideFromCompose: { validator: validation_1.booleanValidator }, hideFromBulkSubmission: { validator: validation_1.booleanValidator }, enduserFieldsToAppendForSync: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk }, allowPortalSubmission: { validator: validation_1.booleanValidator }, allowPortalSubmissionEnduserCondition: { validator: validation_1.optionalAnyObjectValidator }, canvasNoteCoding: { validator: validation_1.canvasCodingValidatorOptional }, syncToCanvasAsDataImport: { validator: validation_1.booleanValidator }, matchCareTeamTagsForCanvasPractitionerResolution: { validator: validation_1.listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay }, ipAddressCustomField: { validator: validation_1.stringValidatorOptionalEmptyOkay } })
+            }, hideAfterUnsubmittedInMS: { validator: validation_1.numberValidator }, hideFromCompose: { validator: validation_1.booleanValidator }, hideFromBulkSubmission: { validator: validation_1.booleanValidator }, enduserFieldsToAppendForSync: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk }, allowPortalSubmission: { validator: validation_1.booleanValidator }, allowPortalSubmissionEnduserCondition: { validator: validation_1.optionalAnyObjectValidator }, canvasNoteCoding: { validator: validation_1.canvasCodingValidatorOptional }, syncToCanvasAsDataImport: { validator: validation_1.booleanValidator }, matchCareTeamTagsForCanvasPractitionerResolution: { validator: validation_1.listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay }, ipAddressCustomField: { validator: validation_1.stringValidatorOptionalEmptyOkay }, version: { validator: (0, validation_1.exactMatchValidatorOptional)(['v1', 'v2']) } })
     },
     form_fields: {
         info: {
@@ -3054,6 +3054,7 @@ exports.schema = (0, exports.build_schema)({
                 returns: {
                     formResponse: 'form response',
                     nextFormGroupPublicURL: { validator: validation_1.stringValidator },
+                    redirectTo: { validator: validation_1.stringValidator },
                 },
             },
             info_for_access_code: {
@@ -3719,7 +3720,7 @@ exports.schema = (0, exports.build_schema)({
                 initializer: function () { return []; },
             }, publicRead: { validator: validation_1.booleanValidator }, enableVideoCall: { validator: validation_1.booleanValidator }, enableSelfScheduling: { validator: validation_1.booleanValidator }, restrictedByState: { validator: validation_1.booleanValidator }, image: { validator: validation_1.stringValidator5000 }, confirmationEmailDisabled: { validator: validation_1.booleanValidatorOptional }, confirmationSMSDisabled: { validator: validation_1.booleanValidatorOptional }, 
             // confirmationSenderId: { validator: mongoIdStringValidator },
-            carePlanForms: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, carePlanContent: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, carePlanFiles: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, carePlanTasks: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, videoIntegration: { validator: validation_1.videoIntegrationTypesValidator }, generateZoomLinkWhenBooked: { validator: validation_1.booleanValidator }, color: { validator: validation_1.stringValidator1000 }, apiOnly: { validator: validation_1.booleanValidator }, enduserAttendeeLimit: { validator: validation_1.numberValidator }, bufferEndMinutes: { validator: validation_1.numberValidator }, bufferStartMinutes: { validator: validation_1.numberValidator }, canvasCoding: { validator: validation_1.canvasCodingValidator }, canvasReasonCoding: { validator: validation_1.canvasCodingValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, matchToHealthieTemplate: { validator: validation_1.booleanValidator }, healthieInsuranceBillingEnabled: { validator: validation_1.booleanValidator }, useUserURL: { validator: validation_1.booleanValidator }, instructions: { validator: validation_1.stringValidator5000EmptyOkay }, requiresEnduser: { validator: validation_1.booleanValidator }, requirePortalCancelReason: { validator: validation_1.booleanValidator } })
+            carePlanForms: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, carePlanContent: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, carePlanFiles: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, carePlanTasks: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, videoIntegration: { validator: validation_1.videoIntegrationTypesValidator }, generateZoomLinkWhenBooked: { validator: validation_1.booleanValidator }, color: { validator: validation_1.stringValidator1000 }, apiOnly: { validator: validation_1.booleanValidator }, enduserAttendeeLimit: { validator: validation_1.numberValidator }, bufferEndMinutes: { validator: validation_1.numberValidator }, bufferStartMinutes: { validator: validation_1.numberValidator }, canvasCoding: { validator: validation_1.canvasCodingValidator }, canvasReasonCoding: { validator: validation_1.canvasCodingValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, matchToHealthieTemplate: { validator: validation_1.booleanValidator }, healthieInsuranceBillingEnabled: { validator: validation_1.booleanValidator }, useUserURL: { validator: validation_1.booleanValidator }, instructions: { validator: validation_1.stringValidator5000EmptyOkay }, requiresEnduser: { validator: validation_1.booleanValidator }, requirePortalCancelReason: { validator: validation_1.booleanValidator }, replaceHostOnReschedule: { validator: validation_1.booleanValidator } })
     },
     calendar_event_RSVPs: {
         info: {},
@@ -5738,6 +5739,45 @@ exports.schema = (0, exports.build_schema)({
         customActions: {},
         enduserActions: {},
         fields: __assign(__assign({}, BuiltInFields), { type: { validator: validation_1.stringValidator250, examples: ['string'] }, value: { validator: validation_1.stringValidator100000OptionalEmptyOkayEscapeHTML, examples: ['string'] } }),
+    },
+    time_tracks: {
+        info: {},
+        constraints: {
+            unique: [],
+            relationship: [],
+            access: [
+                { type: 'filter', field: 'userId' },
+            ]
+        },
+        defaultActions: constants_1.DEFAULT_OPERATIONS,
+        customActions: {},
+        enduserActions: {},
+        fields: __assign(__assign({}, BuiltInFields), { title: { validator: validation_1.stringValidator, required: true, examples: ['Client Meeting'] }, userId: {
+                validator: validation_1.mongoIdStringRequired,
+                examples: [constants_1.PLACEHOLDER_ID],
+                initializer: function (a, s) { return s.id; },
+                dependencies: [{
+                        dependsOn: ['users'],
+                        dependencyField: '_id',
+                        relationship: 'foreignKey',
+                        onDependencyDelete: 'delete',
+                    }]
+            }, enduserId: {
+                validator: validation_1.mongoIdStringOptional,
+                examples: [constants_1.PLACEHOLDER_ID],
+                dependencies: [{
+                        dependsOn: ['endusers'],
+                        dependencyField: '_id',
+                        relationship: 'foreignKey',
+                        onDependencyDelete: 'setNull',
+                    }]
+            }, timestamps: {
+                validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
+                    type: validation_1.stringValidator,
+                    timestamp: validation_1.dateValidator,
+                })),
+                initializer: function () { return [{ type: 'start', timestamp: new Date() }]; },
+            }, closedAt: { validator: validation_1.dateValidatorOptional }, totalDurationInMS: { validator: validation_1.numberValidatorOptional } }),
     },
     ticket_queues: {
         info: {},

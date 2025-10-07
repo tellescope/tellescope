@@ -3591,6 +3591,9 @@ export var organizationSettingsValidator = objectValidator({
         showInboxV2: booleanValidatorOptional,
         showDialerInTopbar: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true, }),
+    timeTracking: objectValidator({
+        enabled: booleanValidatorOptional,
+    }, { isOptional: true, emptyOk: true, }),
 });
 export var calendarEventPortalSettingsValidator = objectValidator({
     hideUsers: booleanValidatorOptional,
@@ -4248,6 +4251,7 @@ export var accessPermissionsValidator = objectValidator({
     ticket_thread_comments: accessPermissionValidator,
     ticket_threads: accessPermissionValidator,
     configurations: accessPermissionValidator,
+    time_tracks: accessPermissionValidator,
     ticket_queues: accessPermissionValidator,
     group_mms_conversations: accessPermissionValidator,
     enduser_orders: accessPermissionValidator,
@@ -4347,6 +4351,7 @@ export var organizationLimitsValidator = objectValidator({
     ticket_threads: numberValidatorOptional,
     ticket_thread_comments: numberValidatorOptional,
     configurations: numberValidatorOptional,
+    time_tracks: numberValidatorOptional,
     ticket_queues: numberValidatorOptional,
     enduser_orders: numberValidatorOptional,
     enduser_encounters: numberValidatorOptional,
@@ -5191,6 +5196,7 @@ export var phoneTreeActionValidator = orValidator({
         type: exactMatchValidator(['Forward Call']),
         info: objectValidator({
             to: phoneValidator,
+            playback: phonePlaybackValidatorOptional,
         }),
     }),
     "Conditional Split": objectValidator({
@@ -5259,6 +5265,8 @@ export var formCustomizationValidator = objectValidator({
     publicGenderLabel: stringValidatorOptionalEmptyOkay,
     publicPhoneLabel: stringValidatorOptionalEmptyOkay,
     publicStateLabel: stringValidatorOptionalEmptyOkay,
+    primaryColor: stringValidatorOptionalEmptyOkay,
+    secondaryColor: stringValidatorOptionalEmptyOkay, // Custom secondary color
 });
 export var languageValidator = objectValidator({
     displayName: stringValidator100,

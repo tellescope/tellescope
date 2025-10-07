@@ -213,6 +213,7 @@ var emailsSlice = createSliceForList('email');
 var smsMessagesSlice = createSliceForList('sms_messages');
 var userNotifcationsSlice = createSliceForList('user_notifications');
 var endusersSlice = createSliceForList('endusers');
+var timeTracksSlice = createSliceForList('time_tracks');
 var ticketsSlice = createSliceForList('tickets');
 var meetingsSlice = createSliceForList('meetings');
 var filesSlice = createSliceForList('files');
@@ -310,6 +311,7 @@ export var sharedConfig = {
         sms_messages: smsMessagesSlice.reducer,
         user_notifications: userNotifcationsSlice.reducer,
         endusers: endusersSlice.reducer,
+        time_tracks: timeTracksSlice.reducer,
         tickets: ticketsSlice.reducer,
         meetings: meetingsSlice.reducer,
         files: filesSlice.reducer,
@@ -1657,6 +1659,17 @@ export var useEndusers = function (options) {
         addSome: session.api.endusers.createSome,
         deleteOne: session.api.endusers.deleteOne,
         updateOne: session.api.endusers.updateOne,
+    }, __assign({}, options));
+};
+export var useTimeTracks = function (options) {
+    if (options === void 0) { options = {}; }
+    var session = useResolvedSession();
+    return useListStateHook('time_tracks', useTypedSelector(function (s) { return s.time_tracks; }), session, timeTracksSlice, {
+        loadQuery: session.api.time_tracks.getSome,
+        findOne: session.api.time_tracks.getOne,
+        addOne: session.api.time_tracks.createOne,
+        deleteOne: session.api.time_tracks.deleteOne,
+        updateOne: session.api.time_tracks.updateOne,
     }, __assign({}, options));
 };
 export var useTickets = function (options) {

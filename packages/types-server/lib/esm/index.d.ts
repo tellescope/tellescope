@@ -67,6 +67,7 @@ export type EmailSyncDenial = ServerModelForName['email_sync_denials'];
 export type TicketThread = ServerModelForName['ticket_threads'];
 export type TicketThreadComment = ServerModelForName['ticket_thread_comments'];
 export type Configuration = ServerModelForName['configurations'];
+export type TimeTrack = ServerModelForName['time_tracks'];
 export type TicketQueue = ServerModelForName['ticket_queues'];
 export type GroupMMSConversation = ServerModelForName['group_mms_conversations'];
 export type EnduserOrder = ServerModelForName['enduser_orders'];

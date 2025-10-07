@@ -88,6 +88,10 @@ export declare const TellescopeStoreContext: React.Context<ReactReduxContextValu
         id: string;
         createdAt: Date;
     })[]>;
+    time_tracks: LoadedData<(import("@tellescope/types-models").TimeTrack & {
+        id: string;
+        createdAt: Date;
+    })[]>;
     tickets: LoadedData<(import("@tellescope/types-models").Ticket & {
         id: string;
         createdAt: Date;
@@ -425,6 +429,10 @@ export declare const createTellescopeSelector: () => <Selected extends unknown>(
         createdAt: Date;
     })[]>;
     endusers: LoadedData<(import("@tellescope/types-models").Enduser & {
+        id: string;
+        createdAt: Date;
+    })[]>;
+    time_tracks: LoadedData<(import("@tellescope/types-models").TimeTrack & {
         id: string;
         createdAt: Date;
     })[]>;
@@ -871,6 +879,10 @@ export declare const sharedConfig: {
             id: string;
             createdAt: Date;
         })[]>, import("redux").AnyAction>;
+        time_tracks: import("redux").Reducer<LoadedData<(import("@tellescope/types-models").TimeTrack & {
+            id: string;
+            createdAt: Date;
+        })[]>, import("redux").AnyAction>;
         tickets: import("redux").Reducer<LoadedData<(import("@tellescope/types-models").Ticket & {
             id: string;
             createdAt: Date;
@@ -1246,6 +1258,9 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").UserNotification & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").TimeTrack & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").Ticket & {
         id: string;
         createdAt: Date;
@@ -1510,6 +1525,9 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").UserNotification & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").TimeTrack & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Ticket & {
@@ -1786,6 +1804,9 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").UserNotification & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").TimeTrack & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").Ticket & {
         id: string;
         createdAt: Date;
@@ -2050,6 +2071,9 @@ export declare const useSyncContext: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").UserNotification & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").TimeTrack & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").Ticket & {
@@ -2811,6 +2835,16 @@ export declare const useEndusers: (options?: HookOptions<import("@tellescope/typ
     sharedWithOrganizations?: string[][] | undefined;
     _overrideUnique?: boolean | undefined;
 }>;
+export declare const useTimeTracks: (options?: HookOptions<import("@tellescope/types-models").TimeTrack & {
+    id: string;
+    createdAt: Date;
+}>) => ListStateReturnType<import("@tellescope/types-models").TimeTrack & {
+    id: string;
+    createdAt: Date;
+}, Partial<import("@tellescope/types-models").TimeTrack & {
+    id: string;
+    createdAt: Date;
+}>>;
 export declare const useTickets: (options?: HookOptions<import("@tellescope/types-models").Ticket & {
     id: string;
     createdAt: Date;

@@ -4461,6 +4461,9 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     showInboxV2: booleanValidatorOptional,
     showDialerInTopbar: booleanValidatorOptional,
   }, { isOptional: true, emptyOk: true, }),
+  timeTracking: objectValidator<OrganizationSettings['timeTracking']>({
+    enabled: booleanValidatorOptional,
+  }, { isOptional: true, emptyOk: true, }),
 })
 
 export const calendarEventPortalSettingsValidator = objectValidator<CalendarEventPortalSettings>({
@@ -5133,6 +5136,7 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   ticket_thread_comments: accessPermissionValidator,
   ticket_threads: accessPermissionValidator,
   configurations: accessPermissionValidator,
+  time_tracks: accessPermissionValidator,
   ticket_queues: accessPermissionValidator,
   group_mms_conversations: accessPermissionValidator,
   enduser_orders: accessPermissionValidator,
@@ -5234,6 +5238,7 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   ticket_threads: numberValidatorOptional,
   ticket_thread_comments: numberValidatorOptional,
   configurations: numberValidatorOptional,
+  time_tracks: numberValidatorOptional,
   ticket_queues: numberValidatorOptional,
   enduser_orders: numberValidatorOptional,
   enduser_encounters: numberValidatorOptional,
@@ -6180,6 +6185,7 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
     type: exactMatchValidator(['Forward Call']),
     info: objectValidator<PhoneTreeActions["Forward Call"]['info']>({
       to: phoneValidator,
+      playback: phonePlaybackValidatorOptional,
     }),
   }),
   "Conditional Split": objectValidator<PhoneTreeActions["Conditional Split"]>({
@@ -6251,6 +6257,8 @@ export const formCustomizationValidator = objectValidator<Form['customization']>
   publicGenderLabel: stringValidatorOptionalEmptyOkay,
   publicPhoneLabel: stringValidatorOptionalEmptyOkay,
   publicStateLabel: stringValidatorOptionalEmptyOkay,
+  primaryColor: stringValidatorOptionalEmptyOkay, // Custom primary/accent color
+  secondaryColor: stringValidatorOptionalEmptyOkay, // Custom secondary color
 })
 
 export const languageValidator = objectValidator<Language>({

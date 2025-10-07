@@ -85,6 +85,7 @@ import {
   AttendeeStatus,
   InboxThread,
   AIDecisionAutomationAction,
+  TimeTrackTimestamp,
 } from "@tellescope/types-models"
 
 import {
@@ -250,6 +251,7 @@ import {
   automationTriggerEventValidator,
   automatioNTriggerStatusValidator,
   exactMatchValidator,
+  exactMatchValidatorOptional,
   listOfMongoIdStringValidatorOptionalOrEmptyOk,
   listOfStringsValidatorOptionalOrEmptyOk,
   stringValidatorOptionalEmptyOkay,
@@ -718,7 +720,7 @@ export type CustomActions = {
         utm?: LabeledField[],
         markedAsSubmitted?: boolean,
       },
-      { formResponse: FormResponse, nextFormGroupPublicURL?: string }
+      { formResponse: FormResponse, nextFormGroupPublicURL?: string, redirectTo?: string }
     >,
     save_field_response: CustomAction<{ formResponseId?: string, accessCode?: string, response?: FormResponseValue, responses?: FormResponseValue[] }, { }>,
     info_for_access_code: CustomAction<{ accessCode: string }, {
@@ -4519,6 +4521,7 @@ export const schema: SchemaV1 = build_schema({
       syncToCanvasAsDataImport: { validator: booleanValidator },
       matchCareTeamTagsForCanvasPractitionerResolution: { validator: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay },
       ipAddressCustomField: { validator: stringValidatorOptionalEmptyOkay },
+      version: { validator: exactMatchValidatorOptional<'v1' | 'v2'>(['v1', 'v2']) },
     }
   },
   form_fields: {
@@ -4824,6 +4827,7 @@ export const schema: SchemaV1 = build_schema({
         returns: {
           formResponse: 'form response' as any,
           nextFormGroupPublicURL: { validator: stringValidator },
+          redirectTo: { validator: stringValidator },
         },
       },
       info_for_access_code: {
@@ -5677,6 +5681,7 @@ export const schema: SchemaV1 = build_schema({
       instructions: { validator: stringValidator5000EmptyOkay },
       requiresEnduser: { validator: booleanValidator },
       requirePortalCancelReason: { validator: booleanValidator },
+      replaceHostOnReschedule: { validator: booleanValidator },
     }
   },
   calendar_event_RSVPs: {
@@ -8263,9 +8268,56 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     customActions: {},
     enduserActions: {},
     fields: {
-      ...BuiltInFields, 
+      ...BuiltInFields,
       type: { validator: stringValidator250, examples: ['string'] },
       value: { validator: stringValidator100000OptionalEmptyOkayEscapeHTML, examples: ['string'] },
+    },
+  },
+  time_tracks: {
+    info: {},
+    constraints: {
+      unique: [],
+      relationship: [],
+      access: [
+        { type: 'filter', field: 'userId' },
+      ]
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields,
+      title: { validator: stringValidator, required: true, examples: ['Client Meeting'] },
+      userId: {
+        validator: mongoIdStringValidator,
+        examples: [PLACEHOLDER_ID],
+        initializer: (a, s) => (s as UserSession).id,
+        dependencies: [{
+          dependsOn: ['users'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'delete',
+        }]
+      },
+      enduserId: {
+        validator: mongoIdStringOptional,
+        examples: [PLACEHOLDER_ID],
+        dependencies: [{
+          dependsOn: ['endusers'],
+          dependencyField: '_id',
+          relationship: 'foreignKey',
+          onDependencyDelete: 'setNull',
+        }]
+      },
+      timestamps: {
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<TimeTrackTimestamp>({
+          type: stringValidator,
+          timestamp: dateValidator,
+        })),
+        initializer: () => [{ type: 'start' as const, timestamp: new Date() }],
+      },
+      closedAt: { validator: dateValidatorOptional },
+      totalDurationInMS: { validator: numberValidatorOptional },
     },
   },
   ticket_queues: {

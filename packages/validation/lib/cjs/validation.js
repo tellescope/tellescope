@@ -3643,6 +3643,9 @@ exports.organizationSettingsValidator = (0, exports.objectValidator)({
         showInboxV2: exports.booleanValidatorOptional,
         showDialerInTopbar: exports.booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true, }),
+    timeTracking: (0, exports.objectValidator)({
+        enabled: exports.booleanValidatorOptional,
+    }, { isOptional: true, emptyOk: true, }),
 });
 exports.calendarEventPortalSettingsValidator = (0, exports.objectValidator)({
     hideUsers: exports.booleanValidatorOptional,
@@ -4300,6 +4303,7 @@ exports.accessPermissionsValidator = (0, exports.objectValidator)({
     ticket_thread_comments: exports.accessPermissionValidator,
     ticket_threads: exports.accessPermissionValidator,
     configurations: exports.accessPermissionValidator,
+    time_tracks: exports.accessPermissionValidator,
     ticket_queues: exports.accessPermissionValidator,
     group_mms_conversations: exports.accessPermissionValidator,
     enduser_orders: exports.accessPermissionValidator,
@@ -4399,6 +4403,7 @@ exports.organizationLimitsValidator = (0, exports.objectValidator)({
     ticket_threads: exports.numberValidatorOptional,
     ticket_thread_comments: exports.numberValidatorOptional,
     configurations: exports.numberValidatorOptional,
+    time_tracks: exports.numberValidatorOptional,
     ticket_queues: exports.numberValidatorOptional,
     enduser_orders: exports.numberValidatorOptional,
     enduser_encounters: exports.numberValidatorOptional,
@@ -5243,6 +5248,7 @@ exports.phoneTreeActionValidator = (0, exports.orValidator)({
         type: (0, exports.exactMatchValidator)(['Forward Call']),
         info: (0, exports.objectValidator)({
             to: exports.phoneValidator,
+            playback: exports.phonePlaybackValidatorOptional,
         }),
     }),
     "Conditional Split": (0, exports.objectValidator)({
@@ -5311,6 +5317,8 @@ exports.formCustomizationValidator = (0, exports.objectValidator)({
     publicGenderLabel: exports.stringValidatorOptionalEmptyOkay,
     publicPhoneLabel: exports.stringValidatorOptionalEmptyOkay,
     publicStateLabel: exports.stringValidatorOptionalEmptyOkay,
+    primaryColor: exports.stringValidatorOptionalEmptyOkay,
+    secondaryColor: exports.stringValidatorOptionalEmptyOkay, // Custom secondary color
 });
 exports.languageValidator = (0, exports.objectValidator)({
     displayName: exports.stringValidator100,

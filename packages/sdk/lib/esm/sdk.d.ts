@@ -406,6 +406,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         id: string;
         createdAt: Date;
     };
+    time_tracks: import("@tellescope/types-models").TimeTrack & {
+        id: string;
+        createdAt: Date;
+    };
 }[N], reload: (argument: string | ReadFilter<{
     inbox_threads: import("@tellescope/types-models").InboxThread & {
         id: string;
@@ -756,6 +760,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         createdAt: Date;
     };
     email_sync_denials: import("@tellescope/types-models").EmailSyncDenial & {
+        id: string;
+        createdAt: Date;
+    };
+    time_tracks: import("@tellescope/types-models").TimeTrack & {
         id: string;
         createdAt: Date;
     };
@@ -1112,6 +1120,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         id: string;
         createdAt: Date;
     };
+    time_tracks: import("@tellescope/types-models").TimeTrack & {
+        id: string;
+        createdAt: Date;
+    };
 }[N]>, onLoad: (loaded: {
     inbox_threads: import("@tellescope/types-models").InboxThread & {
         id: string;
@@ -1465,6 +1477,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         id: string;
         createdAt: Date;
     };
+    time_tracks: import("@tellescope/types-models").TimeTrack & {
+        id: string;
+        createdAt: Date;
+    };
 }[N]) => void) => Promise<{
     inbox_threads: import("@tellescope/types-models").InboxThread & {
         id: string;
@@ -1815,6 +1831,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         createdAt: Date;
     };
     email_sync_denials: import("@tellescope/types-models").EmailSyncDenial & {
+        id: string;
+        createdAt: Date;
+    };
+    time_tracks: import("@tellescope/types-models").TimeTrack & {
         id: string;
         createdAt: Date;
     };
@@ -2172,6 +2192,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    time_tracks: import("@tellescope/types-models").TimeTrack & {
+        id: string;
+        createdAt: Date;
+    };
 }[N], CreateFields<N, {
     inbox_threads: import("@tellescope/types-models").InboxThread & {
         id: string;
@@ -2522,6 +2546,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
     email_sync_denials: import("@tellescope/types-models").EmailSyncDenial & {
+        id: string;
+        createdAt: Date;
+    };
+    time_tracks: import("@tellescope/types-models").TimeTrack & {
         id: string;
         createdAt: Date;
     };
@@ -2878,6 +2906,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    time_tracks: import("@tellescope/types-models").TimeTrack & {
+        id: string;
+        createdAt: Date;
+    };
 }[N]>, keyof {
     inbox_threads: import("@tellescope/types-models").InboxThread_readonly & {
         id: string;
@@ -3231,6 +3263,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    time_tracks: import("@tellescope/types-models").TimeTrack_readonly & {
+        id: string;
+        createdAt: Date;
+    };
 }[N] | keyof {
     inbox_threads: import("@tellescope/types-models").InboxThread_updatesDisabled & {
         id: string;
@@ -3581,6 +3617,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
     email_sync_denials: import("@tellescope/types-models").EmailSyncDenial_updatesDisabled & {
+        id: string;
+        createdAt: Date;
+    };
+    time_tracks: import("@tellescope/types-models").TimeTrack_updatesDisabled & {
         id: string;
         createdAt: Date;
     };
@@ -4080,6 +4120,7 @@ export declare class Session extends SessionManager {
         enduser_profile_views?: number | undefined;
         table_views?: number | undefined;
         email_sync_denials?: number | undefined;
+        time_tracks?: number | undefined;
         authToken: string;
     }>;
     change_tenant: (args?: {
@@ -4232,6 +4273,7 @@ export declare class Session extends SessionManager {
         enduser_profile_views?: number | undefined;
         table_views?: number | undefined;
         email_sync_denials?: number | undefined;
+        time_tracks?: number | undefined;
         authToken: string;
     }>;
     logout: () => Promise<void>;

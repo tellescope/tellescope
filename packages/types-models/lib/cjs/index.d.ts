@@ -264,6 +264,9 @@ export type OrganizationSettings = {
         showInboxV2?: boolean;
         showDialerInTopbar?: boolean;
     };
+    timeTracking?: {
+        enabled?: boolean;
+    };
 };
 export type OrganizationLimits = {
     [K in ModelName]?: number;
@@ -1766,6 +1769,8 @@ export type FormCustomization = {
     hideBg?: boolean;
     portalShowThanksAfterSubmission?: boolean;
     maxWidth?: number;
+    primaryColor?: string;
+    secondaryColor?: string;
 };
 export interface Form_readonly extends ClientRecord {
     numFields: number;
@@ -1837,6 +1842,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
     dontSyncToCanvasOnSubmission?: boolean;
     belugaVisitType?: string;
     showByUserTags?: string[];
+    version?: 'v1' | 'v2';
 }
 export interface FormGroup_readonly extends ClientRecord {
 }
@@ -2562,6 +2568,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
     athenaTypeId?: string;
     athenaBookingTypeId?: string;
     healthieInsuranceBillingEnabled?: boolean;
+    replaceHostOnReschedule?: boolean;
 }
 export interface AppointmentLocation_readonly extends ClientRecord {
 }
@@ -4479,6 +4486,7 @@ export type PhoneTreeActions = {
     }>;
     'Forward Call': PhoneTreeActionBuilder<"Forward Call", {
         to: string;
+        playback?: Partial<PhonePlayback>;
     }>;
     'Conditional Split': PhoneTreeActionBuilder<"Conditional Split", {
         timezone?: Timezone;
@@ -4630,6 +4638,24 @@ export interface Configuration_required {
     value: string;
 }
 export interface Configuration extends Configuration_readonly, Configuration_required, Configuration_updatesDisabled {
+}
+export type TimeTrackTimestamp = {
+    type: 'start' | 'pause' | 'resume';
+    timestamp: Date;
+};
+export interface TimeTrack_readonly extends ClientRecord {
+}
+export interface TimeTrack_updatesDisabled {
+}
+export interface TimeTrack_required {
+    title: string;
+    userId: string;
+}
+export interface TimeTrack extends TimeTrack_readonly, TimeTrack_required, TimeTrack_updatesDisabled {
+    enduserId?: string;
+    timestamps?: TimeTrackTimestamp[];
+    closedAt?: Date | '';
+    totalDurationInMS?: number;
 }
 export interface TicketQueue_readonly extends ClientRecord {
     count?: number;
@@ -5146,6 +5172,7 @@ export type ModelForName_required = {
     table_views: TableView_required;
     email_sync_denials: EmailSyncDenial_required;
     configurations: Configuration_required;
+    time_tracks: TimeTrack_required;
 };
 export type ClientModel_required = ModelForName_required[keyof ModelForName_required];
 export interface ModelForName_readonly {
@@ -5237,6 +5264,7 @@ export interface ModelForName_readonly {
     enduser_profile_views: EnduserProfileView_readonly;
     table_views: TableView_readonly;
     email_sync_denials: EmailSyncDenial_readonly;
+    time_tracks: TimeTrack_readonly;
 }
 export type ClientModel_readonly = ModelForName_readonly[keyof ModelForName_readonly];
 export interface ModelForName_updatesDisabled {
@@ -5328,6 +5356,7 @@ export interface ModelForName_updatesDisabled {
     enduser_profile_views: EnduserProfileView_updatesDisabled;
     table_views: TableView_updatesDisabled;
     email_sync_denials: EmailSyncDenial_updatesDisabled;
+    time_tracks: TimeTrack_updatesDisabled;
 }
 export type ClientModel_updatesDisabled = ModelForName_updatesDisabled[keyof ModelForName_updatesDisabled];
 export interface ModelForName extends ModelForName_required, ModelForName_readonly {
@@ -5419,6 +5448,7 @@ export interface ModelForName extends ModelForName_required, ModelForName_readon
     enduser_profile_views: EnduserProfileView;
     table_views: TableView;
     email_sync_denials: EmailSyncDenial;
+    time_tracks: TimeTrack;
 }
 export type ModelName = keyof ModelForName;
 export type Model = ModelForName[keyof ModelForName];

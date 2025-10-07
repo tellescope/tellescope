@@ -362,6 +362,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    time_tracks: import("@tellescope/types-models").TimeTrack & {
+        id: string;
+        createdAt: Date;
+    };
 }[N], import("@tellescope/types-client").CreateFields<N, {
     inbox_threads: import("@tellescope/types-models").InboxThread & {
         id: string;
@@ -712,6 +716,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
     email_sync_denials: import("@tellescope/types-models").EmailSyncDenial & {
+        id: string;
+        createdAt: Date;
+    };
+    time_tracks: import("@tellescope/types-models").TimeTrack & {
         id: string;
         createdAt: Date;
     };
@@ -1068,6 +1076,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    time_tracks: import("@tellescope/types-models").TimeTrack & {
+        id: string;
+        createdAt: Date;
+    };
 }[N]>, keyof {
     inbox_threads: import("@tellescope/types-models").InboxThread_readonly & {
         id: string;
@@ -1421,6 +1433,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    time_tracks: import("@tellescope/types-models").TimeTrack_readonly & {
+        id: string;
+        createdAt: Date;
+    };
 }[N] | keyof {
     inbox_threads: import("@tellescope/types-models").InboxThread_updatesDisabled & {
         id: string;
@@ -1771,6 +1787,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
     email_sync_denials: import("@tellescope/types-models").EmailSyncDenial_updatesDisabled & {
+        id: string;
+        createdAt: Date;
+    };
+    time_tracks: import("@tellescope/types-models").TimeTrack_updatesDisabled & {
         id: string;
         createdAt: Date;
     };

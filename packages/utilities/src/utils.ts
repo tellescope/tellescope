@@ -3246,3 +3246,38 @@ export const validate_custom_field_references = (
   checkConditions(conditions)
   return Array.from(missingFields).sort()
 }
+
+export function calculateTimeTrackDuration(
+  timestamps: { type: 'start' | 'pause' | 'resume', timestamp: Date }[],
+  closedAt?: Date
+): number {
+  let totalMS = 0
+  let lastStart: Date | null = null
+
+  for (const event of timestamps) {
+    if (event.type === 'start' || event.type === 'resume') {
+      lastStart = event.timestamp
+    } else if (event.type === 'pause' && lastStart) {
+      totalMS += new Date(event.timestamp).getTime() - new Date(lastStart).getTime()
+      lastStart = null
+    }
+  }
+
+  // If still running (not paused) and closedAt is set, add final interval
+  if (lastStart && closedAt) {
+    totalMS += new Date(closedAt).getTime() - new Date(lastStart).getTime()
+  }
+
+  return Math.round(totalMS)
+}
+
+export function formatDuration(ms: number): string {
+  const totalSeconds = Math.floor(ms / 1000)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+
+  const pad = (num: number) => num.toString().padStart(2, '0')
+
+  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+}

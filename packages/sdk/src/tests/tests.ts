@@ -69,6 +69,7 @@ import {
 import fs from "fs"
 import { load_inbox_data_tests } from "./api_tests/load_inbox_data.test";
 import { message_assignment_trigger_tests } from "./api_tests/message_assignment_trigger.test";
+import { time_tracks_tests } from "./api_tests/time_tracks.test";
 import { monthly_availability_restrictions_tests } from "./api_tests/monthly_availability_restrictions.test";
 import { calendar_event_limits_tests } from "./api_tests/calendar_event_limits.test";
 
@@ -6156,9 +6157,178 @@ export const self_serve_appointment_booking_tests = async () => {
     () => enduserSDK.api.calendar_events.book_appointment({
       calendarEventTemplateId: event30min.id,
       startTime: new Date(nySlots.availabilityBlocks[0].startTimeInMS),
-      userId: nySlots.availabilityBlocks[0].userId, 
+      userId: nySlots.availabilityBlocks[0].userId,
     }),
     handleAnyError
+  )
+
+  // Test reschedule functionality with replaceHostOnReschedule setting
+  await sdk.api.calendar_event_templates.updateOne(event30min.id, { bufferEndMinutes: 0 })
+  await sdk.api.calendar_events.deleteOne(conflict3.id)
+
+  // Setup fresh availability for reschedule tests
+  await sdk.api.users.updateOne(sdk.userInfo.id, {
+    weeklyAvailabilities: [
+      {
+        dayOfWeekStartingSundayIndexedByZero,
+        startTimeInMinutes: 60 * 14, // 2pm,
+        endTimeInMinutes: 60 * 16, // 4pm,
+      },
+    ],
+    timezone: 'America/New_York',
+  }, {
+    replaceObjectFields: true,
+  })
+  await sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, {
+    weeklyAvailabilities: [
+      {
+        dayOfWeekStartingSundayIndexedByZero,
+        startTimeInMinutes: 60 * 14, // 2pm,
+        endTimeInMinutes: 60 * 16, // 4pm,
+      },
+    ],
+    timezone: 'America/New_York',
+  }, {
+    replaceObjectFields: true,
+  })
+
+  const rescheduleSlots = await enduserSDK.api.calendar_events.get_appointment_availability({
+    calendarEventTemplateId: event30min.id,
+    from: new Date(Date.now() - 10000),
+    to: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+    multi: true,
+    userIds: [sdk.userInfo.id, sdkNonAdmin.userInfo.id]
+  })
+
+  // Test 1: replaceHostOnReschedule: false (old behavior - preserve all attendees)
+  const templatePreserveHosts = await sdk.api.calendar_event_templates.createOne({
+    title: 'Preserve Hosts Template',
+    durationInMinutes: 30,
+    confirmationEmailDisabled: true,
+    confirmationSMSDisabled: true,
+    replaceHostOnReschedule: false, // explicitly set to false
+  })
+
+  const originalMultiHostAppt = (await enduserSDK.api.calendar_events.book_appointment({
+    calendarEventTemplateId: templatePreserveHosts.id,
+    startTime: new Date(rescheduleSlots.availabilityBlocks[0].startTimeInMS),
+    userId: sdk.userInfo.id,
+    otherUserIds: [sdkNonAdmin.userInfo.id], // book with both hosts
+  })).createdEvent
+
+  assert(
+    originalMultiHostAppt.attendees.filter(a => a.type === 'user').length === 2,
+    'Original appointment should have 2 user attendees',
+    'Original multi-host appointment created'
+  )
+
+  const rescheduledPreserveHosts = (await enduserSDK.api.calendar_events.book_appointment({
+    calendarEventTemplateId: templatePreserveHosts.id,
+    rescheduledCalendarEventId: originalMultiHostAppt.id,
+    startTime: new Date(rescheduleSlots.availabilityBlocks[1].startTimeInMS),
+    userId: sdkNonAdmin.userInfo.id, // reschedule with different primary host
+  })).createdEvent
+
+  await async_test(
+    '[reschedule] replaceHostOnReschedule: false preserves all user attendees',
+    () => sdk.api.calendar_events.getOne(rescheduledPreserveHosts.id),
+    { onResult: event => {
+      const userAttendees = event.attendees.filter(a => a.type === 'user')
+      const hasOriginalHost = userAttendees.some(a => a.id === sdk.userInfo.id)
+      const hasNewHost = userAttendees.some(a => a.id === sdkNonAdmin.userInfo.id)
+
+      if (userAttendees.length !== 2) {
+        console.log(`Expected 2 user attendees, got ${userAttendees.length}`)
+        return false
+      }
+      if (!hasOriginalHost) {
+        console.log('Original host missing from rescheduled event')
+        return false
+      }
+      if (!hasNewHost) {
+        console.log('New host missing from rescheduled event')
+        return false
+      }
+      return true
+    }}
+  )
+
+  // Test 2: replaceHostOnReschedule: true (new behavior - replace hosts)
+  const templateReplaceHosts = await sdk.api.calendar_event_templates.createOne({
+    title: 'Replace Hosts Template',
+    durationInMinutes: 30,
+    confirmationEmailDisabled: true,
+    confirmationSMSDisabled: true,
+    replaceHostOnReschedule: true, // new default behavior
+  })
+
+  const originalForReplace = (await enduserSDK.api.calendar_events.book_appointment({
+    calendarEventTemplateId: templateReplaceHosts.id,
+    startTime: new Date(rescheduleSlots.availabilityBlocks[2].startTimeInMS),
+    userId: sdk.userInfo.id,
+    otherUserIds: [sdkNonAdmin.userInfo.id], // book with both hosts
+  })).createdEvent
+
+  assert(
+    originalForReplace.attendees.filter(a => a.type === 'user').length === 2,
+    'Original appointment should have 2 user attendees',
+    'Original multi-host appointment for replace test created'
+  )
+
+  const rescheduledReplaceHosts = (await enduserSDK.api.calendar_events.book_appointment({
+    calendarEventTemplateId: templateReplaceHosts.id,
+    rescheduledCalendarEventId: originalForReplace.id,
+    startTime: new Date(rescheduleSlots.availabilityBlocks[3].startTimeInMS),
+    userId: sdkNonAdmin.userInfo.id, // reschedule with only this host
+  })).createdEvent
+
+  await async_test(
+    '[reschedule] replaceHostOnReschedule: true replaces user attendees with new host only',
+    () => sdk.api.calendar_events.getOne(rescheduledReplaceHosts.id),
+    { onResult: event => {
+      const userAttendees = event.attendees.filter(a => a.type === 'user')
+      const hasOriginalHost = userAttendees.some(a => a.id === sdk.userInfo.id)
+      const hasNewHost = userAttendees.some(a => a.id === sdkNonAdmin.userInfo.id)
+
+      if (userAttendees.length !== 1) {
+        console.log(`Expected 1 user attendee, got ${userAttendees.length}`)
+        return false
+      }
+      if (hasOriginalHost) {
+        console.log('Original host should be removed but was found')
+        return false
+      }
+      if (!hasNewHost) {
+        console.log('New host missing from rescheduled event')
+        return false
+      }
+      return true
+    }}
+  )
+
+  await async_test(
+    '[reschedule] replaceHostOnReschedule: true preserves enduser attendees',
+    () => sdk.api.calendar_events.getOne(rescheduledReplaceHosts.id),
+    { onResult: event => {
+      const enduserAttendees = event.attendees.filter(a => a.type === 'enduser')
+
+      if (enduserAttendees.length !== 1) {
+        console.log(`Expected 1 enduser attendee, got ${enduserAttendees.length}`)
+        return false
+      }
+      if (enduserAttendees[0].id !== e1.id) {
+        console.log('Enduser attendee changed unexpectedly')
+        return false
+      }
+      return true
+    }}
+  )
+
+  // Test 3: Verify old event is marked as rescheduled
+  await async_test(
+    '[reschedule] original event marked as rescheduled',
+    () => sdk.api.calendar_events.getOne(originalForReplace.id),
+    { onResult: event => !!event.rescheduledAt }
   )
 
   await Promise.all([
@@ -6168,10 +6338,15 @@ export const self_serve_appointment_booking_tests = async () => {
     sdk.api.calendar_event_templates.deleteOne(event30min.id),
     sdk.api.calendar_event_templates.deleteOne(event30minGroup.id),
     sdk.api.calendar_event_templates.deleteOne(event15min.id),
+    sdk.api.calendar_event_templates.deleteOne(templatePreserveHosts.id),
+    sdk.api.calendar_event_templates.deleteOne(templateReplaceHosts.id),
     sdk.api.calendar_events.deleteOne(bookedAppointment.id),
     sdk.api.calendar_events.deleteOne(bookedMultiAppointment.id),
     sdk.api.calendar_events.deleteOne(groupEvent.id),
-    sdk.api.calendar_events.deleteOne(conflict3.id),
+    sdk.api.calendar_events.deleteOne(originalMultiHostAppt.id),
+    sdk.api.calendar_events.deleteOne(rescheduledPreserveHosts.id),
+    sdk.api.calendar_events.deleteOne(originalForReplace.id),
+    sdk.api.calendar_events.deleteOne(rescheduledReplaceHosts.id),
   ])
 }
 
@@ -8640,6 +8815,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   ticket_threads: NO_TEST,
   ticket_thread_comments: NO_TEST,
   configurations: configurations_tests,
+  time_tracks: () => NO_TEST,
   group_mms_conversations: NO_TEST,
   blocked_phones: NO_TEST,
   prescription_routes: NO_TEST,
@@ -12718,6 +12894,8 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await self_serve_appointment_booking_tests()
+    await time_tracks_tests({ sdk, sdkNonAdmin })
     await calendar_event_limits_tests({ sdk, sdkNonAdmin })
     await test_ticket_automation_assignment_and_optimization()
     await automation_trigger_tests()
@@ -12759,7 +12937,6 @@ const ip_address_form_tests = async () => {
     await input_modifier_tests()
     await switch_to_related_contacts_tests()
     await redaction_tests()
-    await self_serve_appointment_booking_tests()
     await no_chained_triggers_tests()
     await mdb_filter_tests()
     await superadmin_tests()

@@ -1303,7 +1303,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
       for (const eId of [enduserId, ...(options?.otherEnduserIds ?? [])]) {
         try {
           update_local_storage('redirecting_public_group', '')
-          const { formResponse, nextFormGroupPublicURL } = await session.api.form_responses.submit_form_response({ 
+          const { formResponse, nextFormGroupPublicURL, redirectTo } = await session.api.form_responses.submit_form_response({ 
             accessCode : (
               accessCode 
               || (await (
@@ -1347,7 +1347,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
                 category: `form_${formResponse.formId}`,
                 action: "Form Submitted",
                 label: "Form Submitted",
-                transport: "beacon", 
+                transport: "beacon",
                 value: 2,
               });
             }
@@ -1362,9 +1362,14 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
               options?.onSuccess?.(formResponse)
             }
           }
-        
-          if (isPublicForm && nextFormGroupPublicURL) { 
-            window.location.href = nextFormGroupPublicURL 
+
+          // Handle backend-provided redirect (e.g., Beluga booking link) with highest priority
+          if (redirectTo) {
+            window.location.href = redirectTo
+          }
+          // Handle form group continuation redirect
+          else if (isPublicForm && nextFormGroupPublicURL) {
+            window.location.href = nextFormGroupPublicURL
           }
         } catch(err: any) {
           if (options?.onBulkErrors) { // only track for signle submission

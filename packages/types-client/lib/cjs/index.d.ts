@@ -36,6 +36,7 @@ export type SMSMessage = ClientModelForName['sms_messages'];
 export type Template = ClientModelForName['templates'];
 export type MessageTemplate = ClientModelForName['templates'];
 export type Ticket = ClientModelForName['tickets'];
+export type TimeTrack = ClientModelForName['time_tracks'];
 export type Meeting = ClientModelForName['meetings'];
 export type Note = ClientModelForName['notes'];
 export type AutomationStep = ClientModelForName['automation_steps'];
@@ -110,5 +111,6 @@ export interface UserDisplayInfo extends models.UserActivityInfo {
 }
 export type CreateFields<N extends keyof ClientModelForName, T = ClientModelForName[N]> = (Omit<ClientModelForName_required[N] & Partial<T>, keyof ClientModelForName_readonly[N]>);
 export type ProjectedObservation = (Pick<EnduserObservation, 'id' | 'measurement' | 'timestamp' | 'source' | 'createdAt' | 'classifications' | 'status' | 'beforeMeal' | 'showWithPlotsByUnit' | 'invalidationReason' | 'type' | 'timestampIsEstimated' | 'medStatus' | 'excludeFromVitalCountLookback'> & Partial<Pick<EnduserObservation, 'enduserId' | 'reviewedBy' | 'reviewedAt'>>);
+export type TimeTrackTimestamp = models.TimeTrackTimestamp;
 export {};
 //# sourceMappingURL=index.d.ts.map

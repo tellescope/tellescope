@@ -18,6 +18,7 @@ export const form_display_text_for_language = (form: Pick<Form, 'language'> | un
     if (text === 'State')  { return "Estado" }
 
     if (text === 'Next')  { return "Próximo" }
+    if (text === 'Continue')  { return "Continuar" }
     if (text === 'Previous')  { return "Previo" }
     if (text === 'Submit')  { return "Entregar" }
 

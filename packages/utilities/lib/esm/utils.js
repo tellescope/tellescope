@@ -3027,4 +3027,31 @@ export var validate_custom_field_references = function (conditions, validFields)
     checkConditions(conditions);
     return Array.from(missingFields).sort();
 };
+export function calculateTimeTrackDuration(timestamps, closedAt) {
+    var totalMS = 0;
+    var lastStart = null;
+    for (var _i = 0, timestamps_1 = timestamps; _i < timestamps_1.length; _i++) {
+        var event_1 = timestamps_1[_i];
+        if (event_1.type === 'start' || event_1.type === 'resume') {
+            lastStart = event_1.timestamp;
+        }
+        else if (event_1.type === 'pause' && lastStart) {
+            totalMS += new Date(event_1.timestamp).getTime() - new Date(lastStart).getTime();
+            lastStart = null;
+        }
+    }
+    // If still running (not paused) and closedAt is set, add final interval
+    if (lastStart && closedAt) {
+        totalMS += new Date(closedAt).getTime() - new Date(lastStart).getTime();
+    }
+    return Math.round(totalMS);
+}
+export function formatDuration(ms) {
+    var totalSeconds = Math.floor(ms / 1000);
+    var hours = Math.floor(totalSeconds / 3600);
+    var minutes = Math.floor((totalSeconds % 3600) / 60);
+    var seconds = totalSeconds % 60;
+    var pad = function (num) { return num.toString().padStart(2, '0'); };
+    return "".concat(pad(hours), ":").concat(pad(minutes), ":").concat(pad(seconds));
+}
 //# sourceMappingURL=utils.js.map

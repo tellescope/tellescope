@@ -153,6 +153,7 @@ exports.modelNameChecker = {
     enduser_profile_views: true,
     table_views: true,
     email_sync_denials: true,
+    time_tracks: true,
 };
 var WEBHOOK_MODELS = __assign({}, exports.modelNameChecker);
 exports.WEBHOOK_MODELS = WEBHOOK_MODELS;

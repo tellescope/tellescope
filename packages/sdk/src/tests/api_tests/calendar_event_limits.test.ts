@@ -1,8 +1,9 @@
 require('source-map-support').install();
 
-import { Session } from "../../sdk"
+import { Session, EnduserSession } from "../../sdk"
 import {
   async_test,
+  handleAnyError,
   log_header,
 } from "@tellescope/testing"
 import { setup_tests } from "../setup"
@@ -11,6 +12,8 @@ import { slot_violates_calendar_event_limits } from "@tellescope/utilities"
 import { CalendarEventLimit } from "@tellescope/types-models"
 
 const host = process.env.API_URL || 'http://localhost:8080' as const
+const password = process.env.TEST_PASSWORD || ''
+const businessId = process.env.BUSINESS_ID || ''
 
 // === UNIT TESTS ===
 // Pure function tests for slot_violates_calendar_event_limits logic
@@ -700,12 +703,24 @@ export const calendar_event_limits_tests = async ({ sdk, sdkNonAdmin } : { sdk: 
 
   log_header("Calendar Event Limits - Integration Tests")
 
-  // Create a calendar event template for testing
+  // Create a calendar event template for testing (disable notifications)
   const template = await sdk.api.calendar_event_templates.createOne({
     title: 'Event Limit Test Appointment',
     durationInMinutes: 60,
     description: 'Test appointment for event limits',
+    confirmationEmailDisabled: true,
+    confirmationSMSDisabled: true,
+    reminders: [], // No reminders
   })
+
+  // Create test enduser without phone to prevent SMS notifications
+  const testEnduser = await sdk.api.endusers.createOne({
+    fname: 'Test',
+    lname: 'Enduser Limits',
+    email: 'test-limits-enduser@tellescope.com',
+    // No phone to prevent SMS
+  })
+  await sdk.api.endusers.set_password({ id: testEnduser.id, password })
 
   try {
     // Setup: User has weekly availability Monday-Friday 9am-5pm
@@ -1046,10 +1061,228 @@ export const calendar_event_limits_tests = async ({ sdk, sdkNonAdmin } : { sdk: 
     await sdk.api.calendar_events.deleteOne(event2.id)
     await sdk.api.calendar_events.deleteOne(event3.id)
 
+    // ========================================
+    // NEW TESTS: book_appointment endpoint
+    // ========================================
+    log_header("Calendar Event Limits - book_appointment Integration Tests")
+
+    // Reset user limits for book_appointment tests
+    await sdk.api.users.updateOne(sdk.userInfo.id, {
+      calendarEventLimits: [{
+        templateId: template.id,
+        period: 1, // 1 day
+        limit: 2, // max 2 per day
+      }]
+    }, { replaceObjectFields: true })
+
+    // Authenticate enduser for booking
+    const enduserSession = new EnduserSession({ host, businessId })
+    await enduserSession.authenticate('test-limits-enduser@tellescope.com', password)
+
+    // Get next available Monday
+    const nowForBooking = DateTime.now().setZone('America/New_York')
+    let bookingMonday = nowForBooking.startOf('week').plus({ days: 1 })
+    if (bookingMonday <= nowForBooking) {
+      bookingMonday = bookingMonday.plus({ weeks: 1 })
+    }
+    const bookingFromDate = bookingMonday
+    const bookingToDate = bookingFromDate.plus({ days: 1 }) // Just Monday
+
+    // Test 6: book_appointment - first booking should succeed
+    const availabilityBeforeBooking = await enduserSession.api.calendar_events.get_appointment_availability({
+      calendarEventTemplateId: template.id,
+      userId: sdk.userInfo.id,
+      from: bookingFromDate.toJSDate(),
+      to: bookingToDate.toJSDate(),
+    })
+
+    await async_test(
+      'book_appointment: availability shows slots before any bookings',
+      () => Promise.resolve(availabilityBeforeBooking),
+      { onResult: r => {
+        const userBlocks = r.availabilityBlocks.filter(b => b.userId === sdk.userInfo.id)
+        console.log(`Availability before booking: ${userBlocks.length} blocks`)
+
+        if (userBlocks.length === 0) {
+          console.log('ERROR: Expected availability blocks for booking')
+          return false
+        }
+
+        return true
+      }}
+    )
+
+    const firstSlot = availabilityBeforeBooking.availabilityBlocks.find(b => b.userId === sdk.userInfo.id)!
+    const firstSlotTime = bookingMonday.set({ hour: 9, minute: 0 })
+
+    const booking1Response = await enduserSession.api.calendar_events.book_appointment({
+      userId: sdk.userInfo.id,
+      calendarEventTemplateId: template.id,
+      startTime: firstSlotTime.toJSDate(),
+      timezone: 'America/New_York',
+    })
+    await async_test(
+      'book_appointment: first booking succeeds with calendarEventLimits',
+      () => Promise.resolve(booking1Response),
+      { onResult: r => {
+        if (!r || !r.createdEvent?.id) {
+          console.log('ERROR: First booking should succeed')
+          return false
+        }
+        console.log('✅ First booking succeeded:', r.createdEvent.id)
+        return true
+      }}
+    )
+    const booking1 = booking1Response.createdEvent
+
+    // Small delay to ensure event is indexed
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Test 7: book_appointment - second booking on same day should succeed (limit is 2)
+    const secondSlotTime = firstSlotTime.plus({ hours: 1 })
+
+    const booking2Response = await enduserSession.api.calendar_events.book_appointment({
+      userId: sdk.userInfo.id,
+      calendarEventTemplateId: template.id,
+      startTime: secondSlotTime.toJSDate(),
+      timezone: 'America/New_York',
+    })
+    await async_test(
+      'book_appointment: second booking on same day succeeds (under limit of 2)',
+      () => Promise.resolve(booking2Response),
+      { onResult: r => {
+        if (!r || !r.createdEvent?.id) {
+          console.log('ERROR: Second booking should succeed (limit is 2/day)')
+          return false
+        }
+        console.log('✅ Second booking succeeded:', r.createdEvent.id)
+        return true
+      }}
+    )
+    const booking2 = booking2Response.createdEvent
+
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Test 8: book_appointment - third booking on same day should fail (limit reached)
+    const thirdSlotTime = secondSlotTime.plus({ hours: 1 })
+
+    await async_test(
+      'book_appointment: third booking on same day fails (limit of 2 reached)',
+      () => enduserSession.api.calendar_events.book_appointment({
+        userId: sdk.userInfo.id,
+        calendarEventTemplateId: template.id,
+        startTime: thirdSlotTime.toJSDate(),
+        timezone: 'America/New_York',
+      }),
+      handleAnyError
+    )
+
+    // Test 9: book_appointment - booking on different day should succeed
+    const tuesdaySlotTime = firstSlotTime.plus({ days: 1 })
+
+    const booking3Response = await enduserSession.api.calendar_events.book_appointment({
+      userId: sdk.userInfo.id,
+      calendarEventTemplateId: template.id,
+      startTime: tuesdaySlotTime.toJSDate(),
+      timezone: 'America/New_York',
+    })
+    await async_test(
+      'book_appointment: booking on different day succeeds (new daily limit)',
+      () => Promise.resolve(booking3Response),
+      { onResult: r => {
+        if (!r || !r.createdEvent?.id) {
+          console.log('ERROR: Tuesday booking should succeed (new day, new limit)')
+          return false
+        }
+        console.log('✅ Tuesday booking succeeded:', r.createdEvent.id)
+        return true
+      }}
+    )
+    const booking3 = booking3Response.createdEvent
+
+    // Clean up book_appointment test events
+    if (booking1?.id) await sdk.api.calendar_events.deleteOne(booking1.id).catch(() => {})
+    if (booking2?.id) await sdk.api.calendar_events.deleteOne(booking2.id).catch(() => {})
+    if (booking3?.id) await sdk.api.calendar_events.deleteOne(booking3.id).catch(() => {})
+
+    // Test 10: Weekly limit with book_appointment
+    await sdk.api.users.updateOne(sdk.userInfo.id, {
+      calendarEventLimits: [{
+        templateId: template.id,
+        period: 7, // 7 days
+        limit: 2, // max 2 per week
+      }]
+    }, { replaceObjectFields: true })
+
+    const weeklyMonday = bookingMonday.plus({ weeks: 2 }) // Use a fresh week
+    const weeklyMondaySlot1 = weeklyMonday.set({ hour: 9, minute: 0 })
+    const weeklyMondaySlot2 = weeklyMonday.set({ hour: 10, minute: 0 })
+    const weeklyTuesdaySlot = weeklyMonday.plus({ days: 1 }).set({ hour: 9, minute: 0 })
+
+    const weeklyBooking1Response = await enduserSession.api.calendar_events.book_appointment({
+      userId: sdk.userInfo.id,
+      calendarEventTemplateId: template.id,
+      startTime: weeklyMondaySlot1.toJSDate(),
+      timezone: 'America/New_York',
+    })
+    await async_test(
+      'book_appointment: weekly limit - first booking succeeds',
+      () => Promise.resolve(weeklyBooking1Response),
+      { onResult: r => {
+        if (!r?.createdEvent?.id) {
+          console.log('ERROR: First weekly booking should succeed')
+          return false
+        }
+        console.log('✅ First weekly booking succeeded')
+        return true
+      }}
+    )
+    const weeklyBooking1 = weeklyBooking1Response.createdEvent
+
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    const weeklyBooking2Response = await enduserSession.api.calendar_events.book_appointment({
+      userId: sdk.userInfo.id,
+      calendarEventTemplateId: template.id,
+      startTime: weeklyMondaySlot2.toJSDate(),
+      timezone: 'America/New_York',
+    })
+    await async_test(
+      'book_appointment: weekly limit - second booking in same week succeeds',
+      () => Promise.resolve(weeklyBooking2Response),
+      { onResult: r => {
+        if (!r?.createdEvent?.id) {
+          console.log('ERROR: Second weekly booking should succeed (limit is 2/week)')
+          return false
+        }
+        console.log('✅ Second weekly booking succeeded')
+        return true
+      }}
+    )
+    const weeklyBooking2 = weeklyBooking2Response.createdEvent
+
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    await async_test(
+      'book_appointment: weekly limit - third booking in same week fails',
+      () => enduserSession.api.calendar_events.book_appointment({
+        userId: sdk.userInfo.id,
+        calendarEventTemplateId: template.id,
+        startTime: weeklyTuesdaySlot.toJSDate(),
+        timezone: 'America/New_York',
+      }),
+      handleAnyError
+    )
+
+    // Clean up weekly test events
+    if (weeklyBooking1?.id) await sdk.api.calendar_events.deleteOne(weeklyBooking1.id).catch(() => {})
+    if (weeklyBooking2?.id) await sdk.api.calendar_events.deleteOne(weeklyBooking2.id).catch(() => {})
+
   } finally {
     // Cleanup
     try {
       await sdk.api.calendar_event_templates.deleteOne(template.id)
+      await sdk.api.endusers.deleteOne(testEnduser.id)
       await sdk.api.users.updateOne(sdk.userInfo.id, {
         weeklyAvailabilities: [],
         calendarEventLimits: []

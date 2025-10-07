@@ -1108,7 +1108,7 @@ export var useTellescopeForm = function (_a) {
         });
     }); }, [responses, handleUpload, fields]);
     var submit = useCallback(function (options) { return __awaiter(void 0, void 0, void 0, function () {
-        var hasFile, _loop_9, _i, selectedFiles_1, blobInfo, err_1, responsesToSubmit_3, _a, responsesToSubmit_2, r, _loop_10, _b, _c, f, errors, _d, _e, eId, _g, formResponse, nextFormGroupPublicURL, _h, _j, _k, err_2, url, err_3;
+        var hasFile, _loop_9, _i, selectedFiles_1, blobInfo, err_1, responsesToSubmit_3, _a, responsesToSubmit_2, r, _loop_10, _b, _c, f, errors, _d, _e, eId, _g, formResponse, nextFormGroupPublicURL, redirectTo, _h, _j, _k, err_2, url, err_3;
         var _l;
         var _m, _o, _p, _q, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5;
         return __generator(this, function (_6) {
@@ -1250,7 +1250,7 @@ export var useTellescopeForm = function (_a) {
                     // do actual redirect later to prevent popup
                 ];
                 case 14:
-                    _g = _6.sent(), formResponse = _g.formResponse, nextFormGroupPublicURL = _g.nextFormGroupPublicURL;
+                    _g = _6.sent(), formResponse = _g.formResponse, nextFormGroupPublicURL = _g.nextFormGroupPublicURL, redirectTo = _g.redirectTo;
                     // do actual redirect later to prevent popup
                     if (isPublicForm && nextFormGroupPublicURL) {
                         update_local_storage('redirecting_public_group', 'true');
@@ -1277,7 +1277,12 @@ export var useTellescopeForm = function (_a) {
                             (_z = options === null || options === void 0 ? void 0 : options.onSuccess) === null || _z === void 0 ? void 0 : _z.call(options, formResponse);
                         }
                     }
-                    if (isPublicForm && nextFormGroupPublicURL) {
+                    // Handle backend-provided redirect (e.g., Beluga booking link) with highest priority
+                    if (redirectTo) {
+                        window.location.href = redirectTo;
+                    }
+                    // Handle form group continuation redirect
+                    else if (isPublicForm && nextFormGroupPublicURL) {
                         window.location.href = nextFormGroupPublicURL;
                     }
                     return [3 /*break*/, 16];

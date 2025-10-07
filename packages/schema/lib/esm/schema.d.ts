@@ -412,6 +412,7 @@ export type CustomActions = {
         }, {
             formResponse: FormResponse;
             nextFormGroupPublicURL?: string;
+            redirectTo?: string;
         }>;
         save_field_response: CustomAction<{
             formResponseId?: string;

@@ -33,6 +33,9 @@ var form_display_text_for_language = function (form, text, placeholder) {
         if (text === 'Next') {
             return "Próximo";
         }
+        if (text === 'Continue') {
+            return "Continuar";
+        }
         if (text === 'Previous') {
             return "Previo";
         }

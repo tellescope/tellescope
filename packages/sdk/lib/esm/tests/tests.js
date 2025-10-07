@@ -88,6 +88,7 @@ import { objects_equivalent, url_safe_path, } from "@tellescope/utilities";
 import fs from "fs";
 import { load_inbox_data_tests } from "./api_tests/load_inbox_data.test";
 import { message_assignment_trigger_tests } from "./api_tests/message_assignment_trigger.test";
+import { time_tracks_tests } from "./api_tests/time_tracks.test";
 import { monthly_availability_restrictions_tests } from "./api_tests/monthly_availability_restrictions.test";
 import { calendar_event_limits_tests } from "./api_tests/calendar_event_limits.test";
 var UniquenessViolationMessage = 'Uniqueness Violation';
@@ -6900,7 +6901,7 @@ export var filter_by_date_tests = function () { return __awaiter(void 0, void 0,
     });
 }); };
 export var self_serve_appointment_booking_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var e1, e2, e3, event15min, event30min, event30minGroup, dayOfWeekStartingSundayIndexedByZero, enduserSDK2, enduserSDK3, nySlots, bookedAppointment, conflict, groupEvent, multiSlots, bookedMultiAppointment, conflict2, conflict3;
+    var e1, e2, e3, event15min, event30min, event30minGroup, dayOfWeekStartingSundayIndexedByZero, enduserSDK2, enduserSDK3, nySlots, bookedAppointment, conflict, groupEvent, multiSlots, bookedMultiAppointment, conflict2, conflict3, rescheduleSlots, templatePreserveHosts, originalMultiHostAppt, rescheduledPreserveHosts, templateReplaceHosts, originalForReplace, rescheduledReplaceHosts;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -7319,8 +7320,176 @@ export var self_serve_appointment_booking_tests = function () { return __awaiter
                         calendarEventTemplateId: event30min.id,
                         startTime: new Date(nySlots.availabilityBlocks[0].startTimeInMS),
                         userId: nySlots.availabilityBlocks[0].userId,
-                    }); }, handleAnyError)];
+                    }); }, handleAnyError)
+                    // Test reschedule functionality with replaceHostOnReschedule setting
+                ];
             case 57:
+                _a.sent();
+                // Test reschedule functionality with replaceHostOnReschedule setting
+                return [4 /*yield*/, sdk.api.calendar_event_templates.updateOne(event30min.id, { bufferEndMinutes: 0 })];
+            case 58:
+                // Test reschedule functionality with replaceHostOnReschedule setting
+                _a.sent();
+                return [4 /*yield*/, sdk.api.calendar_events.deleteOne(conflict3.id)
+                    // Setup fresh availability for reschedule tests
+                ];
+            case 59:
+                _a.sent();
+                // Setup fresh availability for reschedule tests
+                return [4 /*yield*/, sdk.api.users.updateOne(sdk.userInfo.id, {
+                        weeklyAvailabilities: [
+                            {
+                                dayOfWeekStartingSundayIndexedByZero: dayOfWeekStartingSundayIndexedByZero,
+                                startTimeInMinutes: 60 * 14,
+                                endTimeInMinutes: 60 * 16, // 4pm,
+                            },
+                        ],
+                        timezone: 'America/New_York',
+                    }, {
+                        replaceObjectFields: true,
+                    })];
+            case 60:
+                // Setup fresh availability for reschedule tests
+                _a.sent();
+                return [4 /*yield*/, sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, {
+                        weeklyAvailabilities: [
+                            {
+                                dayOfWeekStartingSundayIndexedByZero: dayOfWeekStartingSundayIndexedByZero,
+                                startTimeInMinutes: 60 * 14,
+                                endTimeInMinutes: 60 * 16, // 4pm,
+                            },
+                        ],
+                        timezone: 'America/New_York',
+                    }, {
+                        replaceObjectFields: true,
+                    })];
+            case 61:
+                _a.sent();
+                return [4 /*yield*/, enduserSDK.api.calendar_events.get_appointment_availability({
+                        calendarEventTemplateId: event30min.id,
+                        from: new Date(Date.now() - 10000),
+                        to: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+                        multi: true,
+                        userIds: [sdk.userInfo.id, sdkNonAdmin.userInfo.id]
+                    })
+                    // Test 1: replaceHostOnReschedule: false (old behavior - preserve all attendees)
+                ];
+            case 62:
+                rescheduleSlots = _a.sent();
+                return [4 /*yield*/, sdk.api.calendar_event_templates.createOne({
+                        title: 'Preserve Hosts Template',
+                        durationInMinutes: 30,
+                        confirmationEmailDisabled: true,
+                        confirmationSMSDisabled: true,
+                        replaceHostOnReschedule: false, // explicitly set to false
+                    })];
+            case 63:
+                templatePreserveHosts = _a.sent();
+                return [4 /*yield*/, enduserSDK.api.calendar_events.book_appointment({
+                        calendarEventTemplateId: templatePreserveHosts.id,
+                        startTime: new Date(rescheduleSlots.availabilityBlocks[0].startTimeInMS),
+                        userId: sdk.userInfo.id,
+                        otherUserIds: [sdkNonAdmin.userInfo.id], // book with both hosts
+                    })];
+            case 64:
+                originalMultiHostAppt = (_a.sent()).createdEvent;
+                assert(originalMultiHostAppt.attendees.filter(function (a) { return a.type === 'user'; }).length === 2, 'Original appointment should have 2 user attendees', 'Original multi-host appointment created');
+                return [4 /*yield*/, enduserSDK.api.calendar_events.book_appointment({
+                        calendarEventTemplateId: templatePreserveHosts.id,
+                        rescheduledCalendarEventId: originalMultiHostAppt.id,
+                        startTime: new Date(rescheduleSlots.availabilityBlocks[1].startTimeInMS),
+                        userId: sdkNonAdmin.userInfo.id, // reschedule with different primary host
+                    })];
+            case 65:
+                rescheduledPreserveHosts = (_a.sent()).createdEvent;
+                return [4 /*yield*/, async_test('[reschedule] replaceHostOnReschedule: false preserves all user attendees', function () { return sdk.api.calendar_events.getOne(rescheduledPreserveHosts.id); }, { onResult: function (event) {
+                            var userAttendees = event.attendees.filter(function (a) { return a.type === 'user'; });
+                            var hasOriginalHost = userAttendees.some(function (a) { return a.id === sdk.userInfo.id; });
+                            var hasNewHost = userAttendees.some(function (a) { return a.id === sdkNonAdmin.userInfo.id; });
+                            if (userAttendees.length !== 2) {
+                                console.log("Expected 2 user attendees, got ".concat(userAttendees.length));
+                                return false;
+                            }
+                            if (!hasOriginalHost) {
+                                console.log('Original host missing from rescheduled event');
+                                return false;
+                            }
+                            if (!hasNewHost) {
+                                console.log('New host missing from rescheduled event');
+                                return false;
+                            }
+                            return true;
+                        } })
+                    // Test 2: replaceHostOnReschedule: true (new behavior - replace hosts)
+                ];
+            case 66:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.calendar_event_templates.createOne({
+                        title: 'Replace Hosts Template',
+                        durationInMinutes: 30,
+                        confirmationEmailDisabled: true,
+                        confirmationSMSDisabled: true,
+                        replaceHostOnReschedule: true, // new default behavior
+                    })];
+            case 67:
+                templateReplaceHosts = _a.sent();
+                return [4 /*yield*/, enduserSDK.api.calendar_events.book_appointment({
+                        calendarEventTemplateId: templateReplaceHosts.id,
+                        startTime: new Date(rescheduleSlots.availabilityBlocks[2].startTimeInMS),
+                        userId: sdk.userInfo.id,
+                        otherUserIds: [sdkNonAdmin.userInfo.id], // book with both hosts
+                    })];
+            case 68:
+                originalForReplace = (_a.sent()).createdEvent;
+                assert(originalForReplace.attendees.filter(function (a) { return a.type === 'user'; }).length === 2, 'Original appointment should have 2 user attendees', 'Original multi-host appointment for replace test created');
+                return [4 /*yield*/, enduserSDK.api.calendar_events.book_appointment({
+                        calendarEventTemplateId: templateReplaceHosts.id,
+                        rescheduledCalendarEventId: originalForReplace.id,
+                        startTime: new Date(rescheduleSlots.availabilityBlocks[3].startTimeInMS),
+                        userId: sdkNonAdmin.userInfo.id, // reschedule with only this host
+                    })];
+            case 69:
+                rescheduledReplaceHosts = (_a.sent()).createdEvent;
+                return [4 /*yield*/, async_test('[reschedule] replaceHostOnReschedule: true replaces user attendees with new host only', function () { return sdk.api.calendar_events.getOne(rescheduledReplaceHosts.id); }, { onResult: function (event) {
+                            var userAttendees = event.attendees.filter(function (a) { return a.type === 'user'; });
+                            var hasOriginalHost = userAttendees.some(function (a) { return a.id === sdk.userInfo.id; });
+                            var hasNewHost = userAttendees.some(function (a) { return a.id === sdkNonAdmin.userInfo.id; });
+                            if (userAttendees.length !== 1) {
+                                console.log("Expected 1 user attendee, got ".concat(userAttendees.length));
+                                return false;
+                            }
+                            if (hasOriginalHost) {
+                                console.log('Original host should be removed but was found');
+                                return false;
+                            }
+                            if (!hasNewHost) {
+                                console.log('New host missing from rescheduled event');
+                                return false;
+                            }
+                            return true;
+                        } })];
+            case 70:
+                _a.sent();
+                return [4 /*yield*/, async_test('[reschedule] replaceHostOnReschedule: true preserves enduser attendees', function () { return sdk.api.calendar_events.getOne(rescheduledReplaceHosts.id); }, { onResult: function (event) {
+                            var enduserAttendees = event.attendees.filter(function (a) { return a.type === 'enduser'; });
+                            if (enduserAttendees.length !== 1) {
+                                console.log("Expected 1 enduser attendee, got ".concat(enduserAttendees.length));
+                                return false;
+                            }
+                            if (enduserAttendees[0].id !== e1.id) {
+                                console.log('Enduser attendee changed unexpectedly');
+                                return false;
+                            }
+                            return true;
+                        } })
+                    // Test 3: Verify old event is marked as rescheduled
+                ];
+            case 71:
+                _a.sent();
+                // Test 3: Verify old event is marked as rescheduled
+                return [4 /*yield*/, async_test('[reschedule] original event marked as rescheduled', function () { return sdk.api.calendar_events.getOne(originalForReplace.id); }, { onResult: function (event) { return !!event.rescheduledAt; } })];
+            case 72:
+                // Test 3: Verify old event is marked as rescheduled
                 _a.sent();
                 return [4 /*yield*/, Promise.all([
                         sdk.api.endusers.deleteOne(e1.id),
@@ -7329,12 +7498,17 @@ export var self_serve_appointment_booking_tests = function () { return __awaiter
                         sdk.api.calendar_event_templates.deleteOne(event30min.id),
                         sdk.api.calendar_event_templates.deleteOne(event30minGroup.id),
                         sdk.api.calendar_event_templates.deleteOne(event15min.id),
+                        sdk.api.calendar_event_templates.deleteOne(templatePreserveHosts.id),
+                        sdk.api.calendar_event_templates.deleteOne(templateReplaceHosts.id),
                         sdk.api.calendar_events.deleteOne(bookedAppointment.id),
                         sdk.api.calendar_events.deleteOne(bookedMultiAppointment.id),
                         sdk.api.calendar_events.deleteOne(groupEvent.id),
-                        sdk.api.calendar_events.deleteOne(conflict3.id),
+                        sdk.api.calendar_events.deleteOne(originalMultiHostAppt.id),
+                        sdk.api.calendar_events.deleteOne(rescheduledPreserveHosts.id),
+                        sdk.api.calendar_events.deleteOne(originalForReplace.id),
+                        sdk.api.calendar_events.deleteOne(rescheduledReplaceHosts.id),
                     ])];
-            case 58:
+            case 73:
                 _a.sent();
                 return [2 /*return*/];
         }
@@ -10191,6 +10365,7 @@ var tests = {
     ticket_threads: NO_TEST,
     ticket_thread_comments: NO_TEST,
     configurations: configurations_tests,
+    time_tracks: function () { return NO_TEST; },
     group_mms_conversations: NO_TEST,
     blocked_phones: NO_TEST,
     prescription_routes: NO_TEST,
@@ -14379,7 +14554,7 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                 assert(truncate_string(null, { length: 4, showEllipsis: false }) === '', 'truncate doesnt work for non string', 'trucate works for non-string');
                 _l.label = 2;
             case 2:
-                _l.trys.push([2, 90, , 91]);
+                _l.trys.push([2, 91, , 92]);
                 get_next_reminder_timestamp_tests();
                 form_conditional_logic_tests();
                 return [4 /*yield*/, test_weighted_round_robin()];
@@ -14520,231 +14695,234 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, setup_tests(sdk, sdkNonAdmin)];
             case 16:
                 _l.sent();
-                return [4 /*yield*/, calendar_event_limits_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, self_serve_appointment_booking_tests()];
             case 17:
                 _l.sent();
-                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
+                return [4 /*yield*/, time_tracks_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 18:
                 _l.sent();
-                return [4 /*yield*/, automation_trigger_tests()];
+                return [4 /*yield*/, calendar_event_limits_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 19:
                 _l.sent();
                 return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
             case 20:
                 _l.sent();
-                return [4 /*yield*/, afteraction_day_of_month_delay_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, automation_trigger_tests()];
             case 21:
                 _l.sent();
-                return [4 /*yield*/, monthly_availability_restrictions_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
             case 22:
                 _l.sent();
-                return [4 /*yield*/, journey_error_branching_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, afteraction_day_of_month_delay_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 23:
                 _l.sent();
-                return [4 /*yield*/, inbox_thread_assignment_updates_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, monthly_availability_restrictions_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 24:
                 _l.sent();
-                return [4 /*yield*/, message_assignment_trigger_tests({ sdk: sdk })];
+                return [4 /*yield*/, journey_error_branching_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 25:
                 _l.sent();
-                return [4 /*yield*/, inbox_threads_building_tests()];
+                return [4 /*yield*/, inbox_thread_assignment_updates_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 26:
                 _l.sent();
-                return [4 /*yield*/, inbox_threads_loading_tests()];
+                return [4 /*yield*/, message_assignment_trigger_tests({ sdk: sdk })];
             case 27:
                 _l.sent();
-                return [4 /*yield*/, load_inbox_data_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, inbox_threads_building_tests()];
             case 28:
                 _l.sent();
-                return [4 /*yield*/, enduser_observations_acknowledge_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, inbox_threads_loading_tests()];
             case 29:
                 _l.sent();
-                return [4 /*yield*/, create_user_notifications_trigger_tests({ sdk: sdk })];
+                return [4 /*yield*/, load_inbox_data_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 30:
                 _l.sent();
-                return [4 /*yield*/, group_mms_active_tests()];
+                return [4 /*yield*/, enduser_observations_acknowledge_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 31:
                 _l.sent();
-                return [4 /*yield*/, auto_reply_tests()];
+                return [4 /*yield*/, create_user_notifications_trigger_tests({ sdk: sdk })];
             case 32:
                 _l.sent();
-                return [4 /*yield*/, relationships_tests()];
+                return [4 /*yield*/, group_mms_active_tests()];
             case 33:
                 _l.sent();
-                return [4 /*yield*/, rate_limit_tests()];
+                return [4 /*yield*/, auto_reply_tests()];
             case 34:
                 _l.sent();
-                return [4 /*yield*/, ip_address_form_tests()];
+                return [4 /*yield*/, relationships_tests()];
             case 35:
                 _l.sent();
-                return [4 /*yield*/, bulk_update_tests()];
+                return [4 /*yield*/, rate_limit_tests()];
             case 36:
                 _l.sent();
-                return [4 /*yield*/, formsort_tests()];
+                return [4 /*yield*/, ip_address_form_tests()];
             case 37:
                 _l.sent();
-                return [4 /*yield*/, cancel_upcoming_appointments_journey_action_test()];
+                return [4 /*yield*/, bulk_update_tests()];
             case 38:
                 _l.sent();
-                return [4 /*yield*/, multi_tenant_tests()]; // should come right after setup tests
+                return [4 /*yield*/, formsort_tests()];
             case 39:
+                _l.sent();
+                return [4 /*yield*/, cancel_upcoming_appointments_journey_action_test()];
+            case 40:
+                _l.sent();
+                return [4 /*yield*/, multi_tenant_tests()]; // should come right after setup tests
+            case 41:
                 _l.sent(); // should come right after setup tests
                 return [4 /*yield*/, sync_tests_with_access_tags()]; // should come directly after setup to avoid extra sync values
-            case 40:
+            case 42:
                 _l.sent(); // should come directly after setup to avoid extra sync values
                 return [4 /*yield*/, sync_tests()]; // should come directly after setup to avoid extra sync values
-            case 41:
+            case 43:
                 _l.sent(); // should come directly after setup to avoid extra sync values
                 return [4 /*yield*/, get_templated_message_tests()];
-            case 42:
-                _l.sent();
-                return [4 /*yield*/, updatedAt_tests()];
-            case 43:
-                _l.sent();
-                return [4 /*yield*/, file_source_tests()];
             case 44:
                 _l.sent();
-                return [4 /*yield*/, enduser_access_tags_tests()];
+                return [4 /*yield*/, updatedAt_tests()];
             case 45:
                 _l.sent();
-                return [4 /*yield*/, enduserAccessTests()];
+                return [4 /*yield*/, file_source_tests()];
             case 46:
                 _l.sent();
-                return [4 /*yield*/, test_form_response_search()];
+                return [4 /*yield*/, enduser_access_tags_tests()];
             case 47:
                 _l.sent();
-                return [4 /*yield*/, date_parsing_tests()];
+                return [4 /*yield*/, enduserAccessTests()];
             case 48:
                 _l.sent();
-                return [4 /*yield*/, fromEmailOverride_tests()];
+                return [4 /*yield*/, test_form_response_search()];
             case 49:
                 _l.sent();
-                return [4 /*yield*/, ticket_tests()];
+                return [4 /*yield*/, date_parsing_tests()];
             case 50:
                 _l.sent();
-                return [4 /*yield*/, uniqueness_tests()];
+                return [4 /*yield*/, fromEmailOverride_tests()];
             case 51:
                 _l.sent();
-                return [4 /*yield*/, enduser_orders_tests()];
+                return [4 /*yield*/, ticket_tests()];
             case 52:
                 _l.sent();
-                return [4 /*yield*/, calendar_event_care_team_tests()];
+                return [4 /*yield*/, uniqueness_tests()];
             case 53:
                 _l.sent();
-                return [4 /*yield*/, merge_enduser_tests()];
+                return [4 /*yield*/, enduser_orders_tests()];
             case 54:
                 _l.sent();
-                return [4 /*yield*/, input_modifier_tests()];
+                return [4 /*yield*/, calendar_event_care_team_tests()];
             case 55:
                 _l.sent();
-                return [4 /*yield*/, switch_to_related_contacts_tests()];
+                return [4 /*yield*/, merge_enduser_tests()];
             case 56:
                 _l.sent();
-                return [4 /*yield*/, redaction_tests()];
+                return [4 /*yield*/, input_modifier_tests()];
             case 57:
                 _l.sent();
-                return [4 /*yield*/, self_serve_appointment_booking_tests()];
+                return [4 /*yield*/, switch_to_related_contacts_tests()];
             case 58:
                 _l.sent();
-                return [4 /*yield*/, no_chained_triggers_tests()];
+                return [4 /*yield*/, redaction_tests()];
             case 59:
                 _l.sent();
-                return [4 /*yield*/, mdb_filter_tests()];
+                return [4 /*yield*/, no_chained_triggers_tests()];
             case 60:
                 _l.sent();
-                return [4 /*yield*/, superadmin_tests()];
+                return [4 /*yield*/, mdb_filter_tests()];
             case 61:
                 _l.sent();
-                return [4 /*yield*/, ticket_queue_tests()];
+                return [4 /*yield*/, superadmin_tests()];
             case 62:
                 _l.sent();
-                return [4 /*yield*/, vital_trigger_tests()];
+                return [4 /*yield*/, ticket_queue_tests()];
             case 63:
                 _l.sent();
-                return [4 /*yield*/, close_reasons_no_duplicates_tests()];
+                return [4 /*yield*/, vital_trigger_tests()];
             case 64:
                 _l.sent();
-                return [4 /*yield*/, register_as_enduser_tests()];
+                return [4 /*yield*/, close_reasons_no_duplicates_tests()];
             case 65:
                 _l.sent();
-                return [4 /*yield*/, lockout_tests()];
+                return [4 /*yield*/, register_as_enduser_tests()];
             case 66:
+                _l.sent();
+                return [4 /*yield*/, lockout_tests()];
+            case 67:
                 _l.sent();
                 return [4 /*yield*/, delete_user_tests()
                     // await test_send_with_template()
                 ];
-            case 67:
+            case 68:
                 _l.sent();
                 // await test_send_with_template()
                 return [4 /*yield*/, bulk_read_tests()];
-            case 68:
+            case 69:
                 // await test_send_with_template()
                 _l.sent();
                 return [4 /*yield*/, ticket_reminder_tests()];
-            case 69:
-                _l.sent();
-                return [4 /*yield*/, marketing_email_unsubscribe_tests()];
             case 70:
                 _l.sent();
-                return [4 /*yield*/, unique_strings_tests()];
+                return [4 /*yield*/, marketing_email_unsubscribe_tests()];
             case 71:
                 _l.sent();
-                return [4 /*yield*/, alternate_phones_tests()];
+                return [4 /*yield*/, unique_strings_tests()];
             case 72:
                 _l.sent();
-                return [4 /*yield*/, role_based_access_tests()];
+                return [4 /*yield*/, alternate_phones_tests()];
             case 73:
                 _l.sent();
-                return [4 /*yield*/, enduser_session_tests()];
+                return [4 /*yield*/, role_based_access_tests()];
             case 74:
                 _l.sent();
-                return [4 /*yield*/, nextReminderInMS_tests()];
+                return [4 /*yield*/, enduser_session_tests()];
             case 75:
                 _l.sent();
-                return [4 /*yield*/, search_tests()];
+                return [4 /*yield*/, nextReminderInMS_tests()];
             case 76:
                 _l.sent();
-                return [4 /*yield*/, wait_for_trigger_tests()];
+                return [4 /*yield*/, search_tests()];
             case 77:
                 _l.sent();
-                return [4 /*yield*/, pdf_generation()];
+                return [4 /*yield*/, wait_for_trigger_tests()];
             case 78:
                 _l.sent();
-                return [4 /*yield*/, remove_from_journey_on_incoming_comms_tests().catch(console.error)]; // timing is unreliable, uncomment if changing logic
+                return [4 /*yield*/, pdf_generation()];
             case 79:
+                _l.sent();
+                return [4 /*yield*/, remove_from_journey_on_incoming_comms_tests().catch(console.error)]; // timing is unreliable, uncomment if changing logic
+            case 80:
                 _l.sent(); // timing is unreliable, uncomment if changing logic
                 return [4 /*yield*/, sub_organization_enduser_tests()];
-            case 80:
-                _l.sent();
-                return [4 /*yield*/, sub_organization_tests()];
             case 81:
                 _l.sent();
-                return [4 /*yield*/, filter_by_date_tests()];
+                return [4 /*yield*/, sub_organization_tests()];
             case 82:
                 _l.sent();
-                return [4 /*yield*/, generate_user_auth_tests()];
+                return [4 /*yield*/, filter_by_date_tests()];
             case 83:
                 _l.sent();
-                return [4 /*yield*/, generateEnduserAuthTests()];
+                return [4 /*yield*/, generate_user_auth_tests()];
             case 84:
                 _l.sent();
-                return [4 /*yield*/, public_form_tests()];
+                return [4 /*yield*/, generateEnduserAuthTests()];
             case 85:
                 _l.sent();
-                return [4 /*yield*/, badInputTests()];
+                return [4 /*yield*/, public_form_tests()];
             case 86:
                 _l.sent();
-                return [4 /*yield*/, filterTests()];
+                return [4 /*yield*/, badInputTests()];
             case 87:
                 _l.sent();
-                return [4 /*yield*/, updatesTests()];
+                return [4 /*yield*/, filterTests()];
             case 88:
                 _l.sent();
-                return [4 /*yield*/, threadKeyTests()];
+                return [4 /*yield*/, updatesTests()];
             case 89:
                 _l.sent();
-                return [3 /*break*/, 91];
+                return [4 /*yield*/, threadKeyTests()];
             case 90:
+                _l.sent();
+                return [3 /*break*/, 92];
+            case 91:
                 err_1 = _l.sent();
                 console.error("Failed during custom test");
                 if (err_1.message && err_1.info) {
@@ -14754,18 +14932,18 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                     console.error(err_1);
                 }
                 process.exit(1);
-                return [3 /*break*/, 91];
-            case 91:
+                return [3 /*break*/, 92];
+            case 92:
                 _a = schema;
                 _b = [];
                 for (_c in _a)
                     _b.push(_c);
                 _i = 0;
-                _l.label = 92;
-            case 92:
-                if (!(_i < _b.length)) return [3 /*break*/, 95];
+                _l.label = 93;
+            case 93:
+                if (!(_i < _b.length)) return [3 /*break*/, 96];
                 _c = _b[_i];
-                if (!(_c in _a)) return [3 /*break*/, 94];
+                if (!(_c in _a)) return [3 /*break*/, 95];
                 n = _c;
                 returnValidation = (_k = (_j = schema[n].customActions) === null || _j === void 0 ? void 0 : _j.create) === null || _k === void 0 ? void 0 : _k.returns;
                 return [4 /*yield*/, run_generated_tests({
@@ -14776,41 +14954,41 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                             create: returnValidation // ModelFields<ClientModel>,
                         }
                     })];
-            case 93:
-                _l.sent();
-                _l.label = 94;
             case 94:
-                _i++;
-                return [3 /*break*/, 92];
+                _l.sent();
+                _l.label = 95;
             case 95:
+                _i++;
+                return [3 /*break*/, 93];
+            case 96:
                 _d = tests;
                 _f = [];
                 for (_g in _d)
                     _f.push(_g);
                 _h = 0;
-                _l.label = 96;
-            case 96:
-                if (!(_h < _f.length)) return [3 /*break*/, 101];
-                _g = _f[_h];
-                if (!(_g in _d)) return [3 /*break*/, 100];
-                t = _g;
                 _l.label = 97;
             case 97:
-                _l.trys.push([97, 99, , 100]);
-                return [4 /*yield*/, tests[t]()];
+                if (!(_h < _f.length)) return [3 /*break*/, 102];
+                _g = _f[_h];
+                if (!(_g in _d)) return [3 /*break*/, 101];
+                t = _g;
+                _l.label = 98;
             case 98:
-                _l.sent();
-                return [3 /*break*/, 100];
+                _l.trys.push([98, 100, , 101]);
+                return [4 /*yield*/, tests[t]()];
             case 99:
+                _l.sent();
+                return [3 /*break*/, 101];
+            case 100:
                 err_2 = _l.sent();
                 console.error("Error running test:");
                 console.error(err_2);
                 process.exit(1);
-                return [3 /*break*/, 100];
-            case 100:
-                _h++;
-                return [3 /*break*/, 96];
+                return [3 /*break*/, 101];
             case 101:
+                _h++;
+                return [3 /*break*/, 97];
+            case 102:
                 process.exit();
                 return [2 /*return*/];
         }

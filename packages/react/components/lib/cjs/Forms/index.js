@@ -14,10 +14,16 @@ var __exportStar = (this && this.__exportStar) || function(m, exports) {
     for (var p in m) if (p !== "default" && !Object.prototype.hasOwnProperty.call(exports, p)) __createBinding(exports, m, p);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.TellescopeSingleQuestionFlowV2 = exports.TellescopeFormContainerV2 = exports.TellescopeFormV2 = void 0;
 __exportStar(require("./forms"), exports);
 __exportStar(require("./form_responses"), exports);
 __exportStar(require("./inputs"), exports);
 __exportStar(require("./hooks"), exports);
 __exportStar(require("./types"), exports);
 __exportStar(require("./localization"), exports);
+// V2 Forms exports
+var forms_v2_1 = require("./forms.v2");
+Object.defineProperty(exports, "TellescopeFormV2", { enumerable: true, get: function () { return forms_v2_1.TellescopeFormV2; } });
+Object.defineProperty(exports, "TellescopeFormContainerV2", { enumerable: true, get: function () { return forms_v2_1.TellescopeFormContainerV2; } });
+Object.defineProperty(exports, "TellescopeSingleQuestionFlowV2", { enumerable: true, get: function () { return forms_v2_1.TellescopeSingleQuestionFlowV2; } });
 //# sourceMappingURL=index.js.map

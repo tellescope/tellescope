@@ -371,6 +371,12 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
   enduser_profile_views: READ_ONLY_ALL,
   phone_trees: READ_ONLY_ALL,
   configurations: READ_ONLY_ALL,
+  time_tracks: {
+    create: ALL_ACCESS,
+    read: ASSIGNED_ACCESS,
+    update: ASSIGNED_ACCESS,
+    delete: ASSIGNED_ACCESS,
+  },
   users: {
     ...READ_ONLY_ALL,
     update: 'Default', // allow updating self, separate restriction exists to prevent updating other users if non-admin
@@ -477,6 +483,7 @@ export const ADMIN_PERMISSIONS: AccessPermissions = {
   ticket_queues: FULL_ACCESS,
   phone_trees: FULL_ACCESS,
   configurations: FULL_ACCESS,
+  time_tracks: FULL_ACCESS,
   superbill_providers: FULL_ACCESS,
   superbills: FULL_ACCESS,
   automation_triggers: FULL_ACCESS,

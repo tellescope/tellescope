@@ -408,4 +408,9 @@ export declare const slot_violates_calendar_event_limits: ({ slotStartTimeInMS, 
  * // Returns: ['customField3']
  */
 export declare const validate_custom_field_references: (conditions: Record<string, any> | null | undefined, validFields: Set<string>) => string[];
+export declare function calculateTimeTrackDuration(timestamps: {
+    type: 'start' | 'pause' | 'resume';
+    timestamp: Date;
+}[], closedAt?: Date): number;
+export declare function formatDuration(ms: number): string;
 //# sourceMappingURL=utils.d.ts.map
