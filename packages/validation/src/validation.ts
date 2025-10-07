@@ -4407,6 +4407,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     reverseTimeline: booleanValidatorOptional,
     delayedReadingIntervalInMS: numberValidatorOptional,
     createChatRoomWithBlankUserIds: booleanValidatorOptional,
+    showAlternateEmailsEditor: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,

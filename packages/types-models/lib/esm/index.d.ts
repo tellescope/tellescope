@@ -215,6 +215,7 @@ export type OrganizationSettings = {
         reverseTimeline?: boolean;
         delayedReadingIntervalInMS?: number;
         createChatRoomWithBlankUserIds?: boolean;
+        showAlternateEmailsEditor?: boolean;
     };
     tickets?: {
         defaultJourneyDueDateOffsetInMS?: number | '';

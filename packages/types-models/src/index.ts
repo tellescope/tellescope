@@ -176,7 +176,7 @@ export type OrganizationSettings = {
   dashboard?: {
     view?: CustomDashboardView, 
   },
-  endusers?: { 
+  endusers?: {
     disableMultipleChatRooms?: boolean,
     disableCalendarEventAutoAssignment?: boolean,
     builtinFields?: EnduserBuiltInField[],
@@ -189,7 +189,7 @@ export type OrganizationSettings = {
     autoSaveFreeNote?: boolean,
     canDeleteFreeNote?: boolean,
     recordCalls?: boolean,
-    recordCallAudioPlayback?: string, 
+    recordCallAudioPlayback?: string,
     dontRecordCallsToPhone?: string[],
     transcribeCalls?: boolean,
     transcribeCallInboundPlayback?: string, // should be 'recordCall' but too late
@@ -225,6 +225,7 @@ export type OrganizationSettings = {
     reverseTimeline?: boolean,
     delayedReadingIntervalInMS?: number,
     createChatRoomWithBlankUserIds?: boolean,
+    showAlternateEmailsEditor?: boolean,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',

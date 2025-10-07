@@ -3589,6 +3589,7 @@ exports.organizationSettingsValidator = (0, exports.objectValidator)({
         reverseTimeline: exports.booleanValidatorOptional,
         delayedReadingIntervalInMS: exports.numberValidatorOptional,
         createChatRoomWithBlankUserIds: exports.booleanValidatorOptional,
+        showAlternateEmailsEditor: exports.booleanValidatorOptional,
     }, { isOptional: true }),
     tickets: (0, exports.objectValidator)({
         defaultJourneyDueDateOffsetInMS: exports.numberValidatorOptional,
