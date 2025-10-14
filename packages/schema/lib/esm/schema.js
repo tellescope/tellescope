@@ -6318,7 +6318,7 @@ export var schema = build_schema({
                 returns: {},
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { type: { validator: stringValidator, required: true, examples: ['HTML Template Generation'] }, modelName: { validator: stringValidator, required: true, examples: ['Claude Sonnet 4'] }, messages: {
+        fields: __assign(__assign({}, BuiltInFields), { type: { validator: stringValidator, required: true, examples: ['HTML Template Generation'] }, modelName: { validator: stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5'] }, messages: {
                 validator: listValidatorEmptyOk(objectValidator({
                     role: exactMatchValidator(['user', 'assistant']),
                     text: stringValidator25000,

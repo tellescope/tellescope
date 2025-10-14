@@ -174,6 +174,21 @@ export var truncate_string = function (s, options) {
     return (s.substring(0, length) +
         (showEllipsis && s.length > length ? '...' : ''));
 };
+// Helper function to format Stripe subscription interval display
+export var format_stripe_subscription_interval = function (interval, intervalCount) {
+    if (!interval || !intervalCount)
+        return '/month'; // default fallback
+    if (intervalCount === 1) {
+        return "/".concat(interval); // "/month", "/week", "/year", "/day"
+    }
+    // Pluralize the interval
+    var pluralInterval = interval === 'day' ? 'days'
+        : interval === 'week' ? 'weeks'
+            : interval === 'month' ? 'months'
+                : interval === 'year' ? 'years'
+                    : interval;
+    return "/".concat(intervalCount, " ").concat(pluralInterval); // "/12 weeks", "/3 months", etc.
+};
 export var map_object = function (object, handler) { return (Object.keys(object).map(function (key) { return handler(key, object[key]); })); };
 var _a = [0, 1, 2, 3], LINK_START = _a[0], LINK_END = _a[1], TEXT_START = _a[2], TEXT_END = _a[3];
 export var parse_link_template = function (text, startFrom) {

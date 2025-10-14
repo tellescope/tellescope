@@ -44,8 +44,24 @@ const TellescopeFormContainerWithThemeV2: typeof TellescopeFormContainerV2 = ({ 
   const finalBgColor = shouldUseCustomBg ? backgroundColor : '#F4F3FA'
 
   return (
-    <Flex flex={1} column alignItems="center" style={{ backgroundColor: finalBgColor, overflow: 'hidden', paddingTop: 40, paddingBottom: 40, ...style }}>
-      <Flex flex={1} column style={{ padding: '0 20px', maxWidth: maxWidth ?? 650, minWidth: 250, width: '100%', height: '100%' }}>
+    <Flex flex={1} column alignItems="center" style={{
+      backgroundColor: finalBgColor,
+      overflow: 'auto',
+      paddingTop: window.innerWidth < 600 ? 20 : 40,
+      paddingBottom: window.innerWidth < 600 ? 20 : 40,
+      ...style
+    }}>
+      <Flex flex={1} column style={{
+        padding: window.innerWidth < 600 ? '0 12px' : '0 20px',
+        maxWidth: maxWidth ?? 650,
+        minWidth: 250,
+        width: '100%',
+        height: '100%',
+        boxSizing: 'border-box',
+        ...(window.innerWidth < 600 ? {
+          paddingBottom: '80px' // Extra bottom padding on mobile to keep button above Safari navigation
+        } : {})
+      }}>
         {language && onChangeLanguage &&
           <Flex style={{ marginTop: 22 }}>
             <LanguageSelect value={language} onChange={onChangeLanguage} />

@@ -114,7 +114,9 @@ var TellescopeFormContainerWithThemeV2 = function (_a) {
     // Ignore theme colors or white backgrounds - use our V2 default light blue
     var shouldUseCustomBg = backgroundColor && backgroundColor !== theme.themeColor && backgroundColor !== '#ffffff';
     var finalBgColor = shouldUseCustomBg ? backgroundColor : '#F4F3FA';
-    return ((0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ flex: 1, column: true, alignItems: "center", style: __assign({ backgroundColor: finalBgColor, overflow: 'hidden', paddingTop: 40, paddingBottom: 40 }, style) }, { children: (0, jsx_runtime_1.jsxs)(index_1.Flex, __assign({ flex: 1, column: true, style: { padding: '0 20px', maxWidth: maxWidth !== null && maxWidth !== void 0 ? maxWidth : 650, minWidth: 250, width: '100%', height: '100%' } }, { children: [language && onChangeLanguage &&
+    return ((0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ flex: 1, column: true, alignItems: "center", style: __assign({ backgroundColor: finalBgColor, overflow: 'auto', paddingTop: window.innerWidth < 600 ? 20 : 40, paddingBottom: window.innerWidth < 600 ? 20 : 40 }, style) }, { children: (0, jsx_runtime_1.jsxs)(index_1.Flex, __assign({ flex: 1, column: true, style: __assign({ padding: window.innerWidth < 600 ? '0 12px' : '0 20px', maxWidth: maxWidth !== null && maxWidth !== void 0 ? maxWidth : 650, minWidth: 250, width: '100%', height: '100%', boxSizing: 'border-box' }, (window.innerWidth < 600 ? {
+                paddingBottom: '80px' // Extra bottom padding on mobile to keep button above Safari navigation
+            } : {})) }, { children: [language && onChangeLanguage &&
                     (0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ style: { marginTop: 22 } }, { children: (0, jsx_runtime_1.jsx)(inputs_v2_1.LanguageSelect, { value: language, onChange: onChangeLanguage }) })), children] })) })));
 };
 var LOGO_HEIGHT = 40;

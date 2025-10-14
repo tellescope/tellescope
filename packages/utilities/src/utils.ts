@@ -131,9 +131,27 @@ export const truncate_string = (s='', options={} as { showEllipsis?: boolean, le
   const length = options.length ?? 25
 
   return (
-    s.substring(0, length) + 
+    s.substring(0, length) +
       (showEllipsis && s.length > length ? '...' : '')
   )
+}
+
+// Helper function to format Stripe subscription interval display
+export const format_stripe_subscription_interval = (interval?: string, intervalCount?: number): string => {
+  if (!interval || !intervalCount) return '/month' // default fallback
+
+  if (intervalCount === 1) {
+    return `/${interval}` // "/month", "/week", "/year", "/day"
+  }
+
+  // Pluralize the interval
+  const pluralInterval = interval === 'day' ? 'days'
+    : interval === 'week' ? 'weeks'
+    : interval === 'month' ? 'months'
+    : interval === 'year' ? 'years'
+    : interval
+
+  return `/${intervalCount} ${pluralInterval}` // "/12 weeks", "/3 months", etc.
 }
 
 export const map_object = <T extends object, R>(object: T, handler: (key: keyof T, value: T[typeof key]) => R): R[] => (

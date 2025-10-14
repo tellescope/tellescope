@@ -826,6 +826,7 @@ var MultipleChoiceInput = function (_a) {
                                             marginBottom: '12px',
                                             cursor: 'pointer',
                                             backgroundColor: 'transparent',
+                                            boxSizing: 'border-box',
                                             '&:hover': {
                                                 backgroundColor: function (theme) { return "".concat(theme.palette.primary.main, "14"); },
                                             },
@@ -845,7 +846,8 @@ var MultipleChoiceInput = function (_a) {
                                     display: 'flex',
                                     alignItems: 'center',
                                     cursor: 'pointer',
-                                    width: '100%'
+                                    width: '100%',
+                                    boxSizing: 'border-box'
                                 }, onClick: function (e) {
                                     var _a, _b, _d, _e;
                                     // Don't trigger selection if clicking on the expand button
@@ -1008,12 +1010,12 @@ var StripeInput = function (_a) {
             });
         };
         return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, direction: "column", spacing: 2 }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "h6" }, { children: ["Select Product", isSingleSelection_1 ? '' : 's'] })) })), availableProducts.map(function (product) {
-                    var _a;
+                    var _a, _b, _d;
                     // Use real-time Stripe pricing if available, fallback to Tellescope pricing
                     var price = product.currentPrice || product.cost;
                     var priceAmount = (price === null || price === void 0 ? void 0 : price.amount) || 0;
                     var priceCurrency = (price === null || price === void 0 ? void 0 : price.currency) || 'USD';
-                    return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.FormControlLabel, { control: isSingleSelection_1 ? ((0, jsx_runtime_1.jsx)(material_1.Radio, { checked: selectedProducts.includes(product._id), onChange: function () { return handleProductSelection_1(product._id); } })) : ((0, jsx_runtime_1.jsx)(material_1.Checkbox, { checked: selectedProducts.includes(product._id), onChange: function () { return handleProductSelection_1(product._id); } })), label: (0, jsx_runtime_1.jsxs)(material_1.Box, { children: [(0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body1", fontWeight: "bold" }, { children: product.title })), product.description && ((0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: product.description }))), (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "primary" }, { children: ["$", (priceAmount / 100).toFixed(2), " ", priceCurrency.toUpperCase(), ((_a = product.currentPrice) === null || _a === void 0 ? void 0 : _a.isSubscription) && ((0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ component: "span", variant: "caption", sx: { ml: 0.5 } }, { children: "/month" })))] }))] }) }) }), product._id));
+                    return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.FormControlLabel, { control: isSingleSelection_1 ? ((0, jsx_runtime_1.jsx)(material_1.Radio, { checked: selectedProducts.includes(product._id), onChange: function () { return handleProductSelection_1(product._id); } })) : ((0, jsx_runtime_1.jsx)(material_1.Checkbox, { checked: selectedProducts.includes(product._id), onChange: function () { return handleProductSelection_1(product._id); } })), label: (0, jsx_runtime_1.jsxs)(material_1.Box, { children: [(0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body1", fontWeight: "bold" }, { children: product.title })), product.description && ((0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: product.description }))), (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "primary" }, { children: ["$", (priceAmount / 100).toFixed(2), " ", priceCurrency.toUpperCase(), ((_a = product.currentPrice) === null || _a === void 0 ? void 0 : _a.isSubscription) && ((0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ component: "span", variant: "caption", sx: { ml: 0.5 } }, { children: (0, utilities_1.format_stripe_subscription_interval)((_b = product.currentPrice) === null || _b === void 0 ? void 0 : _b.interval, (_d = product.currentPrice) === null || _d === void 0 ? void 0 : _d.interval_count) })))] }))] }) }) }), product._id));
                 }), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Button, __assign({ variant: "contained", onClick: handleContinueToPayment, disabled: selectedProducts.length === 0, sx: { mt: 2 } }, { children: "Continue to Payment" })) }))] })));
     }
     if (error) {

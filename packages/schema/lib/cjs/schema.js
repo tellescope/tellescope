@@ -6323,7 +6323,7 @@ exports.schema = (0, exports.build_schema)({
                 returns: {},
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { type: { validator: validation_1.stringValidator, required: true, examples: ['HTML Template Generation'] }, modelName: { validator: validation_1.stringValidator, required: true, examples: ['Claude Sonnet 4'] }, messages: {
+        fields: __assign(__assign({}, BuiltInFields), { type: { validator: validation_1.stringValidator, required: true, examples: ['HTML Template Generation'] }, modelName: { validator: validation_1.stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5'] }, messages: {
                 validator: (0, validation_1.listValidatorEmptyOk)((0, validation_1.objectValidator)({
                     role: (0, validation_1.exactMatchValidator)(['user', 'assistant']),
                     text: validation_1.stringValidator25000,

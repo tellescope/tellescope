@@ -104,7 +104,7 @@ export declare const SearchTextInput: ({ onChange, hideIcon, ...props }: {
     fullWidth?: boolean | undefined;
     name?: string | undefined;
     sx?: import("@mui/material").SxProps<{}> | undefined;
-    variant?: "outlined" | "filled" | "flat" | undefined;
+    variant?: "flat" | "filled" | "outlined" | undefined;
     type?: React.HTMLInputTypeAttribute | undefined;
     autoCapitalize?: "none" | "characters" | "sentences" | "words" | undefined;
     autoCorrect?: boolean | undefined;

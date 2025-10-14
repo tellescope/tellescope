@@ -44,6 +44,7 @@ export declare const truncate_string: (s?: string, options?: {
     showEllipsis?: boolean | undefined;
     length?: number | undefined;
 }) => string;
+export declare const format_stripe_subscription_interval: (interval?: string, intervalCount?: number) => string;
 export declare const map_object: <T extends object, R>(object: T, handler: (key: keyof T, value: T[keyof T]) => R) => R[];
 export declare const parse_link_template: (text: string, startFrom?: number) => {
     url: string;

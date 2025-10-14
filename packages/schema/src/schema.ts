@@ -9045,7 +9045,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     fields: {
       ...BuiltInFields, 
       type: { validator: stringValidator, required: true, examples: ['HTML Template Generation'] },
-      modelName: { validator: stringValidator, required: true, examples: ['Claude Sonnet 4'] },
+      modelName: { validator: stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5'] },
       messages: {
         validator: listValidatorEmptyOk(objectValidator<AIConversationMessage>({
           role: exactMatchValidator(['user', 'assistant']),

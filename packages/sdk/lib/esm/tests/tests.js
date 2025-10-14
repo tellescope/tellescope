@@ -9545,7 +9545,7 @@ export var switch_to_related_contacts_tests = function () { return __awaiter(voi
     });
 }); };
 export var formsort_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var form, postToFormsort, postToFormsortGeneric, emailAnswer, nameAnswers, answersEmail, address, answers, submissionEnduser, validateResponse, endusers;
+    var form, postToFormsort, postToFormsortGeneric, emailAnswer, nameAnswers, answersEmail, address, answers, submissionEnduser, validateResponse, specificEnduser, jsonResponseData, jsonData, combinedTestEnduser, combinedResponseData, combinedData, unfinalizedJsonResponse, invalidEnduserIdResponse, unfinalizedEnduserTest, endusers;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -9554,13 +9554,20 @@ export var formsort_tests = function () { return __awaiter(void 0, void 0, void 
             case 1:
                 form = _a.sent();
                 postToFormsort = function (_a) { return __awaiter(void 0, void 0, void 0, function () {
-                    var _b = _a.matchByName, matchByName = _b === void 0 ? false : _b, _c = _a.createNewEnduser, createNewEnduser = _c === void 0 ? false : _c, o = __rest(_a, ["matchByName", "createNewEnduser"]);
-                    return __generator(this, function (_d) {
-                        switch (_d.label) {
-                            case 0: return [4 /*yield*/, axios.post("".concat(host, "/v1/webhooks/formsort/9d4f9dff00f60df2690a16da2cb848f289b447614ad9bef850e54af09a1fbf7a?formId=").concat(form.id, "&matchByName=").concat(matchByName, "&createNewEnduser=").concat(createNewEnduser), o)];
-                            case 1:
-                                _d.sent();
-                                return [2 /*return*/];
+                    var url;
+                    var _b = _a.matchByName, matchByName = _b === void 0 ? false : _b, _c = _a.createNewEnduser, createNewEnduser = _c === void 0 ? false : _c, enduserId = _a.enduserId, _d = _a.returnJSON, returnJSON = _d === void 0 ? false : _d, o = __rest(_a, ["matchByName", "createNewEnduser", "enduserId", "returnJSON"]);
+                    return __generator(this, function (_f) {
+                        switch (_f.label) {
+                            case 0:
+                                url = new URL("".concat(host, "/v1/webhooks/formsort/9d4f9dff00f60df2690a16da2cb848f289b447614ad9bef850e54af09a1fbf7a"));
+                                url.searchParams.set('formId', form.id);
+                                url.searchParams.set('matchByName', matchByName.toString());
+                                url.searchParams.set('createNewEnduser', createNewEnduser.toString());
+                                if (enduserId)
+                                    url.searchParams.set('enduserId', enduserId);
+                                url.searchParams.set('returnJSON', returnJSON.toString());
+                                return [4 /*yield*/, axios.post(url.toString(), o)];
+                            case 1: return [2 /*return*/, _f.sent()];
                         }
                     });
                 }); };
@@ -10016,17 +10023,232 @@ export var formsort_tests = function () { return __awaiter(void 0, void 0, void 
                             && r.filter(function (e) { return e.externalId === 'createNewEnduser'; }).length === 3
                             && r.filter(function (e) { return e.externalId === 'createNewEnduser' && e.email === emailAnswer.value; }).length === 1; } // email set on finalized
                     })
-                    // cleanup
+                    // Test enduserId parameter - should use specific enduser and still update fields from form
                 ];
             case 44:
                 _a.sent();
-                return [4 /*yield*/, sdk.api.endusers.getSome()];
+                return [4 /*yield*/, sdk.api.endusers.createOne({
+                        email: 'enduser-param-test@tellescope.com',
+                        fname: 'Original',
+                        lname: 'Name',
+                        gender: 'Female',
+                    })];
             case 45:
+                specificEnduser = _a.sent();
+                return [4 /*yield*/, postToFormsort({
+                        answers: [
+                            { key: 'fname', value: 'UpdatedFirst' },
+                            { key: 'lname', value: 'UpdatedLast' },
+                            { key: 'gender', value: 'Male' },
+                            { key: 'timezone', value: 'US/Pacific' },
+                            { key: 'ts_enduser_customField', value: 'CustomValue' },
+                        ],
+                        responder_uuid: "enduserId-test",
+                        finalized: true,
+                        enduserId: specificEnduser.id
+                    })];
+            case 46:
+                _a.sent();
+                return [4 /*yield*/, async_test("enduserId parameter links to correct enduser", function () { return sdk.api.form_responses.getOne({ externalId: 'enduserId-test' }); }, {
+                        onResult: function (r) { return (r === null || r === void 0 ? void 0 : r.enduserId) === specificEnduser.id; }
+                    })
+                    // When enduserId is provided, the enduser's fields are updated from the form answers
+                ];
+            case 47:
+                _a.sent();
+                // When enduserId is provided, the enduser's fields are updated from the form answers
+                return [4 /*yield*/, async_test("enduserId parameter updates enduser fields from form", function () { return sdk.api.endusers.getOne(specificEnduser.id); }, {
+                        onResult: function (r) {
+                            var _a;
+                            return (r === null || r === void 0 ? void 0 : r.fname) === 'UpdatedFirst'
+                                && (r === null || r === void 0 ? void 0 : r.lname) === 'UpdatedLast'
+                                && (r === null || r === void 0 ? void 0 : r.gender) === 'Male'
+                                && (r === null || r === void 0 ? void 0 : r.timezone) === 'US/Pacific'
+                                && ((_a = r === null || r === void 0 ? void 0 : r.fields) === null || _a === void 0 ? void 0 : _a.customField) === 'CustomValue'
+                                && (r === null || r === void 0 ? void 0 : r.email) === 'enduser-param-test@tellescope.com';
+                        } // original email preserved
+                    })
+                    // Test returnJSON parameter - should return JSON with formResponseId and enduserId
+                ];
+            case 48:
+                // When enduserId is provided, the enduser's fields are updated from the form answers
+                _a.sent();
+                return [4 /*yield*/, postToFormsort({
+                        answers: [{ key: 'email', value: 'json-return-test@tellescope.com' }],
+                        responder_uuid: "json-return-test",
+                        finalized: true,
+                        returnJSON: true
+                    })];
+            case 49:
+                jsonResponseData = _a.sent();
+                jsonData = jsonResponseData.data;
+                return [4 /*yield*/, async_test("returnJSON parameter returns formResponseId", function () { return Promise.resolve(jsonData); }, {
+                        onResult: function (r) { return typeof (r === null || r === void 0 ? void 0 : r.formResponseId) === 'string' && r.formResponseId.length > 0; }
+                    })];
+            case 50:
+                _a.sent();
+                return [4 /*yield*/, async_test("returnJSON parameter returns enduserId", function () { return Promise.resolve(jsonData); }, {
+                        onResult: function (r) { return typeof (r === null || r === void 0 ? void 0 : r.enduserId) === 'string' && r.enduserId.length > 0; }
+                    })];
+            case 51:
+                _a.sent();
+                return [4 /*yield*/, async_test("returnJSON formResponseId is valid", function () { return sdk.api.form_responses.getOne({ externalId: 'json-return-test' }); }, {
+                        onResult: function (r) { return (r === null || r === void 0 ? void 0 : r.id) === jsonData.formResponseId; }
+                    })];
+            case 52:
+                _a.sent();
+                return [4 /*yield*/, async_test("returnJSON enduserId is valid", function () { return sdk.api.endusers.getOne(jsonData.enduserId); }, {
+                        onResult: function (r) { return (r === null || r === void 0 ? void 0 : r.email) === 'json-return-test@tellescope.com'; }
+                    })
+                    // Test both parameters together - returnJSON with enduserId
+                ];
+            case 53:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({ email: 'combined-test@tellescope.com', fname: 'Combined', lname: 'Test' })];
+            case 54:
+                combinedTestEnduser = _a.sent();
+                return [4 /*yield*/, postToFormsort({
+                        answers: [{ key: 'email', value: 'ignore-this-email@tellescope.com' }],
+                        responder_uuid: "combined-test",
+                        finalized: true,
+                        enduserId: combinedTestEnduser.id,
+                        returnJSON: true
+                    })];
+            case 55:
+                combinedResponseData = _a.sent();
+                combinedData = combinedResponseData.data;
+                return [4 /*yield*/, async_test("combined parameters return correct enduserId", function () { return Promise.resolve(combinedData); }, {
+                        onResult: function (r) { return (r === null || r === void 0 ? void 0 : r.enduserId) === combinedTestEnduser.id; }
+                    })];
+            case 56:
+                _a.sent();
+                return [4 /*yield*/, async_test("combined parameters return valid formResponseId", function () { return Promise.resolve(combinedData); }, {
+                        onResult: function (r) { return typeof (r === null || r === void 0 ? void 0 : r.formResponseId) === 'string' && r.formResponseId.length > 0; }
+                    })
+                    // Verify that when enduserId is provided with different email in answers, the email from answers updates the enduser
+                ];
+            case 57:
+                _a.sent();
+                // Verify that when enduserId is provided with different email in answers, the email from answers updates the enduser
+                return [4 /*yield*/, async_test("combined test - enduser email is updated from form", function () { return sdk.api.endusers.getOne(combinedTestEnduser.id); }, {
+                        onResult: function (r) { return (r === null || r === void 0 ? void 0 : r.email) === 'ignore-this-email@tellescope.com'; } // email gets updated from form answers
+                    })
+                    // Test returnJSON with finalized=false - should return blank response, not JSON
+                ];
+            case 58:
+                // Verify that when enduserId is provided with different email in answers, the email from answers updates the enduser
+                _a.sent();
+                return [4 /*yield*/, postToFormsort({
+                        answers: [{ key: 'email', value: 'unfinalized-json@tellescope.com' }],
+                        responder_uuid: "unfinalized-json-test",
+                        finalized: false,
+                        returnJSON: true
+                    })];
+            case 59:
+                unfinalizedJsonResponse = _a.sent();
+                return [4 /*yield*/, async_test("returnJSON with finalized=false returns empty response", function () { return Promise.resolve(unfinalizedJsonResponse.data); }, {
+                        onResult: function (r) { return r === '' || r === undefined || (typeof r === 'object' && Object.keys(r).length === 0); }
+                    })
+                    // Verify form response was created but not finalized
+                ];
+            case 60:
+                _a.sent();
+                // Verify form response was created but not finalized
+                return [4 /*yield*/, async_test("returnJSON finalized=false still creates form response", function () { return sdk.api.form_responses.getOne({ externalId: 'unfinalized-json-test' }); }, {
+                        onResult: function (r) { return !!r && !r.submittedAt; }
+                    })
+                    // Test invalid enduserId - should fall back to normal matching logic
+                ];
+            case 61:
+                // Verify form response was created but not finalized
+                _a.sent();
+                return [4 /*yield*/, postToFormsort({
+                        answers: [{ key: 'email', value: 'invalid-enduser-test@tellescope.com' }],
+                        responder_uuid: "invalid-enduser-id-test",
+                        finalized: true,
+                        enduserId: '000000000000000000000000' // non-existent ID
+                    })
+                    // Should create new enduser since invalid ID can't be found
+                ];
+            case 62:
+                invalidEnduserIdResponse = _a.sent();
+                // Should create new enduser since invalid ID can't be found
+                return [4 /*yield*/, async_test("invalid enduserId falls back to creating new enduser", function () { return sdk.api.endusers.getOne({ email: 'invalid-enduser-test@tellescope.com' }); }, {
+                        onResult: function (r) { return !!r && r.email === 'invalid-enduser-test@tellescope.com'; }
+                    })];
+            case 63:
+                // Should create new enduser since invalid ID can't be found
+                _a.sent();
+                return [4 /*yield*/, async_test("invalid enduserId creates form response", function () { return sdk.api.form_responses.getOne({ externalId: 'invalid-enduser-id-test' }); }, {
+                        onResult: function (r) { return !!r && !!r.submittedAt; }
+                    })
+                    // Test enduserId with finalized=false - should create form response but not update enduser fields yet
+                ];
+            case 64:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({
+                        email: 'unfinalized-enduser@tellescope.com',
+                        fname: 'OriginalFirst',
+                        lname: 'OriginalLast',
+                    })];
+            case 65:
+                unfinalizedEnduserTest = _a.sent();
+                return [4 /*yield*/, postToFormsort({
+                        answers: [
+                            { key: 'email', value: 'unfinalized-enduser@tellescope.com' },
+                            { key: 'fname', value: 'ChangedFirst' },
+                            { key: 'lname', value: 'ChangedLast' },
+                        ],
+                        responder_uuid: "unfinalized-enduser-test",
+                        finalized: false,
+                        enduserId: unfinalizedEnduserTest.id
+                    })];
+            case 66:
+                _a.sent();
+                return [4 /*yield*/, async_test("enduserId with finalized=false creates form response", function () { return sdk.api.form_responses.getOne({ externalId: 'unfinalized-enduser-test' }); }, {
+                        onResult: function (r) { return !!r && !r.submittedAt && r.enduserId === unfinalizedEnduserTest.id; }
+                    })
+                    // Enduser fields should NOT be updated until finalized
+                ];
+            case 67:
+                _a.sent();
+                // Enduser fields should NOT be updated until finalized
+                return [4 /*yield*/, async_test("enduserId with finalized=false does not update enduser fields", function () { return sdk.api.endusers.getOne(unfinalizedEnduserTest.id); }, {
+                        onResult: function (r) { return (r === null || r === void 0 ? void 0 : r.fname) === 'OriginalFirst' && (r === null || r === void 0 ? void 0 : r.lname) === 'OriginalLast'; }
+                    })
+                    // Now finalize and verify fields get updated
+                ];
+            case 68:
+                // Enduser fields should NOT be updated until finalized
+                _a.sent();
+                // Now finalize and verify fields get updated
+                return [4 /*yield*/, postToFormsort({
+                        answers: [
+                            { key: 'email', value: 'unfinalized-enduser@tellescope.com' },
+                            { key: 'fname', value: 'ChangedFirst' },
+                            { key: 'lname', value: 'ChangedLast' },
+                        ],
+                        responder_uuid: "unfinalized-enduser-test",
+                        finalized: true,
+                        enduserId: unfinalizedEnduserTest.id
+                    })];
+            case 69:
+                // Now finalize and verify fields get updated
+                _a.sent();
+                return [4 /*yield*/, async_test("enduserId with finalized=true updates enduser fields", function () { return sdk.api.endusers.getOne(unfinalizedEnduserTest.id); }, {
+                        onResult: function (r) { return (r === null || r === void 0 ? void 0 : r.fname) === 'ChangedFirst' && (r === null || r === void 0 ? void 0 : r.lname) === 'ChangedLast'; }
+                    })
+                    // cleanup
+                ];
+            case 70:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.getSome()];
+            case 71:
                 endusers = _a.sent();
                 return [4 /*yield*/, Promise.all(__spreadArray([
                         sdk.api.forms.deleteOne(form.id)
                     ], endusers.map(function (e) { return sdk.api.endusers.deleteOne(e.id); }), true))];
-            case 46:
+            case 72:
                 _a.sent();
                 return [2 /*return*/];
         }
@@ -14695,73 +14917,73 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, setup_tests(sdk, sdkNonAdmin)];
             case 16:
                 _l.sent();
-                return [4 /*yield*/, self_serve_appointment_booking_tests()];
+                return [4 /*yield*/, formsort_tests()];
             case 17:
                 _l.sent();
-                return [4 /*yield*/, time_tracks_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, self_serve_appointment_booking_tests()];
             case 18:
                 _l.sent();
-                return [4 /*yield*/, calendar_event_limits_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, time_tracks_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 19:
                 _l.sent();
-                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
+                return [4 /*yield*/, calendar_event_limits_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 20:
                 _l.sent();
-                return [4 /*yield*/, automation_trigger_tests()];
+                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
             case 21:
                 _l.sent();
-                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
+                return [4 /*yield*/, automation_trigger_tests()];
             case 22:
                 _l.sent();
-                return [4 /*yield*/, afteraction_day_of_month_delay_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, test_ticket_automation_assignment_and_optimization()];
             case 23:
                 _l.sent();
-                return [4 /*yield*/, monthly_availability_restrictions_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, afteraction_day_of_month_delay_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 24:
                 _l.sent();
-                return [4 /*yield*/, journey_error_branching_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, monthly_availability_restrictions_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 25:
                 _l.sent();
-                return [4 /*yield*/, inbox_thread_assignment_updates_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, journey_error_branching_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 26:
                 _l.sent();
-                return [4 /*yield*/, message_assignment_trigger_tests({ sdk: sdk })];
+                return [4 /*yield*/, inbox_thread_assignment_updates_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 27:
                 _l.sent();
-                return [4 /*yield*/, inbox_threads_building_tests()];
+                return [4 /*yield*/, message_assignment_trigger_tests({ sdk: sdk })];
             case 28:
                 _l.sent();
-                return [4 /*yield*/, inbox_threads_loading_tests()];
+                return [4 /*yield*/, inbox_threads_building_tests()];
             case 29:
                 _l.sent();
-                return [4 /*yield*/, load_inbox_data_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, inbox_threads_loading_tests()];
             case 30:
                 _l.sent();
-                return [4 /*yield*/, enduser_observations_acknowledge_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, load_inbox_data_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 31:
                 _l.sent();
-                return [4 /*yield*/, create_user_notifications_trigger_tests({ sdk: sdk })];
+                return [4 /*yield*/, enduser_observations_acknowledge_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 32:
                 _l.sent();
-                return [4 /*yield*/, group_mms_active_tests()];
+                return [4 /*yield*/, create_user_notifications_trigger_tests({ sdk: sdk })];
             case 33:
                 _l.sent();
-                return [4 /*yield*/, auto_reply_tests()];
+                return [4 /*yield*/, group_mms_active_tests()];
             case 34:
                 _l.sent();
-                return [4 /*yield*/, relationships_tests()];
+                return [4 /*yield*/, auto_reply_tests()];
             case 35:
                 _l.sent();
-                return [4 /*yield*/, rate_limit_tests()];
+                return [4 /*yield*/, relationships_tests()];
             case 36:
                 _l.sent();
-                return [4 /*yield*/, ip_address_form_tests()];
+                return [4 /*yield*/, rate_limit_tests()];
             case 37:
                 _l.sent();
-                return [4 /*yield*/, bulk_update_tests()];
+                return [4 /*yield*/, ip_address_form_tests()];
             case 38:
                 _l.sent();
-                return [4 /*yield*/, formsort_tests()];
+                return [4 /*yield*/, bulk_update_tests()];
             case 39:
                 _l.sent();
                 return [4 /*yield*/, cancel_upcoming_appointments_journey_action_test()];

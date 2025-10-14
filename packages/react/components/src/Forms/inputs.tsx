@@ -4,7 +4,7 @@ import { Autocomplete, Box, Button, Checkbox, Chip, Collapse, Divider, FormContr
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
-import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities"
+import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, format_stripe_subscription_interval, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities"
 import { Address, DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, FormFieldOptionDetails, TellescopeGender, TIMEZONES_USA } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
@@ -1898,7 +1898,7 @@ export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId }
                       ${(priceAmount / 100).toFixed(2)} {priceCurrency.toUpperCase()}
                       {product.currentPrice?.isSubscription && (
                         <Typography component="span" variant="caption" sx={{ ml: 0.5 }}>
-                          /month
+                          {format_stripe_subscription_interval(product.currentPrice?.interval, product.currentPrice?.interval_count)}
                         </Typography>
                       )}
                     </Typography>
