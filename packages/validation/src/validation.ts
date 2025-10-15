@@ -310,6 +310,7 @@ import {
   DevelopHealthMedicationEligibilityAutomationAction,
   RemoveFromAllJourneysAutomationAction,
   FormResponseAnswerChargebee,
+  FormResponseAnswerBelugaPatientPreference,
   CancelFutureAppointmentsAutomationAction,
   CustomerIOIdentifyAction,
   CustomerIOTrackAction,
@@ -1601,6 +1602,7 @@ const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
   Conditions: "",
   "Rich Text": "",
   Timezone: '',
+  "Beluga Patient Preference": '',
 }
 export const FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES) as FormFieldType[]
 export const formFieldTypeValidator = exactMatchValidator<FormFieldType>(FORM_FIELD_TYPES)
@@ -1609,6 +1611,7 @@ export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' 
   Timezone: stringValidator.validate({ isOptional: true, emptyStringOk: true }),
   'Chargebee': objectAnyFieldsAnyValuesValidator.validate(),
   'Allergies': objectAnyFieldsAnyValuesValidator.validate(),
+  'Beluga Patient Preference': listValidator(objectAnyFieldsAnyValuesValidator).validate(),
   'Conditions': objectAnyFieldsAnyValuesValidator.validate(),
   "Emotii": stringValidator.validate({ maxLength: 5000 }),
   "Hidden Value": stringValidator.validate({ maxLength: 5000 }),
@@ -2203,6 +2206,10 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
     value: objectValidator<Required<FormResponseAnswerChargebee>['value']>({
       url: stringValidatorOptional
     }, { emptyOk: true, isOptional: true })
+  }),
+  "Beluga Patient Preference": objectValidator<FormResponseAnswerBelugaPatientPreference>({
+    type: exactMatchValidator(['Beluga Patient Preference']),
+    value: listValidatorOptionalOrEmptyOk(objectAnyFieldsAnyValuesValidator)
   })
 })
 

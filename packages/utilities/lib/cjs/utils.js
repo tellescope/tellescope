@@ -36,8 +36,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.time_for_calendar_event = exports.fullMonth_day_year = exports.calculate_date_difference_for_set_fields = exports.calculate_days_between_dates_from_enduser = exports.resolve_date_value = exports.calculate_days_between_dates = exports.parse_date_string = exports.mm_dd_yyyy = exports.yyyy_mm_dd_numeric = exports.yyyy_mm_dd = exports.formatted_date_hh_mm = exports.get_add_to_gcal_link = exports.formatted_date = exports.get_time_values = exports.MONTHS = exports.MONTHS_FULL = exports.sorted_records = exports.wait = exports.findFirstUnansweredField = exports.throwFunction = exports.ensure_https_url = exports.to_absolute_url = exports.build_portal_link_string = exports.build_content_link_string = exports.build_file_link_string = exports.build_form_group_link_string = exports.build_form_link_string = exports.build_link_string = exports.getTemplatedData = exports.parse_link_template = exports.map_object = exports.format_stripe_subscription_interval = exports.truncate_string = exports.defined_fields = exports.user_is_active = exports.user_display_name = exports.objects_equivalent = exports.to_object_id = exports.url_safe_path = exports.is_whitespace = exports.matching_fields = exports.is_object = exports.filter_object = exports.is_defined = exports.is_truthy = exports.object_is_empty = exports.first_letter_lowercase = exports.first_letter_capitalized = exports.user_is_admin = exports.ObjectId = void 0;
 exports.calculate_form_scoring = exports.batch_array = exports.capture_is_supported = exports.get_next_reminder_timestamp = exports.mfa_is_enabled = exports.URIDecodeEmail = exports.get_recent_outbound_communication_date = exports.get_recent_engagement_date = exports.MM_DD_YYYY_to_YYYY_MM_DD = exports.YYYY_MM_DD_to_MM_DD_YYYY = exports.getLocalTimezone = exports.string_matches_key_or_value = exports.evaluate_conditional_logic_for_enduser_fields = exports.UPCOMING_EVENT_COUNT_KEY = exports.get_enduser_field_value_for_key = exports.age_for_dob_mmddyyyy = exports.replace_keys_and_values_in_object = exports.get_conditional_logic_values = exports.evaluate_conditional_logic = exports.shuffle_array_in_place = exports.plaintext_for_managed_content_record = exports.sanitize_html = exports.timezone_for_enduser = exports.safeJSONParse = exports.payment_cost_to_string = exports.read_local_storage = exports.update_local_storage = exports.is_organization_owner = exports.form_response_value_to_string = exports.is_table_input_response = exports.user_has_record_access = exports.is_suborganization = exports.matches_organization = exports.getDefaultPortalURL = exports.getPublicFileURL = exports.getOrgnizationFaviconURL = exports.getOrgnizationLogoURL = exports.getBuiltInPublicFileName = exports.getGoogleClientAPIKey = exports.getGoogleClientId = exports.getApiURL = exports.getEnvironment = exports.TEST_API_URL = exports.STAGING_API_URL = exports.PROD_API_URL = exports.query_string_for_object = exports.sanitize_html_with_links = exports.remove_image_tags = exports.remove_style_tags = exports.remove_script_tags = void 0;
-exports.get_care_team_primary = exports.is_checkbox_custom_field_value = exports.enrich_doxy_url = exports.to_human_readable_phone_number = exports.get_canvas_id = exports.should_show_unsubmitted_form_response_for_interval = exports.enduser_insurance_string = exports.enduser_address_string = exports.is_timezone = exports.downloadFile = exports.get_prepopulated_responses = exports.INVALID_PREPOPULATION_TYPES = exports.add_value_for_dotted_key = exports.value_for_dotted_key = exports.get_flattened_fields = exports.skip_due_date_as_needed = exports.is_full_iso_string_heuristic = exports.display_time_for_seconds = exports.replace_enduser_template_values = exports.replace_secret_values = exports.get_secret_names = exports.replace_sms_template_values = exports.replace_purchase_template_values = exports.replace_tag_template_values_for_enduser = exports.append_current_utm_params = exports.get_utm_params = exports.is_out_of_office = exports.color_for_classification = exports.classification_for_vital = exports.SMS_UNSUBSCRIBE_KEYWORDS = exports.satisfies_vital_comparison = exports.field_can_autosubmit = exports.field_can_autoadvance = exports.decodeJWT = exports.validate_organization_for_develop_health = exports.validate_user_for_develop_health = exports.validate_enduser_for_develop_health = exports.validate_enduser_for_dose_spot = exports.validate_enduser_for_smart_meter = exports.validate_enduser_for_gogo = exports.json_error_string = exports.validate_enduser_for_candid = exports.validate_provider_for_candid = exports.validate_organization_for_candid = exports.validate_insurance_for_eligibility = exports.weighted_round_robin = exports.responses_satisfy_conditions = exports.calculate_bmi = exports.FORM_LOGIC_URL_PARAMETER = exports.FORM_LOGIC_CALCULATED_FIELDS = void 0;
-exports.formatDuration = exports.calculateTimeTrackDuration = exports.validate_custom_field_references = exports.slot_violates_calendar_event_limits = exports.replace_form_response_template_values = exports.resolve_integration_id = exports.replace_snippet_template_values = exports.get_snippet_keys = exports.emit_gtm_event = void 0;
+exports.enrich_doxy_url = exports.to_human_readable_phone_number = exports.get_canvas_id = exports.should_show_unsubmitted_form_response_for_interval = exports.enduser_insurance_string = exports.enduser_address_string = exports.is_timezone = exports.downloadFile = exports.get_prepopulated_responses = exports.INVALID_PREPOPULATION_TYPES = exports.add_value_for_dotted_key = exports.value_for_dotted_key = exports.get_flattened_fields = exports.skip_due_date_as_needed = exports.is_full_iso_string_heuristic = exports.display_time_for_seconds = exports.replace_enduser_template_values = exports.replace_secret_values = exports.get_secret_names = exports.replace_sms_template_values = exports.replace_form_field_template_values = exports.replace_purchase_template_values = exports.replace_tag_template_values_for_enduser = exports.append_current_utm_params = exports.get_utm_params = exports.is_out_of_office = exports.color_for_classification = exports.classification_for_vital = exports.SMS_UNSUBSCRIBE_KEYWORDS = exports.satisfies_vital_comparison = exports.field_can_autosubmit = exports.field_can_autoadvance = exports.decodeJWT = exports.validate_organization_for_develop_health = exports.validate_user_for_develop_health = exports.validate_enduser_for_develop_health = exports.validate_enduser_for_dose_spot = exports.validate_enduser_for_smart_meter = exports.validate_enduser_for_gogo = exports.json_error_string = exports.validate_enduser_for_candid = exports.validate_provider_for_candid = exports.validate_organization_for_candid = exports.validate_insurance_for_eligibility = exports.weighted_round_robin = exports.responses_satisfy_conditions = exports.calculate_bmi_from_responses = exports.calculate_bmi = exports.FORM_LOGIC_URL_PARAMETER = exports.FORM_LOGIC_CALCULATED_FIELDS = void 0;
+exports.formatDuration = exports.calculateTimeTrackDuration = exports.validate_custom_field_references = exports.slot_violates_calendar_event_limits = exports.replace_form_response_template_values = exports.resolve_integration_id = exports.replace_snippet_template_values = exports.get_snippet_keys = exports.emit_gtm_event = exports.get_care_team_primary = exports.is_checkbox_custom_field_value = void 0;
 var types_models_1 = require("@tellescope/types-models");
 var constants_1 = require("@tellescope/constants");
 var sanitize_html_1 = __importDefault(require("sanitize-html"));
@@ -1887,6 +1887,24 @@ var calculate_bmi = function (e) {
     return (703 * weight / (height * height));
 };
 exports.calculate_bmi = calculate_bmi;
+var calculate_bmi_from_responses = function (responses) {
+    var _a, _b, _d, _e;
+    // Find height from intake fields
+    var h = (((_a = responses.find(function (r) { return r.answer.type === 'number' && r.answer.value && r.computedValueKey === 'Height'; })) === null || _a === void 0 ? void 0 : _a.answer)
+        || ((_b = responses.find(function (r) { return r.answer.type === 'Height' && r.answer.value && r.computedValueKey === 'Height'; })) === null || _b === void 0 ? void 0 : _b.answer));
+    var height = (((h === null || h === void 0 ? void 0 : h.type) === 'number' && h.value)
+        ? h.value
+        : ((h === null || h === void 0 ? void 0 : h.type) === 'Height' && typeof ((_d = h.value) === null || _d === void 0 ? void 0 : _d.feet) === 'number')
+            ? h.value.feet * 12 + (h.value.inches || 0)
+            : undefined);
+    // Find weight from intake fields
+    var w = (_e = responses.find(function (r) { return r.answer.type === 'number' && r.answer.value && r.computedValueKey === 'Weight'; })) === null || _e === void 0 ? void 0 : _e.answer;
+    var weight = (w === null || w === void 0 ? void 0 : w.type) === 'number' && w.value ? w.value : undefined;
+    if (!(height && weight))
+        return undefined;
+    return 703 * weight / (height * height);
+};
+exports.calculate_bmi_from_responses = calculate_bmi_from_responses;
 var evaluate_response_equals = function (answer, comparison) {
     var _a, _b, _d, _e, _f, _g;
     if (answer.type === 'Database Select' && ((_a = answer.value) === null || _a === void 0 ? void 0 : _a.length)) {
@@ -2576,6 +2594,114 @@ var replace_purchase_template_values = function (s, purchase) {
     return replaced;
 };
 exports.replace_purchase_template_values = replace_purchase_template_values;
+var replace_form_field_template_values = function (s, options) {
+    var _a, _b, _d, _e, _f, _g, _h, _j;
+    if (!s)
+        return s;
+    if (typeof s !== 'string')
+        return s;
+    var enduser = options.enduser, _k = options.responses, responses = _k === void 0 ? [] : _k;
+    var i = 0;
+    var start = 0;
+    var templates = [];
+    var _loop_4 = function () {
+        i++;
+        start = s.indexOf('{{enduser.', start);
+        if (start === -1)
+            return "break";
+        var end = s.indexOf('}}', start);
+        if (end === -1)
+            return "break";
+        var match = s.substring(start, end + 2); // +2 accounts for '}}'
+        var fieldPath = match.substring('{{enduser.'.length, match.length - 2); // extract field name
+        var replacement = '';
+        // Special case: BMI calculation
+        if (fieldPath === 'BMI') {
+            // First try to calculate from responses (intake fields)
+            if (responses.length > 0) {
+                var bmi = (0, exports.calculate_bmi_from_responses)(responses);
+                if (bmi !== undefined) {
+                    replacement = bmi.toFixed(1);
+                }
+            }
+            // Fall back to enduser fields if no BMI from responses
+            if (!replacement && ((_a = enduser === null || enduser === void 0 ? void 0 : enduser.height) === null || _a === void 0 ? void 0 : _a.value) && ((_b = enduser === null || enduser === void 0 ? void 0 : enduser.weight) === null || _b === void 0 ? void 0 : _b.value)) {
+                var bmi = (0, exports.calculate_bmi)(enduser);
+                if (bmi !== -1) {
+                    replacement = bmi.toFixed(1);
+                }
+            }
+        }
+        // Special case: Age calculation
+        else if (fieldPath === 'Age') {
+            // First try to get dateOfBirth from intake field responses
+            var dobResponse = responses.find(function (r) { return r.intakeField === 'dateOfBirth' || r.computedValueKey === 'Date of Birth'; });
+            var dob = void 0;
+            if (((_d = dobResponse === null || dobResponse === void 0 ? void 0 : dobResponse.answer) === null || _d === void 0 ? void 0 : _d.value) && typeof dobResponse.answer.value === 'string') {
+                dob = dobResponse.answer.value;
+            }
+            // Fall back to enduser dateOfBirth
+            else if (enduser === null || enduser === void 0 ? void 0 : enduser.dateOfBirth) {
+                dob = enduser.dateOfBirth;
+            }
+            if (dob) {
+                replacement = (0, exports.age_for_dob_mmddyyyy)(dob).toString();
+            }
+        }
+        // Regular enduser field - check both responses (intake fields) and enduser object
+        else {
+            // First try to get from intake field responses
+            // Map common field names to their intake field equivalents
+            var intakeFieldMapping = {
+                'fname': 'fname',
+                'firstName': 'fname',
+                'lname': 'lname',
+                'lastName': 'lname',
+                'email': 'email',
+                'phone': 'phone',
+                'dateOfBirth': 'dateOfBirth',
+                'gender': 'gender',
+            };
+            var intakeFieldName_1 = intakeFieldMapping[fieldPath] || fieldPath;
+            var intakeResponse = responses.find(function (r) { return r.intakeField === intakeFieldName_1; });
+            if ((_e = intakeResponse === null || intakeResponse === void 0 ? void 0 : intakeResponse.answer) === null || _e === void 0 ? void 0 : _e.value) {
+                // Handle different answer types
+                if (typeof intakeResponse.answer.value === 'string' || typeof intakeResponse.answer.value === 'number') {
+                    replacement = intakeResponse.answer.value.toString();
+                }
+                else if (intakeResponse.answer.type === 'Address' && typeof intakeResponse.answer.value === 'object') {
+                    // For address fields, might want specific sub-fields
+                    replacement = JSON.stringify(intakeResponse.answer.value);
+                }
+            }
+            // Fall back to enduser object if not found in responses
+            else if (enduser) {
+                var value = (((_g = (_f = enduser.fields) === null || _f === void 0 ? void 0 : _f[fieldPath]) === null || _g === void 0 ? void 0 : _g.toString())
+                    || ((_h = (0, exports.get_enduser_field_value_for_key)(enduser, fieldPath)) === null || _h === void 0 ? void 0 : _h.toString())
+                    || ((_j = enduser[fieldPath]) === null || _j === void 0 ? void 0 : _j.toString()) // Try direct property access
+                    || '');
+                replacement = value;
+            }
+        }
+        templates.push({
+            match: match,
+            replacement: replacement
+        });
+        start = end + 2;
+    };
+    while (i < 100) {
+        var state_2 = _loop_4();
+        if (state_2 === "break")
+            break;
+    }
+    var replaced = s.toString();
+    for (var _i = 0, templates_2 = templates; _i < templates_2.length; _i++) {
+        var _l = templates_2[_i], match = _l.match, replacement = _l.replacement;
+        replaced = replaced.replace(match, replacement);
+    }
+    return replaced;
+};
+exports.replace_form_field_template_values = replace_form_field_template_values;
 var replacer = function (prefix, s, handleMatch) {
     var i = 0;
     var start = 0;
@@ -2596,8 +2722,8 @@ var replacer = function (prefix, s, handleMatch) {
         start = end + 2;
     }
     var replaced = s.toString();
-    for (var _i = 0, templates_2 = templates; _i < templates_2.length; _i++) {
-        var _a = templates_2[_i], match = _a.match, replacement = _a.replacement;
+    for (var _i = 0, templates_3 = templates; _i < templates_3.length; _i++) {
+        var _a = templates_3[_i], match = _a.match, replacement = _a.replacement;
         replaced = replaced.replace(match, replacement);
     }
     return replaced;
@@ -2663,8 +2789,8 @@ var replace_enduser_template_values = function (s, enduser) {
         start = end + 2;
     }
     var replaced = s.toString();
-    for (var _i = 0, templates_3 = templates; _i < templates_3.length; _i++) {
-        var _a = templates_3[_i], match = _a.match, replacement = _a.replacement;
+    for (var _i = 0, templates_4 = templates; _i < templates_4.length; _i++) {
+        var _a = templates_4[_i], match = _a.match, replacement = _a.replacement;
         replaced = replaced.replace(match, replacement);
     }
     return replaced;
@@ -3074,7 +3200,7 @@ var slot_violates_calendar_event_limits = function (_a) {
         return e.templateId === templateId &&
             e.attendees.some(function (a) { return a.id === userId; });
     });
-    var _loop_4 = function (limit) {
+    var _loop_5 = function (limit) {
         var eventsInPeriod = [];
         if (limit.period === 1) {
             // For 1-day limit, use calendar day logic (midnight to midnight in user's timezone)
@@ -3128,9 +3254,9 @@ var slot_violates_calendar_event_limits = function (_a) {
     // Check each limit
     for (var _i = 0, relevantLimits_1 = relevantLimits; _i < relevantLimits_1.length; _i++) {
         var limit = relevantLimits_1[_i];
-        var state_2 = _loop_4(limit);
-        if (typeof state_2 === "object")
-            return state_2.value;
+        var state_3 = _loop_5(limit);
+        if (typeof state_3 === "object")
+            return state_3.value;
     }
     return false; // All limits satisfied, slot is allowed
 };

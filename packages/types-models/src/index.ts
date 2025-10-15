@@ -1600,7 +1600,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
 }
 
 export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time' | "Timezone"
-export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance"
+export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance" | "Beluga Patient Preference"
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
 
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic'
@@ -2087,6 +2087,17 @@ export type AllergyResponse = BaseResponse & {
 }
 export type ConditionResponse = BaseResponse
 
+export type BelugaPatientPreferenceResponse = {
+  name: string,
+  strength: string,
+  quantity: string,
+  refills: string,
+  daysSupply: string,
+  sig: string,
+  dispenseUnit: string,
+  medId: string,
+}
+
 export type FormResponseAnswerTable = FormResponseValueAnswerBuilder<'Table Input', TableInputCell[][]>
 export type FormResponseAnswerGroup = FormResponseValueAnswerBuilder<'Question Group', FormSubField[]>
 export type FormResponseAnswerDescription  = FormResponseValueAnswerBuilder<'description', ''>
@@ -2111,6 +2122,7 @@ export type FormResponseAnswerRedirect = FormResponseValueAnswerBuilder<'Redirec
 export type FormResponseAnswerAllergies = FormResponseValueAnswerBuilder<'Allergies', AllergyResponse[]>
 export type FormResponseAnswerConditions = FormResponseValueAnswerBuilder<'Conditions', ConditionResponse[]>
 export type FormResponseAnswerChargebee = FormResponseValueAnswerBuilder<'Chargebee', { url: string }>
+export type FormResponseAnswerBelugaPatientPreference = FormResponseValueAnswerBuilder<'Beluga Patient Preference', BelugaPatientPreferenceResponse[]>
 
 export type FormResponseAnswerSignatureValue = {
   fullName: string,
@@ -2172,6 +2184,7 @@ export type FormResponseValueAnswer = (
   | FormResponseAnswerAllergies
   | FormResponseAnswerConditions
   | FormResponseAnswerChargebee
+  | FormResponseAnswerBelugaPatientPreference
 )
 
 export type FormResponseValue = {
@@ -2223,6 +2236,7 @@ export type AnswerForType = {
   'Allergies': FormResponseAnswerAllergies['value']
   'Conditions': FormResponseAnswerConditions['value']
   'Timezone': FormResponseAnswerTimezone['value']
+  'Beluga Patient Preference': FormResponseAnswerBelugaPatientPreference['value']
 }
 
 export type Addendum = {

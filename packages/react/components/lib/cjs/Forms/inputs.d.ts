@@ -63,6 +63,7 @@ export declare const DatabaseSelectInput: ({ AddToDatabase, field, value: _value
 }) => JSX.Element;
 export declare const CanvasMedicationsInput: ({ field, value, onChange }: FormInputProps<'Medications'>) => JSX.Element;
 export declare const MedicationsInput: ({ field, value, onChange, ...props }: FormInputProps<'Medications'>) => JSX.Element;
+export declare const BelugaPatientPreferenceInput: ({ field, value: _value, onChange }: FormInputProps<'Beluga Patient Preference'>) => JSX.Element;
 export declare const contact_is_valid: (e: Partial<Enduser>) => "Email is invalid" | "Phone is invalid" | "Date of birth should be MM-DD-YYYY" | undefined;
 export declare const RelatedContactsInput: ({ field, value: _value, onChange, ...props }: FormInputProps<'Related Contacts'>) => JSX.Element;
 export declare const AppointmentBookingInput: ({ formResponseId, field, value, onChange, form, responses, goToPreviousField, isPreviousDisabled, enduserId, ...props }: FormInputProps<'Appointment Booking'>) => JSX.Element;

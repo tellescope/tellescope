@@ -1167,6 +1167,7 @@ var _FORM_FIELD_TYPES = {
     Conditions: "",
     "Rich Text": "",
     Timezone: '',
+    "Beluga Patient Preference": '',
 };
 export var FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES);
 export var formFieldTypeValidator = exactMatchValidator(FORM_FIELD_TYPES);
@@ -1174,6 +1175,7 @@ export var FORM_FIELD_VALIDATORS_BY_TYPE = {
     Timezone: stringValidator.validate({ isOptional: true, emptyStringOk: true }),
     'Chargebee': objectAnyFieldsAnyValuesValidator.validate(),
     'Allergies': objectAnyFieldsAnyValuesValidator.validate(),
+    'Beluga Patient Preference': listValidator(objectAnyFieldsAnyValuesValidator).validate(),
     'Conditions': objectAnyFieldsAnyValuesValidator.validate(),
     "Emotii": stringValidator.validate({ maxLength: 5000 }),
     "Hidden Value": stringValidator.validate({ maxLength: 5000 }),
@@ -1735,6 +1737,10 @@ export var formResponseAnswerValidator = orValidator({
         value: objectValidator({
             url: stringValidatorOptional
         }, { emptyOk: true, isOptional: true })
+    }),
+    "Beluga Patient Preference": objectValidator({
+        type: exactMatchValidator(['Beluga Patient Preference']),
+        value: listValidatorOptionalOrEmptyOk(objectAnyFieldsAnyValuesValidator)
     })
 });
 export var mmddyyyyRegex = /^\d{2}-\d{2}-\d{4}$/;

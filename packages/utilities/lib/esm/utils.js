@@ -1784,6 +1784,23 @@ export var calculate_bmi = function (e) {
         return -1;
     return (703 * weight / (height * height));
 };
+export var calculate_bmi_from_responses = function (responses) {
+    var _a, _b, _d, _e;
+    // Find height from intake fields
+    var h = (((_a = responses.find(function (r) { return r.answer.type === 'number' && r.answer.value && r.computedValueKey === 'Height'; })) === null || _a === void 0 ? void 0 : _a.answer)
+        || ((_b = responses.find(function (r) { return r.answer.type === 'Height' && r.answer.value && r.computedValueKey === 'Height'; })) === null || _b === void 0 ? void 0 : _b.answer));
+    var height = (((h === null || h === void 0 ? void 0 : h.type) === 'number' && h.value)
+        ? h.value
+        : ((h === null || h === void 0 ? void 0 : h.type) === 'Height' && typeof ((_d = h.value) === null || _d === void 0 ? void 0 : _d.feet) === 'number')
+            ? h.value.feet * 12 + (h.value.inches || 0)
+            : undefined);
+    // Find weight from intake fields
+    var w = (_e = responses.find(function (r) { return r.answer.type === 'number' && r.answer.value && r.computedValueKey === 'Weight'; })) === null || _e === void 0 ? void 0 : _e.answer;
+    var weight = (w === null || w === void 0 ? void 0 : w.type) === 'number' && w.value ? w.value : undefined;
+    if (!(height && weight))
+        return undefined;
+    return 703 * weight / (height * height);
+};
 var evaluate_response_equals = function (answer, comparison) {
     var _a, _b, _d, _e, _f, _g;
     if (answer.type === 'Database Select' && ((_a = answer.value) === null || _a === void 0 ? void 0 : _a.length)) {
@@ -2449,6 +2466,113 @@ export var replace_purchase_template_values = function (s, purchase) {
     }
     return replaced;
 };
+export var replace_form_field_template_values = function (s, options) {
+    var _a, _b, _d, _e, _f, _g, _h, _j;
+    if (!s)
+        return s;
+    if (typeof s !== 'string')
+        return s;
+    var enduser = options.enduser, _k = options.responses, responses = _k === void 0 ? [] : _k;
+    var i = 0;
+    var start = 0;
+    var templates = [];
+    var _loop_4 = function () {
+        i++;
+        start = s.indexOf('{{enduser.', start);
+        if (start === -1)
+            return "break";
+        var end = s.indexOf('}}', start);
+        if (end === -1)
+            return "break";
+        var match = s.substring(start, end + 2); // +2 accounts for '}}'
+        var fieldPath = match.substring('{{enduser.'.length, match.length - 2); // extract field name
+        var replacement = '';
+        // Special case: BMI calculation
+        if (fieldPath === 'BMI') {
+            // First try to calculate from responses (intake fields)
+            if (responses.length > 0) {
+                var bmi = calculate_bmi_from_responses(responses);
+                if (bmi !== undefined) {
+                    replacement = bmi.toFixed(1);
+                }
+            }
+            // Fall back to enduser fields if no BMI from responses
+            if (!replacement && ((_a = enduser === null || enduser === void 0 ? void 0 : enduser.height) === null || _a === void 0 ? void 0 : _a.value) && ((_b = enduser === null || enduser === void 0 ? void 0 : enduser.weight) === null || _b === void 0 ? void 0 : _b.value)) {
+                var bmi = calculate_bmi(enduser);
+                if (bmi !== -1) {
+                    replacement = bmi.toFixed(1);
+                }
+            }
+        }
+        // Special case: Age calculation
+        else if (fieldPath === 'Age') {
+            // First try to get dateOfBirth from intake field responses
+            var dobResponse = responses.find(function (r) { return r.intakeField === 'dateOfBirth' || r.computedValueKey === 'Date of Birth'; });
+            var dob = void 0;
+            if (((_d = dobResponse === null || dobResponse === void 0 ? void 0 : dobResponse.answer) === null || _d === void 0 ? void 0 : _d.value) && typeof dobResponse.answer.value === 'string') {
+                dob = dobResponse.answer.value;
+            }
+            // Fall back to enduser dateOfBirth
+            else if (enduser === null || enduser === void 0 ? void 0 : enduser.dateOfBirth) {
+                dob = enduser.dateOfBirth;
+            }
+            if (dob) {
+                replacement = age_for_dob_mmddyyyy(dob).toString();
+            }
+        }
+        // Regular enduser field - check both responses (intake fields) and enduser object
+        else {
+            // First try to get from intake field responses
+            // Map common field names to their intake field equivalents
+            var intakeFieldMapping = {
+                'fname': 'fname',
+                'firstName': 'fname',
+                'lname': 'lname',
+                'lastName': 'lname',
+                'email': 'email',
+                'phone': 'phone',
+                'dateOfBirth': 'dateOfBirth',
+                'gender': 'gender',
+            };
+            var intakeFieldName_1 = intakeFieldMapping[fieldPath] || fieldPath;
+            var intakeResponse = responses.find(function (r) { return r.intakeField === intakeFieldName_1; });
+            if ((_e = intakeResponse === null || intakeResponse === void 0 ? void 0 : intakeResponse.answer) === null || _e === void 0 ? void 0 : _e.value) {
+                // Handle different answer types
+                if (typeof intakeResponse.answer.value === 'string' || typeof intakeResponse.answer.value === 'number') {
+                    replacement = intakeResponse.answer.value.toString();
+                }
+                else if (intakeResponse.answer.type === 'Address' && typeof intakeResponse.answer.value === 'object') {
+                    // For address fields, might want specific sub-fields
+                    replacement = JSON.stringify(intakeResponse.answer.value);
+                }
+            }
+            // Fall back to enduser object if not found in responses
+            else if (enduser) {
+                var value = (((_g = (_f = enduser.fields) === null || _f === void 0 ? void 0 : _f[fieldPath]) === null || _g === void 0 ? void 0 : _g.toString())
+                    || ((_h = get_enduser_field_value_for_key(enduser, fieldPath)) === null || _h === void 0 ? void 0 : _h.toString())
+                    || ((_j = enduser[fieldPath]) === null || _j === void 0 ? void 0 : _j.toString()) // Try direct property access
+                    || '');
+                replacement = value;
+            }
+        }
+        templates.push({
+            match: match,
+            replacement: replacement
+        });
+        start = end + 2;
+    };
+    while (i < 100) {
+        var state_2 = _loop_4();
+        if (state_2 === "break")
+            break;
+    }
+    var replaced = s.toString();
+    for (var _i = 0, templates_2 = templates; _i < templates_2.length; _i++) {
+        var _l = templates_2[_i], match = _l.match, replacement = _l.replacement;
+        replaced = replaced.replace(match, replacement);
+    }
+    return replaced;
+};
 var replacer = function (prefix, s, handleMatch) {
     var i = 0;
     var start = 0;
@@ -2469,8 +2593,8 @@ var replacer = function (prefix, s, handleMatch) {
         start = end + 2;
     }
     var replaced = s.toString();
-    for (var _i = 0, templates_2 = templates; _i < templates_2.length; _i++) {
-        var _a = templates_2[_i], match = _a.match, replacement = _a.replacement;
+    for (var _i = 0, templates_3 = templates; _i < templates_3.length; _i++) {
+        var _a = templates_3[_i], match = _a.match, replacement = _a.replacement;
         replaced = replaced.replace(match, replacement);
     }
     return replaced;
@@ -2533,8 +2657,8 @@ export var replace_enduser_template_values = function (s, enduser) {
         start = end + 2;
     }
     var replaced = s.toString();
-    for (var _i = 0, templates_3 = templates; _i < templates_3.length; _i++) {
-        var _a = templates_3[_i], match = _a.match, replacement = _a.replacement;
+    for (var _i = 0, templates_4 = templates; _i < templates_4.length; _i++) {
+        var _a = templates_4[_i], match = _a.match, replacement = _a.replacement;
         replaced = replaced.replace(match, replacement);
     }
     return replaced;
@@ -2921,7 +3045,7 @@ export var slot_violates_calendar_event_limits = function (_a) {
         return e.templateId === templateId &&
             e.attendees.some(function (a) { return a.id === userId; });
     });
-    var _loop_4 = function (limit) {
+    var _loop_5 = function (limit) {
         var eventsInPeriod = [];
         if (limit.period === 1) {
             // For 1-day limit, use calendar day logic (midnight to midnight in user's timezone)
@@ -2975,9 +3099,9 @@ export var slot_violates_calendar_event_limits = function (_a) {
     // Check each limit
     for (var _i = 0, relevantLimits_1 = relevantLimits; _i < relevantLimits_1.length; _i++) {
         var limit = relevantLimits_1[_i];
-        var state_2 = _loop_4(limit);
-        if (typeof state_2 === "object")
-            return state_2.value;
+        var state_3 = _loop_5(limit);
+        if (typeof state_3 === "object")
+            return state_3.value;
     }
     return false; // All limits satisfied, slot is allowed
 };

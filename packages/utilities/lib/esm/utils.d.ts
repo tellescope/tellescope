@@ -278,6 +278,7 @@ export declare const calculate_form_scoring: ({ response, form, }: {
 export declare const FORM_LOGIC_CALCULATED_FIELDS: string[];
 export declare const FORM_LOGIC_URL_PARAMETER = "URL Logic Parameter";
 export declare const calculate_bmi: (e: Pick<Enduser, 'height' | 'weight'>) => number;
+export declare const calculate_bmi_from_responses: (responses: FormResponseValue[]) => number | undefined;
 export declare const responses_satisfy_conditions: (responses: FormResponseValue[], conditions: CompoundFilter<string>, options?: {
     dateOfBirth?: string;
     gender?: string;
@@ -317,6 +318,10 @@ export declare const get_utm_params: () => LabeledField[];
 export declare const append_current_utm_params: (targetURL: string) => string;
 export declare const replace_tag_template_values_for_enduser: (tags: string[], enduser: Omit<Enduser, 'id'>) => any[];
 export declare const replace_purchase_template_values: (s: string, purchase?: Omit<Purchase, 'id'> | null) => string;
+export declare const replace_form_field_template_values: (s: string, options: {
+    enduser?: Partial<Enduser> | undefined;
+    responses?: FormResponseValue[] | undefined;
+}) => string;
 export declare const replace_sms_template_values: (s: string, sms?: Omit<SMSMessage, 'id'> | null) => string;
 export declare const get_secret_names: (s: string) => string[];
 export declare const replace_secret_values: (s: string, integrations?: Pick<Integration, 'authentication' | 'title'>[]) => string;

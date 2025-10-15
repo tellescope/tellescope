@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Button, CircularProgress, FileBlob, FileUploadHandler, Flex, LinearProgress, LoadingButton, Modal, Paper, Styled, Typography, WithTheme, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse, NextFieldLogicOptions } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
-import { AddToDatabaseProps, AddressInput, AllergiesInput, AppointmentBookingInput, ChargeebeeInput, ConditionsInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, RichTextInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, TimezoneInput, defaultButtonStyles } from "./inputs.v2"
+import { AddToDatabaseProps, AddressInput, AllergiesInput, AppointmentBookingInput, BelugaPatientPreferenceInput, ChargeebeeInput, ConditionsInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, RichTextInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, TimezoneInput, defaultButtonStyles } from "./inputs.v2"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
@@ -183,6 +183,7 @@ export const QuestionForField = ({
   const Allergies = customInputs?.['Allergies'] ?? AllergiesInput
   const Conditions = customInputs?.['Conditions'] ?? ConditionsInput
   const RichText = customInputs?.['Rich Text'] ?? RichTextInput
+  const BelugaPatientPreference = customInputs?.['Beluga Patient Preference'] ?? BelugaPatientPreferenceInput
 
   const validationMessage = validateField(field)
 
@@ -348,6 +349,9 @@ export const QuestionForField = ({
         )
         : field.type === 'Medications' ? (
           <Medications field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Medications'>} form={form}/>
+        )
+        : field.type === 'Beluga Patient Preference' ? (
+          <BelugaPatientPreference field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Beluga Patient Preference'>} form={form}/>
         )
         : field.type === 'Insurance' ? (
           <Insurance field={field} value={value.answer.value as any} form={form}

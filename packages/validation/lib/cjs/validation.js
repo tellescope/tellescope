@@ -1209,6 +1209,7 @@ var _FORM_FIELD_TYPES = {
     Conditions: "",
     "Rich Text": "",
     Timezone: '',
+    "Beluga Patient Preference": '',
 };
 exports.FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES);
 exports.formFieldTypeValidator = (0, exports.exactMatchValidator)(exports.FORM_FIELD_TYPES);
@@ -1216,6 +1217,7 @@ exports.FORM_FIELD_VALIDATORS_BY_TYPE = {
     Timezone: exports.stringValidator.validate({ isOptional: true, emptyStringOk: true }),
     'Chargebee': exports.objectAnyFieldsAnyValuesValidator.validate(),
     'Allergies': exports.objectAnyFieldsAnyValuesValidator.validate(),
+    'Beluga Patient Preference': (0, exports.listValidator)(exports.objectAnyFieldsAnyValuesValidator).validate(),
     'Conditions': exports.objectAnyFieldsAnyValuesValidator.validate(),
     "Emotii": exports.stringValidator.validate({ maxLength: 5000 }),
     "Hidden Value": exports.stringValidator.validate({ maxLength: 5000 }),
@@ -1781,6 +1783,10 @@ exports.formResponseAnswerValidator = (0, exports.orValidator)({
         value: (0, exports.objectValidator)({
             url: exports.stringValidatorOptional
         }, { emptyOk: true, isOptional: true })
+    }),
+    "Beluga Patient Preference": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['Beluga Patient Preference']),
+        value: (0, exports.listValidatorOptionalOrEmptyOk)(exports.objectAnyFieldsAnyValuesValidator)
     })
 });
 exports.mmddyyyyRegex = /^\d{2}-\d{2}-\d{4}$/;

@@ -1559,7 +1559,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
     copiedFromEnduserId?: string;
 }
 export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' | 'dateString' | 'rating' | 'Time' | "Timezone";
-export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance";
+export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance" | "Beluga Patient Preference";
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType;
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic';
 export type PreviousFormFieldBuilder<T extends PreviousFormFieldType, V> = {
@@ -2046,6 +2046,16 @@ export type AllergyResponse = BaseResponse & {
     note?: string;
 };
 export type ConditionResponse = BaseResponse;
+export type BelugaPatientPreferenceResponse = {
+    name: string;
+    strength: string;
+    quantity: string;
+    refills: string;
+    daysSupply: string;
+    sig: string;
+    dispenseUnit: string;
+    medId: string;
+};
 export type FormResponseAnswerTable = FormResponseValueAnswerBuilder<'Table Input', TableInputCell[][]>;
 export type FormResponseAnswerGroup = FormResponseValueAnswerBuilder<'Question Group', FormSubField[]>;
 export type FormResponseAnswerDescription = FormResponseValueAnswerBuilder<'description', ''>;
@@ -2075,6 +2085,7 @@ export type FormResponseAnswerConditions = FormResponseValueAnswerBuilder<'Condi
 export type FormResponseAnswerChargebee = FormResponseValueAnswerBuilder<'Chargebee', {
     url: string;
 }>;
+export type FormResponseAnswerBelugaPatientPreference = FormResponseValueAnswerBuilder<'Beluga Patient Preference', BelugaPatientPreferenceResponse[]>;
 export type FormResponseAnswerSignatureValue = {
     fullName: string;
     signed: boolean;
@@ -2097,7 +2108,7 @@ export type FormResponseAnswerFileValue = {
 export type FormResponseAnswerFile = FormResponseValueAnswerBuilder<'file', FormResponseAnswerFileValue>;
 export type FormResponseAnswerFiles = FormResponseValueAnswerBuilder<'files', FormResponseAnswerFileValue[]>;
 export type FormResponseAnswerTimezone = FormResponseValueAnswerBuilder<'Timezone', string>;
-export type FormResponseValueAnswer = (FormResponseAnswerGroup | FormResponseAnswerTimezone | FormResponseAnswerTable | FormResponseAnswerDescription | FormResponseAnswerEmail | FormResponseAnswerNumber | FormResponseAnswerPhone | FormResponseAnswerString | FormResponseAnswerStringLong | FormResponseAnswerRichText | FormResponseAnswerSignature | FormResponseAnswerMultipleChoice | FormResponseAnswerFile | FormResponseAnswerFiles | FormResponseAnswerDate | FormResponseAnswerRating | FormResponseAnswerRanking | FormResponseAnswerDateString | FormResponseAnswerAddress | FormResponseAnswerTime | FormResponseAnswerStripe | FormResponseAnswerDropdown | FormResponseAnswerDatabaseSelect | FormResponseAnswerMedications | FormResponseAnswerRelatedContacts | FormResponseAnswerInsurance | FormResponseAnswerAppointmentBooking | FormResponseAnswerHeight | FormResponseAnswerRedirect | FormResponseAnswerHiddenValue | FormResponseAnswerEmotii | FormResponseAnswerAllergies | FormResponseAnswerConditions | FormResponseAnswerChargebee);
+export type FormResponseValueAnswer = (FormResponseAnswerGroup | FormResponseAnswerTimezone | FormResponseAnswerTable | FormResponseAnswerDescription | FormResponseAnswerEmail | FormResponseAnswerNumber | FormResponseAnswerPhone | FormResponseAnswerString | FormResponseAnswerStringLong | FormResponseAnswerRichText | FormResponseAnswerSignature | FormResponseAnswerMultipleChoice | FormResponseAnswerFile | FormResponseAnswerFiles | FormResponseAnswerDate | FormResponseAnswerRating | FormResponseAnswerRanking | FormResponseAnswerDateString | FormResponseAnswerAddress | FormResponseAnswerTime | FormResponseAnswerStripe | FormResponseAnswerDropdown | FormResponseAnswerDatabaseSelect | FormResponseAnswerMedications | FormResponseAnswerRelatedContacts | FormResponseAnswerInsurance | FormResponseAnswerAppointmentBooking | FormResponseAnswerHeight | FormResponseAnswerRedirect | FormResponseAnswerHiddenValue | FormResponseAnswerEmotii | FormResponseAnswerAllergies | FormResponseAnswerConditions | FormResponseAnswerChargebee | FormResponseAnswerBelugaPatientPreference);
 export type FormResponseValue = {
     fieldId: string;
     fieldTitle: string;
@@ -2146,6 +2157,7 @@ export type AnswerForType = {
     'Allergies': FormResponseAnswerAllergies['value'];
     'Conditions': FormResponseAnswerConditions['value'];
     'Timezone': FormResponseAnswerTimezone['value'];
+    'Beluga Patient Preference': FormResponseAnswerBelugaPatientPreference['value'];
 };
 export type Addendum = {
     timestamp: Date;

@@ -2948,6 +2948,164 @@ export const MedicationsInput = ({ field, value, onChange, ...props }: FormInput
   )
 }
 
+export const BelugaPatientPreferenceInput = ({ field, value: _value, onChange }: FormInputProps<'Beluga Patient Preference'>) => {
+  const value = Array.isArray(_value) ? _value : []
+
+  return (
+    <Grid container direction="column" sx={{ mt: 2 }}>
+    {value.map((v, i) => (
+      <>
+      <Grid item key={i}>
+      <Grid container alignItems="center" wrap="nowrap">
+        <Grid item sx={{ width: '100%'}}>
+        <Grid container direction="column" spacing={1.5}>
+          <Grid item>
+            <TextField label="Medication Name" size="small" fullWidth required
+              value={v.name ?? ''}
+              onChange={e =>
+                onChange(
+                  value.map((_v, _i) => (
+                    i === _i ? { ..._v, name: e.target.value } : _v
+                  )),
+                  field.id,
+                )
+              }
+            />
+          </Grid>
+
+          <Grid item>
+            <Grid container spacing={1}>
+              <Grid item xs={12} md={6}>
+                <TextField label="Strength" size="small" fullWidth required
+                  value={v.strength ?? ''}
+                  onChange={e =>
+                    onChange(
+                      value.map((_v, _i) => (
+                        i === _i ? { ..._v, strength: e.target.value } : _v
+                      )),
+                      field.id,
+                    )
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField label="Dispense Unit" size="small" fullWidth required
+                  value={v.dispenseUnit ?? ''}
+                  onChange={e =>
+                    onChange(
+                      value.map((_v, _i) => (
+                        i === _i ? { ..._v, dispenseUnit: e.target.value } : _v
+                      )),
+                      field.id,
+                    )
+                  }
+                />
+              </Grid>
+            </Grid>
+          </Grid>
+
+          <Grid item>
+            <Grid container spacing={1}>
+              <Grid item xs={12} md={4}>
+                <TextField label="Quantity" size="small" fullWidth required
+                  value={v.quantity ?? ''}
+                  onChange={e =>
+                    onChange(
+                      value.map((_v, _i) => (
+                        i === _i ? { ..._v, quantity: e.target.value } : _v
+                      )),
+                      field.id,
+                    )
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField label="Refills" size="small" fullWidth required
+                  value={v.refills ?? ''}
+                  onChange={e =>
+                    onChange(
+                      value.map((_v, _i) => (
+                        i === _i ? { ..._v, refills: e.target.value } : _v
+                      )),
+                      field.id,
+                    )
+                  }
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField label="Days Supply" size="small" fullWidth required
+                  value={v.daysSupply ?? ''}
+                  onChange={e =>
+                    onChange(
+                      value.map((_v, _i) => (
+                        i === _i ? { ..._v, daysSupply: e.target.value } : _v
+                      )),
+                      field.id,
+                    )
+                  }
+                />
+              </Grid>
+            </Grid>
+          </Grid>
+
+          <Grid item>
+            <TextField label="Sig (Instructions)" size="small" fullWidth required multiline rows={2}
+              value={v.sig ?? ''}
+              onChange={e =>
+                onChange(
+                  value.map((_v, _i) => (
+                    i === _i ? { ..._v, sig: e.target.value } : _v
+                  )),
+                  field.id,
+                )
+              }
+            />
+          </Grid>
+
+          <Grid item>
+            <TextField label="Med ID (NDC11)" size="small" fullWidth required
+              value={v.medId ?? ''}
+              onChange={e =>
+                onChange(
+                  value.map((_v, _i) => (
+                    i === _i ? { ..._v, medId: e.target.value } : _v
+                  )),
+                  field.id,
+                )
+              }
+            />
+          </Grid>
+
+          <Grid item>
+            <Typography color="primary" sx={{ textDecoration: 'underline', cursor: 'pointer' }}
+              onClick={() => onChange(value.filter((_, _i) => i !== _i), field.id)}
+            >
+              Remove medication
+            </Typography>
+          </Grid>
+        </Grid>
+        </Grid>
+      </Grid>
+      </Grid>
+
+      <Grid item><Divider flexItem sx={{ my: 1 }} /></Grid>
+      </>
+    ))}
+
+      <Grid item>
+        <Button color="primary" variant="outlined"
+          onClick={() => onChange([
+            ...value,
+            { name: '', strength: '', quantity: '', refills: '', daysSupply: '', sig: '', dispenseUnit: '', medId: '' }
+          ], field.id)}
+        >
+          Add Medication
+        </Button>
+      </Grid>
+    </Grid>
+  )
+}
+
 export const contact_is_valid = (e: Partial<Enduser>) => {
   if (e.email) {
     try {

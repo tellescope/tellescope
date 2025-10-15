@@ -1939,6 +1939,30 @@ export const calculate_bmi = (e: Pick<Enduser, 'height' | 'weight'>) => {
   return (703 * weight / (height * height))
 }
 
+export const calculate_bmi_from_responses = (responses: FormResponseValue[]): number | undefined => {
+  // Find height from intake fields
+  const h = (
+    responses.find(r => r.answer.type === 'number' && r.answer.value && r.computedValueKey === 'Height')?.answer
+    || responses.find(r => r.answer.type === 'Height' && r.answer.value && r.computedValueKey === 'Height')?.answer
+  )
+
+  const height = (
+    (h?.type === 'number' && h.value)
+      ? h.value
+  : (h?.type === 'Height' && typeof h.value?.feet === 'number')
+      ? h.value.feet * 12 + (h.value.inches || 0)
+      : undefined
+  )
+
+  // Find weight from intake fields
+  const w = responses.find(r => r.answer.type === 'number' && r.answer.value && r.computedValueKey === 'Weight')?.answer
+  const weight = w?.type === 'number' && w.value ? w.value : undefined
+
+  if (!(height && weight)) return undefined
+
+  return 703 * weight / (height * height)
+}
+
 const evaluate_response_equals = (answer: FormResponseValueAnswer, comparison: string) => {
   if (answer.type === 'Database Select' && answer.value?.length) {
     return (
@@ -2587,6 +2611,126 @@ export const replace_purchase_template_values = (s: string, purchase?: Omit<Purc
       : match === '{{purchase.cost.amount}}' ? purchase.cost.amount.toString()
         : ''
       )
+    })
+
+    start = end + 2
+  }
+
+  let replaced = s.toString()
+  for (const { match, replacement } of templates) {
+    replaced = replaced.replace(match, replacement)
+  }
+
+  return replaced
+}
+
+export const replace_form_field_template_values = (
+  s: string,
+  options: {
+    enduser?: Partial<Enduser>,
+    responses?: FormResponseValue[],
+  }
+) => {
+  if (!s) return s
+  if (typeof s !== 'string') return s
+
+  const { enduser, responses = [] } = options
+
+  let i = 0
+  let start = 0
+  let templates = [] as { match: string, replacement: string }[]
+
+  while (i < 100) {
+    i++
+
+    start = s.indexOf('{{enduser.', start)
+    if (start === -1) break
+
+    const end = s.indexOf('}}', start)
+    if (end === -1) break
+
+    const match = s.substring(start, end + 2) // +2 accounts for '}}'
+    const fieldPath = match.substring('{{enduser.'.length, match.length - 2) // extract field name
+
+    let replacement = ''
+
+    // Special case: BMI calculation
+    if (fieldPath === 'BMI') {
+      // First try to calculate from responses (intake fields)
+      if (responses.length > 0) {
+        const bmi = calculate_bmi_from_responses(responses)
+        if (bmi !== undefined) {
+          replacement = bmi.toFixed(1)
+        }
+      }
+      // Fall back to enduser fields if no BMI from responses
+      if (!replacement && enduser?.height?.value && enduser?.weight?.value) {
+        const bmi = calculate_bmi(enduser)
+        if (bmi !== -1) {
+          replacement = bmi.toFixed(1)
+        }
+      }
+    }
+    // Special case: Age calculation
+    else if (fieldPath === 'Age') {
+      // First try to get dateOfBirth from intake field responses
+      const dobResponse = responses.find(r => r.intakeField === 'dateOfBirth' || r.computedValueKey === 'Date of Birth')
+      let dob: string | undefined
+
+      if (dobResponse?.answer?.value && typeof dobResponse.answer.value === 'string') {
+        dob = dobResponse.answer.value
+      }
+      // Fall back to enduser dateOfBirth
+      else if (enduser?.dateOfBirth) {
+        dob = enduser.dateOfBirth
+      }
+
+      if (dob) {
+        replacement = age_for_dob_mmddyyyy(dob).toString()
+      }
+    }
+    // Regular enduser field - check both responses (intake fields) and enduser object
+    else {
+      // First try to get from intake field responses
+      // Map common field names to their intake field equivalents
+      const intakeFieldMapping: Record<string, string> = {
+        'fname': 'fname',
+        'firstName': 'fname',
+        'lname': 'lname',
+        'lastName': 'lname',
+        'email': 'email',
+        'phone': 'phone',
+        'dateOfBirth': 'dateOfBirth',
+        'gender': 'gender',
+      }
+
+      const intakeFieldName = intakeFieldMapping[fieldPath] || fieldPath
+      const intakeResponse = responses.find(r => r.intakeField === intakeFieldName)
+
+      if (intakeResponse?.answer?.value) {
+        // Handle different answer types
+        if (typeof intakeResponse.answer.value === 'string' || typeof intakeResponse.answer.value === 'number') {
+          replacement = intakeResponse.answer.value.toString()
+        } else if (intakeResponse.answer.type === 'Address' && typeof intakeResponse.answer.value === 'object') {
+          // For address fields, might want specific sub-fields
+          replacement = JSON.stringify(intakeResponse.answer.value)
+        }
+      }
+      // Fall back to enduser object if not found in responses
+      else if (enduser) {
+        const value = (
+          enduser.fields?.[fieldPath]?.toString()
+          || get_enduser_field_value_for_key(enduser as Omit<Enduser, 'id'>, fieldPath)?.toString()
+          || (enduser as any)[fieldPath]?.toString() // Try direct property access
+          || ''
+        )
+        replacement = value
+      }
+    }
+
+    templates.push({
+      match,
+      replacement
     })
 
     start = end + 2
