@@ -55,7 +55,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 import { jsx as _jsx } from "react/jsx-runtime";
-import { createContext, useCallback, useContext, useEffect, useRef, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { phoneValidator } from "@tellescope/validation";
 import { TIMEZONES } from "@tellescope/types-models";
 import { WithTheme, contact_is_valid, useAddGTMTag, useFileUpload, useFormFields, useFormResponses, useResolvedSession, value_is_loaded } from "../index";
@@ -599,6 +599,15 @@ export var useTellescopeForm = function (_a) {
         fieldInitRef.current = formId;
         setResponses(initializeFields());
     }, [formId, initializeFields]);
+    // Create templated versions of responses for UI display
+    // This applies template value replacements (e.g., {{enduser.BMI}}) to field titles/descriptions
+    // The templated responses are used ONLY for display and submission, not for navigation logic
+    var templatedResponses = useMemo(function () {
+        return responses.map(function (response) {
+            var originalField = fields.find(function (f) { return f.id === response.fieldId; }) || response.field;
+            return __assign(__assign({}, response), { fieldTitle: replace_form_field_template_values(originalField.title || '', { enduser: enduser, responses: responses }), fieldDescription: replace_form_field_template_values(originalField.description || '', { enduser: enduser, responses: responses }), fieldHtmlDescription: replace_form_field_template_values(originalField.htmlDescription || '', { enduser: enduser, responses: responses }), field: __assign(__assign({}, response.field), { title: replace_form_field_template_values(originalField.title || '', { enduser: enduser, responses: responses }), description: replace_form_field_template_values(originalField.description || '', { enduser: enduser, responses: responses }), htmlDescription: replace_form_field_template_values(originalField.htmlDescription || '', { enduser: enduser, responses: responses }) }) });
+        });
+    }, [responses, fields, enduser]);
     // placeholders for initial files, reset when fields prop changes, since questions are now different (e.g. different form selected) 
     var fileInitRef = useRef('');
     var initializeFiles = useCallback(function () { return (fields.map(function (f) { return ({
@@ -615,11 +624,20 @@ export var useTellescopeForm = function (_a) {
         fileInitRef.current = formId;
         setSelectedFiles(initializeFiles());
     }, [formId, initializeFiles]);
-    var currentValue = (responses.find(function (f) { return f.fieldId === activeField.value.id; }));
+    var currentValue = (templatedResponses.find(function (f) { return f.fieldId === activeField.value.id; }));
     var currentFileValue = (selectedFiles.find(function (f) { return f.fieldId === activeField.value.id; }));
+    // Create templated version of activeField for UI display
+    // This applies template replacements to the field's title/description
+    var templatedActiveField = useMemo(function () {
+        var templatedResponse = templatedResponses.find(function (r) { return r.fieldId === activeField.value.id; });
+        if (templatedResponse) {
+            return __assign(__assign({}, activeField), { value: templatedResponse.field });
+        }
+        return activeField;
+    }, [activeField, templatedResponses]);
     var logicOptions = {
         urlLogicValue: urlLogicValue,
-        activeResponses: responses.filter(function (r) { return r.includeInSubmit; }),
+        activeResponses: templatedResponses.filter(function (r) { return r.includeInSubmit; }),
         dateOfBirth: enduser === null || enduser === void 0 ? void 0 : enduser.dateOfBirth,
         gender: enduser === null || enduser === void 0 ? void 0 : enduser.gender,
         state: enduser === null || enduser === void 0 ? void 0 : enduser.state,
@@ -1181,8 +1199,8 @@ export var useTellescopeForm = function (_a) {
                 case 9:
                     _6.trys.push([9, 18, 19, 20]);
                     responsesToSubmit_3 = ((options === null || options === void 0 ? void 0 : options.includedFieldIds)
-                        ? options.includedFieldIds.map(function (id) { return responses.find(function (r) { return r.fieldId === id; }); })
-                        : responses.filter(function (r) { return r.includeInSubmit; }));
+                        ? options.includedFieldIds.map(function (id) { return templatedResponses.find(function (r) { return r.fieldId === id; }); })
+                        : templatedResponses.filter(function (r) { return r.includeInSubmit; }));
                     // ensure Question Group responses are included
                     // see getResponsesWithQuestionGroupAnswers
                     for (_a = 0, responsesToSubmit_2 = responsesToSubmit_3; _a < responsesToSubmit_2.length; _a++) {
@@ -1190,7 +1208,7 @@ export var useTellescopeForm = function (_a) {
                         if (r.answer.type !== 'Question Group')
                             continue;
                         _loop_10 = function (f) {
-                            var match = responses.find(function (r) { return r.fieldId === (f === null || f === void 0 ? void 0 : f.id); });
+                            var match = templatedResponses.find(function (r) { return r.fieldId === (f === null || f === void 0 ? void 0 : f.id); });
                             if (!match || responsesToSubmit_3.find(function (r) { return r.fieldId === match.fieldId; }))
                                 return "continue";
                             // hidden in group by conditional logic
@@ -1327,7 +1345,7 @@ export var useTellescopeForm = function (_a) {
                 case 20: return [2 /*return*/];
             }
         });
-    }); }, [accessCode, automationStepId, enduserId, responses, selectedFiles, session, handleUpload, existingResponses, ga4measurementId, rootResponseId, parentResponseId, calendarEventId, goBackURL, logicOptions, handleFileUpload]);
+    }); }, [accessCode, automationStepId, enduserId, responses, templatedResponses, selectedFiles, session, handleUpload, existingResponses, ga4measurementId, rootResponseId, parentResponseId, calendarEventId, goBackURL, logicOptions, handleFileUpload]);
     var isNextDisabled = useCallback(function () {
         if (uploadingFiles.length) {
             return true;
@@ -1340,15 +1358,6 @@ export var useTellescopeForm = function (_a) {
         }
         return false;
     }, [activeField, validateField, uploadingFiles]);
-    // Helper function to apply templating to responses
-    // Templates field titles/descriptions with current enduser data and form response values
-    // Can be called whenever we need to update templates (e.g., on "next" button click)
-    var applyTemplatingToResponses = useCallback(function (currentResponses) {
-        return currentResponses.map(function (response) {
-            var originalField = fields.find(function (f) { return f.id === response.fieldId; }) || response.field;
-            return __assign(__assign({}, response), { fieldTitle: replace_form_field_template_values(originalField.title || '', { enduser: enduser, responses: currentResponses }), fieldDescription: replace_form_field_template_values(originalField.description || '', { enduser: enduser, responses: currentResponses }), fieldHtmlDescription: replace_form_field_template_values(originalField.htmlDescription || '', { enduser: enduser, responses: currentResponses }), field: __assign(__assign({}, response.field), { title: replace_form_field_template_values(originalField.title || '', { enduser: enduser, responses: currentResponses }), description: replace_form_field_template_values(originalField.description || '', { enduser: enduser, responses: currentResponses }), htmlDescription: replace_form_field_template_values(originalField.htmlDescription || '', { enduser: enduser, responses: currentResponses }) }) });
-        });
-    }, [fields, enduser]);
     var autoAdvanceRef = useRef(false);
     // don't make option, to avoid user passing invalid data, like an onclick event
     var goToNextField = useCallback(function (answer) {
@@ -1358,21 +1367,11 @@ export var useTellescopeForm = function (_a) {
         if (isNextDisabled() && (currentValue === null || currentValue === void 0 ? void 0 : currentValue.answer.type) !== 'Hidden Value')
             return;
         console.log('going to next field');
-        // If an answer is provided (e.g., from Hidden Value), update responses first
-        var responsesWithAnswer = answer
-            ? responses.map(function (r) {
-                return r.fieldId === currentValue.fieldId
-                    ? __assign(__assign({}, r), { answer: answer }) : r;
-            })
-            : responses;
-        // Apply templating to all responses including the newly updated answer
-        var templatedResponses = applyTemplatingToResponses(responsesWithAnswer);
-        setResponses(templatedResponses);
         if (currentValue.answer.type === 'Question Group') {
             var responsesToSave = ((((_a = currentValue.field.options) === null || _a === void 0 ? void 0 : _a.subFields) || [])
                 .map(function (_a) {
                 var id = _a.id;
-                return templatedResponses.find(function (f) { return f.fieldId === id; });
+                return responses.find(function (f) { return f.fieldId === id; });
             })
                 .filter(function (f) { return f && (f === null || f === void 0 ? void 0 : f.answer.type) !== 'file' && (f === null || f === void 0 ? void 0 : f.answer.type) !== 'files'; }));
             if (responsesToSave.length) {
@@ -1397,22 +1396,15 @@ export var useTellescopeForm = function (_a) {
         }
         catch (err) { } // scroll to top if needed
         setActiveField(function (activeField) {
-            var newField = getNextField(activeField, currentValue, templatedResponses, logicOptions);
+            var newField = getNextField(activeField, currentValue, responses, logicOptions);
             // when autoadvancing, prevent adding duplicates by checking whether already on stack
             if (newField !== undefined && !prevFieldStackRef.current.find(function (v) { return v.value.id === (activeField === null || activeField === void 0 ? void 0 : activeField.value.id); })) {
                 prevFieldStackRef.current.push(activeField);
                 setCurrentPageIndex(function (i) { return i + 1; });
             }
-            var fieldToReturn = newField || activeField;
-            // Apply templating to the active field by pulling from the templated responses
-            // This ensures the UI displays templated titles/descriptions immediately
-            var templatedResponse = templatedResponses.find(function (r) { return r.fieldId === fieldToReturn.value.id; });
-            if (templatedResponse) {
-                fieldToReturn.value = templatedResponse.field;
-            }
-            return fieldToReturn;
+            return newField || activeField;
         });
-    }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, logicOptions, accessCode, formResponseId, setActiveField, setCurrentPageIndex, applyTemplatingToResponses]);
+    }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, logicOptions, accessCode, formResponseId, setActiveField, setCurrentPageIndex]);
     useEffect(function () {
         if (dontAutoadvance)
             return;
@@ -1519,12 +1511,12 @@ export var useTellescopeForm = function (_a) {
     return {
         enduserId: enduserId,
         formResponseId: formResponseId,
-        activeField: activeField,
+        activeField: templatedActiveField,
         currentValue: currentValue,
         currentFileValue: currentFileValue,
         getResponsesWithQuestionGroupAnswers: getResponsesWithQuestionGroupAnswers,
         fields: fields,
-        responses: responses,
+        responses: templatedResponses,
         selectedFiles: selectedFiles,
         onFieldChange: onFieldChange,
         onAddFile: onAddFile,

@@ -793,7 +793,6 @@ var MultipleChoiceInput = function (_a) {
     var field = _a.field, form = _a.form, _value = _a.value, onChange = _a.onChange;
     var value = typeof _value === 'string' ? [_value] : _value; // if loading existingResponses, allows them to be a string
     var _f = field.options, choices = _f.choices, radio = _f.radio, other = _f.other, optionDetails = _f.optionDetails;
-    var _g = (0, react_1.useState)({}), expandedDescriptions = _g[0], setExpandedDescriptions = _g[1];
     // current other string
     var enteringOtherStringRef = react_1.default.useRef(''); // if typing otherString as prefix of a checkbox value, don't auto-select
     var otherString = (_b = value === null || value === void 0 ? void 0 : value.find(function (v) { var _a; return v === enteringOtherStringRef.current || !((_a = (choices !== null && choices !== void 0 ? choices : [])) === null || _a === void 0 ? void 0 : _a.find(function (c) { return c === v; })); })) !== null && _b !== void 0 ? _b : '';
@@ -803,19 +802,12 @@ var MultipleChoiceInput = function (_a) {
         var _a;
         return (_a = optionDetails === null || optionDetails === void 0 ? void 0 : optionDetails.find(function (detail) { return detail.option === choice; })) === null || _a === void 0 ? void 0 : _a.description;
     }, [optionDetails]);
-    var toggleDescription = (0, react_1.useCallback)(function (index) {
-        setExpandedDescriptions(function (prev) {
-            var _a;
-            return (__assign(__assign({}, prev), (_a = {}, _a[index] = !prev[index], _a)));
-        });
-    }, []);
     return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", rowGap: 1.5 }, { children: [radio
                 ? ((0, jsx_runtime_1.jsx)(material_1.FormControl, __assign({ fullWidth: true }, { children: (0, jsx_runtime_1.jsx)(material_1.RadioGroup, __assign({ "aria-labelledby": "radio-group-".concat(field.id, "-label"), defaultValue: "female", name: "radio-group-".concat(field.id) }, { children: (choices !== null && choices !== void 0 ? choices : []).map(function (c, i) {
                             var description = getDescriptionForChoice(c);
                             var hasDescription = !!description;
-                            var isExpanded = expandedDescriptions[i];
                             var isSelected = !!(value === null || value === void 0 ? void 0 : value.includes(c)) && c !== otherString;
-                            return ((0, jsx_runtime_1.jsxs)(material_1.Box, __assign({ sx: { width: '100%' } }, { children: [(0, jsx_runtime_1.jsxs)(material_1.Box, __assign({ sx: {
+                            return ((0, jsx_runtime_1.jsxs)(material_1.Box, __assign({ sx: { width: '100%' } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Box, __assign({ sx: {
                                             display: 'flex',
                                             alignItems: 'center',
                                             width: '100%',
@@ -823,25 +815,17 @@ var MultipleChoiceInput = function (_a) {
                                             borderColor: 'primary.main',
                                             borderRadius: 1,
                                             padding: '16px 16px',
-                                            marginBottom: '12px',
+                                            marginBottom: hasDescription ? '8px' : '12px',
                                             cursor: 'pointer',
                                             backgroundColor: 'transparent',
                                             boxSizing: 'border-box',
                                             '&:hover': {
                                                 backgroundColor: function (theme) { return "".concat(theme.palette.primary.main, "14"); },
                                             },
-                                        }, onClick: function () { return onChange((value === null || value === void 0 ? void 0 : value.includes(c)) ? [] : [c], field.id); } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ component: "span", sx: { flex: 1, color: 'primary.main', fontSize: 13, fontWeight: 600 } }, { children: c })), hasDescription && ((0, jsx_runtime_1.jsx)(material_1.IconButton, __assign({ className: "expand-button", size: "small", onClick: function (e) {
-                                                    e.stopPropagation();
-                                                    toggleDescription(i);
-                                                }, sx: {
-                                                    transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                                                    transition: 'transform 0.2s',
-                                                    ml: 1
-                                                } }, { children: (0, jsx_runtime_1.jsx)(icons_material_1.ExpandMore, { fontSize: "small" }) })))] })), hasDescription && ((0, jsx_runtime_1.jsx)(material_1.Collapse, __assign({ in: isExpanded }, { children: (0, jsx_runtime_1.jsx)(material_1.Box, __assign({ sx: { pl: 2, pr: 2, pb: 1, pt: 1 } }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "text.secondary" }, { children: description })) })) })))] }), i));
+                                        }, onClick: function () { return onChange((value === null || value === void 0 ? void 0 : value.includes(c)) ? [] : [c], field.id); } }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ component: "span", sx: { flex: 1, color: 'primary.main', fontSize: 13, fontWeight: 600 } }, { children: c })) })), hasDescription && ((0, jsx_runtime_1.jsx)(material_1.Box, __assign({ sx: { pl: 2, pr: 2, pb: 1, mb: 1 } }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ style: { fontSize: 14, color: '#00000099' } }, { children: description })) })))] }), i));
                         }) })) }))) : ((choices !== null && choices !== void 0 ? choices : []).map(function (c, i) {
                 var description = getDescriptionForChoice(c);
                 var hasDescription = !!description;
-                var isExpanded = expandedDescriptions[i];
                 return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ xs: 12 }, { children: (0, jsx_runtime_1.jsxs)(material_1.Box, __assign({ sx: { width: '100%' } }, { children: [(0, jsx_runtime_1.jsxs)(material_1.Box, __assign({ sx: {
                                     display: 'flex',
                                     alignItems: 'center',
@@ -850,10 +834,6 @@ var MultipleChoiceInput = function (_a) {
                                     boxSizing: 'border-box'
                                 }, onClick: function (e) {
                                     var _a, _b, _d, _e;
-                                    // Don't trigger selection if clicking on the expand button
-                                    if (e.target.closest('.expand-button')) {
-                                        return;
-                                    }
                                     onChange(((value === null || value === void 0 ? void 0 : value.includes(c))
                                         ? ((radio || ((_b = (_a = field.options) === null || _a === void 0 ? void 0 : _a.radioChoices) === null || _b === void 0 ? void 0 : _b.includes(c)))
                                             ? []
@@ -861,14 +841,7 @@ var MultipleChoiceInput = function (_a) {
                                         : ((radio || ((_e = (_d = field.options) === null || _d === void 0 ? void 0 : _d.radioChoices) === null || _e === void 0 ? void 0 : _e.includes(c)))
                                             ? [c]
                                             : __spreadArray(__spreadArray([], (value !== null && value !== void 0 ? value : []).filter(function (x) { var _a, _b; return !((_b = (_a = field.options) === null || _a === void 0 ? void 0 : _a.radioChoices) === null || _b === void 0 ? void 0 : _b.includes(x)); }), true), [c], false))), field.id);
-                                } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Checkbox, { color: "primary", checked: !!(value === null || value === void 0 ? void 0 : value.includes(c)) && c !== otherString, inputProps: { 'aria-label': 'primary checkbox' } }), (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ component: "span", sx: { flex: 1 } }, { children: c })), hasDescription && ((0, jsx_runtime_1.jsx)(material_1.IconButton, __assign({ className: "expand-button", size: "small", onClick: function (e) {
-                                            e.stopPropagation();
-                                            toggleDescription(i);
-                                        }, sx: {
-                                            transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                                            transition: 'transform 0.2s',
-                                            ml: 1
-                                        } }, { children: (0, jsx_runtime_1.jsx)(icons_material_1.ExpandMore, { fontSize: "small" }) })))] })), hasDescription && ((0, jsx_runtime_1.jsx)(material_1.Collapse, __assign({ in: isExpanded }, { children: (0, jsx_runtime_1.jsx)(material_1.Box, __assign({ sx: { pl: '42px', pr: 2, pb: 1 } }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "text.secondary" }, { children: description })) })) })))] })) }), i));
+                                } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Checkbox, { color: "primary", checked: !!(value === null || value === void 0 ? void 0 : value.includes(c)) && c !== otherString, inputProps: { 'aria-label': 'primary checkbox' } }), (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ component: "span", sx: { flex: 1 } }, { children: c }))] })), hasDescription && ((0, jsx_runtime_1.jsx)(material_1.Box, __assign({ sx: { pl: '42px', pr: 2, pb: 1 } }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ style: { fontSize: 14, color: '#00000099' } }, { children: description })) })))] })) }), i));
             })), other &&
                 (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 12 }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField // className={classes.textField}
                     , { InputProps: { sx: { borderRadius: 2.5 } }, sx: { width: radio ? "calc(100% - 15px)" : '100%' }, size: "small", "aria-label": (0, __1.form_display_text_for_language)(form, "Other"), value: otherString, placeholder: (0, __1.form_display_text_for_language)(form, "Other"), variant: "outlined", 

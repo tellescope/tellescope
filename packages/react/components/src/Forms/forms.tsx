@@ -325,7 +325,7 @@ export const QuestionForField = ({
           <StringLong field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string' | 'stringLong'>} form={form} />
         )
         : field.type === 'Rich Text' ? (
-          <RichText field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'Rich Text'>} form={form} />
+          <RichText key={field.id} field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'Rich Text'>} form={form} />
         )
         : field.type === 'email' ? (
           <Email field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'email'>} form={form} />

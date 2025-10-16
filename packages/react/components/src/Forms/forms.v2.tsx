@@ -204,9 +204,9 @@ export const QuestionForField = ({
   ) {
       return null
   }
-  return ( 
+  return (
     // margin leaves room for error message in Question Group
-    <Flex column flex={1} style={{ marginBottom: spacing ?? 25 }} id={field.id}> 
+    <Flex column flex={1} style={{ marginBottom: spacing ?? 25 }} id={field.id}>
       {field.type !== 'Redirect' && field.title &&
         <Typography component="h4" style={{
           marginTop: 15, // ensures PDF display doesn't push description into overlap with logo / title at top of form
@@ -223,13 +223,15 @@ export const QuestionForField = ({
         <div style={{ marginTop: 15 }}></div>
       }
 
-      {feedback.length > 0 && 
+      <Description field={field} style={{ fontSize: 14, color: '#00000099', marginBottom: 11 }} />
+
+      {feedback.length > 0 &&
         <Flex column style={{ marginBottom: 11, marginTop: 3, }}>
           {feedback.map((f, i) => (
             <Typography key={i} color="error" style={{ fontSize: 20 }}>
               {f}
             </Typography>
-          ))} 
+          ))}
         </Flex>
       }
 
@@ -317,7 +319,7 @@ export const QuestionForField = ({
           <StringLong field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string' | 'stringLong'>} form={form} error={!!validationMessage && (!['A response is required', 'A value must be checked', 'A file is required', 'Enter a valid phone number', 'Insurer is required'].includes(validationMessage) || value.touched)} />
         )
         : field.type === 'Rich Text' ? (
-          <RichText field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'Rich Text'>} form={form} />
+          <RichText key={field.id} field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'Rich Text'>} form={form} />
         )
         : field.type === 'email' ? (
           <Email field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'email'>} form={form} error={!!validationMessage && (!['A response is required', 'A value must be checked', 'A file is required', 'Enter a valid phone number', 'Insurer is required'].includes(validationMessage) || value.touched)} />
@@ -435,17 +437,15 @@ export const QuestionForField = ({
         </Flex>
       )}
 
-      <Description field={field} style={{ fontSize: 14, color: '#00000099', marginTop: 4 }} />
-
       {field.type !== 'Question Group' &&
-        <Typography color="error" style={{ marginTop: 3, height: 10, fontSize: 14, marginBottom: -10 }}> 
+        <Typography color="error" style={{ marginTop: 3, height: 10, fontSize: 14, marginBottom: -10 }}>
           {(validationMessage === 'A response is required' || validationMessage === 'A value must be checked' || validationMessage === 'A file is required' || 'Enter a valid phone number' || 'Insurer is required')
-            ? value.touched 
+            ? value.touched
               ? form_display_text_for_language(form, validationMessage)
-              : null 
+              : null
             : form_display_text_for_language(form, validationMessage)
           }
-        </Typography>  
+        </Typography>
       }
     </Flex>
   )

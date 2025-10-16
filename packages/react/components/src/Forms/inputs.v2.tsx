@@ -1,6 +1,6 @@
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import axios from "axios"
-import { Autocomplete, Box, Button, Checkbox, Chip, Collapse, Divider, FormControl, FormControlLabel, FormLabel, Grid, IconButton as MuiIconButton, InputLabel, MenuItem, Radio, RadioGroup, Select, SxProps, TextField, TextFieldProps, Typography } from "@mui/material"
+import { Autocomplete, Box, Button, Checkbox, Chip, Divider, FormControl, FormControlLabel, FormLabel, Grid, InputLabel, MenuItem, Radio, RadioGroup, Select, SxProps, TextField, TextFieldProps, Typography } from "@mui/material"
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
@@ -23,7 +23,7 @@ import LanguageIcon from '@mui/icons-material/Language';
 
 import { Elements, PaymentElement, useStripe, useElements, EmbeddedCheckout, EmbeddedCheckoutProvider } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js'; 
-import { CheckCircleOutline, Delete, Edit, ExpandMore, UploadFile } from "@mui/icons-material"
+import { CheckCircleOutline, Delete, Edit, UploadFile } from "@mui/icons-material"
 import { WYSIWYG } from "./wysiwyg"
 
 export const LanguageSelect = ({ value, ...props }: { value: string, onChange: (s: string) => void}) => (
@@ -1511,7 +1511,6 @@ export const FilesInput = ({ value, onChange, field, existingFileName, uploading
 export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: FormInputProps<'multiple_choice'>) => {
   const value = typeof _value === 'string' ? [_value] : _value // if loading existingResponses, allows them to be a string
   const { choices, radio, other, optionDetails } = field.options as MultipleChoiceOptions
-  const [expandedDescriptions, setExpandedDescriptions] = useState<Record<number, boolean>>({})
 
   // current other string
   const enteringOtherStringRef = React.useRef('') // if typing otherString as prefix of a checkbox value, don't auto-select
@@ -1523,13 +1522,6 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
   const getDescriptionForChoice = useCallback((choice: string) => {
     return optionDetails?.find(detail => detail.option === choice)?.description
   }, [optionDetails])
-
-  const toggleDescription = useCallback((index: number) => {
-    setExpandedDescriptions(prev => ({
-      ...prev,
-      [index]: !prev[index]
-    }))
-  }, [])
 
   return (
     <Grid container alignItems="center" rowGap={1.5}>
@@ -1544,7 +1536,6 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
             {(choices ?? []).map((c, i) => {
               const description = getDescriptionForChoice(c)
               const hasDescription = !!description
-              const isExpanded = expandedDescriptions[i]
               const isSelected = !!value?.includes(c) && c !== otherString
 
               return (
@@ -1558,7 +1549,7 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
                       borderColor: 'primary.main',
                       borderRadius: 1,
                       padding: '16px 16px',
-                      marginBottom: '12px',
+                      marginBottom: hasDescription ? '8px' : '12px',
                       cursor: 'pointer',
                       backgroundColor: 'transparent',
                       boxSizing: 'border-box',
@@ -1569,32 +1560,13 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
                     onClick={() => onChange(value?.includes(c) ? [] : [c], field.id)}
                   >
                     <Typography component="span" sx={{ flex: 1, color: 'primary.main', fontSize: 13, fontWeight: 600 }}>{c}</Typography>
-                    {hasDescription && (
-                      <MuiIconButton
-                        className="expand-button"
-                        size="small"
-                        onClick={(e: React.MouseEvent) => {
-                          e.stopPropagation()
-                          toggleDescription(i)
-                        }}
-                        sx={{
-                          transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                          transition: 'transform 0.2s',
-                          ml: 1
-                        }}
-                      >
-                        <ExpandMore fontSize="small" />
-                      </MuiIconButton>
-                    )}
                   </Box>
                   {hasDescription && (
-                    <Collapse in={isExpanded}>
-                      <Box sx={{ pl: 2, pr: 2, pb: 1, pt: 1 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          {description}
-                        </Typography>
-                      </Box>
-                    </Collapse>
+                    <Box sx={{ pl: 2, pr: 2, pb: 1, mb: 1 }}>
+                      <Typography style={{ fontSize: 14, color: '#00000099' }}>
+                        {description}
+                      </Typography>
+                    </Box>
                   )}
                 </Box>
               )
@@ -1605,7 +1577,6 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
           (choices ?? []).map((c, i) => {
             const description = getDescriptionForChoice(c)
             const hasDescription = !!description
-            const isExpanded = expandedDescriptions[i]
 
             return (
               <Grid xs={12} key={i}>
@@ -1619,10 +1590,6 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
                       boxSizing: 'border-box'
                     }}
                     onClick={(e) => {
-                      // Don't trigger selection if clicking on the expand button
-                      if ((e.target as HTMLElement).closest('.expand-button')) {
-                        return
-                      }
                       onChange(
                         (
                           value?.includes(c)
@@ -1647,32 +1614,13 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
                       inputProps={{ 'aria-label': 'primary checkbox' }}
                     />
                     <Typography component="span" sx={{ flex: 1 }}>{c}</Typography>
-                    {hasDescription && (
-                      <MuiIconButton
-                        className="expand-button"
-                        size="small"
-                        onClick={(e: React.MouseEvent) => {
-                          e.stopPropagation()
-                          toggleDescription(i)
-                        }}
-                        sx={{
-                          transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
-                          transition: 'transform 0.2s',
-                          ml: 1
-                        }}
-                      >
-                        <ExpandMore fontSize="small" />
-                      </MuiIconButton>
-                    )}
                   </Box>
                   {hasDescription && (
-                    <Collapse in={isExpanded}>
-                      <Box sx={{ pl: '42px', pr: 2, pb: 1 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          {description}
-                        </Typography>
-                      </Box>
-                    </Collapse>
+                    <Box sx={{ pl: '42px', pr: 2, pb: 1 }}>
+                      <Typography style={{ fontSize: 14, color: '#00000099' }}>
+                        {description}
+                      </Typography>
+                    </Box>
                   )}
                 </Box>
               </Grid>

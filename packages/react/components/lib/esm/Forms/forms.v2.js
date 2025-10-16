@@ -157,7 +157,7 @@ export var QuestionForField = function (_a) {
                     } }, { children: [field.title, !(field.isOptional || field.type === 'description' || field.type === 'Question Group' || field.type === 'Insurance') ? '*' : ''] })), !field.title && (field.type === 'Question Group' || field.type === 'signature') && !((_9 = form === null || form === void 0 ? void 0 : form.customization) === null || _9 === void 0 ? void 0 : _9.hideLogo) &&
                 // ensures PDF display doesn't push description into overlap with logo / title at top of form
                 // also ensures spacing between logo and question group
-                _jsx("div", { style: { marginTop: 15 } }), feedback.length > 0 &&
+                _jsx("div", { style: { marginTop: 15 } }), _jsx(Description, { field: field, style: { fontSize: 14, color: '#00000099', marginBottom: 11 } }), feedback.length > 0 &&
                 _jsx(Flex, __assign({ column: true, style: { marginBottom: 11, marginTop: 3, } }, { children: feedback.map(function (f, i) { return (_jsx(Typography, __assign({ color: "error", style: { fontSize: 20 } }, { children: f }), i)); }) })), 
             // If field has pre-populated value and is set to be disabled when pre-populated, show as underlined text
             field.disabledWhenPrepopulated && value.answer.value !== undefined && value.answer.value !== null && value.answer.value !== '' ? (_jsx("div", __assign({ style: {
@@ -193,7 +193,7 @@ export var QuestionForField = function (_a) {
                                                                     : field.type === 'Stripe' ? (_jsx(Stripe, { enduserId: enduserId, field: field, value: value.answer.value, onChange: onFieldChange, setCustomerId: setCustomerId, form: form }))
                                                                         : field.type === 'Chargebee' ? (_jsx(Chargebee, { field: field, value: value.answer.value, onChange: onFieldChange, setCustomerId: setCustomerId, form: form }))
                                                                             : field.type === 'stringLong' ? (_jsx(StringLong, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form, error: !!validationMessage && (!['A response is required', 'A value must be checked', 'A file is required', 'Enter a valid phone number', 'Insurer is required'].includes(validationMessage) || value.touched) }))
-                                                                                : field.type === 'Rich Text' ? (_jsx(RichText, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form }))
+                                                                                : field.type === 'Rich Text' ? (_jsx(RichText, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form }, field.id))
                                                                                     : field.type === 'email' ? (_jsx(Email, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form, error: !!validationMessage && (!['A response is required', 'A value must be checked', 'A file is required', 'Enter a valid phone number', 'Insurer is required'].includes(validationMessage) || value.touched) }))
                                                                                         : field.type === 'number' ? (_jsx(Number, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form, error: !!validationMessage && (!['A response is required', 'A value must be checked', 'A file is required', 'Enter a valid phone number', 'Insurer is required'].includes(validationMessage) || value.touched) }))
                                                                                             : field.type === 'phone' ? (_jsx(Phone, { field: field, disabled: value.disabled, value: value.answer.value, onChange: onFieldChange, form: form, error: !!validationMessage && (!['A response is required', 'A value must be checked', 'A file is required', 'Enter a valid phone number', 'Insurer is required'].includes(validationMessage) || value.touched) }))
@@ -236,7 +236,7 @@ export var QuestionForField = function (_a) {
                                 var _a;
                                 return onRepeatsChange(__assign(__assign({}, repeats), (_a = {}, _a[field.id] = u, _a)));
                             }, form: form }))
-                            : null }))), _jsx(Description, { field: field, style: { fontSize: 14, color: '#00000099', marginTop: 4 } }), field.type !== 'Question Group' &&
+                            : null }))), field.type !== 'Question Group' &&
                 _jsx(Typography, __assign({ color: "error", style: { marginTop: 3, height: 10, fontSize: 14, marginBottom: -10 } }, { children: (validationMessage === 'A response is required' || validationMessage === 'A value must be checked' || validationMessage === 'A file is required' || 'Enter a valid phone number' || 'Insurer is required')
                         ? value.touched
                             ? form_display_text_for_language(form, validationMessage)

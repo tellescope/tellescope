@@ -684,7 +684,27 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
     setResponses(initializeFields())
   }, [formId, initializeFields])
 
+  // Create templated versions of responses for UI display
+  // This applies template value replacements (e.g., {{enduser.BMI}}) to field titles/descriptions
+  // The templated responses are used ONLY for display and submission, not for navigation logic
+  const templatedResponses = useMemo(() => {
+    return responses.map(response => {
+      const originalField = fields.find(f => f.id === response.fieldId) || response.field
 
+      return {
+        ...response,
+        fieldTitle: replace_form_field_template_values(originalField.title || '', { enduser, responses }),
+        fieldDescription: replace_form_field_template_values(originalField.description || '', { enduser, responses }),
+        fieldHtmlDescription: replace_form_field_template_values(originalField.htmlDescription || '', { enduser, responses }),
+        field: {
+          ...response.field,
+          title: replace_form_field_template_values(originalField.title || '', { enduser, responses }),
+          description: replace_form_field_template_values(originalField.description || '', { enduser, responses }),
+          htmlDescription: replace_form_field_template_values(originalField.htmlDescription || '', { enduser, responses }),
+        }
+      }
+    })
+  }, [responses, fields, enduser])
 
   // placeholders for initial files, reset when fields prop changes, since questions are now different (e.g. different form selected) 
   const fileInitRef = useRef('')
@@ -706,15 +726,28 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
   }, [formId, initializeFiles])
 
   const currentValue =  (
-    responses.find(f => f.fieldId === activeField.value.id)
+    templatedResponses.find(f => f.fieldId === activeField.value.id)
   )
   const currentFileValue = (
     selectedFiles.find(f => f.fieldId === activeField.value.id)
   )
 
+  // Create templated version of activeField for UI display
+  // This applies template replacements to the field's title/description
+  const templatedActiveField = useMemo(() => {
+    const templatedResponse = templatedResponses.find(r => r.fieldId === activeField.value.id)
+    if (templatedResponse) {
+      return {
+        ...activeField,
+        value: templatedResponse.field
+      }
+    }
+    return activeField
+  }, [activeField, templatedResponses])
+
   const logicOptions: NextFieldLogicOptions = {
     urlLogicValue,
-    activeResponses: responses.filter(r => r.includeInSubmit),
+    activeResponses: templatedResponses.filter(r => r.includeInSubmit),
     dateOfBirth: enduser?.dateOfBirth,
     gender: enduser?.gender,
     state: enduser?.state,
@@ -1274,10 +1307,11 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
 
     if (!accessCode && session.type === 'enduser') throw new Error('enduser session without accessCode')
     try {
+      // Use templatedResponses for submission to ensure template values are resolved
       const responsesToSubmit = (
-        options?.includedFieldIds 
-          ? options.includedFieldIds.map(id => responses.find(r => r.fieldId === id)!)
-          : responses.filter(r => r.includeInSubmit)
+        options?.includedFieldIds
+          ? options.includedFieldIds.map(id => templatedResponses.find(r => r.fieldId === id)!)
+          : templatedResponses.filter(r => r.includeInSubmit)
       )
 
       // ensure Question Group responses are included
@@ -1286,7 +1320,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
         if (r.answer.type !== 'Question Group') continue
 
         for (const f of r.answer.value ?? []) {
-          const match = responses.find(r => r.fieldId === f?.id)
+          const match = templatedResponses.find(r => r.fieldId === f?.id)
           if (!match || responsesToSubmit.find(r => r.fieldId === match.fieldId)) continue
 
           // hidden in group by conditional logic
@@ -1403,7 +1437,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
     } finally {
       setSubmittingStatus(undefined)
     }
-  }, [accessCode, automationStepId, enduserId, responses, selectedFiles, session, handleUpload, existingResponses, ga4measurementId, rootResponseId, parentResponseId, calendarEventId, goBackURL, logicOptions, handleFileUpload])
+  }, [accessCode, automationStepId, enduserId, responses, templatedResponses, selectedFiles, session, handleUpload, existingResponses, ga4measurementId, rootResponseId, parentResponseId, calendarEventId, goBackURL, logicOptions, handleFileUpload])
 
   const isNextDisabled = useCallback(() => {
     if (uploadingFiles.length) { return true }
@@ -1419,30 +1453,6 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
     return false
   }, [activeField, validateField, uploadingFiles])
 
-  // Helper function to apply templating to responses
-  // Templates field titles/descriptions with current enduser data and form response values
-  // Can be called whenever we need to update templates (e.g., on "next" button click)
-  const applyTemplatingToResponses = useCallback((
-    currentResponses: Response[]
-  ): Response[] => {
-    return currentResponses.map(response => {
-      const originalField = fields.find(f => f.id === response.fieldId) || response.field
-
-      return {
-        ...response,
-        fieldTitle: replace_form_field_template_values(originalField.title || '', { enduser, responses: currentResponses }),
-        fieldDescription: replace_form_field_template_values(originalField.description || '', { enduser, responses: currentResponses }),
-        fieldHtmlDescription: replace_form_field_template_values(originalField.htmlDescription || '', { enduser, responses: currentResponses }),
-        field: {
-          ...response.field,
-          title: replace_form_field_template_values(originalField.title || '', { enduser, responses: currentResponses }),
-          description: replace_form_field_template_values(originalField.description || '', { enduser, responses: currentResponses }),
-          htmlDescription: replace_form_field_template_values(originalField.htmlDescription || '', { enduser, responses: currentResponses }),
-        }
-      }
-    })
-  }, [fields, enduser])
-
   const autoAdvanceRef = useRef(false)
   // don't make option, to avoid user passing invalid data, like an onclick event
   const goToNextField = useCallback((answer: FormResponseValue['answer'] | undefined) => {
@@ -1450,24 +1460,10 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
     if (isNextDisabled() && currentValue?.answer.type !== 'Hidden Value') return
 
     console.log('going to next field')
-
-    // If an answer is provided (e.g., from Hidden Value), update responses first
-    const responsesWithAnswer = answer
-      ? responses.map(r =>
-          r.fieldId === currentValue.fieldId
-            ? { ...r, answer }
-            : r
-        )
-      : responses
-
-    // Apply templating to all responses including the newly updated answer
-    const templatedResponses = applyTemplatingToResponses(responsesWithAnswer)
-    setResponses(templatedResponses)
-
     if (currentValue.answer.type === 'Question Group') {
       const responsesToSave = (
         (currentValue.field.options?.subFields || [])
-        .map(({ id }) => templatedResponses.find(f => f.fieldId === id)!)
+        .map(({ id }) => responses.find(f => f.fieldId === id)!)
         .filter(f => f && f?.answer.type !== 'file' && f?.answer.type !== 'files')
       )
       if (responsesToSave.length) {
@@ -1478,7 +1474,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
         })
         .catch(console.error)
       }
-    }
+    } 
     else if (currentValue?.answer?.type !== 'file' && currentValue?.answer?.type !== 'files' && (formResponseId || accessCode)) {
       session.api.form_responses.save_field_response({
         accessCode,
@@ -1493,26 +1489,17 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
 
     try { window.scrollTo({ top: 0 }) } catch(err) {} // scroll to top if needed
     setActiveField(activeField => {
-      let newField = getNextField(activeField, currentValue, templatedResponses, logicOptions)
+      let newField = getNextField(activeField, currentValue, responses, logicOptions)
 
       // when autoadvancing, prevent adding duplicates by checking whether already on stack
       if (newField !== undefined && !prevFieldStackRef.current.find(v => v.value.id === activeField?.value.id)) {
         prevFieldStackRef.current.push(activeField)
         setCurrentPageIndex(i => i + 1)
       }
-
-      const fieldToReturn = newField || activeField
-
-      // Apply templating to the active field by pulling from the templated responses
-      // This ensures the UI displays templated titles/descriptions immediately
-      const templatedResponse = templatedResponses.find(r => r.fieldId === fieldToReturn.value.id)
-      if (templatedResponse) {
-        fieldToReturn.value = templatedResponse.field
-      }
-
-      return fieldToReturn
+      
+      return newField || activeField
     })
-  }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, logicOptions, accessCode, formResponseId, setActiveField, setCurrentPageIndex, applyTemplatingToResponses])
+  }, [prevFieldStackRef, currentValue, isNextDisabled, updateFormResponse, session, responses, logicOptions, accessCode, formResponseId, setActiveField, setCurrentPageIndex])
 
   useEffect(() => {
     if (dontAutoadvance) return
@@ -1636,12 +1623,12 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
   return {
     enduserId,
     formResponseId,
-    activeField,
+    activeField: templatedActiveField, // Use templated activeField for UI display
     currentValue,
     currentFileValue,
     getResponsesWithQuestionGroupAnswers,
     fields,
-    responses,
+    responses: templatedResponses, // Use templated responses - only display fields differ, answer values unchanged
     selectedFiles,
     onFieldChange,
     onAddFile,
