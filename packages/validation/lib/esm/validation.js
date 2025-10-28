@@ -2846,6 +2846,10 @@ export var formFieldOptionsValidator = objectValidator({
     min: numberValidatorOptional,
     stripeKey: stringValidatorOptionalEmptyOkay,
     stripeProductSelectionMode: booleanValidatorOptional,
+    productConditions: listValidatorOptionalOrEmptyOk(objectValidator({
+        productId: mongoIdStringRequired,
+        showCondition: objectAnyFieldsAnyValuesValidator,
+    })),
     dataSource: stringValidatorOptionalEmptyOkay,
     esignatureTermsCompanyName: stringValidatorOptionalEmptyOkay,
     observationCode: stringValidatorOptionalEmptyOkay,

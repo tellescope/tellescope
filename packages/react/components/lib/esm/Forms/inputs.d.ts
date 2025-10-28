@@ -45,7 +45,7 @@ export declare const FilesInput: ({ value, onChange, field, existingFileName, up
     existingFileName?: string | undefined;
 }) => JSX.Element;
 export declare const MultipleChoiceInput: ({ field, form, value: _value, onChange }: FormInputProps<'multiple_choice'>) => JSX.Element;
-export declare const StripeInput: ({ field, value, onChange, setCustomerId, enduserId }: FormInputProps<"Stripe"> & {
+export declare const StripeInput: ({ field, value, onChange, setCustomerId, enduserId, form, responses, enduser }: FormInputProps<"Stripe"> & {
     setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>;
 }) => JSX.Element;
 export declare const Progress: ({ numerator, denominator, style }: {
@@ -65,7 +65,7 @@ export declare const CanvasMedicationsInput: ({ field, value, onChange }: FormIn
 export declare const MedicationsInput: ({ field, value, onChange, ...props }: FormInputProps<'Medications'>) => JSX.Element;
 export declare const BelugaPatientPreferenceInput: ({ field, value: _value, onChange }: FormInputProps<'Beluga Patient Preference'>) => JSX.Element;
 export declare const contact_is_valid: (e: Partial<Enduser>) => "Email is invalid" | "Phone is invalid" | "Date of birth should be MM-DD-YYYY" | undefined;
-export declare const RelatedContactsInput: ({ field, value: _value, onChange, ...props }: FormInputProps<'Related Contacts'>) => JSX.Element;
+export declare const RelatedContactsInput: ({ field, value: _value, onChange, error: parentError, ...props }: FormInputProps<'Related Contacts'>) => JSX.Element;
 export declare const AppointmentBookingInput: ({ formResponseId, field, value, onChange, form, responses, goToPreviousField, isPreviousDisabled, enduserId, ...props }: FormInputProps<'Appointment Booking'>) => JSX.Element;
 export declare const HeightInput: ({ field, value, onChange, ...props }: FormInputProps<'Height'>) => JSX.Element;
 export declare const include_current_url_parameters_if_templated: (url: string) => string;

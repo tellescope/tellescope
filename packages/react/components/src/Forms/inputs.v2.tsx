@@ -1,11 +1,11 @@
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import axios from "axios"
-import { Autocomplete, Box, Button, Checkbox, Chip, Divider, FormControl, FormControlLabel, FormLabel, Grid, InputLabel, MenuItem, Radio, RadioGroup, Select, SxProps, TextField, TextFieldProps, Typography } from "@mui/material"
+import { Autocomplete, Box, Button, Checkbox, Chip, Divider, FormControl, Grid, InputLabel, MenuItem, RadioGroup, Select, SxProps, TextField, TextFieldProps, Typography } from "@mui/material"
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
-import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, format_stripe_subscription_interval, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities"
-import { Address, DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, FormFieldOptionDetails, TellescopeGender, TIMEZONES_USA } from "@tellescope/types-models"
+import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities"
+import { Address, DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, TellescopeGender, TIMEZONES_USA } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -21,8 +21,6 @@ import heic2any from "heic2any"
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import LanguageIcon from '@mui/icons-material/Language';
 
-import { Elements, PaymentElement, useStripe, useElements, EmbeddedCheckout, EmbeddedCheckoutProvider } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js'; 
 import { CheckCircleOutline, Delete, Edit, UploadFile } from "@mui/icons-material"
 import { WYSIWYG } from "./wysiwyg"
 
@@ -1666,339 +1664,12 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
   )
 }
 
-export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId }: FormInputProps<'Stripe'> & {
-  setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>,
-}) => {
-  const session = useResolvedSession()
-  const [clientSecret, setClientSecret] = useState('')
-  const [businessName, setBusinessName] = useState('')
-  const [isCheckout, setIsCheckout] = useState(false)
-  const [stripePromise, setStripePromise] = useState<ReturnType<typeof loadStripe>>()
-  const [answertext, setAnswertext] = useState('')
-  const [error, setError] = useState('')
-  const [selectedProducts, setSelectedProducts] = useState<string[]>([])
-  const [showProductSelection, setShowProductSelection] = useState(false)
-  const [availableProducts, setAvailableProducts] = useState<any[]>([])
-  const [loadingProducts, setLoadingProducts] = useState(false)
 
-  const fetchRef = useRef(false)
-  useEffect(() => {
-    if (fetchRef.current) return
-    if (value && (session.userInfo as any)?.stripeCustomerId) {
-      return setCustomerId(c => c ? c : (session.userInfo as any)?.stripeCustomerId) // already paid or saved card
-    }
-
-    // Check if product selection mode is enabled
-    if (field.options?.stripeProductSelectionMode && (field.options?.productIds || []).length > 1) {
-      setShowProductSelection(true)
-      setLoadingProducts(true)
-
-      // Fetch product data with real-time Stripe pricing via proxy_read
-      const productIds = (field.options.productIds || []).join(',')
-      session.api.integrations.proxy_read({
-        integration: 'Stripe',
-        type: 'product-prices',
-        id: productIds,
-        query: field.options.stripeKey
-      })
-      .then(({ data }) => {
-        setAvailableProducts(data.products || [])
-        setLoadingProducts(false)
-      })
-      .catch((e: any) => {
-        console.error('Error loading product data:', e)
-        const errorMessage = e?.message?.includes?.('Stripe pricing error:')
-          ? e.message.replace('Stripe pricing error: ', '')
-          : 'Failed to load product information from Stripe'
-        setError(`Product configuration error: ${errorMessage}`)
-        setLoadingProducts(false)
-      })
-      return
-    }
-
-    fetchRef.current = true
-
-    session.api.form_responses.stripe_details({ fieldId: field.id, enduserId })
-    .then(({ clientSecret, publishableKey, stripeAccount, businessName, customerId, isCheckout, answerText }) => {
-      setAnswertext(answerText || '')
-      setIsCheckout(!!isCheckout)
-      setClientSecret(clientSecret)
-      setStripePromise(loadStripe(publishableKey, { stripeAccount }))
-      setBusinessName(businessName)
-      setCustomerId(customerId)
-    })
-    .catch((e: any) => {
-      console.error(e)
-      if (typeof e?.message === 'string') {
-        setError(e.message)
-      }
-    })
-  }, [session, value, field.id, enduserId])
-
-  const cost = (
-    showProductSelection
-      ? selectedProducts.reduce((total, productId) => {
-          const product = availableProducts.find(p => p._id === productId)
-          if (product?.currentPrice) {
-            return total + (product.currentPrice.amount || 0)
-          }
-          return total + (product?.cost?.amount || 0)
-        }, 0)
-      : 0 // Will be calculated by existing Stripe flow when not in selection mode
-  )
-
-  // Handle product selection step
-  if (showProductSelection) {
-    if (error) {
-      return (
-        <Grid container direction="column" spacing={2} alignItems="center">
-          <Grid item>
-            <Typography color="error" variant="h6">
-              Product Configuration Error
-            </Typography>
-          </Grid>
-          <Grid item>
-            <Typography color="error" sx={{ textAlign: 'center' }}>
-              {error}
-            </Typography>
-          </Grid>
-        </Grid>
-      )
-    }
-
-    if (loadingProducts) {
-      return (
-        <Grid container direction="column" spacing={2} alignItems="center">
-          <Grid item>
-            <LinearProgress />
-          </Grid>
-          <Grid item>
-            <Typography>Loading product information...</Typography>
-          </Grid>
-        </Grid>
-      )
-    }
-    const isSingleSelection = field.options?.radio === true
-
-    const handleProductSelection = (productId: string) => {
-      if (isSingleSelection) {
-        setSelectedProducts([productId])
-      } else {
-        setSelectedProducts(prev =>
-          prev.includes(productId)
-            ? prev.filter(id => id !== productId)
-            : [...prev, productId]
-        )
-      }
-    }
-
-    const handleContinueToPayment = () => {
-      if (selectedProducts.length === 0) return
-      setShowProductSelection(false)
-      fetchRef.current = true
-
-      // Now fetch Stripe details with selected products
-      session.api.form_responses.stripe_details({
-        fieldId: field.id,
-        enduserId,
-        ...(selectedProducts.length > 0 && { selectedProductIds: selectedProducts }) // Pass selected products to Stripe checkout
-      } as any)
-      .then(({ clientSecret, publishableKey, stripeAccount, businessName, customerId, isCheckout, answerText }) => {
-        setAnswertext(answerText || '')
-        setIsCheckout(!!isCheckout)
-        setClientSecret(clientSecret)
-        setStripePromise(loadStripe(publishableKey, { stripeAccount }))
-        setBusinessName(businessName)
-        setCustomerId(customerId)
-      })
-      .catch((e: any) => {
-        console.error(e)
-        if (typeof e?.message === 'string') {
-          setError(e.message)
-        }
-      })
-    }
-
-    return (
-      <Grid container direction="column" spacing={2}>
-        <Grid item>
-          <Typography variant="h6">Select Product{isSingleSelection ? '' : 's'}</Typography>
-        </Grid>
-
-        {availableProducts.map((product) => {
-          // Use real-time Stripe pricing if available, fallback to Tellescope pricing
-          const price = product.currentPrice || product.cost
-          const priceAmount = price?.amount || 0
-          const priceCurrency = price?.currency || 'USD'
-
-          return (
-            <Grid item key={product._id}>
-              <FormControlLabel
-                control={
-                  isSingleSelection ? (
-                    <Radio
-                      checked={selectedProducts.includes(product._id)}
-                      onChange={() => handleProductSelection(product._id)}
-                    />
-                  ) : (
-                    <Checkbox
-                      checked={selectedProducts.includes(product._id)}
-                      onChange={() => handleProductSelection(product._id)}
-                    />
-                  )
-                }
-                label={
-                  <Box>
-                    <Typography variant="body1" fontWeight="bold">
-                      {product.title}
-                    </Typography>
-                    {product.description && (
-                      <Typography variant="body2" color="textSecondary">
-                        {product.description}
-                      </Typography>
-                    )}
-                    <Typography variant="body2" color="primary">
-                      ${(priceAmount / 100).toFixed(2)} {priceCurrency.toUpperCase()}
-                      {product.currentPrice?.isSubscription && (
-                        <Typography component="span" variant="caption" sx={{ ml: 0.5 }}>
-                          {format_stripe_subscription_interval(product.currentPrice?.interval, product.currentPrice?.interval_count)}
-                        </Typography>
-                      )}
-                    </Typography>
-                  </Box>
-                }
-              />
-            </Grid>
-          )
-        })}
-
-        <Grid item>
-          <Button
-            variant="contained"
-            onClick={handleContinueToPayment}
-            disabled={selectedProducts.length === 0}
-            sx={{ mt: 2 }}
-          >
-            Continue to Payment
-          </Button>
-        </Grid>
-      </Grid>
-    )
-  }
-
-  if (error) {
-    return (
-      <Typography color="error">
-        {error}
-      </Typography>
-    )
-  }
-  if (value) {
-    return (
-      <Grid container alignItems="center" wrap="nowrap">
-        <CheckCircleOutline color="success" />
-
-        <Typography sx={{ ml: 1, fontSize: 20 }}>
-          {field.options?.chargeImmediately ? 'Your purchase was successful' : "Your payment details have been saved!"}
-        </Typography>
-      </Grid>
-    )
-  }
-  if (!(clientSecret && stripePromise)) return <LinearProgress />
-  if (isCheckout && stripePromise) return (
-    <EmbeddedCheckoutProvider stripe={stripePromise}
-      options={{ 
-        clientSecret, 
-        onComplete: () => onChange(answertext || 'Completed checkout', field.id),        
-      }}
-    >
-      <EmbeddedCheckout />
-    </EmbeddedCheckoutProvider>
-  )
-  return (
-    <Elements stripe={stripePromise} options={{
-      clientSecret,
-    }}>
-      <StripeForm businessName={businessName} onSuccess={() => onChange(answertext || 'Saved card details', field.id)} 
-        cost={cost}
-        field={field}
-      />
-    </Elements>
-  )
-}
-
-const StripeForm = ({ businessName, onSuccess, field, cost } : { businessName: string, onSuccess: () => void, field: FormField, cost: number }) => {
-  const stripe = useStripe();
-  const elements = useElements()
-
-  const [ready, setReady] = useState(false)
-  const [errorMessage, setErrorMessage] = useState('');
-
-  const handleSubmit = async (event: any) => {
-    // We don't want to let default form submission happen here,
-    // which would refresh the page.
-    event?.preventDefault();
-
-    if (!stripe || !elements) {
-      // Stripe.js hasn't yet loaded.
-      // Make sure to disable form submission until Stripe.js has loaded.
-      return null;
-    }
-
-    const {error} = await (field.options?.chargeImmediately ? stripe.confirmPayment : stripe.confirmSetup)({
-      //`Elements` instance that was used to create the Payment Element
-      elements,
-      confirmParams: { 
-        return_url: window.location.href, 
-      },
-      redirect: 'if_required', //  ensures the redirect url won't be used, unless the Bank redirect payment type is enabled (it's not, just card)
-    });
-
-    if (error) {
-      // This point will only be reached if there is an immediate error when
-      // confirming the payment. Show error to your customer (for example, payment
-      // details incomplete)
-      setErrorMessage(error?.message ?? '');
-    } else {
-      onSuccess()
-      // Your customer will be redirected to your `return_url`. For some payment
-      // methods like iDEAL, your customer will be redirected to an intermediate
-      // site first to authorize the payment, then redirected to the `return_url`.
-    }
-  };
-
-  return (
-    <form onSubmit={handleSubmit}>
-      <PaymentElement onReady={() => setReady(true)} 
-        options={{
-          business: { name: businessName },
-        }}
-      />
-      <Button variant="contained" color="primary" type="submit" sx={{ mt: 1 }}
-        disabled={!(stripe && ready)}
-      >
-        {field.options?.chargeImmediately ? 'Make Payment' : 'Save Payment Details'}
-      </Button>
-
-      {cost > 0 && 
-        <Typography sx={{ mt: 0.5 }}>
-        {
-          field.options?.customPriceMessage
-            ? field.options.customPriceMessage.replaceAll('{{PRICE}}', `$${(cost / 100).toFixed(2)}`)
-            : `You will be charged $${(cost / 100).toFixed(2)} ${field.options?.chargeImmediately ? '' : 'on form submission'}`
-        }
-        </Typography>
-      }
-
-      {/* Show error message to your customers */}
-      {errorMessage && 
-        <Typography color="error" sx={{ mt: 0.5 }}>
-          {errorMessage}
-        </Typography>
-      }
-    </form>
-  )
-}
+// StripeInput is shared between v1 and v2 forms
+// Both versions use the same implementation from inputs.tsx to ensure consistent behavior
+// and avoid code duplication. Re-exporting here maintains the pattern where forms.v2.tsx
+// only imports from inputs.v2.tsx
+export { StripeInput } from './inputs'
 
 export const Progress = ({ numerator, denominator, style, color } : { numerator: number, denominator: number, color?: string } & Styled) => (
   <Box sx={{ display: 'flex', alignItems: 'center', ...style }}>
@@ -3107,7 +2778,7 @@ export const contact_is_valid = (e: Partial<Enduser>) => {
   }
 }
 
-export const RelatedContactsInput = ({ field, value: _value, onChange, ...props }: FormInputProps<'Related Contacts'>) => {
+export const RelatedContactsInput = ({ field, value: _value, onChange, error: parentError, ...props }: FormInputProps<'Related Contacts'>) => {
   // safeguard against any rogue values like empty string
   const value = Array.isArray(_value) ? _value : []
 
@@ -3182,7 +2853,7 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
           <Grid item xs={4}>
             <TextField label="Phone Number" size="small" fullWidth
               InputProps={defaultInputProps}
-              value={phone} onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, phone: e.target.value } : v), field.id)}
+              value={phone} onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, phone: e.target.value.trim() } : v), field.id)}
             />
           </Grid>
           }
@@ -3236,7 +2907,7 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
         }
 
         <Grid item sx={{ my: 0.75 }}>
-          <Button variant="outlined" onClick={() => setEditing(-1)} size="small">
+          <Button variant="outlined" onClick={() => setEditing(-1)} size="small" disabled={!!errorMessage || !!parentError}>
             Save Contact
           </Button>
         </Grid>

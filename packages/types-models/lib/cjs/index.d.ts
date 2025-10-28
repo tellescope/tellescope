@@ -1681,6 +1681,10 @@ export type FormFieldOptions = FormFieldValidation & {
     saveIntakeOnPartial?: boolean;
     stripeKey?: string;
     stripeProductSelectionMode?: boolean;
+    productConditions?: {
+        productId: string;
+        showCondition: CompoundFilter<string>;
+    }[];
     dataSource?: string;
     canvasDocumentCoding?: Pick<CanvasCoding, 'system' | 'code'>;
     canvasDocumentType?: CanvasCoding;

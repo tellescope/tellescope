@@ -72,10 +72,10 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
-import { Autocomplete, Box, Button, Checkbox, Chip, Divider, FormControl, FormControlLabel, Grid, InputLabel, MenuItem, Radio, RadioGroup, Select, TextField, Typography } from "@mui/material";
+import { Autocomplete, Box, Button, Checkbox, Chip, Divider, FormControl, Grid, InputLabel, MenuItem, RadioGroup, Select, TextField, Typography } from "@mui/material";
 import { useDropzone } from "react-dropzone";
 import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants";
-import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, format_stripe_subscription_interval, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities";
+import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities";
 import { TIMEZONES_USA } from "@tellescope/types-models";
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation";
 import Slider from '@mui/material/Slider';
@@ -89,8 +89,6 @@ import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
 import heic2any from "heic2any";
 import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import LanguageIcon from '@mui/icons-material/Language';
-import { Elements, PaymentElement, useStripe, useElements, EmbeddedCheckout, EmbeddedCheckoutProvider } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
 import { CheckCircleOutline, Delete, Edit, UploadFile } from "@mui/icons-material";
 import { WYSIWYG } from "./wysiwyg";
 export var LanguageSelect = function (_a) {
@@ -805,211 +803,11 @@ export var MultipleChoiceInput = function (_a) {
                                     ? __spreadArray(__spreadArray([], (value !== null && value !== void 0 ? value : []).filter(function (v) { return v !== otherString; }), true), [e.target.value], false) : value === null || value === void 0 ? void 0 : value.filter(function (v) { return v !== otherString; }))), field.id);
                         } }) }))] })));
 };
-export var StripeInput = function (_a) {
-    var _b, _d;
-    var field = _a.field, value = _a.value, onChange = _a.onChange, setCustomerId = _a.setCustomerId, enduserId = _a.enduserId;
-    var session = useResolvedSession();
-    var _e = useState(''), clientSecret = _e[0], setClientSecret = _e[1];
-    var _f = useState(''), businessName = _f[0], setBusinessName = _f[1];
-    var _g = useState(false), isCheckout = _g[0], setIsCheckout = _g[1];
-    var _h = useState(), stripePromise = _h[0], setStripePromise = _h[1];
-    var _j = useState(''), answertext = _j[0], setAnswertext = _j[1];
-    var _k = useState(''), error = _k[0], setError = _k[1];
-    var _l = useState([]), selectedProducts = _l[0], setSelectedProducts = _l[1];
-    var _m = useState(false), showProductSelection = _m[0], setShowProductSelection = _m[1];
-    var _o = useState([]), availableProducts = _o[0], setAvailableProducts = _o[1];
-    var _p = useState(false), loadingProducts = _p[0], setLoadingProducts = _p[1];
-    var fetchRef = useRef(false);
-    useEffect(function () {
-        var _a, _b, _d;
-        if (fetchRef.current)
-            return;
-        if (value && ((_a = session.userInfo) === null || _a === void 0 ? void 0 : _a.stripeCustomerId)) {
-            return setCustomerId(function (c) { var _a; return c ? c : (_a = session.userInfo) === null || _a === void 0 ? void 0 : _a.stripeCustomerId; }); // already paid or saved card
-        }
-        // Check if product selection mode is enabled
-        if (((_b = field.options) === null || _b === void 0 ? void 0 : _b.stripeProductSelectionMode) && (((_d = field.options) === null || _d === void 0 ? void 0 : _d.productIds) || []).length > 1) {
-            setShowProductSelection(true);
-            setLoadingProducts(true);
-            // Fetch product data with real-time Stripe pricing via proxy_read
-            var productIds = (field.options.productIds || []).join(',');
-            session.api.integrations.proxy_read({
-                integration: 'Stripe',
-                type: 'product-prices',
-                id: productIds,
-                query: field.options.stripeKey
-            })
-                .then(function (_a) {
-                var data = _a.data;
-                setAvailableProducts(data.products || []);
-                setLoadingProducts(false);
-            })
-                .catch(function (e) {
-                var _a, _b;
-                console.error('Error loading product data:', e);
-                var errorMessage = ((_b = (_a = e === null || e === void 0 ? void 0 : e.message) === null || _a === void 0 ? void 0 : _a.includes) === null || _b === void 0 ? void 0 : _b.call(_a, 'Stripe pricing error:'))
-                    ? e.message.replace('Stripe pricing error: ', '')
-                    : 'Failed to load product information from Stripe';
-                setError("Product configuration error: ".concat(errorMessage));
-                setLoadingProducts(false);
-            });
-            return;
-        }
-        fetchRef.current = true;
-        session.api.form_responses.stripe_details({ fieldId: field.id, enduserId: enduserId })
-            .then(function (_a) {
-            var clientSecret = _a.clientSecret, publishableKey = _a.publishableKey, stripeAccount = _a.stripeAccount, businessName = _a.businessName, customerId = _a.customerId, isCheckout = _a.isCheckout, answerText = _a.answerText;
-            setAnswertext(answerText || '');
-            setIsCheckout(!!isCheckout);
-            setClientSecret(clientSecret);
-            setStripePromise(loadStripe(publishableKey, { stripeAccount: stripeAccount }));
-            setBusinessName(businessName);
-            setCustomerId(customerId);
-        })
-            .catch(function (e) {
-            console.error(e);
-            if (typeof (e === null || e === void 0 ? void 0 : e.message) === 'string') {
-                setError(e.message);
-            }
-        });
-    }, [session, value, field.id, enduserId]);
-    var cost = (showProductSelection
-        ? selectedProducts.reduce(function (total, productId) {
-            var _a;
-            var product = availableProducts.find(function (p) { return p._id === productId; });
-            if (product === null || product === void 0 ? void 0 : product.currentPrice) {
-                return total + (product.currentPrice.amount || 0);
-            }
-            return total + (((_a = product === null || product === void 0 ? void 0 : product.cost) === null || _a === void 0 ? void 0 : _a.amount) || 0);
-        }, 0)
-        : 0 // Will be calculated by existing Stripe flow when not in selection mode
-    );
-    // Handle product selection step
-    if (showProductSelection) {
-        if (error) {
-            return (_jsxs(Grid, __assign({ container: true, direction: "column", spacing: 2, alignItems: "center" }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ color: "error", variant: "h6" }, { children: "Product Configuration Error" })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ color: "error", sx: { textAlign: 'center' } }, { children: error })) }))] })));
-        }
-        if (loadingProducts) {
-            return (_jsxs(Grid, __assign({ container: true, direction: "column", spacing: 2, alignItems: "center" }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(LinearProgress, {}) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, { children: "Loading product information..." }) }))] })));
-        }
-        var isSingleSelection_1 = ((_b = field.options) === null || _b === void 0 ? void 0 : _b.radio) === true;
-        var handleProductSelection_1 = function (productId) {
-            if (isSingleSelection_1) {
-                setSelectedProducts([productId]);
-            }
-            else {
-                setSelectedProducts(function (prev) {
-                    return prev.includes(productId)
-                        ? prev.filter(function (id) { return id !== productId; })
-                        : __spreadArray(__spreadArray([], prev, true), [productId], false);
-                });
-            }
-        };
-        var handleContinueToPayment = function () {
-            if (selectedProducts.length === 0)
-                return;
-            setShowProductSelection(false);
-            fetchRef.current = true;
-            // Now fetch Stripe details with selected products
-            session.api.form_responses.stripe_details(__assign({ fieldId: field.id, enduserId: enduserId }, (selectedProducts.length > 0 && { selectedProductIds: selectedProducts }) // Pass selected products to Stripe checkout
-            ))
-                .then(function (_a) {
-                var clientSecret = _a.clientSecret, publishableKey = _a.publishableKey, stripeAccount = _a.stripeAccount, businessName = _a.businessName, customerId = _a.customerId, isCheckout = _a.isCheckout, answerText = _a.answerText;
-                setAnswertext(answerText || '');
-                setIsCheckout(!!isCheckout);
-                setClientSecret(clientSecret);
-                setStripePromise(loadStripe(publishableKey, { stripeAccount: stripeAccount }));
-                setBusinessName(businessName);
-                setCustomerId(customerId);
-            })
-                .catch(function (e) {
-                console.error(e);
-                if (typeof (e === null || e === void 0 ? void 0 : e.message) === 'string') {
-                    setError(e.message);
-                }
-            });
-        };
-        return (_jsxs(Grid, __assign({ container: true, direction: "column", spacing: 2 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsxs(Typography, __assign({ variant: "h6" }, { children: ["Select Product", isSingleSelection_1 ? '' : 's'] })) })), availableProducts.map(function (product) {
-                    var _a, _b, _d;
-                    // Use real-time Stripe pricing if available, fallback to Tellescope pricing
-                    var price = product.currentPrice || product.cost;
-                    var priceAmount = (price === null || price === void 0 ? void 0 : price.amount) || 0;
-                    var priceCurrency = (price === null || price === void 0 ? void 0 : price.currency) || 'USD';
-                    return (_jsx(Grid, __assign({ item: true }, { children: _jsx(FormControlLabel, { control: isSingleSelection_1 ? (_jsx(Radio, { checked: selectedProducts.includes(product._id), onChange: function () { return handleProductSelection_1(product._id); } })) : (_jsx(Checkbox, { checked: selectedProducts.includes(product._id), onChange: function () { return handleProductSelection_1(product._id); } })), label: _jsxs(Box, { children: [_jsx(Typography, __assign({ variant: "body1", fontWeight: "bold" }, { children: product.title })), product.description && (_jsx(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: product.description }))), _jsxs(Typography, __assign({ variant: "body2", color: "primary" }, { children: ["$", (priceAmount / 100).toFixed(2), " ", priceCurrency.toUpperCase(), ((_a = product.currentPrice) === null || _a === void 0 ? void 0 : _a.isSubscription) && (_jsx(Typography, __assign({ component: "span", variant: "caption", sx: { ml: 0.5 } }, { children: format_stripe_subscription_interval((_b = product.currentPrice) === null || _b === void 0 ? void 0 : _b.interval, (_d = product.currentPrice) === null || _d === void 0 ? void 0 : _d.interval_count) })))] }))] }) }) }), product._id));
-                }), _jsx(Grid, __assign({ item: true }, { children: _jsx(Button, __assign({ variant: "contained", onClick: handleContinueToPayment, disabled: selectedProducts.length === 0, sx: { mt: 2 } }, { children: "Continue to Payment" })) }))] })));
-    }
-    if (error) {
-        return (_jsx(Typography, __assign({ color: "error" }, { children: error })));
-    }
-    if (value) {
-        return (_jsxs(Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap" }, { children: [_jsx(CheckCircleOutline, { color: "success" }), _jsx(Typography, __assign({ sx: { ml: 1, fontSize: 20 } }, { children: ((_d = field.options) === null || _d === void 0 ? void 0 : _d.chargeImmediately) ? 'Your purchase was successful' : "Your payment details have been saved!" }))] })));
-    }
-    if (!(clientSecret && stripePromise))
-        return _jsx(LinearProgress, {});
-    if (isCheckout && stripePromise)
-        return (_jsx(EmbeddedCheckoutProvider, __assign({ stripe: stripePromise, options: {
-                clientSecret: clientSecret,
-                onComplete: function () { return onChange(answertext || 'Completed checkout', field.id); },
-            } }, { children: _jsx(EmbeddedCheckout, {}) })));
-    return (_jsx(Elements, __assign({ stripe: stripePromise, options: {
-            clientSecret: clientSecret,
-        } }, { children: _jsx(StripeForm, { businessName: businessName, onSuccess: function () { return onChange(answertext || 'Saved card details', field.id); }, cost: cost, field: field }) })));
-};
-var StripeForm = function (_a) {
-    var _b, _d, _e;
-    var businessName = _a.businessName, onSuccess = _a.onSuccess, field = _a.field, cost = _a.cost;
-    var stripe = useStripe();
-    var elements = useElements();
-    var _f = useState(false), ready = _f[0], setReady = _f[1];
-    var _g = useState(''), errorMessage = _g[0], setErrorMessage = _g[1];
-    var handleSubmit = function (event) { return __awaiter(void 0, void 0, void 0, function () {
-        var error;
-        var _a, _b;
-        return __generator(this, function (_d) {
-            switch (_d.label) {
-                case 0:
-                    // We don't want to let default form submission happen here,
-                    // which would refresh the page.
-                    event === null || event === void 0 ? void 0 : event.preventDefault();
-                    if (!stripe || !elements) {
-                        // Stripe.js hasn't yet loaded.
-                        // Make sure to disable form submission until Stripe.js has loaded.
-                        return [2 /*return*/, null];
-                    }
-                    return [4 /*yield*/, (((_a = field.options) === null || _a === void 0 ? void 0 : _a.chargeImmediately) ? stripe.confirmPayment : stripe.confirmSetup)({
-                            //`Elements` instance that was used to create the Payment Element
-                            elements: elements,
-                            confirmParams: {
-                                return_url: window.location.href,
-                            },
-                            redirect: 'if_required', //  ensures the redirect url won't be used, unless the Bank redirect payment type is enabled (it's not, just card)
-                        })];
-                case 1:
-                    error = (_d.sent()).error;
-                    if (error) {
-                        // This point will only be reached if there is an immediate error when
-                        // confirming the payment. Show error to your customer (for example, payment
-                        // details incomplete)
-                        setErrorMessage((_b = error === null || error === void 0 ? void 0 : error.message) !== null && _b !== void 0 ? _b : '');
-                    }
-                    else {
-                        onSuccess();
-                        // Your customer will be redirected to your `return_url`. For some payment
-                        // methods like iDEAL, your customer will be redirected to an intermediate
-                        // site first to authorize the payment, then redirected to the `return_url`.
-                    }
-                    return [2 /*return*/];
-            }
-        });
-    }); };
-    return (_jsxs("form", __assign({ onSubmit: handleSubmit }, { children: [_jsx(PaymentElement, { onReady: function () { return setReady(true); }, options: {
-                    business: { name: businessName },
-                } }), _jsx(Button, __assign({ variant: "contained", color: "primary", type: "submit", sx: { mt: 1 }, disabled: !(stripe && ready) }, { children: ((_b = field.options) === null || _b === void 0 ? void 0 : _b.chargeImmediately) ? 'Make Payment' : 'Save Payment Details' })), cost > 0 &&
-                _jsx(Typography, __assign({ sx: { mt: 0.5 } }, { children: ((_d = field.options) === null || _d === void 0 ? void 0 : _d.customPriceMessage)
-                        ? field.options.customPriceMessage.replaceAll('{{PRICE}}', "$".concat((cost / 100).toFixed(2)))
-                        : "You will be charged $".concat((cost / 100).toFixed(2), " ").concat(((_e = field.options) === null || _e === void 0 ? void 0 : _e.chargeImmediately) ? '' : 'on form submission') })), errorMessage &&
-                _jsx(Typography, __assign({ color: "error", sx: { mt: 0.5 } }, { children: errorMessage }))] })));
-};
+// StripeInput is shared between v1 and v2 forms
+// Both versions use the same implementation from inputs.tsx to ensure consistent behavior
+// and avoid code duplication. Re-exporting here maintains the pattern where forms.v2.tsx
+// only imports from inputs.v2.tsx
+export { StripeInput } from './inputs';
 export var Progress = function (_a) {
     var numerator = _a.numerator, denominator = _a.denominator, style = _a.style, color = _a.color;
     return (_jsx(Box, __assign({ sx: __assign({ display: 'flex', alignItems: 'center' }, style) }, { children: _jsx(Box, __assign({ sx: { width: '100%' } }, { children: _jsx(LinearProgress, { variant: "determinate", value: (numerator / (denominator || 1)) * 100, sx: color ? {
@@ -1663,7 +1461,7 @@ export var contact_is_valid = function (e) {
 };
 export var RelatedContactsInput = function (_a) {
     var _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _w, _x;
-    var field = _a.field, _value = _a.value, onChange = _a.onChange, props = __rest(_a, ["field", "value", "onChange"]);
+    var field = _a.field, _value = _a.value, onChange = _a.onChange, parentError = _a.error, props = __rest(_a, ["field", "value", "onChange", "error"]);
     // safeguard against any rogue values like empty string
     var value = Array.isArray(_value) ? _value : [];
     var _y = useState(value.length === 1 ? 0 : -1), editing = _y[0], setEditing = _y[1];
@@ -1682,7 +1480,7 @@ export var RelatedContactsInput = function (_a) {
                                 _jsx(Grid, __assign({ item: true, xs: 4 }, { children: _jsx(TextField, { label: "Last Name", size: "small", fullWidth: true, InputProps: defaultInputProps, value: lname, onChange: function (e) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { lname: e.target.value }) : v; }), field.id); } }) })), _jsx(Grid, __assign({ item: true, xs: 4 }, { children: _jsx(StringSelector, { options: ((_j = (_h = field.options) === null || _h === void 0 ? void 0 : _h.relatedContactTypes) === null || _j === void 0 ? void 0 : _j.length) ? field.options.relatedContactTypes : RELATIONSHIP_TYPES, label: "Relationship", size: "small", disabled: ((_l = (_k = field === null || field === void 0 ? void 0 : field.options) === null || _k === void 0 ? void 0 : _k.relatedContactTypes) === null || _l === void 0 ? void 0 : _l.length) === 1, value: (_o = (_m = relationships === null || relationships === void 0 ? void 0 : relationships[0]) === null || _m === void 0 ? void 0 : _m.type) !== null && _o !== void 0 ? _o : '', onChange: function (type) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { relationships: [{ type: type, id: '' /* to be filled on server-side */ }] }) : v; }), field.id); } }) }))] })) })), _jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap", spacing: 1 }, { children: [!((_q = (_p = field.options) === null || _p === void 0 ? void 0 : _p.hiddenDefaultFields) === null || _q === void 0 ? void 0 : _q.includes('Date of Birth')) &&
                                 _jsx(Grid, __assign({ item: true, xs: 4 }, { children: _jsx(DateStringInput, { value: dateOfBirth, field: __assign(__assign({}, field), { isOptional: true }), size: "small", label: "Date of Birth (MM-DD-YYYY)", onChange: function (dateOfBirth) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { dateOfBirth: dateOfBirth }) : v; }), field.id); } }) })), !((_s = (_r = field.options) === null || _r === void 0 ? void 0 : _r.hiddenDefaultFields) === null || _s === void 0 ? void 0 : _s.includes('Email')) &&
                                 _jsx(Grid, __assign({ item: true, xs: 4 }, { children: _jsx(TextField, { label: "Email", size: "small", fullWidth: true, type: "email", InputProps: defaultInputProps, value: email, onChange: function (e) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { email: e.target.value }) : v; }), field.id); } }) })), !((_u = (_t = field.options) === null || _t === void 0 ? void 0 : _t.hiddenDefaultFields) === null || _u === void 0 ? void 0 : _u.includes('Phone Number')) &&
-                                _jsx(Grid, __assign({ item: true, xs: 4 }, { children: _jsx(TextField, { label: "Phone Number", size: "small", fullWidth: true, InputProps: defaultInputProps, value: phone, onChange: function (e) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { phone: e.target.value }) : v; }), field.id); } }) }))] })) })), (((_w = field.options) === null || _w === void 0 ? void 0 : _w.tableChoices) || []).length > 0 &&
+                                _jsx(Grid, __assign({ item: true, xs: 4 }, { children: _jsx(TextField, { label: "Phone Number", size: "small", fullWidth: true, InputProps: defaultInputProps, value: phone, onChange: function (e) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { phone: e.target.value.trim() }) : v; }), field.id); } }) }))] })) })), (((_w = field.options) === null || _w === void 0 ? void 0 : _w.tableChoices) || []).length > 0 &&
                     _jsx(Grid, __assign({ item: true }, { children: _jsx(Grid, __assign({ container: true, spacing: 1 }, { children: (((_x = field.options) === null || _x === void 0 ? void 0 : _x.tableChoices) || []).map(function (_a, i) {
                                 var info = _a.info, label = _a.label, type = _a.type;
                                 return (_jsx(Grid, __assign({ item: true, xs: 6 }, { children: type === 'Text'
@@ -1702,7 +1500,7 @@ export var RelatedContactsInput = function (_a) {
                                                             return i === editing ? __assign(__assign({}, v), { fields: __assign(__assign({}, fields_1), (_a = {}, _a[label] = e.target.value, _a)) }) : v;
                                                         }), field.id); } }, { children: [_jsx(MenuItem, __assign({ value: "" }, { children: _jsx("em", { children: "None" }) })), info.choices.map(function (c) { return (_jsx(MenuItem, __assign({ value: c }, { children: c }), c)); })] }))] })))
                                                 : null }), i));
-                            }) })) })), _jsx(Grid, __assign({ item: true, sx: { my: 0.75 } }, { children: _jsx(Button, __assign({ variant: "outlined", onClick: function () { return setEditing(-1); }, size: "small" }, { children: "Save Contact" })) })), errorMessage &&
+                            }) })) })), _jsx(Grid, __assign({ item: true, sx: { my: 0.75 } }, { children: _jsx(Button, __assign({ variant: "outlined", onClick: function () { return setEditing(-1); }, size: "small", disabled: !!errorMessage || !!parentError }, { children: "Save Contact" })) })), errorMessage &&
                     _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ color: "error" }, { children: errorMessage })) }))] })));
     }
     return (_jsxs(Grid, __assign({ container: true, direction: "column", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: value.map(function (contact, i) { return (_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between", wrap: "nowrap", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center" }, { children: [_jsx(IconButton, __assign({ onClick: function () { return setEditing(i); }, color: "primary", size: "small" }, { children: _jsx(Edit, {}) })), _jsx(Typography, __assign({ noWrap: true }, { children: user_display_name(contact) || "Unnamed Contact ".concat(i + 1) }))] })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(LabeledIconButton, { Icon: Delete, label: "Remove", onClick: function () { return onChange(value.filter(function (v, _i) { return i !== _i; }), field.id); } }) }))] })) }), i)); }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Button, __assign({ variant: "contained", onClick: handleAddContact }, { children: "Add Contact" })) }))] })));

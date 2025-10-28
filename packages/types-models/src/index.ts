@@ -1715,6 +1715,7 @@ export type FormFieldOptions = FormFieldValidation & {
   saveIntakeOnPartial?: boolean,
   stripeKey?: string, // publishable key of custom stripe API keys
   stripeProductSelectionMode?: boolean, // enable product selection step for Stripe questions
+  productConditions?: { productId: string, showCondition: CompoundFilter<string> }[], // conditional logic for product visibility in Stripe selection
   dataSource?: string, // e.g. Canvas for Allergies
   canvasDocumentCoding?: Pick<CanvasCoding, 'system' | 'code'> // for category
   canvasDocumentType?: CanvasCoding, // for type

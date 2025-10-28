@@ -2896,6 +2896,10 @@ exports.formFieldOptionsValidator = (0, exports.objectValidator)({
     min: exports.numberValidatorOptional,
     stripeKey: exports.stringValidatorOptionalEmptyOkay,
     stripeProductSelectionMode: exports.booleanValidatorOptional,
+    productConditions: (0, exports.listValidatorOptionalOrEmptyOk)((0, exports.objectValidator)({
+        productId: exports.mongoIdStringRequired,
+        showCondition: exports.objectAnyFieldsAnyValuesValidator,
+    })),
     dataSource: exports.stringValidatorOptionalEmptyOkay,
     esignatureTermsCompanyName: exports.stringValidatorOptionalEmptyOkay,
     observationCode: exports.stringValidatorOptionalEmptyOkay,

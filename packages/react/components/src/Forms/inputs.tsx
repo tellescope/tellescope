@@ -4,7 +4,7 @@ import { Autocomplete, Box, Button, Checkbox, Chip, Collapse, Divider, FormContr
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
-import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, format_stripe_subscription_interval, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities"
+import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, format_stripe_subscription_interval, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, object_is_empty, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities"
 import { Address, DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, FormFieldOptionDetails, TellescopeGender, TIMEZONES_USA } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
@@ -1703,7 +1703,18 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
   )
 }
 
-export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId }: FormInputProps<'Stripe'> & {
+// Helper to emit GTM purchase event for Stripe payments (single source of truth)
+const emitStripePurchaseEvent = (field: FormField, cost: number) => {
+  emit_gtm_event({
+    event: 'form_purchase',
+    productIds: field.options?.productIds || [],
+    fieldId: field.id,
+    value: cost / 100, // Convert cents to dollars
+    currency: 'USD',
+  })
+}
+
+export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId, form, responses, enduser }: FormInputProps<'Stripe'> & {
   setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>,
 }) => {
   const session = useResolvedSession()
@@ -1717,6 +1728,38 @@ export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId }
   const [showProductSelection, setShowProductSelection] = useState(false)
   const [availableProducts, setAvailableProducts] = useState<any[]>([])
   const [loadingProducts, setLoadingProducts] = useState(false)
+
+  // Compute visible products based on conditional logic
+  const visibleProducts = useMemo(() => {
+    if (!showProductSelection || availableProducts.length === 0) {
+      return availableProducts
+    }
+
+    return availableProducts.filter(product => {
+      // Find condition for this product
+      const productCondition = field.options?.productConditions?.find(c => c.productId === product._id)
+
+      // If no condition defined, show by default
+      if (!productCondition?.showCondition || object_is_empty(productCondition.showCondition)) {
+        return true
+      }
+
+      // Evaluate condition against current form responses
+      return responses_satisfy_conditions(responses || [], productCondition.showCondition, {
+        dateOfBirth: enduser?.dateOfBirth,
+        gender: enduser?.gender,
+        state: enduser?.state,
+        form,
+        activeResponses: responses,
+      })
+    })
+  }, [availableProducts, field.options?.productConditions, responses, showProductSelection, enduser, form])
+
+  // Automatically deselect products that become hidden
+  useEffect(() => {
+    const visibleProductIds = visibleProducts.map(p => p._id)
+    setSelectedProducts(prev => prev.filter(id => visibleProductIds.includes(id)))
+  }, [visibleProducts])
 
   const fetchRef = useRef(false)
   useEffect(() => {
@@ -1784,6 +1827,16 @@ export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId }
       : 0 // Will be calculated by existing Stripe flow when not in selection mode
   )
 
+  // Emit GTM purchase event once when success screen is displayed
+  const purchaseEmittedRef = useRef(false)
+  useEffect(() => {
+    // Only emit for actual purchases (chargeImmediately), not for saving card details
+    if (value && field.options?.chargeImmediately && !purchaseEmittedRef.current) {
+      emitStripePurchaseEvent(field, cost)
+      purchaseEmittedRef.current = true
+    }
+  }, [value, field, cost])
+
   // Handle product selection step
   if (showProductSelection) {
     if (error) {
@@ -1815,6 +1868,20 @@ export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId }
         </Grid>
       )
     }
+
+    // Check if all products are filtered out by conditional logic
+    if (visibleProducts.length === 0) {
+      return (
+        <Grid container direction="column" spacing={2} alignItems="center">
+          <Grid item>
+            <Typography color="textSecondary">
+              No products are available based on your previous answers.
+            </Typography>
+          </Grid>
+        </Grid>
+      )
+    }
+
     const isSingleSelection = field.options?.radio === true
 
     const handleProductSelection = (productId: string) => {
@@ -1862,7 +1929,7 @@ export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId }
           <Typography variant="h6">Select Product{isSingleSelection ? '' : 's'}</Typography>
         </Grid>
 
-        {availableProducts.map((product) => {
+        {visibleProducts.map((product) => {
           // Use real-time Stripe pricing if available, fallback to Tellescope pricing
           const price = product.currentPrice || product.cost
           const priceAmount = price?.amount || 0
@@ -3126,7 +3193,7 @@ export const contact_is_valid = (e: Partial<Enduser>) => {
   }
 }
 
-export const RelatedContactsInput = ({ field, value: _value, onChange, ...props }: FormInputProps<'Related Contacts'>) => {
+export const RelatedContactsInput = ({ field, value: _value, onChange, error: parentError, ...props }: FormInputProps<'Related Contacts'>) => {
   // safeguard against any rogue values like empty string
   const value = Array.isArray(_value) ? _value : []
 
@@ -3201,7 +3268,7 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
           <Grid item xs={4}>
             <TextField label="Phone Number" size="small" fullWidth
               InputProps={defaultInputProps}
-              value={phone} onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, phone: e.target.value } : v), field.id)}
+              value={phone} onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, phone: e.target.value.trim() } : v), field.id)}
             />
           </Grid>
           }
@@ -3255,7 +3322,7 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, ...props 
         }
 
         <Grid item sx={{ my: 0.75 }}>
-          <Button variant="outlined" onClick={() => setEditing(-1)} size="small">
+          <Button variant="outlined" onClick={() => setEditing(-1)} size="small" disabled={!!errorMessage || !!parentError}>
             Save Contact
           </Button>
         </Grid>

@@ -861,20 +861,59 @@ var MultipleChoiceInput = function (_a) {
                         } }) }))] })));
 };
 exports.MultipleChoiceInput = MultipleChoiceInput;
+// Helper to emit GTM purchase event for Stripe payments (single source of truth)
+var emitStripePurchaseEvent = function (field, cost) {
+    var _a;
+    (0, utilities_1.emit_gtm_event)({
+        event: 'form_purchase',
+        productIds: ((_a = field.options) === null || _a === void 0 ? void 0 : _a.productIds) || [],
+        fieldId: field.id,
+        value: cost / 100,
+        currency: 'USD',
+    });
+};
 var StripeInput = function (_a) {
-    var _b, _d;
-    var field = _a.field, value = _a.value, onChange = _a.onChange, setCustomerId = _a.setCustomerId, enduserId = _a.enduserId;
+    var _b, _d, _e;
+    var field = _a.field, value = _a.value, onChange = _a.onChange, setCustomerId = _a.setCustomerId, enduserId = _a.enduserId, form = _a.form, responses = _a.responses, enduser = _a.enduser;
     var session = (0, __1.useResolvedSession)();
-    var _e = (0, react_1.useState)(''), clientSecret = _e[0], setClientSecret = _e[1];
-    var _f = (0, react_1.useState)(''), businessName = _f[0], setBusinessName = _f[1];
-    var _g = (0, react_1.useState)(false), isCheckout = _g[0], setIsCheckout = _g[1];
-    var _h = (0, react_1.useState)(), stripePromise = _h[0], setStripePromise = _h[1];
-    var _j = (0, react_1.useState)(''), answertext = _j[0], setAnswertext = _j[1];
-    var _k = (0, react_1.useState)(''), error = _k[0], setError = _k[1];
-    var _l = (0, react_1.useState)([]), selectedProducts = _l[0], setSelectedProducts = _l[1];
-    var _m = (0, react_1.useState)(false), showProductSelection = _m[0], setShowProductSelection = _m[1];
-    var _o = (0, react_1.useState)([]), availableProducts = _o[0], setAvailableProducts = _o[1];
-    var _p = (0, react_1.useState)(false), loadingProducts = _p[0], setLoadingProducts = _p[1];
+    var _f = (0, react_1.useState)(''), clientSecret = _f[0], setClientSecret = _f[1];
+    var _g = (0, react_1.useState)(''), businessName = _g[0], setBusinessName = _g[1];
+    var _h = (0, react_1.useState)(false), isCheckout = _h[0], setIsCheckout = _h[1];
+    var _j = (0, react_1.useState)(), stripePromise = _j[0], setStripePromise = _j[1];
+    var _k = (0, react_1.useState)(''), answertext = _k[0], setAnswertext = _k[1];
+    var _l = (0, react_1.useState)(''), error = _l[0], setError = _l[1];
+    var _m = (0, react_1.useState)([]), selectedProducts = _m[0], setSelectedProducts = _m[1];
+    var _o = (0, react_1.useState)(false), showProductSelection = _o[0], setShowProductSelection = _o[1];
+    var _p = (0, react_1.useState)([]), availableProducts = _p[0], setAvailableProducts = _p[1];
+    var _q = (0, react_1.useState)(false), loadingProducts = _q[0], setLoadingProducts = _q[1];
+    // Compute visible products based on conditional logic
+    var visibleProducts = (0, react_1.useMemo)(function () {
+        if (!showProductSelection || availableProducts.length === 0) {
+            return availableProducts;
+        }
+        return availableProducts.filter(function (product) {
+            var _a, _b;
+            // Find condition for this product
+            var productCondition = (_b = (_a = field.options) === null || _a === void 0 ? void 0 : _a.productConditions) === null || _b === void 0 ? void 0 : _b.find(function (c) { return c.productId === product._id; });
+            // If no condition defined, show by default
+            if (!(productCondition === null || productCondition === void 0 ? void 0 : productCondition.showCondition) || (0, utilities_1.object_is_empty)(productCondition.showCondition)) {
+                return true;
+            }
+            // Evaluate condition against current form responses
+            return (0, utilities_1.responses_satisfy_conditions)(responses || [], productCondition.showCondition, {
+                dateOfBirth: enduser === null || enduser === void 0 ? void 0 : enduser.dateOfBirth,
+                gender: enduser === null || enduser === void 0 ? void 0 : enduser.gender,
+                state: enduser === null || enduser === void 0 ? void 0 : enduser.state,
+                form: form,
+                activeResponses: responses,
+            });
+        });
+    }, [availableProducts, (_b = field.options) === null || _b === void 0 ? void 0 : _b.productConditions, responses, showProductSelection, enduser, form]);
+    // Automatically deselect products that become hidden
+    (0, react_1.useEffect)(function () {
+        var visibleProductIds = visibleProducts.map(function (p) { return p._id; });
+        setSelectedProducts(function (prev) { return prev.filter(function (id) { return visibleProductIds.includes(id); }); });
+    }, [visibleProducts]);
     var fetchRef = (0, react_1.useRef)(false);
     (0, react_1.useEffect)(function () {
         var _a, _b, _d;
@@ -940,6 +979,16 @@ var StripeInput = function (_a) {
         }, 0)
         : 0 // Will be calculated by existing Stripe flow when not in selection mode
     );
+    // Emit GTM purchase event once when success screen is displayed
+    var purchaseEmittedRef = (0, react_1.useRef)(false);
+    (0, react_1.useEffect)(function () {
+        var _a;
+        // Only emit for actual purchases (chargeImmediately), not for saving card details
+        if (value && ((_a = field.options) === null || _a === void 0 ? void 0 : _a.chargeImmediately) && !purchaseEmittedRef.current) {
+            emitStripePurchaseEvent(field, cost);
+            purchaseEmittedRef.current = true;
+        }
+    }, [value, field, cost]);
     // Handle product selection step
     if (showProductSelection) {
         if (error) {
@@ -948,7 +997,11 @@ var StripeInput = function (_a) {
         if (loadingProducts) {
             return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, direction: "column", spacing: 2, alignItems: "center" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(LinearProgress_1.default, {}) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, { children: "Loading product information..." }) }))] })));
         }
-        var isSingleSelection_1 = ((_b = field.options) === null || _b === void 0 ? void 0 : _b.radio) === true;
+        // Check if all products are filtered out by conditional logic
+        if (visibleProducts.length === 0) {
+            return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ container: true, direction: "column", spacing: 2, alignItems: "center" }, { children: (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ color: "textSecondary" }, { children: "No products are available based on your previous answers." })) })) })));
+        }
+        var isSingleSelection_1 = ((_d = field.options) === null || _d === void 0 ? void 0 : _d.radio) === true;
         var handleProductSelection_1 = function (productId) {
             if (isSingleSelection_1) {
                 setSelectedProducts([productId]);
@@ -985,7 +1038,7 @@ var StripeInput = function (_a) {
                 }
             });
         };
-        return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, direction: "column", spacing: 2 }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "h6" }, { children: ["Select Product", isSingleSelection_1 ? '' : 's'] })) })), availableProducts.map(function (product) {
+        return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, direction: "column", spacing: 2 }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "h6" }, { children: ["Select Product", isSingleSelection_1 ? '' : 's'] })) })), visibleProducts.map(function (product) {
                     var _a, _b, _d;
                     // Use real-time Stripe pricing if available, fallback to Tellescope pricing
                     var price = product.currentPrice || product.cost;
@@ -998,7 +1051,7 @@ var StripeInput = function (_a) {
         return ((0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ color: "error" }, { children: error })));
     }
     if (value) {
-        return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap" }, { children: [(0, jsx_runtime_1.jsx)(icons_material_1.CheckCircleOutline, { color: "success" }), (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { ml: 1, fontSize: 20 } }, { children: ((_d = field.options) === null || _d === void 0 ? void 0 : _d.chargeImmediately) ? 'Your purchase was successful' : "Your payment details have been saved!" }))] })));
+        return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap" }, { children: [(0, jsx_runtime_1.jsx)(icons_material_1.CheckCircleOutline, { color: "success" }), (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { ml: 1, fontSize: 20 } }, { children: ((_e = field.options) === null || _e === void 0 ? void 0 : _e.chargeImmediately) ? 'Your purchase was successful' : "Your payment details have been saved!" }))] })));
     }
     if (!(clientSecret && stripePromise))
         return (0, jsx_runtime_1.jsx)(LinearProgress_1.default, {});
@@ -1713,7 +1766,7 @@ var contact_is_valid = function (e) {
 exports.contact_is_valid = contact_is_valid;
 var RelatedContactsInput = function (_a) {
     var _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _w, _x;
-    var field = _a.field, _value = _a.value, onChange = _a.onChange, props = __rest(_a, ["field", "value", "onChange"]);
+    var field = _a.field, _value = _a.value, onChange = _a.onChange, parentError = _a.error, props = __rest(_a, ["field", "value", "onChange", "error"]);
     // safeguard against any rogue values like empty string
     var value = Array.isArray(_value) ? _value : [];
     var _y = (0, react_1.useState)(value.length === 1 ? 0 : -1), editing = _y[0], setEditing = _y[1];
@@ -1732,7 +1785,7 @@ var RelatedContactsInput = function (_a) {
                                 (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 4 }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField, { label: "Last Name", size: "small", fullWidth: true, InputProps: exports.defaultInputProps, value: lname, onChange: function (e) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { lname: e.target.value }) : v; }), field.id); } }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 4 }, { children: (0, jsx_runtime_1.jsx)(StringSelector, { options: ((_j = (_h = field.options) === null || _h === void 0 ? void 0 : _h.relatedContactTypes) === null || _j === void 0 ? void 0 : _j.length) ? field.options.relatedContactTypes : constants_1.RELATIONSHIP_TYPES, label: "Relationship", size: "small", disabled: ((_l = (_k = field === null || field === void 0 ? void 0 : field.options) === null || _k === void 0 ? void 0 : _k.relatedContactTypes) === null || _l === void 0 ? void 0 : _l.length) === 1, value: (_o = (_m = relationships === null || relationships === void 0 ? void 0 : relationships[0]) === null || _m === void 0 ? void 0 : _m.type) !== null && _o !== void 0 ? _o : '', onChange: function (type) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { relationships: [{ type: type, id: '' /* to be filled on server-side */ }] }) : v; }), field.id); } }) }))] })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap", spacing: 1 }, { children: [!((_q = (_p = field.options) === null || _p === void 0 ? void 0 : _p.hiddenDefaultFields) === null || _q === void 0 ? void 0 : _q.includes('Date of Birth')) &&
                                 (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 4 }, { children: (0, jsx_runtime_1.jsx)(exports.DateStringInput, { value: dateOfBirth, field: __assign(__assign({}, field), { isOptional: true }), size: "small", label: "Date of Birth (MM-DD-YYYY)", onChange: function (dateOfBirth) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { dateOfBirth: dateOfBirth }) : v; }), field.id); } }) })), !((_s = (_r = field.options) === null || _r === void 0 ? void 0 : _r.hiddenDefaultFields) === null || _s === void 0 ? void 0 : _s.includes('Email')) &&
                                 (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 4 }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField, { label: "Email", size: "small", fullWidth: true, type: "email", InputProps: exports.defaultInputProps, value: email, onChange: function (e) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { email: e.target.value }) : v; }), field.id); } }) })), !((_u = (_t = field.options) === null || _t === void 0 ? void 0 : _t.hiddenDefaultFields) === null || _u === void 0 ? void 0 : _u.includes('Phone Number')) &&
-                                (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 4 }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField, { label: "Phone Number", size: "small", fullWidth: true, InputProps: exports.defaultInputProps, value: phone, onChange: function (e) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { phone: e.target.value }) : v; }), field.id); } }) }))] })) })), (((_w = field.options) === null || _w === void 0 ? void 0 : _w.tableChoices) || []).length > 0 &&
+                                (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 4 }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField, { label: "Phone Number", size: "small", fullWidth: true, InputProps: exports.defaultInputProps, value: phone, onChange: function (e) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { phone: e.target.value.trim() }) : v; }), field.id); } }) }))] })) })), (((_w = field.options) === null || _w === void 0 ? void 0 : _w.tableChoices) || []).length > 0 &&
                     (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ container: true, spacing: 1 }, { children: (((_x = field.options) === null || _x === void 0 ? void 0 : _x.tableChoices) || []).map(function (_a, i) {
                                 var info = _a.info, label = _a.label, type = _a.type;
                                 return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 6 }, { children: type === 'Text'
@@ -1752,7 +1805,7 @@ var RelatedContactsInput = function (_a) {
                                                             return i === editing ? __assign(__assign({}, v), { fields: __assign(__assign({}, fields_1), (_a = {}, _a[label] = e.target.value, _a)) }) : v;
                                                         }), field.id); } }, { children: [(0, jsx_runtime_1.jsx)(material_1.MenuItem, __assign({ value: "" }, { children: (0, jsx_runtime_1.jsx)("em", { children: "None" }) })), info.choices.map(function (c) { return ((0, jsx_runtime_1.jsx)(material_1.MenuItem, __assign({ value: c }, { children: c }), c)); })] }))] })))
                                                 : null }), i));
-                            }) })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, sx: { my: 0.75 } }, { children: (0, jsx_runtime_1.jsx)(material_1.Button, __assign({ variant: "outlined", onClick: function () { return setEditing(-1); }, size: "small" }, { children: "Save Contact" })) })), errorMessage &&
+                            }) })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, sx: { my: 0.75 } }, { children: (0, jsx_runtime_1.jsx)(material_1.Button, __assign({ variant: "outlined", onClick: function () { return setEditing(-1); }, size: "small", disabled: !!errorMessage || !!parentError }, { children: "Save Contact" })) })), errorMessage &&
                     (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ color: "error" }, { children: errorMessage })) }))] })));
     }
     return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, direction: "column", spacing: 1 }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: value.map(function (contact, i) { return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between", wrap: "nowrap", spacing: 1 }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center" }, { children: [(0, jsx_runtime_1.jsx)(__1.IconButton, __assign({ onClick: function () { return setEditing(i); }, color: "primary", size: "small" }, { children: (0, jsx_runtime_1.jsx)(icons_material_1.Edit, {}) })), (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ noWrap: true }, { children: (0, utilities_1.user_display_name)(contact) || "Unnamed Contact ".concat(i + 1) }))] })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(__1.LabeledIconButton, { Icon: icons_material_1.Delete, label: "Remove", onClick: function () { return onChange(value.filter(function (v, _i) { return i !== _i; }), field.id); } }) }))] })) }), i)); }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Button, __assign({ variant: "contained", onClick: handleAddContact }, { children: "Add Contact" })) }))] })));

@@ -316,7 +316,7 @@ export const QuestionForField = ({
           <AppointmentBooking formResponseId={formResponseId} enduserId={enduserId} goToPreviousField={goToPreviousField} isPreviousDisabled={isPreviousDisabled} responses={responses} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'Appointment Booking'>} form={form} />
         )
         : field.type === 'Stripe' ? (
-          <Stripe enduserId={enduserId} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} setCustomerId={setCustomerId} form={form} />
+          <Stripe enduserId={enduserId} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} setCustomerId={setCustomerId} form={form} responses={responses} enduser={enduser} />
         )
         : field.type === 'Chargebee' ? (
           <Chargebee field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Chargebee'>} setCustomerId={setCustomerId} form={form} />
