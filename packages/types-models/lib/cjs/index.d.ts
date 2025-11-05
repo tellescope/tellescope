@@ -89,6 +89,7 @@ export type PortalSettings = {
         hideRegister?: boolean;
         dontPromptSetPassword?: boolean;
         requireOTP?: boolean;
+        requireOTPAfterPassword?: boolean;
     };
     communication?: {
         allowEnduserInitiatedChat?: boolean;
@@ -404,6 +405,7 @@ export interface Organization extends Organization_readonly, Organization_requir
         priorityGroups?: string[];
         resolutionFieldId?: string;
         resolutionFieldOptions?: string[];
+        syncTagsToZendesk?: boolean;
     };
     replyToAllEmails?: string;
     replyToEnduserTransactionalEmails?: string;
@@ -684,6 +686,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
     mfa?: MFASettings;
     skills?: string[];
     lockedOutUntil?: number;
+    failedLoginAttempts?: number;
     elationUserId?: number;
     iOSBadgeCount?: number;
     doseSpotUserId?: string;
@@ -1685,6 +1688,7 @@ export type FormFieldOptions = FormFieldValidation & {
         productId: string;
         showCondition: CompoundFilter<string>;
     }[];
+    stripeCouponCodes?: string[];
     dataSource?: string;
     canvasDocumentCoding?: Pick<CanvasCoding, 'system' | 'code'>;
     canvasDocumentType?: CanvasCoding;
@@ -2253,6 +2257,11 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
     canvasEncounterId?: string;
     pushedToPortalAt?: Date;
     belugaStatus?: string;
+    fieldViews?: {
+        fieldId: string;
+        fieldTitle: string;
+        timestamp: Date;
+    }[];
 }
 export interface WebHook_readonly extends ClientRecord {
 }
@@ -2449,6 +2458,8 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
     confirmedAt?: Date | '';
     preventRescheduleMinutesInAdvance?: number;
     preventCancelMinutesInAdvance?: number;
+    preventRescheduleInPortal?: boolean;
+    preventCancelInPortal?: boolean;
     sendIcsEmail?: boolean;
     healthieInsuranceBillingEnabled?: boolean;
 }
@@ -2580,6 +2591,8 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
     allowGroupReschedule?: boolean;
     preventRescheduleMinutesInAdvance?: number;
     preventCancelMinutesInAdvance?: number;
+    preventRescheduleInPortal?: boolean;
+    preventCancelInPortal?: boolean;
     athenaDepartmentId?: string;
     generateAthenaTelehealthLink?: boolean;
     athenaTypeId?: string;
@@ -3391,6 +3404,7 @@ export type PortalBlockForType = {
         title?: string;
         formIds?: string[];
     }>;
+    "Appointment Booking Pages": BuildPortalBlockInfo<'Appointment Booking Pages', {}>;
 };
 export type PortalBlockType = keyof PortalBlockForType;
 export type PortalBlock = PortalBlockForType[PortalBlockType];

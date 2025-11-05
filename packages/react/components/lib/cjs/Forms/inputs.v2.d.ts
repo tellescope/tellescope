@@ -3,7 +3,7 @@ import { SxProps, TextFieldProps } from "@mui/material";
 import { FormInputProps } from "./types";
 import { Enduser, FormResponseValue } from "@tellescope/types-models";
 import { FileBlob, Styled } from "..";
-import { DatabaseRecord, FormField } from "@tellescope/types-client";
+import { FormField } from "@tellescope/types-client";
 export declare const LanguageSelect: ({ value, ...props }: {
     value: string;
     onChange: (s: string) => void;
@@ -52,13 +52,11 @@ export declare const Progress: ({ numerator, denominator, style, color }: {
     color?: string | undefined;
 } & Styled) => JSX.Element;
 export declare const DropdownInput: ({ field, value, onChange }: FormInputProps<'Dropdown'>) => JSX.Element;
-export interface AddToDatabaseProps {
-    databaseId: string;
-    onAdd: (record: DatabaseRecord) => void;
-}
-export declare const DatabaseSelectInput: ({ AddToDatabase, field, value: _value, onChange, onDatabaseSelect, responses, size, disabled, enduser }: FormInputProps<"Database Select"> & {
+import { AddToDatabaseProps as AddToDatabasePropsImported } from './inputs';
+export type AddToDatabaseProps = AddToDatabasePropsImported;
+export declare const DatabaseSelectInput: (props: FormInputProps<'Database Select'> & {
     responses: FormResponseValue[];
-    AddToDatabase?: React.JSXElementConstructor<AddToDatabaseProps> | undefined;
+    AddToDatabase?: React.JSXElementConstructor<AddToDatabaseProps>;
 }) => JSX.Element;
 export declare const CanvasMedicationsInput: ({ field, value, onChange }: FormInputProps<'Medications'>) => JSX.Element;
 export declare const MedicationsInput: ({ field, value, onChange, ...props }: FormInputProps<'Medications'>) => JSX.Element;

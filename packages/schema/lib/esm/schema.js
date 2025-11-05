@@ -1835,6 +1835,24 @@ export var schema = build_schema({
                     }
                 },
                 {
+                    explanation: "Only admin users can update failed login attempts",
+                    evaluate: function (_a, _, session, method, _b) {
+                        var _c;
+                        var _id = _a._id;
+                        var updates = _b.updates;
+                        if ((updates === null || updates === void 0 ? void 0 : updates.failedLoginAttempts) !== undefined && session.id === (_id === null || _id === void 0 ? void 0 : _id.toString())) {
+                            return "Users cannot update own failed login attempts";
+                        }
+                        if ((_c = session === null || session === void 0 ? void 0 : session.roles) === null || _c === void 0 ? void 0 : _c.includes('Admin'))
+                            return; // admin can do this
+                        if (method === 'create')
+                            return; // create already admin restricted
+                        if ((updates === null || updates === void 0 ? void 0 : updates.failedLoginAttempts) === undefined)
+                            return; // not provided
+                        return "Only admin users can update failed login attempts";
+                    }
+                },
+                {
                     explanation: "Only admin users can update doseSpotUserId",
                     evaluate: function (_a, _, session, method, _b) {
                         var _c;
@@ -2218,7 +2236,7 @@ export var schema = build_schema({
                 ]
             }, credentialedStates: {
                 validator: stateCredentialsValidator,
-            }, timezone: { validator: timezoneValidator }, weeklyAvailabilities: { validator: weeklyAvailabilitiesValidator }, calendarEventLimits: { validator: calendarEventLimitsValidator }, autoReplyEnabled: { validator: booleanValidatorOptional }, pushNotificationIosTokens: { validator: listOfStringsValidatorEmptyOk }, pushNotificationFirebaseTokens: { validator: listOfStringsValidatorEmptyOk }, callRouting: { validator: userCallRoutingBehaviorValidator }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, emailSignature: { validator: stringValidator1000 }, disableTicketAutoAssignment: { validator: booleanValidator }, ticketAssignmentPriority: { validator: nonNegNumberValidator }, specialties: { validator: listOfStringsValidatorOptionalOrEmptyOk }, bio: { validator: stringValidator25000EmptyOkay }, TIN: { validator: stringValidatorOptionalEmptyOkay }, NPI: { validator: stringValidatorOptionalEmptyOkay }, DEA: { validator: stringValidatorOptionalEmptyOkay }, voicemailPlayback: { validator: phonePlaybackValidatorOptional }, lockedOutUntil: { validator: numberValidator }, iOSBadgeCount: { validator: nonNegNumberValidator }, availableFromNumbers: { validator: listOfStringsValidatorEmptyOk }, availableFromEmails: { validator: listOfStringsValidatorEmptyOk }, doseSpotUserId: { validator: stringValidator100 }, url: { validator: stringValidator1000 }, templateFields: {
+            }, timezone: { validator: timezoneValidator }, weeklyAvailabilities: { validator: weeklyAvailabilitiesValidator }, calendarEventLimits: { validator: calendarEventLimitsValidator }, autoReplyEnabled: { validator: booleanValidatorOptional }, pushNotificationIosTokens: { validator: listOfStringsValidatorEmptyOk }, pushNotificationFirebaseTokens: { validator: listOfStringsValidatorEmptyOk }, callRouting: { validator: userCallRoutingBehaviorValidator }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, emailSignature: { validator: stringValidator1000 }, disableTicketAutoAssignment: { validator: booleanValidator }, ticketAssignmentPriority: { validator: nonNegNumberValidator }, specialties: { validator: listOfStringsValidatorOptionalOrEmptyOk }, bio: { validator: stringValidator25000EmptyOkay }, TIN: { validator: stringValidatorOptionalEmptyOkay }, NPI: { validator: stringValidatorOptionalEmptyOkay }, DEA: { validator: stringValidatorOptionalEmptyOkay }, voicemailPlayback: { validator: phonePlaybackValidatorOptional }, lockedOutUntil: { validator: numberValidator }, failedLoginAttempts: { validator: nonNegNumberValidator }, iOSBadgeCount: { validator: nonNegNumberValidator }, availableFromNumbers: { validator: listOfStringsValidatorEmptyOk }, availableFromEmails: { validator: listOfStringsValidatorEmptyOk }, doseSpotUserId: { validator: stringValidator100 }, url: { validator: stringValidator1000 }, templateFields: {
                 validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     field: stringValidator100,
                     value: stringValidator5000,
@@ -2841,6 +2859,7 @@ export var schema = build_schema({
                     limit: { validator: nonNegNumberValidator, required: false },
                     lastId: { validator: mongoIdStringValidator, required: false },
                     databaseId: { validator: mongoIdStringValidator, required: false },
+                    search: { validator: stringValidatorOptionalEmptyOkay, required: false },
                 },
                 returns: {
                     choices: { validator: 'database_records', required: true }
@@ -2942,7 +2961,13 @@ export var schema = build_schema({
                     formResponseId: mongoIdStringOptional,
                     completedAt: dateValidatorOptional,
                 }))
-            }, canvasEncounterId: { validator: stringValidator100 }, pushedToPortalAt: { validator: dateValidatorOptional } }),
+            }, canvasEncounterId: { validator: stringValidator100 }, pushedToPortalAt: { validator: dateValidatorOptional }, fieldViews: {
+                validator: listValidatorOptionalOrEmptyOk(objectValidator({
+                    fieldId: mongoIdStringRequired,
+                    fieldTitle: stringValidator250,
+                    timestamp: dateValidator,
+                }))
+            } }),
         defaultActions: DEFAULT_OPERATIONS,
         enduserActions: {
             prepare_form_response: {}, info_for_access_code: {}, submit_form_response: {}, stripe_details: {}, chargebee_details: {},
@@ -3021,12 +3046,14 @@ export var schema = build_schema({
                 op: "custom", access: 'update', method: "patch",
                 name: 'Save Field Response',
                 path: '/save-field-response',
-                description: "With an accessCode, includes the answer to an individual field in a partial form response.",
+                description: "With an accessCode, includes the answer to an individual field in a partial form response, or logs a field view.",
                 parameters: {
                     formResponseId: { validator: mongoIdStringValidator },
                     accessCode: { validator: stringValidator250 },
                     response: { validator: formResponseValidator },
                     responses: { validator: listValidatorOptionalOrEmptyOk(formResponseValidator) },
+                    viewOnly: { validator: booleanValidator },
+                    fieldId: { validator: mongoIdStringValidator },
                 },
                 returns: {
                     formResponse: 'form response',
@@ -3624,7 +3651,7 @@ export var schema = build_schema({
             get_appointment_availability: {}, book_appointment: {}, stripe_details: {},
             session_for_public_appointment_booking: {}, download_ics_file: {},
         },
-        fields: __assign(__assign({}, BuiltInFields), { sendIcsEmail: { validator: booleanValidator }, athenaDepartmentId: { validator: stringValidator1000 }, generateAthenaTelehealthLink: { validator: booleanValidator }, athenaTypeId: { validator: stringValidator1000 }, athenaBookingTypeId: { validator: stringValidator1000 }, preventCancelMinutesInAdvance: { validator: numberValidator }, preventRescheduleMinutesInAdvance: { validator: numberValidator }, actualDuration: { validator: nonNegNumberValidator }, dontSyncToCanvas: { validator: booleanValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { sendIcsEmail: { validator: booleanValidator }, athenaDepartmentId: { validator: stringValidator1000 }, generateAthenaTelehealthLink: { validator: booleanValidator }, athenaTypeId: { validator: stringValidator1000 }, athenaBookingTypeId: { validator: stringValidator1000 }, preventCancelMinutesInAdvance: { validator: numberValidator }, preventRescheduleMinutesInAdvance: { validator: numberValidator }, preventCancelInPortal: { validator: booleanValidator }, preventRescheduleInPortal: { validator: booleanValidator }, actualDuration: { validator: nonNegNumberValidator }, dontSyncToCanvas: { validator: booleanValidator }, title: {
                 validator: stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -3702,7 +3729,7 @@ export var schema = build_schema({
         defaultActions: DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: { read: {}, readMany: {} },
-        fields: __assign(__assign({}, BuiltInFields), { dontSyncToElation: { validator: booleanValidator }, sendIcsEmail: { validator: booleanValidator }, createAndBookAthenaSlot: { validator: booleanValidator }, athenaDepartmentId: { validator: stringValidator1000 }, generateAthenaTelehealthLink: { validator: booleanValidator }, athenaTypeId: { validator: stringValidator1000 }, athenaBookingTypeId: { validator: stringValidator1000 }, preventCancelMinutesInAdvance: { validator: numberValidator }, preventRescheduleMinutesInAdvance: { validator: numberValidator }, dontSyncToCanvas: { validator: booleanValidator }, archivedAt: { validator: dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: booleanValidator }, dontAutoSyncPatientToHealthie: { validator: booleanValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { dontSyncToElation: { validator: booleanValidator }, sendIcsEmail: { validator: booleanValidator }, createAndBookAthenaSlot: { validator: booleanValidator }, athenaDepartmentId: { validator: stringValidator1000 }, generateAthenaTelehealthLink: { validator: booleanValidator }, athenaTypeId: { validator: stringValidator1000 }, athenaBookingTypeId: { validator: stringValidator1000 }, preventCancelMinutesInAdvance: { validator: numberValidator }, preventRescheduleMinutesInAdvance: { validator: numberValidator }, preventCancelInPortal: { validator: booleanValidator }, preventRescheduleInPortal: { validator: booleanValidator }, dontSyncToCanvas: { validator: booleanValidator }, archivedAt: { validator: dateOptionalOrEmptyStringValidator }, allowGroupReschedule: { validator: booleanValidator }, dontAutoSyncPatientToHealthie: { validator: booleanValidator }, title: {
                 validator: stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -4590,6 +4617,7 @@ export var schema = build_schema({
                     priorityGroups: listOfStringsValidatorOptionalOrEmptyOk,
                     resolutionFieldId: stringValidatorOptionalEmptyOkay,
                     resolutionFieldOptions: listOfStringsValidatorOptionalOrEmptyOk,
+                    syncTagsToZendesk: booleanValidator,
                 })
             }, hasTicketQueues: { validator: booleanValidator }, customAutoreplyMessage: { validator: stringValidator1000 }, customZoomEmailTemplate: { validator: stringValidator5000 }, customZoomEmailSubject: { validator: stringValidator1000 }, customZoomSMSTemplate: { validator: stringValidator1000 }, altVitalTeamIds: { validator: listValidatorEmptyOk(objectValidator({
                     teamId: stringValidator100,

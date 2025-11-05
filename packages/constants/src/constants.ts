@@ -1094,6 +1094,7 @@ export const CURRENT_POLICY_VERION = "v2.0"
 export const BUILT_INS_FOR_SET_FIELDS: (keyof Enduser)[] = [
   'defaultFromPhone',
   'defaultFromEmail',
+  'timezone',
 ]
 export const BUILT_IN_BOOLEANS_FOR_SET_FIELDS: (keyof Enduser)[] = [
   "useDefaultFromPhoneInAutomations",

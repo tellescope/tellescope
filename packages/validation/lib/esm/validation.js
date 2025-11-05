@@ -2630,6 +2630,7 @@ export var portalSettingsValidator = objectValidator({
         hideRegister: booleanValidatorOptional,
         dontPromptSetPassword: booleanValidatorOptional,
         requireOTP: booleanValidatorOptional,
+        requireOTPAfterPassword: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true, }),
     communication: objectValidator({
         allowEnduserInitiatedChat: booleanValidatorOptional,
@@ -2850,6 +2851,7 @@ export var formFieldOptionsValidator = objectValidator({
         productId: mongoIdStringRequired,
         showCondition: objectAnyFieldsAnyValuesValidator,
     })),
+    stripeCouponCodes: listOfStringsValidatorOptionalOrEmptyOk,
     dataSource: stringValidatorOptionalEmptyOkay,
     esignatureTermsCompanyName: stringValidatorOptionalEmptyOkay,
     observationCode: stringValidatorOptionalEmptyOkay,
@@ -3255,6 +3257,10 @@ export var portalBlockValidator = orValidator({
             formIds: listOfMongoIdStringValidatorEmptyOk,
         })
     }),
+    "Appointment Booking Pages": objectValidator({
+        type: exactMatchValidator(['Appointment Booking Pages']),
+        info: objectValidator({}, { emptyOk: true })
+    }),
 });
 export var portalBlocksValidator = listValidatorEmptyOk(portalBlockValidator);
 var _PORTAL_BLOCK_TYPES = {
@@ -3268,6 +3274,7 @@ var _PORTAL_BLOCK_TYPES = {
     Orders: '',
     HTML: '',
     pinnedForms: '',
+    "Appointment Booking Pages": '',
 };
 export var PORTAL_BLOCK_TYPES = Object.keys(_PORTAL_BLOCK_TYPES);
 export var portalTypeValidator = exactMatchValidator(PORTAL_BLOCK_TYPES);

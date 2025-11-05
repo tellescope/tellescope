@@ -20,7 +20,7 @@ export declare const RatingInput: ({ field, value, onChange }: FormInputProps<'r
 export declare const RankingInput: ({ field, value, onChange }: FormInputProps<'ranking'>) => JSX.Element;
 export declare const DateInput: ({ field, value, onChange, placement, ...props }: {
     field: FormField;
-    placement?: "bottom" | "left" | "right" | "top" | undefined;
+    placement?: "left" | "right" | "bottom" | "top" | undefined;
 } & FormInputProps<"date"> & Styled) => JSX.Element;
 export declare const TableInput: ({ field, value, onChange, ...props }: FormInputProps<'Input Table'>) => JSX.Element;
 export declare const AutoFocusTextField: (props: TextFieldProps) => JSX.Element;
@@ -57,9 +57,12 @@ export interface AddToDatabaseProps {
     databaseId: string;
     onAdd: (record: DatabaseRecord) => void;
 }
-export declare const DatabaseSelectInput: ({ AddToDatabase, field, value: _value, onChange, onDatabaseSelect, responses, size, disabled, enduser }: FormInputProps<"Database Select"> & {
+export declare const DatabaseSelectInput: ({ AddToDatabase, field, value: _value, onChange, onDatabaseSelect, responses, size, disabled, enduser, inputProps }: FormInputProps<"Database Select"> & {
     responses: FormResponseValue[];
     AddToDatabase?: React.JSXElementConstructor<AddToDatabaseProps> | undefined;
+    inputProps?: {
+        sx: SxProps;
+    } | undefined;
 }) => JSX.Element;
 export declare const CanvasMedicationsInput: ({ field, value, onChange }: FormInputProps<'Medications'>) => JSX.Element;
 export declare const MedicationsInput: ({ field, value, onChange, ...props }: FormInputProps<'Medications'>) => JSX.Element;

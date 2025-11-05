@@ -357,6 +357,7 @@ export type CustomActions = {
             lastId?: string;
             limit?: number;
             databaseId?: string;
+            search?: string;
         }, {
             choices: DatabaseRecordClient[];
         }>;
@@ -419,6 +420,8 @@ export type CustomActions = {
             accessCode?: string;
             response?: FormResponseValue;
             responses?: FormResponseValue[];
+            viewOnly?: boolean;
+            fieldId?: string;
         }, {}>;
         info_for_access_code: CustomAction<{
             accessCode: string;

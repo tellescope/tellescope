@@ -1011,6 +1011,7 @@ export var CURRENT_POLICY_VERION = "v2.0";
 export var BUILT_INS_FOR_SET_FIELDS = [
     'defaultFromPhone',
     'defaultFromEmail',
+    'timezone',
 ];
 export var BUILT_IN_BOOLEANS_FOR_SET_FIELDS = [
     "useDefaultFromPhoneInAutomations",

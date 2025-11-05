@@ -122,6 +122,15 @@ var react_stripe_js_1 = require("@stripe/react-stripe-js");
 var stripe_js_1 = require("@stripe/stripe-js");
 var icons_material_1 = require("@mui/icons-material");
 var wysiwyg_1 = require("./wysiwyg");
+// Debounce hook for search functionality
+var useDebounce = function (value, delay) {
+    var _a = (0, react_1.useState)(value), debouncedValue = _a[0], setDebouncedValue = _a[1];
+    (0, react_1.useEffect)(function () {
+        var handler = setTimeout(function () { return setDebouncedValue(value); }, delay);
+        return function () { return clearTimeout(handler); };
+    }, [value, delay]);
+    return debouncedValue;
+};
 var LanguageSelect = function (_a) {
     var value = _a.value, props = __rest(_a, ["value"]);
     return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", justifyContent: "center", wrap: "nowrap", spacing: 1 }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(Language_1.default, { color: "primary" }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, style: { width: 150 } }, { children: (0, jsx_runtime_1.jsx)(StringSelector, __assign({}, props, { options: ["English", "Español"], size: "small", value: value === 'Spanish' ? 'Español' : value, label: (value === 'Español' || value === 'Spanish') ? 'Idioma'
@@ -1159,26 +1168,30 @@ exports.DropdownInput = DropdownInput;
 var choicesForDatabase = {};
 var preventRefetch = {};
 var LOAD_CHOICES_LIMIT = 500;
+var MIN_SEARCH_CHARS = 3;
+var SEARCH_DEBOUNCE_MS = 300;
 var useDatabaseChoices = function (_a) {
-    var _b, _d, _e, _f;
-    var _g = _a.databaseId, databaseId = _g === void 0 ? '' : _g, field = _a.field, otherAnswers = _a.otherAnswers;
+    var _b, _d;
+    var _e = _a.databaseId, databaseId = _e === void 0 ? '' : _e, field = _a.field, otherAnswers = _a.otherAnswers, _f = _a.searchQuery, searchQuery = _f === void 0 ? '' : _f;
     var session = (0, __1.useResolvedSession)();
-    var _h = (0, react_1.useState)(0), renderCount = _h[0], setRenderCount = _h[1];
-    // todo: make searchable, don't load all
+    var _g = (0, react_1.useState)(false), isSearching = _g[0], setIsSearching = _g[1];
+    var _h = (0, react_1.useState)([]), searchResults = _h[0], setSearchResults = _h[1];
+    var _j = (0, react_1.useState)(false), initialLoadComplete = _j[0], setInitialLoadComplete = _j[1];
+    var debouncedSearch = useDebounce(searchQuery, SEARCH_DEBOUNCE_MS);
+    // Load initial page on mount (only once, not recursively)
+    var initialLoadRef = (0, react_1.useRef)(false);
     (0, react_1.useEffect)(function () {
-        var _a, _b, _d, _e;
-        if ((_a = choicesForDatabase[databaseId]) === null || _a === void 0 ? void 0 : _a.done)
+        var _a, _b, _d;
+        if (initialLoadRef.current)
             return;
-        if (renderCount > 100)
-            return; // limit to 50000 entries / prevent infinite looping
-        var choices = (_d = (_b = choicesForDatabase[databaseId]) === null || _b === void 0 ? void 0 : _b.records) !== null && _d !== void 0 ? _d : [];
-        var lastId = (_e = choicesForDatabase[databaseId]) === null || _e === void 0 ? void 0 : _e.lastId;
-        if (preventRefetch[databaseId + field.id + lastId])
+        if (((_a = choicesForDatabase[databaseId]) === null || _a === void 0 ? void 0 : _a.done) || ((_d = (_b = choicesForDatabase[databaseId]) === null || _b === void 0 ? void 0 : _b.records) === null || _d === void 0 ? void 0 : _d.length)) {
+            setInitialLoadComplete(true);
             return;
-        preventRefetch[databaseId + field.id + lastId] = true;
+        }
+        initialLoadRef.current = true;
+        preventRefetch[databaseId + field.id] = true;
         session.api.form_fields.load_choices_from_database({
             fieldId: field.id,
-            lastId: lastId,
             limit: LOAD_CHOICES_LIMIT,
             databaseId: databaseId,
         })
@@ -1187,17 +1200,67 @@ var useDatabaseChoices = function (_a) {
             var newChoices = _a.choices;
             choicesForDatabase[databaseId] = {
                 lastId: (_b = newChoices === null || newChoices === void 0 ? void 0 : newChoices[newChoices.length - 1]) === null || _b === void 0 ? void 0 : _b.id,
-                records: __spreadArray(__spreadArray([], choices, true), newChoices, true).sort(function (c1, c2) { return (label_for_database_record(field, c1)
+                records: newChoices.sort(function (c1, c2) { return (label_for_database_record(field, c1)
                     .localeCompare(label_for_database_record(field, c2))); }),
-                done: newChoices.length < LOAD_CHOICES_LIMIT,
+                done: true, // Don't load more pages automatically
             };
-            setRenderCount(function (r) { return r + 1; });
+            setInitialLoadComplete(true);
         })
             .catch(function (err) {
             console.error(err);
-            preventRefetch[databaseId + field.id + lastId] = false;
+            preventRefetch[databaseId + field.id] = false;
+            setInitialLoadComplete(true); // Mark as complete even on error to avoid infinite loading
         });
-    }, [session, field, databaseId, renderCount]);
+    }, [session, field, databaseId]);
+    // Handle debounced search
+    var searchRef = (0, react_1.useRef)(debouncedSearch);
+    (0, react_1.useEffect)(function () {
+        var trimmed = debouncedSearch.trim();
+        // If search is cleared, return to initial results
+        if (!trimmed) {
+            setSearchResults([]);
+            setIsSearching(false);
+            searchRef.current = debouncedSearch;
+            return;
+        }
+        // Only search if meets minimum character requirement
+        if (trimmed.length < MIN_SEARCH_CHARS) {
+            setSearchResults([]);
+            setIsSearching(false);
+            return;
+        }
+        // Avoid duplicate searches
+        if (searchRef.current === debouncedSearch)
+            return;
+        searchRef.current = debouncedSearch;
+        setIsSearching(true);
+        session.api.form_fields.load_choices_from_database({
+            fieldId: field.id,
+            limit: LOAD_CHOICES_LIMIT,
+            databaseId: databaseId,
+            search: trimmed,
+        })
+            .then(function (_a) {
+            var _b, _d;
+            var newChoices = _a.choices;
+            // Add search results to the same cache as initial load
+            // This ensures selected search results persist even after search is cleared
+            var existingRecords = (_d = (_b = choicesForDatabase[databaseId]) === null || _b === void 0 ? void 0 : _b.records) !== null && _d !== void 0 ? _d : [];
+            var existingIds = new Set(existingRecords.map(function (r) { return r.id; }));
+            var uniqueNewChoices = newChoices.filter(function (c) { return !existingIds.has(c.id); });
+            if (uniqueNewChoices.length > 0) {
+                choicesForDatabase[databaseId] = __assign(__assign({}, choicesForDatabase[databaseId]), { records: __spreadArray(__spreadArray([], existingRecords, true), uniqueNewChoices, true).sort(function (c1, c2) { return (label_for_database_record(field, c1)
+                        .localeCompare(label_for_database_record(field, c2))); }), done: true });
+            }
+            setSearchResults(newChoices.sort(function (c1, c2) { return (label_for_database_record(field, c1)
+                .localeCompare(label_for_database_record(field, c2))); }));
+            setIsSearching(false);
+        })
+            .catch(function (err) {
+            console.error(err);
+            setIsSearching(false);
+        });
+    }, [session, field, databaseId, debouncedSearch]);
     var addChoice = (0, react_1.useCallback)(function (record) {
         if (!choicesForDatabase[databaseId]) {
             choicesForDatabase[databaseId] = {
@@ -1207,10 +1270,15 @@ var useDatabaseChoices = function (_a) {
         }
         choicesForDatabase[databaseId].records.push(record);
     }, [choicesForDatabase, databaseId]);
+    // Use search results if searching, otherwise use cached initial results
+    var activeChoices = debouncedSearch.trim().length >= MIN_SEARCH_CHARS
+        ? searchResults
+        : ((_d = (_b = choicesForDatabase[databaseId]) === null || _b === void 0 ? void 0 : _b.records) !== null && _d !== void 0 ? _d : []);
     return {
         addChoice: addChoice,
-        doneLoading: (_d = (_b = choicesForDatabase[databaseId]) === null || _b === void 0 ? void 0 : _b.done) !== null && _d !== void 0 ? _d : false,
-        choices: __spreadArray(__spreadArray([], (_f = (_e = choicesForDatabase[databaseId]) === null || _e === void 0 ? void 0 : _e.records) !== null && _f !== void 0 ? _f : [], true), (otherAnswers || []).map(function (v) {
+        doneLoading: initialLoadComplete,
+        isSearching: isSearching,
+        choices: __spreadArray(__spreadArray([], activeChoices, true), (otherAnswers || []).map(function (v) {
             var _a;
             return ({
                 id: v.text,
@@ -1218,7 +1286,7 @@ var useDatabaseChoices = function (_a) {
                 values: [{ label: ((_a = field.options) === null || _a === void 0 ? void 0 : _a.databaseLabel) || '', type: 'Text', value: v.text }],
             });
         }), true),
-        renderCount: renderCount,
+        minSearchChars: MIN_SEARCH_CHARS,
     };
 };
 var label_for_database_record = function (field, record) {
@@ -1250,13 +1318,15 @@ var get_other_answers = function (_value, typing) {
 };
 var DatabaseSelectInput = function (_a) {
     var _b, _d, _e, _f, _g, _h, _j, _k;
-    var AddToDatabase = _a.AddToDatabase, field = _a.field, _value = _a.value, onChange = _a.onChange, onDatabaseSelect = _a.onDatabaseSelect, responses = _a.responses, size = _a.size, disabled = _a.disabled, enduser = _a.enduser;
+    var AddToDatabase = _a.AddToDatabase, field = _a.field, _value = _a.value, onChange = _a.onChange, onDatabaseSelect = _a.onDatabaseSelect, responses = _a.responses, size = _a.size, disabled = _a.disabled, enduser = _a.enduser, inputProps = _a.inputProps;
     var _l = (0, react_1.useState)(''), typing = _l[0], setTyping = _l[1];
-    var _m = useDatabaseChoices({
+    var _m = (0, react_1.useState)(false), open = _m[0], setOpen = _m[1];
+    var _o = useDatabaseChoices({
         databaseId: (_b = field.options) === null || _b === void 0 ? void 0 : _b.databaseId,
         field: field,
         otherAnswers: get_other_answers(_value, ((_d = field === null || field === void 0 ? void 0 : field.options) === null || _d === void 0 ? void 0 : _d.other) ? typing : undefined),
-    }), addChoice = _m.addChoice, choices = _m.choices, doneLoading = _m.doneLoading;
+        searchQuery: typing,
+    }), addChoice = _o.addChoice, choices = _o.choices, doneLoading = _o.doneLoading, isSearching = _o.isSearching, minSearchChars = _o.minSearchChars;
     var value = react_1.default.useMemo(function () {
         var _a, _b;
         try {
@@ -1360,9 +1430,13 @@ var DatabaseSelectInput = function (_a) {
         }
         return filtered;
     }, [field, stateFilteredChoices]);
+    // Show placeholder when typing but below minimum search characters
+    var charsNeeded = typing.trim().length > 0 && typing.trim().length < minSearchChars
+        ? minSearchChars - typing.trim().length
+        : 0;
     if (!doneLoading)
         return (0, jsx_runtime_1.jsx)(LinearProgress_1.default, {});
-    return ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(material_1.Autocomplete, { id: field.id, freeSolo: false, size: size, componentsProps: { popper: { sx: { wordBreak: "break-word" } } }, options: filteredChoices, multiple: true, getOptionLabel: function (o) { return (Array.isArray(o) // edge case
+    return ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [(0, jsx_runtime_1.jsx)(material_1.Autocomplete, { id: field.id, freeSolo: false, size: size, componentsProps: { popper: { sx: { wordBreak: "break-word" } } }, options: filteredChoices, multiple: true, loading: isSearching, open: open, onOpen: function () { return setOpen(true); }, onClose: function () { return setOpen(false); }, getOptionLabel: function (o) { return (Array.isArray(o) // edge case
                     ? ''
                     : label_for_database_record(field, o)); }, value: value, disabled: disabled, onChange: function (_, v) {
                     var _a, _b, _d, _e, _f;
@@ -1385,7 +1459,7 @@ var DatabaseSelectInput = function (_a) {
                                 recordId: (_f = (_e = v[v.length - 1]) === null || _e === void 0 ? void 0 : _e.id) !== null && _f !== void 0 ? _f : '',
                                 text: label_for_database_record(field, v[v.length - 1]),
                             }]), field.id);
-                }, inputValue: typing, onInputChange: function (e, v) { return e && setTyping(v); }, renderInput: function (params) { return (0, jsx_runtime_1.jsx)(material_1.TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: exports.defaultInputProps.sx }) })); }, 
+                }, inputValue: typing, onInputChange: function (e, v) { return e && setTyping(v); }, renderInput: function (params) { return ((0, jsx_runtime_1.jsx)(material_1.TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: (inputProps || exports.defaultInputProps).sx, endAdornment: ((0, jsx_runtime_1.jsxs)(jsx_runtime_1.Fragment, { children: [isSearching ? (0, jsx_runtime_1.jsx)(material_1.CircularProgress, { color: "inherit", size: 20 }) : null, params.InputProps.endAdornment] })) }), placeholder: charsNeeded > 0 ? "Type ".concat(charsNeeded, " more character").concat(charsNeeded > 1 ? 's' : '', " to search...") : undefined, helperText: charsNeeded > 0 ? "Type ".concat(charsNeeded, " more character").concat(charsNeeded > 1 ? 's' : '', " to search") : undefined }))); }, 
                 // use custom Chip to ensure very long entries break properly (whitespace: normal)
                 renderTags: function (value, getTagProps) {
                     return value.map(function (value, index) { return ((0, jsx_runtime_1.jsx)(material_1.Chip, __assign({ label: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ style: { whiteSpace: 'normal' } }, { children: Array.isArray(value) ? '' : label_for_database_record(field, value) })) }, getTagProps({ index: index }), { sx: { height: "100%", py: 0.5 } }))); });

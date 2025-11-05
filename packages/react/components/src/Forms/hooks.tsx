@@ -549,6 +549,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
 
   const gaEventRef = useRef({} as Record<string, boolean>)
   const gtmEventRef = useRef({} as Record<string, boolean>)
+  const fieldViewCacheRef = useRef({} as Record<string, number>) // fieldId -> timestamp
 
   let goBackURL = ''
   try {
@@ -606,15 +607,42 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
     if (gtmEventRef.current[activeField.value.id]) return
     gtmEventRef.current[activeField.value.id] = true
 
-    emit_gtm_event({ 
-      event: 'form_progress', 
-      formId: activeField.value.formId, 
-      fieldId: activeField.value.id, 
+    emit_gtm_event({
+      event: 'form_progress',
+      formId: activeField.value.formId,
+      fieldId: activeField.value.id,
       title: activeField.value.title,
       previousTitle: prevFieldStackRef.current[prevFieldStackRef.current.length - 1]?.value?.title || '',
-      status: '' 
+      status: ''
     })
   }, [activeField])
+
+  // Track field views for analytics
+  useEffect(() => {
+    if (!accessCode && !formResponseId) return // Need either accessCode or formResponseId
+
+    const fieldId = activeField.value.id
+    const now = Date.now()
+    const lastLogged = fieldViewCacheRef.current[fieldId]
+
+    // Only log if field hasn't been logged before, or more than 60 seconds have passed
+    const shouldLog = !lastLogged || (now - lastLogged > 60000) // 60 seconds
+
+    if (shouldLog) {
+      fieldViewCacheRef.current[fieldId] = now
+
+      // Call API to log the view (fire and forget, don't block UI)
+      session.api.form_responses.save_field_response({
+        accessCode,
+        formResponseId,
+        viewOnly: true,
+        fieldId,
+      }).catch(err => {
+        // Silent fail - view tracking is non-critical
+        console.debug('Failed to log field view:', err)
+      })
+    }
+  }, [activeField, accessCode, formResponseId, session])
 
   // placeholders for initial fields, reset when fields prop changes, since questions are now different (e.g. different form selected) 
   const fieldInitRef = useRef('')

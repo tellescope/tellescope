@@ -71,7 +71,7 @@ export declare const QuestionForField: ({ form, value, field, file, responses, s
         id: string;
         createdAt: Date;
     })[] | undefined;
-    AddToDatabase?: React.JSXElementConstructor<AddToDatabaseProps> | undefined;
+    AddToDatabase?: React.JSXElementConstructor<import("./inputs").AddToDatabaseProps> | undefined;
 } & Pick<TellescopeFormProps, "enduserId" | "enduser" | "fields" | "rootResponseId" | "groupId" | "groupInstance" | "responses" | "submit" | "formResponseId" | "selectedFiles" | "goToPreviousField" | "goToNextField" | "isPreviousDisabled" | "handleDatabaseSelect" | "onAddFile" | "onFieldChange" | "customInputs" | "validateField">) => JSX.Element | null;
 export declare const TellescopeSingleQuestionFlowV2: typeof TellescopeFormV2;
 export declare const DEFAULT_THANKS_MESSAGE = "Your response was successfully recorded";

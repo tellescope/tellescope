@@ -1293,6 +1293,9 @@ export declare const portalBlockValidator: ValidatorDefinition<{
         title?: string | undefined;
         formIds?: string[] | undefined;
     };
+} | {
+    type: "Appointment Booking Pages";
+    info: {};
 }>;
 export declare const portalBlocksValidator: ValidatorDefinition<({
     type: "carePlan";
@@ -1336,6 +1339,9 @@ export declare const portalBlocksValidator: ValidatorDefinition<({
         title?: string | undefined;
         formIds?: string[] | undefined;
     };
+} | {
+    type: "Appointment Booking Pages";
+    info: {};
 })[]>;
 export declare const PORTAL_BLOCK_TYPES: (keyof PortalBlockForType)[];
 export declare const portalTypeValidator: ValidatorDefinition<keyof PortalBlockForType>;

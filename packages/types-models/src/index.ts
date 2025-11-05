@@ -112,6 +112,7 @@ export type PortalSettings = {
     hideRegister?: boolean,
     dontPromptSetPassword?: boolean,
     requireOTP?: boolean,
+    requireOTPAfterPassword?: boolean,
   },
   communication?: {
     allowEnduserInitiatedChat?: boolean,
@@ -415,7 +416,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasTicketQueues?: boolean,
   vitalTeamId?: string,
   altVitalTeamIds?: { teamId: string, label: string }[],
-  zendeskSettings?: { priorityGroups?: string[], resolutionFieldId?: string, resolutionFieldOptions?: string[] }
+  zendeskSettings?: { priorityGroups?: string[], resolutionFieldId?: string, resolutionFieldOptions?: string[], syncTagsToZendesk?: boolean }
   replyToAllEmails?: string,
   replyToEnduserTransactionalEmails?: string,
   forwardAllIncomingEmailsTo?: string,
@@ -698,6 +699,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   mfa?: MFASettings,
   skills?: string[];
   lockedOutUntil?: number, // -1 => not locked out, 0 => locked out indefinitely, > 0 => locked out until unix time in MS
+  failedLoginAttempts?: number, // track failed login attempts for automatic lockout
   elationUserId?: number,
   iOSBadgeCount?: number,
   doseSpotUserId?: string,
@@ -1716,6 +1718,7 @@ export type FormFieldOptions = FormFieldValidation & {
   stripeKey?: string, // publishable key of custom stripe API keys
   stripeProductSelectionMode?: boolean, // enable product selection step for Stripe questions
   productConditions?: { productId: string, showCondition: CompoundFilter<string> }[], // conditional logic for product visibility in Stripe selection
+  stripeCouponCodes?: string[], // list of Stripe coupon codes to apply when chargeImmediately is enabled
   dataSource?: string, // e.g. Canvas for Allergies
   canvasDocumentCoding?: Pick<CanvasCoding, 'system' | 'code'> // for category
   canvasDocumentType?: CanvasCoding, // for type
@@ -2332,6 +2335,11 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   canvasEncounterId?: string,
   pushedToPortalAt?: Date,
   belugaStatus?: string,
+  fieldViews?: {
+    fieldId: string,
+    fieldTitle: string,
+    timestamp: Date,
+  }[],
 }
 
 export interface WebHook_readonly extends ClientRecord {}
@@ -2511,6 +2519,8 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   confirmedAt?: Date | '',
   preventRescheduleMinutesInAdvance?: number,
   preventCancelMinutesInAdvance?: number,
+  preventRescheduleInPortal?: boolean,
+  preventCancelInPortal?: boolean,
   sendIcsEmail?: boolean,
   healthieInsuranceBillingEnabled?: boolean,
   // isAllDay?: boolean,
@@ -2641,6 +2651,8 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   allowGroupReschedule?: boolean, // allows a patient to reschedule even if there are multiple attendees (e.g. 1 + care giver)
   preventRescheduleMinutesInAdvance?: number,
   preventCancelMinutesInAdvance?: number,
+  preventRescheduleInPortal?: boolean,
+  preventCancelInPortal?: boolean,
   athenaDepartmentId?: string,
   generateAthenaTelehealthLink?: boolean,
   athenaTypeId?: string, // for searching slots (default booking type)
@@ -3404,6 +3416,7 @@ export type PortalBlockForType = {
     title?: string,
     formIds?: string[],
   }>
+  "Appointment Booking Pages": BuildPortalBlockInfo<'Appointment Booking Pages', {}>
 }
 export type PortalBlockType = keyof PortalBlockForType
 export type PortalBlock = PortalBlockForType[PortalBlockType]

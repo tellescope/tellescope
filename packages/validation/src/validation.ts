@@ -3447,6 +3447,7 @@ export const portalSettingsValidator = objectValidator<PortalSettings>({
     hideRegister: booleanValidatorOptional,
     dontPromptSetPassword: booleanValidatorOptional,
     requireOTP: booleanValidatorOptional,
+    requireOTPAfterPassword: booleanValidatorOptional,
   }, { isOptional: true, emptyOk: true, }),
   communication: objectValidator<PortalSettings['communication']>({
     allowEnduserInitiatedChat: booleanValidatorOptional,
@@ -3686,6 +3687,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
     productId: mongoIdStringRequired,
     showCondition: objectAnyFieldsAnyValuesValidator,
   })),
+  stripeCouponCodes: listOfStringsValidatorOptionalOrEmptyOk,
   dataSource: stringValidatorOptionalEmptyOkay,
   esignatureTermsCompanyName: stringValidatorOptionalEmptyOkay,
   observationCode: stringValidatorOptionalEmptyOkay,
@@ -4103,7 +4105,11 @@ export const portalBlockValidator = orValidator<{ [K in PortalBlockType]: Portal
       title: stringValidatorOptional,
       formIds: listOfMongoIdStringValidatorEmptyOk,
     })
-  }), 
+  }),
+  "Appointment Booking Pages": objectValidator<PortalBlockForType['Appointment Booking Pages']>({
+    type: exactMatchValidator(['Appointment Booking Pages']),
+    info: objectValidator<PortalBlockForType['Appointment Booking Pages']['info']>({}, { emptyOk: true })
+  }),
 })
 export const portalBlocksValidator = listValidatorEmptyOk(portalBlockValidator)
 
@@ -4118,6 +4124,7 @@ const _PORTAL_BLOCK_TYPES: { [K in PortalBlockType]: any } = {
   Orders: '',
   HTML: '',
   pinnedForms: '',
+  "Appointment Booking Pages": '',
 }
 export const PORTAL_BLOCK_TYPES = Object.keys(_PORTAL_BLOCK_TYPES) as PortalBlockType[]
 export const portalTypeValidator = exactMatchValidator<PortalBlockType>(PORTAL_BLOCK_TYPES)

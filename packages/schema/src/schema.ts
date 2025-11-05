@@ -691,7 +691,7 @@ export type CustomActions = {
     push: CustomAction<{ id: string, destination: string, type?: string, typeId?: string }, { file?: File }>,
   },
   form_fields: {
-    load_choices_from_database: CustomAction<{ fieldId: string, lastId?: string, limit?: number, databaseId?: string }, { choices: DatabaseRecordClient[] }>,
+    load_choices_from_database: CustomAction<{ fieldId: string, lastId?: string, limit?: number, databaseId?: string, search?: string }, { choices: DatabaseRecordClient[] }>,
     booking_info: CustomAction<{ bookingPageId: string, enduserId?: string, enduserFields?: BookingInfoEnduserFields }, { bookingURL: string, warningMessage?: string, entropy: string, }>,
   },
   forms: {
@@ -722,7 +722,7 @@ export type CustomActions = {
       },
       { formResponse: FormResponse, nextFormGroupPublicURL?: string, redirectTo?: string }
     >,
-    save_field_response: CustomAction<{ formResponseId?: string, accessCode?: string, response?: FormResponseValue, responses?: FormResponseValue[] }, { }>,
+    save_field_response: CustomAction<{ formResponseId?: string, accessCode?: string, response?: FormResponseValue, responses?: FormResponseValue[], viewOnly?: boolean, fieldId?: string }, { }>,
     info_for_access_code: CustomAction<{ accessCode: string }, {
       form: Form, 
       fields: FormField[], 
@@ -3316,6 +3316,19 @@ export const schema: SchemaV1 = build_schema({
 
             return "Only admin users can update user lockouts"
           }
+        },
+        {
+          explanation: "Only admin users can update failed login attempts",
+          evaluate: ({ _id }, _, session, method, { updates }) => {
+            if (updates?.failedLoginAttempts !== undefined && session.id === _id?.toString()) {
+              return "Users cannot update own failed login attempts"
+            }
+            if ((session as UserSession)?.roles?.includes('Admin')) return // admin can do this
+            if (method === 'create') return // create already admin restricted
+            if (updates?.failedLoginAttempts === undefined) return // not provided
+
+            return "Only admin users can update failed login attempts"
+          }
         }, 
         {
           explanation: "Only admin users can update doseSpotUserId",
@@ -3737,6 +3750,7 @@ export const schema: SchemaV1 = build_schema({
       DEA: { validator: stringValidatorOptionalEmptyOkay },
       voicemailPlayback: { validator: phonePlaybackValidatorOptional },
       lockedOutUntil: { validator: numberValidator },
+      failedLoginAttempts: { validator: nonNegNumberValidator },
       iOSBadgeCount: { validator: nonNegNumberValidator },
       availableFromNumbers: { validator: listOfStringsValidatorEmptyOk },
       availableFromEmails: { validator: listOfStringsValidatorEmptyOk },
@@ -4543,11 +4557,12 @@ export const schema: SchemaV1 = build_schema({
         path: '/form-fields/load-choices-from-database',
         name: 'Load Choices From Database',
         description: "Loads choices for a Database Select field type in a form",
-        parameters: { 
+        parameters: {
           fieldId: { validator: mongoIdStringValidator, required: true },
           limit: { validator: nonNegNumberValidator, required: false },
           lastId: { validator: mongoIdStringValidator, required: false },
           databaseId: { validator: mongoIdStringValidator, required: false },
+          search: { validator: stringValidatorOptionalEmptyOkay, required: false },
         },
         returns: {
           choices: { validator: 'database_records' as any, required: true }
@@ -4720,6 +4735,13 @@ export const schema: SchemaV1 = build_schema({
       },
       canvasEncounterId: { validator: stringValidator100 },
       pushedToPortalAt: { validator: dateValidatorOptional },
+      fieldViews: {
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ fieldId: string, fieldTitle: string, timestamp: Date }>({
+          fieldId: mongoIdStringRequired,
+          fieldTitle: stringValidator250,
+          timestamp: dateValidator,
+        }))
+      },
     },
     defaultActions: DEFAULT_OPERATIONS,
     enduserActions: { 
@@ -4799,12 +4821,14 @@ export const schema: SchemaV1 = build_schema({
         op: "custom", access: 'update', method: "patch",
         name: 'Save Field Response',
         path: '/save-field-response',
-        description: "With an accessCode, includes the answer to an individual field in a partial form response.",
-        parameters: { 
+        description: "With an accessCode, includes the answer to an individual field in a partial form response, or logs a field view.",
+        parameters: {
           formResponseId: { validator: mongoIdStringValidator },
           accessCode: { validator: stringValidator250 },
           response: { validator: formResponseValidator },
           responses: { validator: listValidatorOptionalOrEmptyOk(formResponseValidator) },
+          viewOnly: { validator: booleanValidator },
+          fieldId: { validator: mongoIdStringValidator },
         },
         returns: {
           formResponse: 'form response' as any,
@@ -5459,6 +5483,8 @@ export const schema: SchemaV1 = build_schema({
       athenaBookingTypeId: { validator: stringValidator1000 },
       preventCancelMinutesInAdvance: { validator: numberValidator },
       preventRescheduleMinutesInAdvance: { validator: numberValidator },
+      preventCancelInPortal: { validator: booleanValidator },
+      preventRescheduleInPortal: { validator: booleanValidator },
       actualDuration: { validator: nonNegNumberValidator },
       dontSyncToCanvas: { validator: booleanValidator },
       title: {
@@ -5629,6 +5655,8 @@ export const schema: SchemaV1 = build_schema({
       athenaBookingTypeId: { validator: stringValidator1000 },
       preventCancelMinutesInAdvance: { validator: numberValidator },
       preventRescheduleMinutesInAdvance: { validator: numberValidator },
+      preventCancelInPortal: { validator: booleanValidator },
+      preventRescheduleInPortal: { validator: booleanValidator },
       dontSyncToCanvas: { validator: booleanValidator },
       archivedAt: { validator: dateOptionalOrEmptyStringValidator },
       allowGroupReschedule: { validator: booleanValidator },
@@ -6719,6 +6747,7 @@ export const schema: SchemaV1 = build_schema({
           priorityGroups: listOfStringsValidatorOptionalOrEmptyOk,
           resolutionFieldId: stringValidatorOptionalEmptyOkay,
           resolutionFieldOptions: listOfStringsValidatorOptionalOrEmptyOk,
+          syncTagsToZendesk: booleanValidator,
         })
       },
       hasTicketQueues: { validator: booleanValidator },

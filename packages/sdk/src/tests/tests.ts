@@ -72,6 +72,7 @@ import { message_assignment_trigger_tests } from "./api_tests/message_assignment
 import { time_tracks_tests } from "./api_tests/time_tracks.test";
 import { monthly_availability_restrictions_tests } from "./api_tests/monthly_availability_restrictions.test";
 import { calendar_event_limits_tests } from "./api_tests/calendar_event_limits.test";
+import { custom_aggregation_tests } from "./api_tests/custom_aggregation.test";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
@@ -4403,6 +4404,77 @@ const set_fields_tests = async () => {
     { onResult: e => Number(e.fields?.yyyyDaysBetween) === 10 }
   )
 
+  // Test setting timezone built-in field
+  log_header("Set Fields Built-in Field Tests (Timezone)")
+
+  const e4 = await sdk.api.endusers.createOne({})
+
+  const t7 = await sdk.api.automation_triggers.createOne({
+    title: "Set Timezone Test", status: 'Active',
+    event: { type: 'Field Equals', info: { field: 'triggerTimezone', value: 'set-eastern' } },
+    action: {
+      type: 'Set Fields',
+      info: {
+        fields: [
+          { name: 'timezone', type: 'Custom Value', value: 'US/Eastern' }
+        ]
+      },
+    }
+  })
+
+  await sdk.api.endusers.updateOne(e4.id, { fields: { triggerTimezone: 'set-eastern' } })
+  await wait(undefined, 1000)
+  await async_test(
+    "Set Fields: set timezone built-in field to US/Eastern",
+    () => sdk.api.endusers.getOne(e4.id),
+    { onResult: e => e.timezone === 'US/Eastern' }
+  )
+
+  // Test with different timezone format
+  const t8 = await sdk.api.automation_triggers.createOne({
+    title: "Set Timezone America/Los_Angeles Test", status: 'Active',
+    event: { type: 'Field Equals', info: { field: 'triggerTimezone', value: 'set-pacific' } },
+    action: {
+      type: 'Set Fields',
+      info: {
+        fields: [
+          { name: 'timezone', type: 'Custom Value', value: 'America/Los_Angeles' }
+        ]
+      },
+    }
+  })
+
+  await sdk.api.endusers.updateOne(e4.id, { fields: { triggerTimezone: 'set-pacific' } })
+  await wait(undefined, 1000)
+  await async_test(
+    "Set Fields: update timezone to America/Los_Angeles",
+    () => sdk.api.endusers.getOne(e4.id),
+    { onResult: e => e.timezone === 'America/Los_Angeles' }
+  )
+
+  // Test setting multiple built-in fields including timezone
+  const t9 = await sdk.api.automation_triggers.createOne({
+    title: "Set Multiple Built-ins Test", status: 'Active',
+    event: { type: 'Field Equals', info: { field: 'triggerTimezone', value: 'set-multiple' } },
+    action: {
+      type: 'Set Fields',
+      info: {
+        fields: [
+          { name: 'timezone', type: 'Custom Value', value: 'America/Chicago' },
+          { name: 'defaultFromPhone', type: 'Custom Value', value: '+13125551234' }
+        ]
+      },
+    }
+  })
+
+  await sdk.api.endusers.updateOne(e4.id, { fields: { triggerTimezone: 'set-multiple' } })
+  await wait(undefined, 1000)
+  await async_test(
+    "Set Fields: set multiple built-in fields including timezone",
+    () => sdk.api.endusers.getOne(e4.id),
+    { onResult: e => e.timezone === 'America/Chicago' && e.defaultFromPhone === '+13125551234' }
+  )
+
   return Promise.all([
     sdk.api.automation_triggers.deleteOne(t1.id),
     sdk.api.automation_triggers.deleteOne(t2.id),
@@ -4410,9 +4482,13 @@ const set_fields_tests = async () => {
     sdk.api.automation_triggers.deleteOne(t4.id),
     sdk.api.automation_triggers.deleteOne(t5.id),
     sdk.api.automation_triggers.deleteOne(t6.id),
+    sdk.api.automation_triggers.deleteOne(t7.id),
+    sdk.api.automation_triggers.deleteOne(t8.id),
+    sdk.api.automation_triggers.deleteOne(t9.id),
     sdk.api.endusers.deleteOne(e1.id),
     sdk.api.endusers.deleteOne(e2.id),
     sdk.api.endusers.deleteOne(e3.id),
+    sdk.api.endusers.deleteOne(e4.id),
     sdk.api.calendar_events.deleteOne(a1.id),
   ])
 }
@@ -13046,12 +13122,13 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await custom_aggregation_tests({ sdk, sdkNonAdmin })
+    await automation_trigger_tests()
     await formsort_tests()
     await self_serve_appointment_booking_tests()
     await time_tracks_tests({ sdk, sdkNonAdmin })
     await calendar_event_limits_tests({ sdk, sdkNonAdmin })
     await test_ticket_automation_assignment_and_optimization()
-    await automation_trigger_tests()
     await test_ticket_automation_assignment_and_optimization()
     await afteraction_day_of_month_delay_tests({ sdk, sdkNonAdmin })
     await monthly_availability_restrictions_tests({ sdk, sdkNonAdmin })

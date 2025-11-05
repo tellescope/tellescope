@@ -500,6 +500,7 @@ var useTellescopeForm = function (_a) {
     var _q = (0, react_1.useState)({}), repeats = _q[0], setRepeats = _q[1];
     var gaEventRef = (0, react_1.useRef)({});
     var gtmEventRef = (0, react_1.useRef)({});
+    var fieldViewCacheRef = (0, react_1.useRef)({}); // fieldId -> timestamp
     var goBackURL = '';
     try {
         goBackURL = new URL(window.location.href).searchParams.get('back') || '';
@@ -556,6 +557,29 @@ var useTellescopeForm = function (_a) {
             status: ''
         });
     }, [activeField]);
+    // Track field views for analytics
+    (0, react_1.useEffect)(function () {
+        if (!accessCode && !formResponseId)
+            return; // Need either accessCode or formResponseId
+        var fieldId = activeField.value.id;
+        var now = Date.now();
+        var lastLogged = fieldViewCacheRef.current[fieldId];
+        // Only log if field hasn't been logged before, or more than 60 seconds have passed
+        var shouldLog = !lastLogged || (now - lastLogged > 60000); // 60 seconds
+        if (shouldLog) {
+            fieldViewCacheRef.current[fieldId] = now;
+            // Call API to log the view (fire and forget, don't block UI)
+            session.api.form_responses.save_field_response({
+                accessCode: accessCode,
+                formResponseId: formResponseId,
+                viewOnly: true,
+                fieldId: fieldId,
+            }).catch(function (err) {
+                // Silent fail - view tracking is non-critical
+                console.debug('Failed to log field view:', err);
+            });
+        }
+    }, [activeField, accessCode, formResponseId, session]);
     // placeholders for initial fields, reset when fields prop changes, since questions are now different (e.g. different form selected) 
     var fieldInitRef = (0, react_1.useRef)('');
     var initializeFields = (0, react_1.useCallback)(function () { return (fields.map(function (f) {

@@ -1,6 +1,6 @@
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import axios from "axios"
-import { Autocomplete, Box, Button, Checkbox, Chip, Collapse, Divider, FormControl, FormControlLabel, FormLabel, Grid, IconButton as MuiIconButton, InputLabel, MenuItem, Radio, RadioGroup, Select, SxProps, TextField, TextFieldProps, Typography } from "@mui/material"
+import { Autocomplete, Box, Button, Checkbox, Chip, CircularProgress, Collapse, Divider, FormControl, FormControlLabel, FormLabel, Grid, IconButton as MuiIconButton, InputLabel, MenuItem, Radio, RadioGroup, Select, SxProps, TextField, TextFieldProps, Typography } from "@mui/material"
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
@@ -25,6 +25,16 @@ import { Elements, PaymentElement, useStripe, useElements, EmbeddedCheckout, Emb
 import { loadStripe } from '@stripe/stripe-js'; 
 import { CheckCircleOutline, Delete, Edit, ExpandMore } from "@mui/icons-material"
 import { WYSIWYG } from "./wysiwyg"
+
+// Debounce hook for search functionality
+const useDebounce = <T,>(value: T, delay: number): T => {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value)
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay)
+    return () => clearTimeout(handler)
+  }, [value, delay])
+  return debouncedValue
+}
 
 export const LanguageSelect = ({ value, ...props }: { value: string, onChange: (s: string) => void}) => (
   <Grid container alignItems="center" justifyContent={"center"} wrap="nowrap" spacing={1}>
@@ -2191,48 +2201,126 @@ const choicesForDatabase: {
 const preventRefetch: Record<string, boolean> = {}
 
 const LOAD_CHOICES_LIMIT = 500
-const useDatabaseChoices = ({ databaseId='', field, otherAnswers } : { databaseId?: string, field: FormField, otherAnswers?: DatabaseSelectResponse[] }) => {
+const MIN_SEARCH_CHARS = 3
+const SEARCH_DEBOUNCE_MS = 300
+
+const useDatabaseChoices = ({
+  databaseId='',
+  field,
+  otherAnswers,
+  searchQuery = ''
+} : {
+  databaseId?: string,
+  field: FormField,
+  otherAnswers?: DatabaseSelectResponse[],
+  searchQuery?: string
+}) => {
   const session = useResolvedSession()
-  const [renderCount, setRenderCount] = useState(0)
+  const [isSearching, setIsSearching] = useState(false)
+  const [searchResults, setSearchResults] = useState<DatabaseRecord[]>([])
+  const [initialLoadComplete, setInitialLoadComplete] = useState(false)
+  const debouncedSearch = useDebounce(searchQuery, SEARCH_DEBOUNCE_MS)
 
-  // todo: make searchable, don't load all
+  // Load initial page on mount (only once, not recursively)
+  const initialLoadRef = useRef(false)
   useEffect(() => {
-    if (choicesForDatabase[databaseId]?.done) return
-    if (renderCount > 100) return // limit to 50000 entries / prevent infinite looping
-    const choices = choicesForDatabase[databaseId]?.records ?? []
-    const lastId = choicesForDatabase[databaseId]?.lastId
+    if (initialLoadRef.current) return
+    if (choicesForDatabase[databaseId]?.done || choicesForDatabase[databaseId]?.records?.length) {
+      setInitialLoadComplete(true)
+      return
+    }
 
-    if (preventRefetch[databaseId + field.id + lastId]) return
-    preventRefetch[databaseId + field.id + lastId] = true
+    initialLoadRef.current = true
+    preventRefetch[databaseId + field.id] = true
 
     session.api.form_fields.load_choices_from_database({
       fieldId: field.id,
-      lastId,
       limit: LOAD_CHOICES_LIMIT,
       databaseId, // overrides fieldId, supports using Database question in Table Input
     })
     .then(({ choices: newChoices }) => {
       choicesForDatabase[databaseId] = {
         lastId: newChoices?.[newChoices.length - 1]?.id,
-        records: [...choices, ...newChoices]
-          .sort((c1, c2) => (
-            label_for_database_record(field, c1)
-            .localeCompare(label_for_database_record(field, c2))
-          )
-        ),
-        done: newChoices.length < LOAD_CHOICES_LIMIT, 
-      } 
-      setRenderCount(r => r + 1)
+        records: newChoices.sort((c1, c2) => (
+          label_for_database_record(field, c1)
+          .localeCompare(label_for_database_record(field, c2))
+        )),
+        done: true, // Don't load more pages automatically
+      }
+      setInitialLoadComplete(true)
     })
     .catch(err => {
       console.error(err)
-      preventRefetch[databaseId + field.id + lastId] = false
+      preventRefetch[databaseId + field.id] = false
+      setInitialLoadComplete(true) // Mark as complete even on error to avoid infinite loading
     })
-  }, [session, field, databaseId, renderCount])
+  }, [session, field, databaseId])
+
+  // Handle debounced search
+  const searchRef = useRef(debouncedSearch)
+  useEffect(() => {
+    const trimmed = debouncedSearch.trim()
+
+    // If search is cleared, return to initial results
+    if (!trimmed) {
+      setSearchResults([])
+      setIsSearching(false)
+      searchRef.current = debouncedSearch
+      return
+    }
+
+    // Only search if meets minimum character requirement
+    if (trimmed.length < MIN_SEARCH_CHARS) {
+      setSearchResults([])
+      setIsSearching(false)
+      return
+    }
+
+    // Avoid duplicate searches
+    if (searchRef.current === debouncedSearch) return
+    searchRef.current = debouncedSearch
+
+    setIsSearching(true)
+    session.api.form_fields.load_choices_from_database({
+      fieldId: field.id,
+      limit: LOAD_CHOICES_LIMIT,
+      databaseId,
+      search: trimmed,
+    })
+    .then(({ choices: newChoices }) => {
+      // Add search results to the same cache as initial load
+      // This ensures selected search results persist even after search is cleared
+      const existingRecords = choicesForDatabase[databaseId]?.records ?? []
+      const existingIds = new Set(existingRecords.map(r => r.id))
+
+      const uniqueNewChoices = newChoices.filter(c => !existingIds.has(c.id))
+
+      if (uniqueNewChoices.length > 0) {
+        choicesForDatabase[databaseId] = {
+          ...choicesForDatabase[databaseId],
+          records: [...existingRecords, ...uniqueNewChoices].sort((c1, c2) => (
+            label_for_database_record(field, c1)
+            .localeCompare(label_for_database_record(field, c2))
+          )),
+          done: true, // Mark as done since we're not paginating search results
+        }
+      }
+
+      setSearchResults(newChoices.sort((c1, c2) => (
+        label_for_database_record(field, c1)
+        .localeCompare(label_for_database_record(field, c2))
+      )))
+      setIsSearching(false)
+    })
+    .catch(err => {
+      console.error(err)
+      setIsSearching(false)
+    })
+  }, [session, field, databaseId, debouncedSearch])
 
   const addChoice = useCallback((record: DatabaseRecord) => {
     if (!choicesForDatabase[databaseId]) {
-      choicesForDatabase[databaseId] = { 
+      choicesForDatabase[databaseId] = {
         done: false,
         records: [],
       }
@@ -2240,18 +2328,24 @@ const useDatabaseChoices = ({ databaseId='', field, otherAnswers } : { databaseI
     choicesForDatabase[databaseId].records!.push(record)
   }, [choicesForDatabase, databaseId])
 
+  // Use search results if searching, otherwise use cached initial results
+  const activeChoices = debouncedSearch.trim().length >= MIN_SEARCH_CHARS
+    ? searchResults
+    : (choicesForDatabase[databaseId]?.records ?? [])
+
   return {
     addChoice,
-    doneLoading: choicesForDatabase[databaseId]?.done ?? false,
+    doneLoading: initialLoadComplete,
+    isSearching,
     choices: [
-      ...choicesForDatabase[databaseId]?.records ?? [],
+      ...activeChoices,
       ...(otherAnswers || []).map(v => ({
         id: v.text,
         databaseId,
         values: [{ label: field.options?.databaseLabel || '', type: 'Text', value: v.text }],
       }) as Pick<DatabaseRecord, 'id' | 'values' | 'databaseId'>)
     ],
-    renderCount,
+    minSearchChars: MIN_SEARCH_CHARS,
   }
 }
 
@@ -2297,15 +2391,18 @@ export interface AddToDatabaseProps {
   onAdd: (record: DatabaseRecord) => void
 }
 
-export const DatabaseSelectInput = ({ AddToDatabase, field, value: _value, onChange, onDatabaseSelect, responses, size, disabled, enduser }: FormInputProps<'Database Select'> & {
+export const DatabaseSelectInput = ({ AddToDatabase, field, value: _value, onChange, onDatabaseSelect, responses, size, disabled, enduser, inputProps }: FormInputProps<'Database Select'> & {
   responses: FormResponseValue[],
   AddToDatabase?: React.JSXElementConstructor<AddToDatabaseProps>,
+  inputProps?: { sx: SxProps },
 }) => {
   const [typing, setTyping] = useState('')
-  const { addChoice, choices, doneLoading } = useDatabaseChoices({ 
+  const [open, setOpen] = useState(false)
+  const { addChoice, choices, doneLoading, isSearching, minSearchChars } = useDatabaseChoices({
     databaseId: field.options?.databaseId,
     field,
     otherAnswers: get_other_answers(_value, field?.options?.other ? typing : undefined),
+    searchQuery: typing,
   })
 
   const value = React.useMemo(() => {
@@ -2313,8 +2410,8 @@ export const DatabaseSelectInput = ({ AddToDatabase, field, value: _value, onCha
       // if the value is a string (some single answer that was save), make sure we coerce to array
       const __value = typeof _value === 'string' ? [_value] : _value
       return (
-        (__value?.map(v => 
-          choices.find(c => 
+        (__value?.map(v =>
+          choices.find(c =>
             c.id === v.recordId || (typeof v === 'string' && label_for_database_record(field, c) === v)
           )
         )?.filter(v => v!) ?? []) as DatabaseRecord[]
@@ -2423,12 +2520,21 @@ export const DatabaseSelectInput = ({ AddToDatabase, field, value: _value, onCha
     return filtered
   }, [field, stateFilteredChoices])
 
+  // Show placeholder when typing but below minimum search characters
+  const charsNeeded = typing.trim().length > 0 && typing.trim().length < minSearchChars
+    ? minSearchChars - typing.trim().length
+    : 0
+
   if (!doneLoading) return <LinearProgress />
   return (
     <>
     <Autocomplete id={field.id} freeSolo={false} size={size}
       componentsProps={{ popper: { sx: { wordBreak: "break-word" } } } }
       options={filteredChoices} multiple={true}
+      loading={isSearching}
+      open={open}
+      onOpen={() => setOpen(true)}
+      onClose={() => setOpen(false)}
       getOptionLabel={o => (
         Array.isArray(o) // edge case
           ? ''
@@ -2463,7 +2569,23 @@ export const DatabaseSelectInput = ({ AddToDatabase, field, value: _value, onCha
       }}
       inputValue={typing}
       onInputChange={(e, v) => e && setTyping(v)}
-      renderInput={params => <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }} />}
+      renderInput={params => (
+        <TextField
+          {...params}
+          InputProps={{
+            ...params.InputProps,
+            sx: (inputProps || defaultInputProps).sx,
+            endAdornment: (
+              <>
+                {isSearching ? <CircularProgress color="inherit" size={20} /> : null}
+                {params.InputProps.endAdornment}
+              </>
+            ),
+          }}
+          placeholder={charsNeeded > 0 ? `Type ${charsNeeded} more character${charsNeeded > 1 ? 's' : ''} to search...` : undefined}
+          helperText={charsNeeded > 0 ? `Type ${charsNeeded} more character${charsNeeded > 1 ? 's' : ''} to search` : undefined}
+        />
+      )}
       // use custom Chip to ensure very long entries break properly (whitespace: normal)
       renderTags={(value, getTagProps) =>
         value.map((value, index) => (
