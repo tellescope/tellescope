@@ -3135,7 +3135,7 @@ export type StripeChargeCardOnFileAutomationAction = AutomationActionBuilder<'st
     subscriptionPriceId?: string;
 }>;
 export type AIContextSource = {
-    type: "Email" | "SMS";
+    type: "Email" | "SMS" | "PhoneCall";
     limit: number;
 };
 export type AIDecisionAutomationAction = AutomationActionBuilder<'aiDecision', {
@@ -3683,6 +3683,57 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
     ticketId?: string;
     hungUpByCaller?: boolean;
 }
+export type AWSTranscribeAlternative = {
+    confidence?: string;
+    content: string;
+};
+export type AWSTranscribeItem = {
+    id: number;
+    type: 'pronunciation' | 'punctuation';
+    alternatives: AWSTranscribeAlternative[];
+    start_time?: string;
+    end_time?: string;
+    speaker_label?: string;
+};
+export type AWSTranscribeSpeakerLabelItem = {
+    speaker_label: string;
+    start_time: string;
+    end_time?: string;
+};
+export type AWSTranscribeSpeakerLabelSegment = {
+    start_time: string;
+    end_time: string;
+    speaker_label: string;
+    items: AWSTranscribeSpeakerLabelItem[];
+};
+export type AWSTranscribeSpeakerLabels = {
+    segments: AWSTranscribeSpeakerLabelSegment[];
+    channel_label: string;
+    speakers: number;
+};
+export type AWSTranscribeAudioSegment = {
+    id: number;
+    transcript: string;
+    start_time: string;
+    end_time: string;
+    speaker_label: string;
+    items: number[];
+};
+export type AWSTranscribeTranscript = {
+    transcript: string;
+};
+export type AWSTranscribeResults = {
+    transcripts: AWSTranscribeTranscript[];
+    speaker_labels?: AWSTranscribeSpeakerLabels;
+    items: AWSTranscribeItem[];
+    audio_segments?: AWSTranscribeAudioSegment[];
+};
+export type AWSTranscribeResponse = {
+    jobName: string;
+    accountId: string;
+    status: 'COMPLETED' | 'IN_PROGRESS' | 'FAILED';
+    results: AWSTranscribeResults;
+};
 export type AnalyticsQueryResultValue = {
     key?: string;
     timestamp?: Date;
@@ -4452,6 +4503,7 @@ export type PhoneTreeEvents = {
     'If False': PhoneTreeEventBuilder<'If False', {}>;
     'If No Users Match': PhoneTreeEventBuilder<'If No Users Match', {}>;
     'If No Users Answer': PhoneTreeEventBuilder<'If No Users Answer', {}>;
+    'After Action': PhoneTreeEventBuilder<'After Action', {}>;
 };
 export type PhoneTreeEventType = keyof PhoneTreeEvents;
 export type PhoneTreeEvent = PhoneTreeEvents[PhoneTreeEventType];
@@ -4535,6 +4587,9 @@ export type PhoneTreeActions = {
             userId: string;
         }[];
         playback?: Partial<PhonePlayback>;
+    }>;
+    'Add to Journey': PhoneTreeActionBuilder<"Add to Journey", {
+        journeyId: string;
     }>;
 };
 export type PhoneTreeActionType = keyof PhoneTreeActions;

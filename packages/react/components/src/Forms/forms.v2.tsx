@@ -621,7 +621,7 @@ export const TellescopeSingleQuestionFlowV2: typeof TellescopeFormV2 = ({
               theme?.logoURL
                 ? (
                   <Flex alignItems="flex-start" style={{ marginBottom: '20px' }}>
-                    <img src={theme.logoURL} alt={theme.name} style={{ maxHeight: customization?.logoHeight || LOGO_HEIGHT, maxWidth: 225 }} />
+                    <img src={theme.logoURL} alt={theme.name} style={{ height: customization?.logoHeight || LOGO_HEIGHT, maxWidth: 225 }} />
                   </Flex>
                 )
                 : (

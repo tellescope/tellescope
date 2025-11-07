@@ -87,7 +87,7 @@ var TellescopeFormContainerWithTheme = function (_a) {
     var formContent = (_jsxs(Flex, __assign({ flex: 1, column: true }, { children: [hideLogo
                 ? null
                 : theme.logoURL
-                    ? (_jsxs(Flex, __assign({ alignItems: "center", justifyContent: "center", style: { maxHeight: logoHeight || LOGO_HEIGHT, marginTop: 10 } }, { children: [_jsx("img", { src: theme.logoURL, alt: theme.name, style: { maxHeight: logoHeight || LOGO_HEIGHT, maxWidth: 225 } }), " "] })))
+                    ? (_jsxs(Flex, __assign({ alignItems: "center", justifyContent: "center", style: { height: logoHeight || LOGO_HEIGHT, marginTop: 10 } }, { children: [_jsx("img", { src: theme.logoURL, alt: theme.name, style: { height: logoHeight || LOGO_HEIGHT, maxWidth: 225 } }), " "] })))
                     : (_jsx(Typography, __assign({ style: { fontSize: 22, marginTop: 10, textAlign: 'center', fontWeight: 600 } }, { children: theme.name }))), language && onChangeLanguage &&
                 _jsx(Flex, __assign({ style: { marginTop: 22 } }, { children: _jsx(LanguageSelect, { value: language, onChange: onChangeLanguage }) })), children] })));
     if (hideBg) {

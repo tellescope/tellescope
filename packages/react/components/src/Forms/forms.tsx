@@ -44,8 +44,8 @@ const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ pape
         ? null
         : theme.logoURL 
           ? (
-            <Flex alignItems="center" justifyContent={"center"} style={{ maxHeight: logoHeight || LOGO_HEIGHT, marginTop: 10 }}>
-              <img src={theme.logoURL} alt={theme.name} style={{ maxHeight: logoHeight || LOGO_HEIGHT, maxWidth: 225 }} /> {/* todo: replace with something that resolves better for native */}          
+            <Flex alignItems="center" justifyContent={"center"} style={{ height: logoHeight || LOGO_HEIGHT, marginTop: 10 }}>
+              <img src={theme.logoURL} alt={theme.name} style={{ height: logoHeight || LOGO_HEIGHT, maxWidth: 225 }} /> {/* todo: replace with something that resolves better for native */}
             </Flex>
           )
           : (

@@ -2399,12 +2399,12 @@ export declare const phoneTreeEventValidator: ValidatorDefinition<import("@telle
     digits?: string | undefined;
     transcription?: string | undefined;
     handleNoInput?: boolean | undefined;
-}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If True", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If False", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If No Users Match", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If No Users Answer", {}>>;
+}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If True", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If False", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If No Users Match", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If No Users Answer", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"After Action", {}>>;
 export declare const phoneTreeEventsValidator: ValidatorDefinition<(import("@tellescope/types-models").PhoneTreeEventBuilder<"Start", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"On Gather", {
     digits?: string | undefined;
     transcription?: string | undefined;
     handleNoInput?: boolean | undefined;
-}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If True", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If False", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If No Users Match", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If No Users Answer", {}>)[]>;
+}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If True", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If False", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If No Users Match", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"If No Users Answer", {}> | import("@tellescope/types-models").PhoneTreeEventBuilder<"After Action", {}>)[]>;
 export declare const phonePlaybackValidator: ValidatorDefinition<{
     type: "Play";
     info: {
@@ -2479,6 +2479,8 @@ export declare const phoneTreeActionValidator: ValidatorDefinition<import("@tell
         userId: string;
     }[];
     playback?: Partial<import("@tellescope/types-models").PhonePlayback> | undefined;
+}> | import("@tellescope/types-models").PhoneTreeActionBuilder<"Add to Journey", {
+    journeyId: string;
 }>>;
 export declare const phoneTreeNodeValidator: ValidatorDefinition<PhoneTreeNode>;
 export declare const phoneTreeNodesValidator: ValidatorDefinition<PhoneTreeNode[]>;

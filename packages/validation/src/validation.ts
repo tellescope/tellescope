@@ -6105,7 +6105,12 @@ export const phoneTreeEventValidator = orValidator<{ [K in PhoneTreeEventType]: 
     type: exactMatchValidator(['If No Users Answer']),
     info: optionalEmptyObjectValidator,
     parentId: stringValidator1000Optional,
-  }), 
+  }),
+  "After Action": objectValidator<PhoneTreeEvents["After Action"]>({
+    type: exactMatchValidator(['After Action']),
+    info: optionalEmptyObjectValidator,
+    parentId: stringValidator1000Optional,
+  }),
 })
 export const phoneTreeEventsValidator = listValidatorEmptyOk(phoneTreeEventValidator)
 
@@ -6235,9 +6240,15 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
     info: objectValidator<PhoneTreeActions["Route Extensions"]['info']>({
       extensions: listValidator(objectValidator({
         userId: mongoIdStringRequired,
-        input: stringValidator, 
+        input: stringValidator,
       })),
       playback: phonePlaybackValidatorOptional,
+    }),
+  }),
+  "Add to Journey": objectValidator<PhoneTreeActions["Add to Journey"]>({
+    type: exactMatchValidator(['Add to Journey']),
+    info: objectValidator<PhoneTreeActions["Add to Journey"]['info']>({
+      journeyId: mongoIdStringRequired,
     }),
   }),
 })

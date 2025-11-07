@@ -5172,6 +5172,11 @@ exports.phoneTreeEventValidator = (0, exports.orValidator)({
         info: exports.optionalEmptyObjectValidator,
         parentId: exports.stringValidator1000Optional,
     }),
+    "After Action": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['After Action']),
+        info: exports.optionalEmptyObjectValidator,
+        parentId: exports.stringValidator1000Optional,
+    }),
 });
 exports.phoneTreeEventsValidator = (0, exports.listValidatorEmptyOk)(exports.phoneTreeEventValidator);
 exports.phonePlaybackValidator = (0, exports.orValidator)({
@@ -5300,6 +5305,12 @@ exports.phoneTreeActionValidator = (0, exports.orValidator)({
                 input: exports.stringValidator,
             })),
             playback: exports.phonePlaybackValidatorOptional,
+        }),
+    }),
+    "Add to Journey": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['Add to Journey']),
+        info: (0, exports.objectValidator)({
+            journeyId: exports.mongoIdStringRequired,
         }),
     }),
 });

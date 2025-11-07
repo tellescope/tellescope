@@ -5120,6 +5120,11 @@ export var phoneTreeEventValidator = orValidator({
         info: optionalEmptyObjectValidator,
         parentId: stringValidator1000Optional,
     }),
+    "After Action": objectValidator({
+        type: exactMatchValidator(['After Action']),
+        info: optionalEmptyObjectValidator,
+        parentId: stringValidator1000Optional,
+    }),
 });
 export var phoneTreeEventsValidator = listValidatorEmptyOk(phoneTreeEventValidator);
 export var phonePlaybackValidator = orValidator({
@@ -5248,6 +5253,12 @@ export var phoneTreeActionValidator = orValidator({
                 input: stringValidator,
             })),
             playback: phonePlaybackValidatorOptional,
+        }),
+    }),
+    "Add to Journey": objectValidator({
+        type: exactMatchValidator(['Add to Journey']),
+        info: objectValidator({
+            journeyId: mongoIdStringRequired,
         }),
     }),
 });
