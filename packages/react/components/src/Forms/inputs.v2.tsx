@@ -5,14 +5,14 @@ import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
 import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities"
-import { Address, DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, TellescopeGender, TIMEZONES_USA } from "@tellescope/types-models"
+import { Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, TellescopeGender, TIMEZONES_USA } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
 import LinearProgress from '@mui/material/LinearProgress';
 
 import DatePicker from "react-datepicker";
 import { datepickerCSS } from "./css/react-datepicker" // avoids build issue with RN
-import { CancelIcon, FileBlob, IconButton, LabeledIconButton, LoadingButton, Styled, form_display_text_for_language, isDateString, useProducts, useResolvedSession } from ".."
+import { CancelIcon, FileBlob, IconButton, LabeledIconButton, LoadingButton, Styled, form_display_text_for_language, isDateString, useResolvedSession } from ".."
 import { CalendarEvent, DatabaseRecord, FormField } from "@tellescope/types-client"
 import { css } from '@emotion/css'
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
@@ -2919,122 +2919,8 @@ export const HeightInput = ({ field, value={} as any, onChange, ...props }: Form
   </Grid>
 )
 
-export const include_current_url_parameters_if_templated = (url: string ) => {
-  try {
-    // get parameters from the current URL, and replace all values where {{URL_PARAM.paramName}} is used
-    const params = new URL(window.location.href).searchParams
-    return url.replace(/{{URL_PARAM\.(.*?)}}/g, (_, paramName) => {
-      const value = params.get(paramName)
-      console.log(paramName, value)
-      if (value === null) return ''
-      return value
-    })
-
-  } catch(err) {
-    console.error(err)
-  }
-  return url
-}
-
-export const RedirectInput = ({ enduserId, groupId, groupInsance, rootResponseId, formResponseId, field, submit, value={} as any, onChange, responses, enduser, ...props }: FormInputProps<'Redirect'>) => {
-  const session = useResolvedSession()
-
-  let eId = ''
-  try {
-    eId = new URL(window.location.href).searchParams.get('eId') || enduserId || enduser?.id || ''
-  } catch(err) {}
-
-  const email = (
-    responses?.find(r => r.intakeField === 'email')?.answer?.value
-  || enduser?.email 
-  || session.userInfo.email
-  )
-  const phone = (
-    responses?.find(r => r.intakeField === 'phone')?.answer?.value
-  || enduser?.phone
-  || session.userInfo.phone
-  )
-  const fname = (
-    responses?.find(r => r.intakeField === 'fname')?.answer?.value
-  || enduser?.fname
-  || session.userInfo?.fname
-  )
-  const lname = (
-    responses?.find(r => r.intakeField === 'lname')?.answer?.value
-  || enduser?.lname
-  || session.userInfo?.lname
-  )
-  const state = (
-     responses?.find(r => r.intakeField === 'state')?.answer?.value
-  || (responses?.find(r => r.intakeField === 'Address')?.answer?.value as any)?.state
-  || enduser?.state
-  || (session.userInfo as Enduser)?.state
-  )
-
-  useEffect(() => {
-    if (session.type === 'user') { return }
-
-    if (field.options?.redirectExternalUrl) { 
-      submit?.() 
-      .finally(() => {
-        if (!field.options?.redirectExternalUrl) { return }
-
-        window.location.href = (
-          include_current_url_parameters_if_templated(
-            replace_enduser_template_values(
-              field.options.redirectExternalUrl, 
-              {
-                ...session.userInfo as any,
-                id: eId, email, fname, lname, state, phone, 
-              }
-            )
-          )  
-        )
-      })
-      .catch(console.error)
-      
-      return 
-    }
-
-    if (!field.options?.redirectFormId) { return }
-
-    session.api.form_responses.prepare_form_response({
-      enduserId: session.userInfo.id || eId,
-      formId: field.options.redirectFormId,
-      rootResponseId: rootResponseId || formResponseId,
-      parentResponseId: formResponseId,
-    })
-    .then(({ fullURL }) => (
-      // we should still redirect even if submission fails
-      submit?.() 
-      .catch(console.error)
-      .finally(() => {
-        // if accessing form group in portal
-        if (window.location.href.includes('/documents') && groupId && groupInsance) {
-          const toRedirect = `${window.location.origin}/documents?groupId=${groupId}&groupInstance=${groupInsance}`
-          if (fullURL.endsWith('&')) {
-            window.location.replace(fullURL + `back=${toRedirect}&`)
-          } else {
-            window.location.replace(fullURL + `&back=${toRedirect}`) 
-          }
-        } else {
-          window.location.replace(fullURL)
-        }
-      })
-    ))
-    .catch(console.error)
-  }, [session, email, fname, lname, state, phone])
-
-  if (session.type === 'user') {
-    return (
-      <Typography>
-        Redirect is for patient-facing forms only
-      </Typography>
-    )
-  }
-
-  return null
-}
+// Re-export from V1 to follow DRY principles
+export { RedirectInput } from './inputs'
 
 export const HiddenValueInput = ({ goToNextField, goToPreviousField, field, value, onChange, isSinglePage, groupFields }: FormInputProps<'email'>) => {
   let lastRef = useRef(0)

@@ -20,7 +20,7 @@ export declare const RatingInput: ({ field, value, onChange }: FormInputProps<'r
 export declare const RankingInput: ({ field, value, onChange }: FormInputProps<'ranking'>) => JSX.Element;
 export declare const DateInput: ({ field, value, onChange, placement, ...props }: {
     field: FormField;
-    placement?: "left" | "right" | "bottom" | "top" | undefined;
+    placement?: "bottom" | "left" | "right" | "top" | undefined;
 } & FormInputProps<"date"> & Styled) => JSX.Element;
 export declare const TableInput: ({ field, value, onChange, ...props }: FormInputProps<'Input Table'>) => JSX.Element;
 export declare const AutoFocusTextField: (props: TextFieldProps) => JSX.Element;
@@ -65,8 +65,7 @@ export declare const contact_is_valid: (e: Partial<Enduser>) => "Email is invali
 export declare const RelatedContactsInput: ({ field, value: _value, onChange, error: parentError, ...props }: FormInputProps<'Related Contacts'>) => JSX.Element;
 export declare const AppointmentBookingInput: ({ formResponseId, field, value, onChange, form, responses, goToPreviousField, isPreviousDisabled, enduserId, ...props }: FormInputProps<'Appointment Booking'>) => JSX.Element;
 export declare const HeightInput: ({ field, value, onChange, ...props }: FormInputProps<'Height'>) => JSX.Element;
-export declare const include_current_url_parameters_if_templated: (url: string) => string;
-export declare const RedirectInput: ({ enduserId, groupId, groupInsance, rootResponseId, formResponseId, field, submit, value, onChange, responses, enduser, ...props }: FormInputProps<'Redirect'>) => JSX.Element | null;
+export { RedirectInput } from './inputs';
 export declare const HiddenValueInput: ({ goToNextField, goToPreviousField, field, value, onChange, isSinglePage, groupFields }: FormInputProps<'email'>) => JSX.Element;
 export declare const EmotiiInput: ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'email'>) => JSX.Element;
 export declare const AllergiesInput: ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'Allergies'>) => JSX.Element;

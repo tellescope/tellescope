@@ -6323,13 +6323,15 @@ exports.schema = (0, exports.build_schema)({
                 op: "custom", access: 'create', method: "post",
                 name: 'Send Message',
                 path: '/ai-conversations/send-message',
-                description: "Sends a message to the AI conversation",
+                description: "Sends a message to the AI conversation. Use 'messages' for multi-turn conversations, or 'message' for a single user message. At least one of 'message' or 'messages' must be provided.",
                 parameters: {
-                    message: { validator: validation_1.stringValidator25000, required: true },
+                    message: { validator: validation_1.stringValidator25000 },
+                    messages: { validator: (0, validation_1.listValidator)(validation_1.AIMessageInputValidator) },
                     type: { validator: validation_1.stringValidator100 },
                     maxTokens: { validator: validation_1.positiveNumberValidator },
                     conversationId: { validator: validation_1.mongoIdStringRequired },
                     prompt: { validator: validation_1.stringValidator25000 },
+                    orchestrationId: { validator: validation_1.stringValidatorOptional }, // optional ID to group multiple conversations as part of the same workflow
                 },
                 returns: {
                     ai_conversation: { validator: 'ai_conversation', required: true },
@@ -6351,7 +6353,7 @@ exports.schema = (0, exports.build_schema)({
                 returns: {},
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { type: { validator: validation_1.stringValidator, required: true, examples: ['HTML Template Generation'] }, modelName: { validator: validation_1.stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5'] }, messages: {
+        fields: __assign(__assign({}, BuiltInFields), { type: { validator: validation_1.stringValidator, required: true, examples: ['HTML Template Generation'] }, modelName: { validator: validation_1.stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5'] }, orchestrationId: { validator: validation_1.stringValidatorOptional, examples: ['workflow-123', 'batch-456'] }, messages: {
                 validator: (0, validation_1.listValidatorEmptyOk)((0, validation_1.objectValidator)({
                     role: (0, validation_1.exactMatchValidator)(['user', 'assistant']),
                     text: validation_1.stringValidator25000,
@@ -6362,6 +6364,7 @@ exports.schema = (0, exports.build_schema)({
                         text: validation_1.stringValidatorOptional,
                     })),
                     userId: validation_1.mongoIdStringOptional,
+                    systemPrompt: validation_1.stringValidator5000OptionalEmptyOkay,
                 }))
             } })
     },

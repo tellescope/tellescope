@@ -344,6 +344,7 @@ import {
   stringValidator100EscapeHTML,
   outOfOfficeBlocksValidator,
   AIDecisionSourceValidator,
+  AIMessageInputValidator,
   listOfObjectAnyFieldsAnyValuesValidator,
 } from "@tellescope/validation"
 
@@ -1189,15 +1190,17 @@ export type CustomActions = {
     start_outbound_call: CustomAction<{ treeId: string, enduserId: string, journeyId: string, automationStepId: string, journeyContext?: JourneyContext }, { }>,
   },
   ai_conversations: {
-    send_message: CustomAction<{ 
-      message: string,
+    send_message: CustomAction<{
+      message?: string, // optional when messages is provided
+      messages?: { role: 'user' | 'assistant', text: string }[], // when provided and non-empty, takes precedent over message
       type?: string, // for starting a new conversation
       prompt?: string, // included as system prompt
       conversationId?: string, // for continuing an existing conversation
       maxTokens?: number,
+      orchestrationId?: string, // optional ID to group multiple conversations as part of the same workflow
     }, { ai_conversation: AIConversation }>,
     generate_ai_decision: CustomAction<
-      AIDecisionAutomationAction['info'] & { enduserId: string, automationStepId: string, journeyContext?: JourneyContext }, 
+      AIDecisionAutomationAction['info'] & { enduserId: string, automationStepId: string, journeyContext?: JourneyContext },
       { }
     >;
   },
@@ -9042,13 +9045,15 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         op: "custom", access: 'create', method: "post",
         name: 'Send Message',
         path: '/ai-conversations/send-message',
-        description: "Sends a message to the AI conversation",
+        description: "Sends a message to the AI conversation. Use 'messages' for multi-turn conversations, or 'message' for a single user message. At least one of 'message' or 'messages' must be provided.",
         parameters: {
-          message: { validator: stringValidator25000, required: true },
+          message: { validator: stringValidator25000 }, // optional when messages is provided
+          messages: { validator: listValidator(AIMessageInputValidator) }, // when provided and non-empty, takes precedent over message
           type: { validator: stringValidator100 }, // only used on creation
           maxTokens: { validator: positiveNumberValidator },
           conversationId: { validator: mongoIdStringValidator },
           prompt: { validator: stringValidator25000 },
+          orchestrationId: { validator: stringValidatorOptional }, // optional ID to group multiple conversations as part of the same workflow
         },
         returns: {
           ai_conversation: { validator: 'ai_conversation' as any, required: true },
@@ -9072,9 +9077,10 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       
     },
     fields: {
-      ...BuiltInFields, 
+      ...BuiltInFields,
       type: { validator: stringValidator, required: true, examples: ['HTML Template Generation'] },
       modelName: { validator: stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5'] },
+      orchestrationId: { validator: stringValidatorOptional, examples: ['workflow-123', 'batch-456'] },
       messages: {
         validator: listValidatorEmptyOk(objectValidator<AIConversationMessage>({
           role: exactMatchValidator(['user', 'assistant']),
@@ -9086,6 +9092,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
             text: stringValidatorOptional,
           })),
           userId: mongoIdStringOptional,
+          systemPrompt: stringValidator5000OptionalEmptyOkay,
         }))
       }
     }

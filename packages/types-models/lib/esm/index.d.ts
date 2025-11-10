@@ -5131,6 +5131,7 @@ export type AIConversationMessage = {
     tokens: number;
     content?: AICOnversationMessageContent[];
     userId?: string;
+    systemPrompt?: string;
 };
 export interface AIConversation_readonly extends ClientRecord {
 }
@@ -5142,6 +5143,7 @@ export interface AIConversation_required {
 export interface AIConversation_updatesDisabled {
 }
 export interface AIConversation extends AIConversation_readonly, AIConversation_required, AIConversation_updatesDisabled {
+    orchestrationId?: string;
 }
 export interface InboxThread_readonly extends ClientRecord {
 }

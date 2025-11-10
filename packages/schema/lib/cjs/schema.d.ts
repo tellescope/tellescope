@@ -1591,11 +1591,16 @@ export type CustomActions = {
     };
     ai_conversations: {
         send_message: CustomAction<{
-            message: string;
+            message?: string;
+            messages?: {
+                role: 'user' | 'assistant';
+                text: string;
+            }[];
             type?: string;
             prompt?: string;
             conversationId?: string;
             maxTokens?: number;
+            orchestrationId?: string;
         }, {
             ai_conversation: AIConversation;
         }>;

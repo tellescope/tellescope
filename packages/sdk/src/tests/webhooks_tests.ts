@@ -302,14 +302,14 @@ const form_response_tests = async (isSubscribed: boolean) => {
   log_header(`Form Response Tests, isSubscribed=${isSubscribed}`)
 
   if (isSubscribed) {
-    await sdk.api.webhooks.update({ subscriptionUpdates: { 
-      ...emptySubscription, 
+    await sdk.api.webhooks.update({ subscriptionUpdates: {
+      ...emptySubscription,
       form_responses: { create: true },
     }})
   }
 
   const form = await sdk.api.forms.createOne({ title: 'test form' })
-  const field = await sdk.api.form_fields.createOne({ 
+  const field = await sdk.api.form_fields.createOne({
     title: 'test',
     formId: form.id,
     type: 'string',
@@ -348,20 +348,93 @@ const form_response_tests = async (isSubscribed: boolean) => {
       )
     },
     'Form response on submit error', 'Form response on submit', isSubscribed
-  ) 
+  )
+
+  // Test medications created from form submission
+  if (isSubscribed) {
+    await sdk.api.webhooks.update({ subscriptionUpdates: {
+      ...emptySubscription,
+      enduser_medications: { create: true },
+    }})
+  }
+
+  const medicationForm = await sdk.api.forms.createOne({ title: 'medication form' })
+  const medicationField = await sdk.api.form_fields.createOne({
+    title: 'medications',
+    formId: medicationForm.id,
+    type: 'Medications',
+    previousFields: [],
+  })
+
+  const medicationEnduser = await sdk.api.endusers.createOne({ email: 'med-test@tellescope.com' })
+  const { accessCode: medAccessCode } = await sdk.api.form_responses.prepare_form_response({
+    enduserId: medicationEnduser.id,
+    formId: medicationForm.id,
+  })
+
+  const testMedications = [
+    {
+      displayTerm: 'Aspirin 81 MG Oral Tablet',
+      drugName: 'Aspirin',
+      rxNormCode: '1191',
+      dosage: { value: '81', unit: 'mg', quantity: '1', frequency: 'Once Daily', frequencyDescriptor: 'Day' },
+      reasonForTaking: 'Heart health',
+    },
+    {
+      displayTerm: 'Lisinopril 10 MG Oral Tablet',
+      drugName: 'Lisinopril',
+      rxNormCode: '29046',
+      dosage: { value: '10', unit: 'mg', quantity: '1', frequency: 'Once Daily', frequencyDescriptor: 'Day' },
+      reasonForTaking: 'Blood pressure',
+    }
+  ]
+
+  await sdk.api.form_responses.submit_form_response({
+    accessCode: medAccessCode,
+    responses: [
+      {
+        fieldId: medicationField.id,
+        fieldTitle: 'medications',
+        answer: {
+          type: 'Medications',
+          value: testMedications,
+        }
+      }
+    ]
+  })
+
+  await check_next_webhook(
+    a => {
+      return (
+        a.model === 'enduser_medications'
+        && a.type === 'create'
+        && a.records.length === 2
+        && a.records[0].title === 'Aspirin'
+        && a.records[1].title === 'Lisinopril'
+        && a.records[0].enduserId === medicationEnduser.id
+        && a.records[1].enduserId === medicationEnduser.id
+        && a.records[0].source === 'Tellescope Form Response'
+        && a.records[1].source === 'Tellescope Form Response'
+        && a.description === 'Medications created from form submission'
+      )
+    },
+    'Medications webhook on form submit error', 'Medications webhook on form submit', isSubscribed
+  )
 
   // cleanup
   if (isSubscribed) {
-    await sdk.api.webhooks.update({ subscriptionUpdates: { 
-      ...emptySubscription, 
-      chats: { create: true }, 
+    await sdk.api.webhooks.update({ subscriptionUpdates: {
+      ...emptySubscription,
+      chats: { create: true },
       meetings: { create: true, update: true, delete: false },
     }})
   }
 
   await Promise.all([
     sdk.api.endusers.deleteOne(enduser.id),
+    sdk.api.endusers.deleteOne(medicationEnduser.id),
     sdk.api.forms.deleteOne(form.id),
+    sdk.api.forms.deleteOne(medicationForm.id),
   ])
 }
 

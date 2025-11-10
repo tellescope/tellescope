@@ -97,7 +97,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ChargeebeeInput = exports.RichTextInput = exports.ConditionsInput = exports.AllergiesInput = exports.EmotiiInput = exports.HiddenValueInput = exports.RedirectInput = exports.include_current_url_parameters_if_templated = exports.HeightInput = exports.AppointmentBookingInput = exports.RelatedContactsInput = exports.contact_is_valid = exports.BelugaPatientPreferenceInput = exports.MedicationsInput = exports.CanvasMedicationsInput = exports.DatabaseSelectInput = exports.DropdownInput = exports.Progress = exports.StripeInput = exports.MultipleChoiceInput = exports.FilesInput = exports.safe_create_url = exports.FileInput = exports.convertHEIC = exports.SignatureInput = exports.ESignatureTerms = exports.AddressInput = exports.TimezoneInput = exports.TimeInput = exports.InsuranceInput = exports.NumberInput = exports.EmailInput = exports.PhoneInput = exports.StringLongInput = exports.StringInput = exports.DateStringInput = exports.AutoFocusTextField = exports.TableInput = exports.DateInput = exports.RankingInput = exports.RatingInput = exports.PdfViewer = exports.defaultButtonStyles = exports.defaultInputProps = exports.LanguageSelect = void 0;
+exports.ChargeebeeInput = exports.RichTextInput = exports.ConditionsInput = exports.AllergiesInput = exports.EmotiiInput = exports.HiddenValueInput = exports.RedirectInput = exports.HeightInput = exports.AppointmentBookingInput = exports.RelatedContactsInput = exports.contact_is_valid = exports.BelugaPatientPreferenceInput = exports.MedicationsInput = exports.CanvasMedicationsInput = exports.DatabaseSelectInput = exports.DropdownInput = exports.Progress = exports.StripeInput = exports.MultipleChoiceInput = exports.FilesInput = exports.safe_create_url = exports.FileInput = exports.convertHEIC = exports.SignatureInput = exports.ESignatureTerms = exports.AddressInput = exports.TimezoneInput = exports.TimeInput = exports.InsuranceInput = exports.NumberInput = exports.EmailInput = exports.PhoneInput = exports.StringLongInput = exports.StringInput = exports.DateStringInput = exports.AutoFocusTextField = exports.TableInput = exports.DateInput = exports.RankingInput = exports.RatingInput = exports.PdfViewer = exports.defaultButtonStyles = exports.defaultInputProps = exports.LanguageSelect = void 0;
 var jsx_runtime_1 = require("react/jsx-runtime");
 var react_1 = __importStar(require("react"));
 var axios_1 = __importDefault(require("axios"));
@@ -1518,101 +1518,9 @@ var HeightInput = function (_a) {
     return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: 'center', wrap: "nowrap", spacing: 1, style: { marginTop: 5 } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, sx: { width: '100%' } }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField, { fullWidth: true, size: "small", label: "Feet", type: "number", value: (value === null || value === void 0 ? void 0 : value.feet) || '', onChange: function (e) { return onChange(__assign(__assign({}, value), { feet: parseInt(e.target.value) }), field.id); } }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, sx: { width: '100%' } }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField, { fullWidth: true, size: "small", label: "Inches", type: "number", value: (_b = value === null || value === void 0 ? void 0 : value.inches) !== null && _b !== void 0 ? _b : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { inches: parseInt(e.target.value) }), field.id); } }) }))] })));
 };
 exports.HeightInput = HeightInput;
-var include_current_url_parameters_if_templated = function (url) {
-    try {
-        // get parameters from the current URL, and replace all values where {{URL_PARAM.paramName}} is used
-        var params_1 = new URL(window.location.href).searchParams;
-        return url.replace(/{{URL_PARAM\.(.*?)}}/g, function (_, paramName) {
-            var value = params_1.get(paramName);
-            console.log(paramName, value);
-            if (value === null)
-                return '';
-            return value;
-        });
-    }
-    catch (err) {
-        console.error(err);
-    }
-    return url;
-};
-exports.include_current_url_parameters_if_templated = include_current_url_parameters_if_templated;
-var RedirectInput = function (_a) {
-    var _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
-    var enduserId = _a.enduserId, groupId = _a.groupId, groupInsance = _a.groupInsance, rootResponseId = _a.rootResponseId, formResponseId = _a.formResponseId, field = _a.field, submit = _a.submit, _u = _a.value, value = _u === void 0 ? {} : _u, onChange = _a.onChange, responses = _a.responses, enduser = _a.enduser, props = __rest(_a, ["enduserId", "groupId", "groupInsance", "rootResponseId", "formResponseId", "field", "submit", "value", "onChange", "responses", "enduser"]);
-    var session = (0, __1.useResolvedSession)();
-    var eId = '';
-    try {
-        eId = new URL(window.location.href).searchParams.get('eId') || enduserId || (enduser === null || enduser === void 0 ? void 0 : enduser.id) || '';
-    }
-    catch (err) { }
-    var email = (((_d = (_b = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { return r.intakeField === 'email'; })) === null || _b === void 0 ? void 0 : _b.answer) === null || _d === void 0 ? void 0 : _d.value)
-        || (enduser === null || enduser === void 0 ? void 0 : enduser.email)
-        || session.userInfo.email);
-    var phone = (((_f = (_e = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { return r.intakeField === 'phone'; })) === null || _e === void 0 ? void 0 : _e.answer) === null || _f === void 0 ? void 0 : _f.value)
-        || (enduser === null || enduser === void 0 ? void 0 : enduser.phone)
-        || session.userInfo.phone);
-    var fname = (((_h = (_g = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { return r.intakeField === 'fname'; })) === null || _g === void 0 ? void 0 : _g.answer) === null || _h === void 0 ? void 0 : _h.value)
-        || (enduser === null || enduser === void 0 ? void 0 : enduser.fname)
-        || ((_j = session.userInfo) === null || _j === void 0 ? void 0 : _j.fname));
-    var lname = (((_l = (_k = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { return r.intakeField === 'lname'; })) === null || _k === void 0 ? void 0 : _k.answer) === null || _l === void 0 ? void 0 : _l.value)
-        || (enduser === null || enduser === void 0 ? void 0 : enduser.lname)
-        || ((_m = session.userInfo) === null || _m === void 0 ? void 0 : _m.lname));
-    var state = (((_p = (_o = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { return r.intakeField === 'state'; })) === null || _o === void 0 ? void 0 : _o.answer) === null || _p === void 0 ? void 0 : _p.value)
-        || ((_s = (_r = (_q = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { return r.intakeField === 'Address'; })) === null || _q === void 0 ? void 0 : _q.answer) === null || _r === void 0 ? void 0 : _r.value) === null || _s === void 0 ? void 0 : _s.state)
-        || (enduser === null || enduser === void 0 ? void 0 : enduser.state)
-        || ((_t = session.userInfo) === null || _t === void 0 ? void 0 : _t.state));
-    (0, react_1.useEffect)(function () {
-        var _a, _b;
-        if (session.type === 'user') {
-            return;
-        }
-        if ((_a = field.options) === null || _a === void 0 ? void 0 : _a.redirectExternalUrl) {
-            submit === null || submit === void 0 ? void 0 : submit().finally(function () {
-                var _a;
-                if (!((_a = field.options) === null || _a === void 0 ? void 0 : _a.redirectExternalUrl)) {
-                    return;
-                }
-                window.location.href = ((0, exports.include_current_url_parameters_if_templated)((0, utilities_1.replace_enduser_template_values)(field.options.redirectExternalUrl, __assign(__assign({}, session.userInfo), { id: eId, email: email, fname: fname, lname: lname, state: state, phone: phone }))));
-            }).catch(console.error);
-            return;
-        }
-        if (!((_b = field.options) === null || _b === void 0 ? void 0 : _b.redirectFormId)) {
-            return;
-        }
-        session.api.form_responses.prepare_form_response({
-            enduserId: session.userInfo.id || eId,
-            formId: field.options.redirectFormId,
-            rootResponseId: rootResponseId || formResponseId,
-            parentResponseId: formResponseId,
-        })
-            .then(function (_a) {
-            var fullURL = _a.fullURL;
-            return (
-            // we should still redirect even if submission fails
-            submit === null || submit === void 0 ? void 0 : submit().catch(console.error).finally(function () {
-                // if accessing form group in portal
-                if (window.location.href.includes('/documents') && groupId && groupInsance) {
-                    var toRedirect = "".concat(window.location.origin, "/documents?groupId=").concat(groupId, "&groupInstance=").concat(groupInsance);
-                    if (fullURL.endsWith('&')) {
-                        window.location.replace(fullURL + "back=".concat(toRedirect, "&"));
-                    }
-                    else {
-                        window.location.replace(fullURL + "&back=".concat(toRedirect));
-                    }
-                }
-                else {
-                    window.location.replace(fullURL);
-                }
-            }));
-        })
-            .catch(console.error);
-    }, [session, email, fname, lname, state, phone]);
-    if (session.type === 'user') {
-        return ((0, jsx_runtime_1.jsx)(material_1.Typography, { children: "Redirect is for patient-facing forms only" }));
-    }
-    return null;
-};
-exports.RedirectInput = RedirectInput;
+// Re-export from V1 to follow DRY principles
+var inputs_3 = require("./inputs");
+Object.defineProperty(exports, "RedirectInput", { enumerable: true, get: function () { return inputs_3.RedirectInput; } });
 var HiddenValueInput = function (_a) {
     var goToNextField = _a.goToNextField, goToPreviousField = _a.goToPreviousField, field = _a.field, value = _a.value, onChange = _a.onChange, isSinglePage = _a.isSinglePage, groupFields = _a.groupFields;
     var lastRef = (0, react_1.useRef)(0);

@@ -2863,6 +2863,11 @@ export const AIDecisionSourceValidator = objectValidator<AIContextSource>({
   type: stringValidator,
 })
 
+export const AIMessageInputValidator = objectValidator<{ role: 'user' | 'assistant', text: string }>({
+  role: exactMatchValidator(['user', 'assistant']),
+  text: stringValidator25000,
+}, { emptyOk: false })
+
 export const automationActionValidator = orValidator<{ [K in AutomationActionType]: AutomationAction & { type: K } } | { [K in BrandedWebhookActions]: SendWebhookAutomationAction } >({
   developHealthMedEligibility: objectValidator<DevelopHealthMedicationEligibilityAutomationAction>({
     type: exactMatchValidator(['developHealthMedEligibility']),

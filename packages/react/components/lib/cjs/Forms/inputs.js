@@ -2082,30 +2082,38 @@ var include_current_url_parameters_if_templated = function (url) {
 };
 exports.include_current_url_parameters_if_templated = include_current_url_parameters_if_templated;
 var RedirectInput = function (_a) {
-    var _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t;
-    var enduserId = _a.enduserId, groupId = _a.groupId, groupInsance = _a.groupInsance, rootResponseId = _a.rootResponseId, formResponseId = _a.formResponseId, field = _a.field, submit = _a.submit, _u = _a.value, value = _u === void 0 ? {} : _u, onChange = _a.onChange, responses = _a.responses, enduser = _a.enduser, props = __rest(_a, ["enduserId", "groupId", "groupInsance", "rootResponseId", "formResponseId", "field", "submit", "value", "onChange", "responses", "enduser"]);
+    var _b, _d, _e, _f, _g, _h;
+    var enduserId = _a.enduserId, groupId = _a.groupId, groupInsance = _a.groupInsance, rootResponseId = _a.rootResponseId, formResponseId = _a.formResponseId, field = _a.field, submit = _a.submit, _j = _a.value, value = _j === void 0 ? {} : _j, onChange = _a.onChange, responses = _a.responses, enduser = _a.enduser, props = __rest(_a, ["enduserId", "groupId", "groupInsance", "rootResponseId", "formResponseId", "field", "submit", "value", "onChange", "responses", "enduser"]);
     var session = (0, __1.useResolvedSession)();
     var eId = '';
     try {
         eId = new URL(window.location.href).searchParams.get('eId') || enduserId || (enduser === null || enduser === void 0 ? void 0 : enduser.id) || '';
     }
     catch (err) { }
-    var email = (((_d = (_b = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { return r.intakeField === 'email'; })) === null || _b === void 0 ? void 0 : _b.answer) === null || _d === void 0 ? void 0 : _d.value)
+    // Helper function to find the first answered intake field response
+    // This handles cases where duplicate intake fields exist across conditional branches
+    var findAnsweredIntakeField = function (intakeField) {
+        var _a, _b;
+        return (_b = (_a = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { var _a; return r.intakeField === intakeField && ((_a = r.answer) === null || _a === void 0 ? void 0 : _a.value); })) === null || _a === void 0 ? void 0 : _a.answer) === null || _b === void 0 ? void 0 : _b.value;
+    };
+    var email = (findAnsweredIntakeField('email')
         || (enduser === null || enduser === void 0 ? void 0 : enduser.email)
         || session.userInfo.email);
-    var phone = (((_f = (_e = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { return r.intakeField === 'phone'; })) === null || _e === void 0 ? void 0 : _e.answer) === null || _f === void 0 ? void 0 : _f.value)
+    var phone = (findAnsweredIntakeField('phone')
         || (enduser === null || enduser === void 0 ? void 0 : enduser.phone)
         || session.userInfo.phone);
-    var fname = (((_h = (_g = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { return r.intakeField === 'fname'; })) === null || _g === void 0 ? void 0 : _g.answer) === null || _h === void 0 ? void 0 : _h.value)
+    var fname = (findAnsweredIntakeField('fname')
         || (enduser === null || enduser === void 0 ? void 0 : enduser.fname)
-        || ((_j = session.userInfo) === null || _j === void 0 ? void 0 : _j.fname));
-    var lname = (((_l = (_k = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { return r.intakeField === 'lname'; })) === null || _k === void 0 ? void 0 : _k.answer) === null || _l === void 0 ? void 0 : _l.value)
+        || ((_b = session.userInfo) === null || _b === void 0 ? void 0 : _b.fname));
+    var lname = (findAnsweredIntakeField('lname')
         || (enduser === null || enduser === void 0 ? void 0 : enduser.lname)
-        || ((_m = session.userInfo) === null || _m === void 0 ? void 0 : _m.lname));
-    var state = (((_p = (_o = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { return r.intakeField === 'state'; })) === null || _o === void 0 ? void 0 : _o.answer) === null || _p === void 0 ? void 0 : _p.value)
-        || ((_s = (_r = (_q = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { return r.intakeField === 'Address'; })) === null || _q === void 0 ? void 0 : _q.answer) === null || _r === void 0 ? void 0 : _r.value) === null || _s === void 0 ? void 0 : _s.state)
+        || ((_d = session.userInfo) === null || _d === void 0 ? void 0 : _d.lname));
+    var state = (findAnsweredIntakeField('state')
+        // Handle Address field - find first Address with an actual state value
+        // (in case of multiple address questions where some are blank)
+        || ((_g = (_f = (_e = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { var _a, _b, _d; return r.intakeField === 'Address' && ((_a = r.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Address' && ((_d = (_b = r.answer) === null || _b === void 0 ? void 0 : _b.value) === null || _d === void 0 ? void 0 : _d.state); })) === null || _e === void 0 ? void 0 : _e.answer) === null || _f === void 0 ? void 0 : _f.value) === null || _g === void 0 ? void 0 : _g.state)
         || (enduser === null || enduser === void 0 ? void 0 : enduser.state)
-        || ((_t = session.userInfo) === null || _t === void 0 ? void 0 : _t.state));
+        || ((_h = session.userInfo) === null || _h === void 0 ? void 0 : _h.state));
     (0, react_1.useEffect)(function () {
         var _a, _b;
         if (session.type === 'user') {

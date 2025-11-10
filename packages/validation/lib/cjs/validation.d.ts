@@ -824,6 +824,10 @@ export declare const developHealthMockResultValidator: ValidatorDefinition<{
 export declare const canvasCodingValidator: ValidatorDefinition<CanvasCoding>;
 export declare const canvasCodingValidatorOptional: ValidatorDefinition<CanvasCoding>;
 export declare const AIDecisionSourceValidator: ValidatorDefinition<AIContextSource>;
+export declare const AIMessageInputValidator: ValidatorDefinition<{
+    role: 'user' | 'assistant';
+    text: string;
+}>;
 export declare const automationActionValidator: ValidatorDefinition<never>;
 export declare const journeyContextValidator: ValidatorDefinition<JourneyContext>;
 export declare const relatedRecordValidator: ValidatorDefinition<RelatedRecord>;

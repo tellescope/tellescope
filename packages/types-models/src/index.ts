@@ -5002,6 +5002,7 @@ export type AIConversationMessage = {
   tokens: number,
   content?: AICOnversationMessageContent[],
   userId?: string, // for user messages
+  systemPrompt?: string, // system prompt used for this API call (typically on last input message)
 }
 export interface AIConversation_readonly extends ClientRecord {}
 export interface AIConversation_required {
@@ -5010,7 +5011,9 @@ export interface AIConversation_required {
   messages: AIConversationMessage[],
 }
 export interface AIConversation_updatesDisabled {}
-export interface AIConversation extends AIConversation_readonly, AIConversation_required, AIConversation_updatesDisabled {}
+export interface AIConversation extends AIConversation_readonly, AIConversation_required, AIConversation_updatesDisabled {
+  orchestrationId?: string, // optional ID to group multiple conversations as part of the same workflow/orchestration
+}
 
 export interface InboxThread_readonly extends ClientRecord {}
 export interface InboxThread_required {

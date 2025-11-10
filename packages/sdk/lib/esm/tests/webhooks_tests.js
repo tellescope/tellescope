@@ -348,7 +348,7 @@ var sub_organization_tests = function (isSubscribed) { return __awaiter(void 0, 
     });
 }); };
 var form_response_tests = function (isSubscribed) { return __awaiter(void 0, void 0, void 0, function () {
-    var form, field, enduser, accessCode, formResponse;
+    var form, field, enduser, accessCode, formResponse, medicationForm, medicationField, medicationEnduser, medAccessCode, testMedications;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -400,20 +400,94 @@ var form_response_tests = function (isSubscribed) { return __awaiter(void 0, voi
                             && hook.enduserId === formResponse.enduserId
                             && objects_equivalent(formResponse.responses, hook.responses));
                     }, 'Form response on submit error', 'Form response on submit', isSubscribed)
-                    // cleanup
+                    // Test medications created from form submission
                 ];
             case 8:
                 _a.sent();
                 if (!isSubscribed) return [3 /*break*/, 10];
-                return [4 /*yield*/, sdk.api.webhooks.update({ subscriptionUpdates: __assign(__assign({}, emptySubscription), { chats: { create: true }, meetings: { create: true, update: true, delete: false } }) })];
+                return [4 /*yield*/, sdk.api.webhooks.update({ subscriptionUpdates: __assign(__assign({}, emptySubscription), { enduser_medications: { create: true } }) })];
             case 9:
                 _a.sent();
                 _a.label = 10;
-            case 10: return [4 /*yield*/, Promise.all([
-                    sdk.api.endusers.deleteOne(enduser.id),
-                    sdk.api.forms.deleteOne(form.id),
-                ])];
+            case 10: return [4 /*yield*/, sdk.api.forms.createOne({ title: 'medication form' })];
             case 11:
+                medicationForm = _a.sent();
+                return [4 /*yield*/, sdk.api.form_fields.createOne({
+                        title: 'medications',
+                        formId: medicationForm.id,
+                        type: 'Medications',
+                        previousFields: [],
+                    })];
+            case 12:
+                medicationField = _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.createOne({ email: 'med-test@tellescope.com' })];
+            case 13:
+                medicationEnduser = _a.sent();
+                return [4 /*yield*/, sdk.api.form_responses.prepare_form_response({
+                        enduserId: medicationEnduser.id,
+                        formId: medicationForm.id,
+                    })];
+            case 14:
+                medAccessCode = (_a.sent()).accessCode;
+                testMedications = [
+                    {
+                        displayTerm: 'Aspirin 81 MG Oral Tablet',
+                        drugName: 'Aspirin',
+                        rxNormCode: '1191',
+                        dosage: { value: '81', unit: 'mg', quantity: '1', frequency: 'Once Daily', frequencyDescriptor: 'Day' },
+                        reasonForTaking: 'Heart health',
+                    },
+                    {
+                        displayTerm: 'Lisinopril 10 MG Oral Tablet',
+                        drugName: 'Lisinopril',
+                        rxNormCode: '29046',
+                        dosage: { value: '10', unit: 'mg', quantity: '1', frequency: 'Once Daily', frequencyDescriptor: 'Day' },
+                        reasonForTaking: 'Blood pressure',
+                    }
+                ];
+                return [4 /*yield*/, sdk.api.form_responses.submit_form_response({
+                        accessCode: medAccessCode,
+                        responses: [
+                            {
+                                fieldId: medicationField.id,
+                                fieldTitle: 'medications',
+                                answer: {
+                                    type: 'Medications',
+                                    value: testMedications,
+                                }
+                            }
+                        ]
+                    })];
+            case 15:
+                _a.sent();
+                return [4 /*yield*/, check_next_webhook(function (a) {
+                        return (a.model === 'enduser_medications'
+                            && a.type === 'create'
+                            && a.records.length === 2
+                            && a.records[0].title === 'Aspirin'
+                            && a.records[1].title === 'Lisinopril'
+                            && a.records[0].enduserId === medicationEnduser.id
+                            && a.records[1].enduserId === medicationEnduser.id
+                            && a.records[0].source === 'Tellescope Form Response'
+                            && a.records[1].source === 'Tellescope Form Response'
+                            && a.description === 'Medications created from form submission');
+                    }, 'Medications webhook on form submit error', 'Medications webhook on form submit', isSubscribed)
+                    // cleanup
+                ];
+            case 16:
+                _a.sent();
+                if (!isSubscribed) return [3 /*break*/, 18];
+                return [4 /*yield*/, sdk.api.webhooks.update({ subscriptionUpdates: __assign(__assign({}, emptySubscription), { chats: { create: true }, meetings: { create: true, update: true, delete: false } }) })];
+            case 17:
+                _a.sent();
+                _a.label = 18;
+            case 18: return [4 /*yield*/, Promise.all([
+                    sdk.api.endusers.deleteOne(enduser.id),
+                    sdk.api.endusers.deleteOne(medicationEnduser.id),
+                    sdk.api.forms.deleteOne(form.id),
+                    sdk.api.forms.deleteOne(medicationForm.id),
+                ])];
+            case 19:
                 _a.sent();
                 return [2 /*return*/];
         }

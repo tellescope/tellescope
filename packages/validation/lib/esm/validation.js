@@ -2277,6 +2277,10 @@ export var AIDecisionSourceValidator = objectValidator({
     limit: numberValidator,
     type: stringValidator,
 });
+export var AIMessageInputValidator = objectValidator({
+    role: exactMatchValidator(['user', 'assistant']),
+    text: stringValidator25000,
+}, { emptyOk: false });
 export var automationActionValidator = orValidator({
     developHealthMedEligibility: objectValidator(__assign({ type: exactMatchValidator(['developHealthMedEligibility']), info: objectValidator({
             drugs: developHealthDrugsValidator,

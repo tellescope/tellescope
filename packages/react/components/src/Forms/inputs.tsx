@@ -3771,29 +3771,37 @@ export const RedirectInput = ({ enduserId, groupId, groupInsance, rootResponseId
     eId = new URL(window.location.href).searchParams.get('eId') || enduserId || enduser?.id || ''
   } catch(err) {}
 
+  // Helper function to find the first answered intake field response
+  // This handles cases where duplicate intake fields exist across conditional branches
+  const findAnsweredIntakeField = (intakeField: string) => {
+    return responses?.find(r => r.intakeField === intakeField && r.answer?.value)?.answer?.value
+  }
+
   const email = (
-    responses?.find(r => r.intakeField === 'email')?.answer?.value
-  || enduser?.email 
+    findAnsweredIntakeField('email')
+  || enduser?.email
   || session.userInfo.email
   )
   const phone = (
-    responses?.find(r => r.intakeField === 'phone')?.answer?.value
+    findAnsweredIntakeField('phone')
   || enduser?.phone
   || session.userInfo.phone
   )
   const fname = (
-    responses?.find(r => r.intakeField === 'fname')?.answer?.value
+    findAnsweredIntakeField('fname')
   || enduser?.fname
   || session.userInfo?.fname
   )
   const lname = (
-    responses?.find(r => r.intakeField === 'lname')?.answer?.value
+    findAnsweredIntakeField('lname')
   || enduser?.lname
   || session.userInfo?.lname
   )
   const state = (
-     responses?.find(r => r.intakeField === 'state')?.answer?.value
-  || (responses?.find(r => r.intakeField === 'Address')?.answer?.value as any)?.state
+     findAnsweredIntakeField('state')
+  // Handle Address field - find first Address with an actual state value
+  // (in case of multiple address questions where some are blank)
+  || (responses?.find(r => r.intakeField === 'Address' && r.answer?.type === 'Address' && r.answer?.value?.state)?.answer?.value as Address)?.state
   || enduser?.state
   || (session.userInfo as Enduser)?.state
   )
