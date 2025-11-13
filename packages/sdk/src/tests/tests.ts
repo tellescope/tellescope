@@ -73,6 +73,7 @@ import { time_tracks_tests } from "./api_tests/time_tracks.test";
 import { monthly_availability_restrictions_tests } from "./api_tests/monthly_availability_restrictions.test";
 import { calendar_event_limits_tests } from "./api_tests/calendar_event_limits.test";
 import { custom_aggregation_tests } from "./api_tests/custom_aggregation.test";
+import { bulk_assignment_tests } from "./api_tests/bulk_assignment.test";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
@@ -13122,6 +13123,7 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await bulk_assignment_tests({ sdk, sdkNonAdmin })
     await custom_aggregation_tests({ sdk, sdkNonAdmin })
     await automation_trigger_tests()
     await formsort_tests()
