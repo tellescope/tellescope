@@ -1967,6 +1967,7 @@ export interface Integration extends Integration_readonly, Integration_required,
   syncCareTeam?: boolean,
   shardId?: string,
   pushHistoricalEvents?: boolean,
+  pushHistoricalFiles?: boolean,
 }
 
 export type BuildDatabaseRecordField <K extends string, V, O> = { type: K, value: V, options: O & { width?: string } }
@@ -3005,7 +3006,7 @@ export type NotifyTeamAutomationAction = AutomationActionBuilder<'notifyTeam', {
   roles?: string[],
   tags?: ListOfStringsWithQualifier,
 }>
-export type SendSMSAutomationAction = AutomationActionBuilder<'sendSMS', AutomationForMessage>
+export type SendSMSAutomationAction = AutomationActionBuilder<'sendSMS', AutomationForMessage & { phoneNumberOverride?: string }>
 export type SendFormAutomationAction = AutomationActionBuilder<'sendForm', AutomationForFormRequest>
 export type PushFormsAutomationAction = AutomationActionBuilder<'pushFormsToPortal', { formIds: string[] }>
 export type SetEnduserStatusAutomationAction = AutomationActionBuilder<'setEnduserStatus', SetEnduserStatusInfo>
@@ -3285,6 +3286,7 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
   beforeMeal?: boolean,
   medStatus?: string,
   timestampIsEstimated?: boolean,
+  irregularHeartbeat?: boolean,
   dontTrigger?: boolean,
   showWithPlotsByUnit?: string[],
   invalidationReason?: string,

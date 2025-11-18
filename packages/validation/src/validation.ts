@@ -2899,7 +2899,14 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
   }),
   sendSMS: objectValidator<SendSMSAutomationAction>({
     type: exactMatchValidator(['sendSMS']),
-    info: automationForMessageValidator,
+    info: objectValidator<SendSMSAutomationAction['info']>({
+      senderId: mongoIdStringRequired,
+      templateId: mongoIdStringRequired,
+      assignment: senderAssignmentStrategyValidatorOptional,
+      phoneNumberOverride: phoneValidatorOptional,
+      sendToDestinationOfRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
+      hiddenFromTimeline: booleanValidatorOptional,
+    }, { emptyOk: false }),
     ...sharedAutomationActionValidators,
   }),
   notifyTeam: objectValidator<NotifyTeamAutomationAction>({

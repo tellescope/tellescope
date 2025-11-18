@@ -116,7 +116,7 @@ export type CreateFields <N extends keyof ClientModelForName, T=ClientModelForNa
 )
 
 export type ProjectedObservation = (
-  Pick<EnduserObservation, 'id' | 'measurement' | 'timestamp' | 'source' | 'createdAt' | 'classifications' | 'status' | 'beforeMeal' | 'showWithPlotsByUnit' | 'invalidationReason' | 'type' | 'timestampIsEstimated' | 'medStatus' | 'excludeFromVitalCountLookback'>
+  Pick<EnduserObservation, 'id' | 'measurement' | 'timestamp' | 'source' | 'createdAt' | 'classifications' | 'status' | 'beforeMeal' | 'showWithPlotsByUnit' | 'invalidationReason' | 'type' | 'timestampIsEstimated' | 'medStatus' | 'irregularHeartbeat' | 'excludeFromVitalCountLookback'>
 & Partial<Pick<EnduserObservation, 'enduserId' | 'reviewedBy' | 'reviewedAt'>>
 )
 

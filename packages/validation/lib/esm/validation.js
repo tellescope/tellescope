@@ -2298,7 +2298,14 @@ export var automationActionValidator = orValidator({
             ccRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
             hiddenFromTimeline: booleanValidatorOptional,
         }, { emptyOk: false }) }, sharedAutomationActionValidators)),
-    sendSMS: objectValidator(__assign({ type: exactMatchValidator(['sendSMS']), info: automationForMessageValidator }, sharedAutomationActionValidators)),
+    sendSMS: objectValidator(__assign({ type: exactMatchValidator(['sendSMS']), info: objectValidator({
+            senderId: mongoIdStringRequired,
+            templateId: mongoIdStringRequired,
+            assignment: senderAssignmentStrategyValidatorOptional,
+            phoneNumberOverride: phoneValidatorOptional,
+            sendToDestinationOfRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
+            hiddenFromTimeline: booleanValidatorOptional,
+        }, { emptyOk: false }) }, sharedAutomationActionValidators)),
     notifyTeam: objectValidator(__assign({ type: exactMatchValidator(['notifyTeam']), info: objectValidator({
             templateId: mongoIdStringRequired,
             forAssigned: booleanValidatorOptional,

@@ -2348,7 +2348,14 @@ exports.automationActionValidator = (0, exports.orValidator)({
             ccRelatedContactTypes: exports.listOfStringsValidatorOptionalOrEmptyOk,
             hiddenFromTimeline: exports.booleanValidatorOptional,
         }, { emptyOk: false }) }, sharedAutomationActionValidators)),
-    sendSMS: (0, exports.objectValidator)(__assign({ type: (0, exports.exactMatchValidator)(['sendSMS']), info: exports.automationForMessageValidator }, sharedAutomationActionValidators)),
+    sendSMS: (0, exports.objectValidator)(__assign({ type: (0, exports.exactMatchValidator)(['sendSMS']), info: (0, exports.objectValidator)({
+            senderId: exports.mongoIdStringRequired,
+            templateId: exports.mongoIdStringRequired,
+            assignment: exports.senderAssignmentStrategyValidatorOptional,
+            phoneNumberOverride: exports.phoneValidatorOptional,
+            sendToDestinationOfRelatedContactTypes: exports.listOfStringsValidatorOptionalOrEmptyOk,
+            hiddenFromTimeline: exports.booleanValidatorOptional,
+        }, { emptyOk: false }) }, sharedAutomationActionValidators)),
     notifyTeam: (0, exports.objectValidator)(__assign({ type: (0, exports.exactMatchValidator)(['notifyTeam']), info: (0, exports.objectValidator)({
             templateId: exports.mongoIdStringRequired,
             forAssigned: exports.booleanValidatorOptional,

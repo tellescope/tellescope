@@ -5,7 +5,7 @@ import {
   AccessAction, AccessForResource, AccessPermissions, AccessType, Enduser, EnduserRelationship, FormFieldType, InsuranceRelationship, TellescopeGender,
 } from "@tellescope/types-models"
 
-export type EnduserField = keyof Pick<Enduser, 'email' | 'phone' | 'fname' | 'lname' | 'dateOfBirth' | 'height' | 'weight'>
+export type EnduserField = keyof Pick<Enduser, 'email' | 'phone' | 'landline' | 'fname' | 'lname' | 'dateOfBirth' | 'height' | 'weight'>
 
 export const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
   'id': "ID",
@@ -79,9 +79,10 @@ export const READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
   recentInboundEmailAt: "Recent Inbound Email Sent At",
 } satisfies { [K in keyof Enduser]?: string }
 
-export const ENDUSER_FIELD_TYPES = { 
+export const ENDUSER_FIELD_TYPES = {
   'email': ['email'],
   'phone': ['phone'],
+  'landline': ['phone'],
   'fname': ['string'],
   'lname': ['string'],
   'dateOfBirth': ['dateString'],

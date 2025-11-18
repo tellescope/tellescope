@@ -2164,6 +2164,7 @@ export const schema: SchemaV1 = build_schema({
         ]
       },
       pushHistoricalEvents: { validator: booleanValidator },
+      pushHistoricalFiles: { validator: booleanValidator },
       syncCareTeam: { validator: booleanValidator },
       syncAsActive: { validator: booleanValidator }, // e.g. for Zus
       requirePhoneToPushEnduser: { validator: booleanValidator },
@@ -6085,6 +6086,7 @@ export const schema: SchemaV1 = build_schema({
       statusChangedBy: { validator: mongoIdStringValidator },
       beforeMeal: { validator: booleanValidator },
       medStatus: { validator: stringValidator },
+      irregularHeartbeat: { validator: booleanValidator },
       dontTrigger: { validator: booleanValidator },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
       showWithPlotsByUnit: { validator: listOfStringsValidatorOptionalOrEmptyOk },

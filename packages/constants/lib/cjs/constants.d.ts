@@ -1,6 +1,6 @@
 import { Operation } from "@tellescope/types-utilities";
 import { AccessAction, AccessForResource, AccessPermissions, AccessType, Enduser, EnduserRelationship, FormFieldType, InsuranceRelationship, TellescopeGender } from "@tellescope/types-models";
-export type EnduserField = keyof Pick<Enduser, 'email' | 'phone' | 'fname' | 'lname' | 'dateOfBirth' | 'height' | 'weight'>;
+export type EnduserField = keyof Pick<Enduser, 'email' | 'phone' | 'landline' | 'fname' | 'lname' | 'dateOfBirth' | 'height' | 'weight'>;
 export declare const ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME: {
     id: string;
     assignedTo: string;
@@ -98,6 +98,7 @@ export declare const READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME: {
 export declare const ENDUSER_FIELD_TYPES: {
     email: FormFieldType[];
     phone: FormFieldType[];
+    landline: FormFieldType[];
     fname: FormFieldType[];
     lname: FormFieldType[];
     dateOfBirth: FormFieldType[];

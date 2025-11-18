@@ -61,6 +61,7 @@ export var READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME = {
 export var ENDUSER_FIELD_TYPES = {
     'email': ['email'],
     'phone': ['phone'],
+    'landline': ['phone'],
     'fname': ['string'],
     'lname': ['string'],
     'dateOfBirth': ['dateString'],
