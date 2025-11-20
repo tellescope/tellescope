@@ -1,9 +1,9 @@
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react"
 import axios from "axios"
-import { Autocomplete, Box, Button, Checkbox, Chip, CircularProgress, Collapse, Divider, FormControl, FormControlLabel, FormLabel, Grid, IconButton as MuiIconButton, InputLabel, MenuItem, Radio, RadioGroup, Select, SxProps, TextField, TextFieldProps, Typography } from "@mui/material"
+import { Autocomplete, Box, Button, Checkbox, Chip, CircularProgress, Collapse, Divider, FormControl, FormControlLabel, FormLabel, Grid, IconButton as MuiIconButton, InputLabel, MenuItem, Paper, Radio, RadioGroup, Select, SxProps, TextField, TextFieldProps, Typography } from "@mui/material"
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
-import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
+import { CANVAS_TITLE, BRIDGE_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
 import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, format_stripe_subscription_interval, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, object_is_empty, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities"
 import { Address, DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, FormFieldOptionDetails, TellescopeGender, TIMEZONES_USA } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
@@ -25,6 +25,16 @@ import { Elements, PaymentElement, useStripe, useElements, EmbeddedCheckout, Emb
 import { loadStripe } from '@stripe/stripe-js'; 
 import { CheckCircleOutline, Delete, Edit, ExpandMore } from "@mui/icons-material"
 import { WYSIWYG } from "./wysiwyg"
+
+// Bridge Eligibility - shared variable for storing most recent eligibility userIds
+const bridgeEligibilityResult = {
+  userIds: [] as string[],
+}
+
+export const getBridgeEligibilityUserIds = () => bridgeEligibilityResult.userIds
+export const setBridgeEligibilityUserIds = (userIds: string[]) => {
+  bridgeEligibilityResult.userIds = userIds
+}
 
 // Debounce hook for search functionality
 const useDebounce = <T,>(value: T, delay: number): T => {
@@ -409,15 +419,19 @@ export const TableInput = ({ field, value=[], onChange, ...props }: FormInputPro
   )
 }
 
-export const AutoFocusTextField = (props: TextFieldProps) => (
-  <TextField InputProps={defaultInputProps} {...props} />
-)
+export const AutoFocusTextField = (props: TextFieldProps & { inputProps?: { sx: SxProps } }) => {
+  const { inputProps, ...textFieldProps } = props
+  return <TextField InputProps={inputProps || defaultInputProps} {...textFieldProps} />
+}
 
-const CustomDateStringInput = forwardRef((props: TextFieldProps, ref) => (
-  <TextField InputProps={defaultInputProps}
-    fullWidth inputRef={ref} {...props} 
-  />
-))
+const CustomDateStringInput = forwardRef((props: TextFieldProps & { inputProps?: { sx: SxProps } }, ref) => {
+  const { inputProps, ...textFieldProps } = props
+  return (
+    <TextField InputProps={inputProps || defaultInputProps}
+      fullWidth inputRef={ref} {...textFieldProps}
+    />
+  )
+})
 export const DateStringInput = ({ field, value, onChange, ...props }: FormInputProps<'string'>) => {
   const inputRef = useRef(null);
 
@@ -543,7 +557,9 @@ export const NumberInput = ({ field, value, onChange, form, ...props }: FormInpu
   )
 }
 
-export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form, responses, enduser, ...props }: FormInputProps<'Insurance'>) => {
+export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form, responses, enduser, inputProps, ...props }: FormInputProps<'Insurance'> & {
+  inputProps?: { sx: SxProps },
+}) => {
   const session = useResolvedSession()
 
   const [payers, setPayers] = useState<{ id: string, name: string, databaseRecord?: DatabaseRecord, type?: string, state?: string }[]>([])
@@ -566,6 +582,7 @@ export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form,
   const loadRef = useRef(false) // so session changes don't cause
   useEffect(() => {
     if (field?.options?.dataSource === CANVAS_TITLE) return // instead, look-up while typing against Canvas Search API
+    if (field?.options?.dataSource === BRIDGE_TITLE) return // instead, look-up while typing against Bridge Search API
     if (loadRef.current) return
     loadRef.current = true
 
@@ -587,25 +604,32 @@ export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form,
 
   const searchRef = useRef(query)
   useEffect(() => {
-    if (field?.options?.dataSource !== CANVAS_TITLE) { return }
+    if (field?.options?.dataSource !== CANVAS_TITLE && field?.options?.dataSource !== BRIDGE_TITLE) { return }
     if (!query) return
     if (searchRef.current === query) return
     searchRef.current = query
 
-    session.api.integrations.proxy_read({
-      integration: CANVAS_TITLE,
-      query,
-      type: 'organizations',
-    })
-    .then(({ data }) => {
-      try {
-        setPayers(data.map((d: any) => ({
-          id: d.resource.id,
-          name: d.resource.name,
-        })))
-      } catch(err) { console.error }
-    })
-    .catch(console.error)
+    const integration = field?.options?.dataSource === CANVAS_TITLE ? CANVAS_TITLE : BRIDGE_TITLE
+    const type = field?.options?.dataSource === CANVAS_TITLE ? 'organizations' : 'payers'
+
+    const t = setTimeout(() => (
+      session.api.integrations.proxy_read({
+        integration,
+        query,
+        type,
+      })
+      .then(({ data }) => {
+        try {
+          setPayers(data.map((d: any) => ({
+            id: field?.options?.dataSource === CANVAS_TITLE ? d.resource.id : d.id,
+            name: field?.options?.dataSource === CANVAS_TITLE ? d.resource.name : d.name,
+          })))
+        } catch(err) { console.error }
+      })
+      .catch(console.error)
+    ), 300)
+
+    return () => { clearTimeout(t) }
   }, [session, field?.options?.dataSource, query])
 
   return (
@@ -639,15 +663,15 @@ export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form,
             }
           }
         renderInput={(params) => (
-          <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
+          <TextField {...params} InputProps={{ ...params.InputProps, sx: (inputProps || defaultInputProps).sx }}
             required={!field.isOptional} size="small" label={"Insurer"}
-            placeholder={field.options?.dataSource === CANVAS_TITLE ? "Search insurer..." : "Insurer"}
+            placeholder={(field.options?.dataSource === CANVAS_TITLE || field.options?.dataSource === BRIDGE_TITLE) ? "Search insurer..." : "Insurer"}
           />
         )}
       />
       </Grid>
       <Grid item xs={12} sm={6}>
-      <TextField InputProps={defaultInputProps} required={!field.isOptional} fullWidth value={value?.memberId ?? ''} 
+      <TextField InputProps={inputProps || defaultInputProps} required={!field.isOptional} fullWidth value={value?.memberId ?? ''} 
         onChange={e => onChange({ ...value, memberId: e.target.value }, field.id)}  
         label={form_display_text_for_language(form, "Member ID", '')}
         size="small"
@@ -655,8 +679,8 @@ export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form,
       </Grid>
 
       <Grid item xs={12} sm={6}>
-      <TextField InputProps={defaultInputProps} required={false} fullWidth value={value?.planName ?? ''} 
-        onChange={e => onChange({ ...value, planName: e.target.value }, field.id)}  
+      <TextField InputProps={inputProps || defaultInputProps} required={false} fullWidth value={value?.planName ?? ''}
+        onChange={e => onChange({ ...value, planName: e.target.value }, field.id)}
         label={form_display_text_for_language(form, "Plan Name", '')}
         size="small"
       />
@@ -664,14 +688,15 @@ export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form,
 
       <Grid item xs={12} sm={6}>
         <DateStringInput size="small" label="Plan Start Date"
+          inputProps={inputProps}
           field={{
             ...field,
             isOptional: true, //field.isOptional || field.options?.billingProvider === 'Candid'
-          }} 
-          value={value?.startDate || ''} 
-          onChange={startDate => 
-            onChange({ 
-              ...value, 
+          }}
+          value={value?.startDate || ''}
+          onChange={startDate =>
+            onChange({
+              ...value,
               startDate,
             }, field.id)
           }
@@ -680,7 +705,7 @@ export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form,
 
       {field.options?.includeGroupNumber &&
         <Grid item xs={12}>
-          <TextField InputProps={defaultInputProps} fullWidth value={value?.groupNumber ?? ''} 
+          <TextField InputProps={inputProps || defaultInputProps} fullWidth value={value?.groupNumber ?? ''} 
             onChange={e => onChange({ ...value, groupNumber: e.target.value }, field.id)}  
             label={form_display_text_for_language(form, "Group Number", '')}
             size="small"
@@ -690,16 +715,17 @@ export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form,
 
       <Grid item xs={12}>
         <StringSelector size="small" label="Relationship to Policy Owner"
+          inputProps={inputProps}
           options={
             (
               (field.options?.billingProvider === CANVAS_TITLE || field.options?.dataSource === CANVAS_TITLE )
-                ? INSURANCE_RELATIONSHIPS_CANVAS 
+                ? INSURANCE_RELATIONSHIPS_CANVAS
                 : INSURANCE_RELATIONSHIPS
             )
             .sort((x, y) => x.localeCompare(y))
           }
-          value={value?.relationship || 'Self'} 
-          onChange={relationship => 
+          value={value?.relationship || 'Self'}
+          onChange={relationship =>
             onChange({ ...value, relationship: relationship as InsuranceRelationship || 'Self' }, field.id)
           }
         />
@@ -712,24 +738,24 @@ export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form,
         </Grid>
 
         <Grid item xs={6}>
-          <TextField label="First Name" size="small" InputProps={defaultInputProps} fullWidth
-            value={value?.relationshipDetails?.fname || ''} 
+          <TextField label="First Name" size="small" InputProps={inputProps || defaultInputProps} fullWidth
+            value={value?.relationshipDetails?.fname || ''}
             required={!field.isOptional}
-            onChange={e => 
-              onChange({ 
-                ...value, 
+            onChange={e =>
+              onChange({
+                ...value,
                 relationshipDetails: { ...value?.relationshipDetails, fname: e.target.value }
               }, field.id)
             }
           />
         </Grid>
         <Grid item xs={6}>
-          <TextField label="Last Name" size="small" InputProps={defaultInputProps} fullWidth
-            value={value?.relationshipDetails?.lname || ''} 
+          <TextField label="Last Name" size="small" InputProps={inputProps || defaultInputProps} fullWidth
+            value={value?.relationshipDetails?.lname || ''}
             required={!field.isOptional}
-            onChange={e => 
-              onChange({ 
-                ...value, 
+            onChange={e =>
+              onChange({
+                ...value,
                 relationshipDetails: { ...value?.relationshipDetails, lname: e.target.value }
               }, field.id)
             }
@@ -737,11 +763,12 @@ export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form,
         </Grid>
         <Grid item xs={6}>
           <StringSelector options={TELLESCOPE_GENDERS} size="small" label="Gender"
-            value={value?.relationshipDetails?.gender || ''} 
+            inputProps={inputProps}
+            value={value?.relationshipDetails?.gender || ''}
             required={!field.isOptional}
-            onChange={v => 
-              onChange({ 
-                ...value, 
+            onChange={v =>
+              onChange({
+                ...value,
                 relationshipDetails: { ...value?.relationshipDetails, gender: v as TellescopeGender }
               }, field.id)
             }
@@ -749,14 +776,15 @@ export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form,
         </Grid>
         <Grid item xs={6}>
           <DateStringInput size="small" label="Date of Birth"
+            inputProps={inputProps}
             field={{
               ...field,
               isOptional: field.isOptional || field.options?.billingProvider === 'Candid'
-            }} 
-            value={value?.relationshipDetails?.dateOfBirth || ''} 
-            onChange={dateOfBirth => 
-              onChange({ 
-                ...value, 
+            }}
+            value={value?.relationshipDetails?.dateOfBirth || ''}
+            onChange={dateOfBirth =>
+              onChange({
+                ...value,
                 relationshipDetails: { ...value?.relationshipDetails, dateOfBirth }
               }, field.id)
             }
@@ -894,8 +922,8 @@ export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form,
               field.id
             )}
             renderInput={(params) => (
-              <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
-                size={'small'} label={"State"} required={!field.isOptional}  
+              <TextField {...params} InputProps={{ ...params.InputProps, sx: (inputProps || defaultInputProps).sx }}
+                size={'small'} label={"State"} required={!field.isOptional}
               />
             )}
             {...props}
@@ -908,7 +936,7 @@ export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form,
 }
 
 
-const StringSelector = ({ options, value, onChange, required, getDisplayValue, ...props } : {
+const StringSelector = ({ options, value, onChange, required, getDisplayValue, inputProps, ...props } : {
   options: string[]
   value: string,
   onChange: (v: string) => void,
@@ -917,11 +945,12 @@ const StringSelector = ({ options, value, onChange, required, getDisplayValue, .
   required?: boolean,
   getDisplayValue?: (v: string) => string,
   disabled?: boolean,
+  inputProps?: { sx: SxProps },
 }) => (
   <FormControl fullWidth size={props.size} required={required}>
     <InputLabel>{props.label}</InputLabel>
     <Select {...props} value={value} onChange={e => onChange(e.target.value)} fullWidth
-      sx={defaultInputProps.sx}
+      sx={(inputProps || defaultInputProps).sx}
     >
     {options.map((o, i) => (
       <MenuItem value={o} key={o || i}>{getDisplayValue?.(o) ?? o}</MenuItem>
@@ -930,9 +959,354 @@ const StringSelector = ({ options, value, onChange, required, getDisplayValue, .
   </FormControl>
 )
 
+export const BridgeEligibilityInput = ({ field, value, onChange, responses, enduser, inputProps, enduserId, ...props }: FormInputProps<'Bridge Eligibility'> & {
+  inputProps?: { sx: SxProps },
+}) => {
+  const session = useResolvedSession()
+  const [loading, setLoading] = useState(false)
+  const [polling, setPolling] = useState(false)
+  const [error, setError] = useState<string>()
+
+  // single-page form must require button-click to check, but 1-page-at-a-time enduser sessions should auto-check
+  const isEnduserSession = session.type === 'enduser'
+  const eligibilityType = field.options?.bridgeEligibilityType || 'Soft'
+
+  // Extract payerId from Insurance question response
+  const [payerId, memberId, payerName] = useMemo(() => {
+    const insuranceResponse = responses?.find(r => r.answer?.type === 'Insurance' && r.answer?.value?.payerId)
+    if (insuranceResponse?.answer?.type === 'Insurance') {
+      return [
+        insuranceResponse.answer.value?.payerId,
+        insuranceResponse.answer.value?.memberId,
+        insuranceResponse.answer.value?.payerName,
+      ]
+    }
+    // existing payer id is automatically resolved on the backend as default
+    return []
+  }, [responses])
+
+  // Extract state from Address question or enduser
+  const state = useMemo(() => {
+    // Find Address field with state value
+    const addressResponse = responses?.find(r =>
+      r.answer?.type === 'Address' && r.answer?.value?.state
+    )
+    if (addressResponse?.answer?.type === 'Address') {
+      return addressResponse.answer.value?.state
+    }
+    // enduser state is automatically resolved on the backend as default
+  }, [responses])
+
+  // Soft eligibility check function
+  const checkProviderEligibility = useCallback(async () => {
+    const serviceTypeId = field.options?.bridgeServiceTypeId
+
+    if (!serviceTypeId) {
+      setError('Bridge Service Type ID not configured')
+      return
+    }
+    // payerId and state can be automatically resolved on the backend, if already saved on Enduser, so not required here
+
+    setLoading(true)
+    setError(undefined)
+
+    try {
+      const { data } = await session.api.integrations.proxy_read({
+        id: enduserId,
+        integration: BRIDGE_TITLE,
+        type: 'provider-eligibility',
+        query: JSON.stringify({
+          serviceTypeId,
+          payerId,
+          state,
+        }),
+      })
+
+      // Store userIds in shared variable for Appointment Booking to use
+      const userIds = data?.userIds || []
+      setBridgeEligibilityUserIds(userIds)
+
+      // Update the answer with the eligibility result
+      onChange({
+        status: data?.status || 'unknown',
+        userIds,
+      }, field.id)
+    } catch (err: any) {
+      setError(err?.message || 'Failed to check eligibility')
+      console.error('Provider eligibility check failed:', err)
+    } finally {
+      setLoading(false)
+    }
+  }, [session, field, payerId, state, onChange, enduserId])
+
+  // Hard eligibility check function with polling
+  const checkServiceEligibility = useCallback(async () => {
+    const serviceTypeId = field.options?.bridgeServiceTypeId
+
+    if (!serviceTypeId) {
+      setError('Bridge Service Type ID not configured')
+      return
+    }
+
+    setLoading(true)
+    setError(undefined)
+
+    try {
+      // Initiate service eligibility check
+      const { data } = await session.api.integrations.proxy_read({
+        id: enduserId,
+        integration: BRIDGE_TITLE,
+        type: 'service-eligibility',
+        query: JSON.stringify({
+          serviceTypeId,
+          payerId,
+          memberId,
+          state,
+        }),
+      })
+
+      const serviceEligibilityId = data?.id
+      if (!serviceEligibilityId) {
+        throw new Error('No service eligibility ID returned')
+      }
+
+      setLoading(false)
+      setPolling(true)
+
+      // Poll for results
+      const pollForResults = async () => {
+        const maxAttempts = 60 // Poll for up to 60 attempts (2 minutes at 2s intervals)
+        let attempts = 0
+
+        const poll = async (): Promise<void> => {
+          if (attempts >= maxAttempts) {
+            setError('Eligibility check timed out. Please try again.')
+            setPolling(false)
+            return
+          }
+
+          attempts++
+
+          try {
+            const { data: pollData } = await session.api.integrations.proxy_read({
+              id: serviceEligibilityId,
+              integration: BRIDGE_TITLE,
+              type: 'service-eligibility-poll',
+            })
+
+            const status = pollData?.status
+
+            // Check if we're in a terminal state
+            if (status && status !== 'PENDING') {
+              // Store userIds in shared variable for Appointment Booking to use
+              const userIds = pollData?.userIds || []
+              setBridgeEligibilityUserIds(userIds)
+
+              // Update the answer with the eligibility result
+              onChange({
+                status: status || 'unknown',
+                userIds,
+              }, field.id)
+
+              setPolling(false)
+              return
+            }
+
+            // Still pending, poll again after delay
+            setTimeout(poll, 2000) // Poll every 2 seconds
+          } catch (err: any) {
+            setError(err?.message || 'Failed to poll eligibility status')
+            console.error('Service eligibility polling failed:', err)
+            setPolling(false)
+          }
+        }
+
+        poll()
+      }
+
+      pollForResults()
+    } catch (err: any) {
+      setError(err?.message || 'Failed to check service eligibility')
+      console.error('Service eligibility check failed:', err)
+      setLoading(false)
+      setPolling(false)
+    }
+  }, [session, field, payerId, memberId, state, onChange, enduserId])
+
+  // Auto-check eligibility for enduser sessions
+  const autoCheckRef = useRef(false)
+  useEffect(() => {
+    if (!isEnduserSession) return
+    if (autoCheckRef.current) return
+    autoCheckRef.current = true
+
+    if (eligibilityType === 'Hard') {
+      checkServiceEligibility()
+    } else {
+      checkProviderEligibility()
+    }
+  }, [isEnduserSession, eligibilityType, checkProviderEligibility, checkServiceEligibility])
+
+  const errorComponent = useMemo(() => (
+    <Grid container spacing={2} direction="column" alignItems="center" style={{ padding: '20px 0' }}>
+      <Grid item>
+        <Paper style={{
+          padding: 16,
+          backgroundColor: '#ffebee',
+          border: '2px solid #f44336'
+        }}>
+          <Grid container spacing={2} direction="column" alignItems="center">
+            <Grid item>
+              <Typography variant="h2" style={{ color: '#f44336' }}>⚠️</Typography>
+            </Grid>
+            <Grid item>
+              <Typography variant="h6" align="center" color="error">
+                Unable to Check Eligibility
+              </Typography>
+            </Grid>
+            <Grid item>
+              <Typography variant="body2" align="center" style={{ color: '#d32f2f' }}>
+                {error}
+              </Typography>
+            </Grid>
+          </Grid>
+        </Paper>
+      </Grid>
+    </Grid>
+  ), [error])
+
+  const checkingEligibilityComponent = useMemo(() => (
+    <Grid container spacing={2} direction="column" alignItems="center" style={{ padding: '20px 0' }}>
+      <Grid item>
+        <CircularProgress size={40} />
+      </Grid>
+      <Grid item>
+        <Typography variant="body1">
+          {polling ? 'Verifying eligibility with insurance...' : 'Checking eligibility...'}
+        </Typography>
+      </Grid>
+      <Grid item>
+        <Typography variant="body2" color="textSecondary">
+          {polling ? 'This usually takes 15-30 seconds' : 'This may take a few moments'}
+        </Typography>
+      </Grid>
+    </Grid>
+  ), [polling])
+
+  const resultsComponent = useMemo(() => {
+    const isEligible = value?.status === 'ELIGIBLE'
+    return (
+      <Grid container spacing={2} direction="column">
+        <Grid item>
+          <Paper style={{
+            padding: 16,
+            backgroundColor: isEligible ? '#e8f5e9' : '#fff3e0',
+            border: `2px solid ${isEligible ? '#4caf50' : '#ff9800'}`
+          }}>
+            <Grid container spacing={2} direction="column" alignItems="center">
+              <Grid item>
+                {isEligible ? (
+                  <CheckCircleOutline style={{ fontSize: 48, color: '#4caf50' }} />
+                ) : (
+                  <Typography variant="h2" style={{ color: '#ff9800' }}>⚠️</Typography>
+                )}
+              </Grid>
+              <Grid item>
+                <Typography variant="h6" align="center">
+                  {isEligible
+                    ? `${payerName || 'Your insurance provider'} is accepted!`
+                    : 'Eligibility Status: ' + first_letter_capitalized((value?.status || 'Unknown').toLowerCase())
+                  }
+                </Typography>
+              </Grid>
+            </Grid>
+          </Paper>
+        </Grid>
+      </Grid>
+    )
+  }, [value])
+
+  // Loading/polling state for enduser sessions
+  if (isEnduserSession) {
+    if (loading || polling) { return checkingEligibilityComponent }
+    if (error) {
+      return errorComponent
+    }
+    if (value?.status) {
+      return resultsComponent
+    }
+    return errorComponent
+  }
+
+  // User/admin interface (non-enduser sessions)
+  return (
+    <Grid container spacing={2} direction="column">
+      <Grid item>
+        <Typography variant="body2" color="textSecondary">
+          Eligibility Type: {eligibilityType}
+        </Typography>
+        <Typography variant="body2" color="textSecondary">
+          Service Type: {field.options?.bridgeServiceTypeId || 'Not configured'}
+        </Typography>
+        {state && <Typography variant="body2" color="textSecondary">State: {state}</Typography>}
+        {payerId && <Typography variant="body2" color="textSecondary">Payer ID: {payerId}</Typography>}
+        {memberId && <Typography variant="body2" color="textSecondary">Member ID: {memberId}</Typography>}
+      </Grid>
+
+      {error && (
+        <Grid item>
+          <Typography variant="body2" color="error">{error}</Typography>
+        </Grid>
+      )}
+
+      {polling && (
+        <Grid item>
+          <Typography variant="body2" color="primary">
+            Polling for results... (this may take 15-30 seconds)
+          </Typography>
+        </Grid>
+      )}
+
+      <Grid item container spacing={2}>
+        <Grid item>
+          <LoadingButton
+            variant="outlined"
+            onClick={checkProviderEligibility}
+            submitText="Check Provider Eligibility (Free)"
+            submittingText="Checking..."
+            submitting={loading && !polling}
+            disabled={!field.options?.bridgeServiceTypeId || loading || polling}
+          />
+        </Grid>
+        <Grid item>
+          <LoadingButton
+            variant="outlined"
+            onClick={checkServiceEligibility}
+            submitText="Check Service Eligibility (Paid)"
+            submittingText={polling ? "Polling..." : "Initiating..."}
+            submitting={loading || polling}
+            disabled={!field.options?.bridgeServiceTypeId || loading || polling}
+          />
+        </Grid>
+      </Grid>
+
+      {value && (
+        <Grid item>
+          <Typography variant="caption" color="textSecondary">
+            Current Answer:
+          </Typography>
+          <pre style={{ fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            {JSON.stringify(value, null, 2)}
+          </pre>
+        </Grid>
+      )}
+    </Grid>
+  )
+}
+
 const HourSelector = (props : { value: string, onChange: (v: string) => void })  => (
-  <StringSelector {...props} 
-    options={Array(12).fill('').map((_, i) => (i + 1) <= 9 ? `0${i + 1}` : (i + 1).toString())} 
+  <StringSelector {...props}
+    options={Array(12).fill('').map((_, i) => (i + 1) <= 9 ? `0${i + 1}` : (i + 1).toString())}
   />
 )
 const MinuteSelector = (props : { value: string, onChange: (v: string) => void })  => (
@@ -3684,6 +4058,16 @@ export const AppointmentBookingInput = ({ formResponseId, field, value, onChange
       })
       .join(',')
     }`
+  }
+  // Filter to Bridge eligibility userIds if option is enabled
+  if (field.options?.useBridgeEligibilityResult) {
+    const bridgeUserIds = getBridgeEligibilityUserIds()
+
+    if (bridgeUserIds.length === 0) {
+      return <Typography>No eligible users found for booking</Typography>
+    }
+
+    bookingURL += `&userIds=${bridgeUserIds.join(',')}`
   }
   // need to use form?.id for internally-submitted forms because formResponseId isn't generated until initial submission or saved draft
   if (field.options?.holdAppointmentMinutes && (formResponseId || field?.id)) {

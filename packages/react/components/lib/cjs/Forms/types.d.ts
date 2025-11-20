@@ -2,6 +2,7 @@ import { AnswerForType, FormResponseValue } from "@tellescope/types-models";
 import { DatabaseRecord, Enduser, Form, FormField } from "@tellescope/types-client";
 import { FileBlob, TreeNode } from "@tellescope/types-utilities";
 import { JSXElementConstructor } from "react";
+import { SxProps } from "@mui/material";
 import { Response } from "./hooks";
 export type FormFieldNode = TreeNode<FormField>;
 export type ChangeHandler<K extends keyof AnswerForType> = (v: AnswerForType[K], fieldId: string, setTouched?: boolean) => void;
@@ -38,6 +39,9 @@ export interface FormInputProps<K extends keyof AnswerForType> {
         fieldId: string;
     }[]>>;
     groupFields?: FormField[];
+    inputProps?: {
+        sx: SxProps;
+    };
 }
 export type FormInputs = {
     [K in keyof AnswerForType]: JSXElementConstructor<FormInputProps<K>>;

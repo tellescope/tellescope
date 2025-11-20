@@ -254,6 +254,7 @@ import {
   TicketReminder,
   EnduserInsurance,
   FormResponseAnswerInsurance,
+  FormResponseAnswerBridgeEligibility,
   CanvasConsentCategory,
   DiagnosisTypes,
   DiagnosisType,
@@ -368,11 +369,12 @@ import {
   object_is_empty,
   to_object_id,
 } from "@tellescope/utilities"
-import { 
+import {
   ACTIVE_CAMPAIGN_TITLE,
   ALL_ACCESS,
   ASSIGNED_ACCESS,
   ATHENA_TITLE,
+  BRIDGE_TITLE,
   CANDID_TITLE,
   CANVAS_TITLE,
   DEFAULT_ACCESS,
@@ -1594,6 +1596,7 @@ const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
   Medications: '',
   "Related Contacts": "",
   'Insurance': '',
+  'Bridge Eligibility': '',
   Height: '',
   Redirect: '',
   'Hidden Value': '',
@@ -1619,6 +1622,7 @@ export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' 
   'Redirect': stringValidator.validate({ maxLength: 100 }),
   'Related Contacts': objectAnyFieldsAnyValuesValidator.validate(),
   'Insurance': objectAnyFieldsAnyValuesValidator.validate(),
+  'Bridge Eligibility': objectAnyFieldsAnyValuesValidator.validate(),
   'Address': objectAnyFieldsAnyValuesValidator.validate(),
   'Database Select': objectAnyFieldsAnyValuesValidator.validate(),
   'Height': objectAnyFieldsAnyValuesValidator.validate(),
@@ -1992,9 +1996,16 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
     type: exactMatchValidator(['Insurance']),
     value: insuranceOptionalValidator,
   }),
+  "Bridge Eligibility": objectValidator<FormResponseAnswerBridgeEligibility>({
+    type: exactMatchValidator(['Bridge Eligibility']),
+    value: objectValidator<FormResponseAnswerBridgeEligibility['value']>({
+      status: stringValidatorOptional,
+      userIds: listOfStringsValidatorOptionalOrEmptyOk, // User IDs who cover the patient
+    }, { isOptional: true, emptyOk: true }),
+  }),
   "Question Group": objectValidator<FormResponseAnswerGroup>({
     type: exactMatchValidator(['Question Group']),
-    value: listValidatorEmptyOk(objectValidator<FormSubField>({ 
+    value: listValidatorEmptyOk(objectValidator<FormSubField>({
       id: mongoIdStringRequired,
     }))
   }),
@@ -3683,6 +3694,9 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   userFilterTags: listOfStringsValidatorOptionalOrEmptyOk,
   prefillSignature: booleanValidatorOptional,
   requirePredefinedInsurer: booleanValidatorOptional,
+  bridgeServiceTypeId: stringValidatorOptional,
+  bridgeEligibilityType: exactMatchValidatorOptional(['Soft', 'Hard']),
+  useBridgeEligibilityResult: booleanValidatorOptional,
   includeGroupNumber: booleanValidatorOptional,
   holdAppointmentMinutes: numberValidatorOptional,
   rangeStepSize: numberValidatorOptional,
@@ -5337,9 +5351,9 @@ export const purchaseCreditValueValidator = orValidator<{ [K in PurcahseCreditTy
 })
 
 export type IntegrationsTitleType = (
-  typeof SQUARE_INTEGRATIONS_TITLE 
-| typeof OUTLOOK_INTEGRATIONS_TITLE 
-| typeof ZOHO_TITLE 
+  typeof SQUARE_INTEGRATIONS_TITLE
+| typeof OUTLOOK_INTEGRATIONS_TITLE
+| typeof ZOHO_TITLE
 | typeof ZOOM_TITLE
 | typeof ZENDESK_INTEGRATIONS_TITLE
 | typeof FULLSCRIPT_INTEGRATIONS_TITLE
@@ -5357,6 +5371,7 @@ export type IntegrationsTitleType = (
 | typeof STRIPE_TITLE
 | typeof EMOTII_TITLE
 | typeof DEVELOP_HEALTH_TITLE
+| typeof BRIDGE_TITLE
 )
 export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleType>([
   SQUARE_INTEGRATIONS_TITLE,
@@ -5379,6 +5394,7 @@ export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleTy
   STRIPE_TITLE,
   EMOTII_TITLE,
   DEVELOP_HEALTH_TITLE,
+  BRIDGE_TITLE,
 ])
 
 const _VIDEO_INTEGRATION_TYPES: { [K in VideoIntegrationType]: any} = {

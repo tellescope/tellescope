@@ -4652,7 +4652,7 @@ export var schema = build_schema({
                     id: stringValidator100,
                     name: stringValidator,
                 }))
-            }, groups: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: stringValidator }, observationInvalidationReasons: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: stringValidator }, hasConnectedPaubox: { validator: booleanValidator }, createEnduserForms: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, skipActivePatientBilling: { validator: booleanValidator } }),
+            }, groups: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: stringValidator }, observationInvalidationReasons: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: stringValidator }, hasConnectedPaubox: { validator: booleanValidator }, hasConnectedBridge: { validator: booleanValidator }, createEnduserForms: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, skipActivePatientBilling: { validator: booleanValidator } }),
     },
     databases: {
         info: {},

@@ -412,6 +412,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedBeluga?: boolean,
   hasConnectedMetriport?: boolean,
   hasConnectedPaubox?: boolean,
+  hasConnectedBridge?: boolean,
   hasConfiguredZoom?: boolean,
   hasTicketQueues?: boolean,
   vitalTeamId?: string,
@@ -1602,7 +1603,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
 }
 
 export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time' | "Timezone"
-export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance" | "Beluga Patient Preference"
+export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance" | "Bridge Eligibility" | "Beluga Patient Preference"
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
 
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic'
@@ -1703,6 +1704,9 @@ export type FormFieldOptions = FormFieldValidation & {
   userFilterTags?: string[], 
 
   requirePredefinedInsurer?: boolean,
+  bridgeServiceTypeId?: string, // Bridge service type ID for eligibility checks
+  bridgeEligibilityType?: 'Soft' | 'Hard', // Type of Bridge eligibility check (defaults to 'Soft')
+  useBridgeEligibilityResult?: boolean, // Use provider list from most recent Bridge eligibility check
   addressFields?: string[], // supports specifying just 'state', for now
   validStates?: string[],
   autoAdvance?: boolean,
@@ -2122,6 +2126,10 @@ export type FormResponseAnswerMedications = FormResponseValueAnswerBuilder<'Medi
 export type FormResponseAnswerRelatedContacts = FormResponseValueAnswerBuilder<'Related Contacts', Partial<Enduser>[]>
 export type FormResponseAnswerAppointmentBooking = FormResponseValueAnswerBuilder<'Appointment Booking', string>
 export type FormResponseAnswerInsurance = FormResponseValueAnswerBuilder<'Insurance', Partial<EnduserInsurance>>
+export type FormResponseAnswerBridgeEligibility = FormResponseValueAnswerBuilder<'Bridge Eligibility', {
+  status?: string,
+  userIds?: string[], // User IDs who cover the patient
+}>
 export type FormResponseAnswerHeight = FormResponseValueAnswerBuilder<'Height', { feet: number, inches: number }>
 export type FormResponseAnswerRedirect = FormResponseValueAnswerBuilder<'Redirect', string>
 export type FormResponseAnswerAllergies = FormResponseValueAnswerBuilder<'Allergies', AllergyResponse[]>
@@ -2190,6 +2198,7 @@ export type FormResponseValueAnswer = (
   | FormResponseAnswerConditions
   | FormResponseAnswerChargebee
   | FormResponseAnswerBelugaPatientPreference
+  | FormResponseAnswerBridgeEligibility
 )
 
 export type FormResponseValue = {
@@ -2232,6 +2241,7 @@ export type AnswerForType = {
   'Medications': FormResponseAnswerMedications['value']
   'Related Contacts': FormResponseAnswerRelatedContacts['value']
   'Insurance': FormResponseAnswerInsurance['value']
+  'Bridge Eligibility': FormResponseAnswerBridgeEligibility['value']
   'Appointment Booking': FormResponseAnswerAppointmentBooking['value']
   'Chargebee': FormResponseAnswerChargebee['value']
   'Height': FormResponseAnswerHeight['value']

@@ -1201,6 +1201,7 @@ var _FORM_FIELD_TYPES = {
     Medications: '',
     "Related Contacts": "",
     'Insurance': '',
+    'Bridge Eligibility': '',
     Height: '',
     Redirect: '',
     'Hidden Value': '',
@@ -1225,6 +1226,7 @@ exports.FORM_FIELD_VALIDATORS_BY_TYPE = {
     'Redirect': exports.stringValidator.validate({ maxLength: 100 }),
     'Related Contacts': exports.objectAnyFieldsAnyValuesValidator.validate(),
     'Insurance': exports.objectAnyFieldsAnyValuesValidator.validate(),
+    'Bridge Eligibility': exports.objectAnyFieldsAnyValuesValidator.validate(),
     'Address': exports.objectAnyFieldsAnyValuesValidator.validate(),
     'Database Select': exports.objectAnyFieldsAnyValuesValidator.validate(),
     'Height': exports.objectAnyFieldsAnyValuesValidator.validate(),
@@ -1571,6 +1573,13 @@ exports.formResponseAnswerValidator = (0, exports.orValidator)({
     "Insurance": (0, exports.objectValidator)({
         type: (0, exports.exactMatchValidator)(['Insurance']),
         value: exports.insuranceOptionalValidator,
+    }),
+    "Bridge Eligibility": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['Bridge Eligibility']),
+        value: (0, exports.objectValidator)({
+            status: exports.stringValidatorOptional,
+            userIds: exports.listOfStringsValidatorOptionalOrEmptyOk, // User IDs who cover the patient
+        }, { isOptional: true, emptyOk: true }),
     }),
     "Question Group": (0, exports.objectValidator)({
         type: (0, exports.exactMatchValidator)(['Question Group']),
@@ -2896,6 +2905,9 @@ exports.formFieldOptionsValidator = (0, exports.objectValidator)({
     userFilterTags: exports.listOfStringsValidatorOptionalOrEmptyOk,
     prefillSignature: exports.booleanValidatorOptional,
     requirePredefinedInsurer: exports.booleanValidatorOptional,
+    bridgeServiceTypeId: exports.stringValidatorOptional,
+    bridgeEligibilityType: (0, exports.exactMatchValidatorOptional)(['Soft', 'Hard']),
+    useBridgeEligibilityResult: exports.booleanValidatorOptional,
     includeGroupNumber: exports.booleanValidatorOptional,
     holdAppointmentMinutes: exports.numberValidatorOptional,
     rangeStepSize: exports.numberValidatorOptional,
@@ -4512,6 +4524,7 @@ exports.integrationTitleValidator = (0, exports.exactMatchValidator)([
     constants_1.STRIPE_TITLE,
     constants_1.EMOTII_TITLE,
     constants_1.DEVELOP_HEALTH_TITLE,
+    constants_1.BRIDGE_TITLE,
 ]);
 var _VIDEO_INTEGRATION_TYPES = {
     Zoom: '',

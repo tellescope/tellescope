@@ -74,15 +74,15 @@ import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } 
 import axios from "axios";
 import { Autocomplete, Box, Button, Checkbox, Chip, Divider, FormControl, Grid, InputLabel, MenuItem, RadioGroup, Select, TextField, Typography } from "@mui/material";
 import { useDropzone } from "react-dropzone";
-import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants";
-import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities";
+import { CANVAS_TITLE, EMOTII_TITLE, PRIMARY_HEX, RELATIONSHIP_TYPES } from "@tellescope/constants";
+import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, first_letter_capitalized, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, truncate_string, user_display_name } from "@tellescope/utilities";
 import { TIMEZONES_USA } from "@tellescope/types-models";
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation";
 import Slider from '@mui/material/Slider';
 import LinearProgress from '@mui/material/LinearProgress';
 import DatePicker from "react-datepicker";
 import { datepickerCSS } from "./css/react-datepicker"; // avoids build issue with RN
-import { CancelIcon, IconButton, LabeledIconButton, LoadingButton, form_display_text_for_language, isDateString, useResolvedSession } from "..";
+import { CancelIcon, IconButton, LabeledIconButton, form_display_text_for_language, isDateString, useResolvedSession } from "..";
 import { css } from '@emotion/css';
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import DragIndicatorIcon from '@mui/icons-material/DragIndicator';
@@ -328,122 +328,15 @@ export var NumberInput = function (_a) {
             }
         } })));
 };
-export var InsuranceInput = function (_a) {
-    var _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
-    var field = _a.field, onDatabaseSelect = _a.onDatabaseSelect, value = _a.value, onChange = _a.onChange, form = _a.form, responses = _a.responses, enduser = _a.enduser, props = __rest(_a, ["field", "onDatabaseSelect", "value", "onChange", "form", "responses", "enduser"]);
-    var session = useResolvedSession();
-    var _t = useState([]), payers = _t[0], setPayers = _t[1];
-    var _u = useState(''), query = _u[0], setQuery = _u[1];
-    var addressQuestion = useMemo(function () { return responses === null || responses === void 0 ? void 0 : responses.find(function (r) {
-        var _a;
-        if (r.answer.type !== 'Address')
-            return false;
-        if (r.field.intakeField !== 'Address')
-            return false;
-        // make sure state is actually defined (in case of multiple address questions, where 1+ are blank)
-        if (!((_a = r.answer.value) === null || _a === void 0 ? void 0 : _a.state))
-            return false;
-        return true;
-    }); }, [responses]);
-    var state = useMemo(function () {
-        var _a, _b, _d;
-        return ((((_a = addressQuestion === null || addressQuestion === void 0 ? void 0 : addressQuestion.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Address' ? (_d = (_b = addressQuestion === null || addressQuestion === void 0 ? void 0 : addressQuestion.answer) === null || _b === void 0 ? void 0 : _b.value) === null || _d === void 0 ? void 0 : _d.state : undefined) || (enduser === null || enduser === void 0 ? void 0 : enduser.state));
-    }, [enduser === null || enduser === void 0 ? void 0 : enduser.state, addressQuestion]);
-    var loadRef = useRef(false); // so session changes don't cause
-    useEffect(function () {
-        var _a;
-        if (((_a = field === null || field === void 0 ? void 0 : field.options) === null || _a === void 0 ? void 0 : _a.dataSource) === CANVAS_TITLE)
-            return; // instead, look-up while typing against Canvas Search API
-        if (loadRef.current)
-            return;
-        loadRef.current = true;
-        // just load all at once, should be reasonably performant compared to paging
-        session.api.form_fields.load_choices_from_database({ fieldId: field.id, limit: 10000 })
-            .then(function (_a) {
-            var choices = _a.choices;
-            return setPayers(choices
-                .map(function (c) {
-                var _a, _b, _d, _e, _f, _g, _h, _j;
-                return ({
-                    id: ((_b = (_a = c.values.find(function (v) { var _a, _b; return ((_b = (_a = v.label) === null || _a === void 0 ? void 0 : _a.trim()) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'id'; })) === null || _a === void 0 ? void 0 : _a.value) === null || _b === void 0 ? void 0 : _b.toString()) || '',
-                    name: ((_e = (_d = c.values.find(function (v) { var _a, _b; return ((_b = (_a = v.label) === null || _a === void 0 ? void 0 : _a.trim()) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'name'; })) === null || _d === void 0 ? void 0 : _d.value) === null || _e === void 0 ? void 0 : _e.toString()) || '',
-                    state: ((_g = (_f = c.values.find(function (v) { var _a, _b; return ((_b = (_a = v.label) === null || _a === void 0 ? void 0 : _a.trim()) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'state'; })) === null || _f === void 0 ? void 0 : _f.value) === null || _g === void 0 ? void 0 : _g.toString()) || '',
-                    type: ((_j = (_h = c.values.find(function (v) { var _a, _b; return ((_b = (_a = v.label) === null || _a === void 0 ? void 0 : _a.trim()) === null || _b === void 0 ? void 0 : _b.toLowerCase()) === 'type'; })) === null || _h === void 0 ? void 0 : _h.value) === null || _j === void 0 ? void 0 : _j.toString()) || '',
-                    databaseRecord: c,
-                });
-            })
-                .filter(function (c) { return !c.state || !state || (c.state === state); }));
-        })
-            .catch(console.error);
-    }, [session, state, (_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.dataSource]);
-    var searchRef = useRef(query);
-    useEffect(function () {
-        var _a;
-        if (((_a = field === null || field === void 0 ? void 0 : field.options) === null || _a === void 0 ? void 0 : _a.dataSource) !== CANVAS_TITLE) {
-            return;
-        }
-        if (!query)
-            return;
-        if (searchRef.current === query)
-            return;
-        searchRef.current = query;
-        session.api.integrations.proxy_read({
-            integration: CANVAS_TITLE,
-            query: query,
-            type: 'organizations',
-        })
-            .then(function (_a) {
-            var data = _a.data;
-            try {
-                setPayers(data.map(function (d) { return ({
-                    id: d.resource.id,
-                    name: d.resource.name,
-                }); }));
-            }
-            catch (err) {
-                console.error;
-            }
-        })
-            .catch(console.error);
-    }, [session, (_d = field === null || field === void 0 ? void 0 : field.options) === null || _d === void 0 ? void 0 : _d.dataSource, query]);
-    return (_jsxs(Grid, __assign({ container: true, spacing: 2, sx: { mt: '0' } }, { children: [_jsx(Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: _jsx(Autocomplete, { freeSolo: !((_e = field.options) === null || _e === void 0 ? void 0 : _e.requirePredefinedInsurer), options: payers.map(function (p) { return p.name; }), value: (value === null || value === void 0 ? void 0 : value.payerName) || '', onChange: function (e, v) {
-                        var _a, _b;
-                        return onChange(__assign(__assign({}, value), { payerName: v || '', payerId: ((_a = payers.find(function (p) { return p.name === v; })) === null || _a === void 0 ? void 0 : _a.id) || '', payerType: ((_b = payers.find(function (p) { return p.name === v; })) === null || _b === void 0 ? void 0 : _b.type) || '' }), field.id);
-                    }, onInputChange: ((_f = field.options) === null || _f === void 0 ? void 0 : _f.requirePredefinedInsurer)
-                        ? function (e, v) { if (v) {
-                            setQuery(v);
-                        } }
-                        : function (e, v) {
-                            var _a, _b, _d;
-                            if (v) {
-                                setQuery(v);
-                            }
-                            var databaseRecord = (_a = payers.find(function (p) { return p.name === v; })) === null || _a === void 0 ? void 0 : _a.databaseRecord;
-                            if (databaseRecord) {
-                                onDatabaseSelect === null || onDatabaseSelect === void 0 ? void 0 : onDatabaseSelect([databaseRecord]);
-                            }
-                            onChange(__assign(__assign({}, value), { payerName: v || '', payerId: ((_b = payers.find(function (p) { return p.name === v; })) === null || _b === void 0 ? void 0 : _b.id) || '', payerType: ((_d = payers.find(function (p) { return p.name === v; })) === null || _d === void 0 ? void 0 : _d.type) || '' }), field.id);
-                        }, renderInput: function (params) {
-                        var _a;
-                        return (_jsx(TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: defaultInputProps.sx }), required: !field.isOptional, size: "small", label: "Insurer", placeholder: ((_a = field.options) === null || _a === void 0 ? void 0 : _a.dataSource) === CANVAS_TITLE ? "Search insurer..." : "Insurer" })));
-                    } }) })), _jsx(Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: _jsx(TextField, { InputProps: defaultInputProps, required: !field.isOptional, fullWidth: true, value: (_g = value === null || value === void 0 ? void 0 : value.memberId) !== null && _g !== void 0 ? _g : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { memberId: e.target.value }), field.id); }, label: form_display_text_for_language(form, "Member ID", ''), size: "small" }) })), _jsx(Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: _jsx(TextField, { InputProps: defaultInputProps, required: false, fullWidth: true, value: (_h = value === null || value === void 0 ? void 0 : value.planName) !== null && _h !== void 0 ? _h : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { planName: e.target.value }), field.id); }, label: form_display_text_for_language(form, "Plan Name", ''), size: "small" }) })), _jsx(Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: _jsx(DateStringInput, { size: "small", label: "Plan Start Date", field: __assign(__assign({}, field), { isOptional: true }), value: (value === null || value === void 0 ? void 0 : value.startDate) || '', onChange: function (startDate) {
-                        return onChange(__assign(__assign({}, value), { startDate: startDate }), field.id);
-                    } }) })), ((_j = field.options) === null || _j === void 0 ? void 0 : _j.includeGroupNumber) &&
-                _jsx(Grid, __assign({ item: true, xs: 12 }, { children: _jsx(TextField, { InputProps: defaultInputProps, fullWidth: true, value: (_k = value === null || value === void 0 ? void 0 : value.groupNumber) !== null && _k !== void 0 ? _k : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { groupNumber: e.target.value }), field.id); }, label: form_display_text_for_language(form, "Group Number", ''), size: "small" }) })), _jsx(Grid, __assign({ item: true, xs: 12 }, { children: _jsx(StringSelector, { size: "small", label: "Relationship to Policy Owner", options: ((((_l = field.options) === null || _l === void 0 ? void 0 : _l.billingProvider) === CANVAS_TITLE || ((_m = field.options) === null || _m === void 0 ? void 0 : _m.dataSource) === CANVAS_TITLE)
-                        ? INSURANCE_RELATIONSHIPS_CANVAS
-                        : INSURANCE_RELATIONSHIPS)
-                        .sort(function (x, y) { return x.localeCompare(y); }), value: (value === null || value === void 0 ? void 0 : value.relationship) || 'Self', onChange: function (relationship) {
-                        return onChange(__assign(__assign({}, value), { relationship: relationship || 'Self' }), field.id);
-                    } }) })), ((value === null || value === void 0 ? void 0 : value.relationship) || 'Self') !== 'Self' &&
-                _jsxs(_Fragment, { children: [_jsx(Grid, __assign({ item: true, xs: 12 }, { children: _jsx(Typography, __assign({ sx: { fontWeight: 'bold' } }, { children: "Policy Owner Details" })) })), _jsx(Grid, __assign({ item: true, xs: 6 }, { children: _jsx(TextField, { label: "First Name", size: "small", InputProps: defaultInputProps, fullWidth: true, value: ((_o = value === null || value === void 0 ? void 0 : value.relationshipDetails) === null || _o === void 0 ? void 0 : _o.fname) || '', required: !field.isOptional, onChange: function (e) {
-                                    return onChange(__assign(__assign({}, value), { relationshipDetails: __assign(__assign({}, value === null || value === void 0 ? void 0 : value.relationshipDetails), { fname: e.target.value }) }), field.id);
-                                } }) })), _jsx(Grid, __assign({ item: true, xs: 6 }, { children: _jsx(TextField, { label: "Last Name", size: "small", InputProps: defaultInputProps, fullWidth: true, value: ((_p = value === null || value === void 0 ? void 0 : value.relationshipDetails) === null || _p === void 0 ? void 0 : _p.lname) || '', required: !field.isOptional, onChange: function (e) {
-                                    return onChange(__assign(__assign({}, value), { relationshipDetails: __assign(__assign({}, value === null || value === void 0 ? void 0 : value.relationshipDetails), { lname: e.target.value }) }), field.id);
-                                } }) })), _jsx(Grid, __assign({ item: true, xs: 6 }, { children: _jsx(StringSelector, { options: TELLESCOPE_GENDERS, size: "small", label: "Gender", value: ((_q = value === null || value === void 0 ? void 0 : value.relationshipDetails) === null || _q === void 0 ? void 0 : _q.gender) || '', required: !field.isOptional, onChange: function (v) {
-                                    return onChange(__assign(__assign({}, value), { relationshipDetails: __assign(__assign({}, value === null || value === void 0 ? void 0 : value.relationshipDetails), { gender: v }) }), field.id);
-                                } }) })), _jsx(Grid, __assign({ item: true, xs: 6 }, { children: _jsx(DateStringInput, { size: "small", label: "Date of Birth", field: __assign(__assign({}, field), { isOptional: field.isOptional || ((_r = field.options) === null || _r === void 0 ? void 0 : _r.billingProvider) === 'Candid' }), value: ((_s = value === null || value === void 0 ? void 0 : value.relationshipDetails) === null || _s === void 0 ? void 0 : _s.dateOfBirth) || '', onChange: function (dateOfBirth) {
-                                    return onChange(__assign(__assign({}, value), { relationshipDetails: __assign(__assign({}, value === null || value === void 0 ? void 0 : value.relationshipDetails), { dateOfBirth: dateOfBirth }) }), field.id);
-                                } }) }))] })] })));
+// InsuranceInput, BridgeEligibilityInput, and AppointmentBookingInput logic is shared with inputs.tsx to avoid duplication
+import { InsuranceInput as SharedInsuranceInput, BridgeEligibilityInput as SharedBridgeEligibilityInput, AppointmentBookingInput as SharedAppointmentBookingInput } from './inputs';
+// Wrap the shared InsuranceInput component with v2-specific props
+export var InsuranceInput = function (props) {
+    return _jsx(SharedInsuranceInput, __assign({}, props, { inputProps: defaultInputProps }));
+};
+// Wrap the shared BridgeEligibilityInput component with v2-specific props
+export var BridgeEligibilityInput = function (props) {
+    return _jsx(SharedBridgeEligibilityInput, __assign({}, props, { inputProps: defaultInputProps }));
 };
 var StringSelector = function (_a) {
     var options = _a.options, value = _a.value, onChange = _a.onChange, required = _a.required, getDisplayValue = _a.getDisplayValue, props = __rest(_a, ["options", "value", "onChange", "required", "getDisplayValue"]);
@@ -1278,176 +1171,9 @@ export var RelatedContactsInput = function (_a) {
     }
     return (_jsxs(Grid, __assign({ container: true, direction: "column", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: value.map(function (contact, i) { return (_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between", wrap: "nowrap", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center" }, { children: [_jsx(IconButton, __assign({ onClick: function () { return setEditing(i); }, color: "primary", size: "small" }, { children: _jsx(Edit, {}) })), _jsx(Typography, __assign({ noWrap: true }, { children: user_display_name(contact) || "Unnamed Contact ".concat(i + 1) }))] })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(LabeledIconButton, { Icon: Delete, label: "Remove", onClick: function () { return onChange(value.filter(function (v, _i) { return i !== _i; }), field.id); } }) }))] })) }), i)); }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Button, __assign({ variant: "contained", onClick: handleAddContact }, { children: "Add Contact" })) }))] })));
 };
-export var AppointmentBookingInput = function (_a) {
-    var _b, _d, _e, _f, _g, _h, _j, _k, _l;
-    var formResponseId = _a.formResponseId, field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, responses = _a.responses, goToPreviousField = _a.goToPreviousField, isPreviousDisabled = _a.isPreviousDisabled, enduserId = _a.enduserId, props = __rest(_a, ["formResponseId", "field", "value", "onChange", "form", "responses", "goToPreviousField", "isPreviousDisabled", "enduserId"]);
-    var session = useResolvedSession();
-    var _m = useState(), loaded = _m[0], setLoaded = _m[1];
-    var _o = useState(''), error = _o[0], setError = _o[1];
-    var _p = useState(false), acknowledgedWarning = _p[0], setAcknowledgedWarning = _p[1];
-    var _q = useState(450), height = _q[0], setHeight = _q[1];
-    var _r = useState(false), confirming = _r[0], setConfirming = _r[1];
-    var bookingPageId = (_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.bookingPageId;
-    var downloadICS = useCallback(function (event) { return __awaiter(void 0, void 0, void 0, function () {
-        var _a, err_1;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
-                case 0:
-                    _b.trys.push([0, 2, , 3]);
-                    _a = downloadFile;
-                    return [4 /*yield*/, session.api.calendar_events.download_ics_file({ calendarEventId: event.id, excludeAttendee: true })];
-                case 1:
-                    _a.apply(void 0, [_b.sent(),
-                        { name: "event.ics", dataIsURL: true, type: 'text/calendar' }]);
-                    return [3 /*break*/, 3];
-                case 2:
-                    err_1 = _b.sent();
-                    console.error(err_1);
-                    return [3 /*break*/, 3];
-                case 3: return [2 /*return*/];
-            }
-        });
-    }); }, [session]);
-    var addressQuestion = useMemo(function () { return responses === null || responses === void 0 ? void 0 : responses.find(function (r) {
-        var _a;
-        if (r.answer.type !== 'Address')
-            return false;
-        if (r.field.intakeField !== 'Address')
-            return false;
-        // make sure state is actually defined (in case of multiple address questions, where 1+ are blank)
-        if (!((_a = r.answer.value) === null || _a === void 0 ? void 0 : _a.state))
-            return false;
-        return true;
-    }); }, [responses]);
-    var state = useMemo(function () {
-        var _a, _b, _d;
-        return (((_a = addressQuestion === null || addressQuestion === void 0 ? void 0 : addressQuestion.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Address' ? (_d = (_b = addressQuestion === null || addressQuestion === void 0 ? void 0 : addressQuestion.answer) === null || _b === void 0 ? void 0 : _b.value) === null || _d === void 0 ? void 0 : _d.state : undefined);
-    }, [addressQuestion]);
-    var loadBookingInfo = useCallback(function () {
-        if (!bookingPageId)
-            return;
-        setError('');
-        session.api.form_fields.booking_info({
-            enduserId: enduserId,
-            bookingPageId: bookingPageId,
-            enduserFields: { state: state }
-        })
-            .then(setLoaded)
-            .catch(function (e) { return setError((e === null || e === void 0 ? void 0 : e.message) || (e === null || e === void 0 ? void 0 : e.toString()) || 'Error loading appointment details'); });
-    }, [enduserId, bookingPageId, session, state]);
-    var fetchRef = useRef(false);
-    useEffect(function () {
-        if (value)
-            return;
-        if (!bookingPageId)
-            return;
-        if (fetchRef.current)
-            return;
-        fetchRef.current = true;
-        loadBookingInfo();
-    }, [bookingPageId, loadBookingInfo, value]);
-    useEffect(function () {
-        var handleMessage = function (m) {
-            var _a, _b, _d, _e, _f, _g, _h, _j, _k;
-            // entropy to separate from other booking pages rendered on the same screen
-            if (((_a = m === null || m === void 0 ? void 0 : m.data) === null || _a === void 0 ? void 0 : _a.type) === 'Booking Success'
-                && typeof ((_b = m === null || m === void 0 ? void 0 : m.data) === null || _b === void 0 ? void 0 : _b.bookedEventId) === 'string'
-                && (!((_d = m === null || m === void 0 ? void 0 : m.data) === null || _d === void 0 ? void 0 : _d.entropy) || ((_e = m === null || m === void 0 ? void 0 : m.data) === null || _e === void 0 ? void 0 : _e.entropy) === (loaded === null || loaded === void 0 ? void 0 : loaded.entropy))) {
-                onChange(m.data.bookedEventId, field.id);
-                emit_gtm_event({ event: 'form_progress', fieldId: field.id, formId: field.formId, title: field.title, status: "Appointment Booked" });
-            }
-            if (((_f = m === null || m === void 0 ? void 0 : m.data) === null || _f === void 0 ? void 0 : _f.type) === 'CalendarPicker') {
-                setHeight(750);
-            }
-            if (((_g = m === null || m === void 0 ? void 0 : m.data) === null || _g === void 0 ? void 0 : _g.type) === 'UsersPicker') {
-                setHeight(450);
-            }
-            if (((_h = m === null || m === void 0 ? void 0 : m.data) === null || _h === void 0 ? void 0 : _h.type) === 'Confirmation') {
-                setConfirming(true);
-            }
-            if (((_j = m === null || m === void 0 ? void 0 : m.data) === null || _j === void 0 ? void 0 : _j.type) === 'Join Link' && ((_k = m === null || m === void 0 ? void 0 : m.data) === null || _k === void 0 ? void 0 : _k.link)) {
-                update_local_storage('tellescope_last_booking_page_join_link', m.data.link);
-            }
-            else {
-                setConfirming(false);
-            }
-        };
-        window.addEventListener('message', handleMessage);
-        return function () { window.removeEventListener('message', handleMessage); };
-    }, [field === null || field === void 0 ? void 0 : field.id, field === null || field === void 0 ? void 0 : field.formId, field === null || field === void 0 ? void 0 : field.title, onChange, acknowledgedWarning, value, loaded === null || loaded === void 0 ? void 0 : loaded.entropy]);
-    if (value) {
-        return (_jsxs(Grid, __assign({ container: true, direction: "column", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap" }, { children: [_jsx(CheckCircleOutline, { color: "success" }), _jsx(Typography, __assign({ sx: { ml: 1, fontSize: 20 } }, { children: "Your appointment has been booked" }))] })) })), _jsx(Grid, __assign({ item: true, sx: { maxWidth: 250 } }, { children: _jsx(LoadingButton, { variant: "contained", style: { maxWidth: 250 }, submitText: "Add to Calendar", submittingText: "Downloading...", onClick: function () { return downloadICS({ id: value }); } }) }))] })));
-    }
-    if (!bookingPageId) {
-        return _jsx(Typography, { children: "No booking page specified" });
-    }
-    if (error) {
-        return (_jsxs(Grid, __assign({ container: true, direction: "column", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsxs(Typography, __assign({ color: "error" }, { children: ["Error: ", error] })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(LoadingButton, { disabled: !bookingPageId, style: { maxWidth: 300 }, variant: "contained", onClick: loadBookingInfo, submitText: "Try Again", submittingText: "Loading..." }) }))] })));
-    }
-    if (!(loaded === null || loaded === void 0 ? void 0 : loaded.bookingURL)) {
-        return _jsx(LinearProgress, {});
-    }
-    var bookingURL = loaded.bookingURL;
-    if ((_e = (_d = field.options) === null || _d === void 0 ? void 0 : _d.userTags) === null || _e === void 0 ? void 0 : _e.length) {
-        bookingURL += "&userTags=".concat(field.options.userTags
-            .flatMap(function (t) {
-            var _a, _b;
-            // set dynamic tags if found
-            if (t === '{{logic}}') {
-                return new URL(window.location.href).searchParams.get('logic') || '{{logic}}';
-            }
-            if (t.startsWith("{{field.") && t.endsWith(".value}}")) {
-                var fieldId_1 = t.replace('{{field.', '').replace(".value}}", '');
-                var answer = (_a = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { return r.fieldId === fieldId_1; })) === null || _a === void 0 ? void 0 : _a.answer;
-                if (!(answer === null || answer === void 0 ? void 0 : answer.value))
-                    return t;
-                if (answer.type === 'Insurance') {
-                    return answer.value.payerName || '';
-                }
-                if (Array.isArray(answer.value) && typeof ((_b = answer.value) === null || _b === void 0 ? void 0 : _b[0]) === 'string') {
-                    return answer.value;
-                }
-                return form_response_value_to_string(answer.value);
-            }
-            return t;
-        })
-            .join(','));
-    }
-    if ((_g = (_f = field.options) === null || _f === void 0 ? void 0 : _f.userFilterTags) === null || _g === void 0 ? void 0 : _g.length) {
-        bookingURL += "&userFilterTags=".concat(field.options.userFilterTags
-            .flatMap(function (t) {
-            var _a, _b;
-            // set dynamic tags if found
-            if (t === '{{logic}}') {
-                return new URL(window.location.href).searchParams.get('logic') || '{{logic}}';
-            }
-            if (t.startsWith("{{field.") && t.endsWith(".value}}")) {
-                var fieldId_2 = t.replace('{{field.', '').replace(".value}}", '');
-                var answer = (_a = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { return r.fieldId === fieldId_2; })) === null || _a === void 0 ? void 0 : _a.answer;
-                if (!(answer === null || answer === void 0 ? void 0 : answer.value))
-                    return t;
-                if (answer.type === 'Insurance') {
-                    return answer.value.payerName || '';
-                }
-                if (Array.isArray(answer.value) && typeof ((_b = answer.value) === null || _b === void 0 ? void 0 : _b[0]) === 'string') {
-                    return answer.value;
-                }
-                return form_response_value_to_string(answer.value);
-            }
-            return t;
-        })
-            .join(','));
-    }
-    // need to use form?.id for internally-submitted forms because formResponseId isn't generated until initial submission or saved draft
-    if (((_h = field.options) === null || _h === void 0 ? void 0 : _h.holdAppointmentMinutes) && (formResponseId || (field === null || field === void 0 ? void 0 : field.id))) {
-        bookingURL += "&formResponseId=".concat(formResponseId || (field === null || field === void 0 ? void 0 : field.id));
-        bookingURL += "&holdAppointmentMinutes=".concat(field.options.holdAppointmentMinutes);
-    }
-    return (_jsxs(Grid, __assign({ container: true, direction: "column", spacing: 1, sx: { mt: 1 } }, { children: [!!((_k = (_j = field.options) === null || _j === void 0 ? void 0 : _j.userFilterTags) === null || _k === void 0 ? void 0 : _k.length) && !((_l = field.options.userTags) === null || _l === void 0 ? void 0 : _l.length) && !(isPreviousDisabled === null || isPreviousDisabled === void 0 ? void 0 : isPreviousDisabled()) && !confirming &&
-                _jsx(Grid, __assign({ item: true, alignSelf: "flex-start" }, { children: _jsx(Button, __assign({ variant: "outlined", onClick: goToPreviousField, sx: { height: 25, p: 0.5, px: 1 } }, { children: "Back" })) })), loaded.warningMessage &&
-                _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ color: "error", sx: { fontSize: 20, fontWeight: 'bold' } }, { children: loaded.warningMessage })) })), _jsx(Grid, __assign({ item: true }, { children: (!loaded.warningMessage || acknowledgedWarning)
-                    ? (_jsx("iframe", { title: "Appointment Booking Embed", src: bookingURL, style: { border: 'none', width: '100%', height: height } }))
-                    : (_jsx(Button, __assign({ variant: "outlined", onClick: function () { return setAcknowledgedWarning(true); } }, { children: "Show Booking Page Preview" }))) }))] })));
+// AppointmentBookingInput logic is shared with inputs.tsx to avoid duplication
+export var AppointmentBookingInput = function (props) {
+    return _jsx(SharedAppointmentBookingInput, __assign({}, props));
 };
 export var HeightInput = function (_a) {
     var _b;

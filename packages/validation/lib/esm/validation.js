@@ -37,7 +37,7 @@ export var isDate = v.isDate, isEmail = v.isEmail, isMobilePhone = v.isMobilePho
 //   BUSINESS_TYPE,
 // } from "@tellescope/constants"
 import { filter_object, is_defined, is_object, is_whitespace, object_is_empty, to_object_id, } from "@tellescope/utilities";
-import { ACTIVE_CAMPAIGN_TITLE, ALL_ACCESS, ASSIGNED_ACCESS, ATHENA_TITLE, CANDID_TITLE, CANVAS_TITLE, DEFAULT_ACCESS, DEVELOP_HEALTH_TITLE, DOCSUMO_TITLE, DOSESPOT_TITLE, EMOTII_TITLE, ENDUSER_FIELD_TYPES, FULLSCRIPT_INTEGRATIONS_TITLE, GOGO_MEDS_TITLE, INSURANCE_RELATIONSHIPS, MFAX_TITLE, NO_ACCESS, OUTLOOK_INTEGRATIONS_TITLE, PAGER_DUTY_TITLE, SMART_METER_TITLE, SQUARE_INTEGRATIONS_TITLE, STRIPE_TITLE, ZENDESK_INTEGRATIONS_TITLE, ZOHO_TITLE, ZOOM_TITLE, ZUS_TITLE, } from "@tellescope/constants";
+import { ACTIVE_CAMPAIGN_TITLE, ALL_ACCESS, ASSIGNED_ACCESS, ATHENA_TITLE, BRIDGE_TITLE, CANDID_TITLE, CANVAS_TITLE, DEFAULT_ACCESS, DEVELOP_HEALTH_TITLE, DOCSUMO_TITLE, DOSESPOT_TITLE, EMOTII_TITLE, ENDUSER_FIELD_TYPES, FULLSCRIPT_INTEGRATIONS_TITLE, GOGO_MEDS_TITLE, INSURANCE_RELATIONSHIPS, MFAX_TITLE, NO_ACCESS, OUTLOOK_INTEGRATIONS_TITLE, PAGER_DUTY_TITLE, SMART_METER_TITLE, SQUARE_INTEGRATIONS_TITLE, STRIPE_TITLE, ZENDESK_INTEGRATIONS_TITLE, ZOHO_TITLE, ZOOM_TITLE, ZUS_TITLE, } from "@tellescope/constants";
 var EXAMPLE_OBJECT_ID = '60398b0231a295e64f084fd9';
 var getTypeString = function () { return "string"; };
 var getTypeNumber = function () { return "number"; };
@@ -1159,6 +1159,7 @@ var _FORM_FIELD_TYPES = {
     Medications: '',
     "Related Contacts": "",
     'Insurance': '',
+    'Bridge Eligibility': '',
     Height: '',
     Redirect: '',
     'Hidden Value': '',
@@ -1183,6 +1184,7 @@ export var FORM_FIELD_VALIDATORS_BY_TYPE = {
     'Redirect': stringValidator.validate({ maxLength: 100 }),
     'Related Contacts': objectAnyFieldsAnyValuesValidator.validate(),
     'Insurance': objectAnyFieldsAnyValuesValidator.validate(),
+    'Bridge Eligibility': objectAnyFieldsAnyValuesValidator.validate(),
     'Address': objectAnyFieldsAnyValuesValidator.validate(),
     'Database Select': objectAnyFieldsAnyValuesValidator.validate(),
     'Height': objectAnyFieldsAnyValuesValidator.validate(),
@@ -1525,6 +1527,13 @@ export var formResponseAnswerValidator = orValidator({
     "Insurance": objectValidator({
         type: exactMatchValidator(['Insurance']),
         value: insuranceOptionalValidator,
+    }),
+    "Bridge Eligibility": objectValidator({
+        type: exactMatchValidator(['Bridge Eligibility']),
+        value: objectValidator({
+            status: stringValidatorOptional,
+            userIds: listOfStringsValidatorOptionalOrEmptyOk, // User IDs who cover the patient
+        }, { isOptional: true, emptyOk: true }),
     }),
     "Question Group": objectValidator({
         type: exactMatchValidator(['Question Group']),
@@ -2846,6 +2855,9 @@ export var formFieldOptionsValidator = objectValidator({
     userFilterTags: listOfStringsValidatorOptionalOrEmptyOk,
     prefillSignature: booleanValidatorOptional,
     requirePredefinedInsurer: booleanValidatorOptional,
+    bridgeServiceTypeId: stringValidatorOptional,
+    bridgeEligibilityType: exactMatchValidatorOptional(['Soft', 'Hard']),
+    useBridgeEligibilityResult: booleanValidatorOptional,
     includeGroupNumber: booleanValidatorOptional,
     holdAppointmentMinutes: numberValidatorOptional,
     rangeStepSize: numberValidatorOptional,
@@ -4460,6 +4472,7 @@ export var integrationTitleValidator = exactMatchValidator([
     STRIPE_TITLE,
     EMOTII_TITLE,
     DEVELOP_HEALTH_TITLE,
+    BRIDGE_TITLE,
 ]);
 var _VIDEO_INTEGRATION_TYPES = {
     Zoom: '',

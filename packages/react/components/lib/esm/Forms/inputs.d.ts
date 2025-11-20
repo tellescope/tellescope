@@ -4,6 +4,8 @@ import { FormInputProps } from "./types";
 import { Enduser, FormResponseValue } from "@tellescope/types-models";
 import { FileBlob, Styled } from "..";
 import { DatabaseRecord, FormField } from "@tellescope/types-client";
+export declare const getBridgeEligibilityUserIds: () => string[];
+export declare const setBridgeEligibilityUserIds: (userIds: string[]) => void;
 export declare const LanguageSelect: ({ value, ...props }: {
     value: string;
     onChange: (s: string) => void;
@@ -23,14 +25,27 @@ export declare const DateInput: ({ field, value, onChange, placement, ...props }
     placement?: "left" | "right" | "bottom" | "top" | undefined;
 } & FormInputProps<"date"> & Styled) => JSX.Element;
 export declare const TableInput: ({ field, value, onChange, ...props }: FormInputProps<'Input Table'>) => JSX.Element;
-export declare const AutoFocusTextField: (props: TextFieldProps) => JSX.Element;
+export declare const AutoFocusTextField: (props: TextFieldProps & {
+    inputProps?: {
+        sx: SxProps;
+    } | undefined;
+}) => JSX.Element;
 export declare const DateStringInput: ({ field, value, onChange, ...props }: FormInputProps<'string'>) => JSX.Element;
 export declare const StringInput: ({ field, value, form, onChange, ...props }: FormInputProps<'string'>) => JSX.Element;
 export declare const StringLongInput: ({ field, value, onChange, form, ...props }: FormInputProps<'string'>) => JSX.Element;
 export declare const PhoneInput: ({ field, value, onChange, form, ...props }: FormInputProps<'phone'>) => JSX.Element;
 export declare const EmailInput: ({ field, value, onChange, form, ...props }: FormInputProps<'email'>) => JSX.Element;
 export declare const NumberInput: ({ field, value, onChange, form, ...props }: FormInputProps<'number'>) => JSX.Element;
-export declare const InsuranceInput: ({ field, onDatabaseSelect, value, onChange, form, responses, enduser, ...props }: FormInputProps<'Insurance'>) => JSX.Element;
+export declare const InsuranceInput: ({ field, onDatabaseSelect, value, onChange, form, responses, enduser, inputProps, ...props }: FormInputProps<"Insurance"> & {
+    inputProps?: {
+        sx: SxProps;
+    } | undefined;
+}) => JSX.Element;
+export declare const BridgeEligibilityInput: ({ field, value, onChange, responses, enduser, inputProps, enduserId, ...props }: FormInputProps<"Bridge Eligibility"> & {
+    inputProps?: {
+        sx: SxProps;
+    } | undefined;
+}) => JSX.Element;
 export declare const TimeInput: ({ field, value, onChange, ...props }: FormInputProps<'string'>) => JSX.Element;
 export declare const TimezoneInput: ({ value, field, onChange, ...props }: FormInputProps<'Timezone'>) => JSX.Element;
 export declare const AddressInput: ({ field, form, value, onChange, ...props }: FormInputProps<'Address'>) => JSX.Element;

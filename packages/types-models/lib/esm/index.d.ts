@@ -394,6 +394,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     hasConnectedBeluga?: boolean;
     hasConnectedMetriport?: boolean;
     hasConnectedPaubox?: boolean;
+    hasConnectedBridge?: boolean;
     hasConfiguredZoom?: boolean;
     hasTicketQueues?: boolean;
     vitalTeamId?: string;
@@ -1562,7 +1563,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
     copiedFromEnduserId?: string;
 }
 export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' | 'dateString' | 'rating' | 'Time' | "Timezone";
-export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance" | "Beluga Patient Preference";
+export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance" | "Bridge Eligibility" | "Beluga Patient Preference";
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType;
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic';
 export type PreviousFormFieldBuilder<T extends PreviousFormFieldType, V> = {
@@ -1670,6 +1671,9 @@ export type FormFieldOptions = FormFieldValidation & {
     userTags?: string[];
     userFilterTags?: string[];
     requirePredefinedInsurer?: boolean;
+    bridgeServiceTypeId?: string;
+    bridgeEligibilityType?: 'Soft' | 'Hard';
+    useBridgeEligibilityResult?: boolean;
     addressFields?: string[];
     validStates?: string[];
     autoAdvance?: boolean;
@@ -2084,6 +2088,10 @@ export type FormResponseAnswerMedications = FormResponseValueAnswerBuilder<'Medi
 export type FormResponseAnswerRelatedContacts = FormResponseValueAnswerBuilder<'Related Contacts', Partial<Enduser>[]>;
 export type FormResponseAnswerAppointmentBooking = FormResponseValueAnswerBuilder<'Appointment Booking', string>;
 export type FormResponseAnswerInsurance = FormResponseValueAnswerBuilder<'Insurance', Partial<EnduserInsurance>>;
+export type FormResponseAnswerBridgeEligibility = FormResponseValueAnswerBuilder<'Bridge Eligibility', {
+    status?: string;
+    userIds?: string[];
+}>;
 export type FormResponseAnswerHeight = FormResponseValueAnswerBuilder<'Height', {
     feet: number;
     inches: number;
@@ -2117,7 +2125,7 @@ export type FormResponseAnswerFileValue = {
 export type FormResponseAnswerFile = FormResponseValueAnswerBuilder<'file', FormResponseAnswerFileValue>;
 export type FormResponseAnswerFiles = FormResponseValueAnswerBuilder<'files', FormResponseAnswerFileValue[]>;
 export type FormResponseAnswerTimezone = FormResponseValueAnswerBuilder<'Timezone', string>;
-export type FormResponseValueAnswer = (FormResponseAnswerGroup | FormResponseAnswerTimezone | FormResponseAnswerTable | FormResponseAnswerDescription | FormResponseAnswerEmail | FormResponseAnswerNumber | FormResponseAnswerPhone | FormResponseAnswerString | FormResponseAnswerStringLong | FormResponseAnswerRichText | FormResponseAnswerSignature | FormResponseAnswerMultipleChoice | FormResponseAnswerFile | FormResponseAnswerFiles | FormResponseAnswerDate | FormResponseAnswerRating | FormResponseAnswerRanking | FormResponseAnswerDateString | FormResponseAnswerAddress | FormResponseAnswerTime | FormResponseAnswerStripe | FormResponseAnswerDropdown | FormResponseAnswerDatabaseSelect | FormResponseAnswerMedications | FormResponseAnswerRelatedContacts | FormResponseAnswerInsurance | FormResponseAnswerAppointmentBooking | FormResponseAnswerHeight | FormResponseAnswerRedirect | FormResponseAnswerHiddenValue | FormResponseAnswerEmotii | FormResponseAnswerAllergies | FormResponseAnswerConditions | FormResponseAnswerChargebee | FormResponseAnswerBelugaPatientPreference);
+export type FormResponseValueAnswer = (FormResponseAnswerGroup | FormResponseAnswerTimezone | FormResponseAnswerTable | FormResponseAnswerDescription | FormResponseAnswerEmail | FormResponseAnswerNumber | FormResponseAnswerPhone | FormResponseAnswerString | FormResponseAnswerStringLong | FormResponseAnswerRichText | FormResponseAnswerSignature | FormResponseAnswerMultipleChoice | FormResponseAnswerFile | FormResponseAnswerFiles | FormResponseAnswerDate | FormResponseAnswerRating | FormResponseAnswerRanking | FormResponseAnswerDateString | FormResponseAnswerAddress | FormResponseAnswerTime | FormResponseAnswerStripe | FormResponseAnswerDropdown | FormResponseAnswerDatabaseSelect | FormResponseAnswerMedications | FormResponseAnswerRelatedContacts | FormResponseAnswerInsurance | FormResponseAnswerAppointmentBooking | FormResponseAnswerHeight | FormResponseAnswerRedirect | FormResponseAnswerHiddenValue | FormResponseAnswerEmotii | FormResponseAnswerAllergies | FormResponseAnswerConditions | FormResponseAnswerChargebee | FormResponseAnswerBelugaPatientPreference | FormResponseAnswerBridgeEligibility);
 export type FormResponseValue = {
     fieldId: string;
     fieldTitle: string;
@@ -2157,6 +2165,7 @@ export type AnswerForType = {
     'Medications': FormResponseAnswerMedications['value'];
     'Related Contacts': FormResponseAnswerRelatedContacts['value'];
     'Insurance': FormResponseAnswerInsurance['value'];
+    'Bridge Eligibility': FormResponseAnswerBridgeEligibility['value'];
     'Appointment Booking': FormResponseAnswerAppointmentBooking['value'];
     'Chargebee': FormResponseAnswerChargebee['value'];
     'Height': FormResponseAnswerHeight['value'];

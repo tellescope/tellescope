@@ -6832,6 +6832,7 @@ export const schema: SchemaV1 = build_schema({
       customerIOFields: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       customerIOIdField: { validator: stringValidator },
       hasConnectedPaubox: { validator: booleanValidator },
+      hasConnectedBridge: { validator: booleanValidator },
       createEnduserForms: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
       skipActivePatientBilling: { validator: booleanValidator },
     },

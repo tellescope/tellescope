@@ -72,9 +72,9 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 import { jsx as _jsx, jsxs as _jsxs, Fragment as _Fragment } from "react/jsx-runtime";
 import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import axios from "axios";
-import { Autocomplete, Box, Button, Checkbox, Chip, CircularProgress, Collapse, Divider, FormControl, FormControlLabel, FormLabel, Grid, IconButton as MuiIconButton, InputLabel, MenuItem, Radio, RadioGroup, Select, TextField, Typography } from "@mui/material";
+import { Autocomplete, Box, Button, Checkbox, Chip, CircularProgress, Collapse, Divider, FormControl, FormControlLabel, FormLabel, Grid, IconButton as MuiIconButton, InputLabel, MenuItem, Paper, Radio, RadioGroup, Select, TextField, Typography } from "@mui/material";
 import { useDropzone } from "react-dropzone";
-import { CANVAS_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants";
+import { CANVAS_TITLE, BRIDGE_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants";
 import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, format_stripe_subscription_interval, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, object_is_empty, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities";
 import { TIMEZONES_USA } from "@tellescope/types-models";
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation";
@@ -93,6 +93,14 @@ import { Elements, PaymentElement, useStripe, useElements, EmbeddedCheckout, Emb
 import { loadStripe } from '@stripe/stripe-js';
 import { CheckCircleOutline, Delete, Edit, ExpandMore } from "@mui/icons-material";
 import { WYSIWYG } from "./wysiwyg";
+// Bridge Eligibility - shared variable for storing most recent eligibility userIds
+var bridgeEligibilityResult = {
+    userIds: [],
+};
+export var getBridgeEligibilityUserIds = function () { return bridgeEligibilityResult.userIds; };
+export var setBridgeEligibilityUserIds = function (userIds) {
+    bridgeEligibilityResult.userIds = userIds;
+};
 // Debounce hook for search functionality
 var useDebounce = function (value, delay) {
     var _a = useState(value), debouncedValue = _a[0], setDebouncedValue = _a[1];
@@ -245,8 +253,14 @@ export var TableInput = function (_a) {
                                                     : null }), v.label));
                             }), _jsx(Grid, __assign({ item: true, sx: { ml: 'auto', width: iconWidth } }, { children: _jsx(LabeledIconButton, { Icon: CancelIcon, label: "Remove", onClick: function () { return handleRemove(i); }, disabled: !field.isOptional && value.length === 1 }) }))] }), i), _jsx(Divider, { flexItem: true, sx: { my: 1 } })] })); }), _jsx(Button, __assign({ variant: "outlined", size: "small", onClick: handleNewRow, sx: { width: 200 } }, { children: "Add new entry" }))] })));
 };
-export var AutoFocusTextField = function (props) { return (_jsx(TextField, __assign({ InputProps: defaultInputProps }, props))); };
-var CustomDateStringInput = forwardRef(function (props, ref) { return (_jsx(TextField, __assign({ InputProps: defaultInputProps, fullWidth: true, inputRef: ref }, props))); });
+export var AutoFocusTextField = function (props) {
+    var inputProps = props.inputProps, textFieldProps = __rest(props, ["inputProps"]);
+    return _jsx(TextField, __assign({ InputProps: inputProps || defaultInputProps }, textFieldProps));
+};
+var CustomDateStringInput = forwardRef(function (props, ref) {
+    var inputProps = props.inputProps, textFieldProps = __rest(props, ["inputProps"]);
+    return (_jsx(TextField, __assign({ InputProps: inputProps || defaultInputProps, fullWidth: true, inputRef: ref }, textFieldProps)));
+});
 export var DateStringInput = function (_a) {
     var _b;
     var field = _a.field, value = _a.value, onChange = _a.onChange, props = __rest(_a, ["field", "value", "onChange"]);
@@ -328,7 +342,7 @@ export var NumberInput = function (_a) {
 };
 export var InsuranceInput = function (_a) {
     var _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s;
-    var field = _a.field, onDatabaseSelect = _a.onDatabaseSelect, value = _a.value, onChange = _a.onChange, form = _a.form, responses = _a.responses, enduser = _a.enduser, props = __rest(_a, ["field", "onDatabaseSelect", "value", "onChange", "form", "responses", "enduser"]);
+    var field = _a.field, onDatabaseSelect = _a.onDatabaseSelect, value = _a.value, onChange = _a.onChange, form = _a.form, responses = _a.responses, enduser = _a.enduser, inputProps = _a.inputProps, props = __rest(_a, ["field", "onDatabaseSelect", "value", "onChange", "form", "responses", "enduser", "inputProps"]);
     var session = useResolvedSession();
     var _t = useState([]), payers = _t[0], setPayers = _t[1];
     var _u = useState(''), query = _u[0], setQuery = _u[1];
@@ -349,9 +363,11 @@ export var InsuranceInput = function (_a) {
     }, [enduser === null || enduser === void 0 ? void 0 : enduser.state, addressQuestion]);
     var loadRef = useRef(false); // so session changes don't cause
     useEffect(function () {
-        var _a;
+        var _a, _b;
         if (((_a = field === null || field === void 0 ? void 0 : field.options) === null || _a === void 0 ? void 0 : _a.dataSource) === CANVAS_TITLE)
             return; // instead, look-up while typing against Canvas Search API
+        if (((_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.dataSource) === BRIDGE_TITLE)
+            return; // instead, look-up while typing against Bridge Search API
         if (loadRef.current)
             return;
         loadRef.current = true;
@@ -376,8 +392,8 @@ export var InsuranceInput = function (_a) {
     }, [session, state, (_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.dataSource]);
     var searchRef = useRef(query);
     useEffect(function () {
-        var _a;
-        if (((_a = field === null || field === void 0 ? void 0 : field.options) === null || _a === void 0 ? void 0 : _a.dataSource) !== CANVAS_TITLE) {
+        var _a, _b, _d, _e;
+        if (((_a = field === null || field === void 0 ? void 0 : field.options) === null || _a === void 0 ? void 0 : _a.dataSource) !== CANVAS_TITLE && ((_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.dataSource) !== BRIDGE_TITLE) {
             return;
         }
         if (!query)
@@ -385,24 +401,30 @@ export var InsuranceInput = function (_a) {
         if (searchRef.current === query)
             return;
         searchRef.current = query;
-        session.api.integrations.proxy_read({
-            integration: CANVAS_TITLE,
+        var integration = ((_d = field === null || field === void 0 ? void 0 : field.options) === null || _d === void 0 ? void 0 : _d.dataSource) === CANVAS_TITLE ? CANVAS_TITLE : BRIDGE_TITLE;
+        var type = ((_e = field === null || field === void 0 ? void 0 : field.options) === null || _e === void 0 ? void 0 : _e.dataSource) === CANVAS_TITLE ? 'organizations' : 'payers';
+        var t = setTimeout(function () { return (session.api.integrations.proxy_read({
+            integration: integration,
             query: query,
-            type: 'organizations',
+            type: type,
         })
             .then(function (_a) {
             var data = _a.data;
             try {
-                setPayers(data.map(function (d) { return ({
-                    id: d.resource.id,
-                    name: d.resource.name,
-                }); }));
+                setPayers(data.map(function (d) {
+                    var _a, _b;
+                    return ({
+                        id: ((_a = field === null || field === void 0 ? void 0 : field.options) === null || _a === void 0 ? void 0 : _a.dataSource) === CANVAS_TITLE ? d.resource.id : d.id,
+                        name: ((_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.dataSource) === CANVAS_TITLE ? d.resource.name : d.name,
+                    });
+                }));
             }
             catch (err) {
                 console.error;
             }
         })
-            .catch(console.error);
+            .catch(console.error)); }, 300);
+        return function () { clearTimeout(t); };
     }, [session, (_d = field === null || field === void 0 ? void 0 : field.options) === null || _d === void 0 ? void 0 : _d.dataSource, query]);
     return (_jsxs(Grid, __assign({ container: true, spacing: 2, sx: { mt: '0' } }, { children: [_jsx(Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: _jsx(Autocomplete, { freeSolo: !((_e = field.options) === null || _e === void 0 ? void 0 : _e.requirePredefinedInsurer), options: payers.map(function (p) { return p.name; }), value: (value === null || value === void 0 ? void 0 : value.payerName) || '', onChange: function (e, v) {
                         var _a, _b;
@@ -422,33 +444,272 @@ export var InsuranceInput = function (_a) {
                             }
                             onChange(__assign(__assign({}, value), { payerName: v || '', payerId: ((_b = payers.find(function (p) { return p.name === v; })) === null || _b === void 0 ? void 0 : _b.id) || '', payerType: ((_d = payers.find(function (p) { return p.name === v; })) === null || _d === void 0 ? void 0 : _d.type) || '' }), field.id);
                         }, renderInput: function (params) {
-                        var _a;
-                        return (_jsx(TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: defaultInputProps.sx }), required: !field.isOptional, size: "small", label: "Insurer", placeholder: ((_a = field.options) === null || _a === void 0 ? void 0 : _a.dataSource) === CANVAS_TITLE ? "Search insurer..." : "Insurer" })));
-                    } }) })), _jsx(Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: _jsx(TextField, { InputProps: defaultInputProps, required: !field.isOptional, fullWidth: true, value: (_g = value === null || value === void 0 ? void 0 : value.memberId) !== null && _g !== void 0 ? _g : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { memberId: e.target.value }), field.id); }, label: form_display_text_for_language(form, "Member ID", ''), size: "small" }) })), _jsx(Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: _jsx(TextField, { InputProps: defaultInputProps, required: false, fullWidth: true, value: (_h = value === null || value === void 0 ? void 0 : value.planName) !== null && _h !== void 0 ? _h : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { planName: e.target.value }), field.id); }, label: form_display_text_for_language(form, "Plan Name", ''), size: "small" }) })), _jsx(Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: _jsx(DateStringInput, { size: "small", label: "Plan Start Date", field: __assign(__assign({}, field), { isOptional: true }), value: (value === null || value === void 0 ? void 0 : value.startDate) || '', onChange: function (startDate) {
+                        var _a, _b;
+                        return (_jsx(TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: (inputProps || defaultInputProps).sx }), required: !field.isOptional, size: "small", label: "Insurer", placeholder: (((_a = field.options) === null || _a === void 0 ? void 0 : _a.dataSource) === CANVAS_TITLE || ((_b = field.options) === null || _b === void 0 ? void 0 : _b.dataSource) === BRIDGE_TITLE) ? "Search insurer..." : "Insurer" })));
+                    } }) })), _jsx(Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: _jsx(TextField, { InputProps: inputProps || defaultInputProps, required: !field.isOptional, fullWidth: true, value: (_g = value === null || value === void 0 ? void 0 : value.memberId) !== null && _g !== void 0 ? _g : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { memberId: e.target.value }), field.id); }, label: form_display_text_for_language(form, "Member ID", ''), size: "small" }) })), _jsx(Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: _jsx(TextField, { InputProps: inputProps || defaultInputProps, required: false, fullWidth: true, value: (_h = value === null || value === void 0 ? void 0 : value.planName) !== null && _h !== void 0 ? _h : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { planName: e.target.value }), field.id); }, label: form_display_text_for_language(form, "Plan Name", ''), size: "small" }) })), _jsx(Grid, __assign({ item: true, xs: 12, sm: 6 }, { children: _jsx(DateStringInput, { size: "small", label: "Plan Start Date", inputProps: inputProps, field: __assign(__assign({}, field), { isOptional: true }), value: (value === null || value === void 0 ? void 0 : value.startDate) || '', onChange: function (startDate) {
                         return onChange(__assign(__assign({}, value), { startDate: startDate }), field.id);
                     } }) })), ((_j = field.options) === null || _j === void 0 ? void 0 : _j.includeGroupNumber) &&
-                _jsx(Grid, __assign({ item: true, xs: 12 }, { children: _jsx(TextField, { InputProps: defaultInputProps, fullWidth: true, value: (_k = value === null || value === void 0 ? void 0 : value.groupNumber) !== null && _k !== void 0 ? _k : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { groupNumber: e.target.value }), field.id); }, label: form_display_text_for_language(form, "Group Number", ''), size: "small" }) })), _jsx(Grid, __assign({ item: true, xs: 12 }, { children: _jsx(StringSelector, { size: "small", label: "Relationship to Policy Owner", options: ((((_l = field.options) === null || _l === void 0 ? void 0 : _l.billingProvider) === CANVAS_TITLE || ((_m = field.options) === null || _m === void 0 ? void 0 : _m.dataSource) === CANVAS_TITLE)
+                _jsx(Grid, __assign({ item: true, xs: 12 }, { children: _jsx(TextField, { InputProps: inputProps || defaultInputProps, fullWidth: true, value: (_k = value === null || value === void 0 ? void 0 : value.groupNumber) !== null && _k !== void 0 ? _k : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { groupNumber: e.target.value }), field.id); }, label: form_display_text_for_language(form, "Group Number", ''), size: "small" }) })), _jsx(Grid, __assign({ item: true, xs: 12 }, { children: _jsx(StringSelector, { size: "small", label: "Relationship to Policy Owner", inputProps: inputProps, options: ((((_l = field.options) === null || _l === void 0 ? void 0 : _l.billingProvider) === CANVAS_TITLE || ((_m = field.options) === null || _m === void 0 ? void 0 : _m.dataSource) === CANVAS_TITLE)
                         ? INSURANCE_RELATIONSHIPS_CANVAS
                         : INSURANCE_RELATIONSHIPS)
                         .sort(function (x, y) { return x.localeCompare(y); }), value: (value === null || value === void 0 ? void 0 : value.relationship) || 'Self', onChange: function (relationship) {
                         return onChange(__assign(__assign({}, value), { relationship: relationship || 'Self' }), field.id);
                     } }) })), ((value === null || value === void 0 ? void 0 : value.relationship) || 'Self') !== 'Self' &&
-                _jsxs(_Fragment, { children: [_jsx(Grid, __assign({ item: true, xs: 12 }, { children: _jsx(Typography, __assign({ sx: { fontWeight: 'bold' } }, { children: "Policy Owner Details" })) })), _jsx(Grid, __assign({ item: true, xs: 6 }, { children: _jsx(TextField, { label: "First Name", size: "small", InputProps: defaultInputProps, fullWidth: true, value: ((_o = value === null || value === void 0 ? void 0 : value.relationshipDetails) === null || _o === void 0 ? void 0 : _o.fname) || '', required: !field.isOptional, onChange: function (e) {
+                _jsxs(_Fragment, { children: [_jsx(Grid, __assign({ item: true, xs: 12 }, { children: _jsx(Typography, __assign({ sx: { fontWeight: 'bold' } }, { children: "Policy Owner Details" })) })), _jsx(Grid, __assign({ item: true, xs: 6 }, { children: _jsx(TextField, { label: "First Name", size: "small", InputProps: inputProps || defaultInputProps, fullWidth: true, value: ((_o = value === null || value === void 0 ? void 0 : value.relationshipDetails) === null || _o === void 0 ? void 0 : _o.fname) || '', required: !field.isOptional, onChange: function (e) {
                                     return onChange(__assign(__assign({}, value), { relationshipDetails: __assign(__assign({}, value === null || value === void 0 ? void 0 : value.relationshipDetails), { fname: e.target.value }) }), field.id);
-                                } }) })), _jsx(Grid, __assign({ item: true, xs: 6 }, { children: _jsx(TextField, { label: "Last Name", size: "small", InputProps: defaultInputProps, fullWidth: true, value: ((_p = value === null || value === void 0 ? void 0 : value.relationshipDetails) === null || _p === void 0 ? void 0 : _p.lname) || '', required: !field.isOptional, onChange: function (e) {
+                                } }) })), _jsx(Grid, __assign({ item: true, xs: 6 }, { children: _jsx(TextField, { label: "Last Name", size: "small", InputProps: inputProps || defaultInputProps, fullWidth: true, value: ((_p = value === null || value === void 0 ? void 0 : value.relationshipDetails) === null || _p === void 0 ? void 0 : _p.lname) || '', required: !field.isOptional, onChange: function (e) {
                                     return onChange(__assign(__assign({}, value), { relationshipDetails: __assign(__assign({}, value === null || value === void 0 ? void 0 : value.relationshipDetails), { lname: e.target.value }) }), field.id);
-                                } }) })), _jsx(Grid, __assign({ item: true, xs: 6 }, { children: _jsx(StringSelector, { options: TELLESCOPE_GENDERS, size: "small", label: "Gender", value: ((_q = value === null || value === void 0 ? void 0 : value.relationshipDetails) === null || _q === void 0 ? void 0 : _q.gender) || '', required: !field.isOptional, onChange: function (v) {
+                                } }) })), _jsx(Grid, __assign({ item: true, xs: 6 }, { children: _jsx(StringSelector, { options: TELLESCOPE_GENDERS, size: "small", label: "Gender", inputProps: inputProps, value: ((_q = value === null || value === void 0 ? void 0 : value.relationshipDetails) === null || _q === void 0 ? void 0 : _q.gender) || '', required: !field.isOptional, onChange: function (v) {
                                     return onChange(__assign(__assign({}, value), { relationshipDetails: __assign(__assign({}, value === null || value === void 0 ? void 0 : value.relationshipDetails), { gender: v }) }), field.id);
-                                } }) })), _jsx(Grid, __assign({ item: true, xs: 6 }, { children: _jsx(DateStringInput, { size: "small", label: "Date of Birth", field: __assign(__assign({}, field), { isOptional: field.isOptional || ((_r = field.options) === null || _r === void 0 ? void 0 : _r.billingProvider) === 'Candid' }), value: ((_s = value === null || value === void 0 ? void 0 : value.relationshipDetails) === null || _s === void 0 ? void 0 : _s.dateOfBirth) || '', onChange: function (dateOfBirth) {
+                                } }) })), _jsx(Grid, __assign({ item: true, xs: 6 }, { children: _jsx(DateStringInput, { size: "small", label: "Date of Birth", inputProps: inputProps, field: __assign(__assign({}, field), { isOptional: field.isOptional || ((_r = field.options) === null || _r === void 0 ? void 0 : _r.billingProvider) === 'Candid' }), value: ((_s = value === null || value === void 0 ? void 0 : value.relationshipDetails) === null || _s === void 0 ? void 0 : _s.dateOfBirth) || '', onChange: function (dateOfBirth) {
                                     return onChange(__assign(__assign({}, value), { relationshipDetails: __assign(__assign({}, value === null || value === void 0 ? void 0 : value.relationshipDetails), { dateOfBirth: dateOfBirth }) }), field.id);
                                 } }) }))] })] })));
 };
 var StringSelector = function (_a) {
-    var options = _a.options, value = _a.value, onChange = _a.onChange, required = _a.required, getDisplayValue = _a.getDisplayValue, props = __rest(_a, ["options", "value", "onChange", "required", "getDisplayValue"]);
-    return (_jsxs(FormControl, __assign({ fullWidth: true, size: props.size, required: required }, { children: [_jsx(InputLabel, { children: props.label }), _jsx(Select, __assign({}, props, { value: value, onChange: function (e) { return onChange(e.target.value); }, fullWidth: true, sx: defaultInputProps.sx }, { children: options.map(function (o, i) {
+    var options = _a.options, value = _a.value, onChange = _a.onChange, required = _a.required, getDisplayValue = _a.getDisplayValue, inputProps = _a.inputProps, props = __rest(_a, ["options", "value", "onChange", "required", "getDisplayValue", "inputProps"]);
+    return (_jsxs(FormControl, __assign({ fullWidth: true, size: props.size, required: required }, { children: [_jsx(InputLabel, { children: props.label }), _jsx(Select, __assign({}, props, { value: value, onChange: function (e) { return onChange(e.target.value); }, fullWidth: true, sx: (inputProps || defaultInputProps).sx }, { children: options.map(function (o, i) {
                     var _a;
                     return (_jsx(MenuItem, __assign({ value: o }, { children: (_a = getDisplayValue === null || getDisplayValue === void 0 ? void 0 : getDisplayValue(o)) !== null && _a !== void 0 ? _a : o }), o || i));
                 }) }))] })));
+};
+export var BridgeEligibilityInput = function (_a) {
+    var _b, _d, _e, _f;
+    var field = _a.field, value = _a.value, onChange = _a.onChange, responses = _a.responses, enduser = _a.enduser, inputProps = _a.inputProps, enduserId = _a.enduserId, props = __rest(_a, ["field", "value", "onChange", "responses", "enduser", "inputProps", "enduserId"]);
+    var session = useResolvedSession();
+    var _g = useState(false), loading = _g[0], setLoading = _g[1];
+    var _h = useState(false), polling = _h[0], setPolling = _h[1];
+    var _j = useState(), error = _j[0], setError = _j[1];
+    // single-page form must require button-click to check, but 1-page-at-a-time enduser sessions should auto-check
+    var isEnduserSession = session.type === 'enduser';
+    var eligibilityType = ((_b = field.options) === null || _b === void 0 ? void 0 : _b.bridgeEligibilityType) || 'Soft';
+    // Extract payerId from Insurance question response
+    var _k = useMemo(function () {
+        var _a, _b, _d, _e;
+        var insuranceResponse = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { var _a, _b, _d; return ((_a = r.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Insurance' && ((_d = (_b = r.answer) === null || _b === void 0 ? void 0 : _b.value) === null || _d === void 0 ? void 0 : _d.payerId); });
+        if (((_a = insuranceResponse === null || insuranceResponse === void 0 ? void 0 : insuranceResponse.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Insurance') {
+            return [
+                (_b = insuranceResponse.answer.value) === null || _b === void 0 ? void 0 : _b.payerId,
+                (_d = insuranceResponse.answer.value) === null || _d === void 0 ? void 0 : _d.memberId,
+                (_e = insuranceResponse.answer.value) === null || _e === void 0 ? void 0 : _e.payerName,
+            ];
+        }
+        // existing payer id is automatically resolved on the backend as default
+        return [];
+    }, [responses]), payerId = _k[0], memberId = _k[1], payerName = _k[2];
+    // Extract state from Address question or enduser
+    var state = useMemo(function () {
+        var _a, _b;
+        // Find Address field with state value
+        var addressResponse = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { var _a, _b, _d; return ((_a = r.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Address' && ((_d = (_b = r.answer) === null || _b === void 0 ? void 0 : _b.value) === null || _d === void 0 ? void 0 : _d.state); });
+        if (((_a = addressResponse === null || addressResponse === void 0 ? void 0 : addressResponse.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Address') {
+            return (_b = addressResponse.answer.value) === null || _b === void 0 ? void 0 : _b.state;
+        }
+        // enduser state is automatically resolved on the backend as default
+    }, [responses]);
+    // Soft eligibility check function
+    var checkProviderEligibility = useCallback(function () { return __awaiter(void 0, void 0, void 0, function () {
+        var serviceTypeId, data, userIds, err_1;
+        var _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    serviceTypeId = (_a = field.options) === null || _a === void 0 ? void 0 : _a.bridgeServiceTypeId;
+                    if (!serviceTypeId) {
+                        setError('Bridge Service Type ID not configured');
+                        return [2 /*return*/];
+                    }
+                    // payerId and state can be automatically resolved on the backend, if already saved on Enduser, so not required here
+                    setLoading(true);
+                    setError(undefined);
+                    _b.label = 1;
+                case 1:
+                    _b.trys.push([1, 3, 4, 5]);
+                    return [4 /*yield*/, session.api.integrations.proxy_read({
+                            id: enduserId,
+                            integration: BRIDGE_TITLE,
+                            type: 'provider-eligibility',
+                            query: JSON.stringify({
+                                serviceTypeId: serviceTypeId,
+                                payerId: payerId,
+                                state: state,
+                            }),
+                        })
+                        // Store userIds in shared variable for Appointment Booking to use
+                    ];
+                case 2:
+                    data = (_b.sent()).data;
+                    userIds = (data === null || data === void 0 ? void 0 : data.userIds) || [];
+                    setBridgeEligibilityUserIds(userIds);
+                    // Update the answer with the eligibility result
+                    onChange({
+                        status: (data === null || data === void 0 ? void 0 : data.status) || 'unknown',
+                        userIds: userIds,
+                    }, field.id);
+                    return [3 /*break*/, 5];
+                case 3:
+                    err_1 = _b.sent();
+                    setError((err_1 === null || err_1 === void 0 ? void 0 : err_1.message) || 'Failed to check eligibility');
+                    console.error('Provider eligibility check failed:', err_1);
+                    return [3 /*break*/, 5];
+                case 4:
+                    setLoading(false);
+                    return [7 /*endfinally*/];
+                case 5: return [2 /*return*/];
+            }
+        });
+    }); }, [session, field, payerId, state, onChange, enduserId]);
+    // Hard eligibility check function with polling
+    var checkServiceEligibility = useCallback(function () { return __awaiter(void 0, void 0, void 0, function () {
+        var serviceTypeId, data, serviceEligibilityId_1, pollForResults, err_2;
+        var _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    serviceTypeId = (_a = field.options) === null || _a === void 0 ? void 0 : _a.bridgeServiceTypeId;
+                    if (!serviceTypeId) {
+                        setError('Bridge Service Type ID not configured');
+                        return [2 /*return*/];
+                    }
+                    setLoading(true);
+                    setError(undefined);
+                    _b.label = 1;
+                case 1:
+                    _b.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, session.api.integrations.proxy_read({
+                            id: enduserId,
+                            integration: BRIDGE_TITLE,
+                            type: 'service-eligibility',
+                            query: JSON.stringify({
+                                serviceTypeId: serviceTypeId,
+                                payerId: payerId,
+                                memberId: memberId,
+                                state: state,
+                            }),
+                        })];
+                case 2:
+                    data = (_b.sent()).data;
+                    serviceEligibilityId_1 = data === null || data === void 0 ? void 0 : data.id;
+                    if (!serviceEligibilityId_1) {
+                        throw new Error('No service eligibility ID returned');
+                    }
+                    setLoading(false);
+                    setPolling(true);
+                    pollForResults = function () { return __awaiter(void 0, void 0, void 0, function () {
+                        var maxAttempts, attempts, poll;
+                        return __generator(this, function (_a) {
+                            maxAttempts = 60 // Poll for up to 60 attempts (2 minutes at 2s intervals)
+                            ;
+                            attempts = 0;
+                            poll = function () { return __awaiter(void 0, void 0, void 0, function () {
+                                var pollData, status_1, userIds, err_3;
+                                return __generator(this, function (_a) {
+                                    switch (_a.label) {
+                                        case 0:
+                                            if (attempts >= maxAttempts) {
+                                                setError('Eligibility check timed out. Please try again.');
+                                                setPolling(false);
+                                                return [2 /*return*/];
+                                            }
+                                            attempts++;
+                                            _a.label = 1;
+                                        case 1:
+                                            _a.trys.push([1, 3, , 4]);
+                                            return [4 /*yield*/, session.api.integrations.proxy_read({
+                                                    id: serviceEligibilityId_1,
+                                                    integration: BRIDGE_TITLE,
+                                                    type: 'service-eligibility-poll',
+                                                })];
+                                        case 2:
+                                            pollData = (_a.sent()).data;
+                                            status_1 = pollData === null || pollData === void 0 ? void 0 : pollData.status;
+                                            // Check if we're in a terminal state
+                                            if (status_1 && status_1 !== 'PENDING') {
+                                                userIds = (pollData === null || pollData === void 0 ? void 0 : pollData.userIds) || [];
+                                                setBridgeEligibilityUserIds(userIds);
+                                                // Update the answer with the eligibility result
+                                                onChange({
+                                                    status: status_1 || 'unknown',
+                                                    userIds: userIds,
+                                                }, field.id);
+                                                setPolling(false);
+                                                return [2 /*return*/];
+                                            }
+                                            // Still pending, poll again after delay
+                                            setTimeout(poll, 2000); // Poll every 2 seconds
+                                            return [3 /*break*/, 4];
+                                        case 3:
+                                            err_3 = _a.sent();
+                                            setError((err_3 === null || err_3 === void 0 ? void 0 : err_3.message) || 'Failed to poll eligibility status');
+                                            console.error('Service eligibility polling failed:', err_3);
+                                            setPolling(false);
+                                            return [3 /*break*/, 4];
+                                        case 4: return [2 /*return*/];
+                                    }
+                                });
+                            }); };
+                            poll();
+                            return [2 /*return*/];
+                        });
+                    }); };
+                    pollForResults();
+                    return [3 /*break*/, 4];
+                case 3:
+                    err_2 = _b.sent();
+                    setError((err_2 === null || err_2 === void 0 ? void 0 : err_2.message) || 'Failed to check service eligibility');
+                    console.error('Service eligibility check failed:', err_2);
+                    setLoading(false);
+                    setPolling(false);
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
+            }
+        });
+    }); }, [session, field, payerId, memberId, state, onChange, enduserId]);
+    // Auto-check eligibility for enduser sessions
+    var autoCheckRef = useRef(false);
+    useEffect(function () {
+        if (!isEnduserSession)
+            return;
+        if (autoCheckRef.current)
+            return;
+        autoCheckRef.current = true;
+        if (eligibilityType === 'Hard') {
+            checkServiceEligibility();
+        }
+        else {
+            checkProviderEligibility();
+        }
+    }, [isEnduserSession, eligibilityType, checkProviderEligibility, checkServiceEligibility]);
+    var errorComponent = useMemo(function () { return (_jsx(Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center", style: { padding: '20px 0' } }, { children: _jsx(Grid, __assign({ item: true }, { children: _jsx(Paper, __assign({ style: {
+                    padding: 16,
+                    backgroundColor: '#ffebee',
+                    border: '2px solid #f44336'
+                } }, { children: _jsxs(Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center" }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "h2", style: { color: '#f44336' } }, { children: "\u26A0\uFE0F" })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "h6", align: "center", color: "error" }, { children: "Unable to Check Eligibility" })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "body2", align: "center", style: { color: '#d32f2f' } }, { children: error })) }))] })) })) })) }))); }, [error]);
+    var checkingEligibilityComponent = useMemo(function () { return (_jsxs(Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center", style: { padding: '20px 0' } }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(CircularProgress, { size: 40 }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "body1" }, { children: polling ? 'Verifying eligibility with insurance...' : 'Checking eligibility...' })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: polling ? 'This usually takes 15-30 seconds' : 'This may take a few moments' })) }))] }))); }, [polling]);
+    var resultsComponent = useMemo(function () {
+        var isEligible = (value === null || value === void 0 ? void 0 : value.status) === 'ELIGIBLE';
+        return (_jsx(Grid, __assign({ container: true, spacing: 2, direction: "column" }, { children: _jsx(Grid, __assign({ item: true }, { children: _jsx(Paper, __assign({ style: {
+                        padding: 16,
+                        backgroundColor: isEligible ? '#e8f5e9' : '#fff3e0',
+                        border: "2px solid ".concat(isEligible ? '#4caf50' : '#ff9800')
+                    } }, { children: _jsxs(Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center" }, { children: [_jsx(Grid, __assign({ item: true }, { children: isEligible ? (_jsx(CheckCircleOutline, { style: { fontSize: 48, color: '#4caf50' } })) : (_jsx(Typography, __assign({ variant: "h2", style: { color: '#ff9800' } }, { children: "\u26A0\uFE0F" }))) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "h6", align: "center" }, { children: isEligible
+                                        ? "".concat(payerName || 'Your insurance provider', " is accepted!")
+                                        : 'Eligibility Status: ' + first_letter_capitalized(((value === null || value === void 0 ? void 0 : value.status) || 'Unknown').toLowerCase()) })) }))] })) })) })) })));
+    }, [value]);
+    // Loading/polling state for enduser sessions
+    if (isEnduserSession) {
+        if (loading || polling) {
+            return checkingEligibilityComponent;
+        }
+        if (error) {
+            return errorComponent;
+        }
+        if (value === null || value === void 0 ? void 0 : value.status) {
+            return resultsComponent;
+        }
+        return errorComponent;
+    }
+    // User/admin interface (non-enduser sessions)
+    return (_jsxs(Grid, __assign({ container: true, spacing: 2, direction: "column" }, { children: [_jsxs(Grid, __assign({ item: true }, { children: [_jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Eligibility Type: ", eligibilityType] })), _jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Service Type: ", ((_d = field.options) === null || _d === void 0 ? void 0 : _d.bridgeServiceTypeId) || 'Not configured'] })), state && _jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["State: ", state] })), payerId && _jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Payer ID: ", payerId] })), memberId && _jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Member ID: ", memberId] }))] })), error && (_jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "body2", color: "error" }, { children: error })) }))), polling && (_jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "body2", color: "primary" }, { children: "Polling for results... (this may take 15-30 seconds)" })) }))), _jsxs(Grid, __assign({ item: true, container: true, spacing: 2 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(LoadingButton, { variant: "outlined", onClick: checkProviderEligibility, submitText: "Check Provider Eligibility (Free)", submittingText: "Checking...", submitting: loading && !polling, disabled: !((_e = field.options) === null || _e === void 0 ? void 0 : _e.bridgeServiceTypeId) || loading || polling }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(LoadingButton, { variant: "outlined", onClick: checkServiceEligibility, submitText: "Check Service Eligibility (Paid)", submittingText: polling ? "Polling..." : "Initiating...", submitting: loading || polling, disabled: !((_f = field.options) === null || _f === void 0 ? void 0 : _f.bridgeServiceTypeId) || loading || polling }) }))] })), value && (_jsxs(Grid, __assign({ item: true }, { children: [_jsx(Typography, __assign({ variant: "caption", color: "textSecondary" }, { children: "Current Answer:" })), _jsx("pre", __assign({ style: { fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word' } }, { children: JSON.stringify(value, null, 2) }))] })))] })));
 };
 var HourSelector = function (props) { return (_jsx(StringSelector, __assign({}, props, { options: Array(12).fill('').map(function (_, i) { return (i + 1) <= 9 ? "0".concat(i + 1) : (i + 1).toString(); }) }))); };
 var MinuteSelector = function (props) { return (_jsx(StringSelector, __assign({}, props, { options: Array(60).fill('').map(function (_, i) { return i <= 9 ? "0".concat(i) : i.toString(); }) }))); };
@@ -1824,17 +2085,17 @@ export var RelatedContactsInput = function (_a) {
     return (_jsxs(Grid, __assign({ container: true, direction: "column", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: value.map(function (contact, i) { return (_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between", wrap: "nowrap", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center" }, { children: [_jsx(IconButton, __assign({ onClick: function () { return setEditing(i); }, color: "primary", size: "small" }, { children: _jsx(Edit, {}) })), _jsx(Typography, __assign({ noWrap: true }, { children: user_display_name(contact) || "Unnamed Contact ".concat(i + 1) }))] })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(LabeledIconButton, { Icon: Delete, label: "Remove", onClick: function () { return onChange(value.filter(function (v, _i) { return i !== _i; }), field.id); } }) }))] })) }), i)); }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Button, __assign({ variant: "contained", onClick: handleAddContact }, { children: "Add Contact" })) }))] })));
 };
 export var AppointmentBookingInput = function (_a) {
-    var _b, _d, _e, _f, _g, _h, _j, _k, _l;
+    var _b, _d, _e, _f, _g, _h, _j, _k, _l, _m;
     var formResponseId = _a.formResponseId, field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, responses = _a.responses, goToPreviousField = _a.goToPreviousField, isPreviousDisabled = _a.isPreviousDisabled, enduserId = _a.enduserId, props = __rest(_a, ["formResponseId", "field", "value", "onChange", "form", "responses", "goToPreviousField", "isPreviousDisabled", "enduserId"]);
     var session = useResolvedSession();
-    var _m = useState(), loaded = _m[0], setLoaded = _m[1];
-    var _o = useState(''), error = _o[0], setError = _o[1];
-    var _p = useState(false), acknowledgedWarning = _p[0], setAcknowledgedWarning = _p[1];
-    var _q = useState(450), height = _q[0], setHeight = _q[1];
-    var _r = useState(false), confirming = _r[0], setConfirming = _r[1];
+    var _o = useState(), loaded = _o[0], setLoaded = _o[1];
+    var _p = useState(''), error = _p[0], setError = _p[1];
+    var _q = useState(false), acknowledgedWarning = _q[0], setAcknowledgedWarning = _q[1];
+    var _r = useState(450), height = _r[0], setHeight = _r[1];
+    var _s = useState(false), confirming = _s[0], setConfirming = _s[1];
     var bookingPageId = (_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.bookingPageId;
     var downloadICS = useCallback(function (event) { return __awaiter(void 0, void 0, void 0, function () {
-        var _a, err_1;
+        var _a, err_4;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -1846,8 +2107,8 @@ export var AppointmentBookingInput = function (_a) {
                         { name: "event.ics", dataIsURL: true, type: 'text/calendar' }]);
                     return [3 /*break*/, 3];
                 case 2:
-                    err_1 = _b.sent();
-                    console.error(err_1);
+                    err_4 = _b.sent();
+                    console.error(err_4);
                     return [3 /*break*/, 3];
                 case 3: return [2 /*return*/];
             }
@@ -1983,12 +2244,20 @@ export var AppointmentBookingInput = function (_a) {
         })
             .join(','));
     }
+    // Filter to Bridge eligibility userIds if option is enabled
+    if ((_h = field.options) === null || _h === void 0 ? void 0 : _h.useBridgeEligibilityResult) {
+        var bridgeUserIds = getBridgeEligibilityUserIds();
+        if (bridgeUserIds.length === 0) {
+            return _jsx(Typography, { children: "No eligible users found for booking" });
+        }
+        bookingURL += "&userIds=".concat(bridgeUserIds.join(','));
+    }
     // need to use form?.id for internally-submitted forms because formResponseId isn't generated until initial submission or saved draft
-    if (((_h = field.options) === null || _h === void 0 ? void 0 : _h.holdAppointmentMinutes) && (formResponseId || (field === null || field === void 0 ? void 0 : field.id))) {
+    if (((_j = field.options) === null || _j === void 0 ? void 0 : _j.holdAppointmentMinutes) && (formResponseId || (field === null || field === void 0 ? void 0 : field.id))) {
         bookingURL += "&formResponseId=".concat(formResponseId || (field === null || field === void 0 ? void 0 : field.id));
         bookingURL += "&holdAppointmentMinutes=".concat(field.options.holdAppointmentMinutes);
     }
-    return (_jsxs(Grid, __assign({ container: true, direction: "column", spacing: 1, sx: { mt: 1 } }, { children: [!!((_k = (_j = field.options) === null || _j === void 0 ? void 0 : _j.userFilterTags) === null || _k === void 0 ? void 0 : _k.length) && !((_l = field.options.userTags) === null || _l === void 0 ? void 0 : _l.length) && !(isPreviousDisabled === null || isPreviousDisabled === void 0 ? void 0 : isPreviousDisabled()) && !confirming &&
+    return (_jsxs(Grid, __assign({ container: true, direction: "column", spacing: 1, sx: { mt: 1 } }, { children: [!!((_l = (_k = field.options) === null || _k === void 0 ? void 0 : _k.userFilterTags) === null || _l === void 0 ? void 0 : _l.length) && !((_m = field.options.userTags) === null || _m === void 0 ? void 0 : _m.length) && !(isPreviousDisabled === null || isPreviousDisabled === void 0 ? void 0 : isPreviousDisabled()) && !confirming &&
                 _jsx(Grid, __assign({ item: true, alignSelf: "flex-start" }, { children: _jsx(Button, __assign({ variant: "outlined", onClick: goToPreviousField, sx: { height: 25, p: 0.5, px: 1 } }, { children: "Back" })) })), loaded.warningMessage &&
                 _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ color: "error", sx: { fontSize: 20, fontWeight: 'bold' } }, { children: loaded.warningMessage })) })), _jsx(Grid, __assign({ item: true }, { children: (!loaded.warningMessage || acknowledgedWarning)
                     ? (_jsx("iframe", { title: "Appointment Booking Embed", src: bookingURL, style: { border: 'none', width: '100%', height: height } }))
