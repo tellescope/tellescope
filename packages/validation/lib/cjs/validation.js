@@ -1577,8 +1577,9 @@ exports.formResponseAnswerValidator = (0, exports.orValidator)({
     "Bridge Eligibility": (0, exports.objectValidator)({
         type: (0, exports.exactMatchValidator)(['Bridge Eligibility']),
         value: (0, exports.objectValidator)({
+            payerId: exports.stringValidatorOptional,
             status: exports.stringValidatorOptional,
-            userIds: exports.listOfStringsValidatorOptionalOrEmptyOk, // User IDs who cover the patient
+            userIds: (0, exports.listValidatorOptionalOrEmptyOk)(exports.mongoIdStringOptional), // Aggregated user IDs who cover the patient
         }, { isOptional: true, emptyOk: true }),
     }),
     "Question Group": (0, exports.objectValidator)({
@@ -2905,7 +2906,7 @@ exports.formFieldOptionsValidator = (0, exports.objectValidator)({
     userFilterTags: exports.listOfStringsValidatorOptionalOrEmptyOk,
     prefillSignature: exports.booleanValidatorOptional,
     requirePredefinedInsurer: exports.booleanValidatorOptional,
-    bridgeServiceTypeId: exports.stringValidatorOptional,
+    bridgeServiceTypeIds: exports.listOfStringsValidatorOptionalOrEmptyOk,
     bridgeEligibilityType: (0, exports.exactMatchValidatorOptional)(['Soft', 'Hard']),
     useBridgeEligibilityResult: exports.booleanValidatorOptional,
     includeGroupNumber: exports.booleanValidatorOptional,
@@ -2966,6 +2967,13 @@ exports.blockValidator = (0, exports.orValidator)({
     }),
     html: (0, exports.objectValidator)({
         type: (0, exports.exactMatchValidator)(['html']),
+        info: (0, exports.objectValidator)({
+            html: exports.stringValidator25000EmptyOkay,
+        }),
+        style: exports.blockStyleValidator,
+    }),
+    'raw-html': (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['raw-html']),
         info: (0, exports.objectValidator)({
             html: exports.stringValidator25000EmptyOkay,
         }),
@@ -3035,6 +3043,7 @@ var _BLOCK_TYPES = {
     h1: '',
     h2: '',
     html: '',
+    'raw-html': '',
     image: '',
     pdf: '',
     youtube: '',

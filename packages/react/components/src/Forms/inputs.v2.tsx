@@ -1192,7 +1192,7 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
                       display: 'flex',
                       alignItems: 'center',
                       width: '100%',
-                      border: isSelected ? '2px solid' : '1px solid',
+                      border: isSelected ? '3px solid' : '1px solid',
                       borderColor: 'primary.main',
                       borderRadius: 1,
                       padding: '16px 16px',

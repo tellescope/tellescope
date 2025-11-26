@@ -1,5 +1,3 @@
-/// <reference types="node" />
-/// <reference types="node" />
 import { Session, SessionOptions } from "./session";
 import { APIQuery } from "./sdk";
 import { FileDetails, ReactNativeFile, S3PresignedPost, SessionType, UserIdentity } from "@tellescope/types-utilities";

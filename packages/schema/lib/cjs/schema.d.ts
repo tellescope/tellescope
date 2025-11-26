@@ -614,6 +614,8 @@ export type CustomActions = {
         }, {
             fullscriptRedirectURL?: string;
             vital_user_id?: string;
+            scriptsure_patient_id?: string;
+            scriptsure_deep_link?: string;
         }>;
         bulk_update: CustomAction<{
             ids: string[];

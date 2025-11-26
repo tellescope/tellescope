@@ -1,6 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from "react"
 import { ManagedContentRecord } from "@tellescope/types-client"
-import { remove_script_tags } from "@tellescope/utilities"
+import { remove_script_tags, sanitize_html_for_cms } from "@tellescope/utilities"
 import { Button, Grid, Typography } from "@mui/material"
 import { PDFBlockUI } from "./components"
 import { css } from "@emotion/css"
@@ -229,7 +229,18 @@ export const ArticleViewer = ({
                 )
               }}
             />
-            ) 
+            )
+          : block.type === 'raw-html' ? (
+            <div style={{
+              fontSize: 18,
+              lineHeight: '25pt',
+              ...blockStyleToCSS(block.style)
+            }}
+              dangerouslySetInnerHTML={{
+                __html: sanitize_html_for_cms(block.info.html)
+              }}
+            />
+            )
           : block.type === 'image' ? (
               <img src={block.info.link} alt={block.info.alt || ''} style={{
                 maxWidth: block.info.maxWidth || '100%',
@@ -296,6 +307,9 @@ export const html_for_article = (article: ManagedContentRecord, options?: { root
         )
       : block.type === 'html' ? (
         `<div>${remove_script_tags(remove_script_tags(block.info.html))}</div>`
+        )
+      : block.type === 'raw-html' ? (
+        `<div>${sanitize_html_for_cms(block.info.html)}</div>`
         )
       : block.type === 'image' ? (
           // wrap with div to supporting centering later

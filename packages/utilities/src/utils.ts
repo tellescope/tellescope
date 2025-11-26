@@ -645,6 +645,54 @@ export const sanitize_html_with_links = (html: string) =>
     }
   })
 
+// Sanitizes HTML for CMS content - allows rich formatting while blocking XSS attacks
+// More permissive than sanitize_html_with_links to support headers, lists, tables, etc.
+export const sanitize_html_for_cms = (html: string) =>
+  sanitizeHtml(html, {
+    allowedTags: [
+      'a', 'strong', 'b', 'em', 'i', 'u', 'br', 'p', 'img', 'div', 'span',
+      'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+      'ul', 'ol', 'li',
+      'table', 'thead', 'tbody', 'tr', 'td', 'th',
+      'blockquote', 'code', 'pre',
+      'hr',
+    ],
+    allowedAttributes: {
+      'a': ['href', 'target', 'rel', 'style'],
+      'img': ['src', 'alt', 'width', 'height', 'style'],
+      'div': ['style', 'class'],
+      'span': ['style', 'class'],
+      'p': ['style', 'class'],
+      'table': ['style', 'class'],
+      'td': ['style', 'colspan', 'rowspan'],
+      'th': ['style', 'colspan', 'rowspan'],
+      'h1': ['style'], 'h2': ['style'], 'h3': ['style'],
+      'h4': ['style'], 'h5': ['style'], 'h6': ['style'],
+      'ul': ['style'], 'ol': ['style'], 'li': ['style'],
+      'blockquote': ['style'], 'code': ['style'], 'pre': ['style'],
+    },
+    transformTags: {
+      'a': (tagName, attribs) => {
+        const href = attribs.href || '';
+        if (href.startsWith('http://') || href.startsWith('https://')) {
+          return {
+            tagName,
+            attribs: {
+              ...attribs,
+              target: '_blank',
+              rel: 'noopener noreferrer'
+            }
+          };
+        }
+        return { tagName, attribs };
+      }
+    },
+    allowedSchemesByTag: {
+      img: ['http', 'https', 'data'],
+      a: ['http', 'https', 'mailto', 'tel']
+    }
+  })
+
 export const query_string_for_object = (query: Indexable) => {
   let queryString = ''
 
@@ -2343,7 +2391,7 @@ export const validate_enduser_for_smart_meter = (enduser?: Omit<Enduser, 'id'> |
 
 export const validate_enduser_for_dose_spot = (enduser?: Omit<Enduser, 'id'> | null) => {
   if (!enduser) return "Enduser is required"
-  
+
   if (!enduser.fname) return "First name is required"
   if (!enduser.lname) return "Last name is required"
 
@@ -2362,6 +2410,23 @@ export const validate_enduser_for_dose_spot = (enduser?: Omit<Enduser, 'id'> | n
     if (!enduser.height?.value) return "Height is required for patients under 19"
     if (!enduser.weight?.value) return "Weight is required for patients under 19"
   }
+}
+
+export const validate_enduser_for_script_sure = (enduser?: Omit<Enduser, 'id'> | null) => {
+  if (!enduser) return "Enduser is required"
+
+  if (!enduser.fname) return "First name is required"
+  if (!enduser.lname) return "Last name is required"
+
+  if (!enduser.gender) return "Gender is required"
+  if (!enduser.dateOfBirth) return "Date of Birth is required"
+
+  if (!enduser.addressLineOne) return "Address is required (Line One)"
+  if (!enduser.city) return "Address is required (City)"
+  if (!enduser.state) return "Address is required (State)"
+  if (!enduser.zipCode) return "Address is required (ZIP)"
+
+  if (!enduser.phone) return "Phone is required"
 }
 
 export const validate_enduser_for_develop_health = (enduser?: Omit<Enduser, 'id'> | null, insuranceType?: string) => {

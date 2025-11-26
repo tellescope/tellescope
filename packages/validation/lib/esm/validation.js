@@ -1531,8 +1531,9 @@ export var formResponseAnswerValidator = orValidator({
     "Bridge Eligibility": objectValidator({
         type: exactMatchValidator(['Bridge Eligibility']),
         value: objectValidator({
+            payerId: stringValidatorOptional,
             status: stringValidatorOptional,
-            userIds: listOfStringsValidatorOptionalOrEmptyOk, // User IDs who cover the patient
+            userIds: listValidatorOptionalOrEmptyOk(mongoIdStringOptional), // Aggregated user IDs who cover the patient
         }, { isOptional: true, emptyOk: true }),
     }),
     "Question Group": objectValidator({
@@ -2855,7 +2856,7 @@ export var formFieldOptionsValidator = objectValidator({
     userFilterTags: listOfStringsValidatorOptionalOrEmptyOk,
     prefillSignature: booleanValidatorOptional,
     requirePredefinedInsurer: booleanValidatorOptional,
-    bridgeServiceTypeId: stringValidatorOptional,
+    bridgeServiceTypeIds: listOfStringsValidatorOptionalOrEmptyOk,
     bridgeEligibilityType: exactMatchValidatorOptional(['Soft', 'Hard']),
     useBridgeEligibilityResult: booleanValidatorOptional,
     includeGroupNumber: booleanValidatorOptional,
@@ -2916,6 +2917,13 @@ export var blockValidator = orValidator({
     }),
     html: objectValidator({
         type: exactMatchValidator(['html']),
+        info: objectValidator({
+            html: stringValidator25000EmptyOkay,
+        }),
+        style: blockStyleValidator,
+    }),
+    'raw-html': objectValidator({
+        type: exactMatchValidator(['raw-html']),
         info: objectValidator({
             html: stringValidator25000EmptyOkay,
         }),
@@ -2985,6 +2993,7 @@ var _BLOCK_TYPES = {
     h1: '',
     h2: '',
     html: '',
+    'raw-html': '',
     image: '',
     pdf: '',
     youtube: '',

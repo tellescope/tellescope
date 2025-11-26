@@ -139,6 +139,7 @@ export var GOGO_MEDS_TITLE = "GoGoMeds";
 export var ATHENA_TITLE = "athenahealth";
 export var SUPERDIAL_TITLE = "SuperDial";
 export var DOSESPOT_TITLE = "DoseSpot";
+export var SCRIPTSURE_TITLE = "ScriptSure";
 export var DOCSUMO_TITLE = "Docsumo";
 export var ACTIVE_CAMPAIGN_TITLE = "ActiveCampaign";
 export var ZENDESK_INTEGRATIONS_TITLE = "Zendesk";

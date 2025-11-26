@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/constants",
-  "version": "1.235.0",
+  "version": "1.235.1",
   "description": "Constants used across server and client",
   "main": "./lib/cjs/constants.js",
   "module": "./lib/esm/constants.js",
@@ -23,13 +23,13 @@
   },
   "homepage": "https://github.com/tellescope-os/tellescope#readme",
   "dependencies": {
-    "@tellescope/types-models": "1.235.0",
-    "@tellescope/types-utilities": "1.235.0"
+    "@tellescope/types-models": "1.235.1",
+    "@tellescope/types-utilities": "1.235.1"
   },
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.33.0",
-    "@typescript-eslint/parser": "^4.33.0",
-    "eslint": "^7.32.0",
+    "@typescript-eslint/eslint-plugin": "4.33.0",
+    "@typescript-eslint/parser": "4.33.0",
+    "eslint": "7.32.0",
     "typescript": "4.9.3"
   },
   "gitHead": "7be4ae7d05361759e5de904671e86c16ece21323",

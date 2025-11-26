@@ -361,6 +361,7 @@ export var InsuranceInput = function (_a) {
         var _a, _b, _d;
         return ((((_a = addressQuestion === null || addressQuestion === void 0 ? void 0 : addressQuestion.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Address' ? (_d = (_b = addressQuestion === null || addressQuestion === void 0 ? void 0 : addressQuestion.answer) === null || _b === void 0 ? void 0 : _b.value) === null || _d === void 0 ? void 0 : _d.state : undefined) || (enduser === null || enduser === void 0 ? void 0 : enduser.state));
     }, [enduser === null || enduser === void 0 ? void 0 : enduser.state, addressQuestion]);
+    // load from database
     var loadRef = useRef(false); // so session changes don't cause
     useEffect(function () {
         var _a, _b;
@@ -390,6 +391,7 @@ export var InsuranceInput = function (_a) {
         })
             .catch(console.error);
     }, [session, state, (_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.dataSource]);
+    // load from 3rd-party on search only
     var searchRef = useRef(query);
     useEffect(function () {
         var _a, _b, _d, _e;
@@ -442,7 +444,8 @@ export var InsuranceInput = function (_a) {
                             if (databaseRecord) {
                                 onDatabaseSelect === null || onDatabaseSelect === void 0 ? void 0 : onDatabaseSelect([databaseRecord]);
                             }
-                            onChange(__assign(__assign({}, value), { payerName: v || '', payerId: ((_b = payers.find(function (p) { return p.name === v; })) === null || _b === void 0 ? void 0 : _b.id) || '', payerType: ((_d = payers.find(function (p) { return p.name === v; })) === null || _d === void 0 ? void 0 : _d.type) || '' }), field.id);
+                            // don't lose existing payerId on back-and-forth navigation
+                            onChange(__assign(__assign({}, value), { payerName: v || '', payerId: ((value === null || value === void 0 ? void 0 : value.payerName) === v && (value === null || value === void 0 ? void 0 : value.payerId) ? value.payerId : '') || ((_b = payers.find(function (p) { return p.name === v; })) === null || _b === void 0 ? void 0 : _b.id) || '', payerType: ((_d = payers.find(function (p) { return p.name === v; })) === null || _d === void 0 ? void 0 : _d.type) || '' }), field.id);
                         }, renderInput: function (params) {
                         var _a, _b;
                         return (_jsx(TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: (inputProps || defaultInputProps).sx }), required: !field.isOptional, size: "small", label: "Insurer", placeholder: (((_a = field.options) === null || _a === void 0 ? void 0 : _a.dataSource) === CANVAS_TITLE || ((_b = field.options) === null || _b === void 0 ? void 0 : _b.dataSource) === BRIDGE_TITLE) ? "Search insurer..." : "Insurer" })));
@@ -473,17 +476,17 @@ var StringSelector = function (_a) {
                 }) }))] })));
 };
 export var BridgeEligibilityInput = function (_a) {
-    var _b, _d, _e, _f;
+    var _b, _d, _e, _f, _g, _h, _j;
     var field = _a.field, value = _a.value, onChange = _a.onChange, responses = _a.responses, enduser = _a.enduser, inputProps = _a.inputProps, enduserId = _a.enduserId, props = __rest(_a, ["field", "value", "onChange", "responses", "enduser", "inputProps", "enduserId"]);
     var session = useResolvedSession();
-    var _g = useState(false), loading = _g[0], setLoading = _g[1];
-    var _h = useState(false), polling = _h[0], setPolling = _h[1];
-    var _j = useState(), error = _j[0], setError = _j[1];
+    var _k = useState(false), loading = _k[0], setLoading = _k[1];
+    var _l = useState(false), polling = _l[0], setPolling = _l[1];
+    var _m = useState(), error = _m[0], setError = _m[1];
     // single-page form must require button-click to check, but 1-page-at-a-time enduser sessions should auto-check
     var isEnduserSession = session.type === 'enduser';
     var eligibilityType = ((_b = field.options) === null || _b === void 0 ? void 0 : _b.bridgeEligibilityType) || 'Soft';
     // Extract payerId from Insurance question response
-    var _k = useMemo(function () {
+    var _o = useMemo(function () {
         var _a, _b, _d, _e;
         var insuranceResponse = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { var _a, _b, _d; return ((_a = r.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Insurance' && ((_d = (_b = r.answer) === null || _b === void 0 ? void 0 : _b.value) === null || _d === void 0 ? void 0 : _d.payerId); });
         if (((_a = insuranceResponse === null || insuranceResponse === void 0 ? void 0 : insuranceResponse.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Insurance') {
@@ -495,7 +498,7 @@ export var BridgeEligibilityInput = function (_a) {
         }
         // existing payer id is automatically resolved on the backend as default
         return [];
-    }, [responses]), payerId = _k[0], memberId = _k[1], payerName = _k[2];
+    }, [responses]), payerId = _o[0], memberId = _o[1], payerName = _o[2];
     // Extract state from Address question or enduser
     var state = useMemo(function () {
         var _a, _b;
@@ -506,48 +509,80 @@ export var BridgeEligibilityInput = function (_a) {
         }
         // enduser state is automatically resolved on the backend as default
     }, [responses]);
-    // Soft eligibility check function
+    // Soft eligibility check function - supports multiple service type IDs
     var checkProviderEligibility = useCallback(function () { return __awaiter(void 0, void 0, void 0, function () {
-        var serviceTypeId, data, userIds, err_1;
-        var _a;
-        return __generator(this, function (_b) {
-            switch (_b.label) {
+        var serviceTypeIds, results, allUserIds, uniqueUserIds, aggregatedStatus, err_1;
+        var _a, _b;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
                 case 0:
-                    serviceTypeId = (_a = field.options) === null || _a === void 0 ? void 0 : _a.bridgeServiceTypeId;
-                    if (!serviceTypeId) {
-                        setError('Bridge Service Type ID not configured');
+                    serviceTypeIds = (_a = field.options) === null || _a === void 0 ? void 0 : _a.bridgeServiceTypeIds;
+                    if (!serviceTypeIds || serviceTypeIds.length === 0) {
+                        setError('Bridge Service Type IDs not configured');
                         return [2 /*return*/];
                     }
                     // payerId and state can be automatically resolved on the backend, if already saved on Enduser, so not required here
                     setLoading(true);
                     setError(undefined);
-                    _b.label = 1;
+                    _d.label = 1;
                 case 1:
-                    _b.trys.push([1, 3, 4, 5]);
-                    return [4 /*yield*/, session.api.integrations.proxy_read({
-                            id: enduserId,
-                            integration: BRIDGE_TITLE,
-                            type: 'provider-eligibility',
-                            query: JSON.stringify({
-                                serviceTypeId: serviceTypeId,
-                                payerId: payerId,
-                                state: state,
-                            }),
-                        })
-                        // Store userIds in shared variable for Appointment Booking to use
+                    _d.trys.push([1, 3, 4, 5]);
+                    return [4 /*yield*/, Promise.all(serviceTypeIds.map(function (serviceTypeId) { return __awaiter(void 0, void 0, void 0, function () {
+                            var data, err_2;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        _a.trys.push([0, 2, , 3]);
+                                        return [4 /*yield*/, session.api.integrations.proxy_read({
+                                                id: enduserId,
+                                                integration: BRIDGE_TITLE,
+                                                type: 'provider-eligibility',
+                                                query: JSON.stringify({
+                                                    serviceTypeId: serviceTypeId,
+                                                    payerId: payerId,
+                                                    state: state,
+                                                }),
+                                            })];
+                                    case 1:
+                                        data = (_a.sent()).data;
+                                        return [2 /*return*/, {
+                                                serviceTypeId: serviceTypeId,
+                                                status: (data === null || data === void 0 ? void 0 : data.status) || 'unknown',
+                                                userIds: (data === null || data === void 0 ? void 0 : data.userIds) || [],
+                                            }];
+                                    case 2:
+                                        err_2 = _a.sent();
+                                        console.error("Provider eligibility check failed for ".concat(serviceTypeId, ":"), err_2);
+                                        return [2 /*return*/, {
+                                                serviceTypeId: serviceTypeId,
+                                                status: 'error',
+                                                userIds: [],
+                                                error: err_2 === null || err_2 === void 0 ? void 0 : err_2.message,
+                                            }];
+                                    case 3: return [2 /*return*/];
+                                }
+                            });
+                        }); }))
+                        // Aggregate results - union of userIds across all service types
                     ];
                 case 2:
-                    data = (_b.sent()).data;
-                    userIds = (data === null || data === void 0 ? void 0 : data.userIds) || [];
-                    setBridgeEligibilityUserIds(userIds);
-                    // Update the answer with the eligibility result
+                    results = _d.sent();
+                    allUserIds = results.flatMap(function (r) { return r.userIds; });
+                    uniqueUserIds = Array.from(new Set(allUserIds));
+                    aggregatedStatus = results.some(function (r) { return r.status === 'ELIGIBLE'; })
+                        ? 'ELIGIBLE'
+                        : ((_b = results.find(function (r) { return r.status !== 'error'; })) === null || _b === void 0 ? void 0 : _b.status) || 'unknown';
+                    // Store aggregated userIds in shared variable for Appointment Booking to use
+                    setBridgeEligibilityUserIds(uniqueUserIds);
+                    // Update the answer with aggregated results
                     onChange({
-                        status: (data === null || data === void 0 ? void 0 : data.status) || 'unknown',
-                        userIds: userIds,
+                        payerId: payerId,
+                        status: aggregatedStatus,
+                        userIds: uniqueUserIds,
                     }, field.id);
                     return [3 /*break*/, 5];
                 case 3:
-                    err_1 = _b.sent();
+                    err_1 = _d.sent();
                     setError((err_1 === null || err_1 === void 0 ? void 0 : err_1.message) || 'Failed to check eligibility');
                     console.error('Provider eligibility check failed:', err_1);
                     return [3 /*break*/, 5];
@@ -558,16 +593,16 @@ export var BridgeEligibilityInput = function (_a) {
             }
         });
     }); }, [session, field, payerId, state, onChange, enduserId]);
-    // Hard eligibility check function with polling
+    // Hard eligibility check function with polling - supports multiple service type IDs
     var checkServiceEligibility = useCallback(function () { return __awaiter(void 0, void 0, void 0, function () {
-        var serviceTypeId, data, serviceEligibilityId_1, pollForResults, err_2;
+        var serviceTypeIds, initiatedChecks_1, pollForAllResults, err_3;
         var _a;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
-                    serviceTypeId = (_a = field.options) === null || _a === void 0 ? void 0 : _a.bridgeServiceTypeId;
-                    if (!serviceTypeId) {
-                        setError('Bridge Service Type ID not configured');
+                    serviceTypeIds = (_a = field.options) === null || _a === void 0 ? void 0 : _a.bridgeServiceTypeIds;
+                    if (!serviceTypeIds || serviceTypeIds.length === 0) {
+                        setError('Bridge Service Type IDs not configured');
                         return [2 /*return*/];
                     }
                     setLoading(true);
@@ -575,35 +610,69 @@ export var BridgeEligibilityInput = function (_a) {
                     _b.label = 1;
                 case 1:
                     _b.trys.push([1, 3, , 4]);
-                    return [4 /*yield*/, session.api.integrations.proxy_read({
-                            id: enduserId,
-                            integration: BRIDGE_TITLE,
-                            type: 'service-eligibility',
-                            query: JSON.stringify({
-                                serviceTypeId: serviceTypeId,
-                                payerId: payerId,
-                                memberId: memberId,
-                                state: state,
-                            }),
-                        })];
+                    return [4 /*yield*/, Promise.all(serviceTypeIds.map(function (serviceTypeId) { return __awaiter(void 0, void 0, void 0, function () {
+                            var data, serviceEligibilityId, err_4;
+                            return __generator(this, function (_a) {
+                                switch (_a.label) {
+                                    case 0:
+                                        _a.trys.push([0, 2, , 3]);
+                                        return [4 /*yield*/, session.api.integrations.proxy_read({
+                                                id: enduserId,
+                                                integration: BRIDGE_TITLE,
+                                                type: 'service-eligibility',
+                                                query: JSON.stringify({
+                                                    serviceTypeId: serviceTypeId,
+                                                    payerId: payerId,
+                                                    memberId: memberId,
+                                                    state: state,
+                                                }),
+                                            })];
+                                    case 1:
+                                        data = (_a.sent()).data;
+                                        serviceEligibilityId = data === null || data === void 0 ? void 0 : data.id;
+                                        if (!serviceEligibilityId) {
+                                            throw new Error('No service eligibility ID returned');
+                                        }
+                                        return [2 /*return*/, {
+                                                serviceTypeId: serviceTypeId,
+                                                serviceEligibilityId: serviceEligibilityId,
+                                                error: undefined,
+                                            }];
+                                    case 2:
+                                        err_4 = _a.sent();
+                                        console.error("Service eligibility check initiation failed for ".concat(serviceTypeId, ":"), err_4);
+                                        return [2 /*return*/, {
+                                                serviceTypeId: serviceTypeId,
+                                                serviceEligibilityId: null,
+                                                error: err_4 === null || err_4 === void 0 ? void 0 : err_4.message,
+                                            }];
+                                    case 3: return [2 /*return*/];
+                                }
+                            });
+                        }); }))];
                 case 2:
-                    data = (_b.sent()).data;
-                    serviceEligibilityId_1 = data === null || data === void 0 ? void 0 : data.id;
-                    if (!serviceEligibilityId_1) {
-                        throw new Error('No service eligibility ID returned');
-                    }
+                    initiatedChecks_1 = _b.sent();
                     setLoading(false);
                     setPolling(true);
-                    pollForResults = function () { return __awaiter(void 0, void 0, void 0, function () {
-                        var maxAttempts, attempts, poll;
+                    pollForAllResults = function () { return __awaiter(void 0, void 0, void 0, function () {
+                        var maxAttempts, checkStatuses, attempts, pollAll;
                         return __generator(this, function (_a) {
                             maxAttempts = 60 // Poll for up to 60 attempts (2 minutes at 2s intervals)
                             ;
+                            checkStatuses = new Map(initiatedChecks_1.map(function (check) { return [
+                                check.serviceTypeId,
+                                {
+                                    completed: check.error !== undefined || check.serviceEligibilityId === null,
+                                    result: check.error ? { status: 'error', userIds: [], error: check.error } : null,
+                                    serviceEligibilityId: check.serviceEligibilityId,
+                                }
+                            ]; }));
                             attempts = 0;
-                            poll = function () { return __awaiter(void 0, void 0, void 0, function () {
-                                var pollData, status_1, userIds, err_3;
-                                return __generator(this, function (_a) {
-                                    switch (_a.label) {
+                            pollAll = function () { return __awaiter(void 0, void 0, void 0, function () {
+                                var pollPromises, allCompleted, results, allUserIds, uniqueUserIds, aggregatedStatus;
+                                var _a;
+                                return __generator(this, function (_b) {
+                                    switch (_b.label) {
                                         case 0:
                                             if (attempts >= maxAttempts) {
                                                 setError('Eligibility check timed out. Please try again.');
@@ -611,52 +680,99 @@ export var BridgeEligibilityInput = function (_a) {
                                                 return [2 /*return*/];
                                             }
                                             attempts++;
-                                            _a.label = 1;
+                                            pollPromises = initiatedChecks_1
+                                                .filter(function (check) {
+                                                var status = checkStatuses.get(check.serviceTypeId);
+                                                return check.serviceEligibilityId && status && !status.completed;
+                                            })
+                                                .map(function (check) { return __awaiter(void 0, void 0, void 0, function () {
+                                                var pollData, status_1, checkStatus, err_5, checkStatus;
+                                                return __generator(this, function (_a) {
+                                                    switch (_a.label) {
+                                                        case 0:
+                                                            _a.trys.push([0, 2, , 3]);
+                                                            return [4 /*yield*/, session.api.integrations.proxy_read({
+                                                                    id: check.serviceEligibilityId,
+                                                                    integration: BRIDGE_TITLE,
+                                                                    type: 'service-eligibility-poll',
+                                                                })];
+                                                        case 1:
+                                                            pollData = (_a.sent()).data;
+                                                            status_1 = pollData === null || pollData === void 0 ? void 0 : pollData.status;
+                                                            // Check if we're in a terminal state
+                                                            if (status_1 && status_1 !== 'PENDING') {
+                                                                checkStatus = checkStatuses.get(check.serviceTypeId);
+                                                                checkStatus.completed = true;
+                                                                checkStatus.result = {
+                                                                    status: status_1 || 'unknown',
+                                                                    userIds: (pollData === null || pollData === void 0 ? void 0 : pollData.userIds) || [],
+                                                                    error: undefined,
+                                                                };
+                                                            }
+                                                            return [3 /*break*/, 3];
+                                                        case 2:
+                                                            err_5 = _a.sent();
+                                                            console.error("Service eligibility polling failed for ".concat(check.serviceTypeId, ":"), err_5);
+                                                            checkStatus = checkStatuses.get(check.serviceTypeId);
+                                                            checkStatus.completed = true;
+                                                            checkStatus.result = {
+                                                                status: 'error',
+                                                                userIds: [],
+                                                                error: err_5 === null || err_5 === void 0 ? void 0 : err_5.message,
+                                                            };
+                                                            return [3 /*break*/, 3];
+                                                        case 3: return [2 /*return*/];
+                                                    }
+                                                });
+                                            }); });
+                                            return [4 /*yield*/, Promise.all(pollPromises)
+                                                // Check if all checks are completed
+                                            ];
                                         case 1:
-                                            _a.trys.push([1, 3, , 4]);
-                                            return [4 /*yield*/, session.api.integrations.proxy_read({
-                                                    id: serviceEligibilityId_1,
-                                                    integration: BRIDGE_TITLE,
-                                                    type: 'service-eligibility-poll',
-                                                })];
-                                        case 2:
-                                            pollData = (_a.sent()).data;
-                                            status_1 = pollData === null || pollData === void 0 ? void 0 : pollData.status;
-                                            // Check if we're in a terminal state
-                                            if (status_1 && status_1 !== 'PENDING') {
-                                                userIds = (pollData === null || pollData === void 0 ? void 0 : pollData.userIds) || [];
-                                                setBridgeEligibilityUserIds(userIds);
-                                                // Update the answer with the eligibility result
+                                            _b.sent();
+                                            allCompleted = Array.from(checkStatuses.values()).every(function (s) { return s.completed; });
+                                            if (allCompleted) {
+                                                results = Array.from(checkStatuses.entries()).map(function (_a) {
+                                                    var _b, _d;
+                                                    var serviceTypeId = _a[0], status = _a[1];
+                                                    return ({
+                                                        serviceTypeId: serviceTypeId,
+                                                        status: ((_b = status.result) === null || _b === void 0 ? void 0 : _b.status) || 'unknown',
+                                                        userIds: ((_d = status.result) === null || _d === void 0 ? void 0 : _d.userIds) || [],
+                                                    });
+                                                });
+                                                allUserIds = results.flatMap(function (r) { return r.userIds; });
+                                                uniqueUserIds = Array.from(new Set(allUserIds));
+                                                aggregatedStatus = results.some(function (r) { return r.status === 'ELIGIBLE'; })
+                                                    ? 'ELIGIBLE'
+                                                    : ((_a = results.find(function (r) { return r.status !== 'error'; })) === null || _a === void 0 ? void 0 : _a.status) || 'unknown';
+                                                // Store aggregated userIds in shared variable for Appointment Booking to use
+                                                setBridgeEligibilityUserIds(uniqueUserIds);
+                                                // Update the answer with aggregated results
                                                 onChange({
-                                                    status: status_1 || 'unknown',
-                                                    userIds: userIds,
+                                                    payerId: payerId,
+                                                    status: aggregatedStatus,
+                                                    userIds: uniqueUserIds,
                                                 }, field.id);
                                                 setPolling(false);
                                                 return [2 /*return*/];
                                             }
-                                            // Still pending, poll again after delay
-                                            setTimeout(poll, 2000); // Poll every 2 seconds
-                                            return [3 /*break*/, 4];
-                                        case 3:
-                                            err_3 = _a.sent();
-                                            setError((err_3 === null || err_3 === void 0 ? void 0 : err_3.message) || 'Failed to poll eligibility status');
-                                            console.error('Service eligibility polling failed:', err_3);
-                                            setPolling(false);
-                                            return [3 /*break*/, 4];
-                                        case 4: return [2 /*return*/];
+                                            // Still have pending checks, poll again after delay
+                                            setTimeout(pollAll, 2000); // Poll every 2 seconds
+                                            return [2 /*return*/];
                                     }
                                 });
                             }); };
-                            poll();
+                            pollAll();
                             return [2 /*return*/];
                         });
                     }); };
-                    pollForResults();
+                    pollForAllResults();
                     return [3 /*break*/, 4];
                 case 3:
-                    err_2 = _b.sent();
-                    setError((err_2 === null || err_2 === void 0 ? void 0 : err_2.message) || 'Failed to check service eligibility');
-                    console.error('Service eligibility check failed:', err_2);
+                    err_3 = _b.sent();
+                    setError((err_3 === null || err_3 === void 0 ? void 0 : err_3.message) || 'Failed to check service eligibility');
+                    console.error('Service eligibility check failed:', err_3);
                     setLoading(false);
                     setPolling(false);
                     return [3 /*break*/, 4];
@@ -669,6 +785,10 @@ export var BridgeEligibilityInput = function (_a) {
     useEffect(function () {
         if (!isEnduserSession)
             return;
+        // If we already have a result and the payer hasn't changed, use the cached result
+        if ((value === null || value === void 0 ? void 0 : value.status) && (value === null || value === void 0 ? void 0 : value.payerId) === payerId) {
+            return;
+        }
         if (autoCheckRef.current)
             return;
         autoCheckRef.current = true;
@@ -678,7 +798,7 @@ export var BridgeEligibilityInput = function (_a) {
         else {
             checkProviderEligibility();
         }
-    }, [isEnduserSession, eligibilityType, checkProviderEligibility, checkServiceEligibility]);
+    }, [isEnduserSession, eligibilityType, checkProviderEligibility, checkServiceEligibility, value, payerId]);
     var errorComponent = useMemo(function () { return (_jsx(Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center", style: { padding: '20px 0' } }, { children: _jsx(Grid, __assign({ item: true }, { children: _jsx(Paper, __assign({ style: {
                     padding: 16,
                     backgroundColor: '#ffebee',
@@ -694,7 +814,7 @@ export var BridgeEligibilityInput = function (_a) {
                     } }, { children: _jsxs(Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center" }, { children: [_jsx(Grid, __assign({ item: true }, { children: isEligible ? (_jsx(CheckCircleOutline, { style: { fontSize: 48, color: '#4caf50' } })) : (_jsx(Typography, __assign({ variant: "h2", style: { color: '#ff9800' } }, { children: "\u26A0\uFE0F" }))) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "h6", align: "center" }, { children: isEligible
                                         ? "".concat(payerName || 'Your insurance provider', " is accepted!")
                                         : 'Eligibility Status: ' + first_letter_capitalized(((value === null || value === void 0 ? void 0 : value.status) || 'Unknown').toLowerCase()) })) }))] })) })) })) })));
-    }, [value]);
+    }, [value, payerName]);
     // Loading/polling state for enduser sessions
     if (isEnduserSession) {
         if (loading || polling) {
@@ -709,7 +829,7 @@ export var BridgeEligibilityInput = function (_a) {
         return errorComponent;
     }
     // User/admin interface (non-enduser sessions)
-    return (_jsxs(Grid, __assign({ container: true, spacing: 2, direction: "column" }, { children: [_jsxs(Grid, __assign({ item: true }, { children: [_jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Eligibility Type: ", eligibilityType] })), _jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Service Type: ", ((_d = field.options) === null || _d === void 0 ? void 0 : _d.bridgeServiceTypeId) || 'Not configured'] })), state && _jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["State: ", state] })), payerId && _jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Payer ID: ", payerId] })), memberId && _jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Member ID: ", memberId] }))] })), error && (_jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "body2", color: "error" }, { children: error })) }))), polling && (_jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "body2", color: "primary" }, { children: "Polling for results... (this may take 15-30 seconds)" })) }))), _jsxs(Grid, __assign({ item: true, container: true, spacing: 2 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(LoadingButton, { variant: "outlined", onClick: checkProviderEligibility, submitText: "Check Provider Eligibility (Free)", submittingText: "Checking...", submitting: loading && !polling, disabled: !((_e = field.options) === null || _e === void 0 ? void 0 : _e.bridgeServiceTypeId) || loading || polling }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(LoadingButton, { variant: "outlined", onClick: checkServiceEligibility, submitText: "Check Service Eligibility (Paid)", submittingText: polling ? "Polling..." : "Initiating...", submitting: loading || polling, disabled: !((_f = field.options) === null || _f === void 0 ? void 0 : _f.bridgeServiceTypeId) || loading || polling }) }))] })), value && (_jsxs(Grid, __assign({ item: true }, { children: [_jsx(Typography, __assign({ variant: "caption", color: "textSecondary" }, { children: "Current Answer:" })), _jsx("pre", __assign({ style: { fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word' } }, { children: JSON.stringify(value, null, 2) }))] })))] })));
+    return (_jsxs(Grid, __assign({ container: true, spacing: 2, direction: "column" }, { children: [_jsxs(Grid, __assign({ item: true }, { children: [_jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Eligibility Type: ", eligibilityType] })), _jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Service Type IDs: ", ((_e = (_d = field.options) === null || _d === void 0 ? void 0 : _d.bridgeServiceTypeIds) === null || _e === void 0 ? void 0 : _e.join(', ')) || 'Not configured'] })), state && _jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["State: ", state] })), payerId && _jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Payer ID: ", payerId] })), memberId && _jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Member ID: ", memberId] }))] })), error && (_jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "body2", color: "error" }, { children: error })) }))), polling && (_jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "body2", color: "primary" }, { children: "Polling for results... (this may take 15-30 seconds)" })) }))), _jsxs(Grid, __assign({ item: true, container: true, spacing: 2 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(LoadingButton, { variant: "outlined", onClick: checkProviderEligibility, submitText: "Check Provider Eligibility (Free)", submittingText: "Checking...", submitting: loading && !polling, disabled: !((_g = (_f = field.options) === null || _f === void 0 ? void 0 : _f.bridgeServiceTypeIds) === null || _g === void 0 ? void 0 : _g.length) || loading || polling }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(LoadingButton, { variant: "outlined", onClick: checkServiceEligibility, submitText: "Check Service Eligibility (Paid)", submittingText: polling ? "Polling..." : "Initiating...", submitting: loading || polling, disabled: !((_j = (_h = field.options) === null || _h === void 0 ? void 0 : _h.bridgeServiceTypeIds) === null || _j === void 0 ? void 0 : _j.length) || loading || polling }) }))] })), value && (_jsxs(Grid, __assign({ item: true }, { children: [_jsx(Typography, __assign({ variant: "caption", color: "textSecondary" }, { children: "Current Answer:" })), _jsx("pre", __assign({ style: { fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word' } }, { children: JSON.stringify(value, null, 2) }))] })))] })));
 };
 var HourSelector = function (props) { return (_jsx(StringSelector, __assign({}, props, { options: Array(12).fill('').map(function (_, i) { return (i + 1) <= 9 ? "0".concat(i + 1) : (i + 1).toString(); }) }))); };
 var MinuteSelector = function (props) { return (_jsx(StringSelector, __assign({}, props, { options: Array(60).fill('').map(function (_, i) { return i <= 9 ? "0".concat(i) : i.toString(); }) }))); };
@@ -2095,7 +2215,7 @@ export var AppointmentBookingInput = function (_a) {
     var _s = useState(false), confirming = _s[0], setConfirming = _s[1];
     var bookingPageId = (_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.bookingPageId;
     var downloadICS = useCallback(function (event) { return __awaiter(void 0, void 0, void 0, function () {
-        var _a, err_4;
+        var _a, err_6;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -2107,8 +2227,8 @@ export var AppointmentBookingInput = function (_a) {
                         { name: "event.ics", dataIsURL: true, type: 'text/calendar' }]);
                     return [3 /*break*/, 3];
                 case 2:
-                    err_4 = _b.sent();
-                    console.error(err_4);
+                    err_6 = _b.sent();
+                    console.error(err_6);
                     return [3 /*break*/, 3];
                 case 3: return [2 /*return*/];
             }

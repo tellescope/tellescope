@@ -465,6 +465,8 @@ exports.schema = (0, exports.build_schema)({
                 returns: {
                     fullscriptRedirectURL: { validator: validation_1.stringValidator },
                     vital_user_id: { validator: validation_1.stringValidator },
+                    scriptsure_patient_id: { validator: validation_1.stringValidator },
+                    scriptsure_deep_link: { validator: validation_1.stringValidator },
                 },
             },
             bulk_update: {
@@ -1873,6 +1875,21 @@ exports.schema = (0, exports.build_schema)({
                     }
                 },
                 {
+                    explanation: "Only admin users can update scriptSurePrescriberId",
+                    evaluate: function (_a, _, session, method, _b) {
+                        var _c;
+                        var roles = _a.roles;
+                        var updates = _b.updates;
+                        if ((_c = session === null || session === void 0 ? void 0 : session.roles) === null || _c === void 0 ? void 0 : _c.includes('Admin'))
+                            return; // admin can do this
+                        if (method === 'create')
+                            return; // create already admin restricted
+                        if (!(updates === null || updates === void 0 ? void 0 : updates.scriptSurePrescriberId))
+                            return; // scriptSurePrescriberId not provided
+                        return "Only admin users can update scriptSurePrescriberId";
+                    }
+                },
+                {
                     explanation: "Only admin users can update requireSSO",
                     evaluate: function (_a, _, session, method, _b) {
                         var _c;
@@ -2241,7 +2258,7 @@ exports.schema = (0, exports.build_schema)({
                 ]
             }, credentialedStates: {
                 validator: validation_1.stateCredentialsValidator,
-            }, timezone: { validator: validation_1.timezoneValidator }, weeklyAvailabilities: { validator: validation_1.weeklyAvailabilitiesValidator }, calendarEventLimits: { validator: validation_1.calendarEventLimitsValidator }, autoReplyEnabled: { validator: validation_1.booleanValidatorOptional }, pushNotificationIosTokens: { validator: validation_1.listOfStringsValidatorEmptyOk }, pushNotificationFirebaseTokens: { validator: validation_1.listOfStringsValidatorEmptyOk }, callRouting: { validator: validation_1.userCallRoutingBehaviorValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, emailSignature: { validator: validation_1.stringValidator1000 }, disableTicketAutoAssignment: { validator: validation_1.booleanValidator }, ticketAssignmentPriority: { validator: validation_1.nonNegNumberValidator }, specialties: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, bio: { validator: validation_1.stringValidator25000EmptyOkay }, TIN: { validator: validation_1.stringValidatorOptionalEmptyOkay }, NPI: { validator: validation_1.stringValidatorOptionalEmptyOkay }, DEA: { validator: validation_1.stringValidatorOptionalEmptyOkay }, voicemailPlayback: { validator: validation_1.phonePlaybackValidatorOptional }, lockedOutUntil: { validator: validation_1.numberValidator }, failedLoginAttempts: { validator: validation_1.nonNegNumberValidator }, iOSBadgeCount: { validator: validation_1.nonNegNumberValidator }, availableFromNumbers: { validator: validation_1.listOfStringsValidatorEmptyOk }, availableFromEmails: { validator: validation_1.listOfStringsValidatorEmptyOk }, doseSpotUserId: { validator: validation_1.stringValidator100 }, url: { validator: validation_1.stringValidator1000 }, templateFields: {
+            }, timezone: { validator: validation_1.timezoneValidator }, weeklyAvailabilities: { validator: validation_1.weeklyAvailabilitiesValidator }, calendarEventLimits: { validator: validation_1.calendarEventLimitsValidator }, autoReplyEnabled: { validator: validation_1.booleanValidatorOptional }, pushNotificationIosTokens: { validator: validation_1.listOfStringsValidatorEmptyOk }, pushNotificationFirebaseTokens: { validator: validation_1.listOfStringsValidatorEmptyOk }, callRouting: { validator: validation_1.userCallRoutingBehaviorValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, emailSignature: { validator: validation_1.stringValidator1000 }, disableTicketAutoAssignment: { validator: validation_1.booleanValidator }, ticketAssignmentPriority: { validator: validation_1.nonNegNumberValidator }, specialties: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, bio: { validator: validation_1.stringValidator25000EmptyOkay }, TIN: { validator: validation_1.stringValidatorOptionalEmptyOkay }, NPI: { validator: validation_1.stringValidatorOptionalEmptyOkay }, DEA: { validator: validation_1.stringValidatorOptionalEmptyOkay }, voicemailPlayback: { validator: validation_1.phonePlaybackValidatorOptional }, lockedOutUntil: { validator: validation_1.numberValidator }, failedLoginAttempts: { validator: validation_1.nonNegNumberValidator }, iOSBadgeCount: { validator: validation_1.nonNegNumberValidator }, availableFromNumbers: { validator: validation_1.listOfStringsValidatorEmptyOk }, availableFromEmails: { validator: validation_1.listOfStringsValidatorEmptyOk }, doseSpotUserId: { validator: validation_1.stringValidator100 }, scriptSurePrescriberId: { validator: validation_1.stringValidator100 }, url: { validator: validation_1.stringValidator1000 }, templateFields: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     field: validation_1.stringValidator100,
                     value: validation_1.stringValidator5000,
@@ -4657,7 +4674,7 @@ exports.schema = (0, exports.build_schema)({
                     id: validation_1.stringValidator100,
                     name: validation_1.stringValidator,
                 }))
-            }, groups: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: validation_1.stringValidator }, observationInvalidationReasons: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: validation_1.stringValidator }, hasConnectedPaubox: { validator: validation_1.booleanValidator }, hasConnectedBridge: { validator: validation_1.booleanValidator }, createEnduserForms: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, skipActivePatientBilling: { validator: validation_1.booleanValidator } }),
+            }, groups: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: validation_1.stringValidator }, observationInvalidationReasons: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: validation_1.stringValidator }, hasConnectedPaubox: { validator: validation_1.booleanValidator }, hasConnectedBridge: { validator: validation_1.booleanValidator }, createEnduserForms: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, skipActivePatientBilling: { validator: validation_1.booleanValidator }, scriptSureEnvironment: { validator: (0, validation_1.exactMatchValidatorOptional)(['Production', 'Sandbox']) } }),
     },
     databases: {
         info: {},

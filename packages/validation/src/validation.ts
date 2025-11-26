@@ -101,6 +101,7 @@ import {
   Block,
   BlockContentH1,
   BlockContentHTML,
+  BlockContentRawHTML,
   BlockContentImage,
   BlockContentYoutube,
   BlockContentH2,
@@ -1999,8 +2000,9 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
   "Bridge Eligibility": objectValidator<FormResponseAnswerBridgeEligibility>({
     type: exactMatchValidator(['Bridge Eligibility']),
     value: objectValidator<FormResponseAnswerBridgeEligibility['value']>({
-      status: stringValidatorOptional,
-      userIds: listOfStringsValidatorOptionalOrEmptyOk, // User IDs who cover the patient
+      payerId: stringValidatorOptional, // Payer ID used for this eligibility check (for caching)
+      status: stringValidatorOptional, // Aggregated eligibility status
+      userIds: listValidatorOptionalOrEmptyOk(mongoIdStringOptional), // Aggregated user IDs who cover the patient
     }, { isOptional: true, emptyOk: true }),
   }),
   "Question Group": objectValidator<FormResponseAnswerGroup>({
@@ -3694,7 +3696,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   userFilterTags: listOfStringsValidatorOptionalOrEmptyOk,
   prefillSignature: booleanValidatorOptional,
   requirePredefinedInsurer: booleanValidatorOptional,
-  bridgeServiceTypeId: stringValidatorOptional,
+  bridgeServiceTypeIds: listOfStringsValidatorOptionalOrEmptyOk,
   bridgeEligibilityType: exactMatchValidatorOptional(['Soft', 'Hard']),
   useBridgeEligibilityResult: booleanValidatorOptional,
   includeGroupNumber: booleanValidatorOptional,
@@ -3758,6 +3760,13 @@ export const blockValidator = orValidator<{ [K in BlockType]: Block & { type: K 
   html: objectValidator<BlockContentHTML>({
     type: exactMatchValidator(['html']),
     info: objectValidator<BlockContentHTML['info']>({
+      html: stringValidator25000EmptyOkay,
+    }),
+    style: blockStyleValidator,
+  }),
+  'raw-html': objectValidator<BlockContentRawHTML>({
+    type: exactMatchValidator(['raw-html']),
+    info: objectValidator<BlockContentRawHTML['info']>({
       html: stringValidator25000EmptyOkay,
     }),
     style: blockStyleValidator,
@@ -3827,6 +3836,7 @@ const _BLOCK_TYPES: { [K in BlockType]: any } = {
   h1: '',
   h2: '',
   html: '',
+  'raw-html': '',
   image: '',
   pdf: '',
   youtube: '',

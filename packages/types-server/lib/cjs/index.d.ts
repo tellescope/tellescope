@@ -257,7 +257,7 @@ export interface OktaSSOConfiguration extends InternalBusinessRecord {
     oktaBaseUrl: string;
 }
 export interface InternalSecret extends InternalBusinessRecord {
-    type: 'twilio-ios' | 'twilio-android' | 'customer-usage-data' | 'beluga-sandbox' | 'beluga-production';
+    type: 'twilio-ios' | 'twilio-android' | 'customer-usage-data' | 'beluga-sandbox' | 'beluga-production' | 'scriptsure-sandbox' | 'scriptsure-production';
     publicKey: string;
     secretKey: string;
 }

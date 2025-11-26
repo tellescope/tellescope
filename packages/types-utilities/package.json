@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/types-utilities",
-  "version": "1.235.0",
+  "version": "1.235.1",
   "description": "Utility types for use across Tellescope packages",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
@@ -22,10 +22,10 @@
   },
   "homepage": "https://github.com/tellescope-os/tellescope#readme",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^4.33.0",
-    "@typescript-eslint/parser": "^4.33.0",
-    "eslint": "^7.32.0",
-    "eslint-plugin-react": "^7.26.1",
+    "@typescript-eslint/eslint-plugin": "4.33.0",
+    "@typescript-eslint/parser": "4.33.0",
+    "eslint": "7.32.0",
+    "eslint-plugin-react": "7.31.11",
     "typescript": "4.9.3"
   },
   "publishConfig": {

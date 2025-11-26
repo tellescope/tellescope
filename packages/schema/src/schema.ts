@@ -814,7 +814,7 @@ export type CustomActions = {
     add_to_journey: CustomAction<{ enduserIds: string[], journeyId: string, startAt?: Date, automationStepId?: string, journeyContext?: JourneyContext, throttle?: boolean, source?: string }, { }>, 
     remove_from_journey: CustomAction<{ enduserIds: string[], journeyId: string }, { }>, 
     merge: CustomAction<{ sourceEnduserId: string, destinationEnduserId: string, }, { }>, 
-    push: CustomAction<{ enduserId: string, destinations?: string[], externalIds?: string[], entrypoint?: string }, { fullscriptRedirectURL?: string, vital_user_id?: string }>,
+    push: CustomAction<{ enduserId: string, destinations?: string[], externalIds?: string[], entrypoint?: string }, { fullscriptRedirectURL?: string, vital_user_id?: string, scriptsure_patient_id?: string, scriptsure_deep_link?: string }>,
     bulk_update: CustomAction<
       { ids: string[], primaryAssignee?: string, state?: string, fields?: CustomFields, pushTags?: string[], replaceTags?: string[], updateAccessTags?: boolean, customTypeId?: string }, 
       { updated: Enduser[] }
@@ -1773,6 +1773,8 @@ export const schema: SchemaV1 = build_schema({
         returns: {
           fullscriptRedirectURL: { validator: stringValidator },
           vital_user_id: { validator: stringValidator },
+          scriptsure_patient_id: { validator: stringValidator },
+          scriptsure_deep_link: { validator: stringValidator },
         },
       },
       bulk_update: {
@@ -3343,7 +3345,17 @@ export const schema: SchemaV1 = build_schema({
 
             return "Only admin users can update doseSpotUserId"
           }
-        }, 
+        },
+        {
+          explanation: "Only admin users can update scriptSurePrescriberId",
+          evaluate: ({ roles }, _, session, method, { updates }) => {
+            if ((session as UserSession)?.roles?.includes('Admin')) return // admin can do this
+            if (method === 'create') return // create already admin restricted
+            if (!updates?.scriptSurePrescriberId) return // scriptSurePrescriberId not provided
+
+            return "Only admin users can update scriptSurePrescriberId"
+          }
+        },
         {
           explanation: "Only admin users can update requireSSO",
           evaluate: ({ roles }, _, session, method, { updates }) => {
@@ -3759,6 +3771,7 @@ export const schema: SchemaV1 = build_schema({
       availableFromNumbers: { validator: listOfStringsValidatorEmptyOk },
       availableFromEmails: { validator: listOfStringsValidatorEmptyOk },
       doseSpotUserId: { validator: stringValidator100 },
+      scriptSurePrescriberId: { validator: stringValidator100 },
       url: { validator: stringValidator1000 },
       templateFields: {
         validator: listValidatorOptionalOrEmptyOk(objectValidator<LabeledField>({
@@ -6835,6 +6848,7 @@ export const schema: SchemaV1 = build_schema({
       hasConnectedBridge: { validator: booleanValidator },
       createEnduserForms: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
       skipActivePatientBilling: { validator: booleanValidator },
+      scriptSureEnvironment: { validator: exactMatchValidatorOptional<"Production" | 'Sandbox'>(['Production', 'Sandbox'])},
     },
   },
   databases: {

@@ -11121,31 +11121,40 @@ var enduser_access_tags_tests = function () { return __awaiter(void 0, void 0, v
                 return [4 /*yield*/, (0, testing_1.async_test)("Non-admin can't update tags (with other updates)", function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: ['new tag'], bio: '' }); }, testing_1.handleAnyError)];
             case 53:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)("Non-admin can update other fields", function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { bio: '' }); }, testing_1.passOnAnyResult)
+                return [4 /*yield*/, (0, testing_1.async_test)("Non-admin can update other fields", function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { bio: '' }); }, testing_1.passOnAnyResult)];
+            case 54:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("Non-admin can't update scriptSurePrescriberId", function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { scriptSurePrescriberId: 'test-id' }); }, testing_1.handleAnyError)];
+            case 55:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("Non-admin can't update scriptSurePrescriberId (with other updates)", function () { return sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { scriptSurePrescriberId: 'test-id', bio: '' }); }, testing_1.handleAnyError)];
+            case 56:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("Admin can update scriptSurePrescriberId", function () { return sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { scriptSurePrescriberId: 'admin-set-id' }); }, { onResult: function (u) { return u.scriptSurePrescriberId === 'admin-set-id'; } })
                     // cleanup
                 ];
-            case 54:
+            case 57:
                 _a.sent();
                 // cleanup
                 return [4 /*yield*/, sdk.api.organizations.updateOne(sdkNonAdmin.userInfo.businessId, {
                         settings: { endusers: { enableAccessTags: false } },
                         skills: ['avoid rate limit']
                     })];
-            case 55:
+            case 58:
                 // cleanup
                 _a.sent();
                 return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: [], DEA: 'avoid rate limit' }, { replaceObjectFields: true })];
-            case 56:
+            case 59:
                 _a.sent();
                 return [4 /*yield*/, sdkNonAdmin.refresh_session()];
-            case 57:
+            case 60:
                 _a.sent();
                 return [4 /*yield*/, Promise.all([
                         sdk.api.endusers.deleteOne(matchEnduser.id),
                         sdk.api.endusers.deleteOne(matchMultiTagEnduser.id),
                         sdk.api.endusers.deleteOne(dontMatchEnduser.id),
                     ])];
-            case 58:
+            case 61:
                 _a.sent();
                 return [2 /*return*/];
         }

@@ -24,7 +24,7 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
 };
 import { jsx as _jsx, jsxs as _jsxs } from "react/jsx-runtime";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import { remove_script_tags } from "@tellescope/utilities";
+import { remove_script_tags, sanitize_html_for_cms } from "@tellescope/utilities";
 import { Button, Grid, Typography } from "@mui/material";
 import { PDFBlockUI } from "./components";
 import { css } from "@emotion/css";
@@ -164,22 +164,25 @@ export var ArticleViewer = function (_a) {
                         : block.type === 'html' ? (_jsx("div", { style: __assign({ fontSize: 18, lineHeight: '25pt' }, blockStyleToCSS(block.style)), className: css(templateObject_1 || (templateObject_1 = __makeTemplateObject(["p {\n                margin-top: 0;\n                margin-bottom: 0;\n              }"], ["p {\n                margin-top: 0;\n                margin-bottom: 0;\n              }"]))), dangerouslySetInnerHTML: {
                                 __html: remove_script_tags(block.info.html.replaceAll(/style="*"/g, ''))
                             } }))
-                            : block.type === 'image' ? (_jsx("img", { src: block.info.link, alt: block.info.alt || '', style: __assign({ maxWidth: block.info.maxWidth || '100%', maxHeight: block.info.maxHeight || undefined, height: block.info.height || undefined, width: block.info.width || undefined }, blockStyleToCSS(block.style)) }))
-                                : block.type === 'youtube' ? (_jsx("iframe", { width: rootWidth, height: rootWidth * 315 / 560, title: "YouTube video player ".concat(i), allowFullScreen: true, src: correct_youtube_link_for_embed(block.info.link) }))
-                                    : block.type === 'iframe' ? (_jsx("iframe", { width: rootWidth, height: rootWidth * (block.info.height || 315) / (block.info.width || 560), title: (_a = block.info.name) !== null && _a !== void 0 ? _a : "embedded link ".concat(i), allowFullScreen: true, src: block.info.link }))
-                                        : block.type === 'pdf' ? (_jsx(PDFBlockUI, { info: block.info }))
-                                            : (block.type === 'content-link' && block.info.recordId && findById(block.info.recordId, { batch: true })) ? (_jsx(Typography, __assign({ sx: { cursor: 'pointer', textDecoration: 'underline' }, onClick: function () {
-                                                    var r = findById(block.info.recordId);
-                                                    if (r) {
-                                                        if (onLinkClick) {
-                                                            onLinkClick(r);
+                            : block.type === 'raw-html' ? (_jsx("div", { style: __assign({ fontSize: 18, lineHeight: '25pt' }, blockStyleToCSS(block.style)), dangerouslySetInnerHTML: {
+                                    __html: sanitize_html_for_cms(block.info.html)
+                                } }))
+                                : block.type === 'image' ? (_jsx("img", { src: block.info.link, alt: block.info.alt || '', style: __assign({ maxWidth: block.info.maxWidth || '100%', maxHeight: block.info.maxHeight || undefined, height: block.info.height || undefined, width: block.info.width || undefined }, blockStyleToCSS(block.style)) }))
+                                    : block.type === 'youtube' ? (_jsx("iframe", { width: rootWidth, height: rootWidth * 315 / 560, title: "YouTube video player ".concat(i), allowFullScreen: true, src: correct_youtube_link_for_embed(block.info.link) }))
+                                        : block.type === 'iframe' ? (_jsx("iframe", { width: rootWidth, height: rootWidth * (block.info.height || 315) / (block.info.width || 560), title: (_a = block.info.name) !== null && _a !== void 0 ? _a : "embedded link ".concat(i), allowFullScreen: true, src: block.info.link }))
+                                            : block.type === 'pdf' ? (_jsx(PDFBlockUI, { info: block.info }))
+                                                : (block.type === 'content-link' && block.info.recordId && findById(block.info.recordId, { batch: true })) ? (_jsx(Typography, __assign({ sx: { cursor: 'pointer', textDecoration: 'underline' }, onClick: function () {
+                                                        var r = findById(block.info.recordId);
+                                                        if (r) {
+                                                            if (onLinkClick) {
+                                                                onLinkClick(r);
+                                                            }
+                                                            else {
+                                                                setHistory(function (h) { return __spreadArray(__spreadArray([], h, true), [r], false); });
+                                                            }
                                                         }
-                                                        else {
-                                                            setHistory(function (h) { return __spreadArray(__spreadArray([], h, true), [r], false); });
-                                                        }
-                                                    }
-                                                } }, { children: ((_b = findById(block.info.recordId)) === null || _b === void 0 ? void 0 : _b.title) || 'Loading...' })))
-                                                : null }), i));
+                                                    } }, { children: ((_b = findById(block.info.recordId)) === null || _b === void 0 ? void 0 : _b.title) || 'Loading...' })))
+                                                    : null }), i));
         }) })));
 };
 export var html_for_article = function (article, options) {
@@ -191,13 +194,14 @@ export var html_for_article = function (article, options) {
         return block.type === 'h1' ? ("<h1>".concat(block.info.text, "</h1>"))
             : block.type === 'h2' ? ("<h2>".concat(block.info.text, "</h2>"))
                 : block.type === 'html' ? ("<div>".concat(remove_script_tags(remove_script_tags(block.info.html)), "</div>"))
-                    : block.type === 'image' ? (
-                    // wrap with div to supporting centering later
-                    "<div style=\"\">\n            <img src=\"".concat(block.info.link, "\" alt=\"").concat(block.info.alt || '', "\" style=\"max-width: ").concat(block.info.maxWidth || '100%', "; max-height: ").concat(block.info.maxHeight || undefined, "; height: ").concat(block.info.height || undefined, "; width: ").concat(block.info.width || undefined, ";\" />\n          </div>"))
-                        : block.type === 'youtube' ? ("<iframe width=\"".concat(rootWidth, "\" \n            height=\"").concat(rootWidth * 315 / 560, "\"\n            title=\"").concat("YouTube video player ".concat(i), "\"\n            allowFullScreen\n            src=\"").concat(correct_youtube_link_for_embed(block.info.link), "\"\n            style=\"margin-top: 12; margin-bottom: 12\"\n          >\n          </iframe>"))
-                            : block.type === 'iframe' ? ("<iframe width=\"".concat(rootWidth, "\" allowFullScreen\n            height=\"").concat(rootWidth * (block.info.height || 315) / (block.info.width || 560), "\"\n            title=\"").concat((_a = block.info.name) !== null && _a !== void 0 ? _a : "embedded link ".concat(i), "\"\n            src=\"").concat(block.info.link, "\"\n            style=\"margin-top: 12; margin-bottom: 12\"\n          >\n          </iframe> "))
-                                : block.type === 'pdf' ? ("<iframe width=\"".concat(rootWidth, "\" allowFullScreen\n            height=\"500\"\n            title=\"").concat((_b = block.info.name) !== null && _b !== void 0 ? _b : "embedded pdf ".concat(i), "\"\n            src=\"").concat(block.info.link, "\"\n            style=\"margin-top: 12; margin-bottom: 12\"\n          >\n          </iframe>"))
-                                    : '';
+                    : block.type === 'raw-html' ? ("<div>".concat(sanitize_html_for_cms(block.info.html), "</div>"))
+                        : block.type === 'image' ? (
+                        // wrap with div to supporting centering later
+                        "<div style=\"\">\n            <img src=\"".concat(block.info.link, "\" alt=\"").concat(block.info.alt || '', "\" style=\"max-width: ").concat(block.info.maxWidth || '100%', "; max-height: ").concat(block.info.maxHeight || undefined, "; height: ").concat(block.info.height || undefined, "; width: ").concat(block.info.width || undefined, ";\" />\n          </div>"))
+                            : block.type === 'youtube' ? ("<iframe width=\"".concat(rootWidth, "\" \n            height=\"").concat(rootWidth * 315 / 560, "\"\n            title=\"").concat("YouTube video player ".concat(i), "\"\n            allowFullScreen\n            src=\"").concat(correct_youtube_link_for_embed(block.info.link), "\"\n            style=\"margin-top: 12; margin-bottom: 12\"\n          >\n          </iframe>"))
+                                : block.type === 'iframe' ? ("<iframe width=\"".concat(rootWidth, "\" allowFullScreen\n            height=\"").concat(rootWidth * (block.info.height || 315) / (block.info.width || 560), "\"\n            title=\"").concat((_a = block.info.name) !== null && _a !== void 0 ? _a : "embedded link ".concat(i), "\"\n            src=\"").concat(block.info.link, "\"\n            style=\"margin-top: 12; margin-bottom: 12\"\n          >\n          </iframe> "))
+                                    : block.type === 'pdf' ? ("<iframe width=\"".concat(rootWidth, "\" allowFullScreen\n            height=\"500\"\n            title=\"").concat((_b = block.info.name) !== null && _b !== void 0 ? _b : "embedded pdf ".concat(i), "\"\n            src=\"").concat(block.info.link, "\"\n            style=\"margin-top: 12; margin-bottom: 12\"\n          >\n          </iframe>"))
+                                        : '';
     })
         .join('<br />'));
     return ("<div>".concat(content, "</div>"));

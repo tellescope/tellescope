@@ -9382,17 +9382,30 @@ const enduser_access_tags_tests = async () => {
     onResult: r => r.length === 0
   })
 
-  await async_test(`Non-admin can't update tags`, 
-    () => sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: ['new tag'] }), 
+  await async_test(`Non-admin can't update tags`,
+    () => sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: ['new tag'] }),
     handleAnyError
   )
-  await async_test(`Non-admin can't update tags (with other updates)`, 
-    () => sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: ['new tag'], bio: '' }), 
+  await async_test(`Non-admin can't update tags (with other updates)`,
+    () => sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { tags: ['new tag'], bio: '' }),
     handleAnyError
   )
-  await async_test(`Non-admin can update other fields`, 
-    () => sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { bio: '' }), 
+  await async_test(`Non-admin can update other fields`,
+    () => sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { bio: '' }),
     passOnAnyResult
+  )
+
+  await async_test(`Non-admin can't update scriptSurePrescriberId`,
+    () => sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { scriptSurePrescriberId: 'test-id' }),
+    handleAnyError
+  )
+  await async_test(`Non-admin can't update scriptSurePrescriberId (with other updates)`,
+    () => sdkNonAdmin.api.users.updateOne(sdkNonAdmin.userInfo.id, { scriptSurePrescriberId: 'test-id', bio: '' }),
+    handleAnyError
+  )
+  await async_test(`Admin can update scriptSurePrescriberId`,
+    () => sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { scriptSurePrescriberId: 'admin-set-id' }),
+    { onResult: u => u.scriptSurePrescriberId === 'admin-set-id' }
   )
 
   // cleanup

@@ -400,6 +400,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   canvasURL?: string,
   hasConnectedCandid?: boolean,
   hasConnectedGoGoMeds?: boolean,
+  hasScriptSure?: boolean,
   hasConnectedPagerDuty?: boolean,
   hasConnectedSmartMeter?: boolean,
   hasConnectedAthena?: boolean,
@@ -462,6 +463,9 @@ export interface Organization extends Organization_readonly, Organization_requir
   metriportIntegrationDetails?: MetriportIntegrationDetail[],
   additionalIterableKeys?: string[],
   defaultDoseSpotPharmacies?: { id: string, name: string }[]
+  scriptSurePractices?: { id: string, name: string }[],
+  scriptSureEnvironment?: 'Sandbox' | 'Production',
+  scriptSureEmail?: string,
   groups?: string[],
   observationInvalidationReasons?: string[],
   chargebeeEnvironments?: string[],
@@ -704,6 +708,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   elationUserId?: number,
   iOSBadgeCount?: number,
   doseSpotUserId?: string,
+  scriptSurePrescriberId?: string,
   url?: string,
   requiresMFAConfiguration?: boolean,
   templateFields?: LabeledField[]
@@ -1704,7 +1709,7 @@ export type FormFieldOptions = FormFieldValidation & {
   userFilterTags?: string[], 
 
   requirePredefinedInsurer?: boolean,
-  bridgeServiceTypeId?: string, // Bridge service type ID for eligibility checks
+  bridgeServiceTypeIds?: string[], // Bridge service type IDs for eligibility checks (runs parallel checks and combines results)
   bridgeEligibilityType?: 'Soft' | 'Hard', // Type of Bridge eligibility check (defaults to 'Soft')
   useBridgeEligibilityResult?: boolean, // Use provider list from most recent Bridge eligibility check
   addressFields?: string[], // supports specifying just 'state', for now
@@ -2127,8 +2132,9 @@ export type FormResponseAnswerRelatedContacts = FormResponseValueAnswerBuilder<'
 export type FormResponseAnswerAppointmentBooking = FormResponseValueAnswerBuilder<'Appointment Booking', string>
 export type FormResponseAnswerInsurance = FormResponseValueAnswerBuilder<'Insurance', Partial<EnduserInsurance>>
 export type FormResponseAnswerBridgeEligibility = FormResponseValueAnswerBuilder<'Bridge Eligibility', {
-  status?: string,
-  userIds?: string[], // User IDs who cover the patient
+  payerId?: string, // Payer ID used for this eligibility check (for caching)
+  status?: string, // Aggregated eligibility status
+  userIds?: string[], // Aggregated user IDs who cover the patient
 }>
 export type FormResponseAnswerHeight = FormResponseValueAnswerBuilder<'Height', { feet: number, inches: number }>
 export type FormResponseAnswerRedirect = FormResponseValueAnswerBuilder<'Redirect', string>
@@ -3303,7 +3309,7 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
   excludeFromVitalCountLookback?: boolean,
 }
 
-export type BlockType = 'h1' | 'h2' | 'html' | 'image' | 'youtube' | 'pdf' | 'iframe' | 'content-link'
+export type BlockType = 'h1' | 'h2' | 'html' | 'raw-html' | 'image' | 'youtube' | 'pdf' | 'iframe' | 'content-link'
 
 export type BlockStyle = {
   width?: number,
@@ -3333,6 +3339,7 @@ export type BlockContentMedia = {
 export type BlockContentH1 = ContentBlockBuilder<'h1', BlockContentText>
 export type BlockContentH2 = ContentBlockBuilder<'h2', BlockContentText>
 export type BlockContentHTML = ContentBlockBuilder<'html', { html: string }>
+export type BlockContentRawHTML = ContentBlockBuilder<'raw-html', { html: string }>
 export type BlockContentImage = ContentBlockBuilder<'image', BlockContentMedia>
 export type BlockContentPDF = ContentBlockBuilder<'pdf', BlockContentMedia>
 export type BlockContentYoutube = ContentBlockBuilder<'youtube', BlockContentMedia>
@@ -3344,6 +3351,7 @@ export type Block = (
   | BlockContentPDF
   | BlockContentImage
   | BlockContentHTML
+  | BlockContentRawHTML
   | BlockContentH1
   | BlockContentH2
   | BlockContentIFrame

@@ -382,6 +382,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     canvasURL?: string;
     hasConnectedCandid?: boolean;
     hasConnectedGoGoMeds?: boolean;
+    hasScriptSure?: boolean;
     hasConnectedPagerDuty?: boolean;
     hasConnectedSmartMeter?: boolean;
     hasConnectedAthena?: boolean;
@@ -467,6 +468,12 @@ export interface Organization extends Organization_readonly, Organization_requir
         id: string;
         name: string;
     }[];
+    scriptSurePractices?: {
+        id: string;
+        name: string;
+    }[];
+    scriptSureEnvironment?: 'Sandbox' | 'Production';
+    scriptSureEmail?: string;
     groups?: string[];
     observationInvalidationReasons?: string[];
     chargebeeEnvironments?: string[];
@@ -691,6 +698,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
     elationUserId?: number;
     iOSBadgeCount?: number;
     doseSpotUserId?: string;
+    scriptSurePrescriberId?: string;
     url?: string;
     requiresMFAConfiguration?: boolean;
     templateFields?: LabeledField[];
@@ -1671,7 +1679,7 @@ export type FormFieldOptions = FormFieldValidation & {
     userTags?: string[];
     userFilterTags?: string[];
     requirePredefinedInsurer?: boolean;
-    bridgeServiceTypeId?: string;
+    bridgeServiceTypeIds?: string[];
     bridgeEligibilityType?: 'Soft' | 'Hard';
     useBridgeEligibilityResult?: boolean;
     addressFields?: string[];
@@ -2089,6 +2097,7 @@ export type FormResponseAnswerRelatedContacts = FormResponseValueAnswerBuilder<'
 export type FormResponseAnswerAppointmentBooking = FormResponseValueAnswerBuilder<'Appointment Booking', string>;
 export type FormResponseAnswerInsurance = FormResponseValueAnswerBuilder<'Insurance', Partial<EnduserInsurance>>;
 export type FormResponseAnswerBridgeEligibility = FormResponseValueAnswerBuilder<'Bridge Eligibility', {
+    payerId?: string;
     status?: string;
     userIds?: string[];
 }>;
@@ -3295,7 +3304,7 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
     invalidationReason?: string;
     excludeFromVitalCountLookback?: boolean;
 }
-export type BlockType = 'h1' | 'h2' | 'html' | 'image' | 'youtube' | 'pdf' | 'iframe' | 'content-link';
+export type BlockType = 'h1' | 'h2' | 'html' | 'raw-html' | 'image' | 'youtube' | 'pdf' | 'iframe' | 'content-link';
 export type BlockStyle = {
     width?: number;
     height?: number;
@@ -3326,6 +3335,9 @@ export type BlockContentH2 = ContentBlockBuilder<'h2', BlockContentText>;
 export type BlockContentHTML = ContentBlockBuilder<'html', {
     html: string;
 }>;
+export type BlockContentRawHTML = ContentBlockBuilder<'raw-html', {
+    html: string;
+}>;
 export type BlockContentImage = ContentBlockBuilder<'image', BlockContentMedia>;
 export type BlockContentPDF = ContentBlockBuilder<'pdf', BlockContentMedia>;
 export type BlockContentYoutube = ContentBlockBuilder<'youtube', BlockContentMedia>;
@@ -3333,7 +3345,7 @@ export type BlockContentIFrame = ContentBlockBuilder<'iframe', BlockContentMedia
 export type BlockContentLink = ContentBlockBuilder<'content-link', {
     recordId: string;
 }>;
-export type Block = (BlockContentYoutube | BlockContentPDF | BlockContentImage | BlockContentHTML | BlockContentH1 | BlockContentH2 | BlockContentIFrame | BlockContentLink);
+export type Block = (BlockContentYoutube | BlockContentPDF | BlockContentImage | BlockContentHTML | BlockContentRawHTML | BlockContentH1 | BlockContentH2 | BlockContentIFrame | BlockContentLink);
 export declare const TEXT_EMBEDDING_ADA_002 = "text-embedding-ada-002";
 export declare const EmbeddingInfo: {
     "text-embedding-ada-002": {

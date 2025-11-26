@@ -703,7 +703,7 @@ var MultipleChoiceInput = function (_a) {
                                             display: 'flex',
                                             alignItems: 'center',
                                             width: '100%',
-                                            border: isSelected ? '2px solid' : '1px solid',
+                                            border: isSelected ? '3px solid' : '1px solid',
                                             borderColor: 'primary.main',
                                             borderRadius: 1,
                                             padding: '16px 16px',

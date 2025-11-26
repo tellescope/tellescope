@@ -579,6 +579,7 @@ export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form,
     (addressQuestion?.answer?.type === 'Address' ? addressQuestion?.answer?.value?.state : undefined) || enduser?.state
   ), [enduser?.state, addressQuestion])
 
+  // load from database
   const loadRef = useRef(false) // so session changes don't cause
   useEffect(() => {
     if (field?.options?.dataSource === CANVAS_TITLE) return // instead, look-up while typing against Canvas Search API
@@ -602,6 +603,7 @@ export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form,
     .catch(console.error)
   }, [session, state, field?.options?.dataSource])
 
+  // load from 3rd-party on search only
   const searchRef = useRef(query)
   useEffect(() => {
     if (field?.options?.dataSource !== CANVAS_TITLE && field?.options?.dataSource !== BRIDGE_TITLE) { return }
@@ -654,10 +656,11 @@ export const InsuranceInput = ({ field, onDatabaseSelect, value, onChange, form,
                 onDatabaseSelect?.([databaseRecord])
               }
 
+              // don't lose existing payerId on back-and-forth navigation
               onChange({ 
                 ...value, 
                 payerName: v || '',
-                payerId: payers.find(p => p.name === v)?.id || '',
+                payerId: (value?.payerName === v && value?.payerId ? value.payerId : '') || payers.find(p => p.name === v)?.id || '',
                 payerType: payers.find(p => p.name === v)?.type || '',
               }, field.id)
             }
@@ -997,12 +1000,12 @@ export const BridgeEligibilityInput = ({ field, value, onChange, responses, endu
     // enduser state is automatically resolved on the backend as default
   }, [responses])
 
-  // Soft eligibility check function
+  // Soft eligibility check function - supports multiple service type IDs
   const checkProviderEligibility = useCallback(async () => {
-    const serviceTypeId = field.options?.bridgeServiceTypeId
+    const serviceTypeIds = field.options?.bridgeServiceTypeIds
 
-    if (!serviceTypeId) {
-      setError('Bridge Service Type ID not configured')
+    if (!serviceTypeIds || serviceTypeIds.length === 0) {
+      setError('Bridge Service Type IDs not configured')
       return
     }
     // payerId and state can be automatically resolved on the backend, if already saved on Enduser, so not required here
@@ -1011,25 +1014,54 @@ export const BridgeEligibilityInput = ({ field, value, onChange, responses, endu
     setError(undefined)
 
     try {
-      const { data } = await session.api.integrations.proxy_read({
-        id: enduserId,
-        integration: BRIDGE_TITLE,
-        type: 'provider-eligibility',
-        query: JSON.stringify({
-          serviceTypeId,
-          payerId,
-          state,
-        }),
-      })
+      // Fire parallel requests for each service type ID
+      const results = await Promise.all(
+        serviceTypeIds.map(async (serviceTypeId) => {
+          try {
+            const { data } = await session.api.integrations.proxy_read({
+              id: enduserId,
+              integration: BRIDGE_TITLE,
+              type: 'provider-eligibility',
+              query: JSON.stringify({
+                serviceTypeId,
+                payerId,
+                state,
+              }),
+            })
+            return {
+              serviceTypeId,
+              status: data?.status || 'unknown',
+              userIds: data?.userIds || [],
+            }
+          } catch (err: any) {
+            console.error(`Provider eligibility check failed for ${serviceTypeId}:`, err)
+            return {
+              serviceTypeId,
+              status: 'error',
+              userIds: [],
+              error: err?.message,
+            }
+          }
+        })
+      )
 
-      // Store userIds in shared variable for Appointment Booking to use
-      const userIds = data?.userIds || []
-      setBridgeEligibilityUserIds(userIds)
+      // Aggregate results - union of userIds across all service types
+      const allUserIds = results.flatMap(r => r.userIds)
+      const uniqueUserIds = Array.from(new Set(allUserIds))
 
-      // Update the answer with the eligibility result
+      // Determine aggregated status (ELIGIBLE if any are eligible, otherwise first non-error status)
+      const aggregatedStatus = results.some(r => r.status === 'ELIGIBLE')
+        ? 'ELIGIBLE'
+        : results.find(r => r.status !== 'error')?.status || 'unknown'
+
+      // Store aggregated userIds in shared variable for Appointment Booking to use
+      setBridgeEligibilityUserIds(uniqueUserIds)
+
+      // Update the answer with aggregated results
       onChange({
-        status: data?.status || 'unknown',
-        userIds,
+        payerId, // Store payerId to detect changes on remount
+        status: aggregatedStatus,
+        userIds: uniqueUserIds,
       }, field.id)
     } catch (err: any) {
       setError(err?.message || 'Failed to check eligibility')
@@ -1039,12 +1071,12 @@ export const BridgeEligibilityInput = ({ field, value, onChange, responses, endu
     }
   }, [session, field, payerId, state, onChange, enduserId])
 
-  // Hard eligibility check function with polling
+  // Hard eligibility check function with polling - supports multiple service type IDs
   const checkServiceEligibility = useCallback(async () => {
-    const serviceTypeId = field.options?.bridgeServiceTypeId
+    const serviceTypeIds = field.options?.bridgeServiceTypeIds
 
-    if (!serviceTypeId) {
-      setError('Bridge Service Type ID not configured')
+    if (!serviceTypeIds || serviceTypeIds.length === 0) {
+      setError('Bridge Service Type IDs not configured')
       return
     }
 
@@ -1052,33 +1084,65 @@ export const BridgeEligibilityInput = ({ field, value, onChange, responses, endu
     setError(undefined)
 
     try {
-      // Initiate service eligibility check
-      const { data } = await session.api.integrations.proxy_read({
-        id: enduserId,
-        integration: BRIDGE_TITLE,
-        type: 'service-eligibility',
-        query: JSON.stringify({
-          serviceTypeId,
-          payerId,
-          memberId,
-          state,
-        }),
-      })
+      // Initiate service eligibility checks for all service type IDs in parallel
+      const initiatedChecks = await Promise.all(
+        serviceTypeIds.map(async (serviceTypeId) => {
+          try {
+            const { data } = await session.api.integrations.proxy_read({
+              id: enduserId,
+              integration: BRIDGE_TITLE,
+              type: 'service-eligibility',
+              query: JSON.stringify({
+                serviceTypeId,
+                payerId,
+                memberId,
+                state,
+              }),
+            })
 
-      const serviceEligibilityId = data?.id
-      if (!serviceEligibilityId) {
-        throw new Error('No service eligibility ID returned')
-      }
+            const serviceEligibilityId = data?.id
+            if (!serviceEligibilityId) {
+              throw new Error('No service eligibility ID returned')
+            }
+
+            return {
+              serviceTypeId,
+              serviceEligibilityId,
+              error: undefined,
+            }
+          } catch (err: any) {
+            console.error(`Service eligibility check initiation failed for ${serviceTypeId}:`, err)
+            return {
+              serviceTypeId,
+              serviceEligibilityId: null,
+              error: err?.message,
+            }
+          }
+        })
+      )
 
       setLoading(false)
       setPolling(true)
 
-      // Poll for results
-      const pollForResults = async () => {
+      // Poll for results from all checks in parallel
+      const pollForAllResults = async () => {
         const maxAttempts = 60 // Poll for up to 60 attempts (2 minutes at 2s intervals)
+
+        // Track completion status for each check
+        const checkStatuses = new Map(
+          initiatedChecks.map(check => [
+            check.serviceTypeId,
+            {
+              completed: check.error !== undefined || check.serviceEligibilityId === null,
+              result: check.error ? { status: 'error', userIds: [], error: check.error } : null,
+              serviceEligibilityId: check.serviceEligibilityId,
+            }
+          ])
+        )
+
         let attempts = 0
 
-        const poll = async (): Promise<void> => {
+        const pollAll = async (): Promise<void> => {
           if (attempts >= maxAttempts) {
             setError('Eligibility check timed out. Please try again.')
             setPolling(false)
@@ -1087,44 +1151,87 @@ export const BridgeEligibilityInput = ({ field, value, onChange, responses, endu
 
           attempts++
 
-          try {
-            const { data: pollData } = await session.api.integrations.proxy_read({
-              id: serviceEligibilityId,
-              integration: BRIDGE_TITLE,
-              type: 'service-eligibility-poll',
+          // Poll all incomplete checks in parallel
+          const pollPromises = initiatedChecks
+            .filter(check => {
+              const status = checkStatuses.get(check.serviceTypeId)
+              return check.serviceEligibilityId && status && !status.completed
+            })
+            .map(async (check) => {
+              try {
+                const { data: pollData } = await session.api.integrations.proxy_read({
+                  id: check.serviceEligibilityId!,
+                  integration: BRIDGE_TITLE,
+                  type: 'service-eligibility-poll',
+                })
+
+                const status = pollData?.status
+
+                // Check if we're in a terminal state
+                if (status && status !== 'PENDING') {
+                  const checkStatus = checkStatuses.get(check.serviceTypeId)!
+                  checkStatus.completed = true
+                  checkStatus.result = {
+                    status: status || 'unknown',
+                    userIds: pollData?.userIds || [],
+                    error: undefined,
+                  }
+                }
+              } catch (err: any) {
+                console.error(`Service eligibility polling failed for ${check.serviceTypeId}:`, err)
+                const checkStatus = checkStatuses.get(check.serviceTypeId)!
+                checkStatus.completed = true
+                checkStatus.result = {
+                  status: 'error',
+                  userIds: [],
+                  error: err?.message,
+                }
+              }
             })
 
-            const status = pollData?.status
+          await Promise.all(pollPromises)
 
-            // Check if we're in a terminal state
-            if (status && status !== 'PENDING') {
-              // Store userIds in shared variable for Appointment Booking to use
-              const userIds = pollData?.userIds || []
-              setBridgeEligibilityUserIds(userIds)
+          // Check if all checks are completed
+          const allCompleted = Array.from(checkStatuses.values()).every(s => s.completed)
 
-              // Update the answer with the eligibility result
-              onChange({
-                status: status || 'unknown',
-                userIds,
-              }, field.id)
+          if (allCompleted) {
+            // Aggregate results - union of userIds across all service types
+            const results = Array.from(checkStatuses.entries()).map(([serviceTypeId, status]) => ({
+              serviceTypeId,
+              status: status.result?.status || 'unknown',
+              userIds: status.result?.userIds || [],
+            }))
 
-              setPolling(false)
-              return
-            }
+            const allUserIds = results.flatMap(r => r.userIds)
+            const uniqueUserIds = Array.from(new Set(allUserIds))
 
-            // Still pending, poll again after delay
-            setTimeout(poll, 2000) // Poll every 2 seconds
-          } catch (err: any) {
-            setError(err?.message || 'Failed to poll eligibility status')
-            console.error('Service eligibility polling failed:', err)
+            // Determine aggregated status (ELIGIBLE if any are eligible, otherwise first non-error status)
+            const aggregatedStatus = results.some(r => r.status === 'ELIGIBLE')
+              ? 'ELIGIBLE'
+              : results.find(r => r.status !== 'error')?.status || 'unknown'
+
+            // Store aggregated userIds in shared variable for Appointment Booking to use
+            setBridgeEligibilityUserIds(uniqueUserIds)
+
+            // Update the answer with aggregated results
+            onChange({
+              payerId, // Store payerId to detect changes on remount
+              status: aggregatedStatus,
+              userIds: uniqueUserIds,
+            }, field.id)
+
             setPolling(false)
+            return
           }
+
+          // Still have pending checks, poll again after delay
+          setTimeout(pollAll, 2000) // Poll every 2 seconds
         }
 
-        poll()
+        pollAll()
       }
 
-      pollForResults()
+      pollForAllResults()
     } catch (err: any) {
       setError(err?.message || 'Failed to check service eligibility')
       console.error('Service eligibility check failed:', err)
@@ -1137,6 +1244,12 @@ export const BridgeEligibilityInput = ({ field, value, onChange, responses, endu
   const autoCheckRef = useRef(false)
   useEffect(() => {
     if (!isEnduserSession) return
+
+    // If we already have a result and the payer hasn't changed, use the cached result
+    if (value?.status && value?.payerId === payerId) {
+      return
+    }
+
     if (autoCheckRef.current) return
     autoCheckRef.current = true
 
@@ -1145,7 +1258,7 @@ export const BridgeEligibilityInput = ({ field, value, onChange, responses, endu
     } else {
       checkProviderEligibility()
     }
-  }, [isEnduserSession, eligibilityType, checkProviderEligibility, checkServiceEligibility])
+  }, [isEnduserSession, eligibilityType, checkProviderEligibility, checkServiceEligibility, value, payerId])
 
   const errorComponent = useMemo(() => (
     <Grid container spacing={2} direction="column" alignItems="center" style={{ padding: '20px 0' }}>
@@ -1224,7 +1337,7 @@ export const BridgeEligibilityInput = ({ field, value, onChange, responses, endu
         </Grid>
       </Grid>
     )
-  }, [value])
+  }, [value, payerName])
 
   // Loading/polling state for enduser sessions
   if (isEnduserSession) {
@@ -1246,7 +1359,7 @@ export const BridgeEligibilityInput = ({ field, value, onChange, responses, endu
           Eligibility Type: {eligibilityType}
         </Typography>
         <Typography variant="body2" color="textSecondary">
-          Service Type: {field.options?.bridgeServiceTypeId || 'Not configured'}
+          Service Type IDs: {field.options?.bridgeServiceTypeIds?.join(', ') || 'Not configured'}
         </Typography>
         {state && <Typography variant="body2" color="textSecondary">State: {state}</Typography>}
         {payerId && <Typography variant="body2" color="textSecondary">Payer ID: {payerId}</Typography>}
@@ -1275,7 +1388,7 @@ export const BridgeEligibilityInput = ({ field, value, onChange, responses, endu
             submitText="Check Provider Eligibility (Free)"
             submittingText="Checking..."
             submitting={loading && !polling}
-            disabled={!field.options?.bridgeServiceTypeId || loading || polling}
+            disabled={!field.options?.bridgeServiceTypeIds?.length || loading || polling}
           />
         </Grid>
         <Grid item>
@@ -1285,7 +1398,7 @@ export const BridgeEligibilityInput = ({ field, value, onChange, responses, endu
             submitText="Check Service Eligibility (Paid)"
             submittingText={polling ? "Polling..." : "Initiating..."}
             submitting={loading || polling}
-            disabled={!field.options?.bridgeServiceTypeId || loading || polling}
+            disabled={!field.options?.bridgeServiceTypeIds?.length || loading || polling}
           />
         </Grid>
       </Grid>

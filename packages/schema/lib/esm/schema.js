@@ -460,6 +460,8 @@ export var schema = build_schema({
                 returns: {
                     fullscriptRedirectURL: { validator: stringValidator },
                     vital_user_id: { validator: stringValidator },
+                    scriptsure_patient_id: { validator: stringValidator },
+                    scriptsure_deep_link: { validator: stringValidator },
                 },
             },
             bulk_update: {
@@ -1868,6 +1870,21 @@ export var schema = build_schema({
                     }
                 },
                 {
+                    explanation: "Only admin users can update scriptSurePrescriberId",
+                    evaluate: function (_a, _, session, method, _b) {
+                        var _c;
+                        var roles = _a.roles;
+                        var updates = _b.updates;
+                        if ((_c = session === null || session === void 0 ? void 0 : session.roles) === null || _c === void 0 ? void 0 : _c.includes('Admin'))
+                            return; // admin can do this
+                        if (method === 'create')
+                            return; // create already admin restricted
+                        if (!(updates === null || updates === void 0 ? void 0 : updates.scriptSurePrescriberId))
+                            return; // scriptSurePrescriberId not provided
+                        return "Only admin users can update scriptSurePrescriberId";
+                    }
+                },
+                {
                     explanation: "Only admin users can update requireSSO",
                     evaluate: function (_a, _, session, method, _b) {
                         var _c;
@@ -2236,7 +2253,7 @@ export var schema = build_schema({
                 ]
             }, credentialedStates: {
                 validator: stateCredentialsValidator,
-            }, timezone: { validator: timezoneValidator }, weeklyAvailabilities: { validator: weeklyAvailabilitiesValidator }, calendarEventLimits: { validator: calendarEventLimitsValidator }, autoReplyEnabled: { validator: booleanValidatorOptional }, pushNotificationIosTokens: { validator: listOfStringsValidatorEmptyOk }, pushNotificationFirebaseTokens: { validator: listOfStringsValidatorEmptyOk }, callRouting: { validator: userCallRoutingBehaviorValidator }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, emailSignature: { validator: stringValidator1000 }, disableTicketAutoAssignment: { validator: booleanValidator }, ticketAssignmentPriority: { validator: nonNegNumberValidator }, specialties: { validator: listOfStringsValidatorOptionalOrEmptyOk }, bio: { validator: stringValidator25000EmptyOkay }, TIN: { validator: stringValidatorOptionalEmptyOkay }, NPI: { validator: stringValidatorOptionalEmptyOkay }, DEA: { validator: stringValidatorOptionalEmptyOkay }, voicemailPlayback: { validator: phonePlaybackValidatorOptional }, lockedOutUntil: { validator: numberValidator }, failedLoginAttempts: { validator: nonNegNumberValidator }, iOSBadgeCount: { validator: nonNegNumberValidator }, availableFromNumbers: { validator: listOfStringsValidatorEmptyOk }, availableFromEmails: { validator: listOfStringsValidatorEmptyOk }, doseSpotUserId: { validator: stringValidator100 }, url: { validator: stringValidator1000 }, templateFields: {
+            }, timezone: { validator: timezoneValidator }, weeklyAvailabilities: { validator: weeklyAvailabilitiesValidator }, calendarEventLimits: { validator: calendarEventLimitsValidator }, autoReplyEnabled: { validator: booleanValidatorOptional }, pushNotificationIosTokens: { validator: listOfStringsValidatorEmptyOk }, pushNotificationFirebaseTokens: { validator: listOfStringsValidatorEmptyOk }, callRouting: { validator: userCallRoutingBehaviorValidator }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, emailSignature: { validator: stringValidator1000 }, disableTicketAutoAssignment: { validator: booleanValidator }, ticketAssignmentPriority: { validator: nonNegNumberValidator }, specialties: { validator: listOfStringsValidatorOptionalOrEmptyOk }, bio: { validator: stringValidator25000EmptyOkay }, TIN: { validator: stringValidatorOptionalEmptyOkay }, NPI: { validator: stringValidatorOptionalEmptyOkay }, DEA: { validator: stringValidatorOptionalEmptyOkay }, voicemailPlayback: { validator: phonePlaybackValidatorOptional }, lockedOutUntil: { validator: numberValidator }, failedLoginAttempts: { validator: nonNegNumberValidator }, iOSBadgeCount: { validator: nonNegNumberValidator }, availableFromNumbers: { validator: listOfStringsValidatorEmptyOk }, availableFromEmails: { validator: listOfStringsValidatorEmptyOk }, doseSpotUserId: { validator: stringValidator100 }, scriptSurePrescriberId: { validator: stringValidator100 }, url: { validator: stringValidator1000 }, templateFields: {
                 validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     field: stringValidator100,
                     value: stringValidator5000,
@@ -4652,7 +4669,7 @@ export var schema = build_schema({
                     id: stringValidator100,
                     name: stringValidator,
                 }))
-            }, groups: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: stringValidator }, observationInvalidationReasons: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: stringValidator }, hasConnectedPaubox: { validator: booleanValidator }, hasConnectedBridge: { validator: booleanValidator }, createEnduserForms: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, skipActivePatientBilling: { validator: booleanValidator } }),
+            }, groups: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: stringValidator }, observationInvalidationReasons: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: stringValidator }, hasConnectedPaubox: { validator: booleanValidator }, hasConnectedBridge: { validator: booleanValidator }, createEnduserForms: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, skipActivePatientBilling: { validator: booleanValidator }, scriptSureEnvironment: { validator: exactMatchValidatorOptional(['Production', 'Sandbox']) } }),
     },
     databases: {
         info: {},

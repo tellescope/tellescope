@@ -620,6 +620,50 @@ export var sanitize_html_with_links = function (html) {
         }
     });
 };
+// Sanitizes HTML for CMS content - allows rich formatting while blocking XSS attacks
+// More permissive than sanitize_html_with_links to support headers, lists, tables, etc.
+export var sanitize_html_for_cms = function (html) {
+    return sanitizeHtml(html, {
+        allowedTags: [
+            'a', 'strong', 'b', 'em', 'i', 'u', 'br', 'p', 'img', 'div', 'span',
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+            'ul', 'ol', 'li',
+            'table', 'thead', 'tbody', 'tr', 'td', 'th',
+            'blockquote', 'code', 'pre',
+            'hr',
+        ],
+        allowedAttributes: {
+            'a': ['href', 'target', 'rel', 'style'],
+            'img': ['src', 'alt', 'width', 'height', 'style'],
+            'div': ['style', 'class'],
+            'span': ['style', 'class'],
+            'p': ['style', 'class'],
+            'table': ['style', 'class'],
+            'td': ['style', 'colspan', 'rowspan'],
+            'th': ['style', 'colspan', 'rowspan'],
+            'h1': ['style'], 'h2': ['style'], 'h3': ['style'],
+            'h4': ['style'], 'h5': ['style'], 'h6': ['style'],
+            'ul': ['style'], 'ol': ['style'], 'li': ['style'],
+            'blockquote': ['style'], 'code': ['style'], 'pre': ['style'],
+        },
+        transformTags: {
+            'a': function (tagName, attribs) {
+                var href = attribs.href || '';
+                if (href.startsWith('http://') || href.startsWith('https://')) {
+                    return {
+                        tagName: tagName,
+                        attribs: __assign(__assign({}, attribs), { target: '_blank', rel: 'noopener noreferrer' })
+                    };
+                }
+                return { tagName: tagName, attribs: attribs };
+            }
+        },
+        allowedSchemesByTag: {
+            img: ['http', 'https', 'data'],
+            a: ['http', 'https', 'mailto', 'tel']
+        }
+    });
+};
 export var query_string_for_object = function (query) {
     var queryString = '';
     if (query && !object_is_empty(query)) {
@@ -2218,6 +2262,28 @@ export var validate_enduser_for_dose_spot = function (enduser) {
         if (!((_b = enduser.weight) === null || _b === void 0 ? void 0 : _b.value))
             return "Weight is required for patients under 19";
     }
+};
+export var validate_enduser_for_script_sure = function (enduser) {
+    if (!enduser)
+        return "Enduser is required";
+    if (!enduser.fname)
+        return "First name is required";
+    if (!enduser.lname)
+        return "Last name is required";
+    if (!enduser.gender)
+        return "Gender is required";
+    if (!enduser.dateOfBirth)
+        return "Date of Birth is required";
+    if (!enduser.addressLineOne)
+        return "Address is required (Line One)";
+    if (!enduser.city)
+        return "Address is required (City)";
+    if (!enduser.state)
+        return "Address is required (State)";
+    if (!enduser.zipCode)
+        return "Address is required (ZIP)";
+    if (!enduser.phone)
+        return "Phone is required";
 };
 export var validate_enduser_for_develop_health = function (enduser, insuranceType) {
     if (!enduser)
