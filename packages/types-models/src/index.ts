@@ -414,6 +414,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   hasConnectedMetriport?: boolean,
   hasConnectedPaubox?: boolean,
   hasConnectedBridge?: boolean,
+  hasConnectedMDIntegrations?: boolean,
   hasConfiguredZoom?: boolean,
   hasTicketQueues?: boolean,
   vitalTeamId?: string,
@@ -464,7 +465,6 @@ export interface Organization extends Organization_readonly, Organization_requir
   additionalIterableKeys?: string[],
   defaultDoseSpotPharmacies?: { id: string, name: string }[]
   scriptSurePractices?: { id: string, name: string }[],
-  scriptSureEnvironment?: 'Sandbox' | 'Production',
   scriptSureEmail?: string,
   groups?: string[],
   observationInvalidationReasons?: string[],
@@ -483,6 +483,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   incomingCallDisplayFields?: string[],
   // _AIEnabled?: boolean,
   skipActivePatientBilling?: boolean,
+  portalV2SchemaURL?: string,
 }
 export type OrganizationTheme = {
   name: string,
@@ -506,6 +507,7 @@ export type OrganizationTheme = {
   requireCustomTermsOnMagicLink?: boolean,
   hasConnectedVital?: boolean,
   brandId?: string,
+  portalV2SchemaURL?: string,
 }
 
 
@@ -1894,8 +1896,10 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
   matchCareTeamTagsForCanvasPractitionerResolution?: ListOfStringsWithQualifier,
   dontSyncToCanvasOnSubmission?: boolean,
   belugaVisitType?: string,
+  belugaVerificationId?: string,
   showByUserTags?: string[],
   version?: 'v1' | 'v2',
+  mdiCaseOfferings?: { offering_id: string }[],
 }
 
 export interface FormGroup_readonly extends ClientRecord {}
@@ -4909,6 +4913,7 @@ export interface PortalBranding extends PortalBranding_readonly, PortalBranding_
   subdomain?: string,
   customPortalURL?: string,
   portalSettings?: PortalSettings,
+  portalV2SchemaURL?: string,
 }
 
 export interface WebhookLog_readonly extends ClientRecord { 

@@ -2403,7 +2403,7 @@ export const StripeInput = ({ field, value, onChange, setCustomerId, enduserId, 
         fieldId: field.id,
         enduserId,
         ...(selectedProducts.length > 0 && { selectedProductIds: selectedProducts }) // Pass selected products to Stripe checkout
-      } as any)
+      })
       .then(({ clientSecret, publishableKey, stripeAccount, businessName, customerId, isCheckout, answerText }) => {
         setAnswertext(answerText || '')
         setIsCheckout(!!isCheckout)

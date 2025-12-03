@@ -2693,6 +2693,7 @@ export var organizationThemeValidator = objectValidator({
     customPolicies: customPoliciesValidator,
     hasConnectedVital: booleanValidatorOptional,
     brandId: mongoIdStringOptional,
+    portalV2SchemaURL: stringValidatorOptional,
 });
 var _MANAGED_CONTENT_RECORD_TYPES = {
     Article: '',

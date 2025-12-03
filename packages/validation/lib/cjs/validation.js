@@ -2743,6 +2743,7 @@ exports.organizationThemeValidator = (0, exports.objectValidator)({
     customPolicies: exports.customPoliciesValidator,
     hasConnectedVital: exports.booleanValidatorOptional,
     brandId: exports.mongoIdStringOptional,
+    portalV2SchemaURL: exports.stringValidatorOptional,
 });
 var _MANAGED_CONTENT_RECORD_TYPES = {
     Article: '',

@@ -183,6 +183,7 @@ export declare const BELUGA_TITLE = "Beluga";
 export declare const METRIPORT_TITLE = "Metriport";
 export declare const PAUBOX_TITLE = "Paubox";
 export declare const BRIDGE_TITLE = "Bridge";
+export declare const MD_INTEGRATIONS_TITLE = "MD Integrations";
 export declare const GENERIC_INTEGRATIONS: string[];
 export declare const ORGANIZATION_WIDE_INTEGRATIONS: string[];
 export declare const ONE_MINUTE_IN_MS: number;

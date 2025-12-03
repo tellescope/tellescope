@@ -730,7 +730,7 @@ export type CustomActions = {
       response: FormResponse, 
     }>,
     stripe_details: CustomAction<
-      { fieldId: string, enduserId?: string }, 
+      { fieldId: string, enduserId?: string, selectedProductIds?: string[] }, 
       { customerId: string, clientSecret: string, publishableKey: string, stripeAccount: string, businessName: string, answerText?: string, isCheckout?: boolean }
     >,
     chargebee_details: CustomAction<{ fieldId: string }, { url: string }>,
@@ -1775,6 +1775,7 @@ export const schema: SchemaV1 = build_schema({
           vital_user_id: { validator: stringValidator },
           scriptsure_patient_id: { validator: stringValidator },
           scriptsure_deep_link: { validator: stringValidator },
+          scriptsure_practice_id: { validator: stringValidator },
         },
       },
       bulk_update: {
@@ -4478,9 +4479,15 @@ export const schema: SchemaV1 = build_schema({
       },
     },
     fields: {
-      ...BuiltInFields, 
+      ...BuiltInFields,
       showByUserTags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       belugaVisitType: { validator: stringValidator },
+      belugaVerificationId: { validator: stringValidator },
+      mdiCaseOfferings: {
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ offering_id: string }>({
+          offering_id: stringValidator100,
+        }))
+      },
       gtmTag: { validator: stringValidator100EscapeHTML },
       dontSyncToCanvasOnSubmission: { validator: booleanValidator },
       archivedAt: { validator: dateOptionalOrEmptyStringValidator },
@@ -6846,9 +6853,10 @@ export const schema: SchemaV1 = build_schema({
       customerIOIdField: { validator: stringValidator },
       hasConnectedPaubox: { validator: booleanValidator },
       hasConnectedBridge: { validator: booleanValidator },
+      hasConnectedMDIntegrations: { validator: booleanValidator },
       createEnduserForms: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
       skipActivePatientBilling: { validator: booleanValidator },
-      scriptSureEnvironment: { validator: exactMatchValidatorOptional<"Production" | 'Sandbox'>(['Production', 'Sandbox'])},
+      portalV2SchemaURL: { validator: stringValidator },
     },
   },
   databases: {
@@ -8801,6 +8809,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       subdomain: { validator: stringValidator },
       customPortalURL: { validator: stringValidator },
       portalSettings: { validator: portalSettingsValidator },
+      portalV2SchemaURL: { validator: stringValidator },
     }
   },
   message_template_snippets: {

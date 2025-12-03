@@ -433,6 +433,7 @@ export type CustomActions = {
         stripe_details: CustomAction<{
             fieldId: string;
             enduserId?: string;
+            selectedProductIds?: string[];
         }, {
             customerId: string;
             clientSecret: string;

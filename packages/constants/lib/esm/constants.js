@@ -157,6 +157,7 @@ export var BELUGA_TITLE = "Beluga";
 export var METRIPORT_TITLE = "Metriport";
 export var PAUBOX_TITLE = "Paubox";
 export var BRIDGE_TITLE = "Bridge";
+export var MD_INTEGRATIONS_TITLE = "MD Integrations";
 // stored in Organization.hasIntegrations
 // must also be in ORGANIZATION_WIDE_INTEGRATIONS
 export var GENERIC_INTEGRATIONS = [PUPPETEER_TITLE];

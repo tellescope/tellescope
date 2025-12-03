@@ -3516,6 +3516,7 @@ export const organizationThemeValidator = objectValidator<OrganizationTheme>({
   customPolicies: customPoliciesValidator,
   hasConnectedVital: booleanValidatorOptional,
   brandId: mongoIdStringOptional,
+  portalV2SchemaURL: stringValidatorOptional,
 })
 
 const _MANAGED_CONTENT_RECORD_TYPES: { [K in ManagedContentRecordType]: any } = {

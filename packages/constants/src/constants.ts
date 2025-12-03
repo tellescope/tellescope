@@ -189,6 +189,7 @@ export const BELUGA_TITLE = "Beluga"
 export const METRIPORT_TITLE = "Metriport"
 export const PAUBOX_TITLE = "Paubox"
 export const BRIDGE_TITLE = "Bridge"
+export const MD_INTEGRATIONS_TITLE = "MD Integrations"
 
 // stored in Organization.hasIntegrations
 // must also be in ORGANIZATION_WIDE_INTEGRATIONS

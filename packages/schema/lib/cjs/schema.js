@@ -467,6 +467,7 @@ exports.schema = (0, exports.build_schema)({
                     vital_user_id: { validator: validation_1.stringValidator },
                     scriptsure_patient_id: { validator: validation_1.stringValidator },
                     scriptsure_deep_link: { validator: validation_1.stringValidator },
+                    scriptsure_practice_id: { validator: validation_1.stringValidator },
                 },
             },
             bulk_update: {
@@ -2842,7 +2843,11 @@ exports.schema = (0, exports.build_schema)({
                 },
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { showByUserTags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, belugaVisitType: { validator: validation_1.stringValidator }, gtmTag: { validator: validation_1.stringValidator100EscapeHTML }, dontSyncToCanvasOnSubmission: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
+        fields: __assign(__assign({}, BuiltInFields), { showByUserTags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, belugaVisitType: { validator: validation_1.stringValidator }, belugaVerificationId: { validator: validation_1.stringValidator }, mdiCaseOfferings: {
+                validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
+                    offering_id: validation_1.stringValidator100,
+                }))
+            }, gtmTag: { validator: validation_1.stringValidator100EscapeHTML }, dontSyncToCanvasOnSubmission: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
                 validator: validation_1.stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -4674,7 +4679,7 @@ exports.schema = (0, exports.build_schema)({
                     id: validation_1.stringValidator100,
                     name: validation_1.stringValidator,
                 }))
-            }, groups: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: validation_1.stringValidator }, observationInvalidationReasons: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: validation_1.stringValidator }, hasConnectedPaubox: { validator: validation_1.booleanValidator }, hasConnectedBridge: { validator: validation_1.booleanValidator }, createEnduserForms: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, skipActivePatientBilling: { validator: validation_1.booleanValidator }, scriptSureEnvironment: { validator: (0, validation_1.exactMatchValidatorOptional)(['Production', 'Sandbox']) } }),
+            }, groups: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: validation_1.stringValidator }, observationInvalidationReasons: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: validation_1.stringValidator }, hasConnectedPaubox: { validator: validation_1.booleanValidator }, hasConnectedBridge: { validator: validation_1.booleanValidator }, hasConnectedMDIntegrations: { validator: validation_1.booleanValidator }, createEnduserForms: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, skipActivePatientBilling: { validator: validation_1.booleanValidator }, portalV2SchemaURL: { validator: validation_1.stringValidator } }),
     },
     databases: {
         info: {},
@@ -6148,7 +6153,7 @@ exports.schema = (0, exports.build_schema)({
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { title: { validator: validation_1.stringValidator, required: true, examples: ['Title'] }, enduserField: { validator: validation_1.stringValidator, required: true, examples: ['Title'] }, enduserValue: { validator: validation_1.stringValidator, required: true, examples: ['Title'] }, primary: { validator: validation_1.stringValidator }, secondary: { validator: validation_1.stringValidator }, logoURL: { validator: validation_1.stringValidator }, subdomain: { validator: validation_1.stringValidator }, customPortalURL: { validator: validation_1.stringValidator }, portalSettings: { validator: validation_1.portalSettingsValidator } })
+        fields: __assign(__assign({}, BuiltInFields), { title: { validator: validation_1.stringValidator, required: true, examples: ['Title'] }, enduserField: { validator: validation_1.stringValidator, required: true, examples: ['Title'] }, enduserValue: { validator: validation_1.stringValidator, required: true, examples: ['Title'] }, primary: { validator: validation_1.stringValidator }, secondary: { validator: validation_1.stringValidator }, logoURL: { validator: validation_1.stringValidator }, subdomain: { validator: validation_1.stringValidator }, customPortalURL: { validator: validation_1.stringValidator }, portalSettings: { validator: validation_1.portalSettingsValidator }, portalV2SchemaURL: { validator: validation_1.stringValidator } })
     },
     message_template_snippets: {
         info: { description: '' },
