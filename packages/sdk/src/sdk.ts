@@ -506,7 +506,7 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
       Promise<extractFields<CustomActions['meetings']['start_meeting']['returns']>>
     ),
     end_meeting: (args: { id: string }) => Promise<void>, 
-    add_attendees_to_meeting: (args: { id: string, attendees: UserIdentity[] }) => Promise<void>, 
+    add_attendees_to_meeting: (args: { id: string, attendees: UserIdentity[], phoneNumber?: string }) => Promise<void>, 
     my_meetings: () => Promise<Meeting[]>,
     attendee_info: (args: { id: string }) => Promise<{ attendee: Attendee, others: UserIdentity[] }>,
     send_invite: (args: extractFields<CustomActions['meetings']['send_invite']['parameters']>) => (

@@ -870,7 +870,8 @@ export type CustomActions = {
         }, {}>;
         add_attendees_to_meeting: CustomAction<{
             id: string;
-            attendees: UserIdentity[];
+            attendees?: UserIdentity[];
+            phoneNumber?: string;
         }, {}>;
         my_meetings: CustomAction<{}, {
             id: string;
@@ -1245,9 +1246,12 @@ export type CustomActions = {
         }>;
         load_twilio_embed: CustomAction<{
             type?: string;
+            phoneNumberSid?: string;
         }, {
-            id: string;
+            id?: string;
+            inquiryId?: string;
             token: string;
+            phoneNumberSid?: string;
         }>;
     };
     phone_calls: {

@@ -186,6 +186,7 @@ export interface TwilioConfig extends InternalBusinessRecord, EnduserEngagementT
   name: string,
   twilioIosSid: string,
   twilioAndroidSid: string,
+  approved10DLCMessagingServiceSid?: string,
 }
 
 export interface OutstandingFormsTracker extends InternalBusinessRecord {
@@ -292,7 +293,7 @@ export interface OktaSSOConfiguration extends InternalBusinessRecord {
 }
 
 export interface InternalSecret extends InternalBusinessRecord {
-  type: 'twilio-ios' | 'twilio-android' | 'customer-usage-data' | 'beluga-sandbox' | 'beluga-production' | 'scriptsure-sandbox' | 'scriptsure-production'
+  type: 'twilio-ios' | 'twilio-android' | 'customer-usage-data' | 'beluga-sandbox' | 'beluga-production' | 'scriptsure-sandbox' | 'scriptsure-production' | 'scriptsure-webhooks'
   publicKey: string,
   secretKey: string,
 }

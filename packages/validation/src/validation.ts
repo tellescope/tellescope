@@ -2378,7 +2378,7 @@ export const userIdentityValidator = objectValidator<{
   type: sessionTypeValidator,
   id: mongoIdStringRequired,
 }) 
-export const listOfUserIndentitiesValidator = listValidator(userIdentityValidator)
+export const listOfUserIndentitiesValidator = listValidatorEmptyOk(userIdentityValidator)
 
 export const calendarEventAttendeeValidator = objectValidator<{
   type: SessionType,
@@ -3268,8 +3268,9 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
   pushFormsToPortal: objectValidator<PushFormsAutomationAction>({
     ...sharedAutomationActionValidators,
     type: exactMatchValidator(['pushFormsToPortal']),
-    info: objectValidator<PushFormsAutomationAction['info']>({ 
-      formIds: listOfMongoIdStringValidator,
+    info: objectValidator<PushFormsAutomationAction['info']>({
+      formIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+      formGroupIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
     }, { emptyOk: false }),
   }),
   cancelFutureAppointments: objectValidator<CancelFutureAppointmentsAutomationAction>({
@@ -3326,10 +3327,13 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
   callUser: objectValidator<CallUserAutomationAction>({
     ...sharedAutomationActionValidators,
     type: exactMatchValidator(['callUser']),
-    info: objectValidator<CallUserAutomationAction['info']>({ 
-      message: stringValidator25000, 
-      routeBy: exactMatchValidator<CallUserAutomationAction['info']['routeBy']>(['Appointment Host']),
-    }, { emptyOk: false }) // at least tags is required
+    info: objectValidator<CallUserAutomationAction['info']>({
+      message: stringValidator25000,
+      routeBy: exactMatchValidator<CallUserAutomationAction['info']['routeBy']>(['Appointment Host', 'Match Users']),
+      restrictToCareTeam: booleanValidatorOptional,
+      tags: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
+      limit: numberValidatorOptional,
+    }, { emptyOk: false })
   }),
   stripeChargeCardOnFile: objectValidator<StripeChargeCardOnFileAutomationAction>({
     ...sharedAutomationActionValidators,
@@ -4730,6 +4734,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
       templateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
       excludeTemplateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
       excludeCancelUpcomingEventsJourney: booleanValidatorOptional,
+      cancelReasons: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 

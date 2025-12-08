@@ -2698,10 +2698,11 @@ export var schema = build_schema({
                 op: "custom", access: 'update', method: "post",
                 name: 'Add Attendees to Meeting',
                 path: '/add-attendees-to-meeting',
-                description: "Adds other attendees to a meeting",
+                description: "Adds other attendees to a meeting, or dials out to a phone number",
                 parameters: {
                     id: { validator: mongoIdStringValidator, required: true },
-                    attendees: { validator: listOfUserIndentitiesValidator, required: true },
+                    attendees: { validator: listOfUserIndentitiesValidator },
+                    phoneNumber: { validator: phoneValidator },
                 },
                 returns: {},
             },
@@ -4587,12 +4588,15 @@ export var schema = build_schema({
                 adminOnly: true,
                 name: 'Get Twilio Embed',
                 path: '/organizations/twilio-embed',
-                description: "Gets detail to load an embedded Twilio UI in Tellescope",
+                description: "Gets detail to load an embedded Twilio UI in Tellescope. Use type='tfn-verification' for TFN verification embed.",
                 parameters: {
                     type: { validator: stringValidator },
+                    phoneNumberSid: { validator: stringValidator },
                 },
                 returns: {
-                    id: { validator: stringValidator, required: true },
+                    id: { validator: stringValidator },
+                    inquiryId: { validator: stringValidator },
+                    phoneNumberSid: { validator: stringValidator },
                     token: { validator: stringValidator, required: true },
                 }
             },

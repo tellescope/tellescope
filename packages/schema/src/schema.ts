@@ -918,7 +918,7 @@ export type CustomActions = {
     start_meeting: CustomAction<{ attendees?: UserIdentity[], publicRead?: boolean }, { id: string, meeting: { Meeting: MeetingInfo }, host: Attendee }>, 
     send_invite: CustomAction<{ meetingId: string, enduserId: string }, { }>, 
     end_meeting: CustomAction<{ id: string }, { }>, 
-    add_attendees_to_meeting: CustomAction<{ id: string, attendees: UserIdentity[] }, { }>, 
+    add_attendees_to_meeting: CustomAction<{ id: string, attendees?: UserIdentity[], phoneNumber?: string }, { }>, 
     my_meetings: CustomAction<{}, { id: string, updatedAt: string, status: MeetingStatus }[]>
     attendee_info: CustomAction<{ id: string }, { attendee: Attendee, others: UserIdentity[] }>,
     start_meeting_for_event: CustomAction<{ calendarEventId: string }, { id: string, meeting: { Meeting: MeetingInfo }, host: Attendee }>, 
@@ -1041,8 +1041,8 @@ export type CustomActions = {
     add_athena_subscription: CustomAction<{ startAt?: Date, type: AthenaSubscription['type'], frequency: number, daily?: boolean }, { organization: Organization }>, 
     sync_athena_subscription: CustomAction<{ type: AthenaSubscription['type'], backgroundTaskId?: string, enduserId?: string }, { }>, 
     sync_note_to_canvas: CustomAction<{ enduserId: string, note: string }, { canvasId: string }>, 
-    link_twilio: CustomAction<{ }, { organization: Organization }>, 
-    load_twilio_embed: CustomAction<{ type?: string }, { id: string, token: string }>, 
+    link_twilio: CustomAction<{ }, { organization: Organization }>,
+    load_twilio_embed: CustomAction<{ type?: string, phoneNumberSid?: string }, { id?: string, inquiryId?: string, token: string, phoneNumberSid?: string }>, 
   },
   phone_calls: {
     authenticate_calling: CustomAction<{ os?: "ios" | "android", type?: UserCallRoutingBehavior }, { accessToken: string, identity: string }>, 
@@ -4313,14 +4313,15 @@ export const schema: SchemaV1 = build_schema({
         parameters: { id: { validator: mongoIdStringValidator, required: true } },
         returns: { },
       },
-      add_attendees_to_meeting: { 
+      add_attendees_to_meeting: {
         op: "custom", access: 'update', method: "post",
         name: 'Add Attendees to Meeting',
         path: '/add-attendees-to-meeting',
-        description: "Adds other attendees to a meeting",
-        parameters: { 
+        description: "Adds other attendees to a meeting, or dials out to a phone number",
+        parameters: {
           id: { validator: mongoIdStringValidator, required: true },
-          attendees: { validator: listOfUserIndentitiesValidator, required: true },
+          attendees: { validator: listOfUserIndentitiesValidator },
+          phoneNumber: { validator: phoneValidator },
         },
         returns: { },
       },
@@ -6685,19 +6686,22 @@ export const schema: SchemaV1 = build_schema({
           organization: { validator: 'organization' as any, required: true },
         } 
       },
-      load_twilio_embed: { 
-        op: "custom", access: 'read', method: "get", 
-        adminOnly: true, 
+      load_twilio_embed: {
+        op: "custom", access: 'read', method: "get",
+        adminOnly: true,
         name: 'Get Twilio Embed',
-        path: '/organizations/twilio-embed', 
-        description: "Gets detail to load an embedded Twilio UI in Tellescope",
-        parameters: { 
+        path: '/organizations/twilio-embed',
+        description: "Gets detail to load an embedded Twilio UI in Tellescope. Use type='tfn-verification' for TFN verification embed.",
+        parameters: {
           type: { validator: stringValidator },
+          phoneNumberSid: { validator: stringValidator },
         },
-        returns: { 
-          id: { validator: stringValidator, required: true },
+        returns: {
+          id: { validator: stringValidator },
+          inquiryId: { validator: stringValidator },
+          phoneNumberSid: { validator: stringValidator },
           token: { validator: stringValidator, required: true },
-        } 
+        }
       },
     },
     enduserActions: { },

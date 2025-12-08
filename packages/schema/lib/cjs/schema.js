@@ -2703,10 +2703,11 @@ exports.schema = (0, exports.build_schema)({
                 op: "custom", access: 'update', method: "post",
                 name: 'Add Attendees to Meeting',
                 path: '/add-attendees-to-meeting',
-                description: "Adds other attendees to a meeting",
+                description: "Adds other attendees to a meeting, or dials out to a phone number",
                 parameters: {
                     id: { validator: validation_1.mongoIdStringRequired, required: true },
-                    attendees: { validator: validation_1.listOfUserIndentitiesValidator, required: true },
+                    attendees: { validator: validation_1.listOfUserIndentitiesValidator },
+                    phoneNumber: { validator: validation_1.phoneValidator },
                 },
                 returns: {},
             },
@@ -4592,12 +4593,15 @@ exports.schema = (0, exports.build_schema)({
                 adminOnly: true,
                 name: 'Get Twilio Embed',
                 path: '/organizations/twilio-embed',
-                description: "Gets detail to load an embedded Twilio UI in Tellescope",
+                description: "Gets detail to load an embedded Twilio UI in Tellescope. Use type='tfn-verification' for TFN verification embed.",
                 parameters: {
                     type: { validator: validation_1.stringValidator },
+                    phoneNumberSid: { validator: validation_1.stringValidator },
                 },
                 returns: {
-                    id: { validator: validation_1.stringValidator, required: true },
+                    id: { validator: validation_1.stringValidator },
+                    inquiryId: { validator: validation_1.stringValidator },
+                    phoneNumberSid: { validator: validation_1.stringValidator },
                     token: { validator: validation_1.stringValidator, required: true },
                 }
             },

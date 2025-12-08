@@ -418,6 +418,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     _groupChatsEnabled?: boolean;
     allowCreateSuborganizations?: boolean;
     allowCallerId?: boolean;
+    enableChimePhoneDialOut?: boolean;
     billingOrganizationName?: string;
     billingOrganizationNPI?: string;
     billingOrganizationTaxId?: string;
@@ -2993,7 +2994,8 @@ export type SendSMSAutomationAction = AutomationActionBuilder<'sendSMS', Automat
 }>;
 export type SendFormAutomationAction = AutomationActionBuilder<'sendForm', AutomationForFormRequest>;
 export type PushFormsAutomationAction = AutomationActionBuilder<'pushFormsToPortal', {
-    formIds: string[];
+    formIds?: string[];
+    formGroupIds?: string[];
 }>;
 export type SetEnduserStatusAutomationAction = AutomationActionBuilder<'setEnduserStatus', SetEnduserStatusInfo>;
 export type CreateTicketAutomationAction = AutomationActionBuilder<'createTicket', CreateTicketActionInfo>;
@@ -3153,7 +3155,10 @@ export type RemoveCareTeamAutomationAction = AutomationActionBuilder<'removeCare
 export type AssignCareTeamAutomationAction = AutomationActionBuilder<'assignCareTeam', AutomationTriggerActions['Assign Care Team']['info']>;
 export type CallUserAutomationAction = AutomationActionBuilder<'callUser', {
     message: string;
-    routeBy: "Appointment Host";
+    routeBy: "Appointment Host" | "Match Users";
+    restrictToCareTeam?: boolean;
+    tags?: ListOfStringsWithQualifier;
+    limit?: number;
 }>;
 export type StripeChargeCardOnFileAutomationAction = AutomationActionBuilder<'stripeChargeCardOnFile', {
     stripeKey?: string;
@@ -4333,6 +4338,7 @@ export type AutomationTriggerEvents = {
         excludeTemplateIds?: string[];
         excludeCancelUpcomingEventsJourney?: boolean;
         by?: '' | 'enduser' | 'user';
+        cancelReasons?: string[];
     }, {}>;
     'Appointment Rescheduled': AutomationTriggerEventBuilder<"Appointment Rescheduled", {
         titles?: string[];

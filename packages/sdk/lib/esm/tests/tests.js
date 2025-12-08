@@ -4377,7 +4377,7 @@ var tag_added_tests = function () { return __awaiter(void 0, void 0, void 0, fun
     });
 }); };
 var appointment_cancelled_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var t1, t2, t3, t4, t5, e, event1, event2, event3, event4, event5, event6, t6, event7, event8;
+    var t1, t2, t3, t4, t5, e, event1, event2, event3, event4, event5, event6, t6, event7, event8, t7, event9, event10, event11;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -4577,8 +4577,91 @@ var appointment_cancelled_tests = function () { return __awaiter(void 0, void 0,
                                 && e.tags.includes('By user')
                                 && e.tags.includes('By excluded templateId');
                         }
-                    })];
+                    })
+                    // Test cancel reason filtering
+                ];
             case 38:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.automation_triggers.createOne({
+                        event: { type: 'Appointment Cancelled', info: { cancelReasons: ['Patient Request'] } },
+                        action: { type: 'Add Tags', info: { tags: ['By cancelReason'] } },
+                        status: 'Active',
+                        title: "By cancelReason"
+                    })
+                    // Event cancelled with non-matching cancel reason should NOT trigger the cancelReason filter
+                ];
+            case 39:
+                t7 = _a.sent();
+                return [4 /*yield*/, sdk.api.calendar_events.createOne({ title: 'Title', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e.id }] })];
+            case 40:
+                event9 = _a.sent();
+                return [4 /*yield*/, sdk.api.calendar_events.updateOne(event9.id, { cancelledAt: new Date(), cancelReason: 'No Show' })];
+            case 41:
+                _a.sent();
+                return [4 /*yield*/, wait(undefined, 500)]; // allow triggers to happen
+            case 42:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, async_test("Dont trigger when cancelReason does not match", function () { return sdk.api.endusers.getOne(e.id); }, { onResult: function (e) {
+                            var _a;
+                            return ((_a = e.tags) === null || _a === void 0 ? void 0 : _a.length) === 6
+                                && e.tags.includes('By Any')
+                                && e.tags.includes('By Title')
+                                && e.tags.includes('By templateId')
+                                && e.tags.includes('By enduser')
+                                && e.tags.includes('By user')
+                                && e.tags.includes('By excluded templateId')
+                                && !e.tags.includes('By cancelReason');
+                        } // should NOT have this tag
+                    })];
+            case 43:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.calendar_events.createOne({ title: 'Title', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e.id }] })];
+            case 44:
+                event10 = _a.sent();
+                return [4 /*yield*/, sdk.api.calendar_events.updateOne(event10.id, { cancelledAt: new Date() })];
+            case 45:
+                _a.sent();
+                return [4 /*yield*/, wait(undefined, 500)]; // allow triggers to happen
+            case 46:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, async_test("Dont trigger when cancelReason is missing", function () { return sdk.api.endusers.getOne(e.id); }, { onResult: function (e) {
+                            var _a;
+                            return ((_a = e.tags) === null || _a === void 0 ? void 0 : _a.length) === 6
+                                && e.tags.includes('By Any')
+                                && e.tags.includes('By Title')
+                                && e.tags.includes('By templateId')
+                                && e.tags.includes('By enduser')
+                                && e.tags.includes('By user')
+                                && e.tags.includes('By excluded templateId')
+                                && !e.tags.includes('By cancelReason');
+                        } // should NOT have this tag
+                    })
+                    // Event cancelled with matching cancel reason SHOULD trigger the cancelReason filter
+                ];
+            case 47:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.calendar_events.createOne({ title: 'Title', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e.id }] })];
+            case 48:
+                event11 = _a.sent();
+                return [4 /*yield*/, sdk.api.calendar_events.updateOne(event11.id, { cancelledAt: new Date(), cancelReason: 'Patient Request' })];
+            case 49:
+                _a.sent();
+                return [4 /*yield*/, wait(undefined, 500)]; // allow triggers to happen
+            case 50:
+                _a.sent(); // allow triggers to happen
+                return [4 /*yield*/, async_test("Do trigger when cancelReason matches", function () { return sdk.api.endusers.getOne(e.id); }, { onResult: function (e) {
+                            var _a;
+                            return ((_a = e.tags) === null || _a === void 0 ? void 0 : _a.length) === 7
+                                && e.tags.includes('By Any')
+                                && e.tags.includes('By Title')
+                                && e.tags.includes('By templateId')
+                                && e.tags.includes('By enduser')
+                                && e.tags.includes('By user')
+                                && e.tags.includes('By excluded templateId')
+                                && e.tags.includes('By cancelReason');
+                        }
+                    })];
+            case 51:
                 _a.sent();
                 return [4 /*yield*/, Promise.all([
                         sdk.api.automation_triggers.deleteOne(t1.id),
@@ -4587,6 +4670,7 @@ var appointment_cancelled_tests = function () { return __awaiter(void 0, void 0,
                         sdk.api.automation_triggers.deleteOne(t4.id),
                         sdk.api.automation_triggers.deleteOne(t5.id),
                         sdk.api.automation_triggers.deleteOne(t6.id),
+                        sdk.api.automation_triggers.deleteOne(t7.id),
                         sdk.api.endusers.deleteOne(e.id),
                         sdk.api.calendar_events.deleteOne(event1.id),
                         sdk.api.calendar_events.deleteOne(event2.id),
@@ -4596,8 +4680,11 @@ var appointment_cancelled_tests = function () { return __awaiter(void 0, void 0,
                         sdk.api.calendar_events.deleteOne(event6.id),
                         sdk.api.calendar_events.deleteOne(event7.id),
                         sdk.api.calendar_events.deleteOne(event8.id),
+                        sdk.api.calendar_events.deleteOne(event9.id),
+                        sdk.api.calendar_events.deleteOne(event10.id),
+                        sdk.api.calendar_events.deleteOne(event11.id),
                     ])];
-            case 39:
+            case 52:
                 _a.sent();
                 return [2 /*return*/];
         }
@@ -5814,43 +5901,43 @@ var automation_trigger_tests = function () { return __awaiter(void 0, void 0, vo
         switch (_a.label) {
             case 0:
                 log_header("Automation Trigger Tests");
-                return [4 /*yield*/, set_fields_tests()];
+                return [4 /*yield*/, appointment_cancelled_tests()];
             case 1:
                 _a.sent();
-                return [4 /*yield*/, purchase_made_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, set_fields_tests()];
             case 2:
                 _a.sent();
-                return [4 /*yield*/, appointment_rescheduled_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, purchase_made_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 3:
                 _a.sent();
-                return [4 /*yield*/, form_response_set_fields_trigger_tests()];
+                return [4 /*yield*/, appointment_rescheduled_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 4:
                 _a.sent();
-                return [4 /*yield*/, form_response_set_fields_journey_tests()];
+                return [4 /*yield*/, form_response_set_fields_trigger_tests()];
             case 5:
                 _a.sent();
-                return [4 /*yield*/, appointment_completed_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, form_response_set_fields_journey_tests()];
             case 6:
                 _a.sent();
-                return [4 /*yield*/, order_status_equals_tests()];
+                return [4 /*yield*/, appointment_completed_trigger_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 7:
                 _a.sent();
-                return [4 /*yield*/, trigger_events_api_tests()];
+                return [4 /*yield*/, order_status_equals_tests()];
             case 8:
                 _a.sent();
-                return [4 /*yield*/, fields_changed_tests()];
+                return [4 /*yield*/, trigger_events_api_tests()];
             case 9:
                 _a.sent();
-                return [4 /*yield*/, field_equals_trigger_tests()];
+                return [4 /*yield*/, fields_changed_tests()];
             case 10:
                 _a.sent();
-                return [4 /*yield*/, assign_care_team_tests()];
+                return [4 /*yield*/, field_equals_trigger_tests()];
             case 11:
                 _a.sent();
-                return [4 /*yield*/, contact_created_tests()];
+                return [4 /*yield*/, assign_care_team_tests()];
             case 12:
                 _a.sent();
-                return [4 /*yield*/, appointment_cancelled_tests()];
+                return [4 /*yield*/, contact_created_tests()];
             case 13:
                 _a.sent();
                 return [4 /*yield*/, appointment_created_tests()];
@@ -6678,47 +6765,6 @@ var public_form_tests = function () { return __awaiter(void 0, void 0, void 0, f
                     ])];
             case 18:
                 _b.sent();
-                return [2 /*return*/];
-        }
-    });
-}); };
-export var managed_content_records_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var record, record2;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                log_header("Managed Content Records");
-                return [4 /*yield*/, enduserSDK.register({ email: 'content@tellescope.com', password: "testenduserpassword" })];
-            case 1:
-                _a.sent();
-                return [4 /*yield*/, enduserSDK.authenticate('content@tellescope.com', "testenduserpassword")];
-            case 2:
-                _a.sent();
-                return [4 /*yield*/, sdk.api.managed_content_records.createOne({
-                        title: "title", htmlContent: '<br />', textContent: 'content',
-                        publicRead: true,
-                    })];
-            case 3:
-                record = _a.sent();
-                return [4 /*yield*/, sdk.api.managed_content_records.createOne({
-                        title: "title 2", htmlContent: '<br />', textContent: 'content',
-                        publicRead: false,
-                    })];
-            case 4:
-                record2 = _a.sent();
-                return [4 /*yield*/, async_test('enduser can access content by default (1)', function () { return enduserSDK.api.managed_content_records.getOne(record.id); }, passOnAnyResult)];
-            case 5:
-                _a.sent();
-                return [4 /*yield*/, async_test('enduser can access content by default (many)', function () { return enduserSDK.api.managed_content_records.getSome(); }, { onResult: function (rs) { return rs.length === 1; } })];
-            case 6:
-                _a.sent();
-                return [4 /*yield*/, Promise.all([
-                        sdk.api.endusers.deleteOne(enduserSDK.userInfo.id),
-                        sdk.api.managed_content_records.deleteOne(record.id),
-                        sdk.api.managed_content_records.deleteOne(record2.id),
-                    ])];
-            case 7:
-                _a.sent();
                 return [2 /*return*/];
         }
     });
@@ -10659,7 +10705,7 @@ var tests = {
     enduser_observations: NO_TEST,
     forum_posts: NO_TEST,
     forums: community_tests,
-    managed_content_records: managed_content_records_tests,
+    managed_content_records: NO_TEST,
     managed_content_record_assignments: NO_TEST,
     post_likes: NO_TEST,
     comment_likes: NO_TEST,
@@ -15014,19 +15060,19 @@ var ip_address_form_tests = function () { return __awaiter(void 0, void 0, void 
                 return [4 /*yield*/, setup_tests(sdk, sdkNonAdmin)];
             case 16:
                 _l.sent();
-                return [4 /*yield*/, managed_content_enduser_access_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, automation_trigger_tests()];
             case 17:
                 _l.sent();
-                return [4 /*yield*/, afteraction_day_of_month_delay_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, managed_content_enduser_access_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 18:
                 _l.sent();
-                return [4 /*yield*/, bulk_assignment_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, afteraction_day_of_month_delay_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 19:
                 _l.sent();
-                return [4 /*yield*/, custom_aggregation_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+                return [4 /*yield*/, bulk_assignment_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 20:
                 _l.sent();
-                return [4 /*yield*/, automation_trigger_tests()];
+                return [4 /*yield*/, custom_aggregation_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
             case 21:
                 _l.sent();
                 return [4 /*yield*/, formsort_tests()];

@@ -1646,6 +1646,7 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
     excludeTemplateIds?: string[] | undefined;
     excludeCancelUpcomingEventsJourney?: boolean | undefined;
     by?: "" | "enduser" | "user" | undefined;
+    cancelReasons?: string[] | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Appointment Rescheduled", {
     titles?: string[] | undefined;
     detectManualReschedules?: boolean | undefined;

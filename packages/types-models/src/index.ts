@@ -428,6 +428,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   _groupChatsEnabled?: boolean,
   allowCreateSuborganizations?: boolean,
   allowCallerId?: boolean, // should require manual enablement by Tellescope team after explicit carve-out in BAA with customer
+  enableChimePhoneDialOut?: boolean, // enables "Dial Phone" button in video calls to dial out to phone numbers
   billingOrganizationName?: string,
   billingOrganizationNPI?: string,
   billingOrganizationTaxId?: string,
@@ -3028,7 +3029,7 @@ export type NotifyTeamAutomationAction = AutomationActionBuilder<'notifyTeam', {
 }>
 export type SendSMSAutomationAction = AutomationActionBuilder<'sendSMS', AutomationForMessage & { phoneNumberOverride?: string }>
 export type SendFormAutomationAction = AutomationActionBuilder<'sendForm', AutomationForFormRequest>
-export type PushFormsAutomationAction = AutomationActionBuilder<'pushFormsToPortal', { formIds: string[] }>
+export type PushFormsAutomationAction = AutomationActionBuilder<'pushFormsToPortal', { formIds?: string[], formGroupIds?: string[] }>
 export type SetEnduserStatusAutomationAction = AutomationActionBuilder<'setEnduserStatus', SetEnduserStatusInfo>
 export type CreateTicketAutomationAction = AutomationActionBuilder<'createTicket', CreateTicketActionInfo>
 export type SendWebhookAutomationAction = AutomationActionBuilder<'sendWebhook', AutomationForWebhook>
@@ -3149,10 +3150,13 @@ export type AssignCareTeamAutomationAction = AutomationActionBuilder<
   AutomationTriggerActions['Assign Care Team']['info']
 >
 export type CallUserAutomationAction = AutomationActionBuilder<
-  'callUser', 
-  { 
-    message: string, 
-    routeBy: "Appointment Host",
+  'callUser',
+  {
+    message: string,
+    routeBy: "Appointment Host" | "Match Users",
+    restrictToCareTeam?: boolean,
+    tags?: ListOfStringsWithQualifier,
+    limit?: number,
   }
 >
 export type StripeChargeCardOnFileAutomationAction = AutomationActionBuilder<'stripeChargeCardOnFile', {
@@ -4321,12 +4325,13 @@ export type AutomationTriggerEvents = {
   'Contact Created': AutomationTriggerEventBuilder<"Contact Created", { entityTypes?: string[] }, { }>,
   'Appointment Created': AutomationTriggerEventBuilder<"Appointment Created", { titles?: string[], templateIds?: string[], excludeTemplateIds?: string[] }, {}>,
   'Appointment Completed': AutomationTriggerEventBuilder<"Appointment Completed", { titles?: string[], templateIds?: string[] }, {}>,
-  'Appointment Cancelled': AutomationTriggerEventBuilder<"Appointment Cancelled", { 
-    titles?: string[], 
+  'Appointment Cancelled': AutomationTriggerEventBuilder<"Appointment Cancelled", {
+    titles?: string[],
     templateIds?: string[],
     excludeTemplateIds?: string[],
     excludeCancelUpcomingEventsJourney?: boolean, // if true, will not trigger from cancelUpcomingEvents Journey action
     by?: '' | 'enduser' | 'user', // only implemented for enduser for now
+    cancelReasons?: string[], // filter by specific cancel reasons
   }, {}>,
   'Appointment Rescheduled': AutomationTriggerEventBuilder<"Appointment Rescheduled", { titles?: string[], detectManualReschedules?: boolean }, {}>,
   'Medication Added': AutomationTriggerEventBuilder<"Medication Added", { titles: string[] }, {}>,

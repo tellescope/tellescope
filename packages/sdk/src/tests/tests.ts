@@ -3727,7 +3727,7 @@ const appointment_cancelled_tests = async () => {
   await async_test(
     "Dont trigger when excluded templateId is provided",
     () => sdk.api.endusers.getOne(e.id),
-    { onResult: e => 
+    { onResult: e =>
         e.tags?.length === 5
      && e.tags.includes('By Any')
      && e.tags.includes('By Title')
@@ -3743,7 +3743,7 @@ const appointment_cancelled_tests = async () => {
   await async_test(
     "Do trigger when excluded templateId is not provided",
     () => sdk.api.endusers.getOne(e.id),
-    { onResult: e => 
+    { onResult: e =>
         e.tags?.length === 6
      && e.tags.includes('By Any')
      && e.tags.includes('By Title')
@@ -3751,6 +3751,70 @@ const appointment_cancelled_tests = async () => {
      && e.tags.includes('By enduser')
      && e.tags.includes('By user')
      && e.tags.includes('By excluded templateId')
+    }
+  )
+
+  // Test cancel reason filtering
+  const t7 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Appointment Cancelled', info: { cancelReasons: ['Patient Request'] } },
+    action: { type: 'Add Tags', info: { tags: ['By cancelReason'] }},
+    status: 'Active',
+    title: "By cancelReason"
+  })
+
+  // Event cancelled with non-matching cancel reason should NOT trigger the cancelReason filter
+  const event9 = await sdk.api.calendar_events.createOne({ title: 'Title', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e.id }] })
+  await sdk.api.calendar_events.updateOne(event9.id, { cancelledAt: new Date(), cancelReason: 'No Show' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Dont trigger when cancelReason does not match",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e =>
+        e.tags?.length === 6
+     && e.tags.includes('By Any')
+     && e.tags.includes('By Title')
+     && e.tags.includes('By templateId')
+     && e.tags.includes('By enduser')
+     && e.tags.includes('By user')
+     && e.tags.includes('By excluded templateId')
+     && !e.tags.includes('By cancelReason') // should NOT have this tag
+    }
+  )
+
+  const event10 = await sdk.api.calendar_events.createOne({ title: 'Title', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e.id }] })
+  await sdk.api.calendar_events.updateOne(event10.id, { cancelledAt: new Date() })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Dont trigger when cancelReason is missing",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e =>
+        e.tags?.length === 6
+     && e.tags.includes('By Any')
+     && e.tags.includes('By Title')
+     && e.tags.includes('By templateId')
+     && e.tags.includes('By enduser')
+     && e.tags.includes('By user')
+     && e.tags.includes('By excluded templateId')
+     && !e.tags.includes('By cancelReason') // should NOT have this tag
+    }
+  )
+
+  // Event cancelled with matching cancel reason SHOULD trigger the cancelReason filter
+  const event11 = await sdk.api.calendar_events.createOne({ title: 'Title', durationInMinutes: 30, startTimeInMS: Date.now(), attendees: [{ type: 'enduser', id: e.id }] })
+  await sdk.api.calendar_events.updateOne(event11.id, { cancelledAt: new Date(), cancelReason: 'Patient Request' })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Do trigger when cancelReason matches",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e =>
+        e.tags?.length === 7
+     && e.tags.includes('By Any')
+     && e.tags.includes('By Title')
+     && e.tags.includes('By templateId')
+     && e.tags.includes('By enduser')
+     && e.tags.includes('By user')
+     && e.tags.includes('By excluded templateId')
+     && e.tags.includes('By cancelReason')
     }
   )
 
@@ -3762,6 +3826,7 @@ const appointment_cancelled_tests = async () => {
     sdk.api.automation_triggers.deleteOne(t4.id),
     sdk.api.automation_triggers.deleteOne(t5.id),
     sdk.api.automation_triggers.deleteOne(t6.id),
+    sdk.api.automation_triggers.deleteOne(t7.id),
     sdk.api.endusers.deleteOne(e.id),
     sdk.api.calendar_events.deleteOne(event1.id),
     sdk.api.calendar_events.deleteOne(event2.id),
@@ -3771,6 +3836,9 @@ const appointment_cancelled_tests = async () => {
     sdk.api.calendar_events.deleteOne(event6.id),
     sdk.api.calendar_events.deleteOne(event7.id),
     sdk.api.calendar_events.deleteOne(event8.id),
+    sdk.api.calendar_events.deleteOne(event9.id),
+    sdk.api.calendar_events.deleteOne(event10.id),
+    sdk.api.calendar_events.deleteOne(event11.id),
   ])
 }
 
@@ -4793,6 +4861,7 @@ const trigger_events_api_tests = async () => {
 const automation_trigger_tests = async () => {
   log_header("Automation Trigger Tests")
 
+  await appointment_cancelled_tests()
   await set_fields_tests()
   await purchase_made_trigger_tests({ sdk, sdkNonAdmin })
   await appointment_rescheduled_trigger_tests({ sdk, sdkNonAdmin })
@@ -4805,7 +4874,6 @@ const automation_trigger_tests = async () => {
   await field_equals_trigger_tests()
   await assign_care_team_tests()
   await contact_created_tests()
-  await appointment_cancelled_tests()
   await appointment_created_tests()
   await tag_added_tests()
   await order_created_tests()
@@ -5562,40 +5630,6 @@ const public_form_tests = async () => {
     sdk.api.forms.deleteOne(form.id),
     sdk.api.journeys.deleteOne(journey.id),
     sdk.api.endusers.deleteOne(enduser2.id),
-  ])
-}
-
-export const managed_content_records_tests = async () => {
-  log_header("Managed Content Records")
-
-  await enduserSDK.register({ email: 'content@tellescope.com', password: "testenduserpassword" })
-  await enduserSDK.authenticate('content@tellescope.com', "testenduserpassword")
-
-  const record = await sdk.api.managed_content_records.createOne({
-    title: "title", htmlContent: '<br />', textContent: 'content',
-    publicRead: true,
-  })
-  const record2 = await sdk.api.managed_content_records.createOne({
-    title: "title 2", htmlContent: '<br />', textContent: 'content',
-    publicRead: false,
-  })
-
-
-  await async_test(
-    'enduser can access content by default (1)',
-    () => enduserSDK.api.managed_content_records.getOne(record.id),
-    passOnAnyResult,
-  )
-  await async_test(
-    'enduser can access content by default (many)',
-    () => enduserSDK.api.managed_content_records.getSome(),
-    { onResult: rs => rs.length === 1 },
-  )
-
-  await Promise.all([
-    sdk.api.endusers.deleteOne(enduserSDK.userInfo.id),
-    sdk.api.managed_content_records.deleteOne(record.id),
-    sdk.api.managed_content_records.deleteOne(record2.id),
   ])
 }
 
@@ -9029,7 +9063,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   enduser_observations: NO_TEST,
   forum_posts: NO_TEST,
   forums: community_tests,
-  managed_content_records: managed_content_records_tests,
+  managed_content_records: NO_TEST,
   managed_content_record_assignments: NO_TEST,
   post_likes: NO_TEST,
   comment_likes: NO_TEST,
@@ -13137,11 +13171,11 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await automation_trigger_tests()
     await managed_content_enduser_access_tests({ sdk, sdkNonAdmin })
     await afteraction_day_of_month_delay_tests({ sdk, sdkNonAdmin })
     await bulk_assignment_tests({ sdk, sdkNonAdmin })
     await custom_aggregation_tests({ sdk, sdkNonAdmin })
-    await automation_trigger_tests()
     await formsort_tests()
     await self_serve_appointment_booking_tests()
     await time_tracks_tests({ sdk, sdkNonAdmin })

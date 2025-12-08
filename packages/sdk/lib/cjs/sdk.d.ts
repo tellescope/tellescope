@@ -3766,6 +3766,7 @@ type Queries = {
         add_attendees_to_meeting: (args: {
             id: string;
             attendees: UserIdentity[];
+            phoneNumber?: string;
         }) => Promise<void>;
         my_meetings: () => Promise<Meeting[]>;
         attendee_info: (args: {

@@ -1869,7 +1869,7 @@ export var userIdentityValidator = objectValidator({
     type: sessionTypeValidator,
     id: mongoIdStringRequired,
 });
-export var listOfUserIndentitiesValidator = listValidator(userIdentityValidator);
+export var listOfUserIndentitiesValidator = listValidatorEmptyOk(userIdentityValidator);
 export var calendarEventAttendeeValidator = objectValidator({
     type: sessionTypeValidator,
     id: mongoIdStringRequired,
@@ -2507,7 +2507,8 @@ export var automationActionValidator = orValidator({
             otherTypes: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
         }, {}) })),
     pushFormsToPortal: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['pushFormsToPortal']), info: objectValidator({
-            formIds: listOfMongoIdStringValidator,
+            formIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+            formGroupIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
         }, { emptyOk: false }) })),
     cancelFutureAppointments: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['cancelFutureAppointments']), info: objectValidator({}, { emptyOk: true }) })),
     customerIOIdentify: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['customerIOIdentify']), info: objectValidator({}, { emptyOk: true }) })),
@@ -2532,9 +2533,11 @@ export var automationActionValidator = orValidator({
      })),
     callUser: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['callUser']), info: objectValidator({
             message: stringValidator25000,
-            routeBy: exactMatchValidator(['Appointment Host']),
-        }, { emptyOk: false }) // at least tags is required
-     })),
+            routeBy: exactMatchValidator(['Appointment Host', 'Match Users']),
+            restrictToCareTeam: booleanValidatorOptional,
+            tags: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
+            limit: numberValidatorOptional,
+        }, { emptyOk: false }) })),
     stripeChargeCardOnFile: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['stripeChargeCardOnFile']), info: objectValidator({
             stripeKey: stringValidatorOptionalEmptyOkay,
             priceIds: listOfStringsValidatorEmptyOk,
@@ -3850,6 +3853,7 @@ export var automationTriggerEventValidator = orValidator({
             templateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
             excludeTemplateIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
             excludeCancelUpcomingEventsJourney: booleanValidatorOptional,
+            cancelReasons: listOfStringsValidatorOptionalOrEmptyOk,
         }),
         conditions: optionalEmptyObjectValidator,
     }),

@@ -1919,7 +1919,7 @@ exports.userIdentityValidator = (0, exports.objectValidator)({
     type: exports.sessionTypeValidator,
     id: exports.mongoIdStringRequired,
 });
-exports.listOfUserIndentitiesValidator = (0, exports.listValidator)(exports.userIdentityValidator);
+exports.listOfUserIndentitiesValidator = (0, exports.listValidatorEmptyOk)(exports.userIdentityValidator);
 exports.calendarEventAttendeeValidator = (0, exports.objectValidator)({
     type: exports.sessionTypeValidator,
     id: exports.mongoIdStringRequired,
@@ -2557,7 +2557,8 @@ exports.automationActionValidator = (0, exports.orValidator)({
             otherTypes: exports.listOfStringsValidatorUniqueOptionalOrEmptyOkay,
         }, {}) })),
     pushFormsToPortal: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['pushFormsToPortal']), info: (0, exports.objectValidator)({
-            formIds: exports.listOfMongoIdStringValidator,
+            formIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
+            formGroupIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
         }, { emptyOk: false }) })),
     cancelFutureAppointments: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['cancelFutureAppointments']), info: (0, exports.objectValidator)({}, { emptyOk: true }) })),
     customerIOIdentify: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['customerIOIdentify']), info: (0, exports.objectValidator)({}, { emptyOk: true }) })),
@@ -2582,9 +2583,11 @@ exports.automationActionValidator = (0, exports.orValidator)({
      })),
     callUser: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['callUser']), info: (0, exports.objectValidator)({
             message: exports.stringValidator25000,
-            routeBy: (0, exports.exactMatchValidator)(['Appointment Host']),
-        }, { emptyOk: false }) // at least tags is required
-     })),
+            routeBy: (0, exports.exactMatchValidator)(['Appointment Host', 'Match Users']),
+            restrictToCareTeam: exports.booleanValidatorOptional,
+            tags: exports.listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
+            limit: exports.numberValidatorOptional,
+        }, { emptyOk: false }) })),
     stripeChargeCardOnFile: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['stripeChargeCardOnFile']), info: (0, exports.objectValidator)({
             stripeKey: exports.stringValidatorOptionalEmptyOkay,
             priceIds: exports.listOfStringsValidatorEmptyOk,
@@ -3902,6 +3905,7 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
             templateIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
             excludeTemplateIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
             excludeCancelUpcomingEventsJourney: exports.booleanValidatorOptional,
+            cancelReasons: exports.listOfStringsValidatorOptionalOrEmptyOk,
         }),
         conditions: exports.optionalEmptyObjectValidator,
     }),

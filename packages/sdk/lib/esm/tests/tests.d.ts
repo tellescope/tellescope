@@ -4,7 +4,6 @@ export declare const formsUnsubmittedTest: () => Promise<void>;
 export declare const formsSubmittedNoUnsubmittedTest: () => Promise<void>;
 export declare const automationSameJourneyTests: () => Promise<void>;
 export declare const meetings_tests: () => Promise<void>;
-export declare const managed_content_records_tests: () => Promise<void>;
 export declare const calendar_event_RSVPs_tests: () => Promise<void>;
 export declare const databases_tests: () => Promise<void>;
 export declare const filter_by_date_tests: () => Promise<[void, void]>;
