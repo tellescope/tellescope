@@ -1586,7 +1586,8 @@ export const schema: SchemaV1 = build_schema({
       },
       unsubscribedFromPhones: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay, redactions: ['enduser'] },
       lockedFromPortal: { validator: booleanValidator },
-      // recentMessagePreview: { 
+      eligibleForAutoMerge: { validator: booleanValidator },
+      // recentMessagePreview: {
       //   validator: stringValidator,
       // },
     }, 
@@ -4252,6 +4253,7 @@ export const schema: SchemaV1 = build_schema({
       databaseRecordCreator: { validator: mongoIdStringValidator },
       triggerFileId: { validator: mongoIdStringValidator },
       disableEditTitle: { validator: booleanValidator },
+      templateId: { validator: mongoIdStringOptional },
     }
   },
   meetings: {
@@ -4489,6 +4491,7 @@ export const schema: SchemaV1 = build_schema({
           offering_id: stringValidator100,
         }))
       },
+      autoMergeOnSubmission: { validator: booleanValidator },
       gtmTag: { validator: stringValidator100EscapeHTML },
       dontSyncToCanvasOnSubmission: { validator: booleanValidator },
       archivedAt: { validator: dateOptionalOrEmptyStringValidator },
@@ -8412,6 +8415,26 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       enduserFields: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       preventPull: { validator: listOfMongoIdStringValidatorEmptyOk },
       overdueReminderUserId: { validator: mongoIdStringValidator },
+    },
+  },
+  ticket_templates: {
+    info: {},
+    constraints: {
+      unique: ['title'],
+      relationship: [],
+      access: []
+    },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields,
+      title: { validator: stringValidator250, required: true, examples: ['Template Title']},
+      type: { validator: stringValidator100 },
+      stage: { validator: stringValidator100 },
+      priority: { validator: numberValidator },
+      tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      archivedAt: { validator: dateOptionalOrEmptyStringValidator },
     },
   },
   group_mms_conversations: {

@@ -283,7 +283,7 @@ exports.schema = (0, exports.build_schema)({
             }, references: { validator: validation_1.listOfRelatedRecordsValidator, updatesDisabled: true, redactions: ['enduser'] }, athenaDepartmentId: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, athenaPracticeId: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, salesforceId: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, vitalTriggersDisabled: { validator: validation_1.booleanValidator }, defaultFromPhone: { validator: validation_1.phoneValidator, redactions: ['enduser'] }, defaultFromEmail: { validator: validation_1.emailValidator, redactions: ['enduser'] }, useDefaultFromEmailInAutomations: { validator: validation_1.booleanValidator }, useDefaultFromPhoneInAutomations: { validator: validation_1.booleanValidator }, stripeCustomerId: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, stripeKey: { validator: validation_1.stringValidator250, redactions: ['enduser'] }, diagnoses: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)(validation_1.enduserDiagnosisValidator),
                 redactions: ['enduser']
-            }, unsubscribedFromPhones: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay, redactions: ['enduser'] }, lockedFromPortal: { validator: validation_1.booleanValidator } }),
+            }, unsubscribedFromPhones: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay, redactions: ['enduser'] }, lockedFromPortal: { validator: validation_1.booleanValidator }, eligibleForAutoMerge: { validator: validation_1.booleanValidator } }),
         customActions: {
             rename_stored_custom_fields: {
                 op: "custom", access: 'update', method: "patch",
@@ -2641,7 +2641,7 @@ exports.schema = (0, exports.build_schema)({
                 validator: validation_1.numberValidator,
                 readonly: true,
                 initializer: exports.get_next_reminder_timestamp_for_ticket,
-            }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, calendarEventId: { validator: validation_1.mongoIdStringRequired }, calendarEventTitle: { validator: validation_1.stringValidator }, calendarEventStartTimeInMS: { validator: validation_1.nonNegNumberValidator }, observationId: { validator: validation_1.mongoIdStringRequired }, phoneCallId: { validator: validation_1.mongoIdStringRequired }, smsId: { validator: validation_1.mongoIdStringRequired }, emailId: { validator: validation_1.mongoIdStringRequired }, orderId: { validator: validation_1.mongoIdStringRequired }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, restrictByState: { validator: validation_1.stateValidator }, restrictByTags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, restrictByTagsQualifier: { validator: validation_1.listQueryQualifiersValidator }, archiveReason: { validator: validation_1.stringValidator }, contextFormIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, contextContentIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, contextEnduserFields: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk }, isTodo: { validator: validation_1.booleanValidator }, databaseRecordId: { validator: validation_1.mongoIdStringRequired }, databaseRecordCreator: { validator: validation_1.mongoIdStringRequired }, triggerFileId: { validator: validation_1.mongoIdStringRequired }, disableEditTitle: { validator: validation_1.booleanValidator } })
+            }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, calendarEventId: { validator: validation_1.mongoIdStringRequired }, calendarEventTitle: { validator: validation_1.stringValidator }, calendarEventStartTimeInMS: { validator: validation_1.nonNegNumberValidator }, observationId: { validator: validation_1.mongoIdStringRequired }, phoneCallId: { validator: validation_1.mongoIdStringRequired }, smsId: { validator: validation_1.mongoIdStringRequired }, emailId: { validator: validation_1.mongoIdStringRequired }, orderId: { validator: validation_1.mongoIdStringRequired }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, restrictByState: { validator: validation_1.stateValidator }, restrictByTags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, restrictByTagsQualifier: { validator: validation_1.listQueryQualifiersValidator }, archiveReason: { validator: validation_1.stringValidator }, contextFormIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, contextContentIds: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, contextEnduserFields: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk }, isTodo: { validator: validation_1.booleanValidator }, databaseRecordId: { validator: validation_1.mongoIdStringRequired }, databaseRecordCreator: { validator: validation_1.mongoIdStringRequired }, triggerFileId: { validator: validation_1.mongoIdStringRequired }, disableEditTitle: { validator: validation_1.booleanValidator }, templateId: { validator: validation_1.mongoIdStringOptional } })
     },
     meetings: {
         info: {},
@@ -2848,7 +2848,7 @@ exports.schema = (0, exports.build_schema)({
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     offering_id: validation_1.stringValidator100,
                 }))
-            }, gtmTag: { validator: validation_1.stringValidator100EscapeHTML }, dontSyncToCanvasOnSubmission: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
+            }, autoMergeOnSubmission: { validator: validation_1.booleanValidator }, gtmTag: { validator: validation_1.stringValidator100EscapeHTML }, dontSyncToCanvasOnSubmission: { validator: validation_1.booleanValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, title: {
                 validator: validation_1.stringValidator250,
                 required: true,
                 examples: ["Text"],
@@ -5856,6 +5856,18 @@ exports.schema = (0, exports.build_schema)({
         },
         enduserActions: {},
         fields: __assign(__assign({}, BuiltInFields), { title: { validator: validation_1.stringValidator, required: true, examples: ['Title'] }, userIds: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, type: { validator: validation_1.stringValidator100 }, defaultFromNumber: { validator: validation_1.stringValidatorOptional }, enduserFields: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, preventPull: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk }, overdueReminderUserId: { validator: validation_1.mongoIdStringRequired } }),
+    },
+    ticket_templates: {
+        info: {},
+        constraints: {
+            unique: ['title'],
+            relationship: [],
+            access: []
+        },
+        defaultActions: constants_1.DEFAULT_OPERATIONS,
+        customActions: {},
+        enduserActions: {},
+        fields: __assign(__assign({}, BuiltInFields), { title: { validator: validation_1.stringValidator250, required: true, examples: ['Template Title'] }, type: { validator: validation_1.stringValidator100 }, stage: { validator: validation_1.stringValidator100 }, priority: { validator: validation_1.numberValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator } }),
     },
     group_mms_conversations: {
         info: {},

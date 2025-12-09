@@ -478,6 +478,7 @@ export declare const WebhookSubscriptionValidator: ValidatorDefinition<{
     users: CUDSubscription;
     templates: CUDSubscription;
     tickets: CUDSubscription;
+    ticket_templates: CUDSubscription;
     meetings: CUDSubscription;
     notes: CUDSubscription;
     forms: CUDSubscription;

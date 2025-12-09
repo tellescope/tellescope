@@ -78,6 +78,7 @@ import {
   AutomatedAction,
   Configuration,
   TicketQueue,
+  TicketTemplate,
   GroupMMSConversation,
   EnduserOrder,
   EnduserEncounter,
@@ -352,6 +353,7 @@ const ticketThreadsSlice = createSliceForList<TicketThread, 'ticket_threads'>('t
 const ticketThreadCommentsSlice = createSliceForList<TicketThreadComment, 'ticket_thread_comments'>('ticket_thread_comments')
 const configurationsSlice = createSliceForList<Configuration, 'configurations'>('configurations')
 const ticketQueuesSlice = createSliceForList<TicketQueue, 'ticket_queues'>('ticket_queues')
+const ticketTemplatesSlice = createSliceForList<TicketTemplate, 'ticket_templates'>('ticket_templates')
 const callHoldQueuesSlice = createSliceForList<TicketQueue, 'call_hold_queues'>('call_hold_queues')
 const enduserOrdersSlice = createSliceForList<EnduserOrder, 'enduser_orders'>('enduser_orders')
 const enduserEncountersSlice = createSliceForList<EnduserEncounter, 'enduser_encounters'>('enduser_encounters')
@@ -383,6 +385,7 @@ export const sharedConfig = {
     enduser_eligibility_results: enduserEligibilityResultsSlice.reducer,
     integration_logs: integrationLogsSlice.reducer,
     ticket_queues: ticketQueuesSlice.reducer,
+    ticket_templates: ticketTemplatesSlice.reducer,
     automation_triggers: automationTriggersSlice.reducer,
     automated_actions: automatedActionsSlice.reducer,
     enduser_views: enduserViewsSlice.reducer,
@@ -1736,10 +1739,10 @@ export const useCallHoldQueues = (options={} as HookOptions<CallHoldQueue>) => {
   )
 }
 export const useTicketQueues = (options={} as HookOptions<TicketQueue>) => {
-  const session = useSession() 
+  const session = useSession()
 
   return useListStateHook('ticket_queues', useTypedSelector(s => s.ticket_queues), session, ticketQueuesSlice,
-    { 
+    {
       loadQuery: session.api.ticket_queues.getSome,
       findOne: session.api.ticket_queues.getOne,
       findByIds: session.api.ticket_queues.getByIds,
@@ -1748,7 +1751,25 @@ export const useTicketQueues = (options={} as HookOptions<TicketQueue>) => {
       deleteOne: session.api.ticket_queues.deleteOne,
       updateOne: session.api.ticket_queues.updateOne,
     },
-    { 
+    {
+      ...options,
+    },
+  )
+}
+export const useTicketTemplates = (options={} as HookOptions<TicketTemplate>) => {
+  const session = useSession()
+
+  return useListStateHook('ticket_templates', useTypedSelector(s => s.ticket_templates), session, ticketTemplatesSlice,
+    {
+      loadQuery: session.api.ticket_templates.getSome,
+      findOne: session.api.ticket_templates.getOne,
+      findByIds: session.api.ticket_templates.getByIds,
+      addOne: session.api.ticket_templates.createOne,
+      addSome: session.api.ticket_templates.createSome,
+      deleteOne: session.api.ticket_templates.deleteOne,
+      updateOne: session.api.ticket_templates.updateOne,
+    },
+    {
       ...options,
     },
   )

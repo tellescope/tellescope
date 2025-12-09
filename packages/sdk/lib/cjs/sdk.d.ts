@@ -250,6 +250,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         id: string;
         createdAt: Date;
     };
+    ticket_templates: import("@tellescope/types-models").TicketTemplate & {
+        id: string;
+        createdAt: Date;
+    };
     meetings: import("@tellescope/types-models").Meeting & {
         id: string;
         createdAt: Date;
@@ -604,6 +608,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         createdAt: Date;
     };
     tickets: import("@tellescope/types-models").Ticket & {
+        id: string;
+        createdAt: Date;
+    };
+    ticket_templates: import("@tellescope/types-models").TicketTemplate & {
         id: string;
         createdAt: Date;
     };
@@ -964,6 +972,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         id: string;
         createdAt: Date;
     };
+    ticket_templates: import("@tellescope/types-models").TicketTemplate & {
+        id: string;
+        createdAt: Date;
+    };
     meetings: import("@tellescope/types-models").Meeting & {
         id: string;
         createdAt: Date;
@@ -1321,6 +1333,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         id: string;
         createdAt: Date;
     };
+    ticket_templates: import("@tellescope/types-models").TicketTemplate & {
+        id: string;
+        createdAt: Date;
+    };
     meetings: import("@tellescope/types-models").Meeting & {
         id: string;
         createdAt: Date;
@@ -1675,6 +1691,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         createdAt: Date;
     };
     tickets: import("@tellescope/types-models").Ticket & {
+        id: string;
+        createdAt: Date;
+    };
+    ticket_templates: import("@tellescope/types-models").TicketTemplate & {
         id: string;
         createdAt: Date;
     };
@@ -2036,6 +2056,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    ticket_templates: import("@tellescope/types-models").TicketTemplate & {
+        id: string;
+        createdAt: Date;
+    };
     meetings: import("@tellescope/types-models").Meeting & {
         id: string;
         createdAt: Date;
@@ -2390,6 +2414,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
     tickets: import("@tellescope/types-models").Ticket & {
+        id: string;
+        createdAt: Date;
+    };
+    ticket_templates: import("@tellescope/types-models").TicketTemplate & {
         id: string;
         createdAt: Date;
     };
@@ -2750,6 +2778,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    ticket_templates: import("@tellescope/types-models").TicketTemplate & {
+        id: string;
+        createdAt: Date;
+    };
     meetings: import("@tellescope/types-models").Meeting & {
         id: string;
         createdAt: Date;
@@ -3107,6 +3139,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    ticket_templates: import("@tellescope/types-models").TicketTemplate_readonly & {
+        id: string;
+        createdAt: Date;
+    };
     meetings: import("@tellescope/types-models").Meeting_readonly & {
         id: string;
         createdAt: Date;
@@ -3461,6 +3497,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
     tickets: import("@tellescope/types-models").Ticket_updatesDisabled & {
+        id: string;
+        createdAt: Date;
+    };
+    ticket_templates: import("@tellescope/types-models").TicketTemplate_updatesDisabled & {
         id: string;
         createdAt: Date;
     };
@@ -4082,6 +4122,7 @@ export declare class Session extends SessionManager {
         templates?: number | undefined;
         files?: number | undefined;
         tickets?: number | undefined;
+        ticket_templates?: number | undefined;
         meetings?: number | undefined;
         notes?: number | undefined;
         forms?: number | undefined;
@@ -4235,6 +4276,7 @@ export declare class Session extends SessionManager {
         templates?: number | undefined;
         files?: number | undefined;
         tickets?: number | undefined;
+        ticket_templates?: number | undefined;
         meetings?: number | undefined;
         notes?: number | undefined;
         forms?: number | undefined;

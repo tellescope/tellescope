@@ -36,6 +36,7 @@ export type SMSMessage = ClientModelForName['sms_messages'];
 export type Template = ClientModelForName['templates'];
 export type MessageTemplate = ClientModelForName['templates'];
 export type Ticket = ClientModelForName['tickets'];
+export type TicketTemplate = ClientModelForName['ticket_templates'];
 export type TimeTrack = ClientModelForName['time_tracks'];
 export type Meeting = ClientModelForName['meetings'];
 export type Note = ClientModelForName['notes'];

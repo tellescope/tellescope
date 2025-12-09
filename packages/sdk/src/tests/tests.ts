@@ -75,6 +75,7 @@ import { calendar_event_limits_tests } from "./api_tests/calendar_event_limits.t
 import { custom_aggregation_tests } from "./api_tests/custom_aggregation.test";
 import { bulk_assignment_tests } from "./api_tests/bulk_assignment.test";
 import { managed_content_enduser_access_tests } from "./api_tests/managed_content_enduser_access.test";
+import { auto_merge_form_submission_tests } from "./api_tests/auto_merge_form_submission.test";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
@@ -9015,6 +9016,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   enduser_encounters: NO_TEST,
   enduser_orders: enduser_orders_tests,
   ticket_queues: NO_TEST,
+  ticket_templates: NO_TEST,
   phone_trees: NO_TEST,
   enduser_medications: NO_TEST,
   automation_triggers: NO_TEST,
@@ -13171,6 +13173,8 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await auto_merge_form_submission_tests({ sdk, sdkNonAdmin })
+    await threadKeyTests()
     await automation_trigger_tests()
     await managed_content_enduser_access_tests({ sdk, sdkNonAdmin })
     await afteraction_day_of_month_delay_tests({ sdk, sdkNonAdmin })
@@ -13247,7 +13251,6 @@ const ip_address_form_tests = async () => {
     await badInputTests()
     await filterTests()
     await updatesTests()
-    await threadKeyTests()
   } catch(err: any) {
     console.error("Failed during custom test")
     if (err.message && err.info) {

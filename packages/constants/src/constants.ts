@@ -367,6 +367,7 @@ export const PROVIDER_PERMISSIONS: AccessPermissions = {
   meetings: ASSIGNED_AND_DEFAULT_ACCESS,
   sms_messages: ASSIGNED_AND_DEFAULT_ACCESS,
   tickets: ASSIGNED_AND_DEFAULT_ACCESS,
+  ticket_templates: READ_ONLY_ALL,
   templates: READ_ONLY_ALL,
   organizations: READ_ONLY_ALL,
   appointment_booking_pages: INACCESSIBLE,
@@ -514,6 +515,7 @@ export const ADMIN_PERMISSIONS: AccessPermissions = {
   chats: FULL_ACCESS,
   sms_messages: FULL_ACCESS,
   tickets: FULL_ACCESS,
+  ticket_templates: FULL_ACCESS,
   templates: FULL_ACCESS,
   users: FULL_ACCESS, // create and delete adminOnly
   notes: FULL_ACCESS,

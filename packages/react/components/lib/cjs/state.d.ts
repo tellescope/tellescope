@@ -27,6 +27,10 @@ export declare const TellescopeStoreContext: React.Context<ReactReduxContextValu
         id: string;
         createdAt: Date;
     })[]>;
+    ticket_templates: LoadedData<(import("@tellescope/types-models").TicketTemplate & {
+        id: string;
+        createdAt: Date;
+    })[]>;
     automation_triggers: LoadedData<(import("@tellescope/types-models").AutomationTrigger & {
         id: string;
         createdAt: Date;
@@ -368,6 +372,10 @@ export declare const createTellescopeSelector: () => <Selected extends unknown>(
         createdAt: Date;
     })[]>;
     ticket_queues: LoadedData<(import("@tellescope/types-models").TicketQueue & {
+        id: string;
+        createdAt: Date;
+    })[]>;
+    ticket_templates: LoadedData<(import("@tellescope/types-models").TicketTemplate & {
         id: string;
         createdAt: Date;
     })[]>;
@@ -818,6 +826,10 @@ export declare const sharedConfig: {
             id: string;
             createdAt: Date;
         })[]>, import("redux").AnyAction>;
+        ticket_templates: import("redux").Reducer<LoadedData<(import("@tellescope/types-models").TicketTemplate & {
+            id: string;
+            createdAt: Date;
+        })[]>, import("redux").AnyAction>;
         automation_triggers: import("redux").Reducer<LoadedData<(import("@tellescope/types-models").AutomationTrigger & {
             id: string;
             createdAt: Date;
@@ -1216,6 +1228,9 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").TicketQueue & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").TicketTemplate & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").AutomationTrigger & {
         id: string;
         createdAt: Date;
@@ -1483,6 +1498,9 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").TicketQueue & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").TicketTemplate & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AutomationTrigger & {
@@ -1762,6 +1780,9 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").TicketQueue & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").TicketTemplate & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").AutomationTrigger & {
         id: string;
         createdAt: Date;
@@ -2029,6 +2050,9 @@ export declare const useSyncContext: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").TicketQueue & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").TicketTemplate & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").AutomationTrigger & {
@@ -2660,6 +2684,19 @@ export declare const useTicketQueues: (options?: HookOptions<import("@tellescope
     id: string;
     createdAt: Date;
 }, import("@tellescope/types-client").CreateFields<"ticket_queues", import("@tellescope/types-models").TicketQueue & {
+    id: string;
+    createdAt: Date;
+}> & {
+    sharedWithOrganizations?: string[][] | undefined;
+    _overrideUnique?: boolean | undefined;
+}>;
+export declare const useTicketTemplates: (options?: HookOptions<import("@tellescope/types-models").TicketTemplate & {
+    id: string;
+    createdAt: Date;
+}>) => ListStateReturnType<import("@tellescope/types-models").TicketTemplate & {
+    id: string;
+    createdAt: Date;
+}, import("@tellescope/types-client").CreateFields<"ticket_templates", import("@tellescope/types-models").TicketTemplate & {
     id: string;
     createdAt: Date;
 }> & {

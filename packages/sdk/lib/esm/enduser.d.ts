@@ -206,6 +206,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    ticket_templates: import("@tellescope/types-models").TicketTemplate & {
+        id: string;
+        createdAt: Date;
+    };
     meetings: import("@tellescope/types-models").Meeting & {
         id: string;
         createdAt: Date;
@@ -560,6 +564,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
     tickets: import("@tellescope/types-models").Ticket & {
+        id: string;
+        createdAt: Date;
+    };
+    ticket_templates: import("@tellescope/types-models").TicketTemplate & {
         id: string;
         createdAt: Date;
     };
@@ -920,6 +928,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    ticket_templates: import("@tellescope/types-models").TicketTemplate & {
+        id: string;
+        createdAt: Date;
+    };
     meetings: import("@tellescope/types-models").Meeting & {
         id: string;
         createdAt: Date;
@@ -1277,6 +1289,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    ticket_templates: import("@tellescope/types-models").TicketTemplate_readonly & {
+        id: string;
+        createdAt: Date;
+    };
     meetings: import("@tellescope/types-models").Meeting_readonly & {
         id: string;
         createdAt: Date;
@@ -1631,6 +1647,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
     tickets: import("@tellescope/types-models").Ticket_updatesDisabled & {
+        id: string;
+        createdAt: Date;
+    };
+    ticket_templates: import("@tellescope/types-models").TicketTemplate_updatesDisabled & {
         id: string;
         createdAt: Date;
     };

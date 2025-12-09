@@ -69,6 +69,7 @@ export type TicketThreadComment = ServerModelForName['ticket_thread_comments'];
 export type Configuration = ServerModelForName['configurations'];
 export type TimeTrack = ServerModelForName['time_tracks'];
 export type TicketQueue = ServerModelForName['ticket_queues'];
+export type TicketTemplate = ServerModelForName['ticket_templates'];
 export type GroupMMSConversation = ServerModelForName['group_mms_conversations'];
 export type EnduserOrder = ServerModelForName['enduser_orders'];
 export type EnduserEncounter = ServerModelForName['enduser_encounters'];

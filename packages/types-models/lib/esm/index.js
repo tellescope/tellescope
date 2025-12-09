@@ -112,6 +112,7 @@ export var modelNameChecker = {
     templates: true,
     files: true,
     tickets: true,
+    ticket_templates: true,
     meetings: true,
     notes: true,
     forms: true,

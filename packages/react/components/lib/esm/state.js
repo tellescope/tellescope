@@ -267,6 +267,7 @@ var ticketThreadsSlice = createSliceForList('ticket_threads');
 var ticketThreadCommentsSlice = createSliceForList('ticket_thread_comments');
 var configurationsSlice = createSliceForList('configurations');
 var ticketQueuesSlice = createSliceForList('ticket_queues');
+var ticketTemplatesSlice = createSliceForList('ticket_templates');
 var callHoldQueuesSlice = createSliceForList('call_hold_queues');
 var enduserOrdersSlice = createSliceForList('enduser_orders');
 var enduserEncountersSlice = createSliceForList('enduser_encounters');
@@ -295,6 +296,7 @@ export var sharedConfig = {
         enduser_eligibility_results: enduserEligibilityResultsSlice.reducer,
         integration_logs: integrationLogsSlice.reducer,
         ticket_queues: ticketQueuesSlice.reducer,
+        ticket_templates: ticketTemplatesSlice.reducer,
         automation_triggers: automationTriggersSlice.reducer,
         automated_actions: automatedActionsSlice.reducer,
         enduser_views: enduserViewsSlice.reducer,
@@ -1456,6 +1458,19 @@ export var useTicketQueues = function (options) {
         addSome: session.api.ticket_queues.createSome,
         deleteOne: session.api.ticket_queues.deleteOne,
         updateOne: session.api.ticket_queues.updateOne,
+    }, __assign({}, options));
+};
+export var useTicketTemplates = function (options) {
+    if (options === void 0) { options = {}; }
+    var session = useSession();
+    return useListStateHook('ticket_templates', useTypedSelector(function (s) { return s.ticket_templates; }), session, ticketTemplatesSlice, {
+        loadQuery: session.api.ticket_templates.getSome,
+        findOne: session.api.ticket_templates.getOne,
+        findByIds: session.api.ticket_templates.getByIds,
+        addOne: session.api.ticket_templates.createOne,
+        addSome: session.api.ticket_templates.createSome,
+        deleteOne: session.api.ticket_templates.deleteOne,
+        updateOne: session.api.ticket_templates.updateOne,
     }, __assign({}, options));
 };
 export var useConfigurations = function (options) {

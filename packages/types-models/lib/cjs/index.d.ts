@@ -905,6 +905,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
     healthieSyncError?: string;
     lastSuperdialEligibilityCheckAt?: Date;
     superdialEligibilityResponse?: string;
+    eligibleForAutoMerge?: boolean;
 }
 export interface EnduserCustomType_readonly extends ClientRecord {
 }
@@ -1520,6 +1521,22 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
     isTodo?: boolean;
     databaseRecordId?: string;
     databaseRecordCreator?: string;
+    templateId?: string;
+}
+export interface TicketTemplate_readonly extends ClientRecord {
+}
+export interface TicketTemplate_required {
+    title: string;
+}
+export interface TicketTemplate_updatesDisabled {
+}
+export interface TicketTemplate extends TicketTemplate_readonly, TicketTemplate_required, TicketTemplate_updatesDisabled {
+    title: string;
+    type?: string;
+    stage?: string;
+    priority?: number;
+    tags?: string[];
+    archivedAt?: Date | '';
 }
 export type AttendeeInfo = {
     ExternalUserId: string;
@@ -1871,6 +1888,7 @@ export interface Form extends Form_readonly, Form_required, Form_updatesDisabled
     mdiCaseOfferings?: {
         offering_id: string;
     }[];
+    autoMergeOnSubmission?: boolean;
 }
 export interface FormGroup_readonly extends ClientRecord {
 }
@@ -5258,6 +5276,7 @@ export type ModelForName_required = {
     templates: MessageTemplate_required;
     files: File_required;
     tickets: Ticket_required;
+    ticket_templates: TicketTemplate_required;
     meetings: Meeting_required;
     notes: Note_required;
     forms: Form_required;
@@ -5351,6 +5370,7 @@ export interface ModelForName_readonly {
     templates: MessageTemplate_readonly;
     files: File_readonly;
     tickets: Ticket_readonly;
+    ticket_templates: TicketTemplate_readonly;
     meetings: Meeting_readonly;
     notes: Note_readonly;
     forms: Form_readonly;
@@ -5443,6 +5463,7 @@ export interface ModelForName_updatesDisabled {
     templates: MessageTemplate_updatesDisabled;
     files: File_updatesDisabled;
     tickets: Ticket_updatesDisabled;
+    ticket_templates: TicketTemplate_updatesDisabled;
     meetings: Meeting_updatesDisabled;
     notes: Note_updatesDisabled;
     forms: Form_updatesDisabled;
@@ -5535,6 +5556,7 @@ export interface ModelForName extends ModelForName_required, ModelForName_readon
     templates: MessageTemplate;
     files: File;
     tickets: Ticket;
+    ticket_templates: TicketTemplate;
     meetings: Meeting;
     notes: Note;
     forms: Form;

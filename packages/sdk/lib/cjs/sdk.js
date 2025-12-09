@@ -223,6 +223,7 @@ var loadDefaultQueries = function (s) { return ({
     configurations: (0, exports.defaultQueries)(s, 'configurations'),
     time_tracks: (0, exports.defaultQueries)(s, 'time_tracks'),
     ticket_queues: (0, exports.defaultQueries)(s, 'ticket_queues'),
+    ticket_templates: (0, exports.defaultQueries)(s, 'ticket_templates'),
     group_mms_conversations: (0, exports.defaultQueries)(s, 'group_mms_conversations'),
     enduser_orders: (0, exports.defaultQueries)(s, 'enduser_orders'),
     enduser_encounters: (0, exports.defaultQueries)(s, 'enduser_encounters'),
