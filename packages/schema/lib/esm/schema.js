@@ -827,7 +827,7 @@ export var schema = build_schema({
             unique: [], relationship: [], access: [{ type: CREATOR_ONLY_ACCESS }]
         },
         defaultActions: DEFAULT_OPERATIONS,
-        enduserActions: { proxy_read: {} },
+        enduserActions: { proxy_read: {}, proxy_write: {} },
         fields: __assign(__assign({}, BuiltInFields), { title: {
                 validator: stringValidator100,
                 required: true,
@@ -4929,7 +4929,7 @@ export var schema = build_schema({
                 validator: stringValidator100,
                 required: true,
                 examples: ["Appointment Booking Title"]
-            }, address: { validator: stringValidator1000 }, city: { validator: stringValidator }, zipCode: { validator: stringValidator1000 }, phone: { validator: stringValidator }, state: { validator: stateValidator }, timezone: { validator: timezoneValidator }, canvasLocationId: { validator: stringValidator1000 }, healthieContactType: { validator: stringValidator100 }, healthieLocationId: { validator: stringValidator100 }, healthieUseZoom: { validator: booleanValidator }, instructions: { validator: stringValidator5000EmptyOkay }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay } })
+            }, address: { validator: stringValidator1000 }, city: { validator: stringValidator }, zipCode: { validator: stringValidator1000 }, phone: { validator: stringValidator }, state: { validator: stateValidator }, timezone: { validator: timezoneValidator }, canvasLocationId: { validator: stringValidator1000 }, canvasUseHostDefaultLocation: { validator: booleanValidator }, healthieContactType: { validator: stringValidator100 }, healthieLocationId: { validator: stringValidator100 }, healthieUseZoom: { validator: booleanValidator }, instructions: { validator: stringValidator5000EmptyOkay }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay } })
     },
     products: {
         info: {},

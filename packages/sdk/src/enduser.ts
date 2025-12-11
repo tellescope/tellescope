@@ -229,6 +229,9 @@ type EnduserQueries = { [K in EnduserAccessibleModels]: APIQuery<K> } & {
     proxy_read: (args: extractFields<CustomActions['integrations']['proxy_read']['parameters']>) => (
       Promise<extractFields<CustomActions['integrations']['proxy_read']['returns']>>
     ),
+    proxy_write: (args: extractFields<CustomActions['integrations']['proxy_write']['parameters']>) => (
+      Promise<extractFields<CustomActions['integrations']['proxy_write']['returns']>>
+    ),
   },
   enduser_observations: {
     load: (args: extractFields<CustomActions['enduser_observations']['load']['parameters']>) => (
@@ -360,6 +363,7 @@ export class EnduserSession extends Session {
     this.api.products.get_stripe_portal_session = args => this._GET(`/v1${schema.products.customActions.get_stripe_portal_session.path}`, args)
 
     this.api.integrations.proxy_read = args => this._GET(`/v1${schema.integrations.customActions.proxy_read.path}`, args)
+    this.api.integrations.proxy_write = args => this._POST(`/v1${schema.integrations.customActions.proxy_write.path}`, args)
 
     this.api.enduser_observations.load = args => this._GET(`/v1${schema.enduser_observations.customActions.load.path}`, args)
     // if (this.authToken) this.refresh_session()

@@ -324,6 +324,7 @@ var EnduserSession = /** @class */ (function (_super) {
         _this.api.products.prepare_stripe_checkout = function (args) { return _this._POST("/v1".concat(schema.products.customActions.prepare_stripe_checkout.path), args); };
         _this.api.products.get_stripe_portal_session = function (args) { return _this._GET("/v1".concat(schema.products.customActions.get_stripe_portal_session.path), args); };
         _this.api.integrations.proxy_read = function (args) { return _this._GET("/v1".concat(schema.integrations.customActions.proxy_read.path), args); };
+        _this.api.integrations.proxy_write = function (args) { return _this._POST("/v1".concat(schema.integrations.customActions.proxy_write.path), args); };
         _this.api.enduser_observations.load = function (args) { return _this._GET("/v1".concat(schema.enduser_observations.customActions.load.path), args); };
         return _this;
         // if (this.authToken) this.refresh_session()

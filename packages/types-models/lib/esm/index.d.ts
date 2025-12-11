@@ -2659,6 +2659,7 @@ export interface AppointmentLocation extends AppointmentLocation_readonly, Appoi
     phone?: string;
     timezone?: Timezone;
     canvasLocationId?: string;
+    canvasUseHostDefaultLocation?: boolean;
     healthieContactType?: string;
     healthieLocationId?: string;
     healthieUseZoom?: boolean;

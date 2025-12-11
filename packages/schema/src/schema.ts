@@ -2149,7 +2149,7 @@ export const schema: SchemaV1 = build_schema({
       unique: [], relationship: [], access: [{ type: CREATOR_ONLY_ACCESS }] 
     },
     defaultActions: DEFAULT_OPERATIONS,
-    enduserActions: { proxy_read: {} },
+    enduserActions: { proxy_read: {}, proxy_write: {} },
     fields: {
       ...BuiltInFields,
       title: {
@@ -7215,6 +7215,7 @@ export const schema: SchemaV1 = build_schema({
       state: { validator: stateValidator },
       timezone: { validator: timezoneValidator },
       canvasLocationId: { validator: stringValidator1000 },
+      canvasUseHostDefaultLocation: { validator: booleanValidator },
       healthieContactType: { validator: stringValidator100 },
       healthieLocationId: { validator: stringValidator100 },
       healthieUseZoom: { validator: booleanValidator },

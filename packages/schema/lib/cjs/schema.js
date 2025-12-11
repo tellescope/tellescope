@@ -832,7 +832,7 @@ exports.schema = (0, exports.build_schema)({
             unique: [], relationship: [], access: [{ type: constants_1.CREATOR_ONLY_ACCESS }]
         },
         defaultActions: constants_1.DEFAULT_OPERATIONS,
-        enduserActions: { proxy_read: {} },
+        enduserActions: { proxy_read: {}, proxy_write: {} },
         fields: __assign(__assign({}, BuiltInFields), { title: {
                 validator: validation_1.stringValidator100,
                 required: true,
@@ -4934,7 +4934,7 @@ exports.schema = (0, exports.build_schema)({
                 validator: validation_1.stringValidator100,
                 required: true,
                 examples: ["Appointment Booking Title"]
-            }, address: { validator: validation_1.stringValidator1000 }, city: { validator: validation_1.stringValidator }, zipCode: { validator: validation_1.stringValidator1000 }, phone: { validator: validation_1.stringValidator }, state: { validator: validation_1.stateValidator }, timezone: { validator: validation_1.timezoneValidator }, canvasLocationId: { validator: validation_1.stringValidator1000 }, healthieContactType: { validator: validation_1.stringValidator100 }, healthieLocationId: { validator: validation_1.stringValidator100 }, healthieUseZoom: { validator: validation_1.booleanValidator }, instructions: { validator: validation_1.stringValidator5000EmptyOkay }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay } })
+            }, address: { validator: validation_1.stringValidator1000 }, city: { validator: validation_1.stringValidator }, zipCode: { validator: validation_1.stringValidator1000 }, phone: { validator: validation_1.stringValidator }, state: { validator: validation_1.stateValidator }, timezone: { validator: validation_1.timezoneValidator }, canvasLocationId: { validator: validation_1.stringValidator1000 }, canvasUseHostDefaultLocation: { validator: validation_1.booleanValidator }, healthieContactType: { validator: validation_1.stringValidator100 }, healthieLocationId: { validator: validation_1.stringValidator100 }, healthieUseZoom: { validator: validation_1.booleanValidator }, instructions: { validator: validation_1.stringValidator5000EmptyOkay }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay } })
     },
     products: {
         info: {},

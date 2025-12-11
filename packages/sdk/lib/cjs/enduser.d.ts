@@ -1907,6 +1907,7 @@ type EnduserQueries = {
     };
     integrations: {
         proxy_read: (args: extractFields<CustomActions['integrations']['proxy_read']['parameters']>) => (Promise<extractFields<CustomActions['integrations']['proxy_read']['returns']>>);
+        proxy_write: (args: extractFields<CustomActions['integrations']['proxy_write']['parameters']>) => (Promise<extractFields<CustomActions['integrations']['proxy_write']['returns']>>);
     };
     enduser_observations: {
         load: (args: extractFields<CustomActions['enduser_observations']['load']['parameters']>) => (Promise<extractFields<CustomActions['enduser_observations']['load']['returns']>>);
