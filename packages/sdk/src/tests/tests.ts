@@ -12911,6 +12911,403 @@ const inbox_threads_loading_tests = async () => {
   ])
 }
 
+const inbox_threads_new_fields_tests = async () => {
+  log_header("Inbox Thread New Fields Tests (archivedAt, trashedAt, senderIds)")
+
+  const e = await sdk.api.endusers.createOne({ fname: 'Test', lname: 'NewFields' })
+
+  // Use the new reset_threads endpoint for full resets (delete threads + reset dates)
+  const resetThreadsAndDates = () => sdk.api.inbox_threads.reset_threads()
+
+  // Keep separate helper for just resetting dates - needed for merge tests
+  // where we want to keep existing threads but allow rebuild
+  let i = 0
+  const start = new Date()
+  const resetThreadBuildingDates = () => (
+    sdk.api.organizations.updateOne(businessId, {  // Uses global businessId constant
+      inboxThreadsBuiltFrom: new Date(start.getTime() + (i++)),
+      inboxThreadsBuiltTo: new Date(start.getTime() + (i++))
+    })
+  )
+  // Start with clean state
+  await resetThreadsAndDates()
+  const from = new Date(start.getTime() - 10000)
+
+  // Test 1: Sender ID Tests - Email
+  log_header("Sender ID Tests - Email")
+  await sdk.api.emails.createOne({
+    logOnly: true,
+    subject: 'Test Email Inbound',
+    textContent: 'Inbound email',
+    enduserId: e.id,
+    inbound: true,
+    userId: sdk.userInfo.id,
+  })
+  await sdk.api.emails.createOne({
+    logOnly: true,
+    subject: 'Test Email Inbound', // Same subject to be same thread
+    textContent: 'Outbound email',
+    enduserId: e.id,
+    inbound: false,
+    userId: sdk.userInfo.id,
+  })
+
+  await async_test(
+    'build email threads with sender IDs',
+    () => sdk.api.inbox_threads.build_threads({ from, to: new Date() }),
+    { onResult: ({ alreadyBuilt }) => !alreadyBuilt }
+  )
+  await async_test(
+    'verify email thread has correct sender IDs',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => {
+      const emailThread = threads.find(t => t.type === 'Email')
+      return !!emailThread
+        && emailThread.recentOutboundUserId === sdk.userInfo.id
+        && emailThread.recentInboundEnduserId === e.id
+    }}
+  )
+
+  // Test 2: Sender ID Tests - SMS
+  log_header("Sender ID Tests - SMS")
+  await resetThreadsAndDates()
+  await sdk.api.sms_messages.createOne({
+    logOnly: true,
+    inbound: true,
+    enduserId: e.id,
+    message: 'Inbound SMS',
+    userId: sdk.userInfo.id,
+    phoneNumber: '+15555555555',
+    enduserPhoneNumber: '+15555555556',
+  })
+  await sdk.api.sms_messages.createOne({
+    logOnly: true,
+    inbound: false,
+    enduserId: e.id,
+    message: 'Outbound SMS',
+    userId: sdk.userInfo.id,
+    phoneNumber: '+15555555555',
+    enduserPhoneNumber: '+15555555556',
+  })
+
+  await async_test(
+    'build SMS threads with sender IDs',
+    () => sdk.api.inbox_threads.build_threads({ from, to: new Date() }),
+    { onResult: ({ alreadyBuilt }) => !alreadyBuilt }
+  )
+  await async_test(
+    'verify SMS thread has correct sender IDs',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => {
+      const smsThread = threads.find(t => t.type === 'SMS')
+      return !!smsThread
+        && smsThread.recentOutboundUserId === sdk.userInfo.id
+        && smsThread.recentInboundEnduserId === e.id
+    }}
+  )
+
+  // Test 3: Sender ID Tests - ChatRoom
+  log_header("Sender ID Tests - ChatRoom")
+  await resetThreadsAndDates()
+  const chatRoom = await sdk.api.chat_rooms.createOne({
+    title: 'Test Chat Room',
+    userIds: [sdk.userInfo.id],
+    enduserIds: [e.id],
+  })
+  // First message from user (outbound)
+  await sdk.api.chats.createOne({ roomId: chatRoom.id, message: 'User message', senderId: sdk.userInfo.id })
+  await wait(undefined, 500)
+
+  await async_test(
+    'build chat threads after user message',
+    () => sdk.api.inbox_threads.build_threads({ from, to: new Date() }),
+    { onResult: ({ alreadyBuilt }) => !alreadyBuilt }
+  )
+  await async_test(
+    'verify chat thread has outbound userId only',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => {
+      const chatThread = threads.find(t => t.type === 'Chat')
+      return !!chatThread
+        && chatThread.recentOutboundUserId === sdk.userInfo.id
+        && !chatThread.recentInboundEnduserId
+    }}
+  )
+
+  // Now enduser sends a message (becomes recentSender, but merge preserves previous outbound userId)
+  await sdk.api.chats.createOne({ roomId: chatRoom.id, message: 'Enduser message', enduserId: e.id, senderId: e.id })
+  await wait(undefined, 500)
+  await resetThreadBuildingDates()  // Only reset dates, keep existing thread for merge test
+
+  await async_test(
+    'rebuild chat threads after enduser message',
+    () => sdk.api.inbox_threads.build_threads({ from, to: new Date() }),
+    { onResult: ({ alreadyBuilt }) => !alreadyBuilt }
+  )
+  await async_test(
+    'verify chat thread has both sender IDs (merge preserves previous)',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => {
+      const chatThread = threads.find(t => t.type === 'Chat')
+      // ChatRoom only tracks one recentSender at a time, but merge preserves both IDs
+      return !!chatThread
+        && chatThread.recentOutboundUserId === sdk.userInfo.id // preserved from previous build
+        && chatThread.recentInboundEnduserId === e.id // from current build
+    }}
+  )
+
+  // Test 4: Sender ID Tests - GroupMMS
+  log_header("Sender ID Tests - GroupMMS")
+  await resetThreadsAndDates()
+  const groupMMS = await sdk.api.group_mms_conversations.createOne({
+    enduserIds: [e.id],
+    userIds: [sdk.userInfo.id],
+    userStates: [],
+    messages: [
+      { message: 'Inbound message', sender: e.id, timestamp: Date.now() - 1000, logOnly: true },
+      { message: 'Outbound message', sender: sdk.userInfo.id, timestamp: Date.now(), logOnly: true },
+    ],
+  })
+
+  await async_test(
+    'build GroupMMS threads with sender IDs',
+    () => sdk.api.inbox_threads.build_threads({ from, to: new Date() }),
+    { onResult: ({ alreadyBuilt }) => !alreadyBuilt }
+  )
+  await async_test(
+    'verify GroupMMS thread has correct sender IDs',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => {
+      const groupMMSThread = threads.find(t => t.type === 'GroupMMS')
+      return !!groupMMSThread
+        && groupMMSThread.recentOutboundUserId === sdk.userInfo.id
+        && groupMMSThread.recentInboundEnduserId === e.id
+    }}
+  )
+
+  // Test 5: Sender ID Tests - PhoneCall
+  log_header("Sender ID Tests - PhoneCall")
+  await resetThreadsAndDates()
+  const inboundCall = await sdk.api.phone_calls.createOne({
+    enduserId: e.id,
+    inbound: true,
+    to: '+15555555555',
+    from: '+15555555556',
+    userId: sdk.userInfo.id,
+  })
+
+  await async_test(
+    'build phone call threads (inbound)',
+    () => sdk.api.inbox_threads.build_threads({ from, to: new Date() }),
+    { onResult: ({ alreadyBuilt }) => !alreadyBuilt }
+  )
+  await async_test(
+    'verify inbound phone call thread has enduserId',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => {
+      const callThread = threads.find(t => t.type === 'Phone' && t.threadId === inboundCall.id)
+      return !!callThread
+        && !callThread.recentOutboundUserId
+        && callThread.recentInboundEnduserId === e.id
+    }}
+  )
+
+  // Test outbound call separately to avoid date range issues
+  await resetThreadsAndDates()
+  const outboundCall = await sdk.api.phone_calls.createOne({
+    enduserId: e.id,
+    inbound: false,
+    to: '+15555555556',
+    from: '+15555555555',
+    userId: sdk.userInfo.id,
+  })
+
+  await async_test(
+    'build phone call threads (outbound)',
+    () => sdk.api.inbox_threads.build_threads({ from, to: new Date() }),
+    { onResult: ({ alreadyBuilt }) => !alreadyBuilt }
+  )
+  await async_test(
+    'verify outbound phone call thread has userId',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => {
+      const callThread = threads.find(t => t.type === 'Phone' && t.threadId === outboundCall.id)
+      return !!callThread
+        && callThread.recentOutboundUserId === sdk.userInfo.id
+        && !callThread.recentInboundEnduserId
+    }}
+  )
+
+  // Test 6: Archive/Trash Tests - Propagation
+  log_header("Archive/Trash Tests - Propagation")
+  await resetThreadsAndDates()
+  const archivedDate = new Date()
+  await sdk.api.emails.createOne({
+    logOnly: true,
+    subject: 'Archived Email',
+    textContent: 'This email is archived',
+    enduserId: e.id,
+    inbound: true,
+    userId: sdk.userInfo.id,
+    archivedAt: archivedDate,
+  })
+
+  await async_test(
+    'build threads with archived email',
+    () => sdk.api.inbox_threads.build_threads({ from, to: new Date() }),
+    { onResult: ({ alreadyBuilt }) => !alreadyBuilt }
+  )
+  await async_test(
+    'verify thread has archivedAt populated',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => {
+      const emailThread = threads.find(t => t.type === 'Email')
+      return !!emailThread
+        && !!emailThread.archivedAt
+        && new Date(emailThread.archivedAt).getTime() === archivedDate.getTime()
+    }}
+  )
+
+  // Test 7: Archive/Trash Tests - Clearing (new message clears archived status)
+  log_header("Archive/Trash Tests - Clearing")
+  await sdk.api.emails.createOne({
+    logOnly: true,
+    subject: 'Archived Email', // Same subject = same thread
+    textContent: 'This email is NOT archived',
+    enduserId: e.id,
+    inbound: true,
+    userId: sdk.userInfo.id,
+    // No archivedAt
+  })
+  await resetThreadBuildingDates()  // Only reset dates, keep existing thread for merge test
+
+  await async_test(
+    'rebuild threads after non-archived message',
+    () => sdk.api.inbox_threads.build_threads({ from, to: new Date() }),
+    { onResult: ({ alreadyBuilt }) => !alreadyBuilt }
+  )
+  await async_test(
+    'verify thread archivedAt is cleared',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => {
+      const emailThread = threads.find(t => t.type === 'Email')
+      return !!emailThread && emailThread.archivedAt === ''
+    }}
+  )
+
+  // Test 8: Archive/Trash Tests - trashedAt propagation
+  log_header("Archive/Trash Tests - Trashed Propagation")
+  await resetThreadsAndDates()
+  const trashedDate = new Date()
+  await sdk.api.sms_messages.createOne({
+    logOnly: true,
+    inbound: true,
+    enduserId: e.id,
+    message: 'Trashed SMS',
+    userId: sdk.userInfo.id,
+    phoneNumber: '+15555555557',
+    enduserPhoneNumber: '+15555555558',
+    trashedAt: trashedDate,
+  })
+
+  await async_test(
+    'build threads with trashed SMS',
+    () => sdk.api.inbox_threads.build_threads({ from, to: new Date() }),
+    { onResult: ({ alreadyBuilt }) => !alreadyBuilt }
+  )
+  await async_test(
+    'verify thread has trashedAt populated',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => {
+      const smsThread = threads.find(t => t.type === 'SMS' && t.phoneNumber === '+15555555557')
+      return !!smsThread
+        && !!smsThread.trashedAt
+        && new Date(smsThread.trashedAt).getTime() === trashedDate.getTime()
+    }}
+  )
+
+  // Test 9: Archive/Trash Tests - Most Recent Archived, Older Not
+  log_header("Archive/Trash Tests - Most Recent Archived, Older Not")
+  await resetThreadsAndDates()
+  // Create non-archived message first (older)
+  await sdk.api.emails.createOne({
+    logOnly: true,
+    subject: 'Archive Order Test',
+    textContent: 'Older non-archived email',
+    enduserId: e.id,
+    inbound: true,
+    userId: sdk.userInfo.id,
+    // No archivedAt
+  })
+
+  await wait(undefined, 100) // Small delay to ensure ordering
+
+  // Create archived message second (newer = most recent)
+  await sdk.api.emails.createOne({
+    logOnly: true,
+    subject: 'Archive Order Test', // Same subject = same thread
+    textContent: 'Newer archived email',
+    enduserId: e.id,
+    inbound: true,
+    userId: sdk.userInfo.id,
+    archivedAt: new Date(),
+  })
+
+  await async_test(
+    'build threads for archive order test',
+    () => sdk.api.inbox_threads.build_threads({ from, to: new Date() }),
+    { onResult: ({ alreadyBuilt }) => !alreadyBuilt }
+  )
+  await async_test(
+    'verify thread archivedAt follows most recent message (IS archived)',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => {
+      const emailThread = threads.find(t => t.type === 'Email')
+      // Most recent message is archived, so thread should be archived
+      return !!emailThread && !!emailThread.archivedAt
+    }}
+  )
+
+  // Test 10: Reset Threads Endpoint - Comprehensive Coverage
+  log_header("Reset Threads Endpoint Test")
+
+  // Test 10a: Verify threads are deleted and count returned
+  const beforeReset = await sdk.api.inbox_threads.load_threads({})
+  assert(beforeReset.threads.length > 0, 'no threads before reset test', 'threads exist before reset test')
+
+  const resetResult = await sdk.api.inbox_threads.reset_threads()
+  assert(resetResult.deletedCount > 0, 'no threads deleted by reset', 'reset_threads deleted threads')
+
+  const afterReset = await sdk.api.inbox_threads.load_threads({})
+  assert(afterReset.threads.length === 0, 'threads remain after reset', 'all threads deleted after reset')
+
+  // Test 10b: Verify organization dates are reset to epoch
+  const org = await sdk.api.organizations.getOne(businessId)
+  const epochTime = new Date(0).getTime()
+  assert(
+    new Date(org.inboxThreadsBuiltFrom ?? 0).getTime() === epochTime,
+    'inboxThreadsBuiltFrom not reset to epoch',
+    'organization inboxThreadsBuiltFrom reset to epoch'
+  )
+  assert(
+    new Date(org.inboxThreadsBuiltTo ?? 0).getTime() === epochTime,
+    'inboxThreadsBuiltTo not reset to epoch',
+    'organization inboxThreadsBuiltTo reset to epoch'
+  )
+
+  // Test 10c: Verify reset with no threads returns deletedCount: 0
+  const emptyResetResult = await sdk.api.inbox_threads.reset_threads()
+  assert(emptyResetResult.deletedCount === 0, 'deletedCount should be 0 when no threads', 'reset with no threads returns 0')
+
+  // Cleanup
+  await Promise.all([
+    sdk.api.endusers.deleteOne(e.id),
+    sdk.api.chat_rooms.deleteOne(chatRoom.id).catch(() => {}),
+    sdk.api.group_mms_conversations.deleteOne(groupMMS.id).catch(() => {}),
+    resetThreadsAndDates(), // Use the new endpoint for cleanup
+  ])
+}
+
 const get_next_reminder_timestamp_tests = () => {
   log_header("Get Next Reminder Timestamp Tests")
 
@@ -13173,6 +13570,8 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await inbox_threads_new_fields_tests()
+    await inbox_thread_assignment_updates_tests({ sdk, sdkNonAdmin })
     await auto_merge_form_submission_tests({ sdk, sdkNonAdmin })
     await threadKeyTests()
     await automation_trigger_tests()
@@ -13187,7 +13586,6 @@ const ip_address_form_tests = async () => {
     await test_ticket_automation_assignment_and_optimization()
     await monthly_availability_restrictions_tests({ sdk, sdkNonAdmin })
     await journey_error_branching_tests({ sdk, sdkNonAdmin })
-    await inbox_thread_assignment_updates_tests({ sdk, sdkNonAdmin })
     await message_assignment_trigger_tests({ sdk })
     await inbox_threads_building_tests()
     await inbox_threads_loading_tests()

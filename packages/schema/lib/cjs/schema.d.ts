@@ -1630,8 +1630,14 @@ export type CustomActions = {
             lastTimestamp?: Date;
             userIds?: string[];
             enduserIds?: string[];
+            returnCount?: boolean;
+            mdbFilter?: object;
         }, {
             threads: InboxThread[];
+            count?: number;
+        }>;
+        reset_threads: CustomAction<{}, {
+            deletedCount: number;
         }>;
     };
 };

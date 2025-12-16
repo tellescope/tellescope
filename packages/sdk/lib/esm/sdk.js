@@ -575,6 +575,7 @@ var Session = /** @class */ (function (_super) {
         queries.analytics_frames.update_indexes = function (a) { return _this._PATCH("/v1".concat(schema.analytics_frames.customActions.update_indexes.path), a); };
         queries.inbox_threads.build_threads = function (a) { return _this._POST("/v1/".concat(schema.inbox_threads.customActions.build_threads.path), a); };
         queries.inbox_threads.load_threads = function (a) { return _this._GET("/v1/".concat(schema.inbox_threads.customActions.load_threads.path), a); };
+        queries.inbox_threads.reset_threads = function (a) { return _this._POST("/v1/".concat(schema.inbox_threads.customActions.reset_threads.path), a !== null && a !== void 0 ? a : {}); };
         queries.availability_blocks.update_order = function (a) { return _this._POST("/v1/".concat(schema.availability_blocks.customActions.update_order.path), a); };
         queries.availability_blocks.handle_autoreply = function (a) { return _this._POST("/v1/".concat(schema.availability_blocks.customActions.handle_autoreply.path), a); };
         queries.managed_content_records.load_unauthenticated = function (a) { return _this._GET("/v1/".concat(schema.managed_content_records.publicActions.load_unauthenticated.path), a); };

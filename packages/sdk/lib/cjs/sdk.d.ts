@@ -3674,6 +3674,7 @@ type Queries = {
     inbox_threads: {
         build_threads: (args: extractFields<CustomActions['inbox_threads']['build_threads']['parameters']>) => (Promise<extractFields<CustomActions['inbox_threads']['build_threads']['returns']>>);
         load_threads: (args: extractFields<CustomActions['inbox_threads']['load_threads']['parameters']>) => (Promise<extractFields<CustomActions['inbox_threads']['load_threads']['returns']>>);
+        reset_threads: (args?: {}) => (Promise<extractFields<CustomActions['inbox_threads']['reset_threads']['returns']>>);
     };
     availability_blocks: {
         update_order: (args: extractFields<CustomActions['availability_blocks']['update_order']['parameters']>) => (Promise<extractFields<CustomActions['availability_blocks']['update_order']['returns']>>);

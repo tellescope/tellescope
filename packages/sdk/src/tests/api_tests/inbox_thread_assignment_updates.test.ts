@@ -354,6 +354,105 @@ export const inbox_thread_assignment_updates_tests = async ({ sdk, sdkNonAdmin }
       sdk.api.sms_messages.deleteOne(upsertSMS.id),
     ])
 
+    // Test 10: returnCount parameter - basic count
+    console.log("Testing load_threads returnCount parameter...")
+
+    const countResult = await sdk.api.inbox_threads.load_threads({ returnCount: true })
+    assert(typeof countResult.count === 'number', "returnCount should return a count field with a number")
+    assert(countResult.threads === undefined, "returnCount should not return threads array")
+
+    // Verify count matches actual thread count
+    const allThreads = await sdk.api.inbox_threads.load_threads({})
+    assert(countResult.count === allThreads.threads.length, `Count (${countResult.count}) should match threads length (${allThreads.threads.length})`)
+
+    console.log("✅ returnCount basic test passed")
+
+    // Test 11: returnCount with enduserIds filter
+    console.log("Testing returnCount with enduserIds filter...")
+
+    const filteredThreads = await sdk.api.inbox_threads.load_threads({ enduserIds: [testEnduser.id] })
+    const filteredCount = await sdk.api.inbox_threads.load_threads({ enduserIds: [testEnduser.id], returnCount: true })
+
+    assert(typeof filteredCount.count === 'number', "Filtered returnCount should return a count")
+    assert(filteredCount.count === filteredThreads.threads.length, `Filtered count (${filteredCount.count}) should match filtered threads length (${filteredThreads.threads.length})`)
+
+    console.log("✅ returnCount with enduserIds filter test passed")
+
+    // Test 12: returnCount returns 0 for non-matching filters
+    console.log("Testing returnCount returns 0 for non-matching filters...")
+
+    const nonMatchingCount = await sdk.api.inbox_threads.load_threads({
+      enduserIds: ['000000000000000000000000'], // Non-existent enduser ID
+      returnCount: true
+    })
+
+    assert(nonMatchingCount.count === 0, `Non-matching filter count should be 0, got ${nonMatchingCount.count}`)
+
+    console.log("✅ returnCount with non-matching filter test passed")
+
+    // Test 13: mdbFilter - filter by type
+    console.log("Testing mdbFilter - filter by type...")
+    const emailTypeFilter = await sdk.api.inbox_threads.load_threads({
+      mdbFilter: { type: 'Email' }
+    })
+    const foundEmailByType = emailTypeFilter.threads.find(t => t.id === emailThread.id)
+    const foundSmsByType = emailTypeFilter.threads.find(t => t.id === smsThread.id)
+    assert(!!foundEmailByType, 'Email thread should be found when filtering by Email type')
+    assert(!foundSmsByType, 'SMS thread should not be found when filtering by Email type')
+    console.log("✅ mdbFilter type filter test passed")
+
+    // Test 14: mdbFilter - filter by multiple types ($in)
+    console.log("Testing mdbFilter - filter by multiple types...")
+    const multiTypeFilter = await sdk.api.inbox_threads.load_threads({
+      mdbFilter: { type: { $in: ['Email', 'SMS'] } }
+    })
+    const foundEmailMulti = multiTypeFilter.threads.find(t => t.id === emailThread.id)
+    const foundSmsMulti = multiTypeFilter.threads.find(t => t.id === smsThread.id)
+    const foundChatMulti = multiTypeFilter.threads.find(t => t.id === chatThread.id)
+    assert(!!foundEmailMulti, 'Email thread should be found')
+    assert(!!foundSmsMulti, 'SMS thread should be found')
+    assert(!foundChatMulti, 'Chat thread should not be found when filtering Email/SMS')
+    console.log("✅ mdbFilter multiple types filter test passed")
+
+    // Test 15: mdbFilter - filter by assignedTo
+    console.log("Testing mdbFilter - filter by assignedTo...")
+    // First assign the email thread (may already be assigned from earlier tests)
+    await sdk.api.inbox_threads.updateOne(emailThread.id, { assignedTo: [testUser.id] })
+    const assigneeFilter = await sdk.api.inbox_threads.load_threads({
+      mdbFilter: { assignedTo: testUser.id }
+    })
+    const foundAssigned = assigneeFilter.threads.find(t => t.id === emailThread.id)
+    assert(!!foundAssigned, 'Email thread should be found when filtering by assignee')
+    console.log("✅ mdbFilter assignedTo filter test passed")
+
+    // Test 16: mdbFilter - combined with existing params
+    console.log("Testing mdbFilter combined with enduserIds...")
+    const combinedFilter = await sdk.api.inbox_threads.load_threads({
+      enduserIds: [testEnduser.id],
+      mdbFilter: { type: 'Email' }
+    })
+    const foundCombined = combinedFilter.threads.find(t => t.id === emailThread.id)
+    assert(!!foundCombined, 'Email thread should be found with combined filters')
+    console.log("✅ mdbFilter combined filter test passed")
+
+    // Test 17: mdbFilter with returnCount
+    console.log("Testing mdbFilter with returnCount...")
+    const mdbFilterCount = await sdk.api.inbox_threads.load_threads({
+      mdbFilter: { type: 'Email' },
+      returnCount: true
+    })
+    assert(typeof mdbFilterCount.count === 'number', 'mdbFilter with returnCount should return count')
+    assert((mdbFilterCount.count ?? 0) >= 1, 'Count should be at least 1 for Email type')
+    console.log("✅ mdbFilter with returnCount test passed")
+
+    // Test 18: mdbFilter with empty object (should return all)
+    console.log("Testing mdbFilter with empty object...")
+    const emptyMdbFilter = await sdk.api.inbox_threads.load_threads({
+      mdbFilter: {}
+    })
+    assert(emptyMdbFilter.threads.length > 0, 'Empty mdbFilter should return threads')
+    console.log("✅ mdbFilter empty object test passed")
+
     console.log("🎉 All InboxThread assignment update tests passed!")
 
   } finally {

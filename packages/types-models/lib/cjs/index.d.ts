@@ -1182,6 +1182,8 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
     inboxStatus?: string;
     relatedContactId?: string;
     copyOf?: string;
+    archivedAt?: Date | '';
+    trashedAt?: Date | '';
 }
 export interface SMSMessage_readonly extends ClientRecord {
     delivered: boolean;
@@ -1242,6 +1244,8 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
     inboxStatus?: string;
     relatedContactId?: string;
     copyOf?: string;
+    archivedAt?: Date | '';
+    trashedAt?: Date | '';
 }
 export type ChatRoomType = 'internal' | 'external' | 'Group Chat';
 export interface ChatRoom_readonly extends ClientRecord {
@@ -1287,6 +1291,8 @@ export interface ChatRoom extends ChatRoom_readonly, ChatRoom_required, ChatRoom
     externalId?: string;
     references?: RelatedRecord[];
     journeyId?: string;
+    archivedAt?: Date | '';
+    trashedAt?: Date | '';
 }
 export type ChatAttachmentType = 'image' | 'video' | 'file' | string;
 export type ChatAttachment = {
@@ -3737,6 +3743,8 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
     ignoredUserIds?: string[][];
     ticketId?: string;
     hungUpByCaller?: boolean;
+    archivedAt?: Date | '';
+    trashedAt?: Date | '';
 }
 export type AWSTranscribeAlternative = {
     confidence?: string;
@@ -4974,6 +4982,8 @@ export interface GroupMMSConversation extends GroupMMSConversation_readonly, Gro
     markedUnreadForAll?: boolean;
     inboxStatus?: string;
     assignedTo?: string[];
+    archivedAt?: Date | '';
+    trashedAt?: Date | '';
 }
 export type VitalComparisons = {
     'Less Than': {
@@ -5227,6 +5237,10 @@ export interface InboxThread extends InboxThread_readonly, InboxThread_required,
     };
     outboundTimestamp?: Date | '';
     outboundPreview?: string;
+    archivedAt?: Date | '';
+    trashedAt?: Date | '';
+    recentOutboundUserId?: string;
+    recentInboundEnduserId?: string;
 }
 export type ModelForName_required = {
     inbox_threads: InboxThread_required;

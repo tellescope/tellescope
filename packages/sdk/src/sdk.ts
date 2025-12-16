@@ -236,6 +236,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     load_threads: (args: extractFields<CustomActions['inbox_threads']['load_threads']['parameters']>) => (
       Promise<extractFields<CustomActions['inbox_threads']['load_threads']['returns']>>
     ),
+    reset_threads: (args?: {}) => (
+      Promise<extractFields<CustomActions['inbox_threads']['reset_threads']['returns']>>
+    ),
   },
   availability_blocks: {
     update_order: (args: extractFields<CustomActions['availability_blocks']['update_order']['parameters']>) => (
@@ -1097,6 +1100,7 @@ export class Session extends SessionManager {
 
     queries.inbox_threads.build_threads = a => this._POST(`/v1/${schema.inbox_threads.customActions.build_threads.path}`, a)
     queries.inbox_threads.load_threads = a => this._GET(`/v1/${schema.inbox_threads.customActions.load_threads.path}`, a)
+    queries.inbox_threads.reset_threads = a => this._POST(`/v1/${schema.inbox_threads.customActions.reset_threads.path}`, a ?? {})
 
     queries.availability_blocks.update_order = a => this._POST(`/v1/${schema.availability_blocks.customActions.update_order.path}`, a)
     queries.availability_blocks.handle_autoreply = a => this._POST(`/v1/${schema.availability_blocks.customActions.handle_autoreply.path}`, a)

@@ -1248,6 +1248,8 @@ export interface Email extends Email_required, Email_readonly, Email_updatesDisa
   inboxStatus?: string,
   relatedContactId?: string,
   copyOf?: string,
+  archivedAt?: Date | '',
+  trashedAt?: Date | '',
   // sentAt: string, // only outgoing
 }
 
@@ -1304,6 +1306,8 @@ export interface SMSMessage extends SMSMessage_readonly, SMSMessage_required, SM
   inboxStatus?: string,
   relatedContactId?: string,
   copyOf?: string,
+  archivedAt?: Date | '',
+  trashedAt?: Date | '',
   // usingPublicNumber?: boolean, // flagged on outgoing messages from public number
   // sentAt: string, // only outgoing
 }
@@ -1350,6 +1354,8 @@ export interface ChatRoom extends ChatRoom_readonly, ChatRoom_required, ChatRoom
   externalId?: string,
   references?: RelatedRecord[] // internal, for storing built-in integrations info
   journeyId?: string,
+  archivedAt?: Date | '',
+  trashedAt?: Date | '',
 }
 
 export type ChatAttachmentType = 'image' | 'video' | 'file' | string 
@@ -3731,6 +3737,8 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
   ignoredUserIds?: string[][], // might ring multiple stages, so use list of users dialed at each step
   ticketId?: string,
   hungUpByCaller?: boolean,
+  archivedAt?: Date | '',
+  trashedAt?: Date | '',
 }
 
 // AWS Transcribe response types
@@ -4865,6 +4873,8 @@ export interface GroupMMSConversation extends GroupMMSConversation_readonly, Gro
   markedUnreadForAll?: boolean,
   inboxStatus?: string,
   assignedTo?: string[],
+  archivedAt?: Date | '',
+  trashedAt?: Date | '',
 }
 
 export type VitalComparisons = {
@@ -5082,8 +5092,12 @@ export interface InboxThread extends InboxThread_readonly, InboxThread_required,
   enduserPhoneNumber?: string,
   emailMessageId?: string | null,
   readBy?: { [index: string] : Date | '' };
-  outboundTimestamp?: Date | '', 
+  outboundTimestamp?: Date | '',
   outboundPreview?: string,
+  archivedAt?: Date | '',
+  trashedAt?: Date | '',
+  recentOutboundUserId?: string,
+  recentInboundEnduserId?: string,
 }
 
 export type ModelForName_required = {

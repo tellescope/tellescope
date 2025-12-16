@@ -1210,8 +1210,12 @@ export type CustomActions = {
       { alreadyBuilt: boolean }
     >,
     load_threads: CustomAction<
-      { limit?: number, excludeIds?: string[], lastTimestamp?: Date, userIds?: string[], enduserIds?: string[] },
-      { threads: InboxThread[] } 
+      { limit?: number, excludeIds?: string[], lastTimestamp?: Date, userIds?: string[], enduserIds?: string[], returnCount?: boolean, mdbFilter?: object },
+      { threads: InboxThread[], count?: number }
+    >,
+    reset_threads: CustomAction<
+      {  },
+      { deletedCount: number }
     >,
   },
 } 
@@ -2724,7 +2728,9 @@ export const schema: SchemaV1 = build_schema({
       discussionRoomId: { validator: mongoIdStringValidator },
       journeyId: { validator: mongoIdStringValidator },
       calendarEventId: { validator: mongoIdStringValidator },
-    }, 
+      archivedAt: { validator: dateOptionalOrEmptyStringValidator },
+      trashedAt: { validator: dateOptionalOrEmptyStringValidator },
+    },
     customActions: {
       sync_integrations: {
         op: "custom", access: 'read', method: "post",
@@ -3006,7 +3012,9 @@ export const schema: SchemaV1 = build_schema({
       journeyId: { validator: mongoIdStringValidator },
       calendarEventId: { validator: mongoIdStringValidator },
       mediaURLs: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
-    }, 
+      archivedAt: { validator: dateOptionalOrEmptyStringValidator },
+      trashedAt: { validator: dateOptionalOrEmptyStringValidator },
+    },
   },
   chat_rooms: {
     info: {},
@@ -3100,6 +3108,8 @@ export const schema: SchemaV1 = build_schema({
       identifier: { validator: stringValidator100 },
       externalId: { validator: stringValidator100 },
       source: { validator: stringValidator100 },
+      archivedAt: { validator: dateOptionalOrEmptyStringValidator },
+      trashedAt: { validator: dateOptionalOrEmptyStringValidator },
     },
     defaultActions: DEFAULT_OPERATIONS,
     enduserActions: { create: {}, read: {}, readMany: {}, display_info: {}, mark_read: {} },
@@ -7583,6 +7593,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
 
       callDurationInSeconds: { validator: numberValidator },
       timestamp: { validator: dateValidator },
+      archivedAt: { validator: dateOptionalOrEmptyStringValidator },
+      trashedAt: { validator: dateOptionalOrEmptyStringValidator },
     },
   },
   analytics_frames: {
@@ -8504,6 +8516,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       hiddenForAll: { validator: booleanValidator },
       assignedTo: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       pinnedAt: { validator: dateOptionalOrEmptyStringValidator },
+      archivedAt: { validator: dateOptionalOrEmptyStringValidator },
+      trashedAt: { validator: dateOptionalOrEmptyStringValidator },
     },
   },
   enduser_encounters: {
@@ -9175,22 +9189,35 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         op: "custom", access: 'read', method: "get",
         name: 'Load Threads',
         path: '/inbox-threads/load',
-        description: "Sends a message to the AI conversation",
+        description: "Loads inbox threads with optional filtering",
         parameters: {
-          excludeIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, 
+          excludeIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
           limit: { validator: numberValidatorOptional },
           lastTimestamp: { validator: dateValidatorOptional },
           enduserIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
           userIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
           phoneNumber: { validator: phoneValidatorOptional },
+          returnCount: { validator: booleanValidatorOptional },
+          mdbFilter: { validator: objectAnyFieldsAnyValuesValidator },
         },
         returns: {
-          threads: { validator: 'inbox_threads' as any, required: true },
+          threads: { validator: 'inbox_threads' as any },
+          count: { validator: numberValidatorOptional },
+        },
+      },
+      reset_threads: {
+        op: "custom", access: 'delete', method: "post",
+        name: 'Reset Threads',
+        path: '/inbox-threads/reset',
+        description: "Deletes all built inbox threads and resets organization thread building dates",
+        parameters: {},
+        returns: {
+          deletedCount: { validator: numberValidator, required: true },
         },
       },
     },
     fields: {
-      ...BuiltInFields, 
+      ...BuiltInFields,
       type: { validator: exactMatchValidator<InboxThread['type']>(['Chat', 'Email', 'GroupMMS', 'Phone', 'SMS']), required: true, examples: ['Email'] },
       assignedTo: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] },
       enduserIds: { validator: listOfMongoIdStringValidator, required: true, examples: [[PLACEHOLDER_ID]] },
@@ -9206,6 +9233,10 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       outboundPreview: { validator: stringValidator25000 },
       phoneNumber: { validator: phoneValidator },
       enduserPhoneNumber: { validator: phoneValidator },
+      archivedAt: { validator: dateOptionalOrEmptyStringValidator },
+      trashedAt: { validator: dateOptionalOrEmptyStringValidator },
+      recentOutboundUserId: { validator: mongoIdStringOptional },
+      recentInboundEnduserId: { validator: mongoIdStringOptional },
     }
 
   }
