@@ -5335,6 +5335,7 @@ exports.phoneTreeActionValidator = (0, exports.orValidator)({
         info: (0, exports.objectValidator)({
             queueId: exports.mongoIdStringRequired,
             playback: exports.phonePlaybackValidatorOptional,
+            holdPromptPlayback: exports.phonePlaybackValidatorOptional,
         }),
     }),
     "Route Extensions": (0, exports.objectValidator)({

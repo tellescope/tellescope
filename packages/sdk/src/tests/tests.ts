@@ -38,6 +38,7 @@ import { Session, APIQuery, EnduserSession } from "../sdk"
 import { enduser_observations_acknowledge_tests } from "./api_tests/enduser_observations_acknowledge.test"
 import { create_user_notifications_trigger_tests } from "./api_tests/create_user_notifications_trigger.test"
 import { inbox_thread_assignment_updates_tests } from "./api_tests/inbox_thread_assignment_updates.test"
+import { inbox_thread_draft_scheduled_tests } from "./api_tests/inbox_thread_draft_scheduled.test"
 import { appointment_completed_trigger_tests } from "./api_tests/appointment_completed_trigger.test"
 import { purchase_made_trigger_tests } from "./api_tests/purchase_made_trigger.test"
 import { appointment_rescheduled_trigger_tests } from "./api_tests/appointment_rescheduled_trigger.test"
@@ -13570,8 +13571,9 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
-    await inbox_threads_new_fields_tests()
     await inbox_thread_assignment_updates_tests({ sdk, sdkNonAdmin })
+    await inbox_thread_draft_scheduled_tests({ sdk, sdkNonAdmin })
+    await inbox_threads_new_fields_tests()
     await auto_merge_form_submission_tests({ sdk, sdkNonAdmin })
     await threadKeyTests()
     await automation_trigger_tests()

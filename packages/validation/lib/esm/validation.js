@@ -5283,6 +5283,7 @@ export var phoneTreeActionValidator = orValidator({
         info: objectValidator({
             queueId: mongoIdStringRequired,
             playback: phonePlaybackValidatorOptional,
+            holdPromptPlayback: phonePlaybackValidatorOptional,
         }),
     }),
     "Route Extensions": objectValidator({

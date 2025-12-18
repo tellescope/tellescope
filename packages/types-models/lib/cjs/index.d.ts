@@ -3735,6 +3735,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
     ticketIds?: string[];
     tags?: string[];
     inputs?: string[];
+    queueGatherDigit?: string;
     answeredAt?: Date;
     recordingCancelledAt?: Date;
     assignedTo?: string[];
@@ -4644,6 +4645,7 @@ export type PhoneTreeActions = {
     'Add to Queue': PhoneTreeActionBuilder<"Add to Queue", {
         queueId: string;
         playback?: Partial<PhonePlayback>;
+        holdPromptPlayback?: Partial<PhonePlayback>;
     }>;
     'Route Extensions': PhoneTreeActionBuilder<"Route Extensions", {
         extensions: {
@@ -5241,6 +5243,8 @@ export interface InboxThread extends InboxThread_readonly, InboxThread_required,
     trashedAt?: Date | '';
     recentOutboundUserId?: string;
     recentInboundEnduserId?: string;
+    draftMessageIds?: string[];
+    scheduledMessageIds?: string[];
 }
 export type ModelForName_required = {
     inbox_threads: InboxThread_required;

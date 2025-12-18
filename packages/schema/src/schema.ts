@@ -410,7 +410,7 @@ export type EndpointOptions = {
   parameters?: { [index: string]: ValidatorDefinition<any> }, 
 }
 
-export type DependencyDeletionAction = 'delete' | 'unset' | 'setNull' | 'nop'
+export type DependencyDeletionAction = 'delete' | 'unset' | 'setNull' | 'nop' | 'pull'
 export type DependecyRelationship = 'foreignKey' | 'value'
 
 export type Dependency <T=DatabaseRecord> = {
@@ -1210,7 +1210,7 @@ export type CustomActions = {
       { alreadyBuilt: boolean }
     >,
     load_threads: CustomAction<
-      { limit?: number, excludeIds?: string[], lastTimestamp?: Date, userIds?: string[], enduserIds?: string[], returnCount?: boolean, mdbFilter?: object },
+      { limit?: number, ids?: string[], excludeIds?: string[], lastTimestamp?: Date, userIds?: string[], enduserIds?: string[], returnCount?: boolean, mdbFilter?: object },
       { threads: InboxThread[], count?: number }
     >,
     reset_threads: CustomAction<
@@ -9191,6 +9191,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         path: '/inbox-threads/load',
         description: "Loads inbox threads with optional filtering",
         parameters: {
+          ids: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
           excludeIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
           limit: { validator: numberValidatorOptional },
           lastTimestamp: { validator: dateValidatorOptional },
@@ -9237,6 +9238,24 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       trashedAt: { validator: dateOptionalOrEmptyStringValidator },
       recentOutboundUserId: { validator: mongoIdStringOptional },
       recentInboundEnduserId: { validator: mongoIdStringOptional },
+      draftMessageIds: {
+        validator: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+        dependencies: [{
+          dependsOn: ['chats', 'sms_messages', 'emails'],
+          dependencyField: '_id',
+          relationship: 'foreignKey' as const,
+          onDependencyDelete: 'pull' as const,
+        }]
+      },
+      scheduledMessageIds: {
+        validator: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+        dependencies: [{
+          dependsOn: ['chats', 'sms_messages', 'emails'],
+          dependencyField: '_id',
+          relationship: 'foreignKey' as const,
+          onDependencyDelete: 'pull' as const,
+        }]
+      },
     }
 
   }

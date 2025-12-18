@@ -3729,6 +3729,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
   ticketIds?: string[],
   tags?: string[],
   inputs?: string[],
+  queueGatherDigit?: string, // placeholder for digit pressed during call queue gather
   answeredAt?: Date,
   recordingCancelledAt?: Date,
   assignedTo?: string[],
@@ -4550,7 +4551,11 @@ export type PhoneTreeActions = {
     hasCareTeam?: boolean,
     hasOneCareTeamMember?: boolean,
   }>
-  'Add to Queue': PhoneTreeActionBuilder<"Add to Queue", { queueId: string, playback?: Partial<PhonePlayback>, }>
+  'Add to Queue': PhoneTreeActionBuilder<"Add to Queue", {
+    queueId: string,
+    playback?: Partial<PhonePlayback>,
+    holdPromptPlayback?: Partial<PhonePlayback>,  // If set, enables periodic prompts while on hold
+  }>
   'Route Extensions': PhoneTreeActionBuilder<"Route Extensions", {
     extensions: { input: string, userId: string }[],
     playback?: Partial<PhonePlayback>,
@@ -5098,6 +5103,8 @@ export interface InboxThread extends InboxThread_readonly, InboxThread_required,
   trashedAt?: Date | '',
   recentOutboundUserId?: string,
   recentInboundEnduserId?: string,
+  draftMessageIds?: string[],
+  scheduledMessageIds?: string[],
 }
 
 export type ModelForName_required = {

@@ -56,7 +56,7 @@ var host = process.env.API_URL || 'http://localhost:8080';
 var inbox_thread_assignment_updates_tests = function (_a) {
     var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
     return __awaiter(void 0, void 0, void 0, function () {
-        var timestamp, testUser, testEnduser, defaultThreadFields, emailSubject, emailThreadId, emailThread, testEmail, smsThread, testSMS, testChatRoom, chatThread, loadedThreads, updatedEmailThread, loadedThreads2, updatedSMSThread, loadedThreads3, updatedChatThread, loadedThreads4, unchangedThread, loadedThreads5, clearedAssignThread, fixedTimestamp, matchingTimestampSubject, matchingTimestampThreadId, matchingTimestampEmailThread_1, matchingTimestampEmail, loadedThreads6, matchingTimestampUpdatedThread, matchingTimestampSMSThread_1, matchingTimestampSMS, loadedThreads7, matchingTimestampSMSUpdatedThread, orphanEmail, threadsBeforeOrphanUpdate, threadCountBefore, threadsAfterOrphanUpdate, threadCountAfter, upsertSMS, threadsAfterUpsertTest, upsertedThread, countResult, allThreads, filteredThreads, filteredCount, nonMatchingCount, emailTypeFilter, foundEmailByType, foundSmsByType, multiTypeFilter, foundEmailMulti, foundSmsMulti, foundChatMulti, assigneeFilter, foundAssigned, combinedFilter, foundCombined, mdbFilterCount, emptyMdbFilter, err_1;
+        var timestamp, testUser, testEnduser, defaultThreadFields, emailSubject, emailThreadId, emailThread, testEmail, smsThread, testSMS, testChatRoom, chatThread, loadedThreads, updatedEmailThread, loadedThreads2, updatedSMSThread, loadedThreads3, updatedChatThread, loadedThreads4, unchangedThread, loadedThreads5, clearedAssignThread, fixedTimestamp, matchingTimestampSubject, matchingTimestampThreadId, matchingTimestampEmailThread_1, matchingTimestampEmail, loadedThreads6, matchingTimestampUpdatedThread, matchingTimestampSMSThread_1, matchingTimestampSMS, loadedThreads7, matchingTimestampSMSUpdatedThread, orphanEmail, threadsBeforeOrphanUpdate, threadCountBefore, threadsAfterOrphanUpdate, threadCountAfter, upsertSMS, threadsAfterUpsertTest, upsertedThread, countResult, allThreads, filteredThreads, filteredCount, nonMatchingCount, emailTypeFilter, foundEmailByType, foundSmsByType, multiTypeFilter, foundEmailMulti, foundSmsMulti, foundChatMulti, assigneeFilter, foundAssigned, combinedFilter, foundCombined, mdbFilterCount, emptyMdbFilter, idsFilterResult, foundEmailById, foundSmsById, foundChatById, singleIdResult, idsCombinedResult, idsCountResult, emptyIdsResult, err_1;
         var _b;
         return __generator(this, function (_c) {
             switch (_c.label) {
@@ -150,7 +150,7 @@ var inbox_thread_assignment_updates_tests = function (_a) {
                     _c.sent();
                     _c.label = 11;
                 case 11:
-                    _c.trys.push([11, , 62, 66]);
+                    _c.trys.push([11, , 67, 71]);
                     // Test 1: Email Assignment Updates
                     console.log("Testing email assignment updates...");
                     // Update email assignment
@@ -529,10 +529,65 @@ var inbox_thread_assignment_updates_tests = function (_a) {
                     emptyMdbFilter = _c.sent();
                     (0, testing_1.assert)(emptyMdbFilter.threads.length > 0, 'Empty mdbFilter should return threads');
                     console.log("✅ mdbFilter empty object test passed");
-                    console.log("🎉 All InboxThread assignment update tests passed!");
-                    return [3 /*break*/, 66];
+                    // Test 19: ids filter - filter by specific thread ids
+                    console.log("Testing ids filter - filter by specific thread ids...");
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({
+                            ids: [emailThread.id, smsThread.id]
+                        })];
                 case 62:
-                    _c.trys.push([62, 64, , 65]);
+                    idsFilterResult = _c.sent();
+                    (0, testing_1.assert)(idsFilterResult.threads.length === 2, "ids filter should return exactly 2 threads, got ".concat(idsFilterResult.threads.length));
+                    foundEmailById = idsFilterResult.threads.find(function (t) { return t.id === emailThread.id; });
+                    foundSmsById = idsFilterResult.threads.find(function (t) { return t.id === smsThread.id; });
+                    foundChatById = idsFilterResult.threads.find(function (t) { return t.id === chatThread.id; });
+                    (0, testing_1.assert)(!!foundEmailById, 'Email thread should be found when filtering by ids');
+                    (0, testing_1.assert)(!!foundSmsById, 'SMS thread should be found when filtering by ids');
+                    (0, testing_1.assert)(!foundChatById, 'Chat thread should not be found when not in ids list');
+                    console.log("✅ ids filter test passed");
+                    // Test 20: ids filter - single id
+                    console.log("Testing ids filter - single id...");
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({
+                            ids: [emailThread.id]
+                        })];
+                case 63:
+                    singleIdResult = _c.sent();
+                    (0, testing_1.assert)(singleIdResult.threads.length === 1, "Single id filter should return exactly 1 thread, got ".concat(singleIdResult.threads.length));
+                    (0, testing_1.assert)(singleIdResult.threads[0].id === emailThread.id, 'Should return the correct thread');
+                    console.log("✅ ids filter single id test passed");
+                    // Test 21: ids filter combined with other filters
+                    console.log("Testing ids filter combined with mdbFilter...");
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({
+                            ids: [emailThread.id, smsThread.id],
+                            mdbFilter: { type: 'Email' }
+                        })];
+                case 64:
+                    idsCombinedResult = _c.sent();
+                    (0, testing_1.assert)(idsCombinedResult.threads.length === 1, "Combined ids + mdbFilter should return 1 thread, got ".concat(idsCombinedResult.threads.length));
+                    (0, testing_1.assert)(idsCombinedResult.threads[0].id === emailThread.id, 'Should return only the email thread');
+                    console.log("✅ ids filter combined with mdbFilter test passed");
+                    // Test 22: ids filter with returnCount
+                    console.log("Testing ids filter with returnCount...");
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({
+                            ids: [emailThread.id, smsThread.id, chatThread.id],
+                            returnCount: true
+                        })];
+                case 65:
+                    idsCountResult = _c.sent();
+                    (0, testing_1.assert)(idsCountResult.count === 3, "ids filter with returnCount should return 3, got ".concat(idsCountResult.count));
+                    console.log("✅ ids filter with returnCount test passed");
+                    // Test 23: ids filter with empty array (should return all)
+                    console.log("Testing ids filter with empty array...");
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({
+                            ids: []
+                        })];
+                case 66:
+                    emptyIdsResult = _c.sent();
+                    (0, testing_1.assert)(emptyIdsResult.threads.length >= 3, 'Empty ids array should not filter (return all threads)');
+                    console.log("✅ ids filter empty array test passed");
+                    console.log("🎉 All InboxThread assignment update tests passed!");
+                    return [3 /*break*/, 71];
+                case 67:
+                    _c.trys.push([67, 69, , 70]);
                     return [4 /*yield*/, Promise.all([
                             sdk.api.inbox_threads.deleteOne(emailThread.id),
                             sdk.api.inbox_threads.deleteOne(smsThread.id),
@@ -543,15 +598,15 @@ var inbox_thread_assignment_updates_tests = function (_a) {
                             sdk.api.endusers.deleteOne(testEnduser.id),
                             sdk.api.users.deleteOne(testUser.id),
                         ])];
-                case 63:
+                case 68:
                     _c.sent();
-                    return [3 /*break*/, 65];
-                case 64:
+                    return [3 /*break*/, 70];
+                case 69:
                     err_1 = _c.sent();
                     console.error("Cleanup error:", err_1);
-                    return [3 /*break*/, 65];
-                case 65: return [7 /*endfinally*/];
-                case 66: return [2 /*return*/];
+                    return [3 /*break*/, 70];
+                case 70: return [7 /*endfinally*/];
+                case 71: return [2 /*return*/];
             }
         });
     });

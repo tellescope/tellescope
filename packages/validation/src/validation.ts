@@ -6279,6 +6279,7 @@ export const phoneTreeActionValidator = orValidator<{ [K in PhoneTreeActionType]
     info: objectValidator<PhoneTreeActions["Add to Queue"]['info']>({
       queueId: mongoIdStringRequired,
       playback: phonePlaybackValidatorOptional,
+      holdPromptPlayback: phonePlaybackValidatorOptional,
     }),
   }),
   "Route Extensions": objectValidator<PhoneTreeActions["Route Extensions"]>({

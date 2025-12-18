@@ -2485,6 +2485,7 @@ export declare const phoneTreeActionValidator: ValidatorDefinition<import("@tell
 }> | import("@tellescope/types-models").PhoneTreeActionBuilder<"Add to Queue", {
     queueId: string;
     playback?: Partial<import("@tellescope/types-models").PhonePlayback> | undefined;
+    holdPromptPlayback?: Partial<import("@tellescope/types-models").PhonePlayback> | undefined;
 }> | import("@tellescope/types-models").PhoneTreeActionBuilder<"Route Extensions", {
     extensions: {
         input: string;

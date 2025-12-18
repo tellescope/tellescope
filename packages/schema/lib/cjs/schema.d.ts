@@ -45,7 +45,7 @@ export type EndpointOptions = {
         [index: string]: ValidatorDefinition<any>;
     };
 };
-export type DependencyDeletionAction = 'delete' | 'unset' | 'setNull' | 'nop';
+export type DependencyDeletionAction = 'delete' | 'unset' | 'setNull' | 'nop' | 'pull';
 export type DependecyRelationship = 'foreignKey' | 'value';
 export type Dependency<T = DatabaseRecord> = {
     dependsOn: ModelName[];
@@ -1626,6 +1626,7 @@ export type CustomActions = {
         }>;
         load_threads: CustomAction<{
             limit?: number;
+            ids?: string[];
             excludeIds?: string[];
             lastTimestamp?: Date;
             userIds?: string[];

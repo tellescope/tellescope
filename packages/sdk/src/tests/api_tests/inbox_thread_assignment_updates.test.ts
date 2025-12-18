@@ -453,6 +453,56 @@ export const inbox_thread_assignment_updates_tests = async ({ sdk, sdkNonAdmin }
     assert(emptyMdbFilter.threads.length > 0, 'Empty mdbFilter should return threads')
     console.log("✅ mdbFilter empty object test passed")
 
+    // Test 19: ids filter - filter by specific thread ids
+    console.log("Testing ids filter - filter by specific thread ids...")
+    const idsFilterResult = await sdk.api.inbox_threads.load_threads({
+      ids: [emailThread.id, smsThread.id]
+    })
+    assert(idsFilterResult.threads.length === 2, `ids filter should return exactly 2 threads, got ${idsFilterResult.threads.length}`)
+    const foundEmailById = idsFilterResult.threads.find(t => t.id === emailThread.id)
+    const foundSmsById = idsFilterResult.threads.find(t => t.id === smsThread.id)
+    const foundChatById = idsFilterResult.threads.find(t => t.id === chatThread.id)
+    assert(!!foundEmailById, 'Email thread should be found when filtering by ids')
+    assert(!!foundSmsById, 'SMS thread should be found when filtering by ids')
+    assert(!foundChatById, 'Chat thread should not be found when not in ids list')
+    console.log("✅ ids filter test passed")
+
+    // Test 20: ids filter - single id
+    console.log("Testing ids filter - single id...")
+    const singleIdResult = await sdk.api.inbox_threads.load_threads({
+      ids: [emailThread.id]
+    })
+    assert(singleIdResult.threads.length === 1, `Single id filter should return exactly 1 thread, got ${singleIdResult.threads.length}`)
+    assert(singleIdResult.threads[0].id === emailThread.id, 'Should return the correct thread')
+    console.log("✅ ids filter single id test passed")
+
+    // Test 21: ids filter combined with other filters
+    console.log("Testing ids filter combined with mdbFilter...")
+    const idsCombinedResult = await sdk.api.inbox_threads.load_threads({
+      ids: [emailThread.id, smsThread.id],
+      mdbFilter: { type: 'Email' }
+    })
+    assert(idsCombinedResult.threads.length === 1, `Combined ids + mdbFilter should return 1 thread, got ${idsCombinedResult.threads.length}`)
+    assert(idsCombinedResult.threads[0].id === emailThread.id, 'Should return only the email thread')
+    console.log("✅ ids filter combined with mdbFilter test passed")
+
+    // Test 22: ids filter with returnCount
+    console.log("Testing ids filter with returnCount...")
+    const idsCountResult = await sdk.api.inbox_threads.load_threads({
+      ids: [emailThread.id, smsThread.id, chatThread.id],
+      returnCount: true
+    })
+    assert(idsCountResult.count === 3, `ids filter with returnCount should return 3, got ${idsCountResult.count}`)
+    console.log("✅ ids filter with returnCount test passed")
+
+    // Test 23: ids filter with empty array (should return all)
+    console.log("Testing ids filter with empty array...")
+    const emptyIdsResult = await sdk.api.inbox_threads.load_threads({
+      ids: []
+    })
+    assert(emptyIdsResult.threads.length >= 3, 'Empty ids array should not filter (return all threads)')
+    console.log("✅ ids filter empty array test passed")
+
     console.log("🎉 All InboxThread assignment update tests passed!")
 
   } finally {

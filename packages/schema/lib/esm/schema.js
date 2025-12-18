@@ -6427,6 +6427,7 @@ export var schema = build_schema({
                 path: '/inbox-threads/load',
                 description: "Loads inbox threads with optional filtering",
                 parameters: {
+                    ids: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
                     excludeIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
                     limit: { validator: numberValidatorOptional },
                     lastTimestamp: { validator: dateValidatorOptional },
@@ -6452,7 +6453,23 @@ export var schema = build_schema({
                 },
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { type: { validator: exactMatchValidator(['Chat', 'Email', 'GroupMMS', 'Phone', 'SMS']), required: true, examples: ['Email'] }, assignedTo: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] }, enduserIds: { validator: listOfMongoIdStringValidator, required: true, examples: [[PLACEHOLDER_ID]] }, userIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] }, inboxStatus: { validator: stringValidator, required: true, examples: ['In Progress'] }, preview: { validator: stringValidator25000, required: true, examples: ['Preview of the message'] }, threadId: { validator: stringValidator, required: true, examples: ['Thread ID'] }, timestamp: { validator: dateValidator, required: true, examples: [new Date().toISOString()] }, title: { validator: stringValidator, required: true, examples: ['Title or Subject Here'] }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, readBy: { validator: idStringToDateValidator }, outboundTimestamp: { validator: dateValidator }, outboundPreview: { validator: stringValidator25000 }, phoneNumber: { validator: phoneValidator }, enduserPhoneNumber: { validator: phoneValidator }, archivedAt: { validator: dateOptionalOrEmptyStringValidator }, trashedAt: { validator: dateOptionalOrEmptyStringValidator }, recentOutboundUserId: { validator: mongoIdStringOptional }, recentInboundEnduserId: { validator: mongoIdStringOptional } })
+        fields: __assign(__assign({}, BuiltInFields), { type: { validator: exactMatchValidator(['Chat', 'Email', 'GroupMMS', 'Phone', 'SMS']), required: true, examples: ['Email'] }, assignedTo: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] }, enduserIds: { validator: listOfMongoIdStringValidator, required: true, examples: [[PLACEHOLDER_ID]] }, userIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] }, inboxStatus: { validator: stringValidator, required: true, examples: ['In Progress'] }, preview: { validator: stringValidator25000, required: true, examples: ['Preview of the message'] }, threadId: { validator: stringValidator, required: true, examples: ['Thread ID'] }, timestamp: { validator: dateValidator, required: true, examples: [new Date().toISOString()] }, title: { validator: stringValidator, required: true, examples: ['Title or Subject Here'] }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, readBy: { validator: idStringToDateValidator }, outboundTimestamp: { validator: dateValidator }, outboundPreview: { validator: stringValidator25000 }, phoneNumber: { validator: phoneValidator }, enduserPhoneNumber: { validator: phoneValidator }, archivedAt: { validator: dateOptionalOrEmptyStringValidator }, trashedAt: { validator: dateOptionalOrEmptyStringValidator }, recentOutboundUserId: { validator: mongoIdStringOptional }, recentInboundEnduserId: { validator: mongoIdStringOptional }, draftMessageIds: {
+                validator: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+                dependencies: [{
+                        dependsOn: ['chats', 'sms_messages', 'emails'],
+                        dependencyField: '_id',
+                        relationship: 'foreignKey',
+                        onDependencyDelete: 'pull',
+                    }]
+            }, scheduledMessageIds: {
+                validator: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+                dependencies: [{
+                        dependsOn: ['chats', 'sms_messages', 'emails'],
+                        dependencyField: '_id',
+                        relationship: 'foreignKey',
+                        onDependencyDelete: 'pull',
+                    }]
+            } })
     }
 });
 // export type SchemaType = typeof schema
