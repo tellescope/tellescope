@@ -96,6 +96,7 @@ import { custom_aggregation_tests } from "./api_tests/custom_aggregation.test";
 import { bulk_assignment_tests } from "./api_tests/bulk_assignment.test";
 import { managed_content_enduser_access_tests } from "./api_tests/managed_content_enduser_access.test";
 import { auto_merge_form_submission_tests } from "./api_tests/auto_merge_form_submission.test";
+import { database_cascade_delete_tests } from "./api_tests/database_cascade_delete.test";
 var UniquenessViolationMessage = 'Uniqueness Violation';
 var host = process.env.API_URL || 'http://localhost:8080';
 var _a = [process.env.TEST_EMAIL, process.env.TEST_PASSWORD], email = _a[0], password = _a[1];
@@ -7001,8 +7002,15 @@ export var databases_tests = function () { return __awaiter(void 0, void 0, void
                 return [4 /*yield*/, Promise.all([
                         sdk.api.databases.deleteOne(database.id),
                         sdk.api.databases.deleteOne(databaseNoRead.id),
-                    ])];
+                    ])
+                    // Run cascade delete tests
+                ];
             case 10:
+                _a.sent();
+                // Run cascade delete tests
+                return [4 /*yield*/, database_cascade_delete_tests({ sdk: sdk, sdkNonAdmin: sdkNonAdmin })];
+            case 11:
+                // Run cascade delete tests
                 _a.sent();
                 return [2 /*return*/];
         }

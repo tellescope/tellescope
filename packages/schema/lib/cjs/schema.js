@@ -6441,6 +6441,7 @@ exports.schema = (0, exports.build_schema)({
                     phoneNumber: { validator: validation_1.phoneValidatorOptional },
                     returnCount: { validator: validation_1.booleanValidatorOptional },
                     mdbFilter: { validator: validation_1.objectAnyFieldsAnyValuesValidator },
+                    sortBy: { validator: (0, validation_1.exactMatchValidatorOptional)(['timestamp', 'outboundTimestamp']) },
                 },
                 returns: {
                     threads: { validator: 'inbox_threads' },

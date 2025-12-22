@@ -348,9 +348,10 @@ export interface Organization_readonly extends ClientRecord {
   twilioCustomerId?: string,
   customPortalScriptTags?: string[],
 } 
-export interface Organization_required {}
-export interface Organization_updatesDisabled {
+export interface Organization_required {
   name: string;
+}
+export interface Organization_updatesDisabled {
   subdomain: string;
 }
 export interface Organization extends Organization_readonly, Organization_required, Organization_updatesDisabled {
@@ -5180,7 +5181,7 @@ export type ModelForName_required = {
   comment_likes: CommentLike_required;
   post_comments: PostComment_required;
   organizations: Organization_required;
-  integrations: Organization_required;
+  integrations: Integration_required;
   databases: Database_required;
   database_records: DatabaseRecord_required;
   portal_customizations: PortalCustomization_required;

@@ -77,6 +77,7 @@ import { custom_aggregation_tests } from "./api_tests/custom_aggregation.test";
 import { bulk_assignment_tests } from "./api_tests/bulk_assignment.test";
 import { managed_content_enduser_access_tests } from "./api_tests/managed_content_enduser_access.test";
 import { auto_merge_form_submission_tests } from "./api_tests/auto_merge_form_submission.test";
+import { database_cascade_delete_tests } from "./api_tests/database_cascade_delete.test";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
@@ -5835,6 +5836,9 @@ export const databases_tests = async () => {
     sdk.api.databases.deleteOne(database.id),
     sdk.api.databases.deleteOne(databaseNoRead.id),
   ])
+
+  // Run cascade delete tests
+  await database_cascade_delete_tests({ sdk, sdkNonAdmin })
 }
 
 export const filter_by_date_tests = async () => {

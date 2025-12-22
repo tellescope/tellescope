@@ -503,6 +503,83 @@ export const inbox_thread_assignment_updates_tests = async ({ sdk, sdkNonAdmin }
     assert(emptyIdsResult.threads.length >= 3, 'Empty ids array should not filter (return all threads)')
     console.log("✅ ids filter empty array test passed")
 
+    // Test 24: sortBy parameter - default behavior (timestamp)
+    console.log("Testing sortBy parameter - default behavior...")
+
+    // Create threads with controlled timestamps for sort testing
+    const sortTestBaseTime = Date.now()
+    const sortThread1 = await sdk.api.inbox_threads.createOne({
+      ...defaultThreadFields,
+      type: "SMS",
+      title: "Sort Test Thread 1",
+      threadId: `sort-test-1-${timestamp}`,
+      phoneNumber: "+15555550001",
+      enduserPhoneNumber: "+15555550002",
+      timestamp: new Date(sortTestBaseTime - 3000), // oldest timestamp
+      outboundTimestamp: new Date(sortTestBaseTime), // newest outboundTimestamp
+    })
+
+    const sortThread2 = await sdk.api.inbox_threads.createOne({
+      ...defaultThreadFields,
+      type: "SMS",
+      title: "Sort Test Thread 2",
+      threadId: `sort-test-2-${timestamp}`,
+      phoneNumber: "+15555550003",
+      enduserPhoneNumber: "+15555550004",
+      timestamp: new Date(sortTestBaseTime - 1000), // newest timestamp
+      outboundTimestamp: new Date(sortTestBaseTime - 3000), // oldest outboundTimestamp
+    })
+
+    const sortThread3 = await sdk.api.inbox_threads.createOne({
+      ...defaultThreadFields,
+      type: "SMS",
+      title: "Sort Test Thread 3",
+      threadId: `sort-test-3-${timestamp}`,
+      phoneNumber: "+15555550005",
+      enduserPhoneNumber: "+15555550006",
+      timestamp: new Date(sortTestBaseTime - 2000), // middle timestamp
+      outboundTimestamp: new Date(sortTestBaseTime - 2000), // middle outboundTimestamp
+    })
+
+    // Test default sort (should be by timestamp descending)
+    const defaultSortResult = await sdk.api.inbox_threads.load_threads({
+      ids: [sortThread1.id, sortThread2.id, sortThread3.id]
+    })
+    assert(defaultSortResult.threads.length === 3, 'Should return 3 sort test threads')
+    assert(defaultSortResult.threads[0].id === sortThread2.id, 'Default sort: newest timestamp should be first')
+    assert(defaultSortResult.threads[1].id === sortThread3.id, 'Default sort: middle timestamp should be second')
+    assert(defaultSortResult.threads[2].id === sortThread1.id, 'Default sort: oldest timestamp should be last')
+    console.log("✅ sortBy default behavior test passed")
+
+    // Test 25: sortBy='timestamp' explicit
+    console.log("Testing sortBy='timestamp' explicit...")
+    const timestampSortResult = await sdk.api.inbox_threads.load_threads({
+      ids: [sortThread1.id, sortThread2.id, sortThread3.id],
+      sortBy: 'timestamp'
+    })
+    assert(timestampSortResult.threads[0].id === sortThread2.id, 'Explicit timestamp sort: newest should be first')
+    assert(timestampSortResult.threads[1].id === sortThread3.id, 'Explicit timestamp sort: middle should be second')
+    assert(timestampSortResult.threads[2].id === sortThread1.id, 'Explicit timestamp sort: oldest should be last')
+    console.log("✅ sortBy='timestamp' test passed")
+
+    // Test 26: sortBy='outboundTimestamp'
+    console.log("Testing sortBy='outboundTimestamp'...")
+    const outboundSortResult = await sdk.api.inbox_threads.load_threads({
+      ids: [sortThread1.id, sortThread2.id, sortThread3.id],
+      sortBy: 'outboundTimestamp'
+    })
+    assert(outboundSortResult.threads[0].id === sortThread1.id, 'OutboundTimestamp sort: newest outbound should be first')
+    assert(outboundSortResult.threads[1].id === sortThread3.id, 'OutboundTimestamp sort: middle outbound should be second')
+    assert(outboundSortResult.threads[2].id === sortThread2.id, 'OutboundTimestamp sort: oldest outbound should be last')
+    console.log("✅ sortBy='outboundTimestamp' test passed")
+
+    // Cleanup sort test threads
+    await Promise.all([
+      sdk.api.inbox_threads.deleteOne(sortThread1.id),
+      sdk.api.inbox_threads.deleteOne(sortThread2.id),
+      sdk.api.inbox_threads.deleteOne(sortThread3.id),
+    ])
+
     console.log("🎉 All InboxThread assignment update tests passed!")
 
   } finally {

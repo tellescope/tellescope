@@ -53,7 +53,7 @@ var host = process.env.API_URL || 'http://localhost:8080';
 export var inbox_thread_assignment_updates_tests = function (_a) {
     var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
     return __awaiter(void 0, void 0, void 0, function () {
-        var timestamp, testUser, testEnduser, defaultThreadFields, emailSubject, emailThreadId, emailThread, testEmail, smsThread, testSMS, testChatRoom, chatThread, loadedThreads, updatedEmailThread, loadedThreads2, updatedSMSThread, loadedThreads3, updatedChatThread, loadedThreads4, unchangedThread, loadedThreads5, clearedAssignThread, fixedTimestamp, matchingTimestampSubject, matchingTimestampThreadId, matchingTimestampEmailThread_1, matchingTimestampEmail, loadedThreads6, matchingTimestampUpdatedThread, matchingTimestampSMSThread_1, matchingTimestampSMS, loadedThreads7, matchingTimestampSMSUpdatedThread, orphanEmail, threadsBeforeOrphanUpdate, threadCountBefore, threadsAfterOrphanUpdate, threadCountAfter, upsertSMS, threadsAfterUpsertTest, upsertedThread, countResult, allThreads, filteredThreads, filteredCount, nonMatchingCount, emailTypeFilter, foundEmailByType, foundSmsByType, multiTypeFilter, foundEmailMulti, foundSmsMulti, foundChatMulti, assigneeFilter, foundAssigned, combinedFilter, foundCombined, mdbFilterCount, emptyMdbFilter, idsFilterResult, foundEmailById, foundSmsById, foundChatById, singleIdResult, idsCombinedResult, idsCountResult, emptyIdsResult, err_1;
+        var timestamp, testUser, testEnduser, defaultThreadFields, emailSubject, emailThreadId, emailThread, testEmail, smsThread, testSMS, testChatRoom, chatThread, loadedThreads, updatedEmailThread, loadedThreads2, updatedSMSThread, loadedThreads3, updatedChatThread, loadedThreads4, unchangedThread, loadedThreads5, clearedAssignThread, fixedTimestamp, matchingTimestampSubject, matchingTimestampThreadId, matchingTimestampEmailThread_1, matchingTimestampEmail, loadedThreads6, matchingTimestampUpdatedThread, matchingTimestampSMSThread_1, matchingTimestampSMS, loadedThreads7, matchingTimestampSMSUpdatedThread, orphanEmail, threadsBeforeOrphanUpdate, threadCountBefore, threadsAfterOrphanUpdate, threadCountAfter, upsertSMS, threadsAfterUpsertTest, upsertedThread, countResult, allThreads, filteredThreads, filteredCount, nonMatchingCount, emailTypeFilter, foundEmailByType, foundSmsByType, multiTypeFilter, foundEmailMulti, foundSmsMulti, foundChatMulti, assigneeFilter, foundAssigned, combinedFilter, foundCombined, mdbFilterCount, emptyMdbFilter, idsFilterResult, foundEmailById, foundSmsById, foundChatById, singleIdResult, idsCombinedResult, idsCountResult, emptyIdsResult, sortTestBaseTime, sortThread1, sortThread2, sortThread3, defaultSortResult, timestampSortResult, outboundSortResult, err_1;
         var _b;
         return __generator(this, function (_c) {
             switch (_c.label) {
@@ -147,7 +147,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                     _c.sent();
                     _c.label = 11;
                 case 11:
-                    _c.trys.push([11, , 67, 71]);
+                    _c.trys.push([11, , 74, 78]);
                     // Test 1: Email Assignment Updates
                     console.log("Testing email assignment updates...");
                     // Update email assignment
@@ -581,10 +581,67 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                     emptyIdsResult = _c.sent();
                     assert(emptyIdsResult.threads.length >= 3, 'Empty ids array should not filter (return all threads)');
                     console.log("✅ ids filter empty array test passed");
-                    console.log("🎉 All InboxThread assignment update tests passed!");
-                    return [3 /*break*/, 71];
+                    // Test 24: sortBy parameter - default behavior (timestamp)
+                    console.log("Testing sortBy parameter - default behavior...");
+                    sortTestBaseTime = Date.now();
+                    return [4 /*yield*/, sdk.api.inbox_threads.createOne(__assign(__assign({}, defaultThreadFields), { type: "SMS", title: "Sort Test Thread 1", threadId: "sort-test-1-".concat(timestamp), phoneNumber: "+15555550001", enduserPhoneNumber: "+15555550002", timestamp: new Date(sortTestBaseTime - 3000), outboundTimestamp: new Date(sortTestBaseTime) }))];
                 case 67:
-                    _c.trys.push([67, 69, , 70]);
+                    sortThread1 = _c.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.createOne(__assign(__assign({}, defaultThreadFields), { type: "SMS", title: "Sort Test Thread 2", threadId: "sort-test-2-".concat(timestamp), phoneNumber: "+15555550003", enduserPhoneNumber: "+15555550004", timestamp: new Date(sortTestBaseTime - 1000), outboundTimestamp: new Date(sortTestBaseTime - 3000) }))];
+                case 68:
+                    sortThread2 = _c.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.createOne(__assign(__assign({}, defaultThreadFields), { type: "SMS", title: "Sort Test Thread 3", threadId: "sort-test-3-".concat(timestamp), phoneNumber: "+15555550005", enduserPhoneNumber: "+15555550006", timestamp: new Date(sortTestBaseTime - 2000), outboundTimestamp: new Date(sortTestBaseTime - 2000) }))
+                        // Test default sort (should be by timestamp descending)
+                    ];
+                case 69:
+                    sortThread3 = _c.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({
+                            ids: [sortThread1.id, sortThread2.id, sortThread3.id]
+                        })];
+                case 70:
+                    defaultSortResult = _c.sent();
+                    assert(defaultSortResult.threads.length === 3, 'Should return 3 sort test threads');
+                    assert(defaultSortResult.threads[0].id === sortThread2.id, 'Default sort: newest timestamp should be first');
+                    assert(defaultSortResult.threads[1].id === sortThread3.id, 'Default sort: middle timestamp should be second');
+                    assert(defaultSortResult.threads[2].id === sortThread1.id, 'Default sort: oldest timestamp should be last');
+                    console.log("✅ sortBy default behavior test passed");
+                    // Test 25: sortBy='timestamp' explicit
+                    console.log("Testing sortBy='timestamp' explicit...");
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({
+                            ids: [sortThread1.id, sortThread2.id, sortThread3.id],
+                            sortBy: 'timestamp'
+                        })];
+                case 71:
+                    timestampSortResult = _c.sent();
+                    assert(timestampSortResult.threads[0].id === sortThread2.id, 'Explicit timestamp sort: newest should be first');
+                    assert(timestampSortResult.threads[1].id === sortThread3.id, 'Explicit timestamp sort: middle should be second');
+                    assert(timestampSortResult.threads[2].id === sortThread1.id, 'Explicit timestamp sort: oldest should be last');
+                    console.log("✅ sortBy='timestamp' test passed");
+                    // Test 26: sortBy='outboundTimestamp'
+                    console.log("Testing sortBy='outboundTimestamp'...");
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({
+                            ids: [sortThread1.id, sortThread2.id, sortThread3.id],
+                            sortBy: 'outboundTimestamp'
+                        })];
+                case 72:
+                    outboundSortResult = _c.sent();
+                    assert(outboundSortResult.threads[0].id === sortThread1.id, 'OutboundTimestamp sort: newest outbound should be first');
+                    assert(outboundSortResult.threads[1].id === sortThread3.id, 'OutboundTimestamp sort: middle outbound should be second');
+                    assert(outboundSortResult.threads[2].id === sortThread2.id, 'OutboundTimestamp sort: oldest outbound should be last');
+                    console.log("✅ sortBy='outboundTimestamp' test passed");
+                    // Cleanup sort test threads
+                    return [4 /*yield*/, Promise.all([
+                            sdk.api.inbox_threads.deleteOne(sortThread1.id),
+                            sdk.api.inbox_threads.deleteOne(sortThread2.id),
+                            sdk.api.inbox_threads.deleteOne(sortThread3.id),
+                        ])];
+                case 73:
+                    // Cleanup sort test threads
+                    _c.sent();
+                    console.log("🎉 All InboxThread assignment update tests passed!");
+                    return [3 /*break*/, 78];
+                case 74:
+                    _c.trys.push([74, 76, , 77]);
                     return [4 /*yield*/, Promise.all([
                             sdk.api.inbox_threads.deleteOne(emailThread.id),
                             sdk.api.inbox_threads.deleteOne(smsThread.id),
@@ -595,15 +652,15 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             sdk.api.endusers.deleteOne(testEnduser.id),
                             sdk.api.users.deleteOne(testUser.id),
                         ])];
-                case 68:
+                case 75:
                     _c.sent();
-                    return [3 /*break*/, 70];
-                case 69:
+                    return [3 /*break*/, 77];
+                case 76:
                     err_1 = _c.sent();
                     console.error("Cleanup error:", err_1);
-                    return [3 /*break*/, 70];
-                case 70: return [7 /*endfinally*/];
-                case 71: return [2 /*return*/];
+                    return [3 /*break*/, 77];
+                case 77: return [7 /*endfinally*/];
+                case 78: return [2 /*return*/];
             }
         });
     });

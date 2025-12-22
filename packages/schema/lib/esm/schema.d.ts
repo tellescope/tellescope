@@ -1631,8 +1631,10 @@ export type CustomActions = {
             lastTimestamp?: Date;
             userIds?: string[];
             enduserIds?: string[];
+            phoneNumber?: string;
             returnCount?: boolean;
             mdbFilter?: object;
+            sortBy?: 'timestamp' | 'outboundTimestamp';
         }, {
             threads: InboxThread[];
             count?: number;

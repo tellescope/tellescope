@@ -1210,7 +1210,7 @@ export type CustomActions = {
       { alreadyBuilt: boolean }
     >,
     load_threads: CustomAction<
-      { limit?: number, ids?: string[], excludeIds?: string[], lastTimestamp?: Date, userIds?: string[], enduserIds?: string[], returnCount?: boolean, mdbFilter?: object },
+      { limit?: number, ids?: string[], excludeIds?: string[], lastTimestamp?: Date, userIds?: string[], enduserIds?: string[], phoneNumber?: string, returnCount?: boolean, mdbFilter?: object, sortBy?: 'timestamp' | 'outboundTimestamp' },
       { threads: InboxThread[], count?: number }
     >,
     reset_threads: CustomAction<
@@ -9200,6 +9200,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           phoneNumber: { validator: phoneValidatorOptional },
           returnCount: { validator: booleanValidatorOptional },
           mdbFilter: { validator: objectAnyFieldsAnyValuesValidator },
+          sortBy: { validator: exactMatchValidatorOptional<'timestamp' | 'outboundTimestamp'>(['timestamp', 'outboundTimestamp']) },
         },
         returns: {
           threads: { validator: 'inbox_threads' as any },

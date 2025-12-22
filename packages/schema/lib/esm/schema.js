@@ -6436,6 +6436,7 @@ export var schema = build_schema({
                     phoneNumber: { validator: phoneValidatorOptional },
                     returnCount: { validator: booleanValidatorOptional },
                     mdbFilter: { validator: objectAnyFieldsAnyValuesValidator },
+                    sortBy: { validator: exactMatchValidatorOptional(['timestamp', 'outboundTimestamp']) },
                 },
                 returns: {
                     threads: { validator: 'inbox_threads' },
