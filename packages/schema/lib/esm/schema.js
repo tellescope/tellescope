@@ -646,6 +646,7 @@ export var schema = build_schema({
                     phone: { validator: phoneValidator },
                     email: { validator: emailValidator },
                     redir: { validator: stringValidator },
+                    dateOfBirth: { validator: stringValidator250 },
                 },
                 returns: {
                     result: { validator: loginFlowResultValidator, required: true },

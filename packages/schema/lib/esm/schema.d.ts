@@ -1683,6 +1683,7 @@ export type PublicActions = {
             email?: string;
             phone?: string;
             redir?: string;
+            dateOfBirth?: string;
             businessId: string;
             organizationIds?: string[];
         }, {

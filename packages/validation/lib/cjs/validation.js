@@ -4483,7 +4483,8 @@ var _LOGIN_FLOW_RESULTS = {
     // "continue-set-password": true, // something we may turn on later / as requested
     "continue-with-password": true,
     "sent-email": true,
-    "sent-sms": true
+    "sent-sms": true,
+    "requires-dob": true,
 };
 exports.LOGIN_FLOW_RESULTS = Object.keys(_LOGIN_FLOW_RESULTS);
 exports.loginFlowResultValidator = (0, exports.exactMatchValidator)(exports.LOGIN_FLOW_RESULTS);

@@ -2328,36 +2328,6 @@ export const useManagedContentRecordAssignments = (options={} as HookOptions<Man
     {...options}
   )
 }
-export const useAssignedManagedContentRecords = () => {
-  const session = useEnduserSession()
-  
-  const [, { filtered }] = useManagedContentRecords()
-  const [eventsLoading] = useCalendarEvents()
-
-  const [assignmentsLoading] = useManagedContentRecordAssignments()
-
-  if (!value_is_loaded(assignmentsLoading)) return {
-    status: assignmentsLoading.status,
-    value: undefined
-  } as LoadedData<ManagedContentRecord[]>
-
-  const recordsLoading = filtered(r => 
-      r.assignmentType === 'All'
-    || r.enduserId === session.userInfo.id
-    || !!assignmentsLoading.value.find(e => e.contentId === r.id)
-    || (
-        r.assignmentType === 'By Tags' 
-    &&  r.tags?.length 
-    &&  !!r.tags.find(t => session.userInfo.tags?.includes(t))
-    ) 
-    || (
-       value_is_loaded(eventsLoading)
-    && !!eventsLoading.value.find(e => e.sharedContentIds?.includes(r.id))
-    )
-  )
-
-  return recordsLoading
-}
 
 export const useForums = (options={} as HookOptions<Forum>) => {
   const session = useResolvedSession()

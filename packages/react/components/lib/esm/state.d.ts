@@ -3076,10 +3076,6 @@ export declare const useManagedContentRecordAssignments: (options?: HookOptions<
     sharedWithOrganizations?: string[][] | undefined;
     _overrideUnique?: boolean | undefined;
 }>;
-export declare const useAssignedManagedContentRecords: () => LoadedData<(import("@tellescope/types-models").ManagedContentRecord & {
-    id: string;
-    createdAt: Date;
-})[]>;
 export declare const useForums: (options?: HookOptions<import("@tellescope/types-models").Forum & {
     id: string;
     createdAt: Date;

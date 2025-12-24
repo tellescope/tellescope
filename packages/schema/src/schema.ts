@@ -1233,7 +1233,7 @@ export type PublicActions = {
     }, {  }>,
     request_password_reset: CustomAction<{ email: string, businessId: string, organizationIds?: string[]  }, { }>,
     reset_password: CustomAction<{ resetToken: string, newPassword: string, businessId: string, organizationIds?: string[] }, { }>,
-    begin_login_flow: CustomAction<{ email?: string, phone?: string, redir?: string, businessId: string, organizationIds?: string[] }, { result: LoginFlowResult, email?: string, otpToken?: string }>,
+    begin_login_flow: CustomAction<{ email?: string, phone?: string, redir?: string, dateOfBirth?: string, businessId: string, organizationIds?: string[] }, { result: LoginFlowResult, email?: string, otpToken?: string }>,
     unsubscribe: CustomAction<{ enduserId: string, unsubscribeFrom: string[] }, { }>,
     get_otp_methods: CustomAction<{ token: string }, { methods: string[] }>,
     send_otp: CustomAction<{ token: string, method: string }, { }>,
@@ -1958,14 +1958,15 @@ export const schema: SchemaV1 = build_schema({
         path: '/begin-enduser-login-flow',
         description: "Starts the login process for an enduser, supporting passwordless options",
         enduserOnly: true, // implemented as authenticate in enduser sdk only
-        parameters: { 
+        parameters: {
           businessId: { validator: mongoIdStringValidator, required: true, },
           organizationIds: { validator: listOfMongoIdStringValidatorEmptyOk },
           phone: { validator: phoneValidator },
           email: { validator: emailValidator },
           redir: { validator: stringValidator },
+          dateOfBirth: { validator: stringValidator250 },
         },
-        returns: { 
+        returns: {
           result: { validator: loginFlowResultValidator, required: true },
           otpToken: { validator: stringValidator, required: true },
           email: { validator: emailValidator },

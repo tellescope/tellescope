@@ -14120,7 +14120,7 @@ var updatedAt_tests = function () { return __awaiter(void 0, void 0, void 0, fun
     });
 }); };
 var replace_enduser_template_values_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var enduser, d;
+    var enduser, d, enduserWithVitals;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -14136,8 +14136,27 @@ var replace_enduser_template_values_tests = function () { return __awaiter(void 
                 assert(replace_enduser_template_values('{{enduser.UnknownCustomField}}', enduser) === '{{enduser.UnknownCustomField}}', 'fail UnknownCustomField', 'UnknownCustomField');
                 d = Date.now();
                 assert(replace_enduser_template_values(d, enduser) === d, 'fail non-string', 'non-string');
-                return [4 /*yield*/, sdk.api.endusers.deleteOne(enduser.id)];
+                return [4 /*yield*/, sdk.api.endusers.createOne({
+                        fname: "Vitals",
+                        height: { value: 72, unit: 'inches' },
+                        weight: { value: 180, unit: 'lbs' }
+                    })];
             case 2:
+                enduserWithVitals = _a.sent();
+                assert(replace_enduser_template_values('{{enduser.height.value}}', enduserWithVitals) === '72', 'fail height.value', 'height.value');
+                assert(replace_enduser_template_values('{{enduser.height.unit}}', enduserWithVitals) === 'inches', 'fail height.unit', 'height.unit');
+                assert(replace_enduser_template_values('{{enduser.weight.value}}', enduserWithVitals) === '180', 'fail weight.value', 'weight.value');
+                assert(replace_enduser_template_values('{{enduser.weight.unit}}', enduserWithVitals) === 'lbs', 'fail weight.unit', 'weight.unit');
+                // Test undefined safeguards - enduser without height/weight should return empty string
+                assert(replace_enduser_template_values('{{enduser.height.value}}', enduser) === '', 'fail undefined height.value', 'undefined height.value');
+                assert(replace_enduser_template_values('{{enduser.height.unit}}', enduser) === '', 'fail undefined height.unit', 'undefined height.unit');
+                assert(replace_enduser_template_values('{{enduser.weight.value}}', enduser) === '', 'fail undefined weight.value', 'undefined weight.value');
+                assert(replace_enduser_template_values('{{enduser.weight.unit}}', enduser) === '', 'fail undefined weight.unit', 'undefined weight.unit');
+                return [4 /*yield*/, sdk.api.endusers.deleteOne(enduserWithVitals.id)];
+            case 3:
+                _a.sent();
+                return [4 /*yield*/, sdk.api.endusers.deleteOne(enduser.id)];
+            case 4:
                 _a.sent();
                 return [2 /*return*/];
         }

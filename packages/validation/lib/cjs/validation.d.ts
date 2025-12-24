@@ -1781,10 +1781,11 @@ declare const _LOGIN_FLOW_RESULTS: {
     readonly "continue-with-password": true;
     readonly "sent-email": true;
     readonly "sent-sms": true;
+    readonly "requires-dob": true;
 };
 export type LoginFlowResult = keyof typeof _LOGIN_FLOW_RESULTS;
-export declare const LOGIN_FLOW_RESULTS: ("continue-with-password" | "sent-email" | "sent-sms")[];
-export declare const loginFlowResultValidator: ValidatorDefinition<"continue-with-password" | "sent-email" | "sent-sms">;
+export declare const LOGIN_FLOW_RESULTS: ("continue-with-password" | "sent-email" | "sent-sms" | "requires-dob")[];
+export declare const loginFlowResultValidator: ValidatorDefinition<"continue-with-password" | "sent-email" | "sent-sms" | "requires-dob">;
 export declare const appointmentTermsValidator: ValidatorDefinition<AppointmentTerm[]>;
 export declare const CURRENCIES: "USD"[];
 export declare const currencyValidator: ValidatorDefinition<"USD">;

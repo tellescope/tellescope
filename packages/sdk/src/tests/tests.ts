@@ -12368,6 +12368,25 @@ const replace_enduser_template_values_tests = async () => {
   const d = Date.now()
   assert(replace_enduser_template_values(d as any, enduser) === d as any, 'fail non-string', 'non-string')
 
+  // Test height/weight subfields with values present
+  const enduserWithVitals = await sdk.api.endusers.createOne({
+    fname: "Vitals",
+    height: { value: 72, unit: 'inches' },
+    weight: { value: 180, unit: 'lbs' }
+  })
+
+  assert(replace_enduser_template_values('{{enduser.height.value}}', enduserWithVitals) === '72', 'fail height.value', 'height.value')
+  assert(replace_enduser_template_values('{{enduser.height.unit}}', enduserWithVitals) === 'inches', 'fail height.unit', 'height.unit')
+  assert(replace_enduser_template_values('{{enduser.weight.value}}', enduserWithVitals) === '180', 'fail weight.value', 'weight.value')
+  assert(replace_enduser_template_values('{{enduser.weight.unit}}', enduserWithVitals) === 'lbs', 'fail weight.unit', 'weight.unit')
+
+  // Test undefined safeguards - enduser without height/weight should return empty string
+  assert(replace_enduser_template_values('{{enduser.height.value}}', enduser) === '', 'fail undefined height.value', 'undefined height.value')
+  assert(replace_enduser_template_values('{{enduser.height.unit}}', enduser) === '', 'fail undefined height.unit', 'undefined height.unit')
+  assert(replace_enduser_template_values('{{enduser.weight.value}}', enduser) === '', 'fail undefined weight.value', 'undefined weight.value')
+  assert(replace_enduser_template_values('{{enduser.weight.unit}}', enduser) === '', 'fail undefined weight.unit', 'undefined weight.unit')
+
+  await sdk.api.endusers.deleteOne(enduserWithVitals.id)
   await sdk.api.endusers.deleteOne(enduser.id)
 }
 

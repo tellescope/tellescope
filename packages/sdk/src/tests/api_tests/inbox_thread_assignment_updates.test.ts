@@ -580,6 +580,87 @@ export const inbox_thread_assignment_updates_tests = async ({ sdk, sdkNonAdmin }
       sdk.api.inbox_threads.deleteOne(sortThread3.id),
     ])
 
+    // ========== InboxStatus Preservation Tests ==========
+    // These tests verify that outbound messages do NOT reset inboxStatus
+
+    // Test 27: Outbound SMS should NOT reset inboxStatus
+    console.log("Testing outbound SMS should NOT reset inboxStatus...")
+
+    const statusTestSMS1 = await sdk.api.sms_messages.createOne({
+      message: "Inbound test message for status test",
+      enduserId: testEnduser.id,
+      inbound: true,
+      phoneNumber: "+15555559999",
+      enduserPhoneNumber: "+15555559876",
+      logOnly: true,
+    })
+
+    // Build threads using reset_threads + build_threads pattern
+    const statusTestFrom = new Date(Date.now() - 60000)
+    await sdk.api.inbox_threads.reset_threads()
+    await sdk.api.inbox_threads.build_threads({ from: statusTestFrom, to: new Date() })
+
+    const statusTestThreads = await sdk.api.inbox_threads.load_threads({})
+    const statusTestThread = statusTestThreads.threads.find(t =>
+      t.type === 'SMS' && t.enduserIds.includes(testEnduser.id) && t.phoneNumber === "+15555559999"
+    )
+    assert(!!statusTestThread, "Status test SMS thread should be created")
+    assert(statusTestThread!.inboxStatus === 'New', `Initial status should be 'New', got '${statusTestThread!.inboxStatus}'`)
+
+    // Update thread status to "Resolved"
+    await sdk.api.inbox_threads.updateOne(statusTestThread!.id, { inboxStatus: "Resolved" })
+
+    // Create outbound SMS (should NOT reset status)
+    const statusTestSMS2 = await sdk.api.sms_messages.createOne({
+      message: "Outbound reply - should not reset status",
+      enduserId: testEnduser.id,
+      inbound: false,
+      phoneNumber: "+15555559999",
+      enduserPhoneNumber: "+15555559876",
+      logOnly: true,
+    })
+
+    // Rebuild threads - status should remain "Resolved"
+    await sdk.api.inbox_threads.build_threads({ from: statusTestFrom, to: new Date() })
+
+    const threadAfterOutbound = (await sdk.api.inbox_threads.load_threads({ ids: [statusTestThread!.id] })).threads[0]
+    assert(threadAfterOutbound.inboxStatus === 'Resolved', `Status should remain 'Resolved' after outbound message, got '${threadAfterOutbound.inboxStatus}'`)
+    assert(!!threadAfterOutbound.outboundTimestamp, "outboundTimestamp should be set after outbound message")
+
+    console.log("✅ Outbound SMS does NOT reset inboxStatus test passed")
+
+    // Test 28: New inbound SMS SHOULD update inboxStatus
+    console.log("Testing new inbound SMS SHOULD update inboxStatus...")
+
+    // Wait to ensure ObjectId timestamps are in different seconds (MongoDB ObjectIds have second-level precision)
+    await new Promise(resolve => setTimeout(resolve, 1100))
+
+    const statusTestSMS3 = await sdk.api.sms_messages.createOne({
+      message: "New inbound - should update status",
+      enduserId: testEnduser.id,
+      inbound: true,
+      phoneNumber: "+15555559999",
+      enduserPhoneNumber: "+15555559876",
+      inboxStatus: "New",
+      logOnly: true,
+    })
+
+    // Rebuild threads - status SHOULD be updated from new inbound
+    await sdk.api.inbox_threads.build_threads({ from: statusTestFrom, to: new Date() })
+
+    const threadAfterNewInbound = (await sdk.api.inbox_threads.load_threads({ ids: [statusTestThread!.id] })).threads[0]
+    assert(threadAfterNewInbound.inboxStatus === 'New', `Status SHOULD be 'New' after new inbound message, got '${threadAfterNewInbound.inboxStatus}'`)
+
+    console.log("✅ New inbound SMS DOES update inboxStatus test passed")
+
+    // Cleanup status preservation test resources
+    await Promise.all([
+      sdk.api.sms_messages.deleteOne(statusTestSMS1.id),
+      sdk.api.sms_messages.deleteOne(statusTestSMS2.id),
+      sdk.api.sms_messages.deleteOne(statusTestSMS3.id),
+      sdk.api.inbox_threads.deleteOne(statusTestThread!.id),
+    ])
+
     console.log("🎉 All InboxThread assignment update tests passed!")
 
   } finally {

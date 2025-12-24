@@ -1889,29 +1889,6 @@ export var useManagedContentRecordAssignments = function (options) {
         updateOne: session.api.managed_content_record_assignments.updateOne,
     }, __assign({}, options));
 };
-export var useAssignedManagedContentRecords = function () {
-    var session = useEnduserSession();
-    var _a = useManagedContentRecords(), filtered = _a[1].filtered;
-    var eventsLoading = useCalendarEvents()[0];
-    var assignmentsLoading = useManagedContentRecordAssignments()[0];
-    if (!value_is_loaded(assignmentsLoading))
-        return {
-            status: assignmentsLoading.status,
-            value: undefined
-        };
-    var recordsLoading = filtered(function (r) {
-        var _a;
-        return r.assignmentType === 'All'
-            || r.enduserId === session.userInfo.id
-            || !!assignmentsLoading.value.find(function (e) { return e.contentId === r.id; })
-            || (r.assignmentType === 'By Tags'
-                && ((_a = r.tags) === null || _a === void 0 ? void 0 : _a.length)
-                && !!r.tags.find(function (t) { var _a; return (_a = session.userInfo.tags) === null || _a === void 0 ? void 0 : _a.includes(t); }))
-            || (value_is_loaded(eventsLoading)
-                && !!eventsLoading.value.find(function (e) { var _a; return (_a = e.sharedContentIds) === null || _a === void 0 ? void 0 : _a.includes(r.id); }));
-    });
-    return recordsLoading;
-};
 export var useForums = function (options) {
     if (options === void 0) { options = {}; }
     var session = useResolvedSession();

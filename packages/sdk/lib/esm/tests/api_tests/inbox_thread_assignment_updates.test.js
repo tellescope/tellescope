@@ -53,7 +53,7 @@ var host = process.env.API_URL || 'http://localhost:8080';
 export var inbox_thread_assignment_updates_tests = function (_a) {
     var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
     return __awaiter(void 0, void 0, void 0, function () {
-        var timestamp, testUser, testEnduser, defaultThreadFields, emailSubject, emailThreadId, emailThread, testEmail, smsThread, testSMS, testChatRoom, chatThread, loadedThreads, updatedEmailThread, loadedThreads2, updatedSMSThread, loadedThreads3, updatedChatThread, loadedThreads4, unchangedThread, loadedThreads5, clearedAssignThread, fixedTimestamp, matchingTimestampSubject, matchingTimestampThreadId, matchingTimestampEmailThread_1, matchingTimestampEmail, loadedThreads6, matchingTimestampUpdatedThread, matchingTimestampSMSThread_1, matchingTimestampSMS, loadedThreads7, matchingTimestampSMSUpdatedThread, orphanEmail, threadsBeforeOrphanUpdate, threadCountBefore, threadsAfterOrphanUpdate, threadCountAfter, upsertSMS, threadsAfterUpsertTest, upsertedThread, countResult, allThreads, filteredThreads, filteredCount, nonMatchingCount, emailTypeFilter, foundEmailByType, foundSmsByType, multiTypeFilter, foundEmailMulti, foundSmsMulti, foundChatMulti, assigneeFilter, foundAssigned, combinedFilter, foundCombined, mdbFilterCount, emptyMdbFilter, idsFilterResult, foundEmailById, foundSmsById, foundChatById, singleIdResult, idsCombinedResult, idsCountResult, emptyIdsResult, sortTestBaseTime, sortThread1, sortThread2, sortThread3, defaultSortResult, timestampSortResult, outboundSortResult, err_1;
+        var timestamp, testUser, testEnduser, defaultThreadFields, emailSubject, emailThreadId, emailThread, testEmail, smsThread, testSMS, testChatRoom, chatThread, loadedThreads, updatedEmailThread, loadedThreads2, updatedSMSThread, loadedThreads3, updatedChatThread, loadedThreads4, unchangedThread, loadedThreads5, clearedAssignThread, fixedTimestamp, matchingTimestampSubject, matchingTimestampThreadId, matchingTimestampEmailThread_1, matchingTimestampEmail, loadedThreads6, matchingTimestampUpdatedThread, matchingTimestampSMSThread_1, matchingTimestampSMS, loadedThreads7, matchingTimestampSMSUpdatedThread, orphanEmail, threadsBeforeOrphanUpdate, threadCountBefore, threadsAfterOrphanUpdate, threadCountAfter, upsertSMS, threadsAfterUpsertTest, upsertedThread, countResult, allThreads, filteredThreads, filteredCount, nonMatchingCount, emailTypeFilter, foundEmailByType, foundSmsByType, multiTypeFilter, foundEmailMulti, foundSmsMulti, foundChatMulti, assigneeFilter, foundAssigned, combinedFilter, foundCombined, mdbFilterCount, emptyMdbFilter, idsFilterResult, foundEmailById, foundSmsById, foundChatById, singleIdResult, idsCombinedResult, idsCountResult, emptyIdsResult, sortTestBaseTime, sortThread1, sortThread2, sortThread3, defaultSortResult, timestampSortResult, outboundSortResult, statusTestSMS1, statusTestFrom, statusTestThreads, statusTestThread, statusTestSMS2, threadAfterOutbound, statusTestSMS3, threadAfterNewInbound, err_1;
         var _b;
         return __generator(this, function (_c) {
             switch (_c.label) {
@@ -147,7 +147,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                     _c.sent();
                     _c.label = 11;
                 case 11:
-                    _c.trys.push([11, , 74, 78]);
+                    _c.trys.push([11, , 87, 91]);
                     // Test 1: Email Assignment Updates
                     console.log("Testing email assignment updates...");
                     // Update email assignment
@@ -634,14 +634,119 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             sdk.api.inbox_threads.deleteOne(sortThread1.id),
                             sdk.api.inbox_threads.deleteOne(sortThread2.id),
                             sdk.api.inbox_threads.deleteOne(sortThread3.id),
-                        ])];
+                        ])
+                        // ========== InboxStatus Preservation Tests ==========
+                        // These tests verify that outbound messages do NOT reset inboxStatus
+                        // Test 27: Outbound SMS should NOT reset inboxStatus
+                    ];
                 case 73:
                     // Cleanup sort test threads
                     _c.sent();
-                    console.log("🎉 All InboxThread assignment update tests passed!");
-                    return [3 /*break*/, 78];
+                    // ========== InboxStatus Preservation Tests ==========
+                    // These tests verify that outbound messages do NOT reset inboxStatus
+                    // Test 27: Outbound SMS should NOT reset inboxStatus
+                    console.log("Testing outbound SMS should NOT reset inboxStatus...");
+                    return [4 /*yield*/, sdk.api.sms_messages.createOne({
+                            message: "Inbound test message for status test",
+                            enduserId: testEnduser.id,
+                            inbound: true,
+                            phoneNumber: "+15555559999",
+                            enduserPhoneNumber: "+15555559876",
+                            logOnly: true,
+                        })
+                        // Build threads using reset_threads + build_threads pattern
+                    ];
                 case 74:
-                    _c.trys.push([74, 76, , 77]);
+                    statusTestSMS1 = _c.sent();
+                    statusTestFrom = new Date(Date.now() - 60000);
+                    return [4 /*yield*/, sdk.api.inbox_threads.reset_threads()];
+                case 75:
+                    _c.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: statusTestFrom, to: new Date() })];
+                case 76:
+                    _c.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
+                case 77:
+                    statusTestThreads = _c.sent();
+                    statusTestThread = statusTestThreads.threads.find(function (t) {
+                        return t.type === 'SMS' && t.enduserIds.includes(testEnduser.id) && t.phoneNumber === "+15555559999";
+                    });
+                    assert(!!statusTestThread, "Status test SMS thread should be created");
+                    assert(statusTestThread.inboxStatus === 'New', "Initial status should be 'New', got '".concat(statusTestThread.inboxStatus, "'"));
+                    // Update thread status to "Resolved"
+                    return [4 /*yield*/, sdk.api.inbox_threads.updateOne(statusTestThread.id, { inboxStatus: "Resolved" })
+                        // Create outbound SMS (should NOT reset status)
+                    ];
+                case 78:
+                    // Update thread status to "Resolved"
+                    _c.sent();
+                    return [4 /*yield*/, sdk.api.sms_messages.createOne({
+                            message: "Outbound reply - should not reset status",
+                            enduserId: testEnduser.id,
+                            inbound: false,
+                            phoneNumber: "+15555559999",
+                            enduserPhoneNumber: "+15555559876",
+                            logOnly: true,
+                        })
+                        // Rebuild threads - status should remain "Resolved"
+                    ];
+                case 79:
+                    statusTestSMS2 = _c.sent();
+                    // Rebuild threads - status should remain "Resolved"
+                    return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: statusTestFrom, to: new Date() })];
+                case 80:
+                    // Rebuild threads - status should remain "Resolved"
+                    _c.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ ids: [statusTestThread.id] })];
+                case 81:
+                    threadAfterOutbound = (_c.sent()).threads[0];
+                    assert(threadAfterOutbound.inboxStatus === 'Resolved', "Status should remain 'Resolved' after outbound message, got '".concat(threadAfterOutbound.inboxStatus, "'"));
+                    assert(!!threadAfterOutbound.outboundTimestamp, "outboundTimestamp should be set after outbound message");
+                    console.log("✅ Outbound SMS does NOT reset inboxStatus test passed");
+                    // Test 28: New inbound SMS SHOULD update inboxStatus
+                    console.log("Testing new inbound SMS SHOULD update inboxStatus...");
+                    // Wait to ensure ObjectId timestamps are in different seconds (MongoDB ObjectIds have second-level precision)
+                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1100); })];
+                case 82:
+                    // Wait to ensure ObjectId timestamps are in different seconds (MongoDB ObjectIds have second-level precision)
+                    _c.sent();
+                    return [4 /*yield*/, sdk.api.sms_messages.createOne({
+                            message: "New inbound - should update status",
+                            enduserId: testEnduser.id,
+                            inbound: true,
+                            phoneNumber: "+15555559999",
+                            enduserPhoneNumber: "+15555559876",
+                            inboxStatus: "New",
+                            logOnly: true,
+                        })
+                        // Rebuild threads - status SHOULD be updated from new inbound
+                    ];
+                case 83:
+                    statusTestSMS3 = _c.sent();
+                    // Rebuild threads - status SHOULD be updated from new inbound
+                    return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: statusTestFrom, to: new Date() })];
+                case 84:
+                    // Rebuild threads - status SHOULD be updated from new inbound
+                    _c.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ ids: [statusTestThread.id] })];
+                case 85:
+                    threadAfterNewInbound = (_c.sent()).threads[0];
+                    assert(threadAfterNewInbound.inboxStatus === 'New', "Status SHOULD be 'New' after new inbound message, got '".concat(threadAfterNewInbound.inboxStatus, "'"));
+                    console.log("✅ New inbound SMS DOES update inboxStatus test passed");
+                    // Cleanup status preservation test resources
+                    return [4 /*yield*/, Promise.all([
+                            sdk.api.sms_messages.deleteOne(statusTestSMS1.id),
+                            sdk.api.sms_messages.deleteOne(statusTestSMS2.id),
+                            sdk.api.sms_messages.deleteOne(statusTestSMS3.id),
+                            sdk.api.inbox_threads.deleteOne(statusTestThread.id),
+                        ])];
+                case 86:
+                    // Cleanup status preservation test resources
+                    _c.sent();
+                    console.log("🎉 All InboxThread assignment update tests passed!");
+                    return [3 /*break*/, 91];
+                case 87:
+                    _c.trys.push([87, 89, , 90]);
                     return [4 /*yield*/, Promise.all([
                             sdk.api.inbox_threads.deleteOne(emailThread.id),
                             sdk.api.inbox_threads.deleteOne(smsThread.id),
@@ -652,15 +757,15 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             sdk.api.endusers.deleteOne(testEnduser.id),
                             sdk.api.users.deleteOne(testUser.id),
                         ])];
-                case 75:
+                case 88:
                     _c.sent();
-                    return [3 /*break*/, 77];
-                case 76:
+                    return [3 /*break*/, 90];
+                case 89:
                     err_1 = _c.sent();
                     console.error("Cleanup error:", err_1);
-                    return [3 /*break*/, 77];
-                case 77: return [7 /*endfinally*/];
-                case 78: return [2 /*return*/];
+                    return [3 /*break*/, 90];
+                case 90: return [7 /*endfinally*/];
+                case 91: return [2 /*return*/];
             }
         });
     });

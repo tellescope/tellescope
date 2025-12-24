@@ -651,6 +651,7 @@ exports.schema = (0, exports.build_schema)({
                     phone: { validator: validation_1.phoneValidator },
                     email: { validator: validation_1.emailValidator },
                     redir: { validator: validation_1.stringValidator },
+                    dateOfBirth: { validator: validation_1.stringValidator250 },
                 },
                 returns: {
                     result: { validator: validation_1.loginFlowResultValidator, required: true },

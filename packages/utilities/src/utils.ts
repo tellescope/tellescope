@@ -1148,6 +1148,11 @@ export const get_enduser_field_value_for_key = (enduser: Omit<Enduser, 'id'>, ke
     } catch(err) {}
   }
 
+  if (key === 'height.value') return enduser?.height?.value
+  if (key === 'height.unit') return enduser?.height?.unit
+  if (key === 'weight.value') return enduser?.weight?.value
+  if (key === 'weight.unit') return enduser?.weight?.unit
+
   try {
     if (key === 'createdAt' && (enduser as any)._id) {
       return ((enduser as any)._id as ObjectId).getTimestamp().toISOString()
@@ -2636,9 +2641,13 @@ export const replace_tag_template_values_for_enduser = (tags: string[], enduser:
       if (tagField === 'BMI' && enduser.height?.value && enduser.weight?.value) {
         return calculate_bmi(enduser).toFixed(2)
       }
+      if (tagField === 'height.value') return enduser?.height?.value?.toString() ?? ''
+      if (tagField === 'height.unit') return enduser?.height?.unit ?? ''
+      if (tagField === 'weight.value') return enduser?.weight?.value?.toString() ?? ''
+      if (tagField === 'weight.unit') return enduser?.weight?.unit ?? ''
 
       return (
-           enduser.fields?.[tagField]?.toString() 
+           enduser.fields?.[tagField]?.toString()
         || get_enduser_field_value_for_key(enduser, tagField)?.toString() // accounts for dotted fields like insurance.payerName
         || t
       )
