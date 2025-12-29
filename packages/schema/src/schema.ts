@@ -580,9 +580,12 @@ const BuiltInFields = {
     validator: mongoIdStringValidator,
     readonly: true,
   },
-  updatedAt: { 
+  updatedAt: {
     validator: dateValidator,
     readonly: true,
+  },
+  originalId: {
+    validator: stringValidator250,
   },
 }
 export type BuiltInFields_T = typeof BuiltInFields 
@@ -7199,6 +7202,8 @@ export const schema: SchemaV1 = build_schema({
       includeRelatedContactTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       calendarTitleText: { validator: stringValidator1000 },
       emailFieldBehavior: { validator: exactMatchValidator<Required<AppointmentBookingPageClient>['emailFieldBehavior']>(['required', 'optional', 'hidden']) },
+      language: { validator: stringValidator },
+      publicShowLanguage: { validator: booleanValidator },
       // defer to template
       // productIds: { validator: listOfStringsValidator },
     }

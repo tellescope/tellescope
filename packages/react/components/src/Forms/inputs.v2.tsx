@@ -193,7 +193,7 @@ const getListStyle = (isDraggingOver: boolean) => ({
   // padding: `${grid}px`,
   // width: '250px'
 });
-export const RankingInput = ({ field, value, onChange }: FormInputProps<'ranking'>) => {
+export const RankingInput = ({ field, value, onChange, form }: FormInputProps<'ranking'>) => {
   return (
     <Grid container direction='column'>
     {/* <Typography>Most</Typography> */}
@@ -242,7 +242,7 @@ export const RankingInput = ({ field, value, onChange }: FormInputProps<'ranking
     </DragDropContext>
 
     <Typography color="primary" style={{ marginTop: 3 }}>
-      Drag and drop to re-order the above options
+      {form_display_text_for_language(form, "Drag and drop to re-order the above options")}
     </Typography>
 
     {/* <Typography>Least</Typography> */}
@@ -280,7 +280,7 @@ export const DateInput = ({
   )
 }
 
-export const TableInput = ({ field, value=[], onChange, ...props }: FormInputProps<'Input Table'>) => {
+export const TableInput = ({ field, value=[], onChange, form, ...props }: FormInputProps<'Input Table'>) => {
   const choices = field.options?.tableChoices
 
   const handleNewRow = useCallback(() => {
@@ -324,7 +324,7 @@ export const TableInput = ({ field, value=[], onChange, ...props }: FormInputPro
   }, [field.isOptional, value, handleNewRow])
 
   if (!choices?.length) {
-    return <Typography color="error">No input choices available</Typography>
+    return <Typography color="error">{form_display_text_for_language(form, "No input choices available")}</Typography>
   }
 
   const length = choices.length || 1
@@ -393,7 +393,7 @@ export const TableInput = ({ field, value=[], onChange, ...props }: FormInputPro
           ))}
 
           <Grid item sx={{ ml: 'auto', width: iconWidth }}>
-            <LabeledIconButton Icon={CancelIcon} label="Remove" onClick={() => handleRemove(i)} 
+            <LabeledIconButton Icon={CancelIcon} label={form_display_text_for_language(form, "Remove")} onClick={() => handleRemove(i)}
               disabled={!field.isOptional && value.length === 1}
             />
           </Grid>
@@ -404,7 +404,7 @@ export const TableInput = ({ field, value=[], onChange, ...props }: FormInputPro
       ))}
 
       <Button variant="outlined" size="small" onClick={handleNewRow} sx={{ width: 200 }}>
-        Add new entry
+        {form_display_text_for_language(form, "Add new entry")}
       </Button>
     </Grid>
   )
@@ -419,7 +419,7 @@ const CustomDateStringInput = forwardRef((props: TextFieldProps, ref) => (
     fullWidth inputRef={ref} {...props} 
   />
 ))
-export const DateStringInput = ({ field, value, onChange, ...props }: FormInputProps<'string'>) => {
+export const DateStringInput = ({ field, value, onChange, form, ...props }: FormInputProps<'string'>) => {
   const inputRef = useRef(null);
 
   // if (value && isDateString(value)) {
@@ -453,7 +453,7 @@ export const DateStringInput = ({ field, value, onChange, ...props }: FormInputP
         />
       )
       : (
-        <AutoFocusTextField {...props} required={!field.isOptional} fullWidth placeholder="MM-DD-YYYY" value={value}
+        <AutoFocusTextField {...props} required={!field.isOptional} fullWidth placeholder={form_display_text_for_language(form, "MM-DD-YYYY")} value={value}
           label={(!field.title && field.placeholder) ? field.placeholder : props.label}
           onChange={e => {
             const v = e.target.value || ''
@@ -741,10 +741,10 @@ export const AddressInput = ({ field, form, value, onChange, ...props }: FormInp
 
         {field.fullZIP &&
           <Grid item xs={3}>
-            <TextField {...props} size="small" label="ZIP+4" required={!field.isOptional && field.fullZIP} 
+            <TextField {...props} size="small" label={form_display_text_for_language(form, "ZIP+4")} required={!field.isOptional && field.fullZIP}
               InputProps={defaultInputProps}
-              value={value?.zipPlusFour ?? ''} 
-              placeholder="ZIP + 4" 
+              value={value?.zipPlusFour ?? ''}
+              placeholder={form_display_text_for_language(form, "ZIP + 4")} 
               onChange={e => 
                 onChange({
                   ...value as any,
@@ -800,7 +800,7 @@ export const ESignatureTerms = () => {
   )
 }
 
-export const SignatureInput = ({ value, field, autoFocus=true, enduser, onChange }: FormInputProps<'signature'>) => {
+export const SignatureInput = ({ value, field, autoFocus=true, enduser, onChange, form }: FormInputProps<'signature'>) => {
   const prefill = (
     field.options?.prefillSignature && enduser?.fname && enduser.lname
       ? `${enduser.fname} ${enduser.lname}`
@@ -834,8 +834,8 @@ export const SignatureInput = ({ value, field, autoFocus=true, enduser, onChange
       }
       {!field.options?.pdfAttachment && field.options?.signatureUrl &&
         <Grid container direction="column" sx={{ mb:  2 }}>
-          <iframe src={field.options.signatureUrl} 
-            style={{ 
+          <iframe src={field.options.signatureUrl}
+            style={{
               border: 'none',
               height: 400,
               width: '100%',
@@ -843,12 +843,12 @@ export const SignatureInput = ({ value, field, autoFocus=true, enduser, onChange
             }}
           />
           <a href={field.options.signatureUrl} target="_blank" rel="noopener noreferrer">
-            View document in new tab
+            {form_display_text_for_language(form, "View document in new tab")}
           </a>
         </Grid>
       }
 
-      <Grid item xs={12}> 
+      <Grid item xs={12}>
         <Checkbox
           style={{ margin: 0, marginTop: 5, padding: 0, paddingRight: 3 }}
           color="primary"
@@ -856,9 +856,8 @@ export const SignatureInput = ({ value, field, autoFocus=true, enduser, onChange
           onClick={() => handleConsentChange()}
           inputProps={{ 'aria-label': 'consent to e-signature checkbox' }}
         />
-        <Typography component="span" style={{ position: 'relative', top: 5, left: 2 }}> 
-          I consent to 
-          use <a href={`/e-signature-terms?name=${field.options?.esignatureTermsCompanyName || ''}`} target="_blank" rel="noopener noreferrer"> electronic signatures </a>
+        <Typography component="span" style={{ position: 'relative', top: 5, left: 2 }}>
+          {form_display_text_for_language(form, "I consent to use")} <a href={`/e-signature-terms?name=${field.options?.esignatureTermsCompanyName || ''}`} target="_blank" rel="noopener noreferrer"> {form_display_text_for_language(form, "electronic signatures")} </a>
         </Typography>
       </Grid>
 
@@ -866,14 +865,14 @@ export const SignatureInput = ({ value, field, autoFocus=true, enduser, onChange
         <TextField disabled={!value?.signed} autoFocus={autoFocus}
           style={{ width: '100%'}}
           size="small"
-          aria-label="Full Name"
-          value={value?.fullName} 
-          placeholder={prefill || "Full Name"} variant="outlined" 
+          aria-label={form_display_text_for_language(form, "Full Name")}
+          value={value?.fullName}
+          placeholder={prefill || form_display_text_for_language(form, "Full Name")} variant="outlined"
           onChange={e => handleNameChange(e.target.value)}
           InputProps={defaultInputProps}
         />
-        <Typography color="primary" style={{ fontSize: 15, marginTop: 2 }}> 
-          Enter your legal full name to complete the signature
+        <Typography color="primary" style={{ fontSize: 15, marginTop: 2 }}>
+          {form_display_text_for_language(form, "Enter your legal full name to complete the signature")}
         </Typography>
       </Grid>
     </Grid>
@@ -910,7 +909,7 @@ export async function convertHEIC (file: FileBlob | string){
 };
 
 const value_is_image = (f?: { type?: string })=> f?.type?.includes('image')
-export const FileInput = ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles }: FormInputProps<'file'> & { existingFileName?: string }) => {
+export const FileInput = ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles, form }: FormInputProps<'file'> & { existingFileName?: string }) => {
   const [error, setError] = useState('')
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
     onDrop: useCallback(
@@ -988,11 +987,11 @@ export const FileInput = ({ value, onChange, field, existingFileName, uploadingF
               ? (
                 <Grid container direction="column" alignItems="center">
                   <Grid item>
-                    <AddPhotoAlternateIcon color="primary" /> 
+                    <AddPhotoAlternateIcon color="primary" />
                   </Grid>
                   <Grid item>
                     <Typography sx={{ fontSize: 14, textAlign: 'center' }}>
-                      Select file or take picture
+                      {form_display_text_for_language(form, "Select file or take picture")}
                     </Typography>
                   </Grid>
                 </Grid>
@@ -1000,7 +999,7 @@ export const FileInput = ({ value, onChange, field, existingFileName, uploadingF
               : <Grid container direction="column" alignItems="center" rowGap={2}>
                   <UploadFile color="primary" sx={{ fontSize: 25 }} />
                   <Typography>
-                    {isDragActive ? "Drop to select file" : "Click or drag and drop"}
+                    {isDragActive ? form_display_text_for_language(form, "Drop to select file") : form_display_text_for_language(form, "Click or drag and drop")}
                   </Typography>
                 </Grid>
           }
@@ -1031,7 +1030,7 @@ export const safe_create_url = (file: any) => {
   }
 }
 
-export const FilesInput = ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles }: FormInputProps<'files'> & { existingFileName?: string }) => {
+export const FilesInput = ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles, form }: FormInputProps<'files'> & { existingFileName?: string }) => {
   const [error, setError] = useState('')
   const { getRootProps, getInputProps, isDragActive } = useDropzone({ 
     onDrop: useCallback(
@@ -1090,7 +1089,7 @@ export const FilesInput = ({ value, onChange, field, existingFileName, uploading
               </Grid>
               <Grid item>
                 <Typography sx={{ fontSize: 14, textAlign: 'center' }}>
-                  Select files or take pictures
+                  {form_display_text_for_language(form, "Select files or take pictures")}
                 </Typography>
               </Grid>
             </Grid>
@@ -1098,7 +1097,7 @@ export const FilesInput = ({ value, onChange, field, existingFileName, uploading
           : <Grid container direction="column" alignItems="center" rowGap={2}>
               <UploadFile color="primary" sx={{ fontSize: 25 }} />
               <Typography>
-                {isDragActive ? "Drop to select files" : "Click or drag and drop"}
+                {isDragActive ? form_display_text_for_language(form, "Drop to select files") : form_display_text_for_language(form, "Click or drag and drop")}
               </Typography>
             </Grid>
         }
@@ -1136,7 +1135,7 @@ export const FilesInput = ({ value, onChange, field, existingFileName, uploading
         </Grid>
 
         <Grid item>
-          <LabeledIconButton label="Remove"
+          <LabeledIconButton label={form_display_text_for_language(form, "Remove")}
             Icon={Delete}
             onClick={() => onChange(value.filter((f, _i) => i !== _i), field.id)}
           />
@@ -1145,7 +1144,7 @@ export const FilesInput = ({ value, onChange, field, existingFileName, uploading
       </Grid>
     ))}
     </Grid>
-    
+
     {error && 
       <Grid item alignSelf="center" sx={{ mt: 0.5 }}>
         <Typography color="error">{error}</Typography>
@@ -1545,7 +1544,7 @@ type CanvasMedicationResult = {
   entry?: { resource: { code: { coding: { system: string, code: string, display: string } []}} }[]
 }
 
-export const CanvasMedicationsInput = ({ field, value=[], onChange }: FormInputProps<'Medications'>) => {
+export const CanvasMedicationsInput = ({ field, value=[], onChange, form }: FormInputProps<'Medications'>) => {
   const session = useResolvedSession()
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<MedicationResponse[]>([])
@@ -1593,7 +1592,7 @@ export const CanvasMedicationsInput = ({ field, value=[], onChange }: FormInputP
     <Grid container direction="column" spacing={1}>
       <Grid item>
       <Autocomplete multiple value={value} options={results} style={{ marginTop: 5 }}
-        noOptionsText={query.length ? 'No results found' : 'Type to start search'}
+        noOptionsText={query.length ? form_display_text_for_language(form, 'No results found') : form_display_text_for_language(form, 'Type to start search')}
         onChange={(e, v) => {
           if (!v) { return }
           onChange(v, field.id)
@@ -1603,7 +1602,7 @@ export const CanvasMedicationsInput = ({ field, value=[], onChange }: FormInputP
         inputValue={query} onInputChange={(e, v) => e && setQuery(v) }
         renderInput={(params) => (
           <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
-            required={!field.isOptional} size="small" label="" placeholder="Search medications..."
+            required={!field.isOptional} size="small" label="" placeholder={form_display_text_for_language(form, "Search medications...")}
           />
         )}
         renderTags={(value, getTagProps) =>
@@ -1629,7 +1628,7 @@ export const CanvasMedicationsInput = ({ field, value=[], onChange }: FormInputP
 
           <Grid item>
             <TextField InputProps={{ sx: defaultInputProps.sx }} fullWidth size="small" 
-              label="Medication instructions: how much you take, how often, and when"
+              label={form_display_text_for_language(form, "Medication instructions: how much you take, how often, and when")}
               value={medication.dosage?.description || ''} 
               onChange={e => (
                 onChange((value || []).map((v, _i) => 
@@ -1652,7 +1651,7 @@ export const CanvasMedicationsInput = ({ field, value=[], onChange }: FormInputP
   )
 }
 
-export const MedicationsInput = ({ field, value, onChange, ...props }: FormInputProps<'Medications'>) => {
+export const MedicationsInput = ({ field, value, onChange, form, ...props }: FormInputProps<'Medications'>) => {
   const { displayTerms, doneLoading, getCodesForDrug, getDrugsForDisplayTerm } = useMedications({
     dontFetch: field.options?.dataSource === CANVAS_TITLE
   })
@@ -1743,10 +1742,10 @@ export const MedicationsInput = ({ field, value, onChange, ...props }: FormInput
                 field.id,
               )
             }}
-            renderInput={params => 
-              <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }} required={!field.isOptional} label="Search" size="small" fullWidth />
+            renderInput={params =>
+              <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }} required={!field.isOptional} label={form_display_text_for_language(form, "Search")} size="small" fullWidth />
             }
-          /> 
+          />
           </Grid>
 
           {v.displayTerm && v.drugName !== "Unknown" && !v.otherDrug &&
@@ -1769,15 +1768,15 @@ export const MedicationsInput = ({ field, value, onChange, ...props }: FormInput
                   if (!drug) return
 
                   const info = (
-                    drug.name === 'Unknown' 
+                    drug.name === 'Unknown'
                       ? await getCodesForDrug(v.displayTerm) // might get us a value, better than searching Unknown or keeping a prior value
                       : await getCodesForDrug(drug.name)
                   )
                   onChange(
                     (value ?? []).map((_v, _i) => (
                       i === _i
-                        ? { 
-                          ..._v, 
+                        ? {
+                          ..._v,
                           drugName: drug.name,
                           drugSynonym: drug.synonym || '',
                           ...info,
@@ -1787,16 +1786,16 @@ export const MedicationsInput = ({ field, value, onChange, ...props }: FormInput
                     field.id,
                   )
                 }}
-                renderInput={params => 
-                  <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }} required={!field.isOptional} label="Drug Select" size="small" fullWidth />
+                renderInput={params =>
+                  <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }} required={!field.isOptional} label={form_display_text_for_language(form, "Drug Select")} size="small" fullWidth />
                 }
-              /> 
+              />
             </Grid>
           }
 
-          {v.displayTerm && (v.drugName === "Unknown" || !v.drugName) && 
+          {v.displayTerm && (v.drugName === "Unknown" || !v.drugName) &&
             <Grid item sx={{ mt: 1 }}>
-              <TextField label='Other Drug' fullWidth size="small" required
+              <TextField label={form_display_text_for_language(form, 'Other Drug')} fullWidth size="small" required
                 InputProps={defaultInputProps}
                 value={value?.find((v, _i) => _i === i)?.otherDrug ?? ''}
                 onChange={e => (
@@ -1889,7 +1888,7 @@ export const MedicationsInput = ({ field, value, onChange, ...props }: FormInput
 
           {v.displayTerm &&
             <Grid item sx={{ mt: 1.25 }}>
-              <TextField label="Reason for taking medication" size="small" fullWidth
+              <TextField label={form_display_text_for_language(form, "Reason for taking medication")} size="small" fullWidth
                 InputProps={defaultInputProps}
                 value={v.reasonForTaking ?? ''} 
                 onChange={e => 
@@ -1913,7 +1912,7 @@ export const MedicationsInput = ({ field, value, onChange, ...props }: FormInput
             <Typography color="primary" sx={{ textDecoration: 'underline', cursor: 'pointer' }}
               onClick={() => onChange((value ?? []).filter((_, _i) => i !== _i), field.id)}
             >
-              Remove medication
+              {form_display_text_for_language(form, "Remove medication")}
             </Typography>
           </Grid>
 
@@ -1941,17 +1940,17 @@ export const MedicationsInput = ({ field, value, onChange, ...props }: FormInput
     ))}
 
       <Grid item>
-        <Button color="primary" variant="outlined" 
+        <Button color="primary" variant="outlined"
           onClick={() => onChange([...(value ?? []), { displayTerm: '', drugName: '' }], field.id)}
         >
-          Add Medication
+          {form_display_text_for_language(form, "Add Medication")}
         </Button>
       </Grid>
     </Grid>
   )
 }
 
-export const BelugaPatientPreferenceInput = ({ field, value: _value, onChange }: FormInputProps<'Beluga Patient Preference'>) => {
+export const BelugaPatientPreferenceInput = ({ field, value: _value, onChange, form }: FormInputProps<'Beluga Patient Preference'>) => {
   const value = Array.isArray(_value) ? _value : []
 
   return (
@@ -2091,7 +2090,7 @@ export const BelugaPatientPreferenceInput = ({ field, value: _value, onChange }:
             <Typography color="primary" sx={{ textDecoration: 'underline', cursor: 'pointer' }}
               onClick={() => onChange(value.filter((_, _i) => i !== _i), field.id)}
             >
-              Remove medication
+              {form_display_text_for_language(form, "Remove medication")}
             </Typography>
           </Grid>
         </Grid>
@@ -2110,7 +2109,7 @@ export const BelugaPatientPreferenceInput = ({ field, value: _value, onChange }:
             { name: '', strength: '', quantity: '', refills: '', daysSupply: '', sig: '', dispenseUnit: '', medId: '' }
           ], field.id)}
         >
-          Add Medication
+          {form_display_text_for_language(form, "Add Medication")}
         </Button>
       </Grid>
     </Grid>
@@ -2137,7 +2136,7 @@ export const contact_is_valid = (e: Partial<Enduser>) => {
   }
 }
 
-export const RelatedContactsInput = ({ field, value: _value, onChange, error: parentError, ...props }: FormInputProps<'Related Contacts'>) => {
+export const RelatedContactsInput = ({ field, value: _value, onChange, error: parentError, form, ...props }: FormInputProps<'Related Contacts'>) => {
   // safeguard against any rogue values like empty string
   const value = Array.isArray(_value) ? _value : []
 
@@ -2163,7 +2162,7 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, error: pa
         <Grid container alignItems="center" wrap="nowrap" spacing={1}>
           {!field.options?.hiddenDefaultFields?.includes('First Name') &&  
             <Grid item xs={4}>
-              <TextField label="First Name" size="small" fullWidth
+              <TextField label={form_display_text_for_language(form, "First Name")} size="small" fullWidth
                 InputProps={defaultInputProps}
                 value={fname} onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, fname: e.target.value } : v), field.id)}
               />
@@ -2172,7 +2171,7 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, error: pa
 
           {!field.options?.hiddenDefaultFields?.includes('Last Name') &&  
           <Grid item xs={4}>
-            <TextField label="Last Name" size="small" fullWidth
+            <TextField label={form_display_text_for_language(form, "Last Name")} size="small" fullWidth
               InputProps={defaultInputProps}
               value={lname} onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, lname: e.target.value } : v), field.id)}
             />
@@ -2180,7 +2179,7 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, error: pa
           }
 
           <Grid item xs={4}>
-            <StringSelector options={field.options?.relatedContactTypes?.length ? field.options.relatedContactTypes : RELATIONSHIP_TYPES} label="Relationship" size="small"
+            <StringSelector options={field.options?.relatedContactTypes?.length ? field.options.relatedContactTypes : RELATIONSHIP_TYPES} label={form_display_text_for_language(form, "Relationship")} size="small"
               disabled={field?.options?.relatedContactTypes?.length === 1}
               value={relationships?.[0]?.type ?? ''} 
               onChange={type => onChange(value.map((v, i) => i === editing ? { ...v, relationships: [{ type: type as EnduserRelationship['type'], id: '' /* to be filled on server-side */ }] } : v), field.id)}
@@ -2193,7 +2192,7 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, error: pa
         <Grid container alignItems="center" wrap="nowrap" spacing={1}>
           {!field.options?.hiddenDefaultFields?.includes('Date of Birth') &&  
           <Grid item xs={4}>
-            <DateStringInput value={dateOfBirth} field={{ ...field, isOptional: true }} size="small" label="Date of Birth (MM-DD-YYYY)"
+            <DateStringInput value={dateOfBirth} field={{ ...field, isOptional: true }} size="small" label={form_display_text_for_language(form, "Date of Birth (MM-DD-YYYY)")}
               onChange={dateOfBirth => onChange(value.map((v, i) => i === editing ? { ...v, dateOfBirth } : v), field.id)}
             />
           </Grid>
@@ -2201,7 +2200,7 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, error: pa
 
           {!field.options?.hiddenDefaultFields?.includes('Email') &&  
           <Grid item xs={4}>
-            <TextField label="Email" size="small" fullWidth type="email"
+            <TextField label={form_display_text_for_language(form, "Email")} size="small" fullWidth type="email"
               InputProps={defaultInputProps}
               value={email} onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, email: e.target.value } : v), field.id)}
             />
@@ -2210,7 +2209,7 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, error: pa
 
           {!field.options?.hiddenDefaultFields?.includes('Phone Number') &&  
           <Grid item xs={4}>
-            <TextField label="Phone Number" size="small" fullWidth
+            <TextField label={form_display_text_for_language(form, "Phone Number")} size="small" fullWidth
               InputProps={defaultInputProps}
               value={phone} onChange={e => onChange(value.map((v, i) => i === editing ? { ...v, phone: e.target.value.trim() } : v), field.id)}
             />
@@ -2267,7 +2266,7 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, error: pa
 
         <Grid item sx={{ my: 0.75 }}>
           <Button variant="outlined" onClick={() => setEditing(-1)} size="small" disabled={!!errorMessage || !!parentError}>
-            Save Contact
+            {form_display_text_for_language(form, "Save Contact")}
           </Button>
         </Grid>
 
@@ -2294,13 +2293,13 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, error: pa
               <Edit />
             </IconButton>
             <Typography noWrap>
-              {user_display_name(contact) || `Unnamed Contact ${i + 1}`}
+              {user_display_name(contact) || `${form_display_text_for_language(form, "Unnamed Contact")} ${i + 1}`}
             </Typography>
           </Grid> 
           </Grid> 
 
           <Grid item>
-            <LabeledIconButton Icon={Delete} label="Remove" onClick={() => onChange(value.filter((v, _i) => i !== _i), field.id)} />
+            <LabeledIconButton Icon={Delete} label={form_display_text_for_language(form, "Remove")} onClick={() => onChange(value.filter((v, _i) => i !== _i), field.id)} />
           </Grid> 
         </Grid> 
         </Grid>
@@ -2309,7 +2308,7 @@ export const RelatedContactsInput = ({ field, value: _value, onChange, error: pa
 
       <Grid item>
         <Button variant="contained" onClick={handleAddContact}>
-          Add Contact
+          {form_display_text_for_language(form, "Add Contact")}
         </Button>
       </Grid>
     </Grid>
@@ -2321,16 +2320,16 @@ export const AppointmentBookingInput = (props: FormInputProps<'Appointment Booki
   return <SharedAppointmentBookingInput {...props} />
 }
 
-export const HeightInput = ({ field, value={} as any, onChange, ...props }: FormInputProps<'Height'>) => (
+export const HeightInput = ({ field, value={} as any, onChange, form, ...props }: FormInputProps<'Height'>) => (
   <Grid container alignItems='center' wrap="nowrap" spacing={1} style={{ marginTop: 5 }}>
     <Grid item sx={{ width: '100%' }}>
-      <TextField fullWidth size="small" label="Feet" type="number"
-        value={value?.feet || ''} 
+      <TextField fullWidth size="small" label={form_display_text_for_language(form, "Feet")} type="number"
+        value={value?.feet || ''}
         onChange={e => onChange({ ...value, feet: parseInt(e.target.value) }, field.id)}
       />
     </Grid>
     <Grid item sx={{ width: '100%' }}>
-      <TextField fullWidth size="small" label="Inches" type="number"
+      <TextField fullWidth size="small" label={form_display_text_for_language(form, "Inches")} type="number"
         value={value?.inches ?? ''}
         onChange={e => onChange({ ...value, inches: parseInt(e.target.value) }, field.id)}
       />
@@ -2426,7 +2425,7 @@ export const EmotiiInput = ({ goToNextField, goToPreviousField, field, value, on
       <CheckCircleOutline color="success" />
 
       <Typography sx={{ ml: 1, fontSize: 20 }}>
-        Please click Next or Submit to continue.
+        {form_display_text_for_language(form, "Please click Next or Submit to continue.")}
       </Typography>
     </Grid>
   )
@@ -2506,7 +2505,7 @@ export const AllergiesInput = ({ goToNextField, goToPreviousField, field, value,
     <Grid container direction="column" spacing={1}>
       <Grid item>
       <Autocomplete multiple value={value || []} options={results} style={{ marginTop: 5 }}
-        noOptionsText={query.length ? 'No results found' : 'Type to start search'}
+        noOptionsText={query.length ? form_display_text_for_language(form, 'No results found') : form_display_text_for_language(form, 'Type to start search')}
         onChange={(e, v) => {
           if (!v) { return }
           onChange(v, field.id)
@@ -2516,7 +2515,7 @@ export const AllergiesInput = ({ goToNextField, goToPreviousField, field, value,
         inputValue={query} onInputChange={(e, v) => e && setQuery(v) }
         renderInput={(params) => (
           <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
-            required={!field.isOptional} size="small" label="" placeholder="Search allergies..."
+            required={!field.isOptional} size="small" label="" placeholder={form_display_text_for_language(form, "Search allergies...")}
           />
         )}
         renderTags={(value, getTagProps) =>
@@ -2541,7 +2540,7 @@ export const AllergiesInput = ({ goToNextField, goToPreviousField, field, value,
           </Grid>
 
           <Grid item sx={{ width: 140 }}>
-            <StringSelector options={['mild', 'moderate', 'severe']} size="small" label="Severity"
+            <StringSelector options={['mild', 'moderate', 'severe']} size="small" label={form_display_text_for_language(form, "Severity")}
               value={allergy.severity || ''}
               onChange={severity => onChange((value || []).map((v, _i) => i === _i ? { ...v, severity } : v), field.id)}
               getDisplayValue={first_letter_capitalized}
@@ -2549,8 +2548,8 @@ export const AllergiesInput = ({ goToNextField, goToPreviousField, field, value,
           </Grid>
 
           <Grid item sx={{ width: "50%" }}>
-            <TextField InputProps={{ sx: defaultInputProps.sx }} fullWidth size="small" label="Note"
-              value={allergy.note || ''} 
+            <TextField InputProps={{ sx: defaultInputProps.sx }} fullWidth size="small" label={form_display_text_for_language(form, "Note")}
+              value={allergy.note || ''}
               onChange={e => onChange((value || []).map((v, _i) => i === _i ? { ...v, note: e.target.value } : v), field.id)}
             />
           </Grid>
@@ -2592,7 +2591,7 @@ export const ConditionsInput = ({ goToNextField, goToPreviousField, field, value
 
   return (
     <Autocomplete multiple value={value || []} options={results} style={{ marginTop: 5 }}
-      noOptionsText={query.length ? 'No results found' : 'Type to start search'}
+      noOptionsText={query.length ? form_display_text_for_language(form, 'No results found') : form_display_text_for_language(form, 'Type to start search')}
       onChange={(e, v) => {
         if (!v) { return }
         onChange(v, field.id)
@@ -2602,7 +2601,7 @@ export const ConditionsInput = ({ goToNextField, goToPreviousField, field, value
       inputValue={query} onInputChange={(e, v) => e && setQuery(v) }
       renderInput={(params) => (
         <TextField {...params} InputProps={{ ...params.InputProps, sx: defaultInputProps.sx }}
-          required={!field.isOptional} size="small" label="" placeholder="Search conditions..."
+          required={!field.isOptional} size="small" label="" placeholder={form_display_text_for_language(form, "Search conditions...")}
         />
       )}
       renderTags={(value, getTagProps) =>

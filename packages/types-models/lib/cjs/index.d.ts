@@ -523,6 +523,7 @@ export interface RecordInfo {
     creator: string;
     organizationIds?: string[];
     sharedWithOrganizations?: string[][];
+    originalId?: string;
 }
 export interface ClientRecord extends RecordInfo {
     id: string;
@@ -2734,6 +2735,8 @@ export interface AppointmentBookingPage extends AppointmentBookingPage_readonly,
     dontRestrictRescheduleToOriginalHost?: boolean;
     calendarTitleText?: string;
     emailFieldBehavior?: "required" | "optional" | "hidden";
+    language?: string;
+    publicShowLanguage?: boolean;
 }
 export interface CalendarEventRSVP_readonly extends ClientRecord {
     creatorType: SessionType;
@@ -3959,6 +3962,7 @@ export type EnduserGrouping = {
     Gender?: boolean;
     "Assigned To"?: boolean;
     Tags?: boolean;
+    "Access Tags"?: boolean;
     Age?: boolean;
     Phone?: boolean;
     State?: string;

@@ -206,6 +206,9 @@ declare const BuiltInFields: {
         validator: ValidatorDefinition<Date>;
         readonly: boolean;
     };
+    originalId: {
+        validator: ValidatorDefinition<string>;
+    };
 };
 export type BuiltInFields_T = typeof BuiltInFields;
 export type AutoreplyInfo = {

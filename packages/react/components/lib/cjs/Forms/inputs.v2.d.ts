@@ -17,14 +17,14 @@ export declare const PdfViewer: ({ url, height }: {
     height?: number | undefined;
 }) => JSX.Element;
 export declare const RatingInput: ({ field, value, onChange }: FormInputProps<'rating'>) => JSX.Element;
-export declare const RankingInput: ({ field, value, onChange }: FormInputProps<'ranking'>) => JSX.Element;
+export declare const RankingInput: ({ field, value, onChange, form }: FormInputProps<'ranking'>) => JSX.Element;
 export declare const DateInput: ({ field, value, onChange, placement, ...props }: {
     field: FormField;
     placement?: "left" | "right" | "bottom" | "top" | undefined;
 } & FormInputProps<"date"> & Styled) => JSX.Element;
-export declare const TableInput: ({ field, value, onChange, ...props }: FormInputProps<'Input Table'>) => JSX.Element;
+export declare const TableInput: ({ field, value, onChange, form, ...props }: FormInputProps<'Input Table'>) => JSX.Element;
 export declare const AutoFocusTextField: (props: TextFieldProps) => JSX.Element;
-export declare const DateStringInput: ({ field, value, onChange, ...props }: FormInputProps<'string'>) => JSX.Element;
+export declare const DateStringInput: ({ field, value, onChange, form, ...props }: FormInputProps<'string'>) => JSX.Element;
 export declare const StringInput: ({ field, value, form, onChange, ...props }: FormInputProps<'string'>) => JSX.Element;
 export declare const StringLongInput: ({ field, value, onChange, form, ...props }: FormInputProps<'string'>) => JSX.Element;
 export declare const PhoneInput: ({ field, value, onChange, form, ...props }: FormInputProps<'phone'>) => JSX.Element;
@@ -36,13 +36,13 @@ export declare const TimeInput: ({ field, value, onChange, ...props }: FormInput
 export declare const TimezoneInput: ({ value, field, onChange, ...props }: FormInputProps<'Timezone'>) => JSX.Element;
 export declare const AddressInput: ({ field, form, value, onChange, ...props }: FormInputProps<'Address'>) => JSX.Element;
 export declare const ESignatureTerms: () => JSX.Element;
-export declare const SignatureInput: ({ value, field, autoFocus, enduser, onChange }: FormInputProps<'signature'>) => JSX.Element;
+export declare const SignatureInput: ({ value, field, autoFocus, enduser, onChange, form }: FormInputProps<'signature'>) => JSX.Element;
 export declare function convertHEIC(file: FileBlob | string): Promise<string>;
-export declare const FileInput: ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles }: FormInputProps<"file"> & {
+export declare const FileInput: ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles, form }: FormInputProps<"file"> & {
     existingFileName?: string | undefined;
 }) => JSX.Element;
 export declare const safe_create_url: (file: any) => string | null;
-export declare const FilesInput: ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles }: FormInputProps<"files"> & {
+export declare const FilesInput: ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles, form }: FormInputProps<"files"> & {
     existingFileName?: string | undefined;
 }) => JSX.Element;
 export declare const MultipleChoiceInput: ({ field, form, value: _value, onChange }: FormInputProps<'multiple_choice'>) => JSX.Element;
@@ -59,13 +59,13 @@ export declare const DatabaseSelectInput: (props: FormInputProps<'Database Selec
     responses: FormResponseValue[];
     AddToDatabase?: React.JSXElementConstructor<AddToDatabaseProps>;
 }) => JSX.Element;
-export declare const CanvasMedicationsInput: ({ field, value, onChange }: FormInputProps<'Medications'>) => JSX.Element;
-export declare const MedicationsInput: ({ field, value, onChange, ...props }: FormInputProps<'Medications'>) => JSX.Element;
-export declare const BelugaPatientPreferenceInput: ({ field, value: _value, onChange }: FormInputProps<'Beluga Patient Preference'>) => JSX.Element;
+export declare const CanvasMedicationsInput: ({ field, value, onChange, form }: FormInputProps<'Medications'>) => JSX.Element;
+export declare const MedicationsInput: ({ field, value, onChange, form, ...props }: FormInputProps<'Medications'>) => JSX.Element;
+export declare const BelugaPatientPreferenceInput: ({ field, value: _value, onChange, form }: FormInputProps<'Beluga Patient Preference'>) => JSX.Element;
 export declare const contact_is_valid: (e: Partial<Enduser>) => "Email is invalid" | "Phone is invalid" | "Date of birth should be MM-DD-YYYY" | undefined;
-export declare const RelatedContactsInput: ({ field, value: _value, onChange, error: parentError, ...props }: FormInputProps<'Related Contacts'>) => JSX.Element;
+export declare const RelatedContactsInput: ({ field, value: _value, onChange, error: parentError, form, ...props }: FormInputProps<'Related Contacts'>) => JSX.Element;
 export declare const AppointmentBookingInput: (props: FormInputProps<'Appointment Booking'>) => JSX.Element;
-export declare const HeightInput: ({ field, value, onChange, ...props }: FormInputProps<'Height'>) => JSX.Element;
+export declare const HeightInput: ({ field, value, onChange, form, ...props }: FormInputProps<'Height'>) => JSX.Element;
 export { RedirectInput } from './inputs';
 export declare const HiddenValueInput: ({ goToNextField, goToPreviousField, field, value, onChange, isSinglePage, groupFields }: FormInputProps<'email'>) => JSX.Element;
 export declare const EmotiiInput: ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'email'>) => JSX.Element;

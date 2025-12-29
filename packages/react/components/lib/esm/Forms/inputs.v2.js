@@ -176,7 +176,7 @@ var getListStyle = function (isDraggingOver) { return ({
 // width: '250px'
 }); };
 export var RankingInput = function (_a) {
-    var field = _a.field, value = _a.value, onChange = _a.onChange;
+    var field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form;
     return (_jsxs(Grid, __assign({ container: true, direction: 'column' }, { children: [_jsx(DragDropContext, __assign({ onDragEnd: function (result) {
                     if (!value)
                         return;
@@ -184,7 +184,7 @@ export var RankingInput = function (_a) {
                         return;
                     }
                     onChange(reorder(value, result.source.index, result.destination.index), field.id);
-                } }, { children: _jsx(Droppable, __assign({ droppableId: "droppable" }, { children: function (provided, snapshot) { return (_jsxs(Box, __assign({}, provided.droppableProps, { ref: provided.innerRef, sx: getListStyle(snapshot.isDraggingOver) }, { children: [(value !== null && value !== void 0 ? value : []).map(function (item, index) { return (_jsx(Draggable, __assign({ draggableId: item, index: index }, { children: function (provided, snapshot) { return (_jsxs(Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between", ref: provided.innerRef }, provided.draggableProps, provided.dragHandleProps, { sx: getItemStyle(snapshot.isDragging, provided.draggableProps.style) }, { children: [item, _jsx(DragIndicatorIcon, { color: "primary" })] }))); } }), item)); }), provided.placeholder] }))); } })) })), _jsx(Typography, __assign({ color: "primary", style: { marginTop: 3 } }, { children: "Drag and drop to re-order the above options" }))] })));
+                } }, { children: _jsx(Droppable, __assign({ droppableId: "droppable" }, { children: function (provided, snapshot) { return (_jsxs(Box, __assign({}, provided.droppableProps, { ref: provided.innerRef, sx: getListStyle(snapshot.isDraggingOver) }, { children: [(value !== null && value !== void 0 ? value : []).map(function (item, index) { return (_jsx(Draggable, __assign({ draggableId: item, index: index }, { children: function (provided, snapshot) { return (_jsxs(Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between", ref: provided.innerRef }, provided.draggableProps, provided.dragHandleProps, { sx: getItemStyle(snapshot.isDragging, provided.draggableProps.style) }, { children: [item, _jsx(DragIndicatorIcon, { color: "primary" })] }))); } }), item)); }), provided.placeholder] }))); } })) })), _jsx(Typography, __assign({ color: "primary", style: { marginTop: 3 } }, { children: form_display_text_for_language(form, "Drag and drop to re-order the above options") }))] })));
 };
 var CustomDateInput = forwardRef(function (props, ref) { return (_jsx(TextField, __assign({ InputProps: defaultInputProps, fullWidth: true, inputRef: ref }, props))); });
 export var DateInput = function (_a) {
@@ -197,7 +197,7 @@ export var DateInput = function (_a) {
 };
 export var TableInput = function (_a) {
     var _b;
-    var field = _a.field, _d = _a.value, value = _d === void 0 ? [] : _d, onChange = _a.onChange, props = __rest(_a, ["field", "value", "onChange"]);
+    var field = _a.field, _d = _a.value, value = _d === void 0 ? [] : _d, onChange = _a.onChange, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "form"]);
     var choices = (_b = field.options) === null || _b === void 0 ? void 0 : _b.tableChoices;
     var handleNewRow = useCallback(function () {
         if (!(choices === null || choices === void 0 ? void 0 : choices.length))
@@ -225,7 +225,7 @@ export var TableInput = function (_a) {
         handleNewRow();
     }, [field.isOptional, value, handleNewRow]);
     if (!(choices === null || choices === void 0 ? void 0 : choices.length)) {
-        return _jsx(Typography, __assign({ color: "error" }, { children: "No input choices available" }));
+        return _jsx(Typography, __assign({ color: "error" }, { children: form_display_text_for_language(form, "No input choices available") }));
     }
     var length = choices.length || 1;
     var iconWidth = '35px';
@@ -245,13 +245,13 @@ export var TableInput = function (_a) {
                                                             recordId: JSON.parse(((_h = row.find(function (_, _i) { return columnIndex === _i; })) === null || _h === void 0 ? void 0 : _h.entry) || '{}').recordId || '',
                                                         }] : [], onChange: function (records) { var _a; return handleChange(i, columnIndex, { label: v.label, entry: JSON.stringify((_a = records === null || records === void 0 ? void 0 : records[0]) !== null && _a !== void 0 ? _a : '') }); } }))
                                                     : null }), v.label));
-                            }), _jsx(Grid, __assign({ item: true, sx: { ml: 'auto', width: iconWidth } }, { children: _jsx(LabeledIconButton, { Icon: CancelIcon, label: "Remove", onClick: function () { return handleRemove(i); }, disabled: !field.isOptional && value.length === 1 }) }))] }), i), _jsx(Divider, { flexItem: true, sx: { my: 1 } })] })); }), _jsx(Button, __assign({ variant: "outlined", size: "small", onClick: handleNewRow, sx: { width: 200 } }, { children: "Add new entry" }))] })));
+                            }), _jsx(Grid, __assign({ item: true, sx: { ml: 'auto', width: iconWidth } }, { children: _jsx(LabeledIconButton, { Icon: CancelIcon, label: form_display_text_for_language(form, "Remove"), onClick: function () { return handleRemove(i); }, disabled: !field.isOptional && value.length === 1 }) }))] }), i), _jsx(Divider, { flexItem: true, sx: { my: 1 } })] })); }), _jsx(Button, __assign({ variant: "outlined", size: "small", onClick: handleNewRow, sx: { width: 200 } }, { children: form_display_text_for_language(form, "Add new entry") }))] })));
 };
 export var AutoFocusTextField = function (props) { return (_jsx(TextField, __assign({ InputProps: defaultInputProps }, props))); };
 var CustomDateStringInput = forwardRef(function (props, ref) { return (_jsx(TextField, __assign({ InputProps: defaultInputProps, fullWidth: true, inputRef: ref }, props))); });
 export var DateStringInput = function (_a) {
     var _b;
-    var field = _a.field, value = _a.value, onChange = _a.onChange, props = __rest(_a, ["field", "value", "onChange"]);
+    var field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "form"]);
     var inputRef = useRef(null);
     // if (value && isDateString(value)) {
     //   console.log(value, new Date(
@@ -268,7 +268,7 @@ export var DateStringInput = function (_a) {
                 : undefined, onChange: function (d) { return onChange === null || onChange === void 0 ? void 0 : onChange(mm_dd_yyyy(d), field.id); }, showTimeSelect: false, required: !field.isOptional, autoComplete: "off", dateFormat: "MM-dd-yyyy", customInput: _jsx(CustomDateStringInput, __assign({ inputRef: inputRef }, props, { label: (!field.title && field.placeholder) ? field.placeholder : props.label })), 
             // className={css`width: 100%;`}
             className: css(templateObject_2 || (templateObject_2 = __makeTemplateObject(["", ""], ["", ""])), datepickerCSS) }))
-        : (_jsx(AutoFocusTextField, __assign({}, props, { required: !field.isOptional, fullWidth: true, placeholder: "MM-DD-YYYY", value: value, label: (!field.title && field.placeholder) ? field.placeholder : props.label, onChange: function (e) {
+        : (_jsx(AutoFocusTextField, __assign({}, props, { required: !field.isOptional, fullWidth: true, placeholder: form_display_text_for_language(form, "MM-DD-YYYY"), value: value, label: (!field.title && field.placeholder) ? field.placeholder : props.label, onChange: function (e) {
                 var v = e.target.value || '';
                 onChange((v.length === 2 && /\d{2}/.test(v) && (value === null || value === void 0 ? void 0 : value.length) !== 3 // allow deletion
                     ? v + '-'
@@ -383,7 +383,7 @@ export var AddressInput = function (_a) {
                                         var _a;
                                         return onChange(__assign(__assign({}, value), { zipCode: (_a = e.target.value) !== null && _a !== void 0 ? _a : '' }), field.id);
                                     } })) })), field.fullZIP &&
-                                _jsx(Grid, __assign({ item: true, xs: 3 }, { children: _jsx(TextField, __assign({}, props, { size: "small", label: "ZIP+4", required: !field.isOptional && field.fullZIP, InputProps: defaultInputProps, value: (_o = value === null || value === void 0 ? void 0 : value.zipPlusFour) !== null && _o !== void 0 ? _o : '', placeholder: "ZIP + 4", onChange: function (e) {
+                                _jsx(Grid, __assign({ item: true, xs: 3 }, { children: _jsx(TextField, __assign({}, props, { size: "small", label: form_display_text_for_language(form, "ZIP+4"), required: !field.isOptional && field.fullZIP, InputProps: defaultInputProps, value: (_o = value === null || value === void 0 ? void 0 : value.zipPlusFour) !== null && _o !== void 0 ? _o : '', placeholder: form_display_text_for_language(form, "ZIP + 4"), onChange: function (e) {
                                             var _a;
                                             return onChange(__assign(__assign({}, value), { zipPlusFour: (_a = e.target.value) !== null && _a !== void 0 ? _a : '' }), field.id);
                                         } })) }))] })) }))] }))));
@@ -404,7 +404,7 @@ export var ESignatureTerms = function () {
 };
 export var SignatureInput = function (_a) {
     var _b, _d, _e, _f, _g;
-    var value = _a.value, field = _a.field, _h = _a.autoFocus, autoFocus = _h === void 0 ? true : _h, enduser = _a.enduser, onChange = _a.onChange;
+    var value = _a.value, field = _a.field, _h = _a.autoFocus, autoFocus = _h === void 0 ? true : _h, enduser = _a.enduser, onChange = _a.onChange, form = _a.form;
     var prefill = (((_b = field.options) === null || _b === void 0 ? void 0 : _b.prefillSignature) && (enduser === null || enduser === void 0 ? void 0 : enduser.fname) && enduser.lname
         ? "".concat(enduser.fname, " ").concat(enduser.lname)
         : undefined);
@@ -434,7 +434,7 @@ export var SignatureInput = function (_a) {
                                 height: 400,
                                 width: '100%',
                                 marginBottom: '5px'
-                            } }), _jsx("a", __assign({ href: field.options.signatureUrl, target: "_blank", rel: "noopener noreferrer" }, { children: "View document in new tab" }))] })), _jsxs(Grid, __assign({ item: true, xs: 12 }, { children: [_jsx(Checkbox, { style: { margin: 0, marginTop: 5, padding: 0, paddingRight: 3 }, color: "primary", checked: !!(value === null || value === void 0 ? void 0 : value.signed), onClick: function () { return handleConsentChange(); }, inputProps: { 'aria-label': 'consent to e-signature checkbox' } }), _jsxs(Typography, __assign({ component: "span", style: { position: 'relative', top: 5, left: 2 } }, { children: ["I consent to use ", _jsx("a", __assign({ href: "/e-signature-terms?name=".concat(((_g = field.options) === null || _g === void 0 ? void 0 : _g.esignatureTermsCompanyName) || ''), target: "_blank", rel: "noopener noreferrer" }, { children: " electronic signatures " }))] }))] })), _jsxs(Grid, __assign({ item: true, xs: 12, style: { marginTop: 12 } }, { children: [_jsx(TextField, { disabled: !(value === null || value === void 0 ? void 0 : value.signed), autoFocus: autoFocus, style: { width: '100%' }, size: "small", "aria-label": "Full Name", value: value === null || value === void 0 ? void 0 : value.fullName, placeholder: prefill || "Full Name", variant: "outlined", onChange: function (e) { return handleNameChange(e.target.value); }, InputProps: defaultInputProps }), _jsx(Typography, __assign({ color: "primary", style: { fontSize: 15, marginTop: 2 } }, { children: "Enter your legal full name to complete the signature" }))] }))] })));
+                            } }), _jsx("a", __assign({ href: field.options.signatureUrl, target: "_blank", rel: "noopener noreferrer" }, { children: form_display_text_for_language(form, "View document in new tab") }))] })), _jsxs(Grid, __assign({ item: true, xs: 12 }, { children: [_jsx(Checkbox, { style: { margin: 0, marginTop: 5, padding: 0, paddingRight: 3 }, color: "primary", checked: !!(value === null || value === void 0 ? void 0 : value.signed), onClick: function () { return handleConsentChange(); }, inputProps: { 'aria-label': 'consent to e-signature checkbox' } }), _jsxs(Typography, __assign({ component: "span", style: { position: 'relative', top: 5, left: 2 } }, { children: [form_display_text_for_language(form, "I consent to use"), " ", _jsxs("a", __assign({ href: "/e-signature-terms?name=".concat(((_g = field.options) === null || _g === void 0 ? void 0 : _g.esignatureTermsCompanyName) || ''), target: "_blank", rel: "noopener noreferrer" }, { children: [" ", form_display_text_for_language(form, "electronic signatures"), " "] }))] }))] })), _jsxs(Grid, __assign({ item: true, xs: 12, style: { marginTop: 12 } }, { children: [_jsx(TextField, { disabled: !(value === null || value === void 0 ? void 0 : value.signed), autoFocus: autoFocus, style: { width: '100%' }, size: "small", "aria-label": form_display_text_for_language(form, "Full Name"), value: value === null || value === void 0 ? void 0 : value.fullName, placeholder: prefill || form_display_text_for_language(form, "Full Name"), variant: "outlined", onChange: function (e) { return handleNameChange(e.target.value); }, InputProps: defaultInputProps }), _jsx(Typography, __assign({ color: "primary", style: { fontSize: 15, marginTop: 2 } }, { children: form_display_text_for_language(form, "Enter your legal full name to complete the signature") }))] }))] })));
 };
 var formatBytes = function (bytes) {
     if (bytes === 0)
@@ -476,7 +476,7 @@ export function convertHEIC(file) {
 var value_is_image = function (f) { var _a; return (_a = f === null || f === void 0 ? void 0 : f.type) === null || _a === void 0 ? void 0 : _a.includes('image'); };
 export var FileInput = function (_a) {
     var _b;
-    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName, uploadingFiles = _a.uploadingFiles, handleFileUpload = _a.handleFileUpload, setUploadingFiles = _a.setUploadingFiles;
+    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName, uploadingFiles = _a.uploadingFiles, handleFileUpload = _a.handleFileUpload, setUploadingFiles = _a.setUploadingFiles, form = _a.form;
     var _d = useState(''), error = _d[0], setError = _d[1];
     var _e = useDropzone({
         onDrop: useCallback(function (acceptedFiles) {
@@ -534,8 +534,8 @@ export var FileInput = function (_a) {
                                 ? _jsx("img", { src: preview, style: { paddingLeft: '10%', width: '80%', maxHeight: 200 } })
                                 : "".concat(truncate_string(value.name, { length: 30, showEllipsis: true }), " selected!"))
                             : capture_is_supported()
-                                ? (_jsxs(Grid, __assign({ container: true, direction: "column", alignItems: "center" }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(AddPhotoAlternateIcon, { color: "primary" }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ sx: { fontSize: 14, textAlign: 'center' } }, { children: "Select file or take picture" })) }))] })))
-                                : _jsxs(Grid, __assign({ container: true, direction: "column", alignItems: "center", rowGap: 2 }, { children: [_jsx(UploadFile, { color: "primary", sx: { fontSize: 25 } }), _jsx(Typography, { children: isDragActive ? "Drop to select file" : "Click or drag and drop" })] })) })] })), _jsx(Grid, __assign({ item: true, alignSelf: "center", sx: { mt: 0.5 } }, { children: (!(value === null || value === void 0 ? void 0 : value.name) && existingFileName) &&
+                                ? (_jsxs(Grid, __assign({ container: true, direction: "column", alignItems: "center" }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(AddPhotoAlternateIcon, { color: "primary" }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ sx: { fontSize: 14, textAlign: 'center' } }, { children: form_display_text_for_language(form, "Select file or take picture") })) }))] })))
+                                : _jsxs(Grid, __assign({ container: true, direction: "column", alignItems: "center", rowGap: 2 }, { children: [_jsx(UploadFile, { color: "primary", sx: { fontSize: 25 } }), _jsx(Typography, { children: isDragActive ? form_display_text_for_language(form, "Drop to select file") : form_display_text_for_language(form, "Click or drag and drop") })] })) })] })), _jsx(Grid, __assign({ item: true, alignSelf: "center", sx: { mt: 0.5 } }, { children: (!(value === null || value === void 0 ? void 0 : value.name) && existingFileName) &&
                     _jsxs(Typography, { children: [existingFileName, " selected!"] }) })), error &&
                 _jsx(Grid, __assign({ item: true, alignSelf: "center", sx: { mt: 0.5 } }, { children: _jsx(Typography, __assign({ color: "error" }, { children: error })) }))] })));
 };
@@ -550,7 +550,7 @@ export var safe_create_url = function (file) {
 };
 export var FilesInput = function (_a) {
     var _b;
-    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName, uploadingFiles = _a.uploadingFiles, handleFileUpload = _a.handleFileUpload, setUploadingFiles = _a.setUploadingFiles;
+    var value = _a.value, onChange = _a.onChange, field = _a.field, existingFileName = _a.existingFileName, uploadingFiles = _a.uploadingFiles, handleFileUpload = _a.handleFileUpload, setUploadingFiles = _a.setUploadingFiles, form = _a.form;
     var _d = useState(''), error = _d[0], setError = _d[1];
     var _e = useDropzone({
         onDrop: useCallback(function (acceptedFiles) { return __awaiter(void 0, void 0, void 0, function () {
@@ -619,11 +619,11 @@ export var FilesInput = function (_a) {
                         cursor: 'pointer',
                     }
                 }, alignItems: "center", justifyContent: "center" }, { children: [_jsx("input", __assign({}, getInputProps({ multiple: false }))), _jsx("p", { children: capture_is_supported()
-                            ? (_jsxs(Grid, __assign({ container: true, direction: "column", alignItems: "center" }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(AddPhotoAlternateIcon, { color: "primary" }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ sx: { fontSize: 14, textAlign: 'center' } }, { children: "Select files or take pictures" })) }))] })))
-                            : _jsxs(Grid, __assign({ container: true, direction: "column", alignItems: "center", rowGap: 2 }, { children: [_jsx(UploadFile, { color: "primary", sx: { fontSize: 25 } }), _jsx(Typography, { children: isDragActive ? "Drop to select files" : "Click or drag and drop" })] })) })] })), _jsx(Grid, __assign({ container: true, direction: "column", sx: { overflowY: 'auto', maxHeight: '250px', mt: 1 }, wrap: "nowrap" }, { children: value === null || value === void 0 ? void 0 : value.map(function (file, i) {
+                            ? (_jsxs(Grid, __assign({ container: true, direction: "column", alignItems: "center" }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(AddPhotoAlternateIcon, { color: "primary" }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ sx: { fontSize: 14, textAlign: 'center' } }, { children: form_display_text_for_language(form, "Select files or take pictures") })) }))] })))
+                            : _jsxs(Grid, __assign({ container: true, direction: "column", alignItems: "center", rowGap: 2 }, { children: [_jsx(UploadFile, { color: "primary", sx: { fontSize: 25 } }), _jsx(Typography, { children: isDragActive ? form_display_text_for_language(form, "Drop to select files") : form_display_text_for_language(form, "Click or drag and drop") })] })) })] })), _jsx(Grid, __assign({ container: true, direction: "column", sx: { overflowY: 'auto', maxHeight: '250px', mt: 1 }, wrap: "nowrap" }, { children: value === null || value === void 0 ? void 0 : value.map(function (file, i) {
                     var _a;
                     return (_jsx(Grid, __assign({ item: true, sx: { mt: 0.5 } }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between", wrap: "nowrap" }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center" }, { children: [_jsx(Typography, __assign({ sx: { mr: 1 } }, { children: file.name })), ((_a = file.type) === null || _a === void 0 ? void 0 : _a.includes('image')) && previews[i] &&
-                                                _jsx(Grid, __assign({ item: true }, { children: _jsx("img", { src: previews[i], style: { maxWidth: '45%', maxHeight: 80, height: '100%' } }) }))] })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(LabeledIconButton, { label: "Remove", Icon: Delete, onClick: function () { return onChange(value.filter(function (f, _i) { return i !== _i; }), field.id); } }) }))] })) }), i));
+                                                _jsx(Grid, __assign({ item: true }, { children: _jsx("img", { src: previews[i], style: { maxWidth: '45%', maxHeight: 80, height: '100%' } }) }))] })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(LabeledIconButton, { label: form_display_text_for_language(form, "Remove"), Icon: Delete, onClick: function () { return onChange(value.filter(function (f, _i) { return i !== _i; }), field.id); } }) }))] })) }), i));
                 }) })), error &&
                 _jsx(Grid, __assign({ item: true, alignSelf: "center", sx: { mt: 0.5 } }, { children: _jsx(Typography, __assign({ color: "error" }, { children: error })) }))] })));
 };
@@ -882,7 +882,7 @@ var filterOptions = function (options, _a) {
 var FDB_URL = "http://www.fdbhealth.com/";
 export var CanvasMedicationsInput = function (_a) {
     var _b;
-    var field = _a.field, _d = _a.value, value = _d === void 0 ? [] : _d, onChange = _a.onChange;
+    var field = _a.field, _d = _a.value, value = _d === void 0 ? [] : _d, onChange = _a.onChange, form = _a.form;
     var session = useResolvedSession();
     var _e = useState(''), query = _e[0], setQuery = _e[1];
     var _f = useState([]), results = _f[0], setResults = _f[1];
@@ -920,17 +920,17 @@ export var CanvasMedicationsInput = function (_a) {
         }, 200);
         return function () { clearTimeout(t); };
     }, [session, query, (_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.dataSource]);
-    return (_jsxs(Grid, __assign({ container: true, direction: "column", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(Autocomplete, { multiple: true, value: value, options: results, style: { marginTop: 5 }, noOptionsText: query.length ? 'No results found' : 'Type to start search', onChange: function (e, v) {
+    return (_jsxs(Grid, __assign({ container: true, direction: "column", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(Autocomplete, { multiple: true, value: value, options: results, style: { marginTop: 5 }, noOptionsText: query.length ? form_display_text_for_language(form, 'No results found') : form_display_text_for_language(form, 'Type to start search'), onChange: function (e, v) {
                         if (!v) {
                             return;
                         }
                         onChange(v, field.id);
                         setResults([]);
-                    }, getOptionLabel: function (v) { return first_letter_capitalized(v.displayTerm); }, filterOptions: function (o) { return o; }, inputValue: query, onInputChange: function (e, v) { return e && setQuery(v); }, renderInput: function (params) { return (_jsx(TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: defaultInputProps.sx }), required: !field.isOptional, size: "small", label: "", placeholder: "Search medications..." }))); }, renderTags: function (value, getTagProps) {
+                    }, getOptionLabel: function (v) { return first_letter_capitalized(v.displayTerm); }, filterOptions: function (o) { return o; }, inputValue: query, onInputChange: function (e, v) { return e && setQuery(v); }, renderInput: function (params) { return (_jsx(TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: defaultInputProps.sx }), required: !field.isOptional, size: "small", label: "", placeholder: form_display_text_for_language(form, "Search medications...") }))); }, renderTags: function (value, getTagProps) {
                         return value.map(function (value, index) { return (_jsx(Chip, __assign({ label: _jsx(Typography, __assign({ style: { whiteSpace: 'normal' } }, { children: value.displayTerm })) }, getTagProps({ index: index }), { sx: { height: "100%", py: 0.5 } }))); });
                     } }) })), (value || []).map(function (medication, i) {
                 var _a;
-                return (_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, direction: "column", spacing: 0.75 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ noWrap: true, sx: { fontSize: 14 } }, { children: medication.drugName })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(TextField, { InputProps: { sx: defaultInputProps.sx }, fullWidth: true, size: "small", label: "Medication instructions: how much you take, how often, and when", value: ((_a = medication.dosage) === null || _a === void 0 ? void 0 : _a.description) || '', onChange: function (e) { return (onChange((value || []).map(function (v, _i) {
+                return (_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, direction: "column", spacing: 0.75 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ noWrap: true, sx: { fontSize: 14 } }, { children: medication.drugName })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(TextField, { InputProps: { sx: defaultInputProps.sx }, fullWidth: true, size: "small", label: form_display_text_for_language(form, "Medication instructions: how much you take, how often, and when"), value: ((_a = medication.dosage) === null || _a === void 0 ? void 0 : _a.description) || '', onChange: function (e) { return (onChange((value || []).map(function (v, _i) {
                                         return i === _i
                                             ? __assign(__assign({}, v), { dosage: __assign(__assign({}, v.dosage), { description: e.target.value }) }) : v;
                                     }), field.id)); } }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Divider, { flexItem: true, sx: { my: 0.5 } }) }))] })) }), i));
@@ -938,7 +938,7 @@ export var CanvasMedicationsInput = function (_a) {
 };
 export var MedicationsInput = function (_a) {
     var _b, _d;
-    var field = _a.field, value = _a.value, onChange = _a.onChange, props = __rest(_a, ["field", "value", "onChange"]);
+    var field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "form"]);
     var _e = useMedications({
         dontFetch: ((_b = field.options) === null || _b === void 0 ? void 0 : _b.dataSource) === CANVAS_TITLE
     }), displayTerms = _e.displayTerms, doneLoading = _e.doneLoading, getCodesForDrug = _e.getCodesForDrug, getDrugsForDisplayTerm = _e.getDrugsForDisplayTerm;
@@ -1012,7 +1012,7 @@ export var MedicationsInput = function (_a) {
                                                             }
                                                         });
                                                     }); }, renderInput: function (params) {
-                                                        return _jsx(TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: defaultInputProps.sx }), required: !field.isOptional, label: "Search", size: "small", fullWidth: true }));
+                                                        return _jsx(TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: defaultInputProps.sx }), required: !field.isOptional, label: form_display_text_for_language(form, "Search"), size: "small", fullWidth: true }));
                                                     } }) })), v.displayTerm && v.drugName !== "Unknown" && !v.otherDrug &&
                                                 _jsx(Grid, __assign({ item: true, sx: { mt: 1.5 } }, { children: _jsx(Autocomplete, { freeSolo: false, options: drugs[v.displayTerm]
                                                             ? drugs[v.displayTerm].length
@@ -1043,9 +1043,9 @@ export var MedicationsInput = function (_a) {
                                                                 }
                                                             });
                                                         }); }, renderInput: function (params) {
-                                                            return _jsx(TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: defaultInputProps.sx }), required: !field.isOptional, label: "Drug Select", size: "small", fullWidth: true }));
+                                                            return _jsx(TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: defaultInputProps.sx }), required: !field.isOptional, label: form_display_text_for_language(form, "Drug Select"), size: "small", fullWidth: true }));
                                                         } }) })), v.displayTerm && (v.drugName === "Unknown" || !v.drugName) &&
-                                                _jsx(Grid, __assign({ item: true, sx: { mt: 1 } }, { children: _jsx(TextField, { label: 'Other Drug', fullWidth: true, size: "small", required: true, InputProps: defaultInputProps, value: (_g = (_f = value === null || value === void 0 ? void 0 : value.find(function (v, _i) { return _i === i; })) === null || _f === void 0 ? void 0 : _f.otherDrug) !== null && _g !== void 0 ? _g : '', onChange: function (e) { return (onChange((value !== null && value !== void 0 ? value : []).map(function (_v, _i) { return (i === _i
+                                                _jsx(Grid, __assign({ item: true, sx: { mt: 1 } }, { children: _jsx(TextField, { label: form_display_text_for_language(form, 'Other Drug'), fullWidth: true, size: "small", required: true, InputProps: defaultInputProps, value: (_g = (_f = value === null || value === void 0 ? void 0 : value.find(function (v, _i) { return _i === i; })) === null || _f === void 0 ? void 0 : _f.otherDrug) !== null && _g !== void 0 ? _g : '', onChange: function (e) { return (onChange((value !== null && value !== void 0 ? value : []).map(function (_v, _i) { return (i === _i
                                                             ? __assign(__assign({}, _v), { otherDrug: e.target.value }) : _v); }), field.id)); } }) })), v.displayTerm &&
                                                 _jsxs(Grid, __assign({ container: true, spacing: 1, sx: { mt: 0 } }, { children: [_jsxs(Grid, __assign({ item: true, xs: 12, md: 6 }, { children: [_jsx(Typography, __assign({ sx: { fontSize: 13.5 } }, { children: "Units (e.g. capsule, table, puff) per dose?" })), _jsx(TextField, { type: "number", size: "small", fullWidth: true, InputProps: defaultInputProps, value: (_h = v.dosage) === null || _h === void 0 ? void 0 : _h.quantity, onChange: function (e) {
                                                                         return onChange((value !== null && value !== void 0 ? value : []).map(function (_v, _i) { return (i === _i
@@ -1071,15 +1071,15 @@ export var MedicationsInput = function (_a) {
                                                                             return [2 /*return*/];
                                                                         });
                                                                     }); } })] }))] })), v.displayTerm &&
-                                                _jsx(Grid, __assign({ item: true, sx: { mt: 1.25 } }, { children: _jsx(TextField, { label: "Reason for taking medication", size: "small", fullWidth: true, InputProps: defaultInputProps, value: (_l = v.reasonForTaking) !== null && _l !== void 0 ? _l : '', onChange: function (e) {
+                                                _jsx(Grid, __assign({ item: true, sx: { mt: 1.25 } }, { children: _jsx(TextField, { label: form_display_text_for_language(form, "Reason for taking medication"), size: "small", fullWidth: true, InputProps: defaultInputProps, value: (_l = v.reasonForTaking) !== null && _l !== void 0 ? _l : '', onChange: function (e) {
                                                             return onChange((value !== null && value !== void 0 ? value : []).map(function (_v, _i) { return (i === _i
                                                                 ? __assign(__assign({}, _v), { reasonForTaking: e.target.value }) : _v); }), field.id);
-                                                        } }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ color: "primary", sx: { textDecoration: 'underline', cursor: 'pointer' }, onClick: function () { return onChange((value !== null && value !== void 0 ? value : []).filter(function (_, _i) { return i !== _i; }), field.id); } }, { children: "Remove medication" })) })), window.location.origin.includes(':300') && i === 0 &&
+                                                        } }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ color: "primary", sx: { textDecoration: 'underline', cursor: 'pointer' }, onClick: function () { return onChange((value !== null && value !== void 0 ? value : []).filter(function (_, _i) { return i !== _i; }), field.id); } }, { children: form_display_text_for_language(form, "Remove medication") })) })), window.location.origin.includes(':300') && i === 0 &&
                                                 _jsxs(Grid, __assign({ item: true, sx: { mt: 3 } }, { children: [_jsx("strong", { children: "DEBUG:" }), " ", _jsx("br", {}), _jsx("pre", __assign({ style: { wordWrap: 'break-word' } }, { children: JSON.stringify(value !== null && value !== void 0 ? value : {}, null, 2) }))] })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Grid, { container: true }) }))] })) })) })) }), i), _jsx(Grid, __assign({ item: true }, { children: _jsx(Divider, { flexItem: true, sx: { my: 1 } }) }))] }));
-            }), _jsx(Grid, __assign({ item: true }, { children: _jsx(Button, __assign({ color: "primary", variant: "outlined", onClick: function () { return onChange(__spreadArray(__spreadArray([], (value !== null && value !== void 0 ? value : []), true), [{ displayTerm: '', drugName: '' }], false), field.id); } }, { children: "Add Medication" })) }))] })));
+            }), _jsx(Grid, __assign({ item: true }, { children: _jsx(Button, __assign({ color: "primary", variant: "outlined", onClick: function () { return onChange(__spreadArray(__spreadArray([], (value !== null && value !== void 0 ? value : []), true), [{ displayTerm: '', drugName: '' }], false), field.id); } }, { children: form_display_text_for_language(form, "Add Medication") })) }))] })));
 };
 export var BelugaPatientPreferenceInput = function (_a) {
-    var field = _a.field, _value = _a.value, onChange = _a.onChange;
+    var field = _a.field, _value = _a.value, onChange = _a.onChange, form = _a.form;
     var value = Array.isArray(_value) ? _value : [];
     return (_jsxs(Grid, __assign({ container: true, direction: "column", sx: { mt: 2 } }, { children: [value.map(function (v, i) {
                 var _a, _b, _d, _e, _f, _g, _h, _j;
@@ -1099,10 +1099,10 @@ export var BelugaPatientPreferenceInput = function (_a) {
                                                         return onChange(value.map(function (_v, _i) { return (i === _i ? __assign(__assign({}, _v), { sig: e.target.value }) : _v); }), field.id);
                                                     } }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(TextField, { label: "Med ID (NDC11)", size: "small", fullWidth: true, required: true, InputProps: defaultInputProps, value: (_j = v.medId) !== null && _j !== void 0 ? _j : '', onChange: function (e) {
                                                         return onChange(value.map(function (_v, _i) { return (i === _i ? __assign(__assign({}, _v), { medId: e.target.value }) : _v); }), field.id);
-                                                    } }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ color: "primary", sx: { textDecoration: 'underline', cursor: 'pointer' }, onClick: function () { return onChange(value.filter(function (_, _i) { return i !== _i; }), field.id); } }, { children: "Remove medication" })) }))] })) })) })) }), i), _jsx(Grid, __assign({ item: true }, { children: _jsx(Divider, { flexItem: true, sx: { my: 1 } }) }))] }));
+                                                    } }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ color: "primary", sx: { textDecoration: 'underline', cursor: 'pointer' }, onClick: function () { return onChange(value.filter(function (_, _i) { return i !== _i; }), field.id); } }, { children: form_display_text_for_language(form, "Remove medication") })) }))] })) })) })) }), i), _jsx(Grid, __assign({ item: true }, { children: _jsx(Divider, { flexItem: true, sx: { my: 1 } }) }))] }));
             }), _jsx(Grid, __assign({ item: true }, { children: _jsx(Button, __assign({ color: "primary", variant: "outlined", onClick: function () { return onChange(__spreadArray(__spreadArray([], value, true), [
                         { name: '', strength: '', quantity: '', refills: '', daysSupply: '', sig: '', dispenseUnit: '', medId: '' }
-                    ], false), field.id); } }, { children: "Add Medication" })) }))] })));
+                    ], false), field.id); } }, { children: form_display_text_for_language(form, "Add Medication") })) }))] })));
 };
 export var contact_is_valid = function (e) {
     if (e.email) {
@@ -1127,7 +1127,7 @@ export var contact_is_valid = function (e) {
 };
 export var RelatedContactsInput = function (_a) {
     var _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _w, _x;
-    var field = _a.field, _value = _a.value, onChange = _a.onChange, parentError = _a.error, props = __rest(_a, ["field", "value", "onChange", "error"]);
+    var field = _a.field, _value = _a.value, onChange = _a.onChange, parentError = _a.error, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "error", "form"]);
     // safeguard against any rogue values like empty string
     var value = Array.isArray(_value) ? _value : [];
     var _y = useState(value.length === 1 ? 0 : -1), editing = _y[0], setEditing = _y[1];
@@ -1142,11 +1142,11 @@ export var RelatedContactsInput = function (_a) {
         var _z = value[editing], fname = _z.fname, lname = _z.lname, email = _z.email, phone = _z.phone, _0 = _z.fields, fields_1 = _0 === void 0 ? {} : _0, _1 = _z.dateOfBirth, dateOfBirth = _1 === void 0 ? '' : _1, relationships = _z.relationships;
         var errorMessage = contact_is_valid(value[editing]);
         return (_jsxs(Grid, __assign({ container: true, direction: "column", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap", spacing: 1 }, { children: [!((_e = (_d = field.options) === null || _d === void 0 ? void 0 : _d.hiddenDefaultFields) === null || _e === void 0 ? void 0 : _e.includes('First Name')) &&
-                                _jsx(Grid, __assign({ item: true, xs: 4 }, { children: _jsx(TextField, { label: "First Name", size: "small", fullWidth: true, InputProps: defaultInputProps, value: fname, onChange: function (e) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { fname: e.target.value }) : v; }), field.id); } }) })), !((_g = (_f = field.options) === null || _f === void 0 ? void 0 : _f.hiddenDefaultFields) === null || _g === void 0 ? void 0 : _g.includes('Last Name')) &&
-                                _jsx(Grid, __assign({ item: true, xs: 4 }, { children: _jsx(TextField, { label: "Last Name", size: "small", fullWidth: true, InputProps: defaultInputProps, value: lname, onChange: function (e) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { lname: e.target.value }) : v; }), field.id); } }) })), _jsx(Grid, __assign({ item: true, xs: 4 }, { children: _jsx(StringSelector, { options: ((_j = (_h = field.options) === null || _h === void 0 ? void 0 : _h.relatedContactTypes) === null || _j === void 0 ? void 0 : _j.length) ? field.options.relatedContactTypes : RELATIONSHIP_TYPES, label: "Relationship", size: "small", disabled: ((_l = (_k = field === null || field === void 0 ? void 0 : field.options) === null || _k === void 0 ? void 0 : _k.relatedContactTypes) === null || _l === void 0 ? void 0 : _l.length) === 1, value: (_o = (_m = relationships === null || relationships === void 0 ? void 0 : relationships[0]) === null || _m === void 0 ? void 0 : _m.type) !== null && _o !== void 0 ? _o : '', onChange: function (type) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { relationships: [{ type: type, id: '' /* to be filled on server-side */ }] }) : v; }), field.id); } }) }))] })) })), _jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap", spacing: 1 }, { children: [!((_q = (_p = field.options) === null || _p === void 0 ? void 0 : _p.hiddenDefaultFields) === null || _q === void 0 ? void 0 : _q.includes('Date of Birth')) &&
-                                _jsx(Grid, __assign({ item: true, xs: 4 }, { children: _jsx(DateStringInput, { value: dateOfBirth, field: __assign(__assign({}, field), { isOptional: true }), size: "small", label: "Date of Birth (MM-DD-YYYY)", onChange: function (dateOfBirth) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { dateOfBirth: dateOfBirth }) : v; }), field.id); } }) })), !((_s = (_r = field.options) === null || _r === void 0 ? void 0 : _r.hiddenDefaultFields) === null || _s === void 0 ? void 0 : _s.includes('Email')) &&
-                                _jsx(Grid, __assign({ item: true, xs: 4 }, { children: _jsx(TextField, { label: "Email", size: "small", fullWidth: true, type: "email", InputProps: defaultInputProps, value: email, onChange: function (e) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { email: e.target.value }) : v; }), field.id); } }) })), !((_u = (_t = field.options) === null || _t === void 0 ? void 0 : _t.hiddenDefaultFields) === null || _u === void 0 ? void 0 : _u.includes('Phone Number')) &&
-                                _jsx(Grid, __assign({ item: true, xs: 4 }, { children: _jsx(TextField, { label: "Phone Number", size: "small", fullWidth: true, InputProps: defaultInputProps, value: phone, onChange: function (e) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { phone: e.target.value.trim() }) : v; }), field.id); } }) }))] })) })), (((_w = field.options) === null || _w === void 0 ? void 0 : _w.tableChoices) || []).length > 0 &&
+                                _jsx(Grid, __assign({ item: true, xs: 4 }, { children: _jsx(TextField, { label: form_display_text_for_language(form, "First Name"), size: "small", fullWidth: true, InputProps: defaultInputProps, value: fname, onChange: function (e) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { fname: e.target.value }) : v; }), field.id); } }) })), !((_g = (_f = field.options) === null || _f === void 0 ? void 0 : _f.hiddenDefaultFields) === null || _g === void 0 ? void 0 : _g.includes('Last Name')) &&
+                                _jsx(Grid, __assign({ item: true, xs: 4 }, { children: _jsx(TextField, { label: form_display_text_for_language(form, "Last Name"), size: "small", fullWidth: true, InputProps: defaultInputProps, value: lname, onChange: function (e) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { lname: e.target.value }) : v; }), field.id); } }) })), _jsx(Grid, __assign({ item: true, xs: 4 }, { children: _jsx(StringSelector, { options: ((_j = (_h = field.options) === null || _h === void 0 ? void 0 : _h.relatedContactTypes) === null || _j === void 0 ? void 0 : _j.length) ? field.options.relatedContactTypes : RELATIONSHIP_TYPES, label: form_display_text_for_language(form, "Relationship"), size: "small", disabled: ((_l = (_k = field === null || field === void 0 ? void 0 : field.options) === null || _k === void 0 ? void 0 : _k.relatedContactTypes) === null || _l === void 0 ? void 0 : _l.length) === 1, value: (_o = (_m = relationships === null || relationships === void 0 ? void 0 : relationships[0]) === null || _m === void 0 ? void 0 : _m.type) !== null && _o !== void 0 ? _o : '', onChange: function (type) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { relationships: [{ type: type, id: '' /* to be filled on server-side */ }] }) : v; }), field.id); } }) }))] })) })), _jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap", spacing: 1 }, { children: [!((_q = (_p = field.options) === null || _p === void 0 ? void 0 : _p.hiddenDefaultFields) === null || _q === void 0 ? void 0 : _q.includes('Date of Birth')) &&
+                                _jsx(Grid, __assign({ item: true, xs: 4 }, { children: _jsx(DateStringInput, { value: dateOfBirth, field: __assign(__assign({}, field), { isOptional: true }), size: "small", label: form_display_text_for_language(form, "Date of Birth (MM-DD-YYYY)"), onChange: function (dateOfBirth) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { dateOfBirth: dateOfBirth }) : v; }), field.id); } }) })), !((_s = (_r = field.options) === null || _r === void 0 ? void 0 : _r.hiddenDefaultFields) === null || _s === void 0 ? void 0 : _s.includes('Email')) &&
+                                _jsx(Grid, __assign({ item: true, xs: 4 }, { children: _jsx(TextField, { label: form_display_text_for_language(form, "Email"), size: "small", fullWidth: true, type: "email", InputProps: defaultInputProps, value: email, onChange: function (e) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { email: e.target.value }) : v; }), field.id); } }) })), !((_u = (_t = field.options) === null || _t === void 0 ? void 0 : _t.hiddenDefaultFields) === null || _u === void 0 ? void 0 : _u.includes('Phone Number')) &&
+                                _jsx(Grid, __assign({ item: true, xs: 4 }, { children: _jsx(TextField, { label: form_display_text_for_language(form, "Phone Number"), size: "small", fullWidth: true, InputProps: defaultInputProps, value: phone, onChange: function (e) { return onChange(value.map(function (v, i) { return i === editing ? __assign(__assign({}, v), { phone: e.target.value.trim() }) : v; }), field.id); } }) }))] })) })), (((_w = field.options) === null || _w === void 0 ? void 0 : _w.tableChoices) || []).length > 0 &&
                     _jsx(Grid, __assign({ item: true }, { children: _jsx(Grid, __assign({ container: true, spacing: 1 }, { children: (((_x = field.options) === null || _x === void 0 ? void 0 : _x.tableChoices) || []).map(function (_a, i) {
                                 var info = _a.info, label = _a.label, type = _a.type;
                                 return (_jsx(Grid, __assign({ item: true, xs: 6 }, { children: type === 'Text'
@@ -1166,10 +1166,10 @@ export var RelatedContactsInput = function (_a) {
                                                             return i === editing ? __assign(__assign({}, v), { fields: __assign(__assign({}, fields_1), (_a = {}, _a[label] = e.target.value, _a)) }) : v;
                                                         }), field.id); } }, { children: [_jsx(MenuItem, __assign({ value: "" }, { children: _jsx("em", { children: "None" }) })), info.choices.map(function (c) { return (_jsx(MenuItem, __assign({ value: c }, { children: c }), c)); })] }))] })))
                                                 : null }), i));
-                            }) })) })), _jsx(Grid, __assign({ item: true, sx: { my: 0.75 } }, { children: _jsx(Button, __assign({ variant: "outlined", onClick: function () { return setEditing(-1); }, size: "small", disabled: !!errorMessage || !!parentError }, { children: "Save Contact" })) })), errorMessage &&
+                            }) })) })), _jsx(Grid, __assign({ item: true, sx: { my: 0.75 } }, { children: _jsx(Button, __assign({ variant: "outlined", onClick: function () { return setEditing(-1); }, size: "small", disabled: !!errorMessage || !!parentError }, { children: form_display_text_for_language(form, "Save Contact") })) })), errorMessage &&
                     _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ color: "error" }, { children: errorMessage })) }))] })));
     }
-    return (_jsxs(Grid, __assign({ container: true, direction: "column", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: value.map(function (contact, i) { return (_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between", wrap: "nowrap", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center" }, { children: [_jsx(IconButton, __assign({ onClick: function () { return setEditing(i); }, color: "primary", size: "small" }, { children: _jsx(Edit, {}) })), _jsx(Typography, __assign({ noWrap: true }, { children: user_display_name(contact) || "Unnamed Contact ".concat(i + 1) }))] })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(LabeledIconButton, { Icon: Delete, label: "Remove", onClick: function () { return onChange(value.filter(function (v, _i) { return i !== _i; }), field.id); } }) }))] })) }), i)); }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Button, __assign({ variant: "contained", onClick: handleAddContact }, { children: "Add Contact" })) }))] })));
+    return (_jsxs(Grid, __assign({ container: true, direction: "column", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: value.map(function (contact, i) { return (_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between", wrap: "nowrap", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center" }, { children: [_jsx(IconButton, __assign({ onClick: function () { return setEditing(i); }, color: "primary", size: "small" }, { children: _jsx(Edit, {}) })), _jsx(Typography, __assign({ noWrap: true }, { children: user_display_name(contact) || "".concat(form_display_text_for_language(form, "Unnamed Contact"), " ").concat(i + 1) }))] })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(LabeledIconButton, { Icon: Delete, label: form_display_text_for_language(form, "Remove"), onClick: function () { return onChange(value.filter(function (v, _i) { return i !== _i; }), field.id); } }) }))] })) }), i)); }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Button, __assign({ variant: "contained", onClick: handleAddContact }, { children: form_display_text_for_language(form, "Add Contact") })) }))] })));
 };
 // AppointmentBookingInput logic is shared with inputs.tsx to avoid duplication
 export var AppointmentBookingInput = function (props) {
@@ -1177,8 +1177,8 @@ export var AppointmentBookingInput = function (props) {
 };
 export var HeightInput = function (_a) {
     var _b;
-    var field = _a.field, _d = _a.value, value = _d === void 0 ? {} : _d, onChange = _a.onChange, props = __rest(_a, ["field", "value", "onChange"]);
-    return (_jsxs(Grid, __assign({ container: true, alignItems: 'center', wrap: "nowrap", spacing: 1, style: { marginTop: 5 } }, { children: [_jsx(Grid, __assign({ item: true, sx: { width: '100%' } }, { children: _jsx(TextField, { fullWidth: true, size: "small", label: "Feet", type: "number", value: (value === null || value === void 0 ? void 0 : value.feet) || '', onChange: function (e) { return onChange(__assign(__assign({}, value), { feet: parseInt(e.target.value) }), field.id); } }) })), _jsx(Grid, __assign({ item: true, sx: { width: '100%' } }, { children: _jsx(TextField, { fullWidth: true, size: "small", label: "Inches", type: "number", value: (_b = value === null || value === void 0 ? void 0 : value.inches) !== null && _b !== void 0 ? _b : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { inches: parseInt(e.target.value) }), field.id); } }) }))] })));
+    var field = _a.field, _d = _a.value, value = _d === void 0 ? {} : _d, onChange = _a.onChange, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "form"]);
+    return (_jsxs(Grid, __assign({ container: true, alignItems: 'center', wrap: "nowrap", spacing: 1, style: { marginTop: 5 } }, { children: [_jsx(Grid, __assign({ item: true, sx: { width: '100%' } }, { children: _jsx(TextField, { fullWidth: true, size: "small", label: form_display_text_for_language(form, "Feet"), type: "number", value: (value === null || value === void 0 ? void 0 : value.feet) || '', onChange: function (e) { return onChange(__assign(__assign({}, value), { feet: parseInt(e.target.value) }), field.id); } }) })), _jsx(Grid, __assign({ item: true, sx: { width: '100%' } }, { children: _jsx(TextField, { fullWidth: true, size: "small", label: form_display_text_for_language(form, "Inches"), type: "number", value: (_b = value === null || value === void 0 ? void 0 : value.inches) !== null && _b !== void 0 ? _b : '', onChange: function (e) { return onChange(__assign(__assign({}, value), { inches: parseInt(e.target.value) }), field.id); } }) }))] })));
 };
 // Re-export from V1 to follow DRY principles
 export { RedirectInput } from './inputs';
@@ -1257,7 +1257,7 @@ export var EmotiiInput = function (_a) {
         onChange(requestIdRef.current, field.id);
     }, [loadCount]);
     if (value || loadCount === 2)
-        return (_jsxs(Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap" }, { children: [_jsx(CheckCircleOutline, { color: "success" }), _jsx(Typography, __assign({ sx: { ml: 1, fontSize: 20 } }, { children: "Please click Next or Submit to continue." }))] })));
+        return (_jsxs(Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap" }, { children: [_jsx(CheckCircleOutline, { color: "success" }), _jsx(Typography, __assign({ sx: { ml: 1, fontSize: 20 } }, { children: form_display_text_for_language(form, "Please click Next or Submit to continue.") }))] })));
     if (!data) {
         return _jsx(LinearProgress, {});
     }
@@ -1329,15 +1329,15 @@ export var AllergiesInput = function (_a) {
         }, 200);
         return function () { clearTimeout(t); };
     }, [session, query, (_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.dataSource]);
-    return (_jsxs(Grid, __assign({ container: true, direction: "column", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(Autocomplete, { multiple: true, value: value || [], options: results, style: { marginTop: 5 }, noOptionsText: query.length ? 'No results found' : 'Type to start search', onChange: function (e, v) {
+    return (_jsxs(Grid, __assign({ container: true, direction: "column", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(Autocomplete, { multiple: true, value: value || [], options: results, style: { marginTop: 5 }, noOptionsText: query.length ? form_display_text_for_language(form, 'No results found') : form_display_text_for_language(form, 'Type to start search'), onChange: function (e, v) {
                         if (!v) {
                             return;
                         }
                         onChange(v, field.id);
                         setResults([]);
-                    }, getOptionLabel: function (v) { return first_letter_capitalized(v.display); }, filterOptions: function (o) { return o; }, inputValue: query, onInputChange: function (e, v) { return e && setQuery(v); }, renderInput: function (params) { return (_jsx(TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: defaultInputProps.sx }), required: !field.isOptional, size: "small", label: "", placeholder: "Search allergies..." }))); }, renderTags: function (value, getTagProps) {
+                    }, getOptionLabel: function (v) { return first_letter_capitalized(v.display); }, filterOptions: function (o) { return o; }, inputValue: query, onInputChange: function (e, v) { return e && setQuery(v); }, renderInput: function (params) { return (_jsx(TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: defaultInputProps.sx }), required: !field.isOptional, size: "small", label: "", placeholder: form_display_text_for_language(form, "Search allergies...") }))); }, renderTags: function (value, getTagProps) {
                         return value.map(function (value, index) { return (_jsx(Chip, __assign({ label: _jsx(Typography, __assign({ style: { whiteSpace: 'normal' } }, { children: value.display })) }, getTagProps({ index: index }), { sx: { height: "100%", py: 0.5 } }))); });
-                    } }) })), (value || []).map(function (allergy, i) { return (_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap", columnGap: 0.5, justifyContent: "space-between" }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ noWrap: true, sx: { width: 85, fontSize: 14 } }, { children: allergy.display })) })), _jsx(Grid, __assign({ item: true, sx: { width: 140 } }, { children: _jsx(StringSelector, { options: ['mild', 'moderate', 'severe'], size: "small", label: "Severity", value: allergy.severity || '', onChange: function (severity) { return onChange((value || []).map(function (v, _i) { return i === _i ? __assign(__assign({}, v), { severity: severity }) : v; }), field.id); }, getDisplayValue: first_letter_capitalized }) })), _jsx(Grid, __assign({ item: true, sx: { width: "50%" } }, { children: _jsx(TextField, { InputProps: { sx: defaultInputProps.sx }, fullWidth: true, size: "small", label: "Note", value: allergy.note || '', onChange: function (e) { return onChange((value || []).map(function (v, _i) { return i === _i ? __assign(__assign({}, v), { note: e.target.value }) : v; }), field.id); } }) }))] })) }), i)); })] })));
+                    } }) })), (value || []).map(function (allergy, i) { return (_jsx(Grid, __assign({ item: true }, { children: _jsxs(Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap", columnGap: 0.5, justifyContent: "space-between" }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ noWrap: true, sx: { width: 85, fontSize: 14 } }, { children: allergy.display })) })), _jsx(Grid, __assign({ item: true, sx: { width: 140 } }, { children: _jsx(StringSelector, { options: ['mild', 'moderate', 'severe'], size: "small", label: form_display_text_for_language(form, "Severity"), value: allergy.severity || '', onChange: function (severity) { return onChange((value || []).map(function (v, _i) { return i === _i ? __assign(__assign({}, v), { severity: severity }) : v; }), field.id); }, getDisplayValue: first_letter_capitalized }) })), _jsx(Grid, __assign({ item: true, sx: { width: "50%" } }, { children: _jsx(TextField, { InputProps: { sx: defaultInputProps.sx }, fullWidth: true, size: "small", label: form_display_text_for_language(form, "Note"), value: allergy.note || '', onChange: function (e) { return onChange((value || []).map(function (v, _i) { return i === _i ? __assign(__assign({}, v), { note: e.target.value }) : v; }), field.id); } }) }))] })) }), i)); })] })));
 };
 var display_with_code = function (v) { return "".concat(v.code, ": ").concat(first_letter_capitalized(v.display)); };
 export var ConditionsInput = function (_a) {
@@ -1371,13 +1371,13 @@ export var ConditionsInput = function (_a) {
         }, 200);
         return function () { clearTimeout(t); };
     }, [session, query]);
-    return (_jsx(Autocomplete, { multiple: true, value: value || [], options: results, style: { marginTop: 5 }, noOptionsText: query.length ? 'No results found' : 'Type to start search', onChange: function (e, v) {
+    return (_jsx(Autocomplete, { multiple: true, value: value || [], options: results, style: { marginTop: 5 }, noOptionsText: query.length ? form_display_text_for_language(form, 'No results found') : form_display_text_for_language(form, 'Type to start search'), onChange: function (e, v) {
             if (!v) {
                 return;
             }
             onChange(v, field.id);
             setResults([]);
-        }, getOptionLabel: display_with_code, filterOptions: function (o) { return o; }, inputValue: query, onInputChange: function (e, v) { return e && setQuery(v); }, renderInput: function (params) { return (_jsx(TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: defaultInputProps.sx }), required: !field.isOptional, size: "small", label: "", placeholder: "Search conditions..." }))); }, renderTags: function (value, getTagProps) {
+        }, getOptionLabel: display_with_code, filterOptions: function (o) { return o; }, inputValue: query, onInputChange: function (e, v) { return e && setQuery(v); }, renderInput: function (params) { return (_jsx(TextField, __assign({}, params, { InputProps: __assign(__assign({}, params.InputProps), { sx: defaultInputProps.sx }), required: !field.isOptional, size: "small", label: "", placeholder: form_display_text_for_language(form, "Search conditions...") }))); }, renderTags: function (value, getTagProps) {
             return value.map(function (value, index) { return (_jsx(Chip, __assign({ label: _jsx(Typography, __assign({ style: { whiteSpace: 'normal' } }, { children: display_with_code(value) })) }, getTagProps({ index: index }), { sx: { height: "100%", py: 0.5 } }))); });
         } }));
 };

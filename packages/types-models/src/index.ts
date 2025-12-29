@@ -520,6 +520,7 @@ export interface RecordInfo {
   creator: string; // can technically be null in some cases (e.g. enduser creates self), todo: allow as part of type
   organizationIds?: string[];
   sharedWithOrganizations?: string[][],
+  originalId?: string,
 }
 
 export interface ClientRecord extends RecordInfo { id: string }
@@ -2789,6 +2790,8 @@ export interface AppointmentBookingPage extends AppointmentBookingPage_readonly,
   dontRestrictRescheduleToOriginalHost?: boolean,
   calendarTitleText?: string, // Custom text for "Pick a date and time for your visit" - can be empty to hide
   emailFieldBehavior?: "required" | "optional" | "hidden",
+  language?: string,
+  publicShowLanguage?: boolean,
   // productIds?: string[], // defer to specific template
 }
 
@@ -3932,6 +3935,7 @@ export type EnduserGrouping = {
   Gender?: boolean,
   "Assigned To"?: boolean,
   Tags?: boolean,
+  "Access Tags"?: boolean,
   Age?: boolean,
   Phone?: boolean,
   State?: string,

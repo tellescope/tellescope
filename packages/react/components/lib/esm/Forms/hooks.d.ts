@@ -144,6 +144,7 @@ export declare const useTellescopeForm: ({ dontAutoadvance, isPublicForm, form, 
             creator: string;
             organizationIds?: string[] | undefined;
             sharedWithOrganizations?: string[][] | undefined;
+            originalId?: string | undefined;
             formId: string;
             type: import("@tellescope/types-models").FormFieldType;
             previousFields: import("@tellescope/types-models").PreviousFormField[];
@@ -205,6 +206,7 @@ export declare const useTellescopeForm: ({ dontAutoadvance, isPublicForm, form, 
             creator: string;
             organizationIds?: string[] | undefined;
             sharedWithOrganizations?: string[][] | undefined;
+            originalId?: string | undefined;
             formId: string;
             type: import("@tellescope/types-models").FormFieldType;
             previousFields: import("@tellescope/types-models").PreviousFormField[];
