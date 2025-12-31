@@ -1354,6 +1354,7 @@ export interface ChatRoom extends ChatRoom_readonly, ChatRoom_required, ChatRoom
   identifier?: string,
   source?: string,
   externalId?: string,
+  emoji?: string,
   references?: RelatedRecord[] // internal, for storing built-in integrations info
   journeyId?: string,
   archivedAt?: Date | '',

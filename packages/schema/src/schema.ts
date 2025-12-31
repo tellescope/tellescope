@@ -3111,6 +3111,7 @@ export const schema: SchemaV1 = build_schema({
       discussionRoomId: { validator: mongoIdStringValidator },
       identifier: { validator: stringValidator100 },
       externalId: { validator: stringValidator100 },
+      emoji: { validator: stringValidator100 },
       source: { validator: stringValidator100 },
       archivedAt: { validator: dateOptionalOrEmptyStringValidator },
       trashedAt: { validator: dateOptionalOrEmptyStringValidator },

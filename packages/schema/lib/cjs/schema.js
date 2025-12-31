@@ -1623,7 +1623,7 @@ exports.schema = (0, exports.build_schema)({
                         relationship: 'foreignKey',
                         onDependencyDelete: 'delete',
                     }]
-            }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, fields: { validator: validation_1.fieldsValidator }, suggestedReply: { validator: validation_1.stringValidator5000EmptyOkay }, discussionRoomId: { validator: validation_1.mongoIdStringRequired }, identifier: { validator: validation_1.stringValidator100 }, externalId: { validator: validation_1.stringValidator100 }, source: { validator: validation_1.stringValidator100 }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, trashedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator } }),
+            }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, fields: { validator: validation_1.fieldsValidator }, suggestedReply: { validator: validation_1.stringValidator5000EmptyOkay }, discussionRoomId: { validator: validation_1.mongoIdStringRequired }, identifier: { validator: validation_1.stringValidator100 }, externalId: { validator: validation_1.stringValidator100 }, emoji: { validator: validation_1.stringValidator100 }, source: { validator: validation_1.stringValidator100 }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, trashedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator } }),
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         enduserActions: { create: {}, read: {}, readMany: {}, display_info: {}, mark_read: {} },
         customActions: {

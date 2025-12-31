@@ -1290,6 +1290,7 @@ export interface ChatRoom extends ChatRoom_readonly, ChatRoom_required, ChatRoom
     identifier?: string;
     source?: string;
     externalId?: string;
+    emoji?: string;
     references?: RelatedRecord[];
     journeyId?: string;
     archivedAt?: Date | '';

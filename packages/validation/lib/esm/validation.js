@@ -1269,16 +1269,16 @@ export var fieldsValidator = {
                     throw new Error("key ".concat(k, " is greater than 256 characters"));
                 var val = fields[k];
                 if (typeof val === 'string') {
-                    if (val.length > 512)
-                        fields[k] = val.substring(0, 512);
+                    if (val.length > 2000)
+                        fields[k] = val.substring(0, 2000);
                     continue;
                 }
                 else if (typeof val === 'number' || val === null || typeof val === 'boolean') {
                     continue; // nothing to restrict on number type yet
                 }
                 else if (typeof val === 'object') {
-                    if (JSON.stringify(val).length > 10000)
-                        throw new Error("object value for key ".concat(k, " exceeds the maximum length of 10000 characters in string representation"));
+                    if (JSON.stringify(val).length > 25000)
+                        throw new Error("object value for key ".concat(k, " exceeds the maximum length of 25000 characters in string representation"));
                     // previous restricted structure for fields object
                     // try {
                     //   if (val.type && typeof val.type === 'string') { // form responses can be stored as custom fields (form responses is simple array)

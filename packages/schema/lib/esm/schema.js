@@ -1618,7 +1618,7 @@ export var schema = build_schema({
                         relationship: 'foreignKey',
                         onDependencyDelete: 'delete',
                     }]
-            }, pinnedAt: { validator: dateOptionalOrEmptyStringValidator }, fields: { validator: fieldsValidator }, suggestedReply: { validator: stringValidator5000EmptyOkay }, discussionRoomId: { validator: mongoIdStringValidator }, identifier: { validator: stringValidator100 }, externalId: { validator: stringValidator100 }, source: { validator: stringValidator100 }, archivedAt: { validator: dateOptionalOrEmptyStringValidator }, trashedAt: { validator: dateOptionalOrEmptyStringValidator } }),
+            }, pinnedAt: { validator: dateOptionalOrEmptyStringValidator }, fields: { validator: fieldsValidator }, suggestedReply: { validator: stringValidator5000EmptyOkay }, discussionRoomId: { validator: mongoIdStringValidator }, identifier: { validator: stringValidator100 }, externalId: { validator: stringValidator100 }, emoji: { validator: stringValidator100 }, source: { validator: stringValidator100 }, archivedAt: { validator: dateOptionalOrEmptyStringValidator }, trashedAt: { validator: dateOptionalOrEmptyStringValidator } }),
         defaultActions: DEFAULT_OPERATIONS,
         enduserActions: { create: {}, read: {}, readMany: {}, display_info: {}, mark_read: {} },
         customActions: {
