@@ -2885,6 +2885,7 @@ export const DatabaseSelectInput = ({ AddToDatabase, field, value: _value, onCha
 }) => {
   const [typing, setTyping] = useState('')
   const [open, setOpen] = useState(false)
+  const selectedRecordsCache = useRef<Map<string, DatabaseRecord>>(new Map())
   const { addChoice, choices, doneLoading, isSearching, minSearchChars } = useDatabaseChoices({
     databaseId: field.options?.databaseId,
     field,
@@ -2894,15 +2895,29 @@ export const DatabaseSelectInput = ({ AddToDatabase, field, value: _value, onCha
 
   const value = React.useMemo(() => {
     try {
-      // if the value is a string (some single answer that was save), make sure we coerce to array
+      // if the value is a string (some single answer that was saved), make sure we coerce to array
       const __value = typeof _value === 'string' ? [_value] : _value
-      return (
-        (__value?.map(v =>
-          choices.find(c =>
-            c.id === v.recordId || (typeof v === 'string' && label_for_database_record(field, c) === v)
-          )
-        )?.filter(v => v!) ?? []) as DatabaseRecord[]
-      )
+      const result: DatabaseRecord[] = []
+
+      for (const v of (__value ?? [])) {
+        const recordId = typeof v === 'string' ? v : v.recordId
+
+        // First try to find in current choices
+        const found = choices.find(c =>
+          c.id === recordId || (typeof v === 'string' && label_for_database_record(field, c) === v)
+        )
+
+        if (found) {
+          // Update cache with found record
+          selectedRecordsCache.current.set(found.id, found as DatabaseRecord)
+          result.push(found as DatabaseRecord)
+        } else if (recordId && selectedRecordsCache.current.has(recordId)) {
+          // Use cached record if not in current choices (e.g., during search)
+          result.push(selectedRecordsCache.current.get(recordId)!)
+        }
+      }
+
+      return result
     } catch(err) {
       console.error('Error resolving database answers for _value', err)
       return []

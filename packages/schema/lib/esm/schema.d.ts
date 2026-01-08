@@ -1687,6 +1687,7 @@ export type PublicActions = {
             phone?: string;
             redir?: string;
             dateOfBirth?: string;
+            brandId?: string;
             businessId: string;
             organizationIds?: string[];
         }, {
@@ -1706,6 +1707,7 @@ export type PublicActions = {
         send_otp: CustomAction<{
             token: string;
             method: string;
+            brandId?: string;
         }, {}>;
         verify_otp: CustomAction<{
             token: string;

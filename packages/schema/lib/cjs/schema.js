@@ -655,6 +655,7 @@ exports.schema = (0, exports.build_schema)({
                     email: { validator: validation_1.emailValidator },
                     redir: { validator: validation_1.stringValidator },
                     dateOfBirth: { validator: validation_1.stringValidator250 },
+                    brandId: { validator: validation_1.mongoIdStringRequired },
                 },
                 returns: {
                     result: { validator: validation_1.loginFlowResultValidator, required: true },
@@ -753,6 +754,7 @@ exports.schema = (0, exports.build_schema)({
                 parameters: {
                     token: { validator: validation_1.stringValidator, required: true },
                     method: { validator: validation_1.stringValidator, required: true },
+                    brandId: { validator: validation_1.mongoIdStringRequired },
                 },
                 returns: {},
             },

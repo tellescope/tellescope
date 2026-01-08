@@ -1236,10 +1236,10 @@ export type PublicActions = {
     }, {  }>,
     request_password_reset: CustomAction<{ email: string, businessId: string, organizationIds?: string[]  }, { }>,
     reset_password: CustomAction<{ resetToken: string, newPassword: string, businessId: string, organizationIds?: string[] }, { }>,
-    begin_login_flow: CustomAction<{ email?: string, phone?: string, redir?: string, dateOfBirth?: string, businessId: string, organizationIds?: string[] }, { result: LoginFlowResult, email?: string, otpToken?: string }>,
+    begin_login_flow: CustomAction<{ email?: string, phone?: string, redir?: string, dateOfBirth?: string, brandId?: string, businessId: string, organizationIds?: string[] }, { result: LoginFlowResult, email?: string, otpToken?: string }>,
     unsubscribe: CustomAction<{ enduserId: string, unsubscribeFrom: string[] }, { }>,
     get_otp_methods: CustomAction<{ token: string }, { methods: string[] }>,
-    send_otp: CustomAction<{ token: string, method: string }, { }>,
+    send_otp: CustomAction<{ token: string, method: string, brandId?: string }, { }>,
     verify_otp: CustomAction<{ token: string, code: string }, { authToken: string, enduser: Enduser }>,
   },
   users: {
@@ -1968,6 +1968,7 @@ export const schema: SchemaV1 = build_schema({
           email: { validator: emailValidator },
           redir: { validator: stringValidator },
           dateOfBirth: { validator: stringValidator250 },
+          brandId: { validator: mongoIdStringValidator },
         },
         returns: {
           result: { validator: loginFlowResultValidator, required: true },
@@ -2063,9 +2064,10 @@ export const schema: SchemaV1 = build_schema({
         name: 'Send OTP Code',
         path: '/endusers/send-otp-code',
         description: "Sends a otp code for a given method (e.g. email or sms)",
-        parameters: { 
+        parameters: {
           token: { validator: stringValidator, required: true },
           method: { validator: stringValidator, required: true },
+          brandId: { validator: mongoIdStringValidator },
         },
         returns: { },
       }, 

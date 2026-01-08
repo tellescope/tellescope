@@ -1705,6 +1705,7 @@ var DatabaseSelectInput = function (_a) {
     var AddToDatabase = _a.AddToDatabase, field = _a.field, _value = _a.value, onChange = _a.onChange, onDatabaseSelect = _a.onDatabaseSelect, responses = _a.responses, size = _a.size, disabled = _a.disabled, enduser = _a.enduser, inputProps = _a.inputProps;
     var _l = (0, react_1.useState)(''), typing = _l[0], setTyping = _l[1];
     var _m = (0, react_1.useState)(false), open = _m[0], setOpen = _m[1];
+    var selectedRecordsCache = (0, react_1.useRef)(new Map());
     var _o = useDatabaseChoices({
         databaseId: (_b = field.options) === null || _b === void 0 ? void 0 : _b.databaseId,
         field: field,
@@ -1712,15 +1713,31 @@ var DatabaseSelectInput = function (_a) {
         searchQuery: typing,
     }), addChoice = _o.addChoice, choices = _o.choices, doneLoading = _o.doneLoading, isSearching = _o.isSearching, minSearchChars = _o.minSearchChars;
     var value = react_1.default.useMemo(function () {
-        var _a, _b;
         try {
-            // if the value is a string (some single answer that was save), make sure we coerce to array
+            // if the value is a string (some single answer that was saved), make sure we coerce to array
             var __value = typeof _value === 'string' ? [_value] : _value;
-            return ((_b = (_a = __value === null || __value === void 0 ? void 0 : __value.map(function (v) {
-                return choices.find(function (c) {
-                    return c.id === v.recordId || (typeof v === 'string' && label_for_database_record(field, c) === v);
+            var result = [];
+            var _loop_2 = function (v) {
+                var recordId = typeof v === 'string' ? v : v.recordId;
+                // First try to find in current choices
+                var found = choices.find(function (c) {
+                    return c.id === recordId || (typeof v === 'string' && label_for_database_record(field, c) === v);
                 });
-            })) === null || _a === void 0 ? void 0 : _a.filter(function (v) { return v; })) !== null && _b !== void 0 ? _b : []);
+                if (found) {
+                    // Update cache with found record
+                    selectedRecordsCache.current.set(found.id, found);
+                    result.push(found);
+                }
+                else if (recordId && selectedRecordsCache.current.has(recordId)) {
+                    // Use cached record if not in current choices (e.g., during search)
+                    result.push(selectedRecordsCache.current.get(recordId));
+                }
+            };
+            for (var _a = 0, _b = (__value !== null && __value !== void 0 ? __value : []); _a < _b.length; _a++) {
+                var v = _b[_a];
+                _loop_2(v);
+            }
+            return result;
         }
         catch (err) {
             console.error('Error resolving database answers for _value', err);
@@ -2674,7 +2691,7 @@ var AllergiesInput = function (_a) {
                         .flatMap(function (v) { var _a, _b; return ((_b = (_a = v === null || v === void 0 ? void 0 : v.resource) === null || _a === void 0 ? void 0 : _a.code) === null || _b === void 0 ? void 0 : _b.coding) || []; })
                         .filter(function (v) { return v.system.includes('fdbhealth'); })
                         .map(function (v) { return ({ code: v.code, display: v.display, system: v.system }); }));
-                    var _loop_2 = function (v) {
+                    var _loop_3 = function (v) {
                         if (deduped.find(function (d) { return d.display === v.display; })) {
                             return "continue";
                         }
@@ -2682,7 +2699,7 @@ var AllergiesInput = function (_a) {
                     };
                     for (var _a = 0, totalResults_1 = totalResults; _a < totalResults_1.length; _a++) {
                         var v = totalResults_1[_a];
-                        _loop_2(v);
+                        _loop_3(v);
                     }
                     setResults(deduped);
                 });
@@ -2691,7 +2708,7 @@ var AllergiesInput = function (_a) {
                 session.api.allergy_codes.getSome({ search: { query: query } })
                     .then(function (results) {
                     var deduped = [];
-                    var _loop_3 = function (v) {
+                    var _loop_4 = function (v) {
                         if (deduped.find(function (d) { return d.display === v.display; })) {
                             return "continue";
                         }
@@ -2699,7 +2716,7 @@ var AllergiesInput = function (_a) {
                     };
                     for (var _a = 0, results_1 = results; _a < results_1.length; _a++) {
                         var v = results_1[_a];
-                        _loop_3(v);
+                        _loop_4(v);
                     }
                     setResults(deduped);
                 });
@@ -2735,7 +2752,7 @@ var ConditionsInput = function (_a) {
             session.api.diagnosis_codes.getSome({ search: { query: query } })
                 .then(function (codes) {
                 var deduped = [];
-                var _loop_4 = function (v) {
+                var _loop_5 = function (v) {
                     if (deduped.find(function (d) { return d.display === v.display; })) {
                         return "continue";
                     }
@@ -2743,7 +2760,7 @@ var ConditionsInput = function (_a) {
                 };
                 for (var _a = 0, codes_1 = codes; _a < codes_1.length; _a++) {
                     var v = codes_1[_a];
-                    _loop_4(v);
+                    _loop_5(v);
                 }
                 setResults(deduped);
             });

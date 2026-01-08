@@ -650,6 +650,7 @@ export var schema = build_schema({
                     email: { validator: emailValidator },
                     redir: { validator: stringValidator },
                     dateOfBirth: { validator: stringValidator250 },
+                    brandId: { validator: mongoIdStringValidator },
                 },
                 returns: {
                     result: { validator: loginFlowResultValidator, required: true },
@@ -748,6 +749,7 @@ export var schema = build_schema({
                 parameters: {
                     token: { validator: stringValidator, required: true },
                     method: { validator: stringValidator, required: true },
+                    brandId: { validator: mongoIdStringValidator },
                 },
                 returns: {},
             },
