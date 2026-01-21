@@ -5,7 +5,7 @@ import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
 import { CANVAS_TITLE, BRIDGE_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
 import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, format_stripe_subscription_interval, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, object_is_empty, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities"
-import { Address, DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, FormFieldOptionDetails, TellescopeGender, TIMEZONES_USA } from "@tellescope/types-models"
+import { Address, DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, FormFieldOptionDetails, Pharmacy, TellescopeGender, TIMEZONES_USA } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
 import Slider from '@mui/material/Slider';
 import LinearProgress from '@mui/material/LinearProgress';
@@ -25,6 +25,7 @@ import { Elements, PaymentElement, useStripe, useElements, EmbeddedCheckout, Emb
 import { loadStripe } from '@stripe/stripe-js'; 
 import { CheckCircleOutline, Delete, Edit, ExpandMore } from "@mui/icons-material"
 import { WYSIWYG } from "./wysiwyg"
+import { useConditionalChoices, Response } from "./hooks"
 
 // Bridge Eligibility - shared variable for storing most recent eligibility userIds
 const bridgeEligibilityResult = {
@@ -1417,6 +1418,207 @@ export const BridgeEligibilityInput = ({ field, value, onChange, responses, endu
   )
 }
 
+export const PharmacySearchInput = ({
+  field,
+  value: rawValue,
+  onChange,
+  responses,
+  enduser,
+  form,
+  ...props
+}: Omit<FormInputProps<'string'>, 'value' | 'onChange'> & {
+  value: Pharmacy | undefined,
+  onChange: (v: Pharmacy | undefined, fieldId: string) => void
+}) => {
+  const value = rawValue as Pharmacy | undefined
+  const session = useResolvedSession()
+
+  // Get initial ZIP code from responses or enduser data
+  const getInitialZipCode = () => {
+    // Check Address field responses first
+    const addressResponse = responses?.find(r =>
+      r.answer?.type === 'Address' && (r.answer?.value as { zipCode?: string })?.zipCode
+    )
+    if (addressResponse?.answer?.type === 'Address') {
+      const addressValue = addressResponse.answer.value as { zipCode?: string }
+      if (addressValue?.zipCode) {
+        return addressValue.zipCode
+      }
+    }
+
+    // Fall back to enduser.zipCode
+    return enduser?.zipCode || ''
+  }
+
+  const [zipCode, setZipCode] = useState(getInitialZipCode())
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string>()
+  const [pharmacies, setPharmacies] = useState<Pharmacy[]>([])
+  const [hasSearched, setHasSearched] = useState(false)
+
+  const searchPharmacies = useCallback(async () => {
+    if (!zipCode || zipCode.length !== 5) {
+      setError(form_display_text_for_language(form, 'Please enter a valid 5-digit ZIP code'))
+      return
+    }
+
+    setLoading(true)
+    setError(undefined)
+    setHasSearched(true)
+
+    try {
+      const { data } = await session.api.integrations.proxy_read({
+        integration: 'ScriptSure',
+        type: 'pharmacy-search',
+        query: JSON.stringify({ zipCode }),
+      })
+
+      setPharmacies(data || [])
+
+      if (!data?.length) {
+        setError(form_display_text_for_language(form, 'No pharmacies found for this ZIP code'))
+      }
+    } catch (err: any) {
+      setError(err?.message || form_display_text_for_language(form, 'Failed to search pharmacies'))
+      setPharmacies([])
+    } finally {
+      setLoading(false)
+    }
+  }, [session, zipCode, form])
+
+  const handleSelectPharmacy = (pharmacy: Pharmacy) => {
+    onChange({
+      npi: pharmacy.npi,
+      ncpdpId: pharmacy.ncpdpId,
+      businessName: pharmacy.businessName,
+      primaryTelephone: pharmacy.primaryTelephone || '',
+      addressLine1: pharmacy.addressLine1,
+      city: pharmacy.city,
+      stateProvince: pharmacy.stateProvince,
+      postalCode: pharmacy.postalCode,
+    }, field.id)
+  }
+
+  const formatPharmacyAddress = (p: Pharmacy) => {
+    const parts = [p.addressLine1, p.city, p.stateProvince, p.postalCode].filter(Boolean)
+    return parts.join(', ')
+  }
+
+  return (
+    <Grid container direction="column" spacing={2}>
+      {/* ZIP Code Input */}
+      <Grid item>
+        <Grid container spacing={2} alignItems="flex-end">
+          <Grid item xs={8} sm={6}>
+            <TextField
+              fullWidth
+              size="small"
+              label={form_display_text_for_language(form, "ZIP Code")}
+              value={zipCode}
+              onChange={(e) => setZipCode(e.target.value.replace(/\D/g, '').slice(0, 5))}
+              InputProps={defaultInputProps}
+              placeholder="12345"
+              required={!field.isOptional}
+            />
+          </Grid>
+          <Grid item xs={4} sm={6}>
+            <LoadingButton
+              variant="contained"
+              onClick={searchPharmacies}
+              submitText={form_display_text_for_language(form, "Search")}
+              submittingText={form_display_text_for_language(form, "Searching...")}
+              submitting={loading}
+              disabled={zipCode.length !== 5 || loading}
+              style={{ width: '100%', marginTop: 0 }}
+            />
+          </Grid>
+        </Grid>
+      </Grid>
+
+      {/* Error Message */}
+      {error && (
+        <Grid item>
+          <Typography color="error" sx={{ fontSize: 14 }}>
+            {error}
+          </Typography>
+        </Grid>
+      )}
+
+      {/* Selected Pharmacy Display */}
+      {value && (
+        <Grid item>
+          <Paper elevation={2} sx={{ p: 2, backgroundColor: '#e8f5e9' }}>
+            <Grid container alignItems="center" justifyContent="space-between">
+              <Grid item xs>
+                <Typography variant="subtitle1" fontWeight="bold">
+                  <CheckCircleOutline sx={{ color: 'success.main', mr: 1, verticalAlign: 'middle' }} />
+                  {value.businessName}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {formatPharmacyAddress(value)}
+                </Typography>
+                {value.primaryTelephone && (
+                  <Typography variant="body2" color="text.secondary">
+                    {value.primaryTelephone}
+                  </Typography>
+                )}
+              </Grid>
+              <Grid item>
+                <MuiIconButton onClick={() => onChange(undefined as any, field.id)} size="small">
+                  <CancelIcon />
+                </MuiIconButton>
+              </Grid>
+            </Grid>
+          </Paper>
+        </Grid>
+      )}
+
+      {/* Search Results */}
+      {!value && hasSearched && pharmacies.length > 0 && (
+        <Grid item>
+          <Typography variant="subtitle2" sx={{ mb: 1 }}>
+            {pharmacies.length} {form_display_text_for_language(form, pharmacies.length === 1 ? 'pharmacy found' : 'pharmacies found')}
+          </Typography>
+          <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
+            {pharmacies.map((pharmacy, index) => (
+              <Paper
+                key={`${pharmacy.ncpdpId}-${index}`}
+                elevation={1}
+                sx={{
+                  p: 1.5,
+                  mb: 1,
+                  cursor: 'pointer',
+                  '&:hover': { backgroundColor: '#f5f5f5' },
+                }}
+                onClick={() => handleSelectPharmacy(pharmacy)}
+              >
+                <Typography variant="subtitle2" fontWeight="medium">
+                  {pharmacy.businessName}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {formatPharmacyAddress(pharmacy)}
+                </Typography>
+                {pharmacy.primaryTelephone && (
+                  <Typography variant="caption" color="text.secondary">
+                    {pharmacy.primaryTelephone}
+                  </Typography>
+                )}
+              </Paper>
+            ))}
+          </Box>
+        </Grid>
+      )}
+
+      {/* Loading State */}
+      {loading && (
+        <Grid item>
+          <LinearProgress />
+        </Grid>
+      )}
+    </Grid>
+  )
+}
+
 const HourSelector = (props : { value: string, onChange: (v: string) => void })  => (
   <StringSelector {...props}
     options={Array(12).fill('').map((_, i) => (i + 1) <= 9 ? `0${i + 1}` : (i + 1).toString())}
@@ -1998,7 +2200,7 @@ const multipleChoiceItemSx: SxProps = {
   },
 }
 
-export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: FormInputProps<'multiple_choice'>) => {
+export const MultipleChoiceInput = ({ field, form, value: _value, onChange, responses, enduser }: FormInputProps<'multiple_choice'>) => {
   const value = typeof _value === 'string' ? [_value] : _value // if loading existingResponses, allows them to be a string
   const { choices, radio, other, optionDetails } = field.options as MultipleChoiceOptions
   const [expandedDescriptions, setExpandedDescriptions] = useState<Record<number, boolean>>({})
@@ -2006,6 +2208,18 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
   // current other string
   const enteringOtherStringRef = React.useRef('') // if typing otherString as prefix of a checkbox value, don't auto-select
   const otherString = value?.find(v => v === enteringOtherStringRef.current || !(choices ?? [])?.find(c => c === v)) ?? ''
+
+  // Conditional visibility for choices
+  const { visibleChoices, handleChange } = useConditionalChoices({
+    choices,
+    optionDetails,
+    responses: responses as Response[] | undefined,
+    enduser,
+    form,
+    onChange,
+    fieldId: field.id,
+    otherString,
+  })
 
   const getDescriptionForChoice = useCallback((choice: string) => {
     return optionDetails?.find(detail => detail.option === choice)?.description
@@ -2031,7 +2245,7 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
               defaultValue="female"
               name={`radio-group-${field.id}`}
             >
-            {(choices ?? []).map((c, i) => {
+            {visibleChoices.map((c, i) => {
               const description = getDescriptionForChoice(c)
               const hasDescription = !!description
               const isExpanded = expandedDescriptions[i]
@@ -2043,7 +2257,7 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
                       sx={{ ...multipleChoiceItemSx, flex: 1, marginLeft: '0px' }}
                       checked={!!value?.includes(c) && c !== otherString}
                       control={
-                        <Radio onClick={() => onChange(value?.includes(c) ? [] : [c], field.id)} />
+                        <Radio onClick={() => handleChange(value?.includes(c) ? [] : [c], field.id)} />
                       }
                       label={
                         <Box sx={{ display: 'flex', alignItems: 'center', width: '100%' }}>
@@ -2083,7 +2297,7 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
             </RadioGroup>
           </FormControl>
         ) : (
-          (choices ?? []).map((c, i) => {
+          visibleChoices.map((c, i) => {
             const description = getDescriptionForChoice(c)
             const hasDescription = !!description
             const isExpanded = expandedDescriptions[i]
@@ -2104,7 +2318,7 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
                       if ((e.target as HTMLElement).closest('.expand-button')) {
                         return
                       }
-                      onChange(
+                      handleChange(
                         (
                           value?.includes(c)
                             ? (
@@ -2174,9 +2388,9 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
             // onClick={() => !otherChecked && handleOtherChecked()} // allow click to enable when disabled
             onChange={e => {
               enteringOtherStringRef.current = e.target.value
-              onChange(
+              handleChange(
                 (
-                  radio 
+                  radio
                     ? (
                       e.target.value.trim()
                         ? [e.target.value]
@@ -2186,7 +2400,7 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
                       e.target.value.trim()
                         // remove existing other string (if exists) and append new one
                         ? [...(value ?? []).filter(v => v !== otherString), e.target.value]
-                        : value?.filter(v => v !== otherString)
+                        : (value ?? []).filter(v => v !== otherString)
                     )
                 ),
                 field.id,

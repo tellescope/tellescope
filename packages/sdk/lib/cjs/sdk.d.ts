@@ -4338,6 +4338,7 @@ export declare class Session extends SessionManager {
         from: Date;
     }) => Promise<{
         results: Pick<DataSyncRecord, 'modelName' | 'recordId' | 'data'>[];
+        to: string;
     }>;
 }
 export { SessionOptions };

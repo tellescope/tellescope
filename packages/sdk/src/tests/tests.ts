@@ -39,6 +39,7 @@ import { enduser_observations_acknowledge_tests } from "./api_tests/enduser_obse
 import { create_user_notifications_trigger_tests } from "./api_tests/create_user_notifications_trigger.test"
 import { inbox_thread_assignment_updates_tests } from "./api_tests/inbox_thread_assignment_updates.test"
 import { inbox_thread_draft_scheduled_tests } from "./api_tests/inbox_thread_draft_scheduled.test"
+import { load_threads_autobuild_tests } from "./api_tests/load_threads_autobuild.test"
 import { appointment_completed_trigger_tests } from "./api_tests/appointment_completed_trigger.test"
 import { purchase_made_trigger_tests } from "./api_tests/purchase_made_trigger.test"
 import { appointment_rescheduled_trigger_tests } from "./api_tests/appointment_rescheduled_trigger.test"
@@ -10286,7 +10287,7 @@ const sync_tests = async () => {
   await async_test(
     "No new records, admin",
     () => sdk.sync({ from }),
-    { onResult: ({ results }) => results.length === 0 },
+    { onResult: ({ results, to }) => results.length === 0 && typeof to === 'string' && !isNaN(new Date(to).getTime()) },
   )
   await async_test(
     "No new records, non-admin",
@@ -10299,12 +10300,13 @@ const sync_tests = async () => {
   await async_test(
     "Enduser create, admin",
     () => sdk.sync({ from }),
-    { onResult: ({ results }) => (
-      results.length === 1 
-      && results[0].modelName === 'endusers' 
-      && results[0].recordId === e.id 
-      && results[0].data.includes(e.id) 
+    { onResult: ({ results, to }) => (
+      results.length === 1
+      && results[0].modelName === 'endusers'
+      && results[0].recordId === e.id
+      && results[0].data.includes(e.id)
       && JSON.parse(results[0].data) // tests no error throwing
+      && typeof to === 'string' && !isNaN(new Date(to).getTime())
     )},
   )
   await async_test(
@@ -10328,11 +10330,12 @@ const sync_tests = async () => {
   await async_test(
     "Enduser update, admin",
     () => sdk.sync({ from }),
-    { onResult: ({ results }) => (
-      results.length === 1 
-      && results[0].modelName === 'endusers' 
-      && results[0].recordId === e.id 
-      && results[0].data.includes("UPDATE_TEST") 
+    { onResult: ({ results, to }) => (
+      results.length === 1
+      && results[0].modelName === 'endusers'
+      && results[0].recordId === e.id
+      && results[0].data.includes("UPDATE_TEST")
+      && typeof to === 'string' && !isNaN(new Date(to).getTime())
     )},
   )
   await async_test(
@@ -10420,9 +10423,9 @@ const sync_tests = async () => {
   await async_test(
     "Non-admin can access ticket (and enduser) after enduser assignment",
     () => sdkNonAdmin.sync({ from }),
-    { 
+    {
       onResult: ({ results }) => (
-        results.length === 3 
+        results.length === 3
         && results.filter(r => r.modelName === 'tickets' && r.recordId === t.id).length === 1
         && results.filter(r => r.modelName === 'endusers' && r.recordId === e.id).length === 1
       )
@@ -10444,9 +10447,9 @@ const sync_tests = async () => {
   await async_test(
     "Enduser update non-admin assignment, revoked access to enduser and ticket",
     () => sdkNonAdmin.sync({ from }),
-    { onResult: ({ results }) => 
+    { onResult: ({ results }) =>
       // still has user notification
-      results.length === 1 &&  
+      results.length === 1 &&
       results.filter(r => r.modelName === 'user_notifications').length === 1
     },
   )
@@ -10468,20 +10471,20 @@ const sync_tests = async () => {
     "Enduser delete, admin",
     () => sdk.sync({ from }),
     { onResult: ({ results }) => (
-      results.length === 3 
-      && results[0].modelName === 'endusers' 
-      && results[0].recordId === e.id 
-      && results[0].data === 'deleted' 
+      results.length === 3
+      && results[0].modelName === 'endusers'
+      && results[0].recordId === e.id
+      && results[0].data === 'deleted'
     )},
   )
   await async_test(
     "Enduser delete, non-admin",
     () => sdkNonAdmin.sync({ from }),
-    { onResult: ({ results }) => 
+    { onResult: ({ results }) =>
       // still includes user notification
-      results.length === 1 
+      results.length === 1
       && results.filter(r => r.modelName === 'user_notifications').length === 1
-    }, 
+    },
   )
   await async_test(
     "Enduser delete, sub organization",
@@ -10493,7 +10496,7 @@ const sync_tests = async () => {
     () => sdkOther.sync({ from }),
     { onResult: ({ results }) => results.filter(e => e.modelName === 'endusers' && e.data !== 'deleted').length === 0 },
   )
-  
+
   // bulk create test coverage
   const [e2] = (await sdk.api.endusers.createSome([{ }])).created
   await wait(undefined, 100)
@@ -10501,10 +10504,10 @@ const sync_tests = async () => {
     "Bulk Enduser create, admin",
     () => sdk.sync({ from }),
     { onResult: ({ results }) => (
-      results.length === 4 
-      && results[0].modelName === 'endusers' 
-      && results[0].recordId === e2.id 
-      && results[0].data.includes(e2.id) 
+      results.length === 4
+      && results[0].modelName === 'endusers'
+      && results[0].recordId === e2.id
+      && results[0].data.includes(e2.id)
       && JSON.parse(results[0].data) // tests no error throwing
     )},
   )
@@ -10530,20 +10533,20 @@ const sync_tests = async () => {
     "Bulk Enduser delete, admin",
     () => sdk.sync({ from }),
     { onResult: ({ results }) => (
-      results.length === 4 
-      && results[0].modelName === 'endusers' 
-      && results[0].recordId === e2.id 
-      && results[0].data === 'deleted' 
+      results.length === 4
+      && results[0].modelName === 'endusers'
+      && results[0].recordId === e2.id
+      && results[0].data === 'deleted'
     )},
   )
   await async_test(
     "Bulk Enduser delete, non-admin",
     () => sdkNonAdmin.sync({ from }),
-    { onResult: ({ results }) => 
+    { onResult: ({ results }) =>
       // still includes user notification
-      results.length === 1 
+      results.length === 1
       && results.filter(r => r.modelName === 'user_notifications').length === 1
-    }, 
+    },
   )
   await async_test(
     "Bulk Enduser delete, sub organization",
@@ -13596,6 +13599,7 @@ const ip_address_form_tests = async () => {
     await setup_tests(sdk, sdkNonAdmin)
     await inbox_thread_assignment_updates_tests({ sdk, sdkNonAdmin })
     await inbox_thread_draft_scheduled_tests({ sdk, sdkNonAdmin })
+    await load_threads_autobuild_tests({ sdk, sdkNonAdmin })
     await inbox_threads_new_fields_tests()
     await auto_merge_form_submission_tests({ sdk, sdkNonAdmin })
     await threadKeyTests()

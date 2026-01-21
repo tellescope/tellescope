@@ -126,8 +126,12 @@ export interface GenericSearchProps<T> extends FilterComponent<T> {
 interface ModelSearchProps<T> extends GenericSearchProps<T>, SearchAPIProps<T> {
 }
 export declare const ModelSearchInput: <T>({ filterKey, setFilters, searchAPI, onLoad, attachSearchableFields, activeFilterCount, compoundApiFilter, value, onChange, ...props }: ModelSearchProps<T>) => JSX.Element;
-export declare const EnduserSearch: (props: Omit<GenericSearchProps<Enduser>, 'filterKey'> & {
-    filterKey?: string;
+export declare const EnduserSearch: (props: Omit<GenericSearchProps<import("@tellescope/types-models").Enduser & {
+    id: string;
+    createdAt: Date;
+}>, "filterKey"> & {
+    filterKey?: string | undefined;
+    excludeCareTeamFromSearch?: boolean | undefined;
 }) => JSX.Element | null;
 export declare const CHAT_ROOM_SEARCH = "chat-room-search";
 export declare const ChatRoomSearch: (props: Omit<GenericSearchProps<ChatRoom>, 'filterKey'> & {

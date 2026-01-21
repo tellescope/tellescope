@@ -23,6 +23,7 @@ import LanguageIcon from '@mui/icons-material/Language';
 
 import { CheckCircleOutline, Delete, Edit, UploadFile } from "@mui/icons-material"
 import { WYSIWYG } from "./wysiwyg"
+import { useConditionalChoices, Response } from "./hooks"
 
 export const LanguageSelect = ({ value, ...props }: { value: string, onChange: (s: string) => void}) => (
   <Grid container alignItems="center" justifyContent={"center"} wrap="nowrap" spacing={1}>
@@ -544,8 +545,8 @@ export const NumberInput = ({ field, value, onChange, form, ...props }: FormInpu
   )
 }
 
-// InsuranceInput, BridgeEligibilityInput, and AppointmentBookingInput logic is shared with inputs.tsx to avoid duplication
-import { InsuranceInput as SharedInsuranceInput, BridgeEligibilityInput as SharedBridgeEligibilityInput, AppointmentBookingInput as SharedAppointmentBookingInput } from './inputs'
+// InsuranceInput, BridgeEligibilityInput, PharmacySearchInput, and AppointmentBookingInput logic is shared with inputs.tsx to avoid duplication
+import { InsuranceInput as SharedInsuranceInput, BridgeEligibilityInput as SharedBridgeEligibilityInput, PharmacySearchInput as SharedPharmacySearchInput, AppointmentBookingInput as SharedAppointmentBookingInput } from './inputs'
 
 // Wrap the shared InsuranceInput component with v2-specific props
 export const InsuranceInput = (props: FormInputProps<'Insurance'>) => {
@@ -555,6 +556,11 @@ export const InsuranceInput = (props: FormInputProps<'Insurance'>) => {
 // Wrap the shared BridgeEligibilityInput component with v2-specific props
 export const BridgeEligibilityInput = (props: FormInputProps<'Bridge Eligibility'>) => {
   return <SharedBridgeEligibilityInput {...props} inputProps={defaultInputProps} />
+}
+
+// Wrap the shared PharmacySearchInput component with v2-specific props
+export const PharmacySearchInput = (props: FormInputProps<'Pharmacy Search'>) => {
+  return <SharedPharmacySearchInput {...props} />
 }
 
 
@@ -1154,13 +1160,25 @@ export const FilesInput = ({ value, onChange, field, existingFileName, uploading
   ) 
 }
 
-export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: FormInputProps<'multiple_choice'>) => {
+export const MultipleChoiceInput = ({ field, form, value: _value, onChange, responses, enduser }: FormInputProps<'multiple_choice'>) => {
   const value = typeof _value === 'string' ? [_value] : _value // if loading existingResponses, allows them to be a string
   const { choices, radio, other, optionDetails } = field.options as MultipleChoiceOptions
 
   // current other string
   const enteringOtherStringRef = React.useRef('') // if typing otherString as prefix of a checkbox value, don't auto-select
   const otherString = value?.find(v => v === enteringOtherStringRef.current || !(choices ?? [])?.find(c => c === v)) ?? ''
+
+  // Conditional visibility for choices
+  const { visibleChoices, handleChange } = useConditionalChoices({
+    choices,
+    optionDetails,
+    responses: responses as Response[] | undefined,
+    enduser,
+    form,
+    onChange,
+    fieldId: field.id,
+    otherString,
+  })
 
   // Get primary color from form customization or use default
   const primaryColor = form?.customization?.primaryColor ?? '#798ED0'
@@ -1179,7 +1197,7 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
               defaultValue="female"
               name={`radio-group-${field.id}`}
             >
-            {(choices ?? []).map((c, i) => {
+            {visibleChoices.map((c, i) => {
               const description = getDescriptionForChoice(c)
               const hasDescription = !!description
               const isSelected = !!value?.includes(c) && c !== otherString
@@ -1203,7 +1221,7 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
                         backgroundColor: (theme: any) => `${theme.palette.primary.main}14`,
                       },
                     }}
-                    onClick={() => onChange(value?.includes(c) ? [] : [c], field.id)}
+                    onClick={() => handleChange(value?.includes(c) ? [] : [c], field.id)}
                   >
                     <Typography component="span" sx={{ flex: 1, color: 'primary.main', fontSize: 13, fontWeight: 600 }}>{c}</Typography>
                   </Box>
@@ -1216,11 +1234,11 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
                   )}
                 </Box>
               )
-            })} 
+            })}
             </RadioGroup>
           </FormControl>
         ) : (
-          (choices ?? []).map((c, i) => {
+          visibleChoices.map((c, i) => {
             const description = getDescriptionForChoice(c)
             const hasDescription = !!description
 
@@ -1236,7 +1254,7 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
                       boxSizing: 'border-box'
                     }}
                     onClick={(e) => {
-                      onChange(
+                      handleChange(
                         (
                           value?.includes(c)
                             ? (
@@ -1287,9 +1305,9 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
             // onClick={() => !otherChecked && handleOtherChecked()} // allow click to enable when disabled
             onChange={e => {
               enteringOtherStringRef.current = e.target.value
-              onChange(
+              handleChange(
                 (
-                  radio 
+                  radio
                     ? (
                       e.target.value.trim()
                         ? [e.target.value]
@@ -1299,7 +1317,7 @@ export const MultipleChoiceInput = ({ field, form, value: _value, onChange }: Fo
                       e.target.value.trim()
                         // remove existing other string (if exists) and append new one
                         ? [...(value ?? []).filter(v => v !== otherString), e.target.value]
-                        : value?.filter(v => v !== otherString)
+                        : (value ?? []).filter(v => v !== otherString)
                     )
                 ),
                 field.id,

@@ -129,6 +129,7 @@ export type PortalSettings = {
     hideMissingAnswers?: boolean,
     outstandingFormsTitle?: string,
     availableFormsTitle?: string,
+    hidePinnedFormStartsFromOutstandingBanner?: boolean,
   },
   hideSettingsPage?: boolean,
 }
@@ -227,6 +228,8 @@ export type OrganizationSettings = {
     delayedReadingIntervalInMS?: number,
     createChatRoomWithBlankUserIds?: boolean,
     showAlternateEmailsEditor?: boolean,
+    excludeCareTeamFromSearch?: boolean,
+    showVideoCallsOnTimeline?: boolean,
   },
   tickets?: {
     defaultJourneyDueDateOffsetInMS?: number | '',
@@ -328,6 +331,22 @@ export type OutOfOfficeBlock = {
   autoreplyText: string,
 }
 
+// for self-serve email domain verification via AWS SES
+export type VerifiedEmailDomain = {
+  domain: string,                              // e.g., "acme-health.com"
+  status: 'pending' | 'verified' | 'failed',
+  createdAt: Date,
+  verifiedAt?: Date,
+  dkimTokens?: string[],                       // DKIM verification tokens
+  mailFromDomain?: string,                     // e.g., "tellescopemail.acme-health.com"
+  mailFromStatus?: 'pending' | 'verified' | 'failed',
+}
+
+export type VerifiedEmailDomainSettings = {
+  maxDomains?: number,                         // Default: 1
+  maxAliasesPerDomain?: number,                // Default: 100
+}
+
 export interface Organization_readonly extends ClientRecord {
   subscriptionExpiresAt: Date;
   subscriptionPeriod: number;
@@ -347,7 +366,9 @@ export interface Organization_readonly extends ClientRecord {
   twilioSID?: string,
   twilioCustomerId?: string,
   customPortalScriptTags?: string[],
-} 
+  verifiedEmailDomains?: VerifiedEmailDomain[],
+  verifiedEmailDomainSettings?: VerifiedEmailDomainSettings,
+}
 export interface Organization_required {
   name: string;
 }
@@ -836,6 +857,17 @@ export type EnduserInsurance = {
   startDate?: string,
 }
 
+export type Pharmacy = {
+  npi: string,
+  ncpdpId: string,
+  businessName: string,
+  primaryTelephone: string,
+  addressLine1?: string,
+  city?: string,
+  stateProvince?: string,
+  postalCode?: string,
+}
+
 export type EnduserDevice = {
   title: string,
   id: string,
@@ -966,6 +998,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
   lastSuperdialEligibilityCheckAt?: Date,
   superdialEligibilityResponse?: string,
   eligibleForAutoMerge?: boolean,
+  preferredPharmacy?: Pharmacy,
   // unsubscribedFromEmail?: boolean,
   // unsubscribedFromSMS?: boolean,
 }
@@ -1636,7 +1669,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
 }
 
 export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time' | "Timezone"
-export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance" | "Bridge Eligibility" | "Beluga Patient Preference"
+export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance" | "Bridge Eligibility" | "Beluga Patient Preference" | "Pharmacy Search"
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
 
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic'
@@ -1693,6 +1726,7 @@ export type FormFieldFeedback = {
 export type FormFieldOptionDetails = {
   option: string,
   description?: string,
+  showCondition?: CompoundFilter<string>,
 }
 export interface CanvasConsentCategory extends CanvasCoding {}
 export type FormFieldOptions = FormFieldValidation & {
@@ -2173,6 +2207,7 @@ export type FormResponseAnswerAllergies = FormResponseValueAnswerBuilder<'Allerg
 export type FormResponseAnswerConditions = FormResponseValueAnswerBuilder<'Conditions', ConditionResponse[]>
 export type FormResponseAnswerChargebee = FormResponseValueAnswerBuilder<'Chargebee', { url: string }>
 export type FormResponseAnswerBelugaPatientPreference = FormResponseValueAnswerBuilder<'Beluga Patient Preference', BelugaPatientPreferenceResponse[]>
+export type FormResponseAnswerPharmacySearch = FormResponseValueAnswerBuilder<'Pharmacy Search', Pharmacy>
 
 export type FormResponseAnswerSignatureValue = {
   fullName: string,
@@ -2236,6 +2271,7 @@ export type FormResponseValueAnswer = (
   | FormResponseAnswerChargebee
   | FormResponseAnswerBelugaPatientPreference
   | FormResponseAnswerBridgeEligibility
+  | FormResponseAnswerPharmacySearch
 )
 
 export type FormResponseValue = {
@@ -2289,6 +2325,7 @@ export type AnswerForType = {
   'Conditions': FormResponseAnswerConditions['value']
   'Timezone': FormResponseAnswerTimezone['value']
   'Beluga Patient Preference': FormResponseAnswerBelugaPatientPreference['value']
+  'Pharmacy Search': FormResponseAnswerPharmacySearch['value']
 }
 
 export type Addendum = {
@@ -2388,6 +2425,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
     fieldTitle: string,
     timestamp: Date,
   }[],
+  startedViaPinnedForm?: boolean,
 }
 
 export interface WebHook_readonly extends ClientRecord {}
@@ -2778,6 +2816,7 @@ export interface AppointmentBookingPage extends AppointmentBookingPage_readonly,
   limitedToCareTeam?: boolean,
   limitedByState?: boolean,
   limitedByTagsPortal?: string[],
+  enableUserSelection?: boolean,
   requireLocationSelection?: boolean,
   collectReason?: "Do Not Collect" | 'Optional' | 'Required',
   restrictionsByTemplate?: BookingRestrictions[],
@@ -3071,9 +3110,10 @@ export type AddToJourneyAutomationAction = AutomationActionBuilder<'addToJourney
 export type RemoveFromJourneyAutomationAction = AutomationActionBuilder<'removeFromJourney', { journeyId: string }>
 export type RemoveFromAllJourneysAutomationAction = AutomationActionBuilder<'removeFromAllJourneys', { }>
 export type IterableSendEmailAutomationAction = AutomationActionBuilder<'iterableSendEmail', { campaignId: string }>
-export type ZendeskCreateTicketAutomationAction = AutomationActionBuilder<'zendeskCreateTicket', { 
+export type ZendeskCreateTicketAutomationAction = AutomationActionBuilder<'zendeskCreateTicket', {
   templateId: string,
   defaultSenderId: string,
+  isInternalNote?: boolean,
 }>
 export type CreateCarePlanAutomationAction = AutomationActionBuilder<'createCarePlan', { 
   title: string, 
@@ -3908,10 +3948,11 @@ export type AnalyticsQueryFilterForType = {
   },
   "Phone Calls": { },
   "Meetings": { },
-  "SMS Messages": { 
+  "SMS Messages": {
     direction?: string,
     messages?: string[],
     "SMS Tags"?: ListOfStringsWithQualifier,
+    deliveryStatus?: 'All' | 'Delivered' | 'Failed',
   },
   Emails: { 
     direction?: "Inbound" | "Outbound" | "Both",
@@ -4208,6 +4249,7 @@ export interface BackgroundError extends BackgroundError_readonly, BackgroundErr
   acknowledgedAt?: Date | '',
   journeyId?: string,
   enduserId?: string,
+  userId?: string,
 }
 
 export type SortingField = {
@@ -4263,6 +4305,11 @@ export type EnduserProfileViewBlocks = {
   "Diagnoses": EnduserProfileViewBlockBuilder<"Diagnoses", { title: string }>,
   "Timeline": EnduserProfileViewBlockBuilder<"Timeline", { title: string }>,
   "Shared Content": EnduserProfileViewBlockBuilder<"Shared Content", { title: string }>,
+  "iFrame": EnduserProfileViewBlockBuilder<"iFrame", {
+    title: string,
+    url: string,
+    height: number,
+  }>,
 }
 export type EnduserProfileViewBlockType = keyof EnduserProfileViewBlocks
 export type EnduserProfileViewBlock = EnduserProfileViewBlocks[EnduserProfileViewBlockType]

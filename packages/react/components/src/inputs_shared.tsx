@@ -876,16 +876,17 @@ export const ModelSearchInput = <T,>({
 }
 
 
-export const EnduserSearch = (props: Omit<GenericSearchProps<Enduser>, 'filterKey'> & { filterKey?: string }) => {
+export const EnduserSearch = (props: Omit<GenericSearchProps<Enduser>, 'filterKey'> & { filterKey?: string, excludeCareTeamFromSearch?: boolean }) => {
+  const { excludeCareTeamFromSearch, ...restProps } = props
   const session = useResolvedSession()
   const [, { addLocalElements }] = useEndusers()
-  const [usersLoading, { findById: findUser }] = useUsers() 
+  const [usersLoading, { findById: findUser }] = useUsers()
 
   // wait for users to load, so that a saved query is able to match attachSearchableFields
   // only wait when users have ALL_ACCESS to ensures users can actually load
   if (((session.userInfo as any)?.access as AccessPermissions)?.users?.read === ALL_ACCESS && !value_is_loaded(usersLoading)) return null
   return (
-    <ModelSearchInput filterKey="endusers" {...props} 
+    <ModelSearchInput filterKey="endusers" {...restProps}
       searchAPI={async ({ search }) => {
         // handle case of formatted phone number in search bar by parsing to standard phone format and searching explicitly by phone
         // in this case, also search by generic search term in case user is intending to search by something else (e.g. externalId)
@@ -903,7 +904,7 @@ export const EnduserSearch = (props: Omit<GenericSearchProps<Enduser>, 'filterKe
         return session.api.endusers.getSome({ search })
       }}
       onLoad={addLocalElements}
-      attachSearchableFields={t => {
+      attachSearchableFields={excludeCareTeamFromSearch ? undefined : (t => {
         const users = t.assignedTo?.map(userId => findUser(userId, { batch: true })).filter(u => u) as User[]
         if (!users?.length) return undefined
 
@@ -915,7 +916,7 @@ export const EnduserSearch = (props: Omit<GenericSearchProps<Enduser>, 'filterKe
         })
 
         return toJoin
-      }}
+      })}
     />
   )
 }

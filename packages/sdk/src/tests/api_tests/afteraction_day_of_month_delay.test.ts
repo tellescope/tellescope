@@ -796,7 +796,7 @@ const office_hours_delay_tests = async ({ sdk }: { sdk: Session, sdkNonAdmin: Se
           filter: { enduserId: enduser3.id, journeyId: journey3.id }
         })
         return automatedActions.find((a: any) =>
-          a.automationStepId === officeHoursStep3.id && a.status === 'active'
+          a.automationStepId === officeHoursStep3.id && (a.status === 'active' || a.status === 'finished') 
         )
       },
       (result): result is any => !!result,

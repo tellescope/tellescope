@@ -1169,6 +1169,7 @@ var _FORM_FIELD_TYPES = {
     "Rich Text": "",
     Timezone: '',
     "Beluga Patient Preference": '',
+    "Pharmacy Search": '',
 };
 export var FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES);
 export var formFieldTypeValidator = exactMatchValidator(FORM_FIELD_TYPES);
@@ -1185,6 +1186,7 @@ export var FORM_FIELD_VALIDATORS_BY_TYPE = {
     'Related Contacts': objectAnyFieldsAnyValuesValidator.validate(),
     'Insurance': objectAnyFieldsAnyValuesValidator.validate(),
     'Bridge Eligibility': objectAnyFieldsAnyValuesValidator.validate(),
+    'Pharmacy Search': objectAnyFieldsAnyValuesValidator.validate(),
     'Address': objectAnyFieldsAnyValuesValidator.validate(),
     'Database Select': objectAnyFieldsAnyValuesValidator.validate(),
     'Height': objectAnyFieldsAnyValuesValidator.validate(),
@@ -1503,6 +1505,16 @@ export var insuranceOptionalValidator = objectValidator({
     planName: stringValidatorOptional,
     startDate: stringValidatorOptional,
 }, { isOptional: true, emptyOk: true });
+export var pharmacyValidator = objectValidator({
+    npi: stringValidator,
+    ncpdpId: stringValidator,
+    businessName: stringValidator,
+    primaryTelephone: stringValidator,
+    addressLine1: stringValidatorOptional,
+    city: stringValidatorOptional,
+    stateProvince: stringValidatorOptional,
+    postalCode: stringValidatorOptional,
+}, { isOptional: true, emptyOk: true });
 // validate optional vs not at endpoint-level
 export var formResponseAnswerValidator = orValidator({
     Height: objectValidator({
@@ -1751,6 +1763,10 @@ export var formResponseAnswerValidator = orValidator({
     "Beluga Patient Preference": objectValidator({
         type: exactMatchValidator(['Beluga Patient Preference']),
         value: listValidatorOptionalOrEmptyOk(objectAnyFieldsAnyValuesValidator)
+    }),
+    "Pharmacy Search": objectValidator({
+        type: exactMatchValidator(['Pharmacy Search']),
+        value: pharmacyValidator
     })
 });
 export var mmddyyyyRegex = /^\d{2}-\d{2}-\d{4}$/;
@@ -2442,6 +2458,7 @@ export var automationActionValidator = orValidator({
     zendeskCreateTicket: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['zendeskCreateTicket']), info: objectValidator({
             templateId: mongoIdStringRequired,
             defaultSenderId: mongoIdStringRequired,
+            isInternalNote: booleanValidatorOptional,
         }, { emptyOk: false }) })),
     createCarePlan: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['createCarePlan']), info: objectValidator({
             title: stringValidator1000,
@@ -2671,6 +2688,7 @@ export var portalSettingsValidator = objectValidator({
         hideMissingAnswers: booleanValidatorOptional,
         availableFormsTitle: stringValidatorOptionalEmptyOkay,
         outstandingFormsTitle: stringValidatorOptionalEmptyOkay,
+        hidePinnedFormStartsFromOutstandingBanner: booleanValidatorOptional,
     }, { isOptional: true, emptyOk: true }),
     hideSettingsPage: booleanValidatorOptional,
 });
@@ -2794,6 +2812,7 @@ export var formFieldFeedbackValidator = objectValidator({
 export var formFieldOptionDetailsValidator = objectValidator({
     option: stringValidator,
     description: stringValidator5000Optional,
+    showCondition: objectAnyFieldsAnyValuesValidator,
 });
 export var formFieldOptionsValidator = objectValidator({
     default: stringValidatorOptional,
@@ -3591,6 +3610,8 @@ export var organizationSettingsValidator = objectValidator({
         delayedReadingIntervalInMS: numberValidatorOptional,
         createChatRoomWithBlankUserIds: booleanValidatorOptional,
         showAlternateEmailsEditor: booleanValidatorOptional,
+        excludeCareTeamFromSearch: booleanValidatorOptional,
+        showVideoCallsOnTimeline: booleanValidatorOptional,
     }, { isOptional: true }),
     tickets: objectValidator({
         defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -4822,6 +4843,7 @@ export var analyticsQueryValidator = orValidator({
             direction: stringValidatorOptional,
             messages: listOfStringsValidatorOptionalOrEmptyOk,
             "SMS Tags": listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
+            deliveryStatus: exactMatchValidatorOptional(['All', 'Delivered', 'Failed']),
         }, { isOptional: true, emptyOk: true }),
         info: orValidator({
             "Total": objectValidator({
@@ -5134,6 +5156,11 @@ export var enduserProfileViewBlockValidator = orValidator({
         }) })),
     "Shared Content": objectValidator(__assign(__assign({}, sharedEnduserProfileViewBlockFields), { type: exactMatchValidator(['Shared Content']), info: objectValidator({
             title: stringValidator100,
+        }) })),
+    "iFrame": objectValidator(__assign(__assign({}, sharedEnduserProfileViewBlockFields), { type: exactMatchValidator(['iFrame']), info: objectValidator({
+            title: stringValidator100,
+            url: stringValidator5000,
+            height: positiveNumberValidator,
         }) })),
 });
 export var enduserProfileViewBlocksValidator = listValidator(enduserProfileViewBlockValidator);

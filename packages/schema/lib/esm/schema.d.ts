@@ -399,6 +399,7 @@ export type CustomActions = {
             groupId?: string;
             groupInstance?: string;
             groupPosition?: number;
+            startedViaPinnedForm?: boolean;
         }, {
             accessCode: string;
             url: string;
@@ -1638,6 +1639,7 @@ export type CustomActions = {
             returnCount?: boolean;
             mdbFilter?: object;
             sortBy?: 'timestamp' | 'outboundTimestamp';
+            autobuild?: boolean;
         }, {
             threads: InboxThread[];
             count?: number;

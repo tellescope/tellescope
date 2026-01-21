@@ -94,7 +94,8 @@ export const ENDUSER_FIELD_TYPES = {
   'genderIdentity': ['string', 'multiple_choice', 'Select'],
   'pronouns': ['string', 'multiple_choice', 'Select'],
   'timezone': ['Timezone'],
-}  as { [K in EnduserField | 'Insurance'] : FormFieldType[]}
+  'preferredPharmacy': ['Pharmacy Search'],
+}  as { [K in EnduserField | 'Insurance' | 'preferredPharmacy'] : FormFieldType[]}
 
 export const PRIMARY_HEX = "#1564bf"
 export const SECONDARY_HEX = "#1c4378"

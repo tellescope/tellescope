@@ -254,8 +254,10 @@ import {
   SortingField,
   TicketReminder,
   EnduserInsurance,
+  Pharmacy,
   FormResponseAnswerInsurance,
   FormResponseAnswerBridgeEligibility,
+  FormResponseAnswerPharmacySearch,
   CanvasConsentCategory,
   DiagnosisTypes,
   DiagnosisType,
@@ -1607,6 +1609,7 @@ const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
   "Rich Text": "",
   Timezone: '',
   "Beluga Patient Preference": '',
+  "Pharmacy Search": '',
 }
 export const FORM_FIELD_TYPES = Object.keys(_FORM_FIELD_TYPES) as FormFieldType[]
 export const formFieldTypeValidator = exactMatchValidator<FormFieldType>(FORM_FIELD_TYPES)
@@ -1624,6 +1627,7 @@ export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' 
   'Related Contacts': objectAnyFieldsAnyValuesValidator.validate(),
   'Insurance': objectAnyFieldsAnyValuesValidator.validate(),
   'Bridge Eligibility': objectAnyFieldsAnyValuesValidator.validate(),
+  'Pharmacy Search': objectAnyFieldsAnyValuesValidator.validate(),
   'Address': objectAnyFieldsAnyValuesValidator.validate(),
   'Database Select': objectAnyFieldsAnyValuesValidator.validate(),
   'Height': objectAnyFieldsAnyValuesValidator.validate(),
@@ -1972,6 +1976,17 @@ export const insuranceOptionalValidator = objectValidator<EnduserInsurance>({
   startDate: stringValidatorOptional,
 }, { isOptional: true, emptyOk: true })
 
+export const pharmacyValidator = objectValidator<Pharmacy>({
+  npi: stringValidator,
+  ncpdpId: stringValidator,
+  businessName: stringValidator,
+  primaryTelephone: stringValidator,
+  addressLine1: stringValidatorOptional,
+  city: stringValidatorOptional,
+  stateProvince: stringValidatorOptional,
+  postalCode: stringValidatorOptional,
+}, { isOptional: true, emptyOk: true })
+
 // validate optional vs not at endpoint-level
 export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: FormResponseValueAnswer & { type: K } } >({
   Height: objectValidator<FormResponseAnswerHeight>({
@@ -2223,6 +2238,10 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
   "Beluga Patient Preference": objectValidator<FormResponseAnswerBelugaPatientPreference>({
     type: exactMatchValidator(['Beluga Patient Preference']),
     value: listValidatorOptionalOrEmptyOk(objectAnyFieldsAnyValuesValidator)
+  }),
+  "Pharmacy Search": objectValidator<FormResponseAnswerPharmacySearch>({
+    type: exactMatchValidator(['Pharmacy Search']),
+    value: pharmacyValidator
   })
 })
 
@@ -3113,9 +3132,10 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
   zendeskCreateTicket: objectValidator<ZendeskCreateTicketAutomationAction>({
     ...sharedAutomationActionValidators,
     type: exactMatchValidator(['zendeskCreateTicket']),
-    info: objectValidator<ZendeskCreateTicketAutomationAction['info']>({ 
-      templateId: mongoIdStringRequired, 
-      defaultSenderId: mongoIdStringRequired, 
+    info: objectValidator<ZendeskCreateTicketAutomationAction['info']>({
+      templateId: mongoIdStringRequired,
+      defaultSenderId: mongoIdStringRequired,
+      isInternalNote: booleanValidatorOptional,
     }, { emptyOk: false }),
   }),
   createCarePlan: objectValidator<CreateCarePlanAutomationAction>({
@@ -3493,6 +3513,7 @@ export const portalSettingsValidator = objectValidator<PortalSettings>({
     hideMissingAnswers: booleanValidatorOptional,
     availableFormsTitle: stringValidatorOptionalEmptyOkay,
     outstandingFormsTitle: stringValidatorOptionalEmptyOkay,
+    hidePinnedFormStartsFromOutstandingBanner: booleanValidatorOptional,
   }, { isOptional: true, emptyOk: true }),
   hideSettingsPage: booleanValidatorOptional,
 })
@@ -3634,6 +3655,7 @@ export const formFieldFeedbackValidator = objectValidator<FormFieldFeedback>({
 export const formFieldOptionDetailsValidator = objectValidator<FormFieldOptionDetails>({
   option: stringValidator,
   description: stringValidator5000Optional,
+  showCondition: objectAnyFieldsAnyValuesValidator,
 })
 
 export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
@@ -4467,6 +4489,8 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     delayedReadingIntervalInMS: numberValidatorOptional,
     createChatRoomWithBlankUserIds: booleanValidatorOptional,
     showAlternateEmailsEditor: booleanValidatorOptional,
+    excludeCareTeamFromSearch: booleanValidatorOptional,
+    showVideoCallsOnTimeline: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,
@@ -5753,10 +5777,11 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
   }),
   "SMS Messages": objectValidator<AnalyticsQueryForType['SMS Messages']>({
     resource: exactMatchValidator<'SMS Messages'>(['SMS Messages']),
-    filter: objectValidator<AnalyticsQueryFilterForType['SMS Messages']>({ 
+    filter: objectValidator<AnalyticsQueryFilterForType['SMS Messages']>({
       direction: stringValidatorOptional,
       messages: listOfStringsValidatorOptionalOrEmptyOk,
       "SMS Tags": listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay,
+      deliveryStatus: exactMatchValidatorOptional(['All', 'Delivered', 'Failed']),
     }, { isOptional: true, emptyOk: true }),
     info: orValidator<{ [K in keyof AnalyticsQueryInfoForType['SMS Messages']]: AnalyticsQueryInfoForType['SMS Messages'][K] }>({
       "Total": objectValidator<AnalyticsQueryInfoForType['SMS Messages']['Total']>({
@@ -6124,7 +6149,16 @@ export const enduserProfileViewBlockValidator = orValidator<{ [K in EnduserProfi
     info: objectValidator<EnduserProfileViewBlocks['Shared Content']['info']>({
       title: stringValidator100,
     }),
-  }), 
+  }),
+  "iFrame": objectValidator<EnduserProfileViewBlocks["iFrame"]>({
+    ...sharedEnduserProfileViewBlockFields,
+    type: exactMatchValidator(['iFrame']),
+    info: objectValidator<EnduserProfileViewBlocks['iFrame']['info']>({
+      title: stringValidator100,
+      url: stringValidator5000,
+      height: positiveNumberValidator,
+    }),
+  }),
 })
 export const enduserProfileViewBlocksValidator = listValidator(enduserProfileViewBlockValidator)
 

@@ -97,7 +97,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ChargeebeeInput = exports.RichTextInput = exports.ConditionsInput = exports.AllergiesInput = exports.EmotiiInput = exports.HiddenValueInput = exports.RedirectInput = exports.HeightInput = exports.AppointmentBookingInput = exports.RelatedContactsInput = exports.contact_is_valid = exports.BelugaPatientPreferenceInput = exports.MedicationsInput = exports.CanvasMedicationsInput = exports.DatabaseSelectInput = exports.DropdownInput = exports.Progress = exports.StripeInput = exports.MultipleChoiceInput = exports.FilesInput = exports.safe_create_url = exports.FileInput = exports.convertHEIC = exports.SignatureInput = exports.ESignatureTerms = exports.AddressInput = exports.TimezoneInput = exports.TimeInput = exports.BridgeEligibilityInput = exports.InsuranceInput = exports.NumberInput = exports.EmailInput = exports.PhoneInput = exports.StringLongInput = exports.StringInput = exports.DateStringInput = exports.AutoFocusTextField = exports.TableInput = exports.DateInput = exports.RankingInput = exports.RatingInput = exports.PdfViewer = exports.defaultButtonStyles = exports.defaultInputProps = exports.LanguageSelect = void 0;
+exports.ChargeebeeInput = exports.RichTextInput = exports.ConditionsInput = exports.AllergiesInput = exports.EmotiiInput = exports.HiddenValueInput = exports.RedirectInput = exports.HeightInput = exports.AppointmentBookingInput = exports.RelatedContactsInput = exports.contact_is_valid = exports.BelugaPatientPreferenceInput = exports.MedicationsInput = exports.CanvasMedicationsInput = exports.DatabaseSelectInput = exports.DropdownInput = exports.Progress = exports.StripeInput = exports.MultipleChoiceInput = exports.FilesInput = exports.safe_create_url = exports.FileInput = exports.convertHEIC = exports.SignatureInput = exports.ESignatureTerms = exports.AddressInput = exports.TimezoneInput = exports.TimeInput = exports.PharmacySearchInput = exports.BridgeEligibilityInput = exports.InsuranceInput = exports.NumberInput = exports.EmailInput = exports.PhoneInput = exports.StringLongInput = exports.StringInput = exports.DateStringInput = exports.AutoFocusTextField = exports.TableInput = exports.DateInput = exports.RankingInput = exports.RatingInput = exports.PdfViewer = exports.defaultButtonStyles = exports.defaultInputProps = exports.LanguageSelect = void 0;
 var jsx_runtime_1 = require("react/jsx-runtime");
 var react_1 = __importStar(require("react"));
 var axios_1 = __importDefault(require("axios"));
@@ -120,6 +120,7 @@ var AddPhotoAlternate_1 = __importDefault(require("@mui/icons-material/AddPhotoA
 var Language_1 = __importDefault(require("@mui/icons-material/Language"));
 var icons_material_1 = require("@mui/icons-material");
 var wysiwyg_1 = require("./wysiwyg");
+var hooks_1 = require("./hooks");
 var LanguageSelect = function (_a) {
     var value = _a.value, props = __rest(_a, ["value"]);
     return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", justifyContent: "center", wrap: "nowrap", spacing: 1 }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(Language_1.default, { color: "primary" }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, style: { width: 150 } }, { children: (0, jsx_runtime_1.jsx)(StringSelector, __assign({}, props, { options: ["English", "Español"], size: "small", value: value === 'Spanish' ? 'Español' : value, label: (value === 'Español' || value === 'Spanish') ? 'Idioma'
@@ -370,7 +371,7 @@ var NumberInput = function (_a) {
         } })));
 };
 exports.NumberInput = NumberInput;
-// InsuranceInput, BridgeEligibilityInput, and AppointmentBookingInput logic is shared with inputs.tsx to avoid duplication
+// InsuranceInput, BridgeEligibilityInput, PharmacySearchInput, and AppointmentBookingInput logic is shared with inputs.tsx to avoid duplication
 var inputs_1 = require("./inputs");
 // Wrap the shared InsuranceInput component with v2-specific props
 var InsuranceInput = function (props) {
@@ -382,6 +383,11 @@ var BridgeEligibilityInput = function (props) {
     return (0, jsx_runtime_1.jsx)(inputs_1.BridgeEligibilityInput, __assign({}, props, { inputProps: exports.defaultInputProps }));
 };
 exports.BridgeEligibilityInput = BridgeEligibilityInput;
+// Wrap the shared PharmacySearchInput component with v2-specific props
+var PharmacySearchInput = function (props) {
+    return (0, jsx_runtime_1.jsx)(inputs_1.PharmacySearchInput, __assign({}, props));
+};
+exports.PharmacySearchInput = PharmacySearchInput;
 var StringSelector = function (_a) {
     var options = _a.options, value = _a.value, onChange = _a.onChange, required = _a.required, getDisplayValue = _a.getDisplayValue, props = __rest(_a, ["options", "value", "onChange", "required", "getDisplayValue"]);
     return ((0, jsx_runtime_1.jsxs)(material_1.FormControl, __assign({ fullWidth: true, size: props.size, required: required }, { children: [(0, jsx_runtime_1.jsx)(material_1.InputLabel, { children: props.label }), (0, jsx_runtime_1.jsx)(material_1.Select, __assign({}, props, { value: value, onChange: function (e) { return onChange(e.target.value); }, fullWidth: true, sx: exports.defaultInputProps.sx }, { children: options.map(function (o, i) {
@@ -682,12 +688,23 @@ var FilesInput = function (_a) {
 exports.FilesInput = FilesInput;
 var MultipleChoiceInput = function (_a) {
     var _b, _d, _e;
-    var field = _a.field, form = _a.form, _value = _a.value, onChange = _a.onChange;
+    var field = _a.field, form = _a.form, _value = _a.value, onChange = _a.onChange, responses = _a.responses, enduser = _a.enduser;
     var value = typeof _value === 'string' ? [_value] : _value; // if loading existingResponses, allows them to be a string
     var _f = field.options, choices = _f.choices, radio = _f.radio, other = _f.other, optionDetails = _f.optionDetails;
     // current other string
     var enteringOtherStringRef = react_1.default.useRef(''); // if typing otherString as prefix of a checkbox value, don't auto-select
     var otherString = (_b = value === null || value === void 0 ? void 0 : value.find(function (v) { var _a; return v === enteringOtherStringRef.current || !((_a = (choices !== null && choices !== void 0 ? choices : [])) === null || _a === void 0 ? void 0 : _a.find(function (c) { return c === v; })); })) !== null && _b !== void 0 ? _b : '';
+    // Conditional visibility for choices
+    var _g = (0, hooks_1.useConditionalChoices)({
+        choices: choices,
+        optionDetails: optionDetails,
+        responses: responses,
+        enduser: enduser,
+        form: form,
+        onChange: onChange,
+        fieldId: field.id,
+        otherString: otherString,
+    }), visibleChoices = _g.visibleChoices, handleChange = _g.handleChange;
     // Get primary color from form customization or use default
     var primaryColor = (_e = (_d = form === null || form === void 0 ? void 0 : form.customization) === null || _d === void 0 ? void 0 : _d.primaryColor) !== null && _e !== void 0 ? _e : '#798ED0';
     var getDescriptionForChoice = (0, react_1.useCallback)(function (choice) {
@@ -695,7 +712,7 @@ var MultipleChoiceInput = function (_a) {
         return (_a = optionDetails === null || optionDetails === void 0 ? void 0 : optionDetails.find(function (detail) { return detail.option === choice; })) === null || _a === void 0 ? void 0 : _a.description;
     }, [optionDetails]);
     return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", rowGap: 1.5 }, { children: [radio
-                ? ((0, jsx_runtime_1.jsx)(material_1.FormControl, __assign({ fullWidth: true }, { children: (0, jsx_runtime_1.jsx)(material_1.RadioGroup, __assign({ "aria-labelledby": "radio-group-".concat(field.id, "-label"), defaultValue: "female", name: "radio-group-".concat(field.id) }, { children: (choices !== null && choices !== void 0 ? choices : []).map(function (c, i) {
+                ? ((0, jsx_runtime_1.jsx)(material_1.FormControl, __assign({ fullWidth: true }, { children: (0, jsx_runtime_1.jsx)(material_1.RadioGroup, __assign({ "aria-labelledby": "radio-group-".concat(field.id, "-label"), defaultValue: "female", name: "radio-group-".concat(field.id) }, { children: visibleChoices.map(function (c, i) {
                             var description = getDescriptionForChoice(c);
                             var hasDescription = !!description;
                             var isSelected = !!(value === null || value === void 0 ? void 0 : value.includes(c)) && c !== otherString;
@@ -714,8 +731,8 @@ var MultipleChoiceInput = function (_a) {
                                             '&:hover': {
                                                 backgroundColor: function (theme) { return "".concat(theme.palette.primary.main, "14"); },
                                             },
-                                        }, onClick: function () { return onChange((value === null || value === void 0 ? void 0 : value.includes(c)) ? [] : [c], field.id); } }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ component: "span", sx: { flex: 1, color: 'primary.main', fontSize: 13, fontWeight: 600 } }, { children: c })) })), hasDescription && ((0, jsx_runtime_1.jsx)(material_1.Box, __assign({ sx: { pl: 2, pr: 2, pb: 1, mb: 1 } }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ style: { fontSize: 14, color: '#00000099' } }, { children: description })) })))] }), i));
-                        }) })) }))) : ((choices !== null && choices !== void 0 ? choices : []).map(function (c, i) {
+                                        }, onClick: function () { return handleChange((value === null || value === void 0 ? void 0 : value.includes(c)) ? [] : [c], field.id); } }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ component: "span", sx: { flex: 1, color: 'primary.main', fontSize: 13, fontWeight: 600 } }, { children: c })) })), hasDescription && ((0, jsx_runtime_1.jsx)(material_1.Box, __assign({ sx: { pl: 2, pr: 2, pb: 1, mb: 1 } }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ style: { fontSize: 14, color: '#00000099' } }, { children: description })) })))] }), i));
+                        }) })) }))) : (visibleChoices.map(function (c, i) {
                 var description = getDescriptionForChoice(c);
                 var hasDescription = !!description;
                 return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ xs: 12 }, { children: (0, jsx_runtime_1.jsxs)(material_1.Box, __assign({ sx: { width: '100%' } }, { children: [(0, jsx_runtime_1.jsxs)(material_1.Box, __assign({ sx: {
@@ -726,7 +743,7 @@ var MultipleChoiceInput = function (_a) {
                                     boxSizing: 'border-box'
                                 }, onClick: function (e) {
                                     var _a, _b, _d, _e;
-                                    onChange(((value === null || value === void 0 ? void 0 : value.includes(c))
+                                    handleChange(((value === null || value === void 0 ? void 0 : value.includes(c))
                                         ? ((radio || ((_b = (_a = field.options) === null || _a === void 0 ? void 0 : _a.radioChoices) === null || _b === void 0 ? void 0 : _b.includes(c)))
                                             ? []
                                             : value.filter(function (v) { return v !== c; }))
@@ -740,13 +757,13 @@ var MultipleChoiceInput = function (_a) {
                         // onClick={() => !otherChecked && handleOtherChecked()} // allow click to enable when disabled
                         onChange: function (e) {
                             enteringOtherStringRef.current = e.target.value;
-                            onChange((radio
+                            handleChange((radio
                                 ? (e.target.value.trim()
                                     ? [e.target.value]
                                     : [])
                                 : (e.target.value.trim()
                                     // remove existing other string (if exists) and append new one
-                                    ? __spreadArray(__spreadArray([], (value !== null && value !== void 0 ? value : []).filter(function (v) { return v !== otherString; }), true), [e.target.value], false) : value === null || value === void 0 ? void 0 : value.filter(function (v) { return v !== otherString; }))), field.id);
+                                    ? __spreadArray(__spreadArray([], (value !== null && value !== void 0 ? value : []).filter(function (v) { return v !== otherString; }), true), [e.target.value], false) : (value !== null && value !== void 0 ? value : []).filter(function (v) { return v !== otherString; }))), field.id);
                         } }) }))] })));
 };
 exports.MultipleChoiceInput = MultipleChoiceInput;

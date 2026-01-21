@@ -73,6 +73,7 @@ export var ENDUSER_FIELD_TYPES = {
     'genderIdentity': ['string', 'multiple_choice', 'Select'],
     'pronouns': ['string', 'multiple_choice', 'Select'],
     'timezone': ['Timezone'],
+    'preferredPharmacy': ['Pharmacy Search'],
 };
 export var PRIMARY_HEX = "#1564bf";
 export var SECONDARY_HEX = "#1c4378";

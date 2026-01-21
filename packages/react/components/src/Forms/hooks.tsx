@@ -4,7 +4,7 @@ import { ChangeHandler, FormFieldNode } from "./types"
 import { DatabaseRecord, Enduser, Form, FormField, FormResponse } from "@tellescope/types-client"
 import { phoneValidator } from "@tellescope/validation"
 import { FileBlob, Indexable } from "@tellescope/types-utilities"
-import { CompoundFilter, EnduserRelationship, FormCustomization, FormResponseAnswerAddress, FormResponseAnswerFileValue, FormResponseValue, FormResponseValueAnswer, OrganizationTheme, PreviousFormCompoundLogic, PreviousFormFieldType, Timezone, TIMEZONES } from "@tellescope/types-models"
+import { CompoundFilter, EnduserRelationship, FormCustomization, FormFieldOptionDetails, FormResponseAnswerAddress, FormResponseAnswerFileValue, FormResponseValue, FormResponseValueAnswer, OrganizationTheme, PreviousFormCompoundLogic, PreviousFormFieldType, Timezone, TIMEZONES } from "@tellescope/types-models"
 import { WithTheme, contact_is_valid, useAddGTMTag, useFileUpload, useFormFields, useFormResponses, useResolvedSession, value_is_loaded } from "../index"
 import ReactGA from "react-ga4";
 
@@ -679,7 +679,7 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
         type: f.type,
         value: (
           existing_response_if_compatible(existingResponses, f) ?? (
-            (f.type === 'Insurance' || f.type === 'Address' || f.type === 'file' || f.type === 'signature' || f.type === 'multiple_choice' || f.type === 'Dropdown' || f.type === 'Table Input' || f.type === 'Database Select' || f.type === 'Medications')
+            (f.type === 'Insurance' || f.type === 'Address' || f.type === 'file' || f.type === 'signature' || f.type === 'multiple_choice' || f.type === 'Dropdown' || f.type === 'Table Input' || f.type === 'Database Select' || f.type === 'Medications' || f.type === 'Pharmacy Search')
               ? undefined  
                 : f.type === 'Question Group'
                   ? f.options?.subFields
@@ -1685,4 +1685,59 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
     handleFileUpload,
     isAutoAdvancing,
   }
+}
+
+/**
+ * Hook for conditional visibility of multiple choice options.
+ * Computes visible choices based on showCondition and provides an onChange wrapper
+ * that auto-filters hidden choices from selections (event-driven, not useEffect).
+ */
+export const useConditionalChoices = ({
+  choices,
+  optionDetails,
+  responses,
+  enduser,
+  form,
+  onChange,
+  fieldId,
+  otherString,
+}: {
+  choices?: string[]
+  optionDetails?: FormFieldOptionDetails[]
+  responses?: Response[]
+  enduser?: Partial<Enduser>
+  form?: Form
+  onChange: (value: string[], fieldId: string) => void
+  fieldId: string
+  otherString: string
+}) => {
+  // Compute visible choices based on showCondition
+  const visibleChoices = useMemo(() => {
+    if (!choices) return []
+    return choices.filter((choice, index) => {
+      const optionDetail = optionDetails?.find(d => d.option === choice) ?? optionDetails?.[index]
+      if (!optionDetail?.showCondition || object_is_empty(optionDetail.showCondition)) {
+        return true
+      }
+      return responses_satisfy_conditions(responses || [], optionDetail.showCondition, {
+        dateOfBirth: enduser?.dateOfBirth,
+        gender: enduser?.gender,
+        state: enduser?.state,
+        form,
+        activeResponses: responses,
+      })
+    })
+  }, [choices, optionDetails, responses, enduser, form])
+
+  // Wrap onChange to auto-filter hidden choices (event-driven)
+  const handleChange = useCallback((newValue: string[], fieldId: string) => {
+    // Filter out any hidden choices from the new value
+    // Allow through: visible choices, the "other" string, and values not in the choices array (custom "other" text)
+    const filteredValue = newValue.filter(v =>
+      visibleChoices.includes(v) || v === otherString || !choices?.includes(v)
+    )
+    onChange(filteredValue, fieldId)
+  }, [visibleChoices, otherString, choices, onChange])
+
+  return { visibleChoices, handleChange }
 }

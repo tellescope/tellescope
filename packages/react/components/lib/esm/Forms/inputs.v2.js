@@ -91,6 +91,7 @@ import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import LanguageIcon from '@mui/icons-material/Language';
 import { CheckCircleOutline, Delete, Edit, UploadFile } from "@mui/icons-material";
 import { WYSIWYG } from "./wysiwyg";
+import { useConditionalChoices } from "./hooks";
 export var LanguageSelect = function (_a) {
     var value = _a.value, props = __rest(_a, ["value"]);
     return (_jsxs(Grid, __assign({ container: true, alignItems: "center", justifyContent: "center", wrap: "nowrap", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(LanguageIcon, { color: "primary" }) })), _jsx(Grid, __assign({ item: true, style: { width: 150 } }, { children: _jsx(StringSelector, __assign({}, props, { options: ["English", "Español"], size: "small", value: value === 'Spanish' ? 'Español' : value, label: (value === 'Español' || value === 'Spanish') ? 'Idioma'
@@ -328,8 +329,8 @@ export var NumberInput = function (_a) {
             }
         } })));
 };
-// InsuranceInput, BridgeEligibilityInput, and AppointmentBookingInput logic is shared with inputs.tsx to avoid duplication
-import { InsuranceInput as SharedInsuranceInput, BridgeEligibilityInput as SharedBridgeEligibilityInput, AppointmentBookingInput as SharedAppointmentBookingInput } from './inputs';
+// InsuranceInput, BridgeEligibilityInput, PharmacySearchInput, and AppointmentBookingInput logic is shared with inputs.tsx to avoid duplication
+import { InsuranceInput as SharedInsuranceInput, BridgeEligibilityInput as SharedBridgeEligibilityInput, PharmacySearchInput as SharedPharmacySearchInput, AppointmentBookingInput as SharedAppointmentBookingInput } from './inputs';
 // Wrap the shared InsuranceInput component with v2-specific props
 export var InsuranceInput = function (props) {
     return _jsx(SharedInsuranceInput, __assign({}, props, { inputProps: defaultInputProps }));
@@ -337,6 +338,10 @@ export var InsuranceInput = function (props) {
 // Wrap the shared BridgeEligibilityInput component with v2-specific props
 export var BridgeEligibilityInput = function (props) {
     return _jsx(SharedBridgeEligibilityInput, __assign({}, props, { inputProps: defaultInputProps }));
+};
+// Wrap the shared PharmacySearchInput component with v2-specific props
+export var PharmacySearchInput = function (props) {
+    return _jsx(SharedPharmacySearchInput, __assign({}, props));
 };
 var StringSelector = function (_a) {
     var options = _a.options, value = _a.value, onChange = _a.onChange, required = _a.required, getDisplayValue = _a.getDisplayValue, props = __rest(_a, ["options", "value", "onChange", "required", "getDisplayValue"]);
@@ -629,12 +634,23 @@ export var FilesInput = function (_a) {
 };
 export var MultipleChoiceInput = function (_a) {
     var _b, _d, _e;
-    var field = _a.field, form = _a.form, _value = _a.value, onChange = _a.onChange;
+    var field = _a.field, form = _a.form, _value = _a.value, onChange = _a.onChange, responses = _a.responses, enduser = _a.enduser;
     var value = typeof _value === 'string' ? [_value] : _value; // if loading existingResponses, allows them to be a string
     var _f = field.options, choices = _f.choices, radio = _f.radio, other = _f.other, optionDetails = _f.optionDetails;
     // current other string
     var enteringOtherStringRef = React.useRef(''); // if typing otherString as prefix of a checkbox value, don't auto-select
     var otherString = (_b = value === null || value === void 0 ? void 0 : value.find(function (v) { var _a; return v === enteringOtherStringRef.current || !((_a = (choices !== null && choices !== void 0 ? choices : [])) === null || _a === void 0 ? void 0 : _a.find(function (c) { return c === v; })); })) !== null && _b !== void 0 ? _b : '';
+    // Conditional visibility for choices
+    var _g = useConditionalChoices({
+        choices: choices,
+        optionDetails: optionDetails,
+        responses: responses,
+        enduser: enduser,
+        form: form,
+        onChange: onChange,
+        fieldId: field.id,
+        otherString: otherString,
+    }), visibleChoices = _g.visibleChoices, handleChange = _g.handleChange;
     // Get primary color from form customization or use default
     var primaryColor = (_e = (_d = form === null || form === void 0 ? void 0 : form.customization) === null || _d === void 0 ? void 0 : _d.primaryColor) !== null && _e !== void 0 ? _e : '#798ED0';
     var getDescriptionForChoice = useCallback(function (choice) {
@@ -642,7 +658,7 @@ export var MultipleChoiceInput = function (_a) {
         return (_a = optionDetails === null || optionDetails === void 0 ? void 0 : optionDetails.find(function (detail) { return detail.option === choice; })) === null || _a === void 0 ? void 0 : _a.description;
     }, [optionDetails]);
     return (_jsxs(Grid, __assign({ container: true, alignItems: "center", rowGap: 1.5 }, { children: [radio
-                ? (_jsx(FormControl, __assign({ fullWidth: true }, { children: _jsx(RadioGroup, __assign({ "aria-labelledby": "radio-group-".concat(field.id, "-label"), defaultValue: "female", name: "radio-group-".concat(field.id) }, { children: (choices !== null && choices !== void 0 ? choices : []).map(function (c, i) {
+                ? (_jsx(FormControl, __assign({ fullWidth: true }, { children: _jsx(RadioGroup, __assign({ "aria-labelledby": "radio-group-".concat(field.id, "-label"), defaultValue: "female", name: "radio-group-".concat(field.id) }, { children: visibleChoices.map(function (c, i) {
                             var description = getDescriptionForChoice(c);
                             var hasDescription = !!description;
                             var isSelected = !!(value === null || value === void 0 ? void 0 : value.includes(c)) && c !== otherString;
@@ -661,8 +677,8 @@ export var MultipleChoiceInput = function (_a) {
                                             '&:hover': {
                                                 backgroundColor: function (theme) { return "".concat(theme.palette.primary.main, "14"); },
                                             },
-                                        }, onClick: function () { return onChange((value === null || value === void 0 ? void 0 : value.includes(c)) ? [] : [c], field.id); } }, { children: _jsx(Typography, __assign({ component: "span", sx: { flex: 1, color: 'primary.main', fontSize: 13, fontWeight: 600 } }, { children: c })) })), hasDescription && (_jsx(Box, __assign({ sx: { pl: 2, pr: 2, pb: 1, mb: 1 } }, { children: _jsx(Typography, __assign({ style: { fontSize: 14, color: '#00000099' } }, { children: description })) })))] }), i));
-                        }) })) }))) : ((choices !== null && choices !== void 0 ? choices : []).map(function (c, i) {
+                                        }, onClick: function () { return handleChange((value === null || value === void 0 ? void 0 : value.includes(c)) ? [] : [c], field.id); } }, { children: _jsx(Typography, __assign({ component: "span", sx: { flex: 1, color: 'primary.main', fontSize: 13, fontWeight: 600 } }, { children: c })) })), hasDescription && (_jsx(Box, __assign({ sx: { pl: 2, pr: 2, pb: 1, mb: 1 } }, { children: _jsx(Typography, __assign({ style: { fontSize: 14, color: '#00000099' } }, { children: description })) })))] }), i));
+                        }) })) }))) : (visibleChoices.map(function (c, i) {
                 var description = getDescriptionForChoice(c);
                 var hasDescription = !!description;
                 return (_jsx(Grid, __assign({ xs: 12 }, { children: _jsxs(Box, __assign({ sx: { width: '100%' } }, { children: [_jsxs(Box, __assign({ sx: {
@@ -673,7 +689,7 @@ export var MultipleChoiceInput = function (_a) {
                                     boxSizing: 'border-box'
                                 }, onClick: function (e) {
                                     var _a, _b, _d, _e;
-                                    onChange(((value === null || value === void 0 ? void 0 : value.includes(c))
+                                    handleChange(((value === null || value === void 0 ? void 0 : value.includes(c))
                                         ? ((radio || ((_b = (_a = field.options) === null || _a === void 0 ? void 0 : _a.radioChoices) === null || _b === void 0 ? void 0 : _b.includes(c)))
                                             ? []
                                             : value.filter(function (v) { return v !== c; }))
@@ -687,13 +703,13 @@ export var MultipleChoiceInput = function (_a) {
                         // onClick={() => !otherChecked && handleOtherChecked()} // allow click to enable when disabled
                         onChange: function (e) {
                             enteringOtherStringRef.current = e.target.value;
-                            onChange((radio
+                            handleChange((radio
                                 ? (e.target.value.trim()
                                     ? [e.target.value]
                                     : [])
                                 : (e.target.value.trim()
                                     // remove existing other string (if exists) and append new one
-                                    ? __spreadArray(__spreadArray([], (value !== null && value !== void 0 ? value : []).filter(function (v) { return v !== otherString; }), true), [e.target.value], false) : value === null || value === void 0 ? void 0 : value.filter(function (v) { return v !== otherString; }))), field.id);
+                                    ? __spreadArray(__spreadArray([], (value !== null && value !== void 0 ? value : []).filter(function (v) { return v !== otherString; }), true), [e.target.value], false) : (value !== null && value !== void 0 ? value : []).filter(function (v) { return v !== otherString; }))), field.id);
                         } }) }))] })));
 };
 // StripeInput is shared between v1 and v2 forms

@@ -286,7 +286,7 @@ exports.schema = (0, exports.build_schema)({
             }, references: { validator: validation_1.listOfRelatedRecordsValidator, updatesDisabled: true, redactions: ['enduser'] }, athenaDepartmentId: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, athenaPracticeId: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, salesforceId: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, vitalTriggersDisabled: { validator: validation_1.booleanValidator }, defaultFromPhone: { validator: validation_1.phoneValidator, redactions: ['enduser'] }, defaultFromEmail: { validator: validation_1.emailValidator, redactions: ['enduser'] }, useDefaultFromEmailInAutomations: { validator: validation_1.booleanValidator }, useDefaultFromPhoneInAutomations: { validator: validation_1.booleanValidator }, stripeCustomerId: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, stripeKey: { validator: validation_1.stringValidator250, redactions: ['enduser'] }, diagnoses: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)(validation_1.enduserDiagnosisValidator),
                 redactions: ['enduser']
-            }, unsubscribedFromPhones: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay, redactions: ['enduser'] }, lockedFromPortal: { validator: validation_1.booleanValidator }, eligibleForAutoMerge: { validator: validation_1.booleanValidator } }),
+            }, unsubscribedFromPhones: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay, redactions: ['enduser'] }, lockedFromPortal: { validator: validation_1.booleanValidator }, eligibleForAutoMerge: { validator: validation_1.booleanValidator }, preferredPharmacy: { validator: validation_1.pharmacyValidator, redactions: ['enduser'] } }),
         customActions: {
             rename_stored_custom_fields: {
                 op: "custom", access: 'update', method: "patch",
@@ -3001,7 +3001,7 @@ exports.schema = (0, exports.build_schema)({
                     fieldTitle: validation_1.stringValidator250,
                     timestamp: validation_1.dateValidator,
                 }))
-            } }),
+            }, startedViaPinnedForm: { validator: validation_1.booleanValidator } }),
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         enduserActions: {
             prepare_form_response: {}, info_for_access_code: {}, submit_form_response: {}, stripe_details: {}, chargebee_details: {},
@@ -3030,6 +3030,7 @@ exports.schema = (0, exports.build_schema)({
                     groupId: { validator: validation_1.mongoIdStringRequired },
                     groupInstance: { validator: validation_1.stringValidator100 },
                     groupPosition: { validator: validation_1.nonNegNumberValidator },
+                    startedViaPinnedForm: { validator: validation_1.booleanValidator },
                 },
                 returns: {
                     accessCode: { validator: validation_1.stringValidator250, required: true },
@@ -4925,7 +4926,7 @@ exports.schema = (0, exports.build_schema)({
                 validator: validation_1.listOfMongoIdStringValidatorEmptyOk,
                 required: true,
                 examples: [[constants_1.PLACEHOLDER_ID]]
-            }, terms: { validator: validation_1.appointmentTermsValidator }, endDate: { validator: validation_1.dateValidator }, startDate: { validator: validation_1.dateValidator }, backgroundColor: { validator: validation_1.stringValidator100 }, primaryColor: { validator: validation_1.stringValidator100 }, secondaryColor: { validator: validation_1.stringValidator100 }, intakeTitle: { validator: validation_1.stringValidator1000 }, intakeDescription: { validator: validation_1.stringValidator1000 }, thankYouRedirectURL: { validator: validation_1.stringValidator1000 }, thankYouTitle: { validator: validation_1.stringValidator1000 }, thankYouDescription: { validator: validation_1.stringValidator1000 }, thankYouHeaderImageURL: { validator: validation_1.stringValidator1000 }, thankYouMainImageURL: { validator: validation_1.stringValidator1000 }, ga4measurementId: { validator: validation_1.stringValidator100 }, hiddenFromPortal: { validator: validation_1.booleanValidator }, hoursBeforeBookingAllowed: { validator: validation_1.numberValidatorOptional }, limitedToCareTeam: { validator: validation_1.booleanValidator }, limitedByState: { validator: validation_1.booleanValidator }, limitedByTagsPortal: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, topLogo: { validator: validation_1.stringValidator }, requireLocationSelection: { validator: validation_1.booleanValidator }, fontFace: { validator: validation_1.stringValidator }, fontFamily: { validator: validation_1.stringValidator5000EmptyOkay }, fontURL: { validator: validation_1.stringValidator }, collectReason: { validator: (0, validation_1.exactMatchValidator)(['Do Not Collect', 'Optional', 'Required']) }, restrictionsByTemplate: { validator: validation_1.bookingRestrictionsByTemplateValidator }, publicMulti: { validator: validation_1.booleanValidator }, publicUserTags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, publicUserFilterTags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, appointmentSlotsMaxHeight: { validator: validation_1.numberValidatorOptional }, includeRelatedContactTypes: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, calendarTitleText: { validator: validation_1.stringValidator1000 }, emailFieldBehavior: { validator: (0, validation_1.exactMatchValidator)(['required', 'optional', 'hidden']) }, language: { validator: validation_1.stringValidator }, publicShowLanguage: { validator: validation_1.booleanValidator } })
+            }, terms: { validator: validation_1.appointmentTermsValidator }, endDate: { validator: validation_1.dateValidator }, startDate: { validator: validation_1.dateValidator }, backgroundColor: { validator: validation_1.stringValidator100 }, primaryColor: { validator: validation_1.stringValidator100 }, secondaryColor: { validator: validation_1.stringValidator100 }, intakeTitle: { validator: validation_1.stringValidator1000 }, intakeDescription: { validator: validation_1.stringValidator1000 }, thankYouRedirectURL: { validator: validation_1.stringValidator1000 }, thankYouTitle: { validator: validation_1.stringValidator1000 }, thankYouDescription: { validator: validation_1.stringValidator1000 }, thankYouHeaderImageURL: { validator: validation_1.stringValidator1000 }, thankYouMainImageURL: { validator: validation_1.stringValidator1000 }, ga4measurementId: { validator: validation_1.stringValidator100 }, hiddenFromPortal: { validator: validation_1.booleanValidator }, hoursBeforeBookingAllowed: { validator: validation_1.numberValidatorOptional }, limitedToCareTeam: { validator: validation_1.booleanValidator }, limitedByState: { validator: validation_1.booleanValidator }, limitedByTagsPortal: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, enableUserSelection: { validator: validation_1.booleanValidator }, topLogo: { validator: validation_1.stringValidator }, requireLocationSelection: { validator: validation_1.booleanValidator }, fontFace: { validator: validation_1.stringValidator }, fontFamily: { validator: validation_1.stringValidator5000EmptyOkay }, fontURL: { validator: validation_1.stringValidator }, collectReason: { validator: (0, validation_1.exactMatchValidator)(['Do Not Collect', 'Optional', 'Required']) }, restrictionsByTemplate: { validator: validation_1.bookingRestrictionsByTemplateValidator }, publicMulti: { validator: validation_1.booleanValidator }, publicUserTags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, publicUserFilterTags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, appointmentSlotsMaxHeight: { validator: validation_1.numberValidatorOptional }, includeRelatedContactTypes: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, calendarTitleText: { validator: validation_1.stringValidator1000 }, emailFieldBehavior: { validator: (0, validation_1.exactMatchValidator)(['required', 'optional', 'hidden']) }, language: { validator: validation_1.stringValidator }, publicShowLanguage: { validator: validation_1.booleanValidator } })
     },
     appointment_locations: {
         info: {},
@@ -5440,7 +5441,7 @@ exports.schema = (0, exports.build_schema)({
                 validator: validation_1.stringValidator25000,
                 required: true,
                 examples: ["Details relating to an automation error"]
-            }, acknowledgedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, journeyId: { validator: validation_1.mongoIdStringRequired }, enduserId: { validator: validation_1.mongoIdStringRequired } })
+            }, acknowledgedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, journeyId: { validator: validation_1.mongoIdStringRequired }, enduserId: { validator: validation_1.mongoIdStringRequired }, userId: { validator: validation_1.mongoIdStringRequired } })
     },
     automation_triggers: {
         info: {},
@@ -6448,6 +6449,7 @@ exports.schema = (0, exports.build_schema)({
                     returnCount: { validator: validation_1.booleanValidatorOptional },
                     mdbFilter: { validator: validation_1.objectAnyFieldsAnyValuesValidator },
                     sortBy: { validator: (0, validation_1.exactMatchValidatorOptional)(['timestamp', 'outboundTimestamp']) },
+                    autobuild: { validator: validation_1.booleanValidatorOptional },
                 },
                 returns: {
                     threads: { validator: 'inbox_threads' },

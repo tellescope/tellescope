@@ -799,6 +799,7 @@ export var ModelSearchInput = function (_a) {
 };
 export var EnduserSearch = function (props) {
     var _a, _b, _c;
+    var excludeCareTeamFromSearch = props.excludeCareTeamFromSearch, restProps = __rest(props, ["excludeCareTeamFromSearch"]);
     var session = useResolvedSession();
     var _d = useEndusers(), addLocalElements = _d[1].addLocalElements;
     var _e = useUsers(), usersLoading = _e[0], findUser = _e[1].findById;
@@ -806,7 +807,7 @@ export var EnduserSearch = function (props) {
     // only wait when users have ALL_ACCESS to ensures users can actually load
     if (((_c = (_b = (_a = session.userInfo) === null || _a === void 0 ? void 0 : _a.access) === null || _b === void 0 ? void 0 : _b.users) === null || _c === void 0 ? void 0 : _c.read) === ALL_ACCESS && !value_is_loaded(usersLoading))
         return null;
-    return (_jsx(ModelSearchInput, __assign({ filterKey: "endusers" }, props, { searchAPI: function (_a) {
+    return (_jsx(ModelSearchInput, __assign({ filterKey: "endusers" }, restProps, { searchAPI: function (_a) {
             var search = _a.search;
             return __awaiter(void 0, void 0, void 0, function () {
                 var phone, err_1;
@@ -829,7 +830,7 @@ export var EnduserSearch = function (props) {
                     }
                 });
             });
-        }, onLoad: addLocalElements, attachSearchableFields: function (t) {
+        }, onLoad: addLocalElements, attachSearchableFields: excludeCareTeamFromSearch ? undefined : (function (t) {
             var _a;
             var users = (_a = t.assignedTo) === null || _a === void 0 ? void 0 : _a.map(function (userId) { return findUser(userId, { batch: true }); }).filter(function (u) { return u; });
             if (!(users === null || users === void 0 ? void 0 : users.length))
@@ -841,7 +842,7 @@ export var EnduserSearch = function (props) {
                 toJoin["".concat(i, "fullname")] = "".concat(user.fname, " ").concat(user.lname);
             });
             return toJoin;
-        } })));
+        }) })));
 };
 export var CHAT_ROOM_SEARCH = 'chat-room-search';
 export var ChatRoomSearch = function (props) {

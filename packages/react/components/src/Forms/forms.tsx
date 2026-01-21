@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Button, CircularProgress, FileBlob, FileUploadHandler, Flex, LinearProgress, LoadingButton, Modal, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse, NextFieldLogicOptions } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
-import { AddToDatabaseProps, AddressInput, AllergiesInput, AppointmentBookingInput, BelugaPatientPreferenceInput, BridgeEligibilityInput, ChargeebeeInput, ConditionsInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, RichTextInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, TimezoneInput, defaultButtonStyles } from "./inputs"
+import { AddToDatabaseProps, AddressInput, AllergiesInput, AppointmentBookingInput, BelugaPatientPreferenceInput, BridgeEligibilityInput, ChargeebeeInput, ConditionsInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PharmacySearchInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, RichTextInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, TimezoneInput, defaultButtonStyles } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
@@ -192,6 +192,7 @@ export const QuestionForField = ({
   const Conditions = customInputs?.['Conditions'] ?? ConditionsInput
   const RichText = customInputs?.['Rich Text'] ?? RichTextInput
   const BelugaPatientPreference = customInputs?.['Beluga Patient Preference'] ?? BelugaPatientPreferenceInput
+  const PharmacySearch = customInputs?.['Pharmacy Search'] ?? PharmacySearchInput
 
   const validationMessage = validateField(field)
 
@@ -344,7 +345,7 @@ export const QuestionForField = ({
           <Signature enduser={enduser} field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'signature'>} form={form}/>
         )
         : field.type === 'multiple_choice' ? (
-          <MultipleChoice field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'multiple_choice'>} form={form}/>
+          <MultipleChoice field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'multiple_choice'>} form={form} responses={responses} enduser={enduser}/>
         )
         : field.type === 'Dropdown' ? (
           <Dropdown field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Dropdown'>} form={form}/>
@@ -376,6 +377,12 @@ export const QuestionForField = ({
           <BridgeEligibility field={field} value={value.answer.value as any} form={form}
             enduser={enduser} responses={responses} enduserId={enduserId}
             onChange={onFieldChange as ChangeHandler<'Bridge Eligibility'>}
+          />
+        )
+        : field.type === 'Pharmacy Search' ? (
+          <PharmacySearch field={field} value={value.answer.value as any} form={form}
+            enduser={enduser} responses={responses}
+            onChange={onFieldChange as ChangeHandler<'Pharmacy Search'>}
           />
         )
         : field.type === 'rating' ? (

@@ -1,7 +1,7 @@
 import React from "react";
 import { SxProps, TextFieldProps } from "@mui/material";
 import { FormInputProps } from "./types";
-import { Enduser, FormResponseValue } from "@tellescope/types-models";
+import { Enduser, FormResponseValue, Pharmacy } from "@tellescope/types-models";
 import { FileBlob, Styled } from "..";
 import { DatabaseRecord, FormField } from "@tellescope/types-client";
 export declare const getBridgeEligibilityUserIds: () => string[];
@@ -46,6 +46,10 @@ export declare const BridgeEligibilityInput: ({ field, value, onChange, response
         sx: SxProps;
     } | undefined;
 }) => JSX.Element;
+export declare const PharmacySearchInput: ({ field, value: rawValue, onChange, responses, enduser, form, ...props }: Omit<FormInputProps<"string">, "onChange" | "value"> & {
+    value: Pharmacy | undefined;
+    onChange: (v: Pharmacy | undefined, fieldId: string) => void;
+}) => JSX.Element;
 export declare const TimeInput: ({ field, value, onChange, ...props }: FormInputProps<'string'>) => JSX.Element;
 export declare const TimezoneInput: ({ value, field, onChange, ...props }: FormInputProps<'Timezone'>) => JSX.Element;
 export declare const AddressInput: ({ field, form, value, onChange, ...props }: FormInputProps<'Address'>) => JSX.Element;
@@ -59,7 +63,7 @@ export declare const safe_create_url: (file: any) => string | null;
 export declare const FilesInput: ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles, form }: FormInputProps<"files"> & {
     existingFileName?: string | undefined;
 }) => JSX.Element;
-export declare const MultipleChoiceInput: ({ field, form, value: _value, onChange }: FormInputProps<'multiple_choice'>) => JSX.Element;
+export declare const MultipleChoiceInput: ({ field, form, value: _value, onChange, responses, enduser }: FormInputProps<'multiple_choice'>) => JSX.Element;
 export declare const StripeInput: ({ field, value, onChange, setCustomerId, enduserId, form, responses, enduser }: FormInputProps<"Stripe"> & {
     setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>;
 }) => JSX.Element;

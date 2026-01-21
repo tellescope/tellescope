@@ -309,6 +309,7 @@ import {
   listOfUniqueStringsValidatorEmptyOk,
   ticketReminderValidator,
   insuranceOptionalValidator,
+  pharmacyValidator,
   listOfStringsValidatorUniqueOptionalOrEmptyOkay,
   diagnosesValidator,
   stateValidatorOptional,
@@ -703,8 +704,8 @@ export type CustomActions = {
   },
   form_responses: {
     prepare_form_response: CustomAction<
-      { 
-        formId: string, enduserId: string, automationStepId?: string, expireAt?: Date, sharedVia?: CommunicationsChannel 
+      {
+        formId: string, enduserId: string, automationStepId?: string, expireAt?: Date, sharedVia?: CommunicationsChannel
         isInternalNote?: boolean, title?: string,
         rootResponseId?: string,
         parentResponseId?: string,
@@ -714,7 +715,8 @@ export type CustomActions = {
         groupId?: string,
         groupInstance?: string,
         groupPosition?: number,
-      }, 
+        startedViaPinnedForm?: boolean,
+      },
       { accessCode: string, url: string, response: FormResponse, fullURL: string }>
     ,
     submit_form_response: CustomAction<
@@ -1213,7 +1215,7 @@ export type CustomActions = {
       { alreadyBuilt: boolean }
     >,
     load_threads: CustomAction<
-      { limit?: number, ids?: string[], excludeIds?: string[], lastTimestamp?: Date, userIds?: string[], enduserIds?: string[], phoneNumber?: string, returnCount?: boolean, mdbFilter?: object, sortBy?: 'timestamp' | 'outboundTimestamp' },
+      { limit?: number, ids?: string[], excludeIds?: string[], lastTimestamp?: Date, userIds?: string[], enduserIds?: string[], phoneNumber?: string, returnCount?: boolean, mdbFilter?: object, sortBy?: 'timestamp' | 'outboundTimestamp', autobuild?: boolean },
       { threads: InboxThread[], count?: number }
     >,
     reset_threads: CustomAction<
@@ -1594,6 +1596,7 @@ export const schema: SchemaV1 = build_schema({
       unsubscribedFromPhones: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay, redactions: ['enduser'] },
       lockedFromPortal: { validator: booleanValidator },
       eligibleForAutoMerge: { validator: booleanValidator },
+      preferredPharmacy: { validator: pharmacyValidator, redactions: ['enduser'] },
       // recentMessagePreview: {
       //   validator: stringValidator,
       // },
@@ -4787,6 +4790,7 @@ export const schema: SchemaV1 = build_schema({
           timestamp: dateValidator,
         }))
       },
+      startedViaPinnedForm: { validator: booleanValidator },
     },
     defaultActions: DEFAULT_OPERATIONS,
     enduserActions: { 
@@ -4816,6 +4820,7 @@ export const schema: SchemaV1 = build_schema({
           groupId: { validator: mongoIdStringValidator },
           groupInstance: { validator: stringValidator100 },
           groupPosition: { validator: nonNegNumberValidator },
+          startedViaPinnedForm: { validator: booleanValidator },
         },
         returns: {
           accessCode: { validator: stringValidator250, required: true },
@@ -7191,6 +7196,7 @@ export const schema: SchemaV1 = build_schema({
       limitedToCareTeam: { validator: booleanValidator },
       limitedByState: { validator: booleanValidator },
       limitedByTagsPortal: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      enableUserSelection: { validator: booleanValidator },
       topLogo: { validator: stringValidator },
       requireLocationSelection: { validator: booleanValidator },
       fontFace: { validator: stringValidator },
@@ -7878,6 +7884,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       acknowledgedAt: { validator: dateOptionalOrEmptyStringValidator },
       journeyId: { validator: mongoIdStringValidator },
       enduserId: { validator: mongoIdStringValidator },
+      userId: { validator: mongoIdStringValidator },
     }
   },
   automation_triggers: {
@@ -9210,6 +9217,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           returnCount: { validator: booleanValidatorOptional },
           mdbFilter: { validator: objectAnyFieldsAnyValuesValidator },
           sortBy: { validator: exactMatchValidatorOptional<'timestamp' | 'outboundTimestamp'>(['timestamp', 'outboundTimestamp']) },
+          autobuild: { validator: booleanValidatorOptional },
         },
         returns: {
           threads: { validator: 'inbox_threads' as any },

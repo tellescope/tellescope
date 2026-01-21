@@ -97,7 +97,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ChargeebeeInput = exports.RichTextInput = exports.ConditionsInput = exports.AllergiesInput = exports.EmotiiInput = exports.HiddenValueInput = exports.RedirectInput = exports.include_current_url_parameters_if_templated = exports.HeightInput = exports.AppointmentBookingInput = exports.RelatedContactsInput = exports.contact_is_valid = exports.BelugaPatientPreferenceInput = exports.MedicationsInput = exports.CanvasMedicationsInput = exports.DatabaseSelectInput = exports.DropdownInput = exports.Progress = exports.StripeInput = exports.MultipleChoiceInput = exports.FilesInput = exports.safe_create_url = exports.FileInput = exports.convertHEIC = exports.SignatureInput = exports.ESignatureTerms = exports.AddressInput = exports.TimezoneInput = exports.TimeInput = exports.BridgeEligibilityInput = exports.InsuranceInput = exports.NumberInput = exports.EmailInput = exports.PhoneInput = exports.StringLongInput = exports.StringInput = exports.DateStringInput = exports.AutoFocusTextField = exports.TableInput = exports.DateInput = exports.RankingInput = exports.RatingInput = exports.PdfViewer = exports.defaultButtonStyles = exports.defaultInputProps = exports.LanguageSelect = exports.setBridgeEligibilityUserIds = exports.getBridgeEligibilityUserIds = void 0;
+exports.ChargeebeeInput = exports.RichTextInput = exports.ConditionsInput = exports.AllergiesInput = exports.EmotiiInput = exports.HiddenValueInput = exports.RedirectInput = exports.include_current_url_parameters_if_templated = exports.HeightInput = exports.AppointmentBookingInput = exports.RelatedContactsInput = exports.contact_is_valid = exports.BelugaPatientPreferenceInput = exports.MedicationsInput = exports.CanvasMedicationsInput = exports.DatabaseSelectInput = exports.DropdownInput = exports.Progress = exports.StripeInput = exports.MultipleChoiceInput = exports.FilesInput = exports.safe_create_url = exports.FileInput = exports.convertHEIC = exports.SignatureInput = exports.ESignatureTerms = exports.AddressInput = exports.TimezoneInput = exports.TimeInput = exports.PharmacySearchInput = exports.BridgeEligibilityInput = exports.InsuranceInput = exports.NumberInput = exports.EmailInput = exports.PhoneInput = exports.StringLongInput = exports.StringInput = exports.DateStringInput = exports.AutoFocusTextField = exports.TableInput = exports.DateInput = exports.RankingInput = exports.RatingInput = exports.PdfViewer = exports.defaultButtonStyles = exports.defaultInputProps = exports.LanguageSelect = exports.setBridgeEligibilityUserIds = exports.getBridgeEligibilityUserIds = void 0;
 var jsx_runtime_1 = require("react/jsx-runtime");
 var react_1 = __importStar(require("react"));
 var axios_1 = __importDefault(require("axios"));
@@ -122,6 +122,7 @@ var react_stripe_js_1 = require("@stripe/react-stripe-js");
 var stripe_js_1 = require("@stripe/stripe-js");
 var icons_material_1 = require("@mui/icons-material");
 var wysiwyg_1 = require("./wysiwyg");
+var hooks_1 = require("./hooks");
 // Bridge Eligibility - shared variable for storing most recent eligibility userIds
 var bridgeEligibilityResult = {
     userIds: [],
@@ -877,6 +878,92 @@ var BridgeEligibilityInput = function (_a) {
     return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column" }, { children: [(0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ item: true }, { children: [(0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Eligibility Type: ", eligibilityType] })), (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Service Type IDs: ", ((_e = (_d = field.options) === null || _d === void 0 ? void 0 : _d.bridgeServiceTypeIds) === null || _e === void 0 ? void 0 : _e.join(', ')) || 'Not configured'] })), state && (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["State: ", state] })), payerId && (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Payer ID: ", payerId] })), memberId && (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Member ID: ", memberId] }))] })), error && ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "error" }, { children: error })) }))), polling && ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "primary" }, { children: (0, __1.form_display_text_for_language)(form, "Polling for results... (this may take 15-30 seconds)") })) }))), (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ item: true, container: true, spacing: 2 }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(__1.LoadingButton, { variant: "outlined", onClick: checkProviderEligibility, submitText: (0, __1.form_display_text_for_language)(form, "Check Provider Eligibility (Free)"), submittingText: (0, __1.form_display_text_for_language)(form, "Checking..."), submitting: loading && !polling, disabled: !((_g = (_f = field.options) === null || _f === void 0 ? void 0 : _f.bridgeServiceTypeIds) === null || _g === void 0 ? void 0 : _g.length) || loading || polling }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(__1.LoadingButton, { variant: "outlined", onClick: checkServiceEligibility, submitText: (0, __1.form_display_text_for_language)(form, "Check Service Eligibility (Paid)"), submittingText: polling ? (0, __1.form_display_text_for_language)(form, "Polling...") : (0, __1.form_display_text_for_language)(form, "Initiating..."), submitting: loading || polling, disabled: !((_j = (_h = field.options) === null || _h === void 0 ? void 0 : _h.bridgeServiceTypeIds) === null || _j === void 0 ? void 0 : _j.length) || loading || polling }) }))] })), value && ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ item: true }, { children: [(0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "caption", color: "textSecondary" }, { children: "Current Answer:" })), (0, jsx_runtime_1.jsx)("pre", __assign({ style: { fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word' } }, { children: JSON.stringify(value, null, 2) }))] })))] })));
 };
 exports.BridgeEligibilityInput = BridgeEligibilityInput;
+var PharmacySearchInput = function (_a) {
+    var field = _a.field, rawValue = _a.value, onChange = _a.onChange, responses = _a.responses, enduser = _a.enduser, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "responses", "enduser", "form"]);
+    var value = rawValue;
+    var session = (0, __1.useResolvedSession)();
+    // Get initial ZIP code from responses or enduser data
+    var getInitialZipCode = function () {
+        var _a;
+        // Check Address field responses first
+        var addressResponse = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { var _a, _b, _d; return ((_a = r.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Address' && ((_d = (_b = r.answer) === null || _b === void 0 ? void 0 : _b.value) === null || _d === void 0 ? void 0 : _d.zipCode); });
+        if (((_a = addressResponse === null || addressResponse === void 0 ? void 0 : addressResponse.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Address') {
+            var addressValue = addressResponse.answer.value;
+            if (addressValue === null || addressValue === void 0 ? void 0 : addressValue.zipCode) {
+                return addressValue.zipCode;
+            }
+        }
+        // Fall back to enduser.zipCode
+        return (enduser === null || enduser === void 0 ? void 0 : enduser.zipCode) || '';
+    };
+    var _b = (0, react_1.useState)(getInitialZipCode()), zipCode = _b[0], setZipCode = _b[1];
+    var _d = (0, react_1.useState)(false), loading = _d[0], setLoading = _d[1];
+    var _e = (0, react_1.useState)(), error = _e[0], setError = _e[1];
+    var _f = (0, react_1.useState)([]), pharmacies = _f[0], setPharmacies = _f[1];
+    var _g = (0, react_1.useState)(false), hasSearched = _g[0], setHasSearched = _g[1];
+    var searchPharmacies = (0, react_1.useCallback)(function () { return __awaiter(void 0, void 0, void 0, function () {
+        var data, err_6;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    if (!zipCode || zipCode.length !== 5) {
+                        setError((0, __1.form_display_text_for_language)(form, 'Please enter a valid 5-digit ZIP code'));
+                        return [2 /*return*/];
+                    }
+                    setLoading(true);
+                    setError(undefined);
+                    setHasSearched(true);
+                    _a.label = 1;
+                case 1:
+                    _a.trys.push([1, 3, 4, 5]);
+                    return [4 /*yield*/, session.api.integrations.proxy_read({
+                            integration: 'ScriptSure',
+                            type: 'pharmacy-search',
+                            query: JSON.stringify({ zipCode: zipCode }),
+                        })];
+                case 2:
+                    data = (_a.sent()).data;
+                    setPharmacies(data || []);
+                    if (!(data === null || data === void 0 ? void 0 : data.length)) {
+                        setError((0, __1.form_display_text_for_language)(form, 'No pharmacies found for this ZIP code'));
+                    }
+                    return [3 /*break*/, 5];
+                case 3:
+                    err_6 = _a.sent();
+                    setError((err_6 === null || err_6 === void 0 ? void 0 : err_6.message) || (0, __1.form_display_text_for_language)(form, 'Failed to search pharmacies'));
+                    setPharmacies([]);
+                    return [3 /*break*/, 5];
+                case 4:
+                    setLoading(false);
+                    return [7 /*endfinally*/];
+                case 5: return [2 /*return*/];
+            }
+        });
+    }); }, [session, zipCode, form]);
+    var handleSelectPharmacy = function (pharmacy) {
+        onChange({
+            npi: pharmacy.npi,
+            ncpdpId: pharmacy.ncpdpId,
+            businessName: pharmacy.businessName,
+            primaryTelephone: pharmacy.primaryTelephone || '',
+            addressLine1: pharmacy.addressLine1,
+            city: pharmacy.city,
+            stateProvince: pharmacy.stateProvince,
+            postalCode: pharmacy.postalCode,
+        }, field.id);
+    };
+    var formatPharmacyAddress = function (p) {
+        var parts = [p.addressLine1, p.city, p.stateProvince, p.postalCode].filter(Boolean);
+        return parts.join(', ');
+    };
+    return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, direction: "column", spacing: 2 }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, spacing: 2, alignItems: "flex-end" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 8, sm: 6 }, { children: (0, jsx_runtime_1.jsx)(material_1.TextField, { fullWidth: true, size: "small", label: (0, __1.form_display_text_for_language)(form, "ZIP Code"), value: zipCode, onChange: function (e) { return setZipCode(e.target.value.replace(/\D/g, '').slice(0, 5)); }, InputProps: exports.defaultInputProps, placeholder: "12345", required: !field.isOptional }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, xs: 4, sm: 6 }, { children: (0, jsx_runtime_1.jsx)(__1.LoadingButton, { variant: "contained", onClick: searchPharmacies, submitText: (0, __1.form_display_text_for_language)(form, "Search"), submittingText: (0, __1.form_display_text_for_language)(form, "Searching..."), submitting: loading, disabled: zipCode.length !== 5 || loading, style: { width: '100%', marginTop: 0 } }) }))] })) })), error && ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ color: "error", sx: { fontSize: 14 } }, { children: error })) }))), value && ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Paper, __assign({ elevation: 2, sx: { p: 2, backgroundColor: '#e8f5e9' } }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", justifyContent: "space-between" }, { children: [(0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ item: true, xs: true }, { children: [(0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "subtitle1", fontWeight: "bold" }, { children: [(0, jsx_runtime_1.jsx)(icons_material_1.CheckCircleOutline, { sx: { color: 'success.main', mr: 1, verticalAlign: 'middle' } }), value.businessName] })), (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "text.secondary" }, { children: formatPharmacyAddress(value) })), value.primaryTelephone && ((0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "text.secondary" }, { children: value.primaryTelephone })))] })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.IconButton, __assign({ onClick: function () { return onChange(undefined, field.id); }, size: "small" }, { children: (0, jsx_runtime_1.jsx)(__1.CancelIcon, {}) })) }))] })) })) }))), !value && hasSearched && pharmacies.length > 0 && ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ item: true }, { children: [(0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "subtitle2", sx: { mb: 1 } }, { children: [pharmacies.length, " ", (0, __1.form_display_text_for_language)(form, pharmacies.length === 1 ? 'pharmacy found' : 'pharmacies found')] })), (0, jsx_runtime_1.jsx)(material_1.Box, __assign({ sx: { maxHeight: 300, overflow: 'auto' } }, { children: pharmacies.map(function (pharmacy, index) { return ((0, jsx_runtime_1.jsxs)(material_1.Paper, __assign({ elevation: 1, sx: {
+                                p: 1.5,
+                                mb: 1,
+                                cursor: 'pointer',
+                                '&:hover': { backgroundColor: '#f5f5f5' },
+                            }, onClick: function () { return handleSelectPharmacy(pharmacy); } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "subtitle2", fontWeight: "medium" }, { children: pharmacy.businessName })), (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "text.secondary" }, { children: formatPharmacyAddress(pharmacy) })), pharmacy.primaryTelephone && ((0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "caption", color: "text.secondary" }, { children: pharmacy.primaryTelephone })))] }), "".concat(pharmacy.ncpdpId, "-").concat(index))); }) }))] }))), loading && ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(LinearProgress_1.default, {}) })))] })));
+};
+exports.PharmacySearchInput = PharmacySearchInput;
 var HourSelector = function (props) { return ((0, jsx_runtime_1.jsx)(StringSelector, __assign({}, props, { options: Array(12).fill('').map(function (_, i) { return (i + 1) <= 9 ? "0".concat(i + 1) : (i + 1).toString(); }) }))); };
 var MinuteSelector = function (props) { return ((0, jsx_runtime_1.jsx)(StringSelector, __assign({}, props, { options: Array(60).fill('').map(function (_, i) { return i <= 9 ? "0".concat(i) : i.toString(); }) }))); };
 var AmPmSelector = function (props) { return ((0, jsx_runtime_1.jsx)(StringSelector, __assign({}, props, { options: ['AM', 'PM'] }))); };
@@ -1183,13 +1270,24 @@ var multipleChoiceItemSx = {
 };
 var MultipleChoiceInput = function (_a) {
     var _b;
-    var field = _a.field, form = _a.form, _value = _a.value, onChange = _a.onChange;
+    var field = _a.field, form = _a.form, _value = _a.value, onChange = _a.onChange, responses = _a.responses, enduser = _a.enduser;
     var value = typeof _value === 'string' ? [_value] : _value; // if loading existingResponses, allows them to be a string
     var _d = field.options, choices = _d.choices, radio = _d.radio, other = _d.other, optionDetails = _d.optionDetails;
     var _e = (0, react_1.useState)({}), expandedDescriptions = _e[0], setExpandedDescriptions = _e[1];
     // current other string
     var enteringOtherStringRef = react_1.default.useRef(''); // if typing otherString as prefix of a checkbox value, don't auto-select
     var otherString = (_b = value === null || value === void 0 ? void 0 : value.find(function (v) { var _a; return v === enteringOtherStringRef.current || !((_a = (choices !== null && choices !== void 0 ? choices : [])) === null || _a === void 0 ? void 0 : _a.find(function (c) { return c === v; })); })) !== null && _b !== void 0 ? _b : '';
+    // Conditional visibility for choices
+    var _f = (0, hooks_1.useConditionalChoices)({
+        choices: choices,
+        optionDetails: optionDetails,
+        responses: responses,
+        enduser: enduser,
+        form: form,
+        onChange: onChange,
+        fieldId: field.id,
+        otherString: otherString,
+    }), visibleChoices = _f.visibleChoices, handleChange = _f.handleChange;
     var getDescriptionForChoice = (0, react_1.useCallback)(function (choice) {
         var _a;
         return (_a = optionDetails === null || optionDetails === void 0 ? void 0 : optionDetails.find(function (detail) { return detail.option === choice; })) === null || _a === void 0 ? void 0 : _a.description;
@@ -1201,11 +1299,11 @@ var MultipleChoiceInput = function (_a) {
         });
     }, []);
     return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center" }, { children: [radio
-                ? ((0, jsx_runtime_1.jsxs)(material_1.FormControl, __assign({ fullWidth: true }, { children: [(0, jsx_runtime_1.jsx)(material_1.FormLabel, __assign({ id: "radio-group-".concat(field.id, "-label") }, { children: (0, __1.form_display_text_for_language)(form, "Select One") })), (0, jsx_runtime_1.jsx)(material_1.RadioGroup, __assign({ "aria-labelledby": "radio-group-".concat(field.id, "-label"), defaultValue: "female", name: "radio-group-".concat(field.id) }, { children: (choices !== null && choices !== void 0 ? choices : []).map(function (c, i) {
+                ? ((0, jsx_runtime_1.jsxs)(material_1.FormControl, __assign({ fullWidth: true }, { children: [(0, jsx_runtime_1.jsx)(material_1.FormLabel, __assign({ id: "radio-group-".concat(field.id, "-label") }, { children: (0, __1.form_display_text_for_language)(form, "Select One") })), (0, jsx_runtime_1.jsx)(material_1.RadioGroup, __assign({ "aria-labelledby": "radio-group-".concat(field.id, "-label"), defaultValue: "female", name: "radio-group-".concat(field.id) }, { children: visibleChoices.map(function (c, i) {
                                 var description = getDescriptionForChoice(c);
                                 var hasDescription = !!description;
                                 var isExpanded = expandedDescriptions[i];
-                                return ((0, jsx_runtime_1.jsxs)(material_1.Box, __assign({ sx: { width: '100%' } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Box, __assign({ sx: { display: 'flex', alignItems: 'center', width: '100%' } }, { children: (0, jsx_runtime_1.jsx)(material_1.FormControlLabel, { sx: __assign(__assign({}, multipleChoiceItemSx), { flex: 1, marginLeft: '0px' }), checked: !!(value === null || value === void 0 ? void 0 : value.includes(c)) && c !== otherString, control: (0, jsx_runtime_1.jsx)(material_1.Radio, { onClick: function () { return onChange((value === null || value === void 0 ? void 0 : value.includes(c)) ? [] : [c], field.id); } }), label: (0, jsx_runtime_1.jsxs)(material_1.Box, __assign({ sx: { display: 'flex', alignItems: 'center', width: '100%' } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ component: "span", sx: { flex: 1 } }, { children: c })), hasDescription && ((0, jsx_runtime_1.jsx)(material_1.IconButton, __assign({ size: "small", onClick: function (e) {
+                                return ((0, jsx_runtime_1.jsxs)(material_1.Box, __assign({ sx: { width: '100%' } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Box, __assign({ sx: { display: 'flex', alignItems: 'center', width: '100%' } }, { children: (0, jsx_runtime_1.jsx)(material_1.FormControlLabel, { sx: __assign(__assign({}, multipleChoiceItemSx), { flex: 1, marginLeft: '0px' }), checked: !!(value === null || value === void 0 ? void 0 : value.includes(c)) && c !== otherString, control: (0, jsx_runtime_1.jsx)(material_1.Radio, { onClick: function () { return handleChange((value === null || value === void 0 ? void 0 : value.includes(c)) ? [] : [c], field.id); } }), label: (0, jsx_runtime_1.jsxs)(material_1.Box, __assign({ sx: { display: 'flex', alignItems: 'center', width: '100%' } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ component: "span", sx: { flex: 1 } }, { children: c })), hasDescription && ((0, jsx_runtime_1.jsx)(material_1.IconButton, __assign({ size: "small", onClick: function (e) {
                                                                 e.stopPropagation();
                                                                 toggleDescription(i);
                                                             }, sx: {
@@ -1213,7 +1311,7 @@ var MultipleChoiceInput = function (_a) {
                                                                 transition: 'transform 0.2s',
                                                                 ml: 1
                                                             } }, { children: (0, jsx_runtime_1.jsx)(icons_material_1.ExpandMore, { fontSize: "small" }) })))] })) }) })), hasDescription && ((0, jsx_runtime_1.jsx)(material_1.Collapse, __assign({ in: isExpanded }, { children: (0, jsx_runtime_1.jsx)(material_1.Box, __assign({ sx: { pl: '42px', pr: 2, pb: 1 } }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "text.secondary" }, { children: description })) })) })))] }), i));
-                            }) }))] }))) : ((choices !== null && choices !== void 0 ? choices : []).map(function (c, i) {
+                            }) }))] }))) : (visibleChoices.map(function (c, i) {
                 var description = getDescriptionForChoice(c);
                 var hasDescription = !!description;
                 var isExpanded = expandedDescriptions[i];
@@ -1223,7 +1321,7 @@ var MultipleChoiceInput = function (_a) {
                                     if (e.target.closest('.expand-button')) {
                                         return;
                                     }
-                                    onChange(((value === null || value === void 0 ? void 0 : value.includes(c))
+                                    handleChange(((value === null || value === void 0 ? void 0 : value.includes(c))
                                         ? ((radio || ((_b = (_a = field.options) === null || _a === void 0 ? void 0 : _a.radioChoices) === null || _b === void 0 ? void 0 : _b.includes(c)))
                                             ? []
                                             : value.filter(function (v) { return v !== c; }))
@@ -1244,13 +1342,13 @@ var MultipleChoiceInput = function (_a) {
                         // onClick={() => !otherChecked && handleOtherChecked()} // allow click to enable when disabled
                         onChange: function (e) {
                             enteringOtherStringRef.current = e.target.value;
-                            onChange((radio
+                            handleChange((radio
                                 ? (e.target.value.trim()
                                     ? [e.target.value]
                                     : [])
                                 : (e.target.value.trim()
                                     // remove existing other string (if exists) and append new one
-                                    ? __spreadArray(__spreadArray([], (value !== null && value !== void 0 ? value : []).filter(function (v) { return v !== otherString; }), true), [e.target.value], false) : value === null || value === void 0 ? void 0 : value.filter(function (v) { return v !== otherString; }))), field.id);
+                                    ? __spreadArray(__spreadArray([], (value !== null && value !== void 0 ? value : []).filter(function (v) { return v !== otherString; }), true), [e.target.value], false) : (value !== null && value !== void 0 ? value : []).filter(function (v) { return v !== otherString; }))), field.id);
                         } }) }))] })));
 };
 exports.MultipleChoiceInput = MultipleChoiceInput;
@@ -2297,7 +2395,7 @@ var AppointmentBookingInput = function (_a) {
     var _s = (0, react_1.useState)(false), confirming = _s[0], setConfirming = _s[1];
     var bookingPageId = (_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.bookingPageId;
     var downloadICS = (0, react_1.useCallback)(function (event) { return __awaiter(void 0, void 0, void 0, function () {
-        var _a, err_6;
+        var _a, err_7;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -2309,8 +2407,8 @@ var AppointmentBookingInput = function (_a) {
                         { name: "event.ics", dataIsURL: true, type: 'text/calendar' }]);
                     return [3 /*break*/, 3];
                 case 2:
-                    err_6 = _b.sent();
-                    console.error(err_6);
+                    err_7 = _b.sent();
+                    console.error(err_7);
                     return [3 /*break*/, 3];
                 case 3: return [2 /*return*/];
             }

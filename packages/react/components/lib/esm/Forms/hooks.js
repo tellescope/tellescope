@@ -594,7 +594,7 @@ export var useTellescopeForm = function (_a) {
                                 : undefined),
             answer: {
                 type: f.type,
-                value: ((_p = existing_response_if_compatible(existingResponses, f)) !== null && _p !== void 0 ? _p : ((f.type === 'Insurance' || f.type === 'Address' || f.type === 'file' || f.type === 'signature' || f.type === 'multiple_choice' || f.type === 'Dropdown' || f.type === 'Table Input' || f.type === 'Database Select' || f.type === 'Medications')
+                value: ((_p = existing_response_if_compatible(existingResponses, f)) !== null && _p !== void 0 ? _p : ((f.type === 'Insurance' || f.type === 'Address' || f.type === 'file' || f.type === 'signature' || f.type === 'multiple_choice' || f.type === 'Dropdown' || f.type === 'Table Input' || f.type === 'Database Select' || f.type === 'Medications' || f.type === 'Pharmacy Search')
                     ? undefined
                     : f.type === 'Question Group'
                         ? (_q = f.options) === null || _q === void 0 ? void 0 : _q.subFields
@@ -1570,5 +1570,42 @@ export var useTellescopeForm = function (_a) {
         handleFileUpload: handleFileUpload,
         isAutoAdvancing: isAutoAdvancing,
     };
+};
+/**
+ * Hook for conditional visibility of multiple choice options.
+ * Computes visible choices based on showCondition and provides an onChange wrapper
+ * that auto-filters hidden choices from selections (event-driven, not useEffect).
+ */
+export var useConditionalChoices = function (_a) {
+    var choices = _a.choices, optionDetails = _a.optionDetails, responses = _a.responses, enduser = _a.enduser, form = _a.form, onChange = _a.onChange, fieldId = _a.fieldId, otherString = _a.otherString;
+    // Compute visible choices based on showCondition
+    var visibleChoices = useMemo(function () {
+        if (!choices)
+            return [];
+        return choices.filter(function (choice, index) {
+            var _a;
+            var optionDetail = (_a = optionDetails === null || optionDetails === void 0 ? void 0 : optionDetails.find(function (d) { return d.option === choice; })) !== null && _a !== void 0 ? _a : optionDetails === null || optionDetails === void 0 ? void 0 : optionDetails[index];
+            if (!(optionDetail === null || optionDetail === void 0 ? void 0 : optionDetail.showCondition) || object_is_empty(optionDetail.showCondition)) {
+                return true;
+            }
+            return responses_satisfy_conditions(responses || [], optionDetail.showCondition, {
+                dateOfBirth: enduser === null || enduser === void 0 ? void 0 : enduser.dateOfBirth,
+                gender: enduser === null || enduser === void 0 ? void 0 : enduser.gender,
+                state: enduser === null || enduser === void 0 ? void 0 : enduser.state,
+                form: form,
+                activeResponses: responses,
+            });
+        });
+    }, [choices, optionDetails, responses, enduser, form]);
+    // Wrap onChange to auto-filter hidden choices (event-driven)
+    var handleChange = useCallback(function (newValue, fieldId) {
+        // Filter out any hidden choices from the new value
+        // Allow through: visible choices, the "other" string, and values not in the choices array (custom "other" text)
+        var filteredValue = newValue.filter(function (v) {
+            return visibleChoices.includes(v) || v === otherString || !(choices === null || choices === void 0 ? void 0 : choices.includes(v));
+        });
+        onChange(filteredValue, fieldId);
+    }, [visibleChoices, otherString, choices, onChange]);
+    return { visibleChoices: visibleChoices, handleChange: handleChange };
 };
 //# sourceMappingURL=hooks.js.map

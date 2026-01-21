@@ -32,6 +32,7 @@ export declare const EmailInput: ({ field, value, onChange, form, ...props }: Fo
 export declare const NumberInput: ({ field, value, onChange, form, ...props }: FormInputProps<'number'>) => JSX.Element;
 export declare const InsuranceInput: (props: FormInputProps<'Insurance'>) => JSX.Element;
 export declare const BridgeEligibilityInput: (props: FormInputProps<'Bridge Eligibility'>) => JSX.Element;
+export declare const PharmacySearchInput: (props: FormInputProps<'Pharmacy Search'>) => JSX.Element;
 export declare const TimeInput: ({ field, value, onChange, ...props }: FormInputProps<'string'>) => JSX.Element;
 export declare const TimezoneInput: ({ value, field, onChange, ...props }: FormInputProps<'Timezone'>) => JSX.Element;
 export declare const AddressInput: ({ field, form, value, onChange, ...props }: FormInputProps<'Address'>) => JSX.Element;
@@ -45,7 +46,7 @@ export declare const safe_create_url: (file: any) => string | null;
 export declare const FilesInput: ({ value, onChange, field, existingFileName, uploadingFiles, handleFileUpload, setUploadingFiles, form }: FormInputProps<"files"> & {
     existingFileName?: string | undefined;
 }) => JSX.Element;
-export declare const MultipleChoiceInput: ({ field, form, value: _value, onChange }: FormInputProps<'multiple_choice'>) => JSX.Element;
+export declare const MultipleChoiceInput: ({ field, form, value: _value, onChange, responses, enduser }: FormInputProps<'multiple_choice'>) => JSX.Element;
 export { StripeInput } from './inputs';
 export declare const Progress: ({ numerator, denominator, style, color }: {
     numerator: number;

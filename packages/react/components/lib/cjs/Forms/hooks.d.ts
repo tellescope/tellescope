@@ -1,7 +1,7 @@
 import { ChangeHandler, FormFieldNode } from "./types";
 import { DatabaseRecord, Enduser, Form, FormField, FormResponse } from "@tellescope/types-client";
 import { FileBlob } from "@tellescope/types-utilities";
-import { CompoundFilter, FormCustomization, FormResponseValue, FormResponseValueAnswer, OrganizationTheme, PreviousFormFieldType } from "@tellescope/types-models";
+import { CompoundFilter, FormCustomization, FormFieldOptionDetails, FormResponseValue, FormResponseValueAnswer, OrganizationTheme, PreviousFormFieldType } from "@tellescope/types-models";
 export declare const useFlattenedTree: (root?: FormFieldNode) => (import("@tellescope/types-models").FormField & {
     id: string;
     createdAt: Date;
@@ -268,6 +268,30 @@ export declare const useTellescopeForm: ({ dontAutoadvance, isPublicForm, form, 
     }[]>>;
     handleFileUpload: (blob: FileBlob, fieldId: string) => Promise<void>;
     isAutoAdvancing: boolean;
+};
+/**
+ * Hook for conditional visibility of multiple choice options.
+ * Computes visible choices based on showCondition and provides an onChange wrapper
+ * that auto-filters hidden choices from selections (event-driven, not useEffect).
+ */
+export declare const useConditionalChoices: ({ choices, optionDetails, responses, enduser, form, onChange, fieldId, otherString, }: {
+    choices?: string[] | undefined;
+    optionDetails?: FormFieldOptionDetails[] | undefined;
+    responses?: Response[] | undefined;
+    enduser?: Partial<import("@tellescope/types-models").Enduser & {
+        id: string;
+        createdAt: Date;
+    }> | undefined;
+    form?: (import("@tellescope/types-models").Form & {
+        id: string;
+        createdAt: Date;
+    }) | undefined;
+    onChange: (value: string[], fieldId: string) => void;
+    fieldId: string;
+    otherString: string;
+}) => {
+    visibleChoices: string[];
+    handleChange: (newValue: string[], fieldId: string) => void;
 };
 export {};
 //# sourceMappingURL=hooks.d.ts.map

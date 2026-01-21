@@ -104,6 +104,7 @@ export declare const ENDUSER_FIELD_TYPES: {
     dateOfBirth: FormFieldType[];
     height: FormFieldType[];
     weight: FormFieldType[];
+    preferredPharmacy: FormFieldType[];
     Insurance: FormFieldType[];
 };
 export declare const PRIMARY_HEX = "#1564bf";

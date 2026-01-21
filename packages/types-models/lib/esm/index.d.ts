@@ -106,6 +106,7 @@ export type PortalSettings = {
         hideMissingAnswers?: boolean;
         outstandingFormsTitle?: string;
         availableFormsTitle?: string;
+        hidePinnedFormStartsFromOutstandingBanner?: boolean;
     };
     hideSettingsPage?: boolean;
 };
@@ -217,6 +218,8 @@ export type OrganizationSettings = {
         delayedReadingIntervalInMS?: number;
         createChatRoomWithBlankUserIds?: boolean;
         showAlternateEmailsEditor?: boolean;
+        excludeCareTeamFromSearch?: boolean;
+        showVideoCallsOnTimeline?: boolean;
     };
     tickets?: {
         defaultJourneyDueDateOffsetInMS?: number | '';
@@ -309,6 +312,19 @@ export type OutOfOfficeBlock = {
     to: Date;
     autoreplyText: string;
 };
+export type VerifiedEmailDomain = {
+    domain: string;
+    status: 'pending' | 'verified' | 'failed';
+    createdAt: Date;
+    verifiedAt?: Date;
+    dkimTokens?: string[];
+    mailFromDomain?: string;
+    mailFromStatus?: 'pending' | 'verified' | 'failed';
+};
+export type VerifiedEmailDomainSettings = {
+    maxDomains?: number;
+    maxAliasesPerDomain?: number;
+};
 export interface Organization_readonly extends ClientRecord {
     subscriptionExpiresAt: Date;
     subscriptionPeriod: number;
@@ -328,6 +344,8 @@ export interface Organization_readonly extends ClientRecord {
     twilioSID?: string;
     twilioCustomerId?: string;
     customPortalScriptTags?: string[];
+    verifiedEmailDomains?: VerifiedEmailDomain[];
+    verifiedEmailDomainSettings?: VerifiedEmailDomainSettings;
 }
 export interface Organization_required {
     name: string;
@@ -776,6 +794,16 @@ export type EnduserInsurance = {
     planName?: string;
     startDate?: string;
 };
+export type Pharmacy = {
+    npi: string;
+    ncpdpId: string;
+    businessName: string;
+    primaryTelephone: string;
+    addressLine1?: string;
+    city?: string;
+    stateProvince?: string;
+    postalCode?: string;
+};
 export type EnduserDevice = {
     title: string;
     id: string;
@@ -907,6 +935,7 @@ export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_upd
     lastSuperdialEligibilityCheckAt?: Date;
     superdialEligibilityResponse?: string;
     eligibleForAutoMerge?: boolean;
+    preferredPharmacy?: Pharmacy;
 }
 export interface EnduserCustomType_readonly extends ClientRecord {
 }
@@ -1599,7 +1628,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
     copiedFromEnduserId?: string;
 }
 export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' | 'dateString' | 'rating' | 'Time' | "Timezone";
-export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance" | "Bridge Eligibility" | "Beluga Patient Preference";
+export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance" | "Bridge Eligibility" | "Beluga Patient Preference" | "Pharmacy Search";
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType;
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic';
 export type PreviousFormFieldBuilder<T extends PreviousFormFieldType, V> = {
@@ -1663,6 +1692,7 @@ export type FormFieldFeedback = {
 export type FormFieldOptionDetails = {
     option: string;
     description?: string;
+    showCondition?: CompoundFilter<string>;
 };
 export interface CanvasConsentCategory extends CanvasCoding {
 }
@@ -2145,6 +2175,7 @@ export type FormResponseAnswerChargebee = FormResponseValueAnswerBuilder<'Charge
     url: string;
 }>;
 export type FormResponseAnswerBelugaPatientPreference = FormResponseValueAnswerBuilder<'Beluga Patient Preference', BelugaPatientPreferenceResponse[]>;
+export type FormResponseAnswerPharmacySearch = FormResponseValueAnswerBuilder<'Pharmacy Search', Pharmacy>;
 export type FormResponseAnswerSignatureValue = {
     fullName: string;
     signed: boolean;
@@ -2167,7 +2198,7 @@ export type FormResponseAnswerFileValue = {
 export type FormResponseAnswerFile = FormResponseValueAnswerBuilder<'file', FormResponseAnswerFileValue>;
 export type FormResponseAnswerFiles = FormResponseValueAnswerBuilder<'files', FormResponseAnswerFileValue[]>;
 export type FormResponseAnswerTimezone = FormResponseValueAnswerBuilder<'Timezone', string>;
-export type FormResponseValueAnswer = (FormResponseAnswerGroup | FormResponseAnswerTimezone | FormResponseAnswerTable | FormResponseAnswerDescription | FormResponseAnswerEmail | FormResponseAnswerNumber | FormResponseAnswerPhone | FormResponseAnswerString | FormResponseAnswerStringLong | FormResponseAnswerRichText | FormResponseAnswerSignature | FormResponseAnswerMultipleChoice | FormResponseAnswerFile | FormResponseAnswerFiles | FormResponseAnswerDate | FormResponseAnswerRating | FormResponseAnswerRanking | FormResponseAnswerDateString | FormResponseAnswerAddress | FormResponseAnswerTime | FormResponseAnswerStripe | FormResponseAnswerDropdown | FormResponseAnswerDatabaseSelect | FormResponseAnswerMedications | FormResponseAnswerRelatedContacts | FormResponseAnswerInsurance | FormResponseAnswerAppointmentBooking | FormResponseAnswerHeight | FormResponseAnswerRedirect | FormResponseAnswerHiddenValue | FormResponseAnswerEmotii | FormResponseAnswerAllergies | FormResponseAnswerConditions | FormResponseAnswerChargebee | FormResponseAnswerBelugaPatientPreference | FormResponseAnswerBridgeEligibility);
+export type FormResponseValueAnswer = (FormResponseAnswerGroup | FormResponseAnswerTimezone | FormResponseAnswerTable | FormResponseAnswerDescription | FormResponseAnswerEmail | FormResponseAnswerNumber | FormResponseAnswerPhone | FormResponseAnswerString | FormResponseAnswerStringLong | FormResponseAnswerRichText | FormResponseAnswerSignature | FormResponseAnswerMultipleChoice | FormResponseAnswerFile | FormResponseAnswerFiles | FormResponseAnswerDate | FormResponseAnswerRating | FormResponseAnswerRanking | FormResponseAnswerDateString | FormResponseAnswerAddress | FormResponseAnswerTime | FormResponseAnswerStripe | FormResponseAnswerDropdown | FormResponseAnswerDatabaseSelect | FormResponseAnswerMedications | FormResponseAnswerRelatedContacts | FormResponseAnswerInsurance | FormResponseAnswerAppointmentBooking | FormResponseAnswerHeight | FormResponseAnswerRedirect | FormResponseAnswerHiddenValue | FormResponseAnswerEmotii | FormResponseAnswerAllergies | FormResponseAnswerConditions | FormResponseAnswerChargebee | FormResponseAnswerBelugaPatientPreference | FormResponseAnswerBridgeEligibility | FormResponseAnswerPharmacySearch);
 export type FormResponseValue = {
     fieldId: string;
     fieldTitle: string;
@@ -2218,6 +2249,7 @@ export type AnswerForType = {
     'Conditions': FormResponseAnswerConditions['value'];
     'Timezone': FormResponseAnswerTimezone['value'];
     'Beluga Patient Preference': FormResponseAnswerBelugaPatientPreference['value'];
+    'Pharmacy Search': FormResponseAnswerPharmacySearch['value'];
 };
 export type Addendum = {
     timestamp: Date;
@@ -2314,6 +2346,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
         fieldTitle: string;
         timestamp: Date;
     }[];
+    startedViaPinnedForm?: boolean;
 }
 export interface WebHook_readonly extends ClientRecord {
 }
@@ -2723,6 +2756,7 @@ export interface AppointmentBookingPage extends AppointmentBookingPage_readonly,
     limitedToCareTeam?: boolean;
     limitedByState?: boolean;
     limitedByTagsPortal?: string[];
+    enableUserSelection?: boolean;
     requireLocationSelection?: boolean;
     collectReason?: "Do Not Collect" | 'Optional' | 'Required';
     restrictionsByTemplate?: BookingRestrictions[];
@@ -3052,6 +3086,7 @@ export type IterableSendEmailAutomationAction = AutomationActionBuilder<'iterabl
 export type ZendeskCreateTicketAutomationAction = AutomationActionBuilder<'zendeskCreateTicket', {
     templateId: string;
     defaultSenderId: string;
+    isInternalNote?: boolean;
 }>;
 export type CreateCarePlanAutomationAction = AutomationActionBuilder<'createCarePlan', {
     title: string;
@@ -3940,6 +3975,7 @@ export type AnalyticsQueryFilterForType = {
         direction?: string;
         messages?: string[];
         "SMS Tags"?: ListOfStringsWithQualifier;
+        deliveryStatus?: 'All' | 'Delivered' | 'Failed';
     };
     Emails: {
         direction?: "Inbound" | "Outbound" | "Both";
@@ -4145,6 +4181,7 @@ export interface BackgroundError extends BackgroundError_readonly, BackgroundErr
     acknowledgedAt?: Date | '';
     journeyId?: string;
     enduserId?: string;
+    userId?: string;
 }
 export type SortingField = {
     field: string;
@@ -4222,6 +4259,11 @@ export type EnduserProfileViewBlocks = {
     }>;
     "Shared Content": EnduserProfileViewBlockBuilder<"Shared Content", {
         title: string;
+    }>;
+    "iFrame": EnduserProfileViewBlockBuilder<"iFrame", {
+        title: string;
+        url: string;
+        height: number;
     }>;
 };
 export type EnduserProfileViewBlockType = keyof EnduserProfileViewBlocks;

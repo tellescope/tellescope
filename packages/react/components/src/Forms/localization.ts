@@ -112,8 +112,16 @@ const SPANISH_TRANSLATIONS: Record<string, string> = {
 
   // Medications Search
   'Search': 'Buscar',
+  'Searching...': 'Buscando...',
   'Drug Select': 'Seleccionar Medicamento',
   'Other Drug': 'Otro Medicamento',
+
+  // Pharmacy Search
+  'pharmacies found': 'farmacias encontradas',
+  'pharmacy found': 'farmacia encontrada',
+  'Please enter a valid 5-digit ZIP code': 'Por favor ingrese un código postal válido de 5 dígitos',
+  'No pharmacies found for this ZIP code': 'No se encontraron farmacias para este código postal',
+  'Failed to search pharmacies': 'Error al buscar farmacias',
 
   // Height Input
   'Feet': 'Pies',

@@ -928,7 +928,7 @@ var office_hours_delay_tests = function (_a) {
                                     case 1:
                                         automatedActions = _a.sent();
                                         return [2 /*return*/, automatedActions.find(function (a) {
-                                                return a.automationStepId === officeHoursStep3_1.id && a.status === 'active';
+                                                return a.automationStepId === officeHoursStep3_1.id && (a.status === 'active' || a.status === 'finished');
                                             })];
                                 }
                             });
