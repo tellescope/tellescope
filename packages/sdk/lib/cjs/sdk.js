@@ -622,6 +622,7 @@ var Session = /** @class */ (function (_super) {
         queries.group_mms_conversations.start_conversation = function (args) { return _this._POST("/v1".concat(schema_1.schema.group_mms_conversations.customActions.start_conversation.path), args); };
         queries.group_mms_conversations.send_message = function (args) { return _this._POST("/v1".concat(schema_1.schema.group_mms_conversations.customActions.send_message.path), args); };
         queries.enduser_encounters.create_candid_encounter = function (args) { return _this._POST("/v1".concat(schema_1.schema.enduser_encounters.customActions.create_candid_encounter.path), args); };
+        queries.enduser_medications.create_scriptsure_order = function (args) { return _this._POST("/v1".concat(schema_1.schema.enduser_medications.customActions.create_scriptsure_order.path), args); };
         queries.call_hold_queues.answer_call = function (args) { return _this._POST("/v1".concat(schema_1.schema.call_hold_queues.customActions.answer_call.path), args); };
         queries.call_hold_queues.get_details = function (args) { return _this._GET("/v1".concat(schema_1.schema.call_hold_queues.customActions.get_details.path), args); };
         queries.enduser_observations.load = function (args) { return _this._GET("/v1".concat(schema_1.schema.enduser_observations.customActions.load.path), args); };

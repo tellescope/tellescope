@@ -3695,6 +3695,9 @@ type Queries = {
     enduser_encounters: {
         create_candid_encounter: (args: extractFields<CustomActions['enduser_encounters']['create_candid_encounter']['parameters']>) => (Promise<extractFields<CustomActions['enduser_encounters']['create_candid_encounter']['returns']>>);
     };
+    enduser_medications: {
+        create_scriptsure_order: (args: extractFields<CustomActions['enduser_medications']['create_scriptsure_order']['parameters']>) => (Promise<extractFields<CustomActions['enduser_medications']['create_scriptsure_order']['returns']>>);
+    };
     purchases: {
         charge_card_on_file: (args: extractFields<CustomActions['purchases']['charge_card_on_file']['parameters']>) => (Promise<extractFields<CustomActions['purchases']['charge_card_on_file']['returns']>>);
     };

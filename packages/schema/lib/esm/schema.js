@@ -2990,7 +2990,7 @@ export var schema = build_schema({
                     formResponseId: mongoIdStringOptional,
                     completedAt: dateValidatorOptional,
                 }))
-            }, canvasEncounterId: { validator: stringValidator100 }, pushedToPortalAt: { validator: dateValidatorOptional }, fieldViews: {
+            }, canvasEncounterId: { validator: stringValidator100 }, pushedToPortalAt: { validator: dateValidatorOptional }, belugaScheduleLink: { validator: stringValidator1000 }, fieldViews: {
                 validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     fieldId: mongoIdStringRequired,
                     fieldTitle: stringValidator250,
@@ -5609,7 +5609,23 @@ export var schema = build_schema({
         info: {},
         constraints: { unique: [], relationship: [], },
         defaultActions: DEFAULT_OPERATIONS,
-        customActions: {},
+        customActions: {
+            create_scriptsure_order: {
+                op: "custom", access: 'update', method: "post",
+                path: "/enduser-medications/create-scriptsure-order",
+                name: 'Create ScriptSure Order',
+                description: "Creates a pending order in ScriptSure for a draft medication and returns the widget URL",
+                parameters: {
+                    id: { validator: mongoIdStringValidator, required: true },
+                },
+                returns: {
+                    orderId: { validator: stringValidator },
+                    sessionToken: { validator: stringValidator },
+                    patientId: { validator: stringValidator },
+                    widgetUrl: { validator: stringValidator },
+                },
+            },
+        },
         enduserActions: {
             read: {}, readMany: {},
         },
@@ -5628,7 +5644,7 @@ export var schema = build_schema({
                 required: true,
                 validator: stringValidator,
                 examples: ['Medication Name'],
-            }, calendarEventId: { validator: mongoIdStringValidator }, prescribedBy: { validator: mongoIdStringValidator }, prescribedAt: { validator: dateOptionalOrEmptyStringValidator }, startedTakingAt: { validator: dateOptionalOrEmptyStringValidator }, stoppedTakingAt: { validator: dateOptionalOrEmptyStringValidator }, rxNormCode: { validator: stringValidator }, fdbCode: { validator: stringValidator }, dispensing: {
+            }, calendarEventId: { validator: mongoIdStringValidator }, prescribedBy: { validator: mongoIdStringValidator }, prescribedAt: { validator: dateOptionalOrEmptyStringValidator }, startedTakingAt: { validator: dateOptionalOrEmptyStringValidator }, stoppedTakingAt: { validator: dateOptionalOrEmptyStringValidator }, rxNormCode: { validator: stringValidator }, ndc: { validator: stringValidator100 }, fdbCode: { validator: stringValidator }, dispensing: {
                 validator: objectValidator({
                     quantity: numberValidator,
                     unit: stringValidator,
@@ -5642,7 +5658,9 @@ export var schema = build_schema({
                     frequencyDescriptor: stringValidatorOptional,
                     description: stringValidatorOptional,
                 }),
-            }, source: { validator: stringValidator1000Optional }, externalId: { validator: stringValidator250 }, notes: { validator: stringValidator }, references: { validator: listOfRelatedRecordsValidator, readonly: true }, orderStatus: { validator: stringValidator1000 }, pharmacyName: { validator: stringValidator1000 }, prescriberName: { validator: stringValidator1000 }, reasonForTaking: { validator: stringValidator }, directions: { validator: stringValidator } })
+            }, source: { validator: stringValidator1000Optional }, externalId: { validator: stringValidator250 }, notes: { validator: stringValidator }, references: { validator: listOfRelatedRecordsValidator, readonly: true }, orderStatus: { validator: stringValidator1000 }, externalOrderId: { validator: stringValidator250 }, pharmacyName: { validator: stringValidator1000 }, prescriberName: { validator: stringValidator1000 }, reasonForTaking: { validator: stringValidator }, directions: { validator: stringValidator }, pharmacyId: { validator: stringValidator1000 }, status: { validator: stringValidator }, scriptSureDraft: {
+                validator: optionalAnyObjectValidator,
+            } })
     },
     phone_trees: {
         info: {},
@@ -6105,13 +6123,15 @@ export var schema = build_schema({
     prescription_routes: {
         info: {},
         constraints: {
-            unique: [['state', 'templateIds', 'pharmacyId']], relationship: [],
+            unique: [], relationship: [],
             access: []
         },
         defaultActions: DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { title: { validator: stringValidator, required: true, examples: ['Title'] }, state: { validator: stateValidator, required: true, examples: ['CA'] }, templateIds: { validator: listOfStringsValidator, required: true, examples: [['tmp_01GZMD9Q71W7T44812351V9QZN']] }, pharmacyId: { validator: stringValidator }, pharmacyLabel: { validator: stringValidator }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay } }),
+        fields: __assign(__assign({}, BuiltInFields), { title: { validator: stringValidator, required: true, examples: ['Title'] }, state: { validator: stateValidator, required: true, examples: ['CA'] }, templateIds: { validator: listOfStringsValidatorOptionalOrEmptyOk, examples: [['tmp_01GZMD9Q71W7T44812351V9QZN']] }, pharmacyId: { validator: stringValidator }, pharmacyLabel: { validator: stringValidator }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, source: { validator: stringValidator100, }, drugId: { validator: stringValidator }, ndc: { validator: stringValidator100 }, 
+            // Compound-specific fields (for ScriptSure compound orders)
+            compoundQuantity: { validator: nonNegNumberValidator }, compoundQuantityQualifier: { validator: stringValidator100 }, sig: { validator: stringValidator } }),
     },
     enduser_problems: {
         info: {

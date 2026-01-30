@@ -629,6 +629,8 @@ exports.VITAL_UNITS_INFO = {
     "SBP": { label: "Systolic Blood Pressure" },
     "mg/dL": { label: "Blood Glucose (mg/dL)" },
     "A1C": { label: "A1C" },
+    "L/min": { label: "Peak Expiratory Flow (L/min)" },
+    "L": { label: "Volume (L)" },
 };
 exports.VITAL_UNITS = Object.keys(exports.VITAL_UNITS_INFO);
 exports.WEIGHT_UNITS = ['LB'];

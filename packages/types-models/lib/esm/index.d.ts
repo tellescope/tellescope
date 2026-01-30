@@ -978,6 +978,7 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
     startedTakingAt?: Date | '';
     stoppedTakingAt?: Date | '';
     rxNormCode?: string;
+    ndc?: string;
     fdbCode?: string;
     dispensing?: {
         quantity: number;
@@ -995,8 +996,21 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
     pharmacyName?: string;
     pharmacyId?: string;
     orderStatus?: string;
+    externalOrderId?: string;
     reasonForTaking?: string;
     directions?: string;
+    status?: string;
+    scriptSureDraft?: {
+        prescriptionRouteId?: string;
+        drugId?: string;
+        orderId?: string;
+        refills?: number;
+        duration?: number;
+        quantity?: number;
+        sig?: string;
+        compoundQuantity?: number;
+        compoundQuantityQualifier?: string;
+    };
 }
 export interface APIKey_readonly extends ClientRecord {
     hashedKey: string;
@@ -2341,6 +2355,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
     canvasEncounterId?: string;
     pushedToPortalAt?: Date;
     belugaStatus?: string;
+    belugaScheduleLink?: string;
     fieldViews?: {
         fieldId: string;
         fieldTitle: string;
@@ -5091,10 +5106,16 @@ export interface PrescriptionRoute_updatesDisabled {
 export interface PrescriptionRoute extends PrescriptionRoute_readonly, PrescriptionRoute_required, PrescriptionRoute_updatesDisabled {
     title: string;
     state: string;
-    templateIds: string[];
+    templateIds?: string[];
     pharmacyId?: string;
     pharmacyLabel?: string;
     tags?: string[];
+    source?: string;
+    drugId?: string;
+    ndc?: string;
+    compoundQuantity?: number;
+    compoundQuantityQualifier?: string;
+    sig?: string;
 }
 export interface FlowchartNote_readonly extends ClientRecord {
 }

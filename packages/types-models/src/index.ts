@@ -1039,6 +1039,7 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
   startedTakingAt?: Date | '',
   stoppedTakingAt?: Date | '',
   rxNormCode?: string,
+  ndc?: string, // National Drug Code
   fdbCode?: string,
   dispensing?: {
     quantity: number,
@@ -1056,8 +1057,24 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
   pharmacyName?: string,
   pharmacyId?: string,
   orderStatus?: string,
+  externalOrderId?: string,  // Customer's external order reference (e.g., Shopify order ID, Salesforce case ID)
   reasonForTaking?: string,
   directions?: string,
+
+  // Medication status (e.g., 'draft', 'pending', 'active', 'Prescribed')
+  status?: string,
+  scriptSureDraft?: {
+    prescriptionRouteId?: string,    // Optional reference to PrescriptionRoute used
+    drugId?: string,                  // ScriptSure drug ID
+    orderId?: string,                 // ScriptSure pending order ID
+    refills?: number,
+    duration?: number,
+    quantity?: number,                // For drugs
+    sig?: string,                     // Dosing instructions
+    // Compound-specific fields
+    compoundQuantity?: number,
+    compoundQuantityQualifier?: string,
+  },
 }
 
 export interface APIKey_readonly extends ClientRecord { 
@@ -2420,6 +2437,7 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   canvasEncounterId?: string,
   pushedToPortalAt?: Date,
   belugaStatus?: string,
+  belugaScheduleLink?: string,
   fieldViews?: {
     fieldId: string,
     fieldTitle: string,
@@ -4975,10 +4993,17 @@ export interface PrescriptionRoute_updatesDisabled {}
 export interface PrescriptionRoute extends PrescriptionRoute_readonly, PrescriptionRoute_required, PrescriptionRoute_updatesDisabled {
   title: string,
   state: string,
-  templateIds: string[],
+  templateIds?: string[],
   pharmacyId?: string,
   pharmacyLabel?: string,
   tags?: string[],
+  source?: string, // 'Photon' | 'ScriptSure',
+  drugId?: string,
+  ndc?: string, // National Drug Code (for non-compound ScriptSure orders)
+  // Compound-specific fields (for ScriptSure compound orders)
+  compoundQuantity?: number,          // e.g., 10
+  compoundQuantityQualifier?: string, // NCPDP code e.g., "C64933" for Each
+  sig?: string, // Directions/instructions for the prescription (e.g., "Take 1 tablet by mouth daily")
 }
 
 export interface FlowchartNote_readonly extends ClientRecord { }

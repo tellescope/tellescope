@@ -1155,7 +1155,7 @@ export type CustomActions = {
   enduser_orders: {
     get_available_tests: CustomAction<{ zipCode?: string, teamId?: string }, { tests: VitalLabTest[] }>,
     create_smart_meter_order: CustomAction<{ enduserId: string, lines: SmartMeterOrderLineItem[], shipping?: string }, { order: EnduserOrder }>,
-    create_lab_order: CustomAction<{ 
+    create_lab_order: CustomAction<{
       enduserId: string,
       labTestId: string,
       physicianUserId?: string,
@@ -1164,11 +1164,14 @@ export type CustomActions = {
       aoe_answers?: VitalAOEAnswer[]
     }, { order: EnduserOrder }>,
     cancel_order: CustomAction<{ orderId: string }, { order?: EnduserOrder }>,
-    create_go_go_meds_order: CustomAction<{ 
+    create_go_go_meds_order: CustomAction<{
       enduserId: string,
       PrescriptionImage: string,
       title?: string,
     } & GoGoMedsPet, { order: EnduserOrder }>,
+  },
+  enduser_medications: {
+    create_scriptsure_order: CustomAction<{ id: string }, { orderId: string, sessionToken: string, patientId: string, widgetUrl: string }>,
   },
   enduser_encounters: {
     create_candid_encounter: CustomAction<{ encounterId: string }, { encounter: EnduserEncounter }>,
@@ -4783,6 +4786,7 @@ export const schema: SchemaV1 = build_schema({
       },
       canvasEncounterId: { validator: stringValidator100 },
       pushedToPortalAt: { validator: dateValidatorOptional },
+      belugaScheduleLink: { validator: stringValidator1000 },
       fieldViews: {
         validator: listValidatorOptionalOrEmptyOk(objectValidator<{ fieldId: string, fieldTitle: string, timestamp: Date }>({
           fieldId: mongoIdStringRequired,
@@ -8089,7 +8093,23 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     info: {},
     constraints: { unique: [], relationship: [], },
     defaultActions: DEFAULT_OPERATIONS,
-    customActions: {},
+    customActions: {
+      create_scriptsure_order: {
+        op: "custom", access: 'update', method: "post",
+        path: "/enduser-medications/create-scriptsure-order",
+        name: 'Create ScriptSure Order',
+        description: "Creates a pending order in ScriptSure for a draft medication and returns the widget URL",
+        parameters: {
+          id: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: {
+          orderId: { validator: stringValidator },
+          sessionToken: { validator: stringValidator },
+          patientId: { validator: stringValidator },
+          widgetUrl: { validator: stringValidator },
+        },
+      },
+    },
     enduserActions: {
       read: {}, readMany: {},
     },
@@ -8118,6 +8138,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       startedTakingAt: { validator: dateOptionalOrEmptyStringValidator },
       stoppedTakingAt: { validator: dateOptionalOrEmptyStringValidator },
       rxNormCode: { validator: stringValidator },
+      ndc: { validator: stringValidator100 }, // National Drug Code
       fdbCode: { validator: stringValidator },
       dispensing: {
         validator: objectValidator<EnduserMedication['dispensing']>({ 
@@ -8140,10 +8161,16 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       notes: { validator: stringValidator },  
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
       orderStatus: { validator: stringValidator1000 },
+      externalOrderId: { validator: stringValidator250 },
       pharmacyName: { validator: stringValidator1000 },
       prescriberName: { validator: stringValidator1000 },
       reasonForTaking: { validator: stringValidator },
       directions: { validator: stringValidator },
+      pharmacyId: { validator: stringValidator1000 },
+      status: { validator: stringValidator },
+      scriptSureDraft: {
+        validator: optionalAnyObjectValidator,
+      },
     }
   },
   phone_trees: {
@@ -8758,20 +8785,27 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
   prescription_routes: {
     info: {},
     constraints: { 
-      unique: [['state', 'templateIds', 'pharmacyId']], relationship: [], 
+      unique: [], relationship: [], 
       access: []  
     },
     defaultActions: DEFAULT_OPERATIONS,
     customActions: {},
     enduserActions: {},
     fields: {
-      ...BuiltInFields, 
+      ...BuiltInFields,
       title: { validator: stringValidator, required: true, examples: ['Title'] },
-      state: { validator: stateValidator, required: true, examples: ['CA'] }, 
-      templateIds: { validator: listOfStringsValidator, required: true, examples: [['tmp_01GZMD9Q71W7T44812351V9QZN']] },
+      state: { validator: stateValidator, required: true, examples: ['CA'] },
+      templateIds: { validator: listOfStringsValidatorOptionalOrEmptyOk, examples: [['tmp_01GZMD9Q71W7T44812351V9QZN']] },
       pharmacyId: { validator: stringValidator },
       pharmacyLabel: { validator: stringValidator },
-      tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, 
+      tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      source: { validator: stringValidator100, },
+      drugId: { validator: stringValidator },
+      ndc: { validator: stringValidator100 }, // National Drug Code
+      // Compound-specific fields (for ScriptSure compound orders)
+      compoundQuantity: { validator: nonNegNumberValidator },
+      compoundQuantityQualifier: { validator: stringValidator100 },
+      sig: { validator: stringValidator }, // Directions/instructions
     },
   },
   enduser_problems: {

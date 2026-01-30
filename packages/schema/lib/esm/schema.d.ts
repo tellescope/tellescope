@@ -1558,6 +1558,16 @@ export type CustomActions = {
             order: EnduserOrder;
         }>;
     };
+    enduser_medications: {
+        create_scriptsure_order: CustomAction<{
+            id: string;
+        }, {
+            orderId: string;
+            sessionToken: string;
+            patientId: string;
+            widgetUrl: string;
+        }>;
+    };
     enduser_encounters: {
         create_candid_encounter: CustomAction<{
             encounterId: string;

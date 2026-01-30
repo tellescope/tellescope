@@ -2995,7 +2995,7 @@ exports.schema = (0, exports.build_schema)({
                     formResponseId: validation_1.mongoIdStringOptional,
                     completedAt: validation_1.dateValidatorOptional,
                 }))
-            }, canvasEncounterId: { validator: validation_1.stringValidator100 }, pushedToPortalAt: { validator: validation_1.dateValidatorOptional }, fieldViews: {
+            }, canvasEncounterId: { validator: validation_1.stringValidator100 }, pushedToPortalAt: { validator: validation_1.dateValidatorOptional }, belugaScheduleLink: { validator: validation_1.stringValidator1000 }, fieldViews: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     fieldId: validation_1.mongoIdStringRequired,
                     fieldTitle: validation_1.stringValidator250,
@@ -5614,7 +5614,23 @@ exports.schema = (0, exports.build_schema)({
         info: {},
         constraints: { unique: [], relationship: [], },
         defaultActions: constants_1.DEFAULT_OPERATIONS,
-        customActions: {},
+        customActions: {
+            create_scriptsure_order: {
+                op: "custom", access: 'update', method: "post",
+                path: "/enduser-medications/create-scriptsure-order",
+                name: 'Create ScriptSure Order',
+                description: "Creates a pending order in ScriptSure for a draft medication and returns the widget URL",
+                parameters: {
+                    id: { validator: validation_1.mongoIdStringRequired, required: true },
+                },
+                returns: {
+                    orderId: { validator: validation_1.stringValidator },
+                    sessionToken: { validator: validation_1.stringValidator },
+                    patientId: { validator: validation_1.stringValidator },
+                    widgetUrl: { validator: validation_1.stringValidator },
+                },
+            },
+        },
         enduserActions: {
             read: {}, readMany: {},
         },
@@ -5633,7 +5649,7 @@ exports.schema = (0, exports.build_schema)({
                 required: true,
                 validator: validation_1.stringValidator,
                 examples: ['Medication Name'],
-            }, calendarEventId: { validator: validation_1.mongoIdStringRequired }, prescribedBy: { validator: validation_1.mongoIdStringRequired }, prescribedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, startedTakingAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, stoppedTakingAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, rxNormCode: { validator: validation_1.stringValidator }, fdbCode: { validator: validation_1.stringValidator }, dispensing: {
+            }, calendarEventId: { validator: validation_1.mongoIdStringRequired }, prescribedBy: { validator: validation_1.mongoIdStringRequired }, prescribedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, startedTakingAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, stoppedTakingAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, rxNormCode: { validator: validation_1.stringValidator }, ndc: { validator: validation_1.stringValidator100 }, fdbCode: { validator: validation_1.stringValidator }, dispensing: {
                 validator: (0, validation_1.objectValidator)({
                     quantity: validation_1.numberValidator,
                     unit: validation_1.stringValidator,
@@ -5647,7 +5663,9 @@ exports.schema = (0, exports.build_schema)({
                     frequencyDescriptor: validation_1.stringValidatorOptional,
                     description: validation_1.stringValidatorOptional,
                 }),
-            }, source: { validator: validation_1.stringValidator1000Optional }, externalId: { validator: validation_1.stringValidator250 }, notes: { validator: validation_1.stringValidator }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, orderStatus: { validator: validation_1.stringValidator1000 }, pharmacyName: { validator: validation_1.stringValidator1000 }, prescriberName: { validator: validation_1.stringValidator1000 }, reasonForTaking: { validator: validation_1.stringValidator }, directions: { validator: validation_1.stringValidator } })
+            }, source: { validator: validation_1.stringValidator1000Optional }, externalId: { validator: validation_1.stringValidator250 }, notes: { validator: validation_1.stringValidator }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, orderStatus: { validator: validation_1.stringValidator1000 }, externalOrderId: { validator: validation_1.stringValidator250 }, pharmacyName: { validator: validation_1.stringValidator1000 }, prescriberName: { validator: validation_1.stringValidator1000 }, reasonForTaking: { validator: validation_1.stringValidator }, directions: { validator: validation_1.stringValidator }, pharmacyId: { validator: validation_1.stringValidator1000 }, status: { validator: validation_1.stringValidator }, scriptSureDraft: {
+                validator: validation_1.optionalAnyObjectValidator,
+            } })
     },
     phone_trees: {
         info: {},
@@ -6110,13 +6128,15 @@ exports.schema = (0, exports.build_schema)({
     prescription_routes: {
         info: {},
         constraints: {
-            unique: [['state', 'templateIds', 'pharmacyId']], relationship: [],
+            unique: [], relationship: [],
             access: []
         },
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { title: { validator: validation_1.stringValidator, required: true, examples: ['Title'] }, state: { validator: validation_1.stateValidator, required: true, examples: ['CA'] }, templateIds: { validator: validation_1.listOfStringsValidator, required: true, examples: [['tmp_01GZMD9Q71W7T44812351V9QZN']] }, pharmacyId: { validator: validation_1.stringValidator }, pharmacyLabel: { validator: validation_1.stringValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay } }),
+        fields: __assign(__assign({}, BuiltInFields), { title: { validator: validation_1.stringValidator, required: true, examples: ['Title'] }, state: { validator: validation_1.stateValidator, required: true, examples: ['CA'] }, templateIds: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk, examples: [['tmp_01GZMD9Q71W7T44812351V9QZN']] }, pharmacyId: { validator: validation_1.stringValidator }, pharmacyLabel: { validator: validation_1.stringValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, source: { validator: validation_1.stringValidator100, }, drugId: { validator: validation_1.stringValidator }, ndc: { validator: validation_1.stringValidator100 }, 
+            // Compound-specific fields (for ScriptSure compound orders)
+            compoundQuantity: { validator: validation_1.nonNegNumberValidator }, compoundQuantityQualifier: { validator: validation_1.stringValidator100 }, sig: { validator: validation_1.stringValidator } }),
     },
     enduser_problems: {
         info: {

@@ -280,6 +280,11 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
       Promise<extractFields<CustomActions['enduser_encounters']['create_candid_encounter']['returns']>>
     ),
   },
+  enduser_medications: {
+    create_scriptsure_order: (args: extractFields<CustomActions['enduser_medications']['create_scriptsure_order']['parameters']>) => (
+      Promise<extractFields<CustomActions['enduser_medications']['create_scriptsure_order']['returns']>>
+    ),
+  },
   purchases: {
     charge_card_on_file: (args: extractFields<CustomActions['purchases']['charge_card_on_file']['parameters']>) => (
       Promise<extractFields<CustomActions['purchases']['charge_card_on_file']['returns']>>
@@ -1138,6 +1143,8 @@ export class Session extends SessionManager {
     queries.group_mms_conversations.send_message = args => this._POST(`/v1${schema.group_mms_conversations.customActions.send_message.path}`, args)
 
     queries.enduser_encounters.create_candid_encounter = args => this._POST(`/v1${schema.enduser_encounters.customActions.create_candid_encounter.path}`, args)
+
+    queries.enduser_medications.create_scriptsure_order = args => this._POST(`/v1${schema.enduser_medications.customActions.create_scriptsure_order.path}`, args)
     
     queries.call_hold_queues.answer_call = args => this._POST(`/v1${schema.call_hold_queues.customActions.answer_call.path}`, args)
     queries.call_hold_queues.get_details = args => this._GET(`/v1${schema.call_hold_queues.customActions.get_details.path}`, args)
