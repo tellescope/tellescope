@@ -3302,7 +3302,7 @@ export var portalBlockValidator = orValidator({
     HTML: objectValidator({
         type: exactMatchValidator(['HTML']),
         info: objectValidator({
-            html: stringValidator5000,
+            html: stringValidator25000,
         })
     }),
     pinnedForms: objectValidator({
@@ -4514,6 +4514,7 @@ export var integrationTitleValidator = exactMatchValidator([
 ]);
 var _VIDEO_INTEGRATION_TYPES = {
     Zoom: '',
+    Twilio: '',
     "No Integration": '',
 };
 export var VIDEO_INTEGRATION_TYPES = Object.keys(_VIDEO_INTEGRATION_TYPES);

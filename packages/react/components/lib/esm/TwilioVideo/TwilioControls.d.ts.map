@@ -1,0 +1,1 @@
+{"version":3,"file":"TwilioControls.d.ts","sourceRoot":"","sources":["../../../src/TwilioVideo/TwilioControls.tsx"],"names":[],"mappings":"AAAA,OAAO,KAAK,MAAM,OAAO,CAAA;AAWzB,MAAM,WAAW,qBAAqB;IACpC,OAAO,CAAC,EAAE,MAAM,IAAI,CAAA;IACpB,WAAW,CAAC,EAAE,MAAM,IAAI,CAAA;IACxB,KAAK,CAAC,EAAE,KAAK,CAAC,aAAa,CAAA;CAC5B;AAED,eAAO,MAAM,gBAAgB,EAAE,KAAK,CAAC,EAAE,CAAC,qBAAqB,CA4F5D,CAAA"}

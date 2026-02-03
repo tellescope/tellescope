@@ -4416,7 +4416,7 @@ export const schema: SchemaV1 = build_schema({
         validator: meetingInfoValidator,
         readonly: true
       },
-      publicRead: { validator: booleanValidator }, 
+      publicRead: { validator: booleanValidator },
       endedAt: { validator: dateValidator },
     }
   },

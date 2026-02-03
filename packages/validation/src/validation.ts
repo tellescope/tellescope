@@ -4159,7 +4159,7 @@ export const portalBlockValidator = orValidator<{ [K in PortalBlockType]: Portal
   HTML: objectValidator<PortalBlockForType['HTML']>({
     type: exactMatchValidator(['HTML']),
     info: objectValidator<PortalBlockForType['HTML']['info']>({
-      html: stringValidator5000,
+      html: stringValidator25000,
     })
   }),
   pinnedForms: objectValidator<PortalBlockForType['pinnedForms']>({
@@ -5442,6 +5442,7 @@ export const integrationTitleValidator = exactMatchValidator<IntegrationsTitleTy
 
 const _VIDEO_INTEGRATION_TYPES: { [K in VideoIntegrationType]: any} = {
   Zoom: '',
+  Twilio: '',
   "No Integration": '',
 } 
 export const VIDEO_INTEGRATION_TYPES = Object.keys(_VIDEO_INTEGRATION_TYPES) as VideoIntegrationType[]

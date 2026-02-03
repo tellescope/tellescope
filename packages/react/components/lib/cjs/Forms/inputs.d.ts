@@ -25,7 +25,7 @@ export declare const DateInput: ({ field, value, onChange, placement, ...props }
     placement?: "left" | "right" | "bottom" | "top" | undefined;
 } & FormInputProps<"date"> & Styled) => JSX.Element;
 export declare const TableInput: ({ field, value, onChange, form, ...props }: FormInputProps<'Input Table'>) => JSX.Element;
-export declare const AutoFocusTextField: (props: TextFieldProps & {
+export declare const AutoFocusTextField: (props: (import("@mui/material").OutlinedTextFieldProps | import("@mui/material").FilledTextFieldProps | import("@mui/material").StandardTextFieldProps) & {
     inputProps?: {
         sx: SxProps;
     } | undefined;

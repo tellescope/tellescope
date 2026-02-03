@@ -1649,7 +1649,28 @@ export type MeetingStatus = 'scheduled' | 'live' | 'ended'
 export type MeetingInfo = {
   MeetingId: string,
   ExternalMeetingId: string,
-  MediaPlacement: object,
+  MediaPlacement?: object,  // Chime-specific
+  TwilioRoomSid?: string,   // Twilio-specific
+  provider?: 'chime' | 'twilio',
+}
+export type TwilioRoomInfo = {
+  RoomSid: string,
+  RoomName: string,
+  Status: 'in-progress' | 'completed',
+}
+export type TwilioVideoRecording = {
+  recordingSid: string,
+  roomSid: string,
+  status: 'processing' | 'completed' | 'failed',
+  duration?: number,       // seconds
+  size?: number,           // bytes
+  mediaUri?: string,       // download URL (temporary, needs auth)
+  codec?: string,
+  type?: 'audio' | 'video',
+  participantSid?: string,
+  createdAt?: Date,
+  completedAt?: Date,
+  failureReason?: string,
 }
 export interface Meeting_readonly extends ClientRecord {
   calendarEventId?: string,
@@ -1662,6 +1683,7 @@ export interface Meeting extends Meeting_readonly, Meeting_required, Meeting_upd
   status: MeetingStatus,
   publicRead?: boolean,
   endedAt?: Date,
+  recordings?: TwilioVideoRecording[],
 }
 
 export interface Note_readonly extends ClientRecord {}
@@ -2701,7 +2723,7 @@ export interface PurchaseCredit extends PurchaseCredit_readonly, PurchaseCredit_
   usedAt?: Date | string,
   description?: string,
 }
-export type VideoIntegrationType = "Zoom" | 'No Integration'
+export type VideoIntegrationType = "Zoom" | "Twilio" | 'No Integration'
 export interface CalendarEventTemplate_readonly extends ClientRecord { }
 export interface CalendarEventTemplate_required {
   title: string,

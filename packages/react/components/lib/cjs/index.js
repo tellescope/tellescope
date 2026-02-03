@@ -33,4 +33,5 @@ __exportStar(require("./Forms/index"), exports);
 __exportStar(require("./Community/index"), exports);
 __exportStar(require("./CMS/index"), exports);
 __exportStar(require("./Calendar/index"), exports);
+__exportStar(require("./TwilioVideo/index"), exports);
 //# sourceMappingURL=index.js.map

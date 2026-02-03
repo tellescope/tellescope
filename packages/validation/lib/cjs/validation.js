@@ -3354,7 +3354,7 @@ exports.portalBlockValidator = (0, exports.orValidator)({
     HTML: (0, exports.objectValidator)({
         type: (0, exports.exactMatchValidator)(['HTML']),
         info: (0, exports.objectValidator)({
-            html: exports.stringValidator5000,
+            html: exports.stringValidator25000,
         })
     }),
     pinnedForms: (0, exports.objectValidator)({
@@ -4566,6 +4566,7 @@ exports.integrationTitleValidator = (0, exports.exactMatchValidator)([
 ]);
 var _VIDEO_INTEGRATION_TYPES = {
     Zoom: '',
+    Twilio: '',
     "No Integration": '',
 };
 exports.VIDEO_INTEGRATION_TYPES = Object.keys(_VIDEO_INTEGRATION_TYPES);
