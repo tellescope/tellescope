@@ -960,9 +960,16 @@ export const stringValidator100EscapeHTML: ValidatorDefinition<string> = {
   getType: getTypeString
 }
 
+export const stringValidator210: ValidatorDefinition<string> = {
+  validate: (o={}) => build_validator(
+    escapeString(o), { ...o, maxLength: 210, listOf: false  }
+  ),
+  getExample: getExampleString,
+  getType: getTypeString,
+}
 export const stringValidator250: ValidatorDefinition<string> = {
   validate: (o={}) => build_validator(
-    escapeString(o), { ...o, maxLength: 250, listOf: false  } 
+    escapeString(o), { ...o, maxLength: 250, listOf: false  }
   ),
   getExample: getExampleString,
   getType: getTypeString,

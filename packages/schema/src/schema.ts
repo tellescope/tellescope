@@ -152,6 +152,7 @@ import {
   idStringToDateValidator,
   subdomainValidator,
   messageTemplateTypeValidator,
+  stringValidator210,
   stringValidator250,
   stringValidator5000,
   listOfDisplayNameInfo,
@@ -3797,6 +3798,7 @@ export const schema: SchemaV1 = build_schema({
       availableFromEmails: { validator: listOfStringsValidatorEmptyOk },
       doseSpotUserId: { validator: stringValidator100 },
       scriptSurePrescriberId: { validator: stringValidator100 },
+      isScriptsureProvider: { validator: booleanValidatorOptional },
       url: { validator: stringValidator1000 },
       templateFields: {
         validator: listValidatorOptionalOrEmptyOk(objectValidator<LabeledField>({
@@ -8806,6 +8808,8 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       compoundQuantity: { validator: nonNegNumberValidator },
       compoundQuantityQualifier: { validator: stringValidator100 },
       sig: { validator: stringValidator }, // Directions/instructions
+      pharmacyNote: { validator: stringValidator210 }, // Note to pharmacy (ScriptSure limit: 210 chars)
+      controlledSubstance: { validator: exactMatchValidatorOptional<'0' | '2' | '3' | '4' | '5'>(['0', '2', '3', '4', '5']) }, // DEA schedule (MED_REF_DEA_CD)
     },
   },
   enduser_problems: {

@@ -74,6 +74,7 @@ export type CompoundFilter<T extends string> = {
 };
 /** @deprecated */
 export type OrganizationLimit = 'endusersLimit' | 'smsLimit' | 'emailsLimit' | 'tasksLimit' | 'formsLimit' | 'orgUsersLimit' | 'automationsLimit' | 'automationStepsLimit' | 'journeysLimit' | 'journeyStatesLimit' | 'templatesLimit' | 'apiKeysLimit';
+export type ControlledSubstanceCode = "0" | "2" | "3" | "4" | "5";
 export type PortalSettings = {
     authentication?: {
         landingTitle?: string;
@@ -721,6 +722,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
     iOSBadgeCount?: number;
     doseSpotUserId?: string;
     scriptSurePrescriberId?: string;
+    isScriptsureProvider?: boolean;
     url?: string;
     requiresMFAConfiguration?: boolean;
     templateFields?: LabeledField[];
@@ -1010,6 +1012,8 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
         sig?: string;
         compoundQuantity?: number;
         compoundQuantityQualifier?: string;
+        pharmacyNote?: string;
+        controlledSubstance?: ControlledSubstanceCode;
     };
 }
 export interface APIKey_readonly extends ClientRecord {
@@ -5138,6 +5142,8 @@ export interface PrescriptionRoute extends PrescriptionRoute_readonly, Prescript
     compoundQuantity?: number;
     compoundQuantityQualifier?: string;
     sig?: string;
+    pharmacyNote?: string;
+    controlledSubstance?: ControlledSubstanceCode;
 }
 export interface FlowchartNote_readonly extends ClientRecord {
 }

@@ -97,6 +97,10 @@ export type OrganizationLimit = 'endusersLimit'
 //   [K in OrganizationLimit]?: number;
 // }
 
+// DEA Schedule codes for controlled substances (ScriptSure MED_REF_DEA_CD)
+// "0" = Non-Controlled, "2" = Schedule II, "3" = Schedule III, "4" = Schedule IV, "5" = Schedule V
+export type ControlledSubstanceCode = "0" | "2" | "3" | "4" | "5"
+
 export type PortalSettings = {
   authentication?: {
     landingTitle?: string,
@@ -735,6 +739,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
   iOSBadgeCount?: number,
   doseSpotUserId?: string,
   scriptSurePrescriberId?: string,
+  isScriptsureProvider?: boolean,
   url?: string,
   requiresMFAConfiguration?: boolean,
   templateFields?: LabeledField[]
@@ -1074,6 +1079,8 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
     // Compound-specific fields
     compoundQuantity?: number,
     compoundQuantityQualifier?: string,
+    pharmacyNote?: string,            // Note to pharmacy
+    controlledSubstance?: ControlledSubstanceCode, // DEA schedule (MED_REF_DEA_CD)
   },
 }
 
@@ -5026,6 +5033,8 @@ export interface PrescriptionRoute extends PrescriptionRoute_readonly, Prescript
   compoundQuantity?: number,          // e.g., 10
   compoundQuantityQualifier?: string, // NCPDP code e.g., "C64933" for Each
   sig?: string, // Directions/instructions for the prescription (e.g., "Take 1 tablet by mouth daily")
+  pharmacyNote?: string, // Note to send to pharmacy
+  controlledSubstance?: ControlledSubstanceCode, // DEA schedule code (maps to MED_REF_DEA_CD)
 }
 
 export interface FlowchartNote_readonly extends ClientRecord { }

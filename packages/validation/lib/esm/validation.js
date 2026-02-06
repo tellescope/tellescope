@@ -532,6 +532,14 @@ export var stringValidator100EscapeHTML = {
     getExample: getExampleString,
     getType: getTypeString
 };
+export var stringValidator210 = {
+    validate: function (o) {
+        if (o === void 0) { o = {}; }
+        return build_validator(escapeString(o), __assign(__assign({}, o), { maxLength: 210, listOf: false }));
+    },
+    getExample: getExampleString,
+    getType: getTypeString,
+};
 export var stringValidator250 = {
     validate: function (o) {
         if (o === void 0) { o = {}; }
