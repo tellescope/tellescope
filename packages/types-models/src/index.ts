@@ -646,7 +646,8 @@ export type WeeklyAvailability = {
   monthlyRestriction?: MonthlyRestriction,
 }
 export type NotificationPreference = {
-  email?: boolean 
+  email?: boolean,
+  browser?: boolean,
 }
 export type AccountType = string
 
@@ -5112,6 +5113,21 @@ export interface IntegrationLog_required {}
 export interface IntegrationLog_updatesDisabled {}
 export interface IntegrationLog extends IntegrationLog_readonly, IntegrationLog_required, IntegrationLog_updatesDisabled {}
 
+export type OrganizationPaymentStatus = "pending" | "completed" | "failed" | "refunded"
+export interface OrganizationPayment_readonly extends ClientRecord {
+  amountInCents: number,
+  type: string, // e.g. "ai_credits", "subscription"
+  status: OrganizationPaymentStatus,
+  stripePaymentIntentId: string,
+  stripeCheckoutSessionId?: string,
+  userId: string,
+  title: string,
+  data?: Indexable, // type-specific data, e.g. { creditsAdded: number } for ai_credits
+}
+export interface OrganizationPayment_required {}
+export interface OrganizationPayment_updatesDisabled {}
+export interface OrganizationPayment extends OrganizationPayment_readonly, OrganizationPayment_required, OrganizationPayment_updatesDisabled {}
+
 
 export interface EnduserEligibilityResult_readonly extends ClientRecord {}
 export interface EnduserEligibilityResult_updatesDisabled {}
@@ -5214,6 +5230,7 @@ export interface InboxThread extends InboxThread_readonly, InboxThread_required,
   recentInboundEnduserId?: string,
   draftMessageIds?: string[],
   scheduledMessageIds?: string[],
+  isDraftOnlyThread?: boolean, // Marker for threads created with only draft/scheduled messages, no sent messages yet
 }
 
 export type ModelForName_required = {
@@ -5223,6 +5240,7 @@ export type ModelForName_required = {
   agent_records: AgentRecord_required,
   enduser_eligibility_results: EnduserEligibilityResult_required,
   integration_logs: IntegrationLog_required,
+  organization_payments: OrganizationPayment_required,
   allergy_codes: AllergyCode_required,
   diagnosis_codes: DiagnosisCode_required,
   suggested_contacts: SuggestedContact_required,
@@ -5317,6 +5335,7 @@ export interface ModelForName_readonly {
   agent_records: AgentRecord_readonly,
   enduser_eligibility_results: EnduserEligibilityResult_readonly,
   integration_logs: IntegrationLog_readonly,
+  organization_payments: OrganizationPayment_readonly,
   allergy_codes: AllergyCode_readonly,
   diagnosis_codes: DiagnosisCode_readonly,
   suggested_contacts: SuggestedContact_readonly,
@@ -5411,6 +5430,7 @@ export interface ModelForName_updatesDisabled {
   agent_records: AgentRecord_updatesDisabled,
   enduser_eligibility_results: EnduserEligibilityResult_updatesDisabled,
   integration_logs: IntegrationLog_updatesDisabled,
+  organization_payments: OrganizationPayment_updatesDisabled,
   allergy_codes: AllergyCode_updatesDisabled,
   diagnosis_codes: DiagnosisCode_updatesDisabled,
   suggested_contacts: SuggestedContact_updatesDisabled,
@@ -5505,6 +5525,7 @@ export interface ModelForName extends ModelForName_required, ModelForName_readon
   agent_records: AgentRecord,
   enduser_eligibility_results: EnduserEligibilityResult,
   integration_logs: IntegrationLog,
+  organization_payments: OrganizationPayment,
   allergy_codes: AllergyCode,
   diagnosis_codes: DiagnosisCode,
   suggested_contacts: SuggestedContact,
@@ -5609,6 +5630,7 @@ export const modelNameChecker: { [K in ModelName] : true } = {
   agent_records: true,
   enduser_eligibility_results: true,
   integration_logs: true,
+  organization_payments: true,
   allergy_codes: true,
   diagnosis_codes: true,
   suggested_contacts: true,

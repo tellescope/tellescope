@@ -6281,6 +6281,14 @@ export var schema = build_schema({
         enduserActions: {},
         fields: __assign(__assign({}, BuiltInFields), { integration: { validator: stringValidator, readonly: true, examples: ['Canvas'] }, status: { validator: exactMatchValidator(['Success', 'Error']), readonly: true, examples: ['Error'] }, type: { validator: stringValidator, readonly: true, examples: ['Patient Create'] }, payload: { validator: stringValidator, readonly: true, examples: ['{}'] }, response: { validator: stringValidator, readonly: true, examples: ['{}'] }, url: { validator: stringValidator, readonly: true, examples: ['https://www.tellescope.com'] } })
     },
+    organization_payments: {
+        info: { description: 'Read Only - Organization Payment Transaction Logs' },
+        constraints: { unique: [['stripePaymentIntentId']], relationship: [], access: [] },
+        defaultActions: { read: {}, readMany: {} },
+        customActions: {},
+        enduserActions: {},
+        fields: __assign(__assign({}, BuiltInFields), { amountInCents: { validator: nonNegNumberValidator, readonly: true, examples: [2500] }, type: { validator: stringValidator100, readonly: true, examples: ['ai_credits'] }, status: { validator: exactMatchValidator(['pending', 'completed', 'failed', 'refunded']), readonly: true, examples: ['completed'] }, stripePaymentIntentId: { validator: stringValidator, readonly: true, examples: ['pi_xxx'] }, stripeCheckoutSessionId: { validator: stringValidator, readonly: true, examples: ['cs_xxx'] }, userId: { validator: mongoIdStringValidator, readonly: true }, title: { validator: stringValidator, readonly: true, examples: ['AI Credits Purchase'] }, data: { validator: objectAnyFieldsAnyValuesValidator, readonly: true } })
+    },
     enduser_eligibility_results: {
         info: {},
         constraints: { unique: [['externalId', 'source']], relationship: [], },
@@ -6377,7 +6385,7 @@ export var schema = build_schema({
     ai_conversations: {
         info: { description: '' },
         constraints: { unique: [], relationship: [], access: [] },
-        defaultActions: { read: {}, readMany: {} },
+        defaultActions: { create: {}, read: {}, readMany: {}, update: { disallowReplaceObjectFields: true } },
         customActions: {
             send_message: {
                 op: "custom", access: 'create', method: "post",
@@ -6419,7 +6427,7 @@ export var schema = build_schema({
                     text: stringValidator25000,
                     timestamp: dateValidator,
                     tokens: nonNegNumberValidator,
-                    content: listValidatorEmptyOk(objectValidator({
+                    content: listValidatorOptionalOrEmptyOk(objectValidator({
                         type: exactMatchValidator(['text', 'image', 'file']),
                         text: stringValidatorOptional,
                     })),

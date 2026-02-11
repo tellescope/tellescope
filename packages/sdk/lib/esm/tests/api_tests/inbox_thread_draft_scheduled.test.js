@@ -42,10 +42,10 @@ var host = process.env.API_URL || 'http://localhost:8080';
 export var inbox_thread_draft_scheduled_tests = function (_a) {
     var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
     return __awaiter(void 0, void 0, void 0, function () {
-        var timestamp, from, testUser, testEnduser, resetAndBuildThreads, phoneNumber_1, enduserPhoneNumber_1, sentSMS, draftSMS, loadedThreads, smsThread, futureDate, scheduledSMS, loadedThreads2, threadWithScheduled, emailSubject_1, sentEmail, draftEmail, loadedThreads3, emailThread, scheduledEmail, loadedThreads4, emailThreadWithScheduled, draftOnlyEnduserPhoneNumber_1, draftOnlySMS, loadedThreads5, draftOnlyThread, sentOnlyPhoneNumber_1, sentOnlyEnduserPhoneNumber_1, loadedThreads6, sentOnlyThread, chatRoom, farFuture, draftChat, loadedThreads7, chatThreadBefore_1, loadedThreads7b, chatThreadWithDraft, loadedThreads8, chatThreadAfter, deleteTestPhoneNumber_1, deleteTestEnduserPhoneNumber_1, draftSmsToDelete, loadedThreads9a, smsDeleteThread_1, loadedThreads9b, smsDeleteThreadAfter, deleteEmailSubject_1, draftEmailToDelete, loadedThreads10a, emailDeleteThread_1, loadedThreads10b, emailDeleteThreadAfter, chatRoomForDeletion, farFuture2, draftChatToDelete, loadedThreads11a, chatDeleteThread_1, loadedThreads11b, chatDeleteThreadWithDraft, loadedThreads11c, chatDeleteThreadAfter;
-        var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u;
-        return __generator(this, function (_v) {
-            switch (_v.label) {
+        var timestamp, from, testUser, testEnduser, resetAndBuildThreads, phoneNumber_1, enduserPhoneNumber_1, sentSMS, draftSMS, loadedThreads, smsThread, futureDate, scheduledSMS, loadedThreads2, threadWithScheduled, emailSubject_1, sentEmail, draftEmail, loadedThreads3, emailThread, scheduledEmail, loadedThreads4, emailThreadWithScheduled, draftOnlyEnduserPhoneNumber_1, draftOnlySMS, loadedThreads5, draftOnlyThread, draftOnlyEmailSubject_1, draftOnlyEmail, loadedThreads5b, draftOnlyEmailThread, sentOnlyPhoneNumber_1, sentOnlyEnduserPhoneNumber_1, loadedThreads6, sentOnlyThread, chatRoom, farFuture, draftChat, loadedThreads7, chatThreadBefore_1, loadedThreads7b, chatThreadWithDraft, loadedThreads8, chatThreadAfter, deleteTestPhoneNumber_1, deleteTestEnduserPhoneNumber_1, draftSmsToDelete, loadedThreads9a, smsDeleteThread_1, loadedThreads9b, smsDeleteThreadAfter, deleteEmailSubject_1, draftEmailToDelete, loadedThreads10a, emailDeleteThread_1, loadedThreads10b, emailDeleteThreadAfter, chatRoomForDeletion, farFuture2, draftChatToDelete, loadedThreads11a, chatDeleteThread_1, loadedThreads11b, chatDeleteThreadWithDraft, loadedThreads11c, chatDeleteThreadAfter, attachmentTestRoom_1, loadedThreads12, attachmentThread;
+        var _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w;
+        return __generator(this, function (_x) {
+            switch (_x.label) {
                 case 0:
                     log_header("InboxThread Draft and Scheduled Message Tests");
                     timestamp = Date.now();
@@ -58,7 +58,7 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                             notificationEmailsDisabled: true
                         })];
                 case 1:
-                    testUser = _v.sent();
+                    testUser = _x.sent();
                     return [4 /*yield*/, sdk.api.endusers.createOne({
                             fname: "Test",
                             lname: "Patient",
@@ -68,7 +68,7 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         // Helper to reset and rebuild threads
                     ];
                 case 2:
-                    testEnduser = _v.sent();
+                    testEnduser = _x.sent();
                     resetAndBuildThreads = function () { return __awaiter(void 0, void 0, void 0, function () {
                         return __generator(this, function (_a) {
                             switch (_a.label) {
@@ -82,9 +82,9 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                             }
                         });
                     }); };
-                    _v.label = 3;
+                    _x.label = 3;
                 case 3:
-                    _v.trys.push([3, , 62, 66]);
+                    _x.trys.push([3, , 72, 76]);
                     // ===== SMS Draft/Scheduled Tests =====
                     log_header("SMS Draft and Scheduled Tests");
                     // Test 1: Draft SMS should be tracked in draftMessageIds but excluded from preview
@@ -105,7 +105,7 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                     ];
                 case 4:
                     // Create an inbound SMS to establish the thread with proper phone numbers
-                    _v.sent();
+                    _x.sent();
                     return [4 /*yield*/, sdk.api.sms_messages.createOne({
                             message: "This is a sent message",
                             enduserId: testEnduser.id,
@@ -118,7 +118,7 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         // Create a draft SMS
                     ];
                 case 5:
-                    sentSMS = _v.sent();
+                    sentSMS = _x.sent();
                     return [4 /*yield*/, sdk.api.sms_messages.createOne({
                             message: "This is a draft message",
                             enduserId: testEnduser.id,
@@ -132,23 +132,24 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         // Build threads from messages
                     ];
                 case 6:
-                    draftSMS = _v.sent();
+                    draftSMS = _x.sent();
                     // Build threads from messages
                     return [4 /*yield*/, resetAndBuildThreads()
                         // Load the thread and verify
                     ];
                 case 7:
                     // Build threads from messages
-                    _v.sent();
+                    _x.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
                 case 8:
-                    loadedThreads = _v.sent();
+                    loadedThreads = _x.sent();
                     smsThread = loadedThreads.threads.find(function (t) {
                         return t.type === 'SMS' && t.phoneNumber === phoneNumber_1 && t.enduserPhoneNumber === enduserPhoneNumber_1;
                     });
                     assert(!!smsThread, "SMS thread should be found");
                     assert(((_b = smsThread.draftMessageIds) === null || _b === void 0 ? void 0 : _b.includes(draftSMS.id)) === true, "Draft SMS ID should be in draftMessageIds. Got: ".concat(JSON.stringify(smsThread.draftMessageIds)));
                     assert(((_c = smsThread.preview) === null || _c === void 0 ? void 0 : _c.includes("This is a sent message")) === true, "Preview should be from sent message, not draft. Got: ".concat(smsThread.preview));
+                    assert(!smsThread.isDraftOnlyThread, "isDraftOnlyThread should be falsy for threads with sent messages. Got: ".concat(smsThread.isDraftOnlyThread));
                     console.log("✅ Draft SMS tracking test passed");
                     // Test 2: Scheduled SMS (future sendAt) should be tracked in scheduledMessageIds
                     console.log("Testing scheduled SMS tracking...");
@@ -167,15 +168,15 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         // Rebuild threads
                     ];
                 case 9:
-                    scheduledSMS = _v.sent();
+                    scheduledSMS = _x.sent();
                     // Rebuild threads
                     return [4 /*yield*/, resetAndBuildThreads()];
                 case 10:
                     // Rebuild threads
-                    _v.sent();
+                    _x.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
                 case 11:
-                    loadedThreads2 = _v.sent();
+                    loadedThreads2 = _x.sent();
                     threadWithScheduled = loadedThreads2.threads.find(function (t) {
                         return t.type === 'SMS' && t.phoneNumber === phoneNumber_1 && t.enduserPhoneNumber === enduserPhoneNumber_1;
                     });
@@ -199,7 +200,7 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         // Create a draft email
                     ];
                 case 12:
-                    sentEmail = _v.sent();
+                    sentEmail = _x.sent();
                     return [4 /*yield*/, sdk.api.emails.createOne({
                             subject: emailSubject_1,
                             textContent: "This is a draft email",
@@ -212,19 +213,20 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         // Rebuild threads
                     ];
                 case 13:
-                    draftEmail = _v.sent();
+                    draftEmail = _x.sent();
                     // Rebuild threads
                     return [4 /*yield*/, resetAndBuildThreads()];
                 case 14:
                     // Rebuild threads
-                    _v.sent();
+                    _x.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
                 case 15:
-                    loadedThreads3 = _v.sent();
+                    loadedThreads3 = _x.sent();
                     emailThread = loadedThreads3.threads.find(function (t) { return t.type === 'Email' && t.title === emailSubject_1; });
                     assert(!!emailThread, "Email thread should be found");
                     assert(((_f = emailThread.draftMessageIds) === null || _f === void 0 ? void 0 : _f.includes(draftEmail.id)) === true, "Draft Email ID should be in draftMessageIds. Got: ".concat(JSON.stringify(emailThread.draftMessageIds)));
                     assert(((_g = emailThread.preview) === null || _g === void 0 ? void 0 : _g.includes("This is a sent email")) === true, "Preview should be from sent email, not draft. Got: ".concat(emailThread.preview));
+                    assert(!emailThread.isDraftOnlyThread, "isDraftOnlyThread should be falsy for threads with sent messages. Got: ".concat(emailThread.isDraftOnlyThread));
                     console.log("✅ Draft email tracking test passed");
                     // Test 4: Scheduled email (future sendAt) should be tracked in scheduledMessageIds
                     console.log("Testing scheduled email tracking...");
@@ -240,15 +242,15 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         // Rebuild threads
                     ];
                 case 16:
-                    scheduledEmail = _v.sent();
+                    scheduledEmail = _x.sent();
                     // Rebuild threads
                     return [4 /*yield*/, resetAndBuildThreads()];
                 case 17:
                     // Rebuild threads
-                    _v.sent();
+                    _x.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
                 case 18:
-                    loadedThreads4 = _v.sent();
+                    loadedThreads4 = _x.sent();
                     emailThreadWithScheduled = loadedThreads4.threads.find(function (t) { return t.type === 'Email' && t.title === emailSubject_1; });
                     assert(!!emailThreadWithScheduled, "Email thread should be found");
                     assert(((_h = emailThreadWithScheduled.scheduledMessageIds) === null || _h === void 0 ? void 0 : _h.includes(scheduledEmail.id)) === true, "Scheduled Email ID should be in scheduledMessageIds. Got: ".concat(JSON.stringify(emailThreadWithScheduled.scheduledMessageIds)));
@@ -270,17 +272,17 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         // Rebuild threads
                     ];
                 case 19:
-                    draftOnlySMS = _v.sent();
+                    draftOnlySMS = _x.sent();
                     // Rebuild threads
                     return [4 /*yield*/, resetAndBuildThreads()];
                 case 20:
                     // Rebuild threads
-                    _v.sent();
+                    _x.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})
                         // Match only on enduserPhoneNumber since there's no inbound to set phoneNumber
                     ];
                 case 21:
-                    loadedThreads5 = _v.sent();
+                    loadedThreads5 = _x.sent();
                     draftOnlyThread = loadedThreads5.threads.find(function (t) {
                         return t.type === 'SMS' && t.enduserPhoneNumber === draftOnlyEnduserPhoneNumber_1;
                     });
@@ -288,7 +290,41 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                     assert(((_k = draftOnlyThread.draftMessageIds) === null || _k === void 0 ? void 0 : _k.includes(draftOnlySMS.id)) === true, "Draft SMS ID should be in draftMessageIds");
                     // When only drafts exist, the draft is used as fallback for preview
                     assert(((_l = draftOnlyThread.preview) === null || _l === void 0 ? void 0 : _l.includes("only message")) === true, "Preview should fall back to draft when no sent messages exist. Got: ".concat(draftOnlyThread.preview));
+                    assert(draftOnlyThread.isDraftOnlyThread === true, "isDraftOnlyThread should be true for draft-only threads. Got: ".concat(draftOnlyThread.isDraftOnlyThread));
                     console.log("✅ Thread with only draft messages test passed");
+                    // Test 5b: Thread with ONLY draft email should create placeholder thread
+                    console.log("Testing thread with only draft email messages...");
+                    draftOnlyEmailSubject_1 = "Draft-Only Email Test ".concat(timestamp);
+                    return [4 /*yield*/, sdk.api.emails.createOne({
+                            subject: draftOnlyEmailSubject_1,
+                            textContent: "This is a draft-only email, no sent messages exist",
+                            enduserId: testEnduser.id,
+                            userId: testUser.id,
+                            messageId: "draft-only-email-".concat(timestamp),
+                            isDraft: true,
+                            logOnly: true,
+                        })
+                        // Rebuild threads
+                    ];
+                case 22:
+                    draftOnlyEmail = _x.sent();
+                    // Rebuild threads
+                    return [4 /*yield*/, resetAndBuildThreads()];
+                case 23:
+                    // Rebuild threads
+                    _x.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
+                case 24:
+                    loadedThreads5b = _x.sent();
+                    draftOnlyEmailThread = loadedThreads5b.threads.find(function (t) {
+                        return t.type === 'Email' && t.title === draftOnlyEmailSubject_1;
+                    });
+                    assert(!!draftOnlyEmailThread, "Draft-only email thread should be found");
+                    assert(((_m = draftOnlyEmailThread.draftMessageIds) === null || _m === void 0 ? void 0 : _m.includes(draftOnlyEmail.id)) === true, "Draft Email ID should be in draftMessageIds. Got: ".concat(JSON.stringify(draftOnlyEmailThread.draftMessageIds)));
+                    // When only drafts exist, the draft is used as fallback for preview
+                    assert(((_o = draftOnlyEmailThread.preview) === null || _o === void 0 ? void 0 : _o.includes("draft-only email")) === true, "Preview should fall back to draft when no sent messages exist. Got: ".concat(draftOnlyEmailThread.preview));
+                    assert(draftOnlyEmailThread.isDraftOnlyThread === true, "isDraftOnlyThread should be true for draft-only threads. Got: ".concat(draftOnlyEmailThread.isDraftOnlyThread));
+                    console.log("✅ Thread with only draft email messages test passed");
                     // Test 6: Verify fields are correctly typed as arrays
                     console.log("Testing field types...");
                     assert(Array.isArray(smsThread.draftMessageIds), "draftMessageIds should be an array");
@@ -310,9 +346,9 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         })
                         // Create an outbound sent message (no draft, no scheduled)
                     ];
-                case 22:
+                case 25:
                     // Create an inbound message to establish the thread with proper phone numbers
-                    _v.sent();
+                    _x.sent();
                     // Create an outbound sent message (no draft, no scheduled)
                     return [4 /*yield*/, sdk.api.sms_messages.createOne({
                             message: "This is a sent message only",
@@ -325,23 +361,24 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         })
                         // Rebuild threads
                     ];
-                case 23:
+                case 26:
                     // Create an outbound sent message (no draft, no scheduled)
-                    _v.sent();
+                    _x.sent();
                     // Rebuild threads
                     return [4 /*yield*/, resetAndBuildThreads()];
-                case 24:
+                case 27:
                     // Rebuild threads
-                    _v.sent();
+                    _x.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
-                case 25:
-                    loadedThreads6 = _v.sent();
+                case 28:
+                    loadedThreads6 = _x.sent();
                     sentOnlyThread = loadedThreads6.threads.find(function (t) {
                         return t.type === 'SMS' && t.phoneNumber === sentOnlyPhoneNumber_1 && t.enduserPhoneNumber === sentOnlyEnduserPhoneNumber_1;
                     });
                     assert(!!sentOnlyThread, "Sent-only thread should be found");
                     assert(Array.isArray(sentOnlyThread.draftMessageIds) && sentOnlyThread.draftMessageIds.length === 0, "draftMessageIds should be an empty array when no drafts exist. Got: ".concat(JSON.stringify(sentOnlyThread.draftMessageIds)));
                     assert(Array.isArray(sentOnlyThread.scheduledMessageIds) && sentOnlyThread.scheduledMessageIds.length === 0, "scheduledMessageIds should be an empty array when no scheduled messages exist. Got: ".concat(JSON.stringify(sentOnlyThread.scheduledMessageIds)));
+                    assert(!sentOnlyThread.isDraftOnlyThread, "isDraftOnlyThread should be falsy for threads with sent messages. Got: ".concat(sentOnlyThread.isDraftOnlyThread));
                     console.log("✅ Empty array defaults test passed");
                     // ===== Chat Draft Cleanup on Send Tests =====
                     log_header("Chat Draft Cleanup on Send Tests");
@@ -356,8 +393,8 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         // Create a non-draft message first to establish the room (sets recentMessageSentAt)
                         // This is required for the room to be included in build_threads
                     ];
-                case 26:
-                    chatRoom = _v.sent();
+                case 29:
+                    chatRoom = _x.sent();
                     // Create a non-draft message first to establish the room (sets recentMessageSentAt)
                     // This is required for the room to be included in build_threads
                     return [4 /*yield*/, sdk.api.chats.createOne({
@@ -367,10 +404,10 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         })
                         // Create a draft chat message (isDraft: true, sendAt far in future like webapp does)
                     ];
-                case 27:
+                case 30:
                     // Create a non-draft message first to establish the room (sets recentMessageSentAt)
                     // This is required for the room to be included in build_threads
-                    _v.sent();
+                    _x.sent();
                     farFuture = new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000) // 100 years
                     ;
                     return [4 /*yield*/, sdk.api.chats.createOne({
@@ -382,18 +419,19 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         })
                         // Build threads to create the Chat thread
                     ];
-                case 28:
-                    draftChat = _v.sent();
+                case 31:
+                    draftChat = _x.sent();
                     // Build threads to create the Chat thread
                     return [4 /*yield*/, resetAndBuildThreads()];
-                case 29:
+                case 32:
                     // Build threads to create the Chat thread
-                    _v.sent();
+                    _x.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
-                case 30:
-                    loadedThreads7 = _v.sent();
+                case 33:
+                    loadedThreads7 = _x.sent();
                     chatThreadBefore_1 = loadedThreads7.threads.find(function (t) { var _a; return t.type === 'Chat' && ((_a = t.enduserIds) === null || _a === void 0 ? void 0 : _a.includes(testEnduser.id)); });
                     assert(!!chatThreadBefore_1, "Chat thread should be found");
+                    assert(!chatThreadBefore_1.isDraftOnlyThread, "isDraftOnlyThread should be falsy for chat threads with sent messages. Got: ".concat(chatThreadBefore_1.isDraftOnlyThread));
                     // Manually add the draft ID to draftMessageIds to simulate the setup
                     // (Chat thread building doesn't auto-populate this, but the cleanup should still work)
                     return [4 /*yield*/, sdk.api.inbox_threads.updateOne(chatThreadBefore_1.id, {
@@ -401,15 +439,15 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         })
                         // Verify manual setup worked
                     ];
-                case 31:
+                case 34:
                     // Manually add the draft ID to draftMessageIds to simulate the setup
                     // (Chat thread building doesn't auto-populate this, but the cleanup should still work)
-                    _v.sent();
+                    _x.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
-                case 32:
-                    loadedThreads7b = _v.sent();
+                case 35:
+                    loadedThreads7b = _x.sent();
                     chatThreadWithDraft = loadedThreads7b.threads.find(function (t) { return t.id === chatThreadBefore_1.id; });
-                    assert(((_m = chatThreadWithDraft.draftMessageIds) === null || _m === void 0 ? void 0 : _m.includes(draftChat.id)) === true, "Draft chat ID should be in draftMessageIds after manual setup. Got: ".concat(JSON.stringify(chatThreadWithDraft.draftMessageIds)));
+                    assert(((_p = chatThreadWithDraft.draftMessageIds) === null || _p === void 0 ? void 0 : _p.includes(draftChat.id)) === true, "Draft chat ID should be in draftMessageIds after manual setup. Got: ".concat(JSON.stringify(chatThreadWithDraft.draftMessageIds)));
                     console.log("✅ Draft chat manually added to draftMessageIds");
                     // "Send" the draft by updating isDraft to false and sendAt to now
                     // This mimics what the webapp does when user clicks send
@@ -419,31 +457,31 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         })
                         // Wait for the side effect to process
                     ];
-                case 33:
+                case 36:
                     // "Send" the draft by updating isDraft to false and sendAt to now
                     // This mimics what the webapp does when user clicks send
-                    _v.sent();
+                    _x.sent();
                     // Wait for the side effect to process
                     return [4 /*yield*/, wait(undefined, 500)
                         // Reload the thread and verify cleanup happened
                     ];
-                case 34:
+                case 37:
                     // Wait for the side effect to process
-                    _v.sent();
+                    _x.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
-                case 35:
-                    loadedThreads8 = _v.sent();
+                case 38:
+                    loadedThreads8 = _x.sent();
                     chatThreadAfter = loadedThreads8.threads.find(function (t) { return t.id === chatThreadBefore_1.id; });
                     assert(!!chatThreadAfter, "Chat thread should be found after send");
-                    assert(((_o = chatThreadAfter.draftMessageIds) === null || _o === void 0 ? void 0 : _o.includes(draftChat.id)) === false, "Draft chat ID should be REMOVED from draftMessageIds after send. Got: ".concat(JSON.stringify(chatThreadAfter.draftMessageIds)));
+                    assert(((_q = chatThreadAfter.draftMessageIds) === null || _q === void 0 ? void 0 : _q.includes(draftChat.id)) === false, "Draft chat ID should be REMOVED from draftMessageIds after send. Got: ".concat(JSON.stringify(chatThreadAfter.draftMessageIds)));
                     console.log("✅ Draft chat cleanup on send test passed");
                     // Cleanup chat room
                     return [4 /*yield*/, sdk.api.chat_rooms.deleteOne(chatRoom.id).catch(console.error)
                         // ===== Message Deletion Cleanup Tests =====
                     ];
-                case 36:
+                case 39:
                     // Cleanup chat room
-                    _v.sent();
+                    _x.sent();
                     // ===== Message Deletion Cleanup Tests =====
                     log_header("Message Deletion Cleanup Tests");
                     // Test 9: SMS draft deletion should remove ID from draftMessageIds
@@ -462,9 +500,9 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         })
                         // Create a draft SMS
                     ];
-                case 37:
+                case 40:
                     // Create an inbound SMS to establish the thread
-                    _v.sent();
+                    _x.sent();
                     return [4 /*yield*/, sdk.api.sms_messages.createOne({
                             message: "This draft will be deleted",
                             enduserId: testEnduser.id,
@@ -477,43 +515,43 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         })
                         // Build threads to populate draftMessageIds
                     ];
-                case 38:
-                    draftSmsToDelete = _v.sent();
+                case 41:
+                    draftSmsToDelete = _x.sent();
                     // Build threads to populate draftMessageIds
                     return [4 /*yield*/, resetAndBuildThreads()
                         // Verify the draft ID is in the thread
                     ];
-                case 39:
+                case 42:
                     // Build threads to populate draftMessageIds
-                    _v.sent();
+                    _x.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
-                case 40:
-                    loadedThreads9a = _v.sent();
+                case 43:
+                    loadedThreads9a = _x.sent();
                     smsDeleteThread_1 = loadedThreads9a.threads.find(function (t) {
                         return t.type === 'SMS' && t.phoneNumber === deleteTestPhoneNumber_1 && t.enduserPhoneNumber === deleteTestEnduserPhoneNumber_1;
                     });
                     assert(!!smsDeleteThread_1, "SMS thread for deletion test should be found");
-                    assert(((_p = smsDeleteThread_1.draftMessageIds) === null || _p === void 0 ? void 0 : _p.includes(draftSmsToDelete.id)) === true, "Draft SMS ID should be in draftMessageIds before deletion. Got: ".concat(JSON.stringify(smsDeleteThread_1.draftMessageIds)));
+                    assert(((_r = smsDeleteThread_1.draftMessageIds) === null || _r === void 0 ? void 0 : _r.includes(draftSmsToDelete.id)) === true, "Draft SMS ID should be in draftMessageIds before deletion. Got: ".concat(JSON.stringify(smsDeleteThread_1.draftMessageIds)));
                     // Delete the draft SMS
                     return [4 /*yield*/, sdk.api.sms_messages.deleteOne(draftSmsToDelete.id)
                         // Wait for the delete side effect to process
                     ];
-                case 41:
+                case 44:
                     // Delete the draft SMS
-                    _v.sent();
+                    _x.sent();
                     // Wait for the delete side effect to process
                     return [4 /*yield*/, wait(undefined, 500)
                         // Verify the draft ID has been removed
                     ];
-                case 42:
+                case 45:
                     // Wait for the delete side effect to process
-                    _v.sent();
+                    _x.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
-                case 43:
-                    loadedThreads9b = _v.sent();
+                case 46:
+                    loadedThreads9b = _x.sent();
                     smsDeleteThreadAfter = loadedThreads9b.threads.find(function (t) { return t.id === smsDeleteThread_1.id; });
                     assert(!!smsDeleteThreadAfter, "SMS thread should still exist after draft deletion");
-                    assert(((_q = smsDeleteThreadAfter.draftMessageIds) === null || _q === void 0 ? void 0 : _q.includes(draftSmsToDelete.id)) === false, "Draft SMS ID should be REMOVED from draftMessageIds after deletion. Got: ".concat(JSON.stringify(smsDeleteThreadAfter.draftMessageIds)));
+                    assert(((_s = smsDeleteThreadAfter.draftMessageIds) === null || _s === void 0 ? void 0 : _s.includes(draftSmsToDelete.id)) === false, "Draft SMS ID should be REMOVED from draftMessageIds after deletion. Got: ".concat(JSON.stringify(smsDeleteThreadAfter.draftMessageIds)));
                     console.log("✅ SMS draft deletion cleanup test passed");
                     // Test 10: Email draft deletion should remove ID from draftMessageIds
                     console.log("Testing email draft deletion cleanup...");
@@ -529,9 +567,9 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         })
                         // Create a draft email
                     ];
-                case 44:
+                case 47:
                     // Create a sent email first to establish the thread
-                    _v.sent();
+                    _x.sent();
                     return [4 /*yield*/, sdk.api.emails.createOne({
                             subject: deleteEmailSubject_1,
                             textContent: "This draft email will be deleted",
@@ -543,41 +581,41 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         })
                         // Build threads to populate draftMessageIds
                     ];
-                case 45:
-                    draftEmailToDelete = _v.sent();
+                case 48:
+                    draftEmailToDelete = _x.sent();
                     // Build threads to populate draftMessageIds
                     return [4 /*yield*/, resetAndBuildThreads()
                         // Verify the draft ID is in the thread
                     ];
-                case 46:
+                case 49:
                     // Build threads to populate draftMessageIds
-                    _v.sent();
+                    _x.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
-                case 47:
-                    loadedThreads10a = _v.sent();
+                case 50:
+                    loadedThreads10a = _x.sent();
                     emailDeleteThread_1 = loadedThreads10a.threads.find(function (t) { return t.type === 'Email' && t.title === deleteEmailSubject_1; });
                     assert(!!emailDeleteThread_1, "Email thread for deletion test should be found");
-                    assert(((_r = emailDeleteThread_1.draftMessageIds) === null || _r === void 0 ? void 0 : _r.includes(draftEmailToDelete.id)) === true, "Draft Email ID should be in draftMessageIds before deletion. Got: ".concat(JSON.stringify(emailDeleteThread_1.draftMessageIds)));
+                    assert(((_t = emailDeleteThread_1.draftMessageIds) === null || _t === void 0 ? void 0 : _t.includes(draftEmailToDelete.id)) === true, "Draft Email ID should be in draftMessageIds before deletion. Got: ".concat(JSON.stringify(emailDeleteThread_1.draftMessageIds)));
                     // Delete the draft email
                     return [4 /*yield*/, sdk.api.emails.deleteOne(draftEmailToDelete.id)
                         // Wait for the delete side effect to process
                     ];
-                case 48:
+                case 51:
                     // Delete the draft email
-                    _v.sent();
+                    _x.sent();
                     // Wait for the delete side effect to process
                     return [4 /*yield*/, wait(undefined, 500)
                         // Verify the draft ID has been removed
                     ];
-                case 49:
+                case 52:
                     // Wait for the delete side effect to process
-                    _v.sent();
+                    _x.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
-                case 50:
-                    loadedThreads10b = _v.sent();
+                case 53:
+                    loadedThreads10b = _x.sent();
                     emailDeleteThreadAfter = loadedThreads10b.threads.find(function (t) { return t.id === emailDeleteThread_1.id; });
                     assert(!!emailDeleteThreadAfter, "Email thread should still exist after draft deletion");
-                    assert(((_s = emailDeleteThreadAfter.draftMessageIds) === null || _s === void 0 ? void 0 : _s.includes(draftEmailToDelete.id)) === false, "Draft Email ID should be REMOVED from draftMessageIds after deletion. Got: ".concat(JSON.stringify(emailDeleteThreadAfter.draftMessageIds)));
+                    assert(((_u = emailDeleteThreadAfter.draftMessageIds) === null || _u === void 0 ? void 0 : _u.includes(draftEmailToDelete.id)) === false, "Draft Email ID should be REMOVED from draftMessageIds after deletion. Got: ".concat(JSON.stringify(emailDeleteThreadAfter.draftMessageIds)));
                     console.log("✅ Email draft deletion cleanup test passed");
                     // Test 11: Chat draft deletion should remove ID from draftMessageIds
                     console.log("Testing chat draft deletion cleanup...");
@@ -587,8 +625,8 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         })
                         // Create a non-draft message first to establish the room
                     ];
-                case 51:
-                    chatRoomForDeletion = _v.sent();
+                case 54:
+                    chatRoomForDeletion = _x.sent();
                     // Create a non-draft message first to establish the room
                     return [4 /*yield*/, sdk.api.chats.createOne({
                             roomId: chatRoomForDeletion.id,
@@ -597,9 +635,9 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         })
                         // Create a draft chat message
                     ];
-                case 52:
+                case 55:
                     // Create a non-draft message first to establish the room
-                    _v.sent();
+                    _x.sent();
                     farFuture2 = new Date(Date.now() + 100 * 365 * 24 * 60 * 60 * 1000);
                     return [4 /*yield*/, sdk.api.chats.createOne({
                             roomId: chatRoomForDeletion.id,
@@ -610,16 +648,16 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         })
                         // Build threads to create the Chat thread
                     ];
-                case 53:
-                    draftChatToDelete = _v.sent();
+                case 56:
+                    draftChatToDelete = _x.sent();
                     // Build threads to create the Chat thread
                     return [4 /*yield*/, resetAndBuildThreads()];
-                case 54:
+                case 57:
                     // Build threads to create the Chat thread
-                    _v.sent();
+                    _x.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
-                case 55:
-                    loadedThreads11a = _v.sent();
+                case 58:
+                    loadedThreads11a = _x.sent();
                     chatDeleteThread_1 = loadedThreads11a.threads.find(function (t) { var _a; return t.type === 'Chat' && ((_a = t.enduserIds) === null || _a === void 0 ? void 0 : _a.includes(testEnduser.id)); });
                     assert(!!chatDeleteThread_1, "Chat thread for deletion test should be found");
                     // Manually add the draft ID to draftMessageIds (since chat threads don't auto-populate this)
@@ -628,56 +666,121 @@ export var inbox_thread_draft_scheduled_tests = function (_a) {
                         })
                         // Verify manual setup worked
                     ];
-                case 56:
+                case 59:
                     // Manually add the draft ID to draftMessageIds (since chat threads don't auto-populate this)
-                    _v.sent();
+                    _x.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
-                case 57:
-                    loadedThreads11b = _v.sent();
+                case 60:
+                    loadedThreads11b = _x.sent();
                     chatDeleteThreadWithDraft = loadedThreads11b.threads.find(function (t) { return t.id === chatDeleteThread_1.id; });
-                    assert(((_t = chatDeleteThreadWithDraft.draftMessageIds) === null || _t === void 0 ? void 0 : _t.includes(draftChatToDelete.id)) === true, "Draft chat ID should be in draftMessageIds after manual setup. Got: ".concat(JSON.stringify(chatDeleteThreadWithDraft.draftMessageIds)));
+                    assert(((_v = chatDeleteThreadWithDraft.draftMessageIds) === null || _v === void 0 ? void 0 : _v.includes(draftChatToDelete.id)) === true, "Draft chat ID should be in draftMessageIds after manual setup. Got: ".concat(JSON.stringify(chatDeleteThreadWithDraft.draftMessageIds)));
                     // Delete the draft chat
                     return [4 /*yield*/, sdk.api.chats.deleteOne(draftChatToDelete.id)
                         // Wait for the delete side effect to process
                     ];
-                case 58:
+                case 61:
                     // Delete the draft chat
-                    _v.sent();
+                    _x.sent();
                     // Wait for the delete side effect to process
                     return [4 /*yield*/, wait(undefined, 500)
                         // Verify the draft ID has been removed
                     ];
-                case 59:
+                case 62:
                     // Wait for the delete side effect to process
-                    _v.sent();
+                    _x.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
-                case 60:
-                    loadedThreads11c = _v.sent();
+                case 63:
+                    loadedThreads11c = _x.sent();
                     chatDeleteThreadAfter = loadedThreads11c.threads.find(function (t) { return t.id === chatDeleteThread_1.id; });
                     assert(!!chatDeleteThreadAfter, "Chat thread should still exist after draft deletion");
-                    assert(((_u = chatDeleteThreadAfter.draftMessageIds) === null || _u === void 0 ? void 0 : _u.includes(draftChatToDelete.id)) === false, "Draft Chat ID should be REMOVED from draftMessageIds after deletion. Got: ".concat(JSON.stringify(chatDeleteThreadAfter.draftMessageIds)));
+                    assert(((_w = chatDeleteThreadAfter.draftMessageIds) === null || _w === void 0 ? void 0 : _w.includes(draftChatToDelete.id)) === false, "Draft Chat ID should be REMOVED from draftMessageIds after deletion. Got: ".concat(JSON.stringify(chatDeleteThreadAfter.draftMessageIds)));
                     console.log("✅ Chat draft deletion cleanup test passed");
                     // Cleanup deletion test chat room
-                    return [4 /*yield*/, sdk.api.chat_rooms.deleteOne(chatRoomForDeletion.id).catch(console.error)];
-                case 61:
+                    return [4 /*yield*/, sdk.api.chat_rooms.deleteOne(chatRoomForDeletion.id).catch(console.error)
+                        // ===== Attachment-Only Preview Tests =====
+                    ];
+                case 64:
                     // Cleanup deletion test chat room
-                    _v.sent();
+                    _x.sent();
+                    // ===== Attachment-Only Preview Tests =====
+                    log_header("Attachment-Only Preview Tests");
+                    // Test 12: Chat message with only attachments should show "[Attachment]" preview
+                    console.log("Testing attachment-only chat preview...");
+                    return [4 /*yield*/, sdk.api.chat_rooms.createOne({
+                            userIds: [testUser.id],
+                            enduserIds: [testEnduser.id],
+                        })
+                        // Create an initial message to establish the room
+                    ];
+                case 65:
+                    attachmentTestRoom_1 = _x.sent();
+                    // Create an initial message to establish the room
+                    return [4 /*yield*/, sdk.api.chats.createOne({
+                            roomId: attachmentTestRoom_1.id,
+                            message: "Initial message to establish room",
+                            senderId: testEnduser.id,
+                        })
+                        // Create a chat message with only attachments (empty message, but has attachment)
+                    ];
+                case 66:
+                    // Create an initial message to establish the room
+                    _x.sent();
+                    // Create a chat message with only attachments (empty message, but has attachment)
+                    return [4 /*yield*/, sdk.api.chats.createOne({
+                            roomId: attachmentTestRoom_1.id,
+                            message: "",
+                            senderId: testEnduser.id,
+                            attachments: [{ secureName: "test-file.pdf", type: "application/pdf", name: "test-file.pdf" }],
+                        })
+                        // Wait for the side effect to update the room
+                    ];
+                case 67:
+                    // Create a chat message with only attachments (empty message, but has attachment)
+                    _x.sent();
+                    // Wait for the side effect to update the room
+                    return [4 /*yield*/, wait(undefined, 500)
+                        // Rebuild threads
+                    ];
+                case 68:
+                    // Wait for the side effect to update the room
+                    _x.sent();
+                    // Rebuild threads
+                    return [4 /*yield*/, resetAndBuildThreads()
+                        // Load the thread and verify preview
+                    ];
+                case 69:
+                    // Rebuild threads
+                    _x.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
+                case 70:
+                    loadedThreads12 = _x.sent();
+                    attachmentThread = loadedThreads12.threads.find(function (t) {
+                        return t.type === 'Chat' && t.threadId === attachmentTestRoom_1.id;
+                    });
+                    assert(!!attachmentThread, "Attachment test chat thread should be found");
+                    assert(attachmentThread.preview === '[Attachment]', "Preview should be \"[Attachment]\" for attachment-only messages. Got: \"".concat(attachmentThread.preview, "\""));
+                    console.log("✅ Attachment-only chat preview test passed");
+                    // Cleanup attachment test chat room
+                    return [4 /*yield*/, sdk.api.chat_rooms.deleteOne(attachmentTestRoom_1.id).catch(console.error)];
+                case 71:
+                    // Cleanup attachment test chat room
+                    _x.sent();
                     console.log("🎉 All InboxThread draft/scheduled tests passed!");
-                    return [3 /*break*/, 66];
-                case 62: 
+                    return [3 /*break*/, 76];
+                case 72: 
                 // Cleanup
                 return [4 /*yield*/, sdk.api.inbox_threads.reset_threads().catch(console.error)];
-                case 63:
+                case 73:
                     // Cleanup
-                    _v.sent();
+                    _x.sent();
                     return [4 /*yield*/, sdk.api.endusers.deleteOne(testEnduser.id).catch(console.error)];
-                case 64:
-                    _v.sent();
+                case 74:
+                    _x.sent();
                     return [4 /*yield*/, sdk.api.users.deleteOne(testUser.id).catch(console.error)];
-                case 65:
-                    _v.sent();
+                case 75:
+                    _x.sent();
                     return [7 /*endfinally*/];
-                case 66: return [2 /*return*/];
+                case 76: return [2 /*return*/];
             }
         });
     });

@@ -456,6 +456,7 @@ type ActionInfo = {
   adminOnly?: boolean,
   rootAdminOnly?: boolean,
   creatorOnly?: boolean,
+  disallowReplaceObjectFields?: boolean,
 }
 
 export type CustomAction <P=any, R=any> = {
@@ -9040,6 +9041,24 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       url: { validator: stringValidator, readonly: true, examples: ['https://www.tellescope.com'] },
     }
   },
+  organization_payments: {
+    info: { description: 'Read Only - Organization Payment Transaction Logs' },
+    constraints: { unique: [['stripePaymentIntentId']], relationship: [], access: [] },
+    defaultActions: { read: {}, readMany: {} },
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields,
+      amountInCents: { validator: nonNegNumberValidator, readonly: true, examples: [2500] },
+      type: { validator: stringValidator100, readonly: true, examples: ['ai_credits'] },
+      status: { validator: exactMatchValidator(['pending', 'completed', 'failed', 'refunded']), readonly: true, examples: ['completed'] },
+      stripePaymentIntentId: { validator: stringValidator, readonly: true, examples: ['pi_xxx'] },
+      stripeCheckoutSessionId: { validator: stringValidator, readonly: true, examples: ['cs_xxx'] },
+      userId: { validator: mongoIdStringValidator, readonly: true },
+      title: { validator: stringValidator, readonly: true, examples: ['AI Credits Purchase'] },
+      data: { validator: objectAnyFieldsAnyValuesValidator, readonly: true },
+    }
+  },
   enduser_eligibility_results: {
     info: {},
     constraints: { unique: [['externalId', 'source']], relationship: [], },
@@ -9161,7 +9180,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
   ai_conversations: {
     info: { description: '' },
     constraints: { unique: [], relationship: [], access: [] },
-    defaultActions: { read: {}, readMany: {} },
+    defaultActions: { create: {}, read: {}, readMany: {}, update: { disallowReplaceObjectFields: true } },
     customActions: {
       send_message: {
         op: "custom", access: 'create', method: "post",
@@ -9209,7 +9228,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           text: stringValidator25000,
           timestamp: dateValidator,
           tokens: nonNegNumberValidator,
-          content: listValidatorEmptyOk(objectValidator<AICOnversationMessageContent>({
+          content: listValidatorOptionalOrEmptyOk(objectValidator<AICOnversationMessageContent>({
             type: exactMatchValidator(['text', 'image', 'file']),
             text: stringValidatorOptional,
           })),

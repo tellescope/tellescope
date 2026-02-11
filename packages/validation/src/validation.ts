@@ -3436,6 +3436,7 @@ export const searchOptionsValidator = objectValidator<SearchOptions>({
 
 export const notificationPreferenceValidator = objectValidator<NotificationPreference>({
   email: booleanValidatorOptional,
+  browser: booleanValidatorOptional,
 })
 export const notificationPreferencesValidator = objectAnyFieldsValidator(notificationPreferenceValidator)
 
@@ -5249,6 +5250,7 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   diagnosis_codes: accessPermissionValidator,
   allergy_codes: accessPermissionValidator,
   integration_logs: accessPermissionValidator,
+  organization_payments: accessPermissionValidator,
   enduser_eligibility_results: accessPermissionValidator,
   agent_records: accessPermissionValidator,
   waitlists: accessPermissionValidator,
@@ -5346,6 +5348,7 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   diagnosis_codes: numberValidatorOptional,
   allergy_codes: numberValidatorOptional,
   integration_logs: numberValidatorOptional,
+  organization_payments: numberValidatorOptional,
   enduser_eligibility_results: numberValidatorOptional,
   agent_records: numberValidatorOptional,
   waitlists: numberValidatorOptional,

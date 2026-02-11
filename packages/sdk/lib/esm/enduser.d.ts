@@ -34,6 +34,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    organization_payments: import("@tellescope/types-models").OrganizationPayment & {
+        id: string;
+        createdAt: Date;
+    };
     allergy_codes: import("@tellescope/types-models").AllergyCode & {
         id: string;
         createdAt: Date;
@@ -392,6 +396,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
     integration_logs: import("@tellescope/types-models").IntegrationLog & {
+        id: string;
+        createdAt: Date;
+    };
+    organization_payments: import("@tellescope/types-models").OrganizationPayment & {
         id: string;
         createdAt: Date;
     };
@@ -756,6 +764,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    organization_payments: import("@tellescope/types-models").OrganizationPayment & {
+        id: string;
+        createdAt: Date;
+    };
     allergy_codes: import("@tellescope/types-models").AllergyCode & {
         id: string;
         createdAt: Date;
@@ -1117,6 +1129,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    organization_payments: import("@tellescope/types-models").OrganizationPayment_readonly & {
+        id: string;
+        createdAt: Date;
+    };
     allergy_codes: import("@tellescope/types-models").AllergyCode_readonly & {
         id: string;
         createdAt: Date;
@@ -1475,6 +1491,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
     integration_logs: import("@tellescope/types-models").IntegrationLog_updatesDisabled & {
+        id: string;
+        createdAt: Date;
+    };
+    organization_payments: import("@tellescope/types-models").OrganizationPayment_updatesDisabled & {
         id: string;
         createdAt: Date;
     };

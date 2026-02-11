@@ -79,9 +79,9 @@ var __spreadArray = (this && this.__spreadArray) || function (to, from, pack) {
     return to.concat(ar || Array.prototype.slice.call(from));
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.useEnduserProfileViews = exports.useGroupMMSConversations = exports.useEngagementEvents = exports.useCalendarEvents = exports.useVitalConfigurations = exports.useEnduserEncounters = exports.useFlowchartNotes = exports.useFormGroups = exports.useWebhookLogs = exports.useIntegrationLogs = exports.useEnduserOrders = exports.useEnduserMedications = exports.useEnduserProblems = exports.useDiagnosisCodes = exports.useAllergyCodes = exports.usePortalBrandings = exports.useMessageTemplateSnippets = exports.useFaxLogs = exports.useSuggestedContacts = exports.useAgentRecords = exports.useAIConversations = exports.useEnduserEligibilityResults = exports.useUserAndEnduserDisplayInfo = exports.useChatRoomDisplayInfo = exports.useListStateHook = exports.useSyncContext = exports.WithDataSync = exports.useDataSync____internal = exports.lastDataSync = exports.lastActiveForSync = exports.FAST_SYNC_INTERVAL = exports.MEDIUM_SYNC_INTERAVL = exports.DEFAULT_SYNC_INTERVAL_IN_MS = exports.INACTIVE_SYNC_INTERVAL_IN_MS = exports.ExtendedEnduserProvider = exports.EnduserProvider = exports.ExtendedUserProvider = exports.UserProvider = exports.useResetState = exports.sharedConfig = exports.createSliceForList = exports.remove_elements_in_array = exports.replace_elements_in_array = exports.update_elements_in_array = exports.add_elements_to_array = exports.toLoadedData = exports.WithFetchContext = exports.createTellescopeSelector = exports.TellescopeStoreContext = exports.resetStateAction = void 0;
-exports.useIntegrations = exports.useOrganization = exports.useOrganizations = exports.usePhoneCalls = exports.useEmailSyncDenials = exports.useTableViews = exports.useSuperbillProviders = exports.useSuperbills = exports.useTicketThreadComments = exports.useTicketThreads = exports.useRoleBasedAccessPermissions = exports.useCalendarEventRSVPs = exports.useCommentLikes = exports.usePostLikes = exports.usePostComments = exports.useForumPosts = exports.useForums = exports.useManagedContentRecordAssignments = exports.useManagedContentRecords = exports.useEnduserObservations = exports.useUserDisplayInfo = exports.useFormResponses = exports.useFormFields = exports.useForms = exports.useTemplates = exports.useAvailabilityBlocks = exports.useNotes = exports.useAutomationSteps = exports.useUsers = exports.useJourneys = exports.useFiles = exports.useMeetings = exports.useTickets = exports.useTimeTracks = exports.useEndusers = exports.useChats = exports.useChatRooms = exports.useEnduserCustomTypes = exports.useAnalyticsFrames = exports.useUserLogs = exports.useNotifications = exports.useSmsMessages = exports.useEmails = exports.useAutomatedActions = exports.useAutomationTriggers = exports.usePhoneTrees = exports.useConfigurations = exports.useTicketTemplates = exports.useTicketQueues = exports.useCallHoldQueues = void 0;
-exports.useWaitlists = exports.useCalendarEventsForUser = exports.usePrescriptionRoutes = exports.useBlockedPhones = exports.usePurchaseCredits = exports.usePurchases = exports.useProducts = exports.useDatabaseRecords = exports.useDatabases = exports.useAppointmentLocations = exports.useBackgroundErrors = exports.useEnduserViews = exports.useAppointmentBookingPages = exports.useCalendarEventTemplates = exports.useEnduserTasks = exports.useCarePlans = exports.usePortalCustomizations = void 0;
+exports.useGroupMMSConversations = exports.useEngagementEvents = exports.useCalendarEvents = exports.useVitalConfigurations = exports.useEnduserEncounters = exports.useFlowchartNotes = exports.useFormGroups = exports.useWebhookLogs = exports.useOrganizationPayments = exports.useIntegrationLogs = exports.useEnduserOrders = exports.useEnduserMedications = exports.useEnduserProblems = exports.useDiagnosisCodes = exports.useAllergyCodes = exports.usePortalBrandings = exports.useMessageTemplateSnippets = exports.useFaxLogs = exports.useSuggestedContacts = exports.useAgentRecords = exports.useAIConversations = exports.useEnduserEligibilityResults = exports.useUserAndEnduserDisplayInfo = exports.useChatRoomDisplayInfo = exports.useListStateHook = exports.useSyncContext = exports.WithDataSync = exports.useDataSync____internal = exports.lastDataSync = exports.lastActiveForSync = exports.FAST_SYNC_INTERVAL = exports.MEDIUM_SYNC_INTERAVL = exports.DEFAULT_SYNC_INTERVAL_IN_MS = exports.INACTIVE_SYNC_INTERVAL_IN_MS = exports.ExtendedEnduserProvider = exports.EnduserProvider = exports.ExtendedUserProvider = exports.UserProvider = exports.useResetState = exports.sharedConfig = exports.createSliceForList = exports.remove_elements_in_array = exports.replace_elements_in_array = exports.update_elements_in_array = exports.add_elements_to_array = exports.toLoadedData = exports.WithFetchContext = exports.createTellescopeSelector = exports.TellescopeStoreContext = exports.resetStateAction = void 0;
+exports.useOrganization = exports.useOrganizations = exports.usePhoneCalls = exports.useEmailSyncDenials = exports.useTableViews = exports.useSuperbillProviders = exports.useSuperbills = exports.useTicketThreadComments = exports.useTicketThreads = exports.useRoleBasedAccessPermissions = exports.useCalendarEventRSVPs = exports.useCommentLikes = exports.usePostLikes = exports.usePostComments = exports.useForumPosts = exports.useForums = exports.useManagedContentRecordAssignments = exports.useManagedContentRecords = exports.useEnduserObservations = exports.useUserDisplayInfo = exports.useFormResponses = exports.useFormFields = exports.useForms = exports.useTemplates = exports.useAvailabilityBlocks = exports.useNotes = exports.useAutomationSteps = exports.useUsers = exports.useJourneys = exports.useFiles = exports.useMeetings = exports.useTickets = exports.useTimeTracks = exports.useEndusers = exports.useChats = exports.useChatRooms = exports.useEnduserCustomTypes = exports.useAnalyticsFrames = exports.useUserLogs = exports.useNotifications = exports.useSmsMessages = exports.useEmails = exports.useAutomatedActions = exports.useAutomationTriggers = exports.usePhoneTrees = exports.useConfigurations = exports.useTicketTemplates = exports.useTicketQueues = exports.useCallHoldQueues = exports.useEnduserProfileViews = void 0;
+exports.useWaitlists = exports.useCalendarEventsForUser = exports.usePrescriptionRoutes = exports.useBlockedPhones = exports.usePurchaseCredits = exports.usePurchases = exports.useProducts = exports.useDatabaseRecords = exports.useDatabases = exports.useAppointmentLocations = exports.useBackgroundErrors = exports.useEnduserViews = exports.useAppointmentBookingPages = exports.useCalendarEventTemplates = exports.useEnduserTasks = exports.useCarePlans = exports.usePortalCustomizations = exports.useIntegrations = void 0;
 var jsx_runtime_1 = require("react/jsx-runtime");
 var react_1 = __importStar(require("react"));
 var react_redux_1 = require("react-redux");
@@ -318,6 +318,7 @@ var suggestedContactsSlice = (0, exports.createSliceForList)('suggested_contacts
 var diagnosisCodesSlice = (0, exports.createSliceForList)('diagnosis_codes');
 var allergyCodesSlice = (0, exports.createSliceForList)('allergy_codes');
 var integrationLogsSlice = (0, exports.createSliceForList)('integration_logs');
+var organizationPaymentsSlice = (0, exports.createSliceForList)('organization_payments');
 var enduserEligibilityResultsSlice = (0, exports.createSliceForList)('enduser_eligibility_results');
 var agentRecordsSlice = (0, exports.createSliceForList)('agent_records');
 var waitlistsSlice = (0, exports.createSliceForList)('waitlists');
@@ -331,6 +332,7 @@ exports.sharedConfig = {
         agent_records: agentRecordsSlice.reducer,
         enduser_eligibility_results: enduserEligibilityResultsSlice.reducer,
         integration_logs: integrationLogsSlice.reducer,
+        organization_payments: organizationPaymentsSlice.reducer,
         ticket_queues: ticketQueuesSlice.reducer,
         ticket_templates: ticketTemplatesSlice.reducer,
         automation_triggers: automationTriggersSlice.reducer,
@@ -1377,6 +1379,17 @@ var useIntegrationLogs = function (options) {
     }, __assign({}, options));
 };
 exports.useIntegrationLogs = useIntegrationLogs;
+var useOrganizationPayments = function (options) {
+    if (options === void 0) { options = {}; }
+    var session = (0, index_1.useSession)();
+    return (0, exports.useListStateHook)('organization_payments', useTypedSelector(function (s) { return s.organization_payments; }), session, organizationPaymentsSlice, {
+        loadQuery: session.api.organization_payments.getSome,
+        findOne: session.api.organization_payments.getOne,
+        findByIds: session.api.organization_payments.getByIds,
+        // Read-only collection - no create, update, delete
+    }, __assign({}, options));
+};
+exports.useOrganizationPayments = useOrganizationPayments;
 var useWebhookLogs = function (options) {
     if (options === void 0) { options = {}; }
     var session = (0, index_1.useSession)();

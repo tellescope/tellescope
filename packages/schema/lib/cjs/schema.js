@@ -6286,6 +6286,14 @@ exports.schema = (0, exports.build_schema)({
         enduserActions: {},
         fields: __assign(__assign({}, BuiltInFields), { integration: { validator: validation_1.stringValidator, readonly: true, examples: ['Canvas'] }, status: { validator: (0, validation_1.exactMatchValidator)(['Success', 'Error']), readonly: true, examples: ['Error'] }, type: { validator: validation_1.stringValidator, readonly: true, examples: ['Patient Create'] }, payload: { validator: validation_1.stringValidator, readonly: true, examples: ['{}'] }, response: { validator: validation_1.stringValidator, readonly: true, examples: ['{}'] }, url: { validator: validation_1.stringValidator, readonly: true, examples: ['https://www.tellescope.com'] } })
     },
+    organization_payments: {
+        info: { description: 'Read Only - Organization Payment Transaction Logs' },
+        constraints: { unique: [['stripePaymentIntentId']], relationship: [], access: [] },
+        defaultActions: { read: {}, readMany: {} },
+        customActions: {},
+        enduserActions: {},
+        fields: __assign(__assign({}, BuiltInFields), { amountInCents: { validator: validation_1.nonNegNumberValidator, readonly: true, examples: [2500] }, type: { validator: validation_1.stringValidator100, readonly: true, examples: ['ai_credits'] }, status: { validator: (0, validation_1.exactMatchValidator)(['pending', 'completed', 'failed', 'refunded']), readonly: true, examples: ['completed'] }, stripePaymentIntentId: { validator: validation_1.stringValidator, readonly: true, examples: ['pi_xxx'] }, stripeCheckoutSessionId: { validator: validation_1.stringValidator, readonly: true, examples: ['cs_xxx'] }, userId: { validator: validation_1.mongoIdStringRequired, readonly: true }, title: { validator: validation_1.stringValidator, readonly: true, examples: ['AI Credits Purchase'] }, data: { validator: validation_1.objectAnyFieldsAnyValuesValidator, readonly: true } })
+    },
     enduser_eligibility_results: {
         info: {},
         constraints: { unique: [['externalId', 'source']], relationship: [], },
@@ -6382,7 +6390,7 @@ exports.schema = (0, exports.build_schema)({
     ai_conversations: {
         info: { description: '' },
         constraints: { unique: [], relationship: [], access: [] },
-        defaultActions: { read: {}, readMany: {} },
+        defaultActions: { create: {}, read: {}, readMany: {}, update: { disallowReplaceObjectFields: true } },
         customActions: {
             send_message: {
                 op: "custom", access: 'create', method: "post",
@@ -6424,7 +6432,7 @@ exports.schema = (0, exports.build_schema)({
                     text: validation_1.stringValidator25000,
                     timestamp: validation_1.dateValidator,
                     tokens: validation_1.nonNegNumberValidator,
-                    content: (0, validation_1.listValidatorEmptyOk)((0, validation_1.objectValidator)({
+                    content: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                         type: (0, validation_1.exactMatchValidator)(['text', 'image', 'file']),
                         text: validation_1.stringValidatorOptional,
                     })),

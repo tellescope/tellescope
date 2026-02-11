@@ -221,6 +221,7 @@ var loadDefaultQueries = function (s) { return ({
     diagnosis_codes: defaultQueries(s, 'diagnosis_codes'),
     allergy_codes: defaultQueries(s, 'allergy_codes'),
     integration_logs: defaultQueries(s, 'integration_logs'),
+    organization_payments: defaultQueries(s, 'organization_payments'),
     enduser_eligibility_results: defaultQueries(s, 'enduser_eligibility_results'),
     waitlists: defaultQueries(s, 'waitlists'),
     ai_conversations: defaultQueries(s, 'ai_conversations'),

@@ -23,6 +23,10 @@ export declare const TellescopeStoreContext: React.Context<ReactReduxContextValu
         id: string;
         createdAt: Date;
     })[]>;
+    organization_payments: LoadedData<(import("@tellescope/types-models").OrganizationPayment & {
+        id: string;
+        createdAt: Date;
+    })[]>;
     ticket_queues: LoadedData<(import("@tellescope/types-models").TicketQueue & {
         id: string;
         createdAt: Date;
@@ -368,6 +372,10 @@ export declare const createTellescopeSelector: () => <Selected extends unknown>(
         createdAt: Date;
     })[]>;
     integration_logs: LoadedData<(import("@tellescope/types-models").IntegrationLog & {
+        id: string;
+        createdAt: Date;
+    })[]>;
+    organization_payments: LoadedData<(import("@tellescope/types-models").OrganizationPayment & {
         id: string;
         createdAt: Date;
     })[]>;
@@ -822,6 +830,10 @@ export declare const sharedConfig: {
             id: string;
             createdAt: Date;
         })[]>, import("redux").AnyAction>;
+        organization_payments: import("redux").Reducer<LoadedData<(import("@tellescope/types-models").OrganizationPayment & {
+            id: string;
+            createdAt: Date;
+        })[]>, import("redux").AnyAction>;
         ticket_queues: import("redux").Reducer<LoadedData<(import("@tellescope/types-models").TicketQueue & {
             id: string;
             createdAt: Date;
@@ -1225,6 +1237,9 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").IntegrationLog & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").OrganizationPayment & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").TicketQueue & {
         id: string;
         createdAt: Date;
@@ -1495,6 +1510,9 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").IntegrationLog & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").OrganizationPayment & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").TicketQueue & {
@@ -1777,6 +1795,9 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").IntegrationLog & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").OrganizationPayment & {
+        id: string;
+        createdAt: Date;
     }) | (import("@tellescope/types-models").TicketQueue & {
         id: string;
         createdAt: Date;
@@ -2047,6 +2068,9 @@ export declare const useSyncContext: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").IntegrationLog & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").OrganizationPayment & {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").TicketQueue & {
@@ -2547,6 +2571,16 @@ export declare const useIntegrationLogs: (options?: HookOptions<import("@tellesc
     sharedWithOrganizations?: string[][] | undefined;
     _overrideUnique?: boolean | undefined;
 }>;
+export declare const useOrganizationPayments: (options?: HookOptions<import("@tellescope/types-models").OrganizationPayment & {
+    id: string;
+    createdAt: Date;
+}>) => ListStateReturnType<import("@tellescope/types-models").OrganizationPayment & {
+    id: string;
+    createdAt: Date;
+}, Partial<import("@tellescope/types-models").OrganizationPayment & {
+    id: string;
+    createdAt: Date;
+}>>;
 export declare const useWebhookLogs: (options?: HookOptions<import("@tellescope/types-models").WebhookLog & {
     id: string;
     createdAt: Date;

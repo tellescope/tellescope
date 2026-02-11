@@ -81,6 +81,7 @@ type ActionInfo = {
     adminOnly?: boolean;
     rootAdminOnly?: boolean;
     creatorOnly?: boolean;
+    disallowReplaceObjectFields?: boolean;
 };
 export type CustomAction<P = any, R = any> = {
     op: Operation | 'custom';

@@ -99,6 +99,10 @@ export const inbox_thread_draft_scheduled_tests = async ({ sdk, sdkNonAdmin }: {
       smsThread!.preview?.includes("This is a sent message") === true,
       `Preview should be from sent message, not draft. Got: ${smsThread!.preview}`
     )
+    assert(
+      !smsThread!.isDraftOnlyThread,
+      `isDraftOnlyThread should be falsy for threads with sent messages. Got: ${smsThread!.isDraftOnlyThread}`
+    )
 
     console.log("✅ Draft SMS tracking test passed")
 
@@ -182,6 +186,10 @@ export const inbox_thread_draft_scheduled_tests = async ({ sdk, sdkNonAdmin }: {
       emailThread!.preview?.includes("This is a sent email") === true,
       `Preview should be from sent email, not draft. Got: ${emailThread!.preview}`
     )
+    assert(
+      !emailThread!.isDraftOnlyThread,
+      `isDraftOnlyThread should be falsy for threads with sent messages. Got: ${emailThread!.isDraftOnlyThread}`
+    )
 
     console.log("✅ Draft email tracking test passed")
 
@@ -252,8 +260,53 @@ export const inbox_thread_draft_scheduled_tests = async ({ sdk, sdkNonAdmin }: {
       draftOnlyThread!.preview?.includes("only message") === true,
       `Preview should fall back to draft when no sent messages exist. Got: ${draftOnlyThread!.preview}`
     )
+    assert(
+      draftOnlyThread!.isDraftOnlyThread === true,
+      `isDraftOnlyThread should be true for draft-only threads. Got: ${draftOnlyThread!.isDraftOnlyThread}`
+    )
 
     console.log("✅ Thread with only draft messages test passed")
+
+    // Test 5b: Thread with ONLY draft email should create placeholder thread
+    console.log("Testing thread with only draft email messages...")
+
+    const draftOnlyEmailSubject = `Draft-Only Email Test ${timestamp}`
+
+    // Only create a draft email - no inbound message
+    const draftOnlyEmail = await sdk.api.emails.createOne({
+      subject: draftOnlyEmailSubject,
+      textContent: "This is a draft-only email, no sent messages exist",
+      enduserId: testEnduser.id,
+      userId: testUser.id,
+      messageId: `draft-only-email-${timestamp}`,
+      isDraft: true,
+      logOnly: true,
+    })
+
+    // Rebuild threads
+    await resetAndBuildThreads()
+
+    const loadedThreads5b = await sdk.api.inbox_threads.load_threads({})
+    const draftOnlyEmailThread = loadedThreads5b.threads.find(t =>
+      t.type === 'Email' && t.title === draftOnlyEmailSubject
+    )
+
+    assert(!!draftOnlyEmailThread, "Draft-only email thread should be found")
+    assert(
+      draftOnlyEmailThread!.draftMessageIds?.includes(draftOnlyEmail.id) === true,
+      `Draft Email ID should be in draftMessageIds. Got: ${JSON.stringify(draftOnlyEmailThread!.draftMessageIds)}`
+    )
+    // When only drafts exist, the draft is used as fallback for preview
+    assert(
+      draftOnlyEmailThread!.preview?.includes("draft-only email") === true,
+      `Preview should fall back to draft when no sent messages exist. Got: ${draftOnlyEmailThread!.preview}`
+    )
+    assert(
+      draftOnlyEmailThread!.isDraftOnlyThread === true,
+      `isDraftOnlyThread should be true for draft-only threads. Got: ${draftOnlyEmailThread!.isDraftOnlyThread}`
+    )
+
+    console.log("✅ Thread with only draft email messages test passed")
 
     // Test 6: Verify fields are correctly typed as arrays
     console.log("Testing field types...")
@@ -314,6 +367,10 @@ export const inbox_thread_draft_scheduled_tests = async ({ sdk, sdkNonAdmin }: {
       Array.isArray(sentOnlyThread!.scheduledMessageIds) && sentOnlyThread!.scheduledMessageIds.length === 0,
       `scheduledMessageIds should be an empty array when no scheduled messages exist. Got: ${JSON.stringify(sentOnlyThread!.scheduledMessageIds)}`
     )
+    assert(
+      !sentOnlyThread!.isDraftOnlyThread,
+      `isDraftOnlyThread should be falsy for threads with sent messages. Got: ${sentOnlyThread!.isDraftOnlyThread}`
+    )
 
     console.log("✅ Empty array defaults test passed")
 
@@ -358,6 +415,10 @@ export const inbox_thread_draft_scheduled_tests = async ({ sdk, sdkNonAdmin }: {
     )
 
     assert(!!chatThreadBefore, "Chat thread should be found")
+    assert(
+      !chatThreadBefore!.isDraftOnlyThread,
+      `isDraftOnlyThread should be falsy for chat threads with sent messages. Got: ${chatThreadBefore!.isDraftOnlyThread}`
+    )
 
     // Manually add the draft ID to draftMessageIds to simulate the setup
     // (Chat thread building doesn't auto-populate this, but the cleanup should still work)
@@ -591,6 +652,56 @@ export const inbox_thread_draft_scheduled_tests = async ({ sdk, sdkNonAdmin }: {
 
     // Cleanup deletion test chat room
     await sdk.api.chat_rooms.deleteOne(chatRoomForDeletion.id).catch(console.error)
+
+    // ===== Attachment-Only Preview Tests =====
+    log_header("Attachment-Only Preview Tests")
+
+    // Test 12: Chat message with only attachments should show "[Attachment]" preview
+    console.log("Testing attachment-only chat preview...")
+
+    // Create a chat room for testing
+    const attachmentTestRoom = await sdk.api.chat_rooms.createOne({
+      userIds: [testUser.id],
+      enduserIds: [testEnduser.id],
+    })
+
+    // Create an initial message to establish the room
+    await sdk.api.chats.createOne({
+      roomId: attachmentTestRoom.id,
+      message: "Initial message to establish room",
+      senderId: testEnduser.id,
+    })
+
+    // Create a chat message with only attachments (empty message, but has attachment)
+    await sdk.api.chats.createOne({
+      roomId: attachmentTestRoom.id,
+      message: "", // Empty message
+      senderId: testEnduser.id,
+      attachments: [{ secureName: "test-file.pdf", type: "application/pdf", name: "test-file.pdf" }],
+    })
+
+    // Wait for the side effect to update the room
+    await wait(undefined, 500)
+
+    // Rebuild threads
+    await resetAndBuildThreads()
+
+    // Load the thread and verify preview
+    const loadedThreads12 = await sdk.api.inbox_threads.load_threads({})
+    const attachmentThread = loadedThreads12.threads.find(t =>
+      t.type === 'Chat' && t.threadId === attachmentTestRoom.id
+    )
+
+    assert(!!attachmentThread, "Attachment test chat thread should be found")
+    assert(
+      attachmentThread!.preview === '[Attachment]',
+      `Preview should be "[Attachment]" for attachment-only messages. Got: "${attachmentThread!.preview}"`
+    )
+
+    console.log("✅ Attachment-only chat preview test passed")
+
+    // Cleanup attachment test chat room
+    await sdk.api.chat_rooms.deleteOne(attachmentTestRoom.id).catch(console.error)
 
     console.log("🎉 All InboxThread draft/scheduled tests passed!")
 

@@ -78,6 +78,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         id: string;
         createdAt: Date;
     };
+    organization_payments: import("@tellescope/types-models").OrganizationPayment & {
+        id: string;
+        createdAt: Date;
+    };
     allergy_codes: import("@tellescope/types-models").AllergyCode & {
         id: string;
         createdAt: Date;
@@ -436,6 +440,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         createdAt: Date;
     };
     integration_logs: import("@tellescope/types-models").IntegrationLog & {
+        id: string;
+        createdAt: Date;
+    };
+    organization_payments: import("@tellescope/types-models").OrganizationPayment & {
         id: string;
         createdAt: Date;
     };
@@ -800,6 +808,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         id: string;
         createdAt: Date;
     };
+    organization_payments: import("@tellescope/types-models").OrganizationPayment & {
+        id: string;
+        createdAt: Date;
+    };
     allergy_codes: import("@tellescope/types-models").AllergyCode & {
         id: string;
         createdAt: Date;
@@ -1161,6 +1173,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         id: string;
         createdAt: Date;
     };
+    organization_payments: import("@tellescope/types-models").OrganizationPayment & {
+        id: string;
+        createdAt: Date;
+    };
     allergy_codes: import("@tellescope/types-models").AllergyCode & {
         id: string;
         createdAt: Date;
@@ -1519,6 +1535,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         createdAt: Date;
     };
     integration_logs: import("@tellescope/types-models").IntegrationLog & {
+        id: string;
+        createdAt: Date;
+    };
+    organization_payments: import("@tellescope/types-models").OrganizationPayment & {
         id: string;
         createdAt: Date;
     };
@@ -1884,6 +1904,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    organization_payments: import("@tellescope/types-models").OrganizationPayment & {
+        id: string;
+        createdAt: Date;
+    };
     allergy_codes: import("@tellescope/types-models").AllergyCode & {
         id: string;
         createdAt: Date;
@@ -2242,6 +2266,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
     integration_logs: import("@tellescope/types-models").IntegrationLog & {
+        id: string;
+        createdAt: Date;
+    };
+    organization_payments: import("@tellescope/types-models").OrganizationPayment & {
         id: string;
         createdAt: Date;
     };
@@ -2606,6 +2634,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    organization_payments: import("@tellescope/types-models").OrganizationPayment & {
+        id: string;
+        createdAt: Date;
+    };
     allergy_codes: import("@tellescope/types-models").AllergyCode & {
         id: string;
         createdAt: Date;
@@ -2967,6 +2999,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    organization_payments: import("@tellescope/types-models").OrganizationPayment_readonly & {
+        id: string;
+        createdAt: Date;
+    };
     allergy_codes: import("@tellescope/types-models").AllergyCode_readonly & {
         id: string;
         createdAt: Date;
@@ -3325,6 +3361,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
     integration_logs: import("@tellescope/types-models").IntegrationLog_updatesDisabled & {
+        id: string;
+        createdAt: Date;
+    };
+    organization_payments: import("@tellescope/types-models").OrganizationPayment_updatesDisabled & {
         id: string;
         createdAt: Date;
     };
@@ -4084,6 +4124,7 @@ export declare class Session extends SessionManager {
         agent_records?: number | undefined;
         enduser_eligibility_results?: number | undefined;
         integration_logs?: number | undefined;
+        organization_payments?: number | undefined;
         allergy_codes?: number | undefined;
         diagnosis_codes?: number | undefined;
         suggested_contacts?: number | undefined;
@@ -4238,6 +4279,7 @@ export declare class Session extends SessionManager {
         agent_records?: number | undefined;
         enduser_eligibility_results?: number | undefined;
         integration_logs?: number | undefined;
+        organization_payments?: number | undefined;
         allergy_codes?: number | undefined;
         diagnosis_codes?: number | undefined;
         suggested_contacts?: number | undefined;

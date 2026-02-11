@@ -282,6 +282,7 @@ var suggestedContactsSlice = createSliceForList('suggested_contacts');
 var diagnosisCodesSlice = createSliceForList('diagnosis_codes');
 var allergyCodesSlice = createSliceForList('allergy_codes');
 var integrationLogsSlice = createSliceForList('integration_logs');
+var organizationPaymentsSlice = createSliceForList('organization_payments');
 var enduserEligibilityResultsSlice = createSliceForList('enduser_eligibility_results');
 var agentRecordsSlice = createSliceForList('agent_records');
 var waitlistsSlice = createSliceForList('waitlists');
@@ -295,6 +296,7 @@ export var sharedConfig = {
         agent_records: agentRecordsSlice.reducer,
         enduser_eligibility_results: enduserEligibilityResultsSlice.reducer,
         integration_logs: integrationLogsSlice.reducer,
+        organization_payments: organizationPaymentsSlice.reducer,
         ticket_queues: ticketQueuesSlice.reducer,
         ticket_templates: ticketTemplatesSlice.reducer,
         automation_triggers: automationTriggersSlice.reducer,
@@ -1315,6 +1317,16 @@ export var useIntegrationLogs = function (options) {
         addSome: session.api.integration_logs.createSome,
         deleteOne: session.api.integration_logs.deleteOne,
         updateOne: session.api.integration_logs.updateOne,
+    }, __assign({}, options));
+};
+export var useOrganizationPayments = function (options) {
+    if (options === void 0) { options = {}; }
+    var session = useSession();
+    return useListStateHook('organization_payments', useTypedSelector(function (s) { return s.organization_payments; }), session, organizationPaymentsSlice, {
+        loadQuery: session.api.organization_payments.getSome,
+        findOne: session.api.organization_payments.getOne,
+        findByIds: session.api.organization_payments.getByIds,
+        // Read-only collection - no create, update, delete
     }, __assign({}, options));
 };
 export var useWebhookLogs = function (options) {

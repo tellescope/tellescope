@@ -95,6 +95,7 @@ export type SuggestedContact = ServerModelForName['suggested_contacts']
 export type DiagnosisCode = ServerModelForName['diagnosis_codes']
 export type AllergyCode = ServerModelForName['allergy_codes']
 export type IntegrationLog = ServerModelForName['integration_logs']
+export type OrganizationPayment = ServerModelForName['organization_payments']
 export type EnduserEligibilityResult = ServerModelForName['enduser_eligibility_results']
 export type AgentRecord = ServerModelForName['agent_records']
 export type Waitlist = ServerModelForName['waitlists']
@@ -294,7 +295,7 @@ export interface OktaSSOConfiguration extends InternalBusinessRecord {
 }
 
 export interface InternalSecret extends InternalBusinessRecord {
-  type: 'twilio-ios' | 'twilio-android' | 'customer-usage-data' | 'beluga-sandbox' | 'beluga-production' | 'scriptsure-sandbox' | 'scriptsure-production' | 'scriptsure-webhooks'
+  type: 'twilio-ios' | 'twilio-android' | 'customer-usage-data' | 'beluga-sandbox' | 'beluga-production' | 'scriptsure-sandbox' | 'scriptsure-production' | 'scriptsure-webhooks' | 'stripe-platform-webhook'
   publicKey: string,
   secretKey: string,
 }

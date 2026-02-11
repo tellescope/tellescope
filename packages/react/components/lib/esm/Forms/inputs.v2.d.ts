@@ -20,7 +20,7 @@ export declare const RatingInput: ({ field, value, onChange }: FormInputProps<'r
 export declare const RankingInput: ({ field, value, onChange, form }: FormInputProps<'ranking'>) => JSX.Element;
 export declare const DateInput: ({ field, value, onChange, placement, ...props }: {
     field: FormField;
-    placement?: "left" | "right" | "bottom" | "top" | undefined;
+    placement?: "top" | "bottom" | "left" | "right" | undefined;
 } & FormInputProps<"date"> & Styled) => JSX.Element;
 export declare const TableInput: ({ field, value, onChange, form, ...props }: FormInputProps<'Input Table'>) => JSX.Element;
 export declare const AutoFocusTextField: (props: TextFieldProps) => JSX.Element;

@@ -2668,6 +2668,7 @@ exports.searchOptionsValidator = (0, exports.objectValidator)({
 });
 exports.notificationPreferenceValidator = (0, exports.objectValidator)({
     email: exports.booleanValidatorOptional,
+    browser: exports.booleanValidatorOptional,
 });
 exports.notificationPreferencesValidator = (0, exports.objectAnyFieldsValidator)(exports.notificationPreferenceValidator);
 exports.FHIRObservationCategoryValidator = (0, exports.exactMatchValidator)(['vital-signs']);
@@ -4408,6 +4409,7 @@ exports.accessPermissionsValidator = (0, exports.objectValidator)({
     diagnosis_codes: exports.accessPermissionValidator,
     allergy_codes: exports.accessPermissionValidator,
     integration_logs: exports.accessPermissionValidator,
+    organization_payments: exports.accessPermissionValidator,
     enduser_eligibility_results: exports.accessPermissionValidator,
     agent_records: exports.accessPermissionValidator,
     waitlists: exports.accessPermissionValidator,
@@ -4503,6 +4505,7 @@ exports.organizationLimitsValidator = (0, exports.objectValidator)({
     diagnosis_codes: exports.numberValidatorOptional,
     allergy_codes: exports.numberValidatorOptional,
     integration_logs: exports.numberValidatorOptional,
+    organization_payments: exports.numberValidatorOptional,
     enduser_eligibility_results: exports.numberValidatorOptional,
     agent_records: exports.numberValidatorOptional,
     waitlists: exports.numberValidatorOptional,

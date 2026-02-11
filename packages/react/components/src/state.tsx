@@ -98,6 +98,7 @@ import {
   DiagnosisCode,
   AllergyCode,
   IntegrationLog,
+  OrganizationPayment,
   EnduserEligibilityResult,
   AgentRecord,
   Waitlist,
@@ -368,6 +369,7 @@ const suggestedContactsSlice = createSliceForList<SuggestedContact, 'suggested_c
 const diagnosisCodesSlice = createSliceForList<DiagnosisCode, 'diagnosis_codes'>('diagnosis_codes')
 const allergyCodesSlice = createSliceForList<AllergyCode, 'allergy_codes'>('allergy_codes')
 const integrationLogsSlice = createSliceForList<IntegrationLog, 'integration_logs'>('integration_logs')
+const organizationPaymentsSlice = createSliceForList<OrganizationPayment, 'organization_payments'>('organization_payments')
 const enduserEligibilityResultsSlice = createSliceForList<EnduserEligibilityResult, 'enduser_eligibility_results'>('enduser_eligibility_results')
 const agentRecordsSlice = createSliceForList<AgentRecord, 'agent_records'>('agent_records')
 const waitlistsSlice = createSliceForList<Waitlist, 'waitlists'>('waitlists')
@@ -384,6 +386,7 @@ export const sharedConfig = {
     agent_records: agentRecordsSlice.reducer,
     enduser_eligibility_results: enduserEligibilityResultsSlice.reducer,
     integration_logs: integrationLogsSlice.reducer,
+    organization_payments: organizationPaymentsSlice.reducer,
     ticket_queues: ticketQueuesSlice.reducer,
     ticket_templates: ticketTemplatesSlice.reducer,
     automation_triggers: automationTriggersSlice.reducer,
@@ -1551,8 +1554,8 @@ export const useEnduserOrders = (options={} as HookOptions<EnduserOrder>) => {
 export const useIntegrationLogs = (options={} as HookOptions<IntegrationLog>) => {
   const session = useSession()
   return useListStateHook(
-    'integration_logs', useTypedSelector(s => s.integration_logs), session, integrationLogsSlice, 
-    { 
+    'integration_logs', useTypedSelector(s => s.integration_logs), session, integrationLogsSlice,
+    {
       loadQuery: session.api.integration_logs.getSome,
       findOne: session.api.integration_logs.getOne,
       findByIds: session.api.integration_logs.getByIds,
@@ -1560,7 +1563,20 @@ export const useIntegrationLogs = (options={} as HookOptions<IntegrationLog>) =>
       addSome: session.api.integration_logs.createSome,
       deleteOne: session.api.integration_logs.deleteOne,
       updateOne: session.api.integration_logs.updateOne,
-    }, 
+    },
+    {...options}
+  )
+}
+export const useOrganizationPayments = (options={} as HookOptions<OrganizationPayment>) => {
+  const session = useSession()
+  return useListStateHook(
+    'organization_payments', useTypedSelector(s => s.organization_payments), session, organizationPaymentsSlice,
+    {
+      loadQuery: session.api.organization_payments.getSome,
+      findOne: session.api.organization_payments.getOne,
+      findByIds: session.api.organization_payments.getByIds,
+      // Read-only collection - no create, update, delete
+    },
     {...options}
   )
 }

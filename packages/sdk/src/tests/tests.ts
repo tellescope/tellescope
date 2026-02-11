@@ -79,6 +79,7 @@ import { bulk_assignment_tests } from "./api_tests/bulk_assignment.test";
 import { managed_content_enduser_access_tests } from "./api_tests/managed_content_enduser_access.test";
 import { auto_merge_form_submission_tests } from "./api_tests/auto_merge_form_submission.test";
 import { database_cascade_delete_tests } from "./api_tests/database_cascade_delete.test";
+import { ai_conversations_tests } from "./api_tests/ai_conversations.test";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
@@ -631,7 +632,7 @@ const validateReturnType = <N extends ModelName, T=ClientModelForName[N]>(fs: Mo
 let defaultEnduser = undefined as Enduser | undefined
 const run_generated_tests = async <N extends ModelName>({ queries, model, name, returns } : GeneratedTest<N>) => {
   if (
-    name === 'post_likes' 
+    name === 'post_likes'
   || name === 'users'
   || name === 'integrations'
   || name === 'databases'
@@ -644,6 +645,7 @@ const run_generated_tests = async <N extends ModelName>({ queries, model, name, 
   || name === 'automated_actions' // might process in background and cause false failure
   || name === 'waitlists' // while waitlist updates are not stored in logs
   || name === 'inbox_threads' // disabled
+  || name === 'ai_conversations' // replaceObjectFields: true is blocked for this model
   ) return 
   if (!defaultEnduser) defaultEnduser = await sdk.api.endusers.createOne({ email: 'default@tellescope.com', phone: "5555555555"  })
 
@@ -9094,7 +9096,8 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   portal_brandings: NO_TEST,
   message_template_snippets: NO_TEST,
   integration_logs: NO_TEST,
-  ai_conversations: NO_TEST,
+  organization_payments: NO_TEST,
+  ai_conversations: NO_TEST, // covered by modular test: ai_conversations_tests
   waitlists: waitlist_tests,
   inbox_threads: NO_TEST, // use custom test instead to test earlier in script
 };
@@ -13597,6 +13600,7 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await ai_conversations_tests({ sdk, sdkNonAdmin })
     await inbox_thread_assignment_updates_tests({ sdk, sdkNonAdmin })
     await inbox_thread_draft_scheduled_tests({ sdk, sdkNonAdmin })
     await load_threads_autobuild_tests({ sdk, sdkNonAdmin })

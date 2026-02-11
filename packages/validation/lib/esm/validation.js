@@ -2618,6 +2618,7 @@ export var searchOptionsValidator = objectValidator({
 });
 export var notificationPreferenceValidator = objectValidator({
     email: booleanValidatorOptional,
+    browser: booleanValidatorOptional,
 });
 export var notificationPreferencesValidator = objectAnyFieldsValidator(notificationPreferenceValidator);
 export var FHIRObservationCategoryValidator = exactMatchValidator(['vital-signs']);
@@ -4356,6 +4357,7 @@ export var accessPermissionsValidator = objectValidator({
     diagnosis_codes: accessPermissionValidator,
     allergy_codes: accessPermissionValidator,
     integration_logs: accessPermissionValidator,
+    organization_payments: accessPermissionValidator,
     enduser_eligibility_results: accessPermissionValidator,
     agent_records: accessPermissionValidator,
     waitlists: accessPermissionValidator,
@@ -4451,6 +4453,7 @@ export var organizationLimitsValidator = objectValidator({
     diagnosis_codes: numberValidatorOptional,
     allergy_codes: numberValidatorOptional,
     integration_logs: numberValidatorOptional,
+    organization_payments: numberValidatorOptional,
     enduser_eligibility_results: numberValidatorOptional,
     agent_records: numberValidatorOptional,
     waitlists: numberValidatorOptional,

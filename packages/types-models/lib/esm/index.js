@@ -68,6 +68,7 @@ export var modelNameChecker = {
     agent_records: true,
     enduser_eligibility_results: true,
     integration_logs: true,
+    organization_payments: true,
     allergy_codes: true,
     diagnosis_codes: true,
     suggested_contacts: true,

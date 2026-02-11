@@ -441,6 +441,7 @@ export declare const WebhookSubscriptionValidator: ValidatorDefinition<{
     agent_records: CUDSubscription;
     enduser_eligibility_results: CUDSubscription;
     integration_logs: CUDSubscription;
+    organization_payments: CUDSubscription;
     allergy_codes: CUDSubscription;
     diagnosis_codes: CUDSubscription;
     suggested_contacts: CUDSubscription;
