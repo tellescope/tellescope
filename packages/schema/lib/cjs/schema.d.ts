@@ -854,6 +854,14 @@ export type CustomActions = {
         }, {
             room: ChatRoom;
         }>;
+        load_team_chat: CustomAction<{
+            lastUpdatedAt?: Date;
+            limit?: number;
+            showClosed?: boolean;
+        }, {
+            chat_rooms: ChatRoom[];
+            endusers: Enduser[];
+        }>;
     };
     meetings: {
         start_meeting: CustomAction<{

@@ -1676,6 +1676,21 @@ exports.schema = (0, exports.build_schema)({
                     room: { validator: 'Room' },
                 } // add room eventually, when validator defined
             },
+            load_team_chat: {
+                op: "custom", access: 'read', method: "get",
+                name: 'Load Team Chat',
+                path: '/chat-rooms/load-team-chat',
+                description: "Loads team chat rooms with server-side filtering for rooms where the user is creator, in userIds, or on care team for aboutEnduserId",
+                parameters: {
+                    lastUpdatedAt: { validator: validation_1.dateValidatorOptional },
+                    limit: { validator: validation_1.nonNegNumberValidator },
+                    showClosed: { validator: validation_1.booleanValidatorOptional },
+                },
+                returns: {
+                    chat_rooms: { validator: 'chat_rooms' },
+                    endusers: { validator: 'endusers' },
+                }
+            },
         },
     },
     chats: {

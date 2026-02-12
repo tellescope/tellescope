@@ -920,6 +920,7 @@ export type CustomActions = {
     display_info: CustomAction<{ id: string }, { id: string, display_info: { [index: string]: UserDisplayInfo } }>,
     mark_read: CustomAction<{ id: string }, { updated: ChatRoom }>,
     send_healthie_chat: CustomAction<HealthieSendChatAutomationAction['info'] & { enduserId: string, journeyId?: string }, { room: ChatRoom }>,
+    load_team_chat: CustomAction<{ lastUpdatedAt?: Date, limit?: number, showClosed?: boolean }, { chat_rooms: ChatRoom[], endusers: Enduser[] }>,
   },
   meetings: {
     start_meeting: CustomAction<{ attendees?: UserIdentity[], publicRead?: boolean }, { id: string, meeting: { Meeting: MeetingInfo }, host: Attendee }>, 
@@ -3165,16 +3166,31 @@ export const schema: SchemaV1 = build_schema({
         name: 'Send Healthie Chat',
         path: '/chat-rooms/send-healthie-chat',
         description: "Marks the conversation read by the authenticated user",
-        parameters: { 
+        parameters: {
           identifier: { validator: stringValidator100, required: true },
           templateId: { validator: mongoIdStringRequired, required: true },
           includeCareTeam: { validator: booleanValidator, required: true },
           enduserId: { validator: mongoIdStringRequired, required: true },
           journeyId: { validator: mongoIdStringRequired },
         },
-        returns: { 
-          room: { validator:  'Room' }, 
+        returns: {
+          room: { validator:  'Room' },
         } as any // add room eventually, when validator defined
+      },
+      load_team_chat: {
+        op: "custom", access: 'read', method: "get",
+        name: 'Load Team Chat',
+        path: '/chat-rooms/load-team-chat',
+        description: "Loads team chat rooms with server-side filtering for rooms where the user is creator, in userIds, or on care team for aboutEnduserId",
+        parameters: {
+          lastUpdatedAt: { validator: dateValidatorOptional },
+          limit: { validator: nonNegNumberValidator },
+          showClosed: { validator: booleanValidatorOptional },
+        },
+        returns: {
+          chat_rooms: { validator: 'chat_rooms' as any },
+          endusers: { validator: 'endusers' as any },
+        }
       },
     },
   },

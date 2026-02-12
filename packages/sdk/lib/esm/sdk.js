@@ -494,6 +494,7 @@ var Session = /** @class */ (function (_super) {
         queries.chat_rooms.display_info = function (a) { return _this._GET("/v1".concat(schema.chat_rooms.customActions.display_info.path), a); };
         queries.chat_rooms.mark_read = function (a) { return _this._POST("/v1".concat(schema.chat_rooms.customActions.mark_read.path), a); };
         queries.chat_rooms.send_healthie_chat = function (a) { return _this._POST("/v1".concat(schema.chat_rooms.customActions.send_healthie_chat.path), a); };
+        queries.chat_rooms.load_team_chat = function (a) { return _this._GET("/v1".concat(schema.chat_rooms.customActions.load_team_chat.path), a); };
         queries.meetings.start_meeting = function (a) { return _this._POST('/v1/start-meeting', a); };
         queries.meetings.end_meeting = function (a) { return _this._POST('/v1/end-meeting', a); };
         queries.meetings.add_attendees_to_meeting = function (a) { return _this._POST('/v1/add-attendees-to-meeting', a); };

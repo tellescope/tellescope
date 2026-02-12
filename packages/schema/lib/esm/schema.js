@@ -1671,6 +1671,21 @@ export var schema = build_schema({
                     room: { validator: 'Room' },
                 } // add room eventually, when validator defined
             },
+            load_team_chat: {
+                op: "custom", access: 'read', method: "get",
+                name: 'Load Team Chat',
+                path: '/chat-rooms/load-team-chat',
+                description: "Loads team chat rooms with server-side filtering for rooms where the user is creator, in userIds, or on care team for aboutEnduserId",
+                parameters: {
+                    lastUpdatedAt: { validator: dateValidatorOptional },
+                    limit: { validator: nonNegNumberValidator },
+                    showClosed: { validator: booleanValidatorOptional },
+                },
+                returns: {
+                    chat_rooms: { validator: 'chat_rooms' },
+                    endusers: { validator: 'endusers' },
+                }
+            },
         },
     },
     chats: {

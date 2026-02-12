@@ -3872,6 +3872,7 @@ type Queries = {
         mark_read: (args: extractFields<CustomActions['chat_rooms']['mark_read']['parameters']>) => (Promise<extractFields<CustomActions['chat_rooms']['mark_read']['returns']>>);
         send_healthie_chat: (args: extractFields<CustomActions['chat_rooms']['send_healthie_chat']['parameters']>) => (Promise<extractFields<CustomActions['chat_rooms']['send_healthie_chat']['returns']>>);
         display_info: (args: extractFields<CustomActions['chat_rooms']['display_info']['parameters']>) => Promise<extractFields<CustomActions['chat_rooms']['display_info']['returns']>>;
+        load_team_chat: (args: extractFields<CustomActions['chat_rooms']['load_team_chat']['parameters']>) => Promise<extractFields<CustomActions['chat_rooms']['load_team_chat']['returns']>>;
     };
     webhooks: {
         configure: (args: {

@@ -80,6 +80,7 @@ import { managed_content_enduser_access_tests } from "./api_tests/managed_conten
 import { auto_merge_form_submission_tests } from "./api_tests/auto_merge_form_submission.test";
 import { database_cascade_delete_tests } from "./api_tests/database_cascade_delete.test";
 import { ai_conversations_tests } from "./api_tests/ai_conversations.test";
+import { load_team_chat_tests } from "./api_tests/load_team_chat.test";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
@@ -13600,6 +13601,7 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await load_team_chat_tests({ sdk, sdkNonAdmin })
     await ai_conversations_tests({ sdk, sdkNonAdmin })
     await inbox_thread_assignment_updates_tests({ sdk, sdkNonAdmin })
     await inbox_thread_draft_scheduled_tests({ sdk, sdkNonAdmin })
