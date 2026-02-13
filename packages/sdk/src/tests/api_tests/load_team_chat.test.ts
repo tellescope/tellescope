@@ -93,6 +93,14 @@ export const load_team_chat_tests = async ({ sdk, sdkNonAdmin }: { sdk: Session,
     title: 'Room with endusers',
   })
 
+  // Room 9: Room with empty string aboutEnduserId (should not crash, user in userIds can see it)
+  const roomWithEmptyAboutEnduserId = await sdk.api.chat_rooms.createOne({
+    type: 'internal',
+    userIds: [sdkNonAdmin.userInfo.id],
+    aboutEnduserId: '' as any, // Empty string should be handled gracefully
+    title: 'Room with empty aboutEnduserId',
+  })
+
   // Wait for timestamps to settle
   await wait(undefined, 500)
 
@@ -183,6 +191,15 @@ export const load_team_chat_tests = async ({ sdk, sdkNonAdmin }: { sdk: Session,
     () => sdkNonAdmin.api.chat_rooms.load_team_chat({}),
     {
       onResult: r => !r.chat_rooms.some(room => room.id === roomWithEndusers.id)
+    }
+  )
+
+  // Test 10b: Room with empty string aboutEnduserId works (doesn't crash)
+  await async_test(
+    "Handles room with empty string aboutEnduserId gracefully",
+    () => sdkNonAdmin.api.chat_rooms.load_team_chat({}),
+    {
+      onResult: r => r.chat_rooms.some(room => room.id === roomWithEmptyAboutEnduserId.id)
     }
   )
 
@@ -447,6 +464,7 @@ export const load_team_chat_tests = async ({ sdk, sdkNonAdmin }: { sdk: Session,
     sdk.api.chat_rooms.deleteOne(closedRoom.id),
     sdk.api.chat_rooms.deleteOne(externalRoom.id),
     sdk.api.chat_rooms.deleteOne(roomWithEndusers.id),
+    sdk.api.chat_rooms.deleteOne(roomWithEmptyAboutEnduserId.id),
     sdk.api.chat_rooms.deleteOne(roomWithUnassignedEnduser.id),
     sdk.api.chat_rooms.deleteOne(roomWithAccessTagEnduser.id),
     sdk.api.endusers.deleteOne(enduserForCareTeam.id),

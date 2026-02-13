@@ -51,7 +51,7 @@ var host = process.env.API_URL || 'http://localhost:8080';
 export var load_team_chat_tests = function (_a) {
     var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
     return __awaiter(void 0, void 0, void 0, function () {
-        var enduserForCareTeam, enduserNotOnCareTeam, roomWithUserInIds, roomWhereUserIsCreator, roomWithCareTeamAccess, roomNoAccessForNonAdmin, roomNoAccessForAdmin, roomNoCareTeamAccess, closedRoom, externalRoom, roomWithEndusers, firstBatch, lastRoom_1, assignedEnduserAccessRole, noEnduserAccessRole, enduserAccessTestEmail, enduserAccessTestUser, _b, enduserNotAssignedToTestUser, roomWithUnassignedEnduser, sdkAssignedAccess, _c, sdkNoEnduserAccess, _d, accessTagTestTag, accessTagRole, accessTagTestEmail, accessTagTestUser, _e, enduserWithAccessTag, roomWithAccessTagEnduser, sdkAccessTagUser, _f;
+        var enduserForCareTeam, enduserNotOnCareTeam, roomWithUserInIds, roomWhereUserIsCreator, roomWithCareTeamAccess, roomNoAccessForNonAdmin, roomNoAccessForAdmin, roomNoCareTeamAccess, closedRoom, externalRoom, roomWithEndusers, roomWithEmptyAboutEnduserId, firstBatch, lastRoom_1, assignedEnduserAccessRole, noEnduserAccessRole, enduserAccessTestEmail, enduserAccessTestUser, _b, enduserNotAssignedToTestUser, roomWithUnassignedEnduser, sdkAssignedAccess, _c, sdkNoEnduserAccess, _d, accessTagTestTag, accessTagRole, accessTagTestEmail, accessTagTestUser, _e, enduserWithAccessTag, roomWithAccessTagEnduser, sdkAccessTagUser, _f;
         var _g, _h, _j;
         return __generator(this, function (_k) {
             switch (_k.label) {
@@ -154,15 +154,25 @@ export var load_team_chat_tests = function (_a) {
                             enduserIds: [enduserForCareTeam.id],
                             title: 'Room with endusers',
                         })
-                        // Wait for timestamps to settle
+                        // Room 9: Room with empty string aboutEnduserId (should not crash, user in userIds can see it)
                     ];
                 case 11:
                     roomWithEndusers = _k.sent();
+                    return [4 /*yield*/, sdk.api.chat_rooms.createOne({
+                            type: 'internal',
+                            userIds: [sdkNonAdmin.userInfo.id],
+                            aboutEnduserId: '',
+                            title: 'Room with empty aboutEnduserId',
+                        })
+                        // Wait for timestamps to settle
+                    ];
+                case 12:
+                    roomWithEmptyAboutEnduserId = _k.sent();
                     // Wait for timestamps to settle
                     return [4 /*yield*/, wait(undefined, 500)
                         // Test 1: Basic loading - rooms where user is in userIds
                     ];
-                case 12:
+                case 13:
                     // Wait for timestamps to settle
                     _k.sent();
                     // Test 1: Basic loading - rooms where user is in userIds
@@ -171,7 +181,7 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Test 2: Creator access
                     ];
-                case 13:
+                case 14:
                     // Test 1: Basic loading - rooms where user is in userIds
                     _k.sent();
                     // Test 2: Creator access
@@ -180,7 +190,7 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Test 3: Care team access
                     ];
-                case 14:
+                case 15:
                     // Test 2: Creator access
                     _k.sent();
                     // Test 3: Care team access
@@ -189,7 +199,7 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Test 4: Returns endusers for aboutEnduserId
                     ];
-                case 15:
+                case 16:
                     // Test 3: Care team access
                     _k.sent();
                     // Test 4: Returns endusers for aboutEnduserId
@@ -198,7 +208,7 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Test 5: Access exclusion - no access room should be excluded for non-admin
                     ];
-                case 16:
+                case 17:
                     // Test 4: Returns endusers for aboutEnduserId
                     _k.sent();
                     // Test 5: Access exclusion - no access room should be excluded for non-admin
@@ -207,7 +217,7 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Test 6: No care team access exclusion
                     ];
-                case 17:
+                case 18:
                     // Test 5: Access exclusion - no access room should be excluded for non-admin
                     _k.sent();
                     // Test 6: No care team access exclusion
@@ -216,7 +226,7 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Test 7: Closed rooms excluded by default
                     ];
-                case 18:
+                case 19:
                     // Test 6: No care team access exclusion
                     _k.sent();
                     // Test 7: Closed rooms excluded by default
@@ -225,7 +235,7 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Test 8: Closed rooms included with showClosed=true
                     ];
-                case 19:
+                case 20:
                     // Test 7: Closed rooms excluded by default
                     _k.sent();
                     // Test 8: Closed rooms included with showClosed=true
@@ -234,7 +244,7 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Test 9: External type excluded
                     ];
-                case 20:
+                case 21:
                     // Test 8: Closed rooms included with showClosed=true
                     _k.sent();
                     // Test 9: External type excluded
@@ -243,18 +253,27 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Test 10: Rooms with enduserIds excluded
                     ];
-                case 21:
+                case 22:
                     // Test 9: External type excluded
                     _k.sent();
                     // Test 10: Rooms with enduserIds excluded
                     return [4 /*yield*/, async_test("Excludes rooms with enduserIds (not team chats)", function () { return sdkNonAdmin.api.chat_rooms.load_team_chat({}); }, {
                             onResult: function (r) { return !r.chat_rooms.some(function (room) { return room.id === roomWithEndusers.id; }); }
                         })
+                        // Test 10b: Room with empty string aboutEnduserId works (doesn't crash)
+                    ];
+                case 23:
+                    // Test 10: Rooms with enduserIds excluded
+                    _k.sent();
+                    // Test 10b: Room with empty string aboutEnduserId works (doesn't crash)
+                    return [4 /*yield*/, async_test("Handles room with empty string aboutEnduserId gracefully", function () { return sdkNonAdmin.api.chat_rooms.load_team_chat({}); }, {
+                            onResult: function (r) { return r.chat_rooms.some(function (room) { return room.id === roomWithEmptyAboutEnduserId.id; }); }
+                        })
                         // Test 11: Admin also filtered to rooms they're involved in
                         // (Admins who need all rooms can use standard GET endpoints)
                     ];
-                case 22:
-                    // Test 10: Rooms with enduserIds excluded
+                case 24:
+                    // Test 10b: Room with empty string aboutEnduserId works (doesn't crash)
                     _k.sent();
                     // Test 11: Admin also filtered to rooms they're involved in
                     // (Admins who need all rooms can use standard GET endpoints)
@@ -263,7 +282,7 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Test 12: Pagination with limit
                     ];
-                case 23:
+                case 25:
                     // Test 11: Admin also filtered to rooms they're involved in
                     // (Admins who need all rooms can use standard GET endpoints)
                     _k.sent();
@@ -273,13 +292,13 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Test 13: Pagination with lastUpdatedAt cursor
                     ];
-                case 24:
+                case 26:
                     // Test 12: Pagination with limit
                     _k.sent();
                     return [4 /*yield*/, sdk.api.chat_rooms.load_team_chat({ limit: 2 })];
-                case 25:
+                case 27:
                     firstBatch = _k.sent();
-                    if (!(firstBatch.chat_rooms.length === 2)) return [3 /*break*/, 27];
+                    if (!(firstBatch.chat_rooms.length === 2)) return [3 /*break*/, 29];
                     lastRoom_1 = firstBatch.chat_rooms[firstBatch.chat_rooms.length - 1];
                     return [4 /*yield*/, async_test("Pagination with lastUpdatedAt returns older rooms", function () { return sdk.api.chat_rooms.load_team_chat({ lastUpdatedAt: new Date(lastRoom_1.updatedAt) }); }, {
                             onResult: function (r) {
@@ -288,10 +307,10 @@ export var load_team_chat_tests = function (_a) {
                                 return !r.chat_rooms.some(function (room) { return firstBatchIds.includes(room.id); });
                             }
                         })];
-                case 26:
+                case 28:
                     _k.sent();
-                    _k.label = 27;
-                case 27: 
+                    _k.label = 29;
+                case 29: 
                 // Test 14: Sorted by updatedAt descending
                 return [4 /*yield*/, async_test("Results sorted by updatedAt descending", function () { return sdk.api.chat_rooms.load_team_chat({}); }, {
                         onResult: function (r) {
@@ -309,7 +328,7 @@ export var load_team_chat_tests = function (_a) {
                     // ============================================
                     // Create a role with "Assigned" enduser access and chat_rooms access
                 ];
-                case 28:
+                case 30:
                     // Test 14: Sorted by updatedAt descending
                     _k.sent();
                     return [4 /*yield*/, sdk.api.role_based_access_permissions.createOne({
@@ -321,7 +340,7 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Create a role with no enduser access but chat_rooms access
                     ];
-                case 29:
+                case 31:
                     assignedEnduserAccessRole = _k.sent();
                     return [4 /*yield*/, sdk.api.role_based_access_permissions.createOne({
                             role: 'No Enduser Access',
@@ -332,18 +351,18 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Create test user for enduser access tests
                     ];
-                case 30:
+                case 32:
                     noEnduserAccessRole = _k.sent();
                     enduserAccessTestEmail = 'team.chat.enduser.access.test@tellescope.com';
                     return [4 /*yield*/, sdk.api.users.getOne({ email: enduserAccessTestEmail }).catch(function () { return null; })];
-                case 31:
-                    _b = (_k.sent());
-                    if (_b) return [3 /*break*/, 33];
-                    return [4 /*yield*/, sdk.api.users.createOne({ email: enduserAccessTestEmail, notificationEmailsDisabled: true, verifiedEmail: true })];
-                case 32:
-                    _b = (_k.sent());
-                    _k.label = 33;
                 case 33:
+                    _b = (_k.sent());
+                    if (_b) return [3 /*break*/, 35];
+                    return [4 /*yield*/, sdk.api.users.createOne({ email: enduserAccessTestEmail, notificationEmailsDisabled: true, verifiedEmail: true })];
+                case 34:
+                    _b = (_k.sent());
+                    _k.label = 35;
+                case 35:
                     enduserAccessTestUser = _b;
                     return [4 /*yield*/, sdk.api.endusers.createOne({
                             fname: 'NotAssigned',
@@ -351,7 +370,7 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Create a room aboutEnduserId pointing to the unassigned enduser, but add test user to userIds
                     ];
-                case 34:
+                case 36:
                     enduserNotAssignedToTestUser = _k.sent();
                     return [4 /*yield*/, sdk.api.chat_rooms.createOne({
                             type: 'internal',
@@ -359,27 +378,27 @@ export var load_team_chat_tests = function (_a) {
                             aboutEnduserId: enduserNotAssignedToTestUser.id,
                             title: 'Room with unassigned enduser',
                         })];
-                case 35:
+                case 37:
                     roomWithUnassignedEnduser = _k.sent();
                     return [4 /*yield*/, wait(undefined, 500)
                         // Test 15: User with "Assigned" enduser access - only sees endusers they're assigned to
                     ];
-                case 36:
+                case 38:
                     _k.sent();
                     // Test 15: User with "Assigned" enduser access - only sees endusers they're assigned to
                     return [4 /*yield*/, sdk.api.users.updateOne(enduserAccessTestUser.id, { roles: [assignedEnduserAccessRole.role] }, { replaceObjectFields: true })];
-                case 37:
+                case 39:
                     // Test 15: User with "Assigned" enduser access - only sees endusers they're assigned to
                     _k.sent();
                     return [4 /*yield*/, wait(undefined, 2000)]; // role change triggers logout
-                case 38:
+                case 40:
                     _k.sent(); // role change triggers logout
                     _c = Session.bind;
                     _g = {
                         host: host
                     };
                     return [4 /*yield*/, sdk.api.users.generate_auth_token({ id: enduserAccessTestUser.id })];
-                case 39:
+                case 41:
                     sdkAssignedAccess = new (_c.apply(Session, [void 0, (_g.authToken = (_k.sent()).authToken,
                             _g)]))();
                     // User can see the chat room (via userIds) but should NOT see the enduser (not assigned)
@@ -392,14 +411,14 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Now assign user to an enduser and verify they CAN see that enduser
                     ];
-                case 40:
+                case 42:
                     // User can see the chat room (via userIds) but should NOT see the enduser (not assigned)
                     _k.sent();
                     // Now assign user to an enduser and verify they CAN see that enduser
                     return [4 /*yield*/, sdk.api.endusers.updateOne(enduserForCareTeam.id, {
                             assignedTo: __spreadArray(__spreadArray([], (enduserForCareTeam.assignedTo || []), true), [enduserAccessTestUser.id], false)
                         })];
-                case 41:
+                case 43:
                     // Now assign user to an enduser and verify they CAN see that enduser
                     _k.sent();
                     return [4 /*yield*/, async_test("Assigned enduser access: sees enduser when assigned", function () { return sdkAssignedAccess.api.chat_rooms.load_team_chat({}); }, {
@@ -412,22 +431,22 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Test 16: User with no enduser access - sees no endusers
                     ];
-                case 42:
+                case 44:
                     _k.sent();
                     // Test 16: User with no enduser access - sees no endusers
                     return [4 /*yield*/, sdk.api.users.updateOne(enduserAccessTestUser.id, { roles: [noEnduserAccessRole.role] }, { replaceObjectFields: true })];
-                case 43:
+                case 45:
                     // Test 16: User with no enduser access - sees no endusers
                     _k.sent();
                     return [4 /*yield*/, wait(undefined, 2000)]; // role change triggers logout
-                case 44:
+                case 46:
                     _k.sent(); // role change triggers logout
                     _d = Session.bind;
                     _h = {
                         host: host
                     };
                     return [4 /*yield*/, sdk.api.users.generate_auth_token({ id: enduserAccessTestUser.id })];
-                case 45:
+                case 47:
                     sdkNoEnduserAccess = new (_d.apply(Session, [void 0, (_h.authToken = (_k.sent()).authToken,
                             _h)]))();
                     return [4 /*yield*/, async_test("No enduser access: sees rooms but no endusers", function () { return sdkNoEnduserAccess.api.chat_rooms.load_team_chat({}); }, {
@@ -439,7 +458,7 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Test 17: Admin (All access) sees all endusers
                     ];
-                case 46:
+                case 48:
                     _k.sent();
                     // Test 17: Admin (All access) sees all endusers
                     return [4 /*yield*/, async_test("Admin (All access): sees all endusers", function () { return sdk.api.chat_rooms.load_team_chat({}); }, {
@@ -452,7 +471,7 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Test 18: Access tags grant enduser visibility (not on care team, but matching access tag)
                     ];
-                case 47:
+                case 49:
                     // Test 17: Admin (All access) sees all endusers
                     _k.sent();
                     accessTagTestTag = 'access-tag-test-team-chat';
@@ -462,7 +481,7 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Create a role with Assigned enduser access (which uses access tags)
                     ];
-                case 48:
+                case 50:
                     // Enable access tags at the organization level
                     _k.sent();
                     return [4 /*yield*/, sdk.api.role_based_access_permissions.createOne({
@@ -474,23 +493,23 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Create a user with the access tag
                     ];
-                case 49:
+                case 51:
                     accessTagRole = _k.sent();
                     accessTagTestEmail = 'team.chat.access.tag.test@tellescope.com';
                     return [4 /*yield*/, sdk.api.users.getOne({ email: accessTagTestEmail }).catch(function () { return null; })];
-                case 50:
+                case 52:
                     _e = (_k.sent());
-                    if (_e) return [3 /*break*/, 52];
+                    if (_e) return [3 /*break*/, 54];
                     return [4 /*yield*/, sdk.api.users.createOne({
                             email: accessTagTestEmail,
                             notificationEmailsDisabled: true,
                             verifiedEmail: true,
                             tags: [accessTagTestTag],
                         })];
-                case 51:
+                case 53:
                     _e = (_k.sent());
-                    _k.label = 52;
-                case 52:
+                    _k.label = 54;
+                case 54:
                     accessTagTestUser = _e;
                     // Ensure user has the tag and role
                     return [4 /*yield*/, sdk.api.users.updateOne(accessTagTestUser.id, {
@@ -499,7 +518,7 @@ export var load_team_chat_tests = function (_a) {
                         }, { replaceObjectFields: true })
                         // Create an enduser with matching access tag (but user is NOT in assignedTo)
                     ];
-                case 53:
+                case 55:
                     // Ensure user has the tag and role
                     _k.sent();
                     return [4 /*yield*/, sdk.api.endusers.createOne({
@@ -510,7 +529,7 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Create a room about the enduser with access tag, add user to userIds
                     ];
-                case 54:
+                case 56:
                     enduserWithAccessTag = _k.sent();
                     return [4 /*yield*/, sdk.api.chat_rooms.createOne({
                             type: 'internal',
@@ -518,19 +537,19 @@ export var load_team_chat_tests = function (_a) {
                             aboutEnduserId: enduserWithAccessTag.id,
                             title: 'Room with access tag enduser',
                         })];
-                case 55:
+                case 57:
                     roomWithAccessTagEnduser = _k.sent();
                     return [4 /*yield*/, wait(undefined, 2000)
                         // Re-authenticate to get the updated JWT with eat (enableAccessTags) flag
                     ]; // role change triggers logout
-                case 56:
+                case 58:
                     _k.sent(); // role change triggers logout
                     _f = Session.bind;
                     _j = {
                         host: host
                     };
                     return [4 /*yield*/, sdk.api.users.generate_auth_token({ id: accessTagTestUser.id })];
-                case 57:
+                case 59:
                     sdkAccessTagUser = new (_f.apply(Session, [void 0, (_j.authToken = (_k.sent()).authToken,
                             _j)]))();
                     return [4 /*yield*/, async_test("Access tags: user sees enduser via matching access tag (not assigned)", function () { return sdkAccessTagUser.api.chat_rooms.load_team_chat({}); }, {
@@ -544,13 +563,13 @@ export var load_team_chat_tests = function (_a) {
                         })
                         // Cleanup - disable access tags before deleting test data
                     ];
-                case 58:
+                case 60:
                     _k.sent();
                     // Cleanup - disable access tags before deleting test data
                     return [4 /*yield*/, sdk.api.organizations.updateOne(sdk.userInfo.businessId, {
                             settings: { endusers: { enableAccessTags: false } }
                         })];
-                case 59:
+                case 61:
                     // Cleanup - disable access tags before deleting test data
                     _k.sent();
                     return [4 /*yield*/, Promise.all([
@@ -563,6 +582,7 @@ export var load_team_chat_tests = function (_a) {
                             sdk.api.chat_rooms.deleteOne(closedRoom.id),
                             sdk.api.chat_rooms.deleteOne(externalRoom.id),
                             sdk.api.chat_rooms.deleteOne(roomWithEndusers.id),
+                            sdk.api.chat_rooms.deleteOne(roomWithEmptyAboutEnduserId.id),
                             sdk.api.chat_rooms.deleteOne(roomWithUnassignedEnduser.id),
                             sdk.api.chat_rooms.deleteOne(roomWithAccessTagEnduser.id),
                             sdk.api.endusers.deleteOne(enduserForCareTeam.id),
@@ -575,7 +595,7 @@ export var load_team_chat_tests = function (_a) {
                             sdk.api.users.deleteOne(enduserAccessTestUser.id),
                             sdk.api.users.deleteOne(accessTagTestUser.id),
                         ])];
-                case 60:
+                case 62:
                     _k.sent();
                     return [2 /*return*/];
             }
