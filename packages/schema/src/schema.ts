@@ -144,6 +144,7 @@ import {
   objectAnyFieldsAnyValuesValidator,
   stringValidator,
   stringValidator100,
+  stringValidator105,
   listOfStringsValidator,
   emailEncodingValidator,
   numberToDateValidator,
@@ -1526,14 +1527,19 @@ export const schema: SchemaV1 = build_schema({
       },
       avatar: {
         validator: stringValidator1000,
-        dependencies: [
-          {
-            dependsOn: ['files'],
-            dependencyField: 'secureName',
-            relationship: 'foreignKey',
-            onDependencyDelete: 'unset',
-          },
-        ]
+        // BUG: This dependency is disabled because handleDeletionForDependencies queries
+        // by file._id instead of file.secureName (the dependencyField is ignored).
+        // Fixing would require: 1) updating the delete handler to use dependencyField,
+        // 2) adding an index on { businessId: 1, avatar: 1 } for endusers collection.
+        // Not worth supporting for now since avatar file deletion is rare.
+        // dependencies: [
+        //   {
+        //     dependsOn: ['files'],
+        //     dependencyField: 'secureName',
+        //     relationship: 'foreignKey',
+        //     onDependencyDelete: 'unset',
+        //   },
+        // ]
       },
       // should allow any gender via API but our UI can limit to Tellescope types by default
       gender: { validator: stringValidator as any, redactions: ['enduser'] },
@@ -3779,14 +3785,19 @@ export const schema: SchemaV1 = build_schema({
       notificationEmailsDisabled: { validator: booleanValidator },
       avatar: {
         validator: stringValidator1000,
-        dependencies: [
-          {
-            dependsOn: ['files'],
-            dependencyField: 'secureName',
-            relationship: 'foreignKey',
-            onDependencyDelete: 'unset',
-          },
-        ]
+        // BUG: This dependency is disabled because handleDeletionForDependencies queries
+        // by file._id instead of file.secureName (the dependencyField is ignored).
+        // Fixing would require: 1) updating the delete handler to use dependencyField,
+        // 2) adding an index on { businessId: 1, avatar: 1 } for users collection.
+        // Not worth supporting for now since avatar file deletion is rare.
+        // dependencies: [
+        //   {
+        //     dependsOn: ['files'],
+        //     dependencyField: 'secureName',
+        //     relationship: 'foreignKey',
+        //     onDependencyDelete: 'unset',
+        //   },
+        // ]
       },
       credentialedStates: {
         validator: stateCredentialsValidator,
@@ -8187,6 +8198,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       directions: { validator: stringValidator },
       pharmacyId: { validator: stringValidator1000 },
       status: { validator: stringValidator },
+      allergyNote: { validator: stringValidator1000 },
       scriptSureDraft: {
         validator: optionalAnyObjectValidator,
       },
@@ -8803,16 +8815,16 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
   },
   prescription_routes: {
     info: {},
-    constraints: { 
-      unique: [], relationship: [], 
-      access: []  
+    constraints: {
+      unique: [], relationship: [],
+      access: []
     },
     defaultActions: DEFAULT_OPERATIONS,
     customActions: {},
     enduserActions: {},
     fields: {
       ...BuiltInFields,
-      title: { validator: stringValidator, required: true, examples: ['Title'] },
+      title: { validator: stringValidator105, required: true, examples: ['Title'] }, // ScriptSure compound title limit: 105 chars
       state: { validator: stateValidator, required: true, examples: ['CA'] },
       templateIds: { validator: listOfStringsValidatorOptionalOrEmptyOk, examples: [['tmp_01GZMD9Q71W7T44812351V9QZN']] },
       pharmacyId: { validator: stringValidator },

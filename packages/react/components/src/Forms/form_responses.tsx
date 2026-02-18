@@ -308,7 +308,7 @@ export const FormResponseView = ({ showAnswerInline=true, logoURL, enduser, onCl
 
       <div style={{ flexDirection: "column", display: 'flex', flex: 1 }}>
       {response.responses.map((r, i) => (
-          <div key={i} style={{ marginBottom: 36 }}>
+          <div key={i} style={{ marginBottom: 36, breakInside: 'avoid' }} data-pdf-block>
             <div style={{ display: 'flex', flex: 1, flexDirection: "row", justifyContent: 'space-between', flexWrap: 'nowrap' }}>
               {r.fieldTitle &&
                 <div style={{ }}>

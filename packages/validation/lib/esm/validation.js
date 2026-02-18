@@ -532,6 +532,14 @@ export var stringValidator100EscapeHTML = {
     getExample: getExampleString,
     getType: getTypeString
 };
+export var stringValidator105 = {
+    validate: function (o) {
+        if (o === void 0) { o = {}; }
+        return build_validator(escapeString(o), __assign(__assign({}, o), { maxLength: 105, listOf: false }));
+    },
+    getExample: getExampleString,
+    getType: getTypeString,
+};
 export var stringValidator210 = {
     validate: function (o) {
         if (o === void 0) { o = {}; }
@@ -1514,7 +1522,7 @@ export var insuranceOptionalValidator = objectValidator({
     startDate: stringValidatorOptional,
 }, { isOptional: true, emptyOk: true });
 export var pharmacyValidator = objectValidator({
-    npi: stringValidator,
+    npi: stringValidatorOptional,
     ncpdpId: stringValidator,
     businessName: stringValidator,
     primaryTelephone: stringValidator,
@@ -5116,6 +5124,7 @@ export var userUIRestrictionsValidator = objectValidator({
     hideNotificationsIcon: booleanValidatorOptional,
     hideBulkEnduserActions: booleanValidatorOptional,
     visibleIntegrations: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
+    hideViewPortalAsEnduser: booleanValidatorOptional,
 }, { emptyOk: true });
 var externalChatGPTMessageValidator = objectValidator({
     role: exactMatchValidator(['assistant', 'user']),

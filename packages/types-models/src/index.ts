@@ -864,7 +864,7 @@ export type EnduserInsurance = {
 }
 
 export type Pharmacy = {
-  npi: string,
+  npi?: string,
   ncpdpId: string,
   businessName: string,
   primaryTelephone: string,
@@ -1066,6 +1066,7 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
   externalOrderId?: string,  // Customer's external order reference (e.g., Shopify order ID, Salesforce case ID)
   reasonForTaking?: string,
   directions?: string,
+  allergyNote?: string,
 
   // Medication status (e.g., 'draft', 'pending', 'active', 'Prescribed')
   status?: string,
@@ -3778,6 +3779,7 @@ export type UserUIRestrictions = {
   hideNotificationsIcon?: boolean,
   hideBulkEnduserActions?: boolean,
   visibleIntegrations?: string[],
+  hideViewPortalAsEnduser?: boolean,
 }
 
 export interface RoleBasedAccessPermission_readonly extends ClientRecord {}

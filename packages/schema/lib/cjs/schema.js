@@ -253,14 +253,19 @@ exports.schema = (0, exports.build_schema)({
                 validator: validation_1.dateValidator,
             }, avatar: {
                 validator: validation_1.stringValidator1000,
-                dependencies: [
-                    {
-                        dependsOn: ['files'],
-                        dependencyField: 'secureName',
-                        relationship: 'foreignKey',
-                        onDependencyDelete: 'unset',
-                    },
-                ]
+                // BUG: This dependency is disabled because handleDeletionForDependencies queries
+                // by file._id instead of file.secureName (the dependencyField is ignored).
+                // Fixing would require: 1) updating the delete handler to use dependencyField,
+                // 2) adding an index on { businessId: 1, avatar: 1 } for endusers collection.
+                // Not worth supporting for now since avatar file deletion is rare.
+                // dependencies: [
+                //   {
+                //     dependsOn: ['files'],
+                //     dependencyField: 'secureName',
+                //     relationship: 'foreignKey',
+                //     onDependencyDelete: 'unset',
+                //   },
+                // ]
             }, 
             // should allow any gender via API but our UI can limit to Tellescope types by default
             gender: { validator: validation_1.stringValidator, redactions: ['enduser'] }, genderIdentity: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, pronouns: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, height: { validator: validation_1.genericUnitWithQuantityValidator, redactions: ['enduser'] }, weight: { validator: validation_1.genericUnitWithQuantityValidator, redactions: ['enduser'] }, source: { validator: validation_1.stringValidator1000Optional }, addressLineOne: { validator: validation_1.stringValidator5000EmptyOkay, redactions: ['enduser'] }, addressLineTwo: { validator: validation_1.stringValidator5000EmptyOkay, redactions: ['enduser'] }, city: { validator: validation_1.stringValidator5000EmptyOkay, redactions: ['enduser'] }, state: { validator: validation_1.stateValidator, redactions: ['enduser'] }, zipCode: { validator: validation_1.stringValidator25000EmptyOkay, redactions: ['enduser'] }, zipPlusFour: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, timezone: { validator: validation_1.timezoneValidator }, humanReadableId: { validator: validation_1.stringValidator100 }, displayName: { validator: validation_1.stringValidator250 }, unsubscribedFromPortalChatNotifications: { validator: validation_1.booleanValidator }, triggeredEvents: { validator: (0, validation_1.objectAnyFieldsValidator)(validation_1.numberValidator) }, customTypeId: { validator: validation_1.mongoIdStringRequired }, language: { validator: validation_1.languageValidator }, relationships: {
@@ -2270,14 +2275,19 @@ exports.schema = (0, exports.build_schema)({
                 redactions: ['enduser'],
             }, notificationEmailsDisabled: { validator: validation_1.booleanValidator }, avatar: {
                 validator: validation_1.stringValidator1000,
-                dependencies: [
-                    {
-                        dependsOn: ['files'],
-                        dependencyField: 'secureName',
-                        relationship: 'foreignKey',
-                        onDependencyDelete: 'unset',
-                    },
-                ]
+                // BUG: This dependency is disabled because handleDeletionForDependencies queries
+                // by file._id instead of file.secureName (the dependencyField is ignored).
+                // Fixing would require: 1) updating the delete handler to use dependencyField,
+                // 2) adding an index on { businessId: 1, avatar: 1 } for users collection.
+                // Not worth supporting for now since avatar file deletion is rare.
+                // dependencies: [
+                //   {
+                //     dependsOn: ['files'],
+                //     dependencyField: 'secureName',
+                //     relationship: 'foreignKey',
+                //     onDependencyDelete: 'unset',
+                //   },
+                // ]
             }, credentialedStates: {
                 validator: validation_1.stateCredentialsValidator,
             }, timezone: { validator: validation_1.timezoneValidator }, weeklyAvailabilities: { validator: validation_1.weeklyAvailabilitiesValidator }, calendarEventLimits: { validator: validation_1.calendarEventLimitsValidator }, autoReplyEnabled: { validator: validation_1.booleanValidatorOptional }, pushNotificationIosTokens: { validator: validation_1.listOfStringsValidatorEmptyOk }, pushNotificationFirebaseTokens: { validator: validation_1.listOfStringsValidatorEmptyOk }, callRouting: { validator: validation_1.userCallRoutingBehaviorValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, emailSignature: { validator: validation_1.stringValidator1000 }, disableTicketAutoAssignment: { validator: validation_1.booleanValidator }, ticketAssignmentPriority: { validator: validation_1.nonNegNumberValidator }, specialties: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, bio: { validator: validation_1.stringValidator25000EmptyOkay }, TIN: { validator: validation_1.stringValidatorOptionalEmptyOkay }, NPI: { validator: validation_1.stringValidatorOptionalEmptyOkay }, DEA: { validator: validation_1.stringValidatorOptionalEmptyOkay }, voicemailPlayback: { validator: validation_1.phonePlaybackValidatorOptional }, lockedOutUntil: { validator: validation_1.numberValidator }, failedLoginAttempts: { validator: validation_1.nonNegNumberValidator }, iOSBadgeCount: { validator: validation_1.nonNegNumberValidator }, availableFromNumbers: { validator: validation_1.listOfStringsValidatorEmptyOk }, availableFromEmails: { validator: validation_1.listOfStringsValidatorEmptyOk }, doseSpotUserId: { validator: validation_1.stringValidator100 }, scriptSurePrescriberId: { validator: validation_1.stringValidator100 }, isScriptsureProvider: { validator: validation_1.booleanValidatorOptional }, url: { validator: validation_1.stringValidator1000 }, templateFields: {
@@ -5678,7 +5688,7 @@ exports.schema = (0, exports.build_schema)({
                     frequencyDescriptor: validation_1.stringValidatorOptional,
                     description: validation_1.stringValidatorOptional,
                 }),
-            }, source: { validator: validation_1.stringValidator1000Optional }, externalId: { validator: validation_1.stringValidator250 }, notes: { validator: validation_1.stringValidator }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, orderStatus: { validator: validation_1.stringValidator1000 }, externalOrderId: { validator: validation_1.stringValidator250 }, pharmacyName: { validator: validation_1.stringValidator1000 }, prescriberName: { validator: validation_1.stringValidator1000 }, reasonForTaking: { validator: validation_1.stringValidator }, directions: { validator: validation_1.stringValidator }, pharmacyId: { validator: validation_1.stringValidator1000 }, status: { validator: validation_1.stringValidator }, scriptSureDraft: {
+            }, source: { validator: validation_1.stringValidator1000Optional }, externalId: { validator: validation_1.stringValidator250 }, notes: { validator: validation_1.stringValidator }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, orderStatus: { validator: validation_1.stringValidator1000 }, externalOrderId: { validator: validation_1.stringValidator250 }, pharmacyName: { validator: validation_1.stringValidator1000 }, prescriberName: { validator: validation_1.stringValidator1000 }, reasonForTaking: { validator: validation_1.stringValidator }, directions: { validator: validation_1.stringValidator }, pharmacyId: { validator: validation_1.stringValidator1000 }, status: { validator: validation_1.stringValidator }, allergyNote: { validator: validation_1.stringValidator1000 }, scriptSureDraft: {
                 validator: validation_1.optionalAnyObjectValidator,
             } })
     },
@@ -6149,7 +6159,7 @@ exports.schema = (0, exports.build_schema)({
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { title: { validator: validation_1.stringValidator, required: true, examples: ['Title'] }, state: { validator: validation_1.stateValidator, required: true, examples: ['CA'] }, templateIds: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk, examples: [['tmp_01GZMD9Q71W7T44812351V9QZN']] }, pharmacyId: { validator: validation_1.stringValidator }, pharmacyLabel: { validator: validation_1.stringValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, source: { validator: validation_1.stringValidator100, }, drugId: { validator: validation_1.stringValidator }, ndc: { validator: validation_1.stringValidator100 }, 
+        fields: __assign(__assign({}, BuiltInFields), { title: { validator: validation_1.stringValidator105, required: true, examples: ['Title'] }, state: { validator: validation_1.stateValidator, required: true, examples: ['CA'] }, templateIds: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk, examples: [['tmp_01GZMD9Q71W7T44812351V9QZN']] }, pharmacyId: { validator: validation_1.stringValidator }, pharmacyLabel: { validator: validation_1.stringValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, source: { validator: validation_1.stringValidator100, }, drugId: { validator: validation_1.stringValidator }, ndc: { validator: validation_1.stringValidator100 }, 
             // Compound-specific fields (for ScriptSure compound orders)
             compoundQuantity: { validator: validation_1.nonNegNumberValidator }, compoundQuantityQualifier: { validator: validation_1.stringValidator100 }, sig: { validator: validation_1.stringValidator }, pharmacyNote: { validator: validation_1.stringValidator210 }, controlledSubstance: { validator: (0, validation_1.exactMatchValidatorOptional)(['0', '2', '3', '4', '5']) } }),
     },

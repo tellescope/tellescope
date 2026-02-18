@@ -798,7 +798,7 @@ export type EnduserInsurance = {
     startDate?: string;
 };
 export type Pharmacy = {
-    npi: string;
+    npi?: string;
     ncpdpId: string;
     businessName: string;
     primaryTelephone: string;
@@ -1002,6 +1002,7 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
     externalOrderId?: string;
     reasonForTaking?: string;
     directions?: string;
+    allergyNote?: string;
     status?: string;
     scriptSureDraft?: {
         prescriptionRouteId?: string;
@@ -3765,6 +3766,7 @@ export type UserUIRestrictions = {
     hideNotificationsIcon?: boolean;
     hideBulkEnduserActions?: boolean;
     visibleIntegrations?: string[];
+    hideViewPortalAsEnduser?: boolean;
 };
 export interface RoleBasedAccessPermission_readonly extends ClientRecord {
 }

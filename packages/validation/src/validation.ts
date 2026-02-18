@@ -954,10 +954,17 @@ export const stringValidator100: ValidatorDefinition<string> = {
 }
 export const stringValidator100EscapeHTML: ValidatorDefinition<string> = {
   validate: (o={}) => build_validator(
-    escapeString(o), { ...o, maxLength: 100, listOf: false, escapeHTML: true } 
+    escapeString(o), { ...o, maxLength: 100, listOf: false, escapeHTML: true }
   ),
   getExample: getExampleString,
   getType: getTypeString
+}
+export const stringValidator105: ValidatorDefinition<string> = {
+  validate: (o={}) => build_validator(
+    escapeString(o), { ...o, maxLength: 105, listOf: false }
+  ),
+  getExample: getExampleString,
+  getType: getTypeString,
 }
 
 export const stringValidator210: ValidatorDefinition<string> = {
@@ -1984,7 +1991,7 @@ export const insuranceOptionalValidator = objectValidator<EnduserInsurance>({
 }, { isOptional: true, emptyOk: true })
 
 export const pharmacyValidator = objectValidator<Pharmacy>({
-  npi: stringValidator,
+  npi: stringValidatorOptional,
   ncpdpId: stringValidator,
   businessName: stringValidator,
   primaryTelephone: stringValidator,
@@ -6059,6 +6066,7 @@ export const userUIRestrictionsValidator = objectValidator<UserUIRestrictions>({
   hideNotificationsIcon: booleanValidatorOptional,
   hideBulkEnduserActions: booleanValidatorOptional,
   visibleIntegrations: listOfStringsValidatorUniqueOptionalOrEmptyOkay,
+  hideViewPortalAsEnduser: booleanValidatorOptional,
 }, { emptyOk: true })
 
 const externalChatGPTMessageValidator = objectValidator<ExternalChatGPTMessage>({
