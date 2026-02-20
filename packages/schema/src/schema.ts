@@ -8833,6 +8833,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       source: { validator: stringValidator100, },
       drugId: { validator: stringValidator },
       ndc: { validator: stringValidator100 }, // National Drug Code
+      quantity: { validator: nonNegNumberValidator }, // Quantity for non-compound medications
       // Compound-specific fields (for ScriptSure compound orders)
       compoundQuantity: { validator: nonNegNumberValidator },
       compoundQuantityQualifier: { validator: stringValidator100 },
@@ -9248,7 +9249,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     fields: {
       ...BuiltInFields,
       type: { validator: stringValidator, required: true, examples: ['HTML Template Generation'] },
-      modelName: { validator: stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5'] },
+      modelName: { validator: stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5', 'Claude Sonnet 4.6'] },
       orchestrationId: { validator: stringValidatorOptional, examples: ['workflow-123', 'batch-456'] },
       messages: {
         validator: listValidatorEmptyOk(objectValidator<AIConversationMessage>({

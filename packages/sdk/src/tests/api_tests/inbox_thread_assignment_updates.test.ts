@@ -661,6 +661,170 @@ export const inbox_thread_assignment_updates_tests = async ({ sdk, sdkNonAdmin }
       sdk.api.inbox_threads.deleteOne(statusTestThread!.id),
     ])
 
+    // ========== ReadBy Preservation Tests ==========
+    // These tests verify that outbound messages do NOT reset readBy
+
+    // Test 29: Outbound SMS should NOT reset readBy
+    console.log("Testing outbound SMS should NOT reset readBy...")
+
+    const readByTestSMS1 = await sdk.api.sms_messages.createOne({
+      message: "Inbound test message for readBy test",
+      enduserId: testEnduser.id,
+      inbound: true,
+      phoneNumber: "+15555558888",
+      enduserPhoneNumber: "+15555558765",
+      logOnly: true,
+    })
+
+    // Build threads
+    const readByTestFrom = new Date(Date.now() - 60000)
+    await sdk.api.inbox_threads.reset_threads()
+    await sdk.api.inbox_threads.build_threads({ from: readByTestFrom, to: new Date() })
+
+    const readByTestThreads = await sdk.api.inbox_threads.load_threads({})
+    const readByTestThread = readByTestThreads.threads.find(t =>
+      t.type === 'SMS' && t.enduserIds.includes(testEnduser.id) && t.phoneNumber === "+15555558888"
+    )
+    assert(!!readByTestThread, "readBy test SMS thread should be created")
+
+    // Mark thread as read
+    await sdk.api.inbox_threads.updateOne(readByTestThread!.id, {
+      readBy: { [sdk.userInfo.id]: new Date() }
+    })
+
+    // Verify thread is marked as read
+    const threadAfterRead = (await sdk.api.inbox_threads.load_threads({ ids: [readByTestThread!.id] })).threads[0]
+    assert(!!threadAfterRead.readBy?.[sdk.userInfo.id], "Thread should be marked as read")
+
+    // Create outbound SMS (should NOT reset readBy)
+    const readByTestSMS2 = await sdk.api.sms_messages.createOne({
+      message: "Outbound reply - should not reset readBy",
+      enduserId: testEnduser.id,
+      inbound: false,
+      phoneNumber: "+15555558888",
+      enduserPhoneNumber: "+15555558765",
+      logOnly: true,
+    })
+
+    // Rebuild threads - readBy should remain set
+    await sdk.api.inbox_threads.build_threads({ from: readByTestFrom, to: new Date() })
+
+    const smsThreadAfterOutbound = (await sdk.api.inbox_threads.load_threads({ ids: [readByTestThread!.id] })).threads[0]
+    assert(!!smsThreadAfterOutbound.readBy?.[sdk.userInfo.id], `readBy should remain set after outbound message, got ${JSON.stringify(smsThreadAfterOutbound.readBy)}`)
+    assert(!!smsThreadAfterOutbound.outboundTimestamp, "outboundTimestamp should be set after outbound message")
+
+    console.log("✅ Outbound SMS does NOT reset readBy test passed")
+
+    // Test 30: New inbound SMS SHOULD clear readBy
+    console.log("Testing new inbound SMS SHOULD clear readBy...")
+
+    // Wait for different timestamp
+    await new Promise(resolve => setTimeout(resolve, 1100))
+
+    const readByTestSMS3 = await sdk.api.sms_messages.createOne({
+      message: "New inbound - should clear readBy",
+      enduserId: testEnduser.id,
+      inbound: true,
+      phoneNumber: "+15555558888",
+      enduserPhoneNumber: "+15555558765",
+      logOnly: true,
+    })
+
+    // Rebuild threads - readBy SHOULD be cleared
+    await sdk.api.inbox_threads.build_threads({ from: readByTestFrom, to: new Date() })
+
+    const smsThreadAfterNewInbound = (await sdk.api.inbox_threads.load_threads({ ids: [readByTestThread!.id] })).threads[0]
+    assert(!smsThreadAfterNewInbound.readBy?.[sdk.userInfo.id], `readBy SHOULD be cleared after new inbound message, got ${JSON.stringify(smsThreadAfterNewInbound.readBy)}`)
+
+    console.log("✅ New inbound SMS DOES clear readBy test passed")
+
+    // Cleanup SMS readBy tests
+    await Promise.all([
+      sdk.api.sms_messages.deleteOne(readByTestSMS1.id),
+      sdk.api.sms_messages.deleteOne(readByTestSMS2.id),
+      sdk.api.sms_messages.deleteOne(readByTestSMS3.id),
+      sdk.api.inbox_threads.deleteOne(readByTestThread!.id),
+    ])
+
+    // Test 31: Outbound Email should NOT reset readBy
+    console.log("Testing outbound Email should NOT reset readBy...")
+
+    const readByTestEmail1 = await sdk.api.emails.createOne({
+      subject: "Inbound test email for readBy test",
+      textContent: "Test inbound email content",
+      enduserId: testEnduser.id,
+      inbound: true,
+      logOnly: true,
+    })
+
+    // Build threads
+    const readByEmailTestFrom = new Date(Date.now() - 60000)
+    await sdk.api.inbox_threads.reset_threads()
+    await sdk.api.inbox_threads.build_threads({ from: readByEmailTestFrom, to: new Date() })
+
+    const readByEmailTestThreads = await sdk.api.inbox_threads.load_threads({})
+    const readByEmailTestThread = readByEmailTestThreads.threads.find(t =>
+      t.type === 'Email' && t.enduserIds.includes(testEnduser.id)
+    )
+    assert(!!readByEmailTestThread, "readBy test Email thread should be created")
+
+    // Mark thread as read
+    await sdk.api.inbox_threads.updateOne(readByEmailTestThread!.id, {
+      readBy: { [sdk.userInfo.id]: new Date() }
+    })
+
+    // Verify thread is marked as read
+    const emailThreadAfterRead = (await sdk.api.inbox_threads.load_threads({ ids: [readByEmailTestThread!.id] })).threads[0]
+    assert(!!emailThreadAfterRead.readBy?.[sdk.userInfo.id], "Email thread should be marked as read")
+
+    // Create outbound Email (should NOT reset readBy)
+    const readByTestEmail2 = await sdk.api.emails.createOne({
+      subject: "Re: Inbound test email for readBy test",
+      textContent: "Outbound reply - should not reset readBy",
+      enduserId: testEnduser.id,
+      inbound: false,
+      logOnly: true,
+    })
+
+    // Rebuild threads - readBy should remain set
+    await sdk.api.inbox_threads.build_threads({ from: readByEmailTestFrom, to: new Date() })
+
+    const emailThreadAfterOutbound = (await sdk.api.inbox_threads.load_threads({ ids: [readByEmailTestThread!.id] })).threads[0]
+    assert(!!emailThreadAfterOutbound.readBy?.[sdk.userInfo.id], `Email readBy should remain set after outbound message, got ${JSON.stringify(emailThreadAfterOutbound.readBy)}`)
+    assert(!!emailThreadAfterOutbound.outboundTimestamp, "outboundTimestamp should be set after outbound email")
+
+    console.log("✅ Outbound Email does NOT reset readBy test passed")
+
+    // Test 32: New inbound Email SHOULD clear readBy
+    console.log("Testing new inbound Email SHOULD clear readBy...")
+
+    // Wait for different timestamp
+    await new Promise(resolve => setTimeout(resolve, 1100))
+
+    const readByTestEmail3 = await sdk.api.emails.createOne({
+      subject: "Re: Inbound test email for readBy test",
+      textContent: "New inbound - should clear readBy",
+      enduserId: testEnduser.id,
+      inbound: true,
+      logOnly: true,
+    })
+
+    // Rebuild threads - readBy SHOULD be cleared
+    await sdk.api.inbox_threads.build_threads({ from: readByEmailTestFrom, to: new Date() })
+
+    const emailThreadAfterNewInbound = (await sdk.api.inbox_threads.load_threads({ ids: [readByEmailTestThread!.id] })).threads[0]
+    assert(!emailThreadAfterNewInbound.readBy?.[sdk.userInfo.id], `Email readBy SHOULD be cleared after new inbound message, got ${JSON.stringify(emailThreadAfterNewInbound.readBy)}`)
+
+    console.log("✅ New inbound Email DOES clear readBy test passed")
+
+    // Cleanup Email readBy tests
+    await Promise.all([
+      sdk.api.emails.deleteOne(readByTestEmail1.id),
+      sdk.api.emails.deleteOne(readByTestEmail2.id),
+      sdk.api.emails.deleteOne(readByTestEmail3.id),
+      sdk.api.inbox_threads.deleteOne(readByEmailTestThread!.id),
+    ])
+
     console.log("🎉 All InboxThread assignment update tests passed!")
 
   } finally {

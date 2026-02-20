@@ -5032,6 +5032,7 @@ export interface PrescriptionRoute extends PrescriptionRoute_readonly, Prescript
   source?: string, // 'Photon' | 'ScriptSure',
   drugId?: string,
   ndc?: string, // National Drug Code (for non-compound ScriptSure orders)
+  quantity?: number, // Quantity for non-compound medications (defaults to 30 if not specified)
   // Compound-specific fields (for ScriptSure compound orders)
   compoundQuantity?: number,          // e.g., 10
   compoundQuantityQualifier?: string, // NCPDP code e.g., "C64933" for Each

@@ -6154,7 +6154,7 @@ export var schema = build_schema({
         defaultActions: DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { title: { validator: stringValidator105, required: true, examples: ['Title'] }, state: { validator: stateValidator, required: true, examples: ['CA'] }, templateIds: { validator: listOfStringsValidatorOptionalOrEmptyOk, examples: [['tmp_01GZMD9Q71W7T44812351V9QZN']] }, pharmacyId: { validator: stringValidator }, pharmacyLabel: { validator: stringValidator }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, source: { validator: stringValidator100, }, drugId: { validator: stringValidator }, ndc: { validator: stringValidator100 }, 
+        fields: __assign(__assign({}, BuiltInFields), { title: { validator: stringValidator105, required: true, examples: ['Title'] }, state: { validator: stateValidator, required: true, examples: ['CA'] }, templateIds: { validator: listOfStringsValidatorOptionalOrEmptyOk, examples: [['tmp_01GZMD9Q71W7T44812351V9QZN']] }, pharmacyId: { validator: stringValidator }, pharmacyLabel: { validator: stringValidator }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, source: { validator: stringValidator100, }, drugId: { validator: stringValidator }, ndc: { validator: stringValidator100 }, quantity: { validator: nonNegNumberValidator }, 
             // Compound-specific fields (for ScriptSure compound orders)
             compoundQuantity: { validator: nonNegNumberValidator }, compoundQuantityQualifier: { validator: stringValidator100 }, sig: { validator: stringValidator }, pharmacyNote: { validator: stringValidator210 }, controlledSubstance: { validator: exactMatchValidatorOptional(['0', '2', '3', '4', '5']) } }),
     },
@@ -6446,7 +6446,7 @@ export var schema = build_schema({
                 returns: {},
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { type: { validator: stringValidator, required: true, examples: ['HTML Template Generation'] }, modelName: { validator: stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5'] }, orchestrationId: { validator: stringValidatorOptional, examples: ['workflow-123', 'batch-456'] }, messages: {
+        fields: __assign(__assign({}, BuiltInFields), { type: { validator: stringValidator, required: true, examples: ['HTML Template Generation'] }, modelName: { validator: stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5', 'Claude Sonnet 4.6'] }, orchestrationId: { validator: stringValidatorOptional, examples: ['workflow-123', 'batch-456'] }, messages: {
                 validator: listValidatorEmptyOk(objectValidator({
                     role: exactMatchValidator(['user', 'assistant']),
                     text: stringValidator25000,

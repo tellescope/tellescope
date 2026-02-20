@@ -6159,7 +6159,7 @@ exports.schema = (0, exports.build_schema)({
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { title: { validator: validation_1.stringValidator105, required: true, examples: ['Title'] }, state: { validator: validation_1.stateValidator, required: true, examples: ['CA'] }, templateIds: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk, examples: [['tmp_01GZMD9Q71W7T44812351V9QZN']] }, pharmacyId: { validator: validation_1.stringValidator }, pharmacyLabel: { validator: validation_1.stringValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, source: { validator: validation_1.stringValidator100, }, drugId: { validator: validation_1.stringValidator }, ndc: { validator: validation_1.stringValidator100 }, 
+        fields: __assign(__assign({}, BuiltInFields), { title: { validator: validation_1.stringValidator105, required: true, examples: ['Title'] }, state: { validator: validation_1.stateValidator, required: true, examples: ['CA'] }, templateIds: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk, examples: [['tmp_01GZMD9Q71W7T44812351V9QZN']] }, pharmacyId: { validator: validation_1.stringValidator }, pharmacyLabel: { validator: validation_1.stringValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, source: { validator: validation_1.stringValidator100, }, drugId: { validator: validation_1.stringValidator }, ndc: { validator: validation_1.stringValidator100 }, quantity: { validator: validation_1.nonNegNumberValidator }, 
             // Compound-specific fields (for ScriptSure compound orders)
             compoundQuantity: { validator: validation_1.nonNegNumberValidator }, compoundQuantityQualifier: { validator: validation_1.stringValidator100 }, sig: { validator: validation_1.stringValidator }, pharmacyNote: { validator: validation_1.stringValidator210 }, controlledSubstance: { validator: (0, validation_1.exactMatchValidatorOptional)(['0', '2', '3', '4', '5']) } }),
     },
@@ -6451,7 +6451,7 @@ exports.schema = (0, exports.build_schema)({
                 returns: {},
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { type: { validator: validation_1.stringValidator, required: true, examples: ['HTML Template Generation'] }, modelName: { validator: validation_1.stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5'] }, orchestrationId: { validator: validation_1.stringValidatorOptional, examples: ['workflow-123', 'batch-456'] }, messages: {
+        fields: __assign(__assign({}, BuiltInFields), { type: { validator: validation_1.stringValidator, required: true, examples: ['HTML Template Generation'] }, modelName: { validator: validation_1.stringValidator, required: true, examples: ['Claude Sonnet 4', 'Claude Sonnet 4.5', 'Claude Sonnet 4.6'] }, orchestrationId: { validator: validation_1.stringValidatorOptional, examples: ['workflow-123', 'batch-456'] }, messages: {
                 validator: (0, validation_1.listValidatorEmptyOk)((0, validation_1.objectValidator)({
                     role: (0, validation_1.exactMatchValidator)(['user', 'assistant']),
                     text: validation_1.stringValidator25000,
