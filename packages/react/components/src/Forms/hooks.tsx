@@ -773,9 +773,21 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
     return activeField
   }, [activeField, templatedResponses])
 
+  const activeResponses = templatedResponses.filter(r => r.includeInSubmit)
+
+  // Include Question Group sub-field responses for scoring
+  for (const r of activeResponses) {
+    if (r?.answer?.type !== 'Question Group') continue
+    for (const f of (r.answer.value ?? []) as { id: string }[]) {
+      const match = templatedResponses.find(tr => tr.fieldId === f?.id)
+      if (!match || activeResponses.find(ar => ar.fieldId === match.fieldId)) continue
+      activeResponses.push(match)
+    }
+  }
+
   const logicOptions: NextFieldLogicOptions = {
     urlLogicValue,
-    activeResponses: templatedResponses.filter(r => r.includeInSubmit),
+    activeResponses,
     dateOfBirth: enduser?.dateOfBirth,
     gender: enduser?.gender,
     state: enduser?.state,

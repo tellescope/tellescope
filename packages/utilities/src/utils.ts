@@ -1307,31 +1307,10 @@ export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Endu
           const v = Object.values(value)[0]
 
           if (key === 'Journeys' && (k === '$in' || k === '$nin')) {
-            const isInJourney = enduser?.journeys?.[v] !== undefined 
+            const isInJourney = enduser?.journeys?.[v] !== undefined
             return (
                  (k === '$in'  && isInJourney)
               || (k === "$nin" && !isInJourney)
-            )
-          }
-
-          if (k === '$before' || k === '$after') {
-            const vDate = v === '$now' ? new Date() : new Date(v)
-            if (isNaN(vDate.getTime())) return false
-
-            const eDateField = enduser.fields?.[key] ?? get_enduser_field_value_for_key(enduser, key)
-            if (!eDateField) return false
-            if (typeof eDateField !== 'string') return false
-
-            const eDate = (
-              (eDateField.includes('-') && eDateField.length === 10)
-                ? new Date(MM_DD_YYYY_to_YYYY_MM_DD(eDateField))
-                : new Date(eDateField)
-            )
-            if (isNaN(eDate.getTime())) return false
-
-            return (
-               (k === '$before' && eDate.getTime() < vDate.getTime())
-            || (k === '$after' && eDate.getTime() > vDate.getTime())
             )
           }
 
@@ -1383,10 +1362,48 @@ export const evaluate_conditional_logic_for_enduser_fields = (enduser: Omit<Endu
           if (k === '$ne') {
             const enduserValue = (enduser.fields?.[key] ?? get_enduser_field_value_for_key(enduser, key))
             return !(
-              enduserValue === v 
+              enduserValue === v
               || (
                 Array.isArray(enduserValue) && (enduserValue).includes(v)
               )
+            )
+          }
+
+          // Find $before/$after operator regardless of key order (resilient to $offsetMs appearing first)
+          // Placed at end of operator chain so other operators get evaluated first if they share keys
+          const dateOperator = Object.keys(value).find(k => k === '$before' || k === '$after') as '$before' | '$after' | undefined
+          if (dateOperator) {
+            const dateValue = value[dateOperator]
+            let vDate = dateValue === '$now' ? new Date() : new Date(dateValue)
+            if (isNaN(vDate.getTime())) return false
+
+            // Apply offset to comparison date if specified
+            const offsetMs = value?.['$offsetMs']
+            if (typeof offsetMs === 'number') {
+              vDate = new Date(vDate.getTime() + offsetMs)
+            }
+
+            const eDateField = enduser.fields?.[key] ?? get_enduser_field_value_for_key(enduser, key)
+            if (!eDateField) return false
+
+            // Handle Date objects (from MongoDB), ISO strings, and MM-DD-YYYY strings
+            let eDate: Date
+            if (eDateField instanceof Date) {
+              eDate = eDateField
+            } else if (typeof eDateField === 'string') {
+              eDate = (
+                (eDateField.includes('-') && eDateField.length === 10)
+                  ? new Date(MM_DD_YYYY_to_YYYY_MM_DD(eDateField))
+                  : new Date(eDateField)
+              )
+            } else {
+              return false
+            }
+            if (isNaN(eDate.getTime())) return false
+
+            return (
+               (dateOperator === '$before' && eDate.getTime() < vDate.getTime())
+            || (dateOperator === '$after' && eDate.getTime() > vDate.getTime())
             )
           }
 

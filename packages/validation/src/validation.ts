@@ -332,6 +332,7 @@ import {
   RemoveCareTeamAutomationAction,
   CallUserAutomationAction,
   StripeChargeCardOnFileAutomationAction,
+  StripeCancelSubscriptionAutomationAction,
   FormResponseAnswerTimezone,
   BrandedWebhookActions,
   OutOfOfficeBlock,
@@ -2564,6 +2565,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   removeCareTeam: '',
   callUser: '',
   stripeChargeCardOnFile: '',
+  stripeCancelSubscription: '',
   metriportSync: '',
   aiDecision: '',
   assignInboxItem: '',
@@ -3378,6 +3380,16 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       productIds: listOfStringsValidatorOptionalOrEmptyOk,
       subscriptionPriceId: stringValidatorOptionalEmptyOkay,
     }, { emptyOk: false }) // at least tags is required
+  }),
+  stripeCancelSubscription: objectValidator<StripeCancelSubscriptionAutomationAction>({
+    ...sharedAutomationActionValidators,
+    type: exactMatchValidator(['stripeCancelSubscription']),
+    info: objectValidator<StripeCancelSubscriptionAutomationAction['info']>({
+      stripeKey: stringValidatorOptionalEmptyOkay,
+      metadataKey: stringValidator100,
+      metadataValue: stringValidator100,
+      cancelImmediately: booleanValidatorOptional,
+    }, { emptyOk: false })
   }),
   aiDecision: objectValidator<AIDecisionAutomationAction>({
     ...sharedAutomationActionValidators,
@@ -4638,6 +4650,16 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
 }
 export const AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES) as AutomationTriggerEventType[]
 
+// Deprecated event types - not available for new triggers
+export const DEPRECATED_AUTOMATION_TRIGGER_EVENT_TYPES: AutomationTriggerEventType[] = [
+  'Form Unsubmitted'
+]
+
+// Active event types for UI when creating new triggers
+export const ACTIVE_AUTOMATION_TRIGGER_EVENT_TYPES = AUTOMATION_TRIGGER_EVENT_TYPES.filter(
+  t => !DEPRECATED_AUTOMATION_TRIGGER_EVENT_TYPES.includes(t)
+) as AutomationTriggerEventType[]
+
 export const automationTriggerEventValidator = orValidator<{ [K in AutomationTriggerEventType]: AutomationTriggerEvents[K] } >({
   "Form Submitted": objectValidator<AutomationTriggerEvents["Form Submitted"]>({
     type: exactMatchValidator(['Form Submitted']),
@@ -4665,6 +4687,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['Form Started']),
     info: objectValidator<AutomationTriggerEvents['Form Started']['info']>({
       formIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+      sources: listValidatorOptionalOrEmptyOk(exactMatchValidator(['Public Form', 'Formsort'])),
     }),
     conditions: optionalEmptyObjectValidator,
   }), 

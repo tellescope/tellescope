@@ -2034,6 +2034,7 @@ var _AUTOMATION_ACTIONS = {
     removeCareTeam: '',
     callUser: '',
     stripeChargeCardOnFile: '',
+    stripeCancelSubscription: '',
     metriportSync: '',
     aiDecision: '',
     assignInboxItem: '',
@@ -2578,6 +2579,12 @@ export var automationActionValidator = orValidator({
             subscriptionPriceId: stringValidatorOptionalEmptyOkay,
         }, { emptyOk: false }) // at least tags is required
      })),
+    stripeCancelSubscription: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['stripeCancelSubscription']), info: objectValidator({
+            stripeKey: stringValidatorOptionalEmptyOkay,
+            metadataKey: stringValidator100,
+            metadataValue: stringValidator100,
+            cancelImmediately: booleanValidatorOptional,
+        }, { emptyOk: false }) })),
     aiDecision: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['aiDecision']), info: objectValidator({
             outcomes: listOfStringsValidator,
             prompt: stringValidator5000,
@@ -3756,6 +3763,12 @@ var _AUTOMATION_TRIGGER_EVENT_TYPES = {
     "File Added": true,
 };
 export var AUTOMATION_TRIGGER_EVENT_TYPES = Object.keys(_AUTOMATION_TRIGGER_EVENT_TYPES);
+// Deprecated event types - not available for new triggers
+export var DEPRECATED_AUTOMATION_TRIGGER_EVENT_TYPES = [
+    'Form Unsubmitted'
+];
+// Active event types for UI when creating new triggers
+export var ACTIVE_AUTOMATION_TRIGGER_EVENT_TYPES = AUTOMATION_TRIGGER_EVENT_TYPES.filter(function (t) { return !DEPRECATED_AUTOMATION_TRIGGER_EVENT_TYPES.includes(t); });
 export var automationTriggerEventValidator = orValidator({
     "Form Submitted": objectValidator({
         type: exactMatchValidator(['Form Submitted']),
@@ -3783,6 +3796,7 @@ export var automationTriggerEventValidator = orValidator({
         type: exactMatchValidator(['Form Started']),
         info: objectValidator({
             formIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
+            sources: listValidatorOptionalOrEmptyOk(exactMatchValidator(['Public Form', 'Formsort'])),
         }),
         conditions: optionalEmptyObjectValidator,
     }),

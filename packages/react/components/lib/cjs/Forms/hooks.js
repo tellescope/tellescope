@@ -473,9 +473,9 @@ var shouldCallout = function (field, value) {
     return false;
 };
 var useTellescopeForm = function (_a) {
-    var _b, _c;
+    var _b, _c, _d, _e;
     var dontAutoadvance = _a.dontAutoadvance, isPublicForm = _a.isPublicForm, form = _a.form, urlLogicValue = _a.urlLogicValue, customization = _a.customization, carePlanId = _a.carePlanId, calendarEventId = _a.calendarEventId, context = _a.context, ga4measurementId = _a.ga4measurementId, rootResponseId = _a.rootResponseId, parentResponseId = _a.parentResponseId, accessCode = _a.accessCode, existingResponses = _a.existingResponses, automationStepId = _a.automationStepId, enduserId = _a.enduserId, formResponseId = _a.formResponseId, fields = _a.fields, isInternalNote = _a.isInternalNote, formTitle = _a.formTitle, submitRedirectURL = _a.submitRedirectURL, enduser = _a.enduser, groupId = _a.groupId, groupInstance = _a.groupInstance, groupPosition = _a.groupPosition, startingFieldId = _a.startingFieldId;
-    var _d = (0, utilities_1.get_time_values)(new Date()), amPm = _d.amPm, hoursAmPm = _d.hoursAmPm, minutes = _d.minutes;
+    var _g = (0, utilities_1.get_time_values)(new Date()), amPm = _g.amPm, hoursAmPm = _g.hoursAmPm, minutes = _g.minutes;
     var root = (0, exports.useTreeForFormFields)(fields);
     if (!root) {
         console.error(fields);
@@ -485,19 +485,19 @@ var useTellescopeForm = function (_a) {
     var session = (0, index_1.useResolvedSession)();
     var sessionType = session.type;
     var handleUpload = (0, index_1.useFileUpload)({ enduserId: session.type === 'enduser' ? session.userInfo.id : enduserId }).handleUpload;
-    var _e = (0, index_1.useFormResponses)({ dontFetch: true }), _g = _e[1], updateFormResponse = _g.updateElement, updateLocalFormResponse = _g.updateLocalElement;
-    var _h = (0, react_1.useState)(), customerId = _h[0], setCustomerId = _h[1];
-    var _j = (0, react_1.useState)(root), activeField = _j[0], setActiveField = _j[1];
-    var _k = (0, react_1.useState)(undefined), submittingStatus = _k[0], setSubmittingStatus = _k[1];
-    var _l = (0, react_1.useState)(''), submitErrorMessage = _l[0], setSubmitErrorMessage = _l[1];
-    var _m = (0, react_1.useState)(0), currentPageIndex = _m[0], setCurrentPageIndex = _m[1];
-    var _o = (0, react_1.useState)([]), uploadingFiles = _o[0], setUploadingFiles = _o[1];
+    var _h = (0, index_1.useFormResponses)({ dontFetch: true }), _j = _h[1], updateFormResponse = _j.updateElement, updateLocalFormResponse = _j.updateLocalElement;
+    var _k = (0, react_1.useState)(), customerId = _k[0], setCustomerId = _k[1];
+    var _l = (0, react_1.useState)(root), activeField = _l[0], setActiveField = _l[1];
+    var _m = (0, react_1.useState)(undefined), submittingStatus = _m[0], setSubmittingStatus = _m[1];
+    var _o = (0, react_1.useState)(''), submitErrorMessage = _o[0], setSubmitErrorMessage = _o[1];
+    var _p = (0, react_1.useState)(0), currentPageIndex = _p[0], setCurrentPageIndex = _p[1];
+    var _q = (0, react_1.useState)([]), uploadingFiles = _q[0], setUploadingFiles = _q[1];
     var prevFieldStackRef = (0, react_1.useRef)([]);
     // Auto-advance state for form continuation
-    var _p = (0, react_1.useState)(false), isAutoAdvancing = _p[0], setIsAutoAdvancing = _p[1];
+    var _t = (0, react_1.useState)(false), isAutoAdvancing = _t[0], setIsAutoAdvancing = _t[1];
     var autoAdvanceCompletedRef = (0, react_1.useRef)(false);
     var autoAdvanceStartTimeRef = (0, react_1.useRef)(null);
-    var _q = (0, react_1.useState)({}), repeats = _q[0], setRepeats = _q[1];
+    var _u = (0, react_1.useState)({}), repeats = _u[0], setRepeats = _u[1];
     var gaEventRef = (0, react_1.useRef)({});
     var gtmEventRef = (0, react_1.useRef)({});
     var fieldViewCacheRef = (0, react_1.useRef)({}); // fieldId -> timestamp
@@ -634,7 +634,7 @@ var useTellescopeForm = function (_a) {
             field: f,
         });
     })); }, [fields, existingResponses]);
-    var _t = (0, react_1.useState)(initializeFields()), responses = _t[0], setResponses = _t[1];
+    var _v = (0, react_1.useState)(initializeFields()), responses = _v[0], setResponses = _v[1];
     (0, react_1.useEffect)(function () {
         // Be very careful about refreshing data to avoid losing progress -- only in the case the selected form has changed
         if (fieldInitRef.current === formId)
@@ -659,7 +659,7 @@ var useTellescopeForm = function (_a) {
         externalId: f.externalId,
         blob: undefined,
     }); })); }, [fields]);
-    var _u = (0, react_1.useState)(initializeFiles()), selectedFiles = _u[0], setSelectedFiles = _u[1];
+    var _w = (0, react_1.useState)(initializeFiles()), selectedFiles = _w[0], setSelectedFiles = _w[1];
     (0, react_1.useEffect)(function () {
         // Be very careful about refreshing data to avoid losing progress -- only in the case the selected form has changed
         if (fileInitRef.current === formId)
@@ -678,9 +678,26 @@ var useTellescopeForm = function (_a) {
         }
         return activeField;
     }, [activeField, templatedResponses]);
+    var activeResponses = templatedResponses.filter(function (r) { return r.includeInSubmit; });
+    // Include Question Group sub-field responses for scoring
+    for (var _i = 0, activeResponses_1 = activeResponses; _i < activeResponses_1.length; _i++) {
+        var r = activeResponses_1[_i];
+        if (((_b = r === null || r === void 0 ? void 0 : r.answer) === null || _b === void 0 ? void 0 : _b.type) !== 'Question Group')
+            continue;
+        var _loop_6 = function (f) {
+            var match = templatedResponses.find(function (tr) { return tr.fieldId === (f === null || f === void 0 ? void 0 : f.id); });
+            if (!match || activeResponses.find(function (ar) { return ar.fieldId === match.fieldId; }))
+                return "continue";
+            activeResponses.push(match);
+        };
+        for (var _x = 0, _y = ((_c = r.answer.value) !== null && _c !== void 0 ? _c : []); _x < _y.length; _x++) {
+            var f = _y[_x];
+            _loop_6(f);
+        }
+    }
     var logicOptions = {
         urlLogicValue: urlLogicValue,
-        activeResponses: templatedResponses.filter(function (r) { return r.includeInSubmit; }),
+        activeResponses: activeResponses,
         dateOfBirth: enduser === null || enduser === void 0 ? void 0 : enduser.dateOfBirth,
         gender: enduser === null || enduser === void 0 ? void 0 : enduser.gender,
         state: enduser === null || enduser === void 0 ? void 0 : enduser.state,
@@ -1068,7 +1085,7 @@ var useTellescopeForm = function (_a) {
         if (!value)
             return "Value is missing";
         if (value.answer.type === 'Question Group') {
-            var _loop_6 = function (f) {
+            var _loop_7 = function (f) {
                 var match = fields.find(function (_f) { return _f.id === f.id; });
                 if (!match)
                     return "continue";
@@ -1078,7 +1095,7 @@ var useTellescopeForm = function (_a) {
             };
             for (var _i = 0, _k = (_b = (_a = field.options) === null || _a === void 0 ? void 0 : _a.subFields) !== null && _b !== void 0 ? _b : []; _i < _k.length; _i++) {
                 var f = _k[_i];
-                var state_4 = _loop_6(f);
+                var state_4 = _loop_7(f);
                 if (typeof state_4 === "object")
                     return state_4.value;
             }
@@ -1089,7 +1106,7 @@ var useTellescopeForm = function (_a) {
         if (value.answer.type === 'Table Input') {
             for (var _l = 0, _m = (_c = value.answer.value) !== null && _c !== void 0 ? _c : []; _l < _m.length; _l++) {
                 var row = _m[_l];
-                var _loop_7 = function (cell) {
+                var _loop_8 = function (cell) {
                     var type = (_g = (_e = (_d = field.options) === null || _d === void 0 ? void 0 : _d.tableChoices) === null || _e === void 0 ? void 0 : _e.find(function (t) { return t.label === cell.label; })) === null || _g === void 0 ? void 0 : _g.type;
                     if (type === 'Date' && !(0, exports.isDateString)(cell.entry)) {
                         return { value: "Enter a date in MM-DD-YYYY format for ".concat(cell.label, " in row ").concat(((_j = (_h = value.answer.value) === null || _h === void 0 ? void 0 : _h.indexOf(row)) !== null && _j !== void 0 ? _j : 0) + 1) };
@@ -1097,7 +1114,7 @@ var useTellescopeForm = function (_a) {
                 };
                 for (var _o = 0, row_2 = row; _o < row_2.length; _o++) {
                     var cell = row_2[_o];
-                    var state_5 = _loop_7(cell);
+                    var state_5 = _loop_8(cell);
                     if (typeof state_5 === "object")
                         return state_5.value;
                 }
@@ -1124,7 +1141,7 @@ var useTellescopeForm = function (_a) {
             var r = responsesToSubmit_1[_i];
             if (((_a = r === null || r === void 0 ? void 0 : r.answer) === null || _a === void 0 ? void 0 : _a.type) !== 'Question Group')
                 continue;
-            var _loop_8 = function (f) {
+            var _loop_9 = function (f) {
                 var match = responses.find(function (r) { return r.fieldId === (f === null || f === void 0 ? void 0 : f.id); });
                 if (!match || responsesToSubmit.find(function (r) { return r.fieldId === match.fieldId; }))
                     return "continue";
@@ -1132,7 +1149,7 @@ var useTellescopeForm = function (_a) {
             };
             for (var _c = 0, _d = (_b = r.answer.value) !== null && _b !== void 0 ? _b : []; _c < _d.length; _c++) {
                 var f = _d[_c];
-                _loop_8(f);
+                _loop_9(f);
             }
         }
         return responsesToSubmit;
@@ -1169,7 +1186,7 @@ var useTellescopeForm = function (_a) {
         });
     }); }, [responses, handleUpload, fields]);
     var submit = (0, react_1.useCallback)(function (options) { return __awaiter(void 0, void 0, void 0, function () {
-        var hasFile, _loop_9, _i, selectedFiles_1, blobInfo, err_1, responsesToSubmit_3, _a, responsesToSubmit_2, r, _loop_10, _b, _c, f, errors, _d, _e, eId, _g, formResponse, nextFormGroupPublicURL, redirectTo, _h, _j, _k, err_2, url, err_3;
+        var hasFile, _loop_10, _i, selectedFiles_1, blobInfo, err_1, responsesToSubmit_3, _a, responsesToSubmit_2, r, _loop_11, _b, _c, f, errors, _d, _e, eId, _g, formResponse, nextFormGroupPublicURL, redirectTo, _h, _j, _k, err_2, url, err_3;
         var _l;
         var _m, _o, _p, _q, _t, _u, _v, _w, _x, _y, _z, _0, _1, _2, _3, _4, _5;
         return __generator(this, function (_6) {
@@ -1182,7 +1199,7 @@ var useTellescopeForm = function (_a) {
                     _6.label = 1;
                 case 1:
                     _6.trys.push([1, 6, 7, 8]);
-                    _loop_9 = function (blobInfo) {
+                    _loop_10 = function (blobInfo) {
                         var blobs, fieldId, responseIndex, response, _7, blobs_1, blob;
                         return __generator(this, function (_8) {
                             switch (_8.label) {
@@ -1216,7 +1233,7 @@ var useTellescopeForm = function (_a) {
                 case 2:
                     if (!(_i < selectedFiles_1.length)) return [3 /*break*/, 5];
                     blobInfo = selectedFiles_1[_i];
-                    return [5 /*yield**/, _loop_9(blobInfo)];
+                    return [5 /*yield**/, _loop_10(blobInfo)];
                 case 3:
                     _6.sent();
                     _6.label = 4;
@@ -1250,7 +1267,7 @@ var useTellescopeForm = function (_a) {
                         r = responsesToSubmit_2[_a];
                         if (r.answer.type !== 'Question Group')
                             continue;
-                        _loop_10 = function (f) {
+                        _loop_11 = function (f) {
                             var match = templatedResponses.find(function (r) { return r.fieldId === (f === null || f === void 0 ? void 0 : f.id); });
                             if (!match || responsesToSubmit_3.find(function (r) { return r.fieldId === match.fieldId; }))
                                 return "continue";
@@ -1262,7 +1279,7 @@ var useTellescopeForm = function (_a) {
                         };
                         for (_b = 0, _c = (_t = r.answer.value) !== null && _t !== void 0 ? _t : []; _b < _c.length; _b++) {
                             f = _c[_b];
-                            _loop_10(f);
+                            _loop_11(f);
                         }
                     }
                     errors = [];
@@ -1465,7 +1482,7 @@ var useTellescopeForm = function (_a) {
         var _a, _b;
         return (prevFieldStackRef.current.length === 0
             || ((_b = (_a = activeField === null || activeField === void 0 ? void 0 : activeField.value) === null || _a === void 0 ? void 0 : _a.options) === null || _b === void 0 ? void 0 : _b.disableGoBack) === true);
-    }, [prevFieldStackRef, (_c = (_b = activeField === null || activeField === void 0 ? void 0 : activeField.value) === null || _b === void 0 ? void 0 : _b.options) === null || _c === void 0 ? void 0 : _c.disableGoBack]);
+    }, [prevFieldStackRef, (_e = (_d = activeField === null || activeField === void 0 ? void 0 : activeField.value) === null || _d === void 0 ? void 0 : _d.options) === null || _e === void 0 ? void 0 : _e.disableGoBack]);
     var goToPreviousField = (0, react_1.useCallback)(function () {
         if (isPreviousDisabled())
             return;

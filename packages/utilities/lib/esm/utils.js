@@ -1216,25 +1216,8 @@ export var evaluate_conditional_logic_for_enduser_fields = function (enduser, co
                                     return ((k === '$in' && isInJourney)
                                         || (k === "$nin" && !isInJourney));
                                 }
-                                if (k === '$before' || k === '$after') {
-                                    var vDate = v === '$now' ? new Date() : new Date(v);
-                                    if (isNaN(vDate.getTime()))
-                                        return false;
-                                    var eDateField = (_d = (_b = enduser.fields) === null || _b === void 0 ? void 0 : _b[key]) !== null && _d !== void 0 ? _d : get_enduser_field_value_for_key(enduser, key);
-                                    if (!eDateField)
-                                        return false;
-                                    if (typeof eDateField !== 'string')
-                                        return false;
-                                    var eDate = ((eDateField.includes('-') && eDateField.length === 10)
-                                        ? new Date(MM_DD_YYYY_to_YYYY_MM_DD(eDateField))
-                                        : new Date(eDateField));
-                                    if (isNaN(eDate.getTime()))
-                                        return false;
-                                    return ((k === '$before' && eDate.getTime() < vDate.getTime())
-                                        || (k === '$after' && eDate.getTime() > vDate.getTime()));
-                                }
                                 if (k === '$lt' || k === '$gt') {
-                                    var enduserValue = (_e = enduser.fields) === null || _e === void 0 ? void 0 : _e[key];
+                                    var enduserValue = (_b = enduser.fields) === null || _b === void 0 ? void 0 : _b[key];
                                     if (typeof enduserValue !== 'number')
                                         return false;
                                     var _v = (typeof v === 'number'
@@ -1246,7 +1229,7 @@ export var evaluate_conditional_logic_for_enduser_fields = function (enduser, co
                                         || (k === '$gt' && enduserValue > _v));
                                 }
                                 if (k === '$contains' || k === '$doesNotContain') {
-                                    var enduserValue = ((_g = (_f = enduser.fields) === null || _f === void 0 ? void 0 : _f[key]) !== null && _g !== void 0 ? _g : get_enduser_field_value_for_key(enduser, key));
+                                    var enduserValue = ((_e = (_d = enduser.fields) === null || _d === void 0 ? void 0 : _d[key]) !== null && _e !== void 0 ? _e : get_enduser_field_value_for_key(enduser, key));
                                     var contains = (Array.isArray(enduserValue)
                                         ? !!enduserValue.find(function (ev) { return typeof ev === 'string' && ev.includes(v); })
                                         : typeof enduserValue === 'string'
@@ -1256,7 +1239,7 @@ export var evaluate_conditional_logic_for_enduser_fields = function (enduser, co
                                         || (k === '$doesNotContain' && !contains));
                                 }
                                 if (k === '$isSet' || k === '$isNotSet') {
-                                    var enduserValue = ((_j = (_h = enduser.fields) === null || _h === void 0 ? void 0 : _h[key]) !== null && _j !== void 0 ? _j : get_enduser_field_value_for_key(enduser, key));
+                                    var enduserValue = ((_g = (_f = enduser.fields) === null || _f === void 0 ? void 0 : _f[key]) !== null && _g !== void 0 ? _g : get_enduser_field_value_for_key(enduser, key));
                                     var isSet = (Array.isArray(enduserValue)
                                         ? enduserValue.length > 0
                                         : !!enduserValue);
@@ -1264,9 +1247,43 @@ export var evaluate_conditional_logic_for_enduser_fields = function (enduser, co
                                 }
                                 // should negate the typeof value === 'string' (defaults to $equals) condition
                                 if (k === '$ne') {
-                                    var enduserValue = ((_l = (_k = enduser.fields) === null || _k === void 0 ? void 0 : _k[key]) !== null && _l !== void 0 ? _l : get_enduser_field_value_for_key(enduser, key));
+                                    var enduserValue = ((_j = (_h = enduser.fields) === null || _h === void 0 ? void 0 : _h[key]) !== null && _j !== void 0 ? _j : get_enduser_field_value_for_key(enduser, key));
                                     return !(enduserValue === v
                                         || (Array.isArray(enduserValue) && (enduserValue).includes(v)));
+                                }
+                                // Find $before/$after operator regardless of key order (resilient to $offsetMs appearing first)
+                                // Placed at end of operator chain so other operators get evaluated first if they share keys
+                                var dateOperator = Object.keys(value).find(function (k) { return k === '$before' || k === '$after'; });
+                                if (dateOperator) {
+                                    var dateValue = value[dateOperator];
+                                    var vDate = dateValue === '$now' ? new Date() : new Date(dateValue);
+                                    if (isNaN(vDate.getTime()))
+                                        return false;
+                                    // Apply offset to comparison date if specified
+                                    var offsetMs = value === null || value === void 0 ? void 0 : value['$offsetMs'];
+                                    if (typeof offsetMs === 'number') {
+                                        vDate = new Date(vDate.getTime() + offsetMs);
+                                    }
+                                    var eDateField = (_l = (_k = enduser.fields) === null || _k === void 0 ? void 0 : _k[key]) !== null && _l !== void 0 ? _l : get_enduser_field_value_for_key(enduser, key);
+                                    if (!eDateField)
+                                        return false;
+                                    // Handle Date objects (from MongoDB), ISO strings, and MM-DD-YYYY strings
+                                    var eDate = void 0;
+                                    if (eDateField instanceof Date) {
+                                        eDate = eDateField;
+                                    }
+                                    else if (typeof eDateField === 'string') {
+                                        eDate = ((eDateField.includes('-') && eDateField.length === 10)
+                                            ? new Date(MM_DD_YYYY_to_YYYY_MM_DD(eDateField))
+                                            : new Date(eDateField));
+                                    }
+                                    else {
+                                        return false;
+                                    }
+                                    if (isNaN(eDate.getTime()))
+                                        return false;
+                                    return ((dateOperator === '$before' && eDate.getTime() < vDate.getTime())
+                                        || (dateOperator === '$after' && eDate.getTime() > vDate.getTime()));
                                 }
                                 return false;
                             })()

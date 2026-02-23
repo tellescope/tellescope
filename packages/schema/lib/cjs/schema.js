@@ -3894,7 +3894,22 @@ exports.schema = (0, exports.build_schema)({
             access: []
         },
         defaultActions: constants_1.DEFAULT_OPERATIONS,
-        customActions: {},
+        customActions: {
+            process: {
+                op: 'custom', access: 'update', method: 'post',
+                path: '/automated-actions/process',
+                name: 'Process Automation Action',
+                description: "Generic endpoint for processing automation actions by type. Used by worker for new action types.",
+                parameters: {
+                    automatedActionId: { validator: validation_1.mongoIdStringRequired, required: true },
+                },
+                returns: {
+                    success: { validator: validation_1.booleanValidator, required: true },
+                    error: { validator: validation_1.stringValidator5000 },
+                    unimplemented: { validator: validation_1.booleanValidator },
+                }
+            },
+        },
         enduserActions: {},
         fields: __assign(__assign({}, BuiltInFields), { cancelConditions: {
                 validator: validation_1.cancelConditionsValidator,
@@ -5471,7 +5486,29 @@ exports.schema = (0, exports.build_schema)({
     automation_triggers: {
         info: {},
         // making title unique causes issues in journey copy when creating copy of waitForTrigger action
-        constraints: { unique: [], relationship: [], },
+        constraints: {
+            unique: [],
+            relationship: [{
+                    explanation: 'Form Unsubmitted event type is deprecated for new triggers',
+                    evaluate: function (trigger, _deps, _session, method, options) {
+                        var _a, _b;
+                        var eventType = (_a = trigger.event) === null || _a === void 0 ? void 0 : _a.type;
+                        if (eventType === undefined)
+                            return;
+                        if (!validation_1.DEPRECATED_AUTOMATION_TRIGGER_EVENT_TYPES.includes(eventType))
+                            return;
+                        if (method === 'create') {
+                            return "The \"".concat(eventType, "\" event type has been deprecated and cannot be used for new triggers.");
+                        }
+                        if (method === 'update' && options.original) {
+                            var originalType = (_b = options.original.event) === null || _b === void 0 ? void 0 : _b.type;
+                            if (originalType !== eventType) {
+                                return "Cannot change trigger event type to \"".concat(eventType, "\". This event type has been deprecated.");
+                            }
+                        }
+                    }
+                }],
+        },
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {
             trigger_events: {

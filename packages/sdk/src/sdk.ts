@@ -880,6 +880,11 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
       Promise<extractFields<CustomActions['ai_conversations']['generate_ai_decision']['returns']>>
     ),
   },
+  automated_actions: {
+    process: (args: extractFields<CustomActions['automated_actions']['process']['parameters']>) => (
+      Promise<extractFields<CustomActions['automated_actions']['process']['returns']>>
+    ),
+  },
 }
 
 // session info that's currently required/used on front-end but not part of base user model
@@ -1168,6 +1173,8 @@ export class Session extends SessionManager {
 
     queries.ai_conversations.send_message = args => this._POST(`/v1${schema.ai_conversations.customActions.send_message.path}`, args)
     queries.ai_conversations.generate_ai_decision = args => this._POST(`/v1${schema.ai_conversations.customActions.generate_ai_decision.path}`, args)
+
+    queries.automated_actions.process = args => this._POST(`/v1${schema.automated_actions.customActions.process.path}`, args)
 
     this.api = queries
   }

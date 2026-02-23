@@ -3283,6 +3283,12 @@ export type StripeChargeCardOnFileAutomationAction = AutomationActionBuilder<'st
   productIds?: string[], // Tellescope product IDs to extract price IDs from
   subscriptionPriceId?: string
 }>
+export type StripeCancelSubscriptionAutomationAction = AutomationActionBuilder<'stripeCancelSubscription', {
+  stripeKey?: string,           // Custom stripe account (required for now)
+  metadataKey: string,          // Metadata key to search by
+  metadataValue: string,        // Value to match (supports {{field}} template syntax)
+  cancelImmediately?: boolean,  // true = immediate, false = end of billing period
+}>
 
 export type AIContextSource = {
   type: "Email" | "SMS" | "PhoneCall"
@@ -3302,6 +3308,7 @@ export type AutomationActionForType = {
   'aiDecision': AIDecisionAutomationAction,
   'assignInboxItem': AssignInboxItemAutomationAction,
   'stripeChargeCardOnFile': StripeChargeCardOnFileAutomationAction,
+  'stripeCancelSubscription': StripeCancelSubscriptionAutomationAction,
   'outboundCall': OutboundCallAutomationAction,
   "sendEmail" : SendEmailAutomationAction,
   "sendSMS": SendSMSAutomationAction,
@@ -4513,7 +4520,10 @@ export type AutomationTriggerEvents = {
     answersCondition?: Record<string, any>,
   }, {}>,
   'Database Entry Added': AutomationTriggerEventBuilder<"Database Entry Added", { databaseId: string }, {}>,
-  'Form Started': AutomationTriggerEventBuilder<"Form Started", { formIds?: string[] }, {}>,
+  'Form Started': AutomationTriggerEventBuilder<"Form Started", {
+    formIds?: string[],
+    sources?: ('Public Form' | 'Formsort')[],
+  }, {}>,
   "Eligibility Result Received": AutomationTriggerEventBuilder<'Eligibility Result Received', { 
     source: string,
   }, {}>,

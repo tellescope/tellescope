@@ -3273,6 +3273,12 @@ export type StripeChargeCardOnFileAutomationAction = AutomationActionBuilder<'st
     productIds?: string[];
     subscriptionPriceId?: string;
 }>;
+export type StripeCancelSubscriptionAutomationAction = AutomationActionBuilder<'stripeCancelSubscription', {
+    stripeKey?: string;
+    metadataKey: string;
+    metadataValue: string;
+    cancelImmediately?: boolean;
+}>;
 export type AIContextSource = {
     type: "Email" | "SMS" | "PhoneCall";
     limit: number;
@@ -3290,6 +3296,7 @@ export type AutomationActionForType = {
     'aiDecision': AIDecisionAutomationAction;
     'assignInboxItem': AssignInboxItemAutomationAction;
     'stripeChargeCardOnFile': StripeChargeCardOnFileAutomationAction;
+    'stripeCancelSubscription': StripeCancelSubscriptionAutomationAction;
     'outboundCall': OutboundCallAutomationAction;
     "sendEmail": SendEmailAutomationAction;
     "sendSMS": SendSMSAutomationAction;
@@ -4548,6 +4555,7 @@ export type AutomationTriggerEvents = {
     }, {}>;
     'Form Started': AutomationTriggerEventBuilder<"Form Started", {
         formIds?: string[];
+        sources?: ('Public Form' | 'Formsort')[];
     }, {}>;
     "Eligibility Result Received": AutomationTriggerEventBuilder<'Eligibility Result Received', {
         source: string;

@@ -1667,6 +1667,15 @@ export type CustomActions = {
             deletedCount: number;
         }>;
     };
+    automated_actions: {
+        process: CustomAction<{
+            automatedActionId: string;
+        }, {
+            success: boolean;
+            error?: string;
+            unimplemented?: boolean;
+        }>;
+    };
 };
 export type PublicActions = {
     endusers: {

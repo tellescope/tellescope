@@ -85,6 +85,7 @@ import {
   AttendeeStatus,
   InboxThread,
   AIDecisionAutomationAction,
+  AutomationAction,
   TimeTrackTimestamp,
 } from "@tellescope/types-models"
 
@@ -349,6 +350,7 @@ import {
   AIDecisionSourceValidator,
   AIMessageInputValidator,
   listOfObjectAnyFieldsAnyValuesValidator,
+  DEPRECATED_AUTOMATION_TRIGGER_EVENT_TYPES,
 } from "@tellescope/validation"
 
 import {
@@ -1218,7 +1220,7 @@ export type CustomActions = {
   },
   inbox_threads: {
     build_threads: CustomAction<
-      { from: Date, to: Date }, 
+      { from: Date, to: Date },
       { alreadyBuilt: boolean }
     >,
     load_threads: CustomAction<
@@ -1230,7 +1232,13 @@ export type CustomActions = {
       { deletedCount: number }
     >,
   },
-} 
+  automated_actions: {
+    process: CustomAction<
+      { automatedActionId: string },
+      { success: boolean, error?: string, unimplemented?: boolean }
+    >,
+  },
+}
 
 export type PublicActions = {
   endusers: {
@@ -5902,12 +5910,27 @@ export const schema: SchemaV1 = build_schema({
   automated_actions: {
     info: {},
     constraints: {
-      unique: [], 
+      unique: [],
       relationship: [],
       access: []
     },
     defaultActions: DEFAULT_OPERATIONS,
-    customActions: { },
+    customActions: {
+      process: {
+        op: 'custom', access: 'update', method: 'post',
+        path: '/automated-actions/process',
+        name: 'Process Automation Action',
+        description: "Generic endpoint for processing automation actions by type. Used by worker for new action types.",
+        parameters: {
+          automatedActionId: { validator: mongoIdStringValidator, required: true },
+        },
+        returns: {
+          success: { validator: booleanValidator, required: true },
+          error: { validator: stringValidator5000 },
+          unimplemented: { validator: booleanValidator },
+        }
+      },
+    },
     enduserActions: { },
     fields: {
       ...BuiltInFields, 
@@ -7924,7 +7947,28 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
   automation_triggers: {
     info: {},
     // making title unique causes issues in journey copy when creating copy of waitForTrigger action
-    constraints: { unique: [], relationship: [], },
+    constraints: {
+      unique: [],
+      relationship: [{
+        explanation: 'Form Unsubmitted event type is deprecated for new triggers',
+        evaluate: (trigger, _deps, _session, method, options) => {
+          const eventType = trigger.event?.type
+          if (eventType === undefined) return
+          if (!DEPRECATED_AUTOMATION_TRIGGER_EVENT_TYPES.includes(eventType as any)) return
+
+          if (method === 'create') {
+            return `The "${eventType}" event type has been deprecated and cannot be used for new triggers.`
+          }
+
+          if (method === 'update' && options.original) {
+            const originalType = (options.original as any).event?.type
+            if (originalType !== eventType) {
+              return `Cannot change trigger event type to "${eventType}". This event type has been deprecated.`
+            }
+          }
+        }
+      }],
+    },
     defaultActions: DEFAULT_OPERATIONS,
     customActions: {
       trigger_events: {

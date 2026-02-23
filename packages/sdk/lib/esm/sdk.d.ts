@@ -4027,6 +4027,9 @@ type Queries = {
         send_message: (args: extractFields<CustomActions['ai_conversations']['send_message']['parameters']>) => (Promise<extractFields<CustomActions['ai_conversations']['send_message']['returns']>>);
         generate_ai_decision: (args: extractFields<CustomActions['ai_conversations']['generate_ai_decision']['parameters']>) => (Promise<extractFields<CustomActions['ai_conversations']['generate_ai_decision']['returns']>>);
     };
+    automated_actions: {
+        process: (args: extractFields<CustomActions['automated_actions']['process']['parameters']>) => (Promise<extractFields<CustomActions['automated_actions']['process']['returns']>>);
+    };
 };
 type UserInfo = User & {
     type: 'user';

@@ -81,6 +81,7 @@ import { auto_merge_form_submission_tests } from "./api_tests/auto_merge_form_su
 import { database_cascade_delete_tests } from "./api_tests/database_cascade_delete.test";
 import { ai_conversations_tests } from "./api_tests/ai_conversations.test";
 import { load_team_chat_tests } from "./api_tests/load_team_chat.test";
+import { form_started_trigger_tests } from "./api_tests/form_started_trigger.test";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
@@ -9819,6 +9820,136 @@ export const enduser_conditional_logic_tests = async () => {
     'CustomTypeId default type error',
     'undefined customTypeId should equal default type (both default), so $ne should be false',
   )
+
+  // Test $before/$after with $offsetMs for date comparisons
+  const MS_PER_DAY = 86400000
+
+  // Helper to format date as MM-DD-YYYY (enduser field format)
+  const formatDateMMDDYYYY = (d: Date) => {
+    const month = String(d.getMonth() + 1).padStart(2, '0')
+    const day = String(d.getDate()).padStart(2, '0')
+    const year = d.getFullYear()
+    return `${month}-${day}-${year}`
+  }
+
+  // Create test dates
+  const now = new Date()
+  const twentyDaysAgo = new Date(now.getTime() - (20 * MS_PER_DAY))
+  const sevenDaysAgo = new Date(now.getTime() - (7 * MS_PER_DAY))
+  const sevenDaysFromNow = new Date(now.getTime() + (7 * MS_PER_DAY))
+  const twentyDaysFromNow = new Date(now.getTime() + (20 * MS_PER_DAY))
+
+  // Test: Date more than 14 days before now (negative offset)
+  assert(
+    evaluate_conditional_logic_for_enduser_fields(
+      { ...requiredPlaceholders, fields: { appointmentDate: formatDateMMDDYYYY(twentyDaysAgo) } },
+      { "$and": [{ "condition": { "appointmentDate": { "$before": "$now", "$offsetMs": -14 * MS_PER_DAY } } }] }
+    ),
+    'Date offset conditional logic error',
+    '20 days ago should be before (now - 14 days)',
+  )
+
+  // Test: Date NOT more than 14 days before now
+  assert(
+    !evaluate_conditional_logic_for_enduser_fields(
+      { ...requiredPlaceholders, fields: { appointmentDate: formatDateMMDDYYYY(sevenDaysAgo) } },
+      { "$and": [{ "condition": { "appointmentDate": { "$before": "$now", "$offsetMs": -14 * MS_PER_DAY } } }] }
+    ),
+    'Date offset conditional logic error',
+    '7 days ago should NOT be before (now - 14 days)',
+  )
+
+  // Test: Date more than 14 days after now (positive offset)
+  assert(
+    evaluate_conditional_logic_for_enduser_fields(
+      { ...requiredPlaceholders, fields: { futureDate: formatDateMMDDYYYY(twentyDaysFromNow) } },
+      { "$and": [{ "condition": { "futureDate": { "$after": "$now", "$offsetMs": 14 * MS_PER_DAY } } }] }
+    ),
+    'Date offset conditional logic error',
+    '20 days from now should be after (now + 14 days)',
+  )
+
+  // Test: Date NOT more than 14 days after now
+  assert(
+    !evaluate_conditional_logic_for_enduser_fields(
+      { ...requiredPlaceholders, fields: { futureDate: formatDateMMDDYYYY(sevenDaysFromNow) } },
+      { "$and": [{ "condition": { "futureDate": { "$after": "$now", "$offsetMs": 14 * MS_PER_DAY } } }] }
+    ),
+    'Date offset conditional logic error',
+    '7 days from now should NOT be after (now + 14 days)',
+  )
+
+  // Test: Backward compatibility - $before without $offsetMs still works
+  assert(
+    evaluate_conditional_logic_for_enduser_fields(
+      { ...requiredPlaceholders, fields: { pastDate: formatDateMMDDYYYY(sevenDaysAgo) } },
+      { "$and": [{ "condition": { "pastDate": { "$before": "$now" } } }] }
+    ),
+    'Date offset conditional logic error',
+    'Existing $before without $offsetMs should still work',
+  )
+
+  // Test: Backward compatibility - $after without $offsetMs still works
+  assert(
+    evaluate_conditional_logic_for_enduser_fields(
+      { ...requiredPlaceholders, fields: { futureDate: formatDateMMDDYYYY(sevenDaysFromNow) } },
+      { "$and": [{ "condition": { "futureDate": { "$after": "$now" } } }] }
+    ),
+    'Date offset conditional logic error',
+    'Existing $after without $offsetMs should still work',
+  )
+
+  // Test: $offsetMs with specific date (not $now)
+  const specificDate = new Date('2025-03-01')
+  const beforeSpecificDate = new Date(specificDate.getTime() - (20 * MS_PER_DAY))
+  assert(
+    evaluate_conditional_logic_for_enduser_fields(
+      { ...requiredPlaceholders, fields: { testDate: formatDateMMDDYYYY(beforeSpecificDate) } },
+      { "$and": [{ "condition": { "testDate": { "$before": "2025-03-01", "$offsetMs": -14 * MS_PER_DAY } } }] }
+    ),
+    'Date offset conditional logic error',
+    'Date should be before (specific date - 14 days)',
+  )
+
+  // Test: Key order independence - $offsetMs before $before should work
+  assert(
+    evaluate_conditional_logic_for_enduser_fields(
+      { ...requiredPlaceholders, fields: { testDate: formatDateMMDDYYYY(twentyDaysAgo) } },
+      { "$and": [{ "condition": { "testDate": { "$offsetMs": -14 * MS_PER_DAY, "$before": "$now" } } }] }
+    ),
+    'Date offset key order error',
+    '$offsetMs before $before should still work (key order independence)',
+  )
+
+  // Test: Key order independence - $offsetMs before $after should work
+  assert(
+    evaluate_conditional_logic_for_enduser_fields(
+      { ...requiredPlaceholders, fields: { testDate: formatDateMMDDYYYY(twentyDaysFromNow) } },
+      { "$and": [{ "condition": { "testDate": { "$offsetMs": 14 * MS_PER_DAY, "$after": "$now" } } }] }
+    ),
+    'Date offset key order error',
+    '$offsetMs before $after should still work (key order independence)',
+  )
+
+  // Test: Date object field (not just string) should work with $before
+  assert(
+    evaluate_conditional_logic_for_enduser_fields(
+      { ...requiredPlaceholders, fields: { dateField: twentyDaysAgo } },  // Date object, not string
+      { "$and": [{ "condition": { "dateField": { "$before": "$now", "$offsetMs": -14 * MS_PER_DAY } } }] }
+    ),
+    'Date object field error',
+    'Date object field should work with $before (not just string)',
+  )
+
+  // Test: ISO string date field should work
+  assert(
+    evaluate_conditional_logic_for_enduser_fields(
+      { ...requiredPlaceholders, fields: { dateField: twentyDaysAgo.toISOString() } },  // ISO string
+      { "$and": [{ "condition": { "dateField": { "$before": "$now", "$offsetMs": -14 * MS_PER_DAY } } }] }
+    ),
+    'ISO string date field error',
+    'ISO string date field should work with $before',
+  )
 }
 
 export const cancel_upcoming_appointments_journey_action_test = async () => {
@@ -13601,6 +13732,7 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await form_started_trigger_tests({ sdk, sdkNonAdmin })
     await load_team_chat_tests({ sdk, sdkNonAdmin })
     await ai_conversations_tests({ sdk, sdkNonAdmin })
     await inbox_thread_assignment_updates_tests({ sdk, sdkNonAdmin })
