@@ -1598,7 +1598,7 @@ export const schema: SchemaV1 = build_schema({
         })),
         redactions: ['enduser'],
       },
-      references: { validator: listOfRelatedRecordsValidator, updatesDisabled: true, redactions: ['enduser'] },
+      references: { validator: listOfRelatedRecordsValidator, redactions: ['enduser'] },
       athenaDepartmentId: { validator: stringValidator100, redactions: ['enduser'] },
       athenaPracticeId: { validator: stringValidator100, redactions: ['enduser'] },
       salesforceId: { validator: stringValidator100, redactions: ['enduser'] },
@@ -3776,6 +3776,7 @@ export const schema: SchemaV1 = build_schema({
       skills: {
         validator: listOfStringsValidatorEmptyOk,
       },
+      careTeamRole: { validator: stringValidator100 },
       verifiedEmail: {
         updatesDisabled: true, // allow it to be set on creation by admin via API to streamline SSO support
         validator: booleanValidator,

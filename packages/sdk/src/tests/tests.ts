@@ -838,8 +838,40 @@ const enduser_tests = async (queries=sdk.api.endusers) => {
   )
   await async_test(
     `get-enduser test replaceObjectFields verify true unset`,
-    () => queries.getOne(e1.id ?? ''), 
+    () => queries.getOne(e1.id ?? ''),
     { onResult: e => objects_equivalent(e.fields, {}) },
+  )
+
+  // Test updating references field (CU-86e011kjq)
+  await async_test(
+    `update-enduser references`,
+    () => queries.updateOne(e1.id ?? '', {
+      references: [{ type: 'Healthie', id: 'Healthie-123' }]
+    }),
+    passOnVoid,
+  )
+  await async_test(
+    `get-enduser verify references update`,
+    () => queries.getOne(e1.id ?? ''),
+    { onResult: e => e.references?.length === 1 && e.references[0].type === 'Healthie' && e.references[0].id === 'Healthie-123' },
+  )
+  await async_test(
+    `update-enduser references with optional fields`,
+    () => queries.updateOne(e1.id ?? '', {
+      references: [{ type: 'Healthie', id: 'Healthie-456', creator: PLACEHOLDER_ID, environment: 'production' }]
+    }, { replaceObjectFields: true }),
+    passOnVoid,
+  )
+  await async_test(
+    `get-enduser verify references with optional fields`,
+    () => queries.getOne(e1.id ?? ''),
+    { onResult: e => (
+      e.references?.length === 1
+      && e.references[0].type === 'Healthie'
+      && e.references[0].id === 'Healthie-456'
+      && e.references[0].creator === PLACEHOLDER_ID
+      && e.references[0].environment === 'production'
+    )},
   )
 
   const eToDup1: Partial<Enduser> = { email: 'dup1@tellescope.com' }
@@ -867,10 +899,28 @@ const enduser_tests = async (queries=sdk.api.endusers) => {
     { onResult: ({ created, errors }) => created.length === 1 && errors.length === 2 }
   )
   await async_test(
-    `create-many-endusers - create conflict, two unique`, 
-    () => queries.createSome([{ email: 'd2@tellescope.com'}, { email: 'd2@tellescope.com'}, { email: 'createme@tellescope.com' }]), 
+    `create-many-endusers - create conflict, two unique`,
+    () => queries.createSome([{ email: 'd2@tellescope.com'}, { email: 'd2@tellescope.com'}, { email: 'createme@tellescope.com' }]),
     { onResult: ({ created, errors }) => created.length === 2 && errors.length === 1 }
   )
+
+  // Cleanup all endusers created in this test
+  const endusersToCleanup = await queries.getSome({
+    mdbFilter: {
+      email: { $in: [
+        'editedtest1@gmail.com', // e1 after update
+        'test2@gmail.com', // e2
+        'test3@gmail.com', // registered enduser
+        'dup1@tellescope.com',
+        'dup2@tellescope.com',
+        'unique@tellescope.com',
+        'd1@tellescope.com',
+        'd2@tellescope.com',
+        'createme@tellescope.com',
+      ]}
+    }
+  })
+  await Promise.all(endusersToCleanup.map(e => queries.deleteOne(e.id)))
 }
 
 const api_key_tests = async () => { }
@@ -4808,13 +4858,61 @@ const fields_changed_tests = async () => {
     () => sdk.api.endusers.getOne(e1.id),
     { onResult: e => e.tags?.length === 4 && e.tags.includes('4') && e.tags.includes('2') && e.tags.includes('3') && e.tags.includes('1') },
   )
-  
+
+  // Test insurance payer name fields
+  const t5 = await sdk.api.automation_triggers.createOne({
+    title: "Insurance payer name changed", status: 'Active',
+    event: { type: 'Fields Changed', info: { fields: ['insurance.payerName'] } },
+    action: { type: 'Add Tags', info: { tags: ['5'] } }
+  })
+  const t6 = await sdk.api.automation_triggers.createOne({
+    title: "Secondary insurance payer name changed", status: 'Active',
+    event: { type: 'Fields Changed', info: { fields: ['insuranceSecondary.payerName'] } },
+    action: { type: 'Add Tags', info: { tags: ['6'] } }
+  })
+
+  const e2 = await sdk.api.endusers.createOne({ fname: 'Insurance Test' })
+  await wait (undefined, 500) // allow triggers to happen
+
+  // changing insurance payer name should trigger t5
+  await sdk.api.endusers.updateOne(e2.id, { insurance: { payerName: 'Blue Cross' } })
+  await wait (undefined, 500) // allow triggers to happen
+  await async_test(
+    'Trigger on insurance payer name change',
+    () => sdk.api.endusers.getOne(e2.id),
+    { onResult: e => e.tags?.length === 1 && e.tags.includes('5') },
+  )
+
+  // changing secondary insurance payer name should trigger t6
+  await sdk.api.endusers.updateOne(e2.id, { insuranceSecondary: { payerName: 'Aetna' } })
+  await wait (undefined, 500) // allow triggers to happen
+  await async_test(
+    'Trigger on secondary insurance payer name change',
+    () => sdk.api.endusers.getOne(e2.id),
+    { onResult: e => e.tags?.length === 2 && e.tags.includes('5') && e.tags.includes('6') },
+  )
+
+  // changing both insurance payer names should trigger both t5 and t6
+  await sdk.api.endusers.updateOne(e2.id, {
+    insurance: { payerName: 'United Healthcare' },
+    insuranceSecondary: { payerName: 'Cigna' }
+  })
+  await wait (undefined, 500) // allow triggers to happen
+  await async_test(
+    'Trigger on both insurance payer names change',
+    () => sdk.api.endusers.getOne(e2.id),
+    { onResult: e => e.tags?.length === 2 && e.tags.includes('5') && e.tags.includes('6') },
+  )
+
   return Promise.all([
     sdk.api.endusers.deleteOne(e1.id),
+    sdk.api.endusers.deleteOne(e2.id),
     sdk.api.automation_triggers.deleteOne(t1.id),
     sdk.api.automation_triggers.deleteOne(t2.id),
     sdk.api.automation_triggers.deleteOne(t3.id),
     sdk.api.automation_triggers.deleteOne(t4.id),
+    sdk.api.automation_triggers.deleteOne(t5.id),
+    sdk.api.automation_triggers.deleteOne(t6.id),
   ])
 }
 
@@ -13732,6 +13830,7 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await enduser_tests()
     await form_started_trigger_tests({ sdk, sdkNonAdmin })
     await load_team_chat_tests({ sdk, sdkNonAdmin })
     await ai_conversations_tests({ sdk, sdkNonAdmin })

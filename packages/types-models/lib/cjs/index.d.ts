@@ -717,6 +717,7 @@ export interface User extends User_required, User_readonly, User_updatesDisabled
     voicemailPlayback?: PhonePlayback | {};
     mfa?: MFASettings;
     skills?: string[];
+    careTeamRole?: string;
     lockedOutUntil?: number;
     failedLoginAttempts?: number;
     elationUserId?: number;
@@ -847,9 +848,9 @@ export interface Enduser_readonly extends UserActivityInfo, ClientRecord, Enduse
 export interface Enduser_required {
 }
 export interface Enduser_updatesDisabled {
-    references?: RelatedRecord[];
 }
 export interface Enduser extends Enduser_readonly, Enduser_required, Enduser_updatesDisabled {
+    references?: RelatedRecord[];
     recentViewers?: RecentViewer[];
     healthie_dietitian_id?: string;
     unsubscribePhone?: boolean;

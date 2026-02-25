@@ -283,7 +283,7 @@ export var schema = build_schema({
                     archivedAt: dateValidatorOptional,
                 })),
                 redactions: ['enduser'],
-            }, references: { validator: listOfRelatedRecordsValidator, updatesDisabled: true, redactions: ['enduser'] }, athenaDepartmentId: { validator: stringValidator100, redactions: ['enduser'] }, athenaPracticeId: { validator: stringValidator100, redactions: ['enduser'] }, salesforceId: { validator: stringValidator100, redactions: ['enduser'] }, vitalTriggersDisabled: { validator: booleanValidator }, defaultFromPhone: { validator: phoneValidator, redactions: ['enduser'] }, defaultFromEmail: { validator: emailValidator, redactions: ['enduser'] }, useDefaultFromEmailInAutomations: { validator: booleanValidator }, useDefaultFromPhoneInAutomations: { validator: booleanValidator }, stripeCustomerId: { validator: stringValidator100, redactions: ['enduser'] }, stripeKey: { validator: stringValidator250, redactions: ['enduser'] }, diagnoses: {
+            }, references: { validator: listOfRelatedRecordsValidator, redactions: ['enduser'] }, athenaDepartmentId: { validator: stringValidator100, redactions: ['enduser'] }, athenaPracticeId: { validator: stringValidator100, redactions: ['enduser'] }, salesforceId: { validator: stringValidator100, redactions: ['enduser'] }, vitalTriggersDisabled: { validator: booleanValidator }, defaultFromPhone: { validator: phoneValidator, redactions: ['enduser'] }, defaultFromEmail: { validator: emailValidator, redactions: ['enduser'] }, useDefaultFromEmailInAutomations: { validator: booleanValidator }, useDefaultFromPhoneInAutomations: { validator: booleanValidator }, stripeCustomerId: { validator: stringValidator100, redactions: ['enduser'] }, stripeKey: { validator: stringValidator250, redactions: ['enduser'] }, diagnoses: {
                 validator: listValidatorOptionalOrEmptyOk(enduserDiagnosisValidator),
                 redactions: ['enduser']
             }, unsubscribedFromPhones: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay, redactions: ['enduser'] }, lockedFromPortal: { validator: booleanValidator }, eligibleForAutoMerge: { validator: booleanValidator }, preferredPharmacy: { validator: pharmacyValidator, redactions: ['enduser'] } }),
@@ -2258,7 +2258,7 @@ export var schema = build_schema({
                 // redactions: ['enduser'],
             }, acknowledgedIntegrations: { validator: dateValidator }, disableIncomingPhoneCalls: { validator: booleanValidator }, skills: {
                 validator: listOfStringsValidatorEmptyOk,
-            }, verifiedEmail: {
+            }, careTeamRole: { validator: stringValidator100 }, verifiedEmail: {
                 updatesDisabled: true,
                 validator: booleanValidator,
             }, hashedPass: {

@@ -288,7 +288,7 @@ exports.schema = (0, exports.build_schema)({
                     archivedAt: validation_1.dateValidatorOptional,
                 })),
                 redactions: ['enduser'],
-            }, references: { validator: validation_1.listOfRelatedRecordsValidator, updatesDisabled: true, redactions: ['enduser'] }, athenaDepartmentId: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, athenaPracticeId: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, salesforceId: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, vitalTriggersDisabled: { validator: validation_1.booleanValidator }, defaultFromPhone: { validator: validation_1.phoneValidator, redactions: ['enduser'] }, defaultFromEmail: { validator: validation_1.emailValidator, redactions: ['enduser'] }, useDefaultFromEmailInAutomations: { validator: validation_1.booleanValidator }, useDefaultFromPhoneInAutomations: { validator: validation_1.booleanValidator }, stripeCustomerId: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, stripeKey: { validator: validation_1.stringValidator250, redactions: ['enduser'] }, diagnoses: {
+            }, references: { validator: validation_1.listOfRelatedRecordsValidator, redactions: ['enduser'] }, athenaDepartmentId: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, athenaPracticeId: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, salesforceId: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, vitalTriggersDisabled: { validator: validation_1.booleanValidator }, defaultFromPhone: { validator: validation_1.phoneValidator, redactions: ['enduser'] }, defaultFromEmail: { validator: validation_1.emailValidator, redactions: ['enduser'] }, useDefaultFromEmailInAutomations: { validator: validation_1.booleanValidator }, useDefaultFromPhoneInAutomations: { validator: validation_1.booleanValidator }, stripeCustomerId: { validator: validation_1.stringValidator100, redactions: ['enduser'] }, stripeKey: { validator: validation_1.stringValidator250, redactions: ['enduser'] }, diagnoses: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)(validation_1.enduserDiagnosisValidator),
                 redactions: ['enduser']
             }, unsubscribedFromPhones: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay, redactions: ['enduser'] }, lockedFromPortal: { validator: validation_1.booleanValidator }, eligibleForAutoMerge: { validator: validation_1.booleanValidator }, preferredPharmacy: { validator: validation_1.pharmacyValidator, redactions: ['enduser'] } }),
@@ -2263,7 +2263,7 @@ exports.schema = (0, exports.build_schema)({
                 // redactions: ['enduser'],
             }, acknowledgedIntegrations: { validator: validation_1.dateValidator }, disableIncomingPhoneCalls: { validator: validation_1.booleanValidator }, skills: {
                 validator: validation_1.listOfStringsValidatorEmptyOk,
-            }, verifiedEmail: {
+            }, careTeamRole: { validator: validation_1.stringValidator100 }, verifiedEmail: {
                 updatesDisabled: true,
                 validator: validation_1.booleanValidator,
             }, hashedPass: {
