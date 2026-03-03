@@ -341,6 +341,8 @@ export type CustomActions = {
         }>;
         confirm_file_upload: CustomAction<{
             id: string;
+            syncToBeluga?: boolean;
+            formResponseId?: string;
         }, {}>;
         send_fax: CustomAction<{
             id: string;
@@ -603,6 +605,7 @@ export type CustomActions = {
             journeyContext?: JourneyContext;
             throttle?: boolean;
             source?: string;
+            enduserStartTimes?: Record<string, Date>;
         }, {}>;
         remove_from_journey: CustomAction<{
             enduserIds: string[];

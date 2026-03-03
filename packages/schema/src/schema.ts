@@ -696,7 +696,7 @@ export type CustomActions = {
     >,
     file_download_URL: CustomAction<{ secureName: string, preferInBrowser?: boolean, }, { downloadURL: string, name: string }>,
     run_ocr: CustomAction<{ id: string, type: string }, { file: File }>,
-    confirm_file_upload: CustomAction<{ id: string }, { }>,
+    confirm_file_upload: CustomAction<{ id: string, syncToBeluga?: boolean, formResponseId?: string }, { }>,
     send_fax: CustomAction<{ id: string, recipientFaxNumber: string }, { }>,
     push: CustomAction<{ id: string, destination: string, type?: string, typeId?: string }, { file?: File }>,
   },
@@ -821,7 +821,7 @@ export type CustomActions = {
     generate_auth_token: CustomAction<{ overrideOTP?: boolean, overrideConsent?: boolean, id?: string, phone?: string, email?: string, externalId?: string, durationInSeconds?: number }, { authToken: string, enduser: Enduser }>,
     logout: CustomAction<{ }, { }>,
     current_session_info: CustomAction<{ }, { enduser: Enduser }>,
-    add_to_journey: CustomAction<{ enduserIds: string[], journeyId: string, startAt?: Date, automationStepId?: string, journeyContext?: JourneyContext, throttle?: boolean, source?: string }, { }>, 
+    add_to_journey: CustomAction<{ enduserIds: string[], journeyId: string, startAt?: Date, automationStepId?: string, journeyContext?: JourneyContext, throttle?: boolean, source?: string, enduserStartTimes?: Record<string, Date> }, { }>, 
     remove_from_journey: CustomAction<{ enduserIds: string[], journeyId: string }, { }>, 
     merge: CustomAction<{ sourceEnduserId: string, destinationEnduserId: string, }, { }>, 
     push: CustomAction<{ enduserId: string, destinations?: string[], externalIds?: string[], entrypoint?: string }, { fullscriptRedirectURL?: string, vital_user_id?: string, scriptsure_patient_id?: string, scriptsure_deep_link?: string }>,
@@ -1680,7 +1680,7 @@ export const schema: SchemaV1 = build_schema({
         path: '/add-endusers-to-journey',
         description: "Adds (or restarts) endusers in a journey",
         warnings: ["The maximum number of enduserIds per call is 1000 (the default size limit of all array fields)"],
-        parameters: { 
+        parameters: {
           enduserIds: { validator: listOfMongoIdStringValidator, required: true },
           journeyId: { validator: mongoIdStringValidator, required: true },
           automationStepId: { validator: mongoIdStringValidator },
@@ -1688,8 +1688,9 @@ export const schema: SchemaV1 = build_schema({
           throttle: { validator: booleanValidatorOptional },
           source: { validator: stringValidatorOptional },
           startAt: { validator: dateValidatorOptional },
+          enduserStartTimes: { validator: objectAnyFieldsValidator(dateValidator) },
         },
-        returns: { } 
+        returns: { }
       },
       remove_from_journey: {
         op: "custom", access: 'update', method: "post",
@@ -4073,9 +4074,11 @@ export const schema: SchemaV1 = build_schema({
         op: "custom", access: 'create', method: "post",
         name: 'Confirm File Upload',
         path: '/files/confirm-upload',
-        description: "Triggers file create side effects / webhooks to be called after client-side upload is complete",
-        parameters: { 
+        description: "Triggers file create side effects / webhooks to be called after client-side upload is complete. Optionally syncs file to Beluga if syncToBeluga is true and formResponseId is provided.",
+        parameters: {
           id: { validator: mongoIdStringRequired, required: true },
+          syncToBeluga: { validator: booleanValidator },
+          formResponseId: { validator: mongoIdStringValidator },
         },
         returns: { },
       },
@@ -4803,6 +4806,8 @@ export const schema: SchemaV1 = build_schema({
       tags: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       carePlanId: { validator: mongoIdStringValidator },
       context: { validator: stringValidator1000 },
+      logoURL: { validator: stringValidator5000 },
+      logoHeight: { validator: numberValidator },
       calendarEventId: { validator: mongoIdStringValidator },
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
       groupId: { validator: mongoIdStringValidator },
@@ -7451,6 +7456,7 @@ export const schema: SchemaV1 = build_schema({
       externalId: { validator: stringValidator },
       cptCode: { validator: billingCodeValidatorOptional },
       notes: { validator: stringValidator5000EmptyOkay },
+      stripeProductName: { validator: stringValidator5000EmptyOkay },
     }
   },
   purchase_credits: {

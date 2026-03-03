@@ -109,12 +109,13 @@ var TellescopeFormContainer = function (_a) {
 exports.TellescopeFormContainer = TellescopeFormContainer;
 var TellescopeFormContainerWithTheme = function (_a) {
     var _b;
-    var _c = _a.paperMinHeight, paperMinHeight = _c === void 0 ? 575 : _c, children = _a.children, language = _a.language, onChangeLanguage = _a.onChangeLanguage, style = _a.style, hideBg = _a.hideBg, backgroundColor = _a.backgroundColor, hideLogo = _a.hideLogo, logoHeight = _a.logoHeight, maxWidth = _a.maxWidth;
+    var _c = _a.paperMinHeight, paperMinHeight = _c === void 0 ? 575 : _c, children = _a.children, language = _a.language, onChangeLanguage = _a.onChangeLanguage, style = _a.style, hideBg = _a.hideBg, backgroundColor = _a.backgroundColor, hideLogo = _a.hideLogo, logoURL = _a.logoURL, logoHeight = _a.logoHeight, maxWidth = _a.maxWidth;
     var theme = (0, hooks_1.useOrganizationTheme)();
+    var resolvedLogoURL = logoURL || theme.logoURL;
     var formContent = ((0, jsx_runtime_1.jsxs)(index_1.Flex, __assign({ flex: 1, column: true }, { children: [hideLogo
                 ? null
-                : theme.logoURL
-                    ? ((0, jsx_runtime_1.jsxs)(index_1.Flex, __assign({ alignItems: "center", justifyContent: "center", style: { height: logoHeight || LOGO_HEIGHT, marginTop: 10 } }, { children: [(0, jsx_runtime_1.jsx)("img", { src: theme.logoURL, alt: theme.name, style: { height: logoHeight || LOGO_HEIGHT, maxWidth: 225 } }), " "] })))
+                : resolvedLogoURL
+                    ? ((0, jsx_runtime_1.jsxs)(index_1.Flex, __assign({ alignItems: "center", justifyContent: "center", style: { height: logoHeight || LOGO_HEIGHT, marginTop: 10 } }, { children: [(0, jsx_runtime_1.jsx)("img", { src: resolvedLogoURL, alt: theme.name, style: { height: logoHeight || LOGO_HEIGHT, maxWidth: 225 } }), " "] })))
                     : ((0, jsx_runtime_1.jsx)(index_1.Typography, __assign({ style: { fontSize: 22, marginTop: 10, textAlign: 'center', fontWeight: 600 } }, { children: theme.name }))), language && onChangeLanguage &&
                 (0, jsx_runtime_1.jsx)(index_1.Flex, __assign({ style: { marginTop: 22 } }, { children: (0, jsx_runtime_1.jsx)(inputs_1.LanguageSelect, { value: language, onChange: onChangeLanguage }) })), children] })));
     if (hideBg) {
@@ -419,10 +420,10 @@ var ThanksMessage = function (_a) {
 };
 exports.ThanksMessage = ThanksMessage;
 var TellescopeFormWithContext = function (props) {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g, _h;
     var theme = (0, hooks_1.useOrganizationTheme)();
-    return ((0, jsx_runtime_1.jsx)(exports.TellescopeFormContainer, __assign({ style: props.style, dontAddContext: true, hideBg: props.hideBg || ((_b = (_a = props.form) === null || _a === void 0 ? void 0 : _a.customization) === null || _b === void 0 ? void 0 : _b.hideBg), logoHeight: props.logoHeight, backgroundColor: props.backgroundColor, hideLogo: (_c = props === null || props === void 0 ? void 0 : props.customization) === null || _c === void 0 ? void 0 : _c.hideLogo, maxWidth: (_e = (_d = props.form) === null || _d === void 0 ? void 0 : _d.customization) === null || _e === void 0 ? void 0 : _e.maxWidth }, { children: props.submitted
-            ? (0, jsx_runtime_1.jsx)(exports.ThanksMessage, __assign({}, props, { showRestartAtEnd: (_f = props === null || props === void 0 ? void 0 : props.customization) === null || _f === void 0 ? void 0 : _f.showRestartAtEnd }))
+    return ((0, jsx_runtime_1.jsx)(exports.TellescopeFormContainer, __assign({ style: props.style, dontAddContext: true, hideBg: props.hideBg || ((_b = (_a = props.form) === null || _a === void 0 ? void 0 : _a.customization) === null || _b === void 0 ? void 0 : _b.hideBg), logoURL: (_d = (_c = props.form) === null || _c === void 0 ? void 0 : _c.customization) === null || _d === void 0 ? void 0 : _d.logoURL, logoHeight: props.logoHeight, backgroundColor: props.backgroundColor, hideLogo: (_e = props === null || props === void 0 ? void 0 : props.customization) === null || _e === void 0 ? void 0 : _e.hideLogo, maxWidth: (_g = (_f = props.form) === null || _f === void 0 ? void 0 : _f.customization) === null || _g === void 0 ? void 0 : _g.maxWidth }, { children: props.submitted
+            ? (0, jsx_runtime_1.jsx)(exports.ThanksMessage, __assign({}, props, { showRestartAtEnd: (_h = props === null || props === void 0 ? void 0 : props.customization) === null || _h === void 0 ? void 0 : _h.showRestartAtEnd }))
             : ((0, jsx_runtime_1.jsx)(exports.TellescopeSingleQuestionFlow, __assign({}, props, { theme: theme }))) })));
 };
 var SaveDraft = function (_a) {

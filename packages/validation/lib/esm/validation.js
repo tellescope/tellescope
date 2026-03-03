@@ -5402,6 +5402,7 @@ export var formCustomizationValidator = objectValidator({
     hideLogo: booleanValidatorOptional,
     showRestartAtEnd: booleanValidatorOptional,
     multiPagePublicQuestions: booleanValidatorOptional,
+    logoURL: stringValidator5000OptionalEmptyOkay,
     logoHeight: numberValidatorOptional,
     maxWidth: numberValidatorOptional,
     hideBg: booleanValidatorOptional,

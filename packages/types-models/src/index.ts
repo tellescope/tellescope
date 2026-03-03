@@ -1917,6 +1917,7 @@ export type FormType = 'note' | 'enduserFacing'
 export type FormCustomization = {
   publicFormHTMLDescription?: string,
   publicFormSubmitHTMLDescription?: string,
+  logoURL?: string, // Custom logo URL to override organization logo on this form
   logoHeight?: number,
   publicLabelPrefix?: string,
   publicFnameLabel?: string,
@@ -2439,6 +2440,8 @@ export interface FormResponse extends FormResponse_readonly, FormResponse_requir
   lockedAt?: Date | '',
   carePlanId?: string,
   context?: string,
+  logoURL?: string,
+  logoHeight?: number,
   calendarEventId?: string,
   copiedFrom?: string,
   copiedFromEnduserId?: string,
@@ -2709,6 +2712,7 @@ export interface Purchase extends Purchase_readonly, Purchase_required, Purchase
   cptCode?: BillingCode,
   notes?: string,
   references?: RelatedRecord[],
+  stripeProductName?: string,
 }
 
 type BuildPurchaseCreditInfo <T, I> = { type: T, info: I }

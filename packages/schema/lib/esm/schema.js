@@ -352,6 +352,7 @@ export var schema = build_schema({
                     throttle: { validator: booleanValidatorOptional },
                     source: { validator: stringValidatorOptional },
                     startAt: { validator: dateValidatorOptional },
+                    enduserStartTimes: { validator: objectAnyFieldsValidator(dateValidator) },
                 },
                 returns: {}
             },
@@ -2482,9 +2483,11 @@ export var schema = build_schema({
                 op: "custom", access: 'create', method: "post",
                 name: 'Confirm File Upload',
                 path: '/files/confirm-upload',
-                description: "Triggers file create side effects / webhooks to be called after client-side upload is complete",
+                description: "Triggers file create side effects / webhooks to be called after client-side upload is complete. Optionally syncs file to Beluga if syncToBeluga is true and formResponseId is provided.",
                 parameters: {
                     id: { validator: mongoIdStringRequired, required: true },
+                    syncToBeluga: { validator: booleanValidator },
+                    formResponseId: { validator: mongoIdStringValidator },
                 },
                 returns: {},
             },
@@ -3003,7 +3006,7 @@ export var schema = build_schema({
                 updatesDisabled: true,
             }, openedAt: {
                 validator: dateValidator,
-            }, copiedFrom: { validator: mongoIdStringOptional }, copiedFromEnduserId: { validator: mongoIdStringOptional }, publicSubmit: { validator: booleanValidator }, submittedBy: { validator: stringValidator250 }, submittedByIsPlaceholder: { validator: booleanValidator }, markedAsSubmitted: { validator: booleanValidator }, accessCode: { validator: stringValidator250 }, userEmail: { validator: emailValidator }, submittedAt: { validator: dateValidator }, formTitle: { validator: stringValidator250 }, responses: { validator: formResponsesValidator }, draftSavedAt: { validator: dateValidator }, draftSavedBy: { validator: mongoIdStringValidator }, hideFromEnduserPortal: { validator: booleanValidator }, sharedVia: { validator: communicationsChannelValidator }, isInternalNote: { validator: booleanValidator }, pinnedAt: { validator: dateOptionalOrEmptyStringValidator }, publicIdentifier: { validator: stringValidator250 }, source: { validator: stringValidator250 }, externalId: { validator: stringValidator250 }, rootResponseId: { validator: mongoIdStringValidator }, parentResponseId: { validator: mongoIdStringValidator }, tags: { validator: listOfStringsValidatorOptionalOrEmptyOk }, carePlanId: { validator: mongoIdStringValidator }, context: { validator: stringValidator1000 }, calendarEventId: { validator: mongoIdStringValidator }, references: { validator: listOfRelatedRecordsValidator, readonly: true }, groupId: { validator: mongoIdStringValidator }, groupInstance: { validator: stringValidator100 }, groupPosition: { validator: nonNegNumberValidator }, hideAfterUnsubmittedInMS: { validator: numberValidator }, addenda: {
+            }, copiedFrom: { validator: mongoIdStringOptional }, copiedFromEnduserId: { validator: mongoIdStringOptional }, publicSubmit: { validator: booleanValidator }, submittedBy: { validator: stringValidator250 }, submittedByIsPlaceholder: { validator: booleanValidator }, markedAsSubmitted: { validator: booleanValidator }, accessCode: { validator: stringValidator250 }, userEmail: { validator: emailValidator }, submittedAt: { validator: dateValidator }, formTitle: { validator: stringValidator250 }, responses: { validator: formResponsesValidator }, draftSavedAt: { validator: dateValidator }, draftSavedBy: { validator: mongoIdStringValidator }, hideFromEnduserPortal: { validator: booleanValidator }, sharedVia: { validator: communicationsChannelValidator }, isInternalNote: { validator: booleanValidator }, pinnedAt: { validator: dateOptionalOrEmptyStringValidator }, publicIdentifier: { validator: stringValidator250 }, source: { validator: stringValidator250 }, externalId: { validator: stringValidator250 }, rootResponseId: { validator: mongoIdStringValidator }, parentResponseId: { validator: mongoIdStringValidator }, tags: { validator: listOfStringsValidatorOptionalOrEmptyOk }, carePlanId: { validator: mongoIdStringValidator }, context: { validator: stringValidator1000 }, logoURL: { validator: stringValidator5000 }, logoHeight: { validator: numberValidator }, calendarEventId: { validator: mongoIdStringValidator }, references: { validator: listOfRelatedRecordsValidator, readonly: true }, groupId: { validator: mongoIdStringValidator }, groupInstance: { validator: stringValidator100 }, groupPosition: { validator: nonNegNumberValidator }, hideAfterUnsubmittedInMS: { validator: numberValidator }, addenda: {
                 validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     text: stringValidator25000EmptyOkay,
                     timestamp: dateValidator,
@@ -5091,7 +5094,7 @@ export var schema = build_schema({
                 examples: ['Stripe'],
             }, 
             // for timestamp of old/imported data processed before Tellescope
-            processedAt: { validator: dateOptionalOrEmptyStringValidator }, description: { validator: stringValidator5000EmptyOkay }, refundedAmount: { validator: nonNegNumberValidator }, source: { validator: stringValidatorOptional }, externalId: { validator: stringValidator }, cptCode: { validator: billingCodeValidatorOptional }, notes: { validator: stringValidator5000EmptyOkay } })
+            processedAt: { validator: dateOptionalOrEmptyStringValidator }, description: { validator: stringValidator5000EmptyOkay }, refundedAmount: { validator: nonNegNumberValidator }, source: { validator: stringValidatorOptional }, externalId: { validator: stringValidator }, cptCode: { validator: billingCodeValidatorOptional }, notes: { validator: stringValidator5000EmptyOkay }, stripeProductName: { validator: stringValidator5000EmptyOkay } })
     },
     purchase_credits: {
         info: {},

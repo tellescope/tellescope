@@ -9,14 +9,15 @@ import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/type
 import { calculate_form_scoring, field_can_autosubmit, form_response_value_to_string, formatted_date, object_is_empty, objects_equivalent, read_local_storage, remove_script_tags, responses_satisfy_conditions, truncate_string } from "@tellescope/utilities"
 import { Divider } from "@mui/material"
 
-export const TellescopeFormContainer = ({ businessId, organizationIds, ...props } : { 
-  businessId?: string, 
-  organizationIds?: string[], 
+export const TellescopeFormContainer = ({ businessId, organizationIds, ...props } : {
+  businessId?: string,
+  organizationIds?: string[],
   dontAddContext?: boolean,
-  children: React.ReactNode, 
+  children: React.ReactNode,
   hideBg?: boolean,
   backgroundColor?: string,
   hideLogo?: boolean,
+  logoURL?: string,
   logoHeight?: number,
   language?: string,
   onChangeLanguage?: (l: string) => void,
@@ -35,17 +36,19 @@ export const TellescopeFormContainer = ({ businessId, organizationIds, ...props 
   )
 }
 
-const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ paperMinHeight=575, children, language, onChangeLanguage, style, hideBg, backgroundColor, hideLogo, logoHeight, maxWidth }) => {
+const TellescopeFormContainerWithTheme: typeof TellescopeFormContainer = ({ paperMinHeight=575, children, language, onChangeLanguage, style, hideBg, backgroundColor, hideLogo, logoURL, logoHeight, maxWidth }) => {
   const theme = useOrganizationTheme()
+
+  const resolvedLogoURL = logoURL || theme.logoURL
 
   const formContent = (
     <Flex flex={1} column>
       {hideLogo
         ? null
-        : theme.logoURL 
+        : resolvedLogoURL
           ? (
             <Flex alignItems="center" justifyContent={"center"} style={{ height: logoHeight || LOGO_HEIGHT, marginTop: 10 }}>
-              <img src={theme.logoURL} alt={theme.name} style={{ height: logoHeight || LOGO_HEIGHT, maxWidth: 225 }} /> {/* todo: replace with something that resolves better for native */}
+              <img src={resolvedLogoURL} alt={theme.name} style={{ height: logoHeight || LOGO_HEIGHT, maxWidth: 225 }} /> {/* todo: replace with something that resolves better for native */}
             </Flex>
           )
           : (
@@ -801,6 +804,7 @@ const TellescopeFormWithContext: typeof TellescopeForm = (props) => {
   return (
     <TellescopeFormContainer style={props.style} dontAddContext
       hideBg={props.hideBg || props.form?.customization?.hideBg}
+      logoURL={props.form?.customization?.logoURL}
       logoHeight={props.logoHeight}
       backgroundColor={props.backgroundColor}
       hideLogo={props?.customization?.hideLogo}

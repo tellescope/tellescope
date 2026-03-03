@@ -6415,6 +6415,7 @@ export const formCustomizationValidator = objectValidator<Form['customization']>
   hideLogo: booleanValidatorOptional,
   showRestartAtEnd: booleanValidatorOptional,
   multiPagePublicQuestions: booleanValidatorOptional,
+  logoURL: stringValidator5000OptionalEmptyOkay,
   logoHeight: numberValidatorOptional,
   maxWidth: numberValidatorOptional,
   hideBg: booleanValidatorOptional,

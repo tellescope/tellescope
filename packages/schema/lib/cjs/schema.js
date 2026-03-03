@@ -357,6 +357,7 @@ exports.schema = (0, exports.build_schema)({
                     throttle: { validator: validation_1.booleanValidatorOptional },
                     source: { validator: validation_1.stringValidatorOptional },
                     startAt: { validator: validation_1.dateValidatorOptional },
+                    enduserStartTimes: { validator: (0, validation_1.objectAnyFieldsValidator)(validation_1.dateValidator) },
                 },
                 returns: {}
             },
@@ -2487,9 +2488,11 @@ exports.schema = (0, exports.build_schema)({
                 op: "custom", access: 'create', method: "post",
                 name: 'Confirm File Upload',
                 path: '/files/confirm-upload',
-                description: "Triggers file create side effects / webhooks to be called after client-side upload is complete",
+                description: "Triggers file create side effects / webhooks to be called after client-side upload is complete. Optionally syncs file to Beluga if syncToBeluga is true and formResponseId is provided.",
                 parameters: {
                     id: { validator: validation_1.mongoIdStringRequired, required: true },
+                    syncToBeluga: { validator: validation_1.booleanValidator },
+                    formResponseId: { validator: validation_1.mongoIdStringRequired },
                 },
                 returns: {},
             },
@@ -3008,7 +3011,7 @@ exports.schema = (0, exports.build_schema)({
                 updatesDisabled: true,
             }, openedAt: {
                 validator: validation_1.dateValidator,
-            }, copiedFrom: { validator: validation_1.mongoIdStringOptional }, copiedFromEnduserId: { validator: validation_1.mongoIdStringOptional }, publicSubmit: { validator: validation_1.booleanValidator }, submittedBy: { validator: validation_1.stringValidator250 }, submittedByIsPlaceholder: { validator: validation_1.booleanValidator }, markedAsSubmitted: { validator: validation_1.booleanValidator }, accessCode: { validator: validation_1.stringValidator250 }, userEmail: { validator: validation_1.emailValidator }, submittedAt: { validator: validation_1.dateValidator }, formTitle: { validator: validation_1.stringValidator250 }, responses: { validator: validation_1.formResponsesValidator }, draftSavedAt: { validator: validation_1.dateValidator }, draftSavedBy: { validator: validation_1.mongoIdStringRequired }, hideFromEnduserPortal: { validator: validation_1.booleanValidator }, sharedVia: { validator: validation_1.communicationsChannelValidator }, isInternalNote: { validator: validation_1.booleanValidator }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, publicIdentifier: { validator: validation_1.stringValidator250 }, source: { validator: validation_1.stringValidator250 }, externalId: { validator: validation_1.stringValidator250 }, rootResponseId: { validator: validation_1.mongoIdStringRequired }, parentResponseId: { validator: validation_1.mongoIdStringRequired }, tags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, carePlanId: { validator: validation_1.mongoIdStringRequired }, context: { validator: validation_1.stringValidator1000 }, calendarEventId: { validator: validation_1.mongoIdStringRequired }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, groupId: { validator: validation_1.mongoIdStringRequired }, groupInstance: { validator: validation_1.stringValidator100 }, groupPosition: { validator: validation_1.nonNegNumberValidator }, hideAfterUnsubmittedInMS: { validator: validation_1.numberValidator }, addenda: {
+            }, copiedFrom: { validator: validation_1.mongoIdStringOptional }, copiedFromEnduserId: { validator: validation_1.mongoIdStringOptional }, publicSubmit: { validator: validation_1.booleanValidator }, submittedBy: { validator: validation_1.stringValidator250 }, submittedByIsPlaceholder: { validator: validation_1.booleanValidator }, markedAsSubmitted: { validator: validation_1.booleanValidator }, accessCode: { validator: validation_1.stringValidator250 }, userEmail: { validator: validation_1.emailValidator }, submittedAt: { validator: validation_1.dateValidator }, formTitle: { validator: validation_1.stringValidator250 }, responses: { validator: validation_1.formResponsesValidator }, draftSavedAt: { validator: validation_1.dateValidator }, draftSavedBy: { validator: validation_1.mongoIdStringRequired }, hideFromEnduserPortal: { validator: validation_1.booleanValidator }, sharedVia: { validator: validation_1.communicationsChannelValidator }, isInternalNote: { validator: validation_1.booleanValidator }, pinnedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, publicIdentifier: { validator: validation_1.stringValidator250 }, source: { validator: validation_1.stringValidator250 }, externalId: { validator: validation_1.stringValidator250 }, rootResponseId: { validator: validation_1.mongoIdStringRequired }, parentResponseId: { validator: validation_1.mongoIdStringRequired }, tags: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, carePlanId: { validator: validation_1.mongoIdStringRequired }, context: { validator: validation_1.stringValidator1000 }, logoURL: { validator: validation_1.stringValidator5000 }, logoHeight: { validator: validation_1.numberValidator }, calendarEventId: { validator: validation_1.mongoIdStringRequired }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, groupId: { validator: validation_1.mongoIdStringRequired }, groupInstance: { validator: validation_1.stringValidator100 }, groupPosition: { validator: validation_1.nonNegNumberValidator }, hideAfterUnsubmittedInMS: { validator: validation_1.numberValidator }, addenda: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     text: validation_1.stringValidator25000EmptyOkay,
                     timestamp: validation_1.dateValidator,
@@ -5096,7 +5099,7 @@ exports.schema = (0, exports.build_schema)({
                 examples: ['Stripe'],
             }, 
             // for timestamp of old/imported data processed before Tellescope
-            processedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, description: { validator: validation_1.stringValidator5000EmptyOkay }, refundedAmount: { validator: validation_1.nonNegNumberValidator }, source: { validator: validation_1.stringValidatorOptional }, externalId: { validator: validation_1.stringValidator }, cptCode: { validator: validation_1.billingCodeValidatorOptional }, notes: { validator: validation_1.stringValidator5000EmptyOkay } })
+            processedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, description: { validator: validation_1.stringValidator5000EmptyOkay }, refundedAmount: { validator: validation_1.nonNegNumberValidator }, source: { validator: validation_1.stringValidatorOptional }, externalId: { validator: validation_1.stringValidator }, cptCode: { validator: validation_1.billingCodeValidatorOptional }, notes: { validator: validation_1.stringValidator5000EmptyOkay }, stripeProductName: { validator: validation_1.stringValidator5000EmptyOkay } })
     },
     purchase_credits: {
         info: {},
