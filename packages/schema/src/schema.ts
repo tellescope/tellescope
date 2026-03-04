@@ -1224,7 +1224,7 @@ export type CustomActions = {
       { alreadyBuilt: boolean }
     >,
     load_threads: CustomAction<
-      { limit?: number, ids?: string[], excludeIds?: string[], lastTimestamp?: Date, userIds?: string[], enduserIds?: string[], phoneNumber?: string, returnCount?: boolean, mdbFilter?: object, sortBy?: 'timestamp' | 'outboundTimestamp', autobuild?: boolean },
+      { limit?: number, ids?: string[], excludeIds?: string[], lastTimestamp?: Date, userIds?: string[], enduserIds?: string[], phoneNumber?: string, returnCount?: boolean, mdbFilter?: object, sortBy?: 'timestamp' | 'outboundTimestamp', autobuild?: boolean, search?: string },
       { threads: InboxThread[], count?: number }
     >,
     reset_threads: CustomAction<
@@ -6189,6 +6189,9 @@ export const schema: SchemaV1 = build_schema({
       source: { validator: stringValidator },
       type: { validator: stringValidator },
       notes: { validator: stringValidator },
+      qualitativeResult: { validator: stringValidator250 },
+      refRange: { validator: stringValidator250 },
+      statusIndicator: { validator: stringValidator100 },
       recordedAt: { validator: dateValidator },
       reviewedAt: { validator: dateValidatorOptional },
       timestamp: { validator: dateValidator, initializer: () => new Date() },
@@ -6910,6 +6913,7 @@ export const schema: SchemaV1 = build_schema({
       },
       canvasSyncEmailConsent: { validator: booleanValidator },
       canvasSyncPhoneConsent: { validator: booleanValidator },
+      canvasStateToLocationId: { validator: objectAnyFieldsValidator(stringValidator100) },
       enforceMFA: { validator: booleanValidator },
       replyToEnduserTransactionalEmails: { validator: emailValidator },
       customTermsOfService: { validator: stringValidator },
@@ -8815,8 +8819,10 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
         tracking: stringValidatorOptional,
       }))},
       tracking: { validator: stringValidatorOptional },
+      carrier: { validator: stringValidatorOptional },
       fill: { validator: stringValidatorOptional },
       sku: { validator: stringValidatorOptional },
+      bookingLink: { validator: stringValidatorOptional },
     }
   },
   vital_configurations: {
@@ -9355,6 +9361,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           mdbFilter: { validator: objectAnyFieldsAnyValuesValidator },
           sortBy: { validator: exactMatchValidatorOptional<'timestamp' | 'outboundTimestamp'>(['timestamp', 'outboundTimestamp']) },
           autobuild: { validator: booleanValidatorOptional },
+          search: { validator: stringValidatorOptional },
         },
         returns: {
           threads: { validator: 'inbox_threads' as any },
@@ -9411,6 +9418,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           onDependencyDelete: 'pull' as const,
         }]
       },
+      searchKeywords: { validator: listOfStringsValidatorOptionalOrEmptyOk, readonly: true },
     }
 
   }

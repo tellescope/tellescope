@@ -14384,10 +14384,10 @@ var inbox_threads_building_tests = function () { return __awaiter(void 0, void 0
         switch (_b.label) {
             case 0:
                 (0, testing_1.log_header)("Inbox Thread Building Tests");
-                return [4 /*yield*/, sdk.api.endusers.createOne({})];
+                return [4 /*yield*/, sdk.api.endusers.createOne({ fname: 'Alice', lname: 'Wonderland' })];
             case 1:
                 e = _b.sent();
-                return [4 /*yield*/, sdk.api.endusers.createOne({})];
+                return [4 /*yield*/, sdk.api.endusers.createOne({ fname: 'Bob', lname: 'Builder' })];
             case 2:
                 e2 = _b.sent();
                 deleteBuiltThreads = function () { return __awaiter(void 0, void 0, void 0, function () {
@@ -14512,17 +14512,51 @@ var inbox_threads_building_tests = function () { return __awaiter(void 0, void 0
                                 && threads.some(function (t) { var _a; return t.type === 'Phone' && t.threadId === call.id && !(0, utilities_1.object_is_empty)((_a = t.readBy) !== null && _a !== void 0 ? _a : {}); })
                                 && threads.some(function (t) { var _a; return t.type === 'Chat' && t.threadId === room.id && !(0, utilities_1.object_is_empty)((_a = t.readBy) !== null && _a !== void 0 ? _a : {}); })
                                 && !threads.some(function (t) { return t.outboundPreview || t.outboundTimestamp; }));
-                        } })];
+                        } })
+                    // searchKeywords population tests
+                ];
             case 14:
                 _b.sent();
-                return [4 /*yield*/, resetThreadBuildingDates()];
+                // searchKeywords population tests
+                return [4 /*yield*/, (0, testing_1.async_test)('built threads have searchKeywords from enduser names', function () { return sdk.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            var eThreads = threads.filter(function (t) { return t.enduserIds.includes(e.id); });
+                            return eThreads.length === 5
+                                && eThreads.every(function (t) {
+                                    return !!t.searchKeywords
+                                        && t.searchKeywords.includes('alice')
+                                        && t.searchKeywords.includes('wonderland')
+                                        && t.searchKeywords.length === 2;
+                                } // fname, lname - no duplicates
+                                );
+                        } })
+                    // search by enduser name (via searchKeywords)
+                ];
             case 15:
+                // searchKeywords population tests
+                _b.sent();
+                // search by enduser name (via searchKeywords)
+                return [4 /*yield*/, (0, testing_1.async_test)('search by enduser first name finds threads', function () { return sdk.api.inbox_threads.load_threads({ search: 'Alice' }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 5 && threads.every(function (t) { return t.enduserIds.includes(e.id); });
+                        } })];
+            case 16:
+                // search by enduser name (via searchKeywords)
+                _b.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)('search by enduser last name finds threads', function () { return sdk.api.inbox_threads.load_threads({ search: 'Wonderland' }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 5 && threads.every(function (t) { return t.enduserIds.includes(e.id); });
+                        } })];
+            case 17:
+                _b.sent();
+                return [4 /*yield*/, resetThreadBuildingDates()];
+            case 18:
                 _b.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('re-build initial 1-message threads', function () { return sdk.api.inbox_threads.build_threads({ from: from, to: new Date() }); }, { onResult: function (_a) {
                             var alreadyBuilt = _a.alreadyBuilt;
                             return !alreadyBuilt;
                         } })];
-            case 16:
+            case 19:
                 _b.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('re-load threads with no duplication for same messages', function () { return sdk.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
                             var threads = _a.threads;
@@ -14530,14 +14564,14 @@ var inbox_threads_building_tests = function () { return __awaiter(void 0, void 0
                         } })
                     // test adding separate threads for the first enduser
                 ];
-            case 17:
+            case 20:
                 _b.sent();
                 beforeSecondThreads = new Date();
                 return [4 /*yield*/, sdk.api.emails.createOne(__assign(__assign({}, defaultEmail), { enduserId: e.id, subject: "Different email subject", messageId: 'other-email' }))];
-            case 18:
+            case 21:
                 email2 = _b.sent();
                 return [4 /*yield*/, sdk.api.sms_messages.createOne(__assign(__assign({}, defaultSMS), { enduserId: e.id, enduserPhoneNumber: "+15555555550" }))];
-            case 19:
+            case 22:
                 sms2 = _b.sent();
                 return [4 /*yield*/, sdk.api.group_mms_conversations.createOne({
                         enduserIds: [e.id],
@@ -14550,19 +14584,19 @@ var inbox_threads_building_tests = function () { return __awaiter(void 0, void 0
                                 logOnly: true,
                             }],
                     })];
-            case 20:
+            case 23:
                 groupMMS2 = _b.sent();
                 return [4 /*yield*/, sdk.api.phone_calls.createOne({ enduserId: e.id, inbound: true, isVoicemail: true, from: '+15555555554', to: '+15555555550' })];
-            case 21:
+            case 24:
                 call2 = _b.sent();
                 return [4 /*yield*/, sdk.api.chat_rooms.createOne({ enduserIds: [e.id], userIds: [], title: 'Thread Build Chat Room Alt', recentMessageSentAt: Date.now() })];
-            case 22:
+            case 25:
                 room2 = _b.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('build new 1-message threads for original enduser', function () { return sdk.api.inbox_threads.build_threads({ from: from, to: new Date() }); }, { onResult: function (_a) {
                             var alreadyBuilt = _a.alreadyBuilt;
                             return !alreadyBuilt;
                         } })];
-            case 23:
+            case 26:
                 _b.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('load new threads for original enduser', function () { return sdk.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
                             var threads = _a.threads;
@@ -14571,14 +14605,14 @@ var inbox_threads_building_tests = function () { return __awaiter(void 0, void 0
                         } })
                     // ensure new threads created for other enduser
                 ];
-            case 24:
+            case 27:
                 _b.sent();
                 beforeSecondEnduserThreads = new Date();
                 return [4 /*yield*/, sdk.api.emails.createOne(__assign(__assign({}, defaultEmail), { enduserId: e2.id }))];
-            case 25:
+            case 28:
                 e2_email = _b.sent();
                 return [4 /*yield*/, sdk.api.sms_messages.createOne(__assign(__assign({}, defaultSMS), { enduserId: e2.id }))];
-            case 26:
+            case 29:
                 e2_sms = _b.sent();
                 return [4 /*yield*/, sdk.api.group_mms_conversations.createOne({
                         enduserIds: [e2.id],
@@ -14591,42 +14625,58 @@ var inbox_threads_building_tests = function () { return __awaiter(void 0, void 0
                                 logOnly: true,
                             }],
                     })];
-            case 27:
+            case 30:
                 e2_groupMMS = _b.sent();
                 return [4 /*yield*/, sdk.api.phone_calls.createOne({ enduserId: e2.id, inbound: true, isVoicemail: true, from: '+15555555554', to: '+15555555555' })];
-            case 28:
+            case 31:
                 e2_call = _b.sent();
                 return [4 /*yield*/, sdk.api.chat_rooms.createOne({ enduserIds: [e2.id], userIds: [], title: 'Thread Build Chat Room 2' })];
-            case 29:
+            case 32:
                 e2_room = _b.sent();
                 return [4 /*yield*/, sdk.api.chats.createOne({ roomId: e2_room.id, message: 'test', enduserId: e2.id, senderId: e2.id })];
-            case 30:
+            case 33:
                 _b.sent();
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 500)]; // allow for recentMessageTimestamp to be set to indicate inbound chat in chat room
-            case 31:
+            case 34:
                 _b.sent(); // allow for recentMessageTimestamp to be set to indicate inbound chat in chat room
                 return [4 /*yield*/, (0, testing_1.async_test)('build initial 1-message threads for other enduser', function () { return sdk.api.inbox_threads.build_threads({ from: from, to: new Date() }); }, { onResult: function (_a) {
                             var alreadyBuilt = _a.alreadyBuilt;
                             return !alreadyBuilt;
                         } })];
-            case 32:
+            case 35:
                 _b.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('loads threads with no duplication across endusers', function () { return sdk.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
                             var threads = _a.threads;
                             return (threads.length === 15
                                 && threads.filter(function (t) { return t.enduserIds.length === 1 && t.enduserIds.includes(e.id); }).length === 10
                                 && threads.filter(function (t) { return t.enduserIds.length === 1 && t.enduserIds.includes(e2.id); }).length === 5);
+                        } })
+                    // verify second enduser's threads also have correct searchKeywords
+                ];
+            case 36:
+                _b.sent();
+                // verify second enduser's threads also have correct searchKeywords
+                return [4 /*yield*/, (0, testing_1.async_test)('second enduser threads have searchKeywords from enduser names', function () { return sdk.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            var e2Threads = threads.filter(function (t) { return t.enduserIds.includes(e2.id); });
+                            return e2Threads.length === 5
+                                && e2Threads.every(function (t) {
+                                    return !!t.searchKeywords
+                                        && t.searchKeywords.includes('bob')
+                                        && t.searchKeywords.includes('builder');
+                                });
                         } })];
-            case 33:
+            case 37:
+                // verify second enduser's threads also have correct searchKeywords
                 _b.sent();
                 return [4 /*yield*/, resetThreadBuildingDates()];
-            case 34:
+            case 38:
                 _b.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('re-build initial 1-message threads for other enduser', function () { return sdk.api.inbox_threads.build_threads({ from: from, to: new Date() }); }, { onResult: function (_a) {
                             var alreadyBuilt = _a.alreadyBuilt;
                             return !alreadyBuilt;
                         } })];
-            case 35:
+            case 39:
                 _b.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('re-load threads with no duplication across endusers', function () { return sdk.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
                             var threads = _a.threads;
@@ -14640,14 +14690,14 @@ var inbox_threads_building_tests = function () { return __awaiter(void 0, void 0
                         } })
                     // test adding separate threads for the first enduser
                 ];
-            case 36:
+            case 40:
                 _b.sent();
                 beforeReplies = new Date();
                 return [4 /*yield*/, sdk.api.emails.createOne(__assign(__assign({}, defaultEmail), { textContent: 'reply!', enduserId: e.id }))];
-            case 37:
+            case 41:
                 emailReply = _b.sent();
                 return [4 /*yield*/, sdk.api.sms_messages.createOne(__assign(__assign({}, defaultSMS), { enduserId: e.id, message: 'reply!' }))];
-            case 38:
+            case 42:
                 smsReply = _b.sent();
                 return [4 /*yield*/, sdk.api.group_mms_conversations.send_message({
                         logOnly: true,
@@ -14655,16 +14705,16 @@ var inbox_threads_building_tests = function () { return __awaiter(void 0, void 0
                         message: 'reply!',
                         sender: e.id,
                     })];
-            case 39:
+            case 43:
                 _b.sent();
                 return [4 /*yield*/, sdk.api.chats.createOne({ roomId: room.id, message: 'reply!', enduserId: e.id, senderId: e.id })];
-            case 40:
+            case 44:
                 chatReply = _b.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('re-build threads with replies', function () { return sdk.api.inbox_threads.build_threads({ from: from, to: new Date() }); }, { onResult: function (_a) {
                             var alreadyBuilt = _a.alreadyBuilt;
                             return !alreadyBuilt;
                         } })];
-            case 41:
+            case 45:
                 _b.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('re-load threads with replies included', function () { return sdk.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
                             var threads = _a.threads;
@@ -14684,12 +14734,12 @@ var inbox_threads_building_tests = function () { return __awaiter(void 0, void 0
                     // test older messages being ignored
                     // filter phone calls since those always create new threads
                 ];
-            case 42:
+            case 46:
                 _b.sent();
                 // test older messages being ignored
                 // filter phone calls since those always create new threads
                 return [4 /*yield*/, resetThreadsAndDates()];
-            case 43:
+            case 47:
                 // test older messages being ignored
                 // filter phone calls since those always create new threads
                 _b.sent();
@@ -14697,19 +14747,19 @@ var inbox_threads_building_tests = function () { return __awaiter(void 0, void 0
                             var alreadyBuilt = _a.alreadyBuilt;
                             return !alreadyBuilt;
                         } })];
-            case 44:
+            case 48:
                 _b.sent();
                 return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
-            case 45:
+            case 49:
                 newlyBuilt = (_b.sent()).threads.filter(function (v) { return v.type !== 'Phone'; });
                 return [4 /*yield*/, (0, testing_1.async_test)('re-build threads inclusive of initial set', function () { return sdk.api.inbox_threads.build_threads({ from: start, to: new Date() }); }, { onResult: function (_a) {
                             var alreadyBuilt = _a.alreadyBuilt;
                             return !alreadyBuilt;
                         } })];
-            case 46:
+            case 50:
                 _b.sent();
                 return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
-            case 47:
+            case 51:
                 threadsWithOlderLoad = (_b.sent()).threads.filter(function (v) { return v.type !== 'Phone'; });
                 (0, testing_1.assert)((0, utilities_2.objects_equivalent)(newlyBuilt, threadsWithOlderLoad), 'old threads included somehow', 'old messages ignored in new threads');
                 return [4 /*yield*/, (0, testing_1.async_test)('re-run previous test on all-threads to make sure staged build order doesnt effect final result', function () { return sdk.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
@@ -14731,13 +14781,13 @@ var inbox_threads_building_tests = function () { return __awaiter(void 0, void 0
                         } })
                     // test adding OUTBOUND messages for the first enduser
                 ];
-            case 48:
+            case 52:
                 _b.sent();
                 return [4 /*yield*/, sdk.api.emails.createOne(__assign(__assign({}, defaultEmail), { inbound: false, textContent: 'outbound reply!', enduserId: e.id }))];
-            case 49:
+            case 53:
                 emailReplyOutbound = _b.sent();
                 return [4 /*yield*/, sdk.api.sms_messages.createOne(__assign(__assign({}, defaultSMS), { inbound: false, enduserId: e.id, message: 'outbound reply!' }))];
-            case 50:
+            case 54:
                 smsReplyOutbound = _b.sent();
                 return [4 /*yield*/, sdk.api.group_mms_conversations.send_message({
                         logOnly: true,
@@ -14745,19 +14795,19 @@ var inbox_threads_building_tests = function () { return __awaiter(void 0, void 0
                         message: 'outbound reply!',
                         sender: sdk.userInfo.id,
                     })];
-            case 51:
+            case 55:
                 _b.sent();
                 return [4 /*yield*/, sdk.api.chats.createOne({ roomId: room.id, message: 'outbound reply!', senderId: sdk.userInfo.id })];
-            case 52:
+            case 56:
                 chatOutboundReply = _b.sent();
                 return [4 /*yield*/, sdk.api.phone_calls.createOne({ readBy: readBy, enduserId: e.id, inbound: false, isVoicemail: true, from: '+15555555554', to: '+15555555555' })];
-            case 53:
+            case 57:
                 outboundCall = _b.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('re-build with outbound threads', function () { return sdk.api.inbox_threads.build_threads({ from: start, to: new Date() }); }, { onResult: function (_a) {
                             var alreadyBuilt = _a.alreadyBuilt;
                             return !alreadyBuilt;
                         } })];
-            case 54:
+            case 58:
                 _b.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('Test outbound timestamp and preview', function () { return sdk.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
                             var threads = _a.threads;
@@ -14773,7 +14823,7 @@ var inbox_threads_building_tests = function () { return __awaiter(void 0, void 0
                                         .length === 4 // all channels except call 
                             );
                         } })];
-            case 55:
+            case 59:
                 _b.sent();
                 return [2 /*return*/, Promise.all([
                         sdk.api.endusers.deleteOne(e.id),
@@ -14875,20 +14925,48 @@ var inbox_threads_loading_tests = function () { return __awaiter(void 0, void 0,
                             var threads = _a.threads;
                             return threads.length === 2;
                         } })
-                    // adding to care team of e2 who belongs to only the phone thread
+                    // search parameter tests
                 ];
             case 12:
+                _g.sent();
+                // search parameter tests
+                return [4 /*yield*/, (0, testing_1.async_test)('search by title', function () { return sdk.api.inbox_threads.load_threads({ search: 'Email' }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 1 && threads[0].type === 'Email';
+                        } })];
+            case 13:
+                // search parameter tests
+                _g.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)('search by preview matches all threads', function () { return sdk.api.inbox_threads.load_threads({ search: 'Test' }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 5;
+                        } })];
+            case 14:
+                _g.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)('search with no match returns empty', function () { return sdk.api.inbox_threads.load_threads({ search: 'zzzznonexistent' }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 0;
+                        } })];
+            case 15:
+                _g.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)('short search (< 3 chars) returns unfiltered results', function () { return sdk.api.inbox_threads.load_threads({ search: 'ab' }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 5;
+                        } })
+                    // adding to care team of e2 who belongs to only the phone thread
+                ];
+            case 16:
                 _g.sent();
                 // adding to care team of e2 who belongs to only the phone thread
                 return [4 /*yield*/, sdk.api.endusers.updateOne(e2.id, { assignedTo: [sdkNonAdmin.userInfo.id] }, { replaceObjectFields: true })
                     // assign (default access) to sms thread
                 ];
-            case 13:
+            case 17:
                 // adding to care team of e2 who belongs to only the phone thread
                 _g.sent();
                 // assign (default access) to sms thread
                 return [4 /*yield*/, sdk.api.inbox_threads.updateOne(sms.id, { userIds: [sdkNonAdmin.userInfo.id] }, { replaceObjectFields: true })];
-            case 14:
+            case 18:
                 // assign (default access) to sms thread
                 _g.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('non-admin can load threads based on assignment/default access', function () { return sdkNonAdmin.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
@@ -14898,30 +14976,39 @@ var inbox_threads_loading_tests = function () { return __awaiter(void 0, void 0,
                                 && threads.some(function (t) { return t.id === sms.id; });
                         }
                     })];
-            case 15:
+            case 19:
+                _g.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)('assigned access search still respects access control', function () { return sdkNonAdmin.api.inbox_threads.load_threads({ search: 'Test' }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 2
+                                && threads.some(function (t) { return t.id === phone.id; })
+                                && threads.some(function (t) { return t.id === sms.id; });
+                        }
+                    })];
+            case 20:
                 _g.sent();
                 roleTestUserEmail = 'inbox.role.test@tellescope.com';
                 return [4 /*yield*/, sdk.api.users.getOne({ email: roleTestUserEmail }).catch(function () { return null; })]; // throws error on none found
-            case 16:
+            case 21:
                 _a = (_g.sent() // throws error on none found
                 );
-                if (_a) return [3 /*break*/, 18];
+                if (_a) return [3 /*break*/, 23];
                 return [4 /*yield*/, sdk.api.users.createOne({ email: roleTestUserEmail })];
-            case 17:
+            case 22:
                 _a = (_g.sent());
-                _g.label = 18;
-            case 18:
+                _g.label = 23;
+            case 23:
                 roleTestUser = _a;
                 // add to care team to ensure this doesn't grant unexpected access
                 return [4 /*yield*/, sdk.api.endusers.updateOne(e2.id, { assignedTo: [roleTestUser.id] })
                     // assign (default access) to sms thread to ensure no unexpected access
                 ];
-            case 19:
+            case 24:
                 // add to care team to ensure this doesn't grant unexpected access
                 _g.sent();
                 // assign (default access) to sms thread to ensure no unexpected access
                 return [4 /*yield*/, sdk.api.inbox_threads.updateOne(sms.id, { userIds: [roleTestUser.id] }, { replaceObjectFields: true })];
-            case 20:
+            case 25:
                 // assign (default access) to sms thread to ensure no unexpected access
                 _g.sent();
                 return [4 /*yield*/, sdk.api.role_based_access_permissions.createOne({
@@ -14937,30 +15024,36 @@ var inbox_threads_loading_tests = function () { return __awaiter(void 0, void 0,
                             endusers: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
                         },
                     })];
-            case 21:
+            case 26:
                 defaultAccessRole = _g.sent();
                 return [4 /*yield*/, sdk.api.users.updateOne(roleTestUser.id, { roles: [defaultAccessRole.role] }, { replaceObjectFields: true })];
-            case 22:
+            case 27:
                 _g.sent();
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 2000)]; // role change triggers a logout
-            case 23:
+            case 28:
                 _g.sent(); // role change triggers a logout
                 _b = sdk_1.Session.bind;
                 _d = {
                     host: host
                 };
                 return [4 /*yield*/, sdk.api.users.generate_auth_token({ id: roleTestUser.id })];
-            case 24:
+            case 29:
                 sdkDefaultAccess = new (_b.apply(sdk_1.Session, [void 0, (_d.authToken = (_g.sent()).authToken,
                         _d)]))();
                 return [4 /*yield*/, (0, testing_1.async_test)('test_authenticated (default access)', sdkDefaultAccess.test_authenticated, { expectedResult: 'Authenticated!' })];
-            case 25:
+            case 30:
                 _g.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('non-admin default role', function () { return sdkDefaultAccess.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
                             var threads = _a.threads;
                             return threads.length === 1 && threads.some(function (t) { return t.id === sms.id; });
                         } })];
-            case 26:
+            case 31:
+                _g.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)('default access search still respects access control', function () { return sdkDefaultAccess.api.inbox_threads.load_threads({ search: 'Test' }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 1 && threads.some(function (t) { return t.id === sms.id; });
+                        } })];
+            case 32:
                 _g.sent();
                 return [4 /*yield*/, sdk.api.role_based_access_permissions.createOne({
                         role: 'No Access',
@@ -14978,48 +15071,54 @@ var inbox_threads_loading_tests = function () { return __awaiter(void 0, void 0,
                     })
                     // ensure role is set, in case GET returned a user without a role or with a different role
                 ];
-            case 27:
+            case 33:
                 noAccessRole = _g.sent();
                 // ensure role is set, in case GET returned a user without a role or with a different role
                 return [4 /*yield*/, sdk.api.users.updateOne(roleTestUser.id, { roles: [noAccessRole.role] }, { replaceObjectFields: true })];
-            case 28:
+            case 34:
                 // ensure role is set, in case GET returned a user without a role or with a different role
                 _g.sent();
                 return [4 /*yield*/, (0, testing_1.wait)(undefined, 2000)]; // role change triggers a logout
-            case 29:
+            case 35:
                 _g.sent(); // role change triggers a logout
                 _c = sdk_1.Session.bind;
                 _f = {
                     host: host
                 };
                 return [4 /*yield*/, sdk.api.users.generate_auth_token({ id: roleTestUser.id })];
-            case 30:
+            case 36:
                 sdkNoAccess = new (_c.apply(sdk_1.Session, [void 0, (_f.authToken = (_g.sent()).authToken,
                         _f)]))();
                 return [4 /*yield*/, (0, testing_1.async_test)('test_authenticated (no access)', sdkNoAccess.test_authenticated, { expectedResult: 'Authenticated!' })];
-            case 31:
+            case 37:
                 _g.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('verify no-read on direct API call', sdkNoAccess.api.emails.getSome, testing_1.handleAnyError)]; // ensures role is set up correctly
-            case 32:
+            case 38:
                 _g.sent(); // ensures role is set up correctly
                 return [4 /*yield*/, (0, testing_1.async_test)("No access reads nothing", function () { return sdkNoAccess.api.inbox_threads.load_threads({}); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length === 0;
+                        } })];
+            case 39:
+                _g.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)("No access reads nothing even with search", function () { return sdkNoAccess.api.inbox_threads.load_threads({ search: 'Test' }); }, { onResult: function (_a) {
                             var threads = _a.threads;
                             return threads.length === 0;
                         } })
                     // Update existing threads with phone numbers for phoneNumber filtering tests
                 ];
-            case 33:
+            case 40:
                 _g.sent();
                 // Update existing threads with phone numbers for phoneNumber filtering tests
                 return [4 /*yield*/, sdk.api.inbox_threads.updateOne(sms.id, { phoneNumber: '+15555555555' })];
-            case 34:
+            case 41:
                 // Update existing threads with phone numbers for phoneNumber filtering tests
                 _g.sent();
                 return [4 /*yield*/, sdk.api.inbox_threads.updateOne(phone.id, { phoneNumber: '+15555555555' })];
-            case 35:
+            case 42:
                 _g.sent();
                 return [4 /*yield*/, sdk.api.inbox_threads.createOne(__assign(__assign({}, defaultThreadFields), { title: 'Phone 2', type: 'Phone', threadId: '6', phoneNumber: '+15555555556' }))];
-            case 36:
+            case 43:
                 phoneThread2 = _g.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('admin phoneNumber filter - SMS and Phone threads only', function () { return sdk.api.inbox_threads.load_threads({ phoneNumber: '+15555555555' }); }, { onResult: function (_a) {
                             var threads = _a.threads;
@@ -15029,7 +15128,7 @@ var inbox_threads_loading_tests = function () { return __awaiter(void 0, void 0,
                                 && threads.every(function (t) { return t.type === 'SMS' || t.type === 'Phone'; });
                         }
                     })];
-            case 37:
+            case 44:
                 _g.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('admin phoneNumber filter - different phone number', function () { return sdk.api.inbox_threads.load_threads({ phoneNumber: '+15555555556' }); }, { onResult: function (_a) {
                             var threads = _a.threads;
@@ -15038,13 +15137,26 @@ var inbox_threads_loading_tests = function () { return __awaiter(void 0, void 0,
                                 && threads[0].phoneNumber === '+15555555556';
                         }
                     })];
-            case 38:
+            case 45:
                 _g.sent();
                 return [4 /*yield*/, (0, testing_1.async_test)('admin phoneNumber filter - non-existent phone number', function () { return sdk.api.inbox_threads.load_threads({ phoneNumber: '+15555555999' }); }, { onResult: function (_a) {
                             var threads = _a.threads;
                             return threads.length === 0;
-                        } })];
-            case 39:
+                        } })
+                    // search by phone number (uses regex on phoneNumber/enduserPhoneNumber fields)
+                ];
+            case 46:
+                _g.sent();
+                // search by phone number (uses regex on phoneNumber/enduserPhoneNumber fields)
+                return [4 /*yield*/, (0, testing_1.async_test)('search by phone number', function () { return sdk.api.inbox_threads.load_threads({ search: '+15555555555' }); }, { onResult: function (_a) {
+                            var threads = _a.threads;
+                            return threads.length >= 2
+                                && threads.some(function (t) { return t.type === 'SMS'; })
+                                && threads.some(function (t) { return t.type === 'Phone'; });
+                        }
+                    })];
+            case 47:
+                // search by phone number (uses regex on phoneNumber/enduserPhoneNumber fields)
                 _g.sent();
                 return [4 /*yield*/, Promise.all(__spreadArray(__spreadArray([
                         sdk.api.endusers.deleteOne(e1.id),
@@ -15055,7 +15167,7 @@ var inbox_threads_loading_tests = function () { return __awaiter(void 0, void 0,
                     ], threads.map(function (t) { return sdk.api.inbox_threads.deleteOne(t.id); }), true), [
                         sdk.api.inbox_threads.deleteOne(phoneThread2.id),
                     ], false))];
-            case 40:
+            case 48:
                 _g.sent();
                 return [2 /*return*/];
         }

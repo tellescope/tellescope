@@ -1662,6 +1662,7 @@ export type CustomActions = {
             mdbFilter?: object;
             sortBy?: 'timestamp' | 'outboundTimestamp';
             autobuild?: boolean;
+            search?: string;
         }, {
             threads: InboxThread[];
             count?: number;

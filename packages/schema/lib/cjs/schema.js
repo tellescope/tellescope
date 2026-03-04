@@ -4124,7 +4124,7 @@ exports.schema = (0, exports.build_schema)({
                         relationship: 'foreignKey',
                         onDependencyDelete: 'delete',
                     }]
-            }, code: { validator: validation_1.stringValidator }, source: { validator: validation_1.stringValidator }, type: { validator: validation_1.stringValidator }, notes: { validator: validation_1.stringValidator }, recordedAt: { validator: validation_1.dateValidator }, reviewedAt: { validator: validation_1.dateValidatorOptional }, timestamp: { validator: validation_1.dateValidator, initializer: function () { return new Date(); } }, statusChangedBy: { validator: validation_1.mongoIdStringRequired }, beforeMeal: { validator: validation_1.booleanValidator }, medStatus: { validator: validation_1.stringValidator }, irregularHeartbeat: { validator: validation_1.booleanValidator }, dontTrigger: { validator: validation_1.booleanValidator }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, showWithPlotsByUnit: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, invalidationReason: { validator: validation_1.stringValidatorOptionalEmptyOkay } })
+            }, code: { validator: validation_1.stringValidator }, source: { validator: validation_1.stringValidator }, type: { validator: validation_1.stringValidator }, notes: { validator: validation_1.stringValidator }, qualitativeResult: { validator: validation_1.stringValidator250 }, refRange: { validator: validation_1.stringValidator250 }, statusIndicator: { validator: validation_1.stringValidator100 }, recordedAt: { validator: validation_1.dateValidator }, reviewedAt: { validator: validation_1.dateValidatorOptional }, timestamp: { validator: validation_1.dateValidator, initializer: function () { return new Date(); } }, statusChangedBy: { validator: validation_1.mongoIdStringRequired }, beforeMeal: { validator: validation_1.booleanValidator }, medStatus: { validator: validation_1.stringValidator }, irregularHeartbeat: { validator: validation_1.booleanValidator }, dontTrigger: { validator: validation_1.booleanValidator }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, showWithPlotsByUnit: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, invalidationReason: { validator: validation_1.stringValidatorOptionalEmptyOkay } })
     },
     managed_content_records: {
         info: {},
@@ -4718,7 +4718,7 @@ exports.schema = (0, exports.build_schema)({
                     id: validation_1.stringValidator100,
                     questionId: validation_1.stringValidator100,
                 })
-            }, canvasSyncEmailConsent: { validator: validation_1.booleanValidator }, canvasSyncPhoneConsent: { validator: validation_1.booleanValidator }, enforceMFA: { validator: validation_1.booleanValidator }, replyToEnduserTransactionalEmails: { validator: validation_1.emailValidator }, customTermsOfService: { validator: validation_1.stringValidator }, customPrivacyPolicy: { validator: validation_1.stringValidator }, customPolicies: { validator: validation_1.customPoliciesValidator }, customPoliciesVersion: { validator: validation_1.stringValidator }, requireCustomTermsOnMagicLink: { validator: validation_1.booleanValidator }, allowCreateSuborganizations: { validator: validation_1.booleanValidator }, answersSyncToPortal: {
+            }, canvasSyncEmailConsent: { validator: validation_1.booleanValidator }, canvasSyncPhoneConsent: { validator: validation_1.booleanValidator }, canvasStateToLocationId: { validator: (0, validation_1.objectAnyFieldsValidator)(validation_1.stringValidator100) }, enforceMFA: { validator: validation_1.booleanValidator }, replyToEnduserTransactionalEmails: { validator: validation_1.emailValidator }, customTermsOfService: { validator: validation_1.stringValidator }, customPrivacyPolicy: { validator: validation_1.stringValidator }, customPolicies: { validator: validation_1.customPoliciesValidator }, customPoliciesVersion: { validator: validation_1.stringValidator }, requireCustomTermsOnMagicLink: { validator: validation_1.booleanValidator }, allowCreateSuborganizations: { validator: validation_1.booleanValidator }, answersSyncToPortal: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     id: validation_1.stringValidator100,
                     questions: (0, validation_1.listValidatorEmptyOk)(validation_1.stringValidator1000),
@@ -6154,7 +6154,7 @@ exports.schema = (0, exports.build_schema)({
             }, userId: { validator: validation_1.mongoIdStringRequired }, title: { validator: validation_1.stringValidator, required: true, examples: ['title'] }, status: { validator: validation_1.stringValidator, required: true, examples: ['status'] }, description: { validator: validation_1.stringValidator1000 }, frequency: { validator: validation_1.stringValidator100 }, items: { validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     title: validation_1.stringValidator,
                     tracking: validation_1.stringValidatorOptional,
-                })) }, tracking: { validator: validation_1.stringValidatorOptional }, fill: { validator: validation_1.stringValidatorOptional }, sku: { validator: validation_1.stringValidatorOptional } })
+                })) }, tracking: { validator: validation_1.stringValidatorOptional }, carrier: { validator: validation_1.stringValidatorOptional }, fill: { validator: validation_1.stringValidatorOptional }, sku: { validator: validation_1.stringValidatorOptional }, bookingLink: { validator: validation_1.stringValidatorOptional } })
     },
     vital_configurations: {
         info: {},
@@ -6543,6 +6543,7 @@ exports.schema = (0, exports.build_schema)({
                     mdbFilter: { validator: validation_1.objectAnyFieldsAnyValuesValidator },
                     sortBy: { validator: (0, validation_1.exactMatchValidatorOptional)(['timestamp', 'outboundTimestamp']) },
                     autobuild: { validator: validation_1.booleanValidatorOptional },
+                    search: { validator: validation_1.stringValidatorOptional },
                 },
                 returns: {
                     threads: { validator: 'inbox_threads' },
@@ -6576,7 +6577,7 @@ exports.schema = (0, exports.build_schema)({
                         relationship: 'foreignKey',
                         onDependencyDelete: 'pull',
                     }]
-            } })
+            }, searchKeywords: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk, readonly: true } })
     }
 });
 // export type SchemaType = typeof schema

@@ -467,6 +467,9 @@ export interface Organization extends Organization_readonly, Organization_requir
     };
     canvasSyncEmailConsent?: boolean;
     canvasSyncPhoneConsent?: boolean;
+    canvasStateToLocationId?: {
+        [state: string]: string;
+    };
     dosespotClinics?: {
         id: string;
         name: string;
@@ -3093,6 +3096,7 @@ export type CreateTicketActionInfo = {
 export type SendEmailAutomationAction = AutomationActionBuilder<'sendEmail', AutomationForMessage & {
     fromEmailOverride?: string;
     ccRelatedContactTypes?: string[];
+    customEmailField?: string;
 }>;
 export type NotifyTeamAutomationAction = AutomationActionBuilder<'notifyTeam', {
     templateId: string;
@@ -3415,6 +3419,9 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
     type?: string;
     source?: string;
     notes?: string;
+    qualitativeResult?: string;
+    refRange?: string;
+    statusIndicator?: string;
     externalId?: string;
     deviceId?: string;
     references?: RelatedRecord[];
@@ -4951,12 +4958,14 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
         tracking?: string;
     }[];
     tracking?: string;
+    carrier?: string;
     instructions?: string;
     shippedDate?: string;
     frequency?: string;
     activateBy?: string;
     fill?: string;
     sku?: string;
+    bookingLink?: string;
 }
 export interface EnduserProblem_readonly extends ClientRecord {
 }
@@ -5345,6 +5354,7 @@ export interface AIConversation extends AIConversation_readonly, AIConversation_
     orchestrationId?: string;
 }
 export interface InboxThread_readonly extends ClientRecord {
+    searchKeywords?: string[];
 }
 export interface InboxThread_required {
     type: "Email" | "SMS" | "Chat" | "GroupMMS" | "Phone";

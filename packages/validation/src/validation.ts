@@ -2934,14 +2934,15 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
   }),
   sendEmail: objectValidator<SendEmailAutomationAction>({
     type: exactMatchValidator(['sendEmail']),
-    info: objectValidator<SendEmailAutomationAction['info']>({ 
-      senderId: mongoIdStringRequired, 
+    info: objectValidator<SendEmailAutomationAction['info']>({
+      senderId: mongoIdStringRequired,
       templateId: mongoIdStringRequired,
       assignment: senderAssignmentStrategyValidatorOptional,
       fromEmailOverride: emailValidatorOptional,
       sendToDestinationOfRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
       ccRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
       hiddenFromTimeline: booleanValidatorOptional,
+      customEmailField: stringValidatorOptional,
     }, { emptyOk: false }),
     ...sharedAutomationActionValidators,
   }),

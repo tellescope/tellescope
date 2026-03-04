@@ -4119,7 +4119,7 @@ export var schema = build_schema({
                         relationship: 'foreignKey',
                         onDependencyDelete: 'delete',
                     }]
-            }, code: { validator: stringValidator }, source: { validator: stringValidator }, type: { validator: stringValidator }, notes: { validator: stringValidator }, recordedAt: { validator: dateValidator }, reviewedAt: { validator: dateValidatorOptional }, timestamp: { validator: dateValidator, initializer: function () { return new Date(); } }, statusChangedBy: { validator: mongoIdStringValidator }, beforeMeal: { validator: booleanValidator }, medStatus: { validator: stringValidator }, irregularHeartbeat: { validator: booleanValidator }, dontTrigger: { validator: booleanValidator }, references: { validator: listOfRelatedRecordsValidator, readonly: true }, showWithPlotsByUnit: { validator: listOfStringsValidatorOptionalOrEmptyOk }, invalidationReason: { validator: stringValidatorOptionalEmptyOkay } })
+            }, code: { validator: stringValidator }, source: { validator: stringValidator }, type: { validator: stringValidator }, notes: { validator: stringValidator }, qualitativeResult: { validator: stringValidator250 }, refRange: { validator: stringValidator250 }, statusIndicator: { validator: stringValidator100 }, recordedAt: { validator: dateValidator }, reviewedAt: { validator: dateValidatorOptional }, timestamp: { validator: dateValidator, initializer: function () { return new Date(); } }, statusChangedBy: { validator: mongoIdStringValidator }, beforeMeal: { validator: booleanValidator }, medStatus: { validator: stringValidator }, irregularHeartbeat: { validator: booleanValidator }, dontTrigger: { validator: booleanValidator }, references: { validator: listOfRelatedRecordsValidator, readonly: true }, showWithPlotsByUnit: { validator: listOfStringsValidatorOptionalOrEmptyOk }, invalidationReason: { validator: stringValidatorOptionalEmptyOkay } })
     },
     managed_content_records: {
         info: {},
@@ -4713,7 +4713,7 @@ export var schema = build_schema({
                     id: stringValidator100,
                     questionId: stringValidator100,
                 })
-            }, canvasSyncEmailConsent: { validator: booleanValidator }, canvasSyncPhoneConsent: { validator: booleanValidator }, enforceMFA: { validator: booleanValidator }, replyToEnduserTransactionalEmails: { validator: emailValidator }, customTermsOfService: { validator: stringValidator }, customPrivacyPolicy: { validator: stringValidator }, customPolicies: { validator: customPoliciesValidator }, customPoliciesVersion: { validator: stringValidator }, requireCustomTermsOnMagicLink: { validator: booleanValidator }, allowCreateSuborganizations: { validator: booleanValidator }, answersSyncToPortal: {
+            }, canvasSyncEmailConsent: { validator: booleanValidator }, canvasSyncPhoneConsent: { validator: booleanValidator }, canvasStateToLocationId: { validator: objectAnyFieldsValidator(stringValidator100) }, enforceMFA: { validator: booleanValidator }, replyToEnduserTransactionalEmails: { validator: emailValidator }, customTermsOfService: { validator: stringValidator }, customPrivacyPolicy: { validator: stringValidator }, customPolicies: { validator: customPoliciesValidator }, customPoliciesVersion: { validator: stringValidator }, requireCustomTermsOnMagicLink: { validator: booleanValidator }, allowCreateSuborganizations: { validator: booleanValidator }, answersSyncToPortal: {
                 validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     id: stringValidator100,
                     questions: listValidatorEmptyOk(stringValidator1000),
@@ -6149,7 +6149,7 @@ export var schema = build_schema({
             }, userId: { validator: mongoIdStringValidator }, title: { validator: stringValidator, required: true, examples: ['title'] }, status: { validator: stringValidator, required: true, examples: ['status'] }, description: { validator: stringValidator1000 }, frequency: { validator: stringValidator100 }, items: { validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     title: stringValidator,
                     tracking: stringValidatorOptional,
-                })) }, tracking: { validator: stringValidatorOptional }, fill: { validator: stringValidatorOptional }, sku: { validator: stringValidatorOptional } })
+                })) }, tracking: { validator: stringValidatorOptional }, carrier: { validator: stringValidatorOptional }, fill: { validator: stringValidatorOptional }, sku: { validator: stringValidatorOptional }, bookingLink: { validator: stringValidatorOptional } })
     },
     vital_configurations: {
         info: {},
@@ -6538,6 +6538,7 @@ export var schema = build_schema({
                     mdbFilter: { validator: objectAnyFieldsAnyValuesValidator },
                     sortBy: { validator: exactMatchValidatorOptional(['timestamp', 'outboundTimestamp']) },
                     autobuild: { validator: booleanValidatorOptional },
+                    search: { validator: stringValidatorOptional },
                 },
                 returns: {
                     threads: { validator: 'inbox_threads' },
@@ -6571,7 +6572,7 @@ export var schema = build_schema({
                         relationship: 'foreignKey',
                         onDependencyDelete: 'pull',
                     }]
-            } })
+            }, searchKeywords: { validator: listOfStringsValidatorOptionalOrEmptyOk, readonly: true } })
     }
 });
 // export type SchemaType = typeof schema

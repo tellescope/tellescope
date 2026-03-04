@@ -478,6 +478,7 @@ export interface Organization extends Organization_readonly, Organization_requir
   },
   canvasSyncEmailConsent?: boolean,
   canvasSyncPhoneConsent?: boolean,
+  canvasStateToLocationId?: { [state: string]: string },
   dosespotClinics?: { id: string, name: string }[],
   answersSyncToPortal?: { id: string, questions: string[] }[]
   externalFormIdsToSync?: string[],
@@ -3142,7 +3143,7 @@ export type CreateTicketActionInfo = {
   disableEditTitle?: boolean,
 }
 
-export type SendEmailAutomationAction = AutomationActionBuilder<'sendEmail', AutomationForMessage & { fromEmailOverride?: string, ccRelatedContactTypes?: string[], }>
+export type SendEmailAutomationAction = AutomationActionBuilder<'sendEmail', AutomationForMessage & { fromEmailOverride?: string, ccRelatedContactTypes?: string[], customEmailField?: string, }>
 export type NotifyTeamAutomationAction = AutomationActionBuilder<'notifyTeam', {
   templateId: string,
   forAssigned: boolean,
@@ -3430,6 +3431,9 @@ export interface EnduserObservation extends EnduserObservation_readonly, Enduser
   type?: string,
   source?: string, // who generated this (e.g. self-reported vs lab work)
   notes?: string,
+  qualitativeResult?: string, // For non-numeric results like "positive", "negative", "normal"
+  refRange?: string, // Reference range for lab results (e.g. "0-100", "< 5.0")
+  statusIndicator?: string, // Lab result status indicator (e.g. "Normal", "High", "Low")
   externalId?: string,
   deviceId?: string,
   references?: RelatedRecord[],
@@ -4863,12 +4867,14 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
     tracking?: string,
   }[],
   tracking?: string,
+  carrier?: string,
   instructions?: string,
   shippedDate?: string,
   frequency?: string,
   activateBy?: string,
   fill?: string,
   sku?: string,
+  bookingLink?: string,
 }
 
 export interface EnduserProblem_readonly extends ClientRecord {}
@@ -5221,7 +5227,9 @@ export interface AIConversation extends AIConversation_readonly, AIConversation_
   orchestrationId?: string, // optional ID to group multiple conversations as part of the same workflow/orchestration
 }
 
-export interface InboxThread_readonly extends ClientRecord {}
+export interface InboxThread_readonly extends ClientRecord {
+  searchKeywords?: string[], // Cached searchable text for Atlas Search indexing
+}
 export interface InboxThread_required {
   type: "Email" | "SMS" | "Chat" | "GroupMMS" | "Phone",
   title: string,

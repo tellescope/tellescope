@@ -12629,8 +12629,8 @@ const replace_enduser_template_values_tests = async () => {
 const inbox_threads_building_tests = async () => {
   log_header("Inbox Thread Building Tests")
 
-  const e = await sdk.api.endusers.createOne({ })
-  const e2 = await sdk.api.endusers.createOne({ })
+  const e = await sdk.api.endusers.createOne({ fname: 'Alice', lname: 'Wonderland' })
+  const e2 = await sdk.api.endusers.createOne({ fname: 'Bob', lname: 'Builder' })
 
   const deleteBuiltThreads = async () => {
     const allBuiltThreadsForCleanup = (await sdk.api.inbox_threads.load_threads({ })).threads
@@ -12719,7 +12719,7 @@ const inbox_threads_building_tests = async () => {
     'load threads',
     () => sdk.api.inbox_threads.load_threads({ }),
     { onResult: ({ threads }) => (
-      threads.length === 5 
+      threads.length === 5
       && threads.some(t => t.type === 'Email' && t.emailMessageId === email.messageId && !object_is_empty(t.readBy ?? {}))
       && threads.some(t => t.type === 'SMS' && t.threadId === sms.id && !object_is_empty(t.readBy ?? {}))
       && threads.some(t => t.type === 'GroupMMS' && t.threadId === groupMMS.id && !object_is_empty(t.readBy ?? {}))
@@ -12728,7 +12728,34 @@ const inbox_threads_building_tests = async () => {
       && !threads.some(t => t.outboundPreview || t.outboundTimestamp)
     )}
   )
-  
+
+  // searchKeywords population tests
+  await async_test(
+    'built threads have searchKeywords from enduser names',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => {
+      const eThreads = threads.filter(t => t.enduserIds.includes(e.id))
+      return eThreads.length === 5
+        && eThreads.every(t =>
+          !!t.searchKeywords
+          && t.searchKeywords.includes('alice')
+          && t.searchKeywords.includes('wonderland')
+          && t.searchKeywords.length === 2 // fname, lname - no duplicates
+        )
+    }}
+  )
+
+  // search by enduser name (via searchKeywords)
+  await async_test(
+    'search by enduser first name finds threads',
+    () => sdk.api.inbox_threads.load_threads({ search: 'Alice' }),
+    { onResult: ({ threads }) => threads.length === 5 && threads.every(t => t.enduserIds.includes(e.id)) }
+  )
+  await async_test(
+    'search by enduser last name finds threads',
+    () => sdk.api.inbox_threads.load_threads({ search: 'Wonderland' }),
+    { onResult: ({ threads }) => threads.length === 5 && threads.every(t => t.enduserIds.includes(e.id)) }
+  )
   await resetThreadBuildingDates()
   await async_test(
     're-build initial 1-message threads',
@@ -12810,6 +12837,21 @@ const inbox_threads_building_tests = async () => {
       && threads.filter(t => t.enduserIds.length === 1 && t.enduserIds.includes(e.id)).length === 10
       && threads.filter(t => t.enduserIds.length === 1 && t.enduserIds.includes(e2.id)).length === 5
     )}
+  )
+
+  // verify second enduser's threads also have correct searchKeywords
+  await async_test(
+    'second enduser threads have searchKeywords from enduser names',
+    () => sdk.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => {
+      const e2Threads = threads.filter(t => t.enduserIds.includes(e2.id))
+      return e2Threads.length === 5
+        && e2Threads.every(t =>
+          !!t.searchKeywords
+          && t.searchKeywords.includes('bob')
+          && t.searchKeywords.includes('builder')
+        )
+    }}
   )
 
   await resetThreadBuildingDates()
@@ -13033,6 +13075,28 @@ const inbox_threads_loading_tests = async () => {
     { onResult: ({ threads }) => threads.length === 2 }
   )
 
+  // search parameter tests
+  await async_test(
+    'search by title',
+    () => sdk.api.inbox_threads.load_threads({ search: 'Email' }),
+    { onResult: ({ threads }) => threads.length === 1 && threads[0].type === 'Email' }
+  )
+  await async_test(
+    'search by preview matches all threads',
+    () => sdk.api.inbox_threads.load_threads({ search: 'Test' }),
+    { onResult: ({ threads }) => threads.length === 5 }
+  )
+  await async_test(
+    'search with no match returns empty',
+    () => sdk.api.inbox_threads.load_threads({ search: 'zzzznonexistent' }),
+    { onResult: ({ threads }) => threads.length === 0 }
+  )
+  await async_test(
+    'short search (< 3 chars) returns unfiltered results',
+    () => sdk.api.inbox_threads.load_threads({ search: 'ab' }),
+    { onResult: ({ threads }) => threads.length === 5 }
+  )
+
   // adding to care team of e2 who belongs to only the phone thread
   await sdk.api.endusers.updateOne(e2.id, { assignedTo: [sdkNonAdmin.userInfo.id] }, { replaceObjectFields: true })
 
@@ -13042,8 +13106,17 @@ const inbox_threads_loading_tests = async () => {
   await async_test(
     'non-admin can load threads based on assignment/default access',
     () => sdkNonAdmin.api.inbox_threads.load_threads({  }),
-    { onResult: ({ threads }) => 
-      threads.length === 2 
+    { onResult: ({ threads }) =>
+      threads.length === 2
+      && threads.some(t => t.id === phone.id)
+      && threads.some(t => t.id === sms.id)
+    }
+  )
+  await async_test(
+    'assigned access search still respects access control',
+    () => sdkNonAdmin.api.inbox_threads.load_threads({ search: 'Test' }),
+    { onResult: ({ threads }) =>
+      threads.length === 2
       && threads.some(t => t.id === phone.id)
       && threads.some(t => t.id === sms.id)
     }
@@ -13087,6 +13160,11 @@ const inbox_threads_loading_tests = async () => {
     () => sdkDefaultAccess.api.inbox_threads.load_threads({  }),
     { onResult: ({ threads }) => threads.length === 1 && threads.some(t => t.id === sms.id) }
   )
+  await async_test(
+    'default access search still respects access control',
+    () => sdkDefaultAccess.api.inbox_threads.load_threads({ search: 'Test' }),
+    { onResult: ({ threads }) => threads.length === 1 && threads.some(t => t.id === sms.id) }
+  )
 
 
   const noAccessRole = await sdk.api.role_based_access_permissions.createOne({
@@ -13119,6 +13197,11 @@ const inbox_threads_loading_tests = async () => {
   await async_test(
     "No access reads nothing",
     () => sdkNoAccess.api.inbox_threads.load_threads({ }),
+    { onResult: ({ threads }) => threads.length === 0 },
+  )
+  await async_test(
+    "No access reads nothing even with search",
+    () => sdkNoAccess.api.inbox_threads.load_threads({ search: 'Test' }),
     { onResult: ({ threads }) => threads.length === 0 },
   )
 
@@ -13158,6 +13241,17 @@ const inbox_threads_loading_tests = async () => {
     'admin phoneNumber filter - non-existent phone number',
     () => sdk.api.inbox_threads.load_threads({ phoneNumber: '+15555555999' } as any),
     { onResult: ({ threads }) => threads.length === 0 }
+  )
+
+  // search by phone number (uses regex on phoneNumber/enduserPhoneNumber fields)
+  await async_test(
+    'search by phone number',
+    () => sdk.api.inbox_threads.load_threads({ search: '+15555555555' }),
+    { onResult: ({ threads }) =>
+      threads.length >= 2
+      && threads.some(t => t.type === 'SMS')
+      && threads.some(t => t.type === 'Phone')
+    }
   )
 
   await Promise.all([

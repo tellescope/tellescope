@@ -2391,6 +2391,7 @@ exports.automationActionValidator = (0, exports.orValidator)({
             sendToDestinationOfRelatedContactTypes: exports.listOfStringsValidatorOptionalOrEmptyOk,
             ccRelatedContactTypes: exports.listOfStringsValidatorOptionalOrEmptyOk,
             hiddenFromTimeline: exports.booleanValidatorOptional,
+            customEmailField: exports.stringValidatorOptional,
         }, { emptyOk: false }) }, sharedAutomationActionValidators)),
     sendSMS: (0, exports.objectValidator)(__assign({ type: (0, exports.exactMatchValidator)(['sendSMS']), info: (0, exports.objectValidator)({
             senderId: exports.mongoIdStringRequired,
