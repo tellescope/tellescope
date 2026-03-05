@@ -716,7 +716,7 @@ const DEFAULT_FETCH_LIMIT = 500
 const BULK_READ_DEFAULT_LIMIT = 1000 // 1000 is max
 const DONE_LOADING_TOKEN = 'doneLoading'
 
-export type UpdateElement <T,> = (id: string, e: Partial<T>, o?: CustomUpdateOptions) => Promise<T>
+export type UpdateElement <T,> = (id: string, e: Partial<T>, o?: CustomUpdateOptions, _overrideUnique?: boolean) => Promise<T>
 
 export interface ListUpdateMethods <T, ADD> extends LoadMoreFunctions<T> {
   addLocalElement: (e: T, o?: AddOptions) => T,
@@ -756,7 +756,7 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     findByIds?: ({ ids } : { ids: string[] }) => Promise<{ matches: T[] }>,
     addOne?: (value: ADD) => Promise<T>,
     addSome?: (values: ADD[]) => Promise<{ created: T[], errors: any[] }>,
-    updateOne?: (id: string, updates: Partial<T>, o?: CustomUpdateOptions) => Promise<T>,
+    updateOne?: (id: string, updates: Partial<T>, o?: CustomUpdateOptions, _overrideUnique?: boolean) => Promise<T>,
     deleteOne?: (id: string) => Promise<void>,
   },
   options?: {
@@ -835,9 +835,9 @@ export const useListStateHook = <T extends { id: string | number }, ADD extends 
     options?.onUpdate?.([{ ...updated, id }])
     return updated
   }, [dispatch, options, slice])
-  const updateElement = useCallback(async (id: string, e: Partial<T>, o?: CustomUpdateOptions) => {
+  const updateElement = useCallback(async (id: string, e: Partial<T>, o?: CustomUpdateOptions, _overrideUnique?: boolean) => {
     if (!updateOne) throw new Error(`Update element by API is not supported`)
-    return replaceLocalElement(id, await updateOne(id, e, o)) // API returns updated model, avoids needing to merge object fields client-side, so just replace
+    return replaceLocalElement(id, await updateOne(id, e, o, _overrideUnique)) // API returns updated model, avoids needing to merge object fields client-side, so just replace
   }, [replaceLocalElement, updateOne])
 
   const removeLocalElement = useCallback(id => {

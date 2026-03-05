@@ -1,4 +1,15 @@
 "use strict";
+var __assign = (this && this.__assign) || function () {
+    __assign = Object.assign || function(t) {
+        for (var s, i = 1, n = arguments.length; i < n; i++) {
+            s = arguments[i];
+            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
+                t[p] = s[p];
+        }
+        return t;
+    };
+    return __assign.apply(this, arguments);
+};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -41,12 +52,14 @@ require('source-map-support').install();
 var sdk_1 = require("../../sdk");
 var testing_1 = require("@tellescope/testing");
 var setup_1 = require("../setup");
+var constants_1 = require("@tellescope/constants");
 var host = process.env.API_URL || 'http://localhost:8080';
+var _a = [process.env.NON_ADMIN_EMAIL, process.env.NON_ADMIN_PASSWORD], nonAdminEmail = _a[0], nonAdminPassword = _a[1];
 // Main test function that can be called independently
 var custom_aggregation_tests = function (_a) {
     var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
     return __awaiter(void 0, void 0, void 0, function () {
-        var testEnduser;
+        var testEnduser, noEngagementAccessRole, rbap, originalRoles;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -70,7 +83,7 @@ var custom_aggregation_tests = function (_a) {
                     _b.sent();
                     _b.label = 3;
                 case 3:
-                    _b.trys.push([3, , 9, 11]);
+                    _b.trys.push([3, , 22, 24]);
                     // Test 1: Basic aggregation works
                     return [4 /*yield*/, (0, testing_1.async_test)("Custom aggregation - basic query works", function () { return sdk.api.analytics_frames.custom_aggregation({
                             modelName: 'endusers',
@@ -148,20 +161,109 @@ var custom_aggregation_tests = function (_a) {
                                 var user = group.data[0];
                                 // Even in grouped results, hashedPassword should not be present
                                 return group.count === 1 && user.hashedPassword === undefined;
-                            } })];
+                            } })
+                        // ===== Role-Based Access Permission Tests =====
+                    ];
                 case 8:
                     // Test 5: Aggregation with grouping doesn't leak hashedPassword
                     _b.sent();
+                    // ===== Role-Based Access Permission Tests =====
+                    (0, testing_1.log_header)("Custom Aggregation - Role-Based Access Tests");
+                    noEngagementAccessRole = 'no-engagement-access-test';
+                    return [4 /*yield*/, sdk.api.role_based_access_permissions.createOne({
+                            role: noEngagementAccessRole,
+                            permissions: __assign(__assign({}, constants_1.PROVIDER_PERMISSIONS), { 
+                                // Override endusers to have full read access so we can test aggregation
+                                endusers: {
+                                    create: 'All',
+                                    read: 'All',
+                                    update: 'All',
+                                    delete: 'All',
+                                }, engagement_events: {
+                                    create: null,
+                                    read: null,
+                                    update: null,
+                                    delete: null,
+                                } }),
+                        })
+                        // Save original role to restore later
+                    ];
+                case 9:
+                    rbap = _b.sent();
+                    originalRoles = sdkNonAdmin.userInfo.roles;
+                    _b.label = 10;
+                case 10:
+                    _b.trys.push([10, , 16, 21]);
+                    // Assign the restricted role to non-admin user
+                    return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: [noEngagementAccessRole] }, { replaceObjectFields: true })];
+                case 11:
+                    // Assign the restricted role to non-admin user
+                    _b.sent();
+                    return [4 /*yield*/, (0, testing_1.wait)(undefined, 1500)]; // wait for role change to propagate
+                case 12:
+                    _b.sent(); // wait for role change to propagate
+                    return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)
+                        // Test 6: Non-admin can still aggregate models they have access to (endusers)
+                    ];
+                case 13:
+                    _b.sent();
+                    // Test 6: Non-admin can still aggregate models they have access to (endusers)
+                    return [4 /*yield*/, (0, testing_1.async_test)("Custom aggregation - non-admin can access permitted models", function () { return sdkNonAdmin.api.analytics_frames.custom_aggregation({
+                            modelName: 'endusers',
+                            aggregation: [
+                                { $match: { fname: 'CustomAgg' } },
+                                { $count: 'total' }
+                            ]
+                        }); }, { onResult: function (r) { var _a; return ((_a = r.result[0]) === null || _a === void 0 ? void 0 : _a.total) === 1; } })
+                        // Test 7: Non-admin is blocked from aggregating models with No Access
+                    ];
+                case 14:
+                    // Test 6: Non-admin can still aggregate models they have access to (endusers)
+                    _b.sent();
+                    // Test 7: Non-admin is blocked from aggregating models with No Access
+                    return [4 /*yield*/, (0, testing_1.async_test)("Custom aggregation - non-admin blocked from No Access models", function () { return sdkNonAdmin.api.analytics_frames.custom_aggregation({
+                            modelName: 'engagement_events',
+                            aggregation: [
+                                { $match: {} },
+                                { $count: 'total' }
+                            ]
+                        }); }, { shouldError: true, onError: function (e) { return e.message === "You do not have access to this resource"; } })];
+                case 15:
+                    // Test 7: Non-admin is blocked from aggregating models with No Access
+                    _b.sent();
+                    console.log("✅ All custom aggregation role-based access tests passed");
+                    return [3 /*break*/, 21];
+                case 16: 
+                // Restore original role
+                return [4 /*yield*/, sdk.api.users.updateOne(sdkNonAdmin.userInfo.id, { roles: originalRoles }, { replaceObjectFields: true })];
+                case 17:
+                    // Restore original role
+                    _b.sent();
+                    return [4 /*yield*/, (0, testing_1.wait)(undefined, 1000)];
+                case 18:
+                    _b.sent();
+                    return [4 /*yield*/, sdkNonAdmin.authenticate(nonAdminEmail, nonAdminPassword)
+                        // Cleanup role
+                    ];
+                case 19:
+                    _b.sent();
+                    // Cleanup role
+                    return [4 /*yield*/, sdk.api.role_based_access_permissions.deleteOne(rbap.id)];
+                case 20:
+                    // Cleanup role
+                    _b.sent();
+                    return [7 /*endfinally*/];
+                case 21:
                     console.log("✅ All custom aggregation tests passed");
-                    return [3 /*break*/, 11];
-                case 9: 
+                    return [3 /*break*/, 24];
+                case 22: 
                 // Cleanup
                 return [4 /*yield*/, sdk.api.endusers.deleteOne(testEnduser.id)];
-                case 10:
+                case 23:
                     // Cleanup
                     _b.sent();
                     return [7 /*endfinally*/];
-                case 11: return [2 /*return*/];
+                case 24: return [2 /*return*/];
             }
         });
     });

@@ -2325,7 +2325,7 @@ export declare const useSyncContext: () => {
     }))[];
     popDeleted: <T_3 extends string>(modelName: T_3) => string[];
 };
-export type UpdateElement<T> = (id: string, e: Partial<T>, o?: CustomUpdateOptions) => Promise<T>;
+export type UpdateElement<T> = (id: string, e: Partial<T>, o?: CustomUpdateOptions, _overrideUnique?: boolean) => Promise<T>;
 export interface ListUpdateMethods<T, ADD> extends LoadMoreFunctions<T> {
     addLocalElement: (e: T, o?: AddOptions) => T;
     addLocalElements: (e: T[], o?: AddOptions) => T[];
@@ -2377,7 +2377,7 @@ export declare const useListStateHook: <T extends {
         created: T[];
         errors: any[];
     }>) | undefined;
-    updateOne?: ((id: string, updates: Partial<T>, o?: CustomUpdateOptions) => Promise<T>) | undefined;
+    updateOne?: ((id: string, updates: Partial<T>, o?: CustomUpdateOptions, _overrideUnique?: boolean) => Promise<T>) | undefined;
     deleteOne?: ((id: string) => Promise<void>) | undefined;
 }, options?: ({
     onAdd?: ((n: T[]) => void) | undefined;

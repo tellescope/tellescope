@@ -648,7 +648,7 @@ export var useListStateHook = function (modelName, state, session, slice, apiCal
         (_a = options === null || options === void 0 ? void 0 : options.onUpdate) === null || _a === void 0 ? void 0 : _a.call(options, [__assign(__assign({}, updated), { id: id })]);
         return updated;
     }, [dispatch, options, slice]);
-    var updateElement = useCallback(function (id, e, o) { return __awaiter(void 0, void 0, void 0, function () {
+    var updateElement = useCallback(function (id, e, o, _overrideUnique) { return __awaiter(void 0, void 0, void 0, function () {
         var _a, _b;
         return __generator(this, function (_c) {
             switch (_c.label) {
@@ -657,7 +657,7 @@ export var useListStateHook = function (modelName, state, session, slice, apiCal
                         throw new Error("Update element by API is not supported");
                     _a = replaceLocalElement;
                     _b = [id];
-                    return [4 /*yield*/, updateOne(id, e, o)];
+                    return [4 /*yield*/, updateOne(id, e, o, _overrideUnique)];
                 case 1: return [2 /*return*/, _a.apply(void 0, _b.concat([_c.sent()]))]; // API returns updated model, avoids needing to merge object fields client-side, so just replace
             }
         });

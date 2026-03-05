@@ -75,6 +75,7 @@ import { time_tracks_tests } from "./api_tests/time_tracks.test";
 import { monthly_availability_restrictions_tests } from "./api_tests/monthly_availability_restrictions.test";
 import { calendar_event_limits_tests } from "./api_tests/calendar_event_limits.test";
 import { custom_aggregation_tests } from "./api_tests/custom_aggregation.test";
+import { no_access_permission_checks_tests } from "./api_tests/no_access_permission_checks.test";
 import { bulk_assignment_tests } from "./api_tests/bulk_assignment.test";
 import { managed_content_enduser_access_tests } from "./api_tests/managed_content_enduser_access.test";
 import { auto_merge_form_submission_tests } from "./api_tests/auto_merge_form_submission.test";
@@ -13924,6 +13925,8 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await custom_aggregation_tests({ sdk, sdkNonAdmin })
+    await no_access_permission_checks_tests({ sdk, sdkNonAdmin })
     await enduser_tests()
     await form_started_trigger_tests({ sdk, sdkNonAdmin })
     await load_team_chat_tests({ sdk, sdkNonAdmin })
@@ -13938,7 +13941,6 @@ const ip_address_form_tests = async () => {
     await managed_content_enduser_access_tests({ sdk, sdkNonAdmin })
     await afteraction_day_of_month_delay_tests({ sdk, sdkNonAdmin })
     await bulk_assignment_tests({ sdk, sdkNonAdmin })
-    await custom_aggregation_tests({ sdk, sdkNonAdmin })
     await formsort_tests()
     await self_serve_appointment_booking_tests()
     await time_tracks_tests({ sdk, sdkNonAdmin })

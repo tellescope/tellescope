@@ -3690,6 +3690,7 @@ exports.organizationSettingsValidator = (0, exports.objectValidator)({
         showAlternateEmailsEditor: exports.booleanValidatorOptional,
         excludeCareTeamFromSearch: exports.booleanValidatorOptional,
         showVideoCallsOnTimeline: exports.booleanValidatorOptional,
+        allowOverrideEmailUniqueness: exports.booleanValidatorOptional,
     }, { isOptional: true }),
     tickets: (0, exports.objectValidator)({
         defaultJourneyDueDateOffsetInMS: exports.numberValidatorOptional,

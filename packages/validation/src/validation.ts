@@ -4519,6 +4519,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     showAlternateEmailsEditor: booleanValidatorOptional,
     excludeCareTeamFromSearch: booleanValidatorOptional,
     showVideoCallsOnTimeline: booleanValidatorOptional,
+    allowOverrideEmailUniqueness: booleanValidatorOptional,
   }, { isOptional: true }),
   tickets: objectValidator<OrganizationSettings['tickets']>({
     defaultJourneyDueDateOffsetInMS: numberValidatorOptional,

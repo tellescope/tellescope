@@ -3637,6 +3637,7 @@ export var organizationSettingsValidator = objectValidator({
         showAlternateEmailsEditor: booleanValidatorOptional,
         excludeCareTeamFromSearch: booleanValidatorOptional,
         showVideoCallsOnTimeline: booleanValidatorOptional,
+        allowOverrideEmailUniqueness: booleanValidatorOptional,
     }, { isOptional: true }),
     tickets: objectValidator({
         defaultJourneyDueDateOffsetInMS: numberValidatorOptional,

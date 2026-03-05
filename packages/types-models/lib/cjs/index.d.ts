@@ -221,6 +221,7 @@ export type OrganizationSettings = {
         showAlternateEmailsEditor?: boolean;
         excludeCareTeamFromSearch?: boolean;
         showVideoCallsOnTimeline?: boolean;
+        allowOverrideEmailUniqueness?: boolean;
     };
     tickets?: {
         defaultJourneyDueDateOffsetInMS?: number | '';
