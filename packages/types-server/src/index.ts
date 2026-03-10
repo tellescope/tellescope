@@ -101,6 +101,7 @@ export type AgentRecord = ServerModelForName['agent_records']
 export type Waitlist = ServerModelForName['waitlists']
 export type AIConversation = ServerModelForName['ai_conversations']
 export type InboxThread = ServerModelForName['inbox_threads']
+export type CustomDashboard = ServerModelForName['custom_dashboards']
 
 export type Forum = ServerModelForName['forums']
 export type ForumPost = ServerModelForName['forum_posts']

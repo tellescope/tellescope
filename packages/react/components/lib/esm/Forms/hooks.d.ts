@@ -158,7 +158,7 @@ export declare const useTellescopeForm: ({ dontAutoadvance, isPublicForm, form, 
         isCalledOut?: boolean | undefined;
         disabled?: boolean | undefined;
         isHighlightedOnTimeline?: boolean | undefined;
-        computedValueKey?: "Height" | "Weight" | "Date of Birth" | "Gender" | "State" | undefined;
+        computedValueKey?: "Height" | "State" | "Date of Birth" | "Weight" | "Gender" | undefined;
         intakeField?: string | undefined;
         touched: boolean;
         includeInSubmit: boolean;
@@ -220,7 +220,7 @@ export declare const useTellescopeForm: ({ dontAutoadvance, isPublicForm, form, 
         isCalledOut?: boolean | undefined;
         disabled?: boolean | undefined;
         isHighlightedOnTimeline?: boolean | undefined;
-        computedValueKey?: "Height" | "Weight" | "Date of Birth" | "Gender" | "State" | undefined;
+        computedValueKey?: "Height" | "State" | "Date of Birth" | "Weight" | "Gender" | undefined;
         intakeField?: string | undefined;
         touched: boolean;
         includeInSubmit: boolean;

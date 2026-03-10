@@ -193,6 +193,7 @@ var loadDefaultQueries = function (s) { return ({
     superbill_providers: defaultQueries(s, 'superbill_providers'),
     superbills: defaultQueries(s, 'superbills'),
     enduser_profile_views: defaultQueries(s, 'enduser_profile_views'),
+    custom_dashboards: defaultQueries(s, 'custom_dashboards'),
     enduser_medications: defaultQueries(s, 'enduser_medications'),
     phone_trees: defaultQueries(s, 'phone_trees'),
     enduser_custom_types: defaultQueries(s, 'enduser_custom_types'),
@@ -585,6 +586,7 @@ var Session = /** @class */ (function (_super) {
         queries.managed_content_records.search = function (a) { return _this._POST("/v1/".concat(schema.managed_content_records.customActions.search.path), a); };
         queries.managed_content_records.update_indexes = function (a) { return _this._PATCH("/v1/".concat(schema.managed_content_records.customActions.update_indexes.path), a); };
         queries.automation_triggers.trigger_events = function (a) { return _this._POST("/v1/".concat(schema.automation_triggers.customActions.trigger_events.path), a); };
+        queries.ticket_threads.send_message = function (a) { return _this._POST("/v1".concat(schema.ticket_threads.customActions.send_message.path), a); };
         queries.ticket_queues.update_indexes = function (a) { return _this._PATCH("/v1/".concat(schema.ticket_queues.customActions.update_indexes.path), a); };
         queries.tickets.bulk_delete = function (a) { return _this._DELETE("/v1/".concat(schema.tickets.customActions.bulk_delete.path), a); };
         queries.tickets.bulk_assign = function (a) { return _this._PATCH("/v1/".concat(schema.tickets.customActions.bulk_assign.path), a); };

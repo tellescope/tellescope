@@ -197,6 +197,7 @@ import {
   FormResponseAnswerTime,
   EnduserProfileViewBlocks,
   EnduserProfileViewBlockType,
+  CustomDashboardBlock,
   Form,
   Insurance,
   SetEnduserFieldsAutomationAction,
@@ -323,6 +324,7 @@ import {
   CancelCurrentEventAction,
   ConfirmCurrentEventAction,
   CanvasCreateNoteAutomationAction,
+  CanvasAddToGroupAutomationAction,
   RecentViewer,
   AthenaSyncAutomationAction,
   ZusSubscribeAutomationAction,
@@ -1295,6 +1297,8 @@ export const numberValidatorMin1Max31 = numberValidatorBuilder({ lower: 1, upper
 export const numberValidatorMin0Max23Optional = numberValidatorBuilder({ lower: 0, upper: 23, isOptional: true })
 export const numberValidatorMin0Max59Optional = numberValidatorBuilder({ lower: 0, upper: 59, isOptional: true })
 
+export const externalIdNumberValidator = numberValidatorBuilder({ lower: 0, upper: Number.MAX_SAFE_INTEGER })
+export const externalIdNumberValidatorOptional = numberValidatorBuilder({ lower: 0, upper: Number.MAX_SAFE_INTEGER, isOptional: true })
 export const fileSizeValidator = numberValidatorBuilder({ lower: 0, upper: MAX_FILE_SIZE })
 
 export const numberOrStringValidatorEmptyOkay = orValidator({
@@ -2550,6 +2554,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   switchToRelatedContact: '',
   canvasSync: '',
   canvasCreateNote: '',
+  canvasAddToGroup: '',
   elationSync: '',
   developHealthMedEligibility: '',
   cancelFutureAppointments: '',
@@ -3253,7 +3258,14 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       matchCareTeamTagsForCanvasPractitionerResolution: listOfStringsWithQualifierValidator,
       noteCoding: canvasCodingValidator,
     }),
-  }), 
+  }),
+  canvasAddToGroup: objectValidator<CanvasAddToGroupAutomationAction>({
+    ...sharedAutomationActionValidators,
+    type: exactMatchValidator(['canvasAddToGroup']),
+    info: objectValidator<CanvasAddToGroupAutomationAction['info']>({
+      groupId: stringValidator100,
+    }),
+  }),
   healthieAddToCourse: objectValidator<HealthieAddToCourseAutomationAction>({
     ...sharedAutomationActionValidators,
     type: exactMatchValidator(['healthieAddToCourse']),
@@ -5255,6 +5267,7 @@ export const accessPermissionsValidator = objectValidator<AccessPermissions>({
   enduser_views: accessPermissionValidator,
   automation_triggers: accessPermissionValidator,
   enduser_profile_views: accessPermissionValidator,
+  custom_dashboards: accessPermissionValidator,
   enduser_medications: accessPermissionValidator,
   phone_trees: accessPermissionValidator,
   table_views: accessPermissionValidator,
@@ -5359,6 +5372,7 @@ export const organizationLimitsValidator = objectValidator<OrganizationLimits>({
   purchases: numberValidatorOptional,
   phone_calls: numberValidatorOptional,
   enduser_profile_views: numberValidatorOptional,
+  custom_dashboards: numberValidatorOptional,
   enduser_medications: numberValidatorOptional,
   phone_trees: numberValidatorOptional,
   table_views: numberValidatorOptional,
@@ -6206,6 +6220,16 @@ export const enduserProfileViewBlockValidator = orValidator<{ [K in EnduserProfi
 })
 export const enduserProfileViewBlocksValidator = listValidator(enduserProfileViewBlockValidator)
 
+export const customDashboardBlockValidator = objectValidator<CustomDashboardBlock>({
+  type: stringValidator100,
+  info: objectAnyFieldsAnyValuesValidator,
+  colSpan: numberValidatorOptional,
+  rowSpan: numberValidatorOptional,
+  responsive: objectAnyFieldsAnyValuesValidator,
+  style: objectAnyFieldsAnyValuesValidator,
+}, { emptyOk: true })
+export const customDashboardBlocksValidator = listValidator(customDashboardBlockValidator)
+
 const insuranceValidator = objectValidator<Insurance>({
   name: stringValidator100,
 })
@@ -6656,3 +6680,9 @@ export const outOfOfficeBlockValidator = objectValidator<OutOfOfficeBlock>({
   autoreplyText: stringValidator5000,
 })
 export const outOfOfficeBlocksValidator = listValidatorEmptyOk(outOfOfficeBlockValidator)
+
+export const emailCCValidator = objectValidator<{ email: string, name?: string }>({
+  email: emailValidator,
+  name: stringValidatorOptional,
+})
+export const listOfEmailCCsValidator = listValidatorOptionalOrEmptyOk(emailCCValidator)

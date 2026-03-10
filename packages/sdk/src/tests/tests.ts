@@ -40,6 +40,7 @@ import { create_user_notifications_trigger_tests } from "./api_tests/create_user
 import { inbox_thread_assignment_updates_tests } from "./api_tests/inbox_thread_assignment_updates.test"
 import { inbox_thread_draft_scheduled_tests } from "./api_tests/inbox_thread_draft_scheduled.test"
 import { load_threads_autobuild_tests } from "./api_tests/load_threads_autobuild.test"
+import { concurrent_build_threads_tests } from "./api_tests/concurrent_build_threads.test"
 import { appointment_completed_trigger_tests } from "./api_tests/appointment_completed_trigger.test"
 import { purchase_made_trigger_tests } from "./api_tests/purchase_made_trigger.test"
 import { appointment_rescheduled_trigger_tests } from "./api_tests/appointment_rescheduled_trigger.test"
@@ -70,6 +71,7 @@ import {
 
 import fs from "fs"
 import { load_inbox_data_tests } from "./api_tests/load_inbox_data.test";
+import { custom_dashboards_tests } from "./api_tests/custom_dashboards.test";
 import { message_assignment_trigger_tests } from "./api_tests/message_assignment_trigger.test";
 import { time_tracks_tests } from "./api_tests/time_tracks.test";
 import { monthly_availability_restrictions_tests } from "./api_tests/monthly_availability_restrictions.test";
@@ -9184,6 +9186,7 @@ const tests: { [K in keyof ClientModelForName]: () => void } = {
   superbill_providers: NO_TEST,
   superbills: NO_TEST,
   enduser_profile_views: NO_TEST,
+  custom_dashboards: NO_TEST, // Called in main runner with SDK dependency
   enduser_custom_types: NO_TEST,
   table_views: NO_TEST,
   email_sync_denials: NO_TEST,
@@ -13925,6 +13928,8 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await custom_dashboards_tests({ sdk, sdkNonAdmin })
+    await concurrent_build_threads_tests({ sdk, sdkNonAdmin })
     await custom_aggregation_tests({ sdk, sdkNonAdmin })
     await no_access_permission_checks_tests({ sdk, sdkNonAdmin })
     await enduser_tests()

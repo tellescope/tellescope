@@ -336,6 +336,7 @@ export var PROVIDER_PERMISSIONS = {
     appointment_locations: READ_ONLY_ALL,
     phone_calls: ASSIGNED_AND_DEFAULT_ACCESS,
     enduser_profile_views: READ_ONLY_ALL,
+    custom_dashboards: READ_ONLY_ALL,
     phone_trees: READ_ONLY_ALL,
     configurations: READ_ONLY_ALL,
     time_tracks: {
@@ -488,6 +489,7 @@ export var ADMIN_PERMISSIONS = {
     purchases: FULL_ACCESS,
     phone_calls: FULL_ACCESS,
     enduser_profile_views: FULL_ACCESS,
+    custom_dashboards: FULL_ACCESS,
     enduser_medications: FULL_ACCESS,
     enduser_custom_types: FULL_ACCESS,
     table_views: FULL_ACCESS,

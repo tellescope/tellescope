@@ -53,11 +53,11 @@ var host = process.env.API_URL || 'http://localhost:8080';
 export var inbox_thread_assignment_updates_tests = function (_a) {
     var sdk = _a.sdk, sdkNonAdmin = _a.sdkNonAdmin;
     return __awaiter(void 0, void 0, void 0, function () {
-        var timestamp, testUser, testEnduser, defaultThreadFields, emailSubject, emailThreadId, emailThread, testEmail, smsThread, testSMS, testChatRoom, chatThread, loadedThreads, updatedEmailThread, loadedThreads2, updatedSMSThread, loadedThreads3, updatedChatThread, loadedThreads4, unchangedThread, loadedThreads5, clearedAssignThread, fixedTimestamp, matchingTimestampSubject, matchingTimestampThreadId, matchingTimestampEmailThread_1, matchingTimestampEmail, loadedThreads6, matchingTimestampUpdatedThread, matchingTimestampSMSThread_1, matchingTimestampSMS, loadedThreads7, matchingTimestampSMSUpdatedThread, orphanEmail, threadsBeforeOrphanUpdate, threadCountBefore, threadsAfterOrphanUpdate, threadCountAfter, upsertSMS, threadsAfterUpsertTest, upsertedThread, countResult, allThreads, filteredThreads, filteredCount, nonMatchingCount, emailTypeFilter, foundEmailByType, foundSmsByType, multiTypeFilter, foundEmailMulti, foundSmsMulti, foundChatMulti, assigneeFilter, foundAssigned, combinedFilter, foundCombined, mdbFilterCount, emptyMdbFilter, idsFilterResult, foundEmailById, foundSmsById, foundChatById, singleIdResult, idsCombinedResult, idsCountResult, emptyIdsResult, sortTestBaseTime, sortThread1, sortThread2, sortThread3, defaultSortResult, timestampSortResult, outboundSortResult, statusTestSMS1, statusTestFrom, statusTestThreads, statusTestThread, statusTestSMS2, threadAfterOutbound, statusTestSMS3, threadAfterNewInbound, readByTestSMS1, readByTestFrom, readByTestThreads, readByTestThread, threadAfterRead, readByTestSMS2, smsThreadAfterOutbound, readByTestSMS3, smsThreadAfterNewInbound, readByTestEmail1, readByEmailTestFrom, readByEmailTestThreads, readByEmailTestThread, emailThreadAfterRead, readByTestEmail2, emailThreadAfterOutbound, readByTestEmail3, emailThreadAfterNewInbound, err_1;
-        var _b, _c;
+        var timestamp, testUser, testEnduser, defaultThreadFields, emailSubject, emailThreadId, emailThread, testEmail, smsThread, testSMS, testChatRoom, chatThread, loadedThreads, updatedEmailThread, loadedThreads2, updatedSMSThread, loadedThreads3, updatedChatThread, loadedThreads4, unchangedThread, loadedThreads5, clearedAssignThread, fixedTimestamp, matchingTimestampSubject, matchingTimestampThreadId, matchingTimestampEmailThread_1, matchingTimestampEmail, loadedThreads6, matchingTimestampUpdatedThread, matchingTimestampSMSThread_1, matchingTimestampSMS, loadedThreads7, matchingTimestampSMSUpdatedThread, orphanEmail, threadsBeforeOrphanUpdate, threadCountBefore, threadsAfterOrphanUpdate, threadCountAfter, upsertSMS, threadsAfterUpsertTest, upsertedThread, countResult, allThreads, filteredThreads, filteredCount, nonMatchingCount, emailTypeFilter, foundEmailByType, foundSmsByType, multiTypeFilter, foundEmailMulti, foundSmsMulti, foundChatMulti, assigneeFilter, foundAssigned, combinedFilter, foundCombined, mdbFilterCount, emptyMdbFilter, idsFilterResult, foundEmailById, foundSmsById, foundChatById, singleIdResult, idsCombinedResult, idsCountResult, emptyIdsResult, sortTestBaseTime, sortThread1, sortThread2, sortThread3, defaultSortResult, timestampSortResult, outboundSortResult, statusTestSMS1, statusTestFrom, statusTestThreads, statusTestThread, statusTestSMS2, threadAfterOutbound, statusTestSMS3, threadAfterNewInbound, readByTestSMS1, readByTestFrom, readByTestThreads, readByTestThread, threadAfterRead, readByTestSMS2, smsThreadAfterOutbound, readByTestSMS3, smsThreadAfterNewInbound, readByTestEmail1, readByEmailTestFrom, readByEmailTestThreads, readByEmailTestThread, emailThreadAfterRead, readByTestEmail2, emailThreadAfterOutbound, readByTestEmail3, emailThreadAfterNewInbound, narrowRangeTestSMS1, narrowRangeThreads, narrowRangeThread, narrowRangeFrom, narrowRangeTestSMS2, threadAfterNarrowBuild, narrowRangeTestEmail1, narrowRangeEmailThreads, narrowRangeEmailThread, narrowRangeEmailFrom, narrowRangeTestEmail2, emailThreadAfterNarrowBuild, zendeskTicketThread_1, zendeskTicketComment, zendeskThreads, zendeskThread, updatedZendeskThreads, updatedZendeskThread, zendeskThreadAfterRead, zendeskOutboundComment, zendeskThreadAfterOutbound, zendeskNewInboundComment, zendeskThreadAfterNewInbound, freshZendeskThreads, freshZendeskThread, zendeskNarrowRangeFrom, zendeskNarrowRangeOutbound, zendeskThreadAfterNarrowBuild, filteredZendeskThreads, multiTypeZendeskThreads, emptyZendeskTicketThread_1, allZendeskThreadsAfterEmpty, emptyZendeskThread, accessControlTicketThread_1, accessControlComment, adminZendeskThreads, accessControlThread, noTicketThreadsRole, accessControlTestEmail, accessControlTestUser, _b, sdkNoTicketAccess, _c, restrictedUserZendeskThreads, restrictedUserAllThreads, restrictedUserHasZendesk, remainingZendeskThreads, err_1;
         var _d, _e, _f, _g, _h, _j, _k;
-        return __generator(this, function (_l) {
-            switch (_l.label) {
+        var _l, _m, _o, _p, _q, _r, _s, _t, _u, _v, _w, _x, _y, _z;
+        return __generator(this, function (_0) {
+            switch (_0.label) {
                 case 0:
                     log_header("InboxThread Assignment Update Tests");
                     timestamp = Date.now();
@@ -68,7 +68,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             notificationEmailsDisabled: true
                         })];
                 case 1:
-                    testUser = _l.sent();
+                    testUser = _0.sent();
                     return [4 /*yield*/, sdk.api.endusers.createOne({
                             fname: "Test",
                             lname: "Patient",
@@ -77,7 +77,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                         // Default thread fields following the test pattern
                     ];
                 case 2:
-                    testEnduser = _l.sent();
+                    testEnduser = _0.sent();
                     defaultThreadFields = {
                         assignedTo: [],
                         enduserIds: [testEnduser.id],
@@ -90,7 +90,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                     emailThreadId = emailSubject.toLowerCase().replaceAll("re:", "").replaceAll(" ", "");
                     return [4 /*yield*/, sdk.api.inbox_threads.createOne(__assign(__assign({}, defaultThreadFields), { type: "Email", title: "Test Email Assignment", threadId: emailThreadId }))];
                 case 3:
-                    emailThread = _l.sent();
+                    emailThread = _0.sent();
                     return [4 /*yield*/, sdk.api.emails.createOne({
                             subject: emailSubject,
                             textContent: "Test email content",
@@ -100,10 +100,10 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             logOnly: true,
                         })];
                 case 4:
-                    testEmail = _l.sent();
+                    testEmail = _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.createOne(__assign(__assign({}, defaultThreadFields), { type: "SMS", title: "Test SMS Assignment", threadId: "test-sms-thread-".concat(timestamp), phoneNumber: "+15555555555", enduserPhoneNumber: "+15555555556" }))];
                 case 5:
-                    smsThread = _l.sent();
+                    smsThread = _0.sent();
                     return [4 /*yield*/, sdk.api.sms_messages.createOne({
                             message: "Test SMS message",
                             enduserId: testEnduser.id,
@@ -114,7 +114,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             logOnly: true,
                         })];
                 case 6:
-                    testSMS = _l.sent();
+                    testSMS = _0.sent();
                     return [4 /*yield*/, sdk.api.chat_rooms.createOne({
                             title: "Test Assignment Room",
                             userIds: [testUser.id],
@@ -123,12 +123,12 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                         // Create chat thread AFTER the chat message so timestamps align
                     ];
                 case 7:
-                    testChatRoom = _l.sent();
+                    testChatRoom = _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.createOne(__assign(__assign({}, defaultThreadFields), { type: "Chat", title: "Test Chat Assignment", threadId: testChatRoom.id, timestamp: new Date() }))
                         // Add a chat message to make the room show up in threads (requires recentMessageSentAt)
                     ];
                 case 8:
-                    chatThread = _l.sent();
+                    chatThread = _0.sent();
                     // Add a chat message to make the room show up in threads (requires recentMessageSentAt)
                     return [4 /*yield*/, sdk.api.chats.createOne({
                             roomId: testChatRoom.id,
@@ -140,15 +140,15 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                     ];
                 case 9:
                     // Add a chat message to make the room show up in threads (requires recentMessageSentAt)
-                    _l.sent();
+                    _0.sent();
                     // Wait for the recentMessageSentAt to be set
                     return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 500); })];
                 case 10:
                     // Wait for the recentMessageSentAt to be set
-                    _l.sent();
-                    _l.label = 11;
+                    _0.sent();
+                    _0.label = 11;
                 case 11:
-                    _l.trys.push([11, , 115, 119]);
+                    _0.trys.push([11, , 187, 191]);
                     // Test 1: Email Assignment Updates
                     console.log("Testing email assignment updates...");
                     // Update email assignment
@@ -159,17 +159,17 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                     ];
                 case 12:
                     // Update email assignment
-                    _l.sent();
+                    _0.sent();
                     // Wait for side effects to process
                     return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1500); })
                         // Verify thread assignment was updated
                     ];
                 case 13:
                     // Wait for side effects to process
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
                 case 14:
-                    loadedThreads = _l.sent();
+                    loadedThreads = _0.sent();
                     updatedEmailThread = loadedThreads.threads.find(function (t) { return t.id === emailThread.id; });
                     assert(!!updatedEmailThread, "Email thread should be found");
                     assert(JSON.stringify(updatedEmailThread.assignedTo) === JSON.stringify([testUser.id]), "Email thread assignment should be updated");
@@ -180,13 +180,13 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             assignedTo: [testUser.id]
                         }, { replaceObjectFields: true })];
                 case 15:
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1500); })];
                 case 16:
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
                 case 17:
-                    loadedThreads2 = _l.sent();
+                    loadedThreads2 = _0.sent();
                     updatedSMSThread = loadedThreads2.threads.find(function (t) { return t.id === smsThread.id; });
                     assert(!!updatedSMSThread, "SMS thread should be found");
                     assert(JSON.stringify(updatedSMSThread.assignedTo) === JSON.stringify([testUser.id]), "SMS thread assignment should be updated");
@@ -197,13 +197,13 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             assignedTo: [testUser.id]
                         }, { replaceObjectFields: true })];
                 case 18:
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1500); })];
                 case 19:
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
                 case 20:
-                    loadedThreads3 = _l.sent();
+                    loadedThreads3 = _0.sent();
                     updatedChatThread = loadedThreads3.threads.find(function (t) { return t.id === chatThread.id; });
                     assert(!!updatedChatThread, "Chat thread should be found");
                     assert(JSON.stringify(updatedChatThread.assignedTo) === JSON.stringify([testUser.id]), "Chat thread assignment should be updated");
@@ -217,15 +217,15 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                         }, { replaceObjectFields: true })];
                 case 21:
                     // Update email with same assignment (should not trigger thread update)
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1500); })
                         // Verify thread assignment still correct (function should early return)
                     ];
                 case 22:
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
                 case 23:
-                    loadedThreads4 = _l.sent();
+                    loadedThreads4 = _0.sent();
                     unchangedThread = loadedThreads4.threads.find(function (t) { return t.id === emailThread.id; });
                     assert(!!unchangedThread, "Email thread should still be found");
                     assert(JSON.stringify(unchangedThread.assignedTo) === JSON.stringify([testUser.id]), "Thread assignment should remain unchanged");
@@ -236,13 +236,13 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             assignedTo: []
                         }, { replaceObjectFields: true })];
                 case 24:
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1500); })];
                 case 25:
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
                 case 26:
-                    loadedThreads5 = _l.sent();
+                    loadedThreads5 = _0.sent();
                     clearedAssignThread = loadedThreads5.threads.find(function (t) { return t.id === emailThread.id; });
                     assert(!!clearedAssignThread, "Email thread should still be found");
                     assert(JSON.stringify(clearedAssignThread.assignedTo) === JSON.stringify([]), "Thread assignment should be cleared");
@@ -255,7 +255,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                     return [4 /*yield*/, sdk.api.inbox_threads.createOne(__assign(__assign({}, defaultThreadFields), { type: "Email", title: "Matching Timestamp Email Test", threadId: matchingTimestampThreadId, timestamp: fixedTimestamp // Same timestamp we'll use for message
                          }))];
                 case 27:
-                    matchingTimestampEmailThread_1 = _l.sent();
+                    matchingTimestampEmailThread_1 = _0.sent();
                     return [4 /*yield*/, sdk.api.emails.createOne({
                             subject: matchingTimestampSubject,
                             textContent: "Test email with matching timestamp",
@@ -269,20 +269,20 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                         // Update email assignment - should work even with matching timestamps
                     ];
                 case 28:
-                    matchingTimestampEmail = _l.sent();
+                    matchingTimestampEmail = _0.sent();
                     // Update email assignment - should work even with matching timestamps
                     return [4 /*yield*/, sdk.api.emails.updateOne(matchingTimestampEmail.id, {
                             assignedTo: [testUser.id]
                         }, { replaceObjectFields: true })];
                 case 29:
                     // Update email assignment - should work even with matching timestamps
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1500); })];
                 case 30:
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
                 case 31:
-                    loadedThreads6 = _l.sent();
+                    loadedThreads6 = _0.sent();
                     matchingTimestampUpdatedThread = loadedThreads6.threads.find(function (t) { return t.id === matchingTimestampEmailThread_1.id; });
                     assert(!!matchingTimestampUpdatedThread, "Matching timestamp email thread should be found");
                     assert(JSON.stringify(matchingTimestampUpdatedThread.assignedTo) === JSON.stringify([testUser.id]), "Email thread assignment should update even with matching timestamps");
@@ -292,7 +292,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                     return [4 /*yield*/, sdk.api.inbox_threads.createOne(__assign(__assign({}, defaultThreadFields), { type: "SMS", title: "Matching Timestamp SMS Test", threadId: "matching-timestamp-sms-".concat(timestamp), phoneNumber: "+15555555557", enduserPhoneNumber: "+15555555558", timestamp: fixedTimestamp // Same timestamp we'll use for message
                          }))];
                 case 32:
-                    matchingTimestampSMSThread_1 = _l.sent();
+                    matchingTimestampSMSThread_1 = _0.sent();
                     return [4 /*yield*/, sdk.api.sms_messages.createOne({
                             message: "Matching timestamp SMS test",
                             enduserId: testEnduser.id,
@@ -306,20 +306,20 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                         // Update SMS assignment - should work even with matching timestamps
                     ];
                 case 33:
-                    matchingTimestampSMS = _l.sent();
+                    matchingTimestampSMS = _0.sent();
                     // Update SMS assignment - should work even with matching timestamps
                     return [4 /*yield*/, sdk.api.sms_messages.updateOne(matchingTimestampSMS.id, {
                             assignedTo: [testUser.id]
                         }, { replaceObjectFields: true })];
                 case 34:
                     // Update SMS assignment - should work even with matching timestamps
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1500); })];
                 case 35:
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
                 case 36:
-                    loadedThreads7 = _l.sent();
+                    loadedThreads7 = _0.sent();
                     matchingTimestampSMSUpdatedThread = loadedThreads7.threads.find(function (t) { return t.id === matchingTimestampSMSThread_1.id; });
                     assert(!!matchingTimestampSMSUpdatedThread, "Matching timestamp SMS thread should be found");
                     assert(JSON.stringify(matchingTimestampSMSUpdatedThread.assignedTo) === JSON.stringify([testUser.id]), "SMS thread assignment should update even with matching timestamps");
@@ -335,7 +335,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                     ];
                 case 37:
                     // Cleanup additional test resources
-                    _l.sent();
+                    _0.sent();
                     // Test 8: Non-Existent Thread Case - Should NOT Create New Thread
                     console.log("Testing behavior when no matching thread exists...");
                     return [4 /*yield*/, sdk.api.emails.createOne({
@@ -349,10 +349,10 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                         // Count existing threads before update
                     ];
                 case 38:
-                    orphanEmail = _l.sent();
+                    orphanEmail = _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
                 case 39:
-                    threadsBeforeOrphanUpdate = _l.sent();
+                    threadsBeforeOrphanUpdate = _0.sent();
                     threadCountBefore = threadsBeforeOrphanUpdate.threads.length;
                     // Update assignment on email that has no matching thread
                     return [4 /*yield*/, sdk.api.emails.updateOne(orphanEmail.id, {
@@ -360,15 +360,15 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                         }, { replaceObjectFields: true })];
                 case 40:
                     // Update assignment on email that has no matching thread
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1500); })
                         // Verify no new thread was created (current expected behavior)
                     ];
                 case 41:
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
                 case 42:
-                    threadsAfterOrphanUpdate = _l.sent();
+                    threadsAfterOrphanUpdate = _0.sent();
                     threadCountAfter = threadsAfterOrphanUpdate.threads.length;
                     assert(threadCountAfter === threadCountBefore, "No new thread should be created when no matching thread exists");
                     console.log("✅ Non-existent thread test passed - no thread created as expected");
@@ -385,15 +385,15 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             logOnly: true,
                         })];
                 case 43:
-                    upsertSMS = _l.sent();
+                    upsertSMS = _0.sent();
                     return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1500); })
                         // Check if a new thread was created (would indicate upsert capability)
                     ];
                 case 44:
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
                 case 45:
-                    threadsAfterUpsertTest = _l.sent();
+                    threadsAfterUpsertTest = _0.sent();
                     upsertedThread = threadsAfterUpsertTest.threads.find(function (t) {
                         return t.type === "SMS" &&
                             t.phoneNumber === "+15555555559" &&
@@ -406,11 +406,11 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                     return [4 /*yield*/, sdk.api.inbox_threads.deleteOne(upsertedThread.id)];
                 case 46:
                     // Cleanup the upserted thread
-                    _l.sent();
+                    _0.sent();
                     return [3 /*break*/, 48];
                 case 47:
                     console.log("✅ No upsert capability - thread was not created (current behavior)");
-                    _l.label = 48;
+                    _0.label = 48;
                 case 48: 
                 // Cleanup orphan email and upsert SMS
                 return [4 /*yield*/, Promise.all([
@@ -421,27 +421,27 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                 ];
                 case 49:
                     // Cleanup orphan email and upsert SMS
-                    _l.sent();
+                    _0.sent();
                     // Test 10: returnCount parameter - basic count
                     console.log("Testing load_threads returnCount parameter...");
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ returnCount: true })];
                 case 50:
-                    countResult = _l.sent();
+                    countResult = _0.sent();
                     assert(typeof countResult.count === 'number', "returnCount should return a count field with a number");
                     assert(countResult.threads === undefined, "returnCount should not return threads array");
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
                 case 51:
-                    allThreads = _l.sent();
+                    allThreads = _0.sent();
                     assert(countResult.count === allThreads.threads.length, "Count (".concat(countResult.count, ") should match threads length (").concat(allThreads.threads.length, ")"));
                     console.log("✅ returnCount basic test passed");
                     // Test 11: returnCount with enduserIds filter
                     console.log("Testing returnCount with enduserIds filter...");
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ enduserIds: [testEnduser.id] })];
                 case 52:
-                    filteredThreads = _l.sent();
+                    filteredThreads = _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ enduserIds: [testEnduser.id], returnCount: true })];
                 case 53:
-                    filteredCount = _l.sent();
+                    filteredCount = _0.sent();
                     assert(typeof filteredCount.count === 'number', "Filtered returnCount should return a count");
                     assert(filteredCount.count === filteredThreads.threads.length, "Filtered count (".concat(filteredCount.count, ") should match filtered threads length (").concat(filteredThreads.threads.length, ")"));
                     console.log("✅ returnCount with enduserIds filter test passed");
@@ -452,7 +452,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             returnCount: true
                         })];
                 case 54:
-                    nonMatchingCount = _l.sent();
+                    nonMatchingCount = _0.sent();
                     assert(nonMatchingCount.count === 0, "Non-matching filter count should be 0, got ".concat(nonMatchingCount.count));
                     console.log("✅ returnCount with non-matching filter test passed");
                     // Test 13: mdbFilter - filter by type
@@ -461,7 +461,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             mdbFilter: { type: 'Email' }
                         })];
                 case 55:
-                    emailTypeFilter = _l.sent();
+                    emailTypeFilter = _0.sent();
                     foundEmailByType = emailTypeFilter.threads.find(function (t) { return t.id === emailThread.id; });
                     foundSmsByType = emailTypeFilter.threads.find(function (t) { return t.id === smsThread.id; });
                     assert(!!foundEmailByType, 'Email thread should be found when filtering by Email type');
@@ -473,7 +473,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             mdbFilter: { type: { $in: ['Email', 'SMS'] } }
                         })];
                 case 56:
-                    multiTypeFilter = _l.sent();
+                    multiTypeFilter = _0.sent();
                     foundEmailMulti = multiTypeFilter.threads.find(function (t) { return t.id === emailThread.id; });
                     foundSmsMulti = multiTypeFilter.threads.find(function (t) { return t.id === smsThread.id; });
                     foundChatMulti = multiTypeFilter.threads.find(function (t) { return t.id === chatThread.id; });
@@ -487,12 +487,12 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                     return [4 /*yield*/, sdk.api.inbox_threads.updateOne(emailThread.id, { assignedTo: [testUser.id] })];
                 case 57:
                     // First assign the email thread (may already be assigned from earlier tests)
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({
                             mdbFilter: { assignedTo: testUser.id }
                         })];
                 case 58:
-                    assigneeFilter = _l.sent();
+                    assigneeFilter = _0.sent();
                     foundAssigned = assigneeFilter.threads.find(function (t) { return t.id === emailThread.id; });
                     assert(!!foundAssigned, 'Email thread should be found when filtering by assignee');
                     console.log("✅ mdbFilter assignedTo filter test passed");
@@ -503,7 +503,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             mdbFilter: { type: 'Email' }
                         })];
                 case 59:
-                    combinedFilter = _l.sent();
+                    combinedFilter = _0.sent();
                     foundCombined = combinedFilter.threads.find(function (t) { return t.id === emailThread.id; });
                     assert(!!foundCombined, 'Email thread should be found with combined filters');
                     console.log("✅ mdbFilter combined filter test passed");
@@ -514,9 +514,9 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             returnCount: true
                         })];
                 case 60:
-                    mdbFilterCount = _l.sent();
+                    mdbFilterCount = _0.sent();
                     assert(typeof mdbFilterCount.count === 'number', 'mdbFilter with returnCount should return count');
-                    assert(((_d = mdbFilterCount.count) !== null && _d !== void 0 ? _d : 0) >= 1, 'Count should be at least 1 for Email type');
+                    assert(((_l = mdbFilterCount.count) !== null && _l !== void 0 ? _l : 0) >= 1, 'Count should be at least 1 for Email type');
                     console.log("✅ mdbFilter with returnCount test passed");
                     // Test 18: mdbFilter with empty object (should return all)
                     console.log("Testing mdbFilter with empty object...");
@@ -524,7 +524,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             mdbFilter: {}
                         })];
                 case 61:
-                    emptyMdbFilter = _l.sent();
+                    emptyMdbFilter = _0.sent();
                     assert(emptyMdbFilter.threads.length > 0, 'Empty mdbFilter should return threads');
                     console.log("✅ mdbFilter empty object test passed");
                     // Test 19: ids filter - filter by specific thread ids
@@ -533,7 +533,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             ids: [emailThread.id, smsThread.id]
                         })];
                 case 62:
-                    idsFilterResult = _l.sent();
+                    idsFilterResult = _0.sent();
                     assert(idsFilterResult.threads.length === 2, "ids filter should return exactly 2 threads, got ".concat(idsFilterResult.threads.length));
                     foundEmailById = idsFilterResult.threads.find(function (t) { return t.id === emailThread.id; });
                     foundSmsById = idsFilterResult.threads.find(function (t) { return t.id === smsThread.id; });
@@ -548,7 +548,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             ids: [emailThread.id]
                         })];
                 case 63:
-                    singleIdResult = _l.sent();
+                    singleIdResult = _0.sent();
                     assert(singleIdResult.threads.length === 1, "Single id filter should return exactly 1 thread, got ".concat(singleIdResult.threads.length));
                     assert(singleIdResult.threads[0].id === emailThread.id, 'Should return the correct thread');
                     console.log("✅ ids filter single id test passed");
@@ -559,7 +559,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             mdbFilter: { type: 'Email' }
                         })];
                 case 64:
-                    idsCombinedResult = _l.sent();
+                    idsCombinedResult = _0.sent();
                     assert(idsCombinedResult.threads.length === 1, "Combined ids + mdbFilter should return 1 thread, got ".concat(idsCombinedResult.threads.length));
                     assert(idsCombinedResult.threads[0].id === emailThread.id, 'Should return only the email thread');
                     console.log("✅ ids filter combined with mdbFilter test passed");
@@ -570,7 +570,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             returnCount: true
                         })];
                 case 65:
-                    idsCountResult = _l.sent();
+                    idsCountResult = _0.sent();
                     assert(idsCountResult.count === 3, "ids filter with returnCount should return 3, got ".concat(idsCountResult.count));
                     console.log("✅ ids filter with returnCount test passed");
                     // Test 23: ids filter with empty array (should return all)
@@ -579,7 +579,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             ids: []
                         })];
                 case 66:
-                    emptyIdsResult = _l.sent();
+                    emptyIdsResult = _0.sent();
                     assert(emptyIdsResult.threads.length >= 3, 'Empty ids array should not filter (return all threads)');
                     console.log("✅ ids filter empty array test passed");
                     // Test 24: sortBy parameter - default behavior (timestamp)
@@ -587,20 +587,20 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                     sortTestBaseTime = Date.now();
                     return [4 /*yield*/, sdk.api.inbox_threads.createOne(__assign(__assign({}, defaultThreadFields), { type: "SMS", title: "Sort Test Thread 1", threadId: "sort-test-1-".concat(timestamp), phoneNumber: "+15555550001", enduserPhoneNumber: "+15555550002", timestamp: new Date(sortTestBaseTime - 3000), outboundTimestamp: new Date(sortTestBaseTime) }))];
                 case 67:
-                    sortThread1 = _l.sent();
+                    sortThread1 = _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.createOne(__assign(__assign({}, defaultThreadFields), { type: "SMS", title: "Sort Test Thread 2", threadId: "sort-test-2-".concat(timestamp), phoneNumber: "+15555550003", enduserPhoneNumber: "+15555550004", timestamp: new Date(sortTestBaseTime - 1000), outboundTimestamp: new Date(sortTestBaseTime - 3000) }))];
                 case 68:
-                    sortThread2 = _l.sent();
+                    sortThread2 = _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.createOne(__assign(__assign({}, defaultThreadFields), { type: "SMS", title: "Sort Test Thread 3", threadId: "sort-test-3-".concat(timestamp), phoneNumber: "+15555550005", enduserPhoneNumber: "+15555550006", timestamp: new Date(sortTestBaseTime - 2000), outboundTimestamp: new Date(sortTestBaseTime - 2000) }))
                         // Test default sort (should be by timestamp descending)
                     ];
                 case 69:
-                    sortThread3 = _l.sent();
+                    sortThread3 = _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({
                             ids: [sortThread1.id, sortThread2.id, sortThread3.id]
                         })];
                 case 70:
-                    defaultSortResult = _l.sent();
+                    defaultSortResult = _0.sent();
                     assert(defaultSortResult.threads.length === 3, 'Should return 3 sort test threads');
                     assert(defaultSortResult.threads[0].id === sortThread2.id, 'Default sort: newest timestamp should be first');
                     assert(defaultSortResult.threads[1].id === sortThread3.id, 'Default sort: middle timestamp should be second');
@@ -613,7 +613,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             sortBy: 'timestamp'
                         })];
                 case 71:
-                    timestampSortResult = _l.sent();
+                    timestampSortResult = _0.sent();
                     assert(timestampSortResult.threads[0].id === sortThread2.id, 'Explicit timestamp sort: newest should be first');
                     assert(timestampSortResult.threads[1].id === sortThread3.id, 'Explicit timestamp sort: middle should be second');
                     assert(timestampSortResult.threads[2].id === sortThread1.id, 'Explicit timestamp sort: oldest should be last');
@@ -625,7 +625,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             sortBy: 'outboundTimestamp'
                         })];
                 case 72:
-                    outboundSortResult = _l.sent();
+                    outboundSortResult = _0.sent();
                     assert(outboundSortResult.threads[0].id === sortThread1.id, 'OutboundTimestamp sort: newest outbound should be first');
                     assert(outboundSortResult.threads[1].id === sortThread3.id, 'OutboundTimestamp sort: middle outbound should be second');
                     assert(outboundSortResult.threads[2].id === sortThread2.id, 'OutboundTimestamp sort: oldest outbound should be last');
@@ -642,7 +642,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                     ];
                 case 73:
                     // Cleanup sort test threads
-                    _l.sent();
+                    _0.sent();
                     // ========== InboxStatus Preservation Tests ==========
                     // These tests verify that outbound messages do NOT reset inboxStatus
                     // Test 27: Outbound SMS should NOT reset inboxStatus
@@ -658,17 +658,17 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                         // Build threads using reset_threads + build_threads pattern
                     ];
                 case 74:
-                    statusTestSMS1 = _l.sent();
+                    statusTestSMS1 = _0.sent();
                     statusTestFrom = new Date(Date.now() - 60000);
                     return [4 /*yield*/, sdk.api.inbox_threads.reset_threads()];
                 case 75:
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: statusTestFrom, to: new Date() })];
                 case 76:
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
                 case 77:
-                    statusTestThreads = _l.sent();
+                    statusTestThreads = _0.sent();
                     statusTestThread = statusTestThreads.threads.find(function (t) {
                         return t.type === 'SMS' && t.enduserIds.includes(testEnduser.id) && t.phoneNumber === "+15555559999";
                     });
@@ -680,7 +680,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                     ];
                 case 78:
                     // Update thread status to "Resolved"
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.sms_messages.createOne({
                             message: "Outbound reply - should not reset status",
                             enduserId: testEnduser.id,
@@ -692,15 +692,15 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                         // Rebuild threads - status should remain "Resolved"
                     ];
                 case 79:
-                    statusTestSMS2 = _l.sent();
+                    statusTestSMS2 = _0.sent();
                     // Rebuild threads - status should remain "Resolved"
                     return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: statusTestFrom, to: new Date() })];
                 case 80:
                     // Rebuild threads - status should remain "Resolved"
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ ids: [statusTestThread.id] })];
                 case 81:
-                    threadAfterOutbound = (_l.sent()).threads[0];
+                    threadAfterOutbound = (_0.sent()).threads[0];
                     assert(threadAfterOutbound.inboxStatus === 'Resolved', "Status should remain 'Resolved' after outbound message, got '".concat(threadAfterOutbound.inboxStatus, "'"));
                     assert(!!threadAfterOutbound.outboundTimestamp, "outboundTimestamp should be set after outbound message");
                     console.log("✅ Outbound SMS does NOT reset inboxStatus test passed");
@@ -710,7 +710,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                     return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1100); })];
                 case 82:
                     // Wait to ensure ObjectId timestamps are in different seconds (MongoDB ObjectIds have second-level precision)
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.sms_messages.createOne({
                             message: "New inbound - should update status",
                             enduserId: testEnduser.id,
@@ -723,15 +723,15 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                         // Rebuild threads - status SHOULD be updated from new inbound
                     ];
                 case 83:
-                    statusTestSMS3 = _l.sent();
+                    statusTestSMS3 = _0.sent();
                     // Rebuild threads - status SHOULD be updated from new inbound
                     return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: statusTestFrom, to: new Date() })];
                 case 84:
                     // Rebuild threads - status SHOULD be updated from new inbound
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ ids: [statusTestThread.id] })];
                 case 85:
-                    threadAfterNewInbound = (_l.sent()).threads[0];
+                    threadAfterNewInbound = (_0.sent()).threads[0];
                     assert(threadAfterNewInbound.inboxStatus === 'New', "Status SHOULD be 'New' after new inbound message, got '".concat(threadAfterNewInbound.inboxStatus, "'"));
                     console.log("✅ New inbound SMS DOES update inboxStatus test passed");
                     // Cleanup status preservation test resources
@@ -747,7 +747,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                     ];
                 case 86:
                     // Cleanup status preservation test resources
-                    _l.sent();
+                    _0.sent();
                     // ========== ReadBy Preservation Tests ==========
                     // These tests verify that outbound messages do NOT reset readBy
                     // Test 29: Outbound SMS should NOT reset readBy
@@ -763,34 +763,34 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                         // Build threads
                     ];
                 case 87:
-                    readByTestSMS1 = _l.sent();
+                    readByTestSMS1 = _0.sent();
                     readByTestFrom = new Date(Date.now() - 60000);
                     return [4 /*yield*/, sdk.api.inbox_threads.reset_threads()];
                 case 88:
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: readByTestFrom, to: new Date() })];
                 case 89:
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
                 case 90:
-                    readByTestThreads = _l.sent();
+                    readByTestThreads = _0.sent();
                     readByTestThread = readByTestThreads.threads.find(function (t) {
                         return t.type === 'SMS' && t.enduserIds.includes(testEnduser.id) && t.phoneNumber === "+15555558888";
                     });
                     assert(!!readByTestThread, "readBy test SMS thread should be created");
                     // Mark thread as read
                     return [4 /*yield*/, sdk.api.inbox_threads.updateOne(readByTestThread.id, {
-                            readBy: (_b = {}, _b[sdk.userInfo.id] = new Date(), _b)
+                            readBy: (_d = {}, _d[sdk.userInfo.id] = new Date(), _d)
                         })
                         // Verify thread is marked as read
                     ];
                 case 91:
                     // Mark thread as read
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ ids: [readByTestThread.id] })];
                 case 92:
-                    threadAfterRead = (_l.sent()).threads[0];
-                    assert(!!((_e = threadAfterRead.readBy) === null || _e === void 0 ? void 0 : _e[sdk.userInfo.id]), "Thread should be marked as read");
+                    threadAfterRead = (_0.sent()).threads[0];
+                    assert(!!((_m = threadAfterRead.readBy) === null || _m === void 0 ? void 0 : _m[sdk.userInfo.id]), "Thread should be marked as read");
                     return [4 /*yield*/, sdk.api.sms_messages.createOne({
                             message: "Outbound reply - should not reset readBy",
                             enduserId: testEnduser.id,
@@ -802,16 +802,16 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                         // Rebuild threads - readBy should remain set
                     ];
                 case 93:
-                    readByTestSMS2 = _l.sent();
+                    readByTestSMS2 = _0.sent();
                     // Rebuild threads - readBy should remain set
                     return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: readByTestFrom, to: new Date() })];
                 case 94:
                     // Rebuild threads - readBy should remain set
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ ids: [readByTestThread.id] })];
                 case 95:
-                    smsThreadAfterOutbound = (_l.sent()).threads[0];
-                    assert(!!((_f = smsThreadAfterOutbound.readBy) === null || _f === void 0 ? void 0 : _f[sdk.userInfo.id]), "readBy should remain set after outbound message, got ".concat(JSON.stringify(smsThreadAfterOutbound.readBy)));
+                    smsThreadAfterOutbound = (_0.sent()).threads[0];
+                    assert(!!((_o = smsThreadAfterOutbound.readBy) === null || _o === void 0 ? void 0 : _o[sdk.userInfo.id]), "readBy should remain set after outbound message, got ".concat(JSON.stringify(smsThreadAfterOutbound.readBy)));
                     assert(!!smsThreadAfterOutbound.outboundTimestamp, "outboundTimestamp should be set after outbound message");
                     console.log("✅ Outbound SMS does NOT reset readBy test passed");
                     // Test 30: New inbound SMS SHOULD clear readBy
@@ -820,7 +820,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                     return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1100); })];
                 case 96:
                     // Wait for different timestamp
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.sms_messages.createOne({
                             message: "New inbound - should clear readBy",
                             enduserId: testEnduser.id,
@@ -832,16 +832,16 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                         // Rebuild threads - readBy SHOULD be cleared
                     ];
                 case 97:
-                    readByTestSMS3 = _l.sent();
+                    readByTestSMS3 = _0.sent();
                     // Rebuild threads - readBy SHOULD be cleared
                     return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: readByTestFrom, to: new Date() })];
                 case 98:
                     // Rebuild threads - readBy SHOULD be cleared
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ ids: [readByTestThread.id] })];
                 case 99:
-                    smsThreadAfterNewInbound = (_l.sent()).threads[0];
-                    assert(!((_g = smsThreadAfterNewInbound.readBy) === null || _g === void 0 ? void 0 : _g[sdk.userInfo.id]), "readBy SHOULD be cleared after new inbound message, got ".concat(JSON.stringify(smsThreadAfterNewInbound.readBy)));
+                    smsThreadAfterNewInbound = (_0.sent()).threads[0];
+                    assert(!((_p = smsThreadAfterNewInbound.readBy) === null || _p === void 0 ? void 0 : _p[sdk.userInfo.id]), "readBy SHOULD be cleared after new inbound message, got ".concat(JSON.stringify(smsThreadAfterNewInbound.readBy)));
                     console.log("✅ New inbound SMS DOES clear readBy test passed");
                     // Cleanup SMS readBy tests
                     return [4 /*yield*/, Promise.all([
@@ -854,7 +854,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                     ];
                 case 100:
                     // Cleanup SMS readBy tests
-                    _l.sent();
+                    _0.sent();
                     // Test 31: Outbound Email should NOT reset readBy
                     console.log("Testing outbound Email should NOT reset readBy...");
                     return [4 /*yield*/, sdk.api.emails.createOne({
@@ -867,34 +867,34 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                         // Build threads
                     ];
                 case 101:
-                    readByTestEmail1 = _l.sent();
+                    readByTestEmail1 = _0.sent();
                     readByEmailTestFrom = new Date(Date.now() - 60000);
                     return [4 /*yield*/, sdk.api.inbox_threads.reset_threads()];
                 case 102:
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: readByEmailTestFrom, to: new Date() })];
                 case 103:
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
                 case 104:
-                    readByEmailTestThreads = _l.sent();
+                    readByEmailTestThreads = _0.sent();
                     readByEmailTestThread = readByEmailTestThreads.threads.find(function (t) {
                         return t.type === 'Email' && t.enduserIds.includes(testEnduser.id);
                     });
                     assert(!!readByEmailTestThread, "readBy test Email thread should be created");
                     // Mark thread as read
                     return [4 /*yield*/, sdk.api.inbox_threads.updateOne(readByEmailTestThread.id, {
-                            readBy: (_c = {}, _c[sdk.userInfo.id] = new Date(), _c)
+                            readBy: (_e = {}, _e[sdk.userInfo.id] = new Date(), _e)
                         })
                         // Verify thread is marked as read
                     ];
                 case 105:
                     // Mark thread as read
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ ids: [readByEmailTestThread.id] })];
                 case 106:
-                    emailThreadAfterRead = (_l.sent()).threads[0];
-                    assert(!!((_h = emailThreadAfterRead.readBy) === null || _h === void 0 ? void 0 : _h[sdk.userInfo.id]), "Email thread should be marked as read");
+                    emailThreadAfterRead = (_0.sent()).threads[0];
+                    assert(!!((_q = emailThreadAfterRead.readBy) === null || _q === void 0 ? void 0 : _q[sdk.userInfo.id]), "Email thread should be marked as read");
                     return [4 /*yield*/, sdk.api.emails.createOne({
                             subject: "Re: Inbound test email for readBy test",
                             textContent: "Outbound reply - should not reset readBy",
@@ -905,16 +905,16 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                         // Rebuild threads - readBy should remain set
                     ];
                 case 107:
-                    readByTestEmail2 = _l.sent();
+                    readByTestEmail2 = _0.sent();
                     // Rebuild threads - readBy should remain set
                     return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: readByEmailTestFrom, to: new Date() })];
                 case 108:
                     // Rebuild threads - readBy should remain set
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ ids: [readByEmailTestThread.id] })];
                 case 109:
-                    emailThreadAfterOutbound = (_l.sent()).threads[0];
-                    assert(!!((_j = emailThreadAfterOutbound.readBy) === null || _j === void 0 ? void 0 : _j[sdk.userInfo.id]), "Email readBy should remain set after outbound message, got ".concat(JSON.stringify(emailThreadAfterOutbound.readBy)));
+                    emailThreadAfterOutbound = (_0.sent()).threads[0];
+                    assert(!!((_r = emailThreadAfterOutbound.readBy) === null || _r === void 0 ? void 0 : _r[sdk.userInfo.id]), "Email readBy should remain set after outbound message, got ".concat(JSON.stringify(emailThreadAfterOutbound.readBy)));
                     assert(!!emailThreadAfterOutbound.outboundTimestamp, "outboundTimestamp should be set after outbound email");
                     console.log("✅ Outbound Email does NOT reset readBy test passed");
                     // Test 32: New inbound Email SHOULD clear readBy
@@ -923,7 +923,7 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                     return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1100); })];
                 case 110:
                     // Wait for different timestamp
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.emails.createOne({
                             subject: "Re: Inbound test email for readBy test",
                             textContent: "New inbound - should clear readBy",
@@ -934,16 +934,16 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                         // Rebuild threads - readBy SHOULD be cleared
                     ];
                 case 111:
-                    readByTestEmail3 = _l.sent();
+                    readByTestEmail3 = _0.sent();
                     // Rebuild threads - readBy SHOULD be cleared
                     return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: readByEmailTestFrom, to: new Date() })];
                 case 112:
                     // Rebuild threads - readBy SHOULD be cleared
-                    _l.sent();
+                    _0.sent();
                     return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ ids: [readByEmailTestThread.id] })];
                 case 113:
-                    emailThreadAfterNewInbound = (_l.sent()).threads[0];
-                    assert(!((_k = emailThreadAfterNewInbound.readBy) === null || _k === void 0 ? void 0 : _k[sdk.userInfo.id]), "Email readBy SHOULD be cleared after new inbound message, got ".concat(JSON.stringify(emailThreadAfterNewInbound.readBy)));
+                    emailThreadAfterNewInbound = (_0.sent()).threads[0];
+                    assert(!((_s = emailThreadAfterNewInbound.readBy) === null || _s === void 0 ? void 0 : _s[sdk.userInfo.id]), "Email readBy SHOULD be cleared after new inbound message, got ".concat(JSON.stringify(emailThreadAfterNewInbound.readBy)));
                     console.log("✅ New inbound Email DOES clear readBy test passed");
                     // Cleanup Email readBy tests
                     return [4 /*yield*/, Promise.all([
@@ -951,14 +951,530 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             sdk.api.emails.deleteOne(readByTestEmail2.id),
                             sdk.api.emails.deleteOne(readByTestEmail3.id),
                             sdk.api.inbox_threads.deleteOne(readByEmailTestThread.id),
-                        ])];
+                        ])
+                        // Test 33: Outbound SMS with NARROW time range should NOT reset readBy
+                        // This tests the production scenario where incremental builds only include recent messages
+                    ];
                 case 114:
                     // Cleanup Email readBy tests
-                    _l.sent();
-                    console.log("🎉 All InboxThread assignment update tests passed!");
-                    return [3 /*break*/, 119];
+                    _0.sent();
+                    // Test 33: Outbound SMS with NARROW time range should NOT reset readBy
+                    // This tests the production scenario where incremental builds only include recent messages
+                    console.log("Testing outbound SMS with NARROW time range should NOT reset readBy...");
+                    return [4 /*yield*/, sdk.api.sms_messages.createOne({
+                            message: "Inbound for narrow range test",
+                            enduserId: testEnduser.id,
+                            inbound: true,
+                            phoneNumber: "+15555559999",
+                            enduserPhoneNumber: "+15555559998",
+                            logOnly: true,
+                        })
+                        // Build threads with wide range (includes inbound)
+                    ];
                 case 115:
-                    _l.trys.push([115, 117, , 118]);
+                    narrowRangeTestSMS1 = _0.sent();
+                    // Build threads with wide range (includes inbound)
+                    return [4 /*yield*/, sdk.api.inbox_threads.reset_threads()];
+                case 116:
+                    // Build threads with wide range (includes inbound)
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: new Date(Date.now() - 60000), to: new Date() })];
+                case 117:
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
+                case 118:
+                    narrowRangeThreads = _0.sent();
+                    narrowRangeThread = narrowRangeThreads.threads.find(function (t) {
+                        return t.type === 'SMS' && t.phoneNumber === "+15555559999";
+                    });
+                    assert(!!narrowRangeThread, "Narrow range test thread should exist");
+                    // Mark thread as read
+                    return [4 /*yield*/, sdk.api.inbox_threads.updateOne(narrowRangeThread.id, {
+                            readBy: (_f = {}, _f[sdk.userInfo.id] = new Date(), _f)
+                        })
+                        // Wait and capture a timestamp AFTER the inbound was created
+                    ];
+                case 119:
+                    // Mark thread as read
+                    _0.sent();
+                    // Wait and capture a timestamp AFTER the inbound was created
+                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 100); })];
+                case 120:
+                    // Wait and capture a timestamp AFTER the inbound was created
+                    _0.sent();
+                    narrowRangeFrom = new Date();
+                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 100); })
+                        // Create outbound message (after narrowRangeFrom)
+                    ];
+                case 121:
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.sms_messages.createOne({
+                            message: "Outbound for narrow range test",
+                            enduserId: testEnduser.id,
+                            inbound: false,
+                            phoneNumber: "+15555559999",
+                            enduserPhoneNumber: "+15555559998",
+                            logOnly: true,
+                        })
+                        // Rebuild with NARROW range that excludes the original inbound
+                    ];
+                case 122:
+                    narrowRangeTestSMS2 = _0.sent();
+                    // Rebuild with NARROW range that excludes the original inbound
+                    return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: narrowRangeFrom, to: new Date() })
+                        // readBy should still be preserved (not reset)
+                    ];
+                case 123:
+                    // Rebuild with NARROW range that excludes the original inbound
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ ids: [narrowRangeThread.id] })];
+                case 124:
+                    threadAfterNarrowBuild = (_0.sent()).threads[0];
+                    assert(!!((_t = threadAfterNarrowBuild.readBy) === null || _t === void 0 ? void 0 : _t[sdk.userInfo.id]), "readBy should remain set after outbound-only incremental build, got ".concat(JSON.stringify(threadAfterNarrowBuild.readBy)));
+                    console.log("Outbound SMS with narrow time range does NOT reset readBy test passed");
+                    // Cleanup narrow range test
+                    return [4 /*yield*/, Promise.all([
+                            sdk.api.sms_messages.deleteOne(narrowRangeTestSMS1.id),
+                            sdk.api.sms_messages.deleteOne(narrowRangeTestSMS2.id),
+                            sdk.api.inbox_threads.deleteOne(narrowRangeThread.id),
+                        ])
+                        // Test 34: Outbound Email with NARROW time range should NOT reset readBy
+                        // This tests the production scenario where incremental builds only include recent messages
+                    ];
+                case 125:
+                    // Cleanup narrow range test
+                    _0.sent();
+                    // Test 34: Outbound Email with NARROW time range should NOT reset readBy
+                    // This tests the production scenario where incremental builds only include recent messages
+                    console.log("Testing outbound Email with NARROW time range should NOT reset readBy...");
+                    return [4 /*yield*/, sdk.api.emails.createOne({
+                            subject: "Inbound email for narrow range test",
+                            textContent: "Test inbound email content",
+                            enduserId: testEnduser.id,
+                            inbound: true,
+                            logOnly: true,
+                        })
+                        // Build threads with wide range (includes inbound)
+                    ];
+                case 126:
+                    narrowRangeTestEmail1 = _0.sent();
+                    // Build threads with wide range (includes inbound)
+                    return [4 /*yield*/, sdk.api.inbox_threads.reset_threads()];
+                case 127:
+                    // Build threads with wide range (includes inbound)
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: new Date(Date.now() - 60000), to: new Date() })];
+                case 128:
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({})];
+                case 129:
+                    narrowRangeEmailThreads = _0.sent();
+                    narrowRangeEmailThread = narrowRangeEmailThreads.threads.find(function (t) {
+                        return t.type === 'Email' && t.enduserIds.includes(testEnduser.id) && t.title === "Inbound email for narrow range test";
+                    });
+                    assert(!!narrowRangeEmailThread, "Narrow range test Email thread should exist");
+                    // Mark thread as read
+                    return [4 /*yield*/, sdk.api.inbox_threads.updateOne(narrowRangeEmailThread.id, {
+                            readBy: (_g = {}, _g[sdk.userInfo.id] = new Date(), _g)
+                        })
+                        // Wait and capture a timestamp AFTER the inbound was created
+                    ];
+                case 130:
+                    // Mark thread as read
+                    _0.sent();
+                    // Wait and capture a timestamp AFTER the inbound was created
+                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 100); })];
+                case 131:
+                    // Wait and capture a timestamp AFTER the inbound was created
+                    _0.sent();
+                    narrowRangeEmailFrom = new Date();
+                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 100); })
+                        // Create outbound email (after narrowRangeEmailFrom)
+                    ];
+                case 132:
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.emails.createOne({
+                            subject: "Re: Inbound email for narrow range test",
+                            textContent: "Outbound reply for narrow range test",
+                            enduserId: testEnduser.id,
+                            inbound: false,
+                            logOnly: true,
+                        })
+                        // Rebuild with NARROW range that excludes the original inbound
+                    ];
+                case 133:
+                    narrowRangeTestEmail2 = _0.sent();
+                    // Rebuild with NARROW range that excludes the original inbound
+                    return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: narrowRangeEmailFrom, to: new Date() })
+                        // readBy should still be preserved (not reset)
+                    ];
+                case 134:
+                    // Rebuild with NARROW range that excludes the original inbound
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ ids: [narrowRangeEmailThread.id] })];
+                case 135:
+                    emailThreadAfterNarrowBuild = (_0.sent()).threads[0];
+                    assert(!!((_u = emailThreadAfterNarrowBuild.readBy) === null || _u === void 0 ? void 0 : _u[sdk.userInfo.id]), "Email readBy should remain set after outbound-only incremental build, got ".concat(JSON.stringify(emailThreadAfterNarrowBuild.readBy)));
+                    console.log("Outbound Email with narrow time range does NOT reset readBy test passed");
+                    // Cleanup narrow range email test
+                    return [4 /*yield*/, Promise.all([
+                            sdk.api.emails.deleteOne(narrowRangeTestEmail1.id),
+                            sdk.api.emails.deleteOne(narrowRangeTestEmail2.id),
+                            sdk.api.inbox_threads.deleteOne(narrowRangeEmailThread.id),
+                        ])
+                        // ========== Zendesk Thread Tests ==========
+                        // Test 35: Basic Zendesk thread building
+                    ];
+                case 136:
+                    // Cleanup narrow range email test
+                    _0.sent();
+                    // ========== Zendesk Thread Tests ==========
+                    // Test 35: Basic Zendesk thread building
+                    console.log("Testing Zendesk thread building...");
+                    return [4 /*yield*/, sdk.api.ticket_threads.createOne({
+                            enduserId: testEnduser.id,
+                            subject: "Test Zendesk Thread",
+                        })];
+                case 137:
+                    zendeskTicketThread_1 = _0.sent();
+                    return [4 /*yield*/, sdk.api.ticket_thread_comments.createOne({
+                            ticketThreadId: zendeskTicketThread_1.id,
+                            enduserId: testEnduser.id,
+                            plaintext: "Test ticket comment",
+                            html: "<p>Test ticket comment</p>",
+                            public: true,
+                            inbound: true,
+                        })];
+                case 138:
+                    zendeskTicketComment = _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.reset_threads()];
+                case 139:
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: new Date(Date.now() - 60000), to: new Date() })];
+                case 140:
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ mdbFilter: { type: 'Zendesk' } })];
+                case 141:
+                    zendeskThreads = _0.sent();
+                    zendeskThread = zendeskThreads.threads.find(function (t) { return t.threadId === zendeskTicketThread_1.id; });
+                    assert(!!zendeskThread, "Zendesk thread should exist");
+                    assert(zendeskThread.type === 'Zendesk', "Type should be Zendesk");
+                    assert(zendeskThread.title === "Test Zendesk Thread", "Title should match subject");
+                    assert(zendeskThread.preview.includes("Test ticket comment"), "Preview should match comment");
+                    assert(zendeskThread.enduserIds.includes(testEnduser.id), "Should have enduser");
+                    console.log("Basic Zendesk thread building test passed");
+                    // Test 36: Zendesk assignment updates
+                    console.log("Testing Zendesk assignment updates...");
+                    // Update comment assignment
+                    return [4 /*yield*/, sdk.api.ticket_thread_comments.updateOne(zendeskTicketComment.id, {
+                            assignedTo: [testUser.id]
+                        }, { replaceObjectFields: true })
+                        // Wait for side effects (the side effect should update the inbox thread directly)
+                    ];
+                case 142:
+                    // Update comment assignment
+                    _0.sent();
+                    // Wait for side effects (the side effect should update the inbox thread directly)
+                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1500); })
+                        // Verify - NO rebuild needed, side effect should have handled it
+                    ];
+                case 143:
+                    // Wait for side effects (the side effect should update the inbox thread directly)
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ ids: [zendeskThread.id] })];
+                case 144:
+                    updatedZendeskThreads = _0.sent();
+                    updatedZendeskThread = updatedZendeskThreads.threads[0];
+                    assert(JSON.stringify(updatedZendeskThread.assignedTo) === JSON.stringify([testUser.id]), "Zendesk thread assignment should be updated from comment, got ".concat(JSON.stringify(updatedZendeskThread.assignedTo)));
+                    console.log("Zendesk assignment update test passed");
+                    // Test 37: Zendesk outbound comment should NOT reset readBy
+                    console.log("Testing Zendesk outbound should NOT reset readBy...");
+                    // Mark thread as read
+                    return [4 /*yield*/, sdk.api.inbox_threads.updateOne(zendeskThread.id, {
+                            readBy: (_h = {}, _h[sdk.userInfo.id] = new Date(), _h)
+                        })
+                        // Verify marked as read
+                    ];
+                case 145:
+                    // Mark thread as read
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ ids: [zendeskThread.id] })];
+                case 146:
+                    zendeskThreadAfterRead = (_0.sent()).threads[0];
+                    assert(!!((_v = zendeskThreadAfterRead.readBy) === null || _v === void 0 ? void 0 : _v[sdk.userInfo.id]), "Zendesk thread should be marked as read");
+                    return [4 /*yield*/, sdk.api.ticket_thread_comments.createOne({
+                            ticketThreadId: zendeskTicketThread_1.id,
+                            enduserId: testEnduser.id,
+                            plaintext: "Outbound staff reply",
+                            html: "<p>Outbound staff reply</p>",
+                            public: true,
+                            inbound: false,
+                            userId: sdk.userInfo.id,
+                        })
+                        // Rebuild threads
+                    ];
+                case 147:
+                    zendeskOutboundComment = _0.sent();
+                    // Rebuild threads
+                    return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: new Date(Date.now() - 60000), to: new Date() })
+                        // readBy should remain set
+                    ];
+                case 148:
+                    // Rebuild threads
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ ids: [zendeskThread.id] })];
+                case 149:
+                    zendeskThreadAfterOutbound = (_0.sent()).threads[0];
+                    assert(!!((_w = zendeskThreadAfterOutbound.readBy) === null || _w === void 0 ? void 0 : _w[sdk.userInfo.id]), "readBy should remain set after outbound Zendesk comment, got ".concat(JSON.stringify(zendeskThreadAfterOutbound.readBy)));
+                    assert(!!zendeskThreadAfterOutbound.outboundTimestamp, "outboundTimestamp should be set");
+                    assert(!!((_x = zendeskThreadAfterOutbound.outboundPreview) === null || _x === void 0 ? void 0 : _x.includes("Outbound staff reply")), "outboundPreview should match");
+                    console.log("Zendesk outbound does NOT reset readBy test passed");
+                    // Test 38: New Zendesk inbound SHOULD clear readBy
+                    console.log("Testing new Zendesk inbound SHOULD clear readBy...");
+                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 1100); })];
+                case 150:
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.ticket_thread_comments.createOne({
+                            ticketThreadId: zendeskTicketThread_1.id,
+                            enduserId: testEnduser.id,
+                            plaintext: "New inbound from customer",
+                            html: "<p>New inbound from customer</p>",
+                            public: true,
+                            inbound: true,
+                        })];
+                case 151:
+                    zendeskNewInboundComment = _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: new Date(Date.now() - 60000), to: new Date() })];
+                case 152:
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ ids: [zendeskThread.id] })];
+                case 153:
+                    zendeskThreadAfterNewInbound = (_0.sent()).threads[0];
+                    assert(!((_y = zendeskThreadAfterNewInbound.readBy) === null || _y === void 0 ? void 0 : _y[sdk.userInfo.id]), "readBy SHOULD be cleared after new inbound Zendesk comment, got ".concat(JSON.stringify(zendeskThreadAfterNewInbound.readBy)));
+                    console.log("New Zendesk inbound DOES clear readBy test passed");
+                    // Test 39: Zendesk narrow range build preserves readBy
+                    console.log("Testing Zendesk narrow range build preserves readBy...");
+                    // Reset and build fresh
+                    return [4 /*yield*/, sdk.api.inbox_threads.reset_threads()];
+                case 154:
+                    // Reset and build fresh
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: new Date(Date.now() - 60000), to: new Date() })
+                        // Get fresh thread
+                    ];
+                case 155:
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ mdbFilter: { type: 'Zendesk', threadId: zendeskTicketThread_1.id } })];
+                case 156:
+                    freshZendeskThreads = _0.sent();
+                    freshZendeskThread = freshZendeskThreads.threads.find(function (t) { return t.threadId === zendeskTicketThread_1.id; });
+                    assert(!!freshZendeskThread, "Fresh Zendesk thread should exist");
+                    // Mark as read
+                    return [4 /*yield*/, sdk.api.inbox_threads.updateOne(freshZendeskThread.id, {
+                            readBy: (_j = {}, _j[sdk.userInfo.id] = new Date(), _j)
+                        })
+                        // Wait and capture narrow range start
+                    ];
+                case 157:
+                    // Mark as read
+                    _0.sent();
+                    // Wait and capture narrow range start
+                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 100); })];
+                case 158:
+                    // Wait and capture narrow range start
+                    _0.sent();
+                    zendeskNarrowRangeFrom = new Date();
+                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 100); })
+                        // Create outbound comment after narrowRangeFrom
+                    ];
+                case 159:
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.ticket_thread_comments.createOne({
+                            ticketThreadId: zendeskTicketThread_1.id,
+                            enduserId: testEnduser.id,
+                            plaintext: "Outbound in narrow range",
+                            html: "<p>Outbound in narrow range</p>",
+                            public: true,
+                            inbound: false,
+                            userId: sdk.userInfo.id,
+                        })
+                        // Rebuild with narrow range (excludes original inbound)
+                    ];
+                case 160:
+                    zendeskNarrowRangeOutbound = _0.sent();
+                    // Rebuild with narrow range (excludes original inbound)
+                    return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: zendeskNarrowRangeFrom, to: new Date() })
+                        // readBy should still be preserved
+                    ];
+                case 161:
+                    // Rebuild with narrow range (excludes original inbound)
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ ids: [freshZendeskThread.id] })];
+                case 162:
+                    zendeskThreadAfterNarrowBuild = (_0.sent()).threads[0];
+                    assert(!!((_z = zendeskThreadAfterNarrowBuild.readBy) === null || _z === void 0 ? void 0 : _z[sdk.userInfo.id]), "readBy should remain set after outbound-only Zendesk incremental build, got ".concat(JSON.stringify(zendeskThreadAfterNarrowBuild.readBy)));
+                    console.log("Zendesk narrow range build preserves readBy test passed");
+                    // Test 40: Zendesk channel filtering
+                    console.log("Testing Zendesk channel filtering...");
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({
+                            mdbFilter: { type: 'Zendesk' }
+                        })];
+                case 163:
+                    filteredZendeskThreads = _0.sent();
+                    assert(filteredZendeskThreads.threads.length >= 1, "Should find Zendesk threads");
+                    assert(filteredZendeskThreads.threads.every(function (t) { return t.type === 'Zendesk'; }), "All filtered threads should be Zendesk type");
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({
+                            mdbFilter: { type: { $in: ['Zendesk', 'SMS'] } }
+                        })];
+                case 164:
+                    multiTypeZendeskThreads = _0.sent();
+                    assert(multiTypeZendeskThreads.threads.every(function (t) { return t.type === 'Zendesk' || t.type === 'SMS'; }), "Multi-type filter should work with Zendesk");
+                    console.log("Zendesk channel filtering test passed");
+                    // Test 41: Zendesk thread without comments is skipped
+                    console.log("Testing Zendesk thread without comments is skipped...");
+                    return [4 /*yield*/, sdk.api.ticket_threads.createOne({
+                            enduserId: testEnduser.id,
+                            subject: "Empty Zendesk Thread",
+                        })];
+                case 165:
+                    emptyZendeskTicketThread_1 = _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.reset_threads()];
+                case 166:
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: new Date(Date.now() - 60000), to: new Date() })];
+                case 167:
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ mdbFilter: { type: 'Zendesk' } })];
+                case 168:
+                    allZendeskThreadsAfterEmpty = _0.sent();
+                    emptyZendeskThread = allZendeskThreadsAfterEmpty.threads.find(function (t) { return t.threadId === emptyZendeskTicketThread_1.id; });
+                    assert(!emptyZendeskThread, "Zendesk thread without comments should NOT be built");
+                    console.log("Zendesk thread without comments is skipped test passed");
+                    // Test 42: Zendesk access control - verify access is blocked when user lacks ticket_threads permission
+                    console.log("Testing Zendesk access control (blocking)...");
+                    return [4 /*yield*/, sdk.api.ticket_threads.createOne({
+                            enduserId: testEnduser.id,
+                            subject: "Access Control Test Thread",
+                        })];
+                case 169:
+                    accessControlTicketThread_1 = _0.sent();
+                    return [4 /*yield*/, sdk.api.ticket_thread_comments.createOne({
+                            ticketThreadId: accessControlTicketThread_1.id,
+                            enduserId: testEnduser.id,
+                            plaintext: "Access control test comment",
+                            html: "<p>Access control test comment</p>",
+                            public: true,
+                            inbound: true,
+                        })];
+                case 170:
+                    accessControlComment = _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.reset_threads()];
+                case 171:
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.build_threads({ from: new Date(Date.now() - 60000), to: new Date() })
+                        // Verify admin can see the Zendesk thread
+                    ];
+                case 172:
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({
+                            mdbFilter: { type: 'Zendesk' }
+                        })];
+                case 173:
+                    adminZendeskThreads = _0.sent();
+                    assert(adminZendeskThreads.threads.length >= 1, "Admin should see Zendesk threads");
+                    accessControlThread = adminZendeskThreads.threads.find(function (t) { return t.threadId === accessControlTicketThread_1.id; });
+                    assert(!!accessControlThread, "Admin should see the access control test thread");
+                    return [4 /*yield*/, sdk.api.role_based_access_permissions.createOne({
+                            role: 'No Ticket Threads Access',
+                            permissions: {
+                                ticket_threads: { read: null, create: null, update: null, delete: null },
+                                // Give access to other inbox types so we can verify selective blocking
+                                emails: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+                                sms_messages: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+                            },
+                        })
+                        // Create a test user for access control testing
+                    ];
+                case 174:
+                    noTicketThreadsRole = _0.sent();
+                    accessControlTestEmail = 'zendesk.access.control.test@tellescope.com';
+                    return [4 /*yield*/, sdk.api.users.getOne({ email: accessControlTestEmail }).catch(function () { return null; })];
+                case 175:
+                    _b = (_0.sent());
+                    if (_b) return [3 /*break*/, 177];
+                    return [4 /*yield*/, sdk.api.users.createOne({ email: accessControlTestEmail, notificationEmailsDisabled: true, verifiedEmail: true })];
+                case 176:
+                    _b = (_0.sent());
+                    _0.label = 177;
+                case 177:
+                    accessControlTestUser = _b;
+                    // Assign the restricted role to the test user
+                    return [4 /*yield*/, sdk.api.users.updateOne(accessControlTestUser.id, { roles: [noTicketThreadsRole.role] }, { replaceObjectFields: true })];
+                case 178:
+                    // Assign the restricted role to the test user
+                    _0.sent();
+                    return [4 /*yield*/, new Promise(function (resolve) { return setTimeout(resolve, 2000); })
+                        // Create SDK session for the restricted user
+                    ]; // Wait for role change
+                case 179:
+                    _0.sent(); // Wait for role change
+                    _c = Session.bind;
+                    _k = {
+                        host: host
+                    };
+                    return [4 /*yield*/, sdk.api.users.generate_auth_token({ id: accessControlTestUser.id })];
+                case 180:
+                    sdkNoTicketAccess = new (_c.apply(Session, [void 0, (_k.authToken = (_0.sent()).authToken,
+                            _k)]))();
+                    return [4 /*yield*/, sdkNoTicketAccess.api.inbox_threads.load_threads({
+                            mdbFilter: { type: 'Zendesk' }
+                        })];
+                case 181:
+                    restrictedUserZendeskThreads = _0.sent();
+                    assert(restrictedUserZendeskThreads.threads.length === 0, "User without ticket_threads access should NOT see Zendesk threads, but found ".concat(restrictedUserZendeskThreads.threads.length));
+                    console.log("Verified: User without ticket_threads access cannot see Zendesk threads");
+                    return [4 /*yield*/, sdkNoTicketAccess.api.inbox_threads.load_threads({})];
+                case 182:
+                    restrictedUserAllThreads = _0.sent();
+                    restrictedUserHasZendesk = restrictedUserAllThreads.threads.some(function (t) { return t.type === 'Zendesk'; });
+                    assert(!restrictedUserHasZendesk, "User without ticket_threads access should not see ANY Zendesk threads even in unfiltered query");
+                    console.log("Verified: Zendesk threads are filtered from all queries for restricted user");
+                    // Cleanup access control test resources
+                    return [4 /*yield*/, Promise.all([
+                            sdk.api.ticket_thread_comments.deleteOne(accessControlComment.id).catch(function () { }),
+                            sdk.api.ticket_threads.deleteOne(accessControlTicketThread_1.id).catch(function () { }),
+                            sdk.api.users.deleteOne(accessControlTestUser.id).catch(function () { }),
+                            sdk.api.role_based_access_permissions.deleteOne(noTicketThreadsRole.id).catch(function () { }),
+                        ])];
+                case 183:
+                    // Cleanup access control test resources
+                    _0.sent();
+                    console.log("Zendesk access control (blocking) test passed");
+                    // Cleanup Zendesk test resources
+                    return [4 /*yield*/, Promise.all([
+                            sdk.api.ticket_thread_comments.deleteOne(zendeskTicketComment.id).catch(function () { }),
+                            sdk.api.ticket_thread_comments.deleteOne(zendeskOutboundComment.id).catch(function () { }),
+                            sdk.api.ticket_thread_comments.deleteOne(zendeskNewInboundComment.id).catch(function () { }),
+                            sdk.api.ticket_thread_comments.deleteOne(zendeskNarrowRangeOutbound.id).catch(function () { }),
+                            sdk.api.ticket_threads.deleteOne(zendeskTicketThread_1.id).catch(function () { }),
+                            sdk.api.ticket_threads.deleteOne(emptyZendeskTicketThread_1.id).catch(function () { }),
+                        ])
+                        // Delete any Zendesk inbox threads
+                    ];
+                case 184:
+                    // Cleanup Zendesk test resources
+                    _0.sent();
+                    return [4 /*yield*/, sdk.api.inbox_threads.load_threads({ mdbFilter: { type: 'Zendesk' } })];
+                case 185:
+                    remainingZendeskThreads = _0.sent();
+                    return [4 /*yield*/, Promise.all(remainingZendeskThreads.threads.map(function (t) { return sdk.api.inbox_threads.deleteOne(t.id).catch(function () { }); }))];
+                case 186:
+                    _0.sent();
+                    console.log("All Zendesk thread tests passed!");
+                    console.log("All InboxThread assignment update tests passed!");
+                    return [3 /*break*/, 191];
+                case 187:
+                    _0.trys.push([187, 189, , 190]);
                     return [4 /*yield*/, Promise.all([
                             sdk.api.inbox_threads.deleteOne(emailThread.id),
                             sdk.api.inbox_threads.deleteOne(smsThread.id),
@@ -969,15 +1485,15 @@ export var inbox_thread_assignment_updates_tests = function (_a) {
                             sdk.api.endusers.deleteOne(testEnduser.id),
                             sdk.api.users.deleteOne(testUser.id),
                         ])];
-                case 116:
-                    _l.sent();
-                    return [3 /*break*/, 118];
-                case 117:
-                    err_1 = _l.sent();
+                case 188:
+                    _0.sent();
+                    return [3 /*break*/, 190];
+                case 189:
+                    err_1 = _0.sent();
                     console.error("Cleanup error:", err_1);
-                    return [3 /*break*/, 118];
-                case 118: return [7 /*endfinally*/];
-                case 119: return [2 /*return*/];
+                    return [3 /*break*/, 190];
+                case 190: return [7 /*endfinally*/];
+                case 191: return [2 /*return*/];
             }
         });
     });

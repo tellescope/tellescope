@@ -878,6 +878,8 @@ export var listOfNumbersValidatorUniqueOptionalOrEmptyOkay = listValidatorUnique
 export var numberValidatorMin1Max31 = numberValidatorBuilder({ lower: 1, upper: 31 });
 export var numberValidatorMin0Max23Optional = numberValidatorBuilder({ lower: 0, upper: 23, isOptional: true });
 export var numberValidatorMin0Max59Optional = numberValidatorBuilder({ lower: 0, upper: 59, isOptional: true });
+export var externalIdNumberValidator = numberValidatorBuilder({ lower: 0, upper: Number.MAX_SAFE_INTEGER });
+export var externalIdNumberValidatorOptional = numberValidatorBuilder({ lower: 0, upper: Number.MAX_SAFE_INTEGER, isOptional: true });
 export var fileSizeValidator = numberValidatorBuilder({ lower: 0, upper: MAX_FILE_SIZE });
 export var numberOrStringValidatorEmptyOkay = orValidator({
     number: numberValidator,
@@ -2019,6 +2021,7 @@ var _AUTOMATION_ACTIONS = {
     switchToRelatedContact: '',
     canvasSync: '',
     canvasCreateNote: '',
+    canvasAddToGroup: '',
     elationSync: '',
     developHealthMedEligibility: '',
     cancelFutureAppointments: '',
@@ -2520,6 +2523,9 @@ export var automationActionValidator = orValidator({
             formIds: listOfMongoIdStringValidator,
             matchCareTeamTagsForCanvasPractitionerResolution: listOfStringsWithQualifierValidator,
             noteCoding: canvasCodingValidator,
+        }) })),
+    canvasAddToGroup: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['canvasAddToGroup']), info: objectValidator({
+            groupId: stringValidator100,
         }) })),
     healthieAddToCourse: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['healthieAddToCourse']), info: objectValidator({ courseId: stringValidator100 }) })),
     healthieSendChat: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['healthieSendChat']), info: objectValidator({
@@ -4354,6 +4360,7 @@ export var accessPermissionsValidator = objectValidator({
     enduser_views: accessPermissionValidator,
     automation_triggers: accessPermissionValidator,
     enduser_profile_views: accessPermissionValidator,
+    custom_dashboards: accessPermissionValidator,
     enduser_medications: accessPermissionValidator,
     phone_trees: accessPermissionValidator,
     table_views: accessPermissionValidator,
@@ -4456,6 +4463,7 @@ export var organizationLimitsValidator = objectValidator({
     purchases: numberValidatorOptional,
     phone_calls: numberValidatorOptional,
     enduser_profile_views: numberValidatorOptional,
+    custom_dashboards: numberValidatorOptional,
     enduser_medications: numberValidatorOptional,
     phone_trees: numberValidatorOptional,
     table_views: numberValidatorOptional,
@@ -5201,6 +5209,15 @@ export var enduserProfileViewBlockValidator = orValidator({
         }) })),
 });
 export var enduserProfileViewBlocksValidator = listValidator(enduserProfileViewBlockValidator);
+export var customDashboardBlockValidator = objectValidator({
+    type: stringValidator100,
+    info: objectAnyFieldsAnyValuesValidator,
+    colSpan: numberValidatorOptional,
+    rowSpan: numberValidatorOptional,
+    responsive: objectAnyFieldsAnyValuesValidator,
+    style: objectAnyFieldsAnyValuesValidator,
+}, { emptyOk: true });
+export var customDashboardBlocksValidator = listValidator(customDashboardBlockValidator);
 var insuranceValidator = objectValidator({
     name: stringValidator100,
 });
@@ -5621,4 +5638,9 @@ export var outOfOfficeBlockValidator = objectValidator({
     autoreplyText: stringValidator5000,
 });
 export var outOfOfficeBlocksValidator = listValidatorEmptyOk(outOfOfficeBlockValidator);
+export var emailCCValidator = objectValidator({
+    email: emailValidator,
+    name: stringValidatorOptional,
+});
+export var listOfEmailCCsValidator = listValidatorOptionalOrEmptyOk(emailCCValidator);
 //# sourceMappingURL=validation.js.map

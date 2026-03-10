@@ -341,6 +341,7 @@ exports.PROVIDER_PERMISSIONS = {
     appointment_locations: exports.READ_ONLY_ALL,
     phone_calls: exports.ASSIGNED_AND_DEFAULT_ACCESS,
     enduser_profile_views: exports.READ_ONLY_ALL,
+    custom_dashboards: exports.READ_ONLY_ALL,
     phone_trees: exports.READ_ONLY_ALL,
     configurations: exports.READ_ONLY_ALL,
     time_tracks: {
@@ -493,6 +494,7 @@ exports.ADMIN_PERMISSIONS = {
     purchases: exports.FULL_ACCESS,
     phone_calls: exports.FULL_ACCESS,
     enduser_profile_views: exports.FULL_ACCESS,
+    custom_dashboards: exports.FULL_ACCESS,
     enduser_medications: exports.FULL_ACCESS,
     enduser_custom_types: exports.FULL_ACCESS,
     table_views: exports.FULL_ACCESS,

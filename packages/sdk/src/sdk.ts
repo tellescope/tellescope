@@ -193,7 +193,8 @@ const loadDefaultQueries = (s: Session): { [K in keyof ClientModelForName] : API
   enduser_views: defaultQueries(s, 'enduser_views'),
   superbill_providers: defaultQueries(s, 'superbill_providers'),
   superbills: defaultQueries(s, 'superbills'), 
-  enduser_profile_views: defaultQueries(s, 'enduser_profile_views'), 
+  enduser_profile_views: defaultQueries(s, 'enduser_profile_views'),
+  custom_dashboards: defaultQueries(s, 'custom_dashboards'),
   enduser_medications: defaultQueries(s, 'enduser_medications'), 
   phone_trees: defaultQueries(s, 'phone_trees'), 
   enduser_custom_types: defaultQueries(s, 'enduser_custom_types'), 
@@ -806,6 +807,11 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
       Promise<extractFields<CustomActions['automation_triggers']['trigger_events']['returns']>>
     ),
   },
+  ticket_threads: {
+    send_message: (args: extractFields<CustomActions['ticket_threads']['send_message']['parameters']>) => (
+      Promise<extractFields<CustomActions['ticket_threads']['send_message']['returns']>>
+    ),
+  },
   ticket_queues: {
     update_indexes: (args: extractFields<CustomActions['ticket_queues']['update_indexes']['parameters']>) => (
       Promise<extractFields<CustomActions['ticket_queues']['update_indexes']['returns']>>
@@ -1125,6 +1131,8 @@ export class Session extends SessionManager {
     queries.managed_content_records.update_indexes = a => this._PATCH(`/v1/${schema.managed_content_records.customActions.update_indexes.path}`, a)
 
     queries.automation_triggers.trigger_events = a => this._POST(`/v1/${schema.automation_triggers.customActions.trigger_events.path}`, a)
+
+    queries.ticket_threads.send_message = a => this._POST(`/v1${schema.ticket_threads.customActions.send_message.path}`, a)
 
     queries.ticket_queues.update_indexes = a => this._PATCH(`/v1/${schema.ticket_queues.customActions.update_indexes.path}`, a)
 

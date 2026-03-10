@@ -1489,6 +1489,9 @@ export declare const useDataSync____internal: () => {
     }) | (import("@tellescope/types-models").EnduserStatusUpdate & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").CustomDashboard & {
+        id: string;
+        createdAt: Date;
     }))[];
     getDeleted: <T_1 extends string>(modelName: T_1) => string[];
     popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").File & {
@@ -1762,6 +1765,9 @@ export declare const useDataSync____internal: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").EnduserStatusUpdate & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").CustomDashboard & {
         id: string;
         createdAt: Date;
     }))[];
@@ -2047,6 +2053,9 @@ export declare const useSyncContext: () => {
     }) | (import("@tellescope/types-models").EnduserStatusUpdate & {
         id: string;
         createdAt: Date;
+    }) | (import("@tellescope/types-models").CustomDashboard & {
+        id: string;
+        createdAt: Date;
     }))[];
     getDeleted: <T_1 extends string>(modelName: T_1) => string[];
     popLoaded: <T_2 extends string>(modelName: T_2) => ((import("@tellescope/types-models").File & {
@@ -2320,6 +2329,9 @@ export declare const useSyncContext: () => {
         id: string;
         createdAt: Date;
     }) | (import("@tellescope/types-models").EnduserStatusUpdate & {
+        id: string;
+        createdAt: Date;
+    }) | (import("@tellescope/types-models").CustomDashboard & {
         id: string;
         createdAt: Date;
     }))[];

@@ -5460,6 +5460,30 @@ exports.schema = (0, exports.build_schema)({
                 ]
             }, showCompose: { validator: validation_1.booleanValidator }, defaultForRoles: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, hiddenFromRoles: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, defaultForUserIds: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay } })
     },
+    custom_dashboards: {
+        info: {},
+        constraints: { unique: [], relationship: [], access: [{ type: 'filter', field: 'userIds' }], },
+        defaultActions: constants_1.DEFAULT_OPERATIONS,
+        customActions: {},
+        enduserActions: {},
+        fields: __assign(__assign({}, BuiltInFields), { title: {
+                validator: validation_1.stringValidator100,
+                required: true,
+                examples: ["Main Dashboard"]
+            }, description: {
+                validator: validation_1.stringValidator5000,
+                examples: ["A customizable dashboard for tracking key metrics"]
+            }, blocks: {
+                validator: validation_1.customDashboardBlocksValidator,
+                required: true,
+                examples: [[{
+                            type: 'Inbox',
+                            info: {},
+                            colSpan: 2,
+                            rowSpan: 1
+                        }]]
+            }, userIds: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, defaultForRoles: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, hiddenFromRoles: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, defaultForUserIds: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, gridConfig: { validator: validation_1.objectAnyFieldsAnyValuesValidator } })
+    },
     background_errors: {
         info: {},
         constraints: { unique: [], relationship: [], },
@@ -5841,7 +5865,28 @@ exports.schema = (0, exports.build_schema)({
         },
         constraints: { unique: [], relationship: [], },
         defaultActions: constants_1.DEFAULT_OPERATIONS,
-        customActions: {},
+        customActions: {
+            send_message: {
+                op: 'custom', access: 'create', method: 'post',
+                path: '/ticket-threads/send-message',
+                name: 'Send Zendesk Message',
+                description: "Creates a Zendesk ticket or adds a comment to an existing ticket",
+                parameters: {
+                    enduserId: { validator: validation_1.mongoIdStringRequired, required: true },
+                    html_body: { validator: validation_1.stringValidator25000, required: true },
+                    public: { validator: validation_1.booleanValidator, required: true },
+                    ticketThreadId: { validator: validation_1.mongoIdStringRequired },
+                    subject: { validator: validation_1.stringValidator250 },
+                    brandId: { validator: validation_1.externalIdNumberValidatorOptional },
+                    emailCCs: { validator: validation_1.listOfEmailCCsValidator },
+                },
+                returns: {
+                    success: { validator: validation_1.booleanValidator, required: true },
+                    ticketId: { validator: validation_1.externalIdNumberValidatorOptional },
+                    error: { validator: validation_1.stringValidator },
+                },
+            },
+        },
         enduserActions: {},
         fields: __assign(__assign({}, BuiltInFields), { enduserId: {
                 validator: validation_1.mongoIdStringRequired,
@@ -6199,7 +6244,7 @@ exports.schema = (0, exports.build_schema)({
         defaultActions: constants_1.DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { title: { validator: validation_1.stringValidator105, required: true, examples: ['Title'] }, state: { validator: validation_1.stateValidator, required: true, examples: ['CA'] }, templateIds: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk, examples: [['tmp_01GZMD9Q71W7T44812351V9QZN']] }, pharmacyId: { validator: validation_1.stringValidator }, pharmacyLabel: { validator: validation_1.stringValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, source: { validator: validation_1.stringValidator100, }, drugId: { validator: validation_1.stringValidator }, ndc: { validator: validation_1.stringValidator100 }, quantity: { validator: validation_1.nonNegNumberValidator }, 
+        fields: __assign(__assign({}, BuiltInFields), { title: { validator: validation_1.stringValidator105, required: true, examples: ['Title'] }, state: { validator: validation_1.stateValidator, required: true, examples: ['CA'] }, templateIds: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk, examples: [['tmp_01GZMD9Q71W7T44812351V9QZN']] }, pharmacyId: { validator: validation_1.stringValidator }, pharmacyLabel: { validator: validation_1.stringValidator }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, source: { validator: validation_1.stringValidator100, }, drugId: { validator: validation_1.stringValidator }, ndc: { validator: validation_1.stringValidator100 }, quantity: { validator: validation_1.nonNegNumberValidator }, refills: { validator: validation_1.nonNegNumberValidator }, 
             // Compound-specific fields (for ScriptSure compound orders)
             compoundQuantity: { validator: validation_1.nonNegNumberValidator }, compoundQuantityQualifier: { validator: validation_1.stringValidator100 }, sig: { validator: validation_1.stringValidator }, pharmacyNote: { validator: validation_1.stringValidator210 }, controlledSubstance: { validator: (0, validation_1.exactMatchValidatorOptional)(['0', '2', '3', '4', '5']) } }),
     },
@@ -6561,7 +6606,7 @@ exports.schema = (0, exports.build_schema)({
                 },
             },
         },
-        fields: __assign(__assign({}, BuiltInFields), { type: { validator: (0, validation_1.exactMatchValidator)(['Chat', 'Email', 'GroupMMS', 'Phone', 'SMS']), required: true, examples: ['Email'] }, assignedTo: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, enduserIds: { validator: validation_1.listOfMongoIdStringValidator, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, userIds: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, inboxStatus: { validator: validation_1.stringValidator, required: true, examples: ['In Progress'] }, preview: { validator: validation_1.stringValidator25000, required: true, examples: ['Preview of the message'] }, threadId: { validator: validation_1.stringValidator, required: true, examples: ['Thread ID'] }, timestamp: { validator: validation_1.dateValidator, required: true, examples: [new Date().toISOString()] }, title: { validator: validation_1.stringValidator, required: true, examples: ['Title or Subject Here'] }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, readBy: { validator: validation_1.idStringToDateValidator }, outboundTimestamp: { validator: validation_1.dateValidator }, outboundPreview: { validator: validation_1.stringValidator25000 }, phoneNumber: { validator: validation_1.phoneValidator }, enduserPhoneNumber: { validator: validation_1.phoneValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, trashedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, recentOutboundUserId: { validator: validation_1.mongoIdStringOptional }, recentInboundEnduserId: { validator: validation_1.mongoIdStringOptional }, draftMessageIds: {
+        fields: __assign(__assign({}, BuiltInFields), { type: { validator: (0, validation_1.exactMatchValidator)(['Chat', 'Email', 'GroupMMS', 'Phone', 'SMS', 'Zendesk']), required: true, examples: ['Email'] }, assignedTo: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, enduserIds: { validator: validation_1.listOfMongoIdStringValidator, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, userIds: { validator: validation_1.listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[constants_1.PLACEHOLDER_ID]] }, inboxStatus: { validator: validation_1.stringValidator, required: true, examples: ['In Progress'] }, preview: { validator: validation_1.stringValidator25000, required: true, examples: ['Preview of the message'] }, threadId: { validator: validation_1.stringValidator, required: true, examples: ['Thread ID'] }, timestamp: { validator: validation_1.dateValidator, required: true, examples: [new Date().toISOString()] }, title: { validator: validation_1.stringValidator, required: true, examples: ['Title or Subject Here'] }, tags: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, readBy: { validator: validation_1.idStringToDateValidator }, outboundTimestamp: { validator: validation_1.dateValidator }, outboundPreview: { validator: validation_1.stringValidator25000 }, phoneNumber: { validator: validation_1.phoneValidator }, enduserPhoneNumber: { validator: validation_1.phoneValidator }, archivedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, trashedAt: { validator: validation_1.dateOptionalOrEmptyStringValidator }, recentOutboundUserId: { validator: validation_1.mongoIdStringOptional }, recentInboundEnduserId: { validator: validation_1.mongoIdStringOptional }, draftMessageIds: {
                 validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk,
                 dependencies: [{
                         dependsOn: ['chats', 'sms_messages', 'emails'],

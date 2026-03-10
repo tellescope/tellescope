@@ -1423,6 +1423,24 @@ export type CustomActions = {
             userId: string;
         }, {}>;
     };
+    ticket_threads: {
+        send_message: CustomAction<{
+            enduserId: string;
+            html_body: string;
+            public: boolean;
+            ticketThreadId?: string;
+            subject?: string;
+            brandId?: number;
+            emailCCs?: {
+                email: string;
+                name?: string;
+            }[];
+        }, {
+            success: boolean;
+            ticketId?: number;
+            error?: string;
+        }>;
+    };
     ticket_queues: {
         update_indexes: CustomAction<{
             updates: {

@@ -178,6 +178,33 @@ export type CustomDashboardViewBlock = { type: CustomDashboardViewBlockType, inf
 export type CustomDashboardView = {
   blocks: CustomDashboardViewBlock[]
 }
+
+// Custom Dashboard Block for flexible dashboard layouts
+export type CustomDashboardBlockResponsive = {
+  colSpan?: number,
+  rowSpan?: number,
+  hidden?: boolean,
+}
+
+export type CustomDashboardBlock = {
+  type: string,
+  info?: Record<string, any>,
+  colSpan?: number,
+  rowSpan?: number,
+  responsive?: {
+    sm?: CustomDashboardBlockResponsive,
+    md?: CustomDashboardBlockResponsive,
+    lg?: CustomDashboardBlockResponsive,
+  },
+  style?: Record<string, any>,
+}
+
+export type CustomDashboardGridConfig = {
+  columns?: number,
+  gap?: number,
+  rowHeight?: number,
+}
+
 export type OrganizationSettings = {
   dashboard?: {
     view?: CustomDashboardView, 
@@ -3207,10 +3234,13 @@ export type SwitchToRelatedContactAutomationAction = AutomationActionBuilder<'sw
 export type ElationSyncAutomationAction = AutomationActionBuilder<'elationSync', { }>
 export type AthenaSyncAutomationAction = AutomationActionBuilder<'athenaSync', { departmentid: string }>
 export type CanvasSyncAutomationAction = AutomationActionBuilder<'canvasSync', {}>
-export type CanvasCreateNoteAutomationAction = AutomationActionBuilder<'canvasCreateNote', { 
+export type CanvasCreateNoteAutomationAction = AutomationActionBuilder<'canvasCreateNote', {
   formIds: string[],
   matchCareTeamTagsForCanvasPractitionerResolution: ListOfStringsWithQualifier,
-  noteCoding: CanvasCoding, 
+  noteCoding: CanvasCoding,
+}>
+export type CanvasAddToGroupAutomationAction = AutomationActionBuilder<'canvasAddToGroup', {
+  groupId: string,
 }>
 export type CancelFutureAppointmentsAutomationAction = AutomationActionBuilder<'cancelFutureAppointments', {}>
 export type DevelopHealthMedicationEligibilityAutomationAction = AutomationActionBuilder<'developHealthMedEligibility', {
@@ -3357,6 +3387,7 @@ export type AutomationActionForType = {
   'athenaSync': AthenaSyncAutomationAction,
   canvasSync: CanvasSyncAutomationAction,
   canvasCreateNote: CanvasCreateNoteAutomationAction,
+  canvasAddToGroup: CanvasAddToGroupAutomationAction,
   pushFormsToPortal: PushFormsAutomationAction,
   developHealthMedEligibility: DevelopHealthMedicationEligibilityAutomationAction,
   cancelFutureAppointments: CancelFutureAppointmentsAutomationAction,
@@ -4394,6 +4425,21 @@ export interface EnduserProfileView extends EnduserProfileView_readonly, Enduser
   hiddenFromRoles?: string[],
 }
 
+export interface CustomDashboard_readonly extends ClientRecord {}
+export interface CustomDashboard_required {
+  title: string,
+  blocks: CustomDashboardBlock[],
+}
+export interface CustomDashboard_updatesDisabled {}
+export interface CustomDashboard extends CustomDashboard_readonly, CustomDashboard_required, CustomDashboard_updatesDisabled {
+  description?: string,
+  userIds?: string[],
+  defaultForUserIds?: string[],
+  defaultForRoles?: string[],
+  hiddenFromRoles?: string[],
+  gridConfig?: CustomDashboardGridConfig,
+}
+
 export type ListOfStringsWithQualifier = {
   qualifier: ListQueryQualifier,
   values: string[],
@@ -5055,6 +5101,7 @@ export interface PrescriptionRoute extends PrescriptionRoute_readonly, Prescript
   drugId?: string,
   ndc?: string, // National Drug Code (for non-compound ScriptSure orders)
   quantity?: number, // Quantity for non-compound medications (defaults to 30 if not specified)
+  refills?: number, // Number of refills (defaults to 0 if not specified)
   // Compound-specific fields (for ScriptSure compound orders)
   compoundQuantity?: number,          // e.g., 10
   compoundQuantityQualifier?: string, // NCPDP code e.g., "C64933" for Each
@@ -5232,7 +5279,7 @@ export interface InboxThread_readonly extends ClientRecord {
   searchKeywords?: string[], // Cached searchable text for Atlas Search indexing
 }
 export interface InboxThread_required {
-  type: "Email" | "SMS" | "Chat" | "GroupMMS" | "Phone",
+  type: "Email" | "SMS" | "Chat" | "GroupMMS" | "Phone" | "Zendesk",
   title: string,
   preview: string,
   timestamp: Date,
@@ -5299,6 +5346,7 @@ export type ModelForName_required = {
   analytics_frames: AnalyticsFrame_required,
   endusers: Enduser_required;
   enduser_profile_views: EnduserProfileView_required,
+  custom_dashboards: CustomDashboard_required,
   engagement_events: EngagementEvent_required;
   journeys: Journey_required;
   api_keys: APIKey_required;
@@ -5444,6 +5492,7 @@ export interface ModelForName_readonly {
   purchase_credits: PurchaseCredit_readonly,
   phone_calls: PhoneCall_readonly,
   enduser_profile_views: EnduserProfileView_readonly,
+  custom_dashboards: CustomDashboard_readonly,
   table_views: TableView_readonly,
   email_sync_denials: EmailSyncDenial_readonly,
   time_tracks: TimeTrack_readonly,
@@ -5539,6 +5588,7 @@ export interface ModelForName_updatesDisabled {
   purchase_credits: PurchaseCredit_updatesDisabled,
   phone_calls: PhoneCall_updatesDisabled,
   enduser_profile_views: EnduserProfileView_updatesDisabled,
+  custom_dashboards: CustomDashboard_updatesDisabled,
   table_views: TableView_updatesDisabled,
   email_sync_denials: EmailSyncDenial_updatesDisabled,
   time_tracks: TimeTrack_updatesDisabled,
@@ -5634,6 +5684,7 @@ export interface ModelForName extends ModelForName_required, ModelForName_readon
   purchase_credits: PurchaseCredit,
   phone_calls: PhoneCall,
   enduser_profile_views: EnduserProfileView,
+  custom_dashboards: CustomDashboard,
   table_views: TableView,
   email_sync_denials: EmailSyncDenial,
   time_tracks: TimeTrack,
@@ -5739,6 +5790,7 @@ export const modelNameChecker: { [K in ModelName] : true } = {
   purchase_credits: true,
   phone_calls: true,
   enduser_profile_views: true,
+  custom_dashboards: true,
   table_views: true,
   email_sync_denials: true,
   time_tracks: true,

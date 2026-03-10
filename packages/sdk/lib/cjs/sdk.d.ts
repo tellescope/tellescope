@@ -406,6 +406,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         id: string;
         createdAt: Date;
     };
+    custom_dashboards: import("@tellescope/types-models").CustomDashboard & {
+        id: string;
+        createdAt: Date;
+    };
     table_views: import("@tellescope/types-models").TableView & {
         id: string;
         createdAt: Date;
@@ -768,6 +772,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         createdAt: Date;
     };
     enduser_profile_views: import("@tellescope/types-models").EnduserProfileView & {
+        id: string;
+        createdAt: Date;
+    };
+    custom_dashboards: import("@tellescope/types-models").CustomDashboard & {
         id: string;
         createdAt: Date;
     };
@@ -1136,6 +1144,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         id: string;
         createdAt: Date;
     };
+    custom_dashboards: import("@tellescope/types-models").CustomDashboard & {
+        id: string;
+        createdAt: Date;
+    };
     table_views: import("@tellescope/types-models").TableView & {
         id: string;
         createdAt: Date;
@@ -1501,6 +1513,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         id: string;
         createdAt: Date;
     };
+    custom_dashboards: import("@tellescope/types-models").CustomDashboard & {
+        id: string;
+        createdAt: Date;
+    };
     table_views: import("@tellescope/types-models").TableView & {
         id: string;
         createdAt: Date;
@@ -1863,6 +1879,10 @@ export declare const reload_record: <N extends keyof import("@tellescope/types-m
         createdAt: Date;
     };
     enduser_profile_views: import("@tellescope/types-models").EnduserProfileView & {
+        id: string;
+        createdAt: Date;
+    };
+    custom_dashboards: import("@tellescope/types-models").CustomDashboard & {
         id: string;
         createdAt: Date;
     };
@@ -2232,6 +2252,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    custom_dashboards: import("@tellescope/types-models").CustomDashboard & {
+        id: string;
+        createdAt: Date;
+    };
     table_views: import("@tellescope/types-models").TableView & {
         id: string;
         createdAt: Date;
@@ -2594,6 +2618,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
     enduser_profile_views: import("@tellescope/types-models").EnduserProfileView & {
+        id: string;
+        createdAt: Date;
+    };
+    custom_dashboards: import("@tellescope/types-models").CustomDashboard & {
         id: string;
         createdAt: Date;
     };
@@ -2962,6 +2990,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    custom_dashboards: import("@tellescope/types-models").CustomDashboard & {
+        id: string;
+        createdAt: Date;
+    };
     table_views: import("@tellescope/types-models").TableView & {
         id: string;
         createdAt: Date;
@@ -3324,6 +3356,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
     enduser_profile_views: import("@tellescope/types-models").EnduserProfileView_readonly & {
+        id: string;
+        createdAt: Date;
+    };
+    custom_dashboards: import("@tellescope/types-models").CustomDashboard_readonly & {
         id: string;
         createdAt: Date;
     };
@@ -3692,6 +3728,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    custom_dashboards: import("@tellescope/types-models").CustomDashboard_updatesDisabled & {
+        id: string;
+        createdAt: Date;
+    };
     table_views: import("@tellescope/types-models").TableView_updatesDisabled & {
         id: string;
         createdAt: Date;
@@ -3989,6 +4029,9 @@ type Queries = {
     automation_triggers: {
         trigger_events: (args: extractFields<CustomActions['automation_triggers']['trigger_events']['parameters']>) => (Promise<extractFields<CustomActions['automation_triggers']['trigger_events']['returns']>>);
     };
+    ticket_threads: {
+        send_message: (args: extractFields<CustomActions['ticket_threads']['send_message']['parameters']>) => (Promise<extractFields<CustomActions['ticket_threads']['send_message']['returns']>>);
+    };
     ticket_queues: {
         update_indexes: (args: extractFields<CustomActions['ticket_queues']['update_indexes']['parameters']>) => (Promise<extractFields<CustomActions['ticket_queues']['update_indexes']['returns']>>);
     };
@@ -4209,6 +4252,7 @@ export declare class Session extends SessionManager {
         purchase_credits?: number | undefined;
         phone_calls?: number | undefined;
         enduser_profile_views?: number | undefined;
+        custom_dashboards?: number | undefined;
         table_views?: number | undefined;
         email_sync_denials?: number | undefined;
         time_tracks?: number | undefined;
@@ -4364,6 +4408,7 @@ export declare class Session extends SessionManager {
         purchase_credits?: number | undefined;
         phone_calls?: number | undefined;
         enduser_profile_views?: number | undefined;
+        custom_dashboards?: number | undefined;
         table_views?: number | undefined;
         email_sync_denials?: number | undefined;
         time_tracks?: number | undefined;

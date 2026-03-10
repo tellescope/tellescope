@@ -153,6 +153,7 @@ exports.modelNameChecker = {
     purchase_credits: true,
     phone_calls: true,
     enduser_profile_views: true,
+    custom_dashboards: true,
     table_views: true,
     email_sync_denials: true,
     time_tracks: true,

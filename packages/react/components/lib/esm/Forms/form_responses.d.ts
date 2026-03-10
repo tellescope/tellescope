@@ -1,3 +1,4 @@
+/// <reference types="react" />
 import { Enduser, FormResponse } from "@tellescope/types-client";
 import { ImageProps } from "../index";
 import { FormResponseAnswerAddress, FormResponseValueAnswer } from "@tellescope/types-models";

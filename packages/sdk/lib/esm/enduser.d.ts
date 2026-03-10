@@ -362,6 +362,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    custom_dashboards: import("@tellescope/types-models").CustomDashboard & {
+        id: string;
+        createdAt: Date;
+    };
     table_views: import("@tellescope/types-models").TableView & {
         id: string;
         createdAt: Date;
@@ -724,6 +728,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
     enduser_profile_views: import("@tellescope/types-models").EnduserProfileView & {
+        id: string;
+        createdAt: Date;
+    };
+    custom_dashboards: import("@tellescope/types-models").CustomDashboard & {
         id: string;
         createdAt: Date;
     };
@@ -1092,6 +1100,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    custom_dashboards: import("@tellescope/types-models").CustomDashboard & {
+        id: string;
+        createdAt: Date;
+    };
     table_views: import("@tellescope/types-models").TableView & {
         id: string;
         createdAt: Date;
@@ -1457,6 +1469,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         id: string;
         createdAt: Date;
     };
+    custom_dashboards: import("@tellescope/types-models").CustomDashboard_readonly & {
+        id: string;
+        createdAt: Date;
+    };
     table_views: import("@tellescope/types-models").TableView_readonly & {
         id: string;
         createdAt: Date;
@@ -1819,6 +1835,10 @@ export declare const defaultQueries: <N extends keyof import("@tellescope/types-
         createdAt: Date;
     };
     enduser_profile_views: import("@tellescope/types-models").EnduserProfileView_updatesDisabled & {
+        id: string;
+        createdAt: Date;
+    };
+    custom_dashboards: import("@tellescope/types-models").CustomDashboard_updatesDisabled & {
         id: string;
         createdAt: Date;
     };

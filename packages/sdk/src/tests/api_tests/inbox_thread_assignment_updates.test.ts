@@ -825,7 +825,437 @@ export const inbox_thread_assignment_updates_tests = async ({ sdk, sdkNonAdmin }
       sdk.api.inbox_threads.deleteOne(readByEmailTestThread!.id),
     ])
 
-    console.log("🎉 All InboxThread assignment update tests passed!")
+    // Test 33: Outbound SMS with NARROW time range should NOT reset readBy
+    // This tests the production scenario where incremental builds only include recent messages
+    console.log("Testing outbound SMS with NARROW time range should NOT reset readBy...")
+
+    const narrowRangeTestSMS1 = await sdk.api.sms_messages.createOne({
+      message: "Inbound for narrow range test",
+      enduserId: testEnduser.id,
+      inbound: true,
+      phoneNumber: "+15555559999",
+      enduserPhoneNumber: "+15555559998",
+      logOnly: true,
+    })
+
+    // Build threads with wide range (includes inbound)
+    await sdk.api.inbox_threads.reset_threads()
+    await sdk.api.inbox_threads.build_threads({ from: new Date(Date.now() - 60000), to: new Date() })
+
+    const narrowRangeThreads = await sdk.api.inbox_threads.load_threads({})
+    const narrowRangeThread = narrowRangeThreads.threads.find(t =>
+      t.type === 'SMS' && t.phoneNumber === "+15555559999"
+    )
+    assert(!!narrowRangeThread, "Narrow range test thread should exist")
+
+    // Mark thread as read
+    await sdk.api.inbox_threads.updateOne(narrowRangeThread!.id, {
+      readBy: { [sdk.userInfo.id]: new Date() }
+    })
+
+    // Wait and capture a timestamp AFTER the inbound was created
+    await new Promise(resolve => setTimeout(resolve, 100))
+    const narrowRangeFrom = new Date()
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Create outbound message (after narrowRangeFrom)
+    const narrowRangeTestSMS2 = await sdk.api.sms_messages.createOne({
+      message: "Outbound for narrow range test",
+      enduserId: testEnduser.id,
+      inbound: false,
+      phoneNumber: "+15555559999",
+      enduserPhoneNumber: "+15555559998",
+      logOnly: true,
+    })
+
+    // Rebuild with NARROW range that excludes the original inbound
+    await sdk.api.inbox_threads.build_threads({ from: narrowRangeFrom, to: new Date() })
+
+    // readBy should still be preserved (not reset)
+    const threadAfterNarrowBuild = (await sdk.api.inbox_threads.load_threads({ ids: [narrowRangeThread!.id] })).threads[0]
+    assert(
+      !!threadAfterNarrowBuild.readBy?.[sdk.userInfo.id],
+      `readBy should remain set after outbound-only incremental build, got ${JSON.stringify(threadAfterNarrowBuild.readBy)}`
+    )
+
+    console.log("Outbound SMS with narrow time range does NOT reset readBy test passed")
+
+    // Cleanup narrow range test
+    await Promise.all([
+      sdk.api.sms_messages.deleteOne(narrowRangeTestSMS1.id),
+      sdk.api.sms_messages.deleteOne(narrowRangeTestSMS2.id),
+      sdk.api.inbox_threads.deleteOne(narrowRangeThread!.id),
+    ])
+
+    // Test 34: Outbound Email with NARROW time range should NOT reset readBy
+    // This tests the production scenario where incremental builds only include recent messages
+    console.log("Testing outbound Email with NARROW time range should NOT reset readBy...")
+
+    const narrowRangeTestEmail1 = await sdk.api.emails.createOne({
+      subject: "Inbound email for narrow range test",
+      textContent: "Test inbound email content",
+      enduserId: testEnduser.id,
+      inbound: true,
+      logOnly: true,
+    })
+
+    // Build threads with wide range (includes inbound)
+    await sdk.api.inbox_threads.reset_threads()
+    await sdk.api.inbox_threads.build_threads({ from: new Date(Date.now() - 60000), to: new Date() })
+
+    const narrowRangeEmailThreads = await sdk.api.inbox_threads.load_threads({})
+    const narrowRangeEmailThread = narrowRangeEmailThreads.threads.find(t =>
+      t.type === 'Email' && t.enduserIds.includes(testEnduser.id) && t.title === "Inbound email for narrow range test"
+    )
+    assert(!!narrowRangeEmailThread, "Narrow range test Email thread should exist")
+
+    // Mark thread as read
+    await sdk.api.inbox_threads.updateOne(narrowRangeEmailThread!.id, {
+      readBy: { [sdk.userInfo.id]: new Date() }
+    })
+
+    // Wait and capture a timestamp AFTER the inbound was created
+    await new Promise(resolve => setTimeout(resolve, 100))
+    const narrowRangeEmailFrom = new Date()
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Create outbound email (after narrowRangeEmailFrom)
+    const narrowRangeTestEmail2 = await sdk.api.emails.createOne({
+      subject: "Re: Inbound email for narrow range test",
+      textContent: "Outbound reply for narrow range test",
+      enduserId: testEnduser.id,
+      inbound: false,
+      logOnly: true,
+    })
+
+    // Rebuild with NARROW range that excludes the original inbound
+    await sdk.api.inbox_threads.build_threads({ from: narrowRangeEmailFrom, to: new Date() })
+
+    // readBy should still be preserved (not reset)
+    const emailThreadAfterNarrowBuild = (await sdk.api.inbox_threads.load_threads({ ids: [narrowRangeEmailThread!.id] })).threads[0]
+    assert(
+      !!emailThreadAfterNarrowBuild.readBy?.[sdk.userInfo.id],
+      `Email readBy should remain set after outbound-only incremental build, got ${JSON.stringify(emailThreadAfterNarrowBuild.readBy)}`
+    )
+
+    console.log("Outbound Email with narrow time range does NOT reset readBy test passed")
+
+    // Cleanup narrow range email test
+    await Promise.all([
+      sdk.api.emails.deleteOne(narrowRangeTestEmail1.id),
+      sdk.api.emails.deleteOne(narrowRangeTestEmail2.id),
+      sdk.api.inbox_threads.deleteOne(narrowRangeEmailThread!.id),
+    ])
+
+    // ========== Zendesk Thread Tests ==========
+    // Test 35: Basic Zendesk thread building
+    console.log("Testing Zendesk thread building...")
+
+    const zendeskTicketThread = await sdk.api.ticket_threads.createOne({
+      enduserId: testEnduser.id,
+      subject: "Test Zendesk Thread",
+    })
+
+    const zendeskTicketComment = await sdk.api.ticket_thread_comments.createOne({
+      ticketThreadId: zendeskTicketThread.id,
+      enduserId: testEnduser.id,
+      plaintext: "Test ticket comment",
+      html: "<p>Test ticket comment</p>",
+      public: true,
+      inbound: true,
+    })
+
+    await sdk.api.inbox_threads.reset_threads()
+    await sdk.api.inbox_threads.build_threads({ from: new Date(Date.now() - 60000), to: new Date() })
+
+    const zendeskThreads = await sdk.api.inbox_threads.load_threads({ mdbFilter: { type: 'Zendesk' } })
+    const zendeskThread = zendeskThreads.threads.find(t => t.threadId === zendeskTicketThread.id)
+
+    assert(!!zendeskThread, "Zendesk thread should exist")
+    assert(zendeskThread!.type === 'Zendesk', "Type should be Zendesk")
+    assert(zendeskThread!.title === "Test Zendesk Thread", "Title should match subject")
+    assert(zendeskThread!.preview.includes("Test ticket comment"), "Preview should match comment")
+    assert(zendeskThread!.enduserIds.includes(testEnduser.id), "Should have enduser")
+
+    console.log("Basic Zendesk thread building test passed")
+
+    // Test 36: Zendesk assignment updates
+    console.log("Testing Zendesk assignment updates...")
+
+    // Update comment assignment
+    await sdk.api.ticket_thread_comments.updateOne(zendeskTicketComment.id, {
+      assignedTo: [testUser.id]
+    }, { replaceObjectFields: true })
+
+    // Wait for side effects (the side effect should update the inbox thread directly)
+    await new Promise(resolve => setTimeout(resolve, 1500))
+
+    // Verify - NO rebuild needed, side effect should have handled it
+    const updatedZendeskThreads = await sdk.api.inbox_threads.load_threads({ ids: [zendeskThread!.id] })
+    const updatedZendeskThread = updatedZendeskThreads.threads[0]
+
+    assert(
+      JSON.stringify(updatedZendeskThread.assignedTo) === JSON.stringify([testUser.id]),
+      `Zendesk thread assignment should be updated from comment, got ${JSON.stringify(updatedZendeskThread.assignedTo)}`
+    )
+
+    console.log("Zendesk assignment update test passed")
+
+    // Test 37: Zendesk outbound comment should NOT reset readBy
+    console.log("Testing Zendesk outbound should NOT reset readBy...")
+
+    // Mark thread as read
+    await sdk.api.inbox_threads.updateOne(zendeskThread!.id, {
+      readBy: { [sdk.userInfo.id]: new Date() }
+    })
+
+    // Verify marked as read
+    const zendeskThreadAfterRead = (await sdk.api.inbox_threads.load_threads({ ids: [zendeskThread!.id] })).threads[0]
+    assert(!!zendeskThreadAfterRead.readBy?.[sdk.userInfo.id], "Zendesk thread should be marked as read")
+
+    // Create outbound comment
+    const zendeskOutboundComment = await sdk.api.ticket_thread_comments.createOne({
+      ticketThreadId: zendeskTicketThread.id,
+      enduserId: testEnduser.id,
+      plaintext: "Outbound staff reply",
+      html: "<p>Outbound staff reply</p>",
+      public: true,
+      inbound: false,
+      userId: sdk.userInfo.id,
+    })
+
+    // Rebuild threads
+    await sdk.api.inbox_threads.build_threads({ from: new Date(Date.now() - 60000), to: new Date() })
+
+    // readBy should remain set
+    const zendeskThreadAfterOutbound = (await sdk.api.inbox_threads.load_threads({ ids: [zendeskThread!.id] })).threads[0]
+    assert(
+      !!zendeskThreadAfterOutbound.readBy?.[sdk.userInfo.id],
+      `readBy should remain set after outbound Zendesk comment, got ${JSON.stringify(zendeskThreadAfterOutbound.readBy)}`
+    )
+    assert(!!zendeskThreadAfterOutbound.outboundTimestamp, "outboundTimestamp should be set")
+    assert(!!zendeskThreadAfterOutbound.outboundPreview?.includes("Outbound staff reply"), "outboundPreview should match")
+
+    console.log("Zendesk outbound does NOT reset readBy test passed")
+
+    // Test 38: New Zendesk inbound SHOULD clear readBy
+    console.log("Testing new Zendesk inbound SHOULD clear readBy...")
+
+    await new Promise(resolve => setTimeout(resolve, 1100))
+
+    const zendeskNewInboundComment = await sdk.api.ticket_thread_comments.createOne({
+      ticketThreadId: zendeskTicketThread.id,
+      enduserId: testEnduser.id,
+      plaintext: "New inbound from customer",
+      html: "<p>New inbound from customer</p>",
+      public: true,
+      inbound: true,
+    })
+
+    await sdk.api.inbox_threads.build_threads({ from: new Date(Date.now() - 60000), to: new Date() })
+
+    const zendeskThreadAfterNewInbound = (await sdk.api.inbox_threads.load_threads({ ids: [zendeskThread!.id] })).threads[0]
+    assert(
+      !zendeskThreadAfterNewInbound.readBy?.[sdk.userInfo.id],
+      `readBy SHOULD be cleared after new inbound Zendesk comment, got ${JSON.stringify(zendeskThreadAfterNewInbound.readBy)}`
+    )
+
+    console.log("New Zendesk inbound DOES clear readBy test passed")
+
+    // Test 39: Zendesk narrow range build preserves readBy
+    console.log("Testing Zendesk narrow range build preserves readBy...")
+
+    // Reset and build fresh
+    await sdk.api.inbox_threads.reset_threads()
+    await sdk.api.inbox_threads.build_threads({ from: new Date(Date.now() - 60000), to: new Date() })
+
+    // Get fresh thread
+    const freshZendeskThreads = await sdk.api.inbox_threads.load_threads({ mdbFilter: { type: 'Zendesk', threadId: zendeskTicketThread.id } })
+    const freshZendeskThread = freshZendeskThreads.threads.find(t => t.threadId === zendeskTicketThread.id)
+    assert(!!freshZendeskThread, "Fresh Zendesk thread should exist")
+
+    // Mark as read
+    await sdk.api.inbox_threads.updateOne(freshZendeskThread!.id, {
+      readBy: { [sdk.userInfo.id]: new Date() }
+    })
+
+    // Wait and capture narrow range start
+    await new Promise(resolve => setTimeout(resolve, 100))
+    const zendeskNarrowRangeFrom = new Date()
+    await new Promise(resolve => setTimeout(resolve, 100))
+
+    // Create outbound comment after narrowRangeFrom
+    const zendeskNarrowRangeOutbound = await sdk.api.ticket_thread_comments.createOne({
+      ticketThreadId: zendeskTicketThread.id,
+      enduserId: testEnduser.id,
+      plaintext: "Outbound in narrow range",
+      html: "<p>Outbound in narrow range</p>",
+      public: true,
+      inbound: false,
+      userId: sdk.userInfo.id,
+    })
+
+    // Rebuild with narrow range (excludes original inbound)
+    await sdk.api.inbox_threads.build_threads({ from: zendeskNarrowRangeFrom, to: new Date() })
+
+    // readBy should still be preserved
+    const zendeskThreadAfterNarrowBuild = (await sdk.api.inbox_threads.load_threads({ ids: [freshZendeskThread!.id] })).threads[0]
+    assert(
+      !!zendeskThreadAfterNarrowBuild.readBy?.[sdk.userInfo.id],
+      `readBy should remain set after outbound-only Zendesk incremental build, got ${JSON.stringify(zendeskThreadAfterNarrowBuild.readBy)}`
+    )
+
+    console.log("Zendesk narrow range build preserves readBy test passed")
+
+    // Test 40: Zendesk channel filtering
+    console.log("Testing Zendesk channel filtering...")
+
+    // Filter by Zendesk type
+    const filteredZendeskThreads = await sdk.api.inbox_threads.load_threads({
+      mdbFilter: { type: 'Zendesk' }
+    })
+
+    assert(filteredZendeskThreads.threads.length >= 1, "Should find Zendesk threads")
+    assert(filteredZendeskThreads.threads.every(t => t.type === 'Zendesk'), "All filtered threads should be Zendesk type")
+
+    // Filter by multiple types including Zendesk
+    const multiTypeZendeskThreads = await sdk.api.inbox_threads.load_threads({
+      mdbFilter: { type: { $in: ['Zendesk', 'SMS'] } }
+    })
+
+    assert(
+      multiTypeZendeskThreads.threads.every(t => t.type === 'Zendesk' || t.type === 'SMS'),
+      "Multi-type filter should work with Zendesk"
+    )
+
+    console.log("Zendesk channel filtering test passed")
+
+    // Test 41: Zendesk thread without comments is skipped
+    console.log("Testing Zendesk thread without comments is skipped...")
+
+    const emptyZendeskTicketThread = await sdk.api.ticket_threads.createOne({
+      enduserId: testEnduser.id,
+      subject: "Empty Zendesk Thread",
+    })
+
+    await sdk.api.inbox_threads.reset_threads()
+    await sdk.api.inbox_threads.build_threads({ from: new Date(Date.now() - 60000), to: new Date() })
+
+    const allZendeskThreadsAfterEmpty = await sdk.api.inbox_threads.load_threads({ mdbFilter: { type: 'Zendesk' } })
+    const emptyZendeskThread = allZendeskThreadsAfterEmpty.threads.find(t => t.threadId === emptyZendeskTicketThread.id)
+
+    assert(!emptyZendeskThread, "Zendesk thread without comments should NOT be built")
+
+    console.log("Zendesk thread without comments is skipped test passed")
+
+    // Test 42: Zendesk access control - verify access is blocked when user lacks ticket_threads permission
+    console.log("Testing Zendesk access control (blocking)...")
+
+    // Create a new Zendesk thread for testing
+    const accessControlTicketThread = await sdk.api.ticket_threads.createOne({
+      enduserId: testEnduser.id,
+      subject: "Access Control Test Thread",
+    })
+
+    const accessControlComment = await sdk.api.ticket_thread_comments.createOne({
+      ticketThreadId: accessControlTicketThread.id,
+      enduserId: testEnduser.id,
+      plaintext: "Access control test comment",
+      html: "<p>Access control test comment</p>",
+      public: true,
+      inbound: true,
+    })
+
+    await sdk.api.inbox_threads.reset_threads()
+    await sdk.api.inbox_threads.build_threads({ from: new Date(Date.now() - 60000), to: new Date() })
+
+    // Verify admin can see the Zendesk thread
+    const adminZendeskThreads = await sdk.api.inbox_threads.load_threads({
+      mdbFilter: { type: 'Zendesk' }
+    })
+    assert(adminZendeskThreads.threads.length >= 1, "Admin should see Zendesk threads")
+    const accessControlThread = adminZendeskThreads.threads.find(t => t.threadId === accessControlTicketThread.id)
+    assert(!!accessControlThread, "Admin should see the access control test thread")
+
+    // Create a role with NO ticket_threads access
+    const noTicketThreadsRole = await sdk.api.role_based_access_permissions.createOne({
+      role: 'No Ticket Threads Access',
+      permissions: {
+        ticket_threads: { read: null, create: null, update: null, delete: null },
+        // Give access to other inbox types so we can verify selective blocking
+        emails: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+        sms_messages: { read: 'Default', create: 'Default', update: 'Default', delete: 'Default' },
+      },
+    })
+
+    // Create a test user for access control testing
+    const accessControlTestEmail = 'zendesk.access.control.test@tellescope.com'
+    const accessControlTestUser = (
+      await sdk.api.users.getOne({ email: accessControlTestEmail }).catch(() => null)
+    ) || (
+      await sdk.api.users.createOne({ email: accessControlTestEmail, notificationEmailsDisabled: true, verifiedEmail: true })
+    )
+
+    // Assign the restricted role to the test user
+    await sdk.api.users.updateOne(accessControlTestUser.id, { roles: [noTicketThreadsRole.role] }, { replaceObjectFields: true })
+    await new Promise(resolve => setTimeout(resolve, 2000)) // Wait for role change
+
+    // Create SDK session for the restricted user
+    const sdkNoTicketAccess = new Session({
+      host,
+      authToken: (await sdk.api.users.generate_auth_token({ id: accessControlTestUser.id })).authToken,
+    })
+
+    // User WITHOUT ticket_threads access should NOT see Zendesk threads
+    const restrictedUserZendeskThreads = await sdkNoTicketAccess.api.inbox_threads.load_threads({
+      mdbFilter: { type: 'Zendesk' }
+    })
+
+    assert(
+      restrictedUserZendeskThreads.threads.length === 0,
+      `User without ticket_threads access should NOT see Zendesk threads, but found ${restrictedUserZendeskThreads.threads.length}`
+    )
+    console.log("Verified: User without ticket_threads access cannot see Zendesk threads")
+
+    // Verify the same user CAN still see other thread types they have access to (if any exist)
+    // This confirms the filter is selective, not a blanket block
+    const restrictedUserAllThreads = await sdkNoTicketAccess.api.inbox_threads.load_threads({})
+    const restrictedUserHasZendesk = restrictedUserAllThreads.threads.some(t => t.type === 'Zendesk')
+    assert(
+      !restrictedUserHasZendesk,
+      "User without ticket_threads access should not see ANY Zendesk threads even in unfiltered query"
+    )
+    console.log("Verified: Zendesk threads are filtered from all queries for restricted user")
+
+    // Cleanup access control test resources
+    await Promise.all([
+      sdk.api.ticket_thread_comments.deleteOne(accessControlComment.id).catch(() => {}),
+      sdk.api.ticket_threads.deleteOne(accessControlTicketThread.id).catch(() => {}),
+      sdk.api.users.deleteOne(accessControlTestUser.id).catch(() => {}),
+      sdk.api.role_based_access_permissions.deleteOne(noTicketThreadsRole.id).catch(() => {}),
+    ])
+
+    console.log("Zendesk access control (blocking) test passed")
+
+    // Cleanup Zendesk test resources
+    await Promise.all([
+      sdk.api.ticket_thread_comments.deleteOne(zendeskTicketComment.id).catch(() => {}),
+      sdk.api.ticket_thread_comments.deleteOne(zendeskOutboundComment.id).catch(() => {}),
+      sdk.api.ticket_thread_comments.deleteOne(zendeskNewInboundComment.id).catch(() => {}),
+      sdk.api.ticket_thread_comments.deleteOne(zendeskNarrowRangeOutbound.id).catch(() => {}),
+      sdk.api.ticket_threads.deleteOne(zendeskTicketThread.id).catch(() => {}),
+      sdk.api.ticket_threads.deleteOne(emptyZendeskTicketThread.id).catch(() => {}),
+    ])
+
+    // Delete any Zendesk inbox threads
+    const remainingZendeskThreads = await sdk.api.inbox_threads.load_threads({ mdbFilter: { type: 'Zendesk' } })
+    await Promise.all(
+      remainingZendeskThreads.threads.map(t => sdk.api.inbox_threads.deleteOne(t.id).catch(() => {}))
+    )
+
+    console.log("All Zendesk thread tests passed!")
+
+    console.log("All InboxThread assignment update tests passed!")
 
   } finally {
     // Cleanup

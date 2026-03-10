@@ -275,6 +275,7 @@ import {
   userUIRestrictionsValidator,
   externalChatGPTMessagesValidator,
   enduserProfileViewBlocksValidator,
+  customDashboardBlocksValidator,
   intakeDateOfBirthValidator,
   objectValidator,
   mongoIdStringRequired,
@@ -350,6 +351,8 @@ import {
   AIDecisionSourceValidator,
   AIMessageInputValidator,
   listOfObjectAnyFieldsAnyValuesValidator,
+  listOfEmailCCsValidator,
+  externalIdNumberValidatorOptional,
   DEPRECATED_AUTOMATION_TRIGGER_EVENT_TYPES,
 } from "@tellescope/validation"
 
@@ -1102,6 +1105,21 @@ export type CustomActions = {
     assign_from_queue: CustomAction<{ userId?: string, ticketId?: string, queueId?: string, overrideRestrictions?: boolean, }, { ticket: Ticket, queue: TicketQueue, enduser: Enduser }>,
     bulk_delete: CustomAction<{ ids: string[] }, {  }>,
     bulk_assign: CustomAction<{ ids: string[], userId: string, }, {  }>,
+  },
+  ticket_threads: {
+    send_message: CustomAction<{
+      enduserId: string,
+      html_body: string,
+      public: boolean,
+      ticketThreadId?: string,
+      subject?: string,
+      brandId?: number,
+      emailCCs?: { email: string, name?: string }[],
+    }, {
+      success: boolean,
+      ticketId?: number,
+      error?: string,
+    }>,
   },
   ticket_queues: {
     update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
@@ -7921,6 +7939,40 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       defaultForUserIds: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
     }
   },
+  custom_dashboards: {
+    info: {},
+    constraints: { unique: [], relationship: [], access: [{ type: 'filter', field: 'userIds' }], },
+    defaultActions: DEFAULT_OPERATIONS,
+    customActions: {},
+    enduserActions: {},
+    fields: {
+      ...BuiltInFields,
+      title: {
+        validator: stringValidator100,
+        required: true,
+        examples: ["Main Dashboard"]
+      },
+      description: {
+        validator: stringValidator5000,
+        examples: ["A customizable dashboard for tracking key metrics"]
+      },
+      blocks: {
+        validator: customDashboardBlocksValidator,
+        required: true,
+        examples: [[{
+          type: 'Inbox',
+          info: {},
+          colSpan: 2,
+          rowSpan: 1
+        }]]
+      },
+      userIds: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      defaultForRoles: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      hiddenFromRoles: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      defaultForUserIds: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      gridConfig: { validator: objectAnyFieldsAnyValuesValidator },
+    }
+  },
   background_errors: {
     info: {},
     constraints: { unique: [], relationship: [], },
@@ -8396,7 +8448,28 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     },
     constraints: { unique: [], relationship: [], },
     defaultActions: DEFAULT_OPERATIONS,
-    customActions: {},
+    customActions: {
+      send_message: {
+        op: 'custom', access: 'create', method: 'post',
+        path: '/ticket-threads/send-message',
+        name: 'Send Zendesk Message',
+        description: "Creates a Zendesk ticket or adds a comment to an existing ticket",
+        parameters: {
+          enduserId: { validator: mongoIdStringRequired, required: true },
+          html_body: { validator: stringValidator25000, required: true },
+          public: { validator: booleanValidator, required: true },
+          ticketThreadId: { validator: mongoIdStringValidator },
+          subject: { validator: stringValidator250 },
+          brandId: { validator: externalIdNumberValidatorOptional },
+          emailCCs: { validator: listOfEmailCCsValidator },
+        },
+        returns: {
+          success: { validator: booleanValidator, required: true },
+          ticketId: { validator: externalIdNumberValidatorOptional },
+          error: { validator: stringValidator },
+        },
+      },
+    },
     enduserActions: {},
     fields: {
       ...BuiltInFields, 
@@ -8891,6 +8964,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       drugId: { validator: stringValidator },
       ndc: { validator: stringValidator100 }, // National Drug Code
       quantity: { validator: nonNegNumberValidator }, // Quantity for non-compound medications
+      refills: { validator: nonNegNumberValidator }, // Number of refills (0 or more)
       // Compound-specific fields (for ScriptSure compound orders)
       compoundQuantity: { validator: nonNegNumberValidator },
       compoundQuantityQualifier: { validator: stringValidator100 },
@@ -9381,7 +9455,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
     },
     fields: {
       ...BuiltInFields,
-      type: { validator: exactMatchValidator<InboxThread['type']>(['Chat', 'Email', 'GroupMMS', 'Phone', 'SMS']), required: true, examples: ['Email'] },
+      type: { validator: exactMatchValidator<InboxThread['type']>(['Chat', 'Email', 'GroupMMS', 'Phone', 'SMS', 'Zendesk']), required: true, examples: ['Email'] },
       assignedTo: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] },
       enduserIds: { validator: listOfMongoIdStringValidator, required: true, examples: [[PLACEHOLDER_ID]] },
       userIds: { validator: listOfMongoIdStringValidatorEmptyOk, required: true, examples: [[PLACEHOLDER_ID]] },
