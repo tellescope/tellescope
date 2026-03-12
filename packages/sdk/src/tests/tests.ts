@@ -48,7 +48,7 @@ import { journey_error_branching_tests } from "./api_tests/journey_error_branchi
 import { afteraction_day_of_month_delay_tests } from "./api_tests/afteraction_day_of_month_delay.test"
 import { setup_tests } from "./setup"
 import { evaluate_conditional_logic_for_enduser_fields, FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, get_next_reminder_timestamp, object_is_empty, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities"
-import { DEFAULT_OPERATIONS, PLACEHOLDER_ID, ZOOM_TITLE } from "@tellescope/constants"
+import { DEFAULT_OPERATIONS, PLACEHOLDER_ID, ZENDESK_INTEGRATIONS_TITLE, ZOOM_TITLE } from "@tellescope/constants"
 import { 
   schema, 
   Model, 
@@ -5633,8 +5633,26 @@ const redaction_tests = async () => {
     () => sdk.api.integrations.getOne(zoomIntegration.id),
     { onResult: i => !i.authentication},
   )
+  const zendeskIntegration = await sdk.api.integrations.createOne({
+    title: ZENDESK_INTEGRATIONS_TITLE,
+    authentication: {
+      type: 'oauth2',
+      info: {
+        access_token: 'token',
+        expiry_date: new Date().getTime(),
+        refresh_token: 'subdomain',
+        scope: '',
+        token_type: 'Bearer',
+      }
+    }
+  })
   await async_test(
-    'Generic integration includes authentication info (for now, while used in front-end for some integrations like Zendesk)',
+    'Zendesk integration redacts access_token but keeps refresh_token (subdomain)',
+    () => sdk.api.integrations.getOne(zendeskIntegration.id),
+    { onResult: i => !!i.authentication && !i.authentication.info.access_token && i.authentication.info.refresh_token === 'subdomain' },
+  )
+  await async_test(
+    'Generic integration includes authentication info',
     () => sdk.api.integrations.getOne(notZoomIntegration.id),
     { onResult: i => !!i.authentication},
   )
@@ -5644,6 +5662,7 @@ const redaction_tests = async () => {
     sdk.api.endusers.deleteOne(enduserOther.id),
     sdk.api.integrations.deleteOne(zoomIntegration.id),
     sdk.api.integrations.deleteOne(notZoomIntegration.id),
+    sdk.api.integrations.deleteOne(zendeskIntegration.id),
   ])
 }
 

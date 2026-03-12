@@ -84,7 +84,7 @@ import { journey_error_branching_tests } from "./api_tests/journey_error_branchi
 import { afteraction_day_of_month_delay_tests } from "./api_tests/afteraction_day_of_month_delay.test";
 import { setup_tests } from "./setup";
 import { evaluate_conditional_logic_for_enduser_fields, FORM_LOGIC_CALCULATED_FIELDS, get_care_team_primary, get_flattened_fields, get_next_reminder_timestamp, object_is_empty, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, weighted_round_robin, YYYY_MM_DD_to_MM_DD_YYYY } from "@tellescope/utilities";
-import { DEFAULT_OPERATIONS, PLACEHOLDER_ID, ZOOM_TITLE } from "@tellescope/constants";
+import { DEFAULT_OPERATIONS, PLACEHOLDER_ID, ZENDESK_INTEGRATIONS_TITLE, ZOOM_TITLE } from "@tellescope/constants";
 import { schema, } from "@tellescope/schema";
 import { assert, async_test, handleAnyError, log_header, passOnAnyResult, wait, } from "@tellescope/testing";
 import { objects_equivalent, url_safe_path, } from "@tellescope/utilities";
@@ -6708,7 +6708,7 @@ var community_tests = function () { return __awaiter(void 0, void 0, void 0, fun
     });
 }); };
 var redaction_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var enduser, enduserOther, endusers, forUser, redactedFields, zoomIntegration, notZoomIntegration;
+    var enduser, enduserOther, endusers, forUser, redactedFields, zoomIntegration, notZoomIntegration, zendeskIntegration;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -6774,16 +6774,35 @@ var redaction_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                 return [4 /*yield*/, async_test('Zoom integration redacts authentication info', function () { return sdk.api.integrations.getOne(zoomIntegration.id); }, { onResult: function (i) { return !i.authentication; } })];
             case 9:
                 _a.sent();
-                return [4 /*yield*/, async_test('Generic integration includes authentication info (for now, while used in front-end for some integrations like Zendesk)', function () { return sdk.api.integrations.getOne(notZoomIntegration.id); }, { onResult: function (i) { return !!i.authentication; } })];
+                return [4 /*yield*/, sdk.api.integrations.createOne({
+                        title: ZENDESK_INTEGRATIONS_TITLE,
+                        authentication: {
+                            type: 'oauth2',
+                            info: {
+                                access_token: 'token',
+                                expiry_date: new Date().getTime(),
+                                refresh_token: 'subdomain',
+                                scope: '',
+                                token_type: 'Bearer',
+                            }
+                        }
+                    })];
             case 10:
+                zendeskIntegration = _a.sent();
+                return [4 /*yield*/, async_test('Zendesk integration redacts access_token but keeps refresh_token (subdomain)', function () { return sdk.api.integrations.getOne(zendeskIntegration.id); }, { onResult: function (i) { return !!i.authentication && !i.authentication.info.access_token && i.authentication.info.refresh_token === 'subdomain'; } })];
+            case 11:
+                _a.sent();
+                return [4 /*yield*/, async_test('Generic integration includes authentication info', function () { return sdk.api.integrations.getOne(notZoomIntegration.id); }, { onResult: function (i) { return !!i.authentication; } })];
+            case 12:
                 _a.sent();
                 return [4 /*yield*/, Promise.all([
                         sdk.api.endusers.deleteOne(enduser.id),
                         sdk.api.endusers.deleteOne(enduserOther.id),
                         sdk.api.integrations.deleteOne(zoomIntegration.id),
                         sdk.api.integrations.deleteOne(notZoomIntegration.id),
+                        sdk.api.integrations.deleteOne(zendeskIntegration.id),
                     ])];
-            case 11:
+            case 13:
                 _a.sent();
                 return [2 /*return*/];
         }

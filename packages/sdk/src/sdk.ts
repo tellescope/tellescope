@@ -811,6 +811,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     send_message: (args: extractFields<CustomActions['ticket_threads']['send_message']['parameters']>) => (
       Promise<extractFields<CustomActions['ticket_threads']['send_message']['returns']>>
     ),
+    update_status: (args: extractFields<CustomActions['ticket_threads']['update_status']['parameters']>) => (
+      Promise<extractFields<CustomActions['ticket_threads']['update_status']['returns']>>
+    ),
   },
   ticket_queues: {
     update_indexes: (args: extractFields<CustomActions['ticket_queues']['update_indexes']['parameters']>) => (
@@ -1133,6 +1136,7 @@ export class Session extends SessionManager {
     queries.automation_triggers.trigger_events = a => this._POST(`/v1/${schema.automation_triggers.customActions.trigger_events.path}`, a)
 
     queries.ticket_threads.send_message = a => this._POST(`/v1${schema.ticket_threads.customActions.send_message.path}`, a)
+    queries.ticket_threads.update_status = a => this._PATCH(`/v1${schema.ticket_threads.customActions.update_status.path}`, a)
 
     queries.ticket_queues.update_indexes = a => this._PATCH(`/v1/${schema.ticket_queues.customActions.update_indexes.path}`, a)
 

@@ -1120,6 +1120,14 @@ export type CustomActions = {
       ticketId?: number,
       error?: string,
     }>,
+    update_status: CustomAction<{
+      ticketThreadId: string,
+      status: string,
+      resolutionFieldId?: string,
+      closeReason?: string,
+    }, {
+      success: boolean,
+    }>,
   },
   ticket_queues: {
     update_indexes: CustomAction<{ updates: { id: string, index: number }[] }, {}>,
@@ -8469,10 +8477,25 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
           error: { validator: stringValidator },
         },
       },
+      update_status: {
+        op: 'custom', access: 'update', method: 'patch',
+        path: '/ticket-threads/update-status',
+        name: 'Update Zendesk Ticket Status',
+        description: "Updates the status of a Zendesk ticket",
+        parameters: {
+          ticketThreadId: { validator: mongoIdStringRequired, required: true },
+          status: { validator: stringValidator100, required: true },
+          resolutionFieldId: { validator: stringValidator250 },
+          closeReason: { validator: stringValidator250 },
+        },
+        returns: {
+          success: { validator: booleanValidator, required: true },
+        },
+      },
     },
     enduserActions: {},
     fields: {
-      ...BuiltInFields, 
+      ...BuiltInFields,
       enduserId: {
         validator: mongoIdStringValidator,
         required: true,
@@ -8965,6 +8988,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       ndc: { validator: stringValidator100 }, // National Drug Code
       quantity: { validator: nonNegNumberValidator }, // Quantity for non-compound medications
       refills: { validator: nonNegNumberValidator }, // Number of refills (0 or more)
+      duration: { validator: nonNegNumberValidator }, // Days supply
       // Compound-specific fields (for ScriptSure compound orders)
       compoundQuantity: { validator: nonNegNumberValidator },
       compoundQuantityQualifier: { validator: stringValidator100 },

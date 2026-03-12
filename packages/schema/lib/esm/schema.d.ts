@@ -1440,6 +1440,14 @@ export type CustomActions = {
             ticketId?: number;
             error?: string;
         }>;
+        update_status: CustomAction<{
+            ticketThreadId: string;
+            status: string;
+            resolutionFieldId?: string;
+            closeReason?: string;
+        }, {
+            success: boolean;
+        }>;
     };
     ticket_queues: {
         update_indexes: CustomAction<{

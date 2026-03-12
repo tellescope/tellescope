@@ -5881,6 +5881,21 @@ export var schema = build_schema({
                     error: { validator: stringValidator },
                 },
             },
+            update_status: {
+                op: 'custom', access: 'update', method: 'patch',
+                path: '/ticket-threads/update-status',
+                name: 'Update Zendesk Ticket Status',
+                description: "Updates the status of a Zendesk ticket",
+                parameters: {
+                    ticketThreadId: { validator: mongoIdStringRequired, required: true },
+                    status: { validator: stringValidator100, required: true },
+                    resolutionFieldId: { validator: stringValidator250 },
+                    closeReason: { validator: stringValidator250 },
+                },
+                returns: {
+                    success: { validator: booleanValidator, required: true },
+                },
+            },
         },
         enduserActions: {},
         fields: __assign(__assign({}, BuiltInFields), { enduserId: {
@@ -6239,7 +6254,7 @@ export var schema = build_schema({
         defaultActions: DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { title: { validator: stringValidator105, required: true, examples: ['Title'] }, state: { validator: stateValidator, required: true, examples: ['CA'] }, templateIds: { validator: listOfStringsValidatorOptionalOrEmptyOk, examples: [['tmp_01GZMD9Q71W7T44812351V9QZN']] }, pharmacyId: { validator: stringValidator }, pharmacyLabel: { validator: stringValidator }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, source: { validator: stringValidator100, }, drugId: { validator: stringValidator }, ndc: { validator: stringValidator100 }, quantity: { validator: nonNegNumberValidator }, refills: { validator: nonNegNumberValidator }, 
+        fields: __assign(__assign({}, BuiltInFields), { title: { validator: stringValidator105, required: true, examples: ['Title'] }, state: { validator: stateValidator, required: true, examples: ['CA'] }, templateIds: { validator: listOfStringsValidatorOptionalOrEmptyOk, examples: [['tmp_01GZMD9Q71W7T44812351V9QZN']] }, pharmacyId: { validator: stringValidator }, pharmacyLabel: { validator: stringValidator }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, source: { validator: stringValidator100, }, drugId: { validator: stringValidator }, ndc: { validator: stringValidator100 }, quantity: { validator: nonNegNumberValidator }, refills: { validator: nonNegNumberValidator }, duration: { validator: nonNegNumberValidator }, 
             // Compound-specific fields (for ScriptSure compound orders)
             compoundQuantity: { validator: nonNegNumberValidator }, compoundQuantityQualifier: { validator: stringValidator100 }, sig: { validator: stringValidator }, pharmacyNote: { validator: stringValidator210 }, controlledSubstance: { validator: exactMatchValidatorOptional(['0', '2', '3', '4', '5']) } }),
     },

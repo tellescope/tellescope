@@ -6741,7 +6741,7 @@ var community_tests = function () { return __awaiter(void 0, void 0, void 0, fun
     });
 }); };
 var redaction_tests = function () { return __awaiter(void 0, void 0, void 0, function () {
-    var enduser, enduserOther, endusers, forUser, redactedFields, zoomIntegration, notZoomIntegration;
+    var enduser, enduserOther, endusers, forUser, redactedFields, zoomIntegration, notZoomIntegration, zendeskIntegration;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -6807,16 +6807,35 @@ var redaction_tests = function () { return __awaiter(void 0, void 0, void 0, fun
                 return [4 /*yield*/, (0, testing_1.async_test)('Zoom integration redacts authentication info', function () { return sdk.api.integrations.getOne(zoomIntegration.id); }, { onResult: function (i) { return !i.authentication; } })];
             case 9:
                 _a.sent();
-                return [4 /*yield*/, (0, testing_1.async_test)('Generic integration includes authentication info (for now, while used in front-end for some integrations like Zendesk)', function () { return sdk.api.integrations.getOne(notZoomIntegration.id); }, { onResult: function (i) { return !!i.authentication; } })];
+                return [4 /*yield*/, sdk.api.integrations.createOne({
+                        title: constants_1.ZENDESK_INTEGRATIONS_TITLE,
+                        authentication: {
+                            type: 'oauth2',
+                            info: {
+                                access_token: 'token',
+                                expiry_date: new Date().getTime(),
+                                refresh_token: 'subdomain',
+                                scope: '',
+                                token_type: 'Bearer',
+                            }
+                        }
+                    })];
             case 10:
+                zendeskIntegration = _a.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)('Zendesk integration redacts access_token but keeps refresh_token (subdomain)', function () { return sdk.api.integrations.getOne(zendeskIntegration.id); }, { onResult: function (i) { return !!i.authentication && !i.authentication.info.access_token && i.authentication.info.refresh_token === 'subdomain'; } })];
+            case 11:
+                _a.sent();
+                return [4 /*yield*/, (0, testing_1.async_test)('Generic integration includes authentication info', function () { return sdk.api.integrations.getOne(notZoomIntegration.id); }, { onResult: function (i) { return !!i.authentication; } })];
+            case 12:
                 _a.sent();
                 return [4 /*yield*/, Promise.all([
                         sdk.api.endusers.deleteOne(enduser.id),
                         sdk.api.endusers.deleteOne(enduserOther.id),
                         sdk.api.integrations.deleteOne(zoomIntegration.id),
                         sdk.api.integrations.deleteOne(notZoomIntegration.id),
+                        sdk.api.integrations.deleteOne(zendeskIntegration.id),
                     ])];
-            case 11:
+            case 13:
                 _a.sent();
                 return [2 /*return*/];
         }

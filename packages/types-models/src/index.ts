@@ -5102,6 +5102,7 @@ export interface PrescriptionRoute extends PrescriptionRoute_readonly, Prescript
   ndc?: string, // National Drug Code (for non-compound ScriptSure orders)
   quantity?: number, // Quantity for non-compound medications (defaults to 30 if not specified)
   refills?: number, // Number of refills (defaults to 0 if not specified)
+  duration?: number, // Days supply (defaults to 30 if not specified)
   // Compound-specific fields (for ScriptSure compound orders)
   compoundQuantity?: number,          // e.g., 10
   compoundQuantityQualifier?: string, // NCPDP code e.g., "C64933" for Each

@@ -1,4 +1,3 @@
-/// <reference types="react" />
 import { FileUploaderProps, useDisplayPictureUploadForSelf, useFileUpload } from "./inputs.js";
 import { TextFieldProps } from "./mui";
 export { useDisplayPictureUploadForSelf, useFileUpload };

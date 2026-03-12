@@ -4031,6 +4031,7 @@ type Queries = {
     };
     ticket_threads: {
         send_message: (args: extractFields<CustomActions['ticket_threads']['send_message']['parameters']>) => (Promise<extractFields<CustomActions['ticket_threads']['send_message']['returns']>>);
+        update_status: (args: extractFields<CustomActions['ticket_threads']['update_status']['parameters']>) => (Promise<extractFields<CustomActions['ticket_threads']['update_status']['returns']>>);
     };
     ticket_queues: {
         update_indexes: (args: extractFields<CustomActions['ticket_queues']['update_indexes']['parameters']>) => (Promise<extractFields<CustomActions['ticket_queues']['update_indexes']['returns']>>);
@@ -4164,6 +4165,7 @@ export declare class Session extends SessionManager {
         exp: number;
         allowedPaths?: string[] | undefined;
         requiresMFA?: boolean | undefined;
+        users?: number | undefined;
         inbox_threads?: number | undefined;
         ai_conversations?: number | undefined;
         waitlists?: number | undefined;
@@ -4210,7 +4212,6 @@ export declare class Session extends SessionManager {
         sms_messages?: number | undefined;
         chat_rooms?: number | undefined;
         chats?: number | undefined;
-        users?: number | undefined;
         templates?: number | undefined;
         files?: number | undefined;
         tickets?: number | undefined;
@@ -4320,6 +4321,7 @@ export declare class Session extends SessionManager {
         exp: number;
         allowedPaths?: string[] | undefined;
         requiresMFA?: boolean | undefined;
+        users?: number | undefined;
         inbox_threads?: number | undefined;
         ai_conversations?: number | undefined;
         waitlists?: number | undefined;
@@ -4366,7 +4368,6 @@ export declare class Session extends SessionManager {
         sms_messages?: number | undefined;
         chat_rooms?: number | undefined;
         chats?: number | undefined;
-        users?: number | undefined;
         templates?: number | undefined;
         files?: number | undefined;
         tickets?: number | undefined;

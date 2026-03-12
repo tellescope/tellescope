@@ -5209,6 +5209,7 @@ export interface PrescriptionRoute extends PrescriptionRoute_readonly, Prescript
     ndc?: string;
     quantity?: number;
     refills?: number;
+    duration?: number;
     compoundQuantity?: number;
     compoundQuantityQualifier?: string;
     sig?: string;
