@@ -128,8 +128,8 @@ export var passwordInput = function (_a) {
     });
 };
 export var FormikSubmitButton = function (_a) {
-    var formik = _a.formik, enabled = _a.enabled, _b = _a.disabledIfUnchanged, disabledIfUnchanged = _b === void 0 ? true : _b, disabled = _a.disabled, onClick = _a.onClick, submitText = _a.submitText, submittingText = _a.submittingText, style = _a.style, props = __rest(_a, ["formik", "enabled", "disabledIfUnchanged", "disabled", "onClick", "submitText", "submittingText", "style"]);
-    return (_jsx(SubmitButton, __assign({ onClick: onClick, submitText: submitText, submittingText: submittingText, disabled: !enabled && (disabled || !formik.isValid || (disabledIfUnchanged && !formik.dirty)), style: style, submitting: formik.isSubmitting }, props)));
+    var formik = _a.formik, enabled = _a.enabled, _b = _a.disabledIfUnchanged, disabledIfUnchanged = _b === void 0 ? true : _b, disabled = _a.disabled, onClick = _a.onClick, submitText = _a.submitText, submittingText = _a.submittingText, style = _a.style, muiColor = _a.muiColor, props = __rest(_a, ["formik", "enabled", "disabledIfUnchanged", "disabled", "onClick", "submitText", "submittingText", "style", "muiColor"]);
+    return (_jsx(SubmitButton, __assign({ onClick: onClick, submitText: submitText, submittingText: submittingText, disabled: !enabled && (disabled || !formik.isValid || (disabledIfUnchanged && !formik.dirty)), style: style, submitting: formik.isSubmitting, muiColor: muiColor }, props)));
 };
 export var LoadingButton = function (_a) {
     var _b;

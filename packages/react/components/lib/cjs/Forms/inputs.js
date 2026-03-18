@@ -97,7 +97,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ChargeebeeInput = exports.RichTextInput = exports.ConditionsInput = exports.AllergiesInput = exports.EmotiiInput = exports.HiddenValueInput = exports.RedirectInput = exports.include_current_url_parameters_if_templated = exports.HeightInput = exports.AppointmentBookingInput = exports.RelatedContactsInput = exports.contact_is_valid = exports.BelugaPatientPreferenceInput = exports.MedicationsInput = exports.CanvasMedicationsInput = exports.DatabaseSelectInput = exports.DropdownInput = exports.Progress = exports.StripeInput = exports.MultipleChoiceInput = exports.FilesInput = exports.safe_create_url = exports.FileInput = exports.convertHEIC = exports.SignatureInput = exports.ESignatureTerms = exports.AddressInput = exports.TimezoneInput = exports.TimeInput = exports.PharmacySearchInput = exports.BridgeEligibilityInput = exports.InsuranceInput = exports.NumberInput = exports.EmailInput = exports.PhoneInput = exports.StringLongInput = exports.StringInput = exports.DateStringInput = exports.AutoFocusTextField = exports.TableInput = exports.DateInput = exports.RankingInput = exports.RatingInput = exports.PdfViewer = exports.defaultButtonStyles = exports.defaultInputProps = exports.LanguageSelect = exports.setBridgeEligibilityUserIds = exports.getBridgeEligibilityUserIds = void 0;
+exports.ChargeebeeInput = exports.RichTextInput = exports.ConditionsInput = exports.AllergiesInput = exports.EmotiiInput = exports.HiddenValueInput = exports.RedirectInput = exports.include_current_url_parameters_if_templated = exports.HeightInput = exports.AppointmentBookingInput = exports.RelatedContactsInput = exports.contact_is_valid = exports.BelugaPatientPreferenceInput = exports.MedicationsInput = exports.CanvasMedicationsInput = exports.DatabaseSelectInput = exports.DropdownInput = exports.Progress = exports.StripeInput = exports.MultipleChoiceInput = exports.FilesInput = exports.safe_create_url = exports.FileInput = exports.convertHEIC = exports.SignatureInput = exports.ESignatureTerms = exports.AddressInput = exports.TimezoneInput = exports.TimeInput = exports.PharmacySearchInput = exports.CandidEligibilityInput = exports.BridgeEligibilityInput = exports.InsuranceInput = exports.NumberInput = exports.EmailInput = exports.PhoneInput = exports.StringLongInput = exports.StringInput = exports.DateStringInput = exports.AutoFocusTextField = exports.TableInput = exports.DateInput = exports.RankingInput = exports.RatingInput = exports.PdfViewer = exports.defaultButtonStyles = exports.defaultInputProps = exports.LanguageSelect = exports.setBridgeEligibilityUserIds = exports.getBridgeEligibilityUserIds = void 0;
 var jsx_runtime_1 = require("react/jsx-runtime");
 var react_1 = __importStar(require("react"));
 var axios_1 = __importDefault(require("axios"));
@@ -230,12 +230,15 @@ var RankingInput = function (_a) {
 exports.RankingInput = RankingInput;
 var CustomDateInput = (0, react_1.forwardRef)(function (props, ref) { return ((0, jsx_runtime_1.jsx)(material_1.TextField, __assign({ InputProps: exports.defaultInputProps, fullWidth: true, inputRef: ref }, props))); });
 var DateInput = function (_a) {
-    var field = _a.field, value = _a.value, onChange = _a.onChange, _b = _a.placement, placement = _b === void 0 ? 'top' : _b, props = __rest(_a, ["field", "value", "onChange", "placement"]);
+    var _b, _d;
+    var field = _a.field, value = _a.value, onChange = _a.onChange, _e = _a.placement, placement = _e === void 0 ? 'top' : _e, props = __rest(_a, ["field", "value", "onChange", "placement"]);
     var inputRef = (0, react_1.useRef)(null);
+    var minDate = ((_b = field.options) === null || _b === void 0 ? void 0 : _b.minDateOffsetMs) !== undefined ? (0, hooks_1.dateFromOffsetMs)(field.options.minDateOffsetMs) : undefined;
+    var maxDate = ((_d = field.options) === null || _d === void 0 ? void 0 : _d.maxDateOffsetMs) !== undefined ? (0, hooks_1.dateFromOffsetMs)(field.options.maxDateOffsetMs) : undefined;
     return ((0, jsx_runtime_1.jsx)(react_datepicker_1.default // wrap in item to prevent movement on focused
     , { selected: value, onChange: function (d) { return onChange === null || onChange === void 0 ? void 0 : onChange(d, field.id); }, showTimeSelect: true, required: !field.isOptional, dateFormat: "Pp", autoComplete: "off", timeIntervals: 15, popperPlacement: placement, customInput: (0, jsx_runtime_1.jsx)(CustomDateInput, __assign({ inputRef: inputRef }, props)), 
         // className={css`width: 100%;`}
-        className: (0, css_1.css)(templateObject_1 || (templateObject_1 = __makeTemplateObject(["", ""], ["", ""])), react_datepicker_2.datepickerCSS) }));
+        className: (0, css_1.css)(templateObject_1 || (templateObject_1 = __makeTemplateObject(["", ""], ["", ""])), react_datepicker_2.datepickerCSS), minDate: minDate, maxDate: maxDate }));
 };
 exports.DateInput = DateInput;
 var TableInput = function (_a) {
@@ -301,16 +304,18 @@ var CustomDateStringInput = (0, react_1.forwardRef)(function (props, ref) {
     return ((0, jsx_runtime_1.jsx)(material_1.TextField, __assign({ InputProps: inputProps || exports.defaultInputProps, fullWidth: true, inputRef: ref }, textFieldProps)));
 });
 var DateStringInput = function (_a) {
-    var _b;
+    var _b, _d, _e;
     var field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "form"]);
     var inputRef = (0, react_1.useRef)(null);
+    var minDate = ((_b = field.options) === null || _b === void 0 ? void 0 : _b.minDateOffsetMs) !== undefined ? (0, hooks_1.dateFromOffsetMs)(field.options.minDateOffsetMs) : undefined;
+    var maxDate = ((_d = field.options) === null || _d === void 0 ? void 0 : _d.maxDateOffsetMs) !== undefined ? (0, hooks_1.dateFromOffsetMs)(field.options.maxDateOffsetMs) : undefined;
     // if (value && isDateString(value)) {
     //   console.log(value, new Date(
     //     new Date(MM_DD_YYYY_to_YYYY_MM_DD(value)).getTime()
     //   + (new Date().getTimezoneOffset() * 60 * 1000)
     //   ))
     // }
-    return (((_b = field.options) === null || _b === void 0 ? void 0 : _b.useDatePicker)
+    return (((_e = field.options) === null || _e === void 0 ? void 0 : _e.useDatePicker)
         ? ((0, jsx_runtime_1.jsx)(react_datepicker_1.default // wrap in item to prevent movement on focused
         , { selected: (value && (0, __1.isDateString)(value))
                 ? new Date(new Date((0, utilities_1.MM_DD_YYYY_to_YYYY_MM_DD)(value)).getTime()
@@ -318,7 +323,7 @@ var DateStringInput = function (_a) {
                 )
                 : undefined, onChange: function (d) { return onChange === null || onChange === void 0 ? void 0 : onChange((0, utilities_1.mm_dd_yyyy)(d), field.id); }, showTimeSelect: false, required: !field.isOptional, autoComplete: "off", dateFormat: "MM-dd-yyyy", customInput: (0, jsx_runtime_1.jsx)(CustomDateStringInput, __assign({ inputRef: inputRef }, props, { label: (!field.title && field.placeholder) ? field.placeholder : props.label })), 
             // className={css`width: 100%;`}
-            className: (0, css_1.css)(templateObject_2 || (templateObject_2 = __makeTemplateObject(["", ""], ["", ""])), react_datepicker_2.datepickerCSS) }))
+            className: (0, css_1.css)(templateObject_2 || (templateObject_2 = __makeTemplateObject(["", ""], ["", ""])), react_datepicker_2.datepickerCSS), minDate: minDate, maxDate: maxDate }))
         : ((0, jsx_runtime_1.jsx)(exports.AutoFocusTextField, __assign({}, props, { required: !field.isOptional, fullWidth: true, placeholder: (0, __1.form_display_text_for_language)(form, "MM-DD-YYYY"), value: value, label: (!field.title && field.placeholder) ? field.placeholder : props.label, onChange: function (e) {
                 var v = e.target.value || '';
                 onChange((v.length === 2 && /\d{2}/.test(v) && (value === null || value === void 0 ? void 0 : value.length) !== 3 // allow deletion
@@ -878,6 +883,191 @@ var BridgeEligibilityInput = function (_a) {
     return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column" }, { children: [(0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ item: true }, { children: [(0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Eligibility Type: ", eligibilityType] })), (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Service Type IDs: ", ((_e = (_d = field.options) === null || _d === void 0 ? void 0 : _d.bridgeServiceTypeIds) === null || _e === void 0 ? void 0 : _e.join(', ')) || 'Not configured'] })), state && (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["State: ", state] })), payerId && (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Payer ID: ", payerId] })), memberId && (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Member ID: ", memberId] }))] })), error && ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "error" }, { children: error })) }))), polling && ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "primary" }, { children: (0, __1.form_display_text_for_language)(form, "Polling for results... (this may take 15-30 seconds)") })) }))), (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ item: true, container: true, spacing: 2 }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(__1.LoadingButton, { variant: "outlined", onClick: checkProviderEligibility, submitText: (0, __1.form_display_text_for_language)(form, "Check Provider Eligibility (Free)"), submittingText: (0, __1.form_display_text_for_language)(form, "Checking..."), submitting: loading && !polling, disabled: !((_g = (_f = field.options) === null || _f === void 0 ? void 0 : _f.bridgeServiceTypeIds) === null || _g === void 0 ? void 0 : _g.length) || loading || polling }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(__1.LoadingButton, { variant: "outlined", onClick: checkServiceEligibility, submitText: (0, __1.form_display_text_for_language)(form, "Check Service Eligibility (Paid)"), submittingText: polling ? (0, __1.form_display_text_for_language)(form, "Polling...") : (0, __1.form_display_text_for_language)(form, "Initiating..."), submitting: loading || polling, disabled: !((_j = (_h = field.options) === null || _h === void 0 ? void 0 : _h.bridgeServiceTypeIds) === null || _j === void 0 ? void 0 : _j.length) || loading || polling }) }))] })), value && ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ item: true }, { children: [(0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "caption", color: "textSecondary" }, { children: "Current Answer:" })), (0, jsx_runtime_1.jsx)("pre", __assign({ style: { fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word' } }, { children: JSON.stringify(value, null, 2) }))] })))] })));
 };
 exports.BridgeEligibilityInput = BridgeEligibilityInput;
+var CandidEligibilityInput = function (_a) {
+    var _b, _d;
+    var field = _a.field, value = _a.value, onChange = _a.onChange, responses = _a.responses, enduser = _a.enduser, inputProps = _a.inputProps, enduserId = _a.enduserId, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "responses", "enduser", "inputProps", "enduserId", "form"]);
+    var session = (0, __1.useResolvedSession)();
+    var _e = (0, react_1.useState)(false), loading = _e[0], setLoading = _e[1];
+    var _f = (0, react_1.useState)(false), polling = _f[0], setPolling = _f[1];
+    var _g = (0, react_1.useState)(), error = _g[0], setError = _g[1];
+    var isEnduserSession = session.type === 'enduser';
+    var pollTimeoutRef = (0, react_1.useRef)();
+    // Clean up polling timeout on unmount
+    (0, react_1.useEffect)(function () {
+        return function () {
+            if (pollTimeoutRef.current)
+                clearTimeout(pollTimeoutRef.current);
+        };
+    }, []);
+    // Extract payerId from Insurance question response
+    var _h = (0, react_1.useMemo)(function () {
+        var _a, _b, _d, _e;
+        var insuranceResponse = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { var _a, _b, _d; return ((_a = r.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Insurance' && ((_d = (_b = r.answer) === null || _b === void 0 ? void 0 : _b.value) === null || _d === void 0 ? void 0 : _d.payerId); });
+        if (((_a = insuranceResponse === null || insuranceResponse === void 0 ? void 0 : insuranceResponse.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Insurance') {
+            return [
+                (_b = insuranceResponse.answer.value) === null || _b === void 0 ? void 0 : _b.payerId,
+                (_d = insuranceResponse.answer.value) === null || _d === void 0 ? void 0 : _d.memberId,
+                (_e = insuranceResponse.answer.value) === null || _e === void 0 ? void 0 : _e.payerName,
+            ];
+        }
+        return [];
+    }, [responses]), payerId = _h[0], memberId = _h[1], payerName = _h[2];
+    var checkEligibility = (0, react_1.useCallback)(function () { return __awaiter(void 0, void 0, void 0, function () {
+        var data, coverageId_1, checkId_1, initialStatus, maxAttempts_1, attempts_1, pollForResult_1, err_6;
+        var _a, _b;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
+                case 0:
+                    setLoading(true);
+                    setError(undefined);
+                    _d.label = 1;
+                case 1:
+                    _d.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, session.api.integrations.proxy_read({
+                            id: enduserId,
+                            integration: constants_1.CANDID_TITLE,
+                            type: 'candid-eligibility',
+                            query: JSON.stringify({
+                                serviceCode: (_a = field.options) === null || _a === void 0 ? void 0 : _a.candidServiceCode,
+                                npi: (_b = field.options) === null || _b === void 0 ? void 0 : _b.candidNPI,
+                                payerId: payerId,
+                                memberId: memberId,
+                                payerName: payerName,
+                            }),
+                        })];
+                case 2:
+                    data = (_d.sent()).data;
+                    coverageId_1 = data === null || data === void 0 ? void 0 : data.coverageId;
+                    checkId_1 = data === null || data === void 0 ? void 0 : data.checkId;
+                    initialStatus = data === null || data === void 0 ? void 0 : data.status;
+                    if (!coverageId_1 || !checkId_1) {
+                        throw new Error('No coverage ID or check ID returned from eligibility check');
+                    }
+                    // If already completed, update answer immediately
+                    if (initialStatus === 'COMPLETED' || initialStatus === 'FAILED' || initialStatus === 'UNKNOWN') {
+                        onChange({
+                            payerId: payerId,
+                            status: initialStatus,
+                            coverageId: coverageId_1,
+                        }, field.id);
+                        setLoading(false);
+                        return [2 /*return*/];
+                    }
+                    // Step 2: Poll for results
+                    setLoading(false);
+                    setPolling(true);
+                    maxAttempts_1 = 60 // 2 minutes at 2s intervals
+                    ;
+                    attempts_1 = 0;
+                    pollForResult_1 = function () { return __awaiter(void 0, void 0, void 0, function () {
+                        var pollData, status_2, err_7;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    if (attempts_1 >= maxAttempts_1) {
+                                        setError('Eligibility check timed out. Please try again.');
+                                        setPolling(false);
+                                        return [2 /*return*/];
+                                    }
+                                    attempts_1++;
+                                    _a.label = 1;
+                                case 1:
+                                    _a.trys.push([1, 3, , 4]);
+                                    return [4 /*yield*/, session.api.integrations.proxy_read({
+                                            id: coverageId_1,
+                                            integration: constants_1.CANDID_TITLE,
+                                            type: 'candid-eligibility-poll',
+                                            query: JSON.stringify({ checkId: checkId_1 }),
+                                        })];
+                                case 2:
+                                    pollData = (_a.sent()).data;
+                                    status_2 = pollData === null || pollData === void 0 ? void 0 : pollData.status;
+                                    // Terminal statuses: COMPLETED, FAILED, or UNKNOWN (Candid returns UNKNOWN when eligibility cannot be determined)
+                                    if (status_2 === 'COMPLETED' || status_2 === 'FAILED' || status_2 === 'UNKNOWN') {
+                                        onChange({
+                                            payerId: payerId,
+                                            status: status_2,
+                                            coverageId: coverageId_1,
+                                            benefits: pollData === null || pollData === void 0 ? void 0 : pollData.benefits,
+                                        }, field.id);
+                                        setPolling(false);
+                                        return [2 /*return*/];
+                                    }
+                                    // Still pending, poll again
+                                    pollTimeoutRef.current = setTimeout(pollForResult_1, 2000);
+                                    return [3 /*break*/, 4];
+                                case 3:
+                                    err_7 = _a.sent();
+                                    setError((err_7 === null || err_7 === void 0 ? void 0 : err_7.message) || 'Failed to check eligibility status');
+                                    setPolling(false);
+                                    return [3 /*break*/, 4];
+                                case 4: return [2 /*return*/];
+                            }
+                        });
+                    }); };
+                    pollForResult_1();
+                    return [3 /*break*/, 4];
+                case 3:
+                    err_6 = _d.sent();
+                    setError((err_6 === null || err_6 === void 0 ? void 0 : err_6.message) || 'Failed to check eligibility');
+                    console.error('Candid eligibility check failed:', err_6);
+                    setLoading(false);
+                    setPolling(false);
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
+            }
+        });
+    }); }, [session, field, payerId, memberId, payerName, onChange, enduserId]);
+    // Auto-check eligibility for enduser sessions
+    var autoCheckRef = (0, react_1.useRef)(false);
+    (0, react_1.useEffect)(function () {
+        if (!isEnduserSession)
+            return;
+        // If we already have a result and the payer hasn't changed, use the cached result
+        if ((value === null || value === void 0 ? void 0 : value.status) && (value === null || value === void 0 ? void 0 : value.payerId) === payerId) {
+            return;
+        }
+        if (autoCheckRef.current)
+            return;
+        autoCheckRef.current = true;
+        checkEligibility();
+    }, [isEnduserSession, checkEligibility, value, payerId]);
+    var errorComponent = (0, react_1.useMemo)(function () { return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center", style: { padding: '20px 0' } }, { children: (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Paper, __assign({ style: {
+                    padding: 16,
+                    backgroundColor: '#ffebee',
+                    border: '2px solid #f44336'
+                } }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "h2", style: { color: '#f44336' } }, { children: "!" })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "h6", align: "center", color: "error" }, { children: "Unable to Check Eligibility" })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", align: "center", style: { color: '#d32f2f' } }, { children: error })) }))] })) })) })) }))); }, [error]);
+    var checkingEligibilityComponent = (0, react_1.useMemo)(function () { return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center", style: { padding: '20px 0' } }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.CircularProgress, { size: 40 }) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body1" }, { children: polling ? 'Verifying eligibility with insurance...' : 'Checking eligibility...' })) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: polling ? 'This usually takes 15-30 seconds' : 'This may take a few moments' })) }))] }))); }, [polling]);
+    var resultsComponent = (0, react_1.useMemo)(function () {
+        var isCompleted = (value === null || value === void 0 ? void 0 : value.status) === 'COMPLETED';
+        var isFailed = (value === null || value === void 0 ? void 0 : value.status) === 'FAILED';
+        return ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column" }, { children: (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Paper, __assign({ style: {
+                        padding: 16,
+                        backgroundColor: isCompleted ? '#e8f5e9' : '#ffebee',
+                        border: "2px solid ".concat(isCompleted ? '#4caf50' : '#f44336')
+                    } }, { children: (0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center" }, { children: [(0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: isCompleted ? ((0, jsx_runtime_1.jsx)(icons_material_1.CheckCircleOutline, { style: { fontSize: 48, color: '#4caf50' } })) : ((0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "h2", style: { color: '#f44336' } }, { children: "!" }))) })), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "h6", align: "center" }, { children: isCompleted
+                                        ? "".concat(payerName || 'Insurance', " eligibility verified")
+                                        : isFailed
+                                            ? 'Eligibility check failed'
+                                            : 'Eligibility Status: ' + (0, utilities_1.first_letter_capitalized)(((value === null || value === void 0 ? void 0 : value.status) || 'Unknown').toLowerCase()) })) }))] })) })) })) })));
+    }, [value, payerName]);
+    // Loading/polling state for enduser sessions
+    if (isEnduserSession) {
+        if (loading || polling) {
+            return checkingEligibilityComponent;
+        }
+        if (error) {
+            return errorComponent;
+        }
+        if (value === null || value === void 0 ? void 0 : value.status) {
+            return resultsComponent;
+        }
+        return errorComponent;
+    }
+    // User/admin interface (non-enduser sessions)
+    return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, spacing: 2, direction: "column" }, { children: [(0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ item: true }, { children: [(0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Service Code: ", ((_b = field.options) === null || _b === void 0 ? void 0 : _b.candidServiceCode) || 'Not configured'] })), (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Provider NPI: ", ((_d = field.options) === null || _d === void 0 ? void 0 : _d.candidNPI) || 'Not configured'] })), payerId && (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Payer ID: ", payerId] })), memberId && (0, jsx_runtime_1.jsxs)(material_1.Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Member ID: ", memberId] }))] })), error && ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "error" }, { children: error })) }))), polling && ((0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "body2", color: "primary" }, { children: (0, __1.form_display_text_for_language)(form, "Polling for results... (this may take 15-30 seconds)") })) }))), (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true, container: true, spacing: 2 }, { children: (0, jsx_runtime_1.jsx)(material_1.Grid, __assign({ item: true }, { children: (0, jsx_runtime_1.jsx)(__1.LoadingButton, { variant: "outlined", onClick: checkEligibility, submitText: (0, __1.form_display_text_for_language)(form, "Check Eligibility"), submittingText: polling ? (0, __1.form_display_text_for_language)(form, "Polling...") : (0, __1.form_display_text_for_language)(form, "Checking..."), submitting: loading || polling, disabled: loading || polling }) })) })), value && ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ item: true }, { children: [(0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ variant: "caption", color: "textSecondary" }, { children: "Current Answer:" })), (0, jsx_runtime_1.jsx)("pre", __assign({ style: { fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word' } }, { children: JSON.stringify(value, null, 2) }))] })))] })));
+};
+exports.CandidEligibilityInput = CandidEligibilityInput;
 var PharmacySearchInput = function (_a) {
     var field = _a.field, rawValue = _a.value, onChange = _a.onChange, responses = _a.responses, enduser = _a.enduser, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "responses", "enduser", "form"]);
     var value = rawValue;
@@ -902,7 +1092,7 @@ var PharmacySearchInput = function (_a) {
     var _f = (0, react_1.useState)([]), pharmacies = _f[0], setPharmacies = _f[1];
     var _g = (0, react_1.useState)(false), hasSearched = _g[0], setHasSearched = _g[1];
     var searchPharmacies = (0, react_1.useCallback)(function () { return __awaiter(void 0, void 0, void 0, function () {
-        var data, err_6;
+        var data, err_8;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -929,8 +1119,8 @@ var PharmacySearchInput = function (_a) {
                     }
                     return [3 /*break*/, 5];
                 case 3:
-                    err_6 = _a.sent();
-                    setError((err_6 === null || err_6 === void 0 ? void 0 : err_6.message) || (0, __1.form_display_text_for_language)(form, 'Failed to search pharmacies'));
+                    err_8 = _a.sent();
+                    setError((err_8 === null || err_8 === void 0 ? void 0 : err_8.message) || (0, __1.form_display_text_for_language)(form, 'Failed to search pharmacies'));
                     setPharmacies([]);
                     return [3 /*break*/, 5];
                 case 4:
@@ -2395,7 +2585,7 @@ var AppointmentBookingInput = function (_a) {
     var _s = (0, react_1.useState)(false), confirming = _s[0], setConfirming = _s[1];
     var bookingPageId = (_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.bookingPageId;
     var downloadICS = (0, react_1.useCallback)(function (event) { return __awaiter(void 0, void 0, void 0, function () {
-        var _a, err_7;
+        var _a, err_9;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -2407,8 +2597,8 @@ var AppointmentBookingInput = function (_a) {
                         { name: "event.ics", dataIsURL: true, type: 'text/calendar' }]);
                     return [3 /*break*/, 3];
                 case 2:
-                    err_7 = _b.sent();
-                    console.error(err_7);
+                    err_9 = _b.sent();
+                    console.error(err_9);
                     return [3 /*break*/, 3];
                 case 3: return [2 /*return*/];
             }

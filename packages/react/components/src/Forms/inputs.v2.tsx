@@ -23,7 +23,7 @@ import LanguageIcon from '@mui/icons-material/Language';
 
 import { CheckCircleOutline, Delete, Edit, UploadFile } from "@mui/icons-material"
 import { WYSIWYG } from "./wysiwyg"
-import { useConditionalChoices, Response } from "./hooks"
+import { useConditionalChoices, Response, dateFromOffsetMs } from "./hooks"
 
 export const LanguageSelect = ({ value, ...props }: { value: string, onChange: (s: string) => void}) => (
   <Grid container alignItems="center" justifyContent={"center"} wrap="nowrap" spacing={1}>
@@ -264,6 +264,9 @@ export const DateInput = ({
 } & FormInputProps<'date'> & Styled) => {
   const inputRef = useRef(null);
 
+  const minDate = field.options?.minDateOffsetMs !== undefined ? dateFromOffsetMs(field.options.minDateOffsetMs) : undefined
+  const maxDate = field.options?.maxDateOffsetMs !== undefined ? dateFromOffsetMs(field.options.maxDateOffsetMs) : undefined
+
   return (
     <DatePicker // wrap in item to prevent movement on focused
       selected={value}
@@ -277,6 +280,8 @@ export const DateInput = ({
       customInput={<CustomDateInput inputRef={inputRef} {...props} />}
       // className={css`width: 100%;`}
       className={css`${datepickerCSS}`}
+      minDate={minDate}
+      maxDate={maxDate}
     />
   )
 }
@@ -423,6 +428,9 @@ const CustomDateStringInput = forwardRef((props: TextFieldProps, ref) => (
 export const DateStringInput = ({ field, value, onChange, form, ...props }: FormInputProps<'string'>) => {
   const inputRef = useRef(null);
 
+  const minDate = field.options?.minDateOffsetMs !== undefined ? dateFromOffsetMs(field.options.minDateOffsetMs) : undefined
+  const maxDate = field.options?.maxDateOffsetMs !== undefined ? dateFromOffsetMs(field.options.maxDateOffsetMs) : undefined
+
   // if (value && isDateString(value)) {
   //   console.log(value, new Date(
   //     new Date(MM_DD_YYYY_to_YYYY_MM_DD(value)).getTime()
@@ -446,11 +454,13 @@ export const DateStringInput = ({ field, value, onChange, form, ...props }: Form
           required={!field.isOptional}
           autoComplete="off"
           dateFormat={"MM-dd-yyyy"}
-          customInput={<CustomDateStringInput inputRef={inputRef} {...props} 
-            label={(!field.title && field.placeholder) ? field.placeholder : props.label} 
+          customInput={<CustomDateStringInput inputRef={inputRef} {...props}
+            label={(!field.title && field.placeholder) ? field.placeholder : props.label}
           />}
           // className={css`width: 100%;`}
           className={css`${datepickerCSS}`}
+          minDate={minDate}
+          maxDate={maxDate}
         />
       )
       : (
@@ -546,7 +556,7 @@ export const NumberInput = ({ field, value, onChange, form, ...props }: FormInpu
 }
 
 // InsuranceInput, BridgeEligibilityInput, PharmacySearchInput, and AppointmentBookingInput logic is shared with inputs.tsx to avoid duplication
-import { InsuranceInput as SharedInsuranceInput, BridgeEligibilityInput as SharedBridgeEligibilityInput, PharmacySearchInput as SharedPharmacySearchInput, AppointmentBookingInput as SharedAppointmentBookingInput } from './inputs'
+import { InsuranceInput as SharedInsuranceInput, BridgeEligibilityInput as SharedBridgeEligibilityInput, CandidEligibilityInput as SharedCandidEligibilityInput, PharmacySearchInput as SharedPharmacySearchInput, AppointmentBookingInput as SharedAppointmentBookingInput } from './inputs'
 
 // Wrap the shared InsuranceInput component with v2-specific props
 export const InsuranceInput = (props: FormInputProps<'Insurance'>) => {
@@ -556,6 +566,11 @@ export const InsuranceInput = (props: FormInputProps<'Insurance'>) => {
 // Wrap the shared BridgeEligibilityInput component with v2-specific props
 export const BridgeEligibilityInput = (props: FormInputProps<'Bridge Eligibility'>) => {
   return <SharedBridgeEligibilityInput {...props} inputProps={defaultInputProps} />
+}
+
+// Wrap the shared CandidEligibilityInput component with v2-specific props
+export const CandidEligibilityInput = (props: FormInputProps<'Candid Eligibility'>) => {
+  return <SharedCandidEligibilityInput {...props} inputProps={defaultInputProps} />
 }
 
 // Wrap the shared PharmacySearchInput component with v2-specific props

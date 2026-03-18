@@ -76,8 +76,9 @@ interface FormikSubmitButtonProps extends SubmitButtonOptions, Styled {
     enabled?: boolean;
     onClick?: () => void;
     disabledIfUnchanged?: boolean;
+    muiColor?: string;
 }
-export declare const FormikSubmitButton: ({ formik, enabled, disabledIfUnchanged, disabled, onClick, submitText, submittingText, style, ...props }: FormikSubmitButtonProps) => JSX.Element;
+export declare const FormikSubmitButton: ({ formik, enabled, disabledIfUnchanged, disabled, onClick, submitText, submittingText, style, muiColor, ...props }: FormikSubmitButtonProps) => JSX.Element;
 interface LoadingButtonProps extends SubmitButtonOptions {
     disabled?: boolean;
     submitting?: boolean;

@@ -210,11 +210,13 @@ interface FormikSubmitButtonProps extends SubmitButtonOptions, Styled {
   enabled?: boolean,
   onClick?: () => void, // to handle submit in environment where html form type handleSubmit is not supported
   disabledIfUnchanged?: boolean,
+  muiColor?: string,
 }
-export const FormikSubmitButton = ({ formik, enabled, disabledIfUnchanged=true, disabled, onClick, submitText, submittingText, style, ...props }: FormikSubmitButtonProps) => (
+export const FormikSubmitButton = ({ formik, enabled, disabledIfUnchanged=true, disabled, onClick, submitText, submittingText, style, muiColor, ...props }: FormikSubmitButtonProps) => (
   <SubmitButton onClick={onClick} submitText={submitText} submittingText={submittingText}
     disabled={!enabled && (disabled || !formik.isValid || (disabledIfUnchanged && !formik.dirty))} style={style}
     submitting={formik.isSubmitting}
+    muiColor={muiColor}
     {...props}
   />
 )

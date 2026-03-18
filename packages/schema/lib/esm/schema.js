@@ -2383,7 +2383,7 @@ export var schema = build_schema({
                 initializer: function () { return 'enduser'; }
             }, mode: {
                 validator: messageTemplateModeValidator,
-            }, isMarketing: { validator: booleanValidator }, hideFromCompose: { validator: booleanValidator }, forChannels: { validator: listOfStringsValidatorEmptyOk }, forRoles: { validator: listOfStringsValidatorEmptyOk }, forEntityTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay } }),
+            }, isMarketing: { validator: booleanValidator }, hideFromCompose: { validator: booleanValidator }, forChannels: { validator: listOfStringsValidatorEmptyOk }, forRoles: { validator: listOfStringsValidatorEmptyOk }, forEntityTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, forUserTags: { validator: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay } }),
     },
     files: {
         info: {},
@@ -2659,6 +2659,8 @@ export var schema = build_schema({
                 validator: dateValidator,
             }, owner: {
                 validator: mongoIdStringValidator,
+            }, skipCareTeamAssignment: {
+                validator: booleanValidator,
             }, message: {
                 validator: stringValidator5000,
                 examples: ["Message"],
@@ -3775,7 +3777,7 @@ export var schema = build_schema({
                     id: mongoIdStringRequired,
                     at: dateValidator,
                 }))
-            }, createAndBookAthenaSlot: { validator: booleanValidator }, dontSyncToElation: { validator: booleanValidator } })
+            }, createAndBookAthenaSlot: { validator: booleanValidator }, dontSyncToElation: { validator: booleanValidator }, resendRemindersOnAttendeeAdd: { validator: booleanValidator } })
     },
     calendar_event_templates: {
         info: {},
@@ -3800,7 +3802,7 @@ export var schema = build_schema({
                 initializer: function () { return []; },
             }, publicRead: { validator: booleanValidator }, enableVideoCall: { validator: booleanValidator }, enableSelfScheduling: { validator: booleanValidator }, restrictedByState: { validator: booleanValidator }, image: { validator: stringValidator5000 }, confirmationEmailDisabled: { validator: booleanValidatorOptional }, confirmationSMSDisabled: { validator: booleanValidatorOptional }, 
             // confirmationSenderId: { validator: mongoIdStringValidator },
-            carePlanForms: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, carePlanContent: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, carePlanFiles: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, carePlanTasks: { validator: listOfStringsValidatorOptionalOrEmptyOk }, videoIntegration: { validator: videoIntegrationTypesValidator }, generateZoomLinkWhenBooked: { validator: booleanValidator }, color: { validator: stringValidator1000 }, apiOnly: { validator: booleanValidator }, enduserAttendeeLimit: { validator: numberValidator }, bufferEndMinutes: { validator: numberValidator }, bufferStartMinutes: { validator: numberValidator }, canvasCoding: { validator: canvasCodingValidator }, canvasReasonCoding: { validator: canvasCodingValidator }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, matchToHealthieTemplate: { validator: booleanValidator }, healthieInsuranceBillingEnabled: { validator: booleanValidator }, useUserURL: { validator: booleanValidator }, instructions: { validator: stringValidator5000EmptyOkay }, requiresEnduser: { validator: booleanValidator }, requirePortalCancelReason: { validator: booleanValidator }, replaceHostOnReschedule: { validator: booleanValidator } })
+            carePlanForms: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, carePlanContent: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, carePlanFiles: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, carePlanTasks: { validator: listOfStringsValidatorOptionalOrEmptyOk }, videoIntegration: { validator: videoIntegrationTypesValidator }, generateZoomLinkWhenBooked: { validator: booleanValidator }, color: { validator: stringValidator1000 }, apiOnly: { validator: booleanValidator }, enduserAttendeeLimit: { validator: numberValidator }, bufferEndMinutes: { validator: numberValidator }, bufferStartMinutes: { validator: numberValidator }, canvasCoding: { validator: canvasCodingValidator }, canvasReasonCoding: { validator: canvasCodingValidator }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, matchToHealthieTemplate: { validator: booleanValidator }, healthieInsuranceBillingEnabled: { validator: booleanValidator }, useUserURL: { validator: booleanValidator }, instructions: { validator: stringValidator5000EmptyOkay }, requiresEnduser: { validator: booleanValidator }, requirePortalCancelReason: { validator: booleanValidator }, replaceHostOnReschedule: { validator: booleanValidator }, resendRemindersOnAttendeeAdd: { validator: booleanValidator } })
     },
     calendar_event_RSVPs: {
         info: {},
@@ -3966,7 +3968,7 @@ export var schema = build_schema({
                 validator: nonNegNumberValidator,
                 required: true,
                 examples: [Date.now()],
-            }, journeyContext: { validator: journeyContextValidator } })
+            }, journeyContext: { validator: journeyContextValidator }, externalId: { validator: stringValidator100 } })
     },
     user_logs: {
         info: {},
@@ -6012,7 +6014,7 @@ export var schema = build_schema({
         defaultActions: DEFAULT_OPERATIONS,
         customActions: {},
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { title: { validator: stringValidator250, required: true, examples: ['Template Title'] }, type: { validator: stringValidator100 }, stage: { validator: stringValidator100 }, priority: { validator: numberValidator }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, archivedAt: { validator: dateOptionalOrEmptyStringValidator } }),
+        fields: __assign(__assign({}, BuiltInFields), { title: { validator: stringValidator250, required: true, examples: ['Template Title'] }, type: { validator: stringValidator100 }, stage: { validator: stringValidator100 }, priority: { validator: numberValidator }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, archivedAt: { validator: dateOptionalOrEmptyStringValidator }, actions: { validator: ticketActionsValidator }, closeOnFinishedActions: { validator: booleanValidator }, contextFormIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, contextContentIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, contextEnduserFields: { validator: listOfUniqueStringsValidatorEmptyOk } }),
     },
     group_mms_conversations: {
         info: {},

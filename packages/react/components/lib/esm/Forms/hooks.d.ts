@@ -2,6 +2,7 @@ import { ChangeHandler, FormFieldNode } from "./types";
 import { DatabaseRecord, Enduser, Form, FormField, FormResponse } from "@tellescope/types-client";
 import { FileBlob } from "@tellescope/types-utilities";
 import { CompoundFilter, FormCustomization, FormFieldOptionDetails, FormResponseValue, FormResponseValueAnswer, OrganizationTheme, PreviousFormFieldType } from "@tellescope/types-models";
+export declare const dateFromOffsetMs: (offsetMs: number) => Date;
 export declare const useFlattenedTree: (root?: FormFieldNode) => (import("@tellescope/types-models").FormField & {
     id: string;
     createdAt: Date;

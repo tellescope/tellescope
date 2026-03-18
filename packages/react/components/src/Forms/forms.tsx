@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Button, CircularProgress, FileBlob, FileUploadHandler, Flex, LinearProgress, LoadingButton, Modal, Paper, Styled, Typography, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse, NextFieldLogicOptions } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
-import { AddToDatabaseProps, AddressInput, AllergiesInput, AppointmentBookingInput, BelugaPatientPreferenceInput, BridgeEligibilityInput, ChargeebeeInput, ConditionsInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PharmacySearchInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, RichTextInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, TimezoneInput, defaultButtonStyles } from "./inputs"
+import { AddToDatabaseProps, AddressInput, AllergiesInput, AppointmentBookingInput, BelugaPatientPreferenceInput, BridgeEligibilityInput, CandidEligibilityInput, ChargeebeeInput, ConditionsInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PharmacySearchInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, RichTextInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, TimezoneInput, defaultButtonStyles } from "./inputs"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
@@ -17,6 +17,7 @@ export const TellescopeFormContainer = ({ businessId, organizationIds, ...props 
   hideBg?: boolean,
   backgroundColor?: string,
   hideLogo?: boolean,
+  showLogo?: boolean,
   logoURL?: string,
   logoHeight?: number,
   language?: string,
@@ -186,6 +187,7 @@ export const QuestionForField = ({
   const RelatedContacts = customInputs?.['Related Contacts'] ?? RelatedContactsInput
   const Insurance = customInputs?.['Insurance'] ?? InsuranceInput
   const BridgeEligibility = customInputs?.['Bridge Eligibility'] ?? BridgeEligibilityInput
+  const CandidEligibility = customInputs?.['Candid Eligibility'] ?? CandidEligibilityInput
   const AppointmentBooking = customInputs?.['Appointment Booking'] ?? AppointmentBookingInput
   const Height = customInputs?.['Height'] ?? HeightInput
   const Redirect = customInputs?.['Redirect'] ?? RedirectInput
@@ -225,7 +227,7 @@ export const QuestionForField = ({
           fontSize: field.titleFontSize || (field.type === 'Question Group' ? 22 : 20), 
           fontWeight: field.type === 'Question Group' ? 'bold' : undefined,
         }}>
-          {field.title}{!(field.isOptional || field.type === 'description' || field.type === 'Question Group' || field.type === 'Insurance' || field.type === 'Bridge Eligibility') ? '*' : ''}
+          {field.title}{!(field.isOptional || field.type === 'description' || field.type === 'Question Group' || field.type === 'Insurance' || field.type === 'Bridge Eligibility' || field.type === 'Candid Eligibility') ? '*' : ''}
         </Typography>
       }
       {!field.title && (field.type === 'Question Group' || field.type === 'signature') && !form?.customization?.hideLogo &&
@@ -380,6 +382,12 @@ export const QuestionForField = ({
           <BridgeEligibility field={field} value={value.answer.value as any} form={form}
             enduser={enduser} responses={responses} enduserId={enduserId}
             onChange={onFieldChange as ChangeHandler<'Bridge Eligibility'>}
+          />
+        )
+        : field.type === 'Candid Eligibility' ? (
+          <CandidEligibility field={field} value={value.answer.value as any} form={form}
+            enduser={enduser} responses={responses} enduserId={enduserId}
+            onChange={onFieldChange as ChangeHandler<'Candid Eligibility'>}
           />
         )
         : field.type === 'Pharmacy Search' ? (

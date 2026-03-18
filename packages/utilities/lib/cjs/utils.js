@@ -2313,8 +2313,8 @@ var validate_enduser_for_candid = function (enduser) {
         return "First name is required";
     if (!enduser.lname)
         return "Last name is required";
-    if (!enduser.dateOfBirth)
-        return "Date of birth is required";
+    if (!enduser.dateOfBirth || !constants_1.MM_DD_YYYY_REGEX.test(enduser.dateOfBirth))
+        return "Date of birth is required in MM-DD-YYYY format";
     if (!enduser.gender)
         return "Gender is required";
     if (!enduser.addressLineOne)

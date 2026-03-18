@@ -1190,7 +1190,7 @@ var DatabaseRecordSearch = function (_a) {
 exports.DatabaseRecordSearch = DatabaseRecordSearch;
 var SEARCHBAR_MIN_WIDTH = '125px';
 var UserAndEnduserSelector = function (_a) {
-    var titleInput = _a.titleInput, excludeEndusers = _a.excludeEndusers, excludeUsers = _a.excludeUsers, onGoBack = _a.onGoBack, onSelect = _a.onSelect, showTitleInput = _a.showTitleInput, hiddenIds = _a.hiddenIds, _b = _a.title, title = _b === void 0 ? "Select Members" : _b, minHeight = _a.minHeight, _c = _a.maxHeight, maxHeight = _c === void 0 ? '50vh' : _c, _d = _a.searchBarPlacement, searchBarPlacement = _d === void 0 ? "top" : _d, _e = _a.initialSelected, initialSelected = _e === void 0 ? [] : _e, _f = _a.buttonText, buttonText = _f === void 0 ? "Create" : _f, filter = _a.filter, radio = _a.radio, limitToUsers = _a.limitToUsers, dontIncludeSelf = _a.dontIncludeSelf, virtualizationHeight = _a.virtualizationHeight, showEntityType = _a.showEntityType;
+    var titleInput = _a.titleInput, excludeEndusers = _a.excludeEndusers, excludeUsers = _a.excludeUsers, onGoBack = _a.onGoBack, onSelect = _a.onSelect, showTitleInput = _a.showTitleInput, hiddenIds = _a.hiddenIds, _b = _a.title, title = _b === void 0 ? "Select Members" : _b, minHeight = _a.minHeight, _c = _a.maxHeight, maxHeight = _c === void 0 ? '50vh' : _c, _d = _a.searchBarPlacement, searchBarPlacement = _d === void 0 ? "top" : _d, _e = _a.initialSelected, initialSelected = _e === void 0 ? [] : _e, _f = _a.buttonText, buttonText = _f === void 0 ? "Create" : _f, filter = _a.filter, radio = _a.radio, limitToUsers = _a.limitToUsers, dontIncludeSelf = _a.dontIncludeSelf, virtualizationHeight = _a.virtualizationHeight, showEntityType = _a.showEntityType, showEnduserDetails = _a.showEnduserDetails;
     var session = (0, _1.useResolvedSession)();
     var _g = (0, _1.useEndusers)(), endusersLoading = _g[0], _h = _g[1], loadMoreEndusers = _h.loadMore, doneLoadingEndusers = _h.doneLoading;
     var _j = (0, _1.useUsers)({
@@ -1252,7 +1252,7 @@ var UserAndEnduserSelector = function (_a) {
                                 (0, jsx_runtime_1.jsx)(_1.Button, __assign({ onClick: onGoBack }, { children: "Back" })), (0, jsx_runtime_1.jsx)(_1.Typography, __assign({ style: { fontSize: 16, textAlign: 'center' } }, { children: title })), (0, jsx_runtime_1.jsx)(_1.LoadingButton, { submitText: buttonText, submittingText: buttonText, disabled: selected.length === 0 && !(initialSelected === null || initialSelected === void 0 ? void 0 : initialSelected.length), style: { display: 'flex' }, onClick: function () { return handleSelect(users, endusers); } })] })), (0, jsx_runtime_1.jsx)(_1.ScrollingList, { items: items, virtualization: virtualizationHeight ? {
                             virtualize: true,
                             height: virtualizationHeight,
-                            rowHeight: 45,
+                            rowHeight: showEnduserDetails ? 65 : 45,
                             width: '100%',
                             hideHorizontalScroll: true,
                         } : undefined, emptyText: itemsUnfiltered.length === 0
@@ -1284,7 +1284,31 @@ var UserAndEnduserSelector = function (_a) {
                                                     (0, jsx_runtime_1.jsx)(_1.Typography, __assign({ style: {
                                                             fontWeight: selected.includes(user.id) ? 'bold' : undefined,
                                                             fontSize: 12.5,
-                                                        } }, { children: (_b = entityTypes.find(function (t) { return t.id === user.customTypeId; })) === null || _b === void 0 ? void 0 : _b.title }))] }))] })) })));
+                                                        } }, { children: (_b = entityTypes.find(function (t) { return t.id === user.customTypeId; })) === null || _b === void 0 ? void 0 : _b.title })), showEnduserDetails && !users.find(function (u) { return u.id === user.id; }) && (function () {
+                                                    var _a;
+                                                    var enduser = user;
+                                                    var hiddenFields = session.type === 'user' ? (_a = session.userInfo.uiRestrictions) === null || _a === void 0 ? void 0 : _a.hiddenFields : undefined;
+                                                    var customTypeId = enduser.customTypeId;
+                                                    var isHidden = function (field) {
+                                                        return hiddenFields === null || hiddenFields === void 0 ? void 0 : hiddenFields.find(function (v) { return v.field === field && ((v.type || '') === (customTypeId || '')); });
+                                                    };
+                                                    var details = [];
+                                                    if (enduser.dateOfBirth && !isHidden('dateOfBirth')) {
+                                                        var d = new Date(enduser.dateOfBirth);
+                                                        if (!isNaN(d.getTime())) {
+                                                            details.push("DOB: ".concat((d.getUTCMonth() + 1).toString().padStart(2, '0'), "-").concat(d.getUTCDate().toString().padStart(2, '0'), "-").concat(d.getUTCFullYear()));
+                                                        }
+                                                    }
+                                                    if (enduser.email && !isHidden('email')) {
+                                                        details.push(enduser.email);
+                                                    }
+                                                    if (enduser.phone && !isHidden('phone')) {
+                                                        details.push((0, utilities_1.to_human_readable_phone_number)(enduser.phone) || enduser.phone);
+                                                    }
+                                                    if (details.length === 0)
+                                                        return null;
+                                                    return ((0, jsx_runtime_1.jsx)(_1.Typography, __assign({ style: { fontSize: 11.5, color: '#888' } }, { children: details.join(' | ') })));
+                                                })()] }))] })) })));
                         } }), searchBarPlacement === 'bottom' &&
                         (0, jsx_runtime_1.jsx)(_1.Flex, __assign({ alignSelf: "flex-end", style: { marginTop: 4, width: '100%' } }, { children: searchbar }))] })));
         } }));

@@ -97,7 +97,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.ChargeebeeInput = exports.RichTextInput = exports.ConditionsInput = exports.AllergiesInput = exports.EmotiiInput = exports.HiddenValueInput = exports.RedirectInput = exports.HeightInput = exports.AppointmentBookingInput = exports.RelatedContactsInput = exports.contact_is_valid = exports.BelugaPatientPreferenceInput = exports.MedicationsInput = exports.CanvasMedicationsInput = exports.DatabaseSelectInput = exports.DropdownInput = exports.Progress = exports.StripeInput = exports.MultipleChoiceInput = exports.FilesInput = exports.safe_create_url = exports.FileInput = exports.convertHEIC = exports.SignatureInput = exports.ESignatureTerms = exports.AddressInput = exports.TimezoneInput = exports.TimeInput = exports.PharmacySearchInput = exports.BridgeEligibilityInput = exports.InsuranceInput = exports.NumberInput = exports.EmailInput = exports.PhoneInput = exports.StringLongInput = exports.StringInput = exports.DateStringInput = exports.AutoFocusTextField = exports.TableInput = exports.DateInput = exports.RankingInput = exports.RatingInput = exports.PdfViewer = exports.defaultButtonStyles = exports.defaultInputProps = exports.LanguageSelect = void 0;
+exports.ChargeebeeInput = exports.RichTextInput = exports.ConditionsInput = exports.AllergiesInput = exports.EmotiiInput = exports.HiddenValueInput = exports.RedirectInput = exports.HeightInput = exports.AppointmentBookingInput = exports.RelatedContactsInput = exports.contact_is_valid = exports.BelugaPatientPreferenceInput = exports.MedicationsInput = exports.CanvasMedicationsInput = exports.DatabaseSelectInput = exports.DropdownInput = exports.Progress = exports.StripeInput = exports.MultipleChoiceInput = exports.FilesInput = exports.safe_create_url = exports.FileInput = exports.convertHEIC = exports.SignatureInput = exports.ESignatureTerms = exports.AddressInput = exports.TimezoneInput = exports.TimeInput = exports.PharmacySearchInput = exports.CandidEligibilityInput = exports.BridgeEligibilityInput = exports.InsuranceInput = exports.NumberInput = exports.EmailInput = exports.PhoneInput = exports.StringLongInput = exports.StringInput = exports.DateStringInput = exports.AutoFocusTextField = exports.TableInput = exports.DateInput = exports.RankingInput = exports.RatingInput = exports.PdfViewer = exports.defaultButtonStyles = exports.defaultInputProps = exports.LanguageSelect = void 0;
 var jsx_runtime_1 = require("react/jsx-runtime");
 var react_1 = __importStar(require("react"));
 var axios_1 = __importDefault(require("axios"));
@@ -222,12 +222,15 @@ var RankingInput = function (_a) {
 exports.RankingInput = RankingInput;
 var CustomDateInput = (0, react_1.forwardRef)(function (props, ref) { return ((0, jsx_runtime_1.jsx)(material_1.TextField, __assign({ InputProps: exports.defaultInputProps, fullWidth: true, inputRef: ref }, props))); });
 var DateInput = function (_a) {
-    var field = _a.field, value = _a.value, onChange = _a.onChange, _b = _a.placement, placement = _b === void 0 ? 'top' : _b, props = __rest(_a, ["field", "value", "onChange", "placement"]);
+    var _b, _d;
+    var field = _a.field, value = _a.value, onChange = _a.onChange, _e = _a.placement, placement = _e === void 0 ? 'top' : _e, props = __rest(_a, ["field", "value", "onChange", "placement"]);
     var inputRef = (0, react_1.useRef)(null);
+    var minDate = ((_b = field.options) === null || _b === void 0 ? void 0 : _b.minDateOffsetMs) !== undefined ? (0, hooks_1.dateFromOffsetMs)(field.options.minDateOffsetMs) : undefined;
+    var maxDate = ((_d = field.options) === null || _d === void 0 ? void 0 : _d.maxDateOffsetMs) !== undefined ? (0, hooks_1.dateFromOffsetMs)(field.options.maxDateOffsetMs) : undefined;
     return ((0, jsx_runtime_1.jsx)(react_datepicker_1.default // wrap in item to prevent movement on focused
     , { selected: value, onChange: function (d) { return onChange === null || onChange === void 0 ? void 0 : onChange(d, field.id); }, showTimeSelect: true, required: !field.isOptional, dateFormat: "Pp", autoComplete: "off", timeIntervals: 15, popperPlacement: placement, customInput: (0, jsx_runtime_1.jsx)(CustomDateInput, __assign({ inputRef: inputRef }, props)), 
         // className={css`width: 100%;`}
-        className: (0, css_1.css)(templateObject_1 || (templateObject_1 = __makeTemplateObject(["", ""], ["", ""])), react_datepicker_2.datepickerCSS) }));
+        className: (0, css_1.css)(templateObject_1 || (templateObject_1 = __makeTemplateObject(["", ""], ["", ""])), react_datepicker_2.datepickerCSS), minDate: minDate, maxDate: maxDate }));
 };
 exports.DateInput = DateInput;
 var TableInput = function (_a) {
@@ -287,16 +290,18 @@ var AutoFocusTextField = function (props) { return ((0, jsx_runtime_1.jsx)(mater
 exports.AutoFocusTextField = AutoFocusTextField;
 var CustomDateStringInput = (0, react_1.forwardRef)(function (props, ref) { return ((0, jsx_runtime_1.jsx)(material_1.TextField, __assign({ InputProps: exports.defaultInputProps, fullWidth: true, inputRef: ref }, props))); });
 var DateStringInput = function (_a) {
-    var _b;
+    var _b, _d, _e;
     var field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "form"]);
     var inputRef = (0, react_1.useRef)(null);
+    var minDate = ((_b = field.options) === null || _b === void 0 ? void 0 : _b.minDateOffsetMs) !== undefined ? (0, hooks_1.dateFromOffsetMs)(field.options.minDateOffsetMs) : undefined;
+    var maxDate = ((_d = field.options) === null || _d === void 0 ? void 0 : _d.maxDateOffsetMs) !== undefined ? (0, hooks_1.dateFromOffsetMs)(field.options.maxDateOffsetMs) : undefined;
     // if (value && isDateString(value)) {
     //   console.log(value, new Date(
     //     new Date(MM_DD_YYYY_to_YYYY_MM_DD(value)).getTime()
     //   + (new Date().getTimezoneOffset() * 60 * 1000)
     //   ))
     // }
-    return (((_b = field.options) === null || _b === void 0 ? void 0 : _b.useDatePicker)
+    return (((_e = field.options) === null || _e === void 0 ? void 0 : _e.useDatePicker)
         ? ((0, jsx_runtime_1.jsx)(react_datepicker_1.default // wrap in item to prevent movement on focused
         , { selected: (value && (0, __1.isDateString)(value))
                 ? new Date(new Date((0, utilities_1.MM_DD_YYYY_to_YYYY_MM_DD)(value)).getTime()
@@ -304,7 +309,7 @@ var DateStringInput = function (_a) {
                 )
                 : undefined, onChange: function (d) { return onChange === null || onChange === void 0 ? void 0 : onChange((0, utilities_1.mm_dd_yyyy)(d), field.id); }, showTimeSelect: false, required: !field.isOptional, autoComplete: "off", dateFormat: "MM-dd-yyyy", customInput: (0, jsx_runtime_1.jsx)(CustomDateStringInput, __assign({ inputRef: inputRef }, props, { label: (!field.title && field.placeholder) ? field.placeholder : props.label })), 
             // className={css`width: 100%;`}
-            className: (0, css_1.css)(templateObject_2 || (templateObject_2 = __makeTemplateObject(["", ""], ["", ""])), react_datepicker_2.datepickerCSS) }))
+            className: (0, css_1.css)(templateObject_2 || (templateObject_2 = __makeTemplateObject(["", ""], ["", ""])), react_datepicker_2.datepickerCSS), minDate: minDate, maxDate: maxDate }))
         : ((0, jsx_runtime_1.jsx)(exports.AutoFocusTextField, __assign({}, props, { required: !field.isOptional, fullWidth: true, placeholder: (0, __1.form_display_text_for_language)(form, "MM-DD-YYYY"), value: value, label: (!field.title && field.placeholder) ? field.placeholder : props.label, onChange: function (e) {
                 var v = e.target.value || '';
                 onChange((v.length === 2 && /\d{2}/.test(v) && (value === null || value === void 0 ? void 0 : value.length) !== 3 // allow deletion
@@ -383,6 +388,11 @@ var BridgeEligibilityInput = function (props) {
     return (0, jsx_runtime_1.jsx)(inputs_1.BridgeEligibilityInput, __assign({}, props, { inputProps: exports.defaultInputProps }));
 };
 exports.BridgeEligibilityInput = BridgeEligibilityInput;
+// Wrap the shared CandidEligibilityInput component with v2-specific props
+var CandidEligibilityInput = function (props) {
+    return (0, jsx_runtime_1.jsx)(inputs_1.CandidEligibilityInput, __assign({}, props, { inputProps: exports.defaultInputProps }));
+};
+exports.CandidEligibilityInput = CandidEligibilityInput;
 // Wrap the shared PharmacySearchInput component with v2-specific props
 var PharmacySearchInput = function (props) {
     return (0, jsx_runtime_1.jsx)(inputs_1.PharmacySearchInput, __assign({}, props));

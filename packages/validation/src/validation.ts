@@ -258,6 +258,7 @@ import {
   Pharmacy,
   FormResponseAnswerInsurance,
   FormResponseAnswerBridgeEligibility,
+  FormResponseAnswerCandidEligibility,
   FormResponseAnswerPharmacySearch,
   CanvasConsentCategory,
   DiagnosisTypes,
@@ -293,6 +294,7 @@ import {
   HealthieAddToCourseAutomationAction,
   LabeledField,
   HealthieSendChatAutomationAction,
+  HealthiePushFormsAutomationAction,
   ZusPullAutomationAction,
   FieldMapping,
   ActiveCampaignSyncAutomationAction,
@@ -341,6 +343,10 @@ import {
   MetriportSyncAutomationAction,
   AIDecisionAutomationAction,
   AssignInboxItemAutomationAction,
+  BelugaAutoRxAutomationAction,
+  BelugaAutoRxPatientPreferenceItem,
+  BelugaUpdateVisitAutomationAction,
+  BelugaUpdateVisitPatientPreferenceItem,
   OnAIDecisionAutomationEvent,
   OnErrorEventInfo,
   OnErrorAutomationEvent,
@@ -1619,6 +1625,7 @@ const _FORM_FIELD_TYPES: { [K in FormFieldType]: any } = {
   "Related Contacts": "",
   'Insurance': '',
   'Bridge Eligibility': '',
+  'Candid Eligibility': '',
   Height: '',
   Redirect: '',
   'Hidden Value': '',
@@ -1646,6 +1653,7 @@ export const FORM_FIELD_VALIDATORS_BY_TYPE: { [K in FormFieldType | 'userEmail' 
   'Related Contacts': objectAnyFieldsAnyValuesValidator.validate(),
   'Insurance': objectAnyFieldsAnyValuesValidator.validate(),
   'Bridge Eligibility': objectAnyFieldsAnyValuesValidator.validate(),
+  'Candid Eligibility': objectAnyFieldsAnyValuesValidator.validate(),
   'Pharmacy Search': objectAnyFieldsAnyValuesValidator.validate(),
   'Address': objectAnyFieldsAnyValuesValidator.validate(),
   'Database Select': objectAnyFieldsAnyValuesValidator.validate(),
@@ -2037,6 +2045,15 @@ export const formResponseAnswerValidator = orValidator<{ [K in FormFieldType]: F
       payerId: stringValidatorOptional, // Payer ID used for this eligibility check (for caching)
       status: stringValidatorOptional, // Aggregated eligibility status
       userIds: listValidatorOptionalOrEmptyOk(mongoIdStringOptional), // Aggregated user IDs who cover the patient
+    }, { isOptional: true, emptyOk: true }),
+  }),
+  "Candid Eligibility": objectValidator<FormResponseAnswerCandidEligibility>({
+    type: exactMatchValidator(['Candid Eligibility']),
+    value: objectValidator<FormResponseAnswerCandidEligibility['value']>({
+      payerId: stringValidatorOptional, // Payer ID used for this eligibility check
+      status: stringValidatorOptional, // Eligibility check status (COMPLETED/FAILED/PENDING)
+      coverageId: stringValidatorOptional, // Candid coverage ID for polling
+      benefits: optionalEmptyObjectValidator, // Benefits data from eligibility check
     }, { isOptional: true, emptyOk: true }),
   }),
   "Question Group": objectValidator<FormResponseAnswerGroup>({
@@ -2544,9 +2561,12 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   zusSubscribe: '',
   pagerDutyCreateIncident: '',
   smartMeterPlaceOrder: '',
+  belugaAutoRx: '',
+  belugaUpdateVisit: '',
   healthieSync: '',
   healthieAddToCourse: '',
   healthieSendChat: '',
+  healthiePushForms: '',
   completeTickets: '',
   changeContactType: '',
   activeCampaignSync: '',
@@ -2599,6 +2619,7 @@ const sharedReminderValidators = {
   didRemind: booleanValidatorOptional,
   dontSendIfPassed: booleanValidatorOptional,
   dontSendIfJoined: booleanValidatorOptional,
+  skipEnduserIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
 }
 
 export const calendarEventReminderValidator = orValidator<{ [K in CalendarEventReminderType]: CalendarEventReminderInfoForType[K] } >({
@@ -2853,9 +2874,15 @@ export const senderAssignmentStrategyValidatorOptional = orValidator<{
     type: exactMatchValidator<'Care Team Primary'>(['Care Team Primary']),
     info: objectValidator<object>({}, { emptyOk: true }),
   }),
-  'Default': objectValidator<SenderAssignmentStrategies['Default']>({ 
+  'Default': objectValidator<SenderAssignmentStrategies['Default']>({
     type: exactMatchValidator<'Default'>(['Default']),
     info: objectValidator<object>({}, { emptyOk: true }),
+  }),
+  'Care Team': objectValidator<SenderAssignmentStrategies['Care Team']>({
+    type: exactMatchValidator<'Care Team'>(['Care Team']),
+    info: objectValidator<SenderAssignmentStrategies['Care Team']['info']>({
+      tags: listOfStringsWithQualifierValidatorOptional,
+    }, { emptyOk: true }),
   }),
 }, { isOptional: true })
 
@@ -3219,13 +3246,43 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       shipping: stringValidator100,
      }),
   }),
+  belugaAutoRx: objectValidator<BelugaAutoRxAutomationAction>({
+    ...sharedAutomationActionValidators,
+    type: exactMatchValidator(['belugaAutoRx']),
+    info: objectValidator<BelugaAutoRxAutomationAction['info']>({
+      patientPreference: objectValidator<BelugaAutoRxPatientPreferenceItem>({
+        name: stringValidator,
+        strength: stringValidator,
+        refills: stringValidator,
+        quantity: stringValidator,
+        medId: stringValidator,
+      }),
+      pharmacyId: stringValidator,
+    }),
+  }),
+  belugaUpdateVisit: objectValidator<BelugaUpdateVisitAutomationAction>({
+    ...sharedAutomationActionValidators,
+    type: exactMatchValidator(['belugaUpdateVisit']),
+    info: objectValidator<BelugaUpdateVisitAutomationAction['info']>({
+      patientPreferences: listValidator(objectValidator<BelugaUpdateVisitPatientPreferenceItem>({
+        name: stringValidator,
+        strength: stringValidator,
+        refills: stringValidator,
+        quantity: stringValidator,
+        daysSupply: stringValidator,
+        medId: stringValidator,
+      })),
+      pharmacyId: stringValidator,
+    }),
+  }),
   sendChat: objectValidator<SendChatAutomationAction>({
     ...sharedAutomationActionValidators,
     type: exactMatchValidator(['sendChat']),
-    info: objectValidator<SendChatAutomationAction['info']>({ 
+    info: objectValidator<SendChatAutomationAction['info']>({
       templateId: mongoIdStringRequired,
       identifier: stringValidator100,
       includeCareTeam: booleanValidatorOptional,
+      careTeamTags: listOfStringsWithQualifierValidatorOptional,
       userIds: listOfMongoIdStringValidatorOptionalOrEmptyOk,
       sendToDestinationOfRelatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
     }),
@@ -3274,10 +3331,17 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
   healthieSendChat: objectValidator<HealthieSendChatAutomationAction>({
     ...sharedAutomationActionValidators,
     type: exactMatchValidator(['healthieSendChat']),
-    info: objectValidator<HealthieSendChatAutomationAction['info']>({ 
+    info: objectValidator<HealthieSendChatAutomationAction['info']>({
       templateId: mongoIdStringRequired,
       identifier: stringValidator100,
       includeCareTeam: booleanValidatorOptional,
+    }),
+  }),
+  healthiePushForms: objectValidator<HealthiePushFormsAutomationAction>({
+    ...sharedAutomationActionValidators,
+    type: exactMatchValidator(['healthiePushForms']),
+    info: objectValidator<HealthiePushFormsAutomationAction['info']>({
+      formIds: listOfMongoIdStringValidator,
     }),
   }),
   completeTickets: objectValidator<CompleteTicketsAutomationAction>({
@@ -3766,6 +3830,8 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   bridgeServiceTypeIds: listOfStringsValidatorOptionalOrEmptyOk,
   bridgeEligibilityType: exactMatchValidatorOptional(['Soft', 'Hard']),
   useBridgeEligibilityResult: booleanValidatorOptional,
+  candidServiceCode: stringValidatorOptional,
+  candidNPI: stringValidatorOptional,
   includeGroupNumber: booleanValidatorOptional,
   holdAppointmentMinutes: numberValidatorOptional,
   rangeStepSize: numberValidatorOptional,
@@ -3776,6 +3842,8 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   saveIntakeOnPartial: booleanValidatorOptional,
   max: numberValidatorOptional,
   min: numberValidatorOptional,
+  minDateOffsetMs: numberValidatorOptional,
+  maxDateOffsetMs: numberValidatorOptional,
   stripeKey: stringValidatorOptionalEmptyOkay,
   stripeProductSelectionMode: booleanValidatorOptional,
   productConditions: listValidatorOptionalOrEmptyOk(objectValidator({
@@ -3941,10 +4009,11 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     hideFromTable: booleanValidatorOptional,
     wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
+    trimStrings: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Text']['options']>({
       width: stringValidatorOptionalEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
-  }), 
+  }),
   Email: objectValidator<DatabaseRecordFields['Email']>({
     type: exactMatchValidator(['Email']),
     label: stringValidator250,
@@ -3952,10 +4021,11 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     hideFromTable: booleanValidatorOptional,
     wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
+    trimStrings: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Email']['options']>({
       width: stringValidatorOptionalEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
-  }), 
+  }),
   Phone: objectValidator<DatabaseRecordFields['Phone']>({
     type: exactMatchValidator(['Phone']),
     label: stringValidator250,
@@ -3963,10 +4033,11 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     hideFromTable: booleanValidatorOptional,
     wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
+    trimStrings: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Phone']['options']>({
       width: stringValidatorOptionalEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
-  }), 
+  }),
   'Text Long': objectValidator<DatabaseRecordFields['Text Long']>({
     type: exactMatchValidator(['Text Long']),
     label: stringValidator250,
@@ -3974,10 +4045,11 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     hideFromTable: booleanValidatorOptional,
     wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
+    trimStrings: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Text Long']['options']>({
       width: stringValidatorOptionalEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
-  }), 
+  }),
   'Text List': objectValidator<DatabaseRecordFields['Text List']>({
     type: exactMatchValidator(['Text List']),
     label: stringValidator250,
@@ -3985,10 +4057,11 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     hideFromTable: booleanValidatorOptional,
     wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
+    trimStrings: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Text List']['options']>({
       width: stringValidatorOptionalEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
-  }), 
+  }),
   'Number': objectValidator<DatabaseRecordFields['Number']>({
     type: exactMatchValidator(['Number']),
     label: stringValidator250,
@@ -3996,10 +4069,11 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     hideFromTable: booleanValidatorOptional,
     wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
+    trimStrings: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Number']['options']>({
       width: stringValidatorOptionalEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
-  }), 
+  }),
   'Address': objectValidator<DatabaseRecordFields['Address']>({
     type: exactMatchValidator(['Address']),
     label: stringValidator250,
@@ -4007,10 +4081,11 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     hideFromTable: booleanValidatorOptional,
     wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
+    trimStrings: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Address']['options']>({
       width: stringValidatorOptionalEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
-  }), 
+  }),
   'Multiple Select': objectValidator<DatabaseRecordFields['Multiple Select']>({
     type: exactMatchValidator(['Multiple Select']),
     label: stringValidator250,
@@ -4018,11 +4093,12 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     hideFromTable: booleanValidatorOptional,
     wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
+    trimStrings: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Multiple Select']['options']>({
       width: stringValidatorOptionalEmptyOkay,
       options: listOfStringsValidatorEmptyOk,
     }, { isOptional: true, emptyOk: true }),
-  }), 
+  }),
   'Dropdown': objectValidator<DatabaseRecordFields['Dropdown']>({
     type: exactMatchValidator(['Dropdown']),
     label: stringValidator250,
@@ -4030,11 +4106,12 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     hideFromTable: booleanValidatorOptional,
     wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
+    trimStrings: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Dropdown']['options']>({
       width: stringValidatorOptionalEmptyOkay,
       options: listOfStringsValidatorEmptyOk,
     }, { isOptional: true, emptyOk: true }),
-  }), 
+  }),
   'Timestamp': objectValidator<DatabaseRecordFields['Timestamp']>({
     type: exactMatchValidator(['Timestamp']),
     label: stringValidator250,
@@ -4042,10 +4119,11 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     hideFromTable: booleanValidatorOptional,
     wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
+    trimStrings: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Timestamp']['options']>({
       width: stringValidatorOptionalEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
-  }), 
+  }),
   'Date': objectValidator<DatabaseRecordFields['Date']>({
     type: exactMatchValidator(['Date']),
     label: stringValidator250,
@@ -4053,10 +4131,11 @@ export const databaseFieldValidator = orValidator<{ [K in DatabaseRecordFieldTyp
     hideFromTable: booleanValidatorOptional,
     wrap: stringValidatorOptional,
     required: booleanValidatorOptional,
+    trimStrings: booleanValidatorOptional,
     options: objectValidator<DatabaseRecordFields['Date']['options']>({
       width: stringValidatorOptionalEmptyOkay,
     }, { isOptional: true, emptyOk: true }),
-  }), 
+  }),
 })
 export const databaseFieldsValidator = listValidator(databaseFieldValidator)
 
@@ -4658,6 +4737,7 @@ const _AUTOMATION_TRIGGER_EVENT_TYPES: { [K in AutomationTriggerEventType]: any 
   "Message Opened": true,
   "Message Link Clicked": true,
   "Healthie Note Locked": true,
+  "Healthie Form Answer Group Created": true,
   "Database Entry Added": true,
   "Eligibility Result Received": true,
   "File Added": true,
@@ -4957,7 +5037,15 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
       answersCondition: objectAnyFieldsAnyValuesValidator,
     }, { emptyOk: true }),
     conditions: optionalEmptyObjectValidator,
-  }), 
+  }),
+  "Healthie Form Answer Group Created": objectValidator<AutomationTriggerEvents["Healthie Form Answer Group Created"]>({
+    type: exactMatchValidator(['Healthie Form Answer Group Created']),
+    info: objectValidator<AutomationTriggerEvents['Healthie Form Answer Group Created']['info']>({
+      healthieFormIds: listOfStringsValidatorOptionalOrEmptyOk,
+      answersCondition: objectAnyFieldsAnyValuesValidator,
+    }, { emptyOk: true }),
+    conditions: optionalEmptyObjectValidator,
+  }),
   "Database Entry Added": objectValidator<AutomationTriggerEvents["Database Entry Added"]>({
     type: exactMatchValidator(['Database Entry Added']),
     info: objectValidator<AutomationTriggerEvents['Database Entry Added']['info']>({
@@ -6455,6 +6543,7 @@ export const formCustomizationValidator = objectValidator<Form['customization']>
   publicStateLabel: stringValidatorOptionalEmptyOkay,
   primaryColor: stringValidatorOptionalEmptyOkay, // Custom primary/accent color
   secondaryColor: stringValidatorOptionalEmptyOkay, // Custom secondary color
+  showLogoOnIntakePage: booleanValidatorOptional,
 })
 
 export const languageValidator = objectValidator<Language>({

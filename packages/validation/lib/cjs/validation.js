@@ -1221,6 +1221,7 @@ var _FORM_FIELD_TYPES = {
     "Related Contacts": "",
     'Insurance': '',
     'Bridge Eligibility': '',
+    'Candid Eligibility': '',
     Height: '',
     Redirect: '',
     'Hidden Value': '',
@@ -1247,6 +1248,7 @@ exports.FORM_FIELD_VALIDATORS_BY_TYPE = {
     'Related Contacts': exports.objectAnyFieldsAnyValuesValidator.validate(),
     'Insurance': exports.objectAnyFieldsAnyValuesValidator.validate(),
     'Bridge Eligibility': exports.objectAnyFieldsAnyValuesValidator.validate(),
+    'Candid Eligibility': exports.objectAnyFieldsAnyValuesValidator.validate(),
     'Pharmacy Search': exports.objectAnyFieldsAnyValuesValidator.validate(),
     'Address': exports.objectAnyFieldsAnyValuesValidator.validate(),
     'Database Select': exports.objectAnyFieldsAnyValuesValidator.validate(),
@@ -1611,6 +1613,15 @@ exports.formResponseAnswerValidator = (0, exports.orValidator)({
             payerId: exports.stringValidatorOptional,
             status: exports.stringValidatorOptional,
             userIds: (0, exports.listValidatorOptionalOrEmptyOk)(exports.mongoIdStringOptional), // Aggregated user IDs who cover the patient
+        }, { isOptional: true, emptyOk: true }),
+    }),
+    "Candid Eligibility": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['Candid Eligibility']),
+        value: (0, exports.objectValidator)({
+            payerId: exports.stringValidatorOptional,
+            status: exports.stringValidatorOptional,
+            coverageId: exports.stringValidatorOptional,
+            benefits: exports.optionalEmptyObjectValidator, // Benefits data from eligibility check
         }, { isOptional: true, emptyOk: true }),
     }),
     "Question Group": (0, exports.objectValidator)({
@@ -2062,9 +2073,12 @@ var _AUTOMATION_ACTIONS = {
     zusSubscribe: '',
     pagerDutyCreateIncident: '',
     smartMeterPlaceOrder: '',
+    belugaAutoRx: '',
+    belugaUpdateVisit: '',
     healthieSync: '',
     healthieAddToCourse: '',
     healthieSendChat: '',
+    healthiePushForms: '',
     completeTickets: '',
     changeContactType: '',
     activeCampaignSync: '',
@@ -2114,6 +2128,7 @@ var sharedReminderValidators = {
     didRemind: exports.booleanValidatorOptional,
     dontSendIfPassed: exports.booleanValidatorOptional,
     dontSendIfJoined: exports.booleanValidatorOptional,
+    skipEnduserIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
 };
 exports.calendarEventReminderValidator = (0, exports.orValidator)({
     webhook: (0, exports.objectValidator)(__assign({ info: (0, exports.objectValidator)({}, { emptyOk: true, isOptional: true }), type: (0, exports.exactMatchValidator)(['webhook']) }, sharedReminderValidators)),
@@ -2322,6 +2337,12 @@ exports.senderAssignmentStrategyValidatorOptional = (0, exports.orValidator)({
     'Default': (0, exports.objectValidator)({
         type: (0, exports.exactMatchValidator)(['Default']),
         info: (0, exports.objectValidator)({}, { emptyOk: true }),
+    }),
+    'Care Team': (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['Care Team']),
+        info: (0, exports.objectValidator)({
+            tags: exports.listOfStringsWithQualifierValidatorOptional,
+        }, { emptyOk: true }),
     }),
 }, { isOptional: true });
 exports.smartMeterLinesValidator = (0, exports.listValidator)((0, exports.objectValidator)({
@@ -2559,10 +2580,32 @@ exports.automationActionValidator = (0, exports.orValidator)({
             lines: exports.smartMeterLinesValidator,
             shipping: exports.stringValidator100,
         }) })),
+    belugaAutoRx: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['belugaAutoRx']), info: (0, exports.objectValidator)({
+            patientPreference: (0, exports.objectValidator)({
+                name: exports.stringValidator,
+                strength: exports.stringValidator,
+                refills: exports.stringValidator,
+                quantity: exports.stringValidator,
+                medId: exports.stringValidator,
+            }),
+            pharmacyId: exports.stringValidator,
+        }) })),
+    belugaUpdateVisit: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['belugaUpdateVisit']), info: (0, exports.objectValidator)({
+            patientPreferences: (0, exports.listValidator)((0, exports.objectValidator)({
+                name: exports.stringValidator,
+                strength: exports.stringValidator,
+                refills: exports.stringValidator,
+                quantity: exports.stringValidator,
+                daysSupply: exports.stringValidator,
+                medId: exports.stringValidator,
+            })),
+            pharmacyId: exports.stringValidator,
+        }) })),
     sendChat: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['sendChat']), info: (0, exports.objectValidator)({
             templateId: exports.mongoIdStringRequired,
             identifier: exports.stringValidator100,
             includeCareTeam: exports.booleanValidatorOptional,
+            careTeamTags: exports.listOfStringsWithQualifierValidatorOptional,
             userIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
             sendToDestinationOfRelatedContactTypes: exports.listOfStringsValidatorOptionalOrEmptyOk,
         }) })),
@@ -2583,6 +2626,9 @@ exports.automationActionValidator = (0, exports.orValidator)({
             templateId: exports.mongoIdStringRequired,
             identifier: exports.stringValidator100,
             includeCareTeam: exports.booleanValidatorOptional,
+        }) })),
+    healthiePushForms: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['healthiePushForms']), info: (0, exports.objectValidator)({
+            formIds: exports.listOfMongoIdStringValidator,
         }) })),
     completeTickets: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['completeTickets']), info: (0, exports.objectValidator)({
             journeyIds: exports.listOfMongoIdStringValidatorOptionalOrEmptyOk,
@@ -2964,6 +3010,8 @@ exports.formFieldOptionsValidator = (0, exports.objectValidator)({
     bridgeServiceTypeIds: exports.listOfStringsValidatorOptionalOrEmptyOk,
     bridgeEligibilityType: (0, exports.exactMatchValidatorOptional)(['Soft', 'Hard']),
     useBridgeEligibilityResult: exports.booleanValidatorOptional,
+    candidServiceCode: exports.stringValidatorOptional,
+    candidNPI: exports.stringValidatorOptional,
     includeGroupNumber: exports.booleanValidatorOptional,
     holdAppointmentMinutes: exports.numberValidatorOptional,
     rangeStepSize: exports.numberValidatorOptional,
@@ -2974,6 +3022,8 @@ exports.formFieldOptionsValidator = (0, exports.objectValidator)({
     saveIntakeOnPartial: exports.booleanValidatorOptional,
     max: exports.numberValidatorOptional,
     min: exports.numberValidatorOptional,
+    minDateOffsetMs: exports.numberValidatorOptional,
+    maxDateOffsetMs: exports.numberValidatorOptional,
     stripeKey: exports.stringValidatorOptionalEmptyOkay,
     stripeProductSelectionMode: exports.booleanValidatorOptional,
     productConditions: (0, exports.listValidatorOptionalOrEmptyOk)((0, exports.objectValidator)({
@@ -3135,6 +3185,7 @@ exports.databaseFieldValidator = (0, exports.orValidator)({
         hideFromTable: exports.booleanValidatorOptional,
         wrap: exports.stringValidatorOptional,
         required: exports.booleanValidatorOptional,
+        trimStrings: exports.booleanValidatorOptional,
         options: (0, exports.objectValidator)({
             width: exports.stringValidatorOptionalEmptyOkay,
         }, { isOptional: true, emptyOk: true }),
@@ -3146,6 +3197,7 @@ exports.databaseFieldValidator = (0, exports.orValidator)({
         hideFromTable: exports.booleanValidatorOptional,
         wrap: exports.stringValidatorOptional,
         required: exports.booleanValidatorOptional,
+        trimStrings: exports.booleanValidatorOptional,
         options: (0, exports.objectValidator)({
             width: exports.stringValidatorOptionalEmptyOkay,
         }, { isOptional: true, emptyOk: true }),
@@ -3157,6 +3209,7 @@ exports.databaseFieldValidator = (0, exports.orValidator)({
         hideFromTable: exports.booleanValidatorOptional,
         wrap: exports.stringValidatorOptional,
         required: exports.booleanValidatorOptional,
+        trimStrings: exports.booleanValidatorOptional,
         options: (0, exports.objectValidator)({
             width: exports.stringValidatorOptionalEmptyOkay,
         }, { isOptional: true, emptyOk: true }),
@@ -3168,6 +3221,7 @@ exports.databaseFieldValidator = (0, exports.orValidator)({
         hideFromTable: exports.booleanValidatorOptional,
         wrap: exports.stringValidatorOptional,
         required: exports.booleanValidatorOptional,
+        trimStrings: exports.booleanValidatorOptional,
         options: (0, exports.objectValidator)({
             width: exports.stringValidatorOptionalEmptyOkay,
         }, { isOptional: true, emptyOk: true }),
@@ -3179,6 +3233,7 @@ exports.databaseFieldValidator = (0, exports.orValidator)({
         hideFromTable: exports.booleanValidatorOptional,
         wrap: exports.stringValidatorOptional,
         required: exports.booleanValidatorOptional,
+        trimStrings: exports.booleanValidatorOptional,
         options: (0, exports.objectValidator)({
             width: exports.stringValidatorOptionalEmptyOkay,
         }, { isOptional: true, emptyOk: true }),
@@ -3190,6 +3245,7 @@ exports.databaseFieldValidator = (0, exports.orValidator)({
         hideFromTable: exports.booleanValidatorOptional,
         wrap: exports.stringValidatorOptional,
         required: exports.booleanValidatorOptional,
+        trimStrings: exports.booleanValidatorOptional,
         options: (0, exports.objectValidator)({
             width: exports.stringValidatorOptionalEmptyOkay,
         }, { isOptional: true, emptyOk: true }),
@@ -3201,6 +3257,7 @@ exports.databaseFieldValidator = (0, exports.orValidator)({
         hideFromTable: exports.booleanValidatorOptional,
         wrap: exports.stringValidatorOptional,
         required: exports.booleanValidatorOptional,
+        trimStrings: exports.booleanValidatorOptional,
         options: (0, exports.objectValidator)({
             width: exports.stringValidatorOptionalEmptyOkay,
         }, { isOptional: true, emptyOk: true }),
@@ -3212,6 +3269,7 @@ exports.databaseFieldValidator = (0, exports.orValidator)({
         hideFromTable: exports.booleanValidatorOptional,
         wrap: exports.stringValidatorOptional,
         required: exports.booleanValidatorOptional,
+        trimStrings: exports.booleanValidatorOptional,
         options: (0, exports.objectValidator)({
             width: exports.stringValidatorOptionalEmptyOkay,
             options: exports.listOfStringsValidatorEmptyOk,
@@ -3224,6 +3282,7 @@ exports.databaseFieldValidator = (0, exports.orValidator)({
         hideFromTable: exports.booleanValidatorOptional,
         wrap: exports.stringValidatorOptional,
         required: exports.booleanValidatorOptional,
+        trimStrings: exports.booleanValidatorOptional,
         options: (0, exports.objectValidator)({
             width: exports.stringValidatorOptionalEmptyOkay,
             options: exports.listOfStringsValidatorEmptyOk,
@@ -3236,6 +3295,7 @@ exports.databaseFieldValidator = (0, exports.orValidator)({
         hideFromTable: exports.booleanValidatorOptional,
         wrap: exports.stringValidatorOptional,
         required: exports.booleanValidatorOptional,
+        trimStrings: exports.booleanValidatorOptional,
         options: (0, exports.objectValidator)({
             width: exports.stringValidatorOptionalEmptyOkay,
         }, { isOptional: true, emptyOk: true }),
@@ -3247,6 +3307,7 @@ exports.databaseFieldValidator = (0, exports.orValidator)({
         hideFromTable: exports.booleanValidatorOptional,
         wrap: exports.stringValidatorOptional,
         required: exports.booleanValidatorOptional,
+        trimStrings: exports.booleanValidatorOptional,
         options: (0, exports.objectValidator)({
             width: exports.stringValidatorOptionalEmptyOkay,
         }, { isOptional: true, emptyOk: true }),
@@ -3819,6 +3880,7 @@ var _AUTOMATION_TRIGGER_EVENT_TYPES = {
     "Message Opened": true,
     "Message Link Clicked": true,
     "Healthie Note Locked": true,
+    "Healthie Form Answer Group Created": true,
     "Database Entry Added": true,
     "Eligibility Result Received": true,
     "File Added": true,
@@ -4108,6 +4170,14 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
     }),
     "Healthie Note Locked": (0, exports.objectValidator)({
         type: (0, exports.exactMatchValidator)(['Healthie Note Locked']),
+        info: (0, exports.objectValidator)({
+            healthieFormIds: exports.listOfStringsValidatorOptionalOrEmptyOk,
+            answersCondition: exports.objectAnyFieldsAnyValuesValidator,
+        }, { emptyOk: true }),
+        conditions: exports.optionalEmptyObjectValidator,
+    }),
+    "Healthie Form Answer Group Created": (0, exports.objectValidator)({
+        type: (0, exports.exactMatchValidator)(['Healthie Form Answer Group Created']),
         info: (0, exports.objectValidator)({
             healthieFormIds: exports.listOfStringsValidatorOptionalOrEmptyOk,
             answersCondition: exports.objectAnyFieldsAnyValuesValidator,
@@ -5487,7 +5557,8 @@ exports.formCustomizationValidator = (0, exports.objectValidator)({
     publicPhoneLabel: exports.stringValidatorOptionalEmptyOkay,
     publicStateLabel: exports.stringValidatorOptionalEmptyOkay,
     primaryColor: exports.stringValidatorOptionalEmptyOkay,
-    secondaryColor: exports.stringValidatorOptionalEmptyOkay, // Custom secondary color
+    secondaryColor: exports.stringValidatorOptionalEmptyOkay,
+    showLogoOnIntakePage: exports.booleanValidatorOptional,
 });
 exports.languageValidator = (0, exports.objectValidator)({
     displayName: exports.stringValidator100,

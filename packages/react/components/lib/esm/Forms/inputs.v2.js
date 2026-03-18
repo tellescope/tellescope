@@ -91,7 +91,7 @@ import AddPhotoAlternateIcon from '@mui/icons-material/AddPhotoAlternate';
 import LanguageIcon from '@mui/icons-material/Language';
 import { CheckCircleOutline, Delete, Edit, UploadFile } from "@mui/icons-material";
 import { WYSIWYG } from "./wysiwyg";
-import { useConditionalChoices } from "./hooks";
+import { useConditionalChoices, dateFromOffsetMs } from "./hooks";
 export var LanguageSelect = function (_a) {
     var value = _a.value, props = __rest(_a, ["value"]);
     return (_jsxs(Grid, __assign({ container: true, alignItems: "center", justifyContent: "center", wrap: "nowrap", spacing: 1 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(LanguageIcon, { color: "primary" }) })), _jsx(Grid, __assign({ item: true, style: { width: 150 } }, { children: _jsx(StringSelector, __assign({}, props, { options: ["English", "Español"], size: "small", value: value === 'Spanish' ? 'Español' : value, label: (value === 'Español' || value === 'Spanish') ? 'Idioma'
@@ -189,12 +189,15 @@ export var RankingInput = function (_a) {
 };
 var CustomDateInput = forwardRef(function (props, ref) { return (_jsx(TextField, __assign({ InputProps: defaultInputProps, fullWidth: true, inputRef: ref }, props))); });
 export var DateInput = function (_a) {
-    var field = _a.field, value = _a.value, onChange = _a.onChange, _b = _a.placement, placement = _b === void 0 ? 'top' : _b, props = __rest(_a, ["field", "value", "onChange", "placement"]);
+    var _b, _d;
+    var field = _a.field, value = _a.value, onChange = _a.onChange, _e = _a.placement, placement = _e === void 0 ? 'top' : _e, props = __rest(_a, ["field", "value", "onChange", "placement"]);
     var inputRef = useRef(null);
+    var minDate = ((_b = field.options) === null || _b === void 0 ? void 0 : _b.minDateOffsetMs) !== undefined ? dateFromOffsetMs(field.options.minDateOffsetMs) : undefined;
+    var maxDate = ((_d = field.options) === null || _d === void 0 ? void 0 : _d.maxDateOffsetMs) !== undefined ? dateFromOffsetMs(field.options.maxDateOffsetMs) : undefined;
     return (_jsx(DatePicker // wrap in item to prevent movement on focused
     , { selected: value, onChange: function (d) { return onChange === null || onChange === void 0 ? void 0 : onChange(d, field.id); }, showTimeSelect: true, required: !field.isOptional, dateFormat: "Pp", autoComplete: "off", timeIntervals: 15, popperPlacement: placement, customInput: _jsx(CustomDateInput, __assign({ inputRef: inputRef }, props)), 
         // className={css`width: 100%;`}
-        className: css(templateObject_1 || (templateObject_1 = __makeTemplateObject(["", ""], ["", ""])), datepickerCSS) }));
+        className: css(templateObject_1 || (templateObject_1 = __makeTemplateObject(["", ""], ["", ""])), datepickerCSS), minDate: minDate, maxDate: maxDate }));
 };
 export var TableInput = function (_a) {
     var _b;
@@ -251,16 +254,18 @@ export var TableInput = function (_a) {
 export var AutoFocusTextField = function (props) { return (_jsx(TextField, __assign({ InputProps: defaultInputProps }, props))); };
 var CustomDateStringInput = forwardRef(function (props, ref) { return (_jsx(TextField, __assign({ InputProps: defaultInputProps, fullWidth: true, inputRef: ref }, props))); });
 export var DateStringInput = function (_a) {
-    var _b;
+    var _b, _d, _e;
     var field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "form"]);
     var inputRef = useRef(null);
+    var minDate = ((_b = field.options) === null || _b === void 0 ? void 0 : _b.minDateOffsetMs) !== undefined ? dateFromOffsetMs(field.options.minDateOffsetMs) : undefined;
+    var maxDate = ((_d = field.options) === null || _d === void 0 ? void 0 : _d.maxDateOffsetMs) !== undefined ? dateFromOffsetMs(field.options.maxDateOffsetMs) : undefined;
     // if (value && isDateString(value)) {
     //   console.log(value, new Date(
     //     new Date(MM_DD_YYYY_to_YYYY_MM_DD(value)).getTime()
     //   + (new Date().getTimezoneOffset() * 60 * 1000)
     //   ))
     // }
-    return (((_b = field.options) === null || _b === void 0 ? void 0 : _b.useDatePicker)
+    return (((_e = field.options) === null || _e === void 0 ? void 0 : _e.useDatePicker)
         ? (_jsx(DatePicker // wrap in item to prevent movement on focused
         , { selected: (value && isDateString(value))
                 ? new Date(new Date(MM_DD_YYYY_to_YYYY_MM_DD(value)).getTime()
@@ -268,7 +273,7 @@ export var DateStringInput = function (_a) {
                 )
                 : undefined, onChange: function (d) { return onChange === null || onChange === void 0 ? void 0 : onChange(mm_dd_yyyy(d), field.id); }, showTimeSelect: false, required: !field.isOptional, autoComplete: "off", dateFormat: "MM-dd-yyyy", customInput: _jsx(CustomDateStringInput, __assign({ inputRef: inputRef }, props, { label: (!field.title && field.placeholder) ? field.placeholder : props.label })), 
             // className={css`width: 100%;`}
-            className: css(templateObject_2 || (templateObject_2 = __makeTemplateObject(["", ""], ["", ""])), datepickerCSS) }))
+            className: css(templateObject_2 || (templateObject_2 = __makeTemplateObject(["", ""], ["", ""])), datepickerCSS), minDate: minDate, maxDate: maxDate }))
         : (_jsx(AutoFocusTextField, __assign({}, props, { required: !field.isOptional, fullWidth: true, placeholder: form_display_text_for_language(form, "MM-DD-YYYY"), value: value, label: (!field.title && field.placeholder) ? field.placeholder : props.label, onChange: function (e) {
                 var v = e.target.value || '';
                 onChange((v.length === 2 && /\d{2}/.test(v) && (value === null || value === void 0 ? void 0 : value.length) !== 3 // allow deletion
@@ -330,7 +335,7 @@ export var NumberInput = function (_a) {
         } })));
 };
 // InsuranceInput, BridgeEligibilityInput, PharmacySearchInput, and AppointmentBookingInput logic is shared with inputs.tsx to avoid duplication
-import { InsuranceInput as SharedInsuranceInput, BridgeEligibilityInput as SharedBridgeEligibilityInput, PharmacySearchInput as SharedPharmacySearchInput, AppointmentBookingInput as SharedAppointmentBookingInput } from './inputs';
+import { InsuranceInput as SharedInsuranceInput, BridgeEligibilityInput as SharedBridgeEligibilityInput, CandidEligibilityInput as SharedCandidEligibilityInput, PharmacySearchInput as SharedPharmacySearchInput, AppointmentBookingInput as SharedAppointmentBookingInput } from './inputs';
 // Wrap the shared InsuranceInput component with v2-specific props
 export var InsuranceInput = function (props) {
     return _jsx(SharedInsuranceInput, __assign({}, props, { inputProps: defaultInputProps }));
@@ -338,6 +343,10 @@ export var InsuranceInput = function (props) {
 // Wrap the shared BridgeEligibilityInput component with v2-specific props
 export var BridgeEligibilityInput = function (props) {
     return _jsx(SharedBridgeEligibilityInput, __assign({}, props, { inputProps: defaultInputProps }));
+};
+// Wrap the shared CandidEligibilityInput component with v2-specific props
+export var CandidEligibilityInput = function (props) {
+    return _jsx(SharedCandidEligibilityInput, __assign({}, props, { inputProps: defaultInputProps }));
 };
 // Wrap the shared PharmacySearchInput component with v2-specific props
 export var PharmacySearchInput = function (props) {

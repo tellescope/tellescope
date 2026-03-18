@@ -74,7 +74,7 @@ import React, { forwardRef, useCallback, useEffect, useMemo, useRef, useState } 
 import axios from "axios";
 import { Autocomplete, Box, Button, Checkbox, Chip, CircularProgress, Collapse, Divider, FormControl, FormControlLabel, FormLabel, Grid, IconButton as MuiIconButton, InputLabel, MenuItem, Paper, Radio, RadioGroup, Select, TextField, Typography } from "@mui/material";
 import { useDropzone } from "react-dropzone";
-import { CANVAS_TITLE, BRIDGE_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants";
+import { CANVAS_TITLE, BRIDGE_TITLE, CANDID_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants";
 import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, format_stripe_subscription_interval, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, object_is_empty, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities";
 import { TIMEZONES_USA } from "@tellescope/types-models";
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation";
@@ -93,7 +93,7 @@ import { Elements, PaymentElement, useStripe, useElements, EmbeddedCheckout, Emb
 import { loadStripe } from '@stripe/stripe-js';
 import { CheckCircleOutline, Delete, Edit, ExpandMore } from "@mui/icons-material";
 import { WYSIWYG } from "./wysiwyg";
-import { useConditionalChoices } from "./hooks";
+import { dateFromOffsetMs, useConditionalChoices } from "./hooks";
 // Bridge Eligibility - shared variable for storing most recent eligibility userIds
 var bridgeEligibilityResult = {
     userIds: [],
@@ -195,12 +195,15 @@ export var RankingInput = function (_a) {
 };
 var CustomDateInput = forwardRef(function (props, ref) { return (_jsx(TextField, __assign({ InputProps: defaultInputProps, fullWidth: true, inputRef: ref }, props))); });
 export var DateInput = function (_a) {
-    var field = _a.field, value = _a.value, onChange = _a.onChange, _b = _a.placement, placement = _b === void 0 ? 'top' : _b, props = __rest(_a, ["field", "value", "onChange", "placement"]);
+    var _b, _d;
+    var field = _a.field, value = _a.value, onChange = _a.onChange, _e = _a.placement, placement = _e === void 0 ? 'top' : _e, props = __rest(_a, ["field", "value", "onChange", "placement"]);
     var inputRef = useRef(null);
+    var minDate = ((_b = field.options) === null || _b === void 0 ? void 0 : _b.minDateOffsetMs) !== undefined ? dateFromOffsetMs(field.options.minDateOffsetMs) : undefined;
+    var maxDate = ((_d = field.options) === null || _d === void 0 ? void 0 : _d.maxDateOffsetMs) !== undefined ? dateFromOffsetMs(field.options.maxDateOffsetMs) : undefined;
     return (_jsx(DatePicker // wrap in item to prevent movement on focused
     , { selected: value, onChange: function (d) { return onChange === null || onChange === void 0 ? void 0 : onChange(d, field.id); }, showTimeSelect: true, required: !field.isOptional, dateFormat: "Pp", autoComplete: "off", timeIntervals: 15, popperPlacement: placement, customInput: _jsx(CustomDateInput, __assign({ inputRef: inputRef }, props)), 
         // className={css`width: 100%;`}
-        className: css(templateObject_1 || (templateObject_1 = __makeTemplateObject(["", ""], ["", ""])), datepickerCSS) }));
+        className: css(templateObject_1 || (templateObject_1 = __makeTemplateObject(["", ""], ["", ""])), datepickerCSS), minDate: minDate, maxDate: maxDate }));
 };
 export var TableInput = function (_a) {
     var _b;
@@ -263,16 +266,18 @@ var CustomDateStringInput = forwardRef(function (props, ref) {
     return (_jsx(TextField, __assign({ InputProps: inputProps || defaultInputProps, fullWidth: true, inputRef: ref }, textFieldProps)));
 });
 export var DateStringInput = function (_a) {
-    var _b;
+    var _b, _d, _e;
     var field = _a.field, value = _a.value, onChange = _a.onChange, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "form"]);
     var inputRef = useRef(null);
+    var minDate = ((_b = field.options) === null || _b === void 0 ? void 0 : _b.minDateOffsetMs) !== undefined ? dateFromOffsetMs(field.options.minDateOffsetMs) : undefined;
+    var maxDate = ((_d = field.options) === null || _d === void 0 ? void 0 : _d.maxDateOffsetMs) !== undefined ? dateFromOffsetMs(field.options.maxDateOffsetMs) : undefined;
     // if (value && isDateString(value)) {
     //   console.log(value, new Date(
     //     new Date(MM_DD_YYYY_to_YYYY_MM_DD(value)).getTime()
     //   + (new Date().getTimezoneOffset() * 60 * 1000)
     //   ))
     // }
-    return (((_b = field.options) === null || _b === void 0 ? void 0 : _b.useDatePicker)
+    return (((_e = field.options) === null || _e === void 0 ? void 0 : _e.useDatePicker)
         ? (_jsx(DatePicker // wrap in item to prevent movement on focused
         , { selected: (value && isDateString(value))
                 ? new Date(new Date(MM_DD_YYYY_to_YYYY_MM_DD(value)).getTime()
@@ -280,7 +285,7 @@ export var DateStringInput = function (_a) {
                 )
                 : undefined, onChange: function (d) { return onChange === null || onChange === void 0 ? void 0 : onChange(mm_dd_yyyy(d), field.id); }, showTimeSelect: false, required: !field.isOptional, autoComplete: "off", dateFormat: "MM-dd-yyyy", customInput: _jsx(CustomDateStringInput, __assign({ inputRef: inputRef }, props, { label: (!field.title && field.placeholder) ? field.placeholder : props.label })), 
             // className={css`width: 100%;`}
-            className: css(templateObject_2 || (templateObject_2 = __makeTemplateObject(["", ""], ["", ""])), datepickerCSS) }))
+            className: css(templateObject_2 || (templateObject_2 = __makeTemplateObject(["", ""], ["", ""])), datepickerCSS), minDate: minDate, maxDate: maxDate }))
         : (_jsx(AutoFocusTextField, __assign({}, props, { required: !field.isOptional, fullWidth: true, placeholder: form_display_text_for_language(form, "MM-DD-YYYY"), value: value, label: (!field.title && field.placeholder) ? field.placeholder : props.label, onChange: function (e) {
                 var v = e.target.value || '';
                 onChange((v.length === 2 && /\d{2}/.test(v) && (value === null || value === void 0 ? void 0 : value.length) !== 3 // allow deletion
@@ -832,6 +837,190 @@ export var BridgeEligibilityInput = function (_a) {
     // User/admin interface (non-enduser sessions)
     return (_jsxs(Grid, __assign({ container: true, spacing: 2, direction: "column" }, { children: [_jsxs(Grid, __assign({ item: true }, { children: [_jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Eligibility Type: ", eligibilityType] })), _jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Service Type IDs: ", ((_e = (_d = field.options) === null || _d === void 0 ? void 0 : _d.bridgeServiceTypeIds) === null || _e === void 0 ? void 0 : _e.join(', ')) || 'Not configured'] })), state && _jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["State: ", state] })), payerId && _jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Payer ID: ", payerId] })), memberId && _jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Member ID: ", memberId] }))] })), error && (_jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "body2", color: "error" }, { children: error })) }))), polling && (_jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "body2", color: "primary" }, { children: form_display_text_for_language(form, "Polling for results... (this may take 15-30 seconds)") })) }))), _jsxs(Grid, __assign({ item: true, container: true, spacing: 2 }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(LoadingButton, { variant: "outlined", onClick: checkProviderEligibility, submitText: form_display_text_for_language(form, "Check Provider Eligibility (Free)"), submittingText: form_display_text_for_language(form, "Checking..."), submitting: loading && !polling, disabled: !((_g = (_f = field.options) === null || _f === void 0 ? void 0 : _f.bridgeServiceTypeIds) === null || _g === void 0 ? void 0 : _g.length) || loading || polling }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(LoadingButton, { variant: "outlined", onClick: checkServiceEligibility, submitText: form_display_text_for_language(form, "Check Service Eligibility (Paid)"), submittingText: polling ? form_display_text_for_language(form, "Polling...") : form_display_text_for_language(form, "Initiating..."), submitting: loading || polling, disabled: !((_j = (_h = field.options) === null || _h === void 0 ? void 0 : _h.bridgeServiceTypeIds) === null || _j === void 0 ? void 0 : _j.length) || loading || polling }) }))] })), value && (_jsxs(Grid, __assign({ item: true }, { children: [_jsx(Typography, __assign({ variant: "caption", color: "textSecondary" }, { children: "Current Answer:" })), _jsx("pre", __assign({ style: { fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word' } }, { children: JSON.stringify(value, null, 2) }))] })))] })));
 };
+export var CandidEligibilityInput = function (_a) {
+    var _b, _d;
+    var field = _a.field, value = _a.value, onChange = _a.onChange, responses = _a.responses, enduser = _a.enduser, inputProps = _a.inputProps, enduserId = _a.enduserId, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "responses", "enduser", "inputProps", "enduserId", "form"]);
+    var session = useResolvedSession();
+    var _e = useState(false), loading = _e[0], setLoading = _e[1];
+    var _f = useState(false), polling = _f[0], setPolling = _f[1];
+    var _g = useState(), error = _g[0], setError = _g[1];
+    var isEnduserSession = session.type === 'enduser';
+    var pollTimeoutRef = useRef();
+    // Clean up polling timeout on unmount
+    useEffect(function () {
+        return function () {
+            if (pollTimeoutRef.current)
+                clearTimeout(pollTimeoutRef.current);
+        };
+    }, []);
+    // Extract payerId from Insurance question response
+    var _h = useMemo(function () {
+        var _a, _b, _d, _e;
+        var insuranceResponse = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { var _a, _b, _d; return ((_a = r.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Insurance' && ((_d = (_b = r.answer) === null || _b === void 0 ? void 0 : _b.value) === null || _d === void 0 ? void 0 : _d.payerId); });
+        if (((_a = insuranceResponse === null || insuranceResponse === void 0 ? void 0 : insuranceResponse.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Insurance') {
+            return [
+                (_b = insuranceResponse.answer.value) === null || _b === void 0 ? void 0 : _b.payerId,
+                (_d = insuranceResponse.answer.value) === null || _d === void 0 ? void 0 : _d.memberId,
+                (_e = insuranceResponse.answer.value) === null || _e === void 0 ? void 0 : _e.payerName,
+            ];
+        }
+        return [];
+    }, [responses]), payerId = _h[0], memberId = _h[1], payerName = _h[2];
+    var checkEligibility = useCallback(function () { return __awaiter(void 0, void 0, void 0, function () {
+        var data, coverageId_1, checkId_1, initialStatus, maxAttempts_1, attempts_1, pollForResult_1, err_6;
+        var _a, _b;
+        return __generator(this, function (_d) {
+            switch (_d.label) {
+                case 0:
+                    setLoading(true);
+                    setError(undefined);
+                    _d.label = 1;
+                case 1:
+                    _d.trys.push([1, 3, , 4]);
+                    return [4 /*yield*/, session.api.integrations.proxy_read({
+                            id: enduserId,
+                            integration: CANDID_TITLE,
+                            type: 'candid-eligibility',
+                            query: JSON.stringify({
+                                serviceCode: (_a = field.options) === null || _a === void 0 ? void 0 : _a.candidServiceCode,
+                                npi: (_b = field.options) === null || _b === void 0 ? void 0 : _b.candidNPI,
+                                payerId: payerId,
+                                memberId: memberId,
+                                payerName: payerName,
+                            }),
+                        })];
+                case 2:
+                    data = (_d.sent()).data;
+                    coverageId_1 = data === null || data === void 0 ? void 0 : data.coverageId;
+                    checkId_1 = data === null || data === void 0 ? void 0 : data.checkId;
+                    initialStatus = data === null || data === void 0 ? void 0 : data.status;
+                    if (!coverageId_1 || !checkId_1) {
+                        throw new Error('No coverage ID or check ID returned from eligibility check');
+                    }
+                    // If already completed, update answer immediately
+                    if (initialStatus === 'COMPLETED' || initialStatus === 'FAILED' || initialStatus === 'UNKNOWN') {
+                        onChange({
+                            payerId: payerId,
+                            status: initialStatus,
+                            coverageId: coverageId_1,
+                        }, field.id);
+                        setLoading(false);
+                        return [2 /*return*/];
+                    }
+                    // Step 2: Poll for results
+                    setLoading(false);
+                    setPolling(true);
+                    maxAttempts_1 = 60 // 2 minutes at 2s intervals
+                    ;
+                    attempts_1 = 0;
+                    pollForResult_1 = function () { return __awaiter(void 0, void 0, void 0, function () {
+                        var pollData, status_2, err_7;
+                        return __generator(this, function (_a) {
+                            switch (_a.label) {
+                                case 0:
+                                    if (attempts_1 >= maxAttempts_1) {
+                                        setError('Eligibility check timed out. Please try again.');
+                                        setPolling(false);
+                                        return [2 /*return*/];
+                                    }
+                                    attempts_1++;
+                                    _a.label = 1;
+                                case 1:
+                                    _a.trys.push([1, 3, , 4]);
+                                    return [4 /*yield*/, session.api.integrations.proxy_read({
+                                            id: coverageId_1,
+                                            integration: CANDID_TITLE,
+                                            type: 'candid-eligibility-poll',
+                                            query: JSON.stringify({ checkId: checkId_1 }),
+                                        })];
+                                case 2:
+                                    pollData = (_a.sent()).data;
+                                    status_2 = pollData === null || pollData === void 0 ? void 0 : pollData.status;
+                                    // Terminal statuses: COMPLETED, FAILED, or UNKNOWN (Candid returns UNKNOWN when eligibility cannot be determined)
+                                    if (status_2 === 'COMPLETED' || status_2 === 'FAILED' || status_2 === 'UNKNOWN') {
+                                        onChange({
+                                            payerId: payerId,
+                                            status: status_2,
+                                            coverageId: coverageId_1,
+                                            benefits: pollData === null || pollData === void 0 ? void 0 : pollData.benefits,
+                                        }, field.id);
+                                        setPolling(false);
+                                        return [2 /*return*/];
+                                    }
+                                    // Still pending, poll again
+                                    pollTimeoutRef.current = setTimeout(pollForResult_1, 2000);
+                                    return [3 /*break*/, 4];
+                                case 3:
+                                    err_7 = _a.sent();
+                                    setError((err_7 === null || err_7 === void 0 ? void 0 : err_7.message) || 'Failed to check eligibility status');
+                                    setPolling(false);
+                                    return [3 /*break*/, 4];
+                                case 4: return [2 /*return*/];
+                            }
+                        });
+                    }); };
+                    pollForResult_1();
+                    return [3 /*break*/, 4];
+                case 3:
+                    err_6 = _d.sent();
+                    setError((err_6 === null || err_6 === void 0 ? void 0 : err_6.message) || 'Failed to check eligibility');
+                    console.error('Candid eligibility check failed:', err_6);
+                    setLoading(false);
+                    setPolling(false);
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
+            }
+        });
+    }); }, [session, field, payerId, memberId, payerName, onChange, enduserId]);
+    // Auto-check eligibility for enduser sessions
+    var autoCheckRef = useRef(false);
+    useEffect(function () {
+        if (!isEnduserSession)
+            return;
+        // If we already have a result and the payer hasn't changed, use the cached result
+        if ((value === null || value === void 0 ? void 0 : value.status) && (value === null || value === void 0 ? void 0 : value.payerId) === payerId) {
+            return;
+        }
+        if (autoCheckRef.current)
+            return;
+        autoCheckRef.current = true;
+        checkEligibility();
+    }, [isEnduserSession, checkEligibility, value, payerId]);
+    var errorComponent = useMemo(function () { return (_jsx(Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center", style: { padding: '20px 0' } }, { children: _jsx(Grid, __assign({ item: true }, { children: _jsx(Paper, __assign({ style: {
+                    padding: 16,
+                    backgroundColor: '#ffebee',
+                    border: '2px solid #f44336'
+                } }, { children: _jsxs(Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center" }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "h2", style: { color: '#f44336' } }, { children: "!" })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "h6", align: "center", color: "error" }, { children: "Unable to Check Eligibility" })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "body2", align: "center", style: { color: '#d32f2f' } }, { children: error })) }))] })) })) })) }))); }, [error]);
+    var checkingEligibilityComponent = useMemo(function () { return (_jsxs(Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center", style: { padding: '20px 0' } }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(CircularProgress, { size: 40 }) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "body1" }, { children: polling ? 'Verifying eligibility with insurance...' : 'Checking eligibility...' })) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: polling ? 'This usually takes 15-30 seconds' : 'This may take a few moments' })) }))] }))); }, [polling]);
+    var resultsComponent = useMemo(function () {
+        var isCompleted = (value === null || value === void 0 ? void 0 : value.status) === 'COMPLETED';
+        var isFailed = (value === null || value === void 0 ? void 0 : value.status) === 'FAILED';
+        return (_jsx(Grid, __assign({ container: true, spacing: 2, direction: "column" }, { children: _jsx(Grid, __assign({ item: true }, { children: _jsx(Paper, __assign({ style: {
+                        padding: 16,
+                        backgroundColor: isCompleted ? '#e8f5e9' : '#ffebee',
+                        border: "2px solid ".concat(isCompleted ? '#4caf50' : '#f44336')
+                    } }, { children: _jsxs(Grid, __assign({ container: true, spacing: 2, direction: "column", alignItems: "center" }, { children: [_jsx(Grid, __assign({ item: true }, { children: isCompleted ? (_jsx(CheckCircleOutline, { style: { fontSize: 48, color: '#4caf50' } })) : (_jsx(Typography, __assign({ variant: "h2", style: { color: '#f44336' } }, { children: "!" }))) })), _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "h6", align: "center" }, { children: isCompleted
+                                        ? "".concat(payerName || 'Insurance', " eligibility verified")
+                                        : isFailed
+                                            ? 'Eligibility check failed'
+                                            : 'Eligibility Status: ' + first_letter_capitalized(((value === null || value === void 0 ? void 0 : value.status) || 'Unknown').toLowerCase()) })) }))] })) })) })) })));
+    }, [value, payerName]);
+    // Loading/polling state for enduser sessions
+    if (isEnduserSession) {
+        if (loading || polling) {
+            return checkingEligibilityComponent;
+        }
+        if (error) {
+            return errorComponent;
+        }
+        if (value === null || value === void 0 ? void 0 : value.status) {
+            return resultsComponent;
+        }
+        return errorComponent;
+    }
+    // User/admin interface (non-enduser sessions)
+    return (_jsxs(Grid, __assign({ container: true, spacing: 2, direction: "column" }, { children: [_jsxs(Grid, __assign({ item: true }, { children: [_jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Service Code: ", ((_b = field.options) === null || _b === void 0 ? void 0 : _b.candidServiceCode) || 'Not configured'] })), _jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Provider NPI: ", ((_d = field.options) === null || _d === void 0 ? void 0 : _d.candidNPI) || 'Not configured'] })), payerId && _jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Payer ID: ", payerId] })), memberId && _jsxs(Typography, __assign({ variant: "body2", color: "textSecondary" }, { children: ["Member ID: ", memberId] }))] })), error && (_jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "body2", color: "error" }, { children: error })) }))), polling && (_jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ variant: "body2", color: "primary" }, { children: form_display_text_for_language(form, "Polling for results... (this may take 15-30 seconds)") })) }))), _jsx(Grid, __assign({ item: true, container: true, spacing: 2 }, { children: _jsx(Grid, __assign({ item: true }, { children: _jsx(LoadingButton, { variant: "outlined", onClick: checkEligibility, submitText: form_display_text_for_language(form, "Check Eligibility"), submittingText: polling ? form_display_text_for_language(form, "Polling...") : form_display_text_for_language(form, "Checking..."), submitting: loading || polling, disabled: loading || polling }) })) })), value && (_jsxs(Grid, __assign({ item: true }, { children: [_jsx(Typography, __assign({ variant: "caption", color: "textSecondary" }, { children: "Current Answer:" })), _jsx("pre", __assign({ style: { fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word' } }, { children: JSON.stringify(value, null, 2) }))] })))] })));
+};
 export var PharmacySearchInput = function (_a) {
     var field = _a.field, rawValue = _a.value, onChange = _a.onChange, responses = _a.responses, enduser = _a.enduser, form = _a.form, props = __rest(_a, ["field", "value", "onChange", "responses", "enduser", "form"]);
     var value = rawValue;
@@ -856,7 +1045,7 @@ export var PharmacySearchInput = function (_a) {
     var _f = useState([]), pharmacies = _f[0], setPharmacies = _f[1];
     var _g = useState(false), hasSearched = _g[0], setHasSearched = _g[1];
     var searchPharmacies = useCallback(function () { return __awaiter(void 0, void 0, void 0, function () {
-        var data, err_6;
+        var data, err_8;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
@@ -883,8 +1072,8 @@ export var PharmacySearchInput = function (_a) {
                     }
                     return [3 /*break*/, 5];
                 case 3:
-                    err_6 = _a.sent();
-                    setError((err_6 === null || err_6 === void 0 ? void 0 : err_6.message) || form_display_text_for_language(form, 'Failed to search pharmacies'));
+                    err_8 = _a.sent();
+                    setError((err_8 === null || err_8 === void 0 ? void 0 : err_8.message) || form_display_text_for_language(form, 'Failed to search pharmacies'));
                     setPharmacies([]);
                     return [3 /*break*/, 5];
                 case 4:
@@ -2329,7 +2518,7 @@ export var AppointmentBookingInput = function (_a) {
     var _s = useState(false), confirming = _s[0], setConfirming = _s[1];
     var bookingPageId = (_b = field === null || field === void 0 ? void 0 : field.options) === null || _b === void 0 ? void 0 : _b.bookingPageId;
     var downloadICS = useCallback(function (event) { return __awaiter(void 0, void 0, void 0, function () {
-        var _a, err_7;
+        var _a, err_9;
         return __generator(this, function (_b) {
             switch (_b.label) {
                 case 0:
@@ -2341,8 +2530,8 @@ export var AppointmentBookingInput = function (_a) {
                         { name: "event.ics", dataIsURL: true, type: 'text/calendar' }]);
                     return [3 /*break*/, 3];
                 case 2:
-                    err_7 = _b.sent();
-                    console.error(err_7);
+                    err_9 = _b.sent();
+                    console.error(err_9);
                     return [3 /*break*/, 3];
                 case 3: return [2 /*return*/];
             }

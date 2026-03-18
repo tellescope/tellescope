@@ -13,6 +13,7 @@ export declare const TellescopeFormContainer: ({ businessId, organizationIds, ..
     hideBg?: boolean | undefined;
     backgroundColor?: string | undefined;
     hideLogo?: boolean | undefined;
+    showLogo?: boolean | undefined;
     logoURL?: string | undefined;
     logoHeight?: number | undefined;
     language?: string | undefined;

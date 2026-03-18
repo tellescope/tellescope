@@ -3,7 +3,7 @@ import axios from "axios"
 import { Autocomplete, Box, Button, Checkbox, Chip, CircularProgress, Collapse, Divider, FormControl, FormControlLabel, FormLabel, Grid, IconButton as MuiIconButton, InputLabel, MenuItem, Paper, Radio, RadioGroup, Select, SxProps, TextField, TextFieldProps, Typography } from "@mui/material"
 import { FormInputProps } from "./types"
 import { useDropzone } from "react-dropzone"
-import { CANVAS_TITLE, BRIDGE_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
+import { CANVAS_TITLE, BRIDGE_TITLE, CANDID_TITLE, EMOTII_TITLE, INSURANCE_RELATIONSHIPS, INSURANCE_RELATIONSHIPS_CANVAS, PRIMARY_HEX, RELATIONSHIP_TYPES, TELLESCOPE_GENDERS } from "@tellescope/constants"
 import { MM_DD_YYYY_to_YYYY_MM_DD, capture_is_supported, downloadFile, emit_gtm_event, first_letter_capitalized, form_response_value_to_string, format_stripe_subscription_interval, getLocalTimezone, getPublicFileURL, mm_dd_yyyy, object_is_empty, replace_enduser_template_values, responses_satisfy_conditions, truncate_string, update_local_storage, user_display_name } from "@tellescope/utilities"
 import { Address, DatabaseSelectResponse, Enduser, EnduserRelationship, FormResponseValue, InsuranceRelationship, MedicationResponse, MultipleChoiceOptions, FormFieldOptionDetails, Pharmacy, TellescopeGender, TIMEZONES_USA } from "@tellescope/types-models"
 import { VALID_STATES, emailValidator, phoneValidator } from "@tellescope/validation"
@@ -25,7 +25,7 @@ import { Elements, PaymentElement, useStripe, useElements, EmbeddedCheckout, Emb
 import { loadStripe } from '@stripe/stripe-js'; 
 import { CheckCircleOutline, Delete, Edit, ExpandMore } from "@mui/icons-material"
 import { WYSIWYG } from "./wysiwyg"
-import { useConditionalChoices, Response } from "./hooks"
+import { dateFromOffsetMs, useConditionalChoices, Response } from "./hooks"
 
 // Bridge Eligibility - shared variable for storing most recent eligibility userIds
 const bridgeEligibilityResult = {
@@ -265,13 +265,16 @@ const CustomDateInput = forwardRef((props: TextFieldProps, ref) => (
     fullWidth inputRef={ref} {...props} 
   />
 ))
-export const DateInput = ({ 
-  field, value, onChange, placement='top', ...props 
+export const DateInput = ({
+  field, value, onChange, placement='top', ...props
 } : {
   field: FormField,
   placement?: 'top' | 'right' | 'bottom' | 'left'
 } & FormInputProps<'date'> & Styled) => {
   const inputRef = useRef(null);
+
+  const minDate = field.options?.minDateOffsetMs !== undefined ? dateFromOffsetMs(field.options.minDateOffsetMs) : undefined
+  const maxDate = field.options?.maxDateOffsetMs !== undefined ? dateFromOffsetMs(field.options.maxDateOffsetMs) : undefined
 
   return (
     <DatePicker // wrap in item to prevent movement on focused
@@ -286,6 +289,8 @@ export const DateInput = ({
       customInput={<CustomDateInput inputRef={inputRef} {...props} />}
       // className={css`width: 100%;`}
       className={css`${datepickerCSS}`}
+      minDate={minDate}
+      maxDate={maxDate}
     />
   )
 }
@@ -436,6 +441,9 @@ const CustomDateStringInput = forwardRef((props: TextFieldProps & { inputProps?:
 export const DateStringInput = ({ field, value, onChange, form, ...props }: FormInputProps<'string'>) => {
   const inputRef = useRef(null);
 
+  const minDate = field.options?.minDateOffsetMs !== undefined ? dateFromOffsetMs(field.options.minDateOffsetMs) : undefined
+  const maxDate = field.options?.maxDateOffsetMs !== undefined ? dateFromOffsetMs(field.options.maxDateOffsetMs) : undefined
+
   // if (value && isDateString(value)) {
   //   console.log(value, new Date(
   //     new Date(MM_DD_YYYY_to_YYYY_MM_DD(value)).getTime()
@@ -459,11 +467,13 @@ export const DateStringInput = ({ field, value, onChange, form, ...props }: Form
           required={!field.isOptional}
           autoComplete="off"
           dateFormat={"MM-dd-yyyy"}
-          customInput={<CustomDateStringInput inputRef={inputRef} {...props} 
-            label={(!field.title && field.placeholder) ? field.placeholder : props.label} 
+          customInput={<CustomDateStringInput inputRef={inputRef} {...props}
+            label={(!field.title && field.placeholder) ? field.placeholder : props.label}
           />}
           // className={css`width: 100%;`}
           className={css`${datepickerCSS}`}
+          minDate={minDate}
+          maxDate={maxDate}
         />
       )
       : (
@@ -1400,6 +1410,294 @@ export const BridgeEligibilityInput = ({ field, value, onChange, responses, endu
             submittingText={polling ? form_display_text_for_language(form, "Polling...") : form_display_text_for_language(form, "Initiating...")}
             submitting={loading || polling}
             disabled={!field.options?.bridgeServiceTypeIds?.length || loading || polling}
+          />
+        </Grid>
+      </Grid>
+
+      {value && (
+        <Grid item>
+          <Typography variant="caption" color="textSecondary">
+            Current Answer:
+          </Typography>
+          <pre style={{ fontSize: 11, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+            {JSON.stringify(value, null, 2)}
+          </pre>
+        </Grid>
+      )}
+    </Grid>
+  )
+}
+
+export const CandidEligibilityInput = ({ field, value, onChange, responses, enduser, inputProps, enduserId, form, ...props }: FormInputProps<'Candid Eligibility'> & {
+  inputProps?: { sx: SxProps },
+}) => {
+  const session = useResolvedSession()
+  const [loading, setLoading] = useState(false)
+  const [polling, setPolling] = useState(false)
+  const [error, setError] = useState<string>()
+
+  const isEnduserSession = session.type === 'enduser'
+  const pollTimeoutRef = useRef<ReturnType<typeof setTimeout>>()
+
+  // Clean up polling timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (pollTimeoutRef.current) clearTimeout(pollTimeoutRef.current)
+    }
+  }, [])
+
+  // Extract payerId from Insurance question response
+  const [payerId, memberId, payerName] = useMemo(() => {
+    const insuranceResponse = responses?.find(r => r.answer?.type === 'Insurance' && r.answer?.value?.payerId)
+    if (insuranceResponse?.answer?.type === 'Insurance') {
+      return [
+        insuranceResponse.answer.value?.payerId,
+        insuranceResponse.answer.value?.memberId,
+        insuranceResponse.answer.value?.payerName,
+      ]
+    }
+    return []
+  }, [responses])
+
+  const checkEligibility = useCallback(async () => {
+    setLoading(true)
+    setError(undefined)
+
+    try {
+      // Step 1: Initiate eligibility check (creates patient → coverage → check)
+      const { data } = await session.api.integrations.proxy_read({
+        id: enduserId,
+        integration: CANDID_TITLE,
+        type: 'candid-eligibility',
+        query: JSON.stringify({
+          serviceCode: field.options?.candidServiceCode,
+          npi: field.options?.candidNPI,
+          payerId,
+          memberId,
+          payerName,
+        }),
+      })
+
+      const coverageId = data?.coverageId
+      const checkId = data?.checkId
+      const initialStatus = data?.status
+
+      if (!coverageId || !checkId) {
+        throw new Error('No coverage ID or check ID returned from eligibility check')
+      }
+
+      // If already completed, update answer immediately
+      if (initialStatus === 'COMPLETED' || initialStatus === 'FAILED' || initialStatus === 'UNKNOWN') {
+        onChange({
+          payerId,
+          status: initialStatus,
+          coverageId,
+        }, field.id)
+        setLoading(false)
+        return
+      }
+
+      // Step 2: Poll for results
+      setLoading(false)
+      setPolling(true)
+
+      const maxAttempts = 60 // 2 minutes at 2s intervals
+      let attempts = 0
+
+      const pollForResult = async (): Promise<void> => {
+        if (attempts >= maxAttempts) {
+          setError('Eligibility check timed out. Please try again.')
+          setPolling(false)
+          return
+        }
+
+        attempts++
+
+        try {
+          const { data: pollData } = await session.api.integrations.proxy_read({
+            id: coverageId,
+            integration: CANDID_TITLE,
+            type: 'candid-eligibility-poll',
+            query: JSON.stringify({ checkId }),
+          })
+
+          const status = pollData?.status
+          // Terminal statuses: COMPLETED, FAILED, or UNKNOWN (Candid returns UNKNOWN when eligibility cannot be determined)
+          if (status === 'COMPLETED' || status === 'FAILED' || status === 'UNKNOWN') {
+            onChange({
+              payerId,
+              status,
+              coverageId,
+              benefits: pollData?.benefits,
+            }, field.id)
+            setPolling(false)
+            return
+          }
+
+          // Still pending, poll again
+          pollTimeoutRef.current = setTimeout(pollForResult, 2000)
+        } catch (err: any) {
+          setError(err?.message || 'Failed to check eligibility status')
+          setPolling(false)
+        }
+      }
+
+      pollForResult()
+    } catch (err: any) {
+      setError(err?.message || 'Failed to check eligibility')
+      console.error('Candid eligibility check failed:', err)
+      setLoading(false)
+      setPolling(false)
+    }
+  }, [session, field, payerId, memberId, payerName, onChange, enduserId])
+
+  // Auto-check eligibility for enduser sessions
+  const autoCheckRef = useRef(false)
+  useEffect(() => {
+    if (!isEnduserSession) return
+
+    // If we already have a result and the payer hasn't changed, use the cached result
+    if (value?.status && value?.payerId === payerId) {
+      return
+    }
+
+    if (autoCheckRef.current) return
+    autoCheckRef.current = true
+
+    checkEligibility()
+  }, [isEnduserSession, checkEligibility, value, payerId])
+
+  const errorComponent = useMemo(() => (
+    <Grid container spacing={2} direction="column" alignItems="center" style={{ padding: '20px 0' }}>
+      <Grid item>
+        <Paper style={{
+          padding: 16,
+          backgroundColor: '#ffebee',
+          border: '2px solid #f44336'
+        }}>
+          <Grid container spacing={2} direction="column" alignItems="center">
+            <Grid item>
+              <Typography variant="h2" style={{ color: '#f44336' }}>!</Typography>
+            </Grid>
+            <Grid item>
+              <Typography variant="h6" align="center" color="error">
+                Unable to Check Eligibility
+              </Typography>
+            </Grid>
+            <Grid item>
+              <Typography variant="body2" align="center" style={{ color: '#d32f2f' }}>
+                {error}
+              </Typography>
+            </Grid>
+          </Grid>
+        </Paper>
+      </Grid>
+    </Grid>
+  ), [error])
+
+  const checkingEligibilityComponent = useMemo(() => (
+    <Grid container spacing={2} direction="column" alignItems="center" style={{ padding: '20px 0' }}>
+      <Grid item>
+        <CircularProgress size={40} />
+      </Grid>
+      <Grid item>
+        <Typography variant="body1">
+          {polling ? 'Verifying eligibility with insurance...' : 'Checking eligibility...'}
+        </Typography>
+      </Grid>
+      <Grid item>
+        <Typography variant="body2" color="textSecondary">
+          {polling ? 'This usually takes 15-30 seconds' : 'This may take a few moments'}
+        </Typography>
+      </Grid>
+    </Grid>
+  ), [polling])
+
+  const resultsComponent = useMemo(() => {
+    const isCompleted = value?.status === 'COMPLETED'
+    const isFailed = value?.status === 'FAILED'
+    return (
+      <Grid container spacing={2} direction="column">
+        <Grid item>
+          <Paper style={{
+            padding: 16,
+            backgroundColor: isCompleted ? '#e8f5e9' : '#ffebee',
+            border: `2px solid ${isCompleted ? '#4caf50' : '#f44336'}`
+          }}>
+            <Grid container spacing={2} direction="column" alignItems="center">
+              <Grid item>
+                {isCompleted ? (
+                  <CheckCircleOutline style={{ fontSize: 48, color: '#4caf50' }} />
+                ) : (
+                  <Typography variant="h2" style={{ color: '#f44336' }}>!</Typography>
+                )}
+              </Grid>
+              <Grid item>
+                <Typography variant="h6" align="center">
+                  {isCompleted
+                    ? `${payerName || 'Insurance'} eligibility verified`
+                    : isFailed
+                      ? 'Eligibility check failed'
+                      : 'Eligibility Status: ' + first_letter_capitalized((value?.status || 'Unknown').toLowerCase())
+                  }
+                </Typography>
+              </Grid>
+            </Grid>
+          </Paper>
+        </Grid>
+      </Grid>
+    )
+  }, [value, payerName])
+
+  // Loading/polling state for enduser sessions
+  if (isEnduserSession) {
+    if (loading || polling) { return checkingEligibilityComponent }
+    if (error) {
+      return errorComponent
+    }
+    if (value?.status) {
+      return resultsComponent
+    }
+    return errorComponent
+  }
+
+  // User/admin interface (non-enduser sessions)
+  return (
+    <Grid container spacing={2} direction="column">
+      <Grid item>
+        <Typography variant="body2" color="textSecondary">
+          Service Code: {field.options?.candidServiceCode || 'Not configured'}
+        </Typography>
+        <Typography variant="body2" color="textSecondary">
+          Provider NPI: {field.options?.candidNPI || 'Not configured'}
+        </Typography>
+        {payerId && <Typography variant="body2" color="textSecondary">Payer ID: {payerId}</Typography>}
+        {memberId && <Typography variant="body2" color="textSecondary">Member ID: {memberId}</Typography>}
+      </Grid>
+
+      {error && (
+        <Grid item>
+          <Typography variant="body2" color="error">{error}</Typography>
+        </Grid>
+      )}
+
+      {polling && (
+        <Grid item>
+          <Typography variant="body2" color="primary">
+            {form_display_text_for_language(form, "Polling for results... (this may take 15-30 seconds)")}
+          </Typography>
+        </Grid>
+      )}
+
+      <Grid item container spacing={2}>
+        <Grid item>
+          <LoadingButton
+            variant="outlined"
+            onClick={checkEligibility}
+            submitText={form_display_text_for_language(form, "Check Eligibility")}
+            submittingText={polling ? form_display_text_for_language(form, "Polling...") : form_display_text_for_language(form, "Checking...")}
+            submitting={loading || polling}
+            disabled={loading || polling}
           />
         </Grid>
       </Grid>

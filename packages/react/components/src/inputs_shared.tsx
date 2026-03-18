@@ -1,7 +1,7 @@
 import React, { useEffect, useCallback, useMemo, useState, useRef } from "react"
 import { Indexable, ScoreFilter } from "@tellescope/types-utilities"
-import { is_full_iso_string_heuristic, object_is_empty, objects_equivalent, read_local_storage, replace_keys_and_values_in_object, safeJSONParse, update_local_storage, user_display_name, value_for_dotted_key } from "@tellescope/utilities"
-import { LoadFunction, LoadFunctionArguments } from "@tellescope/sdk"
+import { is_full_iso_string_heuristic, object_is_empty, objects_equivalent, read_local_storage, replace_keys_and_values_in_object, safeJSONParse, to_human_readable_phone_number, update_local_storage, user_display_name, value_for_dotted_key } from "@tellescope/utilities"
+import { LoadFunction, LoadFunctionArguments, Session } from "@tellescope/sdk"
 import { ALL_ACCESS, HEALTHIE_TITLE, UNSEARCHABLE_FIELDS } from "@tellescope/constants"
 import { SearchAPIProps, useSearchAPI } from "./hooks"
 import { TextFieldProps } from "./mui"
@@ -1398,6 +1398,7 @@ export interface UserAndEnduserSelectorProps {
   dontIncludeSelf: boolean,
   virtualizationHeight?: number,
   showEntityType?: boolean,
+  showEnduserDetails?: boolean,
 }
 export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserSelectorProps> = ({
   titleInput,
@@ -1419,6 +1420,7 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
   dontIncludeSelf,
   virtualizationHeight,
   showEntityType,
+  showEnduserDetails,
 }) => {
   const session = useResolvedSession()
   const [endusersLoading, { loadMore: loadMoreEndusers, doneLoading: doneLoadingEndusers }] = useEndusers()
@@ -1513,7 +1515,7 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
             virtualizationHeight ? {
               virtualize: true,
               height: virtualizationHeight,
-              rowHeight: 45,
+              rowHeight: showEnduserDetails ? 65 : 45,
               width: '100%',
               hideHorizontalScroll: true,
             } : undefined
@@ -1571,13 +1573,45 @@ export const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserS
                 </Typography>
 
                 {showEntityType && (user as Enduser).customTypeId &&
-                  <Typography style={{ 
+                  <Typography style={{
                     fontWeight: selected.includes(user.id) ? 'bold' : undefined,
                     fontSize: 12.5,
                   }}>
                     {entityTypes.find(t => t.id === (user as Enduser).customTypeId)?.title}
-                  </Typography> 
+                  </Typography>
                 }
+
+                {showEnduserDetails && !users.find(u => u.id === user.id) && (() => {
+                  const enduser = user as Enduser
+                  const hiddenFields = session.type === 'user' ? (session as Session).userInfo.uiRestrictions?.hiddenFields : undefined
+                  const customTypeId = enduser.customTypeId
+
+                  const isHidden = (field: string) =>
+                    hiddenFields?.find(v => v.field === field && ((v.type || '') === (customTypeId || '')))
+
+                  const details: string[] = []
+
+                  if (enduser.dateOfBirth && !isHidden('dateOfBirth')) {
+                    const d = new Date(enduser.dateOfBirth)
+                    if (!isNaN(d.getTime())) {
+                      details.push(`DOB: ${(d.getUTCMonth() + 1).toString().padStart(2, '0')}-${d.getUTCDate().toString().padStart(2, '0')}-${d.getUTCFullYear()}`)
+                    }
+                  }
+                  if (enduser.email && !isHidden('email')) {
+                    details.push(enduser.email)
+                  }
+                  if (enduser.phone && !isHidden('phone')) {
+                    details.push(to_human_readable_phone_number(enduser.phone) || enduser.phone)
+                  }
+
+                  if (details.length === 0) return null
+
+                  return (
+                    <Typography style={{ fontSize: 11.5, color: '#888' }}>
+                      {details.join(' | ')}
+                    </Typography>
+                  )
+                })()}
               </Flex>
             </Flex>
             </HoverPaper>

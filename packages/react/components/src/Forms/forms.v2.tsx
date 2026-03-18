@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from "react"
 import { Button, CircularProgress, FileBlob, FileUploadHandler, Flex, LinearProgress, LoadingButton, Modal, Paper, Styled, Typography, WithTheme, form_display_text_for_language, useFileUpload, useFormResponses, useSession } from "../index"
 import { useListForFormFields, useOrganizationTheme, useTellescopeForm, WithOrganizationTheme, Response, FileResponse, NextFieldLogicOptions } from "./hooks"
 import { ChangeHandler, FormInputs } from "./types"
-import { AddToDatabaseProps, AddressInput, AllergiesInput, AppointmentBookingInput, BelugaPatientPreferenceInput, BridgeEligibilityInput, ChargeebeeInput, ConditionsInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PharmacySearchInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, RichTextInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, TimezoneInput, defaultButtonStyles } from "./inputs.v2"
+import { AddToDatabaseProps, AddressInput, AllergiesInput, AppointmentBookingInput, BelugaPatientPreferenceInput, BridgeEligibilityInput, CandidEligibilityInput, ChargeebeeInput, ConditionsInput, DatabaseSelectInput, DateInput, DateStringInput, DropdownInput, EmailInput, EmotiiInput, FileInput, FilesInput, HeightInput, HiddenValueInput, InsuranceInput, LanguageSelect, MedicationsInput, MultipleChoiceInput, NumberInput, PharmacySearchInput, PhoneInput, Progress, RankingInput, RatingInput, RedirectInput, RelatedContactsInput, RichTextInput, SignatureInput, StringInput, StringLongInput, StripeInput, TableInput, TimeInput, TimezoneInput, defaultButtonStyles } from "./inputs.v2"
 import { PRIMARY_HEX } from "@tellescope/constants"
 import { FormResponse, FormField, Form, Enduser } from "@tellescope/types-client"
 import { FormResponseAnswerFileValue, OrganizationTheme } from "@tellescope/types-models"
@@ -17,6 +17,7 @@ export const TellescopeFormContainerV2 = ({ businessId, organizationIds, ...prop
   hideBg?: boolean,
   backgroundColor?: string,
   hideLogo?: boolean,
+  showLogo?: boolean,
   logoURL?: string,
   logoHeight?: number,
   language?: string,
@@ -36,7 +37,7 @@ export const TellescopeFormContainerV2 = ({ businessId, organizationIds, ...prop
   )
 }
 
-const TellescopeFormContainerWithThemeV2: typeof TellescopeFormContainerV2 = ({ paperMinHeight=575, children, language, onChangeLanguage, style, hideBg, backgroundColor, hideLogo, logoHeight, maxWidth }) => {
+const TellescopeFormContainerWithThemeV2: typeof TellescopeFormContainerV2 = ({ paperMinHeight=575, children, language, onChangeLanguage, style, hideBg, backgroundColor, hideLogo, showLogo, logoURL, logoHeight, maxWidth }) => {
   const theme = useOrganizationTheme()
 
   // V2: No paper background by default, cleaner layout with light blue background
@@ -44,10 +45,13 @@ const TellescopeFormContainerWithThemeV2: typeof TellescopeFormContainerV2 = ({ 
   const shouldUseCustomBg = backgroundColor && backgroundColor !== theme.themeColor && backgroundColor !== '#ffffff'
   const finalBgColor = shouldUseCustomBg ? backgroundColor : '#F4F3FA'
 
+  const resolvedLogoURL = logoURL || theme?.logoURL
+
   return (
     <Flex flex={1} column alignItems="center" style={{
       backgroundColor: finalBgColor,
       overflow: 'auto',
+      boxSizing: 'border-box',
       paddingTop: window.innerWidth < 600 ? 20 : 40,
       paddingBottom: window.innerWidth < 600 ? 20 : 40,
       ...style
@@ -68,6 +72,21 @@ const TellescopeFormContainerWithThemeV2: typeof TellescopeFormContainerV2 = ({ 
             <LanguageSelect value={language} onChange={onChangeLanguage} />
           </Flex>
         }
+        {showLogo && !hideLogo && (
+          resolvedLogoURL
+            ? (
+              <Flex alignItems="flex-start" style={{ marginBottom: '20px', marginTop: '10px' }}>
+                <img src={resolvedLogoURL} alt={theme?.name} style={{ height: logoHeight || LOGO_HEIGHT, maxWidth: 225 }} />
+              </Flex>
+            )
+            : theme?.name
+              ? (
+                <Typography style={{ fontSize: 22, marginBottom: '20px', marginTop: '10px', textAlign: 'left', fontWeight: 600 }}>
+                  {theme.name}
+                </Typography>
+              )
+              : null
+        )}
         {children}
       </Flex>
     </Flex>
@@ -177,6 +196,7 @@ export const QuestionForField = ({
   const RelatedContacts = customInputs?.['Related Contacts'] ?? RelatedContactsInput
   const Insurance = customInputs?.['Insurance'] ?? InsuranceInput
   const BridgeEligibility = customInputs?.['Bridge Eligibility'] ?? BridgeEligibilityInput
+  const CandidEligibility = customInputs?.['Candid Eligibility'] ?? CandidEligibilityInput
   const AppointmentBooking = customInputs?.['Appointment Booking'] ?? AppointmentBookingInput
   const Height = customInputs?.['Height'] ?? HeightInput
   const Redirect = customInputs?.['Redirect'] ?? RedirectInput
@@ -217,7 +237,7 @@ export const QuestionForField = ({
           fontSize: field.titleFontSize || (field.type === 'Question Group' ? 22 : 20),
           fontWeight: field.type === 'Question Group' ? 'bold' : undefined,
         }}>
-          {field.title}{!(field.isOptional || field.type === 'description' || field.type === 'Question Group' || field.type === 'Insurance' || field.type === 'Bridge Eligibility') ? '*' : ''}
+          {field.title}{!(field.isOptional || field.type === 'description' || field.type === 'Question Group' || field.type === 'Insurance' || field.type === 'Bridge Eligibility' || field.type === 'Candid Eligibility') ? '*' : ''}
         </Typography>
       }
       {!field.title && (field.type === 'Question Group' || field.type === 'signature') && !form?.customization?.hideLogo &&
@@ -372,6 +392,12 @@ export const QuestionForField = ({
           <BridgeEligibility field={field} value={value.answer.value as any} form={form}
             enduser={enduser} responses={responses} enduserId={enduserId}
             onChange={onFieldChange as ChangeHandler<'Bridge Eligibility'>}
+          />
+        )
+        : field.type === 'Candid Eligibility' ? (
+          <CandidEligibility field={field} value={value.answer.value as any} form={form}
+            enduser={enduser} responses={responses} enduserId={enduserId}
+            onChange={onFieldChange as ChangeHandler<'Candid Eligibility'>}
           />
         )
         : field.type === 'Pharmacy Search' ? (

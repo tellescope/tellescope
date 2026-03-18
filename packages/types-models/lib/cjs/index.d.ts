@@ -1444,6 +1444,7 @@ export interface MessageTemplate extends MessageTemplate_readonly, MessageTempla
     forChannels?: string[];
     forRoles?: string[];
     forEntityTypes?: string[];
+    forUserTags?: ListOfStringsWithQualifier;
     hideFromCompose?: boolean;
     tags?: string[];
     archivedAt?: Date | '';
@@ -1559,6 +1560,7 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
     message?: string;
     type?: string;
     owner?: string;
+    skipCareTeamAssignment?: boolean;
     skillsRequired?: string[];
     chatRoomId?: string;
     priority?: number;
@@ -1621,6 +1623,11 @@ export interface TicketTemplate extends TicketTemplate_readonly, TicketTemplate_
     priority?: number;
     tags?: string[];
     archivedAt?: Date | '';
+    actions?: TicketAction[];
+    closeOnFinishedActions?: boolean;
+    contextFormIds?: string[];
+    contextEnduserFields?: string[];
+    contextContentIds?: string[];
 }
 export type AttendeeInfo = {
     ExternalUserId: string;
@@ -1697,7 +1704,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
     copiedFromEnduserId?: string;
 }
 export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' | 'dateString' | 'rating' | 'Time' | "Timezone";
-export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance" | "Bridge Eligibility" | "Beluga Patient Preference" | "Pharmacy Search";
+export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance" | "Bridge Eligibility" | "Candid Eligibility" | "Beluga Patient Preference" | "Pharmacy Search";
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType;
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic';
 export type PreviousFormFieldBuilder<T extends PreviousFormFieldType, V> = {
@@ -1748,6 +1755,8 @@ export type FormFieldValidation = {
     minLength?: number;
     maxLength?: number;
     repeat?: boolean;
+    minDateOffsetMs?: number;
+    maxDateOffsetMs?: number;
 };
 export type CanvasCoding = {
     system: string;
@@ -1809,6 +1818,8 @@ export type FormFieldOptions = FormFieldValidation & {
     bridgeServiceTypeIds?: string[];
     bridgeEligibilityType?: 'Soft' | 'Hard';
     useBridgeEligibilityResult?: boolean;
+    candidServiceCode?: string;
+    candidNPI?: string;
     addressFields?: string[];
     validStates?: string[];
     autoAdvance?: boolean;
@@ -1920,6 +1931,7 @@ export type FormCustomization = {
     maxWidth?: number;
     primaryColor?: string;
     secondaryColor?: string;
+    showLogoOnIntakePage?: boolean;
 };
 export interface Form_readonly extends ClientRecord {
     numFields: number;
@@ -2118,6 +2130,7 @@ export type DatabaseRecordFields = {
         required?: boolean;
         hideFromTable?: boolean;
         wrap?: string;
+        trimStrings?: boolean;
         options?: DatabaseRecordFieldsInfo[K]['options'];
     };
 };
@@ -2234,6 +2247,12 @@ export type FormResponseAnswerBridgeEligibility = FormResponseValueAnswerBuilder
     status?: string;
     userIds?: string[];
 }>;
+export type FormResponseAnswerCandidEligibility = FormResponseValueAnswerBuilder<'Candid Eligibility', {
+    payerId?: string;
+    status?: string;
+    coverageId?: string;
+    benefits?: object;
+}>;
 export type FormResponseAnswerHeight = FormResponseValueAnswerBuilder<'Height', {
     feet: number;
     inches: number;
@@ -2268,7 +2287,7 @@ export type FormResponseAnswerFileValue = {
 export type FormResponseAnswerFile = FormResponseValueAnswerBuilder<'file', FormResponseAnswerFileValue>;
 export type FormResponseAnswerFiles = FormResponseValueAnswerBuilder<'files', FormResponseAnswerFileValue[]>;
 export type FormResponseAnswerTimezone = FormResponseValueAnswerBuilder<'Timezone', string>;
-export type FormResponseValueAnswer = (FormResponseAnswerGroup | FormResponseAnswerTimezone | FormResponseAnswerTable | FormResponseAnswerDescription | FormResponseAnswerEmail | FormResponseAnswerNumber | FormResponseAnswerPhone | FormResponseAnswerString | FormResponseAnswerStringLong | FormResponseAnswerRichText | FormResponseAnswerSignature | FormResponseAnswerMultipleChoice | FormResponseAnswerFile | FormResponseAnswerFiles | FormResponseAnswerDate | FormResponseAnswerRating | FormResponseAnswerRanking | FormResponseAnswerDateString | FormResponseAnswerAddress | FormResponseAnswerTime | FormResponseAnswerStripe | FormResponseAnswerDropdown | FormResponseAnswerDatabaseSelect | FormResponseAnswerMedications | FormResponseAnswerRelatedContacts | FormResponseAnswerInsurance | FormResponseAnswerAppointmentBooking | FormResponseAnswerHeight | FormResponseAnswerRedirect | FormResponseAnswerHiddenValue | FormResponseAnswerEmotii | FormResponseAnswerAllergies | FormResponseAnswerConditions | FormResponseAnswerChargebee | FormResponseAnswerBelugaPatientPreference | FormResponseAnswerBridgeEligibility | FormResponseAnswerPharmacySearch);
+export type FormResponseValueAnswer = (FormResponseAnswerGroup | FormResponseAnswerTimezone | FormResponseAnswerTable | FormResponseAnswerDescription | FormResponseAnswerEmail | FormResponseAnswerNumber | FormResponseAnswerPhone | FormResponseAnswerString | FormResponseAnswerStringLong | FormResponseAnswerRichText | FormResponseAnswerSignature | FormResponseAnswerMultipleChoice | FormResponseAnswerFile | FormResponseAnswerFiles | FormResponseAnswerDate | FormResponseAnswerRating | FormResponseAnswerRanking | FormResponseAnswerDateString | FormResponseAnswerAddress | FormResponseAnswerTime | FormResponseAnswerStripe | FormResponseAnswerDropdown | FormResponseAnswerDatabaseSelect | FormResponseAnswerMedications | FormResponseAnswerRelatedContacts | FormResponseAnswerInsurance | FormResponseAnswerAppointmentBooking | FormResponseAnswerHeight | FormResponseAnswerRedirect | FormResponseAnswerHiddenValue | FormResponseAnswerEmotii | FormResponseAnswerAllergies | FormResponseAnswerConditions | FormResponseAnswerChargebee | FormResponseAnswerBelugaPatientPreference | FormResponseAnswerBridgeEligibility | FormResponseAnswerCandidEligibility | FormResponseAnswerPharmacySearch);
 export type FormResponseValue = {
     fieldId: string;
     fieldTitle: string;
@@ -2309,6 +2328,7 @@ export type AnswerForType = {
     'Related Contacts': FormResponseAnswerRelatedContacts['value'];
     'Insurance': FormResponseAnswerInsurance['value'];
     'Bridge Eligibility': FormResponseAnswerBridgeEligibility['value'];
+    'Candid Eligibility': FormResponseAnswerCandidEligibility['value'];
     'Appointment Booking': FormResponseAnswerAppointmentBooking['value'];
     'Chargebee': FormResponseAnswerChargebee['value'];
     'Height': FormResponseAnswerHeight['value'];
@@ -2466,6 +2486,7 @@ type BuildCalendarEventReminderInfo<T, I> = {
     dontSendIfPassed?: boolean;
     didRemind?: boolean;
     dontSendIfJoined?: boolean;
+    skipEnduserIds?: string[];
 };
 export type CalendarEventReminderInfoForType = {
     "webhook": BuildCalendarEventReminderInfo<'webhook', {}>;
@@ -2620,6 +2641,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
     preventCancelInPortal?: boolean;
     sendIcsEmail?: boolean;
     healthieInsuranceBillingEnabled?: boolean;
+    resendRemindersOnAttendeeAdd?: boolean;
 }
 export type PaymentProcessor = 'Square' | 'Stripe';
 export interface Product_readonly extends ClientRecord {
@@ -2758,6 +2780,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
     athenaBookingTypeId?: string;
     healthieInsuranceBillingEnabled?: boolean;
     replaceHostOnReschedule?: boolean;
+    resendRemindersOnAttendeeAdd?: boolean;
 }
 export interface AppointmentLocation_readonly extends ClientRecord {
 }
@@ -2924,6 +2947,12 @@ export type SenderAssignmentStrategies = {
     'Default': {
         type: 'Default';
         info: {};
+    };
+    'Care Team': {
+        type: 'Care Team';
+        info: {
+            tags?: ListOfStringsWithQualifier;
+        };
     };
 };
 export type SenderAssignmentStrategyType = keyof SenderAssignmentStrategies;
@@ -3194,10 +3223,34 @@ export type SmartMeterPlaceOrderAutomationAction = AutomationActionBuilder<'smar
     lines: SmartMeterOrderLineItem[];
     shipping?: string;
 }>;
+export type BelugaAutoRxPatientPreferenceItem = {
+    name: string;
+    strength: string;
+    refills: string;
+    quantity: string;
+    medId: string;
+};
+export type BelugaAutoRxAutomationAction = AutomationActionBuilder<'belugaAutoRx', {
+    patientPreference: BelugaAutoRxPatientPreferenceItem;
+    pharmacyId: string;
+}>;
+export type BelugaUpdateVisitPatientPreferenceItem = {
+    name: string;
+    strength: string;
+    refills: string;
+    quantity: string;
+    daysSupply: string;
+    medId: string;
+};
+export type BelugaUpdateVisitAutomationAction = AutomationActionBuilder<'belugaUpdateVisit', {
+    patientPreferences: BelugaUpdateVisitPatientPreferenceItem[];
+    pharmacyId: string;
+}>;
 export type SendChatAutomationAction = AutomationActionBuilder<'sendChat', {
     templateId: string;
     identifier: string;
     includeCareTeam?: boolean;
+    careTeamTags?: ListOfStringsWithQualifier;
     userIds?: string[];
     sendToDestinationOfRelatedContactTypes?: string[];
 }>;
@@ -3209,6 +3262,9 @@ export type HealthieSendChatAutomationAction = AutomationActionBuilder<'healthie
     templateId: string;
     identifier: string;
     includeCareTeam?: boolean;
+}>;
+export type HealthiePushFormsAutomationAction = AutomationActionBuilder<'healthiePushForms', {
+    formIds: string[];
 }>;
 export type CompleteTicketsAutomationAction = AutomationActionBuilder<'completeTickets', {
     journeyIds?: string[];
@@ -3361,9 +3417,12 @@ export type AutomationActionForType = {
     'zusSubscribe': ZusSubscribeAutomationAction;
     'pagerDutyCreateIncident': PagerDutyCreateIncidentAutomationAction;
     'smartMeterPlaceOrder': SmartMeterPlaceOrderAutomationAction;
+    'belugaAutoRx': BelugaAutoRxAutomationAction;
+    'belugaUpdateVisit': BelugaUpdateVisitAutomationAction;
     'healthieSync': HealthieSyncAutomationAction;
     healthieAddToCourse: HealthieAddToCourseAutomationAction;
     healthieSendChat: HealthieSendChatAutomationAction;
+    healthiePushForms: HealthiePushFormsAutomationAction;
     'completeTickets': CompleteTicketsAutomationAction;
     'changeContactType': ChangeContactTypeAutomationAction;
     activeCampaignSync: ActiveCampaignSyncAutomationAction;
@@ -3724,6 +3783,7 @@ export interface AutomatedAction extends AutomatedAction_readonly, AutomatedActi
     isNOP?: boolean;
     cancelledBy?: string;
     journeyContext?: JourneyContext;
+    externalId?: string;
 }
 export interface UserLog_readonly extends ClientRecord {
     userId: string;
@@ -4602,6 +4662,10 @@ export type AutomationTriggerEvents = {
         templateIds?: string[];
     }, {}>;
     'Healthie Note Locked': AutomationTriggerEventBuilder<"Healthie Note Locked", {
+        healthieFormIds?: string[];
+        answersCondition?: Record<string, any>;
+    }, {}>;
+    'Healthie Form Answer Group Created': AutomationTriggerEventBuilder<"Healthie Form Answer Group Created", {
         healthieFormIds?: string[];
         answersCondition?: Record<string, any>;
     }, {}>;

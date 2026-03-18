@@ -9,7 +9,13 @@ import { WithTheme, contact_is_valid, useAddGTMTag, useFileUpload, useFormFields
 import ReactGA from "react-ga4";
 
 import isEmail from "validator/lib/isEmail"
-import { append_current_utm_params, emit_gtm_event, field_can_autoadvance, getLocalTimezone, get_time_values, get_utm_params, is_object, object_is_empty, read_local_storage, replace_form_field_template_values, responses_satisfy_conditions, update_local_storage } from "@tellescope/utilities"
+import { MM_DD_YYYY_to_YYYY_MM_DD, append_current_utm_params, emit_gtm_event, field_can_autoadvance, getLocalTimezone, get_time_values, get_utm_params, is_object, mm_dd_yyyy, object_is_empty, read_local_storage, replace_form_field_template_values, responses_satisfy_conditions, update_local_storage } from "@tellescope/utilities"
+
+export const dateFromOffsetMs = (offsetMs: number): Date => {
+  const d = new Date()
+  d.setHours(0, 0, 0, 0)
+  return new Date(d.getTime() + offsetMs)
+}
 
 export const useFlattenedTree = (root?: FormFieldNode) => {
   const flat: FormField[] = []
@@ -1062,6 +1068,45 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
       }
       if ((field.options?.max ?? Infinity) <= value.answer.value) {
         return `Must be less than ${field.options?.max}`
+      }
+    }
+
+    if (value.answer.type === 'dateString' && value.answer.value) {
+      const dateStr = value.answer.value
+      if (field.options?.minDateOffsetMs !== undefined) {
+        const minDate = dateFromOffsetMs(field.options.minDateOffsetMs)
+        const parsed = new Date(MM_DD_YYYY_to_YYYY_MM_DD(dateStr))
+        parsed.setMinutes(parsed.getMinutes() + parsed.getTimezoneOffset())
+        parsed.setHours(0, 0, 0, 0)
+        if (parsed < minDate) {
+          return `Date must not be earlier than ${mm_dd_yyyy(minDate)}`
+        }
+      }
+      if (field.options?.maxDateOffsetMs !== undefined) {
+        const maxDate = dateFromOffsetMs(field.options.maxDateOffsetMs)
+        const parsed = new Date(MM_DD_YYYY_to_YYYY_MM_DD(dateStr))
+        parsed.setMinutes(parsed.getMinutes() + parsed.getTimezoneOffset())
+        parsed.setHours(0, 0, 0, 0)
+        if (parsed > maxDate) {
+          return `Date must not be later than ${mm_dd_yyyy(maxDate)}`
+        }
+      }
+    }
+
+    if (value.answer.type === 'date' && value.answer.value) {
+      const dateVal = new Date(value.answer.value)
+      if (field.options?.minDateOffsetMs !== undefined) {
+        const minDate = dateFromOffsetMs(field.options.minDateOffsetMs)
+        if (dateVal < minDate) {
+          return `Date must not be earlier than ${mm_dd_yyyy(minDate)}`
+        }
+      }
+      if (field.options?.maxDateOffsetMs !== undefined) {
+        const maxDate = dateFromOffsetMs(field.options.maxDateOffsetMs)
+        maxDate.setHours(23, 59, 59, 999)
+        if (dateVal > maxDate) {
+          return `Date must not be later than ${mm_dd_yyyy(maxDate)}`
+        }
       }
     }
 

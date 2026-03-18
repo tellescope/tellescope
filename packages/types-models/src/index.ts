@@ -1517,6 +1517,7 @@ export interface MessageTemplate extends MessageTemplate_readonly, MessageTempla
   forChannels?: string[],
   forRoles?: string[],
   forEntityTypes?: string[],
+  forUserTags?: ListOfStringsWithQualifier,
   hideFromCompose?: boolean,
   tags?: string[],
   archivedAt?: Date | '',
@@ -1615,6 +1616,7 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
   message?: string;
   type?: string;
   owner?: string;
+  skipCareTeamAssignment?: boolean,
   skillsRequired?: string[];
   chatRoomId?: string;
   priority?: number;
@@ -1676,6 +1678,11 @@ export interface TicketTemplate extends TicketTemplate_readonly, TicketTemplate_
   priority?: number;
   tags?: string[];
   archivedAt?: Date | '';
+  actions?: TicketAction[];
+  closeOnFinishedActions?: boolean;
+  contextFormIds?: string[];
+  contextEnduserFields?: string[];
+  contextContentIds?: string[];
 }
 
 export type AttendeeInfo = {
@@ -1747,7 +1754,7 @@ export interface Note extends Note_readonly, Note_required, Note_updatesDisabled
 }
 
 export type FormFieldLiteralType = 'Rich Text' | 'description' | 'string' | 'stringLong' | 'number' | 'email' | 'phone' | 'date' /* date + time */ | 'dateString' | 'rating' | 'Time' | "Timezone"
-export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance" | "Bridge Eligibility" | "Beluga Patient Preference" | "Pharmacy Search"
+export type FormFieldComplexType = "Conditions" | "Allergies" | "Emotii" | "Hidden Value" | "Redirect" | "Height" | "Appointment Booking" | "multiple_choice" | "file" | 'files' | "signature" | 'ranking' | 'Question Group' | 'Table Input' | "Address" | "Chargebee" | "Stripe" | "Dropdown" | "Database Select" | "Medications" | "Related Contacts" | "Insurance" | "Bridge Eligibility" | "Candid Eligibility" | "Beluga Patient Preference" | "Pharmacy Search"
 export type FormFieldType = FormFieldLiteralType | FormFieldComplexType
 
 export type PreviousFormFieldType = 'root' | 'after' | 'previousEquals' | 'compoundLogic'
@@ -1790,7 +1797,8 @@ export type FormFieldValidation = {
   minLength?: number,
   maxLength?: number,
   repeat?: boolean,
-
+  minDateOffsetMs?: number,
+  maxDateOffsetMs?: number,
 }
 export type CanvasCoding = {
   system: string,
@@ -1852,6 +1860,8 @@ export type FormFieldOptions = FormFieldValidation & {
   bridgeServiceTypeIds?: string[], // Bridge service type IDs for eligibility checks (runs parallel checks and combines results)
   bridgeEligibilityType?: 'Soft' | 'Hard', // Type of Bridge eligibility check (defaults to 'Soft')
   useBridgeEligibilityResult?: boolean, // Use provider list from most recent Bridge eligibility check
+  candidServiceCode?: string, // Candid service code for eligibility checks (e.g., "30", "47", "98")
+  candidNPI?: string, // Rendering provider NPI for Candid eligibility checks
   addressFields?: string[], // supports specifying just 'state', for now
   validStates?: string[],
   autoAdvance?: boolean,
@@ -1965,6 +1975,7 @@ export type FormCustomization = {
   maxWidth?: number,
   primaryColor?: string, // Custom primary/accent color for buttons, progress bar, etc.
   secondaryColor?: string, // Custom secondary color for outlined buttons, etc.
+  showLogoOnIntakePage?: boolean, // Show logo on V2 public form intake page (off by default)
 }
 export interface Form_readonly extends ClientRecord {
   numFields: number,
@@ -2155,7 +2166,8 @@ export type DatabaseRecordFields = {
     showConditions?: Record<any, any>, 
     required?: boolean,
     hideFromTable?: boolean,
-    wrap?: string, 
+    wrap?: string,
+    trimStrings?: boolean,
     options?: DatabaseRecordFieldsInfo[K]['options']
   }
 }
@@ -2280,6 +2292,12 @@ export type FormResponseAnswerBridgeEligibility = FormResponseValueAnswerBuilder
   status?: string, // Aggregated eligibility status
   userIds?: string[], // Aggregated user IDs who cover the patient
 }>
+export type FormResponseAnswerCandidEligibility = FormResponseValueAnswerBuilder<'Candid Eligibility', {
+  payerId?: string, // Payer ID used for this eligibility check
+  status?: string, // Eligibility check status (COMPLETED/FAILED/PENDING)
+  coverageId?: string, // Candid coverage ID for polling
+  benefits?: object, // Benefits data from eligibility check
+}>
 export type FormResponseAnswerHeight = FormResponseValueAnswerBuilder<'Height', { feet: number, inches: number }>
 export type FormResponseAnswerRedirect = FormResponseValueAnswerBuilder<'Redirect', string>
 export type FormResponseAnswerAllergies = FormResponseValueAnswerBuilder<'Allergies', AllergyResponse[]>
@@ -2350,6 +2368,7 @@ export type FormResponseValueAnswer = (
   | FormResponseAnswerChargebee
   | FormResponseAnswerBelugaPatientPreference
   | FormResponseAnswerBridgeEligibility
+  | FormResponseAnswerCandidEligibility
   | FormResponseAnswerPharmacySearch
 )
 
@@ -2394,6 +2413,7 @@ export type AnswerForType = {
   'Related Contacts': FormResponseAnswerRelatedContacts['value']
   'Insurance': FormResponseAnswerInsurance['value']
   'Bridge Eligibility': FormResponseAnswerBridgeEligibility['value']
+  'Candid Eligibility': FormResponseAnswerCandidEligibility['value']
   'Appointment Booking': FormResponseAnswerAppointmentBooking['value']
   'Chargebee': FormResponseAnswerChargebee['value']
   'Height': FormResponseAnswerHeight['value']
@@ -2549,7 +2569,7 @@ export type CalendarEventReminderNotificationInfo = {
   channel?: 'Email' | 'SMS',
   useTemplateForSMS?: boolean,
 }
-type BuildCalendarEventReminderInfo <T, I> = { type: T, info: I, msBeforeStartTime: number, dontSendIfPassed?: boolean, didRemind?: boolean, dontSendIfJoined?: boolean }
+type BuildCalendarEventReminderInfo <T, I> = { type: T, info: I, msBeforeStartTime: number, dontSendIfPassed?: boolean, didRemind?: boolean, dontSendIfJoined?: boolean, skipEnduserIds?: string[] }
 export type CalendarEventReminderInfoForType = {
   "webhook": BuildCalendarEventReminderInfo<'webhook', {}>,
   "add-to-journey": BuildCalendarEventReminderInfo<'add-to-journey', { journeyId: string, firstAttendeeOnly?: boolean }>,
@@ -2691,6 +2711,7 @@ export interface CalendarEvent extends CalendarEvent_readonly, CalendarEvent_req
   preventCancelInPortal?: boolean,
   sendIcsEmail?: boolean,
   healthieInsuranceBillingEnabled?: boolean,
+  resendRemindersOnAttendeeAdd?: boolean,
   // isAllDay?: boolean,
 }
 
@@ -2828,6 +2849,7 @@ export interface CalendarEventTemplate extends CalendarEventTemplate_readonly, C
   athenaBookingTypeId?: string, // for booking a different type than the slot
   healthieInsuranceBillingEnabled?: boolean,
   replaceHostOnReschedule?: boolean, // when enabled, replaces previous host(s) with the new host during reschedule
+  resendRemindersOnAttendeeAdd?: boolean,
 }
 
 export interface AppointmentLocation_readonly extends ClientRecord {}
@@ -2986,11 +3008,17 @@ export interface AutomationForTemplate { templateId: string }
 export type SenderAssignmentStrategies = {
   'Care Team Primary': {
     type: 'Care Team Primary',
-    info: {}, 
+    info: {},
   },
   'Default': {
     type: 'Default',
-    info: {}, 
+    info: {},
+  },
+  'Care Team': {
+    type: 'Care Team',
+    info: {
+      tags?: ListOfStringsWithQualifier,
+    },
   },
 }
 export type SenderAssignmentStrategyType = keyof SenderAssignmentStrategies
@@ -3212,20 +3240,46 @@ export type MetriportSyncAutomationAction = AutomationActionBuilder<'metriportSy
 export type ZusSubscribeAutomationAction = AutomationActionBuilder<'zusSubscribe', { practitionerId: string, packageIds: string[] }>
 export type PagerDutyCreateIncidentAutomationAction = AutomationActionBuilder<'pagerDutyCreateIncident', { type: string, title: string, serviceId: string }>
 export type SmartMeterOrderLineItem = { quantity: number, sku: string }
-export type SmartMeterPlaceOrderAutomationAction = AutomationActionBuilder<'smartMeterPlaceOrder', { 
+export type SmartMeterPlaceOrderAutomationAction = AutomationActionBuilder<'smartMeterPlaceOrder', {
   lines: SmartMeterOrderLineItem[],
   shipping?: string,
+}>
+
+export type BelugaAutoRxPatientPreferenceItem = {
+  name: string,
+  strength: string,
+  refills: string,
+  quantity: string,
+  medId: string,
+}
+export type BelugaAutoRxAutomationAction = AutomationActionBuilder<'belugaAutoRx', {
+  patientPreference: BelugaAutoRxPatientPreferenceItem,
+  pharmacyId: string,
+}>
+export type BelugaUpdateVisitPatientPreferenceItem = {
+  name: string,
+  strength: string,
+  refills: string,
+  quantity: string,
+  daysSupply: string,
+  medId: string,
+}
+export type BelugaUpdateVisitAutomationAction = AutomationActionBuilder<'belugaUpdateVisit', {
+  patientPreferences: BelugaUpdateVisitPatientPreferenceItem[],
+  pharmacyId: string,
 }>
 export type SendChatAutomationAction = AutomationActionBuilder<'sendChat', { 
   templateId: string, 
   identifier: string, 
   includeCareTeam?: boolean,
+  careTeamTags?: ListOfStringsWithQualifier,
   userIds?: string[], // for when not includeCareTeam
   sendToDestinationOfRelatedContactTypes?: string[],
 }>
 export type HealthieSyncAutomationAction = AutomationActionBuilder<'healthieSync', {}>
 export type HealthieAddToCourseAutomationAction = AutomationActionBuilder<'healthieAddToCourse', { courseId: string }>
 export type HealthieSendChatAutomationAction = AutomationActionBuilder<'healthieSendChat', { templateId: string, identifier: string, includeCareTeam?: boolean }>
+export type HealthiePushFormsAutomationAction = AutomationActionBuilder<'healthiePushForms', { formIds: string[] }>
 export type CompleteTicketsAutomationAction = AutomationActionBuilder<'completeTickets', { journeyIds?: string[] }>
 export type ChangeContactTypeAutomationAction = AutomationActionBuilder<'changeContactType', { type: string }>
 export type ActiveCampaignSyncAutomationAction = AutomationActionBuilder<'activeCampaignSync', { }>
@@ -3375,9 +3429,12 @@ export type AutomationActionForType = {
   'zusSubscribe': ZusSubscribeAutomationAction,
   'pagerDutyCreateIncident': PagerDutyCreateIncidentAutomationAction,
   'smartMeterPlaceOrder': SmartMeterPlaceOrderAutomationAction,
+  'belugaAutoRx': BelugaAutoRxAutomationAction,
+  'belugaUpdateVisit': BelugaUpdateVisitAutomationAction,
   'healthieSync': HealthieSyncAutomationAction,
   healthieAddToCourse: HealthieAddToCourseAutomationAction,
   healthieSendChat: HealthieSendChatAutomationAction,
+  healthiePushForms: HealthiePushFormsAutomationAction,
   'completeTickets': CompleteTicketsAutomationAction,
   'changeContactType': ChangeContactTypeAutomationAction,
   activeCampaignSync: ActiveCampaignSyncAutomationAction,
@@ -3744,7 +3801,8 @@ export interface AutomatedAction_updatesDisabled {}
 export interface AutomatedAction extends AutomatedAction_readonly, AutomatedAction_required, AutomatedAction_updatesDisabled {
   isNOP?: boolean,
   cancelledBy?: string,
-  journeyContext?: JourneyContext
+  journeyContext?: JourneyContext,
+  externalId?: string,
 }
 
 export interface UserLog_readonly extends ClientRecord {
@@ -4571,7 +4629,11 @@ export type AutomationTriggerEvents = {
   'Form Group Incomplete': AutomationTriggerEventBuilder<"Form Group Incomplete", { groupId: string, intervalInMS: number }, {}>,
   'Message Opened': AutomationTriggerEventBuilder<"Message Opened", { templateIds?: string[] }, {}>,
   'Message Link Clicked': AutomationTriggerEventBuilder<"Message Link Clicked", { templateIds?: string[] }, {}>,
-  'Healthie Note Locked': AutomationTriggerEventBuilder<"Healthie Note Locked", { 
+  'Healthie Note Locked': AutomationTriggerEventBuilder<"Healthie Note Locked", {
+    healthieFormIds?: string[],
+    answersCondition?: Record<string, any>,
+  }, {}>,
+  'Healthie Form Answer Group Created': AutomationTriggerEventBuilder<"Healthie Form Answer Group Created", {
     healthieFormIds?: string[],
     answersCondition?: Record<string, any>,
   }, {}>,

@@ -32,6 +32,7 @@ export declare const EmailInput: ({ field, value, onChange, form, ...props }: Fo
 export declare const NumberInput: ({ field, value, onChange, form, ...props }: FormInputProps<'number'>) => JSX.Element;
 export declare const InsuranceInput: (props: FormInputProps<'Insurance'>) => JSX.Element;
 export declare const BridgeEligibilityInput: (props: FormInputProps<'Bridge Eligibility'>) => JSX.Element;
+export declare const CandidEligibilityInput: (props: FormInputProps<'Candid Eligibility'>) => JSX.Element;
 export declare const PharmacySearchInput: (props: FormInputProps<'Pharmacy Search'>) => JSX.Element;
 export declare const TimeInput: ({ field, value, onChange, ...props }: FormInputProps<'string'>) => JSX.Element;
 export declare const TimezoneInput: ({ value, field, onChange, ...props }: FormInputProps<'Timezone'>) => JSX.Element;

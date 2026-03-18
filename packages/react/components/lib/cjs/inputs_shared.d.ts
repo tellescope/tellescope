@@ -254,6 +254,7 @@ export interface UserAndEnduserSelectorProps {
     dontIncludeSelf: boolean;
     virtualizationHeight?: number;
     showEntityType?: boolean;
+    showEnduserDetails?: boolean;
 }
 export declare const UserAndEnduserSelector: React.JSXElementConstructor<UserAndEnduserSelectorProps>;
 export {};

@@ -46,6 +46,11 @@ export declare const BridgeEligibilityInput: ({ field, value, onChange, response
         sx: SxProps;
     } | undefined;
 }) => JSX.Element;
+export declare const CandidEligibilityInput: ({ field, value, onChange, responses, enduser, inputProps, enduserId, form, ...props }: FormInputProps<"Candid Eligibility"> & {
+    inputProps?: {
+        sx: SxProps;
+    } | undefined;
+}) => JSX.Element;
 export declare const PharmacySearchInput: ({ field, value: rawValue, onChange, responses, enduser, form, ...props }: Omit<FormInputProps<"string">, "onChange" | "value"> & {
     value: Pharmacy | undefined;
     onChange: (v: Pharmacy | undefined, fieldId: string) => void;

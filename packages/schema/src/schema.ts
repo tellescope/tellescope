@@ -3982,8 +3982,9 @@ export const schema: SchemaV1 = build_schema({
       isMarketing: { validator: booleanValidator },
       hideFromCompose: { validator: booleanValidator },
       forChannels: { validator: listOfStringsValidatorEmptyOk }, 
-      forRoles: { validator: listOfStringsValidatorEmptyOk }, 
-      forEntityTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, 
+      forRoles: { validator: listOfStringsValidatorEmptyOk },
+      forEntityTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
+      forUserTags: { validator: listOfStringsWithQualifierValidatorOptionalValuesEmptyOkay },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, 
     },
   },
@@ -4286,6 +4287,9 @@ export const schema: SchemaV1 = build_schema({
       },
       owner: {
         validator: mongoIdStringValidator,
+      },
+      skipCareTeamAssignment: {
+        validator: booleanValidator,
       },
       message: {
         validator: stringValidator5000,
@@ -5756,6 +5760,7 @@ export const schema: SchemaV1 = build_schema({
       },
       createAndBookAthenaSlot: { validator: booleanValidator },
       dontSyncToElation: { validator: booleanValidator },
+      resendRemindersOnAttendeeAdd: { validator: booleanValidator },
     }
   },
   calendar_event_templates: {
@@ -5834,6 +5839,7 @@ export const schema: SchemaV1 = build_schema({
       requiresEnduser: { validator: booleanValidator },
       requirePortalCancelReason: { validator: booleanValidator },
       replaceHostOnReschedule: { validator: booleanValidator },
+      resendRemindersOnAttendeeAdd: { validator: booleanValidator },
     }
   },
   calendar_event_RSVPs: {
@@ -6032,6 +6038,7 @@ export const schema: SchemaV1 = build_schema({
         examples: [Date.now()],
       },
       journeyContext: { validator: journeyContextValidator },
+      externalId: { validator: stringValidator100 },
 
     }
   },
@@ -8673,6 +8680,11 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       priority: { validator: numberValidator },
       tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay },
       archivedAt: { validator: dateOptionalOrEmptyStringValidator },
+      actions: { validator: ticketActionsValidator },
+      closeOnFinishedActions: { validator: booleanValidator },
+      contextFormIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+      contextContentIds: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
+      contextEnduserFields: { validator: listOfUniqueStringsValidatorEmptyOk },
     },
   },
   group_mms_conversations: {

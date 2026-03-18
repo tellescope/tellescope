@@ -1,7 +1,7 @@
 /// <reference types="validator" />
 import { ObjectId } from "@tellescope/utilities";
 import { CUD as CUDType, CustomUpdateOptions, Indexable, JSONType } from "@tellescope/types-utilities";
-import { FilterType, CustomField, Preference, JourneyState, JourneyStatePriority, EmailEncoding, ChatRoomType, MessageTemplateType, MeetingStatus, SessionType, AttendeeInfo, MeetingInfo, CUDSubscription, FormField, AutomationEventType, FormResponseAutomationEvent, AutomationForMessage, AutomatedActionStatus, ChatAttachment, FormFieldType, FormResponseValue, MessageTemplateMode, AtJourneyStateAutomationCondition, ChatRoomUserInfo, RelatedRecord, SearchOptions, AfterActionAutomationEvent, OnJourneyStartAutomationEvent, UnitOfTime, FormUnsubmittedEvent, CancelCondition, FormSubmitCancellationConditionInfo, NotificationPreference, ObservationStatusCode, ObservationValue, TicketCompletedAutomationEvent, FormResponseValueAnswer, PreviousFormFieldAfter, PreviousFormFieldRoot, FormResponseAnswerEmail, FormResponseAnswerFile, FormResponseAnswerMultipleChoice, FormResponseAnswerNumber, FormResponseAnswerPhone, FormResponseAnswerString, FormResponseAnswerSignature, OrganizationTheme, ManagedContentRecordType, FlowchartUI, PreviousFormFieldEquals, IntegrationAuthentication, FormResponseAnswerRating, FormResponseAnswerDate, FormResponseAnswerRanking, FormFieldOptions, BlockType, BlockContentH1, BlockContentHTML, BlockContentRawHTML, BlockContentImage, BlockContentYoutube, BlockContentH2, PortalSettings, BlockContentPDF, OrganizationAccess, CalendarEventReminderNotificationInfo, PortalPage, PortalBlockForType, EnduserTaskForEvent, EnduserFormResponseForEvent, StateCredentialInfo, BaseAvailabilityBlock, CalendarEventLimit, WeeklyAvailability, MonthlyRestriction, FormType, FormResponseAnswerStringLong, ManagedContentRecordAssignmentType, GenericAttachment, CommunicationsChannel, AccessPermissions, AccessForResource, AccessType, BlockContentIFrame, OrganizationLimits, OrganizationSettings, GenericQuantityWithUnit, CustomEnduserFields, FormResponseAnswerDateString, TellescopeGender, AppointmentTerm, PaymentProcessor, FormsUnsubmittedEvent, FormResponsesAutomationEvent, JourneyContext, AnalyticsQueryForType, DateRange, FormResponseAnswerGroup, FormResponseAnswerDescription, FormResponseAnswerTable, TableInputChoices, CalendarEventPortalSettings, IndexUpdate, FormResponseAnswerAddress, ListQueryQualifier, AutomationTriggerEventType, AutomationTriggerEvents, AutomationTriggerActions, AutomationTriggerStatus, EnduserBuiltInField, AnalyticsQueryResultValue, AnalyticsQueryRange, SuperbillPatientInfo, SuperbillLineItem, VideoIntegrationType, VALID_STATES, ScheduledJourney, FormScoring, UserCallRoutingBehavior, UserUIRestrictions, ExternalChatGPTMessage, FormResponseAnswerTime, CustomDashboardBlock, Insurance, EnduserFieldSetter, PhoneTreeNode, Enduser, FormResponseAnswerStripe, PhoneTreeEnduserCondition, WaitForTriggerAutomationEvent, FormResponseAnswerDropdown, ListOfStringsWithQualifier, FormResponseAnswerFiles, FormResponseAnswerDatabaseSelect, FormResponseAnswerMedications, Language, TableViewColumn, FormFieldCalloutCondition, EnduserReportQuery, FormResponsesReportQuery, TicketSnooze, FormResponseAnswerRelatedContacts, PreviousFormCompoundLogic, GroupMMSMessage, GroupMMSUserState, ImageAttachment, SortingField, TicketReminder, EnduserInsurance, Pharmacy, FormResponseAnswerInsurance, FormResponseAnswerBridgeEligibility, FormResponseAnswerPharmacySearch, Diagnosis, FormResponseAnswerAppointmentBooking, CanvasCoding, VitalConfigurationRange, SenderAssignmentStrategy, SmartMeterOrderLineItem, FormFieldFeedback, FormFieldOptionDetails, CandidProcedureCode, BasicWebhook, SyncDirection, AthenaFieldSync, AthenaSubscription, FormResponseAnswerHeight, FormResponseAnswerRedirect, BlockContentLink, FormResponseAnswerHiddenValue, LabeledField, FieldMapping, AnalyticsFrameGroupingCategory, FormResponseAnswerEmotii, BookingRestrictions, EnduserDiagnosis, FormResponseAnswerAllergies, FormResponseAnswerConditions, FormResponseAnswerRichText, FormResponseAnswerChargebee, FormResponseAnswerBelugaPatientPreference, RecentViewer, OnCallOutcomeAutomationEvent, FormResponseAnswerTimezone, OutOfOfficeBlock, OnAIDecisionAutomationEvent, OnErrorAutomationEvent, AIContextSource } from "@tellescope/types-models";
+import { FilterType, CustomField, Preference, JourneyState, JourneyStatePriority, EmailEncoding, ChatRoomType, MessageTemplateType, MeetingStatus, SessionType, AttendeeInfo, MeetingInfo, CUDSubscription, FormField, AutomationEventType, FormResponseAutomationEvent, AutomationForMessage, AutomatedActionStatus, ChatAttachment, FormFieldType, FormResponseValue, MessageTemplateMode, AtJourneyStateAutomationCondition, ChatRoomUserInfo, RelatedRecord, SearchOptions, AfterActionAutomationEvent, OnJourneyStartAutomationEvent, UnitOfTime, FormUnsubmittedEvent, CancelCondition, FormSubmitCancellationConditionInfo, NotificationPreference, ObservationStatusCode, ObservationValue, TicketCompletedAutomationEvent, FormResponseValueAnswer, PreviousFormFieldAfter, PreviousFormFieldRoot, FormResponseAnswerEmail, FormResponseAnswerFile, FormResponseAnswerMultipleChoice, FormResponseAnswerNumber, FormResponseAnswerPhone, FormResponseAnswerString, FormResponseAnswerSignature, OrganizationTheme, ManagedContentRecordType, FlowchartUI, PreviousFormFieldEquals, IntegrationAuthentication, FormResponseAnswerRating, FormResponseAnswerDate, FormResponseAnswerRanking, FormFieldOptions, BlockType, BlockContentH1, BlockContentHTML, BlockContentRawHTML, BlockContentImage, BlockContentYoutube, BlockContentH2, PortalSettings, BlockContentPDF, OrganizationAccess, CalendarEventReminderNotificationInfo, PortalPage, PortalBlockForType, EnduserTaskForEvent, EnduserFormResponseForEvent, StateCredentialInfo, BaseAvailabilityBlock, CalendarEventLimit, WeeklyAvailability, MonthlyRestriction, FormType, FormResponseAnswerStringLong, ManagedContentRecordAssignmentType, GenericAttachment, CommunicationsChannel, AccessPermissions, AccessForResource, AccessType, BlockContentIFrame, OrganizationLimits, OrganizationSettings, GenericQuantityWithUnit, CustomEnduserFields, FormResponseAnswerDateString, TellescopeGender, AppointmentTerm, PaymentProcessor, FormsUnsubmittedEvent, FormResponsesAutomationEvent, JourneyContext, AnalyticsQueryForType, DateRange, FormResponseAnswerGroup, FormResponseAnswerDescription, FormResponseAnswerTable, TableInputChoices, CalendarEventPortalSettings, IndexUpdate, FormResponseAnswerAddress, ListQueryQualifier, AutomationTriggerEventType, AutomationTriggerEvents, AutomationTriggerActions, AutomationTriggerStatus, EnduserBuiltInField, AnalyticsQueryResultValue, AnalyticsQueryRange, SuperbillPatientInfo, SuperbillLineItem, VideoIntegrationType, VALID_STATES, ScheduledJourney, FormScoring, UserCallRoutingBehavior, UserUIRestrictions, ExternalChatGPTMessage, FormResponseAnswerTime, CustomDashboardBlock, Insurance, EnduserFieldSetter, PhoneTreeNode, Enduser, FormResponseAnswerStripe, PhoneTreeEnduserCondition, WaitForTriggerAutomationEvent, FormResponseAnswerDropdown, ListOfStringsWithQualifier, FormResponseAnswerFiles, FormResponseAnswerDatabaseSelect, FormResponseAnswerMedications, Language, TableViewColumn, FormFieldCalloutCondition, EnduserReportQuery, FormResponsesReportQuery, TicketSnooze, FormResponseAnswerRelatedContacts, PreviousFormCompoundLogic, GroupMMSMessage, GroupMMSUserState, ImageAttachment, SortingField, TicketReminder, EnduserInsurance, Pharmacy, FormResponseAnswerInsurance, FormResponseAnswerBridgeEligibility, FormResponseAnswerCandidEligibility, FormResponseAnswerPharmacySearch, Diagnosis, FormResponseAnswerAppointmentBooking, CanvasCoding, VitalConfigurationRange, SenderAssignmentStrategy, SmartMeterOrderLineItem, FormFieldFeedback, FormFieldOptionDetails, CandidProcedureCode, BasicWebhook, SyncDirection, AthenaFieldSync, AthenaSubscription, FormResponseAnswerHeight, FormResponseAnswerRedirect, BlockContentLink, FormResponseAnswerHiddenValue, LabeledField, FieldMapping, AnalyticsFrameGroupingCategory, FormResponseAnswerEmotii, BookingRestrictions, EnduserDiagnosis, FormResponseAnswerAllergies, FormResponseAnswerConditions, FormResponseAnswerRichText, FormResponseAnswerChargebee, FormResponseAnswerBelugaPatientPreference, RecentViewer, OnCallOutcomeAutomationEvent, FormResponseAnswerTimezone, OutOfOfficeBlock, OnAIDecisionAutomationEvent, OnErrorAutomationEvent, AIContextSource } from "@tellescope/types-models";
 import { UserDisplayInfo } from "@tellescope/types-client";
 export declare const isDate: typeof import("validator").isDate, isEmail: typeof import("validator/lib/isEmail").default, isMobilePhone: typeof import("validator").isMobilePhone, isSlug: typeof import("validator").isSlug, isMongoId: typeof import("validator").isMongoId, isMimeType: typeof import("validator").isMimeType, isURL: typeof import("validator/lib/isURL").default;
 import { ACTIVE_CAMPAIGN_TITLE, ATHENA_TITLE, BRIDGE_TITLE, CANDID_TITLE, CANVAS_TITLE, DEVELOP_HEALTH_TITLE, DOCSUMO_TITLE, DOSESPOT_TITLE, EMOTII_TITLE, FULLSCRIPT_INTEGRATIONS_TITLE, GOGO_MEDS_TITLE, MFAX_TITLE, OUTLOOK_INTEGRATIONS_TITLE, PAGER_DUTY_TITLE, SMART_METER_TITLE, SQUARE_INTEGRATIONS_TITLE, STRIPE_TITLE, ZENDESK_INTEGRATIONS_TITLE, ZOHO_TITLE, ZOOM_TITLE, ZUS_TITLE } from "@tellescope/constants";
@@ -350,6 +350,8 @@ export declare const formResponseAnswerValidator: ValidatorDefinition<(FormRespo
     type: "Insurance";
 }) | (FormResponseAnswerBridgeEligibility & {
     type: "Bridge Eligibility";
+}) | (FormResponseAnswerCandidEligibility & {
+    type: "Candid Eligibility";
 }) | (FormResponseAnswerGroup & {
     type: "Question Group";
 }) | (FormResponseAnswerAddress & {
@@ -605,6 +607,7 @@ export declare const calendarEventReminderValidator: ValidatorDefinition<{
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
     dontSendIfJoined?: boolean | undefined;
+    skipEnduserIds?: string[] | undefined;
 } | {
     type: "add-to-journey";
     info: {
@@ -615,6 +618,7 @@ export declare const calendarEventReminderValidator: ValidatorDefinition<{
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
     dontSendIfJoined?: boolean | undefined;
+    skipEnduserIds?: string[] | undefined;
 } | {
     type: "Remove From Journey";
     info: {
@@ -624,6 +628,7 @@ export declare const calendarEventReminderValidator: ValidatorDefinition<{
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
     dontSendIfJoined?: boolean | undefined;
+    skipEnduserIds?: string[] | undefined;
 } | {
     type: "enduser-notification";
     info: CalendarEventReminderNotificationInfo;
@@ -631,6 +636,7 @@ export declare const calendarEventReminderValidator: ValidatorDefinition<{
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
     dontSendIfJoined?: boolean | undefined;
+    skipEnduserIds?: string[] | undefined;
 } | {
     type: "user-notification";
     info: CalendarEventReminderNotificationInfo;
@@ -638,6 +644,7 @@ export declare const calendarEventReminderValidator: ValidatorDefinition<{
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
     dontSendIfJoined?: boolean | undefined;
+    skipEnduserIds?: string[] | undefined;
 } | {
     type: "create-ticket";
     info: {
@@ -647,6 +654,7 @@ export declare const calendarEventReminderValidator: ValidatorDefinition<{
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
     dontSendIfJoined?: boolean | undefined;
+    skipEnduserIds?: string[] | undefined;
 }>;
 export declare const listOfCalendarEventRemindersValidator: ValidatorDefinition<({
     type: "webhook";
@@ -655,6 +663,7 @@ export declare const listOfCalendarEventRemindersValidator: ValidatorDefinition<
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
     dontSendIfJoined?: boolean | undefined;
+    skipEnduserIds?: string[] | undefined;
 } | {
     type: "add-to-journey";
     info: {
@@ -665,6 +674,7 @@ export declare const listOfCalendarEventRemindersValidator: ValidatorDefinition<
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
     dontSendIfJoined?: boolean | undefined;
+    skipEnduserIds?: string[] | undefined;
 } | {
     type: "Remove From Journey";
     info: {
@@ -674,6 +684,7 @@ export declare const listOfCalendarEventRemindersValidator: ValidatorDefinition<
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
     dontSendIfJoined?: boolean | undefined;
+    skipEnduserIds?: string[] | undefined;
 } | {
     type: "enduser-notification";
     info: CalendarEventReminderNotificationInfo;
@@ -681,6 +692,7 @@ export declare const listOfCalendarEventRemindersValidator: ValidatorDefinition<
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
     dontSendIfJoined?: boolean | undefined;
+    skipEnduserIds?: string[] | undefined;
 } | {
     type: "user-notification";
     info: CalendarEventReminderNotificationInfo;
@@ -688,6 +700,7 @@ export declare const listOfCalendarEventRemindersValidator: ValidatorDefinition<
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
     dontSendIfJoined?: boolean | undefined;
+    skipEnduserIds?: string[] | undefined;
 } | {
     type: "create-ticket";
     info: {
@@ -697,6 +710,7 @@ export declare const listOfCalendarEventRemindersValidator: ValidatorDefinition<
     dontSendIfPassed?: boolean | undefined;
     didRemind?: boolean | undefined;
     dontSendIfJoined?: boolean | undefined;
+    skipEnduserIds?: string[] | undefined;
 })[]>;
 export declare const cancelConditionValidator: ValidatorDefinition<({
     type: "formResponse";
@@ -953,6 +967,7 @@ export declare const databaseFieldValidator: ValidatorDefinition<{
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: {
         width?: string | undefined;
     } | undefined;
@@ -963,6 +978,7 @@ export declare const databaseFieldValidator: ValidatorDefinition<{
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: {
         width?: string | undefined;
     } | undefined;
@@ -973,6 +989,7 @@ export declare const databaseFieldValidator: ValidatorDefinition<{
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: {
         width?: string | undefined;
     } | undefined;
@@ -983,6 +1000,7 @@ export declare const databaseFieldValidator: ValidatorDefinition<{
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: {
         width?: string | undefined;
     } | undefined;
@@ -993,6 +1011,7 @@ export declare const databaseFieldValidator: ValidatorDefinition<{
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: {
         width?: string | undefined;
     } | undefined;
@@ -1003,6 +1022,7 @@ export declare const databaseFieldValidator: ValidatorDefinition<{
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: {
         width?: string | undefined;
     } | undefined;
@@ -1013,6 +1033,7 @@ export declare const databaseFieldValidator: ValidatorDefinition<{
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: {
         width?: string | undefined;
     } | undefined;
@@ -1023,6 +1044,7 @@ export declare const databaseFieldValidator: ValidatorDefinition<{
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: ({
         options: string[];
     } & {
@@ -1035,6 +1057,7 @@ export declare const databaseFieldValidator: ValidatorDefinition<{
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: ({
         options: string[];
     } & {
@@ -1047,6 +1070,7 @@ export declare const databaseFieldValidator: ValidatorDefinition<{
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: {
         width?: string | undefined;
     } | undefined;
@@ -1057,6 +1081,7 @@ export declare const databaseFieldValidator: ValidatorDefinition<{
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: {
         width?: string | undefined;
     } | undefined;
@@ -1068,6 +1093,7 @@ export declare const databaseFieldsValidator: ValidatorDefinition<({
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: {
         width?: string | undefined;
     } | undefined;
@@ -1078,6 +1104,7 @@ export declare const databaseFieldsValidator: ValidatorDefinition<({
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: {
         width?: string | undefined;
     } | undefined;
@@ -1088,6 +1115,7 @@ export declare const databaseFieldsValidator: ValidatorDefinition<({
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: {
         width?: string | undefined;
     } | undefined;
@@ -1098,6 +1126,7 @@ export declare const databaseFieldsValidator: ValidatorDefinition<({
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: {
         width?: string | undefined;
     } | undefined;
@@ -1108,6 +1137,7 @@ export declare const databaseFieldsValidator: ValidatorDefinition<({
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: {
         width?: string | undefined;
     } | undefined;
@@ -1118,6 +1148,7 @@ export declare const databaseFieldsValidator: ValidatorDefinition<({
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: {
         width?: string | undefined;
     } | undefined;
@@ -1128,6 +1159,7 @@ export declare const databaseFieldsValidator: ValidatorDefinition<({
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: {
         width?: string | undefined;
     } | undefined;
@@ -1138,6 +1170,7 @@ export declare const databaseFieldsValidator: ValidatorDefinition<({
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: ({
         options: string[];
     } & {
@@ -1150,6 +1183,7 @@ export declare const databaseFieldsValidator: ValidatorDefinition<({
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: ({
         options: string[];
     } & {
@@ -1162,6 +1196,7 @@ export declare const databaseFieldsValidator: ValidatorDefinition<({
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: {
         width?: string | undefined;
     } | undefined;
@@ -1172,6 +1207,7 @@ export declare const databaseFieldsValidator: ValidatorDefinition<({
     required?: boolean | undefined;
     hideFromTable?: boolean | undefined;
     wrap?: string | undefined;
+    trimStrings?: boolean | undefined;
     options?: {
         width?: string | undefined;
     } | undefined;
@@ -1712,6 +1748,9 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Message Link Clicked", {
     templateIds?: string[] | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Healthie Note Locked", {
+    healthieFormIds?: string[] | undefined;
+    answersCondition?: Record<string, any> | undefined;
+}, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Healthie Form Answer Group Created", {
     healthieFormIds?: string[] | undefined;
     answersCondition?: Record<string, any> | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Database Entry Added", {
