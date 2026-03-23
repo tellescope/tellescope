@@ -746,7 +746,7 @@ export type CustomActions = {
       { fieldId: string, enduserId?: string, selectedProductIds?: string[] }, 
       { customerId: string, clientSecret: string, publishableKey: string, stripeAccount: string, businessName: string, answerText?: string, isCheckout?: boolean }
     >,
-    chargebee_details: CustomAction<{ fieldId: string }, { url: string }>,
+    chargebee_details: CustomAction<{ fieldId: string, billingAddress?: { addressLineOne?: string, addressLineTwo?: string, city?: string, state?: string, zipCode?: string }, verify?: boolean }, { url?: string, hasPaymentMethod?: boolean }>,
     generate_pdf: CustomAction<
       { id: string }, 
       {  }
@@ -3421,6 +3421,16 @@ export const schema: SchemaV1 = build_schema({
           }
         }, 
         {
+          explanation: "Only admin users can update elationUserId",
+          evaluate: ({ roles }, _, session, method, { updates }) => {
+            if ((session as UserSession)?.roles?.includes('Admin')) return // admin can do this
+            if (method === 'create') return // create already admin restricted
+            if (!updates?.elationUserId) return // elationUserId not provided
+
+            return "Only admin users can update elationUserId"
+          }
+        },
+        {
           explanation: "Only admin users can update doseSpotUserId",
           evaluate: ({ roles }, _, session, method, { updates }) => {
             if ((session as UserSession)?.roles?.includes('Admin')) return // admin can do this
@@ -3857,6 +3867,7 @@ export const schema: SchemaV1 = build_schema({
       voicemailPlayback: { validator: phonePlaybackValidatorOptional },
       lockedOutUntil: { validator: numberValidator },
       failedLoginAttempts: { validator: nonNegNumberValidator },
+      elationUserId: { validator: numberValidator },
       iOSBadgeCount: { validator: nonNegNumberValidator },
       availableFromNumbers: { validator: listOfStringsValidatorEmptyOk },
       availableFromEmails: { validator: listOfStringsValidatorEmptyOk },
@@ -5020,11 +5031,28 @@ export const schema: SchemaV1 = build_schema({
         name: 'Chargebee details for form field',
         path: '/form-responses/chargebee-details',
         description: "Gets the relevant information for a Chargebee field",
-        parameters: { 
+        parameters: {
           fieldId: { validator: mongoIdStringValidator, required: true },
+          billingAddress: {
+            validator: objectValidator<{
+              addressLineOne?: string,
+              addressLineTwo?: string,
+              city?: string,
+              state?: string,
+              zipCode?: string,
+            }>({
+              addressLineOne: stringValidatorOptional,
+              addressLineTwo: stringValidatorOptional,
+              city: stringValidatorOptional,
+              state: stringValidatorOptional,
+              zipCode: stringValidatorOptional,
+            }),
+          },
+          verify: { validator: booleanValidator },
         },
         returns: {
-          url: { validator: stringValidator, required: true },
+          url: { validator: stringValidator },
+          hasPaymentMethod: { validator: booleanValidator },
         },
       },
       get_report: {

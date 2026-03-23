@@ -63,22 +63,23 @@ export const load_all_pages = async <T extends { id: string }>(load: LoadFunctio
 }
 
 export interface LoadFunctionArguments <T> {
-  lastId?: string, 
-  limit?: number, 
-  sort?: SortOption, 
+  lastId?: string,
+  limit?: number,
+  sort?: SortOption,
   sortBy?: SortBy,
   from?: Date | number,
   to?: Date,
   fromToField?: string,
   fromUpdated?: Date,
   toUpdated?: Date,
-  threadKey?: string, 
+  threadKey?: string,
   filter?: ReadFilter<T>,
   analyticsQuery?: AnalyticsQuery,
   search?: SearchOptions,
   ids?: string[],
   returnCount?: boolean,
   mdbFilter?: any,
+  projection?: { [K in keyof T]?: 1 },
 }
 
 export type LoadFunction<T> = (o?: LoadFunctionArguments<T>) => Promise<T[]>

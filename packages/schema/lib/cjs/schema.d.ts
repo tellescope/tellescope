@@ -452,8 +452,17 @@ export type CustomActions = {
         }>;
         chargebee_details: CustomAction<{
             fieldId: string;
+            billingAddress?: {
+                addressLineOne?: string;
+                addressLineTwo?: string;
+                city?: string;
+                state?: string;
+                zipCode?: string;
+            };
+            verify?: boolean;
         }, {
-            url: string;
+            url?: string;
+            hasPaymentMethod?: boolean;
         }>;
         generate_pdf: CustomAction<{
             id: string;

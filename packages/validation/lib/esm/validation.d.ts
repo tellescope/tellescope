@@ -247,6 +247,7 @@ export declare const positiveNumberValidator: ValidatorDefinition<number>;
 export declare const numberValidator: ValidatorDefinition<number>;
 export declare const numberValidatorOptional: ValidatorDefinition<number>;
 export declare const listOfNumbersValidatorUniqueOptionalOrEmptyOkay: ValidatorDefinition<number[]>;
+export declare const inclusionProjectionValidator: ValidatorDefinition<Indexable<number>>;
 export declare const numberValidatorMin1Max31: ValidatorDefinition<number>;
 export declare const numberValidatorMin0Max23Optional: ValidatorDefinition<number>;
 export declare const numberValidatorMin0Max59Optional: ValidatorDefinition<number>;

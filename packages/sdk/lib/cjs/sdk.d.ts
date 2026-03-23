@@ -27,6 +27,9 @@ export interface LoadFunctionArguments<T> {
     ids?: string[];
     returnCount?: boolean;
     mdbFilter?: any;
+    projection?: {
+        [K in keyof T]?: 1;
+    };
 }
 export type LoadFunction<T> = (o?: LoadFunctionArguments<T>) => Promise<T[]>;
 export interface APIQuery<N extends keyof ClientModelForName, T = ClientModelForName[N], CREATE = CreateFields<N>, UPDATE = Omit<Partial<T>, keyof (ClientModelForName_readonly[N] & ClientModelForName_updatesDisabled[N])> & {

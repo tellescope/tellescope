@@ -701,6 +701,10 @@ export const useTellescopeForm = ({ dontAutoadvance, isPublicForm, form, urlLogi
                           )
                         : f.type === 'Related Contacts'
                           ? (f.isOptional ? [] : [{ relationships: f?.options?.relatedContactTypes?.length === 1 ? [{ type: f.options.relatedContactTypes[0] as EnduserRelationship['type'], id: ''! } ] : [] }])
+                          : (f.type === 'date' && f.options?.prefillCurrentDate)
+                            ? new Date()
+                          : (f.type === 'dateString' && f.options?.prefillCurrentDate)
+                            ? mm_dd_yyyy(new Date())
                           : '' as any // null flag that the response was not filled out
           )
         ),

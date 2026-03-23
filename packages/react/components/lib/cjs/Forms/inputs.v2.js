@@ -1483,42 +1483,8 @@ var RichTextInput = function (_a) {
     return ((0, jsx_runtime_1.jsx)(wysiwyg_1.WYSIWYG, { stopEnterPropagation: true, initialHTML: value, onChange: function (v) { return onChange(v, field.id); }, style: { width: '100%' }, editorStyle: { width: '100%' } }));
 };
 exports.RichTextInput = RichTextInput;
-var ChargeebeeInput = function (_a) {
-    var field = _a.field, value = _a.value, onChange = _a.onChange, setCustomerId = _a.setCustomerId;
-    var session = (0, __1.useResolvedSession)();
-    var _b = (0, react_1.useState)(''), url = _b[0], setUrl = _b[1];
-    var _d = (0, react_1.useState)(''), error = _d[0], setError = _d[1];
-    var _e = (0, react_1.useState)(0), loadCount = _e[0], setLoadCount = _e[1];
-    var fetchRef = (0, react_1.useRef)(false);
-    (0, react_1.useEffect)(function () {
-        if (fetchRef.current)
-            return;
-        fetchRef.current = true;
-        session.api.form_responses.chargebee_details({ fieldId: field.id })
-            .then(function (_a) {
-            var url = _a.url;
-            return setUrl(url);
-        })
-            .catch(setError);
-    }, [session]);
-    var loadAnswerRef = (0, react_1.useRef)(false);
-    (0, react_1.useEffect)(function () {
-        if (loadCount !== 2)
-            return;
-        if (loadAnswerRef.current)
-            return;
-        loadAnswerRef.current = true;
-        onChange({ url: url }, field.id);
-    }, [loadCount, url]);
-    if (value || loadCount === 2) {
-        return ((0, jsx_runtime_1.jsxs)(material_1.Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap" }, { children: [(0, jsx_runtime_1.jsx)(icons_material_1.CheckCircleOutline, { color: "success" }), (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ sx: { ml: 1, fontSize: 20 } }, { children: "Your purchase was successful" }))] })));
-    }
-    if (error && typeof error === 'string')
-        return (0, jsx_runtime_1.jsx)(material_1.Typography, __assign({ color: "error" }, { children: error }));
-    if (!url)
-        return (0, jsx_runtime_1.jsx)(LinearProgress_1.default, {});
-    return ((0, jsx_runtime_1.jsx)("iframe", { src: url, title: "Checkout", style: { border: 'none', width: '100%', height: 700 }, onLoad: function () { return setLoadCount(function (l) { return l + 1; }); } }));
-};
-exports.ChargeebeeInput = ChargeebeeInput;
+// Re-export from V1 to follow DRY principles
+var inputs_5 = require("./inputs");
+Object.defineProperty(exports, "ChargeebeeInput", { enumerable: true, get: function () { return inputs_5.ChargeebeeInput; } });
 var templateObject_1, templateObject_2;
 //# sourceMappingURL=inputs.v2.js.map

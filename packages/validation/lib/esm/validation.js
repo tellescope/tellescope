@@ -874,6 +874,7 @@ export var positiveNumberValidator = numberValidatorBuilder({ lower: 1, upper: 1
 export var numberValidator = numberValidatorBuilder({ lower: -10000000000000, upper: 10000000000000 }); // max is 2286 in UTC MS
 export var numberValidatorOptional = numberValidatorBuilder({ lower: -10000000000000, upper: 10000000000000, isOptional: true, emptyStringOk: true }); // max is 2286 in UTC MS
 export var listOfNumbersValidatorUniqueOptionalOrEmptyOkay = listValidatorUniqueOptionalEmptyOkay(numberValidator, { isNumber: true });
+export var inclusionProjectionValidator = objectAnyFieldsValidator(numberValidatorBuilder({ lower: 1, upper: 1 }));
 // Day of month and time validators for automation events
 export var numberValidatorMin1Max31 = numberValidatorBuilder({ lower: 1, upper: 31 });
 export var numberValidatorMin0Max23Optional = numberValidatorBuilder({ lower: 0, upper: 23, isOptional: true });
@@ -2955,6 +2956,7 @@ export var formFieldOptionsValidator = objectValidator({
     userTags: listOfStringsValidatorOptionalOrEmptyOk,
     userFilterTags: listOfStringsValidatorOptionalOrEmptyOk,
     prefillSignature: booleanValidatorOptional,
+    prefillCurrentDate: booleanValidatorOptional,
     requirePredefinedInsurer: booleanValidatorOptional,
     bridgeServiceTypeIds: listOfStringsValidatorOptionalOrEmptyOk,
     bridgeEligibilityType: exactMatchValidatorOptional(['Soft', 'Hard']),
@@ -2989,6 +2991,7 @@ export var formFieldOptionsValidator = objectValidator({
     chargebeeEnvironment: stringValidatorOptional,
     chargebeePlanId: stringValidatorOptional,
     chargebeeItemId: stringValidatorOptional,
+    chargebeeCollectPaymentMethodOnly: booleanValidatorOptional,
     relatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
     elationHistoryType: stringValidatorOptional,
     elationIsAllergy: booleanValidatorOptional,

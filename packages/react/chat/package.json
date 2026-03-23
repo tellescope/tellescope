@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/chat",
-  "version": "1.244.1",
+  "version": "1.244.2",
   "description": "",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
@@ -38,13 +38,13 @@
     "@fontsource/roboto": "4.5.8",
     "@mui/icons-material": "5.15.0",
     "@mui/material": "5.15.0",
-    "@tellescope/constants": "1.244.1",
-    "@tellescope/react-components": "1.244.1",
-    "@tellescope/sdk": "1.244.1",
-    "@tellescope/types-client": "1.244.1",
-    "@tellescope/types-models": "1.244.1",
-    "@tellescope/types-utilities": "1.244.1",
-    "@tellescope/utilities": "1.244.1",
+    "@tellescope/constants": "1.244.2",
+    "@tellescope/react-components": "1.244.2",
+    "@tellescope/sdk": "1.244.2",
+    "@tellescope/types-client": "1.244.2",
+    "@tellescope/types-models": "1.244.2",
+    "@tellescope/types-utilities": "1.244.2",
+    "@tellescope/utilities": "1.244.2",
     "react-native-image-picker": "7.0.2"
   },
   "peerDependencies": {

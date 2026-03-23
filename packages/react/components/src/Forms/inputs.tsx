@@ -5176,22 +5176,30 @@ export const RichTextInput = ({ field, value, onChange }: FormInputProps<'Rich T
   <WYSIWYG stopEnterPropagation initialHTML={value} onChange={v => onChange(v, field.id)} style={{ width: '100%' }} editorStyle={{ width: '100%' }} />
 )
 
-export const ChargeebeeInput = ({ field, value, onChange, setCustomerId }: FormInputProps<'Chargebee'> & { 
+export const ChargeebeeInput = ({ field, value, onChange, setCustomerId, responses }: FormInputProps<'Chargebee'> & {
   setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>,
 }) => {
   const session = useResolvedSession()
   const [url, setUrl] = useState('')
   const [error, setError] = useState('')
+  const [verifying, setVerifying] = useState(false)
 
   const [loadCount, setLoadCount] = useState(0)
+
+  const collectOnly = !!field.options?.chargebeeCollectPaymentMethodOnly
 
   const fetchRef = useRef(false)
   useEffect(() => {
     if (fetchRef.current) return
     fetchRef.current = true
-    
-    session.api.form_responses.chargebee_details({ fieldId: field.id })
-    .then(({ url }) => setUrl(url))
+
+    const addressResponse = responses?.find(r => r.answer?.type === 'Address' && r.answer?.value)
+    const billingAddress = addressResponse?.answer?.type === 'Address' && addressResponse?.answer?.value
+      ? addressResponse.answer.value as { addressLineOne?: string, addressLineTwo?: string, city?: string, state?: string, zipCode?: string }
+      : undefined
+
+    session.api.form_responses.chargebee_details({ fieldId: field.id, billingAddress })
+    .then(({ url }) => setUrl(url ?? ''))
     .catch(setError)
   }, [session])
 
@@ -5204,22 +5212,58 @@ export const ChargeebeeInput = ({ field, value, onChange, setCustomerId }: FormI
     onChange({ url }, field.id)
   }, [loadCount, url])
 
+  const handleVerify = async () => {
+    setVerifying(true)
+    setError('')
+    try {
+      const { hasPaymentMethod } = await session.api.form_responses.chargebee_details({ fieldId: field.id, verify: true })
+      if (hasPaymentMethod) {
+        onChange({ url: 'verified' }, field.id)
+      } else {
+        setError('No payment method found. Please add a card and try again.')
+      }
+    } catch (err: any) {
+      setError(err?.message ?? 'Failed to verify payment method')
+    } finally {
+      setVerifying(false)
+    }
+  }
+
   if (value || loadCount === 2) {
     return (
       <Grid container alignItems="center" wrap="nowrap">
         <CheckCircleOutline color="success" />
 
         <Typography sx={{ ml: 1, fontSize: 20 }}>
-          Your purchase was successful
+          {collectOnly
+            ? 'Your payment method was saved successfully'
+            : 'Your purchase was successful'
+          }
         </Typography>
       </Grid>
     )
   }
-  if (error && typeof error === 'string') return <Typography color="error">{error}</Typography>
   if (!url) return <LinearProgress />
   return (
-    <iframe src={url} title="Checkout" style={{ border: 'none', width: '100%', height: 700 }} 
-      onLoad={() => setLoadCount(l => l + 1)} 
-    />
+    <>
+      <iframe src={url} title="Checkout" style={{ border: 'none', width: '100%', height: 700 }}
+        onLoad={() => setLoadCount(l => l + 1)}
+      />
+      {collectOnly && !field.isOptional &&
+        <Grid container direction="column" alignItems="center" spacing={1} sx={{ mt: 1 }}>
+          <Grid item>
+            <LoadingButton variant="contained" onClick={handleVerify} submitting={verifying} submitText="Done" />
+          </Grid>
+          {error && typeof error === 'string' &&
+            <Grid item>
+              <Typography color="error">{error}</Typography>
+            </Grid>
+          }
+        </Grid>
+      }
+      {!collectOnly && error && typeof error === 'string' &&
+        <Typography color="error">{error}</Typography>
+      }
+    </>
   )
 }

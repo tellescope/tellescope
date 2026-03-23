@@ -326,7 +326,7 @@ export const QuestionForField = ({
           <Stripe enduserId={enduserId} field={field} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<any>} setCustomerId={setCustomerId} form={form} responses={responses} enduser={enduser} />
         )
         : field.type === 'Chargebee' ? (
-          <Chargebee field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Chargebee'>} setCustomerId={setCustomerId} form={form} />
+          <Chargebee field={field} value={value.answer.value as any} onChange={onFieldChange as ChangeHandler<'Chargebee'>} setCustomerId={setCustomerId} form={form} responses={responses} />
         )
         : field.type === 'stringLong' ? (
           <StringLong field={field} disabled={value.disabled} value={value.answer.value as string} onChange={onFieldChange as ChangeHandler<'string' | 'stringLong'>} form={form} />

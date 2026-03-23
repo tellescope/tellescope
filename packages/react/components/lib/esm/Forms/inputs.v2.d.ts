@@ -74,7 +74,5 @@ export declare const EmotiiInput: ({ goToNextField, goToPreviousField, field, va
 export declare const AllergiesInput: ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'Allergies'>) => JSX.Element;
 export declare const ConditionsInput: ({ goToNextField, goToPreviousField, field, value, onChange, form, formResponseId, ...props }: FormInputProps<'Conditions'>) => JSX.Element;
 export declare const RichTextInput: ({ field, value, onChange }: FormInputProps<'Rich Text'>) => JSX.Element;
-export declare const ChargeebeeInput: ({ field, value, onChange, setCustomerId }: FormInputProps<"Chargebee"> & {
-    setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>;
-}) => JSX.Element;
+export { ChargeebeeInput } from './inputs';
 //# sourceMappingURL=inputs.v2.d.ts.map

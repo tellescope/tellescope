@@ -1883,6 +1883,21 @@ export var schema = build_schema({
                     }
                 },
                 {
+                    explanation: "Only admin users can update elationUserId",
+                    evaluate: function (_a, _, session, method, _b) {
+                        var _c;
+                        var roles = _a.roles;
+                        var updates = _b.updates;
+                        if ((_c = session === null || session === void 0 ? void 0 : session.roles) === null || _c === void 0 ? void 0 : _c.includes('Admin'))
+                            return; // admin can do this
+                        if (method === 'create')
+                            return; // create already admin restricted
+                        if (!(updates === null || updates === void 0 ? void 0 : updates.elationUserId))
+                            return; // elationUserId not provided
+                        return "Only admin users can update elationUserId";
+                    }
+                },
+                {
                     explanation: "Only admin users can update doseSpotUserId",
                     evaluate: function (_a, _, session, method, _b) {
                         var _c;
@@ -2286,7 +2301,7 @@ export var schema = build_schema({
                 // ]
             }, credentialedStates: {
                 validator: stateCredentialsValidator,
-            }, timezone: { validator: timezoneValidator }, weeklyAvailabilities: { validator: weeklyAvailabilitiesValidator }, calendarEventLimits: { validator: calendarEventLimitsValidator }, autoReplyEnabled: { validator: booleanValidatorOptional }, pushNotificationIosTokens: { validator: listOfStringsValidatorEmptyOk }, pushNotificationFirebaseTokens: { validator: listOfStringsValidatorEmptyOk }, callRouting: { validator: userCallRoutingBehaviorValidator }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, emailSignature: { validator: stringValidator1000 }, disableTicketAutoAssignment: { validator: booleanValidator }, ticketAssignmentPriority: { validator: nonNegNumberValidator }, specialties: { validator: listOfStringsValidatorOptionalOrEmptyOk }, bio: { validator: stringValidator25000EmptyOkay }, TIN: { validator: stringValidatorOptionalEmptyOkay }, NPI: { validator: stringValidatorOptionalEmptyOkay }, DEA: { validator: stringValidatorOptionalEmptyOkay }, voicemailPlayback: { validator: phonePlaybackValidatorOptional }, lockedOutUntil: { validator: numberValidator }, failedLoginAttempts: { validator: nonNegNumberValidator }, iOSBadgeCount: { validator: nonNegNumberValidator }, availableFromNumbers: { validator: listOfStringsValidatorEmptyOk }, availableFromEmails: { validator: listOfStringsValidatorEmptyOk }, doseSpotUserId: { validator: stringValidator100 }, scriptSurePrescriberId: { validator: stringValidator100 }, isScriptsureProvider: { validator: booleanValidatorOptional }, url: { validator: stringValidator1000 }, templateFields: {
+            }, timezone: { validator: timezoneValidator }, weeklyAvailabilities: { validator: weeklyAvailabilitiesValidator }, calendarEventLimits: { validator: calendarEventLimitsValidator }, autoReplyEnabled: { validator: booleanValidatorOptional }, pushNotificationIosTokens: { validator: listOfStringsValidatorEmptyOk }, pushNotificationFirebaseTokens: { validator: listOfStringsValidatorEmptyOk }, callRouting: { validator: userCallRoutingBehaviorValidator }, tags: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, emailSignature: { validator: stringValidator1000 }, disableTicketAutoAssignment: { validator: booleanValidator }, ticketAssignmentPriority: { validator: nonNegNumberValidator }, specialties: { validator: listOfStringsValidatorOptionalOrEmptyOk }, bio: { validator: stringValidator25000EmptyOkay }, TIN: { validator: stringValidatorOptionalEmptyOkay }, NPI: { validator: stringValidatorOptionalEmptyOkay }, DEA: { validator: stringValidatorOptionalEmptyOkay }, voicemailPlayback: { validator: phonePlaybackValidatorOptional }, lockedOutUntil: { validator: numberValidator }, failedLoginAttempts: { validator: nonNegNumberValidator }, elationUserId: { validator: numberValidator }, iOSBadgeCount: { validator: nonNegNumberValidator }, availableFromNumbers: { validator: listOfStringsValidatorEmptyOk }, availableFromEmails: { validator: listOfStringsValidatorEmptyOk }, doseSpotUserId: { validator: stringValidator100 }, scriptSurePrescriberId: { validator: stringValidator100 }, isScriptsureProvider: { validator: booleanValidatorOptional }, url: { validator: stringValidator1000 }, templateFields: {
                 validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     field: stringValidator100,
                     value: stringValidator5000,
@@ -3179,9 +3194,20 @@ export var schema = build_schema({
                 description: "Gets the relevant information for a Chargebee field",
                 parameters: {
                     fieldId: { validator: mongoIdStringValidator, required: true },
+                    billingAddress: {
+                        validator: objectValidator({
+                            addressLineOne: stringValidatorOptional,
+                            addressLineTwo: stringValidatorOptional,
+                            city: stringValidatorOptional,
+                            state: stringValidatorOptional,
+                            zipCode: stringValidatorOptional,
+                        }),
+                    },
+                    verify: { validator: booleanValidator },
                 },
                 returns: {
-                    url: { validator: stringValidator, required: true },
+                    url: { validator: stringValidator },
+                    hasPaymentMethod: { validator: booleanValidator },
                 },
             },
             get_report: {

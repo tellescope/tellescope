@@ -2996,20 +2996,28 @@ export var RichTextInput = function (_a) {
     return (_jsx(WYSIWYG, { stopEnterPropagation: true, initialHTML: value, onChange: function (v) { return onChange(v, field.id); }, style: { width: '100%' }, editorStyle: { width: '100%' } }));
 };
 export var ChargeebeeInput = function (_a) {
-    var field = _a.field, value = _a.value, onChange = _a.onChange, setCustomerId = _a.setCustomerId;
+    var _b;
+    var field = _a.field, value = _a.value, onChange = _a.onChange, setCustomerId = _a.setCustomerId, responses = _a.responses;
     var session = useResolvedSession();
-    var _b = useState(''), url = _b[0], setUrl = _b[1];
-    var _d = useState(''), error = _d[0], setError = _d[1];
-    var _e = useState(0), loadCount = _e[0], setLoadCount = _e[1];
+    var _d = useState(''), url = _d[0], setUrl = _d[1];
+    var _e = useState(''), error = _e[0], setError = _e[1];
+    var _f = useState(false), verifying = _f[0], setVerifying = _f[1];
+    var _g = useState(0), loadCount = _g[0], setLoadCount = _g[1];
+    var collectOnly = !!((_b = field.options) === null || _b === void 0 ? void 0 : _b.chargebeeCollectPaymentMethodOnly);
     var fetchRef = useRef(false);
     useEffect(function () {
+        var _a, _b;
         if (fetchRef.current)
             return;
         fetchRef.current = true;
-        session.api.form_responses.chargebee_details({ fieldId: field.id })
+        var addressResponse = responses === null || responses === void 0 ? void 0 : responses.find(function (r) { var _a, _b; return ((_a = r.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Address' && ((_b = r.answer) === null || _b === void 0 ? void 0 : _b.value); });
+        var billingAddress = ((_a = addressResponse === null || addressResponse === void 0 ? void 0 : addressResponse.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Address' && ((_b = addressResponse === null || addressResponse === void 0 ? void 0 : addressResponse.answer) === null || _b === void 0 ? void 0 : _b.value)
+            ? addressResponse.answer.value
+            : undefined;
+        session.api.form_responses.chargebee_details({ fieldId: field.id, billingAddress: billingAddress })
             .then(function (_a) {
             var url = _a.url;
-            return setUrl(url);
+            return setUrl(url !== null && url !== void 0 ? url : '');
         })
             .catch(setError);
     }, [session]);
@@ -3022,14 +3030,49 @@ export var ChargeebeeInput = function (_a) {
         loadAnswerRef.current = true;
         onChange({ url: url }, field.id);
     }, [loadCount, url]);
+    var handleVerify = function () { return __awaiter(void 0, void 0, void 0, function () {
+        var hasPaymentMethod, err_10;
+        var _a;
+        return __generator(this, function (_b) {
+            switch (_b.label) {
+                case 0:
+                    setVerifying(true);
+                    setError('');
+                    _b.label = 1;
+                case 1:
+                    _b.trys.push([1, 3, 4, 5]);
+                    return [4 /*yield*/, session.api.form_responses.chargebee_details({ fieldId: field.id, verify: true })];
+                case 2:
+                    hasPaymentMethod = (_b.sent()).hasPaymentMethod;
+                    if (hasPaymentMethod) {
+                        onChange({ url: 'verified' }, field.id);
+                    }
+                    else {
+                        setError('No payment method found. Please add a card and try again.');
+                    }
+                    return [3 /*break*/, 5];
+                case 3:
+                    err_10 = _b.sent();
+                    setError((_a = err_10 === null || err_10 === void 0 ? void 0 : err_10.message) !== null && _a !== void 0 ? _a : 'Failed to verify payment method');
+                    return [3 /*break*/, 5];
+                case 4:
+                    setVerifying(false);
+                    return [7 /*endfinally*/];
+                case 5: return [2 /*return*/];
+            }
+        });
+    }); };
     if (value || loadCount === 2) {
-        return (_jsxs(Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap" }, { children: [_jsx(CheckCircleOutline, { color: "success" }), _jsx(Typography, __assign({ sx: { ml: 1, fontSize: 20 } }, { children: "Your purchase was successful" }))] })));
+        return (_jsxs(Grid, __assign({ container: true, alignItems: "center", wrap: "nowrap" }, { children: [_jsx(CheckCircleOutline, { color: "success" }), _jsx(Typography, __assign({ sx: { ml: 1, fontSize: 20 } }, { children: collectOnly
+                        ? 'Your payment method was saved successfully'
+                        : 'Your purchase was successful' }))] })));
     }
-    if (error && typeof error === 'string')
-        return _jsx(Typography, __assign({ color: "error" }, { children: error }));
     if (!url)
         return _jsx(LinearProgress, {});
-    return (_jsx("iframe", { src: url, title: "Checkout", style: { border: 'none', width: '100%', height: 700 }, onLoad: function () { return setLoadCount(function (l) { return l + 1; }); } }));
+    return (_jsxs(_Fragment, { children: [_jsx("iframe", { src: url, title: "Checkout", style: { border: 'none', width: '100%', height: 700 }, onLoad: function () { return setLoadCount(function (l) { return l + 1; }); } }), collectOnly && !field.isOptional &&
+                _jsxs(Grid, __assign({ container: true, direction: "column", alignItems: "center", spacing: 1, sx: { mt: 1 } }, { children: [_jsx(Grid, __assign({ item: true }, { children: _jsx(LoadingButton, { variant: "contained", onClick: handleVerify, submitting: verifying, submitText: "Done" }) })), error && typeof error === 'string' &&
+                            _jsx(Grid, __assign({ item: true }, { children: _jsx(Typography, __assign({ color: "error" }, { children: error })) }))] })), !collectOnly && error && typeof error === 'string' &&
+                _jsx(Typography, __assign({ color: "error" }, { children: error }))] }));
 };
 var templateObject_1, templateObject_2;
 //# sourceMappingURL=inputs.js.map

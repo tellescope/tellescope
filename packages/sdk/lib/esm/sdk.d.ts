@@ -27,6 +27,9 @@ export interface LoadFunctionArguments<T> {
     ids?: string[];
     returnCount?: boolean;
     mdbFilter?: any;
+    projection?: {
+        [K in keyof T]?: 1;
+    };
 }
 export type LoadFunction<T> = (o?: LoadFunctionArguments<T>) => Promise<T[]>;
 export interface APIQuery<N extends keyof ClientModelForName, T = ClientModelForName[N], CREATE = CreateFields<N>, UPDATE = Omit<Partial<T>, keyof (ClientModelForName_readonly[N] & ClientModelForName_updatesDisabled[N])> & {
@@ -4165,6 +4168,7 @@ export declare class Session extends SessionManager {
         exp: number;
         allowedPaths?: string[] | undefined;
         requiresMFA?: boolean | undefined;
+        users?: number | undefined;
         inbox_threads?: number | undefined;
         ai_conversations?: number | undefined;
         waitlists?: number | undefined;
@@ -4211,7 +4215,6 @@ export declare class Session extends SessionManager {
         sms_messages?: number | undefined;
         chat_rooms?: number | undefined;
         chats?: number | undefined;
-        users?: number | undefined;
         templates?: number | undefined;
         files?: number | undefined;
         tickets?: number | undefined;
@@ -4321,6 +4324,7 @@ export declare class Session extends SessionManager {
         exp: number;
         allowedPaths?: string[] | undefined;
         requiresMFA?: boolean | undefined;
+        users?: number | undefined;
         inbox_threads?: number | undefined;
         ai_conversations?: number | undefined;
         waitlists?: number | undefined;
@@ -4367,7 +4371,6 @@ export declare class Session extends SessionManager {
         sms_messages?: number | undefined;
         chat_rooms?: number | undefined;
         chats?: number | undefined;
-        users?: number | undefined;
         templates?: number | undefined;
         files?: number | undefined;
         tickets?: number | undefined;

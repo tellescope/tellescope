@@ -1825,6 +1825,7 @@ export type FormFieldOptions = FormFieldValidation & {
     autoAdvance?: boolean;
     autoSubmit?: boolean;
     prefillSignature?: boolean;
+    prefillCurrentDate?: boolean;
     includeGroupNumber?: boolean;
     holdAppointmentMinutes?: number;
     rangeStepSize?: number;
@@ -1852,6 +1853,7 @@ export type FormFieldOptions = FormFieldValidation & {
     chargebeeEnvironment?: string;
     chargebeePlanId?: string;
     chargebeeItemId?: string;
+    chargebeeCollectPaymentMethodOnly?: boolean;
     relatedContactTypes?: string[];
     radioChoices?: string[];
     elationHistoryType?: string;

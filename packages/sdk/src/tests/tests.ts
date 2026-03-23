@@ -36,6 +36,7 @@ import {
 
 import { Session, APIQuery, EnduserSession } from "../sdk"
 import { enduser_observations_acknowledge_tests } from "./api_tests/enduser_observations_acknowledge.test"
+import { get_some_projection_tests } from "./api_tests/get_some_projection.test"
 import { create_user_notifications_trigger_tests } from "./api_tests/create_user_notifications_trigger.test"
 import { inbox_thread_assignment_updates_tests } from "./api_tests/inbox_thread_assignment_updates.test"
 import { inbox_thread_draft_scheduled_tests } from "./api_tests/inbox_thread_draft_scheduled.test"
@@ -85,6 +86,7 @@ import { database_cascade_delete_tests } from "./api_tests/database_cascade_dele
 import { ai_conversations_tests } from "./api_tests/ai_conversations.test";
 import { load_team_chat_tests } from "./api_tests/load_team_chat.test";
 import { form_started_trigger_tests } from "./api_tests/form_started_trigger.test";
+import { elation_user_id_tests } from "./api_tests/elation_user_id.test";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
@@ -5572,28 +5574,87 @@ const redaction_tests = async () => {
   log_header("Redaction")
 
   const enduser = await sdk.api.endusers.createOne({ email })
-  const enduserOther = await sdk.api.endusers.createOne({ email: 'otherenduser@tellescope.com' })
+  const enduserOther = await sdk.api.endusers.createOne({
+    email: 'otherenduser@tellescope.com',
+    unredactedFields: [{ field: 'testField', value: 'testValue' }] as any,
+  })
   await sdk.api.endusers.set_password({ id: enduser.id, password }).catch(console.error)
-  await enduserSDK.authenticate(email, password).catch(console.error)  
+  await enduserSDK.authenticate(email, password).catch(console.error)
 
   const endusers = await enduserSDK.api.endusers.getSome()
   const forUser  = await sdk.api.endusers.getSome()
   assert(endusers.length > 0, "enduser can't fetch others", "enduser get others successful")
 
+  // endusers reading OTHER endusers should only see id, displayName, unredactedFields, and unredactedTags
+  const ALLOWED_OTHER_ENDUSER_FIELDS = ['id', 'displayName', 'unredactedFields', 'unredactedTags']
+  const otherEndusers = endusers.filter(e => e.id !== enduser.id)
+  assert(otherEndusers.length > 0, 'no other endusers found', 'found other endusers to check redaction')
+  for (const other of otherEndusers) {
+    const keys = Object.keys(other)
+    assert(
+      keys.every(k => ALLOWED_OTHER_ENDUSER_FIELDS.includes(k)),
+      `other enduser has extra fields: ${keys.filter(k => !ALLOWED_OTHER_ENDUSER_FIELDS.includes(k)).join(', ')}`,
+      'other enduser correctly redacted to only id, displayName, unredactedFields, unredactedTags',
+    )
+    assert(
+      keys.includes('id'),
+      `other enduser missing id`,
+      'other enduser has id',
+    )
+  }
+
+  // verify unredactedFields are preserved for other endusers when defined
+  const otherWithUnredacted = otherEndusers.find(e => e.id === enduserOther.id)
+  if (otherWithUnredacted) {
+    assert(
+      !!(otherWithUnredacted as any).unredactedFields?.length,
+      'unredactedFields missing on other enduser',
+      'unredactedFields preserved on other enduser when defined',
+    )
+  }
+
+  // verify unredactedFields/unredactedTags are omitted when not set on the enduser
+  const otherWithoutUnredacted = otherEndusers.find(e => e.id !== enduserOther.id)
+  if (otherWithoutUnredacted) {
+    assert(
+      !('unredactedFields' in otherWithoutUnredacted),
+      'unredactedFields present when not set',
+      'unredactedFields omitted when not defined on enduser',
+    )
+    assert(
+      !('unredactedTags' in otherWithoutUnredacted),
+      'unredactedTags present when not set',
+      'unredactedTags omitted when not defined on enduser',
+    )
+  }
+
+  // enduser reading their own profile should still have non-redacted fields (not just id + displayName)
+  const selfEnduser = endusers.find(e => e.id === enduser.id)
+  if (selfEnduser) {
+    assert(
+      Object.keys(selfEnduser).length > ALLOWED_OTHER_ENDUSER_FIELDS.length,
+      'self enduser overly redacted',
+      'self enduser retains non-redacted fields',
+    )
+  }
+
+  // verify schema-level redactions still apply to self
   const redactedFields = (
     Object.keys(schema.endusers.fields)
-    .filter(f => 
+    .filter(f =>
        schema.endusers.fields[f as keyof typeof schema.endusers.fields]?.redactions?.includes('enduser')
     || schema.endusers.fields[f as keyof typeof schema.endusers.fields]?.redactions?.includes('all')
     )
   )
   assert(redactedFields.length > 0, 'no redacted fields', 'redacted fields exists')
 
-  assert(
-    endusers.find(e => redactedFields.filter(f => !!e[f as keyof typeof e]).length > 0) === undefined,
-    'got redacted data',
-    'data correctly redacted',
-  )
+  if (selfEnduser) {
+    assert(
+      redactedFields.filter(f => !!(selfEnduser as any)[f]).length === 0,
+      'self enduser got redacted data',
+      'self enduser data correctly redacted per schema',
+    )
+  }
 
   assert(
     !forUser.find(u => u.hashedPassword),
@@ -13947,6 +14008,8 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await get_some_projection_tests({ sdk, sdkNonAdmin })
+    await elation_user_id_tests({ sdk, sdkNonAdmin })
     await custom_dashboards_tests({ sdk, sdkNonAdmin })
     await concurrent_build_threads_tests({ sdk, sdkNonAdmin })
     await custom_aggregation_tests({ sdk, sdkNonAdmin })

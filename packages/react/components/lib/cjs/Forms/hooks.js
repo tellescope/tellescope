@@ -589,7 +589,7 @@ var useTellescopeForm = function (_a) {
     // placeholders for initial fields, reset when fields prop changes, since questions are now different (e.g. different form selected) 
     var fieldInitRef = (0, react_1.useRef)('');
     var initializeFields = (0, react_1.useCallback)(function () { return (fields.map(function (f) {
-        var _a, _b, _c, _d, _e, _g, _h, _j, _k, _l, _m, _o, _p, _q, _t, _u, _v, _w;
+        var _a, _b, _c, _d, _e, _g, _h, _j, _k, _l, _m, _o, _p, _q, _t, _u, _v, _w, _x, _y;
         return ({
             fieldId: f.id,
             fieldTitle: f.title,
@@ -634,7 +634,11 @@ var useTellescopeForm = function (_a) {
                                     )
                                     : f.type === 'Related Contacts'
                                         ? (f.isOptional ? [] : [{ relationships: ((_w = (_v = f === null || f === void 0 ? void 0 : f.options) === null || _v === void 0 ? void 0 : _v.relatedContactTypes) === null || _w === void 0 ? void 0 : _w.length) === 1 ? [{ type: f.options.relatedContactTypes[0], id: '' }] : [] }])
-                                        : '' // null flag that the response was not filled out
+                                        : (f.type === 'date' && ((_x = f.options) === null || _x === void 0 ? void 0 : _x.prefillCurrentDate))
+                                            ? new Date()
+                                            : (f.type === 'dateString' && ((_y = f.options) === null || _y === void 0 ? void 0 : _y.prefillCurrentDate))
+                                                ? (0, utilities_1.mm_dd_yyyy)(new Date())
+                                                : '' // null flag that the response was not filled out
                 )),
             },
             field: f,

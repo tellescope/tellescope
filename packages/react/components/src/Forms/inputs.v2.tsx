@@ -2654,50 +2654,5 @@ export const RichTextInput = ({ field, value, onChange }: FormInputProps<'Rich T
   <WYSIWYG stopEnterPropagation initialHTML={value} onChange={v => onChange(v, field.id)} style={{ width: '100%' }} editorStyle={{ width: '100%' }} />
 )
 
-export const ChargeebeeInput = ({ field, value, onChange, setCustomerId }: FormInputProps<'Chargebee'> & { 
-  setCustomerId: React.Dispatch<React.SetStateAction<string | undefined>>,
-}) => {
-  const session = useResolvedSession()
-  const [url, setUrl] = useState('')
-  const [error, setError] = useState('')
-
-  const [loadCount, setLoadCount] = useState(0)
-
-  const fetchRef = useRef(false)
-  useEffect(() => {
-    if (fetchRef.current) return
-    fetchRef.current = true
-    
-    session.api.form_responses.chargebee_details({ fieldId: field.id })
-    .then(({ url }) => setUrl(url))
-    .catch(setError)
-  }, [session])
-
-  const loadAnswerRef = useRef(false)
-  useEffect(() => {
-    if (loadCount !== 2) return
-    if (loadAnswerRef.current) return
-    loadAnswerRef.current = true
-
-    onChange({ url }, field.id)
-  }, [loadCount, url])
-
-  if (value || loadCount === 2) {
-    return (
-      <Grid container alignItems="center" wrap="nowrap">
-        <CheckCircleOutline color="success" />
-
-        <Typography sx={{ ml: 1, fontSize: 20 }}>
-          Your purchase was successful
-        </Typography>
-      </Grid>
-    )
-  }
-  if (error && typeof error === 'string') return <Typography color="error">{error}</Typography>
-  if (!url) return <LinearProgress />
-  return (
-    <iframe src={url} title="Checkout" style={{ border: 'none', width: '100%', height: 700 }} 
-      onLoad={() => setLoadCount(l => l + 1)} 
-    />
-  )
-}
+// Re-export from V1 to follow DRY principles
+export { ChargeebeeInput } from './inputs'
