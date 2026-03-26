@@ -4761,7 +4761,18 @@ exports.schema = (0, exports.build_schema)({
                     id: validation_1.stringValidator100,
                     name: validation_1.stringValidator,
                 }))
-            }, groups: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: validation_1.stringValidator }, observationInvalidationReasons: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: validation_1.stringValidator }, hasConnectedPaubox: { validator: validation_1.booleanValidator }, hasConnectedBridge: { validator: validation_1.booleanValidator }, hasConnectedMDIntegrations: { validator: validation_1.booleanValidator }, createEnduserForms: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, skipActivePatientBilling: { validator: validation_1.booleanValidator }, portalV2SchemaURL: { validator: validation_1.stringValidator } }),
+            }, groups: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: validation_1.stringValidator }, observationInvalidationReasons: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: validation_1.listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: validation_1.stringValidator }, hasConnectedPaubox: { validator: validation_1.booleanValidator }, hasConnectedBridge: { validator: validation_1.booleanValidator }, hasConnectedMDIntegrations: { validator: validation_1.booleanValidator }, createEnduserForms: { validator: validation_1.listOfMongoIdStringValidatorOptionalOrEmptyOk }, skipActivePatientBilling: { validator: validation_1.booleanValidator }, portalV2SchemaURL: { validator: validation_1.stringValidator }, timeTrackingPrograms: {
+                validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
+                    title: validation_1.stringValidator100,
+                    billingCodes: (0, validation_1.listValidatorEmptyOk)((0, validation_1.objectValidator)({
+                        billingCode: validation_1.stringValidator100,
+                        timeInMinutes: validation_1.nonNegNumberValidator,
+                    })),
+                    forms: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
+                        id: validation_1.mongoIdStringRequired,
+                    })),
+                }))
+            } }),
     },
     databases: {
         info: {},
@@ -5069,7 +5080,7 @@ exports.schema = (0, exports.build_schema)({
             }, processor: {
                 validator: validation_1.paymentProcessorValidator,
                 examples: ['Stripe'],
-            }, description: { validator: validation_1.stringValidator5000EmptyOkay }, htmlDescription: { validator: validation_1.stringValidator25000EmptyOkay }, cptCode: { validator: validation_1.billingCodeValidatorOptional }, image: { validator: validation_1.stringValidator100000EmptyOkay }, showInPortal: { validator: validation_1.booleanValidator }, categories: { validator: validation_1.listOfStringsValidatorEmptyOk }, maxCheckoutCount: { validator: validation_1.numberValidatorOptional }, stripeProductId: { validator: validation_1.stringValidator100 }, stripeSubscriptionId: { validator: validation_1.stringValidator100 }, stripePriceId: { validator: validation_1.stringValidator100 }, additionalStripePriceIds: { validator: validation_1.listOfStringsValidatorEmptyOk } })
+            }, description: { validator: validation_1.stringValidator5000EmptyOkay }, htmlDescription: { validator: validation_1.stringValidator25000EmptyOkay }, cptCode: { validator: validation_1.billingCodeValidatorOptional }, image: { validator: validation_1.stringValidator100000EmptyOkay }, showInPortal: { validator: validation_1.booleanValidator }, categories: { validator: validation_1.listOfStringsValidatorEmptyOk }, maxCheckoutCount: { validator: validation_1.numberValidatorOptional }, stripeProductId: { validator: validation_1.stringValidator100 }, stripeSubscriptionId: { validator: validation_1.stringValidator100 }, stripePriceId: { validator: validation_1.stringValidator100 }, additionalStripePriceIds: { validator: validation_1.listOfStringsValidatorEmptyOk }, chargebeeItemPriceId: { validator: validation_1.stringValidator100 } })
     },
     purchases: {
         info: {},
@@ -6009,7 +6020,12 @@ exports.schema = (0, exports.build_schema)({
                     timestamp: validation_1.dateValidator,
                 })),
                 initializer: function () { return [{ type: 'start', timestamp: new Date() }]; },
-            }, closedAt: { validator: validation_1.dateValidatorOptional }, totalDurationInMS: { validator: validation_1.numberValidatorOptional } }),
+            }, closedAt: { validator: validation_1.dateValidatorOptional }, totalDurationInMS: { validator: validation_1.numberValidatorOptional }, programTitle: { validator: validation_1.stringValidatorOptionalEmptyOkay }, activity: {
+                validator: (0, validation_1.objectValidator)({
+                    type: validation_1.stringValidator,
+                    id: validation_1.stringValidator,
+                }, { isOptional: true, emptyOk: true }),
+            } }),
     },
     ticket_queues: {
         info: {},

@@ -12,6 +12,14 @@ import { Indexable } from "@tellescope/utilities"
 
 export const DEFAULT_HOST = 'https://api.tellescope.com'
 
+export type TellescopeProduct = 'tellescope1' | 'tellescope2' | 'portal1' | 'portal2' | 'script-runner'
+
+export interface SessionHeaders {
+  /** Identifies the product/application this session is originating from */
+  'x-tellescope-product'?: TellescopeProduct | string;
+  [key: string]: string | undefined;
+}
+
 export interface SessionOptions {
   apiKey?: string;
   authToken?: string;
@@ -27,6 +35,7 @@ export interface SessionOptions {
   enableSocketLogging?: boolean,
   handleUnauthenticated?: () => Promise<any>;
   autoRefreshInMS?: number,
+  headers?: Partial<SessionHeaders>,
 }
 
 export const wait = (f?: Promise<void>, ms=1000) => new Promise<void>((resolve, reject) => {
@@ -194,7 +203,7 @@ export class Session {
   handlers: Record<string, Function>
   loadedSocketEvents: Record<string, any[]>
 
-  config: { headers: { Authorization: string }};
+  config: { headers: { Authorization: string } & Partial<SessionHeaders> };
 
   constructor(o={} as SessionOptions & RequestOptions & { type: string }) {
     if (o.servicesSecret && !o.businessId) throw new Error("Services secret provided without businessId")
@@ -237,7 +246,8 @@ export class Session {
           this.apiKey 
             ? generateAPIKeyHeader(this.apiKey)
             : generateBearer(this.authToken ?? '')
-        )
+        ),
+        ...o.headers,
     } } // initialize after authToken
   }
   

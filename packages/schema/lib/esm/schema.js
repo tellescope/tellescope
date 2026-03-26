@@ -4756,7 +4756,18 @@ export var schema = build_schema({
                     id: stringValidator100,
                     name: stringValidator,
                 }))
-            }, groups: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: stringValidator }, observationInvalidationReasons: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: stringValidator }, hasConnectedPaubox: { validator: booleanValidator }, hasConnectedBridge: { validator: booleanValidator }, hasConnectedMDIntegrations: { validator: booleanValidator }, createEnduserForms: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, skipActivePatientBilling: { validator: booleanValidator }, portalV2SchemaURL: { validator: stringValidator } }),
+            }, groups: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, canvasURL: { validator: stringValidator }, observationInvalidationReasons: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customNotificationTypes: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOFields: { validator: listOfStringsValidatorUniqueOptionalOrEmptyOkay }, customerIOIdField: { validator: stringValidator }, hasConnectedPaubox: { validator: booleanValidator }, hasConnectedBridge: { validator: booleanValidator }, hasConnectedMDIntegrations: { validator: booleanValidator }, createEnduserForms: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk }, skipActivePatientBilling: { validator: booleanValidator }, portalV2SchemaURL: { validator: stringValidator }, timeTrackingPrograms: {
+                validator: listValidatorOptionalOrEmptyOk(objectValidator({
+                    title: stringValidator100,
+                    billingCodes: listValidatorEmptyOk(objectValidator({
+                        billingCode: stringValidator100,
+                        timeInMinutes: nonNegNumberValidator,
+                    })),
+                    forms: listValidatorOptionalOrEmptyOk(objectValidator({
+                        id: mongoIdStringRequired,
+                    })),
+                }))
+            } }),
     },
     databases: {
         info: {},
@@ -5064,7 +5075,7 @@ export var schema = build_schema({
             }, processor: {
                 validator: paymentProcessorValidator,
                 examples: ['Stripe'],
-            }, description: { validator: stringValidator5000EmptyOkay }, htmlDescription: { validator: stringValidator25000EmptyOkay }, cptCode: { validator: billingCodeValidatorOptional }, image: { validator: stringValidator100000EmptyOkay }, showInPortal: { validator: booleanValidator }, categories: { validator: listOfStringsValidatorEmptyOk }, maxCheckoutCount: { validator: numberValidatorOptional }, stripeProductId: { validator: stringValidator100 }, stripeSubscriptionId: { validator: stringValidator100 }, stripePriceId: { validator: stringValidator100 }, additionalStripePriceIds: { validator: listOfStringsValidatorEmptyOk } })
+            }, description: { validator: stringValidator5000EmptyOkay }, htmlDescription: { validator: stringValidator25000EmptyOkay }, cptCode: { validator: billingCodeValidatorOptional }, image: { validator: stringValidator100000EmptyOkay }, showInPortal: { validator: booleanValidator }, categories: { validator: listOfStringsValidatorEmptyOk }, maxCheckoutCount: { validator: numberValidatorOptional }, stripeProductId: { validator: stringValidator100 }, stripeSubscriptionId: { validator: stringValidator100 }, stripePriceId: { validator: stringValidator100 }, additionalStripePriceIds: { validator: listOfStringsValidatorEmptyOk }, chargebeeItemPriceId: { validator: stringValidator100 } })
     },
     purchases: {
         info: {},
@@ -6004,7 +6015,12 @@ export var schema = build_schema({
                     timestamp: dateValidator,
                 })),
                 initializer: function () { return [{ type: 'start', timestamp: new Date() }]; },
-            }, closedAt: { validator: dateValidatorOptional }, totalDurationInMS: { validator: numberValidatorOptional } }),
+            }, closedAt: { validator: dateValidatorOptional }, totalDurationInMS: { validator: numberValidatorOptional }, programTitle: { validator: stringValidatorOptionalEmptyOkay }, activity: {
+                validator: objectValidator({
+                    type: stringValidator,
+                    id: stringValidator,
+                }, { isOptional: true, emptyOk: true }),
+            } }),
     },
     ticket_queues: {
         info: {},

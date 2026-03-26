@@ -7014,6 +7014,18 @@ export const schema: SchemaV1 = build_schema({
       createEnduserForms: { validator: listOfMongoIdStringValidatorOptionalOrEmptyOk },
       skipActivePatientBilling: { validator: booleanValidator },
       portalV2SchemaURL: { validator: stringValidator },
+      timeTrackingPrograms: {
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ title: string, billingCodes: { billingCode: string, timeInMinutes: number }[], forms?: { id: string }[] }>({
+          title: stringValidator100,
+          billingCodes: listValidatorEmptyOk(objectValidator<{ billingCode: string, timeInMinutes: number }>({
+            billingCode: stringValidator100,
+            timeInMinutes: nonNegNumberValidator,
+          })),
+          forms: listValidatorOptionalOrEmptyOk(objectValidator<{ id: string }>({
+            id: mongoIdStringRequired,
+          })),
+        }))
+      },
     },
   },
   databases: {
@@ -7447,6 +7459,7 @@ export const schema: SchemaV1 = build_schema({
       stripeSubscriptionId: { validator: stringValidator100 },
       stripePriceId: { validator: stringValidator100 },
       additionalStripePriceIds: { validator: listOfStringsValidatorEmptyOk },
+      chargebeeItemPriceId: { validator: stringValidator100 },
     }
   },
   purchases: {
@@ -8655,6 +8668,13 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       },
       closedAt: { validator: dateValidatorOptional },
       totalDurationInMS: { validator: numberValidatorOptional },
+      programTitle: { validator: stringValidatorOptionalEmptyOkay },
+      activity: {
+        validator: objectValidator<{ type: string, id: string }>({
+          type: stringValidator,
+          id: stringValidator,
+        }, { isOptional: true, emptyOk: true }),
+      },
     },
   },
   ticket_queues: {

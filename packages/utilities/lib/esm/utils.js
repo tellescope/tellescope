@@ -842,7 +842,7 @@ export var form_response_value_to_string = function (value, options) {
         if (Array.isArray(anyValue) && (((_d = anyValue[0]) === null || _d === void 0 ? void 0 : _d.display) || ((_e = anyValue[0]) === null || _e === void 0 ? void 0 : _e.code))) {
             return anyValue.map(function (v) { return "".concat(v.display, " (").concat(v.code, ")"); }).join('\n\n');
         }
-        return anyValue.join(', ');
+        return anyValue.map(function (v) { return typeof v === 'object' ? ((v === null || v === void 0 ? void 0 : v.name) || (v === null || v === void 0 ? void 0 : v.text) || (v === null || v === void 0 ? void 0 : v.label) || JSON.stringify(v)) : v; }).join(', ');
     }
     else if (anyValue.fullName) { // signature
         return anyValue.fullName;

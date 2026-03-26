@@ -337,6 +337,7 @@ import {
   CallUserAutomationAction,
   StripeChargeCardOnFileAutomationAction,
   StripeCancelSubscriptionAutomationAction,
+  ChargebeeChargeCardOnFileAutomationAction,
   FormResponseAnswerTimezone,
   BrandedWebhookActions,
   OutOfOfficeBlock,
@@ -1307,6 +1308,7 @@ export const numberValidatorMin0Max59Optional = numberValidatorBuilder({ lower: 
 export const externalIdNumberValidator = numberValidatorBuilder({ lower: 0, upper: Number.MAX_SAFE_INTEGER })
 export const externalIdNumberValidatorOptional = numberValidatorBuilder({ lower: 0, upper: Number.MAX_SAFE_INTEGER, isOptional: true })
 export const fileSizeValidator = numberValidatorBuilder({ lower: 0, upper: MAX_FILE_SIZE })
+export const numberValidatorMin1Max100Optional = numberValidatorBuilder({ lower: 1, upper: 100, isOptional: true })
 
 export const numberOrStringValidatorEmptyOkay = orValidator({
   number: numberValidator,
@@ -2592,6 +2594,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   callUser: '',
   stripeChargeCardOnFile: '',
   stripeCancelSubscription: '',
+  chargebeeChargeCardOnFile: '',
   metriportSync: '',
   aiDecision: '',
   assignInboxItem: '',
@@ -3469,6 +3472,16 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
       cancelImmediately: booleanValidatorOptional,
     }, { emptyOk: false })
   }),
+  chargebeeChargeCardOnFile: objectValidator<ChargebeeChargeCardOnFileAutomationAction>({
+    ...sharedAutomationActionValidators,
+    type: exactMatchValidator(['chargebeeChargeCardOnFile']),
+    info: objectValidator<ChargebeeChargeCardOnFileAutomationAction['info']>({
+      chargebeeEnvironment: stringValidator,
+      chargeType: exactMatchValidator(['One-Time', 'Subscription']),
+      itemPriceId: stringValidator,
+      quantity: numberValidatorMin1Max100Optional,
+    }, { emptyOk: false })
+  }),
   aiDecision: objectValidator<AIDecisionAutomationAction>({
     ...sharedAutomationActionValidators,
     type: exactMatchValidator(['aiDecision']),
@@ -3863,6 +3876,7 @@ export const formFieldOptionsValidator = objectValidator<FormFieldOptions>({
   chargebeePlanId: stringValidatorOptional,
   chargebeeItemId: stringValidatorOptional,
   chargebeeCollectPaymentMethodOnly: booleanValidatorOptional,
+  chargebeeCouponIds: listOfStringsValidatorOptionalOrEmptyOk,
   relatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
   elationHistoryType: stringValidatorOptional,
   elationIsAllergy: booleanValidatorOptional,
@@ -4962,6 +4976,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
       skus: listOfStringsValidatorOptionalOrEmptyOk,
       skuPartials: listOfStringsValidatorOptionalOrEmptyOk,
       titlePartials: listOfStringsValidatorOptionalOrEmptyOk,
+      titlePartialsAnd: listOfStringsValidatorOptionalOrEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 

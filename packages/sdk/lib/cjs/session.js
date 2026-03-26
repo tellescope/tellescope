@@ -511,11 +511,9 @@ var Session = /** @class */ (function () {
             }
         }
         this.config = {
-            headers: {
-                Authorization: (this.apiKey
+            headers: __assign({ Authorization: (this.apiKey
                     ? generateAPIKeyHeader(this.apiKey)
-                    : generateBearer((_h = this.authToken) !== null && _h !== void 0 ? _h : ''))
-            }
+                    : generateBearer((_h = this.authToken) !== null && _h !== void 0 ? _h : '')) }, o.headers)
         }; // initialize after authToken
     }
     return Session;

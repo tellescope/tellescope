@@ -3417,6 +3417,12 @@ const order_status_equals_tests = async () => {
     status: 'Active',
     title: "Title Partial Condition"
   })
+  const t8 = await sdk.api.automation_triggers.createOne({
+    event: { type: 'Order Status Equals', info: { source: 'Source', status: "Update", titlePartialsAnd: ['PARTIAL-A', 'PARTIAL-B'] } },
+    action: { type: 'Add Tags', info: { tags: ['Title Partial And Update'] }},
+    status: 'Active',
+    title: "Title Partial And Condition"
+  })
 
   const e = await sdk.api.endusers.createOne({})
 
@@ -3567,6 +3573,37 @@ const order_status_equals_tests = async () => {
     ) }
   )
 
+  await sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle', externalId: "also avoid rate limit 5" })
+  await sdk.api.enduser_orders.updateOne(u.id, { status: "Update", title: "PARTIAL-A only" })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Title partial AND no match (only one partial present)",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!(
+       e.tags?.length === 7
+    && !e.tags?.includes('Title Partial And Update')
+    ) }
+  )
+
+  await sdk.api.enduser_orders.updateOne(u.id, { status: 'Toggle', externalId: "also avoid rate limit 6" })
+  await sdk.api.enduser_orders.updateOne(u.id, { status: "Update", title: "PARTIAL-A and PARTIAL-B together" })
+  await wait(undefined, 500) // allow triggers to happen
+  await async_test(
+    "Title partial AND update tag added (both partials present)",
+    () => sdk.api.endusers.getOne(e.id),
+    { onResult: e => !!(
+       e.tags?.length === 8
+    && e.tags?.includes('Source')
+    && e.tags?.includes('Fill')
+    && e.tags?.includes('Status Update')
+    && e.tags?.includes('Fill Update')
+    && e.tags?.includes('SKU Update')
+    && e.tags?.includes('SKU Partial Update')
+    && e.tags?.includes('Title Partial Update')
+    && e.tags?.includes('Title Partial And Update')
+    ) }
+  )
+
   await Promise.all([
     sdk.api.automation_triggers.deleteOne(t1.id),
     sdk.api.automation_triggers.deleteOne(t2.id),
@@ -3575,6 +3612,7 @@ const order_status_equals_tests = async () => {
     sdk.api.automation_triggers.deleteOne(t5.id),
     sdk.api.automation_triggers.deleteOne(t6.id),
     sdk.api.automation_triggers.deleteOne(t7.id),
+    sdk.api.automation_triggers.deleteOne(t8.id),
     sdk.api.endusers.deleteOne(e.id),
   ])
 }
@@ -4972,6 +5010,7 @@ const trigger_events_api_tests = async () => {
 const automation_trigger_tests = async () => {
   log_header("Automation Trigger Tests")
 
+  await order_status_equals_tests()
   await appointment_cancelled_tests()
   await set_fields_tests()
   await purchase_made_trigger_tests({ sdk, sdkNonAdmin })
@@ -4979,7 +5018,6 @@ const automation_trigger_tests = async () => {
   await form_response_set_fields_trigger_tests()
   await form_response_set_fields_journey_tests()
   await appointment_completed_trigger_tests({ sdk, sdkNonAdmin })
-  await order_status_equals_tests()
   await trigger_events_api_tests()
   await fields_changed_tests()
   await field_equals_trigger_tests()
@@ -10185,8 +10223,8 @@ export const ticket_reminder_tests = async () => {
   const title = 't'
 
   const LEEWAY = 200
-  const withLeeway = (source: number | undefined, target: number) => (
-    source !== undefined && ((source - LEEWAY) < target || (source + LEEWAY) > target)
+  const withLeeway = (source: number | null | undefined, target: number) => (
+    source != null && ((source - LEEWAY) < target || (source + LEEWAY) > target)
   )
 
   await async_test(
@@ -14008,6 +14046,7 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await automation_trigger_tests()
     await get_some_projection_tests({ sdk, sdkNonAdmin })
     await elation_user_id_tests({ sdk, sdkNonAdmin })
     await custom_dashboards_tests({ sdk, sdkNonAdmin })
@@ -14024,7 +14063,6 @@ const ip_address_form_tests = async () => {
     await inbox_threads_new_fields_tests()
     await auto_merge_form_submission_tests({ sdk, sdkNonAdmin })
     await threadKeyTests()
-    await automation_trigger_tests()
     await managed_content_enduser_access_tests({ sdk, sdkNonAdmin })
     await afteraction_day_of_month_delay_tests({ sdk, sdkNonAdmin })
     await bulk_assignment_tests({ sdk, sdkNonAdmin })

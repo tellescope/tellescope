@@ -49,7 +49,7 @@ export const ResponseAnswer = ({ formResponse, fieldId, isHTML, answer: a, print
           )}
          </div>
         )
-      : a.value === '_question_group' ? <></>
+      : (a.value === '_question_group' || a.type === 'Question Group') ? <></>
       : a.type === 'ranking'
         ? <ol style={{ margin: 0 }}>
             {a.value.map((t, i) => 

@@ -898,7 +898,7 @@ Reason: ${medication.reasonForTaking || 'Not provided'}`
       return anyValue.map((v: AllergyResponse) => `${v.display} (${v.code})`).join('\n\n')
     }
 
-    return anyValue.join(', ')
+    return anyValue.map((v: any) => typeof v === 'object' ? (v?.name || v?.text || v?.label || JSON.stringify(v)) : v).join(', ')
   } else if (anyValue.fullName) { // signature
     return anyValue.fullName
   }

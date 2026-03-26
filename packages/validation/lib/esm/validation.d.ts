@@ -254,6 +254,7 @@ export declare const numberValidatorMin0Max59Optional: ValidatorDefinition<numbe
 export declare const externalIdNumberValidator: ValidatorDefinition<number>;
 export declare const externalIdNumberValidatorOptional: ValidatorDefinition<number>;
 export declare const fileSizeValidator: ValidatorDefinition<number>;
+export declare const numberValidatorMin1Max100Optional: ValidatorDefinition<number>;
 export declare const numberOrStringValidatorEmptyOkay: ValidatorDefinition<string | number>;
 export declare const numberOrStringValidatorOptional: ValidatorDefinition<string | number>;
 export declare const dateValidator: ValidatorDefinition<Date>;
@@ -1725,6 +1726,7 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
     skus?: string[] | undefined;
     skuPartials?: string[] | undefined;
     titlePartials?: string[] | undefined;
+    titlePartialsAnd?: string[] | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Missed Call", {
     phoneNumbers?: string[] | undefined;
     inputs?: string[] | undefined;

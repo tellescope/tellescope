@@ -2,6 +2,12 @@ import { ReactNativeFile, S3PresignedPost } from "@tellescope/types-utilities";
 import { ClientModelForName, User } from "@tellescope/types-client";
 import { Indexable } from "@tellescope/utilities";
 export declare const DEFAULT_HOST = "https://api.tellescope.com";
+export type TellescopeProduct = 'tellescope1' | 'tellescope2' | 'portal1' | 'portal2' | 'script-runner';
+export interface SessionHeaders {
+    /** Identifies the product/application this session is originating from */
+    'x-tellescope-product'?: TellescopeProduct | string;
+    [key: string]: string | undefined;
+}
 export interface SessionOptions {
     apiKey?: string;
     authToken?: string;
@@ -17,6 +23,7 @@ export interface SessionOptions {
     enableSocketLogging?: boolean;
     handleUnauthenticated?: () => Promise<any>;
     autoRefreshInMS?: number;
+    headers?: Partial<SessionHeaders>;
 }
 export declare const wait: (f?: Promise<void>, ms?: number) => Promise<void>;
 interface RequestOptions {
@@ -53,7 +60,7 @@ export declare class Session {
     config: {
         headers: {
             Authorization: string;
-        };
+        } & Partial<SessionHeaders>;
     };
     constructor(o?: SessionOptions & RequestOptions & {
         type: string;

@@ -48,7 +48,7 @@ var ResponseAnswer = function (_a) {
                     ? ((0, jsx_runtime_1.jsx)("div", { children: a.value.map(function (t, i) {
                             return (0, jsx_runtime_1.jsxs)("div", { children: [(0, jsx_runtime_1.jsx)("input", { type: "checkbox", checked: true }), (0, jsx_runtime_1.jsx)("label", __assign({ style: { marginLeft: '4px' } }, { children: a.type === 'Database Select' ? t.text : t }))] }, i);
                         }) }))
-                    : a.value === '_question_group' ? (0, jsx_runtime_1.jsx)(jsx_runtime_1.Fragment, {})
+                    : (a.value === '_question_group' || a.type === 'Question Group') ? (0, jsx_runtime_1.jsx)(jsx_runtime_1.Fragment, {})
                         : a.type === 'ranking'
                             ? (0, jsx_runtime_1.jsx)("ol", __assign({ style: { margin: 0 } }, { children: a.value.map(function (t, i) {
                                     return (0, jsx_runtime_1.jsx)("li", { children: t }, i);

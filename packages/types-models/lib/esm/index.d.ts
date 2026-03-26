@@ -305,6 +305,18 @@ export type BasicWebhook = {
     url: string;
     method?: 'Link' | 'POST';
 };
+export type TimeTrackingBillingCode = {
+    billingCode: string;
+    timeInMinutes: number;
+};
+export type TimeTrackingProgramForm = {
+    id: string;
+};
+export type TimeTrackingProgram = {
+    title: string;
+    billingCodes: TimeTrackingBillingCode[];
+    forms?: TimeTrackingProgramForm[];
+};
 export type SyncDirection = "Bidirectional" | "From Tellescope" | "To Tellescope";
 export type AthenaFieldSync = {
     field: string;
@@ -537,6 +549,7 @@ export interface Organization extends Organization_readonly, Organization_requir
     incomingCallDisplayFields?: string[];
     skipActivePatientBilling?: boolean;
     portalV2SchemaURL?: string;
+    timeTrackingPrograms?: TimeTrackingProgram[];
 }
 export type OrganizationTheme = {
     name: string;
@@ -1556,7 +1569,7 @@ export interface Ticket extends Ticket_readonly, Ticket_required, Ticket_updates
     closedForReason?: string;
     closeReasons?: string[];
     automationStepId?: string;
-    dueDateInMS?: number;
+    dueDateInMS?: number | null;
     message?: string;
     type?: string;
     owner?: string;
@@ -1854,6 +1867,7 @@ export type FormFieldOptions = FormFieldValidation & {
     chargebeePlanId?: string;
     chargebeeItemId?: string;
     chargebeeCollectPaymentMethodOnly?: boolean;
+    chargebeeCouponIds?: string[];
     relatedContactTypes?: string[];
     radioChoices?: string[];
     elationHistoryType?: string;
@@ -2670,6 +2684,7 @@ export interface Product extends Product_readonly, Product_required, Product_upd
     stripeProductId?: string;
     stripePriceId?: string;
     additionalStripePriceIds?: string[];
+    chargebeeItemPriceId?: string;
 }
 export interface Purchase_readonly extends ClientRecord {
 }
@@ -3372,6 +3387,12 @@ export type StripeCancelSubscriptionAutomationAction = AutomationActionBuilder<'
     metadataValue: string;
     cancelImmediately?: boolean;
 }>;
+export type ChargebeeChargeCardOnFileAutomationAction = AutomationActionBuilder<'chargebeeChargeCardOnFile', {
+    chargebeeEnvironment: string;
+    chargeType: 'One-Time' | 'Subscription';
+    itemPriceId: string;
+    quantity?: number;
+}>;
 export type AIContextSource = {
     type: "Email" | "SMS" | "PhoneCall";
     limit: number;
@@ -3390,6 +3411,7 @@ export type AutomationActionForType = {
     'assignInboxItem': AssignInboxItemAutomationAction;
     'stripeChargeCardOnFile': StripeChargeCardOnFileAutomationAction;
     'stripeCancelSubscription': StripeCancelSubscriptionAutomationAction;
+    'chargebeeChargeCardOnFile': ChargebeeChargeCardOnFileAutomationAction;
     'outboundCall': OutboundCallAutomationAction;
     "sendEmail": SendEmailAutomationAction;
     "sendSMS": SendSMSAutomationAction;
@@ -4623,6 +4645,7 @@ export type AutomationTriggerEvents = {
         skus?: string[];
         skuPartials?: string[];
         titlePartials?: string[];
+        titlePartialsAnd?: string[];
     }, {}>;
     'Missed Call': AutomationTriggerEventBuilder<"Missed Call", {
         phoneNumbers?: string[];
@@ -5028,6 +5051,11 @@ export interface TimeTrack extends TimeTrack_readonly, TimeTrack_required, TimeT
     timestamps?: TimeTrackTimestamp[];
     closedAt?: Date | '';
     totalDurationInMS?: number;
+    programTitle?: string;
+    activity?: {
+        type: string;
+        id: string;
+    };
 }
 export interface TicketQueue_readonly extends ClientRecord {
     count?: number;

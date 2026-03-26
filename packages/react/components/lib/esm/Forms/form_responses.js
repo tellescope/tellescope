@@ -41,7 +41,7 @@ export var ResponseAnswer = function (_a) {
                     ? (_jsx("div", { children: a.value.map(function (t, i) {
                             return _jsxs("div", { children: [_jsx("input", { type: "checkbox", checked: true }), _jsx("label", __assign({ style: { marginLeft: '4px' } }, { children: a.type === 'Database Select' ? t.text : t }))] }, i);
                         }) }))
-                    : a.value === '_question_group' ? _jsx(_Fragment, {})
+                    : (a.value === '_question_group' || a.type === 'Question Group') ? _jsx(_Fragment, {})
                         : a.type === 'ranking'
                             ? _jsx("ol", __assign({ style: { margin: 0 } }, { children: a.value.map(function (t, i) {
                                     return _jsx("li", { children: t }, i);

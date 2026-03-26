@@ -882,6 +882,7 @@ export var numberValidatorMin0Max59Optional = numberValidatorBuilder({ lower: 0,
 export var externalIdNumberValidator = numberValidatorBuilder({ lower: 0, upper: Number.MAX_SAFE_INTEGER });
 export var externalIdNumberValidatorOptional = numberValidatorBuilder({ lower: 0, upper: Number.MAX_SAFE_INTEGER, isOptional: true });
 export var fileSizeValidator = numberValidatorBuilder({ lower: 0, upper: MAX_FILE_SIZE });
+export var numberValidatorMin1Max100Optional = numberValidatorBuilder({ lower: 1, upper: 100, isOptional: true });
 export var numberOrStringValidatorEmptyOkay = orValidator({
     number: numberValidator,
     string: stringValidator5000EmptyOkay,
@@ -2053,6 +2054,7 @@ var _AUTOMATION_ACTIONS = {
     callUser: '',
     stripeChargeCardOnFile: '',
     stripeCancelSubscription: '',
+    chargebeeChargeCardOnFile: '',
     metriportSync: '',
     aiDecision: '',
     assignInboxItem: '',
@@ -2639,6 +2641,12 @@ export var automationActionValidator = orValidator({
             metadataValue: stringValidator100,
             cancelImmediately: booleanValidatorOptional,
         }, { emptyOk: false }) })),
+    chargebeeChargeCardOnFile: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['chargebeeChargeCardOnFile']), info: objectValidator({
+            chargebeeEnvironment: stringValidator,
+            chargeType: exactMatchValidator(['One-Time', 'Subscription']),
+            itemPriceId: stringValidator,
+            quantity: numberValidatorMin1Max100Optional,
+        }, { emptyOk: false }) })),
     aiDecision: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['aiDecision']), info: objectValidator({
             outcomes: listOfStringsValidator,
             prompt: stringValidator5000,
@@ -2992,6 +3000,7 @@ export var formFieldOptionsValidator = objectValidator({
     chargebeePlanId: stringValidatorOptional,
     chargebeeItemId: stringValidatorOptional,
     chargebeeCollectPaymentMethodOnly: booleanValidatorOptional,
+    chargebeeCouponIds: listOfStringsValidatorOptionalOrEmptyOk,
     relatedContactTypes: listOfStringsValidatorOptionalOrEmptyOk,
     elationHistoryType: stringValidatorOptional,
     elationIsAllergy: booleanValidatorOptional,
@@ -4047,6 +4056,7 @@ export var automationTriggerEventValidator = orValidator({
             skus: listOfStringsValidatorOptionalOrEmptyOk,
             skuPartials: listOfStringsValidatorOptionalOrEmptyOk,
             titlePartials: listOfStringsValidatorOptionalOrEmptyOk,
+            titlePartialsAnd: listOfStringsValidatorOptionalOrEmptyOk,
         }),
         conditions: optionalEmptyObjectValidator,
     }),
