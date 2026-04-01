@@ -2646,7 +2646,12 @@ export const append_current_utm_params = (targetURL: string) => {
   return targetURL
 }
 
-export const replace_tag_template_values_for_enduser = (tags: string[], enduser: Omit<Enduser, 'id'>) => (
+// added after initial implementation to solve for [Object object] bugs without introducing a breaking change
+export type ReplacementOptions = {
+  objectToString?: 'json' | 'jsonEscaped',
+}
+
+export const replace_tag_template_values_for_enduser = (tags: string[], enduser: Omit<Enduser, 'id'>, options={} as ReplacementOptions) => (
   tags.map(t => {
     if (t.startsWith('{{') && t.endsWith('}}')) {
       const tagField = (t.split('{{enduser.').pop() || '').replace("}}", '')
@@ -2663,11 +2668,22 @@ export const replace_tag_template_values_for_enduser = (tags: string[], enduser:
       if (tagField === 'weight.value') return enduser?.weight?.value?.toString() ?? ''
       if (tagField === 'weight.unit') return enduser?.weight?.unit ?? ''
 
-      return (
-           enduser.fields?.[tagField]?.toString()
-        || get_enduser_field_value_for_key(enduser, tagField)?.toString() // accounts for dotted fields like insurance.payerName
+      const value = (
+           enduser.fields?.[tagField]
+        || get_enduser_field_value_for_key(enduser, tagField) // accounts for dotted fields like insurance.payerName
         || t
       )
+
+      if (value && typeof value === 'object') {
+        if (options.objectToString === 'jsonEscaped') {
+          return JSON.stringify(JSON.stringify(value)).slice(1, -1)
+        }
+        if (options.objectToString === 'json') {
+          return JSON.stringify(value)
+        }
+      }
+
+      return value?.toString()
     }
 
     return t
@@ -2901,7 +2917,7 @@ export const replace_secret_values = (s: string, integrations?: Pick<Integration
   })
 }
 
-export const replace_enduser_template_values = (s: string, enduser?: Omit<Enduser, 'id'> | null) => {
+export const replace_enduser_template_values = (s: string, enduser?: Omit<Enduser, 'id'> | null, options={} as ReplacementOptions) => {
   if (!enduser) return s
   if (typeof s !== 'string') return s // e.g. Date value
 
@@ -2920,7 +2936,7 @@ export const replace_enduser_template_values = (s: string, enduser?: Omit<Enduse
     const match = s.substring(start, end + 2) // +2 accounts for '}}' 
     templates.push({
       match,
-      replacement: replace_tag_template_values_for_enduser([match], enduser)[0],
+      replacement: replace_tag_template_values_for_enduser([match], enduser, options)[0],
     }) 
 
     start = end + 2

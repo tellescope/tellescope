@@ -470,6 +470,7 @@ export type CustomActions = {
         push_to_EHR: CustomAction<{
             id: string;
             addedResponses?: FormResponseValue[];
+            target?: string;
         }, {}>;
         create_canvas_note: CustomAction<CanvasCreateNoteAutomationAction['info'] & {
             enduserId: string;
@@ -1230,6 +1231,16 @@ export type CustomActions = {
             groupBy?: string;
         }, {
             report: Report;
+        }>;
+        bulk_update: CustomAction<{
+            recurringEventId: string;
+            action: 'cancel_for_attendee' | 'remove_attendee' | 'cancel' | 'delete' | 'uncancel_for_attendee' | 'uncancel';
+            scope?: 'this_and_future' | 'all';
+            enduserId?: string;
+            cancelReason?: string;
+        }, {
+            updated?: CalendarEvent[];
+            deleted?: CalendarEvent[];
         }>;
     };
     organizations: {

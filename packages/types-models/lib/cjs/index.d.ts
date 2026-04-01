@@ -285,6 +285,7 @@ export type OrganizationSettings = {
     };
     integrations?: {
         vitalLabOrderPhysicianOptional?: boolean;
+        syncLabResultObservations?: boolean;
         athenaAppointmentSyncJITSeconds?: number;
     };
     interface?: {
@@ -487,6 +488,10 @@ export interface Organization extends Organization_readonly, Organization_requir
     phoneLabels?: {
         number: string;
         label: string;
+    }[];
+    faxDestinations?: {
+        label: string;
+        number: string;
     }[];
     mfaxAccountId?: string;
     athenaFieldsSync?: AthenaFieldSync[];
@@ -3511,7 +3516,7 @@ export type ObservationValue = {
     unit: string;
 };
 export type ObservationStatusCode = ('registered' | 'preliminary' | 'final' | 'amended' | 'corrected' | 'cancelled' | 'entered-in-error' | 'unknown');
-export type ObservationCategory = 'vital-signs';
+export type ObservationCategory = 'vital-signs' | 'laboratory';
 export interface EnduserObservation_readonly extends ClientRecord {
 }
 export interface EnduserObservation_required {
@@ -5391,6 +5396,7 @@ export interface IntegrationLog_readonly extends ClientRecord {
     url?: string;
     payload?: string;
     response?: string;
+    enduserId?: string;
 }
 export interface IntegrationLog_required {
 }

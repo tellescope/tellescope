@@ -3550,7 +3550,7 @@ export const notificationPreferenceValidator = objectValidator<NotificationPrefe
 })
 export const notificationPreferencesValidator = objectAnyFieldsValidator(notificationPreferenceValidator)
 
-export const FHIRObservationCategoryValidator = exactMatchValidator<ObservationCategory>(['vital-signs'])
+export const FHIRObservationCategoryValidator = exactMatchValidator<ObservationCategory>(['vital-signs', 'laboratory'])
 
 const _FHIR_OBSERVATION_STATUS_CODES: { [K in ObservationStatusCode]: any } = {
   "entered-in-error": '',
@@ -4674,6 +4674,7 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
   }, { isOptional: true, emptyOk: true, }),
   integrations: objectValidator<OrganizationSettings['integrations']>({
     vitalLabOrderPhysicianOptional: booleanValidatorOptional,
+    syncLabResultObservations: booleanValidatorOptional,
     athenaAppointmentSyncJITSeconds: numberValidatorOptional,
   }, { isOptional: true, emptyOk: true, }),
   interface: objectValidator<OrganizationSettings['interface']>({

@@ -2698,7 +2698,7 @@ export var notificationPreferenceValidator = objectValidator({
     browser: booleanValidatorOptional,
 });
 export var notificationPreferencesValidator = objectAnyFieldsValidator(notificationPreferenceValidator);
-export var FHIRObservationCategoryValidator = exactMatchValidator(['vital-signs']);
+export var FHIRObservationCategoryValidator = exactMatchValidator(['vital-signs', 'laboratory']);
 var _FHIR_OBSERVATION_STATUS_CODES = {
     "entered-in-error": '',
     amended: '',
@@ -3763,6 +3763,7 @@ export var organizationSettingsValidator = objectValidator({
     }, { isOptional: true, emptyOk: true, }),
     integrations: objectValidator({
         vitalLabOrderPhysicianOptional: booleanValidatorOptional,
+        syncLabResultObservations: booleanValidatorOptional,
         athenaAppointmentSyncJITSeconds: numberValidatorOptional,
     }, { isOptional: true, emptyOk: true, }),
     interface: objectValidator({

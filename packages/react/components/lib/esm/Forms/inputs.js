@@ -3014,12 +3014,23 @@ export var ChargeebeeInput = function (_a) {
         var billingAddress = ((_a = addressResponse === null || addressResponse === void 0 ? void 0 : addressResponse.answer) === null || _a === void 0 ? void 0 : _a.type) === 'Address' && ((_b = addressResponse === null || addressResponse === void 0 ? void 0 : addressResponse.answer) === null || _b === void 0 ? void 0 : _b.value)
             ? addressResponse.answer.value
             : undefined;
+        var PUBLIC_FORM_ADDRESS_ERROR = 'A complete address question is required before a Chargebee payment field on public forms';
         session.api.form_responses.chargebee_details({ fieldId: field.id, billingAddress: billingAddress })
             .then(function (_a) {
             var url = _a.url;
             return setUrl(url !== null && url !== void 0 ? url : '');
         })
-            .catch(setError);
+            .catch(function (err) {
+            var _a, _b;
+            var message = typeof err === 'string' ? err : ((_b = (_a = err === null || err === void 0 ? void 0 : err.message) !== null && _a !== void 0 ? _a : err === null || err === void 0 ? void 0 : err.toString()) !== null && _b !== void 0 ? _b : '');
+            if (message === PUBLIC_FORM_ADDRESS_ERROR) {
+                setError(PUBLIC_FORM_ADDRESS_ERROR);
+            }
+            else {
+                console.error('[ChargebeeInput] failed to load checkout:', err);
+                setError('Something went wrong loading the payment form. Please try again.');
+            }
+        });
     }, [session]);
     var loadAnswerRef = useRef(false);
     useEffect(function () {
@@ -3067,6 +3078,8 @@ export var ChargeebeeInput = function (_a) {
                         ? 'Your payment method was saved successfully'
                         : 'Your purchase was successful' }))] })));
     }
+    if (!url && error)
+        return _jsx(Typography, __assign({ color: "error" }, { children: error }));
     if (!url)
         return _jsx(LinearProgress, {});
     return (_jsxs(_Fragment, { children: [_jsx("iframe", { src: url, title: "Checkout", style: { border: 'none', width: '100%', height: 700 }, onLoad: function () { return setLoadCount(function (l) { return l + 1; }); } }), collectOnly && !field.isOptional &&

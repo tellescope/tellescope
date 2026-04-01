@@ -12745,6 +12745,57 @@ const replace_enduser_template_values_tests = async () => {
   assert(replace_enduser_template_values('{{enduser.weight.unit}}', enduser) === '', 'fail undefined weight.unit', 'undefined weight.unit')
 
   await sdk.api.endusers.deleteOne(enduserWithVitals.id)
+
+  // Test objectToString options for object field serialization
+  const enduserWithObjectField = await sdk.api.endusers.createOne({
+    fname: "Object",
+    lname: "Test",
+    fields: {
+      objectField: { name: "John", age: 30 } as any,
+      stringField: "plain string",
+    }
+  })
+
+  // Backwards compatibility: no options — object fields produce [object Object]
+  assert(
+    replace_enduser_template_values('{{enduser.objectField}}', enduserWithObjectField) === '[object Object]',
+    'fail default object toString', 'default object toString'
+  )
+  // String fields still work normally without options
+  assert(
+    replace_enduser_template_values('{{enduser.stringField}}', enduserWithObjectField) === 'plain string',
+    'fail default string field', 'default string field'
+  )
+
+  // objectToString: 'json' — for structured body, headers, URL
+  assert(
+    replace_enduser_template_values('{{enduser.objectField}}', enduserWithObjectField, { objectToString: 'json' }) === '{"name":"John","age":30}',
+    'fail json object', 'json object'
+  )
+  // String fields unaffected by json option
+  assert(
+    replace_enduser_template_values('{{enduser.stringField}}', enduserWithObjectField, { objectToString: 'json' }) === 'plain string',
+    'fail json string field', 'json string field'
+  )
+  // Top-level string field unaffected by json option
+  assert(
+    replace_enduser_template_values('{{enduser.fname}}', enduserWithObjectField, { objectToString: 'json' }) === 'Object',
+    'fail json fname', 'json fname'
+  )
+
+  // objectToString: 'jsonEscaped' — for rawJSONBody templates
+  // Full round-trip: rawJSONBody template with object field produces valid JSON
+  const rawTemplate = '{"data": "{{enduser.objectField}}"}'
+  const substituted = replace_enduser_template_values(rawTemplate, enduserWithObjectField, { objectToString: 'jsonEscaped' })
+  const parsed = JSON.parse(substituted)
+  assert(parsed.data === '{"name":"John","age":30}', 'fail jsonEscaped round-trip', 'jsonEscaped round-trip')
+  // String fields unaffected by jsonEscaped option
+  assert(
+    replace_enduser_template_values('{{enduser.stringField}}', enduserWithObjectField, { objectToString: 'jsonEscaped' }) === 'plain string',
+    'fail jsonEscaped string field', 'jsonEscaped string field'
+  )
+
+  await sdk.api.endusers.deleteOne(enduserWithObjectField.id)
   await sdk.api.endusers.deleteOne(enduser.id)
 }
 

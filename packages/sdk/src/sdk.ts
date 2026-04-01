@@ -788,6 +788,9 @@ type Queries = { [K in keyof ClientModelForName]: APIQuery<K> } & {
     get_appointment_availability: (args: extractFields<CustomActions['calendar_events']['get_appointment_availability']['parameters']>) => (
       Promise<extractFields<CustomActions['calendar_events']['get_appointment_availability']['returns']>>
     ),
+    bulk_update: (args: extractFields<CustomActions['calendar_events']['bulk_update']['parameters']>) => (
+      Promise<extractFields<CustomActions['calendar_events']['bulk_update']['returns']>>
+    ),
   },
   managed_content_records: {
     load_unauthenticated: (args: extractFields<PublicActions['managed_content_records']['load_unauthenticated']['parameters']>) => (
@@ -1097,6 +1100,7 @@ export class Session extends SessionManager {
     queries.calendar_events.get_status_report = a => this._POST(`/v1${schema.calendar_events.customActions.get_status_report.path}`, a)
     queries.calendar_events.get_appointment_availability = a => this._GET(`/v1${schema.calendar_events.customActions.get_appointment_availability.path}`, a)
     queries.calendar_events.push = a => this._POST(`/v1${schema.calendar_events.customActions.push.path}`, a)
+    queries.calendar_events.bulk_update = a => this._PATCH(`/v1${schema.calendar_events.customActions.bulk_update.path}`, a)
 
     // this returns an array buffer, avoid using for copy + paste
     queries.calendar_events.download_ics_file = a => this._GET(`/v1${schema.calendar_events.customActions.download_ics_file.path}`, a, true, { responseType: 'arraybuffer' })

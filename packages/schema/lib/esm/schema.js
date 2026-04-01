@@ -3096,7 +3096,8 @@ export var schema = build_schema({
                 description: "Pushes to an external EHR (e.g. Healthie)",
                 parameters: {
                     id: { validator: mongoIdStringValidator, required: true },
-                    addedResponses: { validator: formResponsesValidator }
+                    addedResponses: { validator: formResponsesValidator },
+                    target: { validator: stringValidator },
                 },
                 returns: {},
             },
@@ -3652,6 +3653,23 @@ export var schema = build_schema({
                     event: { validator: 'calendar_event', required: true },
                 },
             },
+            bulk_update: {
+                op: "custom", access: 'update', method: "patch",
+                name: 'Bulk Update Recurring Events',
+                path: '/calendar-events/bulk-update',
+                description: "Performs bulk operations on a recurring event series starting from the given event",
+                parameters: {
+                    recurringEventId: { validator: mongoIdStringValidator, required: true },
+                    action: { validator: exactMatchValidator(['cancel_for_attendee', 'remove_attendee', 'cancel', 'delete', 'uncancel_for_attendee', 'uncancel']), required: true },
+                    scope: { validator: exactMatchValidatorOptional(['this_and_future', 'all']) },
+                    enduserId: { validator: mongoIdStringValidator },
+                    cancelReason: { validator: stringValidator5000 },
+                },
+                returns: {
+                    updated: { validator: 'calendar_events' },
+                    deleted: { validator: 'calendar_events' },
+                },
+            },
         },
         publicActions: {
             session_for_join_link: {
@@ -4125,7 +4143,7 @@ export var schema = build_schema({
         fields: __assign(__assign({}, BuiltInFields), { timestampIsEstimated: { validator: booleanValidator }, category: {
                 required: true,
                 validator: FHIRObservationCategoryValidator,
-                examples: ['vital-signs'],
+                examples: ['vital-signs', 'laboratory'],
             }, status: {
                 required: true,
                 validator: FHIRObservationStatusCodeValidator,
@@ -4147,7 +4165,7 @@ export var schema = build_schema({
                         relationship: 'foreignKey',
                         onDependencyDelete: 'delete',
                     }]
-            }, code: { validator: stringValidator }, source: { validator: stringValidator }, type: { validator: stringValidator }, notes: { validator: stringValidator }, qualitativeResult: { validator: stringValidator250 }, refRange: { validator: stringValidator250 }, statusIndicator: { validator: stringValidator100 }, recordedAt: { validator: dateValidator }, reviewedAt: { validator: dateValidatorOptional }, timestamp: { validator: dateValidator, initializer: function () { return new Date(); } }, statusChangedBy: { validator: mongoIdStringValidator }, beforeMeal: { validator: booleanValidator }, medStatus: { validator: stringValidator }, irregularHeartbeat: { validator: booleanValidator }, dontTrigger: { validator: booleanValidator }, references: { validator: listOfRelatedRecordsValidator, readonly: true }, showWithPlotsByUnit: { validator: listOfStringsValidatorOptionalOrEmptyOk }, invalidationReason: { validator: stringValidatorOptionalEmptyOkay } })
+            }, code: { validator: stringValidator }, source: { validator: stringValidator }, type: { validator: stringValidator }, notes: { validator: stringValidator }, qualitativeResult: { validator: stringValidator250 }, refRange: { validator: stringValidator250 }, statusIndicator: { validator: stringValidator100 }, recordedAt: { validator: dateValidator }, reviewedAt: { validator: dateValidatorOptional }, timestamp: { validator: dateValidator, initializer: function () { return new Date(); } }, statusChangedBy: { validator: mongoIdStringValidator }, beforeMeal: { validator: booleanValidator }, medStatus: { validator: stringValidator }, irregularHeartbeat: { validator: booleanValidator }, dontTrigger: { validator: booleanValidator }, references: { validator: listOfRelatedRecordsValidator, readonly: true }, showWithPlotsByUnit: { validator: listOfStringsValidatorOptionalOrEmptyOk }, invalidationReason: { validator: stringValidatorOptionalEmptyOkay }, externalId: { validator: stringValidator250 } })
     },
     managed_content_records: {
         info: {},
@@ -4727,6 +4745,11 @@ export var schema = build_schema({
                     teamId: stringValidator100,
                     label: stringValidator100,
                 })) }, billingOrganizationName: { validator: stringValidator }, billingOrganizationNPI: { validator: stringValidator }, billingOrganizationTaxId: { validator: stringValidator }, billingOrganizationAddress: { validator: addressValidator }, videoCallBackgroundImage: { validator: stringValidator }, sendToVoicemailOOO: { validator: booleanValidator }, forwardingOOONumber: { validator: phoneValidator }, onCallUserIds: { validator: listOfUniqueStringsValidatorEmptyOk }, outOfOfficeVoicemail: { validator: phonePlaybackValidator }, enduserProfileWebhooks: { validator: enduserProfileWebhooksValidator }, showCommunity: { validator: booleanValidator }, phoneLabels: {
+                validator: listValidatorOptionalOrEmptyOk(objectValidator({
+                    label: stringValidator100,
+                    number: stringValidator100,
+                }))
+            }, faxDestinations: {
                 validator: listValidatorOptionalOrEmptyOk(objectValidator({
                     label: stringValidator100,
                     number: stringValidator100,
@@ -6448,7 +6471,7 @@ export var schema = build_schema({
         defaultActions: { read: {}, readMany: {} },
         customActions: {},
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { integration: { validator: stringValidator, readonly: true, examples: ['Canvas'] }, status: { validator: exactMatchValidator(['Success', 'Error']), readonly: true, examples: ['Error'] }, type: { validator: stringValidator, readonly: true, examples: ['Patient Create'] }, payload: { validator: stringValidator, readonly: true, examples: ['{}'] }, response: { validator: stringValidator, readonly: true, examples: ['{}'] }, url: { validator: stringValidator, readonly: true, examples: ['https://www.tellescope.com'] } })
+        fields: __assign(__assign({}, BuiltInFields), { integration: { validator: stringValidator, readonly: true, examples: ['Canvas'] }, status: { validator: exactMatchValidator(['Success', 'Error']), readonly: true, examples: ['Error'] }, type: { validator: stringValidator, readonly: true, examples: ['Patient Create'] }, payload: { validator: stringValidator, readonly: true, examples: ['{}'] }, response: { validator: stringValidator, readonly: true, examples: ['{}'] }, url: { validator: stringValidator, readonly: true, examples: ['https://www.tellescope.com'] }, enduserId: { validator: mongoIdStringValidator, readonly: true } })
     },
     organization_payments: {
         info: { description: 'Read Only - Organization Payment Transaction Logs' },

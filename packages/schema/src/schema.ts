@@ -752,10 +752,11 @@ export type CustomActions = {
       {  }
     >,
     push_to_EHR: CustomAction<
-      { 
+      {
         id: string,
         addedResponses?: FormResponseValue[],
-      }, 
+        target?: string,
+      },
       {  }
     >,
     create_canvas_note: CustomAction<CanvasCreateNoteAutomationAction['info'] & { enduserId: string }, {}>,
@@ -1048,6 +1049,20 @@ export type CustomActions = {
     get_enduser_report: CustomAction<{ range?: DateRange, groupBy?: string, countDuplicates?: boolean, templateIds?: string[], enduserGroupBy?: string, enduserFields: Record<string, any> }, { report: Report }>,
     // for getting statuses of events (cancelled, rescheduled, etc.)
     get_status_report: CustomAction<{ range?: DateRange, groupBy?: string }, { report: Report }>,
+    // bulk operations on recurring event series (cancel for attendee, remove attendee, cancel, delete)
+    bulk_update: CustomAction<
+      {
+        recurringEventId: string,
+        action: 'cancel_for_attendee' | 'remove_attendee' | 'cancel' | 'delete' | 'uncancel_for_attendee' | 'uncancel',
+        scope?: 'this_and_future' | 'all',
+        enduserId?: string,
+        cancelReason?: string,
+      },
+      {
+        updated?: CalendarEvent[],
+        deleted?: CalendarEvent[],
+      }
+    >,
   },
   organizations: {
     create_and_join: CustomAction<{ name: string, subdomain: string }, { authToken: string, user: User, organization: Organization }>, 
@@ -4933,9 +4948,10 @@ export const schema: SchemaV1 = build_schema({
         name: 'Push to EHR',
         path: '/form-responses/push-to-ehr',
         description: "Pushes to an external EHR (e.g. Healthie)",
-        parameters: { 
+        parameters: {
           id: { validator: mongoIdStringValidator, required: true },
-          addedResponses: { validator: formResponsesValidator }
+          addedResponses: { validator: formResponsesValidator },
+          target: { validator: stringValidator },
         },
         returns: { },
       },
@@ -5543,6 +5559,23 @@ export const schema: SchemaV1 = build_schema({
         },
         returns: {
           event: { validator: 'calendar_event' as any, required: true },
+        },
+      },
+      bulk_update: {
+        op: "custom", access: 'update', method: "patch",
+        name: 'Bulk Update Recurring Events',
+        path: '/calendar-events/bulk-update',
+        description: "Performs bulk operations on a recurring event series starting from the given event",
+        parameters: {
+          recurringEventId: { validator: mongoIdStringValidator, required: true },
+          action: { validator: exactMatchValidator(['cancel_for_attendee', 'remove_attendee', 'cancel', 'delete', 'uncancel_for_attendee', 'uncancel']), required: true },
+          scope: { validator: exactMatchValidatorOptional<"this_and_future" | "all">(['this_and_future', 'all']) },
+          enduserId: { validator: mongoIdStringValidator },
+          cancelReason: { validator: stringValidator5000 },
+        },
+        returns: {
+          updated: { validator: 'calendar_events' as any },
+          deleted: { validator: 'calendar_events' as any },
         },
       },
     },
@@ -6220,7 +6253,7 @@ export const schema: SchemaV1 = build_schema({
       category: {
         required: true,
         validator: FHIRObservationCategoryValidator,
-        examples: ['vital-signs'],
+        examples: ['vital-signs', 'laboratory'],
       },
       status: {
         required: true,
@@ -6264,6 +6297,7 @@ export const schema: SchemaV1 = build_schema({
       references: { validator: listOfRelatedRecordsValidator, readonly: true },
       showWithPlotsByUnit: { validator: listOfStringsValidatorOptionalOrEmptyOk },
       invalidationReason: { validator: stringValidatorOptionalEmptyOkay },
+      externalId: { validator: stringValidator250 },
     }
   },
   managed_content_records: {
@@ -6951,7 +6985,13 @@ export const schema: SchemaV1 = build_schema({
       outOfOfficeVoicemail: { validator: phonePlaybackValidator },
       enduserProfileWebhooks: { validator: enduserProfileWebhooksValidator },
       showCommunity: { validator: booleanValidator },
-      phoneLabels: { 
+      phoneLabels: {
+        validator: listValidatorOptionalOrEmptyOk(objectValidator<{ label: string, number: string }>({
+          label: stringValidator100,
+          number: stringValidator100,
+        }))
+      },
+      faxDestinations: {
         validator: listValidatorOptionalOrEmptyOk(objectValidator<{ label: string, number: string }>({
           label: stringValidator100,
           number: stringValidator100,
@@ -9283,6 +9323,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       payload: { validator: stringValidator, readonly: true, examples: ['{}'] },
       response: { validator: stringValidator, readonly: true, examples: ['{}'] },
       url: { validator: stringValidator, readonly: true, examples: ['https://www.tellescope.com'] },
+      enduserId: { validator: mongoIdStringValidator, readonly: true },
     }
   },
   organization_payments: {

@@ -5198,9 +5198,19 @@ export const ChargeebeeInput = ({ field, value, onChange, setCustomerId, respons
       ? addressResponse.answer.value as { addressLineOne?: string, addressLineTwo?: string, city?: string, state?: string, zipCode?: string }
       : undefined
 
+    const PUBLIC_FORM_ADDRESS_ERROR = 'A complete address question is required before a Chargebee payment field on public forms'
+
     session.api.form_responses.chargebee_details({ fieldId: field.id, billingAddress })
     .then(({ url }) => setUrl(url ?? ''))
-    .catch(setError)
+    .catch((err: any) => {
+      const message = typeof err === 'string' ? err : (err?.message ?? err?.toString() ?? '')
+      if (message === PUBLIC_FORM_ADDRESS_ERROR) {
+        setError(PUBLIC_FORM_ADDRESS_ERROR)
+      } else {
+        console.error('[ChargebeeInput] failed to load checkout:', err)
+        setError('Something went wrong loading the payment form. Please try again.')
+      }
+    })
   }, [session])
 
   const loadAnswerRef = useRef(false)
@@ -5243,6 +5253,7 @@ export const ChargeebeeInput = ({ field, value, onChange, setCustomerId, respons
       </Grid>
     )
   }
+  if (!url && error) return <Typography color="error">{error}</Typography>
   if (!url) return <LinearProgress />
   return (
     <>

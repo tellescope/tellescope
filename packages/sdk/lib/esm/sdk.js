@@ -556,6 +556,7 @@ var Session = /** @class */ (function (_super) {
         queries.calendar_events.get_status_report = function (a) { return _this._POST("/v1".concat(schema.calendar_events.customActions.get_status_report.path), a); };
         queries.calendar_events.get_appointment_availability = function (a) { return _this._GET("/v1".concat(schema.calendar_events.customActions.get_appointment_availability.path), a); };
         queries.calendar_events.push = function (a) { return _this._POST("/v1".concat(schema.calendar_events.customActions.push.path), a); };
+        queries.calendar_events.bulk_update = function (a) { return _this._PATCH("/v1".concat(schema.calendar_events.customActions.bulk_update.path), a); };
         // this returns an array buffer, avoid using for copy + paste
         queries.calendar_events.download_ics_file = function (a) { return _this._GET("/v1".concat(schema.calendar_events.customActions.download_ics_file.path), a, true, { responseType: 'arraybuffer' }); };
         // 

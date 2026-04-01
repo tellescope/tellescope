@@ -4022,6 +4022,7 @@ type Queries = {
         get_enduser_report: (args: extractFields<CustomActions['calendar_events']['get_enduser_report']['parameters']>) => (Promise<extractFields<CustomActions['calendar_events']['get_enduser_report']['returns']>>);
         get_status_report: (args: extractFields<CustomActions['calendar_events']['get_status_report']['parameters']>) => (Promise<extractFields<CustomActions['calendar_events']['get_status_report']['returns']>>);
         get_appointment_availability: (args: extractFields<CustomActions['calendar_events']['get_appointment_availability']['parameters']>) => (Promise<extractFields<CustomActions['calendar_events']['get_appointment_availability']['returns']>>);
+        bulk_update: (args: extractFields<CustomActions['calendar_events']['bulk_update']['parameters']>) => (Promise<extractFields<CustomActions['calendar_events']['bulk_update']['returns']>>);
     };
     managed_content_records: {
         load_unauthenticated: (args: extractFields<PublicActions['managed_content_records']['load_unauthenticated']['parameters']>) => (Promise<extractFields<PublicActions['managed_content_records']['load_unauthenticated']['returns']>>);

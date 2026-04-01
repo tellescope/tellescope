@@ -2502,32 +2502,44 @@ export var append_current_utm_params = function (targetURL) {
     ;
     return targetURL;
 };
-export var replace_tag_template_values_for_enduser = function (tags, enduser) { return (tags.map(function (t) {
-    var _a, _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q, _r;
-    if (t.startsWith('{{') && t.endsWith('}}')) {
-        var tagField = (t.split('{{enduser.').pop() || '').replace("}}", '');
-        if (tagField === 'hashedPassword')
-            return t;
-        if (tagField === 'Age' && enduser.dateOfBirth) {
-            return age_for_dob_mmddyyyy(enduser.dateOfBirth);
+export var replace_tag_template_values_for_enduser = function (tags, enduser, options) {
+    if (options === void 0) { options = {}; }
+    return (tags.map(function (t) {
+        var _a, _b, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
+        if (t.startsWith('{{') && t.endsWith('}}')) {
+            var tagField = (t.split('{{enduser.').pop() || '').replace("}}", '');
+            if (tagField === 'hashedPassword')
+                return t;
+            if (tagField === 'Age' && enduser.dateOfBirth) {
+                return age_for_dob_mmddyyyy(enduser.dateOfBirth);
+            }
+            if (tagField === 'BMI' && ((_a = enduser.height) === null || _a === void 0 ? void 0 : _a.value) && ((_b = enduser.weight) === null || _b === void 0 ? void 0 : _b.value)) {
+                return calculate_bmi(enduser).toFixed(2);
+            }
+            if (tagField === 'height.value')
+                return (_f = (_e = (_d = enduser === null || enduser === void 0 ? void 0 : enduser.height) === null || _d === void 0 ? void 0 : _d.value) === null || _e === void 0 ? void 0 : _e.toString()) !== null && _f !== void 0 ? _f : '';
+            if (tagField === 'height.unit')
+                return (_h = (_g = enduser === null || enduser === void 0 ? void 0 : enduser.height) === null || _g === void 0 ? void 0 : _g.unit) !== null && _h !== void 0 ? _h : '';
+            if (tagField === 'weight.value')
+                return (_l = (_k = (_j = enduser === null || enduser === void 0 ? void 0 : enduser.weight) === null || _j === void 0 ? void 0 : _j.value) === null || _k === void 0 ? void 0 : _k.toString()) !== null && _l !== void 0 ? _l : '';
+            if (tagField === 'weight.unit')
+                return (_o = (_m = enduser === null || enduser === void 0 ? void 0 : enduser.weight) === null || _m === void 0 ? void 0 : _m.unit) !== null && _o !== void 0 ? _o : '';
+            var value = (((_p = enduser.fields) === null || _p === void 0 ? void 0 : _p[tagField])
+                || get_enduser_field_value_for_key(enduser, tagField) // accounts for dotted fields like insurance.payerName
+                || t);
+            if (value && typeof value === 'object') {
+                if (options.objectToString === 'jsonEscaped') {
+                    return JSON.stringify(JSON.stringify(value)).slice(1, -1);
+                }
+                if (options.objectToString === 'json') {
+                    return JSON.stringify(value);
+                }
+            }
+            return value === null || value === void 0 ? void 0 : value.toString();
         }
-        if (tagField === 'BMI' && ((_a = enduser.height) === null || _a === void 0 ? void 0 : _a.value) && ((_b = enduser.weight) === null || _b === void 0 ? void 0 : _b.value)) {
-            return calculate_bmi(enduser).toFixed(2);
-        }
-        if (tagField === 'height.value')
-            return (_f = (_e = (_d = enduser === null || enduser === void 0 ? void 0 : enduser.height) === null || _d === void 0 ? void 0 : _d.value) === null || _e === void 0 ? void 0 : _e.toString()) !== null && _f !== void 0 ? _f : '';
-        if (tagField === 'height.unit')
-            return (_h = (_g = enduser === null || enduser === void 0 ? void 0 : enduser.height) === null || _g === void 0 ? void 0 : _g.unit) !== null && _h !== void 0 ? _h : '';
-        if (tagField === 'weight.value')
-            return (_l = (_k = (_j = enduser === null || enduser === void 0 ? void 0 : enduser.weight) === null || _j === void 0 ? void 0 : _j.value) === null || _k === void 0 ? void 0 : _k.toString()) !== null && _l !== void 0 ? _l : '';
-        if (tagField === 'weight.unit')
-            return (_o = (_m = enduser === null || enduser === void 0 ? void 0 : enduser.weight) === null || _m === void 0 ? void 0 : _m.unit) !== null && _o !== void 0 ? _o : '';
-        return (((_q = (_p = enduser.fields) === null || _p === void 0 ? void 0 : _p[tagField]) === null || _q === void 0 ? void 0 : _q.toString())
-            || ((_r = get_enduser_field_value_for_key(enduser, tagField)) === null || _r === void 0 ? void 0 : _r.toString()) // accounts for dotted fields like insurance.payerName
-            || t);
-    }
-    return t;
-})); };
+        return t;
+    }));
+};
 // todo: refactor with replacer below, mirroring replace_sms_template_values
 export var replace_purchase_template_values = function (s, purchase) {
     var _a;
@@ -2732,7 +2744,8 @@ export var replace_secret_values = function (s, integrations) {
         return ((_b = (_a = integration === null || integration === void 0 ? void 0 : integration.authentication) === null || _a === void 0 ? void 0 : _a.info) === null || _b === void 0 ? void 0 : _b.access_token) || '';
     });
 };
-export var replace_enduser_template_values = function (s, enduser) {
+export var replace_enduser_template_values = function (s, enduser, options) {
+    if (options === void 0) { options = {}; }
     if (!enduser)
         return s;
     if (typeof s !== 'string')
@@ -2751,7 +2764,7 @@ export var replace_enduser_template_values = function (s, enduser) {
         var match = s.substring(start, end + 2); // +2 accounts for '}}' 
         templates.push({
             match: match,
-            replacement: replace_tag_template_values_for_enduser([match], enduser)[0],
+            replacement: replace_tag_template_values_for_enduser([match], enduser, options)[0],
         });
         start = end + 2;
     }

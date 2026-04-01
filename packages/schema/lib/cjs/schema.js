@@ -3101,7 +3101,8 @@ exports.schema = (0, exports.build_schema)({
                 description: "Pushes to an external EHR (e.g. Healthie)",
                 parameters: {
                     id: { validator: validation_1.mongoIdStringRequired, required: true },
-                    addedResponses: { validator: validation_1.formResponsesValidator }
+                    addedResponses: { validator: validation_1.formResponsesValidator },
+                    target: { validator: validation_1.stringValidator },
                 },
                 returns: {},
             },
@@ -3657,6 +3658,23 @@ exports.schema = (0, exports.build_schema)({
                     event: { validator: 'calendar_event', required: true },
                 },
             },
+            bulk_update: {
+                op: "custom", access: 'update', method: "patch",
+                name: 'Bulk Update Recurring Events',
+                path: '/calendar-events/bulk-update',
+                description: "Performs bulk operations on a recurring event series starting from the given event",
+                parameters: {
+                    recurringEventId: { validator: validation_1.mongoIdStringRequired, required: true },
+                    action: { validator: (0, validation_1.exactMatchValidator)(['cancel_for_attendee', 'remove_attendee', 'cancel', 'delete', 'uncancel_for_attendee', 'uncancel']), required: true },
+                    scope: { validator: (0, validation_1.exactMatchValidatorOptional)(['this_and_future', 'all']) },
+                    enduserId: { validator: validation_1.mongoIdStringRequired },
+                    cancelReason: { validator: validation_1.stringValidator5000 },
+                },
+                returns: {
+                    updated: { validator: 'calendar_events' },
+                    deleted: { validator: 'calendar_events' },
+                },
+            },
         },
         publicActions: {
             session_for_join_link: {
@@ -4130,7 +4148,7 @@ exports.schema = (0, exports.build_schema)({
         fields: __assign(__assign({}, BuiltInFields), { timestampIsEstimated: { validator: validation_1.booleanValidator }, category: {
                 required: true,
                 validator: validation_1.FHIRObservationCategoryValidator,
-                examples: ['vital-signs'],
+                examples: ['vital-signs', 'laboratory'],
             }, status: {
                 required: true,
                 validator: validation_1.FHIRObservationStatusCodeValidator,
@@ -4152,7 +4170,7 @@ exports.schema = (0, exports.build_schema)({
                         relationship: 'foreignKey',
                         onDependencyDelete: 'delete',
                     }]
-            }, code: { validator: validation_1.stringValidator }, source: { validator: validation_1.stringValidator }, type: { validator: validation_1.stringValidator }, notes: { validator: validation_1.stringValidator }, qualitativeResult: { validator: validation_1.stringValidator250 }, refRange: { validator: validation_1.stringValidator250 }, statusIndicator: { validator: validation_1.stringValidator100 }, recordedAt: { validator: validation_1.dateValidator }, reviewedAt: { validator: validation_1.dateValidatorOptional }, timestamp: { validator: validation_1.dateValidator, initializer: function () { return new Date(); } }, statusChangedBy: { validator: validation_1.mongoIdStringRequired }, beforeMeal: { validator: validation_1.booleanValidator }, medStatus: { validator: validation_1.stringValidator }, irregularHeartbeat: { validator: validation_1.booleanValidator }, dontTrigger: { validator: validation_1.booleanValidator }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, showWithPlotsByUnit: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, invalidationReason: { validator: validation_1.stringValidatorOptionalEmptyOkay } })
+            }, code: { validator: validation_1.stringValidator }, source: { validator: validation_1.stringValidator }, type: { validator: validation_1.stringValidator }, notes: { validator: validation_1.stringValidator }, qualitativeResult: { validator: validation_1.stringValidator250 }, refRange: { validator: validation_1.stringValidator250 }, statusIndicator: { validator: validation_1.stringValidator100 }, recordedAt: { validator: validation_1.dateValidator }, reviewedAt: { validator: validation_1.dateValidatorOptional }, timestamp: { validator: validation_1.dateValidator, initializer: function () { return new Date(); } }, statusChangedBy: { validator: validation_1.mongoIdStringRequired }, beforeMeal: { validator: validation_1.booleanValidator }, medStatus: { validator: validation_1.stringValidator }, irregularHeartbeat: { validator: validation_1.booleanValidator }, dontTrigger: { validator: validation_1.booleanValidator }, references: { validator: validation_1.listOfRelatedRecordsValidator, readonly: true }, showWithPlotsByUnit: { validator: validation_1.listOfStringsValidatorOptionalOrEmptyOk }, invalidationReason: { validator: validation_1.stringValidatorOptionalEmptyOkay }, externalId: { validator: validation_1.stringValidator250 } })
     },
     managed_content_records: {
         info: {},
@@ -4732,6 +4750,11 @@ exports.schema = (0, exports.build_schema)({
                     teamId: validation_1.stringValidator100,
                     label: validation_1.stringValidator100,
                 })) }, billingOrganizationName: { validator: validation_1.stringValidator }, billingOrganizationNPI: { validator: validation_1.stringValidator }, billingOrganizationTaxId: { validator: validation_1.stringValidator }, billingOrganizationAddress: { validator: validation_1.addressValidator }, videoCallBackgroundImage: { validator: validation_1.stringValidator }, sendToVoicemailOOO: { validator: validation_1.booleanValidator }, forwardingOOONumber: { validator: validation_1.phoneValidator }, onCallUserIds: { validator: validation_1.listOfUniqueStringsValidatorEmptyOk }, outOfOfficeVoicemail: { validator: validation_1.phonePlaybackValidator }, enduserProfileWebhooks: { validator: validation_1.enduserProfileWebhooksValidator }, showCommunity: { validator: validation_1.booleanValidator }, phoneLabels: {
+                validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
+                    label: validation_1.stringValidator100,
+                    number: validation_1.stringValidator100,
+                }))
+            }, faxDestinations: {
                 validator: (0, validation_1.listValidatorOptionalOrEmptyOk)((0, validation_1.objectValidator)({
                     label: validation_1.stringValidator100,
                     number: validation_1.stringValidator100,
@@ -6453,7 +6476,7 @@ exports.schema = (0, exports.build_schema)({
         defaultActions: { read: {}, readMany: {} },
         customActions: {},
         enduserActions: {},
-        fields: __assign(__assign({}, BuiltInFields), { integration: { validator: validation_1.stringValidator, readonly: true, examples: ['Canvas'] }, status: { validator: (0, validation_1.exactMatchValidator)(['Success', 'Error']), readonly: true, examples: ['Error'] }, type: { validator: validation_1.stringValidator, readonly: true, examples: ['Patient Create'] }, payload: { validator: validation_1.stringValidator, readonly: true, examples: ['{}'] }, response: { validator: validation_1.stringValidator, readonly: true, examples: ['{}'] }, url: { validator: validation_1.stringValidator, readonly: true, examples: ['https://www.tellescope.com'] } })
+        fields: __assign(__assign({}, BuiltInFields), { integration: { validator: validation_1.stringValidator, readonly: true, examples: ['Canvas'] }, status: { validator: (0, validation_1.exactMatchValidator)(['Success', 'Error']), readonly: true, examples: ['Error'] }, type: { validator: validation_1.stringValidator, readonly: true, examples: ['Patient Create'] }, payload: { validator: validation_1.stringValidator, readonly: true, examples: ['{}'] }, response: { validator: validation_1.stringValidator, readonly: true, examples: ['{}'] }, url: { validator: validation_1.stringValidator, readonly: true, examples: ['https://www.tellescope.com'] }, enduserId: { validator: validation_1.mongoIdStringRequired, readonly: true } })
     },
     organization_payments: {
         info: { description: 'Read Only - Organization Payment Transaction Logs' },

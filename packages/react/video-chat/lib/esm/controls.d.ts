@@ -1,3 +1,4 @@
+/// <reference types="react" />
 import { Styled } from "@tellescope/react-components";
 interface ButtonProps {
     size?: number;
