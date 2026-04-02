@@ -7775,6 +7775,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
 
       transcription: { validator: stringValidator25000 },
       recordingTranscriptionData: { validator: stringValidator25000 },
+      aiSummary: { validator: stringValidator5000 },
       note: { validator: stringValidator5000EmptyOkay },
       unread: { validator: booleanValidator },
 
@@ -8402,6 +8403,7 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       pharmacyId: { validator: stringValidator1000 },
       status: { validator: stringValidator },
       allergyNote: { validator: stringValidator1000 },
+      protocol: { validator: stringValidator1000 },
       scriptSureDraft: {
         validator: optionalAnyObjectValidator,
       },
@@ -9019,6 +9021,12 @@ If a voicemail is left, it is indicated by recordingURI, transcription, or recor
       fill: { validator: stringValidatorOptional },
       sku: { validator: stringValidatorOptional },
       bookingLink: { validator: stringValidatorOptional },
+      pharmacy: { validator: stringValidatorOptional },
+      pharmacyOrderId: { validator: stringValidatorOptional },
+      cancelledDate: { validator: stringValidatorOptional },
+      cancellationReason: { validator: stringValidatorOptional },
+      medication: { validator: stringValidatorOptional },
+      medicationSku: { validator: stringValidatorOptional },
     }
   },
   vital_configurations: {

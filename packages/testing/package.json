@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/testing",
-  "version": "1.244.4",
+  "version": "1.245.1",
   "description": "General purpose testing utilities",
   "main": "./lib/cjs/testing.js",
   "module": "./lib/esm/testing.js",
@@ -23,7 +23,7 @@
   },
   "homepage": "https://github.com/tellescope-os/tellescope#readme",
   "dependencies": {
-    "@tellescope/types-utilities": "1.244.4"
+    "@tellescope/types-utilities": "1.245.1"
   },
   "devDependencies": {
     "@types/express": "4.17.14",
@@ -36,5 +36,5 @@
   "publishConfig": {
     "access": "public"
   },
-  "gitHead": "8093dbf4015d6196a234e4922564ddce3df0a9a7"
+  "gitHead": "998fa6c7a42a2cec4f0e64c4197d122533b4eaf3"
 }

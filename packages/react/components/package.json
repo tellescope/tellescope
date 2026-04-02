@@ -1,6 +1,6 @@
 {
   "name": "@tellescope/react-components",
-  "version": "1.244.4",
+  "version": "1.245.1",
   "description": "",
   "main": "./lib/cjs/index.js",
   "module": "./lib/esm/index.js",
@@ -51,13 +51,13 @@
     "@reduxjs/toolkit": "1.9.0",
     "@stripe/react-stripe-js": "2.9.0",
     "@stripe/stripe-js": "1.52.1",
-    "@tellescope/constants": "1.244.4",
-    "@tellescope/sdk": "1.244.4",
-    "@tellescope/types-client": "1.244.4",
-    "@tellescope/types-models": "1.244.4",
-    "@tellescope/types-utilities": "1.244.4",
-    "@tellescope/utilities": "1.244.4",
-    "@tellescope/validation": "1.244.4",
+    "@tellescope/constants": "1.245.1",
+    "@tellescope/sdk": "1.245.1",
+    "@tellescope/types-client": "1.245.1",
+    "@tellescope/types-models": "1.245.1",
+    "@tellescope/types-utilities": "1.245.1",
+    "@tellescope/utilities": "1.245.1",
+    "@tellescope/validation": "1.245.1",
     "css-to-react-native": "3.0.0",
     "draft-js": "0.11.7",
     "draftjs-to-html": "0.9.1",
@@ -84,7 +84,7 @@
     "react-dom": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0",
     "react-native": "^0.65.0 || ^0.66.0 || ^0.67.0 || ^0.68.0 || ^0.71.0"
   },
-  "gitHead": "7be4ae7d05361759e5de904671e86c16ece21323",
+  "gitHead": "508f71797f596a31a4db6b56403dc48360ec3f18",
   "publishConfig": {
     "access": "public"
   }

@@ -2109,6 +2109,7 @@ var _AUTOMATION_ACTIONS = {
     metriportSync: '',
     aiDecision: '',
     assignInboxItem: '',
+    createScriptSureDraft: '',
 };
 exports.AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS);
 exports.automationActionTypeValidator = (0, exports.exactMatchValidator)(exports.AUTOMATION_ACTIONS);
@@ -2709,6 +2710,9 @@ exports.automationActionValidator = (0, exports.orValidator)({
             limit: exports.nonNegNumberValidator,
         }, { emptyOk: false }) // at least tags is required
      })),
+    createScriptSureDraft: (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(['createScriptSureDraft']), info: (0, exports.objectValidator)({
+            prescriptionRouteId: exports.mongoIdStringRequired,
+        }, { emptyOk: false }) })),
     "Puppeteer: Start Agent": (0, exports.objectValidator)(__assign(__assign({}, sharedAutomationActionValidators), { type: (0, exports.exactMatchValidator)(["Puppeteer: Start Agent"]), info: sendWebhookInfoValidator })),
 });
 exports.journeyContextValidator = (0, exports.objectValidator)({
@@ -2732,6 +2736,7 @@ exports.journeyContextValidator = (0, exports.objectValidator)({
     twilioNumber: exports.stringValidatorOptionalEmptyOkay,
     ticketThreadId: exports.mongoIdStringOptional,
     ticketThreadCommentId: exports.mongoIdStringOptional,
+    medicationId: exports.mongoIdStringOptional,
 });
 exports.relatedRecordValidator = (0, exports.objectValidator)({
     type: exports.stringValidator100,
@@ -3724,6 +3729,9 @@ exports.organizationSettingsValidator = (0, exports.objectValidator)({
         autoReplyEnabled: exports.booleanValidatorOptional,
         recordCalls: exports.booleanValidatorOptional,
         transcribeCalls: exports.booleanValidatorOptional,
+        summarizeCallRecordings: exports.booleanValidatorOptional,
+        summarizeCallRecordingsPrompt: exports.stringValidatorOptionalEmptyOkay,
+        summarizeCallRecordingsMaxTokens: exports.numberValidatorOptional,
         showFreeNote: exports.booleanValidatorOptional,
         autoSaveFreeNote: exports.booleanValidatorOptional,
         canDeleteFreeNote: exports.booleanValidatorOptional,
@@ -4057,6 +4065,7 @@ exports.automationTriggerEventValidator = (0, exports.orValidator)({
         type: (0, exports.exactMatchValidator)(['Medication Added']),
         info: (0, exports.objectValidator)({
             titles: exports.listOfStringsValidatorEmptyOk,
+            protocols: exports.listOfStringsValidatorEmptyOk,
         }),
         conditions: exports.optionalEmptyObjectValidator,
     }),
@@ -4999,6 +5008,10 @@ exports.analyticsQueryValidator = (0, exports.orValidator)({
             }),
             "Duration": (0, exports.objectValidator)({
                 method: (0, exports.exactMatchValidator)(['Duration']),
+                parameters: exports.optionalEmptyObjectValidator,
+            }),
+            "Wait Time": (0, exports.objectValidator)({
+                method: (0, exports.exactMatchValidator)(['Wait Time']),
                 parameters: exports.optionalEmptyObjectValidator,
             }),
         }),

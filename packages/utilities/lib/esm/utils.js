@@ -2577,6 +2577,37 @@ export var replace_purchase_template_values = function (s, purchase) {
     }
     return replaced;
 };
+export var replace_medication_template_values = function (s, medication) {
+    if (!medication)
+        return s;
+    if (typeof s !== 'string')
+        return s; // e.g. Date value
+    var i = 0;
+    var start = 0;
+    var templates = [];
+    while (i < 100) {
+        i++;
+        start = s.indexOf('{{medication.', start);
+        if (start === -1)
+            break;
+        var end = s.indexOf('}}', start);
+        if (end === -1)
+            break;
+        var match = s.substring(start, end + 2); // +2 accounts for '}}'
+        templates.push({
+            match: match,
+            replacement: (match === '{{medication.name}}' ? medication.title
+                : '')
+        });
+        start = end + 2;
+    }
+    var replaced = s.toString();
+    for (var _i = 0, templates_2 = templates; _i < templates_2.length; _i++) {
+        var _a = templates_2[_i], match = _a.match, replacement = _a.replacement;
+        replaced = replaced.replace(match, replacement);
+    }
+    return replaced;
+};
 export var replace_form_field_template_values = function (s, options) {
     var _a, _b, _d, _e, _f, _g, _h, _j;
     if (!s)
@@ -2678,8 +2709,8 @@ export var replace_form_field_template_values = function (s, options) {
             break;
     }
     var replaced = s.toString();
-    for (var _i = 0, templates_2 = templates; _i < templates_2.length; _i++) {
-        var _l = templates_2[_i], match = _l.match, replacement = _l.replacement;
+    for (var _i = 0, templates_3 = templates; _i < templates_3.length; _i++) {
+        var _l = templates_3[_i], match = _l.match, replacement = _l.replacement;
         replaced = replaced.replace(match, replacement);
     }
     return replaced;
@@ -2704,8 +2735,8 @@ var replacer = function (prefix, s, handleMatch) {
         start = end + 2;
     }
     var replaced = s.toString();
-    for (var _i = 0, templates_3 = templates; _i < templates_3.length; _i++) {
-        var _a = templates_3[_i], match = _a.match, replacement = _a.replacement;
+    for (var _i = 0, templates_4 = templates; _i < templates_4.length; _i++) {
+        var _a = templates_4[_i], match = _a.match, replacement = _a.replacement;
         replaced = replaced.replace(match, replacement);
     }
     return replaced;
@@ -2769,8 +2800,8 @@ export var replace_enduser_template_values = function (s, enduser, options) {
         start = end + 2;
     }
     var replaced = s.toString();
-    for (var _i = 0, templates_4 = templates; _i < templates_4.length; _i++) {
-        var _a = templates_4[_i], match = _a.match, replacement = _a.replacement;
+    for (var _i = 0, templates_5 = templates; _i < templates_5.length; _i++) {
+        var _a = templates_5[_i], match = _a.match, replacement = _a.replacement;
         replaced = replaced.replace(match, replacement);
     }
     return replaced;

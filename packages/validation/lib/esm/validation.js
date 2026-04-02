@@ -2058,6 +2058,7 @@ var _AUTOMATION_ACTIONS = {
     metriportSync: '',
     aiDecision: '',
     assignInboxItem: '',
+    createScriptSureDraft: '',
 };
 export var AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS);
 export var automationActionTypeValidator = exactMatchValidator(AUTOMATION_ACTIONS);
@@ -2658,6 +2659,9 @@ export var automationActionValidator = orValidator({
             limit: nonNegNumberValidator,
         }, { emptyOk: false }) // at least tags is required
      })),
+    createScriptSureDraft: objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(['createScriptSureDraft']), info: objectValidator({
+            prescriptionRouteId: mongoIdStringRequired,
+        }, { emptyOk: false }) })),
     "Puppeteer: Start Agent": objectValidator(__assign(__assign({}, sharedAutomationActionValidators), { type: exactMatchValidator(["Puppeteer: Start Agent"]), info: sendWebhookInfoValidator })),
 });
 export var journeyContextValidator = objectValidator({
@@ -2681,6 +2685,7 @@ export var journeyContextValidator = objectValidator({
     twilioNumber: stringValidatorOptionalEmptyOkay,
     ticketThreadId: mongoIdStringOptional,
     ticketThreadCommentId: mongoIdStringOptional,
+    medicationId: mongoIdStringOptional,
 });
 export var relatedRecordValidator = objectValidator({
     type: stringValidator100,
@@ -3671,6 +3676,9 @@ export var organizationSettingsValidator = objectValidator({
         autoReplyEnabled: booleanValidatorOptional,
         recordCalls: booleanValidatorOptional,
         transcribeCalls: booleanValidatorOptional,
+        summarizeCallRecordings: booleanValidatorOptional,
+        summarizeCallRecordingsPrompt: stringValidatorOptionalEmptyOkay,
+        summarizeCallRecordingsMaxTokens: numberValidatorOptional,
         showFreeNote: booleanValidatorOptional,
         autoSaveFreeNote: booleanValidatorOptional,
         canDeleteFreeNote: booleanValidatorOptional,
@@ -4004,6 +4012,7 @@ export var automationTriggerEventValidator = orValidator({
         type: exactMatchValidator(['Medication Added']),
         info: objectValidator({
             titles: listOfStringsValidatorEmptyOk,
+            protocols: listOfStringsValidatorEmptyOk,
         }),
         conditions: optionalEmptyObjectValidator,
     }),
@@ -4946,6 +4955,10 @@ export var analyticsQueryValidator = orValidator({
             }),
             "Duration": objectValidator({
                 method: exactMatchValidator(['Duration']),
+                parameters: optionalEmptyObjectValidator,
+            }),
+            "Wait Time": objectValidator({
+                method: exactMatchValidator(['Wait Time']),
                 parameters: optionalEmptyObjectValidator,
             }),
         }),

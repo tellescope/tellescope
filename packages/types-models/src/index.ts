@@ -225,6 +225,9 @@ export type OrganizationSettings = {
     recordCallAudioPlayback?: string,
     dontRecordCallsToPhone?: string[],
     transcribeCalls?: boolean,
+    summarizeCallRecordings?: boolean,
+    summarizeCallRecordingsPrompt?: string,
+    summarizeCallRecordingsMaxTokens?: number,
     transcribeCallInboundPlayback?: string, // should be 'recordCall' but too late
     showDeleteCallRecordingOnTimeline?: boolean,
     defaultPhoneNumber?: string,
@@ -1116,6 +1119,7 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
 
   // Medication status (e.g., 'draft', 'pending', 'active', 'Prescribed')
   status?: string,
+  protocol?: string,
   scriptSureDraft?: {
     prescriptionRouteId?: string,    // Optional reference to PrescriptionRoute used
     drugId?: string,                  // ScriptSure drug ID
@@ -1219,7 +1223,7 @@ export type FormResponsesReport = Report
 
 export type PhoneCallsReportQuery = ReportQuery & {}
 export type PhoneCallsReportQueries = Record<string, PhoneCallsReportQuery>
-export type PhoneCallsReport = Record<string, { count: number, callDurationInSeconds: number, _id: null | string | string[] }[]>
+export type PhoneCallsReport = Record<string, { count: number, callDurationInSeconds: number, waitTimeInSeconds: number, _id: null | string | string[] }[]>
 
 export type EnduserReportQuery = ReportQuery & {
   activeSince?: Date,
@@ -3420,6 +3424,9 @@ export type AssignInboxItemAutomationAction = AutomationActionBuilder<'assignInb
   tags: ListOfStringsWithQualifier,
   limit: number,
 }>
+export type CreateScriptSureDraftAutomationAction = AutomationActionBuilder<'createScriptSureDraft', {
+  prescriptionRouteId: string,
+}>
 
 export type AutomationActionForType = {
   'aiDecision': AIDecisionAutomationAction,
@@ -3482,6 +3489,7 @@ export type AutomationActionForType = {
   removeCareTeam: RemoveCareTeamAutomationAction,
   assignCareTeam: AssignCareTeamAutomationAction,
   callUser: CallUserAutomationAction,
+  createScriptSureDraft: CreateScriptSureDraftAutomationAction,
 }
 export type AutomationActionType = keyof AutomationActionForType
 export type AutomationAction = AutomationActionForType[AutomationActionType]
@@ -3948,6 +3956,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
   unread?: boolean,
   transcription?: string, // Twilio voicemail transcription
   recordingTranscriptionData?: string, // Full AWS Transcribe JSON response (stringified) with metadata
+  aiSummary?: string,
   note?: string,
   userId?: string,
   pinnedAt?: Date | '',
@@ -4063,9 +4072,10 @@ export type AnalyticsQueryInfoForType = {
   "Files": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },  
   "SMS Messages": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },
   "Medications": { Total:  AnalyticsQueryInfoBuilder<'Total', undefined> },
-  "Phone Calls": { 
+  "Phone Calls": {
     Total:  AnalyticsQueryInfoBuilder<'Total', undefined>,
     Duration:  AnalyticsQueryInfoBuilder<'Duration', undefined>,
+    "Wait Time": AnalyticsQueryInfoBuilder<'Wait Time', undefined>,
   },
   "Meetings": { 
     Total: AnalyticsQueryInfoBuilder<'Total', undefined>,
@@ -4612,7 +4622,7 @@ export type AutomationTriggerEvents = {
     cancelReasons?: string[], // filter by specific cancel reasons
   }, {}>,
   'Appointment Rescheduled': AutomationTriggerEventBuilder<"Appointment Rescheduled", { titles?: string[], detectManualReschedules?: boolean }, {}>,
-  'Medication Added': AutomationTriggerEventBuilder<"Medication Added", { titles: string[] }, {}>,
+  'Medication Added': AutomationTriggerEventBuilder<"Medication Added", { titles: string[], protocols: string[] }, {}>,
   'No Recent Appointment': AutomationTriggerEventBuilder<"No Recent Appointment", { 
     intervalInMS: number, 
     templateIds?: string[],
@@ -5017,6 +5027,12 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
   fill?: string,
   sku?: string,
   bookingLink?: string,
+  pharmacy?: string,
+  pharmacyOrderId?: string,
+  cancelledDate?: string,
+  cancellationReason?: string,
+  medication?: string,
+  medicationSku?: string,
 }
 
 export interface EnduserProblem_readonly extends ClientRecord {}
@@ -5932,6 +5948,7 @@ export type JourneyContext = {
   twilioNumber?: string,
   ticketThreadId?: string,
   ticketThreadCommentId?: string,
+  medicationId?: string,
 }
 
 // https://gist.github.com/aviflax/a4093965be1cd008f172/ 

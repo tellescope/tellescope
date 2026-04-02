@@ -86,7 +86,9 @@ import { database_cascade_delete_tests } from "./api_tests/database_cascade_dele
 import { ai_conversations_tests } from "./api_tests/ai_conversations.test";
 import { load_team_chat_tests } from "./api_tests/load_team_chat.test";
 import { form_started_trigger_tests } from "./api_tests/form_started_trigger.test";
+import { medication_added_trigger_tests } from "./api_tests/medication_added_trigger.test";
 import { elation_user_id_tests } from "./api_tests/elation_user_id.test";
+import { openloop_webhooks_tests } from "./api_tests/openloop_webhooks.test";
 
 const UniquenessViolationMessage = 'Uniqueness Violation'
 
@@ -5010,6 +5012,7 @@ const trigger_events_api_tests = async () => {
 const automation_trigger_tests = async () => {
   log_header("Automation Trigger Tests")
 
+  await medication_added_trigger_tests({ sdk, sdkNonAdmin })
   await order_status_equals_tests()
   await appointment_cancelled_tests()
   await set_fields_tests()
@@ -5026,7 +5029,7 @@ const automation_trigger_tests = async () => {
   await appointment_created_tests()
   await tag_added_tests()
   await order_created_tests()
-  await formSubmittedTriggerTests() 
+  await formSubmittedTriggerTests()
 }
 
 const form_response_tests = async () => {
@@ -14097,6 +14100,7 @@ const ip_address_form_tests = async () => {
     await replace_enduser_template_values_tests()
     await mfa_tests()
     await setup_tests(sdk, sdkNonAdmin)
+    await openloop_webhooks_tests({ sdk, sdkNonAdmin })
     await automation_trigger_tests()
     await get_some_projection_tests({ sdk, sdkNonAdmin })
     await elation_user_id_tests({ sdk, sdkNonAdmin })

@@ -261,4 +261,6 @@ export declare const ATHENA_DOCUMENT_TYPES_TO_DISPLAY: {
         sources: string[];
     };
 };
+export declare const DEFAULT_CALL_SUMMARY_PROMPT = "Summarize this phone call transcription. Include the key topics discussed, any action items or follow-ups mentioned, and the overall outcome of the call. Keep the summary concise (2-4 paragraphs).";
+export declare const DEFAULT_CALL_SUMMARY_MAX_TOKENS = 500;
 //# sourceMappingURL=constants.d.ts.map

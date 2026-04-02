@@ -1703,6 +1703,7 @@ export declare const automationTriggerEventValidator: ValidatorDefinition<import
     detectManualReschedules?: boolean | undefined;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Medication Added", {
     titles: string[];
+    protocols: string[];
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"On Birthday", {
     minutes: number;
 }, {}> | import("@tellescope/types-models").AutomationTriggerEventBuilder<"Has Not Engaged", {
@@ -2016,6 +2017,9 @@ export declare const analyticsQueryValidator: ValidatorDefinition<{
     } | {
         method: "Duration";
         parameters: undefined;
+    } | {
+        method: "Wait Time";
+        parameters: undefined;
     };
     filter?: {} | undefined;
     grouping?: (import("@tellescope/types-models").EnduserGrouping & {
@@ -2276,6 +2280,9 @@ export declare const analyticsQueriesValidatorOptional: ValidatorDefinition<({
         parameters: undefined;
     } | {
         method: "Duration";
+        parameters: undefined;
+    } | {
+        method: "Wait Time";
         parameters: undefined;
     };
     filter?: {} | undefined;

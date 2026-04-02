@@ -344,6 +344,7 @@ import {
   MetriportSyncAutomationAction,
   AIDecisionAutomationAction,
   AssignInboxItemAutomationAction,
+  CreateScriptSureDraftAutomationAction,
   BelugaAutoRxAutomationAction,
   BelugaAutoRxPatientPreferenceItem,
   BelugaUpdateVisitAutomationAction,
@@ -2598,6 +2599,7 @@ const _AUTOMATION_ACTIONS: { [K in AutomationActionType]: any } = {
   metriportSync: '',
   aiDecision: '',
   assignInboxItem: '',
+  createScriptSureDraft: '',
 }
 export const AUTOMATION_ACTIONS = Object.keys(_AUTOMATION_ACTIONS) as AutomationActionType[]
 export const automationActionTypeValidator = exactMatchValidator<AutomationActionType>(AUTOMATION_ACTIONS)
@@ -3494,10 +3496,17 @@ export const automationActionValidator = orValidator<{ [K in AutomationActionTyp
   assignInboxItem: objectValidator<AssignInboxItemAutomationAction>({
     ...sharedAutomationActionValidators,
     type: exactMatchValidator(['assignInboxItem']),
-    info: objectValidator<AssignInboxItemAutomationAction['info']>({ 
+    info: objectValidator<AssignInboxItemAutomationAction['info']>({
       tags: listOfStringsWithQualifierValidator,
       limit: nonNegNumberValidator,
     }, { emptyOk: false }) // at least tags is required
+  }),
+  createScriptSureDraft: objectValidator<CreateScriptSureDraftAutomationAction>({
+    ...sharedAutomationActionValidators,
+    type: exactMatchValidator(['createScriptSureDraft']),
+    info: objectValidator<CreateScriptSureDraftAutomationAction['info']>({
+      prescriptionRouteId: mongoIdStringRequired,
+    }, { emptyOk: false }),
   }),
 
 
@@ -3529,6 +3538,7 @@ export const journeyContextValidator = objectValidator<JourneyContext>({
   twilioNumber: stringValidatorOptionalEmptyOkay,
   ticketThreadId: mongoIdStringOptional,
   ticketThreadCommentId: mongoIdStringOptional,
+  medicationId: mongoIdStringOptional,
 })
 
 export const relatedRecordValidator = objectValidator<RelatedRecord>({
@@ -4582,6 +4592,9 @@ export const organizationSettingsValidator = objectValidator<OrganizationSetting
     autoReplyEnabled: booleanValidatorOptional,
     recordCalls: booleanValidatorOptional,
     transcribeCalls: booleanValidatorOptional,
+    summarizeCallRecordings: booleanValidatorOptional,
+    summarizeCallRecordingsPrompt: stringValidatorOptionalEmptyOkay,
+    summarizeCallRecordingsMaxTokens: numberValidatorOptional,
     showFreeNote: booleanValidatorOptional,
     autoSaveFreeNote: booleanValidatorOptional,
     canDeleteFreeNote: booleanValidatorOptional,
@@ -4924,6 +4937,7 @@ export const automationTriggerEventValidator = orValidator<{ [K in AutomationTri
     type: exactMatchValidator(['Medication Added']),
     info: objectValidator<AutomationTriggerEvents['Medication Added']['info']>({
       titles: listOfStringsValidatorEmptyOk,
+      protocols: listOfStringsValidatorEmptyOk,
     }),
     conditions: optionalEmptyObjectValidator,
   }), 
@@ -5920,6 +5934,10 @@ export const analyticsQueryValidator = orValidator<{ [K in AnalyticsQueryType]: 
       }),
       "Duration": objectValidator<AnalyticsQueryInfoForType['Phone Calls']['Duration']>({
         method: exactMatchValidator<"Duration">(['Duration']),
+        parameters: optionalEmptyObjectValidator,
+      }),
+      "Wait Time": objectValidator<AnalyticsQueryInfoForType['Phone Calls']['Wait Time']>({
+        method: exactMatchValidator<"Wait Time">(['Wait Time']),
         parameters: optionalEmptyObjectValidator,
       }),
     }),

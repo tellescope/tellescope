@@ -1266,3 +1266,6 @@ export const ATHENA_DOCUMENT_TYPES_TO_DISPLAY: { [key in AthenaDocumentType]: { 
   },
   // prescription: { display: "Prescription", subclasses: [], sources: [] },
 }
+
+export const DEFAULT_CALL_SUMMARY_PROMPT = "Summarize this phone call transcription. Include the key topics discussed, any action items or follow-ups mentioned, and the overall outcome of the call. Keep the summary concise (2-4 paragraphs).";
+export const DEFAULT_CALL_SUMMARY_MAX_TOKENS = 500;

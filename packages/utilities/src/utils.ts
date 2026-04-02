@@ -1,4 +1,4 @@
-import { AllergyResponse, AvailabilityBlock, CalendarEvent, CalendarEventLimit, CompoundFilter, Enduser, EnduserInsurance, EnduserObservation, EnduserRelationship, File, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerAddress, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, Integration, LabeledField, ManagedContentRecord, MedicationResponse, Organization, OutOfOfficeBlock, Product, Purchase, RoundRobinAssignmentInfo, SMSMessage, TableInputCell, Ticket, Timezone, TIMEZONES, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
+import { AllergyResponse, AvailabilityBlock, CalendarEvent, CalendarEventLimit, CompoundFilter, Enduser, EnduserInsurance, EnduserMedication, EnduserObservation, EnduserRelationship, File, Form, FormField, FormFieldType, FormResponse, FormResponseAnswerAddress, FormResponseAnswerNumber, FormResponseAnswerString, FormResponseValue, FormResponseValueAnswer, Integration, LabeledField, ManagedContentRecord, MedicationResponse, Organization, OutOfOfficeBlock, Product, Purchase, RoundRobinAssignmentInfo, SMSMessage, TableInputCell, Ticket, Timezone, TIMEZONES, USA_STATE_TO_TIMEZONE, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models"
 import { ADMIN_ROLE, ALL_ENDUSER_FIELDS_TO_DISPLAY_NAME, CANVAS_TITLE, ENDUSER_FIELDS_WITH_NESTED_PATHS_DISPLAY_NAME, get_inverse_relationship_type, HEALTHIE_TITLE, MM_DD_YYYY_REGEX, READONLY_ENDUSER_FIELDS_TO_DISPLAY_NAME } from "@tellescope/constants"
 import sanitizeHtml from 'sanitize-html';
 import { DateTime } from "luxon"
@@ -2716,6 +2716,42 @@ export const replace_purchase_template_values = (s: string, purchase?: Omit<Purc
       : match === '{{purchase.externalId}}' ? (purchase.externalId || '')
       : match === '{{purchase.source}}' ? (purchase.source || '')
       : match === '{{purchase.cost.amount}}' ? purchase.cost.amount.toString()
+        : ''
+      )
+    })
+
+    start = end + 2
+  }
+
+  let replaced = s.toString()
+  for (const { match, replacement } of templates) {
+    replaced = replaced.replace(match, replacement)
+  }
+
+  return replaced
+}
+
+export const replace_medication_template_values = (s: string, medication?: Omit<EnduserMedication, 'id'> | null) => {
+  if (!medication) return s
+  if (typeof s !== 'string') return s // e.g. Date value
+
+  let i = 0
+  let start = 0
+  let templates = [] as { match: string, replacement: string }[]
+  while (i < 100) {
+    i++
+
+    start = s.indexOf('{{medication.', start)
+    if (start === -1) break;
+
+    const end = s.indexOf('}}', start)
+    if (end === -1) break;
+
+    const match = s.substring(start, end + 2) // +2 accounts for '}}'
+    templates.push({
+      match,
+      replacement: (
+        match === '{{medication.name}}' ? medication.title
         : ''
       )
     })

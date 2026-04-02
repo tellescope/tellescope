@@ -207,6 +207,9 @@ export type OrganizationSettings = {
         recordCallAudioPlayback?: string;
         dontRecordCallsToPhone?: string[];
         transcribeCalls?: boolean;
+        summarizeCallRecordings?: boolean;
+        summarizeCallRecordingsPrompt?: string;
+        summarizeCallRecordingsMaxTokens?: number;
         transcribeCallInboundPlayback?: string;
         showDeleteCallRecordingOnTimeline?: boolean;
         defaultPhoneNumber?: string;
@@ -1049,6 +1052,7 @@ export interface EnduserMedication extends EnduserMedication_readonly, EnduserMe
     directions?: string;
     allergyNote?: string;
     status?: string;
+    protocol?: string;
     scriptSureDraft?: {
         prescriptionRouteId?: string;
         drugId?: string;
@@ -1156,6 +1160,7 @@ export type PhoneCallsReportQueries = Record<string, PhoneCallsReportQuery>;
 export type PhoneCallsReport = Record<string, {
     count: number;
     callDurationInSeconds: number;
+    waitTimeInSeconds: number;
     _id: null | string | string[];
 }[]>;
 export type EnduserReportQuery = ReportQuery & {
@@ -3411,6 +3416,9 @@ export type AssignInboxItemAutomationAction = AutomationActionBuilder<'assignInb
     tags: ListOfStringsWithQualifier;
     limit: number;
 }>;
+export type CreateScriptSureDraftAutomationAction = AutomationActionBuilder<'createScriptSureDraft', {
+    prescriptionRouteId: string;
+}>;
 export type AutomationActionForType = {
     'aiDecision': AIDecisionAutomationAction;
     'assignInboxItem': AssignInboxItemAutomationAction;
@@ -3472,6 +3480,7 @@ export type AutomationActionForType = {
     removeCareTeam: RemoveCareTeamAutomationAction;
     assignCareTeam: AssignCareTeamAutomationAction;
     callUser: CallUserAutomationAction;
+    createScriptSureDraft: CreateScriptSureDraftAutomationAction;
 };
 export type AutomationActionType = keyof AutomationActionForType;
 export type AutomationAction = AutomationActionForType[AutomationActionType];
@@ -3940,6 +3949,7 @@ export interface PhoneCall extends PhoneCall_readonly, PhoneCall_required, Phone
     unread?: boolean;
     transcription?: string;
     recordingTranscriptionData?: string;
+    aiSummary?: string;
     note?: string;
     userId?: string;
     pinnedAt?: Date | '';
@@ -4075,6 +4085,7 @@ export type AnalyticsQueryInfoForType = {
     "Phone Calls": {
         Total: AnalyticsQueryInfoBuilder<'Total', undefined>;
         Duration: AnalyticsQueryInfoBuilder<'Duration', undefined>;
+        "Wait Time": AnalyticsQueryInfoBuilder<'Wait Time', undefined>;
     };
     "Meetings": {
         Total: AnalyticsQueryInfoBuilder<'Total', undefined>;
@@ -4616,6 +4627,7 @@ export type AutomationTriggerEvents = {
     }, {}>;
     'Medication Added': AutomationTriggerEventBuilder<"Medication Added", {
         titles: string[];
+        protocols: string[];
     }, {}>;
     'No Recent Appointment': AutomationTriggerEventBuilder<"No Recent Appointment", {
         intervalInMS: number;
@@ -5108,6 +5120,12 @@ export interface EnduserOrder extends EnduserOrder_readonly, EnduserOrder_requir
     fill?: string;
     sku?: string;
     bookingLink?: string;
+    pharmacy?: string;
+    pharmacyOrderId?: string;
+    cancelledDate?: string;
+    cancellationReason?: string;
+    medication?: string;
+    medicationSku?: string;
 }
 export interface EnduserProblem_readonly extends ClientRecord {
 }
@@ -5960,6 +5978,7 @@ export type JourneyContext = {
     twilioNumber?: string;
     ticketThreadId?: string;
     ticketThreadCommentId?: string;
+    medicationId?: string;
 };
 export declare const TIMEZONE_MAP: {
     readonly "Africa/Abidjan": "+00:00";

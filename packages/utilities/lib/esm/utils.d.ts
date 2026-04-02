@@ -1,4 +1,4 @@
-import { AvailabilityBlock, CalendarEvent, CalendarEventLimit, CompoundFilter, Enduser, EnduserInsurance, EnduserObservation, Form, FormField, FormFieldType, FormResponse, FormResponseValue, FormResponseValueAnswer, Integration, LabeledField, ManagedContentRecord, Organization, OutOfOfficeBlock, Purchase, RoundRobinAssignmentInfo, SMSMessage, TableInputCell, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models";
+import { AvailabilityBlock, CalendarEvent, CalendarEventLimit, CompoundFilter, Enduser, EnduserInsurance, EnduserMedication, EnduserObservation, Form, FormField, FormFieldType, FormResponse, FormResponseValue, FormResponseValueAnswer, Integration, LabeledField, ManagedContentRecord, Organization, OutOfOfficeBlock, Purchase, RoundRobinAssignmentInfo, SMSMessage, TableInputCell, User, UserActivityInfo, UserActivityStatus, VitalComparison, VitalConfiguration } from "@tellescope/types-models";
 import { DateTime } from "luxon";
 import { ObjectId } from "./ObjectId/objectid";
 export { ObjectId };
@@ -323,6 +323,7 @@ export type ReplacementOptions = {
 };
 export declare const replace_tag_template_values_for_enduser: (tags: string[], enduser: Omit<Enduser, 'id'>, options?: ReplacementOptions) => any[];
 export declare const replace_purchase_template_values: (s: string, purchase?: Omit<Purchase, 'id'> | null) => string;
+export declare const replace_medication_template_values: (s: string, medication?: Omit<EnduserMedication, 'id'> | null) => string;
 export declare const replace_form_field_template_values: (s: string, options: {
     enduser?: Partial<Enduser> | undefined;
     responses?: FormResponseValue[] | undefined;
